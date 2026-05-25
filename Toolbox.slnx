@@ -1,4 +1,0 @@
-<Solution>
-  <Project Path="Essentials/Essentials.csproj" />
-  <Project Path="Essentials.Tests/Essentials.Tests.csproj" />
-</Solution>
