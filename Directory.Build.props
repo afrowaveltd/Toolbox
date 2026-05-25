@@ -1,0 +1,37 @@
+<Project>
+
+  <!-- ═══════════════════════════════════════════════════
+	   Shared configuration for all Afrowave Toolbox projects
+	   ═══════════════════════════════════════════════════ -->
+
+  <PropertyGroup>
+	<!-- Compiler defaults -->
+	<TargetFramework>net10.0</TargetFramework>
+	<Nullable>enable</Nullable>
+	<ImplicitUsings>enable</ImplicitUsings>
+	<LangVersion>latest</LangVersion>
+	<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!-- NuGet metadata shared across all published packages -->
+  <PropertyGroup Condition="!$(MSBuildProjectName.EndsWith('.Tests'))">
+	<GenerateDocumentationFile>true</GenerateDocumentationFile>
+	<IncludeSymbols>true</IncludeSymbols>
+	<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+	<PackageProjectUrl>https://github.com/afrowaveltd/Toolbox</PackageProjectUrl>
+	<RepositoryUrl>https://github.com/afrowaveltd/Toolbox</RepositoryUrl>
+	<RepositoryType>git</RepositoryType>
+	<PackageTags>afrowave;toolbox;dotnet</PackageTags>
+  </PropertyGroup>
+
+  <!-- Author identity — shared across all projects -->
+  <PropertyGroup>
+	<Authors>Afrowave Community</Authors>
+	<Company>Afrowave Community</Company>
+	<Product>Afrowave Toolbox</Product>
+	<Copyright>Copyright © Afrowave Community</Copyright>
+  </PropertyGroup>
+
+</Project>

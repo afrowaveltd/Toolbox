@@ -1,9 +1,58 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
+  <PropertyGroup>
+	<PackageId>Afrowave.Toolbox.Essentials</PackageId>
+	<RootNamespace>Afrowave.Toolbox.Essentials</RootNamespace>
+	<AssemblyName>Afrowave.Toolbox.Essentials</AssemblyName>
+	<Title>Afrowave Toolbox Essentials</Title>
+	<Description>Core building blocks for the Afrowave Toolbox package family. Provides shared abstractions, contracts, and utility types.</Description>
+	<PackageTags>afrowave;toolbox;essentials;dotnet;foundation</PackageTags>
+	<Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="obj\Debug\net10.0\.NETCoreApp,Version=v10.0.AssemblyAttributes.cs" />
+    <Compile Include="obj\Debug\net10.0\Essentials.AssemblyInfo.cs" />
+    <Compile Include="obj\Debug\net10.0\Essentials.GlobalUsings.g.cs" />
+    <Compile Include="obj\Release\net10.0\.NETCoreApp,Version=v10.0.AssemblyAttributes.cs" />
+    <Compile Include="obj\Release\net10.0\Essentials.AssemblyInfo.cs" />
+    <Compile Include="obj\Release\net10.0\Essentials.GlobalUsings.g.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="bin\Debug\net10.0\Essentials.deps.json" />
+    <Content Include="bin\Debug\net10.0\Essentials.xml" />
+    <Content Include="obj\Debug\net10.0\Essentials.csproj.FileListAbsolute.txt" />
+    <Content Include="obj\Debug\net10.0\Essentials.xml" />
+    <Content Include="obj\Essentials.csproj.nuget.dgspec.json" />
+    <Content Include="obj\project.assets.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="bin\Release\net10.0\" />
+    <Folder Include="Docs\Overview\" />
+    <Folder Include="obj\Release\net10.0\refint\" />
+    <Folder Include="obj\Release\net10.0\ref\" />
+    <Folder Include="Readme\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="bin\Debug\net10.0\Essentials.dll" />
+    <None Include="bin\Debug\net10.0\Essentials.pdb" />
+    <None Include="obj\Debug\net10.0\Essentials.AssemblyInfoInputs.cache" />
+    <None Include="obj\Debug\net10.0\Essentials.assets.cache" />
+    <None Include="obj\Debug\net10.0\Essentials.csproj.CoreCompileInputs.cache" />
+    <None Include="obj\Debug\net10.0\Essentials.dll" />
+    <None Include="obj\Debug\net10.0\Essentials.GeneratedMSBuildEditorConfig.editorconfig" />
+    <None Include="obj\Debug\net10.0\Essentials.pdb" />
+    <None Include="obj\Debug\net10.0\refint\Essentials.dll" />
+    <None Include="obj\Debug\net10.0\ref\Essentials.dll" />
+    <None Include="obj\Essentials.csproj.nuget.g.props" />
+    <None Include="obj\Essentials.csproj.nuget.g.targets" />
+    <None Include="obj\project.nuget.cache" />
+    <None Include="obj\Release\net10.0\Essentials.AssemblyInfoInputs.cache" />
+    <None Include="obj\Release\net10.0\Essentials.assets.cache" />
+    <None Include="obj\Release\net10.0\Essentials.GeneratedMSBuildEditorConfig.editorconfig" />
+  </ItemGroup>
 
 </Project>
