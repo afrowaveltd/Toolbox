@@ -1,15 +1,15 @@
 # Afrowave.Toolbox
 
-Spolecny zaklad pro knihovny rodiny Afrowave.Toolbox.
+Common foundation for the Afrowave.Toolbox package family.
 
 ## NuGet packaging baseline
 
-Repo pouziva centralni konfiguraci v Directory.Build.props, ktera nastavuje net10.0, nullable, implicit usings, vychozi metadata, symbol balicky a pridani README.md + LICENSE.txt do kazdeho NuGet balicku.
+The repository uses central configuration in Directory.Build.props, which sets net10.0, nullable, implicit usings, default metadata, symbol packages, and includes README.md + LICENSE.txt in each NuGet package.
 
-## Co vyplnit v kazdem novem NuGet projektu
+## What to fill in for each new NuGet project
 
-V konkretnim csproj ponechte jen balickove specificke hodnoty: PackageId, Description, PackageTags, Version a volitelne AssemblyName/RootNamespace.
+In a specific .csproj, keep only package-specific values: PackageId, Description, PackageTags, Version, and optionally AssemblyName/RootNamespace.
 
-## Vytvoreni balicku
+## Creating a package
 
 dotnet pack Essentials/Essentials.csproj -c Release
