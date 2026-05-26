@@ -3,7 +3,9 @@
   <PropertyGroup>
 	<RootNamespace>Afrowave.Toolbox.Essentials.Tests</RootNamespace>
 	<AssemblyName>Afrowave.Toolbox.Essentials.Tests</AssemblyName>
+	<IsTestProject>true</IsTestProject>
 	<IsPackable>false</IsPackable>
+	<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,6 +15,10 @@
 	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  <PrivateAssets>all</PrivateAssets>
 	</PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+	<Using Include="Xunit" />
   </ItemGroup>
 
   <ItemGroup>

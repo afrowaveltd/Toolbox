@@ -1,7 +1,35 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "G:\\Afrowave Projects\\Toolbox\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\mukwano\\.copilot\\plans\\plan-pprava-een-pro-nuget-balen.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|MarkdownSecurePreview"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|G:\\Afrowave Projects\\Toolbox\\Directory.Build.props||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Directory.Build.props||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|g:\\afrowave projects\\toolbox\\essentials\\essentials.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\essentials.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|g:\\afrowave projects\\toolbox\\essentials.tests\\essentials.tests.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\essentials.tests.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|g:\\afrowave projects\\toolbox\\readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|G:\\Afrowave Projects\\Toolbox\\.gitignore||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:.gitignore||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|G:\\Afrowave Projects\\Toolbox\\LICENSE.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:LICENSE.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -9,7 +37,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 245,
-          "SelectedChildIndex": -1,
+          "SelectedChildIndex": 52,
           "Children": [
             {
               "$type": "Bookmark",
@@ -218,6 +246,94 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{e1b7d1f8-9b3c-49b1-8f4f-bfc63a88835d}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "plan-pprava-een-pro-nuget-balen.md [N\u00E1hled]",
+              "DocumentMoniker": "C:\\Users\\mukwano\\.copilot\\plans\\plan-pprava-een-pro-nuget-balen.md",
+              "ToolTip": "C:\\Users\\mukwano\\.copilot\\plans\\plan-pprava-een-pro-nuget-balen.md [N\u00E1hled]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-05-26T04:12:05.286Z",
+              "EditorCaption": " [N\u00E1hled]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "LICENSE.txt",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\LICENSE.txt",
+              "RelativeDocumentMoniker": "LICENSE.txt",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\LICENSE.txt",
+              "RelativeToolTip": "LICENSE.txt",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2026-05-25T21:48:54.592Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": ".gitignore",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\.gitignore",
+              "RelativeDocumentMoniker": ".gitignore",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\.gitignore",
+              "RelativeToolTip": ".gitignore",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-05-25T21:48:29.454Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "README.md",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\README.md",
+              "RelativeDocumentMoniker": "README.md",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\README.md",
+              "RelativeToolTip": "README.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-05-25T21:48:29.067Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Essentials.Tests",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Essentials.Tests\\Essentials.Tests.csproj",
+              "RelativeDocumentMoniker": "Essentials.Tests\\Essentials.Tests.csproj",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\Essentials.Tests\\Essentials.Tests.csproj",
+              "RelativeToolTip": "Essentials.Tests\\Essentials.Tests.csproj",
+              "ViewState": "AgIAAAUAAAAAAAAAAABBwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-05-25T21:48:14.83Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Essentials",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Essentials\\Essentials.csproj",
+              "RelativeDocumentMoniker": "Essentials\\Essentials.csproj",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\Essentials\\Essentials.csproj",
+              "RelativeToolTip": "Essentials\\Essentials.csproj",
+              "ViewState": "AgIAAAMAAAAAAAAAAABBwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-05-25T21:48:04.079Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Directory.Build.props",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Directory.Build.props",
+              "RelativeDocumentMoniker": "Directory.Build.props",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\Directory.Build.props",
+              "RelativeToolTip": "Directory.Build.props",
+              "ViewState": "AgIAAA0AAAAAAAAAAAArwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003801|",
+              "WhenOpened": "2026-05-25T21:47:28.608Z",
+              "EditorCaption": ""
             }
           ]
         },
