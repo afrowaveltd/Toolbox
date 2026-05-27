@@ -3,6 +3,70 @@
   "WorkspaceRootPath": "D:\\Toolbox\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\issues\\issueinfofactorytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\issues\\issueinfofactorytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\issues\\issueinfofactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\issues\\issueinfofactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\metadata\\metadatabagfactorytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\metadata\\metadatabagfactorytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\metadata\\metadatabagfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\metadata\\metadatabagfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\extensions\\issueinfoexteansionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\extensions\\issueinfoexteansionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\extensions\\issueinfoextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\extensions\\issueinfoextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\extensions\\diagnosticinfoextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\extensions\\diagnosticinfoextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\extensions\\diagnosticinfoextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\extensions\\diagnosticinfoextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\extensions\\diagnostichintextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\extensions\\diagnostichintextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\extensions\\diagnostichintextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\extensions\\diagnostichintextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\extensions\\diagnosticspanextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\extensions\\diagnosticspanextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\extensions\\diagnosticspanextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\extensions\\diagnosticspanextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\extensions\\diagnosticlocationextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\extensions\\diagnosticlocationextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\extensions\\diagnosticlocationextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\extensions\\diagnosticlocationextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\extensions\\hasseverityextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\extensions\\hasseverityextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\extensions\\hasseverityextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\extensions\\hasseverityextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\extensions\\hasprovidernameextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\extensions\\hasprovidernameextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -447,19 +511,227 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "IssueInfoFactoryTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Issues\\IssueInfoFactoryTests.cs",
+              "RelativeDocumentMoniker": "Essentials.Tests\\Issues\\IssueInfoFactoryTests.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Issues\\IssueInfoFactoryTests.cs",
+              "RelativeToolTip": "Essentials.Tests\\Issues\\IssueInfoFactoryTests.cs",
+              "ViewState": "AgIAAMwAAAAAAAAAAAA6wOkAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T13:29:18.78Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "IssueInfoFactory.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Issues\\IssueInfoFactory.cs",
+              "RelativeDocumentMoniker": "Essentials\\Issues\\IssueInfoFactory.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Issues\\IssueInfoFactory.cs",
+              "RelativeToolTip": "Essentials\\Issues\\IssueInfoFactory.cs",
+              "ViewState": "AgIAAHUAAAAAAAAAAAAqwJIAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T13:28:01.553Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "MetadataBagFactoryTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Metadata\\MetadataBagFactoryTests.cs",
+              "RelativeDocumentMoniker": "Essentials.Tests\\Metadata\\MetadataBagFactoryTests.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Metadata\\MetadataBagFactoryTests.cs",
+              "RelativeToolTip": "Essentials.Tests\\Metadata\\MetadataBagFactoryTests.cs",
+              "ViewState": "AgIAAH0AAAAAAAAAAAAvwJMAAABWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T13:12:45.226Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "MetadataBagFactory.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Metadata\\MetadataBagFactory.cs",
+              "RelativeDocumentMoniker": "Essentials\\Metadata\\MetadataBagFactory.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Metadata\\MetadataBagFactory.cs",
+              "RelativeToolTip": "Essentials\\Metadata\\MetadataBagFactory.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEcAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T13:09:59.031Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "IssueInfoExteansionsTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\IssueInfoExteansionsTests.cs",
+              "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\IssueInfoExteansionsTests.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Extensions\\IssueInfoExteansionsTests.cs",
+              "RelativeToolTip": "Essentials.Tests\\Extensions\\IssueInfoExteansionsTests.cs",
+              "ViewState": "AgIAANoAAAAAAAAAAAAqwPcAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T13:08:05.588Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "IssueInfoExtensions.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\IssueInfoExtensions.cs",
+              "RelativeDocumentMoniker": "Essentials\\Extensions\\IssueInfoExtensions.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Extensions\\IssueInfoExtensions.cs",
+              "RelativeToolTip": "Essentials\\Extensions\\IssueInfoExtensions.cs",
+              "ViewState": "AgIAADsAAAAAAAAAAAAAwGgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T13:05:05.405Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "DiagnosticInfoExtensionsTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\DiagnosticInfoExtensionsTests.cs",
+              "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\DiagnosticInfoExtensionsTests.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Extensions\\DiagnosticInfoExtensionsTests.cs",
+              "RelativeToolTip": "Essentials.Tests\\Extensions\\DiagnosticInfoExtensionsTests.cs",
+              "ViewState": "AgIAAFsBAAAAAAAAAAAqwHgBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T13:03:02.867Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "DiagnosticInfoExtensions.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\DiagnosticInfoExtensions.cs",
+              "RelativeDocumentMoniker": "Essentials\\Extensions\\DiagnosticInfoExtensions.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Extensions\\DiagnosticInfoExtensions.cs",
+              "RelativeToolTip": "Essentials\\Extensions\\DiagnosticInfoExtensions.cs",
+              "ViewState": "AgIAAGUAAAAAAAAAAAAIwHQAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T13:01:43.464Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "DiagnosticHintExtensionsTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\DiagnosticHintExtensionsTests.cs",
+              "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\DiagnosticHintExtensionsTests.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Extensions\\DiagnosticHintExtensionsTests.cs",
+              "RelativeToolTip": "Essentials.Tests\\Extensions\\DiagnosticHintExtensionsTests.cs",
+              "ViewState": "AgIAAKQAAAAAAAAAAAAqwMEAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T07:57:22.507Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "DiagnosticHintExtensions.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\DiagnosticHintExtensions.cs",
+              "RelativeDocumentMoniker": "Essentials\\Extensions\\DiagnosticHintExtensions.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Extensions\\DiagnosticHintExtensions.cs",
+              "RelativeToolTip": "Essentials\\Extensions\\DiagnosticHintExtensions.cs",
+              "ViewState": "AgIAACgAAAAAAAAAAAAmwFYAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T07:56:11.155Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "DiagnosticSpanExtensionsTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\DiagnosticSpanExtensionsTests.cs",
+              "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\DiagnosticSpanExtensionsTests.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Extensions\\DiagnosticSpanExtensionsTests.cs",
+              "RelativeToolTip": "Essentials.Tests\\Extensions\\DiagnosticSpanExtensionsTests.cs",
+              "ViewState": "AgIAALYAAAAAAAAAAAAqwNMAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T07:54:32.842Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "DiagnosticSpanExtensions.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\DiagnosticSpanExtensions.cs",
+              "RelativeDocumentMoniker": "Essentials\\Extensions\\DiagnosticSpanExtensions.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Extensions\\DiagnosticSpanExtensions.cs",
+              "RelativeToolTip": "Essentials\\Extensions\\DiagnosticSpanExtensions.cs",
+              "ViewState": "AgIAAB0AAAAAAAAAAAAqwDoAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T07:50:00.89Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "DiagnosticLocationExtensionsTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\DiagnosticLocationExtensionsTests.cs",
+              "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\DiagnosticLocationExtensionsTests.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Extensions\\DiagnosticLocationExtensionsTests.cs",
+              "RelativeToolTip": "Essentials.Tests\\Extensions\\DiagnosticLocationExtensionsTests.cs",
+              "ViewState": "AgIAAMEAAAAAAAAAAAAqwN4AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T07:47:43.343Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "DiagnosticLocationExtensions.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\DiagnosticLocationExtensions.cs",
+              "RelativeDocumentMoniker": "Essentials\\Extensions\\DiagnosticLocationExtensions.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Extensions\\DiagnosticLocationExtensions.cs",
+              "RelativeToolTip": "Essentials\\Extensions\\DiagnosticLocationExtensions.cs",
+              "ViewState": "AgIAADYAAAAAAAAAAAAqwFMAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T07:46:07.814Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "HasSeverityExtensionsTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasSeverityExtensionsTests.cs",
+              "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasSeverityExtensionsTests.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasSeverityExtensionsTests.cs",
+              "RelativeToolTip": "Essentials.Tests\\Extensions\\HasSeverityExtensionsTests.cs",
+              "ViewState": "AgIAAIgAAAAAAAAAAAAqwKUAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T07:44:25.479Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "HasSeverityExtensions.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasSeverityExtensions.cs",
+              "RelativeDocumentMoniker": "Essentials\\Extensions\\HasSeverityExtensions.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Extensions\\HasSeverityExtensions.cs",
+              "RelativeToolTip": "Essentials\\Extensions\\HasSeverityExtensions.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-27T07:43:24.45Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
               "Title": "HasProviderNameExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasProviderNameExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasProviderNameExtensionsTests.cs",
               "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasProviderNameExtensionsTests.cs",
               "RelativeToolTip": "Essentials.Tests\\Extensions\\HasProviderNameExtensionsTests.cs",
-              "ViewState": "AgIAAF0AAAAAAAAAAAAqwHoAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAF0AAAAAAAAAAAAqwG8AAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-26T13:33:21.592Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 17,
               "Title": "HasProfileNameExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasProfileNameExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\HasProfileNameExtensions.cs",
@@ -467,12 +739,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\HasProfileNameExtensions.cs",
               "ViewState": "AgIAAAsAAAAAAAAAAAAqwDQAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T13:31:23.655Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T13:31:23.655Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 18,
               "Title": "HasCultureCodeExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasCultureCodeExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasCultureCodeExtensionsTests.cs",
@@ -480,12 +751,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\HasCultureCodeExtensionsTests.cs",
               "ViewState": "AgIAAI0AAAAAAAAAAAAqwKoAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T13:27:28.187Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T13:27:28.187Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 19,
               "Title": "HasCultureCodeExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasCultureCodeExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\HasCultureCodeExtensions.cs",
@@ -493,12 +763,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\HasCultureCodeExtensions.cs",
               "ViewState": "AgIAADIAAAAAAAAAAAAqwE8AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T13:24:37.164Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T13:24:37.164Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 20,
               "Title": "HasDataFormatExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasDataFormatExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasDataFormatExtensionsTests.cs",
@@ -506,12 +775,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\HasDataFormatExtensionsTests.cs",
               "ViewState": "AgIAAK0AAAAAAAAAAAAkwNsAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T13:22:34.195Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T13:22:34.195Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 21,
               "Title": "HasDataFormatExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasDataFormatExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\HasDataFormatExtensions.cs",
@@ -519,12 +787,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\HasDataFormatExtensions.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAFQAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T13:00:28.321Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T13:00:28.321Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 22,
               "Title": "HasRiskLevelExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasRiskLevelExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasRiskLevelExtensionsTests.cs",
@@ -532,12 +799,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\HasRiskLevelExtensionsTests.cs",
               "ViewState": "AgIAALQAAAAAAAAAAAAqwNEAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T12:51:59.114Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T12:51:59.114Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 23,
               "Title": "HasRiskLevelExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasRiskLevelExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\HasRiskLevelExtensions.cs",
@@ -545,12 +811,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\HasRiskLevelExtensions.cs",
               "ViewState": "AgIAAEMAAAAAAAAAAAAqwGAAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T12:42:18.738Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T12:42:18.738Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 24,
               "Title": "HasDescriptionExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasDescriptionExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasDescriptionExtensionsTests.cs",
@@ -558,12 +823,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\HasDescriptionExtensionsTests.cs",
               "ViewState": "AgIAAGMAAAAAAAAAAAAqwIAAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T12:22:46.757Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T12:22:46.757Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 25,
               "Title": "HasDescriptionExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasDescriptionExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\HasDescriptionExtensions.cs",
@@ -571,12 +835,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\HasDescriptionExtensions.cs",
               "ViewState": "AgIAABwAAAAAAAAAAAAqwDkAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T12:17:18.41Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T12:17:18.41Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 26,
               "Title": "HasDetailsExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasDetailsExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasDetailsExtensionsTests.cs",
@@ -584,12 +847,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\HasDetailsExtensionsTests.cs",
               "ViewState": "AgIAAGMAAAAAAAAAAAAqwIAAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T12:15:52.013Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T12:15:52.013Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 27,
               "Title": "HasDetailsExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasDetailsExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\HasDetailsExtensions.cs",
@@ -597,12 +859,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\HasDetailsExtensions.cs",
               "ViewState": "AgIAABwAAAAAAAAAAAAqwDkAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T12:01:19.112Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T12:01:19.112Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 28,
               "Title": "HasMessageExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasMessageExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasMessageExtensionsTests.cs",
@@ -610,12 +871,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\HasMessageExtensionsTests.cs",
               "ViewState": "AgIAAEQAAAAAAAAAAAAqwH0AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T11:35:37.97Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T11:35:37.97Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 29,
               "Title": "HasMessageExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasMessageExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\HasMessageExtensions.cs",
@@ -623,12 +883,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\HasMessageExtensions.cs",
               "ViewState": "AgIAABwAAAAAAAAAAAAqwDkAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T11:34:24.465Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T11:34:24.465Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 30,
               "Title": "HasNumberExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasNumberExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasNumberExtensionsTests.cs",
@@ -636,12 +895,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\HasNumberExtensionsTests.cs",
               "ViewState": "AgIAAF0AAAAAAAAAAAAqwHoAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T11:31:46.367Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T11:31:46.367Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 31,
               "Title": "HasNumberExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasNumberExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\HasNumberExtensions.cs",
@@ -649,12 +907,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\HasNumberExtensions.cs",
               "ViewState": "AgIAABYAAAAAAAAAAAAqwDMAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T11:30:35.695Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T11:30:35.695Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 32,
               "Title": "HasMetadataExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasMetadataExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasMetadataExtensionsTests.cs",
@@ -662,12 +919,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\HasMetadataExtensionsTests.cs",
               "ViewState": "AgIAAMIAAAAAAAAAAAAiwOMAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T11:26:54.299Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T11:26:54.299Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 33,
               "Title": "HasMetadataEstensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasMetadataEstensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\HasMetadataEstensions.cs",
@@ -675,12 +931,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\HasMetadataEstensions.cs",
               "ViewState": "AgIAABsAAAAAAAAAAAAqwEcAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T11:25:10.997Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T11:25:10.997Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 34,
               "Title": "HasNameExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasNameExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasNameExtensionsTests.cs",
@@ -688,12 +943,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\HasNameExtensionsTests.cs",
               "ViewState": "AgIAAGAAAAAAAAAAAAAqwH0AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T11:22:50.844Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T11:22:50.844Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 35,
               "Title": "HasNameExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasNameExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\HasNameExtensions.cs",
@@ -701,12 +955,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\HasNameExtensions.cs",
               "ViewState": "AgIAABMAAAAAAAAAAAAowDoAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T11:12:29.011Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T11:12:29.011Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 36,
               "Title": "HasCodeExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasCodeExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasCodeExtensionsTests.cs",
@@ -714,12 +967,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\HasCodeExtensionsTests.cs",
               "ViewState": "AgIAAGAAAAAAAAAAAAAqwHgAAAAVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T10:57:39.108Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T10:57:39.108Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 37,
               "Title": "HasCodeExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasCodeExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\HasCodeExtensions.cs",
@@ -727,12 +979,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\HasCodeExtensions.cs",
               "ViewState": "AgIAAAcAAAAAAAAAAAAkwDoAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T10:53:04.633Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T10:53:04.633Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 38,
               "Title": "HasStatusExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasStatusExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasStatusExtensionsTests.cs",
@@ -740,12 +991,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\HasStatusExtensionsTests.cs",
               "ViewState": "AgIAAGoAAAAAAAAAAAAqwIcAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T10:51:32.376Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T10:51:32.376Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 39,
               "Title": "HasStatusExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasStatusExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\HasStatusExtensions.cs",
@@ -753,12 +1003,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\HasStatusExtensions.cs",
               "ViewState": "AgIAAA4AAAAAAAAAAAAqwCsAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T10:50:35.701Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T10:50:35.701Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 40,
               "Title": "SortDirectionExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\SortDirectionExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\SortDirectionExtensionsTests.cs",
@@ -766,12 +1015,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\SortDirectionExtensionsTests.cs",
               "ViewState": "AgIAAB0AAAAAAAAAAAAqwDoAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T10:47:40.353Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T10:47:40.353Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 41,
               "Title": "SortDirectionExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\SortDirectionExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\SortDirectionExtensions.cs",
@@ -779,12 +1027,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\SortDirectionExtensions.cs",
               "ViewState": "AgIAABwAAAAAAAAAAAAqwDkAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T10:41:45.187Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T10:41:45.187Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 42,
               "Title": "DiagnosticInfoCollectionExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\DiagnosticInfoCollectionExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\DiagnosticInfoCollectionExtensionsTests.cs",
@@ -792,12 +1039,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\DiagnosticInfoCollectionExtensionsTests.cs",
               "ViewState": "AgIAAM4AAAAAAAAAAAAqwOsAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T10:26:08.456Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T10:26:08.456Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 43,
               "Title": "DiagnosticInfoCollectionExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\DiagnosticInfoCollectionExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\DiagnosticInfoCollectionExtensions.cs",
@@ -805,12 +1051,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\DiagnosticInfoCollectionExtensions.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAFYAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T10:23:00.548Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T10:23:00.548Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 44,
               "Title": "HasDiagnosticsExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasDiagnosticsExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasDiagnosticsExtensionsTests.cs",
@@ -818,12 +1063,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\HasDiagnosticsExtensionsTests.cs",
               "ViewState": "AgIAAHAAAAAAAAAAAAAqwI0AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T10:21:09.718Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T10:21:09.718Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 29,
+              "DocumentIndex": 45,
               "Title": "HasDiagnosticsExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasDiagnosticsExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\HasDiagnosticsExtensions.cs",
@@ -831,12 +1075,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\HasDiagnosticsExtensions.cs",
               "ViewState": "AgIAABIAAAAAAAAAAAAqwC8AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T10:19:56.175Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T10:19:56.175Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 30,
+              "DocumentIndex": 46,
               "Title": "HasIssuesExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasIssuesExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasIssuesExtensionsTests.cs",
@@ -844,12 +1087,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\HasIssuesExtensionsTests.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABsAAAALAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T10:15:53.328Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T10:15:53.328Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 31,
+              "DocumentIndex": 47,
               "Title": "HasIssuesExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasIssuesExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\HasIssuesExtensions.cs",
@@ -857,12 +1099,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\HasIssuesExtensions.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAACoAAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T10:14:41.545Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T10:14:41.545Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 32,
+              "DocumentIndex": 48,
               "Title": "ProfileNameExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\ProfileNameExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\ProfileNameExtensions.cs",
@@ -870,12 +1111,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\ProfileNameExtensions.cs",
               "ViewState": "AgIAAAUAAAAAAAAAAAAqwCIAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T10:12:35.807Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T10:12:35.807Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 33,
+              "DocumentIndex": 49,
               "Title": "ProviderNameExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\ProviderNameExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\ProviderNameExtensionsTests.cs",
@@ -883,12 +1123,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\ProviderNameExtensionsTests.cs",
               "ViewState": "AgIAABgAAAAAAAAAAAAqwDUAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T10:11:21.998Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T10:11:21.998Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 34,
+              "DocumentIndex": 50,
               "Title": "ProviderNameExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\ProviderNameExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\ProviderNameExtensions.cs",
@@ -896,12 +1135,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\ProviderNameExtensions.cs",
               "ViewState": "AgIAAAUAAAAAAAAAAAAqwCIAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T10:08:46.137Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T10:08:46.137Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 35,
+              "DocumentIndex": 51,
               "Title": "CultureCodeExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\CultureCodeExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\CultureCodeExtensionsTests.cs",
@@ -909,12 +1147,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\CultureCodeExtensionsTests.cs",
               "ViewState": "AgIAAGEAAAAAAAAAAAAqwGUAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T10:00:27.82Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T10:00:27.82Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 36,
+              "DocumentIndex": 52,
               "Title": "CultureCodeExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\CultureCodeExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\CultureCodeExtensions.cs",
@@ -922,12 +1159,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\CultureCodeExtensions.cs",
               "ViewState": "AgIAACQAAAAAAAAAAAAqwEEAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T09:59:21.645Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T09:59:21.645Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 37,
+              "DocumentIndex": 53,
               "Title": "MetadataBagExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\MetadataBagExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\MetadataBagExtensionsTests.cs",
@@ -935,12 +1171,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\MetadataBagExtensionsTests.cs",
               "ViewState": "AgIAANYAAAAAAAAAAAAqwPMAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T09:57:37.019Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T09:57:37.019Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 38,
+              "DocumentIndex": 54,
               "Title": "MetadataBagExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\MetadataBagExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\MetadataBagExtensions.cs",
@@ -948,12 +1183,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\MetadataBagExtensions.cs",
               "ViewState": "AgIAAE4AAAAAAAAAAAAgwFsAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T09:54:51.823Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T09:54:51.823Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 39,
+              "DocumentIndex": 55,
               "Title": "DataFormatExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\DataFormatExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\DataFormatExtensionsTests.cs",
@@ -961,12 +1195,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\DataFormatExtensionsTests.cs",
               "ViewState": "AgIAAFcAAAAAAAAAAAAqwHQAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T09:26:38.431Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T09:26:38.431Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 40,
+              "DocumentIndex": 56,
               "Title": "DataFormatExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\DataFormatExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\DataFormatExtensions.cs",
@@ -974,12 +1207,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\DataFormatExtensions.cs",
               "ViewState": "AgIAABgAAAAAAAAAAAAAADsAAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T09:25:25.674Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T09:25:25.674Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 41,
+              "DocumentIndex": 57,
               "Title": "OperationStatusExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\OperationStatusExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\OperationStatusExtensionsTests.cs",
@@ -987,12 +1219,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\OperationStatusExtensionsTests.cs",
               "ViewState": "AgIAALEAAAAAAAAAAAAqwM4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T09:24:15.662Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T09:24:15.662Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 42,
+              "DocumentIndex": 58,
               "Title": "OperationStatusExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\OperationStatusExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\OperationStatusExtensions.cs",
@@ -1000,12 +1231,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\OperationStatusExtensions.cs",
               "ViewState": "AgIAAFcAAAAAAAAAAAAqwHQAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T09:23:11.886Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T09:23:11.886Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 43,
+              "DocumentIndex": 59,
               "Title": "ResultStatusExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\ResultStatusExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\ResultStatusExtensionsTests.cs",
@@ -1013,12 +1243,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\ResultStatusExtensionsTests.cs",
               "ViewState": "AgIAAFsAAAAAAAAAAAAqwHgAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T09:21:25.029Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T09:21:25.029Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 44,
+              "DocumentIndex": 60,
               "Title": "ResultStatusExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\ResultStatusExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\ResultStatusExtensions.cs",
@@ -1026,12 +1255,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\ResultStatusExtensions.cs",
               "ViewState": "AgIAACsAAAAAAAAAAAAqwEgAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T09:20:20.251Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T09:20:20.251Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 45,
+              "DocumentIndex": 61,
               "Title": "OperationRiskLevelExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\OperationRiskLevelExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\OperationRiskLevelExtensionsTests.cs",
@@ -1039,12 +1267,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\OperationRiskLevelExtensionsTests.cs",
               "ViewState": "AgIAAEkAAAAAAAAAAAAqwGYAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T09:17:32.186Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T09:17:32.186Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 46,
+              "DocumentIndex": 62,
               "Title": "OperationRiskLevelExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\OperationRiskLevelExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\OperationRiskLevelExtensions.cs",
@@ -1052,12 +1279,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\OperationRiskLevelExtensions.cs",
               "ViewState": "AgIAACkAAAAAAAAAAAAqwEYAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T09:16:31.331Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T09:16:31.331Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 47,
+              "DocumentIndex": 63,
               "Title": "IssueInfoCollectionExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\IssueInfoCollectionExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\IssueInfoCollectionExtensionsTests.cs",
@@ -1065,12 +1291,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\IssueInfoCollectionExtensionsTests.cs",
               "ViewState": "AgIAAM0AAAAAAAAAAAAqwOoAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T09:15:12.779Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T09:15:12.779Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 48,
+              "DocumentIndex": 64,
               "Title": "IssueInfoCollectionExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\IssueInfoCollectionExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\IssueInfoCollectionExtensions.cs",
@@ -1078,12 +1303,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\IssueInfoCollectionExtensions.cs",
               "ViewState": "AgIAADEAAAAAAAAAAAAUwFYAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T09:13:44.749Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T09:13:44.749Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 49,
+              "DocumentIndex": 65,
               "Title": "IssueSeverityExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\IssueSeverityExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\IssueSeverityExtensionsTests.cs",
@@ -1091,12 +1315,11 @@
               "RelativeToolTip": "Essentials.Tests\\Extensions\\IssueSeverityExtensionsTests.cs",
               "ViewState": "AgIAADEAAAAAAAAAAAAqwE4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T08:15:10.458Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T08:15:10.458Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 50,
+              "DocumentIndex": 66,
               "Title": "IssueInfoTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Issues\\IssueInfoTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Issues\\IssueInfoTests.cs",
@@ -1104,12 +1327,11 @@
               "RelativeToolTip": "Essentials.Tests\\Issues\\IssueInfoTests.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T08:13:14.961Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T08:13:14.961Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 51,
+              "DocumentIndex": 67,
               "Title": "IssueSeverityExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\IssueSeverityExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\IssueSeverityExtensions.cs",
@@ -1117,12 +1339,11 @@
               "RelativeToolTip": "Essentials\\Extensions\\IssueSeverityExtensions.cs",
               "ViewState": "AgIAABMAAAAAAAAAAAAqwDAAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T08:12:34.27Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T08:12:34.27Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 52,
+              "DocumentIndex": 68,
               "Title": "IHasId.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Interfaces\\IHasId.cs",
               "RelativeDocumentMoniker": "Essentials\\Interfaces\\IHasId.cs",
@@ -1130,12 +1351,11 @@
               "RelativeToolTip": "Essentials\\Interfaces\\IHasId.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T08:08:58.701Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T08:08:58.701Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 53,
+              "DocumentIndex": 69,
               "Title": "IHasDataFormat.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Interfaces\\IHasDataFormat.cs",
               "RelativeDocumentMoniker": "Essentials\\Interfaces\\IHasDataFormat.cs",
@@ -1143,12 +1363,11 @@
               "RelativeToolTip": "Essentials\\Interfaces\\IHasDataFormat.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T08:08:02.12Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T08:08:02.12Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 54,
+              "DocumentIndex": 70,
               "Title": "IHasProfileName.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Interfaces\\IHasProfileName.cs",
               "RelativeDocumentMoniker": "Essentials\\Interfaces\\IHasProfileName.cs",
@@ -1156,12 +1375,11 @@
               "RelativeToolTip": "Essentials\\Interfaces\\IHasProfileName.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T08:07:16.055Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T08:07:16.055Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 55,
+              "DocumentIndex": 71,
               "Title": "IHasProviderName.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Interfaces\\IHasProviderName.cs",
               "RelativeDocumentMoniker": "Essentials\\Interfaces\\IHasProviderName.cs",
@@ -1169,12 +1387,11 @@
               "RelativeToolTip": "Essentials\\Interfaces\\IHasProviderName.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T08:06:44.537Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T08:06:44.537Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 56,
+              "DocumentIndex": 72,
               "Title": "IHasCultureCode.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Interfaces\\IHasCultureCode.cs",
               "RelativeDocumentMoniker": "Essentials\\Interfaces\\IHasCultureCode.cs",
@@ -1182,8 +1399,7 @@
               "RelativeToolTip": "Essentials\\Interfaces\\IHasCultureCode.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-26T08:04:59.029Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-26T08:04:59.029Z"
             }
           ]
         },
