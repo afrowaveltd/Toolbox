@@ -201,4 +201,73 @@ public sealed class MetadataBagFactoryTests
               ("valid", "value"),
               ("   ", "invalid")));
    }
+
+   [Fact]
+   public void CopyFrom_WhenMetadataIsNull_ThrowsArgumentNullException()
+   {
+      MetadataBag? metadata = null;
+
+      Assert.Throws<ArgumentNullException>(() =>
+          MetadataBagFactory.CopyFrom(metadata!));
+   }
+
+   [Fact]
+   public void CopyFrom_WhenMetadataIsEmpty_ReturnsEmptyMetadataBag()
+   {
+      var metadata = new MetadataBag();
+
+      var copy = MetadataBagFactory.CopyFrom(metadata);
+
+      Assert.NotSame(metadata, copy);
+      Assert.True(copy.IsEmpty);
+      Assert.Equal(0, copy.Count);
+   }
+
+   [Fact]
+   public void CopyFrom_ReturnsNewMetadataBagWithCopiedValues()
+   {
+      var metadata = new MetadataBag();
+      metadata.Set("first", "one");
+      metadata.Set("second", "two");
+
+      var copy = MetadataBagFactory.CopyFrom(metadata);
+
+      Assert.NotSame(metadata, copy);
+      Assert.Equal(metadata.Count, copy.Count);
+
+      Assert.True(copy.TryGet("first", out var first));
+      Assert.True(copy.TryGet("second", out var second));
+
+      Assert.Equal("one", first);
+      Assert.Equal("two", second);
+   }
+
+   [Fact]
+   public void CopyFrom_WhenOriginalIsChanged_DoesNotChangeCopy()
+   {
+      var metadata = new MetadataBag();
+      metadata.Set("key", "original");
+
+      var copy = MetadataBagFactory.CopyFrom(metadata);
+
+      metadata.Set("key", "changed");
+
+      Assert.True(metadata.TryGet("key", out var originalValue));
+      Assert.True(copy.TryGet("key", out var copiedValue));
+
+      Assert.Equal("changed", originalValue);
+      Assert.Equal("original", copiedValue);
+   }
+
+   [Fact]
+   public void CopyFrom_PreservesCaseInsensitiveLookupBehavior()
+   {
+      var metadata = new MetadataBag();
+      metadata.Set("OriginalKey", "value");
+
+      var copy = MetadataBagFactory.CopyFrom(metadata);
+
+      Assert.True(copy.TryGet("originalkey", out var value));
+      Assert.Equal("value", value);
+   }
 }

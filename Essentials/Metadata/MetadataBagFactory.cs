@@ -69,4 +69,19 @@ public static class MetadataBagFactory
 
       return metadata;
    }
+
+   /// <summary>
+   /// Creates a metadata bag by copying values from another metadata bag.
+   /// </summary>
+   /// <param name="metadata">The source metadata bag.</param>
+   /// <returns>A new metadata bag with copied values.</returns>
+   public static MetadataBag CopyFrom(MetadataBag metadata)
+   {
+      ArgumentNullException.ThrowIfNull(metadata);
+
+      return new MetadataBag(metadata.Items.ToDictionary(
+          item => item.Key,
+          item => item.Value,
+          StringComparer.OrdinalIgnoreCase));
+   }
 }
