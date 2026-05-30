@@ -84,4 +84,36 @@ public static class IssueInfoCollectionExtensions
 
       return issues.Where(issue => issue.Severity == severity);
    }
+
+   /// <summary>
+/// Creates a new issue collection by appending one issue.
+/// </summary>
+/// <param name="issues">The source issue collection.</param>
+/// <param name="issue">The issue to append.</param>
+/// <returns>A new issue collection containing the source issues and the appended issue.</returns>
+public static IReadOnlyList<IssueInfo> AppendIssue(
+    this IReadOnlyList<IssueInfo> issues,
+    IssueInfo issue)
+{
+    ArgumentNullException.ThrowIfNull(issues);
+    ArgumentNullException.ThrowIfNull(issue);
+
+    return [.. issues, issue];
+}
+
+/// <summary>
+/// Creates a new issue collection by appending multiple issues.
+/// </summary>
+/// <param name="issues">The source issue collection.</param>
+/// <param name="additionalIssues">The issues to append.</param>
+/// <returns>A new issue collection containing the source issues and the appended issues.</returns>
+public static IReadOnlyList<IssueInfo> AppendIssues(
+    this IReadOnlyList<IssueInfo> issues,
+    IEnumerable<IssueInfo> additionalIssues)
+{
+    ArgumentNullException.ThrowIfNull(issues);
+    ArgumentNullException.ThrowIfNull(additionalIssues);
+
+    return [.. issues, .. additionalIssues];
+}
 }

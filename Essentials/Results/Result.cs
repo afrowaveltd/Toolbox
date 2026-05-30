@@ -249,5 +249,43 @@ public static Result WithMetadata(
         Issues = result.Issues,
         Metadata = metadata
     };
+
 }
+/// <summary>
+/// Creates a copy of a result with one appended issue.
+/// </summary>
+/// <param name="result">The source result.</param>
+/// <param name="issue">The issue to append.</param>
+/// <returns>A new result with copied values and the appended issue.</returns>
+public static Result AddIssue(
+    Result result,
+    IssueInfo issue)
+{
+    ArgumentNullException.ThrowIfNull(result);
+    ArgumentNullException.ThrowIfNull(issue);
+
+    return WithIssues(
+        result,
+        result.Issues.AppendIssue(issue));
+}
+
+/// <summary>
+/// Creates a copy of a result with appended issues.
+/// </summary>
+/// <param name="result">The source result.</param>
+/// <param name="issues">The issues to append.</param>
+/// <returns>A new result with copied values and the appended issues.</returns>
+public static Result AddIssues(
+    Result result,
+    IEnumerable<IssueInfo> issues)
+{
+    ArgumentNullException.ThrowIfNull(result);
+    ArgumentNullException.ThrowIfNull(issues);
+
+    return WithIssues(
+        result,
+        result.Issues.AppendIssues(issues));
+}
+
+
 }

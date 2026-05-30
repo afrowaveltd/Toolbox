@@ -436,407 +436,762 @@ public sealed class ResponseOfTTests
         Assert.Equal("unit-test", value);
     }
     [Fact]
-public void WithMessage_WhenResponseIsNull_ThrowsArgumentNullException()
-{
-    Response<string>? response = null;
+    public void WithMessage_WhenResponseIsNull_ThrowsArgumentNullException()
+    {
+        Response<string>? response = null;
 
-    Assert.Throws<ArgumentNullException>(() =>
-        Response<string>.WithMessage(response!, "New message."));
-}
+        Assert.Throws<ArgumentNullException>(() =>
+            Response<string>.WithMessage(response!, "New message."));
+    }
 
-[Theory]
-[InlineData(null)]
-[InlineData("")]
-[InlineData("   ")]
-public void WithMessage_WhenMessageIsInvalid_ThrowsArgumentException(
-    string? message)
-{
-    var response = Response<string>.Ok("payload");
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void WithMessage_WhenMessageIsInvalid_ThrowsArgumentException(
+        string? message)
+    {
+        var response = Response<string>.Ok("payload");
 
-    Assert.ThrowsAny<ArgumentException>(() =>
-        Response<string>.WithMessage(response, message!));
-}
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Response<string>.WithMessage(response, message!));
+    }
 
-[Fact]
-public void WithMessage_CreatesCopyWithSpecifiedMessage()
-{
-    var metadata = new MetadataBag();
-    metadata.Set("source", "unit-test");
+    [Fact]
+    public void WithMessage_CreatesCopyWithSpecifiedMessage()
+    {
+        var metadata = new MetadataBag();
+        metadata.Set("source", "unit-test");
 
-    IReadOnlyList<IssueInfo> issues =
-    [
-        IssueInfoFactory.Warning(
+        IReadOnlyList<IssueInfo> issues =
+        [
+            IssueInfoFactory.Warning(
             "AFW_WARNING",
             "Warning message.")
-    ];
+        ];
 
-    var response = new Response<string>
+        var response = new Response<string>
+        {
+            Status = ResultStatus.SuccessWithWarnings,
+            Message = "Original message.",
+            Data = "payload",
+            Issues = issues,
+            Metadata = metadata
+        };
+
+        var copy = Response<string>.WithMessage(
+            response,
+            "New message.");
+
+        Assert.NotSame(response, copy);
+
+        Assert.Equal(response.Status, copy.Status);
+        Assert.Equal("New message.", copy.Message);
+        Assert.Equal(response.Data, copy.Data);
+        Assert.Same(response.Issues, copy.Issues);
+        Assert.Same(response.Metadata, copy.Metadata);
+    }
+
+    [Fact]
+    public void WithMessage_DoesNotModifyOriginalResponse()
     {
-        Status = ResultStatus.SuccessWithWarnings,
-        Message = "Original message.",
-        Data = "payload",
-        Issues = issues,
-        Metadata = metadata
-    };
+        var response = new Response<string>
+        {
+            Status = ResultStatus.Success,
+            Message = "Original message.",
+            Data = "payload"
+        };
 
-    var copy = Response<string>.WithMessage(
-        response,
-        "New message.");
+        var copy = Response<string>.WithMessage(
+            response,
+            "New message.");
 
-    Assert.NotSame(response, copy);
+        Assert.Equal("Original message.", response.Message);
+        Assert.Equal("New message.", copy.Message);
+    }
 
-    Assert.Equal(response.Status, copy.Status);
-    Assert.Equal("New message.", copy.Message);
-    Assert.Equal(response.Data, copy.Data);
-    Assert.Same(response.Issues, copy.Issues);
-    Assert.Same(response.Metadata, copy.Metadata);
-}
-
-[Fact]
-public void WithMessage_DoesNotModifyOriginalResponse()
-{
-    var response = new Response<string>
+    [Fact]
+    public void WithStatus_WhenResponseIsNull_ThrowsArgumentNullException()
     {
-        Status = ResultStatus.Success,
-        Message = "Original message.",
-        Data = "payload"
-    };
+        Response<string>? response = null;
 
-    var copy = Response<string>.WithMessage(
-        response,
-        "New message.");
+        Assert.Throws<ArgumentNullException>(() =>
+            Response<string>.WithStatus(response!, ResultStatus.Failed));
+    }
 
-    Assert.Equal("Original message.", response.Message);
-    Assert.Equal("New message.", copy.Message);
-}
+    [Theory]
+    [InlineData(ResultStatus.Unknown)]
+    [InlineData(ResultStatus.Success)]
+    [InlineData(ResultStatus.SuccessWithWarnings)]
+    [InlineData(ResultStatus.Failed)]
+    [InlineData(ResultStatus.Invalid)]
+    [InlineData(ResultStatus.NotFound)]
+    public void WithStatus_CreatesCopyWithSpecifiedStatus(
+        ResultStatus status)
+    {
+        var metadata = new MetadataBag();
+        metadata.Set("source", "unit-test");
 
-[Fact]
-public void WithStatus_WhenResponseIsNull_ThrowsArgumentNullException()
-{
-    Response<string>? response = null;
-
-    Assert.Throws<ArgumentNullException>(() =>
-        Response<string>.WithStatus(response!, ResultStatus.Failed));
-}
-
-[Theory]
-[InlineData(ResultStatus.Unknown)]
-[InlineData(ResultStatus.Success)]
-[InlineData(ResultStatus.SuccessWithWarnings)]
-[InlineData(ResultStatus.Failed)]
-[InlineData(ResultStatus.Invalid)]
-[InlineData(ResultStatus.NotFound)]
-public void WithStatus_CreatesCopyWithSpecifiedStatus(
-    ResultStatus status)
-{
-    var metadata = new MetadataBag();
-    metadata.Set("source", "unit-test");
-
-    IReadOnlyList<IssueInfo> issues =
-    [
-        IssueInfoFactory.Warning(
+        IReadOnlyList<IssueInfo> issues =
+        [
+            IssueInfoFactory.Warning(
             "AFW_WARNING",
             "Warning message.")
-    ];
+        ];
 
-    var response = new Response<string>
+        var response = new Response<string>
+        {
+            Status = ResultStatus.Success,
+            Message = "Original message.",
+            Data = "payload",
+            Issues = issues,
+            Metadata = metadata
+        };
+
+        var copy = Response<string>.WithStatus(response, status);
+
+        Assert.NotSame(response, copy);
+
+        Assert.Equal(status, copy.Status);
+        Assert.Equal(response.Message, copy.Message);
+        Assert.Equal(response.Data, copy.Data);
+        Assert.Same(response.Issues, copy.Issues);
+        Assert.Same(response.Metadata, copy.Metadata);
+    }
+
+    [Fact]
+    public void WithStatus_DoesNotModifyOriginalResponse()
     {
-        Status = ResultStatus.Success,
-        Message = "Original message.",
-        Data = "payload",
-        Issues = issues,
-        Metadata = metadata
-    };
+        var response = new Response<string>
+        {
+            Status = ResultStatus.Success,
+            Message = "Original message.",
+            Data = "payload"
+        };
 
-    var copy = Response<string>.WithStatus(response, status);
+        var copy = Response<string>.WithStatus(
+            response,
+            ResultStatus.Failed);
 
-    Assert.NotSame(response, copy);
+        Assert.Equal(ResultStatus.Success, response.Status);
+        Assert.Equal(ResultStatus.Failed, copy.Status);
+    }
 
-    Assert.Equal(status, copy.Status);
-    Assert.Equal(response.Message, copy.Message);
-    Assert.Equal(response.Data, copy.Data);
-    Assert.Same(response.Issues, copy.Issues);
-    Assert.Same(response.Metadata, copy.Metadata);
-}
-
-[Fact]
-public void WithStatus_DoesNotModifyOriginalResponse()
-{
-    var response = new Response<string>
+    [Fact]
+    public void WithData_WhenResponseIsNull_ThrowsArgumentNullException()
     {
-        Status = ResultStatus.Success,
-        Message = "Original message.",
-        Data = "payload"
-    };
+        Response<string>? response = null;
 
-    var copy = Response<string>.WithStatus(
-        response,
-        ResultStatus.Failed);
+        Assert.Throws<ArgumentNullException>(() =>
+            Response<string>.WithData(response!, "new payload"));
+    }
 
-    Assert.Equal(ResultStatus.Success, response.Status);
-    Assert.Equal(ResultStatus.Failed, copy.Status);
-}
+    [Fact]
+    public void WithData_CreatesCopyWithSpecifiedData()
+    {
+        var metadata = new MetadataBag();
+        metadata.Set("source", "unit-test");
 
-[Fact]
-public void WithData_WhenResponseIsNull_ThrowsArgumentNullException()
-{
-    Response<string>? response = null;
-
-    Assert.Throws<ArgumentNullException>(() =>
-        Response<string>.WithData(response!, "new payload"));
-}
-
-[Fact]
-public void WithData_CreatesCopyWithSpecifiedData()
-{
-    var metadata = new MetadataBag();
-    metadata.Set("source", "unit-test");
-
-    IReadOnlyList<IssueInfo> issues =
-    [
-        IssueInfoFactory.Warning(
+        IReadOnlyList<IssueInfo> issues =
+        [
+            IssueInfoFactory.Warning(
             "AFW_WARNING",
             "Warning message.")
-    ];
+        ];
 
-    var response = new Response<string>
+        var response = new Response<string>
+        {
+            Status = ResultStatus.SuccessWithWarnings,
+            Message = "Original message.",
+            Data = "original payload",
+            Issues = issues,
+            Metadata = metadata
+        };
+
+        var copy = Response<string>.WithData(
+            response,
+            "new payload");
+
+        Assert.NotSame(response, copy);
+
+        Assert.Equal(response.Status, copy.Status);
+        Assert.Equal(response.Message, copy.Message);
+        Assert.Equal("new payload", copy.Data);
+        Assert.True(copy.HasData);
+        Assert.Same(response.Issues, copy.Issues);
+        Assert.Same(response.Metadata, copy.Metadata);
+    }
+
+    [Fact]
+    public void WithData_AllowsNullData()
     {
-        Status = ResultStatus.SuccessWithWarnings,
-        Message = "Original message.",
-        Data = "original payload",
-        Issues = issues,
-        Metadata = metadata
-    };
+        var response = new Response<string>
+        {
+            Status = ResultStatus.Success,
+            Message = "Original message.",
+            Data = "payload"
+        };
 
-    var copy = Response<string>.WithData(
-        response,
-        "new payload");
+        var copy = Response<string>.WithData(response, null);
 
-    Assert.NotSame(response, copy);
+        Assert.Null(copy.Data);
+        Assert.False(copy.HasData);
+    }
 
-    Assert.Equal(response.Status, copy.Status);
-    Assert.Equal(response.Message, copy.Message);
-    Assert.Equal("new payload", copy.Data);
-    Assert.True(copy.HasData);
-    Assert.Same(response.Issues, copy.Issues);
-    Assert.Same(response.Metadata, copy.Metadata);
-}
-
-[Fact]
-public void WithData_AllowsNullData()
-{
-    var response = new Response<string>
+    [Fact]
+    public void WithData_WithValueTypeDefaultValue_HasDataReturnsTrue()
     {
-        Status = ResultStatus.Success,
-        Message = "Original message.",
-        Data = "payload"
-    };
+        var response = new Response<int>
+        {
+            Status = ResultStatus.Success,
+            Data = 42
+        };
 
-    var copy = Response<string>.WithData(response, null);
+        var copy = Response<int>.WithData(response, 0);
 
-    Assert.Null(copy.Data);
-    Assert.False(copy.HasData);
-}
+        Assert.Equal(0, copy.Data);
+        Assert.True(copy.HasData);
+    }
 
-[Fact]
-public void WithData_WithValueTypeDefaultValue_HasDataReturnsTrue()
-{
-    var response = new Response<int>
+    [Fact]
+    public void WithData_DoesNotModifyOriginalResponse()
     {
-        Status = ResultStatus.Success,
-        Data = 42
-    };
+        var response = new Response<string>
+        {
+            Status = ResultStatus.Success,
+            Data = "original payload"
+        };
 
-    var copy = Response<int>.WithData(response, 0);
+        var copy = Response<string>.WithData(
+            response,
+            "new payload");
 
-    Assert.Equal(0, copy.Data);
-    Assert.True(copy.HasData);
-}
+        Assert.Equal("original payload", response.Data);
+        Assert.Equal("new payload", copy.Data);
+    }
 
-[Fact]
-public void WithData_DoesNotModifyOriginalResponse()
-{
-    var response = new Response<string>
+    [Fact]
+    public void WithIssues_WhenResponseIsNull_ThrowsArgumentNullException()
     {
-        Status = ResultStatus.Success,
-        Data = "original payload"
-    };
+        Response<string>? response = null;
 
-    var copy = Response<string>.WithData(
-        response,
-        "new payload");
+        IReadOnlyList<IssueInfo> issues = [];
 
-    Assert.Equal("original payload", response.Data);
-    Assert.Equal("new payload", copy.Data);
-}
+        Assert.Throws<ArgumentNullException>(() =>
+            Response<string>.WithIssues(response!, issues));
+    }
 
-[Fact]
-public void WithIssues_WhenResponseIsNull_ThrowsArgumentNullException()
-{
-    Response<string>? response = null;
-
-    IReadOnlyList<IssueInfo> issues = [];
-
-    Assert.Throws<ArgumentNullException>(() =>
-        Response<string>.WithIssues(response!, issues));
-}
-
-[Fact]
-public void WithIssues_WhenIssuesIsNull_ThrowsArgumentNullException()
-{
-    var response = Response<string>.Ok("payload");
-
-    IReadOnlyList<IssueInfo>? issues = null;
-
-    Assert.Throws<ArgumentNullException>(() =>
-        Response<string>.WithIssues(response, issues!));
-}
-
-[Fact]
-public void WithIssues_CreatesCopyWithSpecifiedIssues()
-{
-    var metadata = new MetadataBag();
-    metadata.Set("source", "unit-test");
-
-    var originalIssues = IssueInfoListFactory.Information(
-        "AFW_INFO",
-        "Information message.");
-
-    var newIssues = IssueInfoListFactory.Error(
-        "AFW_ERROR",
-        "Error message.");
-
-    var response = new Response<string>
+    [Fact]
+    public void WithIssues_WhenIssuesIsNull_ThrowsArgumentNullException()
     {
-        Status = ResultStatus.Success,
-        Message = "Original message.",
-        Data = "payload",
-        Issues = originalIssues,
-        Metadata = metadata
-    };
+        var response = Response<string>.Ok("payload");
 
-    var copy = Response<string>.WithIssues(response, newIssues);
+        IReadOnlyList<IssueInfo>? issues = null;
 
-    Assert.NotSame(response, copy);
+        Assert.Throws<ArgumentNullException>(() =>
+            Response<string>.WithIssues(response, issues!));
+    }
 
-    Assert.Equal(response.Status, copy.Status);
-    Assert.Equal(response.Message, copy.Message);
-    Assert.Equal(response.Data, copy.Data);
-    Assert.Same(newIssues, copy.Issues);
-    Assert.Same(response.Metadata, copy.Metadata);
-}
-
-[Fact]
-public void WithIssues_DoesNotModifyOriginalResponse()
-{
-    var originalIssues = IssueInfoListFactory.Information(
-        "AFW_INFO",
-        "Information message.");
-
-    var newIssues = IssueInfoListFactory.Error(
-        "AFW_ERROR",
-        "Error message.");
-
-    var response = new Response<string>
+    [Fact]
+    public void WithIssues_CreatesCopyWithSpecifiedIssues()
     {
-        Status = ResultStatus.Success,
-        Data = "payload",
-        Issues = originalIssues
-    };
+        var metadata = new MetadataBag();
+        metadata.Set("source", "unit-test");
 
-    var copy = Response<string>.WithIssues(response, newIssues);
+        var originalIssues = IssueInfoListFactory.Information(
+            "AFW_INFO",
+            "Information message.");
 
-    Assert.Same(originalIssues, response.Issues);
-    Assert.Same(newIssues, copy.Issues);
-}
+        var newIssues = IssueInfoListFactory.Error(
+            "AFW_ERROR",
+            "Error message.");
 
-[Fact]
-public void WithMetadata_WhenResponseIsNull_ThrowsArgumentNullException()
-{
-    Response<string>? response = null;
-    var metadata = new MetadataBag();
+        var response = new Response<string>
+        {
+            Status = ResultStatus.Success,
+            Message = "Original message.",
+            Data = "payload",
+            Issues = originalIssues,
+            Metadata = metadata
+        };
 
-    Assert.Throws<ArgumentNullException>(() =>
-        Response<string>.WithMetadata(response!, metadata));
-}
+        var copy = Response<string>.WithIssues(response, newIssues);
 
-[Fact]
-public void WithMetadata_WhenMetadataIsNull_ThrowsArgumentNullException()
-{
-    var response = Response<string>.Ok("payload");
+        Assert.NotSame(response, copy);
 
-    MetadataBag? metadata = null;
+        Assert.Equal(response.Status, copy.Status);
+        Assert.Equal(response.Message, copy.Message);
+        Assert.Equal(response.Data, copy.Data);
+        Assert.Same(newIssues, copy.Issues);
+        Assert.Same(response.Metadata, copy.Metadata);
+    }
 
-    Assert.Throws<ArgumentNullException>(() =>
-        Response<string>.WithMetadata(response, metadata!));
-}
+    [Fact]
+    public void WithIssues_DoesNotModifyOriginalResponse()
+    {
+        var originalIssues = IssueInfoListFactory.Information(
+            "AFW_INFO",
+            "Information message.");
 
-[Fact]
-public void WithMetadata_CreatesCopyWithSpecifiedMetadata()
-{
-    var originalMetadata = new MetadataBag();
-    originalMetadata.Set("original", "yes");
+        var newIssues = IssueInfoListFactory.Error(
+            "AFW_ERROR",
+            "Error message.");
 
-    var newMetadata = new MetadataBag();
-    newMetadata.Set("new", "yes");
+        var response = new Response<string>
+        {
+            Status = ResultStatus.Success,
+            Data = "payload",
+            Issues = originalIssues
+        };
 
-    IReadOnlyList<IssueInfo> issues =
-    [
-        IssueInfoFactory.Warning(
+        var copy = Response<string>.WithIssues(response, newIssues);
+
+        Assert.Same(originalIssues, response.Issues);
+        Assert.Same(newIssues, copy.Issues);
+    }
+
+    [Fact]
+    public void WithMetadata_WhenResponseIsNull_ThrowsArgumentNullException()
+    {
+        Response<string>? response = null;
+        var metadata = new MetadataBag();
+
+        Assert.Throws<ArgumentNullException>(() =>
+            Response<string>.WithMetadata(response!, metadata));
+    }
+
+    [Fact]
+    public void WithMetadata_WhenMetadataIsNull_ThrowsArgumentNullException()
+    {
+        var response = Response<string>.Ok("payload");
+
+        MetadataBag? metadata = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            Response<string>.WithMetadata(response, metadata!));
+    }
+
+    [Fact]
+    public void WithMetadata_CreatesCopyWithSpecifiedMetadata()
+    {
+        var originalMetadata = new MetadataBag();
+        originalMetadata.Set("original", "yes");
+
+        var newMetadata = new MetadataBag();
+        newMetadata.Set("new", "yes");
+
+        IReadOnlyList<IssueInfo> issues =
+        [
+            IssueInfoFactory.Warning(
             "AFW_WARNING",
             "Warning message.")
-    ];
+        ];
 
-    var response = new Response<string>
+        var response = new Response<string>
+        {
+            Status = ResultStatus.SuccessWithWarnings,
+            Message = "Original message.",
+            Data = "payload",
+            Issues = issues,
+            Metadata = originalMetadata
+        };
+
+        var copy = Response<string>.WithMetadata(response, newMetadata);
+
+        Assert.NotSame(response, copy);
+
+        Assert.Equal(response.Status, copy.Status);
+        Assert.Equal(response.Message, copy.Message);
+        Assert.Equal(response.Data, copy.Data);
+        Assert.Same(response.Issues, copy.Issues);
+        Assert.Same(newMetadata, copy.Metadata);
+
+        Assert.True(copy.Metadata.TryGet("new", out var value));
+        Assert.Equal("yes", value);
+    }
+
+    [Fact]
+    public void WithMetadata_DoesNotModifyOriginalResponse()
     {
-        Status = ResultStatus.SuccessWithWarnings,
-        Message = "Original message.",
-        Data = "payload",
-        Issues = issues,
-        Metadata = originalMetadata
+        var originalMetadata = new MetadataBag();
+        originalMetadata.Set("original", "yes");
+
+        var newMetadata = new MetadataBag();
+        newMetadata.Set("new", "yes");
+
+        var response = new Response<string>
+        {
+            Status = ResultStatus.Success,
+            Data = "payload",
+            Metadata = originalMetadata
+        };
+
+        var copy = Response<string>.WithMetadata(response, newMetadata);
+
+        Assert.Same(originalMetadata, response.Metadata);
+        Assert.Same(newMetadata, copy.Metadata);
+
+        Assert.True(response.Metadata.TryGet("original", out var originalValue));
+        Assert.False(response.Metadata.TryGet("new", out _));
+        Assert.Equal("yes", originalValue);
+
+        Assert.True(copy.Metadata.TryGet("new", out var newValue));
+        Assert.False(copy.Metadata.TryGet("original", out _));
+        Assert.Equal("yes", newValue);
+    }
+    [Fact]
+    public void AddIssue_WhenResponseIsNull_ThrowsArgumentNullException()
+    {
+        Response<string>? response = null;
+
+        var issue = IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.");
+
+        Assert.Throws<ArgumentNullException>(() =>
+            Response<string>.AddIssue(response!, issue));
+    }
+
+    [Fact]
+    public void AddIssue_WhenIssueIsNull_ThrowsArgumentNullException()
+    {
+        var response = Response<string>.Ok("payload");
+
+        IssueInfo? issue = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            Response<string>.AddIssue(response, issue!));
+    }
+
+    [Fact]
+    public void AddIssue_AppendsIssueAndPreservesData()
+    {
+        var first = IssueInfoFactory.Information(
+            "AFW_INFO",
+            "Information message.");
+
+        var second = IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.");
+
+        var response = new Response<string>
+        {
+            Status = ResultStatus.Success,
+            Message = "Original message.",
+            Data = "payload",
+            Issues =
+            [
+                first
+            ]
+        };
+
+        var copy = Response<string>.AddIssue(response, second);
+
+        Assert.NotSame(response, copy);
+
+        Assert.Equal(response.Status, copy.Status);
+        Assert.Equal(response.Message, copy.Message);
+        Assert.Equal("payload", copy.Data);
+        Assert.True(copy.HasData);
+        Assert.Equal(2, copy.Issues.Count);
+        Assert.Same(first, copy.Issues[0]);
+        Assert.Same(second, copy.Issues[1]);
+        Assert.Same(response.Metadata, copy.Metadata);
+    }
+
+    [Fact]
+    public void AddIssue_DoesNotModifyOriginalResponse()
+    {
+        var first = IssueInfoFactory.Information(
+            "AFW_INFO",
+            "Information message.");
+
+        var second = IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.");
+
+        var response = new Response<string>
+        {
+            Status = ResultStatus.Success,
+            Data = "payload",
+            Issues =
+            [
+                first
+            ]
+        };
+
+        var copy = Response<string>.AddIssue(response, second);
+
+        Assert.Single(response.Issues);
+        Assert.Same(first, response.Issues[0]);
+        Assert.Equal("payload", response.Data);
+
+        Assert.Equal(2, copy.Issues.Count);
+        Assert.Same(second, copy.Issues[1]);
+        Assert.Equal("payload", copy.Data);
+    }
+
+    [Fact]
+    public void AddIssue_WhenOriginalIssuesAreEmpty_CreatesResponseWithOneIssue()
+    {
+        var issue = IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.");
+
+        var response = Response<string>.Ok("payload");
+
+        var copy = Response<string>.AddIssue(response, issue);
+
+        Assert.Single(copy.Issues);
+        Assert.Same(issue, copy.Issues[0]);
+        Assert.Equal("payload", copy.Data);
+        Assert.True(copy.HasData);
+    }
+
+    [Fact]
+    public void AddIssue_WithNullData_PreservesNoData()
+    {
+        var issue = IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.");
+
+        var response = Response<string>.Ok(null);
+
+        var copy = Response<string>.AddIssue(response, issue);
+
+        Assert.Null(copy.Data);
+        Assert.False(copy.HasData);
+        Assert.Single(copy.Issues);
+        Assert.Same(issue, copy.Issues[0]);
+    }
+
+    [Fact]
+    public void AddIssue_WithValueTypeDefaultData_PreservesData()
+    {
+        var issue = IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.");
+
+        var response = Response<int>.Ok(0);
+
+        var copy = Response<int>.AddIssue(response, issue);
+
+        Assert.Equal(0, copy.Data);
+        Assert.True(copy.HasData);
+        Assert.Single(copy.Issues);
+        Assert.Same(issue, copy.Issues[0]);
+    }
+
+    [Fact]
+    public void AddIssues_WhenResponseIsNull_ThrowsArgumentNullException()
+    {
+        Response<string>? response = null;
+
+        IReadOnlyList<IssueInfo> issues =
+        [
+            IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.")
+        ];
+
+        Assert.Throws<ArgumentNullException>(() =>
+            Response<string>.AddIssues(response!, issues));
+    }
+
+    [Fact]
+    public void AddIssues_WhenIssuesIsNull_ThrowsArgumentNullException()
+    {
+        var response = Response<string>.Ok("payload");
+
+        IEnumerable<IssueInfo>? issues = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            Response<string>.AddIssues(response, issues!));
+    }
+
+    [Fact]
+    public void AddIssues_AppendsIssuesAndPreservesData()
+    {
+        var first = IssueInfoFactory.Information(
+            "AFW_INFO",
+            "Information message.");
+
+        var second = IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.");
+
+        var third = IssueInfoFactory.Error(
+            "AFW_ERROR",
+            "Error message.");
+
+        var response = new Response<string>
+        {
+            Status = ResultStatus.Success,
+            Message = "Original message.",
+            Data = "payload",
+            Issues =
+            [
+                first
+            ]
+        };
+
+        IReadOnlyList<IssueInfo> additionalIssues =
+        [
+            second,
+        third
+        ];
+
+        var copy = Response<string>.AddIssues(response, additionalIssues);
+
+        Assert.NotSame(response, copy);
+
+        Assert.Equal(response.Status, copy.Status);
+        Assert.Equal(response.Message, copy.Message);
+        Assert.Equal("payload", copy.Data);
+        Assert.True(copy.HasData);
+        Assert.Equal(3, copy.Issues.Count);
+        Assert.Same(first, copy.Issues[0]);
+        Assert.Same(second, copy.Issues[1]);
+        Assert.Same(third, copy.Issues[2]);
+        Assert.Same(response.Metadata, copy.Metadata);
+    }
+
+    [Fact]
+    public void AddIssues_DoesNotModifyOriginalResponse()
+    {
+        var first = IssueInfoFactory.Information(
+            "AFW_INFO",
+            "Information message.");
+
+        var second = IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.");
+
+        var response = new Response<string>
+        {
+            Status = ResultStatus.Success,
+            Data = "payload",
+            Issues =
+            [
+                first
+            ]
+        };
+
+        IReadOnlyList<IssueInfo> additionalIssues =
+        [
+            second
+        ];
+
+        var copy = Response<string>.AddIssues(response, additionalIssues);
+
+        Assert.Single(response.Issues);
+        Assert.Same(first, response.Issues[0]);
+        Assert.Equal("payload", response.Data);
+
+        Assert.Equal(2, copy.Issues.Count);
+        Assert.Same(second, copy.Issues[1]);
+        Assert.Equal("payload", copy.Data);
+    }
+
+    [Fact]
+    public void AddIssues_WhenAdditionalIssuesAreEmpty_ReturnsCopyWithOriginalIssues()
+    {
+        var first = IssueInfoFactory.Information(
+            "AFW_INFO",
+            "Information message.");
+
+        var response = new Response<string>
+        {
+            Status = ResultStatus.Success,
+            Data = "payload",
+            Issues =
+            [
+                first
+            ]
+        };
+
+        IReadOnlyList<IssueInfo> additionalIssues = [];
+
+        var copy = Response<string>.AddIssues(response, additionalIssues);
+
+        Assert.NotSame(response, copy);
+        Assert.Single(copy.Issues);
+        Assert.Same(first, copy.Issues[0]);
+        Assert.Equal("payload", copy.Data);
+        Assert.True(copy.HasData);
+    }
+
+    [Fact]
+    public void AddIssues_ReturnsSnapshotOfAdditionalIssues()
+    {
+        var first = IssueInfoFactory.Information(
+            "AFW_INFO",
+            "Information message.");
+
+        var second = IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.");
+
+        var response = new Response<string>
+        {
+            Status = ResultStatus.Success,
+            Data = "payload",
+            Issues =
+            [
+                first
+            ]
+        };
+
+        var additionalIssues = new List<IssueInfo>
+    {
+        second
     };
 
-    var copy = Response<string>.WithMetadata(response, newMetadata);
+        var copy = Response<string>.AddIssues(response, additionalIssues);
 
-    Assert.NotSame(response, copy);
+        additionalIssues.Clear();
 
-    Assert.Equal(response.Status, copy.Status);
-    Assert.Equal(response.Message, copy.Message);
-    Assert.Equal(response.Data, copy.Data);
-    Assert.Same(response.Issues, copy.Issues);
-    Assert.Same(newMetadata, copy.Metadata);
+        Assert.Equal(2, copy.Issues.Count);
+        Assert.Same(first, copy.Issues[0]);
+        Assert.Same(second, copy.Issues[1]);
+        Assert.Equal("payload", copy.Data);
+    }
 
-    Assert.True(copy.Metadata.TryGet("new", out var value));
-    Assert.Equal("yes", value);
-}
-
-[Fact]
-public void WithMetadata_DoesNotModifyOriginalResponse()
-{
-    var originalMetadata = new MetadataBag();
-    originalMetadata.Set("original", "yes");
-
-    var newMetadata = new MetadataBag();
-    newMetadata.Set("new", "yes");
-
-    var response = new Response<string>
+    [Fact]
+    public void AddIssues_WithNullData_PreservesNoData()
     {
-        Status = ResultStatus.Success,
-        Data = "payload",
-        Metadata = originalMetadata
-    };
+        var response = Response<string>.Ok(null);
 
-    var copy = Response<string>.WithMetadata(response, newMetadata);
+        IReadOnlyList<IssueInfo> additionalIssues =
+        [
+            IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.")
+        ];
 
-    Assert.Same(originalMetadata, response.Metadata);
-    Assert.Same(newMetadata, copy.Metadata);
+        var copy = Response<string>.AddIssues(response, additionalIssues);
 
-    Assert.True(response.Metadata.TryGet("original", out var originalValue));
-    Assert.False(response.Metadata.TryGet("new", out _));
-    Assert.Equal("yes", originalValue);
+        Assert.Null(copy.Data);
+        Assert.False(copy.HasData);
+        Assert.Single(copy.Issues);
+    }
 
-    Assert.True(copy.Metadata.TryGet("new", out var newValue));
-    Assert.False(copy.Metadata.TryGet("original", out _));
-    Assert.Equal("yes", newValue);
-}
+    [Fact]
+    public void AddIssues_WithValueTypeDefaultData_PreservesData()
+    {
+        var response = Response<int>.Ok(0);
+
+        IReadOnlyList<IssueInfo> additionalIssues =
+        [
+            IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.")
+        ];
+
+        var copy = Response<int>.AddIssues(response, additionalIssues);
+
+        Assert.Equal(0, copy.Data);
+        Assert.True(copy.HasData);
+        Assert.Single(copy.Issues);
+    }
 }

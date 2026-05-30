@@ -639,4 +639,270 @@ public void WithMetadata_DoesNotModifyOriginalResult()
     Assert.False(copy.Metadata.TryGet("original", out _));
     Assert.Equal("yes", newValue);
 }
+
+[Fact]
+public void AddIssue_WhenResultIsNull_ThrowsArgumentNullException()
+{
+    Result? result = null;
+
+    var issue = IssueInfoFactory.Warning(
+        "AFW_WARNING",
+        "Warning message.");
+
+    Assert.Throws<ArgumentNullException>(() =>
+        Result.AddIssue(result!, issue));
+}
+
+[Fact]
+public void AddIssue_WhenIssueIsNull_ThrowsArgumentNullException()
+{
+    var result = Result.Ok();
+
+    IssueInfo? issue = null;
+
+    Assert.Throws<ArgumentNullException>(() =>
+        Result.AddIssue(result, issue!));
+}
+
+[Fact]
+public void AddIssue_AppendsIssue()
+{
+    var first = IssueInfoFactory.Information(
+        "AFW_INFO",
+        "Information message.");
+
+    var second = IssueInfoFactory.Warning(
+        "AFW_WARNING",
+        "Warning message.");
+
+    var result = new Result
+    {
+        Status = ResultStatus.Success,
+        Message = "Original message.",
+        Issues =
+        [
+            first
+        ]
+    };
+
+    var copy = Result.AddIssue(result, second);
+
+    Assert.NotSame(result, copy);
+
+    Assert.Equal(result.Status, copy.Status);
+    Assert.Equal(result.Message, copy.Message);
+    Assert.Equal(2, copy.Issues.Count);
+    Assert.Same(first, copy.Issues[0]);
+    Assert.Same(second, copy.Issues[1]);
+    Assert.Same(result.Metadata, copy.Metadata);
+}
+
+[Fact]
+public void AddIssue_DoesNotModifyOriginalResult()
+{
+    var first = IssueInfoFactory.Information(
+        "AFW_INFO",
+        "Information message.");
+
+    var second = IssueInfoFactory.Warning(
+        "AFW_WARNING",
+        "Warning message.");
+
+    var result = new Result
+    {
+        Status = ResultStatus.Success,
+        Issues =
+        [
+            first
+        ]
+    };
+
+    var copy = Result.AddIssue(result, second);
+
+    Assert.Single(result.Issues);
+    Assert.Same(first, result.Issues[0]);
+
+    Assert.Equal(2, copy.Issues.Count);
+    Assert.Same(second, copy.Issues[1]);
+}
+
+[Fact]
+public void AddIssue_WhenOriginalIssuesAreEmpty_CreatesResultWithOneIssue()
+{
+    var issue = IssueInfoFactory.Warning(
+        "AFW_WARNING",
+        "Warning message.");
+
+    var result = Result.Ok();
+
+    var copy = Result.AddIssue(result, issue);
+
+    Assert.Single(copy.Issues);
+    Assert.Same(issue, copy.Issues[0]);
+}
+
+[Fact]
+public void AddIssues_WhenResultIsNull_ThrowsArgumentNullException()
+{
+    Result? result = null;
+
+    IReadOnlyList<IssueInfo> issues =
+    [
+        IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.")
+    ];
+
+    Assert.Throws<ArgumentNullException>(() =>
+        Result.AddIssues(result!, issues));
+}
+
+[Fact]
+public void AddIssues_WhenIssuesIsNull_ThrowsArgumentNullException()
+{
+    var result = Result.Ok();
+
+    IEnumerable<IssueInfo>? issues = null;
+
+    Assert.Throws<ArgumentNullException>(() =>
+        Result.AddIssues(result, issues!));
+}
+
+[Fact]
+public void AddIssues_AppendsIssues()
+{
+    var first = IssueInfoFactory.Information(
+        "AFW_INFO",
+        "Information message.");
+
+    var second = IssueInfoFactory.Warning(
+        "AFW_WARNING",
+        "Warning message.");
+
+    var third = IssueInfoFactory.Error(
+        "AFW_ERROR",
+        "Error message.");
+
+    var result = new Result
+    {
+        Status = ResultStatus.Success,
+        Message = "Original message.",
+        Issues =
+        [
+            first
+        ]
+    };
+
+    IReadOnlyList<IssueInfo> additionalIssues =
+    [
+        second,
+        third
+    ];
+
+    var copy = Result.AddIssues(result, additionalIssues);
+
+    Assert.NotSame(result, copy);
+
+    Assert.Equal(result.Status, copy.Status);
+    Assert.Equal(result.Message, copy.Message);
+    Assert.Equal(3, copy.Issues.Count);
+    Assert.Same(first, copy.Issues[0]);
+    Assert.Same(second, copy.Issues[1]);
+    Assert.Same(third, copy.Issues[2]);
+    Assert.Same(result.Metadata, copy.Metadata);
+}
+
+[Fact]
+public void AddIssues_DoesNotModifyOriginalResult()
+{
+    var first = IssueInfoFactory.Information(
+        "AFW_INFO",
+        "Information message.");
+
+    var second = IssueInfoFactory.Warning(
+        "AFW_WARNING",
+        "Warning message.");
+
+    var result = new Result
+    {
+        Status = ResultStatus.Success,
+        Issues =
+        [
+            first
+        ]
+    };
+
+    IReadOnlyList<IssueInfo> additionalIssues =
+    [
+        second
+    ];
+
+    var copy = Result.AddIssues(result, additionalIssues);
+
+    Assert.Single(result.Issues);
+    Assert.Same(first, result.Issues[0]);
+
+    Assert.Equal(2, copy.Issues.Count);
+    Assert.Same(second, copy.Issues[1]);
+}
+
+[Fact]
+public void AddIssues_WhenAdditionalIssuesAreEmpty_ReturnsCopyWithOriginalIssues()
+{
+    var first = IssueInfoFactory.Information(
+        "AFW_INFO",
+        "Information message.");
+
+    var result = new Result
+    {
+        Status = ResultStatus.Success,
+        Issues =
+        [
+            first
+        ]
+    };
+
+    IReadOnlyList<IssueInfo> additionalIssues = [];
+
+    var copy = Result.AddIssues(result, additionalIssues);
+
+    Assert.NotSame(result, copy);
+    Assert.Single(copy.Issues);
+    Assert.Same(first, copy.Issues[0]);
+}
+
+[Fact]
+public void AddIssues_ReturnsSnapshotOfAdditionalIssues()
+{
+    var first = IssueInfoFactory.Information(
+        "AFW_INFO",
+        "Information message.");
+
+    var second = IssueInfoFactory.Warning(
+        "AFW_WARNING",
+        "Warning message.");
+
+    var result = new Result
+    {
+        Status = ResultStatus.Success,
+        Issues =
+        [
+            first
+        ]
+    };
+
+    var additionalIssues = new List<IssueInfo>
+    {
+        second
+    };
+
+    var copy = Result.AddIssues(result, additionalIssues);
+
+    additionalIssues.Clear();
+
+    Assert.Equal(2, copy.Issues.Count);
+    Assert.Same(first, copy.Issues[0]);
+    Assert.Same(second, copy.Issues[1]);
+}
+
 }

@@ -232,4 +232,279 @@ public sealed class IssueInfoCollectionExtensionsTests
          Severity = severity
       };
    }
+   [Fact]
+public void AppendIssue_WhenIssuesIsNull_ThrowsArgumentNullException()
+{
+    IReadOnlyList<IssueInfo>? issues = null;
+
+    var issue = IssueInfoFactory.Warning(
+        "AFW_WARNING",
+        "Warning message.");
+
+    Assert.Throws<ArgumentNullException>(() =>
+        issues!.AppendIssue(issue));
+}
+
+[Fact]
+public void AppendIssue_WhenIssueIsNull_ThrowsArgumentNullException()
+{
+    IReadOnlyList<IssueInfo> issues = [];
+
+    IssueInfo? issue = null;
+
+    Assert.Throws<ArgumentNullException>(() =>
+        issues.AppendIssue(issue!));
+}
+
+[Fact]
+public void AppendIssue_WhenIssuesAreEmpty_ReturnsListWithAppendedIssue()
+{
+    IReadOnlyList<IssueInfo> issues = [];
+
+    var issue = IssueInfoFactory.Warning(
+        "AFW_WARNING",
+        "Warning message.");
+
+    var result = issues.AppendIssue(issue);
+
+    Assert.Single(result);
+    Assert.Same(issue, result[0]);
+}
+
+[Fact]
+public void AppendIssue_WhenIssuesContainItems_ReturnsListWithOriginalItemsAndAppendedIssue()
+{
+    var first = IssueInfoFactory.Information(
+        "AFW_INFO",
+        "Information message.");
+
+    var second = IssueInfoFactory.Warning(
+        "AFW_WARNING",
+        "Warning message.");
+
+    IReadOnlyList<IssueInfo> issues =
+    [
+        first
+    ];
+
+    var result = issues.AppendIssue(second);
+
+    Assert.Equal(2, result.Count);
+    Assert.Same(first, result[0]);
+    Assert.Same(second, result[1]);
+}
+
+[Fact]
+public void AppendIssue_ReturnsNewList()
+{
+    var first = IssueInfoFactory.Information(
+        "AFW_INFO",
+        "Information message.");
+
+    var second = IssueInfoFactory.Warning(
+        "AFW_WARNING",
+        "Warning message.");
+
+    IReadOnlyList<IssueInfo> issues =
+    [
+        first
+    ];
+
+    var result = issues.AppendIssue(second);
+
+    Assert.NotSame(issues, result);
+}
+
+[Fact]
+public void AppendIssue_DoesNotModifyOriginalList()
+{
+    var first = IssueInfoFactory.Information(
+        "AFW_INFO",
+        "Information message.");
+
+    var second = IssueInfoFactory.Warning(
+        "AFW_WARNING",
+        "Warning message.");
+
+    IReadOnlyList<IssueInfo> issues =
+    [
+        first
+    ];
+
+    var result = issues.AppendIssue(second);
+
+    Assert.Single(issues);
+    Assert.Same(first, issues[0]);
+
+    Assert.Equal(2, result.Count);
+    Assert.Same(second, result[1]);
+}
+
+[Fact]
+public void AppendIssues_WhenIssuesIsNull_ThrowsArgumentNullException()
+{
+    IReadOnlyList<IssueInfo>? issues = null;
+
+    IReadOnlyList<IssueInfo> additionalIssues =
+    [
+        IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.")
+    ];
+
+    Assert.Throws<ArgumentNullException>(() =>
+        issues!.AppendIssues(additionalIssues));
+}
+
+[Fact]
+public void AppendIssues_WhenAdditionalIssuesIsNull_ThrowsArgumentNullException()
+{
+    IReadOnlyList<IssueInfo> issues = [];
+
+    IEnumerable<IssueInfo>? additionalIssues = null;
+
+    Assert.Throws<ArgumentNullException>(() =>
+        issues.AppendIssues(additionalIssues!));
+}
+
+[Fact]
+public void AppendIssues_WhenBothCollectionsAreEmpty_ReturnsEmptyList()
+{
+    IReadOnlyList<IssueInfo> issues = [];
+    IReadOnlyList<IssueInfo> additionalIssues = [];
+
+    var result = issues.AppendIssues(additionalIssues);
+
+    Assert.NotNull(result);
+    Assert.Empty(result);
+}
+
+[Fact]
+public void AppendIssues_WhenSourceIsEmpty_ReturnsAdditionalIssues()
+{
+    IReadOnlyList<IssueInfo> issues = [];
+
+    var first = IssueInfoFactory.Warning(
+        "AFW_WARNING",
+        "Warning message.");
+
+    var second = IssueInfoFactory.Error(
+        "AFW_ERROR",
+        "Error message.");
+
+    IReadOnlyList<IssueInfo> additionalIssues =
+    [
+        first,
+        second
+    ];
+
+    var result = issues.AppendIssues(additionalIssues);
+
+    Assert.Equal(2, result.Count);
+    Assert.Same(first, result[0]);
+    Assert.Same(second, result[1]);
+}
+
+[Fact]
+public void AppendIssues_WhenAdditionalIssuesAreEmpty_ReturnsOriginalIssues()
+{
+    var first = IssueInfoFactory.Information(
+        "AFW_INFO",
+        "Information message.");
+
+    IReadOnlyList<IssueInfo> issues =
+    [
+        first
+    ];
+
+    IReadOnlyList<IssueInfo> additionalIssues = [];
+
+    var result = issues.AppendIssues(additionalIssues);
+
+    Assert.Single(result);
+    Assert.Same(first, result[0]);
+}
+
+[Fact]
+public void AppendIssues_ReturnsListWithOriginalAndAdditionalIssues()
+{
+    var first = IssueInfoFactory.Information(
+        "AFW_INFO",
+        "Information message.");
+
+    var second = IssueInfoFactory.Warning(
+        "AFW_WARNING",
+        "Warning message.");
+
+    var third = IssueInfoFactory.Error(
+        "AFW_ERROR",
+        "Error message.");
+
+    IReadOnlyList<IssueInfo> issues =
+    [
+        first
+    ];
+
+    IReadOnlyList<IssueInfo> additionalIssues =
+    [
+        second,
+        third
+    ];
+
+    var result = issues.AppendIssues(additionalIssues);
+
+    Assert.Equal(3, result.Count);
+    Assert.Same(first, result[0]);
+    Assert.Same(second, result[1]);
+    Assert.Same(third, result[2]);
+}
+
+[Fact]
+public void AppendIssues_ReturnsNewList()
+{
+    var first = IssueInfoFactory.Information(
+        "AFW_INFO",
+        "Information message.");
+
+    IReadOnlyList<IssueInfo> issues =
+    [
+        first
+    ];
+
+    IReadOnlyList<IssueInfo> additionalIssues = [];
+
+    var result = issues.AppendIssues(additionalIssues);
+
+    Assert.NotSame(issues, result);
+}
+
+[Fact]
+public void AppendIssues_ReturnsSnapshotOfAdditionalIssues()
+{
+    var first = IssueInfoFactory.Information(
+        "AFW_INFO",
+        "Information message.");
+
+    var second = IssueInfoFactory.Warning(
+        "AFW_WARNING",
+        "Warning message.");
+
+    IReadOnlyList<IssueInfo> issues =
+    [
+        first
+    ];
+
+    var additionalIssues = new List<IssueInfo>
+    {
+        second
+    };
+
+    var result = issues.AppendIssues(additionalIssues);
+
+    additionalIssues.Clear();
+
+    Assert.Equal(2, result.Count);
+    Assert.Same(first, result[0]);
+    Assert.Same(second, result[1]);
+}
 }

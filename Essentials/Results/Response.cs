@@ -169,89 +169,125 @@ public sealed class Response : IResponse
         };
     }
     /// <summary>
-/// Creates a copy of a response with a message.
-/// </summary>
-/// <param name="response">The source response.</param>
-/// <param name="message">The response message.</param>
-/// <returns>A new response with copied values and the specified message.</returns>
-public static Response WithMessage(
-    Response response,
-    string message)
-{
-    ArgumentNullException.ThrowIfNull(response);
-    ArgumentException.ThrowIfNullOrWhiteSpace(message);
-
-    return new Response
+    /// Creates a copy of a response with a message.
+    /// </summary>
+    /// <param name="response">The source response.</param>
+    /// <param name="message">The response message.</param>
+    /// <returns>A new response with copied values and the specified message.</returns>
+    public static Response WithMessage(
+        Response response,
+        string message)
     {
-        Status = response.Status,
-        Message = message,
-        Issues = response.Issues,
-        Metadata = response.Metadata
-    };
-}
+        ArgumentNullException.ThrowIfNull(response);
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
 
-/// <summary>
-/// Creates a copy of a response with a status.
-/// </summary>
-/// <param name="response">The source response.</param>
-/// <param name="status">The response status.</param>
-/// <returns>A new response with copied values and the specified status.</returns>
-public static Response WithStatus(
-    Response response,
-    ResultStatus status)
-{
-    ArgumentNullException.ThrowIfNull(response);
+        return new Response
+        {
+            Status = response.Status,
+            Message = message,
+            Issues = response.Issues,
+            Metadata = response.Metadata
+        };
+    }
 
-    return new Response
+    /// <summary>
+    /// Creates a copy of a response with a status.
+    /// </summary>
+    /// <param name="response">The source response.</param>
+    /// <param name="status">The response status.</param>
+    /// <returns>A new response with copied values and the specified status.</returns>
+    public static Response WithStatus(
+        Response response,
+        ResultStatus status)
     {
-        Status = status,
-        Message = response.Message,
-        Issues = response.Issues,
-        Metadata = response.Metadata
-    };
-}
+        ArgumentNullException.ThrowIfNull(response);
 
-/// <summary>
-/// Creates a copy of a response with issues.
-/// </summary>
-/// <param name="response">The source response.</param>
-/// <param name="issues">The issues to attach.</param>
-/// <returns>A new response with copied values and the specified issues.</returns>
-public static Response WithIssues(
-    Response response,
-    IReadOnlyList<IssueInfo> issues)
-{
-    ArgumentNullException.ThrowIfNull(response);
-    ArgumentNullException.ThrowIfNull(issues);
+        return new Response
+        {
+            Status = status,
+            Message = response.Message,
+            Issues = response.Issues,
+            Metadata = response.Metadata
+        };
+    }
 
-    return new Response
+    /// <summary>
+    /// Creates a copy of a response with issues.
+    /// </summary>
+    /// <param name="response">The source response.</param>
+    /// <param name="issues">The issues to attach.</param>
+    /// <returns>A new response with copied values and the specified issues.</returns>
+    public static Response WithIssues(
+        Response response,
+        IReadOnlyList<IssueInfo> issues)
     {
-        Status = response.Status,
-        Message = response.Message,
-        Issues = issues,
-        Metadata = response.Metadata
-    };
-}
+        ArgumentNullException.ThrowIfNull(response);
+        ArgumentNullException.ThrowIfNull(issues);
 
-/// <summary>
-/// Creates a copy of a response with metadata.
-/// </summary>
-/// <param name="response">The source response.</param>
-/// <param name="metadata">The metadata to attach.</param>
-/// <returns>A new response with copied values and the specified metadata.</returns>
-public static Response WithMetadata(
-    Response response,
-    MetadataBag metadata)
-{
-    ArgumentNullException.ThrowIfNull(response);
-    ArgumentNullException.ThrowIfNull(metadata);
+        return new Response
+        {
+            Status = response.Status,
+            Message = response.Message,
+            Issues = issues,
+            Metadata = response.Metadata
+        };
+    }
 
-    return new Response
+    /// <summary>
+    /// Creates a copy of a response with metadata.
+    /// </summary>
+    /// <param name="response">The source response.</param>
+    /// <param name="metadata">The metadata to attach.</param>
+    /// <returns>A new response with copied values and the specified metadata.</returns>
+    public static Response WithMetadata(
+        Response response,
+        MetadataBag metadata)
     {
-        Status = response.Status,
-        Message = response.Message,
-        Issues = response.Issues,
-        Metadata = metadata
-    };
-}
+        ArgumentNullException.ThrowIfNull(response);
+        ArgumentNullException.ThrowIfNull(metadata);
+
+        return new Response
+        {
+            Status = response.Status,
+            Message = response.Message,
+            Issues = response.Issues,
+            Metadata = metadata
+        };
+    }
+
+    /// <summary>
+    /// Creates a copy of a response with one appended issue.
+    /// </summary>
+    /// <param name="response">The source response.</param>
+    /// <param name="issue">The issue to append.</param>
+    /// <returns>A new response with copied values and the appended issue.</returns>
+    public static Response AddIssue(
+        Response response,
+        IssueInfo issue)
+    {
+        ArgumentNullException.ThrowIfNull(response);
+        ArgumentNullException.ThrowIfNull(issue);
+
+        return WithIssues(
+            response,
+            response.Issues.AppendIssue(issue));
+    }
+
+    /// <summary>
+    /// Creates a copy of a response with appended issues.
+    /// </summary>
+    /// <param name="response">The source response.</param>
+    /// <param name="issues">The issues to append.</param>
+    /// <returns>A new response with copied values and the appended issues.</returns>
+    public static Response AddIssues(
+        Response response,
+        IEnumerable<IssueInfo> issues)
+    {
+        ArgumentNullException.ThrowIfNull(response);
+        ArgumentNullException.ThrowIfNull(issues);
+
+        return WithIssues(
+            response,
+            response.Issues.AppendIssues(issues));
+    }
 }

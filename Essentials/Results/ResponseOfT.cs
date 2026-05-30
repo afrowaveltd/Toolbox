@@ -185,115 +185,151 @@ public sealed class Response<T> : IResponse<T>
         };
     }
     /// <summary>
-/// Creates a copy of a response with a message.
-/// </summary>
-/// <param name="response">The source response.</param>
-/// <param name="message">The response message.</param>
-/// <returns>A new response with copied values and the specified message.</returns>
-public static Response<T> WithMessage(
-    Response<T> response,
-    string message)
-{
-    ArgumentNullException.ThrowIfNull(response);
-    ArgumentException.ThrowIfNullOrWhiteSpace(message);
-
-    return new Response<T>
+    /// Creates a copy of a response with a message.
+    /// </summary>
+    /// <param name="response">The source response.</param>
+    /// <param name="message">The response message.</param>
+    /// <returns>A new response with copied values and the specified message.</returns>
+    public static Response<T> WithMessage(
+        Response<T> response,
+        string message)
     {
-        Status = response.Status,
-        Message = message,
-        Data = response.Data,
-        Issues = response.Issues,
-        Metadata = response.Metadata
-    };
-}
+        ArgumentNullException.ThrowIfNull(response);
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
 
-/// <summary>
-/// Creates a copy of a response with a status.
-/// </summary>
-/// <param name="response">The source response.</param>
-/// <param name="status">The response status.</param>
-/// <returns>A new response with copied values and the specified status.</returns>
-public static Response<T> WithStatus(
-    Response<T> response,
-    ResultStatus status)
-{
-    ArgumentNullException.ThrowIfNull(response);
+        return new Response<T>
+        {
+            Status = response.Status,
+            Message = message,
+            Data = response.Data,
+            Issues = response.Issues,
+            Metadata = response.Metadata
+        };
+    }
 
-    return new Response<T>
+    /// <summary>
+    /// Creates a copy of a response with a status.
+    /// </summary>
+    /// <param name="response">The source response.</param>
+    /// <param name="status">The response status.</param>
+    /// <returns>A new response with copied values and the specified status.</returns>
+    public static Response<T> WithStatus(
+        Response<T> response,
+        ResultStatus status)
     {
-        Status = status,
-        Message = response.Message,
-        Data = response.Data,
-        Issues = response.Issues,
-        Metadata = response.Metadata
-    };
-}
+        ArgumentNullException.ThrowIfNull(response);
 
-/// <summary>
-/// Creates a copy of a response with data.
-/// </summary>
-/// <param name="response">The source response.</param>
-/// <param name="data">The response data.</param>
-/// <returns>A new response with copied values and the specified data.</returns>
-public static Response<T> WithData(
-    Response<T> response,
-    T? data)
-{
-    ArgumentNullException.ThrowIfNull(response);
+        return new Response<T>
+        {
+            Status = status,
+            Message = response.Message,
+            Data = response.Data,
+            Issues = response.Issues,
+            Metadata = response.Metadata
+        };
+    }
 
-    return new Response<T>
+    /// <summary>
+    /// Creates a copy of a response with data.
+    /// </summary>
+    /// <param name="response">The source response.</param>
+    /// <param name="data">The response data.</param>
+    /// <returns>A new response with copied values and the specified data.</returns>
+    public static Response<T> WithData(
+        Response<T> response,
+        T? data)
     {
-        Status = response.Status,
-        Message = response.Message,
-        Data = data,
-        Issues = response.Issues,
-        Metadata = response.Metadata
-    };
-}
+        ArgumentNullException.ThrowIfNull(response);
 
-/// <summary>
-/// Creates a copy of a response with issues.
-/// </summary>
-/// <param name="response">The source response.</param>
-/// <param name="issues">The issues to attach.</param>
-/// <returns>A new response with copied values and the specified issues.</returns>
-public static Response<T> WithIssues(
-    Response<T> response,
-    IReadOnlyList<IssueInfo> issues)
-{
-    ArgumentNullException.ThrowIfNull(response);
-    ArgumentNullException.ThrowIfNull(issues);
+        return new Response<T>
+        {
+            Status = response.Status,
+            Message = response.Message,
+            Data = data,
+            Issues = response.Issues,
+            Metadata = response.Metadata
+        };
+    }
 
-    return new Response<T>
+    /// <summary>
+    /// Creates a copy of a response with issues.
+    /// </summary>
+    /// <param name="response">The source response.</param>
+    /// <param name="issues">The issues to attach.</param>
+    /// <returns>A new response with copied values and the specified issues.</returns>
+    public static Response<T> WithIssues(
+        Response<T> response,
+        IReadOnlyList<IssueInfo> issues)
     {
-        Status = response.Status,
-        Message = response.Message,
-        Data = response.Data,
-        Issues = issues,
-        Metadata = response.Metadata
-    };
-}
+        ArgumentNullException.ThrowIfNull(response);
+        ArgumentNullException.ThrowIfNull(issues);
 
-/// <summary>
-/// Creates a copy of a response with metadata.
-/// </summary>
-/// <param name="response">The source response.</param>
-/// <param name="metadata">The metadata to attach.</param>
-/// <returns>A new response with copied values and the specified metadata.</returns>
-public static Response<T> WithMetadata(
-    Response<T> response,
-    MetadataBag metadata)
-{
-    ArgumentNullException.ThrowIfNull(response);
-    ArgumentNullException.ThrowIfNull(metadata);
+        return new Response<T>
+        {
+            Status = response.Status,
+            Message = response.Message,
+            Data = response.Data,
+            Issues = issues,
+            Metadata = response.Metadata
+        };
+    }
 
-    return new Response<T>
+    /// <summary>
+    /// Creates a copy of a response with metadata.
+    /// </summary>
+    /// <param name="response">The source response.</param>
+    /// <param name="metadata">The metadata to attach.</param>
+    /// <returns>A new response with copied values and the specified metadata.</returns>
+    public static Response<T> WithMetadata(
+        Response<T> response,
+        MetadataBag metadata)
     {
-        Status = response.Status,
-        Message = response.Message,
-        Data = response.Data,
-        Issues = response.Issues,
-        Metadata = metadata
-    };
-}
+        ArgumentNullException.ThrowIfNull(response);
+        ArgumentNullException.ThrowIfNull(metadata);
+
+        return new Response<T>
+        {
+            Status = response.Status,
+            Message = response.Message,
+            Data = response.Data,
+            Issues = response.Issues,
+            Metadata = metadata
+        };
+    }
+    /// <summary>
+    /// Creates a copy of a response with one appended issue.
+    /// </summary>
+    /// <param name="response">The source response.</param>
+    /// <param name="issue">The issue to append.</param>
+    /// <returns>A new response with copied values and the appended issue.</returns>
+    public static Response<T> AddIssue(
+        Response<T> response,
+        IssueInfo issue)
+    {
+        ArgumentNullException.ThrowIfNull(response);
+        ArgumentNullException.ThrowIfNull(issue);
+
+        return WithIssues(
+            response,
+            response.Issues.AppendIssue(issue));
+    }
+
+    /// <summary>
+    /// Creates a copy of a response with appended issues.
+    /// </summary>
+    /// <param name="response">The source response.</param>
+    /// <param name="issues">The issues to append.</param>
+    /// <returns>A new response with copied values and the appended issues.</returns>
+    public static Response<T> AddIssues(
+        Response<T> response,
+        IEnumerable<IssueInfo> issues)
+    {
+        ArgumentNullException.ThrowIfNull(response);
+        ArgumentNullException.ThrowIfNull(issues);
+
+        return WithIssues(
+            response,
+            response.Issues.AppendIssues(issues));
+    }
+
 }
