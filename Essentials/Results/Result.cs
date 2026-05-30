@@ -35,20 +35,20 @@ public sealed class Result : IResult
     /// Gets a value indicating whether the operation completed successfully.
     /// </summary>
     public bool IsSuccess =>
-        Status is ResultStatus.Success or ResultStatus.SuccessWithWarnings;
+        Status.IsSuccess();
 
     /// <summary>
     /// Gets a value indicating whether the operation failed.
     /// </summary>
     public bool IsFailure =>
-        Status is ResultStatus.Failed or ResultStatus.Invalid or ResultStatus.NotFound;
+        Status.IsFailure();
 
     /// <summary>
     /// Gets a value indicating whether the operation completed with warnings.
     /// </summary>
     public bool HasWarnings =>
-        Status == ResultStatus.SuccessWithWarnings
-        || Issues.HasWarningsOrErrors();
+        Status.HasWarnings()
+        || Issues.HasWarningOrHigherIssues();
 
     /// <summary>
     /// Creates a successful result.
@@ -165,127 +165,303 @@ public sealed class Result : IResult
     }
 
     /// <summary>
-/// Creates a copy of a result with a message.
-/// </summary>
-/// <param name="result">The source result.</param>
-/// <param name="message">The result message.</param>
-/// <returns>A new result with copied values and the specified message.</returns>
-public static Result WithMessage(
-    Result result,
-    string message)
-{
-    ArgumentNullException.ThrowIfNull(result);
-    ArgumentException.ThrowIfNullOrWhiteSpace(message);
-
-    return new Result
+    /// Creates a copy of a result with a message.
+    /// </summary>
+    /// <param name="result">The source result.</param>
+    /// <param name="message">The result message.</param>
+    /// <returns>A new result with copied values and the specified message.</returns>
+    public static Result WithMessage(
+        Result result,
+        string message)
     {
-        Status = result.Status,
-        Message = message,
-        Issues = result.Issues,
-        Metadata = result.Metadata
-    };
-}
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
 
-/// <summary>
-/// Creates a copy of a result with a status.
-/// </summary>
-/// <param name="result">The source result.</param>
-/// <param name="status">The result status.</param>
-/// <returns>A new result with copied values and the specified status.</returns>
-public static Result WithStatus(
-    Result result,
-    ResultStatus status)
-{
-    ArgumentNullException.ThrowIfNull(result);
+        return new Result
+        {
+            Status = result.Status,
+            Message = message,
+            Issues = result.Issues,
+            Metadata = result.Metadata
+        };
+    }
 
-    return new Result
+    /// <summary>
+    /// Creates a copy of a result with a status.
+    /// </summary>
+    /// <param name="result">The source result.</param>
+    /// <param name="status">The result status.</param>
+    /// <returns>A new result with copied values and the specified status.</returns>
+    public static Result WithStatus(
+        Result result,
+        ResultStatus status)
     {
-        Status = status,
-        Message = result.Message,
-        Issues = result.Issues,
-        Metadata = result.Metadata
-    };
-}
+        ArgumentNullException.ThrowIfNull(result);
 
-/// <summary>
-/// Creates a copy of a result with issues.
-/// </summary>
-/// <param name="result">The source result.</param>
-/// <param name="issues">The issues to attach.</param>
-/// <returns>A new result with copied values and the specified issues.</returns>
-public static Result WithIssues(
-    Result result,
-    IReadOnlyList<IssueInfo> issues)
-{
-    ArgumentNullException.ThrowIfNull(result);
-    ArgumentNullException.ThrowIfNull(issues);
+        return new Result
+        {
+            Status = status,
+            Message = result.Message,
+            Issues = result.Issues,
+            Metadata = result.Metadata
+        };
+    }
 
-    return new Result
+    /// <summary>
+    /// Creates a copy of a result with issues.
+    /// </summary>
+    /// <param name="result">The source result.</param>
+    /// <param name="issues">The issues to attach.</param>
+    /// <returns>A new result with copied values and the specified issues.</returns>
+    public static Result WithIssues(
+        Result result,
+        IReadOnlyList<IssueInfo> issues)
     {
-        Status = result.Status,
-        Message = result.Message,
-        Issues = issues,
-        Metadata = result.Metadata
-    };
-}
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(issues);
 
-/// <summary>
-/// Creates a copy of a result with metadata.
-/// </summary>
-/// <param name="result">The source result.</param>
-/// <param name="metadata">The metadata to attach.</param>
-/// <returns>A new result with copied values and the specified metadata.</returns>
-public static Result WithMetadata(
-    Result result,
-    MetadataBag metadata)
-{
-    ArgumentNullException.ThrowIfNull(result);
-    ArgumentNullException.ThrowIfNull(metadata);
+        return new Result
+        {
+            Status = result.Status,
+            Message = result.Message,
+            Issues = issues,
+            Metadata = result.Metadata
+        };
+    }
 
-    return new Result
+    /// <summary>
+    /// Creates a copy of a result with metadata.
+    /// </summary>
+    /// <param name="result">The source result.</param>
+    /// <param name="metadata">The metadata to attach.</param>
+    /// <returns>A new result with copied values and the specified metadata.</returns>
+    public static Result WithMetadata(
+        Result result,
+        MetadataBag metadata)
     {
-        Status = result.Status,
-        Message = result.Message,
-        Issues = result.Issues,
-        Metadata = metadata
-    };
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(metadata);
 
-}
-/// <summary>
-/// Creates a copy of a result with one appended issue.
-/// </summary>
-/// <param name="result">The source result.</param>
-/// <param name="issue">The issue to append.</param>
-/// <returns>A new result with copied values and the appended issue.</returns>
-public static Result AddIssue(
-    Result result,
-    IssueInfo issue)
-{
-    ArgumentNullException.ThrowIfNull(result);
-    ArgumentNullException.ThrowIfNull(issue);
+        return new Result
+        {
+            Status = result.Status,
+            Message = result.Message,
+            Issues = result.Issues,
+            Metadata = metadata
+        };
 
-    return WithIssues(
-        result,
-        result.Issues.AppendIssue(issue));
-}
+    }
+    /// <summary>
+    /// Creates a copy of a result with one appended issue.
+    /// </summary>
+    /// <param name="result">The source result.</param>
+    /// <param name="issue">The issue to append.</param>
+    /// <returns>A new result with copied values and the appended issue.</returns>
+    public static Result AddIssue(
+        Result result,
+        IssueInfo issue)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(issue);
 
-/// <summary>
-/// Creates a copy of a result with appended issues.
-/// </summary>
-/// <param name="result">The source result.</param>
-/// <param name="issues">The issues to append.</param>
-/// <returns>A new result with copied values and the appended issues.</returns>
-public static Result AddIssues(
-    Result result,
-    IEnumerable<IssueInfo> issues)
-{
-    ArgumentNullException.ThrowIfNull(result);
-    ArgumentNullException.ThrowIfNull(issues);
+        return WithIssues(
+            result,
+            result.Issues.AppendIssue(issue));
+    }
 
-    return WithIssues(
-        result,
-        result.Issues.AppendIssues(issues));
-}
+    /// <summary>
+    /// Creates a copy of a result with appended issues.
+    /// </summary>
+    /// <param name="result">The source result.</param>
+    /// <param name="issues">The issues to append.</param>
+    /// <returns>A new result with copied values and the appended issues.</returns>
+    public static Result AddIssues(
+        Result result,
+        IEnumerable<IssueInfo> issues)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(issues);
 
+        return WithIssues(
+            result,
+            result.Issues.AppendIssues(issues));
+    }
 
+    /// <summary>
+    /// Creates a copy of a result with one metadata value added or updated.
+    /// </summary>
+    /// <param name="result">The source result.</param>
+    /// <param name="key">The metadata key.</param>
+    /// <param name="value">The metadata value.</param>
+    /// <returns>A new result with copied values and the specified metadata value set.</returns>
+    public static Result AddMetadata(
+        Result result,
+        string key,
+        string value)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return WithMetadata(
+            result,
+            MetadataBagFactory.CopyWith(
+                result.Metadata,
+                key,
+                value));
+    }
+
+    /// <summary>
+    /// Creates a result from issue severities.
+    /// </summary>
+    /// <param name="issues">The issues to attach.</param>
+    /// <returns>A result with status inferred from issue severities.</returns>
+    public static Result FromIssues(IReadOnlyList<IssueInfo> issues)
+    {
+        ArgumentNullException.ThrowIfNull(issues);
+
+        return new Result
+        {
+            Status = issues.ToResultStatus(),
+            Issues = issues
+        };
+    }
+
+    /// <summary>
+    /// Creates a result from issue severities with a message.
+    /// </summary>
+    /// <param name="issues">The issues to attach.</param>
+    /// <param name="message">The result message.</param>
+    /// <returns>A result with status inferred from issue severities and the specified message.</returns>
+    public static Result FromIssues(
+        IReadOnlyList<IssueInfo> issues,
+        string message)
+    {
+        ArgumentNullException.ThrowIfNull(issues);
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
+
+        return new Result
+        {
+            Status = issues.ToResultStatus(),
+            Message = message,
+            Issues = issues
+        };
+    }
+
+    /// <summary>
+    /// Creates a result from one issue.
+    /// </summary>
+    /// <param name="issue">The issue to attach.</param>
+    /// <returns>A result with status inferred from the issue severity.</returns>
+    public static Result FromIssue(IssueInfo issue)
+    {
+        ArgumentNullException.ThrowIfNull(issue);
+
+        return FromIssues(
+        [
+            issue
+        ]);
+    }
+
+    /// <summary>
+    /// Creates a result from one issue with a message.
+    /// </summary>
+    /// <param name="issue">The issue to attach.</param>
+    /// <param name="message">The result message.</param>
+    /// <returns>A result with status inferred from the issue severity and the specified message.</returns>
+    public static Result FromIssue(
+        IssueInfo issue,
+        string message)
+    {
+        ArgumentNullException.ThrowIfNull(issue);
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
+
+        return FromIssues(
+            [
+                issue
+            ],
+            message);
+    }
+    /// <summary>
+    /// Creates an informational result.
+    /// </summary>
+    /// <param name="code">The stable issue code.</param>
+    /// <param name="message">The informational message.</param>
+    /// <returns>A successful result with one informational issue.</returns>
+    public static Result Information(
+        string code,
+        string message)
+    {
+        return FromIssue(
+            IssueInfoFactory.Information(
+                code,
+                message));
+    }
+
+    /// <summary>
+    /// Creates a warning result.
+    /// </summary>
+    /// <param name="code">The stable issue code.</param>
+    /// <param name="message">The warning message.</param>
+    /// <returns>A successful result with warnings.</returns>
+    public static Result Warning(
+        string code,
+        string message)
+    {
+        return FromIssue(
+            IssueInfoFactory.Warning(
+                code,
+                message));
+    }
+    /// <summary>
+    /// Creates a partial result.
+    /// </summary>
+    /// <param name="code">The stable issue code.</param>
+    /// <param name="message">The partial result message.</param>
+    /// <returns>A partial result.</returns>
+    public static Result Partial(
+        string code,
+        string message)
+    {
+        return new Result
+        {
+            Status = ResultStatus.Partial,
+            Message = message,
+            Issues = IssueInfoListFactory.Warning(code, message)
+        };
+    }
+
+    /// <summary>
+    /// Creates a not supported result.
+    /// </summary>
+    /// <param name="code">The stable issue code.</param>
+    /// <param name="message">The not supported result message.</param>
+    /// <returns>A not supported result.</returns>
+    public static Result NotSupported(
+        string code,
+        string message)
+    {
+        return new Result
+        {
+            Status = ResultStatus.NotSupported,
+            Message = message,
+            Issues = IssueInfoListFactory.Error(code, message)
+        };
+    }
+
+    /// <summary>
+    /// Creates a cancelled result.
+    /// </summary>
+    /// <param name="code">The stable issue code.</param>
+    /// <param name="message">The cancelled result message.</param>
+    /// <returns>A cancelled result.</returns>
+    public static Result Cancelled(
+        string code,
+        string message)
+    {
+        return new Result
+        {
+            Status = ResultStatus.Cancelled,
+            Message = message,
+            Issues = IssueInfoListFactory.Warning(code, message)
+        };
+    }
 }

@@ -68,6 +68,55 @@ public static class ResultStatusExtensions
    /// <returns><c>true</c> if the status represents a final state; otherwise, <c>false</c>.</returns>
    public static bool IsFinal(this ResultStatus status)
    {
-      return status != ResultStatus.Unknown;
+      return !status.IsUnknown();
+   }
+   /// <summary>
+   /// Determines whether the result status is unknown.
+   /// </summary>
+   /// <param name="status">The result status.</param>
+   /// <returns><c>true</c> if the status is <see cref="ResultStatus.Unknown"/>; otherwise, <c>false</c>.</returns>
+   public static bool IsUnknown(this ResultStatus status)
+   {
+      return status == ResultStatus.Unknown;
+   }
+
+   /// <summary>
+   /// Determines whether the result status does not represent a successful result.
+   /// </summary>
+   /// <param name="status">The result status.</param>
+   /// <returns><c>true</c> if the status is not success or success with warnings; otherwise, <c>false</c>.</returns>
+   public static bool IsNonSuccess(this ResultStatus status)
+   {
+      return !status.IsSuccess();
+   }
+
+   /// <summary>
+   /// Determines whether the result status represents an invalid result.
+   /// </summary>
+   /// <param name="status">The result status.</param>
+   /// <returns><c>true</c> if the status is <see cref="ResultStatus.Invalid"/>; otherwise, <c>false</c>.</returns>
+   public static bool IsInvalid(this ResultStatus status)
+   {
+      return status == ResultStatus.Invalid;
+   }
+
+   /// <summary>
+   /// Determines whether the result status represents an unsupported operation.
+   /// </summary>
+   /// <param name="status">The result status.</param>
+   /// <returns><c>true</c> if the status is <see cref="ResultStatus.NotSupported"/>; otherwise, <c>false</c>.</returns>
+   public static bool IsNotSupported(this ResultStatus status)
+   {
+      return status == ResultStatus.NotSupported;
+   }
+
+   /// <summary>
+   /// Determines whether the result status represents a cancelled operation.
+   /// </summary>
+   /// <param name="status">The result status.</param>
+   /// <returns><c>true</c> if the status is <see cref="ResultStatus.Cancelled"/>; otherwise, <c>false</c>.</returns>
+   public static bool IsCancelled(this ResultStatus status)
+   {
+      return status == ResultStatus.Cancelled;
    }
 }

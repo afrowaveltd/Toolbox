@@ -118,4 +118,79 @@ public sealed class ResultStatusExtensionsTests
 
       Assert.Equal(expected, actual);
    }
+   [Theory]
+   [InlineData(ResultStatus.Unknown, true)]
+   [InlineData(ResultStatus.Success, false)]
+   [InlineData(ResultStatus.SuccessWithWarnings, false)]
+   [InlineData(ResultStatus.Partial, true)]
+   [InlineData(ResultStatus.Failed, true)]
+   [InlineData(ResultStatus.Invalid, true)]
+   [InlineData(ResultStatus.NotSupported, true)]
+   [InlineData(ResultStatus.Cancelled, true)]
+   [InlineData(ResultStatus.NotFound, true)]
+   public void IsNonSuccess_ReturnsExpectedResult(
+    ResultStatus status,
+    bool expected)
+   {
+      var actual = status.IsNonSuccess();
+
+      Assert.Equal(expected, actual);
+   }
+
+   [Theory]
+   [InlineData(ResultStatus.Unknown, false)]
+   [InlineData(ResultStatus.Success, false)]
+   [InlineData(ResultStatus.SuccessWithWarnings, false)]
+   [InlineData(ResultStatus.Partial, false)]
+   [InlineData(ResultStatus.Failed, false)]
+   [InlineData(ResultStatus.Invalid, true)]
+   [InlineData(ResultStatus.NotSupported, false)]
+   [InlineData(ResultStatus.Cancelled, false)]
+   [InlineData(ResultStatus.NotFound, false)]
+   public void IsInvalid_ReturnsExpectedResult(
+    ResultStatus status,
+    bool expected)
+   {
+      var actual = status.IsInvalid();
+
+      Assert.Equal(expected, actual);
+   }
+
+   [Theory]
+   [InlineData(ResultStatus.Unknown, false)]
+   [InlineData(ResultStatus.Success, false)]
+   [InlineData(ResultStatus.SuccessWithWarnings, false)]
+   [InlineData(ResultStatus.Partial, false)]
+   [InlineData(ResultStatus.Failed, false)]
+   [InlineData(ResultStatus.Invalid, false)]
+   [InlineData(ResultStatus.NotSupported, true)]
+   [InlineData(ResultStatus.Cancelled, false)]
+   [InlineData(ResultStatus.NotFound, false)]
+   public void IsNotSupported_ReturnsExpectedResult(
+       ResultStatus status,
+       bool expected)
+   {
+      var actual = status.IsNotSupported();
+
+      Assert.Equal(expected, actual);
+   }
+
+   [Theory]
+   [InlineData(ResultStatus.Unknown, false)]
+   [InlineData(ResultStatus.Success, false)]
+   [InlineData(ResultStatus.SuccessWithWarnings, false)]
+   [InlineData(ResultStatus.Partial, false)]
+   [InlineData(ResultStatus.Failed, false)]
+   [InlineData(ResultStatus.Invalid, false)]
+   [InlineData(ResultStatus.NotSupported, false)]
+   [InlineData(ResultStatus.Cancelled, true)]
+   [InlineData(ResultStatus.NotFound, false)]
+   public void IsCancelled_ReturnsExpectedResult(
+       ResultStatus status,
+       bool expected)
+   {
+      var actual = status.IsCancelled();
+
+      Assert.Equal(expected, actual);
+   }
 }

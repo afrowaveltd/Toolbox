@@ -37,23 +37,23 @@ public sealed class Response : IResponse
     public bool HasData => false;
 
     /// <summary>
-    /// Gets a value indicating whether the response completed successfully.
+    /// Gets a value indicating whether the operation completed successfully.
     /// </summary>
     public bool IsSuccess =>
-        Status is ResultStatus.Success or ResultStatus.SuccessWithWarnings;
+        Status.IsSuccess();
 
     /// <summary>
-    /// Gets a value indicating whether the response failed.
+    /// Gets a value indicating whether the operation failed.
     /// </summary>
     public bool IsFailure =>
-        Status is ResultStatus.Failed or ResultStatus.Invalid or ResultStatus.NotFound;
+        Status.IsFailure();
 
     /// <summary>
-    /// Gets a value indicating whether the response completed with warnings.
+    /// Gets a value indicating whether the operation completed with warnings.
     /// </summary>
     public bool HasWarnings =>
-        Status == ResultStatus.SuccessWithWarnings
-        || Issues.HasWarningsOrErrors();
+        Status.HasWarnings()
+        || Issues.HasWarningOrHigherIssues();
 
     /// <summary>
     /// Creates a successful response.
@@ -289,5 +289,182 @@ public sealed class Response : IResponse
         return WithIssues(
             response,
             response.Issues.AppendIssues(issues));
+    }
+
+    /// <summary>
+    /// Creates a copy of a response with one metadata value added or updated.
+    /// </summary>
+    /// <param name="response">The source response.</param>
+    /// <param name="key">The metadata key.</param>
+    /// <param name="value">The metadata value.</param>
+    /// <returns>A new response with copied values and the specified metadata value set.</returns>
+    public static Response AddMetadata(
+        Response response,
+        string key,
+        string value)
+    {
+        ArgumentNullException.ThrowIfNull(response);
+
+        return WithMetadata(
+            response,
+            MetadataBagFactory.CopyWith(
+                response.Metadata,
+                key,
+                value));
+    }
+    /// <summary>
+    /// Creates a response from issue severities.
+    /// </summary>
+    /// <param name="issues">The issues to attach.</param>
+    /// <returns>A response with status inferred from issue severities.</returns>
+    public static Response FromIssues(IReadOnlyList<IssueInfo> issues)
+    {
+        ArgumentNullException.ThrowIfNull(issues);
+
+        return new Response
+        {
+            Status = issues.ToResultStatus(),
+            Issues = issues
+        };
+    }
+
+    /// <summary>
+    /// Creates a response from issue severities with a message.
+    /// </summary>
+    /// <param name="issues">The issues to attach.</param>
+    /// <param name="message">The response message.</param>
+    /// <returns>A response with status inferred from issue severities and the specified message.</returns>
+    public static Response FromIssues(
+        IReadOnlyList<IssueInfo> issues,
+        string message)
+    {
+        ArgumentNullException.ThrowIfNull(issues);
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
+
+        return new Response
+        {
+            Status = issues.ToResultStatus(),
+            Message = message,
+            Issues = issues
+        };
+    }
+    /// <summary>
+    /// Creates a response from one issue.
+    /// </summary>
+    /// <param name="issue">The issue to attach.</param>
+    /// <returns>A response with status inferred from the issue severity.</returns>
+    public static Response FromIssue(IssueInfo issue)
+    {
+        ArgumentNullException.ThrowIfNull(issue);
+
+        return FromIssues(
+        [
+            issue
+        ]);
+    }
+
+    /// <summary>
+    /// Creates a response from one issue with a message.
+    /// </summary>
+    /// <param name="issue">The issue to attach.</param>
+    /// <param name="message">The response message.</param>
+    /// <returns>A response with status inferred from the issue severity and the specified message.</returns>
+    public static Response FromIssue(
+        IssueInfo issue,
+        string message)
+    {
+        ArgumentNullException.ThrowIfNull(issue);
+        ArgumentException.ThrowIfNullOrWhiteSpace(message);
+
+        return FromIssues(
+            [
+                issue
+            ],
+            message);
+    }
+    /// <summary>
+    /// Creates an informational response.
+    /// </summary>
+    /// <param name="code">The stable issue code.</param>
+    /// <param name="message">The informational message.</param>
+    /// <returns>A successful response with one informational issue.</returns>
+    public static Response Information(
+        string code,
+        string message)
+    {
+        return FromIssue(
+            IssueInfoFactory.Information(
+                code,
+                message));
+    }
+
+    /// <summary>
+    /// Creates a warning response.
+    /// </summary>
+    /// <param name="code">The stable issue code.</param>
+    /// <param name="message">The warning message.</param>
+    /// <returns>A successful response with warnings.</returns>
+    public static Response Warning(
+        string code,
+        string message)
+    {
+        return FromIssue(
+            IssueInfoFactory.Warning(
+                code,
+                message));
+    }
+
+    /// <summary>
+    /// Creates a partial response.
+    /// </summary>
+    /// <param name="code">The stable issue code.</param>
+    /// <param name="message">The partial response message.</param>
+    /// <returns>A partial response.</returns>
+    public static Response Partial(
+        string code,
+        string message)
+    {
+        return new Response
+        {
+            Status = ResultStatus.Partial,
+            Message = message,
+            Issues = IssueInfoListFactory.Warning(code, message)
+        };
+    }
+
+    /// <summary>
+    /// Creates a not supported response.
+    /// </summary>
+    /// <param name="code">The stable issue code.</param>
+    /// <param name="message">The not supported response message.</param>
+    /// <returns>A not supported response.</returns>
+    public static Response NotSupported(
+        string code,
+        string message)
+    {
+        return new Response
+        {
+            Status = ResultStatus.NotSupported,
+            Message = message,
+            Issues = IssueInfoListFactory.Error(code, message)
+        };
+    }
+
+    /// <summary>
+    /// Creates a cancelled response.
+    /// </summary>
+    /// <param name="code">The stable issue code.</param>
+    /// <param name="message">The cancelled response message.</param>
+    /// <returns>A cancelled response.</returns>
+    public static Response Cancelled(
+        string code,
+        string message)
+    {
+        return new Response
+        {
+            Status = ResultStatus.Cancelled,
+            Message = message,
+            Issues = IssueInfoListFactory.Warning(code, message)
+        };
     }
 }

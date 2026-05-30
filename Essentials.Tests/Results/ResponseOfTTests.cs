@@ -81,12 +81,15 @@ public sealed class ResponseOfTTests
     [InlineData(ResultStatus.Unknown, false)]
     [InlineData(ResultStatus.Success, false)]
     [InlineData(ResultStatus.SuccessWithWarnings, false)]
+    [InlineData(ResultStatus.Partial, false)]
     [InlineData(ResultStatus.Failed, true)]
     [InlineData(ResultStatus.Invalid, true)]
-    [InlineData(ResultStatus.NotFound, true)]
+    [InlineData(ResultStatus.NotSupported, true)]
+    [InlineData(ResultStatus.Cancelled, true)]
+    [InlineData(ResultStatus.NotFound, false)]
     public void IsFailure_ReturnsExpectedResult(
-        ResultStatus status,
-        bool expected)
+     ResultStatus status,
+     bool expected)
     {
         var response = new Response<string>
         {
@@ -387,7 +390,7 @@ public sealed class ResponseOfTTests
         Assert.Null(response.Data);
         Assert.False(response.HasData);
         Assert.Single(response.Issues);
-        Assert.True(response.IsFailure);
+        Assert.False(response.IsFailure);
 
         var issue = response.Issues[0];
 
@@ -1193,5 +1196,1205 @@ public sealed class ResponseOfTTests
         Assert.Equal(0, copy.Data);
         Assert.True(copy.HasData);
         Assert.Single(copy.Issues);
+    }
+
+    [Fact]
+    public void AddMetadata_WhenResponseIsNull_ThrowsArgumentNullException()
+    {
+        Response<string>? response = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            Response<string>.AddMetadata(
+                response!,
+                "source",
+                "unit-test"));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void AddMetadata_WhenKeyIsInvalid_ThrowsArgumentException(
+        string? key)
+    {
+        var response = Response<string>.Ok("payload");
+
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Response<string>.AddMetadata(
+                response,
+                key!,
+                "unit-test"));
+    }
+
+    [Fact]
+    public void AddMetadata_WhenMetadataIsEmpty_AddsMetadataValue()
+    {
+        var response = Response<string>.Ok("payload");
+
+        var copy = Response<string>.AddMetadata(
+            response,
+            "source",
+            "unit-test");
+
+        Assert.NotSame(response, copy);
+
+        Assert.True(response.Metadata.IsEmpty);
+
+        Assert.Equal(1, copy.Metadata.Count);
+        Assert.True(copy.Metadata.TryGet("source", out var value));
+        Assert.Equal("unit-test", value);
+    }
+
+    [Fact]
+    public void AddMetadata_CopiesExistingMetadataAndAddsValue()
+    {
+        var metadata = new MetadataBag();
+        metadata.Set("first", "one");
+
+        var response = new Response<string>
+        {
+            Status = ResultStatus.Success,
+            Message = "Original message.",
+            Data = "payload",
+            Metadata = metadata
+        };
+
+        var copy = Response<string>.AddMetadata(
+            response,
+            "second",
+            "two");
+
+        Assert.NotSame(response, copy);
+        Assert.NotSame(response.Metadata, copy.Metadata);
+
+        Assert.Equal(1, response.Metadata.Count);
+        Assert.Equal(2, copy.Metadata.Count);
+
+        Assert.True(copy.Metadata.TryGet("first", out var first));
+        Assert.True(copy.Metadata.TryGet("second", out var second));
+
+        Assert.Equal("one", first);
+        Assert.Equal("two", second);
+    }
+
+    [Fact]
+    public void AddMetadata_WhenKeyAlreadyExists_OverridesValueInCopyOnly()
+    {
+        var metadata = new MetadataBag();
+        metadata.Set("source", "original");
+
+        var response = new Response<string>
+        {
+            Status = ResultStatus.Success,
+            Data = "payload",
+            Metadata = metadata
+        };
+
+        var copy = Response<string>.AddMetadata(
+            response,
+            "source",
+            "changed");
+
+        Assert.NotSame(response, copy);
+        Assert.NotSame(response.Metadata, copy.Metadata);
+
+        Assert.True(response.Metadata.TryGet("source", out var originalValue));
+        Assert.True(copy.Metadata.TryGet("source", out var copiedValue));
+
+        Assert.Equal("original", originalValue);
+        Assert.Equal("changed", copiedValue);
+    }
+
+    [Fact]
+    public void AddMetadata_PreservesOtherResponseValues()
+    {
+        IReadOnlyList<IssueInfo> issues =
+        [
+            IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.")
+        ];
+
+        var response = new Response<string>
+        {
+            Status = ResultStatus.SuccessWithWarnings,
+            Message = "Original message.",
+            Data = "payload",
+            Issues = issues
+        };
+
+        var copy = Response<string>.AddMetadata(
+            response,
+            "source",
+            "unit-test");
+
+        Assert.Equal(response.Status, copy.Status);
+        Assert.Equal(response.Message, copy.Message);
+        Assert.Equal(response.Data, copy.Data);
+        Assert.Same(response.Issues, copy.Issues);
+        Assert.True(copy.HasData);
+
+        Assert.True(copy.Metadata.TryGet("source", out var value));
+        Assert.Equal("unit-test", value);
+    }
+
+    [Fact]
+    public void AddMetadata_DoesNotModifyOriginalResponse()
+    {
+        var metadata = new MetadataBag();
+        metadata.Set("original", "yes");
+
+        var response = new Response<string>
+        {
+            Status = ResultStatus.Success,
+            Data = "payload",
+            Metadata = metadata
+        };
+
+        var copy = Response<string>.AddMetadata(
+            response,
+            "new",
+            "yes");
+
+        Assert.True(response.Metadata.TryGet("original", out var originalValue));
+        Assert.False(response.Metadata.TryGet("new", out _));
+        Assert.Equal("yes", originalValue);
+
+        Assert.True(copy.Metadata.TryGet("original", out var copiedOriginalValue));
+        Assert.True(copy.Metadata.TryGet("new", out var copiedNewValue));
+
+        Assert.Equal("yes", copiedOriginalValue);
+        Assert.Equal("yes", copiedNewValue);
+    }
+
+    [Fact]
+    public void AddMetadata_PreservesNullData()
+    {
+        var response = Response<string>.Ok(null);
+
+        var copy = Response<string>.AddMetadata(
+            response,
+            "source",
+            "unit-test");
+
+        Assert.Null(copy.Data);
+        Assert.False(copy.HasData);
+
+        Assert.True(copy.Metadata.TryGet("source", out var value));
+        Assert.Equal("unit-test", value);
+    }
+
+    [Fact]
+    public void AddMetadata_PreservesValueTypeDefaultData()
+    {
+        var response = Response<int>.Ok(0);
+
+        var copy = Response<int>.AddMetadata(
+            response,
+            "source",
+            "unit-test");
+
+        Assert.Equal(0, copy.Data);
+        Assert.True(copy.HasData);
+
+        Assert.True(copy.Metadata.TryGet("source", out var value));
+        Assert.Equal("unit-test", value);
+    }
+    [Fact]
+    public void FromIssues_WhenIssuesIsNull_ThrowsArgumentNullException()
+    {
+        IReadOnlyList<IssueInfo>? issues = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            Response<string>.FromIssues(
+                "payload",
+                issues!));
+    }
+
+    [Fact]
+    public void FromIssues_WhenIssuesAreEmpty_CreatesSuccessResponseWithData()
+    {
+        IReadOnlyList<IssueInfo> issues = [];
+
+        var response = Response<string>.FromIssues(
+            "payload",
+            issues);
+
+        Assert.Equal(ResultStatus.Success, response.Status);
+        Assert.Equal(string.Empty, response.Message);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Same(issues, response.Issues);
+        Assert.True(response.Metadata.IsEmpty);
+        Assert.True(response.IsSuccess);
+        Assert.False(response.IsFailure);
+        Assert.False(response.HasWarnings);
+    }
+
+    [Fact]
+    public void FromIssues_WithNullData_WhenIssuesAreEmpty_CreatesSuccessResponseWithoutData()
+    {
+        IReadOnlyList<IssueInfo> issues = [];
+
+        var response = Response<string>.FromIssues(
+            null,
+            issues);
+
+        Assert.Equal(ResultStatus.Success, response.Status);
+        Assert.Null(response.Data);
+        Assert.False(response.HasData);
+        Assert.Same(issues, response.Issues);
+        Assert.True(response.IsSuccess);
+    }
+
+    [Fact]
+    public void FromIssues_WithValueTypeDefaultData_CreatesSuccessResponseWithData()
+    {
+        IReadOnlyList<IssueInfo> issues = [];
+
+        var response = Response<int>.FromIssues(
+            0,
+            issues);
+
+        Assert.Equal(ResultStatus.Success, response.Status);
+        Assert.Equal(0, response.Data);
+        Assert.True(response.HasData);
+        Assert.Same(issues, response.Issues);
+    }
+
+    [Fact]
+    public void FromIssues_WhenIssuesContainOnlyInformation_CreatesSuccessResponse()
+    {
+        IReadOnlyList<IssueInfo> issues =
+        [
+            IssueInfoFactory.Information(
+            "AFW_INFO",
+            "Information message.")
+        ];
+
+        var response = Response<string>.FromIssues(
+            "payload",
+            issues);
+
+        Assert.Equal(ResultStatus.Success, response.Status);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Same(issues, response.Issues);
+        Assert.True(response.IsSuccess);
+        Assert.False(response.IsFailure);
+        Assert.False(response.HasWarnings);
+    }
+
+    [Fact]
+    public void FromIssues_WhenIssuesContainWarning_CreatesSuccessWithWarningsResponse()
+    {
+        IReadOnlyList<IssueInfo> issues =
+        [
+            IssueInfoFactory.Information(
+            "AFW_INFO",
+            "Information message."),
+        IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.")
+        ];
+
+        var response = Response<string>.FromIssues(
+            "payload",
+            issues);
+
+        Assert.Equal(ResultStatus.SuccessWithWarnings, response.Status);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Same(issues, response.Issues);
+        Assert.True(response.IsSuccess);
+        Assert.False(response.IsFailure);
+        Assert.True(response.HasWarnings);
+    }
+
+    [Fact]
+    public void FromIssues_WhenIssuesContainError_CreatesFailedResponse()
+    {
+        IReadOnlyList<IssueInfo> issues =
+        [
+            IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message."),
+        IssueInfoFactory.Error(
+            "AFW_ERROR",
+            "Error message.")
+        ];
+
+        var response = Response<string>.FromIssues(
+            "payload",
+            issues);
+
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Same(issues, response.Issues);
+        Assert.False(response.IsSuccess);
+        Assert.True(response.IsFailure);
+        Assert.True(response.HasWarnings);
+    }
+
+    [Fact]
+    public void FromIssues_WhenIssuesContainCritical_CreatesFailedResponse()
+    {
+        IReadOnlyList<IssueInfo> issues =
+        [
+            IssueInfoFactory.Critical(
+            "AFW_CRITICAL",
+            "Critical message.")
+        ];
+
+        var response = Response<string>.FromIssues(
+            "payload",
+            issues);
+
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Same(issues, response.Issues);
+        Assert.True(response.IsFailure);
+    }
+
+    [Fact]
+    public void FromIssues_WhenIssuesContainFatal_CreatesFailedResponse()
+    {
+        IReadOnlyList<IssueInfo> issues =
+        [
+            IssueInfoFactory.Fatal(
+            "AFW_FATAL",
+            "Fatal message.")
+        ];
+
+        var response = Response<string>.FromIssues(
+            "payload",
+            issues);
+
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Same(issues, response.Issues);
+        Assert.True(response.IsFailure);
+    }
+
+    [Fact]
+    public void FromIssues_WithMessage_WhenIssuesIsNull_ThrowsArgumentNullException()
+    {
+        IReadOnlyList<IssueInfo>? issues = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            Response<string>.FromIssues(
+                "payload",
+                issues!,
+                "Validation completed."));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void FromIssues_WithMessage_WhenMessageIsInvalid_ThrowsArgumentException(
+        string? message)
+    {
+        IReadOnlyList<IssueInfo> issues = [];
+
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Response<string>.FromIssues(
+                "payload",
+                issues,
+                message!));
+    }
+
+    [Fact]
+    public void FromIssues_WithMessage_CreatesResponseWithMessage()
+    {
+        IReadOnlyList<IssueInfo> issues =
+        [
+            IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.")
+        ];
+
+        var response = Response<string>.FromIssues(
+            "payload",
+            issues,
+            "Validation completed with warnings.");
+
+        Assert.Equal(ResultStatus.SuccessWithWarnings, response.Status);
+        Assert.Equal("Validation completed with warnings.", response.Message);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Same(issues, response.Issues);
+        Assert.True(response.IsSuccess);
+        Assert.True(response.HasWarnings);
+    }
+
+    [Fact]
+    public void FromIssues_WithMessage_WhenIssuesContainError_CreatesFailedResponseWithMessage()
+    {
+        IReadOnlyList<IssueInfo> issues =
+        [
+            IssueInfoFactory.Error(
+            "AFW_ERROR",
+            "Error message.")
+        ];
+
+        var response = Response<string>.FromIssues(
+            "payload",
+            issues,
+            "Validation failed.");
+
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Equal("Validation failed.", response.Message);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Same(issues, response.Issues);
+        Assert.True(response.IsFailure);
+    }
+
+    [Fact]
+    public void FromIssues_WithMessage_AndNullData_PreservesNoData()
+    {
+        IReadOnlyList<IssueInfo> issues =
+        [
+            IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.")
+        ];
+
+        var response = Response<string>.FromIssues(
+            null,
+            issues,
+            "Validation completed with warnings.");
+
+        Assert.Equal(ResultStatus.SuccessWithWarnings, response.Status);
+        Assert.Equal("Validation completed with warnings.", response.Message);
+        Assert.Null(response.Data);
+        Assert.False(response.HasData);
+        Assert.Same(issues, response.Issues);
+        Assert.True(response.HasWarnings);
+    }
+
+    [Fact]
+    public void FromIssues_WithMessage_AndValueTypeDefaultData_PreservesData()
+    {
+        IReadOnlyList<IssueInfo> issues =
+        [
+            IssueInfoFactory.Information(
+            "AFW_INFO",
+            "Information message.")
+        ];
+
+        var response = Response<int>.FromIssues(
+            0,
+            issues,
+            "Validation completed.");
+
+        Assert.Equal(ResultStatus.Success, response.Status);
+        Assert.Equal("Validation completed.", response.Message);
+        Assert.Equal(0, response.Data);
+        Assert.True(response.HasData);
+        Assert.Same(issues, response.Issues);
+    }
+    [Fact]
+    public void FromIssue_WhenIssueIsNull_ThrowsArgumentNullException()
+    {
+        IssueInfo? issue = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            Response<string>.FromIssue(
+                "payload",
+                issue!));
+    }
+
+    [Fact]
+    public void FromIssue_WhenIssueIsInformation_CreatesSuccessResponseWithData()
+    {
+        var issue = IssueInfoFactory.Information(
+            "AFW_INFO",
+            "Information message.");
+
+        var response = Response<string>.FromIssue(
+            "payload",
+            issue);
+
+        Assert.Equal(ResultStatus.Success, response.Status);
+        Assert.Equal(string.Empty, response.Message);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.Same(issue, response.Issues[0]);
+        Assert.True(response.IsSuccess);
+        Assert.False(response.IsFailure);
+        Assert.False(response.HasWarnings);
+    }
+
+    [Fact]
+    public void FromIssue_WhenIssueIsWarning_CreatesSuccessWithWarningsResponseWithData()
+    {
+        var issue = IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.");
+
+        var response = Response<string>.FromIssue(
+            "payload",
+            issue);
+
+        Assert.Equal(ResultStatus.SuccessWithWarnings, response.Status);
+        Assert.Equal(string.Empty, response.Message);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.Same(issue, response.Issues[0]);
+        Assert.True(response.IsSuccess);
+        Assert.False(response.IsFailure);
+        Assert.True(response.HasWarnings);
+    }
+
+    [Fact]
+    public void FromIssue_WhenIssueIsError_CreatesFailedResponseWithData()
+    {
+        var issue = IssueInfoFactory.Error(
+            "AFW_ERROR",
+            "Error message.");
+
+        var response = Response<string>.FromIssue(
+            "payload",
+            issue);
+
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Equal(string.Empty, response.Message);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.Same(issue, response.Issues[0]);
+        Assert.False(response.IsSuccess);
+        Assert.True(response.IsFailure);
+        Assert.True(response.HasWarnings);
+    }
+
+    [Fact]
+    public void FromIssue_WhenIssueIsCritical_CreatesFailedResponseWithData()
+    {
+        var issue = IssueInfoFactory.Critical(
+            "AFW_CRITICAL",
+            "Critical message.");
+
+        var response = Response<string>.FromIssue(
+            "payload",
+            issue);
+
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.Same(issue, response.Issues[0]);
+        Assert.True(response.IsFailure);
+    }
+
+    [Fact]
+    public void FromIssue_WhenIssueIsFatal_CreatesFailedResponseWithData()
+    {
+        var issue = IssueInfoFactory.Fatal(
+            "AFW_FATAL",
+            "Fatal message.");
+
+        var response = Response<string>.FromIssue(
+            "payload",
+            issue);
+
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.Same(issue, response.Issues[0]);
+        Assert.True(response.IsFailure);
+    }
+
+    [Fact]
+    public void FromIssue_WithNullData_PreservesNoData()
+    {
+        var issue = IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.");
+
+        var response = Response<string>.FromIssue(
+            null,
+            issue);
+
+        Assert.Equal(ResultStatus.SuccessWithWarnings, response.Status);
+        Assert.Null(response.Data);
+        Assert.False(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.Same(issue, response.Issues[0]);
+        Assert.True(response.HasWarnings);
+    }
+
+    [Fact]
+    public void FromIssue_WithValueTypeDefaultData_PreservesData()
+    {
+        var issue = IssueInfoFactory.Information(
+            "AFW_INFO",
+            "Information message.");
+
+        var response = Response<int>.FromIssue(
+            0,
+            issue);
+
+        Assert.Equal(ResultStatus.Success, response.Status);
+        Assert.Equal(0, response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.Same(issue, response.Issues[0]);
+    }
+
+    [Fact]
+    public void FromIssue_WithMessage_WhenIssueIsNull_ThrowsArgumentNullException()
+    {
+        IssueInfo? issue = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            Response<string>.FromIssue(
+                "payload",
+                issue!,
+                "Request failed."));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void FromIssue_WithMessage_WhenMessageIsInvalid_ThrowsArgumentException(
+        string? message)
+    {
+        var issue = IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.");
+
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Response<string>.FromIssue(
+                "payload",
+                issue,
+                message!));
+    }
+
+    [Fact]
+    public void FromIssue_WithMessage_CreatesResponseWithMessage()
+    {
+        var issue = IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.");
+
+        var response = Response<string>.FromIssue(
+            "payload",
+            issue,
+            "Request completed with warnings.");
+
+        Assert.Equal(ResultStatus.SuccessWithWarnings, response.Status);
+        Assert.Equal("Request completed with warnings.", response.Message);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.Same(issue, response.Issues[0]);
+        Assert.True(response.IsSuccess);
+        Assert.True(response.HasWarnings);
+    }
+
+    [Fact]
+    public void FromIssue_WithMessage_WhenIssueIsError_CreatesFailedResponseWithMessage()
+    {
+        var issue = IssueInfoFactory.Error(
+            "AFW_ERROR",
+            "Error message.");
+
+        var response = Response<string>.FromIssue(
+            "payload",
+            issue,
+            "Request failed.");
+
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Equal("Request failed.", response.Message);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.Same(issue, response.Issues[0]);
+        Assert.True(response.IsFailure);
+    }
+
+    [Fact]
+    public void FromIssue_WithMessageAndNullData_PreservesNoData()
+    {
+        var issue = IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.");
+
+        var response = Response<string>.FromIssue(
+            null,
+            issue,
+            "Request completed with warnings.");
+
+        Assert.Equal(ResultStatus.SuccessWithWarnings, response.Status);
+        Assert.Equal("Request completed with warnings.", response.Message);
+        Assert.Null(response.Data);
+        Assert.False(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.Same(issue, response.Issues[0]);
+        Assert.True(response.HasWarnings);
+    }
+
+    [Fact]
+    public void FromIssue_WithMessageAndValueTypeDefaultData_PreservesData()
+    {
+        var issue = IssueInfoFactory.Information(
+            "AFW_INFO",
+            "Information message.");
+
+        var response = Response<int>.FromIssue(
+            0,
+            issue,
+            "Request completed.");
+
+        Assert.Equal(ResultStatus.Success, response.Status);
+        Assert.Equal("Request completed.", response.Message);
+        Assert.Equal(0, response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.Same(issue, response.Issues[0]);
+    }
+    [Fact]
+    public void Information_CreatesSuccessResponseWithDataAndInformationIssue()
+    {
+        var response = Response<string>.Information(
+            "payload",
+            "AFW_INFO",
+            "Information message.");
+
+        Assert.Equal(ResultStatus.Success, response.Status);
+        Assert.Equal(string.Empty, response.Message);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.True(response.IsSuccess);
+        Assert.False(response.IsFailure);
+        Assert.False(response.HasWarnings);
+
+        var issue = response.Issues[0];
+
+        Assert.Equal("AFW_INFO", issue.Code);
+        Assert.Equal("Information message.", issue.Message);
+        Assert.Equal(IssueSeverity.Information, issue.Severity);
+    }
+
+    [Fact]
+    public void Information_WithNullData_CreatesSuccessResponseWithoutData()
+    {
+        var response = Response<string>.Information(
+            null,
+            "AFW_INFO",
+            "Information message.");
+
+        Assert.Equal(ResultStatus.Success, response.Status);
+        Assert.Null(response.Data);
+        Assert.False(response.HasData);
+        Assert.Single(response.Issues);
+
+        var issue = response.Issues[0];
+
+        Assert.Equal("AFW_INFO", issue.Code);
+        Assert.Equal("Information message.", issue.Message);
+        Assert.Equal(IssueSeverity.Information, issue.Severity);
+    }
+
+    [Fact]
+    public void Information_WithValueTypeDefaultData_PreservesData()
+    {
+        var response = Response<int>.Information(
+            0,
+            "AFW_INFO",
+            "Information message.");
+
+        Assert.Equal(ResultStatus.Success, response.Status);
+        Assert.Equal(0, response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+
+        var issue = response.Issues[0];
+
+        Assert.Equal("AFW_INFO", issue.Code);
+        Assert.Equal("Information message.", issue.Message);
+        Assert.Equal(IssueSeverity.Information, issue.Severity);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Information_WhenCodeIsInvalid_ThrowsArgumentException(
+        string? code)
+    {
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Response<string>.Information(
+                "payload",
+                code!,
+                "Information message."));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Information_WhenMessageIsInvalid_ThrowsArgumentException(
+        string? message)
+    {
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Response<string>.Information(
+                "payload",
+                "AFW_INFO",
+                message!));
+    }
+
+    [Fact]
+    public void Warning_CreatesSuccessWithWarningsResponseWithDataAndWarningIssue()
+    {
+        var response = Response<string>.Warning(
+            "payload",
+            "AFW_WARNING",
+            "Warning message.");
+
+        Assert.Equal(ResultStatus.SuccessWithWarnings, response.Status);
+        Assert.Equal(string.Empty, response.Message);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.True(response.IsSuccess);
+        Assert.False(response.IsFailure);
+        Assert.True(response.HasWarnings);
+
+        var issue = response.Issues[0];
+
+        Assert.Equal("AFW_WARNING", issue.Code);
+        Assert.Equal("Warning message.", issue.Message);
+        Assert.Equal(IssueSeverity.Warning, issue.Severity);
+    }
+
+    [Fact]
+    public void Warning_WithNullData_CreatesSuccessWithWarningsResponseWithoutData()
+    {
+        var response = Response<string>.Warning(
+            null,
+            "AFW_WARNING",
+            "Warning message.");
+
+        Assert.Equal(ResultStatus.SuccessWithWarnings, response.Status);
+        Assert.Null(response.Data);
+        Assert.False(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.True(response.IsSuccess);
+        Assert.True(response.HasWarnings);
+
+        var issue = response.Issues[0];
+
+        Assert.Equal("AFW_WARNING", issue.Code);
+        Assert.Equal("Warning message.", issue.Message);
+        Assert.Equal(IssueSeverity.Warning, issue.Severity);
+    }
+
+    [Fact]
+    public void Warning_WithValueTypeDefaultData_PreservesData()
+    {
+        var response = Response<int>.Warning(
+            0,
+            "AFW_WARNING",
+            "Warning message.");
+
+        Assert.Equal(ResultStatus.SuccessWithWarnings, response.Status);
+        Assert.Equal(0, response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.True(response.HasWarnings);
+
+        var issue = response.Issues[0];
+
+        Assert.Equal("AFW_WARNING", issue.Code);
+        Assert.Equal("Warning message.", issue.Message);
+        Assert.Equal(IssueSeverity.Warning, issue.Severity);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Warning_WhenCodeIsInvalid_ThrowsArgumentException(
+        string? code)
+    {
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Response<string>.Warning(
+                "payload",
+                code!,
+                "Warning message."));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Warning_WhenMessageIsInvalid_ThrowsArgumentException(
+        string? message)
+    {
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Response<string>.Warning(
+                "payload",
+                "AFW_WARNING",
+                message!));
+    }
+
+    [Fact]
+    public void Partial_CreatesPartialResponseWithDataAndWarningIssue()
+    {
+        var response = Response<string>.Partial(
+            "payload",
+            "AFW_PARTIAL",
+            "Operation completed partially.");
+
+        Assert.Equal(ResultStatus.Partial, response.Status);
+        Assert.Equal("Operation completed partially.", response.Message);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.False(response.IsSuccess);
+        Assert.False(response.IsFailure);
+        Assert.True(response.HasWarnings);
+
+        var issue = response.Issues[0];
+
+        Assert.Equal("AFW_PARTIAL", issue.Code);
+        Assert.Equal("Operation completed partially.", issue.Message);
+        Assert.Equal(IssueSeverity.Warning, issue.Severity);
+    }
+
+    [Fact]
+    public void Partial_WithNullData_CreatesPartialResponseWithoutData()
+    {
+        var response = Response<string>.Partial(
+            null,
+            "AFW_PARTIAL",
+            "Operation completed partially.");
+
+        Assert.Equal(ResultStatus.Partial, response.Status);
+        Assert.Null(response.Data);
+        Assert.False(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.True(response.HasWarnings);
+    }
+
+    [Fact]
+    public void Partial_WithValueTypeDefaultData_PreservesData()
+    {
+        var response = Response<int>.Partial(
+            0,
+            "AFW_PARTIAL",
+            "Operation completed partially.");
+
+        Assert.Equal(ResultStatus.Partial, response.Status);
+        Assert.Equal(0, response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.True(response.HasWarnings);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Partial_WhenCodeIsInvalid_ThrowsArgumentException(
+        string? code)
+    {
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Response<string>.Partial(
+                "payload",
+                code!,
+                "Operation completed partially."));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Partial_WhenMessageIsInvalid_ThrowsArgumentException(
+        string? message)
+    {
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Response<string>.Partial(
+                "payload",
+                "AFW_PARTIAL",
+                message!));
+    }
+
+    [Fact]
+    public void NotSupported_CreatesNotSupportedResponseWithDataAndErrorIssue()
+    {
+        var response = Response<string>.NotSupported(
+            "payload",
+            "AFW_NOT_SUPPORTED",
+            "Operation is not supported.");
+
+        Assert.Equal(ResultStatus.NotSupported, response.Status);
+        Assert.Equal("Operation is not supported.", response.Message);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.False(response.IsSuccess);
+        Assert.True(response.IsFailure);
+        Assert.True(response.HasWarnings);
+
+        var issue = response.Issues[0];
+
+        Assert.Equal("AFW_NOT_SUPPORTED", issue.Code);
+        Assert.Equal("Operation is not supported.", issue.Message);
+        Assert.Equal(IssueSeverity.Error, issue.Severity);
+    }
+
+    [Fact]
+    public void NotSupported_WithNullData_CreatesNotSupportedResponseWithoutData()
+    {
+        var response = Response<string>.NotSupported(
+            null,
+            "AFW_NOT_SUPPORTED",
+            "Operation is not supported.");
+
+        Assert.Equal(ResultStatus.NotSupported, response.Status);
+        Assert.Null(response.Data);
+        Assert.False(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.True(response.IsFailure);
+        Assert.True(response.HasWarnings);
+    }
+
+    [Fact]
+    public void NotSupported_WithValueTypeDefaultData_PreservesData()
+    {
+        var response = Response<int>.NotSupported(
+            0,
+            "AFW_NOT_SUPPORTED",
+            "Operation is not supported.");
+
+        Assert.Equal(ResultStatus.NotSupported, response.Status);
+        Assert.Equal(0, response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.True(response.IsFailure);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void NotSupported_WhenCodeIsInvalid_ThrowsArgumentException(
+        string? code)
+    {
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Response<string>.NotSupported(
+                "payload",
+                code!,
+                "Operation is not supported."));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void NotSupported_WhenMessageIsInvalid_ThrowsArgumentException(
+        string? message)
+    {
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Response<string>.NotSupported(
+                "payload",
+                "AFW_NOT_SUPPORTED",
+                message!));
+    }
+
+    [Fact]
+    public void Cancelled_CreatesCancelledResponseWithDataAndWarningIssue()
+    {
+        var response = Response<string>.Cancelled(
+            "payload",
+            "AFW_CANCELLED",
+            "Operation was cancelled.");
+
+        Assert.Equal(ResultStatus.Cancelled, response.Status);
+        Assert.Equal("Operation was cancelled.", response.Message);
+        Assert.Equal("payload", response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.False(response.IsSuccess);
+        Assert.True(response.IsFailure);
+        Assert.True(response.HasWarnings);
+
+        var issue = response.Issues[0];
+
+        Assert.Equal("AFW_CANCELLED", issue.Code);
+        Assert.Equal("Operation was cancelled.", issue.Message);
+        Assert.Equal(IssueSeverity.Warning, issue.Severity);
+    }
+
+    [Fact]
+    public void Cancelled_WithNullData_CreatesCancelledResponseWithoutData()
+    {
+        var response = Response<string>.Cancelled(
+            null,
+            "AFW_CANCELLED",
+            "Operation was cancelled.");
+
+        Assert.Equal(ResultStatus.Cancelled, response.Status);
+        Assert.Null(response.Data);
+        Assert.False(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.True(response.IsFailure);
+        Assert.True(response.HasWarnings);
+    }
+
+    [Fact]
+    public void Cancelled_WithValueTypeDefaultData_PreservesData()
+    {
+        var response = Response<int>.Cancelled(
+            0,
+            "AFW_CANCELLED",
+            "Operation was cancelled.");
+
+        Assert.Equal(ResultStatus.Cancelled, response.Status);
+        Assert.Equal(0, response.Data);
+        Assert.True(response.HasData);
+        Assert.Single(response.Issues);
+        Assert.True(response.IsFailure);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Cancelled_WhenCodeIsInvalid_ThrowsArgumentException(
+        string? code)
+    {
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Response<string>.Cancelled(
+                "payload",
+                code!,
+                "Operation was cancelled."));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Cancelled_WhenMessageIsInvalid_ThrowsArgumentException(
+        string? message)
+    {
+        Assert.ThrowsAny<ArgumentException>(() =>
+            Response<string>.Cancelled(
+                "payload",
+                "AFW_CANCELLED",
+                message!));
     }
 }

@@ -270,4 +270,131 @@ public sealed class MetadataBagFactoryTests
       Assert.True(copy.TryGet("originalkey", out var value));
       Assert.Equal("value", value);
    }
+
+   [Fact]
+   public void CopyWith_WhenMetadataIsNull_ThrowsArgumentNullException()
+   {
+      MetadataBag? metadata = null;
+
+      Assert.Throws<ArgumentNullException>(() =>
+          MetadataBagFactory.CopyWith(
+              metadata!,
+              "key",
+              "value"));
+   }
+
+   [Theory]
+   [InlineData(null)]
+   [InlineData("")]
+   [InlineData("   ")]
+   public void CopyWith_WhenKeyIsInvalid_ThrowsArgumentException(
+       string? key)
+   {
+      var metadata = new MetadataBag();
+
+      Assert.ThrowsAny<ArgumentException>(() =>
+          MetadataBagFactory.CopyWith(
+              metadata,
+              key!,
+              "value"));
+   }
+
+   [Fact]
+   public void CopyWith_WhenMetadataIsEmpty_ReturnsCopyWithValue()
+   {
+      var metadata = new MetadataBag();
+
+      var copy = MetadataBagFactory.CopyWith(
+          metadata,
+          "source",
+          "unit-test");
+
+      Assert.NotSame(metadata, copy);
+      Assert.True(metadata.IsEmpty);
+
+      Assert.Equal(1, copy.Count);
+      Assert.True(copy.TryGet("source", out var value));
+      Assert.Equal("unit-test", value);
+   }
+
+   [Fact]
+   public void CopyWith_CopiesExistingValuesAndSetsNewValue()
+   {
+      var metadata = new MetadataBag();
+      metadata.Set("first", "one");
+      metadata.Set("second", "two");
+
+      var copy = MetadataBagFactory.CopyWith(
+          metadata,
+          "third",
+          "three");
+
+      Assert.NotSame(metadata, copy);
+
+      Assert.Equal(2, metadata.Count);
+      Assert.Equal(3, copy.Count);
+
+      Assert.True(copy.TryGet("first", out var first));
+      Assert.True(copy.TryGet("second", out var second));
+      Assert.True(copy.TryGet("third", out var third));
+
+      Assert.Equal("one", first);
+      Assert.Equal("two", second);
+      Assert.Equal("three", third);
+   }
+
+   [Fact]
+   public void CopyWith_WhenKeyAlreadyExists_OverridesValueInCopyOnly()
+   {
+      var metadata = new MetadataBag();
+      metadata.Set("key", "original");
+
+      var copy = MetadataBagFactory.CopyWith(
+          metadata,
+          "key",
+          "changed");
+
+      Assert.NotSame(metadata, copy);
+
+      Assert.True(metadata.TryGet("key", out var originalValue));
+      Assert.True(copy.TryGet("key", out var copiedValue));
+
+      Assert.Equal("original", originalValue);
+      Assert.Equal("changed", copiedValue);
+   }
+
+   [Fact]
+   public void CopyWith_PreservesCaseInsensitiveLookupBehavior()
+   {
+      var metadata = new MetadataBag();
+      metadata.Set("OriginalKey", "value");
+
+      var copy = MetadataBagFactory.CopyWith(
+          metadata,
+          "AnotherKey",
+          "another-value");
+
+      Assert.True(copy.TryGet("originalkey", out var originalValue));
+      Assert.True(copy.TryGet("anotherkey", out var anotherValue));
+
+      Assert.Equal("value", originalValue);
+      Assert.Equal("another-value", anotherValue);
+   }
+
+   [Fact]
+   public void CopyWith_WhenKeyDiffersOnlyByCase_OverridesExistingValue()
+   {
+      var metadata = new MetadataBag();
+      metadata.Set("OriginalKey", "original");
+
+      var copy = MetadataBagFactory.CopyWith(
+          metadata,
+          "originalkey",
+          "changed");
+
+      Assert.Equal(1, copy.Count);
+
+      Assert.True(copy.TryGet("OriginalKey", out var value));
+      Assert.Equal("changed", value);
+   }
 }

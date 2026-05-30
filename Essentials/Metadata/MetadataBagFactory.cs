@@ -42,7 +42,7 @@ public static class MetadataBagFactory
 
       var metadata = new MetadataBag();
 
-      foreach(var item in items)
+      foreach (var item in items)
       {
          metadata.Set(item.Key, item.Value);
       }
@@ -62,7 +62,7 @@ public static class MetadataBagFactory
 
       var metadata = new MetadataBag();
 
-      foreach(var item in items)
+      foreach (var item in items)
       {
          metadata.Set(item.Key, item.Value);
       }
@@ -83,5 +83,25 @@ public static class MetadataBagFactory
           item => item.Key,
           item => item.Value,
           StringComparer.OrdinalIgnoreCase));
+   }
+   /// <summary>
+   /// Creates a metadata bag by copying values from another metadata bag and setting one value.
+   /// </summary>
+   /// <param name="metadata">The source metadata bag.</param>
+   /// <param name="key">The metadata key.</param>
+   /// <param name="value">The metadata value.</param>
+   /// <returns>A new metadata bag with copied values and the specified value set.</returns>
+   public static MetadataBag CopyWith(
+       MetadataBag metadata,
+       string key,
+       string value)
+   {
+      ArgumentNullException.ThrowIfNull(metadata);
+      ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
+      var copy = CopyFrom(metadata);
+      copy.Set(key, value);
+
+      return copy;
    }
 }

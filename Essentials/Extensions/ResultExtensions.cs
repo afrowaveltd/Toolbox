@@ -1,5 +1,6 @@
 using Afrowave.Toolbox.Essentials.Enums;
 using Afrowave.Toolbox.Essentials.Interfaces;
+using Afrowave.Toolbox.Essentials.Issues;
 
 namespace Afrowave.Toolbox.Essentials.Extensions;
 
@@ -80,7 +81,7 @@ public static class ResultExtensions
     {
         ArgumentNullException.ThrowIfNull(result);
 
-        return result.Issues.HasErrors();
+        return result.Issues.HasErrorOrHigherIssues();
     }
 
     /// <summary>
@@ -93,5 +94,161 @@ public static class ResultExtensions
         ArgumentNullException.ThrowIfNull(result);
 
         return !string.IsNullOrWhiteSpace(result.Message);
+    }
+
+    /// <summary>
+    /// Determines whether the result contains an issue with the specified code.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <param name="code">The issue code.</param>
+    /// <returns><c>true</c> if the result contains an issue with the specified code; otherwise, <c>false</c>.</returns>
+    public static bool HasIssueCode(
+    this IResult result,
+    string code)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return result.Issues.HasIssueCode(code);
+    }
+
+
+    /// <summary>
+    /// Attempts to get the first issue with the specified code.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <param name="code">The issue code.</param>
+    /// <param name="issue">The issue, if found.</param>
+    /// <returns><c>true</c> if an issue with the specified code was found; otherwise, <c>false</c>.</returns>
+    public static bool TryGetIssueByCode(
+    this IResult result,
+    string code,
+    out IssueInfo? issue)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return result.Issues.TryGetIssueByCode(
+            code,
+            out issue);
+    }
+
+    /// <summary>
+    /// Determines whether the result is successful without warnings or issues.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <returns><c>true</c> if the result is successful and has no warnings or issues; otherwise, <c>false</c>.</returns>
+    public static bool IsCleanSuccess(this IResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return result.IsSuccess
+            && !result.HasWarnings
+            && !result.Issues.HasAnyIssues();
+    }
+    /// <summary>
+    /// Determines whether the result is successful but contains warnings or issues.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <returns><c>true</c> if the result is successful and contains warnings or issues; otherwise, <c>false</c>.</returns>
+    public static bool IsDirtySuccess(this IResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return result.IsSuccess
+            && (
+                result.HasWarnings
+                || result.Issues.HasAnyIssues()
+            );
+    }
+    /// <summary>
+    /// Determines whether the result needs attention because it failed or completed with warnings/issues.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <returns><c>true</c> if the result failed or completed successfully with issues; otherwise, <c>false</c>.</returns>
+    public static bool NeedsAttention(this IResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return result.IsFailure
+            || result.IsDirtySuccess();
+    }
+
+    /// <summary>
+    /// Determines whether the result has warning or more severe issues.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <returns><c>true</c> if the result has warning, error, critical, or fatal issues; otherwise, <c>false</c>.</returns>
+    public static bool HasWarningOrHigherIssues(this IResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return result.Issues.HasWarningOrHigherIssues();
+    }
+
+    /// <summary>
+    /// Determines whether the result has error or more severe issues.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <returns><c>true</c> if the result has error, critical, or fatal issues; otherwise, <c>false</c>.</returns>
+    public static bool HasErrorOrHigherIssues(this IResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return result.Issues.HasErrorOrHigherIssues();
+    }
+
+    /// <summary>
+    /// Determines whether the result has critical or fatal issues.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <returns><c>true</c> if the result has critical or fatal issues; otherwise, <c>false</c>.</returns>
+    public static bool HasCriticalOrHigherIssues(this IResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return result.Issues.HasCriticalOrHigherIssues();
+    }
+    /// <summary>
+    /// Gets the highest issue severity attached to the result.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <returns>The highest issue severity, or <see cref="IssueSeverity.None"/> when the result has no issues.</returns>
+    public static IssueSeverity GetHighestIssueSeverity(this IResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return result.Issues.GetHighestSeverity();
+    }
+    /// <summary>
+    /// Gets a result status inferred from the issues attached to the result.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <returns>The result status inferred from the issue severities.</returns>
+    public static ResultStatus GetStatusFromIssues(this IResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return result.Issues.ToResultStatus();
+    }
+    /// <summary>
+    /// Determines whether the current result status matches the status inferred from attached issues.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <returns><c>true</c> if the current status matches the status inferred from issues; otherwise, <c>false</c>.</returns>
+    public static bool HasStatusMatchingIssues(this IResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return result.Status == result.GetStatusFromIssues();
+    }
+    /// <summary>
+    /// Determines whether the current result status differs from the status inferred from attached issues.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <returns><c>true</c> if the current status differs from the status inferred from issues; otherwise, <c>false</c>.</returns>
+    public static bool HasStatusMismatchWithIssues(this IResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return !result.HasStatusMatchingIssues();
     }
 }
