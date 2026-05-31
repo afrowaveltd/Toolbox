@@ -1685,4 +1685,202 @@ public sealed class ResultExtensionsTests
 
         Assert.Equal(expected, actual);
     }
+
+    [Fact]
+    public void IsPartial_WhenResultIsNull_ThrowsArgumentNullException()
+    {
+        IResult? result = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            result!.IsPartial());
+    }
+
+    [Theory]
+    [InlineData(ResultStatus.Unknown, false)]
+    [InlineData(ResultStatus.Success, false)]
+    [InlineData(ResultStatus.SuccessWithWarnings, false)]
+    [InlineData(ResultStatus.Partial, true)]
+    [InlineData(ResultStatus.Failed, false)]
+    [InlineData(ResultStatus.Invalid, false)]
+    [InlineData(ResultStatus.NotSupported, false)]
+    [InlineData(ResultStatus.Cancelled, false)]
+    [InlineData(ResultStatus.NotFound, false)]
+    public void IsPartial_ReturnsExpectedResult(
+        ResultStatus status,
+        bool expected)
+    {
+        var result = new TestResult
+        {
+            Status = status
+        };
+
+        var actual = result.IsPartial();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void IsFailed_WhenResultIsNull_ThrowsArgumentNullException()
+    {
+        IResult? result = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            result!.IsFailed());
+    }
+
+    [Theory]
+    [InlineData(ResultStatus.Unknown, false)]
+    [InlineData(ResultStatus.Success, false)]
+    [InlineData(ResultStatus.SuccessWithWarnings, false)]
+    [InlineData(ResultStatus.Partial, false)]
+    [InlineData(ResultStatus.Failed, true)]
+    [InlineData(ResultStatus.Invalid, false)]
+    [InlineData(ResultStatus.NotSupported, false)]
+    [InlineData(ResultStatus.Cancelled, false)]
+    [InlineData(ResultStatus.NotFound, false)]
+    public void IsFailed_ReturnsExpectedResult(
+        ResultStatus status,
+        bool expected)
+    {
+        var result = new TestResult
+        {
+            Status = status
+        };
+
+        var actual = result.IsFailed();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void IsNotSupported_WhenResultIsNull_ThrowsArgumentNullException()
+    {
+        IResult? result = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            result!.IsNotSupported());
+    }
+
+    [Theory]
+    [InlineData(ResultStatus.Unknown, false)]
+    [InlineData(ResultStatus.Success, false)]
+    [InlineData(ResultStatus.SuccessWithWarnings, false)]
+    [InlineData(ResultStatus.Partial, false)]
+    [InlineData(ResultStatus.Failed, false)]
+    [InlineData(ResultStatus.Invalid, false)]
+    [InlineData(ResultStatus.NotSupported, true)]
+    [InlineData(ResultStatus.Cancelled, false)]
+    [InlineData(ResultStatus.NotFound, false)]
+    public void IsNotSupported_ReturnsExpectedResult(
+        ResultStatus status,
+        bool expected)
+    {
+        var result = new TestResult
+        {
+            Status = status
+        };
+
+        var actual = result.IsNotSupported();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void IsCancelled_WhenResultIsNull_ThrowsArgumentNullException()
+    {
+        IResult? result = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            result!.IsCancelled());
+    }
+
+    [Theory]
+    [InlineData(ResultStatus.Unknown, false)]
+    [InlineData(ResultStatus.Success, false)]
+    [InlineData(ResultStatus.SuccessWithWarnings, false)]
+    [InlineData(ResultStatus.Partial, false)]
+    [InlineData(ResultStatus.Failed, false)]
+    [InlineData(ResultStatus.Invalid, false)]
+    [InlineData(ResultStatus.NotSupported, false)]
+    [InlineData(ResultStatus.Cancelled, true)]
+    [InlineData(ResultStatus.NotFound, false)]
+    public void IsCancelled_ReturnsExpectedResult(
+        ResultStatus status,
+        bool expected)
+    {
+        var result = new TestResult
+        {
+            Status = status
+        };
+
+        var actual = result.IsCancelled();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void IsFinal_WhenResultIsNull_ThrowsArgumentNullException()
+    {
+        IResult? result = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            result!.IsFinal());
+    }
+
+    [Theory]
+    [InlineData(ResultStatus.Unknown, false)]
+    [InlineData(ResultStatus.Success, true)]
+    [InlineData(ResultStatus.SuccessWithWarnings, true)]
+    [InlineData(ResultStatus.Partial, true)]
+    [InlineData(ResultStatus.Failed, true)]
+    [InlineData(ResultStatus.Invalid, true)]
+    [InlineData(ResultStatus.NotSupported, true)]
+    [InlineData(ResultStatus.Cancelled, true)]
+    [InlineData(ResultStatus.NotFound, true)]
+    public void IsFinal_ReturnsExpectedResult(
+        ResultStatus status,
+        bool expected)
+    {
+        var result = new TestResult
+        {
+            Status = status
+        };
+
+        var actual = result.IsFinal();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void IsNonSuccess_WhenResultIsNull_ThrowsArgumentNullException()
+    {
+        IResult? result = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            result!.IsNonSuccess());
+    }
+
+    [Theory]
+    [InlineData(ResultStatus.Unknown, true)]
+    [InlineData(ResultStatus.Success, false)]
+    [InlineData(ResultStatus.SuccessWithWarnings, false)]
+    [InlineData(ResultStatus.Partial, true)]
+    [InlineData(ResultStatus.Failed, true)]
+    [InlineData(ResultStatus.Invalid, true)]
+    [InlineData(ResultStatus.NotSupported, true)]
+    [InlineData(ResultStatus.Cancelled, true)]
+    [InlineData(ResultStatus.NotFound, true)]
+    public void IsNonSuccess_ReturnsExpectedResult(
+        ResultStatus status,
+        bool expected)
+    {
+        var result = new TestResult
+        {
+            Status = status
+        };
+
+        var actual = result.IsNonSuccess();
+
+        Assert.Equal(expected, actual);
+    }
 }

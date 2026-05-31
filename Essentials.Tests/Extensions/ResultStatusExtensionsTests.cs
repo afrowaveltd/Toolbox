@@ -193,4 +193,23 @@ public sealed class ResultStatusExtensionsTests
 
       Assert.Equal(expected, actual);
    }
+
+   [Theory]
+   [InlineData(ResultStatus.Unknown, false)]
+   [InlineData(ResultStatus.Success, false)]
+   [InlineData(ResultStatus.SuccessWithWarnings, false)]
+   [InlineData(ResultStatus.Partial, false)]
+   [InlineData(ResultStatus.Failed, true)]
+   [InlineData(ResultStatus.Invalid, false)]
+   [InlineData(ResultStatus.NotSupported, false)]
+   [InlineData(ResultStatus.Cancelled, false)]
+   [InlineData(ResultStatus.NotFound, false)]
+   public void IsFailed_ReturnsExpectedResult(
+       ResultStatus status,
+       bool expected)
+   {
+      var actual = status.IsFailed();
+
+      Assert.Equal(expected, actual);
+   }
 }

@@ -33,7 +33,7 @@ public static class ResultExtensions
     {
         ArgumentNullException.ThrowIfNull(result);
 
-        return result.Status == ResultStatus.Unknown;
+        return result.Status.IsUnknown();
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ public static class ResultExtensions
     {
         ArgumentNullException.ThrowIfNull(result);
 
-        return result.Status == ResultStatus.Invalid;
+        return result.Status.IsInvalid();
     }
 
     /// <summary>
@@ -57,7 +57,7 @@ public static class ResultExtensions
     {
         ArgumentNullException.ThrowIfNull(result);
 
-        return result.Status == ResultStatus.NotFound;
+        return result.Status.IsNotFound();
     }
 
     /// <summary>
@@ -250,5 +250,76 @@ public static class ResultExtensions
         ArgumentNullException.ThrowIfNull(result);
 
         return !result.HasStatusMatchingIssues();
+    }
+    /// <summary>
+    /// Determines whether the result status represents a partial result.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <returns><c>true</c> if the result status is partial; otherwise, <c>false</c>.</returns>
+    public static bool IsPartial(this IResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return result.Status.IsPartial();
+    }
+
+    /// <summary>
+    /// Determines whether the result status represents a failed result.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <returns><c>true</c> if the result status is failed; otherwise, <c>false</c>.</returns>
+    public static bool IsFailed(this IResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return result.Status.IsFailed();
+    }
+
+    /// <summary>
+    /// Determines whether the result status represents an unsupported operation.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <returns><c>true</c> if the result status is not supported; otherwise, <c>false</c>.</returns>
+    public static bool IsNotSupported(this IResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return result.Status.IsNotSupported();
+    }
+
+    /// <summary>
+    /// Determines whether the result status represents a cancelled operation.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <returns><c>true</c> if the result status is cancelled; otherwise, <c>false</c>.</returns>
+    public static bool IsCancelled(this IResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return result.Status.IsCancelled();
+    }
+
+    /// <summary>
+    /// Determines whether the result status is final.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <returns><c>true</c> if the result status is final; otherwise, <c>false</c>.</returns>
+    public static bool IsFinal(this IResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return result.Status.IsFinal();
+    }
+
+    /// <summary>
+    /// Determines whether the result status does not represent a successful result.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <returns><c>true</c> if the result status is not success or success with warnings; otherwise, <c>false</c>.</returns>
+    public static bool IsNonSuccess(this IResult result)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return result.Status.IsNonSuccess();
     }
 }

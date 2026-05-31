@@ -119,4 +119,14 @@ public static class ResultStatusExtensions
    {
       return status == ResultStatus.Cancelled;
    }
+
+   /// <summary>
+   /// Determines whether the result status represents a failed result.
+   /// </summary>
+   /// <param name="status">The result status.</param>
+   /// <returns><c>true</c> if the status is <see cref="ResultStatus.Failed"/>; otherwise, <c>false</c>.</returns>
+   public static bool IsFailed(this ResultStatus status)
+   {
+      return status == ResultStatus.Failed;
+   }
 }

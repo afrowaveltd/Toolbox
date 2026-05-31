@@ -9,6 +9,18 @@ namespace Afrowave.Toolbox.Essentials.Extensions;
 public static class IssueInfoCollectionExtensions
 {
    /// <summary>
+   /// Determines whether the issue collection contains any issues.
+   /// </summary>
+   /// <param name="issues">The issue collection.</param>
+   /// <returns><c>true</c> if the collection contains at least one issue; otherwise, <c>false</c>.</returns>
+   public static bool HasAnyIssues(this IReadOnlyList<IssueInfo> issues)
+   {
+      ArgumentNullException.ThrowIfNull(issues);
+
+      return issues.Count > 0;
+   }
+
+   /// <summary>
    /// Determines whether the collection contains at least one issue with severity
    /// <see cref="IssueSeverity.Error"/> or higher.
    /// </summary>
@@ -32,6 +44,33 @@ public static class IssueInfoCollectionExtensions
       ArgumentNullException.ThrowIfNull(issues);
 
       return issues.Any(issue => issue.Severity.IsWarningOrHigher());
+   }
+
+   /// <summary>
+   /// Determines whether the issue collection contains any critical or fatal issue.
+   /// </summary>
+   /// <param name="issues">The issue collection.</param>
+   /// <returns><c>true</c> if the collection contains a critical or fatal issue; otherwise, <c>false</c>.</returns>
+   public static bool HasCriticalOrFatalIssues(this IReadOnlyList<IssueInfo> issues)
+   {
+      ArgumentNullException.ThrowIfNull(issues);
+
+      return issues.Any(issue => issue.Severity.IsCriticalOrHigher());
+   }
+
+   /// <summary>
+   /// Determines whether the issue collection contains an issue with the specified severity.
+   /// </summary>
+   /// <param name="issues">The issue collection.</param>
+   /// <param name="severity">The severity to search for.</param>
+   /// <returns><c>true</c> if the collection contains an issue with the specified severity; otherwise, <c>false</c>.</returns>
+   public static bool HasIssueWithSeverity(
+       this IReadOnlyList<IssueInfo> issues,
+       IssueSeverity severity)
+   {
+      ArgumentNullException.ThrowIfNull(issues);
+
+      return issues.Any(issue => issue.Severity == severity);
    }
 
    /// <summary>

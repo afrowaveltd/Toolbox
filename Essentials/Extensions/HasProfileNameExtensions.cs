@@ -1,53 +1,37 @@
-﻿using Afrowave.Toolbox.Essentials.Interfaces;
+using Afrowave.Toolbox.Essentials.Interfaces;
 using Afrowave.Toolbox.Essentials.ValueObjects;
 
 namespace Afrowave.Toolbox.Essentials.Extensions;
 
 /// <summary>
-/// Provides helper methods for objects carrying a provider name.
+/// Provides helper methods for objects implementing <see cref="IHasProfileName"/>.
 /// </summary>
-public static class HasProviderNameExtensions
+public static class HasProfileNameExtensions
 {
-   /// <summary>
-   /// Determines whether the object's provider name matches the specified provider name, ignoring case.
-   /// </summary>
-   /// <param name="value">The object carrying a provider name.</param>
-   /// <param name="providerName">The provider name to compare with.</param>
-   /// <returns><c>true</c> if both provider names are equal ignoring case; otherwise, <c>false</c>.</returns>
-   public static bool HasProviderName(
-       this IHasProviderName value,
-       ProviderName providerName)
-   {
-      ArgumentNullException.ThrowIfNull(value);
+    /// <summary>
+    /// Determines whether the object has a profile name.
+    /// </summary>
+    /// <param name="source">The source object.</param>
+    /// <returns><c>true</c> if the object has a profile name; otherwise, <c>false</c>.</returns>
+    public static bool HasProfileName(this IHasProfileName source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
 
-      return value.ProviderName.EqualsIgnoreCase(providerName);
-   }
+        return !string.IsNullOrWhiteSpace(source.ProfileName.Value);
+    }
 
-   /// <summary>
-   /// Determines whether the object's provider name matches the specified provider name, ignoring case.
-   /// </summary>
-   /// <param name="value">The object carrying a provider name.</param>
-   /// <param name="providerName">The provider name string to compare with.</param>
-   /// <returns><c>true</c> if both provider names are equal ignoring case; otherwise, <c>false</c>.</returns>
-   public static bool HasProviderName(
-       this IHasProviderName value,
-       string providerName)
-   {
-      ArgumentNullException.ThrowIfNull(value);
-      ArgumentException.ThrowIfNullOrWhiteSpace(providerName);
+    /// <summary>
+    /// Determines whether the object has the specified profile name.
+    /// </summary>
+    /// <param name="source">The source object.</param>
+    /// <param name="profileName">The profile name to compare with.</param>
+    /// <returns><c>true</c> if the profile name matches; otherwise, <c>false</c>.</returns>
+    public static bool HasProfileName(
+     this IHasProfileName source,
+     ProfileName profileName)
+    {
+        ArgumentNullException.ThrowIfNull(source);
 
-      return value.ProviderName.EqualsIgnoreCase(new ProviderName(providerName));
-   }
-
-   /// <summary>
-   /// Gets the provider name normalized to lowercase using invariant culture rules.
-   /// </summary>
-   /// <param name="value">The object carrying a provider name.</param>
-   /// <returns>The normalized provider name.</returns>
-   public static ProviderName GetNormalizedProviderName(this IHasProviderName value)
-   {
-      ArgumentNullException.ThrowIfNull(value);
-
-      return value.ProviderName.ToLowerInvariantName();
-   }
+        return source.ProfileName.EqualsIgnoreCase(profileName);
+    }
 }
