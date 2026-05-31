@@ -34,4 +34,16 @@ public static class HasProfileNameExtensions
 
         return source.ProfileName.EqualsIgnoreCase(profileName);
     }
+
+    /// <summary>
+    /// Gets the normalized profile name from the source object.
+    /// </summary>
+    /// <param name="source">The source object.</param>
+    /// <returns>The normalized profile name.</returns>
+    public static ProfileName GetNormalizedProfileName(this IHasProfileName source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+
+        return source.ProfileName.ToLowerInvariantName();
+    }
 }

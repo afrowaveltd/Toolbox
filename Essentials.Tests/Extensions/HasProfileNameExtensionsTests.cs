@@ -89,4 +89,45 @@ public sealed class HasProfileNameExtensionsTests
     {
         public ProfileName ProfileName { get; set; } = new ProfileName("default");
     }
+
+    [Fact]
+    public void GetNormalizedProfileName_WhenSourceIsNull_ThrowsArgumentNullException()
+    {
+        IHasProfileName? source = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            source!.GetNormalizedProfileName());
+    }
+
+    [Theory]
+    [InlineData("DEFAULT", "default")]
+    [InlineData("DefaultProfile", "defaultprofile")]
+    [InlineData("Markdown-Refine", "markdown-refine")]
+    [InlineData("LIVE-CHAT-FAST", "live-chat-fast")]
+    public void GetNormalizedProfileName_ReturnsLowercaseProfileName(
+        string input,
+        string expected)
+    {
+        var source = new TestProfileNameSource
+        {
+            ProfileName = new ProfileName(input)
+        };
+
+        var actual = source.GetNormalizedProfileName();
+
+        Assert.Equal(expected, actual.Value);
+    }
+
+    [Fact]
+    public void GetNormalizedProfileName_WhenProfileNameIsAlreadyLowercase_ReturnsSameValue()
+    {
+        var source = new TestProfileNameSource
+        {
+            ProfileName = new ProfileName("default")
+        };
+
+        var actual = source.GetNormalizedProfileName();
+
+        Assert.Equal("default", actual.Value);
+    }
 }
