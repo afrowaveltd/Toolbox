@@ -1,29 +1,29 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "D:\\Toolbox\\",
+  "WorkspaceRootPath": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\diagnostics\\diagnosticinfofactorytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|g:\\afrowave projects\\toolbox\\toolbox\\essentials.tests\\diagnostics\\diagnosticinfofactorytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\diagnostics\\diagnosticinfofactorytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\diagnostics\\diagnosticinfofactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|g:\\afrowave projects\\toolbox\\toolbox\\essentials\\diagnostics\\diagnosticinfofactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\diagnostics\\diagnosticinfofactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\issues\\issueinfofactorytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|g:\\afrowave projects\\toolbox\\toolbox\\essentials.tests\\issues\\issueinfofactorytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\issues\\issueinfofactorytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\issues\\issueinfofactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|g:\\afrowave projects\\toolbox\\toolbox\\essentials\\issues\\issueinfofactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\issues\\issueinfofactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\metadata\\metadatabagfactorytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|g:\\afrowave projects\\toolbox\\toolbox\\essentials.tests\\metadata\\metadatabagfactorytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\metadata\\metadatabagfactorytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\metadata\\metadatabagfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|g:\\afrowave projects\\toolbox\\toolbox\\essentials\\metadata\\metadatabagfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\metadata\\metadatabagfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -34,7 +34,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 55,
+          "SelectedChildIndex": 58,
           "Children": [
             {
               "$type": "Bookmark",
@@ -54,6 +54,14 @@
             },
             {
               "$type": "Bookmark",
+              "Name": "ST:0:0:{99b8fa2f-ab90-4f57-9c32-949f146f1914}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{c79b74ff-f1d7-4c94-aefa-4d22bfe1b1f9}"
+            },
+            {
+              "$type": "Bookmark",
               "Name": "ST:128:0:{13b12e3e-c1b4-4539-9371-4fe9a0d523fc}"
             },
             {
@@ -63,6 +71,10 @@
             {
               "$type": "Bookmark",
               "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{37aba9be-445a-11d3-9949-00c04f68fd0a}"
             },
             {
               "$type": "Bookmark",
@@ -83,6 +95,10 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{eefa5220-e298-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{4a9b7e51-aa16-11d0-a8c5-00a0c921a4d2}"
             },
             {
               "$type": "Bookmark",
@@ -198,23 +214,11 @@
             },
             {
               "$type": "Bookmark",
-              "Name": "ST:1682933510:0:{bf84ea66-d821-4dba-b1b1-2777d8574775}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cde3}"
             },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{4a9b7e51-aa16-11d0-a8c5-00a0c921a4d2}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cde3}"
             },
             {
               "$type": "Bookmark",
@@ -241,66 +245,70 @@
               "Name": "ST:0:0:{e1b7d1f8-9b3c-49b1-8f4f-bfc63a88835d}"
             },
             {
+              "$type": "Bookmark",
+              "Name": "ST:1682933510:0:{bf84ea66-d821-4dba-b1b1-2777d8574775}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+            },
+            {
               "$type": "Document",
               "DocumentIndex": 2,
               "Title": "IssueInfoFactoryTests.cs",
-              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Issues\\IssueInfoFactoryTests.cs",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\Essentials.Tests\\Issues\\IssueInfoFactoryTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Issues\\IssueInfoFactoryTests.cs",
-              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Issues\\IssueInfoFactoryTests.cs",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\Essentials.Tests\\Issues\\IssueInfoFactoryTests.cs",
               "RelativeToolTip": "Essentials.Tests\\Issues\\IssueInfoFactoryTests.cs",
               "ViewState": "AgIAAGECAAAAAAAAAAAkwHICAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-28T13:20:34.777Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-28T13:20:34.777Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
               "Title": "IssueInfoFactory.cs",
-              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Issues\\IssueInfoFactory.cs",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\Essentials\\Issues\\IssueInfoFactory.cs",
               "RelativeDocumentMoniker": "Essentials\\Issues\\IssueInfoFactory.cs",
-              "ToolTip": "D:\\Toolbox\\Essentials\\Issues\\IssueInfoFactory.cs",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\Essentials\\Issues\\IssueInfoFactory.cs",
               "RelativeToolTip": "Essentials\\Issues\\IssueInfoFactory.cs",
               "ViewState": "AgIAAPMAAAAAAAAAAAAIwCABAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-28T13:18:42.7Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-28T13:18:42.7Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 4,
               "Title": "MetadataBagFactoryTests.cs",
-              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Metadata\\MetadataBagFactoryTests.cs",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\Essentials.Tests\\Metadata\\MetadataBagFactoryTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Metadata\\MetadataBagFactoryTests.cs",
-              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Metadata\\MetadataBagFactoryTests.cs",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\Essentials.Tests\\Metadata\\MetadataBagFactoryTests.cs",
               "RelativeToolTip": "Essentials.Tests\\Metadata\\MetadataBagFactoryTests.cs",
               "ViewState": "AgIAAOEAAAAAAAAAAAAkwA8BAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-28T13:17:17.348Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-28T13:17:17.348Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 5,
               "Title": "MetadataBagFactory.cs",
-              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Metadata\\MetadataBagFactory.cs",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\Essentials\\Metadata\\MetadataBagFactory.cs",
               "RelativeDocumentMoniker": "Essentials\\Metadata\\MetadataBagFactory.cs",
-              "ToolTip": "D:\\Toolbox\\Essentials\\Metadata\\MetadataBagFactory.cs",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\Essentials\\Metadata\\MetadataBagFactory.cs",
               "RelativeToolTip": "Essentials\\Metadata\\MetadataBagFactory.cs",
               "ViewState": "AgIAAEEAAAAAAAAAAAAQwFUAAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-28T13:16:31.79Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-28T13:16:31.79Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "DiagnosticInfoFactoryTests.cs",
-              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Diagnostics\\DiagnosticInfoFactoryTests.cs",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\Essentials.Tests\\Diagnostics\\DiagnosticInfoFactoryTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Diagnostics\\DiagnosticInfoFactoryTests.cs",
-              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Diagnostics\\DiagnosticInfoFactoryTests.cs",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\Essentials.Tests\\Diagnostics\\DiagnosticInfoFactoryTests.cs",
               "RelativeToolTip": "Essentials.Tests\\Diagnostics\\DiagnosticInfoFactoryTests.cs",
-              "ViewState": "AgIAAJUCAAAAAAAAAAAkwLQCAAAEAAAAAAAAAA==",
+              "ViewState": "AgIAAJUCAAAAAAAAAAAkwJcCAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-28T13:09:41.131Z",
               "EditorCaption": ""
@@ -309,14 +317,13 @@
               "$type": "Document",
               "DocumentIndex": 1,
               "Title": "DiagnosticInfoFactory.cs",
-              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Diagnostics\\DiagnosticInfoFactory.cs",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\Essentials\\Diagnostics\\DiagnosticInfoFactory.cs",
               "RelativeDocumentMoniker": "Essentials\\Diagnostics\\DiagnosticInfoFactory.cs",
-              "ToolTip": "D:\\Toolbox\\Essentials\\Diagnostics\\DiagnosticInfoFactory.cs",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\Essentials\\Diagnostics\\DiagnosticInfoFactory.cs",
               "RelativeToolTip": "Essentials\\Diagnostics\\DiagnosticInfoFactory.cs",
               "ViewState": "AgIAABsBAAAAAAAAAAAiwEgBAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-28T13:07:42.984Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-28T13:07:42.984Z"
             }
           ]
         },
