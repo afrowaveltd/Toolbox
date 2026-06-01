@@ -66,47 +66,47 @@ public static class ResultConversionExtensions
             Metadata = response.Metadata
         };
     }
-/// <summary>
-/// Converts a non-generic response to a typed response with data.
-/// </summary>
-/// <typeparam name="T">The response data type.</typeparam>
-/// <param name="response">The source response.</param>
-/// <param name="data">The response data.</param>
-/// <returns>A typed response with copied response values and the specified data.</returns>
-public static Response<T> ToTypedResponse<T>(
-    this IResponse response,
-    T? data)
-{
-    ArgumentNullException.ThrowIfNull(response);
-
-    return new Response<T>
+    /// <summary>
+    /// Converts a non-generic response to a typed response with data.
+    /// </summary>
+    /// <typeparam name="T">The response data type.</typeparam>
+    /// <param name="response">The source response.</param>
+    /// <param name="data">The response data.</param>
+    /// <returns>A typed response with copied response values and the specified data.</returns>
+    public static Response<T> ToTypedResponse<T>(
+        this IResponse response,
+        T? data)
     {
-        Status = response.Status,
-        Message = response.Message,
-        Data = data,
-        Issues = response.Issues,
-        Metadata = response.Metadata
-    };
-}
+        ArgumentNullException.ThrowIfNull(response);
 
-/// <summary>
-/// Converts a typed response to a non-generic response by dropping the data payload.
-/// </summary>
-/// <typeparam name="T">The response data type.</typeparam>
-/// <param name="response">The source typed response.</param>
-/// <returns>A non-generic response with copied response values.</returns>
-public static Response ToNonGenericResponse<T>(
-    this IResponse<T> response)
-{
-    ArgumentNullException.ThrowIfNull(response);
+        return new Response<T>
+        {
+            Status = response.Status,
+            Message = response.Message,
+            Data = data,
+            Issues = response.Issues,
+            Metadata = response.Metadata
+        };
+    }
 
-    return new Response
+    /// <summary>
+    /// Converts a typed response to a non-generic response by dropping the data payload.
+    /// </summary>
+    /// <typeparam name="T">The response data type.</typeparam>
+    /// <param name="response">The source typed response.</param>
+    /// <returns>A non-generic response with copied response values.</returns>
+    public static Response ToNonGenericResponse<T>(
+        this IResponse<T> response)
     {
-        Status = response.Status,
-        Message = response.Message,
-        Issues = response.Issues,
-        Metadata = response.Metadata
-    };
-}
+        ArgumentNullException.ThrowIfNull(response);
+
+        return new Response
+        {
+            Status = response.Status,
+            Message = response.Message,
+            Issues = response.Issues,
+            Metadata = response.Metadata
+        };
+    }
 
 }

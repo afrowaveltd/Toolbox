@@ -224,4 +224,48 @@ public class EnumFlagExtensionsTests
         Assert.True(all.HasAll(TestPermissions.Admin));
         Assert.True(all.HasAll(TestPermissions.Read | TestPermissions.Write | TestPermissions.Execute | TestPermissions.Delete | TestPermissions.Admin));
     }
+    [Fact]
+    public void HasAll_WithSignedAllFlag_ReturnsTrue()
+    {
+        var permissions = SignedTestPermissions.All;
+
+        var actual = permissions.HasAll(
+           SignedTestPermissions.Read
+           | SignedTestPermissions.Write
+           | SignedTestPermissions.Execute);
+
+        Assert.True(actual);
+    }
+
+    [Fact]
+    public void HasAny_WithSignedAllFlag_ReturnsTrue()
+    {
+        var permissions = SignedTestPermissions.All;
+
+        var actual = permissions.HasAny(SignedTestPermissions.Execute);
+
+        Assert.True(actual);
+    }
+
+    [Fact]
+    public void Without_WithSignedAllFlag_RemovesSpecifiedFlag()
+    {
+        var permissions = SignedTestPermissions.All;
+
+        var actual = permissions.Without(SignedTestPermissions.Write);
+
+        Assert.False(actual.HasAny(SignedTestPermissions.Write));
+        Assert.True(actual.HasAny(SignedTestPermissions.Read));
+        Assert.True(actual.HasAny(SignedTestPermissions.Execute));
+    }
+
+    [Flags]
+    private enum SignedTestPermissions
+    {
+        None = 0,
+        Read = 1,
+        Write = 2,
+        Execute = 4,
+        All = -1
+    }
 }

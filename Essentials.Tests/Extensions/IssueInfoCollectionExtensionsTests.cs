@@ -1885,4 +1885,116 @@ public void AppendIssues_ReturnsNewList()
 
         Assert.True(result);
     }
+
+    [Fact]
+    public void HasAnyIssues_WhenIssuesContainOnlyNullItems_ReturnsFalse()
+    {
+        IReadOnlyList<IssueInfo> issues =
+        [
+           null!,
+      null!
+        ];
+
+        var actual = issues.HasAnyIssues();
+
+        Assert.False(actual);
+    }
+
+    [Fact]
+    public void HasErrors_WhenIssuesContainNullItems_IgnoresNullItems()
+    {
+        IEnumerable<IssueInfo> issues =
+        [
+           null!,
+      CreateIssue(IssueSeverity.Error)
+        ];
+
+        var actual = issues.HasErrors();
+
+        Assert.True(actual);
+    }
+
+    [Fact]
+    public void Errors_WhenIssuesContainNullItems_IgnoresNullItems()
+    {
+        IEnumerable<IssueInfo> issues =
+        [
+           null!,
+      CreateIssue(IssueSeverity.Error),
+      null!
+        ];
+
+        var actual = issues.Errors().ToList();
+
+        Assert.Single(actual);
+        Assert.Equal(IssueSeverity.Error, actual[0].Severity);
+    }
+
+    [Fact]
+    public void HasIssueCode_WhenIssuesContainNullItems_IgnoresNullItems()
+    {
+        IReadOnlyList<IssueInfo> issues =
+        [
+           null!,
+      IssueInfoFactory.Warning(
+         "AFW_WARNING",
+         "Warning message.")
+        ];
+
+        var actual = issues.HasIssueCode("AFW_WARNING");
+
+        Assert.True(actual);
+    }
+
+    [Fact]
+    public void TryGetIssueByCode_WhenIssuesContainNullItems_IgnoresNullItems()
+    {
+        var expectedIssue = IssueInfoFactory.Warning(
+           "AFW_WARNING",
+           "Warning message.");
+
+        IReadOnlyList<IssueInfo> issues =
+        [
+           null!,
+      expectedIssue,
+      null!
+        ];
+
+        var actual = issues.TryGetIssueByCode(
+           "AFW_WARNING",
+           out var issue);
+
+        Assert.True(actual);
+        Assert.Same(expectedIssue, issue);
+    }
+
+    [Fact]
+    public void GetHighestSeverity_WhenIssuesContainNullItems_IgnoresNullItems()
+    {
+        IReadOnlyList<IssueInfo> issues =
+        [
+           null!,
+      CreateIssue(IssueSeverity.Warning),
+      null!,
+      CreateIssue(IssueSeverity.Critical)
+        ];
+
+        var actual = issues.GetHighestSeverity();
+
+        Assert.Equal(IssueSeverity.Critical, actual);
+    }
+
+    [Fact]
+    public void HasOnlyInformationalOrLowerIssues_WhenIssuesContainOnlyNullItems_ReturnsTrue()
+    {
+        IReadOnlyList<IssueInfo> issues =
+        [
+           null!,
+      null!
+        ];
+
+        var actual = issues.HasOnlyInformationalOrLowerIssues();
+
+        Assert.True(actual);
+    }
 }

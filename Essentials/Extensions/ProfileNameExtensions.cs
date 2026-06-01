@@ -30,6 +30,8 @@ public static class ProfileNameExtensions
    /// <returns>The normalized profile name.</returns>
    public static ProfileName ToLowerInvariantName(this ProfileName profileName)
    {
-      return new ProfileName(profileName.Value.ToLowerInvariant());
+      return string.IsNullOrWhiteSpace(profileName.Value)
+         ? profileName
+         : new ProfileName(profileName.Value.ToLowerInvariant());
    }
 }

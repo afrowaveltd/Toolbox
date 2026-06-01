@@ -1,5 +1,6 @@
 using Afrowave.Toolbox.Essentials.Diagnostics;
 using Afrowave.Toolbox.Essentials.Enums;
+using Afrowave.Toolbox.Essentials.Interfaces;
 using Afrowave.Toolbox.Essentials.Metadata;
 
 namespace Afrowave.Toolbox.Essentials.Tests.Diagnostics;
@@ -273,15 +274,21 @@ public class DiagnosticInfoTests
     }
 
     [Theory]
+    [InlineData(IssueSeverity.None)]
+    [InlineData(IssueSeverity.Trace)]
+    [InlineData(IssueSeverity.Debug)]
     [InlineData(IssueSeverity.Information)]
     [InlineData(IssueSeverity.Warning)]
     [InlineData(IssueSeverity.Error)]
+    [InlineData(IssueSeverity.Critical)]
+    [InlineData(IssueSeverity.Fatal)]
     public void InitWithSeverity_SetsSeverity(IssueSeverity severity)
     {
-        // Act
-        var diagnostic = new DiagnosticInfo { Severity = severity };
+        var diagnostic = new DiagnosticInfo
+        {
+            Severity = severity
+        };
 
-        // Assert
         Assert.Equal(severity, diagnostic.Severity);
     }
 
@@ -434,5 +441,33 @@ public class DiagnosticInfoTests
         // Assert
         Assert.NotNull(hasMetadata);
         Assert.Same(metadata, hasMetadata.Metadata);
+    }
+
+    [Fact]
+    public void ImplementsIHasMessage()
+    {
+        var diagnostic = new DiagnosticInfo
+        {
+            Message = "Diagnostic message."
+        };
+
+        var hasMessage = diagnostic as IHasMessage;
+
+        Assert.NotNull(hasMessage);
+        Assert.Equal("Diagnostic message.", hasMessage.Message);
+    }
+
+    [Fact]
+    public void ImplementsIHasDetails()
+    {
+        var diagnostic = new DiagnosticInfo
+        {
+            Details = "Detailed diagnostic information."
+        };
+
+        var hasDetails = diagnostic as IHasDetails;
+
+        Assert.NotNull(hasDetails);
+        Assert.Equal("Detailed diagnostic information.", hasDetails.Details);
     }
 }

@@ -9,15 +9,15 @@ namespace Afrowave.Toolbox.Essentials.Extensions;
 public static class IssueInfoCollectionExtensions
 {
    /// <summary>
-   /// Determines whether the issue collection contains any issues.
+   /// Determines whether the issue collection contains any non-null issues.
    /// </summary>
    /// <param name="issues">The issue collection.</param>
-   /// <returns><c>true</c> if the collection contains at least one issue; otherwise, <c>false</c>.</returns>
+   /// <returns><c>true</c> if the collection contains at least one non-null issue; otherwise, <c>false</c>.</returns>
    public static bool HasAnyIssues(this IReadOnlyList<IssueInfo> issues)
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return issues.Count > 0;
+      return issues.Any(issue => issue is not null);
    }
 
    /// <summary>
@@ -30,7 +30,9 @@ public static class IssueInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return issues.Any(issue => issue.Severity.IsErrorOrHigher());
+      return issues.Any(issue =>
+          issue is not null
+          && issue.Severity.IsErrorOrHigher());
    }
 
    /// <summary>
@@ -43,7 +45,9 @@ public static class IssueInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return issues.Any(issue => issue.Severity.IsWarningOrHigher());
+      return issues.Any(issue =>
+          issue is not null
+          && issue.Severity.IsWarningOrHigher());
    }
 
    /// <summary>
@@ -55,7 +59,9 @@ public static class IssueInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return issues.Any(issue => issue.Severity.IsCriticalOrHigher());
+      return issues.Any(issue =>
+          issue is not null
+          && issue.Severity.IsCriticalOrHigher());
    }
 
    /// <summary>
@@ -70,7 +76,9 @@ public static class IssueInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return issues.Any(issue => issue.Severity == severity);
+      return issues.Any(issue =>
+          issue is not null
+          && issue.Severity == severity);
    }
 
    /// <summary>
@@ -82,7 +90,9 @@ public static class IssueInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return issues.Where(issue => issue.Severity.IsErrorOrHigher());
+      return issues.Where(issue =>
+          issue is not null
+          && issue.Severity.IsErrorOrHigher());
    }
 
    /// <summary>
@@ -94,7 +104,9 @@ public static class IssueInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return issues.Where(issue => issue.Severity == IssueSeverity.Warning);
+      return issues.Where(issue =>
+          issue is not null
+          && issue.Severity == IssueSeverity.Warning);
    }
 
    /// <summary>
@@ -106,7 +118,9 @@ public static class IssueInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return issues.Where(issue => issue.Severity.IsInformationOrLower());
+      return issues.Where(issue =>
+          issue is not null
+          && issue.Severity.IsInformationOrLower());
    }
 
    /// <summary>
@@ -121,7 +135,9 @@ public static class IssueInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return issues.Where(issue => issue.Severity == severity);
+      return issues.Where(issue =>
+          issue is not null
+          && issue.Severity == severity);
    }
 
    /// <summary>
@@ -170,7 +186,8 @@ public static class IssueInfoCollectionExtensions
       ArgumentException.ThrowIfNullOrWhiteSpace(code);
 
       return issues.Any(issue =>
-          string.Equals(
+          issue is not null
+          && string.Equals(
               issue.Code,
               code,
               StringComparison.OrdinalIgnoreCase));
@@ -192,13 +209,15 @@ public static class IssueInfoCollectionExtensions
       ArgumentException.ThrowIfNullOrWhiteSpace(code);
 
       issue = issues.FirstOrDefault(currentIssue =>
-          string.Equals(
+          currentIssue is not null
+          && string.Equals(
               currentIssue.Code,
               code,
               StringComparison.OrdinalIgnoreCase));
 
       return issue is not null;
    }
+
    /// <summary>
    /// Creates a new issue collection containing only issues with the specified severity.
    /// </summary>
@@ -211,7 +230,9 @@ public static class IssueInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return [.. issues.Where(issue => issue.Severity == severity)];
+      return [.. issues.Where(issue =>
+          issue is not null
+          && issue.Severity == severity)];
    }
 
    /// <summary>
@@ -224,7 +245,9 @@ public static class IssueInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return [.. issues.Where(issue => issue.Severity.IsWarningOrHigher())];
+      return [.. issues.Where(issue =>
+          issue is not null
+          && issue.Severity.IsWarningOrHigher())];
    }
 
    /// <summary>
@@ -237,7 +260,9 @@ public static class IssueInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return [.. issues.Where(issue => issue.Severity.IsErrorOrHigher())];
+      return [.. issues.Where(issue =>
+          issue is not null
+          && issue.Severity.IsErrorOrHigher())];
    }
 
    /// <summary>
@@ -250,8 +275,11 @@ public static class IssueInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return [.. issues.Where(issue => issue.Severity.IsCriticalOrHigher())];
+      return [.. issues.Where(issue =>
+          issue is not null
+          && issue.Severity.IsCriticalOrHigher())];
    }
+
    /// <summary>
    /// Counts issues with the specified severity.
    /// </summary>
@@ -264,7 +292,9 @@ public static class IssueInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return issues.Count(issue => issue.Severity == severity);
+      return issues.Count(issue =>
+          issue is not null
+          && issue.Severity == severity);
    }
 
    /// <summary>
@@ -277,7 +307,9 @@ public static class IssueInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return issues.Count(issue => issue.Severity.IsWarningOrHigher());
+      return issues.Count(issue =>
+          issue is not null
+          && issue.Severity.IsWarningOrHigher());
    }
 
    /// <summary>
@@ -290,7 +322,9 @@ public static class IssueInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return issues.Count(issue => issue.Severity.IsErrorOrHigher());
+      return issues.Count(issue =>
+          issue is not null
+          && issue.Severity.IsErrorOrHigher());
    }
 
    /// <summary>
@@ -303,7 +337,9 @@ public static class IssueInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return issues.Count(issue => issue.Severity.IsCriticalOrHigher());
+      return issues.Count(issue =>
+          issue is not null
+          && issue.Severity.IsCriticalOrHigher());
    }
 
    /// <summary>
@@ -316,16 +352,16 @@ public static class IssueInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      if (issues.Count == 0)
-      {
-         return IssueSeverity.None;
-      }
-
       var highestSeverity = IssueSeverity.None;
       var highestRank = GetSeverityRank(highestSeverity);
 
       foreach (var issue in issues)
       {
+         if (issue is null)
+         {
+            continue;
+         }
+
          var rank = GetSeverityRank(issue.Severity);
 
          if (rank > highestRank)
@@ -336,22 +372,6 @@ public static class IssueInfoCollectionExtensions
       }
 
       return highestSeverity;
-   }
-
-   private static int GetSeverityRank(IssueSeverity severity)
-   {
-      return severity switch
-      {
-         IssueSeverity.None => 0,
-         IssueSeverity.Trace => 1,
-         IssueSeverity.Debug => 2,
-         IssueSeverity.Information => 3,
-         IssueSeverity.Warning => 4,
-         IssueSeverity.Error => 5,
-         IssueSeverity.Critical => 6,
-         IssueSeverity.Fatal => 7,
-         _ => 0
-      };
    }
 
    /// <summary>
@@ -378,18 +398,20 @@ public static class IssueInfoCollectionExtensions
 
       return ResultStatus.Success;
    }
+
    /// <summary>
    /// Determines whether the issue collection contains only informational or lower severity issues.
    /// </summary>
    /// <param name="issues">The issue collection.</param>
-   /// <returns><c>true</c> if all issues are informational or lower severity; otherwise, <c>false</c>.</returns>
+   /// <returns><c>true</c> if all non-null issues are informational or lower severity; otherwise, <c>false</c>.</returns>
    public static bool HasOnlyInformationalOrLowerIssues(
        this IReadOnlyList<IssueInfo> issues)
    {
       ArgumentNullException.ThrowIfNull(issues);
 
       return issues.All(issue =>
-          !issue.Severity.IsWarningOrHigher());
+          issue is null
+          || !issue.Severity.IsWarningOrHigher());
    }
 
    /// <summary>
@@ -429,5 +451,21 @@ public static class IssueInfoCollectionExtensions
       ArgumentNullException.ThrowIfNull(issues);
 
       return issues.HasCriticalOrFatalIssues();
+   }
+
+   private static int GetSeverityRank(IssueSeverity severity)
+   {
+      return severity switch
+      {
+         IssueSeverity.None => 0,
+         IssueSeverity.Trace => 1,
+         IssueSeverity.Debug => 2,
+         IssueSeverity.Information => 3,
+         IssueSeverity.Warning => 4,
+         IssueSeverity.Error => 5,
+         IssueSeverity.Critical => 6,
+         IssueSeverity.Fatal => 7,
+         _ => 0
+      };
    }
 }

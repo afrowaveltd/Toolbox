@@ -80,8 +80,8 @@ public static class DiagnosticHintExtensions
       ArgumentNullException.ThrowIfNull(hint);
       ArgumentException.ThrowIfNullOrWhiteSpace(text);
 
-      return hint.Message.Contains(
+      return hint.Message?.Contains(
           text,
-          StringComparison.OrdinalIgnoreCase);
+          StringComparison.OrdinalIgnoreCase) == true;
    }
 }

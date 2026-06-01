@@ -188,6 +188,105 @@ public sealed class ResultMetadataExtensionsTests
         Assert.True(actual);
         Assert.Equal("value", value);
     }
+    [Fact]
+    public void GetMetadataOrDefault_WhenResultIsNull_ThrowsArgumentNullException()
+    {
+        IResult? result = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+           result!.GetMetadataOrDefault("source"));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void GetMetadataOrDefault_WhenKeyIsInvalid_ThrowsArgumentException(
+       string? key)
+    {
+        var result = new TestResult
+        {
+            Metadata = new MetadataBag()
+        };
+
+        Assert.ThrowsAny<ArgumentException>(() =>
+           result.GetMetadataOrDefault(key!));
+    }
+
+    [Fact]
+    public void GetMetadataOrDefault_WhenKeyExists_ReturnsMetadataValue()
+    {
+        var result = new TestResult
+        {
+            Metadata = new MetadataBag()
+        };
+
+        result.Metadata.Set("source", "unit-test");
+
+        var actual = result.GetMetadataOrDefault("source");
+
+        Assert.Equal("unit-test", actual);
+    }
+
+    [Fact]
+    public void GetMetadataOrDefault_WhenKeyExists_IgnoresFallback()
+    {
+        var result = new TestResult
+        {
+            Metadata = new MetadataBag()
+        };
+
+        result.Metadata.Set("source", "unit-test");
+
+        var actual = result.GetMetadataOrDefault(
+           "source",
+           "fallback");
+
+        Assert.Equal("unit-test", actual);
+    }
+
+    [Fact]
+    public void GetMetadataOrDefault_WhenKeyDoesNotExist_ReturnsNullByDefault()
+    {
+        var result = new TestResult
+        {
+            Metadata = new MetadataBag()
+        };
+
+        var actual = result.GetMetadataOrDefault("missing");
+
+        Assert.Null(actual);
+    }
+
+    [Fact]
+    public void GetMetadataOrDefault_WhenKeyDoesNotExist_ReturnsFallback()
+    {
+        var result = new TestResult
+        {
+            Metadata = new MetadataBag()
+        };
+
+        var actual = result.GetMetadataOrDefault(
+           "missing",
+           "fallback");
+
+        Assert.Equal("fallback", actual);
+    }
+
+    [Fact]
+    public void GetMetadataOrDefault_UsesCaseInsensitiveLookup()
+    {
+        var result = new TestResult
+        {
+            Metadata = new MetadataBag()
+        };
+
+        result.Metadata.Set("OriginalKey", "value");
+
+        var actual = result.GetMetadataOrDefault("originalkey");
+
+        Assert.Equal("value", actual);
+    }
 
     private sealed class TestResult : IResult
     {

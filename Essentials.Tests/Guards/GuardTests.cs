@@ -207,4 +207,20 @@ public class GuardTests
         Assert.Equal(nameof(value), exception.ParamName);
         Assert.Contains($"must be between {minimum} and {maximum}", exception.Message);
     }
+
+    [Fact]
+    public void InRange_WhenMinimumIsGreaterThanMaximum_ThrowsArgumentException()
+    {
+        var exception = Assert.Throws<ArgumentException>(() =>
+           Guard.InRange(
+              5,
+              10,
+              0,
+              "value"));
+
+        Assert.Equal("minimum", exception.ParamName);
+        Assert.Contains(
+           "Minimum value cannot be greater than maximum value.",
+           exception.Message);
+    }
 }

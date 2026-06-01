@@ -21,7 +21,11 @@ public sealed class MetadataBag
    /// <param name="items">Initial metadata values.</param>
    public MetadataBag(IDictionary<string, string> items)
    {
-      _items = new Dictionary<string, string>(items, StringComparer.OrdinalIgnoreCase);
+      ArgumentNullException.ThrowIfNull(items);
+
+      _items = new Dictionary<string, string>(
+         items,
+         StringComparer.OrdinalIgnoreCase);
    }
 
    /// <summary>
@@ -46,8 +50,18 @@ public sealed class MetadataBag
    /// <returns>The metadata value.</returns>
    public string this[string key]
    {
-      get => _items[key];
-      set => _items[key] = value;
+      get
+      {
+         ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
+         return _items[key];
+      }
+      set
+      {
+         ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
+         _items[key] = value;
+      }
    }
 
    /// <summary>

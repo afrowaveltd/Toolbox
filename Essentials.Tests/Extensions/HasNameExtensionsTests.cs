@@ -123,4 +123,55 @@ public sealed class HasNameExtensionsTests
 
       public string Name { get; }
    }
+   [Fact]
+   public void HasName_WhenSourceNameIsNull_ReturnsFalse()
+   {
+      var value = new TestHasName(null!);
+
+      var actual = value.HasName("Test Name");
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void HasEmptyName_WhenNameIsNull_ReturnsTrue()
+   {
+      var value = new TestHasName(null!);
+
+      var actual = value.HasEmptyName();
+
+      Assert.True(actual);
+   }
+   [Fact]
+   public void HasSameNameAs_WhenFirstNameIsNull_ReturnsFalse()
+   {
+      var value = new TestHasName(null!);
+      var other = new TestHasName("Test Name");
+
+      var actual = value.HasSameNameAs(other);
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void HasSameNameAs_WhenSecondNameIsNull_ReturnsFalse()
+   {
+      var value = new TestHasName("Test Name");
+      var other = new TestHasName(null!);
+
+      var actual = value.HasSameNameAs(other);
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void HasSameNameAs_WhenBothNamesAreNull_ReturnsTrue()
+   {
+      var value = new TestHasName(null!);
+      var other = new TestHasName(null!);
+
+      var actual = value.HasSameNameAs(other);
+
+      Assert.True(actual);
+   }
 }

@@ -215,6 +215,61 @@ public sealed class HasMetadataExtensionsTests
       Assert.Equal("changed", originalValue);
       Assert.Equal("original", copiedValue);
    }
+   [Fact]
+   public void HasAnyMetadata_WhenMetadataPropertyIsNull_ReturnsFalse()
+   {
+      var value = new TestHasMetadata(null!);
+
+      var actual = value.HasAnyMetadata();
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void TryGetMetadata_WhenMetadataPropertyIsNull_ReturnsFalseAndNullValue()
+   {
+      var value = new TestHasMetadata(null!);
+
+      var actual = value.TryGetMetadata(
+         "key",
+         out var metadataValue);
+
+      Assert.False(actual);
+      Assert.Null(metadataValue);
+   }
+
+   [Fact]
+   public void GetMetadataOrDefault_WhenMetadataPropertyIsNull_ReturnsFallback()
+   {
+      var value = new TestHasMetadata(null!);
+
+      var actual = value.GetMetadataOrDefault(
+         "key",
+         "fallback");
+
+      Assert.Equal("fallback", actual);
+   }
+
+   [Fact]
+   public void GetMetadataOrDefault_WhenMetadataPropertyIsNullAndFallbackIsNotProvided_ReturnsNull()
+   {
+      var value = new TestHasMetadata(null!);
+
+      var actual = value.GetMetadataOrDefault("key");
+
+      Assert.Null(actual);
+   }
+
+   [Fact]
+   public void CopyMetadata_WhenMetadataPropertyIsNull_ReturnsEmptyMetadataBag()
+   {
+      var value = new TestHasMetadata(null!);
+
+      var copy = value.CopyMetadata();
+
+      Assert.NotNull(copy);
+      Assert.True(copy.IsEmpty);
+   }
 
    private sealed class TestHasMetadata : IHasMetadata
    {

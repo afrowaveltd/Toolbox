@@ -393,6 +393,83 @@ public sealed class HasIssuesExtensionsTests
 
       Assert.Equal(IssueSeverity.Fatal, actual);
    }
+   [Fact]
+   public void HasAnyIssues_WhenIssuesPropertyIsNull_ReturnsFalse()
+   {
+      var value = new TestIssuesSource
+      {
+         Issues = null!
+      };
+
+      var actual = value.HasAnyIssues();
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void HasWarningOrHigherIssues_WhenIssuesPropertyIsNull_ReturnsFalse()
+   {
+      var value = new TestIssuesSource
+      {
+         Issues = null!
+      };
+
+      var actual = value.HasWarningOrHigherIssues();
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void HasErrorOrHigherIssues_WhenIssuesPropertyIsNull_ReturnsFalse()
+   {
+      var value = new TestIssuesSource
+      {
+         Issues = null!
+      };
+
+      var actual = value.HasErrorOrHigherIssues();
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void HasCriticalOrHigherIssues_WhenIssuesPropertyIsNull_ReturnsFalse()
+   {
+      var value = new TestIssuesSource
+      {
+         Issues = null!
+      };
+
+      var actual = value.HasCriticalOrHigherIssues();
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void HasOnlyInformationalOrLowerIssues_WhenIssuesPropertyIsNull_ReturnsTrue()
+   {
+      var value = new TestIssuesSource
+      {
+         Issues = null!
+      };
+
+      var actual = value.HasOnlyInformationalOrLowerIssues();
+
+      Assert.True(actual);
+   }
+
+   [Fact]
+   public void GetHighestIssueSeverity_WhenIssuesPropertyIsNull_ReturnsNone()
+   {
+      var value = new TestIssuesSource
+      {
+         Issues = null!
+      };
+
+      var actual = value.GetHighestIssueSeverity();
+
+      Assert.Equal(IssueSeverity.None, actual);
+   }
 
    private static IssueInfo CreateIssueInfo(IssueSeverity severity)
    {
@@ -408,4 +485,5 @@ public sealed class HasIssuesExtensionsTests
    {
       public IReadOnlyList<IssueInfo> Issues { get; set; } = [];
    }
+   
 }

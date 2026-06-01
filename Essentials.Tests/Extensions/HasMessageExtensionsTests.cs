@@ -113,6 +113,34 @@ public sealed class HasMessageExtensionsTests
 
       Assert.Equal(expected, actual);
    }
+   [Fact]
+   public void HasMessage_WhenMessageIsNull_ReturnsFalse()
+   {
+      var value = new TestHasMessage(null!);
+
+      var actual = value.HasMessage();
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void MessageContains_WhenMessageIsNull_ReturnsFalse()
+   {
+      var value = new TestHasMessage(null!);
+
+      var actual = value.MessageContains("message");
+
+      Assert.False(actual);
+   }
+   [Fact]
+   public void HasMessageWithMessage_WhenSourceMessageIsNull_ReturnsFalse()
+   {
+      var value = new TestHasMessage(null!);
+
+      var actual = value.HasMessage("Test message");
+
+      Assert.False(actual);
+   }
 
    private sealed class TestHasMessage : IHasMessage
    {

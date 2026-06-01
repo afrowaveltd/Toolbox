@@ -99,4 +99,45 @@ public sealed class CultureCodeExtensionsTests
 
       Assert.Equal("en", actual.Value);
    }
+   [Fact]
+   public void ToLowerInvariantCode_WhenCultureCodeIsDefault_ReturnsDefault()
+   {
+      var cultureCode = default(CultureCode);
+
+      var actual = cultureCode.ToLowerInvariantCode();
+
+      Assert.Equal(default, actual);
+   }
+
+   [Fact]
+   public void GetParentOrSelf_WhenCultureCodeIsDefault_ReturnsDefault()
+   {
+      var cultureCode = default(CultureCode);
+
+      var actual = cultureCode.GetParentOrSelf();
+
+      Assert.Equal(default, actual);
+   }
+
+   [Fact]
+   public void EqualsIgnoreCase_WhenBothCultureCodesAreDefault_ReturnsTrue()
+   {
+      var first = default(CultureCode);
+      var second = default(CultureCode);
+
+      var actual = first.EqualsIgnoreCase(second);
+
+      Assert.True(actual);
+   }
+
+   [Fact]
+   public void EqualsIgnoreCase_WhenOnlyFirstCultureCodeIsDefault_ReturnsFalse()
+   {
+      var first = default(CultureCode);
+      var second = new CultureCode("en");
+
+      var actual = first.EqualsIgnoreCase(second);
+
+      Assert.False(actual);
+   }
 }

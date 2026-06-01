@@ -17,7 +17,7 @@ public static class HasMetadataExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Metadata.HasAnyMetadata();
+      return value.Metadata?.HasAnyMetadata() == true;
    }
 
    /// <summary>
@@ -28,15 +28,22 @@ public static class HasMetadataExtensions
    /// <param name="metadataValue">The metadata value, if found.</param>
    /// <returns><c>true</c> if the metadata key exists; otherwise, <c>false</c>.</returns>
    public static bool TryGetMetadata(
-       this IHasMetadata value,
-       string key,
-       out string? metadataValue)
+    this IHasMetadata value,
+    string key,
+    out string? metadataValue)
    {
       ArgumentNullException.ThrowIfNull(value);
       ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
+      if (value.Metadata is null)
+      {
+         metadataValue = null;
+         return false;
+      }
+
       return value.Metadata.TryGet(key, out metadataValue);
    }
+
 
    /// <summary>
    /// Gets a metadata value by key or returns a fallback value when the key does not exist.
@@ -52,9 +59,9 @@ public static class HasMetadataExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Metadata.GetOrDefault(
+      return value.Metadata?.GetOrDefault(
          key,
-         fallback);
+         fallback) ?? fallback;
    }
 
    /// <summary>
@@ -66,6 +73,6 @@ public static class HasMetadataExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Metadata.Copy();
+      return value.Metadata?.Copy() ?? new MetadataBag();
    }
 }

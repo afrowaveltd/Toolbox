@@ -191,4 +191,30 @@ public sealed class DiagnosticHintExtensionsTests
 
       Assert.Equal(expected, actual);
    }
+
+   [Fact]
+   public void HasMessage_WhenMessageIsNull_ReturnsFalse()
+   {
+      var hint = new DiagnosticHint
+      {
+         Message = null!
+      };
+
+      var actual = hint.HasMessage();
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void MessageContains_WhenMessageIsNull_ReturnsFalse()
+   {
+      var hint = new DiagnosticHint
+      {
+         Message = null!
+      };
+
+      var actual = hint.MessageContains("hint");
+
+      Assert.False(actual);
+   }
 }

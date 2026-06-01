@@ -76,7 +76,7 @@ public static class DiagnosticInfoExtensions
    {
       ArgumentNullException.ThrowIfNull(diagnostic);
 
-      return diagnostic.Spans.Count > 0;
+      return diagnostic.Spans?.Count > 0;
    }
 
    /// <summary>
@@ -84,11 +84,12 @@ public static class DiagnosticInfoExtensions
    /// </summary>
    /// <param name="diagnostic">The diagnostic information.</param>
    /// <returns><c>true</c> if at least one diagnostic span contains useful information; otherwise, <c>false</c>.</returns>
+
    public static bool HasSpanInfo(this DiagnosticInfo diagnostic)
    {
       ArgumentNullException.ThrowIfNull(diagnostic);
 
-      return diagnostic.Spans.Any(span => !span.IsEmpty());
+      return diagnostic.Spans?.Any(span => span is not null && !span.IsEmpty()) == true;
    }
 
    /// <summary>
@@ -100,7 +101,7 @@ public static class DiagnosticInfoExtensions
    {
       ArgumentNullException.ThrowIfNull(diagnostic);
 
-      return diagnostic.Hints.Count > 0;
+      return diagnostic.Hints?.Count > 0;
    }
 
    /// <summary>
@@ -112,6 +113,6 @@ public static class DiagnosticInfoExtensions
    {
       ArgumentNullException.ThrowIfNull(diagnostic);
 
-      return diagnostic.Hints.Any(hint => hint.HasMessage());
+      return diagnostic.Hints?.Any(hint => hint is not null && hint.HasMessage()) == true;
    }
 }

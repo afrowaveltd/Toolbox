@@ -17,7 +17,7 @@ public static class HasIssuesExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Issues.HasAnyIssues();
+      return value.Issues?.HasAnyIssues() == true;
    }
 
    /// <summary>
@@ -29,7 +29,7 @@ public static class HasIssuesExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Issues.HasWarningOrHigherIssues();
+      return value.Issues?.HasWarningOrHigherIssues() == true;
    }
 
    /// <summary>
@@ -41,7 +41,7 @@ public static class HasIssuesExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Issues.HasErrorOrHigherIssues();
+      return value.Issues?.HasErrorOrHigherIssues() == true;
    }
 
    /// <summary>
@@ -53,7 +53,7 @@ public static class HasIssuesExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Issues.HasWarningOrHigherIssues();
+      return value.Issues?.HasWarningOrHigherIssues() == true;
    }
 
    /// <summary>
@@ -65,7 +65,7 @@ public static class HasIssuesExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Issues.HasErrorOrHigherIssues();
+      return value.Issues?.HasErrorOrHigherIssues() == true;
    }
 
    /// <summary>
@@ -77,7 +77,7 @@ public static class HasIssuesExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Issues.HasCriticalOrHigherIssues();
+      return value.Issues?.HasCriticalOrHigherIssues() == true;
    }
 
    /// <summary>
@@ -89,7 +89,7 @@ public static class HasIssuesExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Issues.HasOnlyInformationalOrLowerIssues();
+      return value.Issues?.HasOnlyInformationalOrLowerIssues() ?? true;
    }
 
    /// <summary>
@@ -101,6 +101,6 @@ public static class HasIssuesExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Issues.GetHighestSeverity();
+      return value.Issues?.GetHighestSeverity() ?? IssueSeverity.None;
    }
 }

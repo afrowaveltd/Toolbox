@@ -40,7 +40,7 @@ public static class DiagnosticSpanExtensions
    {
       ArgumentNullException.ThrowIfNull(span);
 
-      return !span.Start.IsEmpty()
+      return span.Start?.HasAnyLocationInfo() == true
           || span.End?.HasAnyLocationInfo() == true
           || span.HasLabel();
    }
