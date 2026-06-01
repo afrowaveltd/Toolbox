@@ -168,4 +168,93 @@ public sealed class HasCultureCodeExtensionsTests
 
       public CultureCode CultureCode { get; }
    }
+   [Fact]
+   public void GetNormalizedCultureCode_WhenValueIsNull_ThrowsArgumentNullException()
+   {
+      IHasCultureCode? value = null;
+
+      Assert.Throws<ArgumentNullException>(() =>
+         value!.GetNormalizedCultureCode());
+   }
+
+   [Theory]
+   [InlineData("EN", "en")]
+   [InlineData("EN-US", "en-us")]
+   [InlineData("CS-CZ", "cs-cz")]
+   [InlineData("fr-FR", "fr-fr")]
+   public void GetNormalizedCultureCode_ReturnsLowercaseCultureCode(
+      string input,
+      string expected)
+   {
+      var value = new TestCultureCodeSource
+      {
+         CultureCode = new CultureCode(input)
+      };
+
+      var actual = value.GetNormalizedCultureCode();
+
+      Assert.Equal(expected, actual.Value);
+   }
+
+   [Fact]
+   public void GetNormalizedCultureCode_WhenCultureCodeIsAlreadyLowercase_ReturnsSameValue()
+   {
+      var value = new TestCultureCodeSource
+      {
+         CultureCode = new CultureCode("en-us")
+      };
+
+      var actual = value.GetNormalizedCultureCode();
+
+      Assert.Equal("en-us", actual.Value);
+   }
+
+   [Fact]
+   public void GetParentOrSelfCultureCode_WhenValueIsNull_ThrowsArgumentNullException()
+   {
+      IHasCultureCode? value = null;
+
+      Assert.Throws<ArgumentNullException>(() =>
+         value!.GetParentOrSelfCultureCode());
+   }
+
+   [Theory]
+   [InlineData("en-US", "en")]
+   [InlineData("cs-CZ", "cs")]
+   [InlineData("fr-FR", "fr")]
+   public void GetParentOrSelfCultureCode_WhenCultureCodeIsSpecific_ReturnsParentNeutralCultureCode(
+      string input,
+      string expected)
+   {
+      var value = new TestCultureCodeSource
+      {
+         CultureCode = new CultureCode(input)
+      };
+
+      var actual = value.GetParentOrSelfCultureCode();
+
+      Assert.Equal(expected, actual.Value);
+   }
+
+   [Theory]
+   [InlineData("en")]
+   [InlineData("cs")]
+   [InlineData("fr")]
+   public void GetParentOrSelfCultureCode_WhenCultureCodeIsNeutral_ReturnsOriginalCultureCode(
+      string input)
+   {
+      var value = new TestCultureCodeSource
+      {
+         CultureCode = new CultureCode(input)
+      };
+
+      var actual = value.GetParentOrSelfCultureCode();
+
+      Assert.Equal(input, actual.Value);
+   }
+
+   private sealed class TestCultureCodeSource : IHasCultureCode
+   {
+      public CultureCode CultureCode { get; set; } = new CultureCode("en");
+   }
 }

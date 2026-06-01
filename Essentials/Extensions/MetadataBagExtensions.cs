@@ -89,4 +89,35 @@ public static class MetadataBagExtensions
           item => item.Value,
           StringComparer.OrdinalIgnoreCase));
    }
+   /// <summary>
+   /// Determines whether the metadata bag contains at least one metadata value.
+   /// </summary>
+   /// <param name="metadata">The metadata bag.</param>
+   /// <returns><c>true</c> if the metadata bag contains at least one value; otherwise, <c>false</c>.</returns>
+   public static bool HasAnyMetadata(this MetadataBag metadata)
+   {
+      ArgumentNullException.ThrowIfNull(metadata);
+
+      return !metadata.IsEmpty;
+   }
+
+   /// <summary>
+   /// Gets a metadata value by key or returns a fallback value when the key does not exist.
+   /// </summary>
+   /// <param name="metadata">The metadata bag.</param>
+   /// <param name="key">The metadata key.</param>
+   /// <param name="fallback">The fallback value.</param>
+   /// <returns>The metadata value or the fallback value.</returns>
+   public static string? GetOrDefault(
+      this MetadataBag metadata,
+      string key,
+      string? fallback = null)
+   {
+      ArgumentNullException.ThrowIfNull(metadata);
+      ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
+      return metadata.TryGet(key, out var metadataValue)
+         ? metadataValue
+         : fallback;
+   }
 }

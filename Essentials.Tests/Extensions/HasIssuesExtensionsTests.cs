@@ -139,4 +139,273 @@ public sealed class HasIssuesExtensionsTests
 
       public IReadOnlyList<IssueInfo> Issues { get; }
    }
+
+   [Fact]
+   public void HasWarningOrHigherIssues_WhenValueIsNull_ThrowsArgumentNullException()
+   {
+      IHasIssues? value = null;
+
+      Assert.Throws<ArgumentNullException>(() =>
+         value!.HasWarningOrHigherIssues());
+   }
+
+   [Theory]
+   [InlineData(IssueSeverity.None, false)]
+   [InlineData(IssueSeverity.Trace, false)]
+   [InlineData(IssueSeverity.Debug, false)]
+   [InlineData(IssueSeverity.Information, false)]
+   [InlineData(IssueSeverity.Warning, true)]
+   [InlineData(IssueSeverity.Error, true)]
+   [InlineData(IssueSeverity.Critical, true)]
+   [InlineData(IssueSeverity.Fatal, true)]
+   public void HasWarningOrHigherIssues_ReturnsExpectedResult(
+      IssueSeverity severity,
+      bool expected)
+   {
+      var value = new TestIssuesSource
+      {
+         Issues =
+         [
+            CreateIssueInfo(severity)
+         ]
+      };
+
+      var actual = value.HasWarningOrHigherIssues();
+
+      Assert.Equal(expected, actual);
+   }
+
+   [Fact]
+   public void HasErrorOrHigherIssues_WhenValueIsNull_ThrowsArgumentNullException()
+   {
+      IHasIssues? value = null;
+
+      Assert.Throws<ArgumentNullException>(() =>
+         value!.HasErrorOrHigherIssues());
+   }
+
+   [Theory]
+   [InlineData(IssueSeverity.None, false)]
+   [InlineData(IssueSeverity.Trace, false)]
+   [InlineData(IssueSeverity.Debug, false)]
+   [InlineData(IssueSeverity.Information, false)]
+   [InlineData(IssueSeverity.Warning, false)]
+   [InlineData(IssueSeverity.Error, true)]
+   [InlineData(IssueSeverity.Critical, true)]
+   [InlineData(IssueSeverity.Fatal, true)]
+   public void HasErrorOrHigherIssues_ReturnsExpectedResult(
+      IssueSeverity severity,
+      bool expected)
+   {
+      var value = new TestIssuesSource
+      {
+         Issues =
+         [
+            CreateIssueInfo(severity)
+         ]
+      };
+
+      var actual = value.HasErrorOrHigherIssues();
+
+      Assert.Equal(expected, actual);
+   }
+
+   [Fact]
+   public void HasCriticalOrHigherIssues_WhenValueIsNull_ThrowsArgumentNullException()
+   {
+      IHasIssues? value = null;
+
+      Assert.Throws<ArgumentNullException>(() =>
+         value!.HasCriticalOrHigherIssues());
+   }
+
+   [Theory]
+   [InlineData(IssueSeverity.None, false)]
+   [InlineData(IssueSeverity.Trace, false)]
+   [InlineData(IssueSeverity.Debug, false)]
+   [InlineData(IssueSeverity.Information, false)]
+   [InlineData(IssueSeverity.Warning, false)]
+   [InlineData(IssueSeverity.Error, false)]
+   [InlineData(IssueSeverity.Critical, true)]
+   [InlineData(IssueSeverity.Fatal, true)]
+   public void HasCriticalOrHigherIssues_ReturnsExpectedResult(
+      IssueSeverity severity,
+      bool expected)
+   {
+      var value = new TestIssuesSource
+      {
+         Issues =
+         [
+            CreateIssueInfo(severity)
+         ]
+      };
+
+      var actual = value.HasCriticalOrHigherIssues();
+
+      Assert.Equal(expected, actual);
+   }
+
+   [Fact]
+   public void HasOnlyInformationalOrLowerIssues_WhenValueIsNull_ThrowsArgumentNullException()
+   {
+      IHasIssues? value = null;
+
+      Assert.Throws<ArgumentNullException>(() =>
+         value!.HasOnlyInformationalOrLowerIssues());
+   }
+
+   [Fact]
+   public void HasOnlyInformationalOrLowerIssues_WhenIssuesAreEmpty_ReturnsTrue()
+   {
+      var value = new TestIssuesSource
+      {
+         Issues = []
+      };
+
+      var actual = value.HasOnlyInformationalOrLowerIssues();
+
+      Assert.True(actual);
+   }
+
+   [Theory]
+   [InlineData(IssueSeverity.None)]
+   [InlineData(IssueSeverity.Trace)]
+   [InlineData(IssueSeverity.Debug)]
+   [InlineData(IssueSeverity.Information)]
+   public void HasOnlyInformationalOrLowerIssues_WhenSingleIssueIsInformationalOrLower_ReturnsTrue(
+      IssueSeverity severity)
+   {
+      var value = new TestIssuesSource
+      {
+         Issues =
+         [
+            CreateIssueInfo(severity)
+         ]
+      };
+
+      var actual = value.HasOnlyInformationalOrLowerIssues();
+
+      Assert.True(actual);
+   }
+
+   [Theory]
+   [InlineData(IssueSeverity.Warning)]
+   [InlineData(IssueSeverity.Error)]
+   [InlineData(IssueSeverity.Critical)]
+   [InlineData(IssueSeverity.Fatal)]
+   public void HasOnlyInformationalOrLowerIssues_WhenSingleIssueIsWarningOrHigher_ReturnsFalse(
+      IssueSeverity severity)
+   {
+      var value = new TestIssuesSource
+      {
+         Issues =
+         [
+            CreateIssueInfo(severity)
+         ]
+      };
+
+      var actual = value.HasOnlyInformationalOrLowerIssues();
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void GetHighestIssueSeverity_WhenValueIsNull_ThrowsArgumentNullException()
+   {
+      IHasIssues? value = null;
+
+      Assert.Throws<ArgumentNullException>(() =>
+         value!.GetHighestIssueSeverity());
+   }
+
+   [Fact]
+   public void GetHighestIssueSeverity_WhenIssuesAreEmpty_ReturnsNone()
+   {
+      var value = new TestIssuesSource
+      {
+         Issues = []
+      };
+
+      var actual = value.GetHighestIssueSeverity();
+
+      Assert.Equal(IssueSeverity.None, actual);
+   }
+
+   [Theory]
+   [InlineData(IssueSeverity.None)]
+   [InlineData(IssueSeverity.Trace)]
+   [InlineData(IssueSeverity.Debug)]
+   [InlineData(IssueSeverity.Information)]
+   [InlineData(IssueSeverity.Warning)]
+   [InlineData(IssueSeverity.Error)]
+   [InlineData(IssueSeverity.Critical)]
+   [InlineData(IssueSeverity.Fatal)]
+   public void GetHighestIssueSeverity_WhenContainsSingleIssue_ReturnsIssueSeverity(
+      IssueSeverity severity)
+   {
+      var value = new TestIssuesSource
+      {
+         Issues =
+         [
+            CreateIssueInfo(severity)
+         ]
+      };
+
+      var actual = value.GetHighestIssueSeverity();
+
+      Assert.Equal(severity, actual);
+   }
+
+   [Fact]
+   public void GetHighestIssueSeverity_WhenContainsMultipleIssues_ReturnsHighestSeverity()
+   {
+      var value = new TestIssuesSource
+      {
+         Issues =
+         [
+            CreateIssueInfo(IssueSeverity.Information),
+         CreateIssueInfo(IssueSeverity.Warning),
+         CreateIssueInfo(IssueSeverity.Error),
+         CreateIssueInfo(IssueSeverity.Debug)
+         ]
+      };
+
+      var actual = value.GetHighestIssueSeverity();
+
+      Assert.Equal(IssueSeverity.Error, actual);
+   }
+
+   [Fact]
+   public void GetHighestIssueSeverity_WhenContainsFatal_ReturnsFatal()
+   {
+      var value = new TestIssuesSource
+      {
+         Issues =
+         [
+            CreateIssueInfo(IssueSeverity.Information),
+         CreateIssueInfo(IssueSeverity.Fatal),
+         CreateIssueInfo(IssueSeverity.Warning),
+         CreateIssueInfo(IssueSeverity.Critical)
+         ]
+      };
+
+      var actual = value.GetHighestIssueSeverity();
+
+      Assert.Equal(IssueSeverity.Fatal, actual);
+   }
+
+   private static IssueInfo CreateIssueInfo(IssueSeverity severity)
+   {
+      return new IssueInfo
+      {
+         Code = $"AFW_{severity}",
+         Message = $"Issue with severity {severity}.",
+         Severity = severity
+      };
+   }
+
+   private sealed class TestIssuesSource : IHasIssues
+   {
+      public IReadOnlyList<IssueInfo> Issues { get; set; } = [];
+   }
 }

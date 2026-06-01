@@ -77,4 +77,28 @@ public static class HasCultureCodeExtensions
 
       return value.CultureCode.IsSpecific;
    }
+   /// <summary>
+   /// Gets the normalized culture code from the object.
+   /// </summary>
+   /// <param name="value">The object carrying a culture code.</param>
+   /// <returns>The normalized culture code.</returns>
+   public static CultureCode GetNormalizedCultureCode(this IHasCultureCode value)
+   {
+      ArgumentNullException.ThrowIfNull(value);
+
+      return value.CultureCode.ToLowerInvariantCode();
+   }
+
+   /// <summary>
+   /// Gets the parent neutral culture code when the object's culture code is specific;
+   /// otherwise, returns the original culture code.
+   /// </summary>
+   /// <param name="value">The object carrying a culture code.</param>
+   /// <returns>The parent neutral culture code or the original culture code.</returns>
+   public static CultureCode GetParentOrSelfCultureCode(this IHasCultureCode value)
+   {
+      ArgumentNullException.ThrowIfNull(value);
+
+      return value.CultureCode.GetParentOrSelf();
+   }
 }
