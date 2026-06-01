@@ -17,7 +17,7 @@ public static class HasMetadataExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return !value.Metadata.IsEmpty;
+      return value.Metadata.HasAnyMetadata();
    }
 
    /// <summary>
@@ -46,16 +46,15 @@ public static class HasMetadataExtensions
    /// <param name="fallback">The fallback value.</param>
    /// <returns>The metadata value or the fallback value.</returns>
    public static string? GetMetadataOrDefault(
-       this IHasMetadata value,
-       string key,
-       string? fallback = null)
+   this IHasMetadata value,
+   string key,
+   string? fallback = null)
    {
       ArgumentNullException.ThrowIfNull(value);
-      ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
-      return value.Metadata.TryGet(key, out var metadataValue)
-          ? metadataValue
-          : fallback;
+      return value.Metadata.GetOrDefault(
+         key,
+         fallback);
    }
 
    /// <summary>

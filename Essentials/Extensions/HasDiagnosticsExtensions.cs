@@ -17,7 +17,7 @@ public static class HasDiagnosticsExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Diagnostics.Count > 0;
+      return value.Diagnostics.HasAnyDiagnostics();
    }
 
    /// <summary>
@@ -30,8 +30,9 @@ public static class HasDiagnosticsExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Diagnostics.Any(diagnostic => diagnostic.Severity.IsErrorOrHigher());
+      return value.Diagnostics.HasErrorOrHigherDiagnostics();
    }
+
 
    /// <summary>
    /// Determines whether the object contains at least one diagnostic message
@@ -43,6 +44,42 @@ public static class HasDiagnosticsExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Diagnostics.Any(diagnostic => diagnostic.Severity.IsWarningOrHigher());
+      return value.Diagnostics.HasWarningOrHigherDiagnostics();
+   }
+
+   /// <summary>
+   /// Determines whether the object contains at least one diagnostic message
+   /// with severity <see cref="IssueSeverity.Critical"/> or higher.
+   /// </summary>
+   /// <param name="value">The object carrying diagnostics.</param>
+   /// <returns><c>true</c> if the object contains a critical or fatal diagnostic; otherwise, <c>false</c>.</returns>
+   public static bool HasCriticalOrHigherDiagnostics(this IHasDiagnostics value)
+   {
+      ArgumentNullException.ThrowIfNull(value);
+
+      return value.Diagnostics.HasCriticalOrHigherDiagnostics();
+   }
+
+   /// <summary>
+   /// Gets the highest diagnostic severity attached to the object.
+   /// </summary>
+   /// <param name="value">The object carrying diagnostics.</param>
+   /// <returns>The highest diagnostic severity, or <see cref="IssueSeverity.None"/> when the object has no diagnostics.</returns>
+   public static IssueSeverity GetHighestDiagnosticSeverity(this IHasDiagnostics value)
+   {
+      ArgumentNullException.ThrowIfNull(value);
+
+      return value.Diagnostics.GetHighestSeverity();
+   }
+   /// <summary>
+   /// Determines whether the object contains only informational or lower severity diagnostics.
+   /// </summary>
+   /// <param name="value">The object carrying diagnostics.</param>
+   /// <returns><c>true</c> if all diagnostics are informational or lower severity; otherwise, <c>false</c>.</returns>
+   public static bool HasOnlyInformationalOrLowerDiagnostics(this IHasDiagnostics value)
+   {
+      ArgumentNullException.ThrowIfNull(value);
+
+      return value.Diagnostics.HasOnlyInformationalOrLowerDiagnostics();
    }
 }

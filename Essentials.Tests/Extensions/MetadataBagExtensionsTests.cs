@@ -241,4 +241,112 @@ public sealed class MetadataBagExtensionsTests
       Assert.True(copy.TryGet("originalkey", out var value));
       Assert.Equal("value", value);
    }
+   [Fact]
+   public void HasAnyMetadata_WhenMetadataIsNull_ThrowsArgumentNullException()
+   {
+      MetadataBag? metadata = null;
+
+      Assert.Throws<ArgumentNullException>(() =>
+         metadata!.HasAnyMetadata());
+   }
+
+   [Fact]
+   public void HasAnyMetadata_WhenMetadataIsEmpty_ReturnsFalse()
+   {
+      var metadata = new MetadataBag();
+
+      var actual = metadata.HasAnyMetadata();
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void HasAnyMetadata_WhenMetadataContainsValue_ReturnsTrue()
+   {
+      var metadata = new MetadataBag();
+      metadata.Set("source", "unit-test");
+
+      var actual = metadata.HasAnyMetadata();
+
+      Assert.True(actual);
+   }
+
+   [Fact]
+   public void GetOrDefault_WhenMetadataIsNull_ThrowsArgumentNullException()
+   {
+      MetadataBag? metadata = null;
+
+      Assert.Throws<ArgumentNullException>(() =>
+         metadata!.GetOrDefault("source"));
+   }
+
+   [Theory]
+   [InlineData(null)]
+   [InlineData("")]
+   [InlineData("   ")]
+   public void GetOrDefault_WhenKeyIsInvalid_ThrowsArgumentException(
+      string? key)
+   {
+      var metadata = new MetadataBag();
+
+      Assert.ThrowsAny<ArgumentException>(() =>
+         metadata.GetOrDefault(key!));
+   }
+
+   [Fact]
+   public void GetOrDefault_WhenKeyExists_ReturnsMetadataValue()
+   {
+      var metadata = new MetadataBag();
+      metadata.Set("source", "unit-test");
+
+      var actual = metadata.GetOrDefault("source");
+
+      Assert.Equal("unit-test", actual);
+   }
+
+   [Fact]
+   public void GetOrDefault_WhenKeyExists_IgnoresFallback()
+   {
+      var metadata = new MetadataBag();
+      metadata.Set("source", "unit-test");
+
+      var actual = metadata.GetOrDefault(
+         "source",
+         "fallback");
+
+      Assert.Equal("unit-test", actual);
+   }
+
+   [Fact]
+   public void GetOrDefault_WhenKeyDoesNotExist_ReturnsNullByDefault()
+   {
+      var metadata = new MetadataBag();
+
+      var actual = metadata.GetOrDefault("missing");
+
+      Assert.Null(actual);
+   }
+
+   [Fact]
+   public void GetOrDefault_WhenKeyDoesNotExist_ReturnsFallback()
+   {
+      var metadata = new MetadataBag();
+
+      var actual = metadata.GetOrDefault(
+         "missing",
+         "fallback");
+
+      Assert.Equal("fallback", actual);
+   }
+
+   [Fact]
+   public void GetOrDefault_UsesCaseInsensitiveLookup()
+   {
+      var metadata = new MetadataBag();
+      metadata.Set("OriginalKey", "value");
+
+      var actual = metadata.GetOrDefault("originalkey");
+
+      Assert.Equal("value", actual);
+   }
 }

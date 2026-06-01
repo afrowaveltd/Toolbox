@@ -3,7 +3,93 @@
   "WorkspaceRootPath": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\",
   "Documents": [
     {
+<<<<<<< HEAD
       "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|g:\\afrowave projects\\toolbox\\toolbox\\essentials.tests\\diagnostics\\diagnosticinfofactorytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+=======
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\extensions\\hasculturecodeextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\extensions\\hasculturecodeextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\extensions\\hasculturecodeextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\extensions\\hasculturecodeextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\extensions\\culturecodeextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\extensions\\culturecodeextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\interfaces\\ihasculturecode.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\interfaces\\ihasculturecode.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\extensions\\metadatabagextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\extensions\\metadatabagextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\extensions\\hasmetadataextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\extensions\\hasmetadataextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\extensions\\metadatabagextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\extensions\\metadatabagextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\extensions\\hasmetadataextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\extensions\\hasmetadataextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\interfaces\\ihasmetadata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\interfaces\\ihasmetadata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\extensions\\hasissuesextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\extensions\\hasissuesextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\extensions\\hasissuesextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\extensions\\hasissuesextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\interfaces\\ihasissues.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\interfaces\\ihasissues.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\extensions\\hasdiagnosticsextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\extensions\\hasdiagnosticsextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\extensions\\hasdiagnosticsextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\extensions\\hasdiagnosticsextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\extensions\\diagnosticinfocollectionextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\extensions\\diagnosticinfocollectionextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\extensions\\diagnosticinfocollectionextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\extensions\\diagnosticinfocollectionextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\extensions\\diagnosticinfoextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\extensions\\diagnosticinfoextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\interfaces\\ihasdiagnostics.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\interfaces\\ihasdiagnostics.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|MarkdownSecurePreview"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\interfaces\\iresult.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\interfaces\\iresult.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|MardownSecureEdit"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\diagnostics\\diagnosticinfofactorytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+>>>>>>> 9b33734315192fde65dfbbf7ba6b8a04d3ecbf96
       "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\diagnostics\\diagnosticinfofactorytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
@@ -34,7 +120,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
+<<<<<<< HEAD
           "SelectedChildIndex": 58,
+=======
+          "SelectedChildIndex": 49,
+>>>>>>> 9b33734315192fde65dfbbf7ba6b8a04d3ecbf96
           "Children": [
             {
               "$type": "Bookmark",
@@ -83,10 +173,6 @@
             {
               "$type": "Bookmark",
               "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
             },
             {
               "$type": "Bookmark",
@@ -218,7 +304,15 @@
             },
             {
               "$type": "Bookmark",
+<<<<<<< HEAD
               "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+=======
+              "Name": "ST:0:0:{4a9b7e51-aa16-11d0-a8c5-00a0c921a4d2}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cde3}"
+>>>>>>> 9b33734315192fde65dfbbf7ba6b8a04d3ecbf96
             },
             {
               "$type": "Bookmark",
@@ -254,7 +348,276 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "HasCultureCodeExtensionsTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasCultureCodeExtensionsTests.cs",
+              "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasCultureCodeExtensionsTests.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasCultureCodeExtensionsTests.cs",
+              "RelativeToolTip": "Essentials.Tests\\Extensions\\HasCultureCodeExtensionsTests.cs",
+              "ViewState": "AgIAAOUAAAAAAAAAAAAkwAIBAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T13:27:04.187Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "HasCultureCodeExtensions.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasCultureCodeExtensions.cs",
+              "RelativeDocumentMoniker": "Essentials\\Extensions\\HasCultureCodeExtensions.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Extensions\\HasCultureCodeExtensions.cs",
+              "RelativeToolTip": "Essentials\\Extensions\\HasCultureCodeExtensions.cs",
+              "ViewState": "AgIAAEIAAAAAAAAAAAAUwGYAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T13:24:10.33Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 2,
+              "Title": "CultureCodeExtensions.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\CultureCodeExtensions.cs",
+              "RelativeDocumentMoniker": "Essentials\\Extensions\\CultureCodeExtensions.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Extensions\\CultureCodeExtensions.cs",
+              "RelativeToolTip": "Essentials\\Extensions\\CultureCodeExtensions.cs",
+              "ViewState": "AgIAABUAAAAAAAAAAAAgwEEAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T13:23:46.773Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "IHasCultureCode.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Interfaces\\IHasCultureCode.cs",
+              "RelativeDocumentMoniker": "Essentials\\Interfaces\\IHasCultureCode.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Interfaces\\IHasCultureCode.cs",
+              "RelativeToolTip": "Essentials\\Interfaces\\IHasCultureCode.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T13:23:22.55Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "MetadataBagExtensionsTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\MetadataBagExtensionsTests.cs",
+              "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\MetadataBagExtensionsTests.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Extensions\\MetadataBagExtensionsTests.cs",
+              "RelativeToolTip": "Essentials.Tests\\Extensions\\MetadataBagExtensionsTests.cs",
+              "ViewState": "AgIAADABAAAAAAAAAAAkwF4BAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T13:18:15.129Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "MetadataBagExtensions.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\MetadataBagExtensions.cs",
+              "RelativeDocumentMoniker": "Essentials\\Extensions\\MetadataBagExtensions.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Extensions\\MetadataBagExtensions.cs",
+              "RelativeToolTip": "Essentials\\Extensions\\MetadataBagExtensions.cs",
+              "ViewState": "AgIAAGAAAAAAAAAAAAAywHoAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T13:14:22.164Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "HasMetadataExtensions.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasMetadataExtensions.cs",
+              "RelativeDocumentMoniker": "Essentials\\Extensions\\HasMetadataExtensions.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Extensions\\HasMetadataExtensions.cs",
+              "RelativeToolTip": "Essentials\\Extensions\\HasMetadataExtensions.cs",
+              "ViewState": "AgIAABsAAAAAAAAAAAAwwEQAAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T13:12:58.563Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "HasMetadataExtensionsTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasMetadataExtensionsTests.cs",
+              "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasMetadataExtensionsTests.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasMetadataExtensionsTests.cs",
+              "RelativeToolTip": "Essentials.Tests\\Extensions\\HasMetadataExtensionsTests.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T13:12:53.023Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "IHasMetadata.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Interfaces\\IHasMetadata.cs",
+              "RelativeDocumentMoniker": "Essentials\\Interfaces\\IHasMetadata.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Interfaces\\IHasMetadata.cs",
+              "RelativeToolTip": "Essentials\\Interfaces\\IHasMetadata.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T13:12:10.602Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "HasIssuesExtensionsTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasIssuesExtensionsTests.cs",
+              "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasIssuesExtensionsTests.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasIssuesExtensionsTests.cs",
+              "RelativeToolTip": "Essentials.Tests\\Extensions\\HasIssuesExtensionsTests.cs",
+              "ViewState": "AgIAAHABAAAAAAAAAAAkwJkBAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T13:07:18.764Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "HasIssuesExtensions.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasIssuesExtensions.cs",
+              "RelativeDocumentMoniker": "Essentials\\Extensions\\HasIssuesExtensions.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Extensions\\HasIssuesExtensions.cs",
+              "RelativeToolTip": "Essentials\\Extensions\\HasIssuesExtensions.cs",
+              "ViewState": "AgIAAEgAAAAAAAAAAAAiwGkAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T13:04:49.135Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "IHasIssues.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Interfaces\\IHasIssues.cs",
+              "RelativeDocumentMoniker": "Essentials\\Interfaces\\IHasIssues.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Interfaces\\IHasIssues.cs",
+              "RelativeToolTip": "Essentials\\Interfaces\\IHasIssues.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T13:04:05.731Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "HasDiagnosticsExtensionsTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasDiagnosticsExtensionsTests.cs",
+              "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasDiagnosticsExtensionsTests.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasDiagnosticsExtensionsTests.cs",
+              "RelativeToolTip": "Essentials.Tests\\Extensions\\HasDiagnosticsExtensionsTests.cs",
+              "ViewState": "AgIAAN0BAAAAAAAAAAAkwPgBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T12:31:11.174Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "DiagnosticInfoCollectionExtensionsTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\DiagnosticInfoCollectionExtensionsTests.cs",
+              "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\DiagnosticInfoCollectionExtensionsTests.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Extensions\\DiagnosticInfoCollectionExtensionsTests.cs",
+              "RelativeToolTip": "Essentials.Tests\\Extensions\\DiagnosticInfoCollectionExtensionsTests.cs",
+              "ViewState": "AgIAAGcEAAAAAAAAAAAkwJUEAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T12:16:40.637Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "DiagnosticInfoExtensionsTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\DiagnosticInfoExtensionsTests.cs",
+              "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\DiagnosticInfoExtensionsTests.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Extensions\\DiagnosticInfoExtensionsTests.cs",
+              "RelativeToolTip": "Essentials.Tests\\Extensions\\DiagnosticInfoExtensionsTests.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T12:16:34.146Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "DiagnosticInfoCollectionExtensions.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\DiagnosticInfoCollectionExtensions.cs",
+              "RelativeDocumentMoniker": "Essentials\\Extensions\\DiagnosticInfoCollectionExtensions.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Extensions\\DiagnosticInfoCollectionExtensions.cs",
+              "RelativeToolTip": "Essentials\\Extensions\\DiagnosticInfoCollectionExtensions.cs",
+              "ViewState": "AgIAAPoAAAAAAAAAAAAYwCYBAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T12:03:47.424Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "HasDiagnosticsExtensions.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasDiagnosticsExtensions.cs",
+              "RelativeDocumentMoniker": "Essentials\\Extensions\\HasDiagnosticsExtensions.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Extensions\\HasDiagnosticsExtensions.cs",
+              "RelativeToolTip": "Essentials\\Extensions\\HasDiagnosticsExtensions.cs",
+              "ViewState": "AgIAACcAAAAAAAAAAAAwwFMAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T12:02:44.289Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "IHasDiagnostics.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Interfaces\\IHasDiagnostics.cs",
+              "RelativeDocumentMoniker": "Essentials\\Interfaces\\IHasDiagnostics.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Interfaces\\IHasDiagnostics.cs",
+              "RelativeToolTip": "Essentials\\Interfaces\\IHasDiagnostics.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T12:02:19.629Z"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md [N\u00E1hled]",
+              "DocumentMoniker": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md",
+              "ToolTip": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md [N\u00E1hled]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-05-29T13:35:23.936Z",
+              "EditorCaption": " [N\u00E1hled]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "IResult.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Interfaces\\IResult.cs",
+              "RelativeDocumentMoniker": "Essentials\\Interfaces\\IResult.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Interfaces\\IResult.cs",
+              "RelativeToolTip": "Essentials\\Interfaces\\IResult.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-29T07:58:11.554Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md",
+              "DocumentMoniker": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md",
+              "ToolTip": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-05-28T13:28:14.995Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
               "Title": "IssueInfoFactoryTests.cs",
               "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\Essentials.Tests\\Issues\\IssueInfoFactoryTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Issues\\IssueInfoFactoryTests.cs",
@@ -266,7 +629,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 24,
               "Title": "IssueInfoFactory.cs",
               "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\Essentials\\Issues\\IssueInfoFactory.cs",
               "RelativeDocumentMoniker": "Essentials\\Issues\\IssueInfoFactory.cs",
@@ -278,7 +641,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 25,
               "Title": "MetadataBagFactoryTests.cs",
               "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\Essentials.Tests\\Metadata\\MetadataBagFactoryTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Metadata\\MetadataBagFactoryTests.cs",
@@ -290,7 +653,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 26,
               "Title": "MetadataBagFactory.cs",
               "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\Essentials\\Metadata\\MetadataBagFactory.cs",
               "RelativeDocumentMoniker": "Essentials\\Metadata\\MetadataBagFactory.cs",
@@ -302,7 +665,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 21,
               "Title": "DiagnosticInfoFactoryTests.cs",
               "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\Essentials.Tests\\Diagnostics\\DiagnosticInfoFactoryTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Diagnostics\\DiagnosticInfoFactoryTests.cs",
@@ -310,12 +673,11 @@
               "RelativeToolTip": "Essentials.Tests\\Diagnostics\\DiagnosticInfoFactoryTests.cs",
               "ViewState": "AgIAAJUCAAAAAAAAAAAkwJcCAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-28T13:09:41.131Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-28T13:09:41.131Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 22,
               "Title": "DiagnosticInfoFactory.cs",
               "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Toolbox\\Essentials\\Diagnostics\\DiagnosticInfoFactory.cs",
               "RelativeDocumentMoniker": "Essentials\\Diagnostics\\DiagnosticInfoFactory.cs",
