@@ -3,6 +3,18 @@
   "WorkspaceRootPath": "D:\\Toolbox\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\extensions\\hasstatusextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\extensions\\hasstatusextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\extensions\\hasstatusextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\extensions\\hasstatusextensions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\interfaces\\ihasstatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\interfaces\\ihasstatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|d:\\toolbox\\essentials.tests\\extensions\\hasculturecodeextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{866DD232-6CD8-4260-8D07-956B54C42C40}|Essentials.Tests\\Essentials.Tests.csproj|solutionrelative:essentials.tests\\extensions\\hasculturecodeextensionstests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -116,7 +128,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 49,
+          "SelectedChildIndex": 50,
           "Children": [
             {
               "$type": "Bookmark",
@@ -316,20 +328,59 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "HasStatusExtensions.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasStatusExtensions.cs",
+              "RelativeDocumentMoniker": "Essentials\\Extensions\\HasStatusExtensions.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Extensions\\HasStatusExtensions.cs",
+              "RelativeToolTip": "Essentials\\Extensions\\HasStatusExtensions.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T13:31:35.259Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "HasStatusExtensionsTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasStatusExtensionsTests.cs",
+              "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasStatusExtensionsTests.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasStatusExtensionsTests.cs",
+              "RelativeToolTip": "Essentials.Tests\\Extensions\\HasStatusExtensionsTests.cs",
+              "ViewState": "AgIAAFIAAAAAAAAAAAAkwIAAAAAqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T13:31:25.888Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "IHasStatus.cs",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Interfaces\\IHasStatus.cs",
+              "RelativeDocumentMoniker": "Essentials\\Interfaces\\IHasStatus.cs",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Interfaces\\IHasStatus.cs",
+              "RelativeToolTip": "Essentials\\Interfaces\\IHasStatus.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-01T13:31:02.799Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "HasCultureCodeExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasCultureCodeExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasCultureCodeExtensionsTests.cs",
               "ToolTip": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasCultureCodeExtensionsTests.cs",
               "RelativeToolTip": "Essentials.Tests\\Extensions\\HasCultureCodeExtensionsTests.cs",
-              "ViewState": "AgIAAOUAAAAAAAAAAAAkwAIBAAAEAAAAAAAAAA==",
+              "ViewState": "AgIAAOUAAAAAAAAAAAAkwAMBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-06-01T13:27:04.187Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 4,
               "Title": "HasCultureCodeExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasCultureCodeExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\HasCultureCodeExtensions.cs",
@@ -342,7 +393,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 5,
               "Title": "CultureCodeExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\CultureCodeExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\CultureCodeExtensions.cs",
@@ -355,7 +406,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 6,
               "Title": "IHasCultureCode.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Interfaces\\IHasCultureCode.cs",
               "RelativeDocumentMoniker": "Essentials\\Interfaces\\IHasCultureCode.cs",
@@ -368,7 +419,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 7,
               "Title": "MetadataBagExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\MetadataBagExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\MetadataBagExtensionsTests.cs",
@@ -381,7 +432,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 9,
               "Title": "MetadataBagExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\MetadataBagExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\MetadataBagExtensions.cs",
@@ -394,7 +445,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 8,
               "Title": "HasMetadataExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasMetadataExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\HasMetadataExtensions.cs",
@@ -407,7 +458,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 10,
               "Title": "HasMetadataExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasMetadataExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasMetadataExtensionsTests.cs",
@@ -420,7 +471,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 11,
               "Title": "IHasMetadata.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Interfaces\\IHasMetadata.cs",
               "RelativeDocumentMoniker": "Essentials\\Interfaces\\IHasMetadata.cs",
@@ -433,7 +484,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 12,
               "Title": "HasIssuesExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasIssuesExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasIssuesExtensionsTests.cs",
@@ -446,7 +497,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 13,
               "Title": "HasIssuesExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasIssuesExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\HasIssuesExtensions.cs",
@@ -459,7 +510,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 14,
               "Title": "IHasIssues.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Interfaces\\IHasIssues.cs",
               "RelativeDocumentMoniker": "Essentials\\Interfaces\\IHasIssues.cs",
@@ -472,7 +523,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 15,
               "Title": "HasDiagnosticsExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\HasDiagnosticsExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\HasDiagnosticsExtensionsTests.cs",
@@ -485,7 +536,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 17,
               "Title": "DiagnosticInfoCollectionExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\DiagnosticInfoCollectionExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\DiagnosticInfoCollectionExtensionsTests.cs",
@@ -498,7 +549,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 19,
               "Title": "DiagnosticInfoExtensionsTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Extensions\\DiagnosticInfoExtensionsTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Extensions\\DiagnosticInfoExtensionsTests.cs",
@@ -511,7 +562,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 18,
               "Title": "DiagnosticInfoCollectionExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\DiagnosticInfoCollectionExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\DiagnosticInfoCollectionExtensions.cs",
@@ -524,7 +575,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 16,
               "Title": "HasDiagnosticsExtensions.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Extensions\\HasDiagnosticsExtensions.cs",
               "RelativeDocumentMoniker": "Essentials\\Extensions\\HasDiagnosticsExtensions.cs",
@@ -537,7 +588,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 20,
               "Title": "IHasDiagnostics.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Interfaces\\IHasDiagnostics.cs",
               "RelativeDocumentMoniker": "Essentials\\Interfaces\\IHasDiagnostics.cs",
@@ -553,7 +604,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 21,
               "Title": "plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md [N\u00E1hled]",
               "DocumentMoniker": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md",
               "ToolTip": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md [N\u00E1hled]",
@@ -563,7 +614,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 22,
               "Title": "IResult.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Interfaces\\IResult.cs",
               "RelativeDocumentMoniker": "Essentials\\Interfaces\\IResult.cs",
@@ -575,7 +626,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 23,
               "Title": "plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md",
               "DocumentMoniker": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md",
               "ToolTip": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md",
@@ -585,7 +636,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 26,
               "Title": "IssueInfoFactoryTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Issues\\IssueInfoFactoryTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Issues\\IssueInfoFactoryTests.cs",
@@ -597,7 +648,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 27,
               "Title": "IssueInfoFactory.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Issues\\IssueInfoFactory.cs",
               "RelativeDocumentMoniker": "Essentials\\Issues\\IssueInfoFactory.cs",
@@ -609,7 +660,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 28,
               "Title": "MetadataBagFactoryTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Metadata\\MetadataBagFactoryTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Metadata\\MetadataBagFactoryTests.cs",
@@ -621,7 +672,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 29,
               "Title": "MetadataBagFactory.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Metadata\\MetadataBagFactory.cs",
               "RelativeDocumentMoniker": "Essentials\\Metadata\\MetadataBagFactory.cs",
@@ -633,7 +684,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 24,
               "Title": "DiagnosticInfoFactoryTests.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials.Tests\\Diagnostics\\DiagnosticInfoFactoryTests.cs",
               "RelativeDocumentMoniker": "Essentials.Tests\\Diagnostics\\DiagnosticInfoFactoryTests.cs",
@@ -645,7 +696,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 25,
               "Title": "DiagnosticInfoFactory.cs",
               "DocumentMoniker": "D:\\Toolbox\\Essentials\\Diagnostics\\DiagnosticInfoFactory.cs",
               "RelativeDocumentMoniker": "Essentials\\Diagnostics\\DiagnosticInfoFactory.cs",
