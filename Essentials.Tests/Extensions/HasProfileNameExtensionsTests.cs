@@ -130,4 +130,48 @@ public sealed class HasProfileNameExtensionsTests
 
         Assert.Equal("default", actual.Value);
     }
+    [Fact]
+    public void HasProfileNameWithString_WhenSourceIsNull_ThrowsArgumentNullException()
+    {
+        IHasProfileName? source = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+           source!.HasProfileName("default"));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void HasProfileNameWithString_WhenProfileNameIsInvalid_ThrowsArgumentException(
+       string? profileName)
+    {
+        var source = new TestProfileNameSource
+        {
+            ProfileName = new ProfileName("default")
+        };
+
+        Assert.ThrowsAny<ArgumentException>(() =>
+           source.HasProfileName(profileName!));
+    }
+
+    [Theory]
+    [InlineData("default", "default", true)]
+    [InlineData("default", "DEFAULT", true)]
+    [InlineData("DefaultProfile", "defaultprofile", true)]
+    [InlineData("default", "production", false)]
+    public void HasProfileName_WithString_ReturnsExpectedResult(
+       string currentProfileName,
+       string expectedProfileName,
+       bool expected)
+    {
+        var source = new TestProfileNameSource
+        {
+            ProfileName = new ProfileName(currentProfileName)
+        };
+
+        var actual = source.HasProfileName(expectedProfileName);
+
+        Assert.Equal(expected, actual);
+    }
 }

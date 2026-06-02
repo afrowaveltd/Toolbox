@@ -123,4 +123,22 @@ public sealed class HasCodeExtensionsTests
 
       public string Code { get; }
    }
+   [Fact]
+   public void HasEmptyCode_WhenCodeIsNull_ReturnsTrue()
+   {
+      var value = new TestHasCode(null!);
+
+      var actual = value.HasEmptyCode();
+
+      Assert.True(actual);
+   }
+   [Fact]
+   public void HasCode_WhenSourceCodeIsNull_ReturnsFalse()
+   {
+      var value = new TestHasCode(null!);
+
+      var actual = value.HasCode("TEST_CODE");
+
+      Assert.False(actual);
+   }
 }

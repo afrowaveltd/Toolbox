@@ -165,17 +165,20 @@ public sealed class ResponseOfTExtensionsTests
     [InlineData(ResultStatus.Unknown, true, "payload", false)]
     [InlineData(ResultStatus.Success, true, "payload", true)]
     [InlineData(ResultStatus.SuccessWithWarnings, true, "payload", true)]
+    [InlineData(ResultStatus.Partial, true, "payload", false)]
     [InlineData(ResultStatus.Failed, true, "payload", false)]
     [InlineData(ResultStatus.Invalid, true, "payload", false)]
+    [InlineData(ResultStatus.NotSupported, true, "payload", false)]
+    [InlineData(ResultStatus.Cancelled, true, "payload", false)]
     [InlineData(ResultStatus.NotFound, true, "payload", false)]
     [InlineData(ResultStatus.Success, false, "payload", false)]
     [InlineData(ResultStatus.Success, true, null, false)]
     [InlineData(ResultStatus.Success, true, "", false)]
     public void IsSuccessWithData_ReturnsExpectedResult(
-        ResultStatus status,
-        bool hasData,
-        string? data,
-        bool expected)
+     ResultStatus status,
+     bool hasData,
+     string? data,
+     bool expected)
     {
         var response = new TestResponse<string>
         {
@@ -278,13 +281,13 @@ public sealed class ResponseOfTExtensionsTests
         public T? Data { get; set; }
 
         public bool IsSuccess =>
-            Status is ResultStatus.Success or ResultStatus.SuccessWithWarnings;
+    Status.IsSuccess();
 
         public bool IsFailure =>
-            Status is ResultStatus.Failed or ResultStatus.Invalid or ResultStatus.NotFound;
+            Status.IsFailure();
 
         public bool HasWarnings =>
-            Status == ResultStatus.SuccessWithWarnings
-            || Issues.HasWarningsOrErrors();
+            Status.HasWarnings()
+            || Issues.HasWarningOrHigherIssues();
     }
 }

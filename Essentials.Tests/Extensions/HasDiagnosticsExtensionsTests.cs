@@ -487,6 +487,84 @@ public sealed class HasDiagnosticsExtensionsTests
    }
 
    [Fact]
+   public void HasAnyDiagnostics_WhenDiagnosticsPropertyIsNull_ReturnsFalse()
+   {
+      var value = new TestDiagnosticsSource
+      {
+         Diagnostics = null!
+      };
+
+      var actual = value.HasAnyDiagnostics();
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void HasDiagnosticErrors_WhenDiagnosticsPropertyIsNull_ReturnsFalse()
+   {
+      var value = new TestDiagnosticsSource
+      {
+         Diagnostics = null!
+      };
+
+      var actual = value.HasDiagnosticErrors();
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void HasDiagnosticWarningsOrErrors_WhenDiagnosticsPropertyIsNull_ReturnsFalse()
+   {
+      var value = new TestDiagnosticsSource
+      {
+         Diagnostics = null!
+      };
+
+      var actual = value.HasDiagnosticWarningsOrErrors();
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void HasCriticalOrHigherDiagnostics_WhenDiagnosticsPropertyIsNull_ReturnsFalse()
+   {
+      var value = new TestDiagnosticsSource
+      {
+         Diagnostics = null!
+      };
+
+      var actual = value.HasCriticalOrHigherDiagnostics();
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void HasOnlyInformationalOrLowerDiagnostics_WhenDiagnosticsPropertyIsNull_ReturnsTrue()
+   {
+      var value = new TestDiagnosticsSource
+      {
+         Diagnostics = null!
+      };
+
+      var actual = value.HasOnlyInformationalOrLowerDiagnostics();
+
+      Assert.True(actual);
+   }
+
+   [Fact]
+   public void GetHighestDiagnosticSeverity_WhenDiagnosticsPropertyIsNull_ReturnsNone()
+   {
+      var value = new TestDiagnosticsSource
+      {
+         Diagnostics = null!
+      };
+
+      var actual = value.GetHighestDiagnosticSeverity();
+
+      Assert.Equal(IssueSeverity.None, actual);
+   }
+
+   [Fact]
    public void HasOnlyInformationalOrLowerDiagnostics_WhenAnyDiagnosticIsFatal_ReturnsFalse()
    {
       var value = new TestDiagnosticsSource

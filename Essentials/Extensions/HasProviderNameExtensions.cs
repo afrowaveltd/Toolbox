@@ -50,4 +50,16 @@ public static class HasProviderNameExtensions
 
       return value.ProviderName.ToLowerInvariantName();
    }
+
+   /// <summary>
+   /// Determines whether the object has a provider name.
+   /// </summary>
+   /// <param name="value">The object carrying a provider name.</param>
+   /// <returns><c>true</c> if the object has a provider name; otherwise, <c>false</c>.</returns>
+   public static bool HasProviderName(this IHasProviderName value)
+   {
+      ArgumentNullException.ThrowIfNull(value);
+
+      return !string.IsNullOrWhiteSpace(value.ProviderName.Value);
+   }
 }

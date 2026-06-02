@@ -257,4 +257,82 @@ public sealed class DiagnosticSpanListFactoryTests
       Assert.Equal(20, span.End.Offset);
       Assert.Equal("payload", span.Label);
    }
+   [Fact]
+   public void FromStart_WhenStartIsNull_ThrowsArgumentNullException()
+   {
+      DiagnosticLocation? start = null;
+
+      Assert.Throws<ArgumentNullException>(() =>
+         DiagnosticSpanListFactory.FromStart(start!));
+   }
+
+   [Fact]
+   public void FromStartEnd_WhenStartIsNull_ThrowsArgumentNullException()
+   {
+      DiagnosticLocation? start = null;
+      var end = DiagnosticLocationFactory.FromLineColumn(3, 4);
+
+      Assert.Throws<ArgumentNullException>(() =>
+         DiagnosticSpanListFactory.FromStartEnd(start!, end));
+   }
+
+   [Fact]
+   public void FromStartEnd_WhenEndIsNull_ThrowsArgumentNullException()
+   {
+      var start = DiagnosticLocationFactory.FromLineColumn(1, 2);
+      DiagnosticLocation? end = null;
+
+      Assert.Throws<ArgumentNullException>(() =>
+         DiagnosticSpanListFactory.FromStartEnd(start, end!));
+   }
+
+   [Theory]
+   [InlineData(null)]
+   [InlineData("")]
+   [InlineData("   ")]
+   public void FromLabel_WhenLabelIsInvalid_ThrowsArgumentException(string? label)
+   {
+      Assert.ThrowsAny<ArgumentException>(() =>
+         DiagnosticSpanListFactory.FromLabel(label!));
+   }
+
+   [Theory]
+   [InlineData(null)]
+   [InlineData("")]
+   [InlineData("   ")]
+   public void FromSourceRange_WhenSourceIsInvalid_ThrowsArgumentException(string? source)
+   {
+      Assert.ThrowsAny<ArgumentException>(() =>
+         DiagnosticSpanListFactory.FromSourceRange(source!, 1, 2, 3, 4));
+   }
+
+   [Theory]
+   [InlineData(null)]
+   [InlineData("")]
+   [InlineData("   ")]
+   public void FromSourceRangeLabel_WhenSourceIsInvalid_ThrowsArgumentException(string? source)
+   {
+      Assert.ThrowsAny<ArgumentException>(() =>
+         DiagnosticSpanListFactory.FromSourceRangeLabel(source!, 1, 2, 3, 4, "label"));
+   }
+
+   [Theory]
+   [InlineData(null)]
+   [InlineData("")]
+   [InlineData("   ")]
+   public void FromSourceRangeLabel_WhenLabelIsInvalid_ThrowsArgumentException(string? label)
+   {
+      Assert.ThrowsAny<ArgumentException>(() =>
+         DiagnosticSpanListFactory.FromSourceRangeLabel("input.ajis", 1, 2, 3, 4, label!));
+   }
+
+   [Theory]
+   [InlineData(null)]
+   [InlineData("")]
+   [InlineData("   ")]
+   public void FromOffsetRangeLabel_WhenLabelIsInvalid_ThrowsArgumentException(string? label)
+   {
+      Assert.ThrowsAny<ArgumentException>(() =>
+         DiagnosticSpanListFactory.FromOffsetRangeLabel(10, 20, label!));
+   }
 }

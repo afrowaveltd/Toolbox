@@ -51,4 +51,14 @@ public sealed class ProfileNameExtensionsTests
         Assert.Equal("default", actual.Value);
         Assert.Equal(profileName, actual);
     }
+
+    [Fact]
+    public void ToLowerInvariantName_WhenProfileNameIsDefault_ReturnsDefault()
+    {
+        var profileName = default(ProfileName);
+
+        var actual = profileName.ToLowerInvariantName();
+
+        Assert.Equal(default, actual);
+    }
 }

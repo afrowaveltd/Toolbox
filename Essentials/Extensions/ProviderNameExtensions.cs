@@ -30,6 +30,8 @@ public static class ProviderNameExtensions
    /// <returns>The normalized provider name.</returns>
    public static ProviderName ToLowerInvariantName(this ProviderName providerName)
    {
-      return new ProviderName(providerName.Value.ToLowerInvariant());
+      return string.IsNullOrWhiteSpace(providerName.Value)
+         ? providerName
+         : new ProviderName(providerName.Value.ToLowerInvariant());
    }
 }

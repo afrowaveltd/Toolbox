@@ -374,4 +374,55 @@ public sealed class DiagnosticInfoExtensionsTests
 
       Assert.True(actual);
    }
+   [Fact]
+   public void HasSpans_WhenSpansIsNull_ReturnsFalse()
+   {
+      var diagnostic = new DiagnosticInfo
+      {
+         Spans = null!
+      };
+
+      var actual = diagnostic.HasSpans();
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void HasSpanInfo_WhenSpansIsNull_ReturnsFalse()
+   {
+      var diagnostic = new DiagnosticInfo
+      {
+         Spans = null!
+      };
+
+      var actual = diagnostic.HasSpanInfo();
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void HasHints_WhenHintsIsNull_ReturnsFalse()
+   {
+      var diagnostic = new DiagnosticInfo
+      {
+         Hints = null!
+      };
+
+      var actual = diagnostic.HasHints();
+
+      Assert.False(actual);
+   }
+
+   [Fact]
+   public void HasHintMessages_WhenHintsIsNull_ReturnsFalse()
+   {
+      var diagnostic = new DiagnosticInfo
+      {
+         Hints = null!
+      };
+
+      var actual = diagnostic.HasHintMessages();
+
+      Assert.False(actual);
+   }
 }

@@ -7,7 +7,7 @@ namespace Afrowave.Toolbox.Essentials.Diagnostics;
 /// <summary>
 /// Represents a diagnostic message with optional location, span, hints, and metadata.
 /// </summary>
-public sealed class DiagnosticInfo : IHasCode, IHasSeverity, IHasMetadata
+public sealed class DiagnosticInfo : IHasCode, IHasSeverity, IHasMetadata, IHasMessage, IHasDetails
 {
    /// <summary>
    /// Gets the stable diagnostic code.

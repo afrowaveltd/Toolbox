@@ -120,4 +120,32 @@ public sealed class HasProviderNameExtensionsTests
 
       public ProviderName ProviderName { get; }
    }
+   [Fact]
+   public void HasProviderNameWithoutExpectedName_WhenValueIsNull_ThrowsArgumentNullException()
+   {
+      IHasProviderName? value = null;
+
+      Assert.Throws<ArgumentNullException>(() =>
+         value!.HasProviderName());
+   }
+
+   [Fact]
+   public void HasProviderNameWithoutExpectedName_ReturnsTrue()
+   {
+      var value = new TestHasProviderName(new ProviderName("ollama-local"));
+
+      var actual = value.HasProviderName();
+
+      Assert.True(actual);
+   }
+
+   [Fact]
+   public void HasProviderNameWithoutExpectedName_WhenProviderNameIsDefault_ReturnsFalse()
+   {
+      var value = new TestHasProviderName(default);
+
+      var actual = value.HasProviderName();
+
+      Assert.False(actual);
+   }
 }

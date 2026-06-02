@@ -231,6 +231,161 @@ public sealed class ResultConversionExtensionsTests
         Assert.Equal("Changed message.", result.Message);
     }
 
+
+    [Fact]
+    public void ToTypedResponse_WhenResponseIsNull_ThrowsArgumentNullException()
+    {
+        IResponse? response = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            response!.ToTypedResponse("payload"));
+    }
+
+    [Fact]
+    public void ToTypedResponse_CreatesTypedResponseWithCopiedValuesAndData()
+    {
+        var metadata = new MetadataBag();
+        metadata.Set("source", "unit-test");
+
+        IReadOnlyList<IssueInfo> issues =
+        [
+            IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.")
+        ];
+
+        var response = new TestResponse
+        {
+            Status = ResultStatus.SuccessWithWarnings,
+            Message = "Operation completed with warnings.",
+            HasData = false,
+            Issues = issues,
+            Metadata = metadata
+        };
+
+        var typedResponse = response.ToTypedResponse("payload");
+
+        Assert.Equal(response.Status, typedResponse.Status);
+        Assert.Equal(response.Message, typedResponse.Message);
+        Assert.Equal("payload", typedResponse.Data);
+        Assert.True(typedResponse.HasData);
+        Assert.Same(response.Issues, typedResponse.Issues);
+        Assert.Same(response.Metadata, typedResponse.Metadata);
+        Assert.True(typedResponse.IsSuccess);
+        Assert.True(typedResponse.HasWarnings);
+    }
+
+    [Fact]
+    public void ToTypedResponse_WithNullData_CreatesTypedResponseWithoutData()
+    {
+        var response = new TestResponse
+        {
+            Status = ResultStatus.Success,
+            Message = "Operation completed."
+        };
+
+        var typedResponse = response.ToTypedResponse<string>(null);
+
+        Assert.Equal(response.Status, typedResponse.Status);
+        Assert.Equal(response.Message, typedResponse.Message);
+        Assert.Null(typedResponse.Data);
+        Assert.False(typedResponse.HasData);
+    }
+
+
+    [Fact]
+    public void ToNonGenericResponse_WhenResponseIsNull_ThrowsArgumentNullException()
+    {
+        IResponse<string>? response = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+            response!.ToNonGenericResponse());
+    }
+
+    [Fact]
+    public void ToNonGenericResponse_DropsDataAndCopiesValues()
+    {
+        var metadata = new MetadataBag();
+        metadata.Set("source", "unit-test");
+
+        IReadOnlyList<IssueInfo> issues =
+        [
+            IssueInfoFactory.Warning(
+            "AFW_WARNING",
+            "Warning message.")
+        ];
+
+        var response = new TestTypedResponse<string>
+        {
+            Status = ResultStatus.SuccessWithWarnings,
+            Message = "Operation completed with warnings.",
+            Data = "payload",
+            HasData = true,
+            Issues = issues,
+            Metadata = metadata
+        };
+
+        var nonGenericResponse = response.ToNonGenericResponse();
+
+        Assert.Equal(response.Status, nonGenericResponse.Status);
+        Assert.Equal(response.Message, nonGenericResponse.Message);
+        Assert.False(nonGenericResponse.HasData);
+        Assert.Same(response.Issues, nonGenericResponse.Issues);
+        Assert.Same(response.Metadata, nonGenericResponse.Metadata);
+        Assert.True(nonGenericResponse.IsSuccess);
+        Assert.True(nonGenericResponse.HasWarnings);
+    }
+
+    [Fact]
+    public void ToTypedResponse_DoesNotModifyOriginalResponse()
+    {
+        var response = new TestResponse
+        {
+            Status = ResultStatus.Success,
+            Message = "Original message."
+        };
+
+        var typedResponse = response.ToTypedResponse("payload");
+
+        typedResponse.Message = "Changed message.";
+
+        Assert.Equal("Original message.", response.Message);
+        Assert.Equal("Changed message.", typedResponse.Message);
+    }
+
+    [Fact]
+    public void ToNonGenericResponse_DoesNotModifyOriginalTypedResponse()
+    {
+        var response = new TestTypedResponse<string>
+        {
+            Status = ResultStatus.Success,
+            Message = "Original message.",
+            Data = "payload",
+            HasData = true
+        };
+
+        var nonGenericResponse = response.ToNonGenericResponse();
+
+        nonGenericResponse.Message = "Changed message.";
+
+        Assert.Equal("Original message.", response.Message);
+        Assert.Equal("Changed message.", nonGenericResponse.Message);
+    }
+
+    [Fact]
+    public void ToTypedResponse_FromResponseWithValueTypeDefaultData_HasDataReturnsTrue()
+    {
+        var response = new TestResponse
+        {
+            Status = ResultStatus.Success
+        };
+
+        var typedResponse = response.ToTypedResponse(0);
+
+        Assert.Equal(0, typedResponse.Data);
+        Assert.True(typedResponse.HasData);
+    }
+
     private sealed class TestResult : IResult
     {
         public ResultStatus Status { get; set; } = ResultStatus.Unknown;
@@ -265,14 +420,14 @@ public sealed class ResultConversionExtensionsTests
         public bool HasData { get; set; }
 
         public bool IsSuccess =>
-            Status is ResultStatus.Success or ResultStatus.SuccessWithWarnings;
+    Status.IsSuccess();
 
         public bool IsFailure =>
-            Status is ResultStatus.Failed or ResultStatus.Invalid or ResultStatus.NotFound;
+           Status.IsFailure();
 
         public bool HasWarnings =>
-            Status == ResultStatus.SuccessWithWarnings
-            || Issues.HasWarningsOrErrors();
+           Status.HasWarnings()
+           || Issues.HasWarningOrHigherIssues();
     }
 
     private sealed class TestTypedResponse<T> : IResponse<T>
@@ -299,143 +454,4 @@ public sealed class ResultConversionExtensionsTests
             Status == ResultStatus.SuccessWithWarnings
             || Issues.HasWarningsOrErrors();
     }
-    [Fact]
-public void ToTypedResponse_WhenResponseIsNull_ThrowsArgumentNullException()
-{
-    IResponse? response = null;
-
-    Assert.Throws<ArgumentNullException>(() =>
-        response!.ToTypedResponse("payload"));
-}
-
-[Fact]
-public void ToTypedResponse_CreatesTypedResponseWithCopiedValuesAndData()
-{
-    var metadata = new MetadataBag();
-    metadata.Set("source", "unit-test");
-
-    IReadOnlyList<IssueInfo> issues =
-    [
-        IssueInfoFactory.Warning(
-            "AFW_WARNING",
-            "Warning message.")
-    ];
-
-    var response = new TestResponse
-    {
-        Status = ResultStatus.SuccessWithWarnings,
-        Message = "Operation completed with warnings.",
-        HasData = false,
-        Issues = issues,
-        Metadata = metadata
-    };
-
-    var typedResponse = response.ToTypedResponse("payload");
-
-    Assert.Equal(response.Status, typedResponse.Status);
-    Assert.Equal(response.Message, typedResponse.Message);
-    Assert.Equal("payload", typedResponse.Data);
-    Assert.True(typedResponse.HasData);
-    Assert.Same(response.Issues, typedResponse.Issues);
-    Assert.Same(response.Metadata, typedResponse.Metadata);
-    Assert.True(typedResponse.IsSuccess);
-    Assert.True(typedResponse.HasWarnings);
-}
-
-[Fact]
-public void ToTypedResponse_WithNullData_CreatesTypedResponseWithoutData()
-{
-    var response = new TestResponse
-    {
-        Status = ResultStatus.Success,
-        Message = "Operation completed."
-    };
-
-    var typedResponse = response.ToTypedResponse<string>(null);
-
-    Assert.Equal(response.Status, typedResponse.Status);
-    Assert.Equal(response.Message, typedResponse.Message);
-    Assert.Null(typedResponse.Data);
-    Assert.False(typedResponse.HasData);
-}
-
-
-[Fact]
-public void ToNonGenericResponse_WhenResponseIsNull_ThrowsArgumentNullException()
-{
-    IResponse<string>? response = null;
-
-    Assert.Throws<ArgumentNullException>(() =>
-        response!.ToNonGenericResponse());
-}
-
-[Fact]
-public void ToNonGenericResponse_DropsDataAndCopiesValues()
-{
-    var metadata = new MetadataBag();
-    metadata.Set("source", "unit-test");
-
-    IReadOnlyList<IssueInfo> issues =
-    [
-        IssueInfoFactory.Warning(
-            "AFW_WARNING",
-            "Warning message.")
-    ];
-
-    var response = new TestTypedResponse<string>
-    {
-        Status = ResultStatus.SuccessWithWarnings,
-        Message = "Operation completed with warnings.",
-        Data = "payload",
-        HasData = true,
-        Issues = issues,
-        Metadata = metadata
-    };
-
-    var nonGenericResponse = response.ToNonGenericResponse();
-
-    Assert.Equal(response.Status, nonGenericResponse.Status);
-    Assert.Equal(response.Message, nonGenericResponse.Message);
-    Assert.False(nonGenericResponse.HasData);
-    Assert.Same(response.Issues, nonGenericResponse.Issues);
-    Assert.Same(response.Metadata, nonGenericResponse.Metadata);
-    Assert.True(nonGenericResponse.IsSuccess);
-    Assert.True(nonGenericResponse.HasWarnings);
-}
-
-[Fact]
-public void ToTypedResponse_DoesNotModifyOriginalResponse()
-{
-    var response = new TestResponse
-    {
-        Status = ResultStatus.Success,
-        Message = "Original message."
-    };
-
-    var typedResponse = response.ToTypedResponse("payload");
-
-    typedResponse.Message = "Changed message.";
-
-    Assert.Equal("Original message.", response.Message);
-    Assert.Equal("Changed message.", typedResponse.Message);
-}
-
-[Fact]
-public void ToNonGenericResponse_DoesNotModifyOriginalTypedResponse()
-{
-    var response = new TestTypedResponse<string>
-    {
-        Status = ResultStatus.Success,
-        Message = "Original message.",
-        Data = "payload",
-        HasData = true
-    };
-
-    var nonGenericResponse = response.ToNonGenericResponse();
-
-    nonGenericResponse.Message = "Changed message.";
-
-    Assert.Equal("Original message.", response.Message);
-    Assert.Equal("Changed message.", nonGenericResponse.Message);
-}
 }

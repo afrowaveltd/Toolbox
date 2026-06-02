@@ -249,26 +249,7 @@ public sealed class ResultExtensionsTests
         Assert.Equal(expected, actual);
     }
 
-    private sealed class TestResult : IResult
-    {
-        public ResultStatus Status { get; set; } = ResultStatus.Unknown;
 
-        public string Message { get; set; } = string.Empty;
-
-        public IReadOnlyList<IssueInfo> Issues { get; set; } = IssueInfoListFactory.Empty();
-
-        public MetadataBag Metadata { get; set; } = MetadataBagFactory.Empty();
-
-        public bool IsSuccess =>
-            Status is ResultStatus.Success or ResultStatus.SuccessWithWarnings;
-
-        public bool IsFailure =>
-            Status is ResultStatus.Failed or ResultStatus.Invalid or ResultStatus.NotFound;
-
-        public bool HasWarnings =>
-            Status == ResultStatus.SuccessWithWarnings
-            || Issues.HasWarningsOrErrors();
-    }
     [Fact]
     public void HasIssueCode_WhenResultIsNull_ThrowsArgumentNullException()
     {
@@ -568,8 +549,11 @@ public sealed class ResultExtensionsTests
 
     [Theory]
     [InlineData(ResultStatus.Unknown)]
+    [InlineData(ResultStatus.Partial)]
     [InlineData(ResultStatus.Failed)]
     [InlineData(ResultStatus.Invalid)]
+    [InlineData(ResultStatus.NotSupported)]
+    [InlineData(ResultStatus.Cancelled)]
     [InlineData(ResultStatus.NotFound)]
     public void IsCleanSuccess_WhenResultIsNotSuccessful_ReturnsFalse(
         ResultStatus status)
@@ -713,8 +697,11 @@ public sealed class ResultExtensionsTests
 
     [Theory]
     [InlineData(ResultStatus.Unknown)]
+    [InlineData(ResultStatus.Partial)]
     [InlineData(ResultStatus.Failed)]
     [InlineData(ResultStatus.Invalid)]
+    [InlineData(ResultStatus.NotSupported)]
+    [InlineData(ResultStatus.Cancelled)]
     [InlineData(ResultStatus.NotFound)]
     public void IsDirtySuccess_WhenResultIsNotSuccessful_ReturnsFalse(
         ResultStatus status)
@@ -845,9 +832,10 @@ public sealed class ResultExtensionsTests
     [Theory]
     [InlineData(ResultStatus.Failed)]
     [InlineData(ResultStatus.Invalid)]
-    [InlineData(ResultStatus.NotFound)]
+    [InlineData(ResultStatus.NotSupported)]
+    [InlineData(ResultStatus.Cancelled)]
     public void NeedsAttention_WhenResultIsFailure_ReturnsTrue(
-        ResultStatus status)
+    ResultStatus status)
     {
         var result = new TestResult
         {
@@ -858,6 +846,19 @@ public sealed class ResultExtensionsTests
         var actual = result.NeedsAttention();
 
         Assert.True(actual);
+    }
+    [Fact]
+    public void NeedsAttention_WhenResultIsNotFoundWithoutIssues_ReturnsFalse()
+    {
+        var result = new TestResult
+        {
+            Status = ResultStatus.NotFound,
+            Issues = IssueInfoListFactory.Empty()
+        };
+
+        var actual = result.NeedsAttention();
+
+        Assert.False(actual);
     }
 
     [Fact]
@@ -1882,5 +1883,25 @@ public sealed class ResultExtensionsTests
         var actual = result.IsNonSuccess();
 
         Assert.Equal(expected, actual);
+    }
+    private sealed class TestResult : IResult
+    {
+        public ResultStatus Status { get; set; } = ResultStatus.Unknown;
+
+        public string Message { get; set; } = string.Empty;
+
+        public IReadOnlyList<IssueInfo> Issues { get; set; } = IssueInfoListFactory.Empty();
+
+        public MetadataBag Metadata { get; set; } = MetadataBagFactory.Empty();
+
+        public bool IsSuccess =>
+    Status.IsSuccess();
+
+        public bool IsFailure =>
+            Status.IsFailure();
+
+        public bool HasWarnings =>
+            Status.HasWarnings()
+            || Issues.HasWarningOrHigherIssues();
     }
 }

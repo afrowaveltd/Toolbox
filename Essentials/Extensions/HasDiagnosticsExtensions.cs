@@ -17,7 +17,7 @@ public static class HasDiagnosticsExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Diagnostics.HasAnyDiagnostics();
+      return value.Diagnostics?.HasAnyDiagnostics() == true;
    }
 
    /// <summary>
@@ -30,9 +30,8 @@ public static class HasDiagnosticsExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Diagnostics.HasErrorOrHigherDiagnostics();
+      return value.Diagnostics?.HasErrorOrHigherDiagnostics() == true;
    }
-
 
    /// <summary>
    /// Determines whether the object contains at least one diagnostic message
@@ -44,7 +43,7 @@ public static class HasDiagnosticsExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Diagnostics.HasWarningOrHigherDiagnostics();
+      return value.Diagnostics?.HasWarningOrHigherDiagnostics() == true;
    }
 
    /// <summary>
@@ -57,7 +56,7 @@ public static class HasDiagnosticsExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Diagnostics.HasCriticalOrHigherDiagnostics();
+      return value.Diagnostics?.HasCriticalOrHigherDiagnostics() == true;
    }
 
    /// <summary>
@@ -69,8 +68,9 @@ public static class HasDiagnosticsExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Diagnostics.GetHighestSeverity();
+      return value.Diagnostics?.GetHighestSeverity() ?? IssueSeverity.None;
    }
+
    /// <summary>
    /// Determines whether the object contains only informational or lower severity diagnostics.
    /// </summary>
@@ -80,6 +80,6 @@ public static class HasDiagnosticsExtensions
    {
       ArgumentNullException.ThrowIfNull(value);
 
-      return value.Diagnostics.HasOnlyInformationalOrLowerDiagnostics();
+      return value.Diagnostics?.HasOnlyInformationalOrLowerDiagnostics() ?? true;
    }
 }

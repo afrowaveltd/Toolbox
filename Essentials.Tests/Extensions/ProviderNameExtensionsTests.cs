@@ -51,4 +51,13 @@ public sealed class ProviderNameExtensionsTests
       Assert.Equal("ollama-local", actual.Value);
       Assert.Equal(providerName, actual);
    }
+   [Fact]
+   public void ToLowerInvariantName_WhenProviderNameIsDefault_ReturnsDefault()
+   {
+      var providerName = default(ProviderName);
+
+      var actual = providerName.ToLowerInvariantName();
+
+      Assert.Equal(default, actual);
+   }
 }

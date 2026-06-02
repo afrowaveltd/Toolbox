@@ -115,16 +115,21 @@ public sealed class ResponseExtensionsTests
     [InlineData(ResultStatus.Unknown, false, false)]
     [InlineData(ResultStatus.Success, false, false)]
     [InlineData(ResultStatus.SuccessWithWarnings, false, false)]
+    [InlineData(ResultStatus.Partial, false, false)]
     [InlineData(ResultStatus.Failed, false, true)]
     [InlineData(ResultStatus.Failed, true, false)]
     [InlineData(ResultStatus.Invalid, false, true)]
     [InlineData(ResultStatus.Invalid, true, false)]
-    [InlineData(ResultStatus.NotFound, false, true)]
+    [InlineData(ResultStatus.NotSupported, false, true)]
+    [InlineData(ResultStatus.NotSupported, true, false)]
+    [InlineData(ResultStatus.Cancelled, false, true)]
+    [InlineData(ResultStatus.Cancelled, true, false)]
+    [InlineData(ResultStatus.NotFound, false, false)]
     [InlineData(ResultStatus.NotFound, true, false)]
     public void IsFailureWithoutData_ReturnsExpectedResult(
-        ResultStatus status,
-        bool hasData,
-        bool expected)
+    ResultStatus status,
+    bool hasData,
+    bool expected)
     {
         var response = new TestResponse
         {
@@ -150,13 +155,13 @@ public sealed class ResponseExtensionsTests
         public bool HasData { get; set; }
 
         public bool IsSuccess =>
-            Status is ResultStatus.Success or ResultStatus.SuccessWithWarnings;
+    Status.IsSuccess();
 
         public bool IsFailure =>
-            Status is ResultStatus.Failed or ResultStatus.Invalid or ResultStatus.NotFound;
+            Status.IsFailure();
 
         public bool HasWarnings =>
-            Status == ResultStatus.SuccessWithWarnings
-            || Issues.HasWarningsOrErrors();
+            Status.HasWarnings()
+            || Issues.HasWarningOrHigherIssues();
     }
 }

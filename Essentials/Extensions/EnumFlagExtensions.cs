@@ -13,13 +13,14 @@ public static class EnumFlagExtensions
    /// <param name="flags">The flags that must be present.</param>
    /// <returns><c>true</c> if all specified flags are present; otherwise, <c>false</c>.</returns>
    public static bool HasAll<TEnum>(this TEnum value, TEnum flags)
-       where TEnum : struct, Enum
+    where TEnum : struct, Enum
    {
-      var left = Convert.ToUInt64(value);
-      var right = Convert.ToUInt64(flags);
+      var left = Convert.ToInt64(value);
+      var right = Convert.ToInt64(flags);
 
       return (left & right) == right;
    }
+
 
    /// <summary>
    /// Determines whether any of the specified flags are present.
@@ -29,10 +30,10 @@ public static class EnumFlagExtensions
    /// <param name="flags">The flags to check.</param>
    /// <returns><c>true</c> if at least one specified flag is present; otherwise, <c>false</c>.</returns>
    public static bool HasAny<TEnum>(this TEnum value, TEnum flags)
-       where TEnum : struct, Enum
+    where TEnum : struct, Enum
    {
-      var left = Convert.ToUInt64(value);
-      var right = Convert.ToUInt64(flags);
+      var left = Convert.ToInt64(value);
+      var right = Convert.ToInt64(flags);
 
       return (left & right) != 0;
    }
@@ -45,10 +46,10 @@ public static class EnumFlagExtensions
    /// <param name="flags">The flags to add.</param>
    /// <returns>The enum value with the specified flags added.</returns>
    public static TEnum With<TEnum>(this TEnum value, TEnum flags)
-       where TEnum : struct, Enum
+     where TEnum : struct, Enum
    {
-      var left = Convert.ToUInt64(value);
-      var right = Convert.ToUInt64(flags);
+      var left = Convert.ToInt64(value);
+      var right = Convert.ToInt64(flags);
 
       return (TEnum)Enum.ToObject(typeof(TEnum), left | right);
    }
@@ -61,10 +62,10 @@ public static class EnumFlagExtensions
    /// <param name="flags">The flags to remove.</param>
    /// <returns>The enum value with the specified flags removed.</returns>
    public static TEnum Without<TEnum>(this TEnum value, TEnum flags)
-       where TEnum : struct, Enum
+    where TEnum : struct, Enum
    {
-      var left = Convert.ToUInt64(value);
-      var right = Convert.ToUInt64(flags);
+      var left = Convert.ToInt64(value);
+      var right = Convert.ToInt64(flags);
 
       return (TEnum)Enum.ToObject(typeof(TEnum), left & ~right);
    }

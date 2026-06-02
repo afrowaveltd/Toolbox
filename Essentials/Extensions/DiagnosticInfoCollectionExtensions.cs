@@ -18,7 +18,9 @@ public static class DiagnosticInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(diagnostics);
 
-      return diagnostics.Any(diagnostic => diagnostic.Severity.IsErrorOrHigher());
+      return diagnostics.Any(diagnostic =>
+          diagnostic is not null
+          && diagnostic.Severity.IsErrorOrHigher());
    }
 
    /// <summary>
@@ -31,7 +33,9 @@ public static class DiagnosticInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(diagnostics);
 
-      return diagnostics.Any(diagnostic => diagnostic.Severity.IsWarningOrHigher());
+      return diagnostics.Any(diagnostic =>
+          diagnostic is not null
+          && diagnostic.Severity.IsWarningOrHigher());
    }
 
    /// <summary>
@@ -43,7 +47,9 @@ public static class DiagnosticInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(diagnostics);
 
-      return diagnostics.Where(diagnostic => diagnostic.Severity.IsErrorOrHigher());
+      return diagnostics.Where(diagnostic =>
+          diagnostic is not null
+          && diagnostic.Severity.IsErrorOrHigher());
    }
 
    /// <summary>
@@ -55,7 +61,9 @@ public static class DiagnosticInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(diagnostics);
 
-      return diagnostics.Where(diagnostic => diagnostic.Severity == IssueSeverity.Warning);
+      return diagnostics.Where(diagnostic =>
+          diagnostic is not null
+          && diagnostic.Severity == IssueSeverity.Warning);
    }
 
    /// <summary>
@@ -67,7 +75,9 @@ public static class DiagnosticInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(diagnostics);
 
-      return diagnostics.Where(diagnostic => diagnostic.Severity.IsInformationOrLower());
+      return diagnostics.Where(diagnostic =>
+          diagnostic is not null
+          && diagnostic.Severity.IsInformationOrLower());
    }
 
    /// <summary>
@@ -82,19 +92,23 @@ public static class DiagnosticInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(diagnostics);
 
-      return diagnostics.Where(diagnostic => diagnostic.Severity == severity);
+      return diagnostics.Where(diagnostic =>
+          diagnostic is not null
+          && diagnostic.Severity == severity);
    }
+
    /// <summary>
    /// Determines whether the collection contains at least one diagnostic message.
    /// </summary>
    /// <param name="diagnostics">The diagnostic collection.</param>
-   /// <returns><c>true</c> if the collection contains diagnostics; otherwise, <c>false</c>.</returns>
+   /// <returns><c>true</c> if the collection contains at least one non-null diagnostic; otherwise, <c>false</c>.</returns>
    public static bool HasAnyDiagnostics(this IEnumerable<DiagnosticInfo> diagnostics)
    {
       ArgumentNullException.ThrowIfNull(diagnostics);
 
-      return diagnostics.Any();
+      return diagnostics.Any(diagnostic => diagnostic is not null);
    }
+
    /// <summary>
    /// Determines whether the collection contains at least one diagnostic message
    /// with severity <see cref="IssueSeverity.Warning"/> or higher.
@@ -131,7 +145,9 @@ public static class DiagnosticInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(diagnostics);
 
-      return diagnostics.Any(diagnostic => diagnostic.Severity.IsCriticalOrHigher());
+      return diagnostics.Any(diagnostic =>
+          diagnostic is not null
+          && diagnostic.Severity.IsCriticalOrHigher());
    }
 
    /// <summary>
@@ -141,8 +157,8 @@ public static class DiagnosticInfoCollectionExtensions
    /// <param name="severity">The severity to filter by.</param>
    /// <returns>Diagnostics with the specified severity.</returns>
    public static IEnumerable<DiagnosticInfo> WhereSeverity(
-      this IEnumerable<DiagnosticInfo> diagnostics,
-      IssueSeverity severity)
+       this IEnumerable<DiagnosticInfo> diagnostics,
+       IssueSeverity severity)
    {
       ArgumentNullException.ThrowIfNull(diagnostics);
 
@@ -155,11 +171,13 @@ public static class DiagnosticInfoCollectionExtensions
    /// <param name="diagnostics">The diagnostic collection.</param>
    /// <returns>Diagnostics with warning or higher severity.</returns>
    public static IEnumerable<DiagnosticInfo> WhereWarningOrHigher(
-      this IEnumerable<DiagnosticInfo> diagnostics)
+       this IEnumerable<DiagnosticInfo> diagnostics)
    {
       ArgumentNullException.ThrowIfNull(diagnostics);
 
-      return diagnostics.Where(diagnostic => diagnostic.Severity.IsWarningOrHigher());
+      return diagnostics.Where(diagnostic =>
+          diagnostic is not null
+          && diagnostic.Severity.IsWarningOrHigher());
    }
 
    /// <summary>
@@ -168,7 +186,7 @@ public static class DiagnosticInfoCollectionExtensions
    /// <param name="diagnostics">The diagnostic collection.</param>
    /// <returns>Diagnostics with error or higher severity.</returns>
    public static IEnumerable<DiagnosticInfo> WhereErrorOrHigher(
-      this IEnumerable<DiagnosticInfo> diagnostics)
+       this IEnumerable<DiagnosticInfo> diagnostics)
    {
       ArgumentNullException.ThrowIfNull(diagnostics);
 
@@ -181,11 +199,13 @@ public static class DiagnosticInfoCollectionExtensions
    /// <param name="diagnostics">The diagnostic collection.</param>
    /// <returns>Diagnostics with critical or fatal severity.</returns>
    public static IEnumerable<DiagnosticInfo> WhereCriticalOrHigher(
-      this IEnumerable<DiagnosticInfo> diagnostics)
+       this IEnumerable<DiagnosticInfo> diagnostics)
    {
       ArgumentNullException.ThrowIfNull(diagnostics);
 
-      return diagnostics.Where(diagnostic => diagnostic.Severity.IsCriticalOrHigher());
+      return diagnostics.Where(diagnostic =>
+          diagnostic is not null
+          && diagnostic.Severity.IsCriticalOrHigher());
    }
 
    /// <summary>
@@ -195,12 +215,14 @@ public static class DiagnosticInfoCollectionExtensions
    /// <param name="severity">The diagnostic severity.</param>
    /// <returns>The number of diagnostics with the specified severity.</returns>
    public static int CountSeverity(
-      this IEnumerable<DiagnosticInfo> diagnostics,
-      IssueSeverity severity)
+       this IEnumerable<DiagnosticInfo> diagnostics,
+       IssueSeverity severity)
    {
       ArgumentNullException.ThrowIfNull(diagnostics);
 
-      return diagnostics.Count(diagnostic => diagnostic.Severity == severity);
+      return diagnostics.Count(diagnostic =>
+          diagnostic is not null
+          && diagnostic.Severity == severity);
    }
 
    /// <summary>
@@ -212,7 +234,9 @@ public static class DiagnosticInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(diagnostics);
 
-      return diagnostics.Count(diagnostic => diagnostic.Severity.IsWarningOrHigher());
+      return diagnostics.Count(diagnostic =>
+          diagnostic is not null
+          && diagnostic.Severity.IsWarningOrHigher());
    }
 
    /// <summary>
@@ -224,7 +248,9 @@ public static class DiagnosticInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(diagnostics);
 
-      return diagnostics.Count(diagnostic => diagnostic.Severity.IsErrorOrHigher());
+      return diagnostics.Count(diagnostic =>
+          diagnostic is not null
+          && diagnostic.Severity.IsErrorOrHigher());
    }
 
    /// <summary>
@@ -236,7 +262,9 @@ public static class DiagnosticInfoCollectionExtensions
    {
       ArgumentNullException.ThrowIfNull(diagnostics);
 
-      return diagnostics.Count(diagnostic => diagnostic.Severity.IsCriticalOrHigher());
+      return diagnostics.Count(diagnostic =>
+          diagnostic is not null
+          && diagnostic.Severity.IsCriticalOrHigher());
    }
 
    /// <summary>
@@ -251,11 +279,16 @@ public static class DiagnosticInfoCollectionExtensions
       var highestSeverity = IssueSeverity.None;
       var highestRank = GetSeverityRank(highestSeverity);
 
-      foreach(var diagnostic in diagnostics)
+      foreach (var diagnostic in diagnostics)
       {
+         if (diagnostic is null)
+         {
+            continue;
+         }
+
          var rank = GetSeverityRank(diagnostic.Severity);
 
-         if(rank > highestRank)
+         if (rank > highestRank)
          {
             highestSeverity = diagnostic.Severity;
             highestRank = rank;
@@ -263,6 +296,21 @@ public static class DiagnosticInfoCollectionExtensions
       }
 
       return highestSeverity;
+   }
+
+   /// <summary>
+   /// Determines whether the diagnostic collection contains only informational or lower severity diagnostics.
+   /// </summary>
+   /// <param name="diagnostics">The diagnostic collection.</param>
+   /// <returns><c>true</c> if all non-null diagnostics are informational or lower severity; otherwise, <c>false</c>.</returns>
+   public static bool HasOnlyInformationalOrLowerDiagnostics(
+       this IEnumerable<DiagnosticInfo> diagnostics)
+   {
+      ArgumentNullException.ThrowIfNull(diagnostics);
+
+      return diagnostics.All(diagnostic =>
+          diagnostic is null
+          || !diagnostic.Severity.IsWarningOrHigher());
    }
 
    private static int GetSeverityRank(IssueSeverity severity)
@@ -279,18 +327,5 @@ public static class DiagnosticInfoCollectionExtensions
          IssueSeverity.Fatal => 7,
          _ => 0
       };
-   }
-   /// <summary>
-   /// Determines whether the diagnostic collection contains only informational or lower severity diagnostics.
-   /// </summary>
-   /// <param name="diagnostics">The diagnostic collection.</param>
-   /// <returns><c>true</c> if all diagnostics are informational or lower severity; otherwise, <c>false</c>.</returns>
-   public static bool HasOnlyInformationalOrLowerDiagnostics(
-      this IEnumerable<DiagnosticInfo> diagnostics)
-   {
-      ArgumentNullException.ThrowIfNull(diagnostics);
-
-      return diagnostics.All(diagnostic =>
-         !diagnostic.Severity.IsWarningOrHigher());
    }
 }

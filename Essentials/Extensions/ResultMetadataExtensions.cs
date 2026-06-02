@@ -16,7 +16,7 @@ public static class ResultMetadataExtensions
     {
         ArgumentNullException.ThrowIfNull(result);
 
-        return !result.Metadata.IsEmpty;
+        return result.Metadata.HasAnyMetadata();
     }
 
     /// <summary>
@@ -51,5 +51,24 @@ public static class ResultMetadataExtensions
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
         return result.Metadata.TryGet(key, out value);
+    }
+
+    /// <summary>
+    /// Gets a metadata value from the result or returns a fallback value when the key does not exist.
+    /// </summary>
+    /// <param name="result">The result.</param>
+    /// <param name="key">The metadata key.</param>
+    /// <param name="fallback">The fallback value.</param>
+    /// <returns>The metadata value or the fallback value.</returns>
+    public static string? GetMetadataOrDefault(
+        this IResult result,
+        string key,
+        string? fallback = null)
+    {
+        ArgumentNullException.ThrowIfNull(result);
+
+        return result.Metadata.GetOrDefault(
+            key,
+            fallback);
     }
 }

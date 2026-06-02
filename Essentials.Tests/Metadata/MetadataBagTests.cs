@@ -374,4 +374,39 @@ public class MetadataBagTests
         bag.Clear();
         Assert.True(bag.IsEmpty);
     }
+
+    [Fact]
+    public void Constructor_WithDictionary_WhenItemsIsNull_ThrowsArgumentNullException()
+    {
+        IDictionary<string, string>? items = null;
+
+        Assert.Throws<ArgumentNullException>(() =>
+           new MetadataBag(items!));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Indexer_Get_WhenKeyIsInvalid_ThrowsArgumentException(string? key)
+    {
+        var bag = new MetadataBag();
+
+        Assert.ThrowsAny<ArgumentException>(() =>
+        {
+            _ = bag[key!];
+        });
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Indexer_Set_WhenKeyIsInvalid_ThrowsArgumentException(string? key)
+    {
+        var bag = new MetadataBag();
+
+        Assert.ThrowsAny<ArgumentException>(() =>
+           bag[key!] = "value");
+    }
 }

@@ -46,4 +46,20 @@ public static class HasProfileNameExtensions
 
         return source.ProfileName.ToLowerInvariantName();
     }
+
+    /// <summary>
+    /// Determines whether the object has the specified profile name.
+    /// </summary>
+    /// <param name="source">The source object.</param>
+    /// <param name="profileName">The profile name string to compare with.</param>
+    /// <returns><c>true</c> if the profile name matches; otherwise, <c>false</c>.</returns>
+    public static bool HasProfileName(
+        this IHasProfileName source,
+        string profileName)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentException.ThrowIfNullOrWhiteSpace(profileName);
+
+        return source.ProfileName.EqualsIgnoreCase(new ProfileName(profileName));
+    }
 }

@@ -28,7 +28,7 @@ public static class Guard
    /// <exception cref="ArgumentException">Thrown when the value is null, empty, or whitespace.</exception>
    public static string NotNullOrWhiteSpace(string? value, string paramName)
    {
-      if(string.IsNullOrWhiteSpace(value))
+      if (string.IsNullOrWhiteSpace(value))
       {
          throw new ArgumentException("Value cannot be null, empty, or whitespace.", paramName);
       }
@@ -45,7 +45,7 @@ public static class Guard
    /// <exception cref="ArgumentOutOfRangeException">Thrown when the value is negative.</exception>
    public static int NotNegative(int value, string paramName)
    {
-      if(value < 0)
+      if (value < 0)
       {
          throw new ArgumentOutOfRangeException(paramName, value, "Value cannot be negative.");
       }
@@ -62,7 +62,7 @@ public static class Guard
    /// <exception cref="ArgumentOutOfRangeException">Thrown when the value is negative.</exception>
    public static long NotNegative(long value, string paramName)
    {
-      if(value < 0)
+      if (value < 0)
       {
          throw new ArgumentOutOfRangeException(paramName, value, "Value cannot be negative.");
       }
@@ -79,7 +79,7 @@ public static class Guard
    /// <exception cref="ArgumentOutOfRangeException">Thrown when the value is zero or negative.</exception>
    public static int Positive(int value, string paramName)
    {
-      if(value <= 0)
+      if (value <= 0)
       {
          throw new ArgumentOutOfRangeException(paramName, value, "Value must be greater than zero.");
       }
@@ -96,7 +96,7 @@ public static class Guard
    /// <exception cref="ArgumentOutOfRangeException">Thrown when the value is zero or negative.</exception>
    public static long Positive(long value, string paramName)
    {
-      if(value <= 0)
+      if (value <= 0)
       {
          throw new ArgumentOutOfRangeException(paramName, value, "Value must be greater than zero.");
       }
@@ -115,7 +115,14 @@ public static class Guard
    /// <exception cref="ArgumentOutOfRangeException">Thrown when the value is outside the range.</exception>
    public static int InRange(int value, int minimum, int maximum, string paramName)
    {
-      if(value < minimum || value > maximum)
+      if (minimum > maximum)
+      {
+         throw new ArgumentException(
+             "Minimum value cannot be greater than maximum value.",
+             nameof(minimum));
+      }
+
+      if (value < minimum || value > maximum)
       {
          throw new ArgumentOutOfRangeException(
              paramName,
