@@ -59,6 +59,7 @@ public sealed class MetadataBag
       set
       {
          ArgumentException.ThrowIfNullOrWhiteSpace(key);
+         ArgumentNullException.ThrowIfNull(value);
 
          _items[key] = value;
       }
@@ -72,6 +73,8 @@ public sealed class MetadataBag
    public void Set(string key, string value)
    {
       ArgumentException.ThrowIfNullOrWhiteSpace(key);
+      ArgumentNullException.ThrowIfNull(value);
+
       _items[key] = value;
    }
 
@@ -84,6 +87,7 @@ public sealed class MetadataBag
    public bool TryGet(string key, out string? value)
    {
       ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
       return _items.TryGetValue(key, out value);
    }
 
@@ -95,6 +99,7 @@ public sealed class MetadataBag
    public bool Remove(string key)
    {
       ArgumentException.ThrowIfNullOrWhiteSpace(key);
+
       return _items.Remove(key);
    }
 

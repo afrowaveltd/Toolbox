@@ -14,17 +14,18 @@ public static class IssueInfoListFactory
       return new List<IssueInfo>().AsReadOnly();
    }
 
+
    /// <summary>
    /// Creates an issue list from issue instances.
    /// </summary>
    /// <param name="issues">The issues.</param>
    /// <returns>An issue list.</returns>
    public static IReadOnlyList<IssueInfo> From(
-       params IssueInfo[] issues)
+      params IssueInfo[] issues)
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return [.. issues];
+      return Array.AsReadOnly(issues.ToArray());
    }
 
    /// <summary>
@@ -33,11 +34,11 @@ public static class IssueInfoListFactory
    /// <param name="issues">The issues.</param>
    /// <returns>An issue list.</returns>
    public static IReadOnlyList<IssueInfo> From(
-       IEnumerable<IssueInfo> issues)
+      IEnumerable<IssueInfo> issues)
    {
       ArgumentNullException.ThrowIfNull(issues);
 
-      return [.. issues];
+      return Array.AsReadOnly(issues.ToArray());
    }
 
    /// <summary>
@@ -47,13 +48,14 @@ public static class IssueInfoListFactory
    /// <param name="message">The issue message.</param>
    /// <returns>An issue list containing one informational issue.</returns>
    public static IReadOnlyList<IssueInfo> Information(
-       string code,
-       string message)
+      string code,
+      string message)
    {
-      return
-      [
-          IssueInfoFactory.Information(code, message)
-      ];
+      return Array.AsReadOnly(
+         new[]
+         {
+            IssueInfoFactory.Information(code, message)
+         });
    }
 
    /// <summary>
@@ -63,13 +65,14 @@ public static class IssueInfoListFactory
    /// <param name="message">The issue message.</param>
    /// <returns>An issue list containing one warning issue.</returns>
    public static IReadOnlyList<IssueInfo> Warning(
-       string code,
-       string message)
+      string code,
+      string message)
    {
-      return
-      [
-          IssueInfoFactory.Warning(code, message)
-      ];
+      return Array.AsReadOnly(
+         new[]
+         {
+            IssueInfoFactory.Warning(code, message)
+         });
    }
 
    /// <summary>
@@ -79,13 +82,14 @@ public static class IssueInfoListFactory
    /// <param name="message">The issue message.</param>
    /// <returns>An issue list containing one error issue.</returns>
    public static IReadOnlyList<IssueInfo> Error(
-       string code,
-       string message)
+      string code,
+      string message)
    {
-      return
-      [
-          IssueInfoFactory.Error(code, message)
-      ];
+      return Array.AsReadOnly(
+         new[]
+         {
+            IssueInfoFactory.Error(code, message)
+         });
    }
 
    /// <summary>
@@ -95,13 +99,14 @@ public static class IssueInfoListFactory
    /// <param name="message">The issue message.</param>
    /// <returns>An issue list containing one critical issue.</returns>
    public static IReadOnlyList<IssueInfo> Critical(
-       string code,
-       string message)
+      string code,
+      string message)
    {
-      return
-      [
-          IssueInfoFactory.Critical(code, message)
-      ];
+      return Array.AsReadOnly(
+         new[]
+         {
+            IssueInfoFactory.Critical(code, message)
+         });
    }
 
    /// <summary>
@@ -111,12 +116,13 @@ public static class IssueInfoListFactory
    /// <param name="message">The issue message.</param>
    /// <returns>An issue list containing one fatal issue.</returns>
    public static IReadOnlyList<IssueInfo> Fatal(
-       string code,
-       string message)
+      string code,
+      string message)
    {
-      return
-      [
-          IssueInfoFactory.Fatal(code, message)
-      ];
+      return Array.AsReadOnly(
+         new[]
+         {
+            IssueInfoFactory.Fatal(code, message)
+         });
    }
 }

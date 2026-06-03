@@ -21,8 +21,8 @@ public static class MetadataBagFactory
    /// <param name="value">The metadata value.</param>
    /// <returns>A metadata bag containing the specified value.</returns>
    public static MetadataBag From(
-       string key,
-       string value)
+      string key,
+      string value)
    {
       var metadata = new MetadataBag();
       metadata.Set(key, value);
@@ -36,13 +36,13 @@ public static class MetadataBagFactory
    /// <param name="items">The metadata key-value pairs.</param>
    /// <returns>A metadata bag containing the specified values.</returns>
    public static MetadataBag From(
-       IEnumerable<KeyValuePair<string, string>> items)
+      IEnumerable<KeyValuePair<string, string>> items)
    {
       ArgumentNullException.ThrowIfNull(items);
 
       var metadata = new MetadataBag();
 
-      foreach (var item in items)
+      foreach(var item in items)
       {
          metadata.Set(item.Key, item.Value);
       }
@@ -56,13 +56,13 @@ public static class MetadataBagFactory
    /// <param name="items">The metadata key-value tuples.</param>
    /// <returns>A metadata bag containing the specified values.</returns>
    public static MetadataBag From(
-       params (string Key, string Value)[] items)
+      params (string Key, string Value)[] items)
    {
       ArgumentNullException.ThrowIfNull(items);
 
       var metadata = new MetadataBag();
 
-      foreach (var item in items)
+      foreach(var item in items)
       {
          metadata.Set(item.Key, item.Value);
       }
@@ -79,11 +79,13 @@ public static class MetadataBagFactory
    {
       ArgumentNullException.ThrowIfNull(metadata);
 
-      return new MetadataBag(metadata.Items.ToDictionary(
-          item => item.Key,
-          item => item.Value,
-          StringComparer.OrdinalIgnoreCase));
+      return new MetadataBag(
+         metadata.Items.ToDictionary(
+            item => item.Key,
+            item => item.Value,
+            StringComparer.OrdinalIgnoreCase));
    }
+
    /// <summary>
    /// Creates a metadata bag by copying values from another metadata bag and setting one value.
    /// </summary>
@@ -92,9 +94,9 @@ public static class MetadataBagFactory
    /// <param name="value">The metadata value.</param>
    /// <returns>A new metadata bag with copied values and the specified value set.</returns>
    public static MetadataBag CopyWith(
-       MetadataBag metadata,
-       string key,
-       string value)
+      MetadataBag metadata,
+      string key,
+      string value)
    {
       ArgumentNullException.ThrowIfNull(metadata);
       ArgumentException.ThrowIfNullOrWhiteSpace(key);

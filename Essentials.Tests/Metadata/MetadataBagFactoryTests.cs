@@ -397,4 +397,46 @@ public sealed class MetadataBagFactoryTests
       Assert.True(copy.TryGet("OriginalKey", out var value));
       Assert.Equal("changed", value);
    }
+   [Fact]
+   public void From_WithSingleKeyValue_WhenValueIsNull_ThrowsArgumentNullException()
+   {
+      Assert.Throws<ArgumentNullException>(() =>
+         MetadataBagFactory.From(
+            "key",
+            null!));
+   }
+
+   [Fact]
+   public void From_WithKeyValuePairs_WhenAnyValueIsNull_ThrowsArgumentNullException()
+   {
+      var items = new[]
+      {
+      new KeyValuePair<string, string>("valid", "value"),
+      new KeyValuePair<string, string>("invalid", null!)
+   };
+
+      Assert.Throws<ArgumentNullException>(() =>
+         MetadataBagFactory.From(items));
+   }
+
+   [Fact]
+   public void From_WithTuples_WhenAnyValueIsNull_ThrowsArgumentNullException()
+   {
+      Assert.Throws<ArgumentNullException>(() =>
+         MetadataBagFactory.From(
+            ("valid", "value"),
+            ("invalid", null!)));
+   }
+
+   [Fact]
+   public void CopyWith_WhenValueIsNull_ThrowsArgumentNullException()
+   {
+      var metadata = new MetadataBag();
+
+      Assert.Throws<ArgumentNullException>(() =>
+         MetadataBagFactory.CopyWith(
+            metadata,
+            "key",
+            null!));
+   }
 }
