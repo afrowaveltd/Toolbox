@@ -5,8 +5,15 @@
 	<AssemblyName>Afrowave.Toolbox.Essentials</AssemblyName>
 	<RootNamespace>Afrowave.Toolbox.Essentials</RootNamespace>
 	<Description>Core building blocks for the Afrowave Toolbox package family. Provides shared abstractions, contracts, and utility types.</Description>
-	<PackageTags>afrowave;toolbox;essentials;dotnet;foundation</PackageTags>
-	<Version>0.1.0</Version>
+	<PackageTags>afrowave;toolbox;essentials;dotnet;foundation;results;diagnostics;metadata</PackageTags>
+	<Version>0.2.0</Version>
+	<PackageProjectUrl>https://github.com/afrowaveltd/Toolbox</PackageProjectUrl>
+	<PackageIcon>assets/toolbox-essentials-icon.png</PackageIcon>
+	<PackageReleaseNotes>Documentation-ready release for the first Afrowave.Toolbox.Essentials NuGet publication. No functional API changes.</PackageReleaseNotes>
   </PropertyGroup>
+
+  <ItemGroup>
+	<None Include="Assets\toolbox-essentials-icon.png" Pack="true" PackagePath="assets\" Visible="false" />
+  </ItemGroup>
 
 </Project>
