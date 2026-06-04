@@ -1,199 +1,228 @@
-using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Interfaces;
+using Afrowave.Toolbox.WhenItFails.Normalization;
 
-namespace WhenItFails.Tests.Catalog;
+namespace Afrowave.Toolbox.WhenItFails.Catalog;
 
-public sealed class ErrorCatalogTests
+/// <summary>
+/// Default in-memory implementation of an indexed error catalog.
+/// </summary>
+/// <remarks>
+/// This catalog is built from already loaded and preferably validated error definitions.
+/// It stores all definitions in memory and creates lookup indexes for fast searching.
+/// </remarks>
+public sealed class ErrorCatalog : IErrorCatalog
 {
-    [Fact]
-    public void GetAll_ShouldReturnAllDefinitions()
-    {
-        ErrorCatalog catalog = CreateTestCatalog();
+   private readonly IReadOnlyList<ErrorDefinition> _errors;
 
-        IReadOnlyList<ErrorDefinition> errors = catalog.GetAll();
+   private readonly Dictionary<string, ErrorDefinition> _errorsById;
+   private readonly Dictionary<int, ErrorDefinition> _errorsByCode;
+   private readonly Dictionary<string, ErrorDefinition> _errorsByName;
 
-        Assert.Equal(3, errors.Count);
-    }
+   private readonly Dictionary<string, List<ErrorDefinition>> _errorsByOwner;
+   private readonly Dictionary<string, List<ErrorDefinition>> _errorsByCodePrefix;
+   private readonly Dictionary<string, List<ErrorDefinition>> _errorsByCodeGroup;
+   private readonly Dictionary<string, List<ErrorDefinition>> _errorsByCategory;
+   private readonly Dictionary<string, List<ErrorDefinition>> _errorsBySubcategory;
+   private readonly Dictionary<string, List<ErrorDefinition>> _errorsByTag;
 
-    [Fact]
-    public void FindById_ShouldReturnMatchingDefinition()
-    {
-        ErrorCatalog catalog = CreateTestCatalog();
+   /// <summary>
+   /// Initializes a new instance of the <see cref="ErrorCatalog"/> class.
+   /// </summary>
+   /// <param name="errors">Error definitions to store in the catalog.</param>
+   /// <exception cref="ArgumentNullException">
+   /// Thrown when <paramref name="errors"/> is <c>null</c>.
+   /// </exception>
+   public ErrorCatalog(IEnumerable<ErrorDefinition> errors)
+   {
+      ArgumentNullException.ThrowIfNull(errors);
 
-        ErrorDefinition? error = catalog.FindById("CFG-0001");
+      _errors = errors.ToArray();
 
-        Assert.NotNull(error);
-        Assert.Equal("MissingConfigurationValue", error.Name);
-    }
+      _errorsById = new Dictionary<string, ErrorDefinition>(StringComparer.OrdinalIgnoreCase);
+      _errorsByCode = new Dictionary<int, ErrorDefinition>();
+      _errorsByName = new Dictionary<string, ErrorDefinition>(StringComparer.OrdinalIgnoreCase);
 
-    [Fact]
-    public void FindById_ShouldBeCaseInsensitive()
-    {
-        ErrorCatalog catalog = CreateTestCatalog();
+      _errorsByOwner = new Dictionary<string, List<ErrorDefinition>>(StringComparer.OrdinalIgnoreCase);
+      _errorsByCodePrefix = new Dictionary<string, List<ErrorDefinition>>(StringComparer.OrdinalIgnoreCase);
+      _errorsByCodeGroup = new Dictionary<string, List<ErrorDefinition>>(StringComparer.OrdinalIgnoreCase);
+      _errorsByCategory = new Dictionary<string, List<ErrorDefinition>>(StringComparer.OrdinalIgnoreCase);
+      _errorsBySubcategory = new Dictionary<string, List<ErrorDefinition>>(StringComparer.OrdinalIgnoreCase);
+      _errorsByTag = new Dictionary<string, List<ErrorDefinition>>(StringComparer.OrdinalIgnoreCase);
 
-        ErrorDefinition? error = catalog.FindById("cfg-0001");
+      BuildIndexes();
+   }
 
-        Assert.NotNull(error);
-        Assert.Equal("CFG-0001", error.Id);
-    }
+   /// <inheritdoc />
+   public IReadOnlyList<ErrorDefinition> GetAll()
+   {
+      return _errors;
+   }
 
-    [Fact]
-    public void FindById_ShouldReturnNull_WhenIdIsUnknown()
-    {
-        ErrorCatalog catalog = CreateTestCatalog();
+   /// <inheritdoc />
+   public ErrorDefinition? FindById(string id)
+   {
+      return FindSingle(_errorsById, id);
+   }
 
-        ErrorDefinition? error = catalog.FindById("NOPE-9999");
+   /// <inheritdoc />
+   public ErrorDefinition? FindByCode(int code)
+   {
+      return _errorsByCode.TryGetValue(code, out ErrorDefinition? error)
+          ? error
+          : null;
+   }
 
-        Assert.Null(error);
-    }
+   /// <inheritdoc />
+   public ErrorDefinition? FindByName(string name)
+   {
+      return FindSingle(_errorsByName, name);
+   }
 
-    [Fact]
-    public void FindById_ShouldReturnNull_WhenIdIsEmpty()
-    {
-        ErrorCatalog catalog = CreateTestCatalog();
+   /// <inheritdoc />
+   public IReadOnlyList<ErrorDefinition> FindByOwner(string owner)
+   {
+      return FindMany(_errorsByOwner, owner);
+   }
 
-        ErrorDefinition? error = catalog.FindById(string.Empty);
+   /// <inheritdoc />
+   public IReadOnlyList<ErrorDefinition> FindByCodePrefix(string codePrefix)
+   {
+      return FindMany(_errorsByCodePrefix, codePrefix);
+   }
 
-        Assert.Null(error);
-    }
+   /// <inheritdoc />
+   public IReadOnlyList<ErrorDefinition> FindByCodeGroup(string codeGroup)
+   {
+      return FindMany(_errorsByCodeGroup, codeGroup);
+   }
 
-    [Fact]
-    public void FindByCode_ShouldReturnMatchingDefinition()
-    {
-        ErrorCatalog catalog = CreateTestCatalog();
+   /// <inheritdoc />
+   public IReadOnlyList<ErrorDefinition> FindByCategory(string category)
+   {
+      return FindMany(_errorsByCategory, category);
+   }
 
-        ErrorDefinition? error = catalog.FindByCode(1001);
+   /// <inheritdoc />
+   public IReadOnlyList<ErrorDefinition> FindBySubcategory(string subcategory)
+   {
+      return FindMany(_errorsBySubcategory, subcategory);
+   }
 
-        Assert.NotNull(error);
-        Assert.Equal("CFG-0001", error.Id);
-    }
+   /// <inheritdoc />
+   public IReadOnlyList<ErrorDefinition> FindByTag(string tag)
+   {
+      return FindMany(_errorsByTag, tag);
+   }
 
-    [Fact]
-    public void FindByCode_ShouldReturnNull_WhenCodeIsUnknown()
-    {
-        ErrorCatalog catalog = CreateTestCatalog();
+   private void BuildIndexes()
+   {
+      foreach(ErrorDefinition error in _errors)
+      {
+         AddSingleValueIndex(_errorsById, error.Id, error);
+         AddSingleValueIndex(_errorsByName, error.Name, error);
 
-        ErrorDefinition? error = catalog.FindByCode(9999);
+         if(error.Code > 0)
+         {
+            _errorsByCode.TryAdd(error.Code, error);
+         }
 
-        Assert.Null(error);
-    }
+         AddMultiValueIndex(_errorsByOwner, error.Owner, error);
+         AddMultiValueIndex(_errorsByCodePrefix, error.CodePrefix, error);
+         AddMultiValueIndex(_errorsByCodeGroup, error.CodeGroup, error);
 
-    [Fact]
-    public void FindByName_ShouldReturnMatchingDefinition()
-    {
-        ErrorCatalog catalog = CreateTestCatalog();
+         AddMultiValueIndex(_errorsByCategory, error.PrimaryCategory, error);
 
-        ErrorDefinition? error = catalog.FindByName("MissingConfigurationValue");
+         foreach(string category in error.Categories)
+         {
+            AddMultiValueIndex(_errorsByCategory, category, error);
+         }
 
-        Assert.NotNull(error);
-        Assert.Equal("CFG-0001", error.Id);
-    }
+         foreach(string subcategory in error.Subcategories)
+         {
+            AddMultiValueIndex(_errorsBySubcategory, subcategory, error);
+         }
 
-    [Fact]
-    public void FindByName_ShouldBeCaseInsensitive()
-    {
-        ErrorCatalog catalog = CreateTestCatalog();
+         foreach(string tag in error.Tags)
+         {
+            AddMultiValueIndex(_errorsByTag, tag, error);
+         }
+      }
+   }
 
-        ErrorDefinition? error = catalog.FindByName("missingconfigurationvalue");
+   private static ErrorDefinition? FindSingle(
+       Dictionary<string, ErrorDefinition> index,
+       string key)
+   {
+      if(string.IsNullOrWhiteSpace(key))
+      {
+         return null;
+      }
 
-        Assert.NotNull(error);
-        Assert.Equal("MissingConfigurationValue", error.Name);
-    }
+      string normalizedKey = TextKeyNormalizer.NormalizeKey(key);
 
-    [Fact]
-    public void FindByCategory_ShouldReturnMatchingDefinitions()
-    {
-        ErrorCatalog catalog = CreateTestCatalog();
+      return index.TryGetValue(normalizedKey, out ErrorDefinition? error)
+          ? error
+          : null;
+   }
 
-        IReadOnlyList<ErrorDefinition> errors = catalog.FindByCategory("Configuration");
+   private static IReadOnlyList<ErrorDefinition> FindMany(
+       Dictionary<string, List<ErrorDefinition>> index,
+       string key)
+   {
+      if(string.IsNullOrWhiteSpace(key))
+      {
+         return Array.Empty<ErrorDefinition>();
+      }
 
-        Assert.Equal(2, errors.Count);
-        Assert.Contains(errors, error => error.Id == "CFG-0001");
-        Assert.Contains(errors, error => error.Id == "CFG-0002");
-    }
+      string normalizedKey = TextKeyNormalizer.NormalizeKey(key);
 
-    [Fact]
-    public void FindByCategoryPrefix_ShouldReturnMatchingDefinitions()
-    {
-        ErrorCatalog catalog = CreateTestCatalog();
+      return index.TryGetValue(normalizedKey, out List<ErrorDefinition>? errors)
+          ? errors
+          : Array.Empty<ErrorDefinition>();
+   }
 
-        IReadOnlyList<ErrorDefinition> errors = catalog.FindByCategoryPrefix("CFG");
+   private static void AddSingleValueIndex(
+       Dictionary<string, ErrorDefinition> index,
+       string key,
+       ErrorDefinition error)
+   {
+      if(string.IsNullOrWhiteSpace(key))
+      {
+         return;
+      }
 
-        Assert.Equal(2, errors.Count);
-        Assert.Contains(errors, error => error.Id == "CFG-0001");
-        Assert.Contains(errors, error => error.Id == "CFG-0002");
-    }
+      string normalizedKey = TextKeyNormalizer.NormalizeKey(key);
 
-    [Fact]
-    public void FindByTag_ShouldReturnMatchingDefinitions()
-    {
-        ErrorCatalog catalog = CreateTestCatalog();
+      index.TryAdd(normalizedKey, error);
+   }
 
-        IReadOnlyList<ErrorDefinition> errors = catalog.FindByTag("startup");
+   private static void AddMultiValueIndex(
+       Dictionary<string, List<ErrorDefinition>> index,
+       string key,
+       ErrorDefinition error)
+   {
+      if(string.IsNullOrWhiteSpace(key))
+      {
+         return;
+      }
 
-        Assert.Equal(2, errors.Count);
-        Assert.Contains(errors, error => error.Id == "CFG-0001");
-        Assert.Contains(errors, error => error.Id == "CFG-0002");
-    }
+      string normalizedKey = TextKeyNormalizer.NormalizeKey(key);
 
-    [Fact]
-    public void FindByTag_ShouldBeCaseInsensitive()
-    {
-        ErrorCatalog catalog = CreateTestCatalog();
+      if(string.IsNullOrWhiteSpace(normalizedKey))
+      {
+         return;
+      }
 
-        IReadOnlyList<ErrorDefinition> errors = catalog.FindByTag("STARTUP");
+      if(!index.TryGetValue(normalizedKey, out List<ErrorDefinition>? errors))
+      {
+         errors = new List<ErrorDefinition>();
+         index[normalizedKey] = errors;
+      }
 
-        Assert.Equal(2, errors.Count);
-    }
-
-    [Fact]
-    public void Constructor_ShouldThrowArgumentNullException_WhenErrorsIsNull()
-    {
-        Assert.Throws<ArgumentNullException>(() => new ErrorCatalog(null!));
-    }
-
-    private static ErrorCatalog CreateTestCatalog()
-    {
-        ErrorDefinition[] errors =
-        [
-            new ErrorDefinition
-            {
-                Id = "CFG-0001",
-                Code = 1001,
-                Name = "MissingConfigurationValue",
-                Category = "Configuration",
-                CategoryPrefix = "CFG",
-                Title = "Missing configuration value",
-                Message = "A required configuration value is missing.",
-                DefaultSeverity = "Error",
-                Tags = ["configuration", "startup", "user-visible"]
-            },
-            new ErrorDefinition
-            {
-                Id = "CFG-0002",
-                Code = 1002,
-                Name = "InvalidConfigurationValue",
-                Category = "Configuration",
-                CategoryPrefix = "CFG",
-                Title = "Invalid configuration value",
-                Message = "A configuration value is invalid.",
-                DefaultSeverity = "Error",
-                Tags = ["configuration", "startup"]
-            },
-            new ErrorDefinition
-            {
-                Id = "VAL-0001",
-                Code = 2001,
-                Name = "RequiredValueMissing",
-                Category = "Validation",
-                CategoryPrefix = "VAL",
-                Title = "Required value missing",
-                Message = "A required value was not provided.",
-                DefaultSeverity = "Warning",
-                Tags = ["validation", "user-visible"]
-            }
-        ];
-
-        return new ErrorCatalog(errors);
-    }
+      if(!errors.Contains(error))
+      {
+         errors.Add(error);
+      }
+   }
 }

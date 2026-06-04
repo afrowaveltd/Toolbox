@@ -1,5 +1,6 @@
 ﻿using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
+using Afrowave.Toolbox.WhenItFails.Normalization;
 
 namespace Afrowave.Toolbox.WhenItFails.Catalog;
 
@@ -18,8 +19,11 @@ public sealed class ErrorCatalog : IErrorCatalog
    private readonly Dictionary<int, ErrorDefinition> _errorsByCode;
    private readonly Dictionary<string, ErrorDefinition> _errorsByName;
 
+   private readonly Dictionary<string, List<ErrorDefinition>> _errorsByOwner;
+   private readonly Dictionary<string, List<ErrorDefinition>> _errorsByCodePrefix;
+   private readonly Dictionary<string, List<ErrorDefinition>> _errorsByCodeGroup;
    private readonly Dictionary<string, List<ErrorDefinition>> _errorsByCategory;
-   private readonly Dictionary<string, List<ErrorDefinition>> _errorsByCategoryPrefix;
+   private readonly Dictionary<string, List<ErrorDefinition>> _errorsBySubcategory;
    private readonly Dictionary<string, List<ErrorDefinition>> _errorsByTag;
 
    /// <summary>
@@ -39,8 +43,11 @@ public sealed class ErrorCatalog : IErrorCatalog
       _errorsByCode = new Dictionary<int, ErrorDefinition>();
       _errorsByName = new Dictionary<string, ErrorDefinition>(StringComparer.OrdinalIgnoreCase);
 
+      _errorsByOwner = new Dictionary<string, List<ErrorDefinition>>(StringComparer.OrdinalIgnoreCase);
+      _errorsByCodePrefix = new Dictionary<string, List<ErrorDefinition>>(StringComparer.OrdinalIgnoreCase);
+      _errorsByCodeGroup = new Dictionary<string, List<ErrorDefinition>>(StringComparer.OrdinalIgnoreCase);
       _errorsByCategory = new Dictionary<string, List<ErrorDefinition>>(StringComparer.OrdinalIgnoreCase);
-      _errorsByCategoryPrefix = new Dictionary<string, List<ErrorDefinition>>(StringComparer.OrdinalIgnoreCase);
+      _errorsBySubcategory = new Dictionary<string, List<ErrorDefinition>>(StringComparer.OrdinalIgnoreCase);
       _errorsByTag = new Dictionary<string, List<ErrorDefinition>>(StringComparer.OrdinalIgnoreCase);
 
       BuildIndexes();
@@ -55,14 +62,7 @@ public sealed class ErrorCatalog : IErrorCatalog
    /// <inheritdoc />
    public ErrorDefinition? FindById(string id)
    {
-      if(string.IsNullOrWhiteSpace(id))
-      {
-         return null;
-      }
-
-      return _errorsById.TryGetValue(id.Trim(), out ErrorDefinition? error)
-          ? error
-          : null;
+      return FindSingle(_errorsById, id);
    }
 
    /// <inheritdoc />
@@ -76,53 +76,43 @@ public sealed class ErrorCatalog : IErrorCatalog
    /// <inheritdoc />
    public ErrorDefinition? FindByName(string name)
    {
-      if(string.IsNullOrWhiteSpace(name))
-      {
-         return null;
-      }
+      return FindSingle(_errorsByName, name);
+   }
 
-      return _errorsByName.TryGetValue(name.Trim(), out ErrorDefinition? error)
-          ? error
-          : null;
+   /// <inheritdoc />
+   public IReadOnlyList<ErrorDefinition> FindByOwner(string owner)
+   {
+      return FindMany(_errorsByOwner, owner);
+   }
+
+   /// <inheritdoc />
+   public IReadOnlyList<ErrorDefinition> FindByCodePrefix(string codePrefix)
+   {
+      return FindMany(_errorsByCodePrefix, codePrefix);
+   }
+
+   /// <inheritdoc />
+   public IReadOnlyList<ErrorDefinition> FindByCodeGroup(string codeGroup)
+   {
+      return FindMany(_errorsByCodeGroup, codeGroup);
    }
 
    /// <inheritdoc />
    public IReadOnlyList<ErrorDefinition> FindByCategory(string category)
    {
-      if(string.IsNullOrWhiteSpace(category))
-      {
-         return Array.Empty<ErrorDefinition>();
-      }
-
-      return _errorsByCategory.TryGetValue(category.Trim(), out List<ErrorDefinition>? errors)
-          ? errors
-          : Array.Empty<ErrorDefinition>();
+      return FindMany(_errorsByCategory, category);
    }
 
    /// <inheritdoc />
-   public IReadOnlyList<ErrorDefinition> FindByCategoryPrefix(string categoryPrefix)
+   public IReadOnlyList<ErrorDefinition> FindBySubcategory(string subcategory)
    {
-      if(string.IsNullOrWhiteSpace(categoryPrefix))
-      {
-         return Array.Empty<ErrorDefinition>();
-      }
-
-      return _errorsByCategoryPrefix.TryGetValue(categoryPrefix.Trim(), out List<ErrorDefinition>? errors)
-          ? errors
-          : Array.Empty<ErrorDefinition>();
+      return FindMany(_errorsBySubcategory, subcategory);
    }
 
    /// <inheritdoc />
    public IReadOnlyList<ErrorDefinition> FindByTag(string tag)
    {
-      if(string.IsNullOrWhiteSpace(tag))
-      {
-         return Array.Empty<ErrorDefinition>();
-      }
-
-      return _errorsByTag.TryGetValue(tag.Trim(), out List<ErrorDefinition>? errors)
-          ? errors
-          : Array.Empty<ErrorDefinition>();
+      return FindMany(_errorsByTag, tag);
    }
 
    private void BuildIndexes()
@@ -137,14 +127,59 @@ public sealed class ErrorCatalog : IErrorCatalog
             _errorsByCode.TryAdd(error.Code, error);
          }
 
-         AddMultiValueIndex(_errorsByCategory, error.Category, error);
-         AddMultiValueIndex(_errorsByCategoryPrefix, error.CategoryPrefix, error);
+         AddMultiValueIndex(_errorsByOwner, error.Owner, error);
+         AddMultiValueIndex(_errorsByCodePrefix, error.CodePrefix, error);
+         AddMultiValueIndex(_errorsByCodeGroup, error.CodeGroup, error);
+
+         AddMultiValueIndex(_errorsByCategory, error.PrimaryCategory, error);
+
+         foreach(string category in error.Categories)
+         {
+            AddMultiValueIndex(_errorsByCategory, category, error);
+         }
+
+         foreach(string subcategory in error.Subcategories)
+         {
+            AddMultiValueIndex(_errorsBySubcategory, subcategory, error);
+         }
 
          foreach(string tag in error.Tags)
          {
             AddMultiValueIndex(_errorsByTag, tag, error);
          }
       }
+   }
+
+   private static ErrorDefinition? FindSingle(
+       Dictionary<string, ErrorDefinition> index,
+       string key)
+   {
+      if(string.IsNullOrWhiteSpace(key))
+      {
+         return null;
+      }
+
+      string normalizedKey = TextKeyNormalizer.NormalizeKey(key);
+
+      return index.TryGetValue(normalizedKey, out ErrorDefinition? error)
+          ? error
+          : null;
+   }
+
+   private static IReadOnlyList<ErrorDefinition> FindMany(
+       Dictionary<string, List<ErrorDefinition>> index,
+       string key)
+   {
+      if(string.IsNullOrWhiteSpace(key))
+      {
+         return Array.Empty<ErrorDefinition>();
+      }
+
+      string normalizedKey = TextKeyNormalizer.NormalizeKey(key);
+
+      return index.TryGetValue(normalizedKey, out List<ErrorDefinition>? errors)
+          ? errors
+          : Array.Empty<ErrorDefinition>();
    }
 
    private static void AddSingleValueIndex(
@@ -157,7 +192,9 @@ public sealed class ErrorCatalog : IErrorCatalog
          return;
       }
 
-      index.TryAdd(key.Trim(), error);
+      string normalizedKey = TextKeyNormalizer.NormalizeKey(key);
+
+      index.TryAdd(normalizedKey, error);
    }
 
    private static void AddMultiValueIndex(
@@ -170,7 +207,12 @@ public sealed class ErrorCatalog : IErrorCatalog
          return;
       }
 
-      string normalizedKey = key.Trim();
+      string normalizedKey = TextKeyNormalizer.NormalizeKey(key);
+
+      if(string.IsNullOrWhiteSpace(normalizedKey))
+      {
+         return;
+      }
 
       if(!index.TryGetValue(normalizedKey, out List<ErrorDefinition>? errors))
       {
@@ -178,6 +220,9 @@ public sealed class ErrorCatalog : IErrorCatalog
          index[normalizedKey] = errors;
       }
 
-      errors.Add(error);
+      if(!errors.Contains(error))
+      {
+         errors.Add(error);
+      }
    }
 }

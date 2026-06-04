@@ -3,36 +3,151 @@
   "WorkspaceRootPath": "D:\\Toolbox\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|d:\\toolbox\\whenitfails.tests\\whenitfails.tests.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
-      "RelativeMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|solutionrelative:whenitfails.tests\\whenitfails.tests.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+      "AbsoluteMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|d:\\toolbox\\whenitfails.tests\\catalog\\errorcatalogprovidertests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|solutionrelative:whenitfails.tests\\catalog\\errorcatalogprovidertests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\interfaces\\ierrorcatalog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\interfaces\\ierrorcatalog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\catalog\\errorcatalogprovider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\catalog\\errorcatalogprovider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\normalization\\errorcatalogdocumentnormalizer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\normalization\\errorcatalogdocumentnormalizer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\interfaces\\ierrorcatalogdocumentnormalizer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\interfaces\\ierrorcatalogdocumentnormalizer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|d:\\toolbox\\whenitfails.tests\\normalization\\errorcatalogdocumentnormalizertests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|solutionrelative:whenitfails.tests\\normalization\\errorcatalogdocumentnormalizertests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|d:\\toolbox\\whenitfails.tests\\normalization\\errordefinitionnormalizertests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|solutionrelative:whenitfails.tests\\normalization\\errordefinitionnormalizertests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\normalization\\errordefinitionnormalizer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\normalization\\errordefinitionnormalizer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|d:\\toolbox\\whenitfails.tests\\catalog\\errorcatalogfactorytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|solutionrelative:whenitfails.tests\\catalog\\errorcatalogfactorytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|d:\\toolbox\\whenitfails.tests\\validation\\errorcatalogvalidatortests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|solutionrelative:whenitfails.tests\\validation\\errorcatalogvalidatortests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\validation\\errorcatalogvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\validation\\errorcatalogvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|d:\\toolbox\\whenitfails.tests\\catalog\\errorcatalogtests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|solutionrelative:whenitfails.tests\\catalog\\errorcatalogtests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\catalog\\errorcatalog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\catalog\\errorcatalog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|d:\\toolbox\\whenitfails.tests\\unittest1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|solutionrelative:whenitfails.tests\\unittest1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\interfaces\\ierrorcatalog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\interfaces\\ierrorcatalog.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\definitions\\errordescriptoroft.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\definitions\\errordescriptoroft.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\descriptors\\errordescriptoroft.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\descriptors\\errordescriptoroft.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\definitions\\errordescriptor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\definitions\\errordescriptor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\definitions\\errorcatalogdocument.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\definitions\\errorcatalogdocument.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\descriptors\\errordescriptor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\descriptors\\errordescriptor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\definitions\\errordefinition.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\definitions\\errordefinition.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|d:\\toolbox\\whenitfails.tests\\normalization\\testkeynormalizertests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|solutionrelative:whenitfails.tests\\normalization\\testkeynormalizertests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\normalization\\textkeynormalizer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\normalization\\textkeynormalizer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\docs\\philosophy\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|MarkdownPreview",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\docs\\philosophy\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|MarkdownPreview"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\docs\\philosophy\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\docs\\philosophy\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\interfaces\\ierrorcatalogprovider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\interfaces\\ierrorcatalogprovider.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\catalog\\errorcatalogproviderresult.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\catalog\\errorcatalogproviderresult.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\catalog\\errorcatalogfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\catalog\\errorcatalogfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\interfaces\\ierrorcatalogfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\interfaces\\ierrorcatalogfactory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\loading\\jsonerrorcatalogloader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\loading\\jsonerrorcatalogloader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|d:\\toolbox\\whenitfails.tests\\loading\\jsonerrorcatalogloadertests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|solutionrelative:whenitfails.tests\\loading\\jsonerrorcatalogloadertests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\interfaces\\ierrorcatalogloader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\interfaces\\ierrorcatalogloader.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\loading\\errorcatalogloadresult.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\loading\\errorcatalogloadresult.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\interfaces\\ierrorcatalogvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\interfaces\\ierrorcatalogvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|d:\\toolbox\\whenitfails.tests\\validation\\errorcatalogvalidationresultrests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|solutionrelative:whenitfails.tests\\validation\\errorcatalogvalidationresultrests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\validation\\errorcatalogvalidationresult.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\validation\\errorcatalogvalidationresult.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\validation\\errorcatalogvalidationissue.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\validation\\errorcatalogvalidationissue.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\enums\\errorcatalogvalidationseverity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\enums\\errorcatalogvalidationseverity.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|d:\\toolbox\\essentials\\essentials.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{3900D973-D4A5-4224-9B4E-CD51F4F9A84B}|Essentials\\Essentials.csproj|solutionrelative:essentials\\essentials.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|MarkdownSecurePreview"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|d:\\toolbox\\whenitfails.tests\\whenitfails.tests.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|solutionrelative:whenitfails.tests\\whenitfails.tests.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\definitions\\errorcatalogdocument.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\definitions\\errorcatalogdocument.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\whenitfails.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
@@ -83,12 +198,6 @@
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:README\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-documentation-for-afrowave.toolbox.essentials.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|MarkdownSecurePreview"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|MarkdownSecurePreview"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|MardownSecureEdit"
     },
     {
@@ -131,7 +240,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 50,
+          "SelectedChildIndex": 60,
           "Children": [
             {
               "$type": "Bookmark",
@@ -335,8 +444,449 @@
             },
             {
               "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "IErrorCatalogDocumentNormalizer.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Interfaces\\IErrorCatalogDocumentNormalizer.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Interfaces\\IErrorCatalogDocumentNormalizer.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Interfaces\\IErrorCatalogDocumentNormalizer.cs",
+              "RelativeToolTip": "WhenItFails\\Interfaces\\IErrorCatalogDocumentNormalizer.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T12:55:19.87Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "ErrorCatalogDocumentNormalizerTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails.Tests\\Normalization\\ErrorCatalogDocumentNormalizerTests.cs",
+              "RelativeDocumentMoniker": "WhenItFails.Tests\\Normalization\\ErrorCatalogDocumentNormalizerTests.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails.Tests\\Normalization\\ErrorCatalogDocumentNormalizerTests.cs",
+              "RelativeToolTip": "WhenItFails.Tests\\Normalization\\ErrorCatalogDocumentNormalizerTests.cs",
+              "ViewState": "AgIAAGsAAAAAAAAAAAAUwIUAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T12:48:39.271Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ErrorCatalogDocumentNormalizer.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Normalization\\ErrorCatalogDocumentNormalizer.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Normalization\\ErrorCatalogDocumentNormalizer.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Normalization\\ErrorCatalogDocumentNormalizer.cs \u2B24",
+              "RelativeToolTip": "WhenItFails\\Normalization\\ErrorCatalogDocumentNormalizer.cs \u2B24",
+              "ViewState": "AgIAAB4AAAAAAAAAAAA0wAwAAABUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T12:47:54.281Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "ErrorDefinitionNormalizerTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails.Tests\\Normalization\\ErrorDefinitionNormalizerTests.cs",
+              "RelativeDocumentMoniker": "WhenItFails.Tests\\Normalization\\ErrorDefinitionNormalizerTests.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails.Tests\\Normalization\\ErrorDefinitionNormalizerTests.cs",
+              "RelativeToolTip": "WhenItFails.Tests\\Normalization\\ErrorDefinitionNormalizerTests.cs",
+              "ViewState": "AgIAAEgAAAAAAAAAAAAUwGIAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T11:47:04.096Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "ErrorDefinitionNormalizer.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Normalization\\ErrorDefinitionNormalizer.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Normalization\\ErrorDefinitionNormalizer.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Normalization\\ErrorDefinitionNormalizer.cs",
+              "RelativeToolTip": "WhenItFails\\Normalization\\ErrorDefinitionNormalizer.cs",
+              "ViewState": "AgIAADgAAAAAAAAAAAAUwFIAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T11:45:42.248Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "ErrorDefinition.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Definitions\\ErrorDefinition.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Definitions\\ErrorDefinition.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Definitions\\ErrorDefinition.cs",
+              "RelativeToolTip": "WhenItFails\\Definitions\\ErrorDefinition.cs",
+              "ViewState": "AgIAAHgAAAAAAAAAAAAqwJYAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-03T13:09:12.766Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "ErrorDescriptor.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Descriptors\\ErrorDescriptor.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Descriptors\\ErrorDescriptor.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Descriptors\\ErrorDescriptor.cs",
+              "RelativeToolTip": "WhenItFails\\Descriptors\\ErrorDescriptor.cs",
+              "ViewState": "AgIAAIkAAAAAAAAAAAAqwKcAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-03T13:13:42.467Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "ErrorDescriptorOfT.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Descriptors\\ErrorDescriptorOfT.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Descriptors\\ErrorDescriptorOfT.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Descriptors\\ErrorDescriptorOfT.cs",
+              "RelativeToolTip": "WhenItFails\\Descriptors\\ErrorDescriptorOfT.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-03T13:15:50.467Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "IErrorCatalog.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Interfaces\\IErrorCatalog.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Interfaces\\IErrorCatalog.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Interfaces\\IErrorCatalog.cs",
+              "RelativeToolTip": "WhenItFails\\Interfaces\\IErrorCatalog.cs",
+              "ViewState": "AgIAADcAAAAAAAAAAAAqwFUAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-03T13:18:17.659Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ErrorCatalogProvider.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Catalog\\ErrorCatalogProvider.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Catalog\\ErrorCatalogProvider.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Catalog\\ErrorCatalogProvider.cs",
+              "RelativeToolTip": "WhenItFails\\Catalog\\ErrorCatalogProvider.cs",
+              "ViewState": "AgIAADIAAAAAAAAAAAAmwFAAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T10:13:37.858Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "WhenItFails.Tests",
+              "Title": "ErrorCatalogProviderTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails.Tests\\Catalog\\ErrorCatalogProviderTests.cs",
+              "RelativeDocumentMoniker": "WhenItFails.Tests\\Catalog\\ErrorCatalogProviderTests.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails.Tests\\Catalog\\ErrorCatalogProviderTests.cs \u2B24",
+              "RelativeToolTip": "WhenItFails.Tests\\Catalog\\ErrorCatalogProviderTests.cs \u2B24",
+              "ViewState": "AgIAAOEAAAAAAAAAAAAwwAkBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T10:15:53.92Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "ErrorCatalogTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails.Tests\\Catalog\\ErrorCatalogTests.cs",
+              "RelativeDocumentMoniker": "WhenItFails.Tests\\Catalog\\ErrorCatalogTests.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails.Tests\\Catalog\\ErrorCatalogTests.cs",
+              "RelativeToolTip": "WhenItFails.Tests\\Catalog\\ErrorCatalogTests.cs",
+              "ViewState": "AgIAALoAAAAAAAAAAAAqwOMAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T10:17:41.593Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "TestKeyNormalizerTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails.Tests\\Normalization\\TestKeyNormalizerTests.cs",
+              "RelativeDocumentMoniker": "WhenItFails.Tests\\Normalization\\TestKeyNormalizerTests.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails.Tests\\Normalization\\TestKeyNormalizerTests.cs",
+              "RelativeToolTip": "WhenItFails.Tests\\Normalization\\TestKeyNormalizerTests.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T11:17:41.845Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "ErrorCatalog.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Catalog\\ErrorCatalog.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Catalog\\ErrorCatalog.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Catalog\\ErrorCatalog.cs",
+              "RelativeToolTip": "WhenItFails\\Catalog\\ErrorCatalog.cs",
+              "ViewState": "AgIAALoAAAAAAAAAAAAqwOMAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-03T13:26:55.942Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "ErrorCatalogValidator.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Validation\\ErrorCatalogValidator.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Validation\\ErrorCatalogValidator.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Validation\\ErrorCatalogValidator.cs",
+              "RelativeToolTip": "WhenItFails\\Validation\\ErrorCatalogValidator.cs",
+              "ViewState": "AgIAADIBAAAAAAAAAAAcwFsBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T09:35:13.851Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "ErrorCatalogValidatorTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails.Tests\\Validation\\ErrorCatalogValidatorTests.cs",
+              "RelativeDocumentMoniker": "WhenItFails.Tests\\Validation\\ErrorCatalogValidatorTests.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails.Tests\\Validation\\ErrorCatalogValidatorTests.cs",
+              "RelativeToolTip": "WhenItFails.Tests\\Validation\\ErrorCatalogValidatorTests.cs",
+              "ViewState": "AgIAAEkBAAAAAAAAAAAcwFsBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T09:36:32.825Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "ErrorCatalogFactoryTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails.Tests\\Catalog\\ErrorCatalogFactoryTests.cs",
+              "RelativeDocumentMoniker": "WhenItFails.Tests\\Catalog\\ErrorCatalogFactoryTests.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails.Tests\\Catalog\\ErrorCatalogFactoryTests.cs",
+              "RelativeToolTip": "WhenItFails.Tests\\Catalog\\ErrorCatalogFactoryTests.cs",
+              "ViewState": "AgIAADoAAAAAAAAAAAAqwFgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T10:09:06.949Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "TextKeyNormalizer.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Normalization\\TextKeyNormalizer.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Normalization\\TextKeyNormalizer.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Normalization\\TextKeyNormalizer.cs",
+              "RelativeToolTip": "WhenItFails\\Normalization\\TextKeyNormalizer.cs",
+              "ViewState": "AgIAAAoAAAAAAAAAAAAywEMAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T11:16:00.914Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "en.md [N\u00E1hled]",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Docs\\Philosophy\\en.md",
+              "RelativeDocumentMoniker": "WhenItFails\\Docs\\Philosophy\\en.md",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Docs\\Philosophy\\en.md [N\u00E1hled]",
+              "RelativeToolTip": "WhenItFails\\Docs\\Philosophy\\en.md [N\u00E1hled]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-06-04T10:45:27.764Z",
+              "EditorCaption": " [N\u00E1hled]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "en.md",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Docs\\Philosophy\\en.md",
+              "RelativeDocumentMoniker": "WhenItFails\\Docs\\Philosophy\\en.md",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Docs\\Philosophy\\en.md",
+              "RelativeToolTip": "WhenItFails\\Docs\\Philosophy\\en.md",
+              "ViewState": "AgIAAJQBAAAAAAAAAAAkwOUBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-06-04T10:42:45.083Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "IErrorCatalogProvider.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Interfaces\\IErrorCatalogProvider.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Interfaces\\IErrorCatalogProvider.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Interfaces\\IErrorCatalogProvider.cs",
+              "RelativeToolTip": "WhenItFails\\Interfaces\\IErrorCatalogProvider.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T10:11:01.181Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "ErrorCatalogProviderResult.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Catalog\\ErrorCatalogProviderResult.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Catalog\\ErrorCatalogProviderResult.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Catalog\\ErrorCatalogProviderResult.cs",
+              "RelativeToolTip": "WhenItFails\\Catalog\\ErrorCatalogProviderResult.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAFAAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T10:12:34.878Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "ErrorCatalogFactory.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Catalog\\ErrorCatalogFactory.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Catalog\\ErrorCatalogFactory.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Catalog\\ErrorCatalogFactory.cs",
+              "RelativeToolTip": "WhenItFails\\Catalog\\ErrorCatalogFactory.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T10:08:17.916Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "IErrorCatalogFactory.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Interfaces\\IErrorCatalogFactory.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Interfaces\\IErrorCatalogFactory.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Interfaces\\IErrorCatalogFactory.cs",
+              "RelativeToolTip": "WhenItFails\\Interfaces\\IErrorCatalogFactory.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T10:07:44.247Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "JsonErrorCatalogLoaderTests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails.Tests\\Loading\\JsonErrorCatalogLoaderTests.cs",
+              "RelativeDocumentMoniker": "WhenItFails.Tests\\Loading\\JsonErrorCatalogLoaderTests.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails.Tests\\Loading\\JsonErrorCatalogLoaderTests.cs",
+              "RelativeToolTip": "WhenItFails.Tests\\Loading\\JsonErrorCatalogLoaderTests.cs",
+              "ViewState": "AgIAAH0AAAAAAAAAAAAvwJIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T09:43:23.416Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "JsonErrorCatalogLoader.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Loading\\JsonErrorCatalogLoader.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Loading\\JsonErrorCatalogLoader.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Loading\\JsonErrorCatalogLoader.cs",
+              "RelativeToolTip": "WhenItFails\\Loading\\JsonErrorCatalogLoader.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAA3AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T09:41:22.917Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 26,
+              "Title": "IErrorCatalogLoader.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Interfaces\\IErrorCatalogLoader.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Interfaces\\IErrorCatalogLoader.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Interfaces\\IErrorCatalogLoader.cs",
+              "RelativeToolTip": "WhenItFails\\Interfaces\\IErrorCatalogLoader.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T09:40:31.29Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 27,
+              "Title": "ErrorCatalogLoadResult.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Loading\\ErrorCatalogLoadResult.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Loading\\ErrorCatalogLoadResult.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Loading\\ErrorCatalogLoadResult.cs",
+              "RelativeToolTip": "WhenItFails\\Loading\\ErrorCatalogLoadResult.cs",
+              "ViewState": "AgIAABoAAAAAAAAAAAAqwEcAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T09:39:20.293Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 28,
+              "Title": "IErrorCatalogValidator.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Interfaces\\IErrorCatalogValidator.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Interfaces\\IErrorCatalogValidator.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Interfaces\\IErrorCatalogValidator.cs",
+              "RelativeToolTip": "WhenItFails\\Interfaces\\IErrorCatalogValidator.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T09:34:20.309Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 29,
+              "Title": "ErrorCatalogValidationResultRests.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails.Tests\\Validation\\ErrorCatalogValidationResultRests.cs",
+              "RelativeDocumentMoniker": "WhenItFails.Tests\\Validation\\ErrorCatalogValidationResultRests.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails.Tests\\Validation\\ErrorCatalogValidationResultRests.cs",
+              "RelativeToolTip": "WhenItFails.Tests\\Validation\\ErrorCatalogValidationResultRests.cs",
+              "ViewState": "AgIAAFIAAAAAAAAAAAAywGwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T09:13:32.93Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 30,
+              "Title": "ErrorCatalogValidationResult.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Validation\\ErrorCatalogValidationResult.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Validation\\ErrorCatalogValidationResult.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Validation\\ErrorCatalogValidationResult.cs",
+              "RelativeToolTip": "WhenItFails\\Validation\\ErrorCatalogValidationResult.cs",
+              "ViewState": "AgIAAE4AAAAAAAAAAAAcwF4AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T09:08:28.817Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 31,
+              "Title": "ErrorCatalogValidationIssue.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Validation\\ErrorCatalogValidationIssue.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Validation\\ErrorCatalogValidationIssue.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Validation\\ErrorCatalogValidationIssue.cs",
+              "RelativeToolTip": "WhenItFails\\Validation\\ErrorCatalogValidationIssue.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACoAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T09:07:32.751Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 32,
+              "Title": "ErrorCatalogValidationSeverity.cs",
+              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Enums\\ErrorCatalogValidationSeverity.cs",
+              "RelativeDocumentMoniker": "WhenItFails\\Enums\\ErrorCatalogValidationSeverity.cs",
+              "ToolTip": "D:\\Toolbox\\WhenItFails\\Enums\\ErrorCatalogValidationSeverity.cs",
+              "RelativeToolTip": "WhenItFails\\Enums\\ErrorCatalogValidationSeverity.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T09:03:35.225Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 33,
+              "Title": "Essentials",
+              "DocumentMoniker": "D:\\Toolbox\\Essentials\\Essentials.csproj",
+              "RelativeDocumentMoniker": "Essentials\\Essentials.csproj",
+              "ToolTip": "D:\\Toolbox\\Essentials\\Essentials.csproj",
+              "RelativeToolTip": "Essentials\\Essentials.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-06-04T06:19:27.655Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 35,
+              "Title": "WhenItFails.Tests.csproj",
               "DocumentMoniker": "D:\\Toolbox\\WhenItFails.Tests\\WhenItFails.Tests.csproj",
               "RelativeDocumentMoniker": "WhenItFails.Tests\\WhenItFails.Tests.csproj",
               "ToolTip": "D:\\Toolbox\\WhenItFails.Tests\\WhenItFails.Tests.csproj",
@@ -348,72 +898,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "UnitTest1.cs",
-              "DocumentMoniker": "D:\\Toolbox\\WhenItFails.Tests\\UnitTest1.cs",
-              "RelativeDocumentMoniker": "WhenItFails.Tests\\UnitTest1.cs",
-              "ToolTip": "D:\\Toolbox\\WhenItFails.Tests\\UnitTest1.cs",
-              "RelativeToolTip": "WhenItFails.Tests\\UnitTest1.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-03T13:30:03.051Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "ErrorCatalog.cs",
-              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Catalog\\ErrorCatalog.cs",
-              "RelativeDocumentMoniker": "WhenItFails\\Catalog\\ErrorCatalog.cs",
-              "ToolTip": "D:\\Toolbox\\WhenItFails\\Catalog\\ErrorCatalog.cs",
-              "RelativeToolTip": "WhenItFails\\Catalog\\ErrorCatalog.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAALYAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-03T13:26:55.942Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "IErrorCatalog.cs",
-              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Interfaces\\IErrorCatalog.cs",
-              "RelativeDocumentMoniker": "WhenItFails\\Interfaces\\IErrorCatalog.cs",
-              "ToolTip": "D:\\Toolbox\\WhenItFails\\Interfaces\\IErrorCatalog.cs",
-              "RelativeToolTip": "WhenItFails\\Interfaces\\IErrorCatalog.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAD0AAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-03T13:18:17.659Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "ErrorDescriptorOfT.cs",
-              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Definitions\\ErrorDescriptorOfT.cs",
-              "RelativeDocumentMoniker": "WhenItFails\\Definitions\\ErrorDescriptorOfT.cs",
-              "ToolTip": "D:\\Toolbox\\WhenItFails\\Definitions\\ErrorDescriptorOfT.cs",
-              "RelativeToolTip": "WhenItFails\\Definitions\\ErrorDescriptorOfT.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-03T13:15:50.467Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "ErrorDescriptor.cs",
-              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Definitions\\ErrorDescriptor.cs",
-              "RelativeDocumentMoniker": "WhenItFails\\Definitions\\ErrorDescriptor.cs",
-              "ToolTip": "D:\\Toolbox\\WhenItFails\\Definitions\\ErrorDescriptor.cs",
-              "RelativeToolTip": "WhenItFails\\Definitions\\ErrorDescriptor.cs",
-              "ViewState": "AgIAAHAAAAAAAAAAAAAUwIoAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-03T13:13:42.467Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 36,
               "Title": "ErrorCatalogDocument.cs",
               "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Definitions\\ErrorCatalogDocument.cs",
               "RelativeDocumentMoniker": "WhenItFails\\Definitions\\ErrorCatalogDocument.cs",
@@ -421,26 +906,12 @@
               "RelativeToolTip": "WhenItFails\\Definitions\\ErrorCatalogDocument.cs",
               "ViewState": "AgIAABgAAAAAAAAAAAAiwFkAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-03T13:10:55.762Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-03T13:10:55.762Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "ErrorDefinition.cs",
-              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Definitions\\ErrorDefinition.cs",
-              "RelativeDocumentMoniker": "WhenItFails\\Definitions\\ErrorDefinition.cs",
-              "ToolTip": "D:\\Toolbox\\WhenItFails\\Definitions\\ErrorDefinition.cs",
-              "RelativeToolTip": "WhenItFails\\Definitions\\ErrorDefinition.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAF4AAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-03T13:09:12.766Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "WhenItFails",
+              "DocumentIndex": 37,
+              "Title": "WhenItFails.csproj",
               "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\WhenItFails.csproj",
               "RelativeDocumentMoniker": "WhenItFails\\WhenItFails.csproj",
               "ToolTip": "D:\\Toolbox\\WhenItFails\\WhenItFails.csproj",
@@ -452,7 +923,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 38,
               "Title": "en.md [N\u00E1hled]",
               "DocumentMoniker": "D:\\Toolbox\\Docs\\Issues\\en.md",
               "RelativeDocumentMoniker": "Docs\\Issues\\en.md",
@@ -464,7 +935,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 40,
               "Title": "en.md [N\u00E1hled]",
               "DocumentMoniker": "D:\\Toolbox\\Docs\\Metadata\\en.md",
               "RelativeDocumentMoniker": "Docs\\Metadata\\en.md",
@@ -476,7 +947,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 42,
               "Title": "en.md [N\u00E1hled]",
               "DocumentMoniker": "D:\\Toolbox\\Docs\\Results-and-Responses\\en.md",
               "RelativeDocumentMoniker": "Docs\\Results-and-Responses\\en.md",
@@ -488,7 +959,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 44,
               "Title": "en.md [N\u00E1hled]",
               "DocumentMoniker": "D:\\Toolbox\\Docs\\API-Reference\\en.md",
               "RelativeDocumentMoniker": "Docs\\API-Reference\\en.md",
@@ -500,7 +971,17 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 34,
+              "Title": "plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md [N\u00E1hled]",
+              "DocumentMoniker": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md",
+              "ToolTip": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md [N\u00E1hled]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-05-29T13:35:23.936Z",
+              "EditorCaption": " [N\u00E1hled]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 46,
               "Title": "en.md [N\u00E1hled]",
               "DocumentMoniker": "D:\\Toolbox\\Docs\\Documentation\\en.md",
               "RelativeDocumentMoniker": "Docs\\Documentation\\en.md",
@@ -512,7 +993,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 47,
               "Title": "en.md",
               "DocumentMoniker": "D:\\Toolbox\\Docs\\Documentation\\en.md",
               "RelativeDocumentMoniker": "Docs\\Documentation\\en.md",
@@ -524,17 +1005,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
-              "Title": "plan-create-comprehensive-documentation-for-afrowave.toolbox.essentials.md [N\u00E1hled]",
-              "DocumentMoniker": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-documentation-for-afrowave.toolbox.essentials.md",
-              "ToolTip": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-documentation-for-afrowave.toolbox.essentials.md [N\u00E1hled]",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-06-03T07:55:59.329Z",
-              "EditorCaption": " [N\u00E1hled]"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 45,
               "Title": "en.md",
               "DocumentMoniker": "D:\\Toolbox\\Docs\\API-Reference\\en.md",
               "RelativeDocumentMoniker": "Docs\\API-Reference\\en.md",
@@ -546,7 +1017,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 30,
+              "DocumentIndex": 57,
               "Title": "en.md",
               "DocumentMoniker": "D:\\Toolbox\\Docs\\Interfaces\\en.md",
               "RelativeDocumentMoniker": "Docs\\Interfaces\\en.md",
@@ -554,12 +1025,11 @@
               "RelativeToolTip": "Docs\\Interfaces\\en.md",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAFEAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-06-03T07:54:59.343Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-03T07:54:59.343Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 29,
+              "DocumentIndex": 56,
               "Title": "en.md",
               "DocumentMoniker": "D:\\Toolbox\\Docs\\Extensions\\en.md",
               "RelativeDocumentMoniker": "Docs\\Extensions\\en.md",
@@ -567,12 +1037,11 @@
               "RelativeToolTip": "Docs\\Extensions\\en.md",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAMkAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-06-03T07:54:34.892Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-03T07:54:34.892Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 43,
               "Title": "en.md",
               "DocumentMoniker": "D:\\Toolbox\\Docs\\Results-and-Responses\\en.md",
               "RelativeDocumentMoniker": "Docs\\Results-and-Responses\\en.md",
@@ -584,7 +1053,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 39,
               "Title": "en.md",
               "DocumentMoniker": "D:\\Toolbox\\Docs\\Issues\\en.md",
               "RelativeDocumentMoniker": "Docs\\Issues\\en.md",
@@ -596,7 +1065,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 55,
               "Title": "en.md",
               "DocumentMoniker": "D:\\Toolbox\\Docs\\Diagnostics\\en.md",
               "RelativeDocumentMoniker": "Docs\\Diagnostics\\en.md",
@@ -604,12 +1073,11 @@
               "RelativeToolTip": "Docs\\Diagnostics\\en.md",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAHwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-06-03T07:53:06.085Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-03T07:53:06.085Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 41,
               "Title": "en.md",
               "DocumentMoniker": "D:\\Toolbox\\Docs\\Metadata\\en.md",
               "RelativeDocumentMoniker": "Docs\\Metadata\\en.md",
@@ -621,7 +1089,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 54,
               "Title": "en.md",
               "DocumentMoniker": "D:\\Toolbox\\Docs\\Enums\\en.md",
               "RelativeDocumentMoniker": "Docs\\Enums\\en.md",
@@ -629,12 +1097,11 @@
               "RelativeToolTip": "Docs\\Enums\\en.md",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAJoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-06-03T07:52:00.699Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-03T07:52:00.699Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 53,
               "Title": "en.md",
               "DocumentMoniker": "D:\\Toolbox\\Docs\\Value-Objects\\en.md",
               "RelativeDocumentMoniker": "Docs\\Value-Objects\\en.md",
@@ -642,12 +1109,11 @@
               "RelativeToolTip": "Docs\\Value-Objects\\en.md",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAGcAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-06-03T07:51:33.548Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-03T07:51:33.548Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 52,
               "Title": "en.md",
               "DocumentMoniker": "D:\\Toolbox\\Docs\\Guards\\en.md",
               "RelativeDocumentMoniker": "Docs\\Guards\\en.md",
@@ -655,12 +1121,11 @@
               "RelativeToolTip": "Docs\\Guards\\en.md",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAFcAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-06-03T07:51:08.06Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-03T07:51:08.06Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 51,
               "Title": "en.md",
               "DocumentMoniker": "D:\\Toolbox\\Docs\\Essentials-Overview\\en.md",
               "RelativeDocumentMoniker": "Docs\\Essentials-Overview\\en.md",
@@ -668,12 +1133,11 @@
               "RelativeToolTip": "Docs\\Essentials-Overview\\en.md",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAHkAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-06-03T07:50:48.306Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-03T07:50:48.306Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 50,
               "Title": "en.md",
               "DocumentMoniker": "D:\\Toolbox\\Docs\\Getting-Started\\en.md",
               "RelativeDocumentMoniker": "Docs\\Getting-Started\\en.md",
@@ -681,12 +1145,11 @@
               "RelativeToolTip": "Docs\\Getting-Started\\en.md",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAIcAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-06-03T07:50:24.385Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-03T07:50:24.385Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 48,
               "Title": "en.md",
               "DocumentMoniker": "D:\\Toolbox\\README\\en.md",
               "RelativeDocumentMoniker": "README\\en.md",
@@ -694,22 +1157,11 @@
               "RelativeToolTip": "README\\en.md",
               "ViewState": "AgIAAD4AAAAAAAAAAADwv2YAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-06-03T07:50:03.477Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-03T07:50:03.477Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
-              "Title": "plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md [N\u00E1hled]",
-              "DocumentMoniker": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md",
-              "ToolTip": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md [N\u00E1hled]",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-05-29T13:35:23.936Z",
-              "EditorCaption": " [N\u00E1hled]"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 49,
               "Title": "plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md",
               "DocumentMoniker": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md",
               "ToolTip": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md",

@@ -8,22 +8,25 @@ namespace Afrowave.Toolbox.WhenItFails.Descriptors;
 /// </summary>
 /// <remarks>
 /// An error descriptor is created when a known error definition is used
-/// in a real situation. It may contain additional runtime detail,
-/// exception information and metadata.
+/// in a real situation. It carries the stable identity copied from the
+/// catalog definition and may add runtime-specific details, exception
+/// information and metadata.
 /// </remarks>
 public class ErrorDescriptor
 {
    /// <summary>
    /// Gets or sets the stable human-readable error identifier.
    /// </summary>
-   /// <example>CFG-0001</example>
+   /// <remarks>
+   /// Recommended format: OWNER-PREFIX-NNNN.
+   /// Example: AFW-CFG-0001.
+   /// </remarks>
    [JsonPropertyName("id")]
    public string Id { get; set; } = string.Empty;
 
    /// <summary>
    /// Gets or sets the stable numeric error code.
    /// </summary>
-   /// <example>1001</example>
    [JsonPropertyName("code")]
    public int Code { get; set; }
 
@@ -35,18 +38,44 @@ public class ErrorDescriptor
    public string Name { get; set; } = string.Empty;
 
    /// <summary>
-   /// Gets or sets the logical error category.
+   /// Gets or sets the owner of this error definition.
    /// </summary>
-   /// <example>Configuration</example>
-   [JsonPropertyName("category")]
-   public string Category { get; set; } = string.Empty;
+   /// <example>Afrowave</example>
+   [JsonPropertyName("owner")]
+   public string Owner { get; set; } = string.Empty;
 
    /// <summary>
-   /// Gets or sets the short category prefix used in the error identifier.
+   /// Gets or sets the short code prefix used in the error identifier.
    /// </summary>
    /// <example>CFG</example>
-   [JsonPropertyName("categoryPrefix")]
-   public string CategoryPrefix { get; set; } = string.Empty;
+   [JsonPropertyName("codePrefix")]
+   public string CodePrefix { get; set; } = string.Empty;
+
+   /// <summary>
+   /// Gets or sets the logical code group used for numbering and identity.
+   /// </summary>
+   /// <example>Configuration</example>
+   [JsonPropertyName("codeGroup")]
+   public string CodeGroup { get; set; } = string.Empty;
+
+   /// <summary>
+   /// Gets or sets the primary logical category of the error.
+   /// </summary>
+   /// <example>Configuration</example>
+   [JsonPropertyName("primaryCategory")]
+   public string PrimaryCategory { get; set; } = string.Empty;
+
+   /// <summary>
+   /// Gets or sets additional logical categories.
+   /// </summary>
+   [JsonPropertyName("categories")]
+   public List<string> Categories { get; set; } = new();
+
+   /// <summary>
+   /// Gets or sets more detailed subcategories.
+   /// </summary>
+   [JsonPropertyName("subcategories")]
+   public List<string> Subcategories { get; set; } = new();
 
    /// <summary>
    /// Gets or sets the short human-readable title.
