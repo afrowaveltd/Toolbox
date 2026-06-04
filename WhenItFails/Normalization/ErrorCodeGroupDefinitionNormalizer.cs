@@ -19,84 +19,23 @@ public sealed class ErrorCodeGroupDefinitionNormalizer
       return new ErrorCodeGroupDefinition
       {
          Name = TextKeyNormalizer.NormalizeKey(definition.Name),
-         DisplayName = CreateDisplayName(definition.DisplayName, definition.Name),
+         DisplayName = DefinitionNormalizationHelper.CreateDisplayName(
+              definition.DisplayName,
+              definition.Name),
          CodePrefix = TextKeyNormalizer.NormalizeKey(definition.CodePrefix),
          CodeFrom = definition.CodeFrom,
          CodeTo = definition.CodeTo,
-         Description = NormalizeNullableDisplayText(definition.Description),
+         Description = DefinitionNormalizationHelper.NormalizeNullableDisplayText(
+              definition.Description),
 
-         DefaultCategories = NormalizeStringList(definition.DefaultCategories),
-         DefaultTags = NormalizeStringList(definition.DefaultTags),
+         DefaultCategories = DefinitionNormalizationHelper.NormalizeStringList(
+              definition.DefaultCategories),
+         DefaultTags = DefinitionNormalizationHelper.NormalizeStringList(
+              definition.DefaultTags),
 
-         DefaultMappings = NormalizeDictionary(definition.DefaultMappings),
+         DefaultMappings = DefinitionNormalizationHelper.NormalizeDictionary(
+              definition.DefaultMappings),
          Metadata = definition.Metadata
       };
-   }
-
-   private static string CreateDisplayName(
-       string? displayName,
-       string? fallbackName)
-   {
-      string normalizedDisplayName = TextKeyNormalizer.NormalizeDisplayName(displayName);
-
-      if(!string.IsNullOrWhiteSpace(normalizedDisplayName))
-      {
-         return normalizedDisplayName;
-      }
-
-      return TextKeyNormalizer.NormalizeDisplayName(fallbackName);
-   }
-
-   private static List<string> NormalizeStringList(IEnumerable<string> values)
-   {
-      List<string> normalizedValues = new();
-      HashSet<string> usedKeys = new(StringComparer.OrdinalIgnoreCase);
-
-      foreach(string value in values)
-      {
-         string normalizedValue = TextKeyNormalizer.NormalizeKey(value);
-
-         if(string.IsNullOrWhiteSpace(normalizedValue))
-         {
-            continue;
-         }
-
-         if(usedKeys.Add(normalizedValue))
-         {
-            normalizedValues.Add(normalizedValue);
-         }
-      }
-
-      return normalizedValues;
-   }
-
-   private static Dictionary<string, string> NormalizeDictionary(
-       Dictionary<string, string> values)
-   {
-      Dictionary<string, string> normalizedValues = new(StringComparer.OrdinalIgnoreCase);
-
-      foreach(KeyValuePair<string, string> pair in values)
-      {
-         string normalizedKey = TextKeyNormalizer.NormalizeKey(pair.Key);
-         string normalizedValue = TextKeyNormalizer.NormalizeDisplayName(pair.Value);
-
-         if(string.IsNullOrWhiteSpace(normalizedKey))
-         {
-            continue;
-         }
-
-         normalizedValues.TryAdd(normalizedKey, normalizedValue);
-      }
-
-      return normalizedValues;
-   }
-
-   private static string? NormalizeNullableDisplayText(string? value)
-   {
-      string normalizedValue = TextKeyNormalizer.NormalizeDisplayName(value);
-
-      return string.IsNullOrWhiteSpace(normalizedValue)
-          ? null
-          : normalizedValue;
    }
 }

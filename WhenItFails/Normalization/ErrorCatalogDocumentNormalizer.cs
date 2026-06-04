@@ -46,51 +46,22 @@ public sealed class ErrorCatalogDocumentNormalizer : IErrorCatalogDocumentNormal
          SchemaVersion = TextKeyNormalizer.NormalizeDisplayName(document.SchemaVersion),
          CatalogId = TextKeyNormalizer.NormalizeDisplayName(document.CatalogId),
          CatalogName = TextKeyNormalizer.NormalizeDisplayName(document.CatalogName),
-         Description = NormalizeNullableDisplayText(document.Description),
+         Description = DefinitionNormalizationHelper.NormalizeNullableDisplayText(
+              document.Description),
          Language = TextKeyNormalizer.NormalizeDisplayName(document.Language),
 
-         SourceCatalogId = NormalizeNullableDisplayText(document.SourceCatalogId),
-         SourceCatalogVersion = NormalizeNullableDisplayText(document.SourceCatalogVersion),
+         SourceCatalogId = DefinitionNormalizationHelper.NormalizeNullableDisplayText(
+              document.SourceCatalogId),
+         SourceCatalogVersion = DefinitionNormalizationHelper.NormalizeNullableDisplayText(
+              document.SourceCatalogVersion),
          IsShadowCopy = document.IsShadowCopy,
 
-         Tags = NormalizeStringList(document.Tags),
+         Tags = DefinitionNormalizationHelper.NormalizeStringList(document.Tags),
          Metadata = document.Metadata,
 
          Errors = document.Errors
               .Select(_errorDefinitionNormalizer.Normalize)
               .ToList()
       };
-   }
-
-   private static List<string> NormalizeStringList(IEnumerable<string> values)
-   {
-      List<string> normalizedValues = new();
-      HashSet<string> usedKeys = new(StringComparer.OrdinalIgnoreCase);
-
-      foreach(string value in values)
-      {
-         string normalizedValue = TextKeyNormalizer.NormalizeKey(value);
-
-         if(string.IsNullOrWhiteSpace(normalizedValue))
-         {
-            continue;
-         }
-
-         if(usedKeys.Add(normalizedValue))
-         {
-            normalizedValues.Add(normalizedValue);
-         }
-      }
-
-      return normalizedValues;
-   }
-
-   private static string? NormalizeNullableDisplayText(string? value)
-   {
-      string normalizedValue = TextKeyNormalizer.NormalizeDisplayName(value);
-
-      return string.IsNullOrWhiteSpace(normalizedValue)
-          ? null
-          : normalizedValue;
    }
 }
