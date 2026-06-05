@@ -1,7 +1,8 @@
-﻿using Afrowave.Toolbox.WhenItFails.Catalog;
+﻿using Afrowave.Toolbox.Essentials.Enums;
+using Afrowave.Toolbox.Essentials.Results;
+using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
-using Afrowave.Toolbox.WhenItFails.Loading;
 using Afrowave.Toolbox.WhenItFails.Normalization;
 using Afrowave.Toolbox.WhenItFails.Validation;
 
@@ -54,7 +55,7 @@ public sealed class ErrorCatalogProviderTests
    }
 
    [Fact]
-   public async Task LoadFromFileAsync_ShouldReturnFailure_WhenLoadingFails()
+   public async Task LoadFromFileAsync_ShouldReturnNotFoundResponse_WhenLoadingReturnsNotFound()
    {
       ErrorCatalogProvider provider = new(
           new FakeFailedLoader(),
@@ -62,18 +63,18 @@ public sealed class ErrorCatalogProviderTests
           new ErrorCatalogValidator(),
           new ErrorCatalogFactory());
 
-      ErrorCatalogProviderResult result =
+      Response<ErrorCatalogProviderPayload> response =
           await provider.LoadFromFileAsync("missing.json");
 
-      Assert.False(result.Success);
-      Assert.Equal("FileNotFound", result.ErrorCode);
-      Assert.Null(result.Catalog);
-      Assert.NotNull(result.LoadResult);
-      Assert.Null(result.ValidationResult);
+      Assert.False(response.IsSuccess);
+      Assert.Equal(ResultStatus.NotFound, response.Status);
+      Assert.Null(response.Data);
+      Assert.NotEmpty(response.Issues);
+      Assert.Equal("FileNotFound", response.Issues[0].Code);
    }
 
    [Fact]
-   public async Task LoadFromFileAsync_ShouldReturnFailure_WhenLoadedDocumentIsNull()
+   public async Task LoadFromFileAsync_ShouldReturnInvalidResponse_WhenLoadedDocumentIsNull()
    {
       ErrorCatalogProvider provider = new(
           new FakeSuccessfulLoader(null),
@@ -81,16 +82,18 @@ public sealed class ErrorCatalogProviderTests
           new ErrorCatalogValidator(),
           new ErrorCatalogFactory());
 
-      ErrorCatalogProviderResult result =
+      Response<ErrorCatalogProviderPayload> response =
           await provider.LoadFromFileAsync("catalog.json");
 
-      Assert.False(result.Success);
-      Assert.Equal("LoadedCatalogDocumentIsNull", result.ErrorCode);
-      Assert.Null(result.Catalog);
+      Assert.False(response.IsSuccess);
+      Assert.Equal(ResultStatus.Invalid, response.Status);
+      Assert.Null(response.Data);
+      Assert.NotEmpty(response.Issues);
+      Assert.Equal("LoadedCatalogDocumentIsNull", response.Issues[0].Code);
    }
 
    [Fact]
-   public async Task LoadFromFileAsync_ShouldReturnFailure_WhenValidationFails()
+   public async Task LoadFromFileAsync_ShouldReturnInvalidResponse_WhenValidationFails()
    {
       ErrorCatalogDocument document = CreateValidDocument();
       document.Errors[0].Id = string.Empty;
@@ -101,14 +104,14 @@ public sealed class ErrorCatalogProviderTests
           new ErrorCatalogValidator(),
           new ErrorCatalogFactory());
 
-      ErrorCatalogProviderResult result =
+      Response<ErrorCatalogProviderPayload> response =
           await provider.LoadFromFileAsync("catalog.json");
 
-      Assert.False(result.Success);
-      Assert.Equal("CatalogValidationFailed", result.ErrorCode);
-      Assert.Null(result.Catalog);
-      Assert.NotNull(result.ValidationResult);
-      Assert.False(result.ValidationResult.IsValid);
+      Assert.False(response.IsSuccess);
+      Assert.Equal(ResultStatus.Invalid, response.Status);
+      Assert.Null(response.Data);
+      Assert.NotEmpty(response.Issues);
+      Assert.Equal("CatalogValidationFailed", response.Issues[0].Code);
    }
 
    [Fact]
@@ -120,13 +123,17 @@ public sealed class ErrorCatalogProviderTests
           new ErrorCatalogValidator(),
           new ErrorCatalogFactory());
 
-      ErrorCatalogProviderResult result =
+      Response<ErrorCatalogProviderPayload> response =
           await provider.LoadFromFileAsync("catalog.json");
 
-      Assert.True(result.Success);
-      Assert.NotNull(result.Catalog);
+      Assert.True(response.IsSuccess);
+      Assert.Equal(ResultStatus.Success, response.Status);
+      Assert.NotNull(response.Data);
+      Assert.NotNull(response.Data.Catalog);
+      Assert.NotNull(response.Data.ValidationResult);
+      Assert.True(response.Data.ValidationResult.IsValid);
 
-      ErrorDefinition? error = result.Catalog.FindById("AFW-CFG-0001");
+      ErrorDefinition? error = response.Data.Catalog.FindById("AFW-CFG-0001");
 
       Assert.NotNull(error);
       Assert.Equal("AFW_CFG_0001", error.Id);
@@ -154,13 +161,15 @@ public sealed class ErrorCatalogProviderTests
           new ErrorCatalogValidator(),
           new ErrorCatalogFactory());
 
-      ErrorCatalogProviderResult result =
+      Response<ErrorCatalogProviderPayload> response =
           await provider.LoadFromFileAsync("catalog.json");
 
-      Assert.True(result.Success);
-      Assert.NotNull(result.Catalog);
+      Assert.True(response.IsSuccess);
+      Assert.Equal(ResultStatus.Success, response.Status);
+      Assert.NotNull(response.Data);
+      Assert.NotNull(response.Data.Catalog);
 
-      ErrorDefinition? error = result.Catalog.FindById("AFW-CFG-0001");
+      ErrorDefinition? error = response.Data.Catalog.FindById("AFW-CFG-0001");
 
       Assert.NotNull(error);
       Assert.Equal("AFW_CFG_0001", error.Id);
@@ -231,36 +240,27 @@ public sealed class ErrorCatalogProviderTests
          _document = document;
       }
 
-      public Task<ErrorCatalogLoadResult> LoadFromFileAsync(
+      public Task<Response<ErrorCatalogDocument>> LoadFromFileAsync(
           string filePath,
           CancellationToken cancellationToken = default)
       {
          cancellationToken.ThrowIfCancellationRequested();
 
-         if(_document is null)
-         {
-            return Task.FromResult(new ErrorCatalogLoadResult
-            {
-               Success = true,
-               Document = null
-            });
-         }
-
-         return Task.FromResult(ErrorCatalogLoadResult.Ok(_document));
+         return Task.FromResult(Response<ErrorCatalogDocument>.Ok(_document));
       }
    }
 
    private sealed class FakeFailedLoader : IErrorCatalogLoader
    {
-      public Task<ErrorCatalogLoadResult> LoadFromFileAsync(
+      public Task<Response<ErrorCatalogDocument>> LoadFromFileAsync(
           string filePath,
           CancellationToken cancellationToken = default)
       {
          cancellationToken.ThrowIfCancellationRequested();
 
-         return Task.FromResult(ErrorCatalogLoadResult.Fail(
-             errorCode: "FileNotFound",
-             errorMessage: "File was not found."));
+         return Task.FromResult(Response<ErrorCatalogDocument>.NotFound(
+             code: "FileNotFound",
+             message: "File was not found."));
       }
    }
 }

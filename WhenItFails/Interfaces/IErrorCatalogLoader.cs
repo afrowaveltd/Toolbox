@@ -1,4 +1,5 @@
-﻿using Afrowave.Toolbox.WhenItFails.Loading;
+﻿using Afrowave.Toolbox.Essentials.Results;
+using Afrowave.Toolbox.WhenItFails.Definitions;
 
 namespace Afrowave.Toolbox.WhenItFails.Interfaces;
 
@@ -12,8 +13,8 @@ public interface IErrorCatalogLoader
    /// </summary>
    /// <param name="filePath">Path to the JSON error catalog file.</param>
    /// <param name="cancellationToken">Cancellation token.</param>
-   /// <returns>Catalog loading result.</returns>
-   Task<ErrorCatalogLoadResult> LoadFromFileAsync(
+   /// <returns>Response containing the loaded error catalog document.</returns>
+   Task<Response<ErrorCatalogDocument>> LoadFromFileAsync(
        string filePath,
        CancellationToken cancellationToken = default);
 }

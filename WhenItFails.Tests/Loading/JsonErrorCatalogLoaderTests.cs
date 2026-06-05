@@ -1,23 +1,36 @@
-﻿using Afrowave.Toolbox.WhenItFails.Loading;
+﻿using Afrowave.Toolbox.Essentials.Enums;
+using Afrowave.Toolbox.Essentials.Results;
+using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Loading;
 
 namespace Afrowave.Toolbox.WhenItFails.Tests.Loading;
 
 public sealed class JsonErrorCatalogLoaderTests
 {
    [Fact]
-   public async Task LoadFromFileAsync_ShouldReturnFailure_WhenFilePathIsEmpty()
+   public void Constructor_ShouldThrowArgumentNullException_WhenDocumentLoaderIsNull()
    {
-      JsonErrorCatalogLoader loader = new();
-
-      ErrorCatalogLoadResult result = await loader.LoadFromFileAsync(string.Empty);
-
-      Assert.False(result.Success);
-      Assert.Equal("FilePathIsEmpty", result.ErrorCode);
-      Assert.Null(result.Document);
+      Assert.Throws<ArgumentNullException>(
+          () => new JsonErrorCatalogLoader(null!));
    }
 
    [Fact]
-   public async Task LoadFromFileAsync_ShouldReturnFailure_WhenFileDoesNotExist()
+   public async Task LoadFromFileAsync_ShouldReturnInvalidResponse_WhenFilePathIsEmpty()
+   {
+      JsonErrorCatalogLoader loader = new();
+
+      Response<ErrorCatalogDocument> response =
+          await loader.LoadFromFileAsync(string.Empty);
+
+      Assert.False(response.IsSuccess);
+      Assert.Equal(ResultStatus.Invalid, response.Status);
+      Assert.NotEmpty(response.Issues);
+      Assert.Equal("FilePathIsEmpty", response.Issues[0].Code);
+      Assert.Null(response.Data);
+   }
+
+   [Fact]
+   public async Task LoadFromFileAsync_ShouldReturnNotFoundResponse_WhenFileDoesNotExist()
    {
       JsonErrorCatalogLoader loader = new();
 
@@ -26,15 +39,18 @@ public sealed class JsonErrorCatalogLoaderTests
           Guid.NewGuid().ToString("N"),
           "missing-catalog.json");
 
-      ErrorCatalogLoadResult result = await loader.LoadFromFileAsync(filePath);
+      Response<ErrorCatalogDocument> response =
+          await loader.LoadFromFileAsync(filePath);
 
-      Assert.False(result.Success);
-      Assert.Equal("FileNotFound", result.ErrorCode);
-      Assert.Null(result.Document);
+      Assert.False(response.IsSuccess);
+      Assert.Equal(ResultStatus.NotFound, response.Status);
+      Assert.NotEmpty(response.Issues);
+      Assert.Equal("FileNotFound", response.Issues[0].Code);
+      Assert.Null(response.Data);
    }
 
    [Fact]
-   public async Task LoadFromFileAsync_ShouldReturnFailure_WhenJsonIsInvalid()
+   public async Task LoadFromFileAsync_ShouldReturnInvalidResponse_WhenJsonIsInvalid()
    {
       JsonErrorCatalogLoader loader = new();
 
@@ -42,12 +58,14 @@ public sealed class JsonErrorCatalogLoaderTests
 
       try
       {
-         ErrorCatalogLoadResult result = await loader.LoadFromFileAsync(filePath);
+         Response<ErrorCatalogDocument> response =
+             await loader.LoadFromFileAsync(filePath);
 
-         Assert.False(result.Success);
-         Assert.Equal("InvalidJson", result.ErrorCode);
-         Assert.Null(result.Document);
-         Assert.NotNull(result.Exception);
+         Assert.False(response.IsSuccess);
+         Assert.Equal(ResultStatus.Invalid, response.Status);
+         Assert.NotEmpty(response.Issues);
+         Assert.Equal("InvalidJson", response.Issues[0].Code);
+         Assert.Null(response.Data);
       }
       finally
       {
@@ -68,11 +86,15 @@ public sealed class JsonErrorCatalogLoaderTests
           "language": "en",
           "errors": [
             {
-              "id": "CFG-0001",
-              "code": 1001,
+              "id": "AFW-CFG-0001",
+              "code": 200001,
               "name": "MissingConfigurationValue",
-              "category": "Configuration",
-              "categoryPrefix": "CFG",
+              "owner": "AFW",
+              "codePrefix": "CFG",
+              "codeGroup": "Configuration",
+              "primaryCategory": "Configuration",
+              "categories": [ "Configuration", "Startup", "Validation" ],
+              "subcategories": [ "RequiredValue", "AppSettings" ],
               "title": "Missing configuration value",
               "message": "A required configuration value is missing.",
               "defaultSeverity": "Error",
@@ -86,13 +108,17 @@ public sealed class JsonErrorCatalogLoaderTests
 
       try
       {
-         ErrorCatalogLoadResult result = await loader.LoadFromFileAsync(filePath);
+         Response<ErrorCatalogDocument> response =
+             await loader.LoadFromFileAsync(filePath);
 
-         Assert.True(result.Success);
-         Assert.NotNull(result.Document);
-         Assert.Equal("test.catalog", result.Document.CatalogId);
-         Assert.Single(result.Document.Errors);
-         Assert.Equal("CFG-0001", result.Document.Errors[0].Id);
+         Assert.True(response.IsSuccess);
+         Assert.Equal(ResultStatus.Success, response.Status);
+         Assert.NotNull(response.Data);
+         Assert.Equal("test.catalog", response.Data.CatalogId);
+         Assert.Single(response.Data.Errors);
+         Assert.Equal("AFW-CFG-0001", response.Data.Errors[0].Id);
+         Assert.Equal("MissingConfigurationValue", response.Data.Errors[0].Name);
+         Assert.Equal("AFW", response.Data.Errors[0].Owner);
       }
       finally
       {
@@ -114,11 +140,15 @@ public sealed class JsonErrorCatalogLoaderTests
           "language": "en",
           "errors": [
             {
-              "id": "CFG-0001",
-              "code": 1001,
+              "id": "AFW-CFG-0001",
+              "code": 200001,
               "name": "MissingConfigurationValue",
-              "category": "Configuration",
-              "categoryPrefix": "CFG",
+              "owner": "AFW",
+              "codePrefix": "CFG",
+              "codeGroup": "Configuration",
+              "primaryCategory": "Configuration",
+              "categories": [ "Configuration", "Startup" ],
+              "subcategories": [ "RequiredValue" ],
               "title": "Missing configuration value",
               "message": "A required configuration value is missing.",
               "defaultSeverity": "Error",
@@ -131,11 +161,14 @@ public sealed class JsonErrorCatalogLoaderTests
 
       try
       {
-         ErrorCatalogLoadResult result = await loader.LoadFromFileAsync(filePath);
+         Response<ErrorCatalogDocument> response =
+             await loader.LoadFromFileAsync(filePath);
 
-         Assert.True(result.Success);
-         Assert.NotNull(result.Document);
-         Assert.Single(result.Document.Errors);
+         Assert.True(response.IsSuccess);
+         Assert.Equal(ResultStatus.Success, response.Status);
+         Assert.NotNull(response.Data);
+         Assert.Single(response.Data.Errors);
+         Assert.Equal("AFW-CFG-0001", response.Data.Errors[0].Id);
       }
       finally
       {
@@ -165,8 +198,10 @@ public sealed class JsonErrorCatalogLoaderTests
 
       try
       {
-         await Assert.ThrowsAsync<OperationCanceledException>(
-             () => loader.LoadFromFileAsync(filePath, cancellationTokenSource.Token));
+         await Assert.ThrowsAnyAsync<OperationCanceledException>(
+             () => loader.LoadFromFileAsync(
+                 filePath,
+                 cancellationTokenSource.Token));
       }
       finally
       {
@@ -178,7 +213,7 @@ public sealed class JsonErrorCatalogLoaderTests
    {
       string filePath = Path.Combine(
           Path.GetTempPath(),
-          $"when-it-fails-test-{Guid.NewGuid():N}.json");
+          $"when-it-fails-error-loader-test-{Guid.NewGuid():N}.json");
 
       File.WriteAllText(filePath, content);
 

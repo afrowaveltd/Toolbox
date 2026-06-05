@@ -1,6 +1,6 @@
-﻿using Afrowave.Toolbox.WhenItFails.Definitions;
+﻿using Afrowave.Toolbox.Essentials.Results;
+using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
-using Afrowave.Toolbox.WhenItFails.Loading;
 using Afrowave.Toolbox.WhenItFails.Validation;
 
 namespace Afrowave.Toolbox.WhenItFails.Catalog;
@@ -31,51 +31,70 @@ public sealed class ErrorCatalogProvider : IErrorCatalogProvider
    }
 
    /// <inheritdoc />
-   public async Task<ErrorCatalogProviderResult> LoadFromFileAsync(
+   public async Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
        string filePath,
        CancellationToken cancellationToken = default)
    {
       cancellationToken.ThrowIfCancellationRequested();
 
-      ErrorCatalogLoadResult loadResult =
+      Response<ErrorCatalogDocument> loadResponse =
           await _loader.LoadFromFileAsync(filePath, cancellationToken);
 
-      if(!loadResult.Success)
+      if(!loadResponse.IsSuccess)
       {
-         return ErrorCatalogProviderResult.Fail(
-             errorCode: loadResult.ErrorCode ?? "CatalogLoadFailed",
-             errorMessage: loadResult.ErrorMessage ?? "Error catalog loading failed.",
-             loadResult: loadResult);
+         return Response<ErrorCatalogProviderPayload>.WithStatus(
+             Response<ErrorCatalogProviderPayload>.Fail(
+                 code: GetFirstIssueCode(loadResponse, "CatalogLoadFailed"),
+                 message: GetResponseMessage(loadResponse, "Error catalog loading failed.")),
+             loadResponse.Status);
       }
 
-      if(loadResult.Document is null)
+      if(loadResponse.Data is null)
       {
-         return ErrorCatalogProviderResult.Fail(
-             errorCode: "LoadedCatalogDocumentIsNull",
-             errorMessage: "Error catalog loader returned success, but document is null.",
-             loadResult: loadResult);
+         return Response<ErrorCatalogProviderPayload>.Invalid(
+             code: "LoadedCatalogDocumentIsNull",
+             message: "Error catalog loader returned success, but document is null.");
       }
 
       ErrorCatalogDocument normalizedDocument =
-          _normalizer.Normalize(loadResult.Document);
+          _normalizer.Normalize(loadResponse.Data);
 
       ErrorCatalogValidationResult validationResult =
           _validator.Validate(normalizedDocument);
 
       if(!validationResult.IsValid)
       {
-         return ErrorCatalogProviderResult.Fail(
-             errorCode: "CatalogValidationFailed",
-             errorMessage: "Error catalog validation failed.",
-             loadResult: loadResult,
-             validationResult: validationResult);
+         return Response<ErrorCatalogProviderPayload>.Invalid(
+             code: "CatalogValidationFailed",
+             message: "Error catalog validation failed.");
       }
 
       IErrorCatalog catalog = _factory.Create(normalizedDocument);
 
-      return ErrorCatalogProviderResult.Ok(
-          catalog,
-          loadResult,
-          validationResult);
+      ErrorCatalogProviderPayload payload = new()
+      {
+         Catalog = catalog,
+         ValidationResult = validationResult
+      };
+
+      return Response<ErrorCatalogProviderPayload>.Ok(payload);
+   }
+
+   private static string GetFirstIssueCode(
+       Response<ErrorCatalogDocument> response,
+       string fallbackCode)
+   {
+      return response.Issues.Count > 0
+          ? response.Issues[0].Code
+          : fallbackCode;
+   }
+
+   private static string GetResponseMessage(
+       Response<ErrorCatalogDocument> response,
+       string fallbackMessage)
+   {
+      return string.IsNullOrWhiteSpace(response.Message)
+          ? fallbackMessage
+          : response.Message;
    }
 }
