@@ -1,4 +1,5 @@
-﻿using Afrowave.Toolbox.WhenItFails.Interfaces;
+﻿using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Interfaces;
 using Afrowave.Toolbox.WhenItFails.Validation;
 
 namespace Afrowave.Toolbox.WhenItFails.Catalog;
@@ -12,6 +13,11 @@ public sealed class ErrorCatalogProviderPayload
    /// Gets or sets the created runtime error catalog.
    /// </summary>
    public IErrorCatalog Catalog { get; set; } = null!;
+
+   /// <summary>
+   /// Gets or sets the normalized error catalog document.
+   /// </summary>
+   public ErrorCatalogDocument Document { get; set; } = null!;
 
    /// <summary>
    /// Gets or sets the validation result produced before catalog creation.
