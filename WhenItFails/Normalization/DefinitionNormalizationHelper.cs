@@ -5,70 +5,81 @@ namespace Afrowave.Toolbox.WhenItFails.Normalization;
 /// </summary>
 internal static class DefinitionNormalizationHelper
 {
-    public static string CreateDisplayName(
-        string? displayName,
-        string? fallbackName)
-    {
-        string normalizedDisplayName = TextKeyNormalizer.NormalizeDisplayName(displayName);
+   public static string CreateDisplayName(
+       string? displayName,
+       string? fallbackName)
+   {
+      string normalizedDisplayName = TextKeyNormalizer.NormalizeDisplayName(displayName);
 
-        if (!string.IsNullOrWhiteSpace(normalizedDisplayName))
-        {
-            return normalizedDisplayName;
-        }
+      if(!string.IsNullOrWhiteSpace(normalizedDisplayName))
+      {
+         return normalizedDisplayName;
+      }
 
-        return TextKeyNormalizer.NormalizeDisplayName(fallbackName);
-    }
+      return TextKeyNormalizer.NormalizeDisplayName(fallbackName);
+   }
 
-    public static List<string> NormalizeStringList(IEnumerable<string> values)
-    {
-        List<string> normalizedValues = new();
-        HashSet<string> usedKeys = new(StringComparer.OrdinalIgnoreCase);
+   public static List<string> NormalizeStringList(IEnumerable<string>? values)
+   {
+      List<string> normalizedValues = new();
 
-        foreach (string value in values)
-        {
-            string normalizedValue = TextKeyNormalizer.NormalizeKey(value);
+      if(values is null)
+      {
+         return normalizedValues;
+      }
 
-            if (string.IsNullOrWhiteSpace(normalizedValue))
-            {
-                continue;
-            }
+      HashSet<string> usedKeys = new(StringComparer.OrdinalIgnoreCase);
 
-            if (usedKeys.Add(normalizedValue))
-            {
-                normalizedValues.Add(normalizedValue);
-            }
-        }
+      foreach(string value in values)
+      {
+         string normalizedValue = TextKeyNormalizer.NormalizeKey(value);
 
-        return normalizedValues;
-    }
+         if(string.IsNullOrWhiteSpace(normalizedValue))
+         {
+            continue;
+         }
 
-    public static Dictionary<string, string> NormalizeDictionary(
-        Dictionary<string, string> values)
-    {
-        Dictionary<string, string> normalizedValues = new(StringComparer.OrdinalIgnoreCase);
+         if(usedKeys.Add(normalizedValue))
+         {
+            normalizedValues.Add(normalizedValue);
+         }
+      }
 
-        foreach (KeyValuePair<string, string> pair in values)
-        {
-            string normalizedKey = TextKeyNormalizer.NormalizeKey(pair.Key);
-            string normalizedValue = TextKeyNormalizer.NormalizeDisplayName(pair.Value);
+      return normalizedValues;
+   }
 
-            if (string.IsNullOrWhiteSpace(normalizedKey))
-            {
-                continue;
-            }
+   public static Dictionary<string, string> NormalizeDictionary(
+       Dictionary<string, string>? values)
+   {
+      Dictionary<string, string> normalizedValues = new(StringComparer.OrdinalIgnoreCase);
 
-            normalizedValues.TryAdd(normalizedKey, normalizedValue);
-        }
+      if(values is null)
+      {
+         return normalizedValues;
+      }
 
-        return normalizedValues;
-    }
+      foreach(KeyValuePair<string, string> pair in values)
+      {
+         string normalizedKey = TextKeyNormalizer.NormalizeKey(pair.Key);
+         string normalizedValue = TextKeyNormalizer.NormalizeDisplayName(pair.Value);
 
-    public static string? NormalizeNullableDisplayText(string? value)
-    {
-        string normalizedValue = TextKeyNormalizer.NormalizeDisplayName(value);
+         if(string.IsNullOrWhiteSpace(normalizedKey))
+         {
+            continue;
+         }
 
-        return string.IsNullOrWhiteSpace(normalizedValue)
-            ? null
-            : normalizedValue;
-    }
+         normalizedValues.TryAdd(normalizedKey, normalizedValue);
+      }
+
+      return normalizedValues;
+   }
+
+   public static string? NormalizeNullableDisplayText(string? value)
+   {
+      string normalizedValue = TextKeyNormalizer.NormalizeDisplayName(value);
+
+      return string.IsNullOrWhiteSpace(normalizedValue)
+          ? null
+          : normalizedValue;
+   }
 }

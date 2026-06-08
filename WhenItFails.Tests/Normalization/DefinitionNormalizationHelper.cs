@@ -19,9 +19,15 @@ internal static class DefinitionNormalizationHelper
         return TextKeyNormalizer.NormalizeDisplayName(fallbackName);
     }
 
-    public static List<string> NormalizeStringList(IEnumerable<string> values)
+    public static List<string> NormalizeStringList(IEnumerable<string>? values)
     {
         List<string> normalizedValues = new();
+
+        if (values is null)
+        {
+            return normalizedValues;
+        }
+
         HashSet<string> usedKeys = new(StringComparer.OrdinalIgnoreCase);
 
         foreach (string value in values)
@@ -43,9 +49,14 @@ internal static class DefinitionNormalizationHelper
     }
 
     public static Dictionary<string, string> NormalizeDictionary(
-        Dictionary<string, string> values)
+        Dictionary<string, string>? values)
     {
         Dictionary<string, string> normalizedValues = new(StringComparer.OrdinalIgnoreCase);
+
+        if (values is null)
+        {
+            return normalizedValues;
+        }
 
         foreach (KeyValuePair<string, string> pair in values)
         {
@@ -71,4 +82,22 @@ internal static class DefinitionNormalizationHelper
             ? null
             : normalizedValue;
     }
+}
+public sealed class DefinitionNormalizationHelperNullSafetyTests
+{
+   [Fact]
+   public void NormalizeStringList_ShouldReturnEmptyList_WhenValuesAreNull()
+   {
+      List<string> result = DefinitionNormalizationHelper.NormalizeStringList(null);
+
+      Assert.Empty(result);
+   }
+
+   [Fact]
+   public void NormalizeDictionary_ShouldReturnEmptyDictionary_WhenValuesAreNull()
+   {
+      Dictionary<string, string> result = DefinitionNormalizationHelper.NormalizeDictionary(null);
+
+      Assert.Empty(result);
+   }
 }
