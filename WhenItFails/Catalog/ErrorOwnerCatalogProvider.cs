@@ -1,4 +1,4 @@
-﻿using Afrowave.Toolbox.Essentials.Results;
+using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
 using Afrowave.Toolbox.WhenItFails.Normalization;
@@ -29,68 +29,26 @@ public sealed class ErrorOwnerCatalogProvider : IErrorOwnerCatalogProvider
    }
 
    /// <inheritdoc />
-   public async Task<Response<ErrorOwnerCatalogProviderPayload>> LoadFromFileAsync(
+   public Task<Response<ErrorOwnerCatalogProviderPayload>> LoadFromFileAsync(
        string filePath,
        CancellationToken cancellationToken = default)
    {
-      cancellationToken.ThrowIfCancellationRequested();
-
-      Response<ErrorOwnerCatalogDocument> loadResponse =
-          await _loader.LoadFromFileAsync(filePath, cancellationToken);
-
-      if(!loadResponse.IsSuccess)
-      {
-         return Response<ErrorOwnerCatalogProviderPayload>.WithStatus(
-             Response<ErrorOwnerCatalogProviderPayload>.Fail(
-                 code: GetFirstIssueCode(loadResponse, "OwnerCatalogLoadFailed"),
-                 message: GetResponseMessage(loadResponse, "Error owner catalog loading failed.")),
-             loadResponse.Status);
-      }
-
-      if(loadResponse.Data is null)
-      {
-         return Response<ErrorOwnerCatalogProviderPayload>.Invalid(
-             code: "LoadedOwnerCatalogDocumentIsNull",
-             message: "Error owner catalog loader returned success, but document is null.");
-      }
-
-      ErrorOwnerCatalogDocument normalizedDocument =
-          _normalizer.Normalize(loadResponse.Data);
-
-      ErrorCatalogValidationResult validationResult =
-          _validator.Validate(normalizedDocument);
-
-      if(!validationResult.IsValid)
-      {
-         return Response<ErrorOwnerCatalogProviderPayload>.Invalid(
-             code: "OwnerCatalogValidationFailed",
-             message: "Error owner catalog validation failed.");
-      }
-
-      ErrorOwnerCatalogProviderPayload payload = new()
-      {
-         Document = normalizedDocument,
-         ValidationResult = validationResult
-      };
-
-      return Response<ErrorOwnerCatalogProviderPayload>.Ok(payload);
-   }
-
-   private static string GetFirstIssueCode(
-       Response<ErrorOwnerCatalogDocument> response,
-       string fallbackCode)
-   {
-      return response.Issues.Count > 0
-          ? response.Issues[0].Code
-          : fallbackCode;
-   }
-
-   private static string GetResponseMessage(
-       Response<ErrorOwnerCatalogDocument> response,
-       string fallbackMessage)
-   {
-      return string.IsNullOrWhiteSpace(response.Message)
-          ? fallbackMessage
-          : response.Message;
+      return CatalogProviderPipeline.LoadNormalizeValidateAsync(
+          filePath,
+          cancellationToken,
+          _loader.LoadFromFileAsync,
+          _normalizer.Normalize,
+          _validator.Validate,
+          static (document, validationResult) => new ErrorOwnerCatalogProviderPayload
+          {
+             Document = document,
+             ValidationResult = validationResult
+          },
+          loadFailedCode: "OwnerCatalogLoadFailed",
+          loadFailedMessage: "Error owner catalog loading failed.",
+          loadedDocumentIsNullCode: "LoadedOwnerCatalogDocumentIsNull",
+          loadedDocumentIsNullMessage: "Error owner catalog loader returned success, but document is null.",
+          validationFailedCode: "OwnerCatalogValidationFailed",
+          validationFailedMessage: "Error owner catalog validation failed.");
    }
 }

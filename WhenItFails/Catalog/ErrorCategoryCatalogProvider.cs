@@ -1,4 +1,4 @@
-﻿using Afrowave.Toolbox.Essentials.Results;
+using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
 using Afrowave.Toolbox.WhenItFails.Normalization;
@@ -29,68 +29,26 @@ public sealed class ErrorCategoryCatalogProvider : IErrorCategoryCatalogProvider
    }
 
    /// <inheritdoc />
-   public async Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
+   public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
        string filePath,
        CancellationToken cancellationToken = default)
    {
-      cancellationToken.ThrowIfCancellationRequested();
-
-      Response<ErrorCategoryCatalogDocument> loadResponse =
-          await _loader.LoadFromFileAsync(filePath, cancellationToken);
-
-      if(!loadResponse.IsSuccess)
-      {
-         return Response<ErrorCategoryCatalogProviderPayload>.WithStatus(
-             Response<ErrorCategoryCatalogProviderPayload>.Fail(
-                 code: GetFirstIssueCode(loadResponse, "CategoryCatalogLoadFailed"),
-                 message: GetResponseMessage(loadResponse, "Error category catalog loading failed.")),
-             loadResponse.Status);
-      }
-
-      if(loadResponse.Data is null)
-      {
-         return Response<ErrorCategoryCatalogProviderPayload>.Invalid(
-             code: "LoadedCategoryCatalogDocumentIsNull",
-             message: "Error category catalog loader returned success, but document is null.");
-      }
-
-      ErrorCategoryCatalogDocument normalizedDocument =
-          _normalizer.Normalize(loadResponse.Data);
-
-      ErrorCatalogValidationResult validationResult =
-          _validator.Validate(normalizedDocument);
-
-      if(!validationResult.IsValid)
-      {
-         return Response<ErrorCategoryCatalogProviderPayload>.Invalid(
-             code: "CategoryCatalogValidationFailed",
-             message: "Error category catalog validation failed.");
-      }
-
-      ErrorCategoryCatalogProviderPayload payload = new()
-      {
-         Document = normalizedDocument,
-         ValidationResult = validationResult
-      };
-
-      return Response<ErrorCategoryCatalogProviderPayload>.Ok(payload);
-   }
-
-   private static string GetFirstIssueCode(
-       Response<ErrorCategoryCatalogDocument> response,
-       string fallbackCode)
-   {
-      return response.Issues.Count > 0
-          ? response.Issues[0].Code
-          : fallbackCode;
-   }
-
-   private static string GetResponseMessage(
-       Response<ErrorCategoryCatalogDocument> response,
-       string fallbackMessage)
-   {
-      return string.IsNullOrWhiteSpace(response.Message)
-          ? fallbackMessage
-          : response.Message;
+      return CatalogProviderPipeline.LoadNormalizeValidateAsync(
+          filePath,
+          cancellationToken,
+          _loader.LoadFromFileAsync,
+          _normalizer.Normalize,
+          _validator.Validate,
+          static (document, validationResult) => new ErrorCategoryCatalogProviderPayload
+          {
+             Document = document,
+             ValidationResult = validationResult
+          },
+          loadFailedCode: "CategoryCatalogLoadFailed",
+          loadFailedMessage: "Error category catalog loading failed.",
+          loadedDocumentIsNullCode: "LoadedCategoryCatalogDocumentIsNull",
+          loadedDocumentIsNullMessage: "Error category catalog loader returned success, but document is null.",
+          validationFailedCode: "CategoryCatalogValidationFailed",
+          validationFailedMessage: "Error category catalog validation failed.");
    }
 }

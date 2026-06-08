@@ -1,4 +1,4 @@
-﻿using Afrowave.Toolbox.Essentials.Results;
+using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
 using Afrowave.Toolbox.WhenItFails.Normalization;
@@ -29,68 +29,26 @@ public sealed class ErrorCodeGroupCatalogProvider : IErrorCodeGroupCatalogProvid
    }
 
    /// <inheritdoc />
-   public async Task<Response<ErrorCodeGroupCatalogProviderPayload>> LoadFromFileAsync(
+   public Task<Response<ErrorCodeGroupCatalogProviderPayload>> LoadFromFileAsync(
        string filePath,
        CancellationToken cancellationToken = default)
    {
-      cancellationToken.ThrowIfCancellationRequested();
-
-      Response<ErrorCodeGroupCatalogDocument> loadResponse =
-          await _loader.LoadFromFileAsync(filePath, cancellationToken);
-
-      if(!loadResponse.IsSuccess)
-      {
-         return Response<ErrorCodeGroupCatalogProviderPayload>.WithStatus(
-             Response<ErrorCodeGroupCatalogProviderPayload>.Fail(
-                 code: GetFirstIssueCode(loadResponse, "CodeGroupCatalogLoadFailed"),
-                 message: GetResponseMessage(loadResponse, "Error code group catalog loading failed.")),
-             loadResponse.Status);
-      }
-
-      if(loadResponse.Data is null)
-      {
-         return Response<ErrorCodeGroupCatalogProviderPayload>.Invalid(
-             code: "LoadedCodeGroupCatalogDocumentIsNull",
-             message: "Error code group catalog loader returned success, but document is null.");
-      }
-
-      ErrorCodeGroupCatalogDocument normalizedDocument =
-          _normalizer.Normalize(loadResponse.Data);
-
-      ErrorCatalogValidationResult validationResult =
-          _validator.Validate(normalizedDocument);
-
-      if(!validationResult.IsValid)
-      {
-         return Response<ErrorCodeGroupCatalogProviderPayload>.Invalid(
-             code: "CodeGroupCatalogValidationFailed",
-             message: "Error code group catalog validation failed.");
-      }
-
-      ErrorCodeGroupCatalogProviderPayload payload = new()
-      {
-         Document = normalizedDocument,
-         ValidationResult = validationResult
-      };
-
-      return Response<ErrorCodeGroupCatalogProviderPayload>.Ok(payload);
-   }
-
-   private static string GetFirstIssueCode(
-       Response<ErrorCodeGroupCatalogDocument> response,
-       string fallbackCode)
-   {
-      return response.Issues.Count > 0
-          ? response.Issues[0].Code
-          : fallbackCode;
-   }
-
-   private static string GetResponseMessage(
-       Response<ErrorCodeGroupCatalogDocument> response,
-       string fallbackMessage)
-   {
-      return string.IsNullOrWhiteSpace(response.Message)
-          ? fallbackMessage
-          : response.Message;
+      return CatalogProviderPipeline.LoadNormalizeValidateAsync(
+          filePath,
+          cancellationToken,
+          _loader.LoadFromFileAsync,
+          _normalizer.Normalize,
+          _validator.Validate,
+          static (document, validationResult) => new ErrorCodeGroupCatalogProviderPayload
+          {
+             Document = document,
+             ValidationResult = validationResult
+          },
+          loadFailedCode: "CodeGroupCatalogLoadFailed",
+          loadFailedMessage: "Error code group catalog loading failed.",
+          loadedDocumentIsNullCode: "LoadedCodeGroupCatalogDocumentIsNull",
+          loadedDocumentIsNullMessage: "Error code group catalog loader returned success, but document is null.",
+          validationFailedCode: "CodeGroupCatalogValidationFailed",
+          validationFailedMessage: "Error code group catalog validation failed.");
    }
 }
