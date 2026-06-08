@@ -264,6 +264,81 @@ public sealed class ErrorCatalogCrossValidatorTests
         Assert.Contains(result.Issues, issue => issue.Code == "PrimaryCategoryNotListedInCategories");
     }
 
+    [Fact]
+    public void Validate_ShouldReportUnknownProfileIncludeOwner()
+    {
+        ErrorCatalogCrossValidator validator = new();
+        ErrorProfileCatalogDocument profileCatalog = CreateValidProfileCatalog();
+
+        profileCatalog.Profiles[0].IncludeOwners = ["UNKNOWN"];
+
+        ErrorCatalogValidationResult result = validator.Validate(
+            CreateValidErrorCatalog(),
+            CreateValidOwnerCatalog(),
+            CreateValidCodeGroupCatalog(),
+            CreateValidCategoryCatalog(),
+            profileCatalog);
+
+        Assert.True(result.IsValid);
+        Assert.Contains(result.Issues, issue => issue.Code == "UnknownProfileIncludeOwner");
+    }
+
+    [Fact]
+    public void Validate_ShouldReportUnknownProfileIncludeCodeGroup()
+    {
+        ErrorCatalogCrossValidator validator = new();
+        ErrorProfileCatalogDocument profileCatalog = CreateValidProfileCatalog();
+
+        profileCatalog.Profiles[0].IncludeCodeGroups = ["UNKNOWN_GROUP"];
+
+        ErrorCatalogValidationResult result = validator.Validate(
+            CreateValidErrorCatalog(),
+            CreateValidOwnerCatalog(),
+            CreateValidCodeGroupCatalog(),
+            CreateValidCategoryCatalog(),
+            profileCatalog);
+
+        Assert.True(result.IsValid);
+        Assert.Contains(result.Issues, issue => issue.Code == "UnknownProfileIncludeCodeGroup");
+    }
+
+    [Fact]
+    public void Validate_ShouldReportUnknownProfileIncludeCategory()
+    {
+        ErrorCatalogCrossValidator validator = new();
+        ErrorProfileCatalogDocument profileCatalog = CreateValidProfileCatalog();
+
+        profileCatalog.Profiles[0].IncludeCategories = ["UNKNOWN_CATEGORY"];
+
+        ErrorCatalogValidationResult result = validator.Validate(
+            CreateValidErrorCatalog(),
+            CreateValidOwnerCatalog(),
+            CreateValidCodeGroupCatalog(),
+            CreateValidCategoryCatalog(),
+            profileCatalog);
+
+        Assert.True(result.IsValid);
+        Assert.Contains(result.Issues, issue => issue.Code == "UnknownProfileIncludeCategory");
+    }
+
+    [Fact]
+    public void Validate_ShouldNotReportProfileIssues_WhenProfileReferencesAreKnown()
+    {
+        ErrorCatalogCrossValidator validator = new();
+
+        ErrorCatalogValidationResult result = validator.Validate(
+            CreateValidErrorCatalog(),
+            CreateValidOwnerCatalog(),
+            CreateValidCodeGroupCatalog(),
+            CreateValidCategoryCatalog(),
+            CreateValidProfileCatalog());
+
+        Assert.True(result.IsValid);
+        Assert.DoesNotContain(result.Issues, issue => issue.Code == "UnknownProfileIncludeOwner");
+        Assert.DoesNotContain(result.Issues, issue => issue.Code == "UnknownProfileIncludeCodeGroup");
+        Assert.DoesNotContain(result.Issues, issue => issue.Code == "UnknownProfileIncludeCategory");
+    }
+
     private static ErrorCatalogDocument CreateValidErrorCatalog()
     {
         return new ErrorCatalogDocument
@@ -276,6 +351,31 @@ public sealed class ErrorCatalogCrossValidatorTests
         };
     }
 
+    private static ErrorProfileCatalogDocument CreateValidProfileCatalog()
+    {
+        return new ErrorProfileCatalogDocument
+        {
+            SchemaVersion = "1.0",
+            CatalogId = "test.profiles",
+            CatalogName = "Test Profiles",
+            Language = "en",
+            Profiles =
+           [
+              new ErrorProfileDefinition
+         {
+            Name = "WEB_API",
+            DisplayName = "Web API",
+            Description = "Profile for web APIs.",
+            IncludeOwners = ["AFW"],
+            IncludeCodeGroups = ["CONFIGURATION"],
+            IncludeCategories = ["CONFIGURATION"],
+            IncludeSubcategories = ["RequiredValue"],
+            IncludeTags = ["configuration"],
+            ExcludeTags = ["internal"]
+         }
+           ]
+        };
+    }
     private static ErrorDefinition CreateValidError()
     {
         return new ErrorDefinition

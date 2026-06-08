@@ -125,10 +125,11 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
         ErrorCatalogCrossValidator crossValidator = new();
 
         ErrorCatalogValidationResult crossValidationResult = crossValidator.Validate(
-            errorCatalogResponse.Data.Document,
-            ownerCatalogResponse.Data.Document,
-            codeGroupCatalogResponse.Data.Document,
-            categoryCatalogResponse.Data.Document);
+    errorCatalogResponse.Data.Document,
+    ownerCatalogResponse.Data.Document,
+    codeGroupCatalogResponse.Data.Document,
+    categoryCatalogResponse.Data.Document,
+    profileCatalogResponse.Data.Document);
 
         if (!crossValidationResult.IsValid)
         {

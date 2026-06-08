@@ -10,23 +10,26 @@ namespace Afrowave.Toolbox.WhenItFails.Validation;
 /// This validator does not replace <see cref="ErrorCatalogValidator"/>.
 /// It checks cross-document rules such as:
 /// owner exists, code group exists, code belongs to owner and group ranges,
-/// code prefix matches the selected code group, and categories are known.
+/// code prefix matches the selected code group, categories are known,
+/// and profiles reference known owners, code groups and categories.
 /// </remarks>
 public sealed class ErrorCatalogCrossValidator
 {
     /// <summary>
-    /// Validates the error catalog against owner, code group and category catalogs.
+    /// Validates the error catalog against owner, code group, category and profile catalogs.
     /// </summary>
     /// <param name="errorCatalog">Main error catalog document.</param>
     /// <param name="ownerCatalog">Owner catalog document.</param>
     /// <param name="codeGroupCatalog">Code group catalog document.</param>
     /// <param name="categoryCatalog">Category catalog document.</param>
+    /// <param name="profileCatalog">Profile catalog document.</param>
     /// <returns>Validation result containing all discovered issues.</returns>
     public ErrorCatalogValidationResult Validate(
-        ErrorCatalogDocument? errorCatalog,
-        ErrorOwnerCatalogDocument? ownerCatalog,
-        ErrorCodeGroupCatalogDocument? codeGroupCatalog,
-        ErrorCategoryCatalogDocument? categoryCatalog)
+    ErrorCatalogDocument? errorCatalog,
+    ErrorOwnerCatalogDocument? ownerCatalog,
+    ErrorCodeGroupCatalogDocument? codeGroupCatalog,
+    ErrorCategoryCatalogDocument? categoryCatalog,
+    ErrorProfileCatalogDocument? profileCatalog = null)
     {
         ErrorCatalogValidationResult result = new();
 
@@ -64,6 +67,14 @@ public sealed class ErrorCatalogCrossValidator
                 path: "categoryCatalog");
         }
 
+        if (profileCatalog is null)
+        {
+            result.AddWarning(
+                code: "ProfileCatalogDocumentIsNull",
+                message: "Profile catalog document is null. Profile cross-validation will be skipped.",
+                path: "profileCatalog");
+        }
+
         Dictionary<string, ErrorOwnerDefinition> ownersByName = BuildOwnerIndex(ownerCatalog);
         Dictionary<string, ErrorCodeGroupDefinition> codeGroupsByName = BuildCodeGroupIndex(codeGroupCatalog);
         Dictionary<string, ErrorCategoryDefinition> categoriesByName = BuildCategoryIndex(categoryCatalog);
@@ -80,6 +91,13 @@ public sealed class ErrorCatalogCrossValidator
                 categoriesByName,
                 result);
         }
+
+        ValidateProfilesAgainstSupportingCatalogs(
+            profileCatalog,
+            ownersByName,
+            codeGroupsByName,
+            categoriesByName,
+            result);
 
         return result;
     }
@@ -241,6 +259,142 @@ public sealed class ErrorCatalogCrossValidator
                     errorId: error.Id,
                     errorName: error.Name,
                     path: $"{errorPath}.categories[{categoryIndex}]");
+            }
+        }
+    }
+
+    private static void ValidateProfilesAgainstSupportingCatalogs(
+        ErrorProfileCatalogDocument? profileCatalog,
+        IReadOnlyDictionary<string, ErrorOwnerDefinition> ownersByName,
+        IReadOnlyDictionary<string, ErrorCodeGroupDefinition> codeGroupsByName,
+        IReadOnlyDictionary<string, ErrorCategoryDefinition> categoriesByName,
+        ErrorCatalogValidationResult result)
+    {
+        if (profileCatalog is null)
+        {
+            return;
+        }
+
+        for (int profileIndex = 0; profileIndex < profileCatalog.Profiles.Count; profileIndex++)
+        {
+            ErrorProfileDefinition profile = profileCatalog.Profiles[profileIndex];
+            string profilePath = $"profiles[{profileIndex}]";
+
+            ValidateProfileIncludeOwners(
+                profile,
+                profilePath,
+                ownersByName,
+                result);
+
+            ValidateProfileIncludeCodeGroups(
+                profile,
+                profilePath,
+                codeGroupsByName,
+                result);
+
+            ValidateProfileIncludeCategories(
+                profile,
+                profilePath,
+                categoriesByName,
+                result);
+        }
+    }
+
+    private static void ValidateProfileIncludeOwners(
+        ErrorProfileDefinition profile,
+        string profilePath,
+        IReadOnlyDictionary<string, ErrorOwnerDefinition> ownersByName,
+        ErrorCatalogValidationResult result)
+    {
+        if (ownersByName.Count == 0)
+        {
+            return;
+        }
+
+        for (int ownerIndex = 0; ownerIndex < profile.IncludeOwners.Count; ownerIndex++)
+        {
+            string owner = profile.IncludeOwners[ownerIndex];
+
+            if (string.IsNullOrWhiteSpace(owner))
+            {
+                continue;
+            }
+
+            string normalizedOwner = TextKeyNormalizer.NormalizeKey(owner);
+
+            if (!ownersByName.ContainsKey(normalizedOwner))
+            {
+                result.AddWarning(
+                    code: "UnknownProfileIncludeOwner",
+                    message: $"Profile '{profile.Name}' includes owner '{owner}', but this owner is not defined in the owner catalog.",
+                    errorName: profile.Name,
+                    path: $"{profilePath}.includeOwners[{ownerIndex}]");
+            }
+        }
+    }
+
+    private static void ValidateProfileIncludeCodeGroups(
+        ErrorProfileDefinition profile,
+        string profilePath,
+        IReadOnlyDictionary<string, ErrorCodeGroupDefinition> codeGroupsByName,
+        ErrorCatalogValidationResult result)
+    {
+        if (codeGroupsByName.Count == 0)
+        {
+            return;
+        }
+
+        for (int codeGroupIndex = 0; codeGroupIndex < profile.IncludeCodeGroups.Count; codeGroupIndex++)
+        {
+            string codeGroup = profile.IncludeCodeGroups[codeGroupIndex];
+
+            if (string.IsNullOrWhiteSpace(codeGroup))
+            {
+                continue;
+            }
+
+            string normalizedCodeGroup = TextKeyNormalizer.NormalizeKey(codeGroup);
+
+            if (!codeGroupsByName.ContainsKey(normalizedCodeGroup))
+            {
+                result.AddWarning(
+                    code: "UnknownProfileIncludeCodeGroup",
+                    message: $"Profile '{profile.Name}' includes code group '{codeGroup}', but this code group is not defined in the code group catalog.",
+                    errorName: profile.Name,
+                    path: $"{profilePath}.includeCodeGroups[{codeGroupIndex}]");
+            }
+        }
+    }
+
+    private static void ValidateProfileIncludeCategories(
+        ErrorProfileDefinition profile,
+        string profilePath,
+        IReadOnlyDictionary<string, ErrorCategoryDefinition> categoriesByName,
+        ErrorCatalogValidationResult result)
+    {
+        if (categoriesByName.Count == 0)
+        {
+            return;
+        }
+
+        for (int categoryIndex = 0; categoryIndex < profile.IncludeCategories.Count; categoryIndex++)
+        {
+            string category = profile.IncludeCategories[categoryIndex];
+
+            if (string.IsNullOrWhiteSpace(category))
+            {
+                continue;
+            }
+
+            string normalizedCategory = TextKeyNormalizer.NormalizeKey(category);
+
+            if (!categoriesByName.ContainsKey(normalizedCategory))
+            {
+                result.AddWarning(
+                    code: "UnknownProfileIncludeCategory",
+                    message: $"Profile '{profile.Name}' includes category '{category}', but this category is not defined in the category catalog.",
+                    errorName: profile.Name,
+                    path: $"{profilePath}.includeCategories[{categoryIndex}]");
             }
         }
     }
