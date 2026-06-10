@@ -1,4 +1,5 @@
 using Afrowave.Toolbox.SeeMe.WhenItFails.Console;
+using Afrowave.Toolbox.Toolroom.WhenItFails.Setter;
 using Afrowave.Toolbox.WhenItFails.Validation;
 using Spectre.Console;
 
@@ -11,27 +12,36 @@ if (args.Length == 0 || IsHelpCommand(args[0]))
 
 string command = args[0].Trim().ToLowerInvariant();
 
-if (command == "demo")
+try
 {
-   ShowDemoValidationResult();
+   if (command == "demo")
+   {
+      ShowDemoValidationResult();
 
-   return 0;
+      return 0;
+   }
+
+   if (command == "validate")
+   {
+      return await ValidateAsync(args);
+   }
+
+   AnsiConsole.MarkupLine(
+      "[red]Unknown command:[/] {0}",
+      Markup.Escape(args[0]));
+
+   ShowHelp();
+
+   return 1;
 }
-
-if (command == "validate")
+catch (Exception exception)
 {
-   ShowValidateNotImplementedYet();
+   AnsiConsole.WriteException(
+      exception,
+      ExceptionFormats.ShortenEverything | ExceptionFormats.ShowLinks);
 
-   return 2;
+   return 3;
 }
-
-AnsiConsole.MarkupLine(
-   "[red]Unknown command:[/] {0}",
-   Markup.Escape(args[0]));
-
-ShowHelp();
-
-return 1;
 
 static bool IsHelpCommand(string command)
 {
@@ -45,7 +55,7 @@ static void ShowHelp()
    commandGrid.AddColumn();
 
    commandGrid.AddRow("[green]demo[/]", "Show a sample WhenItFails validation result.");
-   commandGrid.AddRow("[green]validate[/] [grey]<path>[/]", "Validate WhenItFails JSON files. Not implemented yet.");
+   commandGrid.AddRow("[green]validate[/] [grey]<path>[/]", "Validate WhenItFails JSON files.");
    commandGrid.AddRow("[green]help[/]", "Show this help screen.");
 
    Panel helpPanel = new Panel(commandGrid)
@@ -54,6 +64,46 @@ static void ShowHelp()
       .BorderColor(Color.Aqua);
 
    AnsiConsole.Write(helpPanel);
+}
+
+static async Task<int> ValidateAsync(string[] args)
+{
+   if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
+   {
+      ErrorCatalogValidationResult missingPathResult = new();
+
+      missingPathResult.AddError(
+         code: "MissingValidatePath",
+         message: "The validate command requires a project root or Jsons/WhenItFails directory path.",
+         path: "validate <path>");
+
+      new ConsoleValidationResultShow().Show(
+         missingPathResult,
+         new ConsoleShowOptions
+         {
+            SourcePath = "command line"
+         });
+
+      return 1;
+   }
+
+   string inputPath = args[1];
+
+   WhenItFailsWorkspaceValidator validator = new();
+
+   WhenItFailsWorkspaceValidationOutcome outcome =
+      await validator.ValidateAsync(inputPath);
+
+   new ConsoleValidationResultShow().Show(
+      outcome.ValidationResult,
+      new ConsoleShowOptions
+      {
+         SourcePath = outcome.PackageDirectoryPath
+      });
+
+   return outcome.ValidationResult.IsValid
+      ? 0
+      : 2;
 }
 
 static void ShowDemoValidationResult()
@@ -84,24 +134,5 @@ static void ShowDemoValidationResult()
       new ConsoleShowOptions
       {
          SourcePath = "Jsons/WhenItFails/errors.json"
-      });
-}
-
-static void ShowValidateNotImplementedYet()
-{
-   ErrorCatalogValidationResult validationResult = new();
-
-   validationResult.AddInformation(
-      code: "ValidateNotImplementedYet",
-      message: "The validate command exists, but real JSON loading is not connected yet.",
-      path: "Toolroom.WhenItFails.Setter");
-
-   ConsoleValidationResultShow validationResultShow = new();
-
-   validationResultShow.Show(
-      validationResult,
-      new ConsoleShowOptions
-      {
-         SourcePath = "Jsons/WhenItFails"
       });
 }
