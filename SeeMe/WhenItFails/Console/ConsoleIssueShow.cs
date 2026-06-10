@@ -58,8 +58,10 @@ public sealed class ConsoleIssueShow
          console.MarkupLine("   [grey]|[/]");
          console.MarkupLine(
             $"   [grey]|[/] [{pathColorMarkup}]{issuePath}[/]");
+         string locationMarkerText = Markup.Escape(options.LocationMarkerText);
+
          console.MarkupLine(
-            $"   [grey]|[/] [{severityColorMarkup}]^ validation path[/]");
+            $"   [grey]|[/] [{severityColorMarkup}]^ {locationMarkerText}[/]");
       }
 
       if (options.ShowRelatedError && HasRelatedError(issue))

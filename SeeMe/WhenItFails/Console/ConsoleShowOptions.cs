@@ -47,6 +47,11 @@ public sealed class ConsoleShowOptions
    public int? MaxIssues { get; set; }
 
    /// <summary>
+   /// Gets or sets text shown under the validation path marker.
+   /// </summary>
+   public string LocationMarkerText { get; set; } = "here";
+
+   /// <summary>
    /// Gets or sets the theme used for console output.
    /// </summary>
    public ConsoleShowTheme Theme { get; set; } = ConsoleShowTheme.Default;
