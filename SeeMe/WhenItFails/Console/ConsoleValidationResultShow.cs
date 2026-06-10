@@ -37,9 +37,12 @@ public sealed class ConsoleValidationResultShow
          return;
       }
 
+      console.WriteLine();
+
       foreach (ErrorCatalogValidationIssue issue in matchingIssues)
       {
          ShowIssue(issue, options, console);
+         console.WriteLine();
       }
    }
 
@@ -94,7 +97,7 @@ public sealed class ConsoleValidationResultShow
       {
          summaryTable.AddRow(
             "[grey]Source[/]",
-            $"[{options.Theme.PathColor}]{Markup.Escape(options.SourcePath)}[/]");
+            $"[{GetColorMarkup(options.Theme.PathColor)}]{Markup.Escape(options.SourcePath)}[/]");
       }
 
       summaryTable.AddRow("[grey]Errors[/]", FormatCount(errorCount, options.Theme.ErrorColor));
@@ -119,46 +122,60 @@ public sealed class ConsoleValidationResultShow
       IAnsiConsole console)
    {
       Color severityColor = GetSeverityColor(issue.Severity, options.Theme);
-      string severityLabel = GetSeverityLabel(issue.Severity);
+      string severityColorMarkup = GetColorMarkup(severityColor);
+      string pathColorMarkup = GetColorMarkup(options.Theme.PathColor);
+      string severityLabel = Markup.Escape(GetSeverityLabel(issue.Severity));
+      string issueCode = Markup.Escape($"[{issue.Code}]");
+      string issueMessage = Markup.Escape(issue.Message);
 
-      Grid grid = new Grid();
-      grid.AddColumn(new GridColumn().NoWrap());
-      grid.AddColumn();
+      console.MarkupLine(
+         $"[bold {severityColorMarkup}]{severityLabel}[/][grey]{issueCode}[/]: {issueMessage}");
 
-      grid.AddRow(
-         $"[{severityColor}]code[/]",
-         $"[bold {severityColor}]{Markup.Escape(issue.Code)}[/]");
+      if (!string.IsNullOrWhiteSpace(options.SourcePath))
+      {
+         string sourcePath = Markup.Escape(options.SourcePath);
 
-      grid.AddRow(
-         $"[{severityColor}]message[/]",
-         Markup.Escape(issue.Message));
+         console.MarkupLine(
+            $"  [grey]-->[/] [{pathColorMarkup}]{sourcePath}[/]");
+      }
 
       if (options.ShowPath && !string.IsNullOrWhiteSpace(issue.Path))
       {
-         grid.AddRow(
-            $"[{options.Theme.PathColor}]path[/]",
-            $"[{options.Theme.PathColor}]{Markup.Escape(issue.Path)}[/]");
+         string issuePath = Markup.Escape(issue.Path);
+
+         console.MarkupLine("   [grey]|[/]");
+         console.MarkupLine(
+            $"   [grey]|[/] [{pathColorMarkup}]{issuePath}[/]");
+         console.MarkupLine(
+            $"   [grey]|[/] [{severityColorMarkup}]^ validation path[/]");
       }
 
-      if (options.ShowRelatedError && !string.IsNullOrWhiteSpace(issue.ErrorId))
+      if (options.ShowRelatedError && HasRelatedError(issue))
       {
-         grid.AddRow(
-            $"[{options.Theme.NeutralColor}]error id[/]",
-            Markup.Escape(issue.ErrorId));
-      }
+         console.MarkupLine("   [grey]|[/]");
 
-      if (options.ShowRelatedError && !string.IsNullOrWhiteSpace(issue.ErrorName))
-      {
-         grid.AddRow(
-            $"[{options.Theme.NeutralColor}]error name[/]",
-            Markup.Escape(issue.ErrorName));
-      }
+         if (!string.IsNullOrWhiteSpace(issue.ErrorId))
+         {
+            string errorId = Markup.Escape(issue.ErrorId);
 
-      console.Write(
-         new Panel(grid)
-            .Header($"[bold {severityColor}]{severityLabel}[/]")
-            .Border(BoxBorder.Rounded)
-            .BorderColor(severityColor));
+            console.MarkupLine(
+               $"   [grey]= related error id:[/] {errorId}");
+         }
+
+         if (!string.IsNullOrWhiteSpace(issue.ErrorName))
+         {
+            string errorName = Markup.Escape(issue.ErrorName);
+
+            console.MarkupLine(
+               $"   [grey]= related error name:[/] {errorName}");
+         }
+      }
+   }
+
+   private static bool HasRelatedError(ErrorCatalogValidationIssue issue)
+   {
+      return !string.IsNullOrWhiteSpace(issue.ErrorId)
+         || !string.IsNullOrWhiteSpace(issue.ErrorName);
    }
 
    private static Color GetSeverityColor(
@@ -185,8 +202,48 @@ public sealed class ConsoleValidationResultShow
       };
    }
 
+   private static string GetColorMarkup(Color color)
+   {
+      if (color == Color.Red)
+      {
+         return "red";
+      }
+
+      if (color == Color.Yellow)
+      {
+         return "yellow";
+      }
+
+      if (color == Color.Blue)
+      {
+         return "blue";
+      }
+
+      if (color == Color.Green)
+      {
+         return "green";
+      }
+
+      if (color == Color.Aqua)
+      {
+         return "aqua";
+      }
+
+      if (color == Color.Grey)
+      {
+         return "grey";
+      }
+
+      if (color == Color.Silver)
+      {
+         return "silver";
+      }
+
+      return "white";
+   }
+
    private static string FormatCount(int count, Color color)
    {
-      return $"[{color}]{count}[/]";
+      return $"[{GetColorMarkup(color)}]{count}[/]";
    }
 }
