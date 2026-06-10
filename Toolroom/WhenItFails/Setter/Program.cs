@@ -162,10 +162,14 @@ static void ShowBootstrapResult(JsonsBootstrapPayload payload)
          ? "[green]Created[/]"
          : "[yellow]Skipped[/]";
 
+      string displayPath = Path.GetRelativePath(
+         payload.PackageDirectoryPath,
+         fileResult.TargetFilePath);
+
       table.AddRow(
          Markup.Escape(fileResult.Name),
          status,
-         Markup.Escape(fileResult.TargetFilePath),
+         Markup.Escape(displayPath),
          Markup.Escape(fileResult.Message ?? string.Empty));
    }
 
