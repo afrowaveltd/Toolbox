@@ -39,9 +39,11 @@ public sealed class ConsoleValidationResultShow
 
       console.WriteLine();
 
+      ConsoleIssueShow issueShow = new();
+
       foreach (ErrorCatalogValidationIssue issue in matchingIssues)
       {
-         ShowIssue(issue, options, console);
+         issueShow.Show(issue, options, console);
          console.WriteLine();
       }
    }
@@ -97,7 +99,7 @@ public sealed class ConsoleValidationResultShow
       {
          summaryTable.AddRow(
             "[grey]Source[/]",
-            $"[{GetColorMarkup(options.Theme.PathColor)}]{Markup.Escape(options.SourcePath)}[/]");
+            $"[{ConsoleMarkupHelper.GetColorMarkup(options.Theme.PathColor)}]{Markup.Escape(options.SourcePath)}[/]");
       }
 
       summaryTable.AddRow("[grey]Errors[/]", FormatCount(errorCount, options.Theme.ErrorColor));
@@ -116,134 +118,8 @@ public sealed class ConsoleValidationResultShow
             .BorderColor(borderColor));
    }
 
-   private static void ShowIssue(
-      ErrorCatalogValidationIssue issue,
-      ConsoleShowOptions options,
-      IAnsiConsole console)
-   {
-      Color severityColor = GetSeverityColor(issue.Severity, options.Theme);
-      string severityColorMarkup = GetColorMarkup(severityColor);
-      string pathColorMarkup = GetColorMarkup(options.Theme.PathColor);
-      string severityLabel = Markup.Escape(GetSeverityLabel(issue.Severity));
-      string issueCode = Markup.Escape($"[{issue.Code}]");
-      string issueMessage = Markup.Escape(issue.Message);
-
-      console.MarkupLine(
-         $"[bold {severityColorMarkup}]{severityLabel}[/][grey]{issueCode}[/]: {issueMessage}");
-
-      if (!string.IsNullOrWhiteSpace(options.SourcePath))
-      {
-         string sourcePath = Markup.Escape(options.SourcePath);
-
-         console.MarkupLine(
-            $"  [grey]-->[/] [{pathColorMarkup}]{sourcePath}[/]");
-      }
-
-      if (options.ShowPath && !string.IsNullOrWhiteSpace(issue.Path))
-      {
-         string issuePath = Markup.Escape(issue.Path);
-
-         console.MarkupLine("   [grey]|[/]");
-         console.MarkupLine(
-            $"   [grey]|[/] [{pathColorMarkup}]{issuePath}[/]");
-         console.MarkupLine(
-            $"   [grey]|[/] [{severityColorMarkup}]^ validation path[/]");
-      }
-
-      if (options.ShowRelatedError && HasRelatedError(issue))
-      {
-         console.MarkupLine("   [grey]|[/]");
-
-         if (!string.IsNullOrWhiteSpace(issue.ErrorId))
-         {
-            string errorId = Markup.Escape(issue.ErrorId);
-
-            console.MarkupLine(
-               $"   [grey]= related error id:[/] {errorId}");
-         }
-
-         if (!string.IsNullOrWhiteSpace(issue.ErrorName))
-         {
-            string errorName = Markup.Escape(issue.ErrorName);
-
-            console.MarkupLine(
-               $"   [grey]= related error name:[/] {errorName}");
-         }
-      }
-   }
-
-   private static bool HasRelatedError(ErrorCatalogValidationIssue issue)
-   {
-      return !string.IsNullOrWhiteSpace(issue.ErrorId)
-         || !string.IsNullOrWhiteSpace(issue.ErrorName);
-   }
-
-   private static Color GetSeverityColor(
-      ErrorCatalogValidationSeverity severity,
-      ConsoleShowTheme theme)
-   {
-      return severity switch
-      {
-         ErrorCatalogValidationSeverity.Error => theme.ErrorColor,
-         ErrorCatalogValidationSeverity.Warning => theme.WarningColor,
-         ErrorCatalogValidationSeverity.Information => theme.InformationColor,
-         _ => theme.NeutralColor
-      };
-   }
-
-   private static string GetSeverityLabel(ErrorCatalogValidationSeverity severity)
-   {
-      return severity switch
-      {
-         ErrorCatalogValidationSeverity.Error => "error",
-         ErrorCatalogValidationSeverity.Warning => "warning",
-         ErrorCatalogValidationSeverity.Information => "information",
-         _ => "issue"
-      };
-   }
-
-   private static string GetColorMarkup(Color color)
-   {
-      if (color == Color.Red)
-      {
-         return "red";
-      }
-
-      if (color == Color.Yellow)
-      {
-         return "yellow";
-      }
-
-      if (color == Color.Blue)
-      {
-         return "blue";
-      }
-
-      if (color == Color.Green)
-      {
-         return "green";
-      }
-
-      if (color == Color.Aqua)
-      {
-         return "aqua";
-      }
-
-      if (color == Color.Grey)
-      {
-         return "grey";
-      }
-
-      if (color == Color.Silver)
-      {
-         return "silver";
-      }
-
-      return "white";
-   }
-
    private static string FormatCount(int count, Color color)
    {
-      return $"[{GetColorMarkup(color)}]{count}[/]";
+      return $"[{ConsoleMarkupHelper.GetColorMarkup(color)}]{count}[/]";
    }
 }
