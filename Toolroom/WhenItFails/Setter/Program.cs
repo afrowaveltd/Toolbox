@@ -1,5 +1,7 @@
+using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.SeeMe.WhenItFails.Console;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter;
+using Afrowave.Toolbox.WhenItFails.Bootstrap;
 using Afrowave.Toolbox.WhenItFails.Validation;
 using Spectre.Console;
 
@@ -19,6 +21,11 @@ try
       ShowDemoValidationResult();
 
       return 0;
+   }
+
+   if (command == "init")
+   {
+      return await InitializeAsync(args);
    }
 
    if (command == "validate")
@@ -54,8 +61,9 @@ static void ShowHelp()
    commandGrid.AddColumn(new GridColumn().NoWrap());
    commandGrid.AddColumn();
 
-   commandGrid.AddRow("[green]demo[/]", "Show a sample WhenItFails validation result.");
+   commandGrid.AddRow("[green]init[/] [grey]<path>[/]", "Create missing WhenItFails JSON files.");
    commandGrid.AddRow("[green]validate[/] [grey]<path>[/]", "Validate WhenItFails JSON files.");
+   commandGrid.AddRow("[green]demo[/]", "Show a sample WhenItFails validation result.");
    commandGrid.AddRow("[green]help[/]", "Show this help screen.");
 
    Panel helpPanel = new Panel(commandGrid)
@@ -65,6 +73,105 @@ static void ShowHelp()
 
    AnsiConsole.Write(helpPanel);
 }
+
+
+static async Task<int> InitializeAsync(string[] args)
+{
+   if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
+   {
+      ErrorCatalogValidationResult missingPathResult = new();
+
+      missingPathResult.AddError(
+         code: "MissingInitPath",
+         message: "The init command requires a project root path.",
+         path: "init <path>");
+
+      new ConsoleValidationResultShow().Show(
+         missingPathResult,
+         new ConsoleShowOptions
+         {
+            SourcePath = "command line"
+         });
+
+      return 1;
+   }
+
+   string projectRootPath = args[1];
+
+   WhenItFailsWorkspaceInitializer initializer = new();
+
+   Response<JsonsBootstrapPayload> response =
+      await initializer.InitializeAsync(projectRootPath);
+
+   if (!response.IsSuccess || response.Data is null)
+   {
+      ErrorCatalogValidationResult failureResult = new();
+
+      string failureCode = response.Issues.Count > 0
+         ? response.Issues[0].Code
+         : "WorkspaceInitializationFailed";
+
+      string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+         ? "WhenItFails workspace initialization failed."
+         : response.Message;
+
+      failureResult.AddError(
+         code: failureCode,
+         message: failureMessage,
+         path: projectRootPath);
+
+      new ConsoleValidationResultShow().Show(
+         failureResult,
+         new ConsoleShowOptions
+         {
+            SourcePath = projectRootPath
+         });
+
+      return 3;
+   }
+
+   ShowBootstrapResult(response.Data);
+
+   return 0;
+}
+
+static void ShowBootstrapResult(JsonsBootstrapPayload payload)
+{
+   string directoryStatus = payload.PackageDirectoryCreated
+      ? "[green]created[/]"
+      : "[grey]already existed[/]";
+
+   AnsiConsole.MarkupLine(
+      "[bold aqua]WhenItFails JSON workspace:[/] {0} ({1})",
+      Markup.Escape(payload.PackageDirectoryPath),
+      directoryStatus);
+
+   Table table = new Table();
+
+   table.Border(TableBorder.Rounded);
+   table.BorderColor(Color.Aqua);
+
+   table.AddColumn("File");
+   table.AddColumn("Status");
+   table.AddColumn("Path");
+   table.AddColumn("Message");
+
+   foreach (JsonsBootstrapFileResult fileResult in payload.Files)
+   {
+      string status = fileResult.Created
+         ? "[green]Created[/]"
+         : "[yellow]Skipped[/]";
+
+      table.AddRow(
+         Markup.Escape(fileResult.Name),
+         status,
+         Markup.Escape(fileResult.TargetFilePath),
+         Markup.Escape(fileResult.Message ?? string.Empty));
+   }
+
+   AnsiConsole.Write(table);
+}
+
 
 static async Task<int> ValidateAsync(string[] args)
 {
