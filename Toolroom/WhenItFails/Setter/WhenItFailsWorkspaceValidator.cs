@@ -77,8 +77,27 @@ internal sealed class WhenItFailsWorkspaceValidator
       return new WhenItFailsWorkspaceValidationOutcome
       {
          PackageDirectoryPath = options.PackageDirectoryPath,
+         DisplayPath = CreateDisplayPath(inputPath, options.PackageDirectoryPath),
          ValidationResult = combinedResult
       };
+   }
+
+   private static string CreateDisplayPath(
+      string inputPath,
+      string packageDirectoryPath)
+   {
+      string fullInputPath = Path.GetFullPath(inputPath);
+
+      if (LooksLikePackageDirectory(fullInputPath))
+      {
+         return new DirectoryInfo(fullInputPath).Name;
+      }
+
+      string relativePath = Path.GetRelativePath(
+         fullInputPath,
+         packageDirectoryPath);
+
+      return relativePath;
    }
 
    private static JsonsOptions ResolveJsonsOptions(string inputPath)

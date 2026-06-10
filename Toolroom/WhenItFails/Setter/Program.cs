@@ -209,7 +209,7 @@ static async Task<int> ValidateAsync(string[] args)
       outcome.ValidationResult,
       new ConsoleShowOptions
       {
-         SourcePath = outcome.PackageDirectoryPath
+         SourcePath = outcome.DisplayPath
       });
 
    return outcome.ValidationResult.IsValid

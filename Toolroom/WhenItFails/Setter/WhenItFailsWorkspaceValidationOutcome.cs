@@ -13,6 +13,11 @@ internal sealed class WhenItFailsWorkspaceValidationOutcome
    public string PackageDirectoryPath { get; set; } = string.Empty;
 
    /// <summary>
+   /// Gets or sets the display path used in console output.
+   /// </summary>
+   public string DisplayPath { get; set; } = string.Empty;
+
+   /// <summary>
    /// Gets or sets the validation result.
    /// </summary>
    public ErrorCatalogValidationResult ValidationResult { get; set; } = new();
