@@ -38,3 +38,6 @@ _ReSharper.Caches/
 Thumbs.db
 
 .fake
+
+Jsons/WhenItFails/*.bak.json
+Jsons/WhenItFails/.*.tmp
