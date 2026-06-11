@@ -26,7 +26,7 @@ internal sealed class WhenItFailsWorkspaceValidator
    {
       ArgumentException.ThrowIfNullOrWhiteSpace(inputPath);
 
-      JsonsOptions options = ResolveJsonsOptions(inputPath);
+      JsonsOptions options = WhenItFailsWorkspacePathResolver.ResolveJsonsOptions(inputPath);
       ErrorCatalogValidationResult combinedResult = new();
 
       ErrorCatalogDocument? errorCatalogDocument = await LoadNormalizeValidateErrorCatalogAsync(
@@ -77,78 +77,11 @@ internal sealed class WhenItFailsWorkspaceValidator
       return new WhenItFailsWorkspaceValidationOutcome
       {
          PackageDirectoryPath = options.PackageDirectoryPath,
-         DisplayPath = CreateDisplayPath(inputPath, options.PackageDirectoryPath),
+         DisplayPath = WhenItFailsWorkspacePathResolver.CreateDisplayPath(
+            inputPath,
+            options.PackageDirectoryPath),
          ValidationResult = combinedResult
       };
-   }
-
-   private static string CreateDisplayPath(
-      string inputPath,
-      string packageDirectoryPath)
-   {
-      string fullInputPath = Path.GetFullPath(inputPath);
-
-      if (LooksLikePackageDirectory(fullInputPath))
-      {
-         return new DirectoryInfo(fullInputPath).Name;
-      }
-
-      string relativePath = Path.GetRelativePath(
-         fullInputPath,
-         packageDirectoryPath);
-
-      return relativePath;
-   }
-
-   private static JsonsOptions ResolveJsonsOptions(string inputPath)
-   {
-      string fullInputPath = Path.GetFullPath(inputPath);
-
-      if (LooksLikePackageDirectory(fullInputPath))
-      {
-         DirectoryInfo packageDirectory = new(fullInputPath);
-
-         return new JsonsOptions
-         {
-            RootDirectory = packageDirectory.Parent?.FullName ?? fullInputPath,
-            PackageDirectoryName = packageDirectory.Name
-         };
-      }
-
-      string defaultPackageDirectory = Path.Combine(
-         fullInputPath,
-         "Jsons",
-         "WhenItFails");
-
-      if (Directory.Exists(defaultPackageDirectory)
-          || !Directory.Exists(fullInputPath))
-      {
-         return new JsonsOptions
-         {
-            RootDirectory = Path.Combine(fullInputPath, "Jsons"),
-            PackageDirectoryName = "WhenItFails"
-         };
-      }
-
-      return new JsonsOptions
-      {
-         RootDirectory = Path.Combine(fullInputPath, "Jsons"),
-         PackageDirectoryName = "WhenItFails"
-      };
-   }
-
-   private static bool LooksLikePackageDirectory(string directoryPath)
-   {
-      if (!Directory.Exists(directoryPath))
-      {
-         return false;
-      }
-
-      return File.Exists(Path.Combine(directoryPath, "errors.en.json"))
-         || File.Exists(Path.Combine(directoryPath, "categories.en.json"))
-         || File.Exists(Path.Combine(directoryPath, "code-groups.en.json"))
-         || File.Exists(Path.Combine(directoryPath, "owners.en.json"))
-         || File.Exists(Path.Combine(directoryPath, "profiles.json"));
    }
 
    private static async Task<ErrorCatalogDocument?> LoadNormalizeValidateErrorCatalogAsync(

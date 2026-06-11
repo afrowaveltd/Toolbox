@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "1.0",
+  "catalogId": "afw.when-it-fails.profiles",
+  "catalogName": "Afrowave WhenItFails default profiles",
+  "description": "Default profile template for project-local customization.",
+  "language": "en",
+  "sourceCatalogId": "afw.when-it-fails.profiles",
+  "sourceCatalogVersion": "1.0",
+  "isShadowCopy": true,
+  "tags": [ "default", "profiles", "shadow-copy-template" ],
+  "profiles": [
+    {
+      "name": "WEB",
+      "displayName": "Web",
+      "description": "Default profile for web applications with user-safe error presentation.",
+      "includeOwners": [ "AFW", "APP", "PLUGIN", "USER" ],
+      "includeCodeGroups": [],
+      "includeCategories": [ "GENERAL", "CONFIGURATION", "VALIDATION", "FILE_SYSTEM", "SECURITY", "NETWORK", "DATABASE", "EXTERNAL_SERVICE", "SERIALIZATION" ],
+      "includeSubcategories": [],
+      "includeTags": [ "USER_VISIBLE" ],
+      "excludeTags": [ "INTERNAL_ONLY", "DEBUG_ONLY" ],
+      "defaultMappings": {
+        "web.problemDetails": "true",
+        "web.includeTraceId": "true",
+        "web.includeExceptionDetails": "false",
+        "web.includeStackTrace": "false"
+      }
+    },
+    {
+      "name": "API",
+      "displayName": "API",
+      "description": "Default profile for HTTP APIs and service endpoints.",
+      "includeOwners": [ "AFW", "APP", "PLUGIN", "USER" ],
+      "includeCodeGroups": [],
+      "includeCategories": [ "GENERAL", "CONFIGURATION", "VALIDATION", "SECURITY", "NETWORK", "DATABASE", "EXTERNAL_SERVICE", "SERIALIZATION" ],
+      "includeSubcategories": [],
+      "includeTags": [ "USER_VISIBLE" ],
+      "excludeTags": [ "INTERNAL_ONLY", "DEBUG_ONLY" ],
+      "defaultMappings": {
+        "web.problemDetails": "true",
+        "web.includeTraceId": "true",
+        "web.includeExceptionDetails": "false",
+        "web.includeStackTrace": "false"
+      }
+    },
+    {
+      "name": "CLI",
+      "displayName": "CLI",
+      "description": "Default profile for command-line applications.",
+      "includeOwners": [ "AFW", "APP", "PLUGIN", "USER" ],
+      "includeCodeGroups": [],
+      "includeCategories": [],
+      "includeSubcategories": [],
+      "includeTags": [],
+      "excludeTags": [],
+      "defaultMappings": {
+        "cli.includeHints": "true",
+        "cli.includeExitCode": "true",
+        "cli.includeColors": "true"
+      }
+    },
+    {
+      "name": "DESKTOP",
+      "displayName": "Desktop",
+      "description": "Default profile for desktop applications.",
+      "includeOwners": [ "AFW", "APP", "PLUGIN", "USER" ],
+      "includeCodeGroups": [],
+      "includeCategories": [ "GENERAL", "CONFIGURATION", "VALIDATION", "FILE_SYSTEM", "SECURITY", "NETWORK", "DATABASE", "EXTERNAL_SERVICE", "SERIALIZATION" ],
+      "includeSubcategories": [],
+      "includeTags": [ "USER_VISIBLE" ],
+      "excludeTags": [ "INTERNAL_ONLY", "DEBUG_ONLY" ],
+      "defaultMappings": {
+        "desktop.showDialog": "true",
+        "desktop.includeDetailsButton": "true",
+        "desktop.includeExceptionDetails": "false"
+      }
+    },
+    {
+      "name": "SERVICE",
+      "displayName": "Service",
+      "description": "Default profile for background services, workers, daemons, scheduled jobs, and hosted services.",
+      "includeOwners": [ "AFW", "APP", "PLUGIN", "USER" ],
+      "includeCodeGroups": [],
+      "includeCategories": [],
+      "includeSubcategories": [],
+      "includeTags": [],
+      "excludeTags": [ "DEBUG_ONLY" ],
+      "defaultMappings": {
+        "service.includeTraceId": "true",
+        "service.includeRetryInformation": "true",
+        "service.includeExceptionDetails": "false"
+      }
+    },
+    {
+      "name": "DEVELOPMENT",
+      "displayName": "Development",
+      "description": "Profile intended for development and debugging.",
+      "includeOwners": [ "AFW", "APP", "PLUGIN", "USER" ],
+      "includeCodeGroups": [],
+      "includeCategories": [],
+      "includeSubcategories": [],
+      "includeTags": [],
+      "excludeTags": [],
+      "defaultMappings": {
+        "development.includeExceptionDetails": "true",
+        "development.includeStackTrace": "true",
+        "development.includeCatalogDiagnostics": "true"
+      }
+    },
+    {
+      "name": "PRODUCTION",
+      "displayName": "Production",
+      "description": "Profile intended for production-safe error presentation.",
+      "includeOwners": [ "AFW", "APP", "PLUGIN", "USER" ],
+      "includeCodeGroups": [],
+      "includeCategories": [],
+      "includeSubcategories": [],
+      "includeTags": [],
+      "excludeTags": [ "INTERNAL_ONLY", "DEBUG_ONLY" ],
+      "defaultMappings": {
+        "production.includeExceptionDetails": "false",
+        "production.includeStackTrace": "false",
+        "production.includeSensitiveMetadata": "false"
+      }
+    }
+  ]
+}

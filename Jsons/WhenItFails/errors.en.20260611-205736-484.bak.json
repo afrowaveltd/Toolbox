@@ -1,0 +1,1139 @@
+{
+  "schemaVersion": "1.0",
+  "catalogId": "afw.when-it-fails.errors",
+  "catalogName": "Afrowave WhenItFails default error catalog",
+  "description": "Default error catalog template for project-local customization.",
+  "language": "en",
+  "sourceCatalogId": "afw.when-it-fails.errors",
+  "sourceCatalogVersion": "1.0",
+  "isShadowCopy": true,
+  "tags": [
+    "DEFAULT",
+    "ERRORS",
+    "SHADOW_COPY_TEMPLATE"
+  ],
+  "metadata": {
+    "Count": 0,
+    "IsEmpty": true,
+    "Items": {}
+  },
+  "errors": [
+    {
+      "id": "AFW_GEN_0001",
+      "code": 100001,
+      "name": "UNKNOWNERROR",
+      "owner": "AFW",
+      "codePrefix": "GEN",
+      "codeGroup": "GENERAL",
+      "primaryCategory": "GENERAL",
+      "categories": [
+        "GENERAL"
+      ],
+      "subcategories": [
+        "FALLBACK"
+      ],
+      "title": "Unknown error",
+      "message": "An unknown error occurred.",
+      "defaultSeverity": "Error",
+      "developerHint": "Use this error only as a final fallback when no more specific definition fits.",
+      "documentationKey": "when-it-fails/errors/general/unknown-error",
+      "tags": [
+        "GENERAL",
+        "FALLBACK",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_GEN_0002",
+      "code": 100002,
+      "name": "OPERATIONFAILED",
+      "owner": "AFW",
+      "codePrefix": "GEN",
+      "codeGroup": "GENERAL",
+      "primaryCategory": "GENERAL",
+      "categories": [
+        "GENERAL"
+      ],
+      "subcategories": [
+        "OPERATION"
+      ],
+      "title": "Operation failed",
+      "message": "The requested operation failed.",
+      "defaultSeverity": "Error",
+      "developerHint": "Prefer a more specific error when the failure reason is known.",
+      "documentationKey": "when-it-fails/errors/general/operation-failed",
+      "tags": [
+        "GENERAL",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_GEN_0003",
+      "code": 100003,
+      "name": "UNSUPPORTEDOPERATION",
+      "owner": "AFW",
+      "codePrefix": "GEN",
+      "codeGroup": "GENERAL",
+      "primaryCategory": "GENERAL",
+      "categories": [
+        "GENERAL",
+        "VALIDATION"
+      ],
+      "subcategories": [
+        "UNSUPPORTED"
+      ],
+      "title": "Unsupported operation",
+      "message": "The requested operation is not supported in this context.",
+      "defaultSeverity": "Warning",
+      "developerHint": "Check feature flags, platform capabilities, current state, or selected profile.",
+      "documentationKey": "when-it-fails/errors/general/unsupported-operation",
+      "tags": [
+        "GENERAL",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_GEN_0004",
+      "code": 100004,
+      "name": "FEATURENOTIMPLEMENTED",
+      "owner": "AFW",
+      "codePrefix": "GEN",
+      "codeGroup": "GENERAL",
+      "primaryCategory": "GENERAL",
+      "categories": [
+        "GENERAL"
+      ],
+      "subcategories": [
+        "NOT_IMPLEMENTED"
+      ],
+      "title": "Feature not implemented",
+      "message": "This feature is not implemented yet.",
+      "defaultSeverity": "Warning",
+      "developerHint": "Use for planned features that are intentionally present in the API but not active yet.",
+      "documentationKey": "when-it-fails/errors/general/feature-not-implemented",
+      "tags": [
+        "GENERAL",
+        "DEVELOPMENT",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_CFG_0001",
+      "code": 200001,
+      "name": "MISSINGCONFIGURATIONVALUE",
+      "owner": "AFW",
+      "codePrefix": "CFG",
+      "codeGroup": "CONFIGURATION",
+      "primaryCategory": "CONFIGURATION",
+      "categories": [
+        "CONFIGURATION",
+        "STARTUP",
+        "VALIDATION"
+      ],
+      "subcategories": [
+        "REQUIRED_VALUE",
+        "APP_SETTINGS"
+      ],
+      "title": "Missing configuration value",
+      "message": "A required configuration value is missing.",
+      "defaultSeverity": "Error",
+      "developerHint": "Check appsettings.json, environment variables, command-line options, or code-based configuration.",
+      "documentationKey": "when-it-fails/errors/configuration/missing-configuration-value",
+      "tags": [
+        "CONFIGURATION",
+        "STARTUP",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_CFG_0002",
+      "code": 200002,
+      "name": "INVALIDCONFIGURATIONVALUE",
+      "owner": "AFW",
+      "codePrefix": "CFG",
+      "codeGroup": "CONFIGURATION",
+      "primaryCategory": "CONFIGURATION",
+      "categories": [
+        "CONFIGURATION",
+        "VALIDATION"
+      ],
+      "subcategories": [
+        "INVALID_VALUE",
+        "APP_SETTINGS"
+      ],
+      "title": "Invalid configuration value",
+      "message": "A configuration value is invalid.",
+      "defaultSeverity": "Error",
+      "developerHint": "Validate the configured value against the expected type, range, enum value, file path, or URI format.",
+      "documentationKey": "when-it-fails/errors/configuration/invalid-configuration-value",
+      "tags": [
+        "CONFIGURATION",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_CFG_0003",
+      "code": 200003,
+      "name": "CONFIGURATIONFILENOTFOUND",
+      "owner": "AFW",
+      "codePrefix": "CFG",
+      "codeGroup": "CONFIGURATION",
+      "primaryCategory": "CONFIGURATION",
+      "categories": [
+        "CONFIGURATION",
+        "FILE_SYSTEM",
+        "STARTUP"
+      ],
+      "subcategories": [
+        "MISSING_FILE"
+      ],
+      "title": "Configuration file not found",
+      "message": "The expected configuration file was not found.",
+      "defaultSeverity": "Error",
+      "developerHint": "Check the configured path and whether the file is copied to the output directory or mounted in the runtime environment.",
+      "documentationKey": "when-it-fails/errors/configuration/configuration-file-not-found",
+      "tags": [
+        "CONFIGURATION",
+        "FILE_SYSTEM",
+        "STARTUP",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_CFG_0004",
+      "code": 200004,
+      "name": "CONFIGURATIONSECTIONMISSING",
+      "owner": "AFW",
+      "codePrefix": "CFG",
+      "codeGroup": "CONFIGURATION",
+      "primaryCategory": "CONFIGURATION",
+      "categories": [
+        "CONFIGURATION",
+        "STARTUP"
+      ],
+      "subcategories": [
+        "MISSING_SECTION"
+      ],
+      "title": "Configuration section missing",
+      "message": "A required configuration section is missing.",
+      "defaultSeverity": "Error",
+      "developerHint": "Check the expected section name and whether options binding points to the right configuration path.",
+      "documentationKey": "when-it-fails/errors/configuration/configuration-section-missing",
+      "tags": [
+        "CONFIGURATION",
+        "STARTUP",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_CFG_0005",
+      "code": 200005,
+      "name": "CONFIGURATIONBINDINGFAILED",
+      "owner": "AFW",
+      "codePrefix": "CFG",
+      "codeGroup": "CONFIGURATION",
+      "primaryCategory": "CONFIGURATION",
+      "categories": [
+        "CONFIGURATION",
+        "SERIALIZATION",
+        "STARTUP"
+      ],
+      "subcategories": [
+        "BINDING"
+      ],
+      "title": "Configuration binding failed",
+      "message": "Configuration could not be bound to the expected options object.",
+      "defaultSeverity": "Error",
+      "developerHint": "Check property names, value types, nullable requirements, and custom converters.",
+      "documentationKey": "when-it-fails/errors/configuration/configuration-binding-failed",
+      "tags": [
+        "CONFIGURATION",
+        "SERIALIZATION",
+        "STARTUP",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_VAL_0001",
+      "code": 300001,
+      "name": "REQUIREDVALUEMISSING",
+      "owner": "AFW",
+      "codePrefix": "VAL",
+      "codeGroup": "VALIDATION",
+      "primaryCategory": "VALIDATION",
+      "categories": [
+        "VALIDATION"
+      ],
+      "subcategories": [
+        "REQUIRED_VALUE"
+      ],
+      "title": "Required value missing",
+      "message": "A required value is missing.",
+      "defaultSeverity": "Warning",
+      "developerHint": "Use for input, command, request, options, or document fields that must be present.",
+      "documentationKey": "when-it-fails/errors/validation/required-value-missing",
+      "tags": [
+        "VALIDATION",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_VAL_0002",
+      "code": 300002,
+      "name": "INVALIDVALUE",
+      "owner": "AFW",
+      "codePrefix": "VAL",
+      "codeGroup": "VALIDATION",
+      "primaryCategory": "VALIDATION",
+      "categories": [
+        "VALIDATION"
+      ],
+      "subcategories": [
+        "INVALID_VALUE"
+      ],
+      "title": "Invalid value",
+      "message": "A provided value is invalid.",
+      "defaultSeverity": "Warning",
+      "developerHint": "Attach the field name and rejected value in runtime metadata when safe to do so.",
+      "documentationKey": "when-it-fails/errors/validation/invalid-value",
+      "tags": [
+        "VALIDATION",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_VAL_0003",
+      "code": 300003,
+      "name": "VALUEOUTOFRANGE",
+      "owner": "AFW",
+      "codePrefix": "VAL",
+      "codeGroup": "VALIDATION",
+      "primaryCategory": "VALIDATION",
+      "categories": [
+        "VALIDATION"
+      ],
+      "subcategories": [
+        "RANGE"
+      ],
+      "title": "Value out of range",
+      "message": "A provided value is outside the allowed range.",
+      "defaultSeverity": "Warning",
+      "developerHint": "Attach minimum and maximum values in runtime metadata when available.",
+      "documentationKey": "when-it-fails/errors/validation/value-out-of-range",
+      "tags": [
+        "VALIDATION",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_VAL_0004",
+      "code": 300004,
+      "name": "INVALIDFORMAT",
+      "owner": "AFW",
+      "codePrefix": "VAL",
+      "codeGroup": "VALIDATION",
+      "primaryCategory": "VALIDATION",
+      "categories": [
+        "VALIDATION",
+        "SERIALIZATION"
+      ],
+      "subcategories": [
+        "FORMAT"
+      ],
+      "title": "Invalid format",
+      "message": "A provided value has an invalid format.",
+      "defaultSeverity": "Warning",
+      "developerHint": "Useful for invalid dates, numbers, codes, identifiers, JSON fragments, or URIs.",
+      "documentationKey": "when-it-fails/errors/validation/invalid-format",
+      "tags": [
+        "VALIDATION",
+        "FORMAT",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_VAL_0005",
+      "code": 300005,
+      "name": "DUPLICATEVALUE",
+      "owner": "AFW",
+      "codePrefix": "VAL",
+      "codeGroup": "VALIDATION",
+      "primaryCategory": "VALIDATION",
+      "categories": [
+        "VALIDATION"
+      ],
+      "subcategories": [
+        "DUPLICATE"
+      ],
+      "title": "Duplicate value",
+      "message": "A value appears more than once where uniqueness is required.",
+      "defaultSeverity": "Warning",
+      "developerHint": "Use for duplicate names, aliases, IDs, codes, tags, or user-provided collection items.",
+      "documentationKey": "when-it-fails/errors/validation/duplicate-value",
+      "tags": [
+        "VALIDATION",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_VAL_0006",
+      "code": 300006,
+      "name": "UNKNOWNREFERENCE",
+      "owner": "AFW",
+      "codePrefix": "VAL",
+      "codeGroup": "VALIDATION",
+      "primaryCategory": "VALIDATION",
+      "categories": [
+        "VALIDATION"
+      ],
+      "subcategories": [
+        "REFERENCE"
+      ],
+      "title": "Unknown reference",
+      "message": "A value references an item that is not known.",
+      "defaultSeverity": "Warning",
+      "developerHint": "Use when a category, code group, owner, profile, ID, or foreign key reference cannot be resolved.",
+      "documentationKey": "when-it-fails/errors/validation/unknown-reference",
+      "tags": [
+        "VALIDATION",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_IO_0001",
+      "code": 400001,
+      "name": "FILENOTFOUND",
+      "owner": "AFW",
+      "codePrefix": "IO",
+      "codeGroup": "FILE_SYSTEM",
+      "primaryCategory": "FILE_SYSTEM",
+      "categories": [
+        "FILE_SYSTEM"
+      ],
+      "subcategories": [
+        "MISSING_FILE"
+      ],
+      "title": "File not found",
+      "message": "The requested file was not found.",
+      "defaultSeverity": "Error",
+      "developerHint": "Check the resolved absolute path and runtime working directory.",
+      "documentationKey": "when-it-fails/errors/file-system/file-not-found",
+      "tags": [
+        "FILE_SYSTEM",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_IO_0002",
+      "code": 400002,
+      "name": "DIRECTORYNOTFOUND",
+      "owner": "AFW",
+      "codePrefix": "IO",
+      "codeGroup": "FILE_SYSTEM",
+      "primaryCategory": "FILE_SYSTEM",
+      "categories": [
+        "FILE_SYSTEM"
+      ],
+      "subcategories": [
+        "MISSING_DIRECTORY"
+      ],
+      "title": "Directory not found",
+      "message": "The requested directory was not found.",
+      "defaultSeverity": "Error",
+      "developerHint": "Check whether bootstrap initialization has created the expected workspace folders.",
+      "documentationKey": "when-it-fails/errors/file-system/directory-not-found",
+      "tags": [
+        "FILE_SYSTEM",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_IO_0003",
+      "code": 400003,
+      "name": "FILEREADFAILED",
+      "owner": "AFW",
+      "codePrefix": "IO",
+      "codeGroup": "FILE_SYSTEM",
+      "primaryCategory": "FILE_SYSTEM",
+      "categories": [
+        "FILE_SYSTEM"
+      ],
+      "subcategories": [
+        "READ"
+      ],
+      "title": "File read failed",
+      "message": "The file could not be read.",
+      "defaultSeverity": "Error",
+      "developerHint": "Check permissions, file locks, encoding, path length, and whether the file is still present.",
+      "documentationKey": "when-it-fails/errors/file-system/file-read-failed",
+      "tags": [
+        "FILE_SYSTEM",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_IO_0004",
+      "code": 400004,
+      "name": "FILEWRITEFAILED",
+      "owner": "AFW",
+      "codePrefix": "IO",
+      "codeGroup": "FILE_SYSTEM",
+      "primaryCategory": "FILE_SYSTEM",
+      "categories": [
+        "FILE_SYSTEM"
+      ],
+      "subcategories": [
+        "WRITE"
+      ],
+      "title": "File write failed",
+      "message": "The file could not be written.",
+      "defaultSeverity": "Error",
+      "developerHint": "Check permissions, available disk space, target folder existence, safe-write settings, and file locks.",
+      "documentationKey": "when-it-fails/errors/file-system/file-write-failed",
+      "tags": [
+        "FILE_SYSTEM",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_IO_0005",
+      "code": 400005,
+      "name": "JSONSWORKSPACEUNAVAILABLE",
+      "owner": "AFW",
+      "codePrefix": "IO",
+      "codeGroup": "FILE_SYSTEM",
+      "primaryCategory": "FILE_SYSTEM",
+      "categories": [
+        "FILE_SYSTEM",
+        "CONFIGURATION",
+        "STARTUP"
+      ],
+      "subcategories": [
+        "WORKSPACE"
+      ],
+      "title": "JSON workspace unavailable",
+      "message": "The project-local JSON workspace is unavailable.",
+      "defaultSeverity": "Error",
+      "developerHint": "Check JsonsOptions.RootPath, directory permissions, application identity, and deployment layout.",
+      "documentationKey": "when-it-fails/errors/file-system/jsons-workspace-unavailable",
+      "tags": [
+        "FILE_SYSTEM",
+        "CONFIGURATION",
+        "STARTUP",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_SEC_0001",
+      "code": 500001,
+      "name": "UNAUTHORIZED",
+      "owner": "AFW",
+      "codePrefix": "SEC",
+      "codeGroup": "SECURITY",
+      "primaryCategory": "SECURITY",
+      "categories": [
+        "SECURITY"
+      ],
+      "subcategories": [
+        "AUTHENTICATION"
+      ],
+      "title": "Unauthorized",
+      "message": "Authentication is required to access this resource.",
+      "defaultSeverity": "Warning",
+      "developerHint": "For web profiles this usually maps to HTTP 401.",
+      "documentationKey": "when-it-fails/errors/security/unauthorized",
+      "tags": [
+        "SECURITY",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_SEC_0002",
+      "code": 500002,
+      "name": "FORBIDDEN",
+      "owner": "AFW",
+      "codePrefix": "SEC",
+      "codeGroup": "SECURITY",
+      "primaryCategory": "SECURITY",
+      "categories": [
+        "SECURITY"
+      ],
+      "subcategories": [
+        "AUTHORIZATION"
+      ],
+      "title": "Forbidden",
+      "message": "You do not have permission to access this resource.",
+      "defaultSeverity": "Warning",
+      "developerHint": "For web profiles this usually maps to HTTP 403.",
+      "documentationKey": "when-it-fails/errors/security/forbidden",
+      "tags": [
+        "SECURITY",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_SEC_0003",
+      "code": 500003,
+      "name": "AUTHENTICATIONFAILED",
+      "owner": "AFW",
+      "codePrefix": "SEC",
+      "codeGroup": "SECURITY",
+      "primaryCategory": "SECURITY",
+      "categories": [
+        "SECURITY"
+      ],
+      "subcategories": [
+        "AUTHENTICATION"
+      ],
+      "title": "Authentication failed",
+      "message": "Authentication failed.",
+      "defaultSeverity": "Warning",
+      "developerHint": "Avoid exposing sensitive authentication details in user-facing messages.",
+      "documentationKey": "when-it-fails/errors/security/authentication-failed",
+      "tags": [
+        "SECURITY",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_SEC_0004",
+      "code": 500004,
+      "name": "TOKENEXPIRED",
+      "owner": "AFW",
+      "codePrefix": "SEC",
+      "codeGroup": "SECURITY",
+      "primaryCategory": "SECURITY",
+      "categories": [
+        "SECURITY"
+      ],
+      "subcategories": [
+        "TOKEN"
+      ],
+      "title": "Token expired",
+      "message": "The security token has expired.",
+      "defaultSeverity": "Warning",
+      "developerHint": "Refresh the token or require the user to sign in again.",
+      "documentationKey": "when-it-fails/errors/security/token-expired",
+      "tags": [
+        "SECURITY",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_NET_0001",
+      "code": 600001,
+      "name": "NETWORKUNAVAILABLE",
+      "owner": "AFW",
+      "codePrefix": "NET",
+      "codeGroup": "NETWORK",
+      "primaryCategory": "NETWORK",
+      "categories": [
+        "NETWORK"
+      ],
+      "subcategories": [
+        "CONNECTIVITY"
+      ],
+      "title": "Network is not available",
+      "message": "The network is unavailable.",
+      "defaultSeverity": "Error",
+      "developerHint": "Check connectivity, DNS, firewall, proxy, VPN, and host availability.",
+      "documentationKey": "when-it-fails/errors/network/network-unavailable",
+      "tags": [
+        "NETWORK",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_NET_0002",
+      "code": 600002,
+      "name": "HTTPREQUESTFAILED",
+      "owner": "AFW",
+      "codePrefix": "NET",
+      "codeGroup": "NETWORK",
+      "primaryCategory": "NETWORK",
+      "categories": [
+        "NETWORK",
+        "EXTERNAL_SERVICE"
+      ],
+      "subcategories": [
+        "HTTP"
+      ],
+      "title": "HTTP request failed",
+      "message": "The HTTP request failed.",
+      "defaultSeverity": "Error",
+      "developerHint": "Attach status code, method, endpoint name, correlation ID, and retry information when safe.",
+      "documentationKey": "when-it-fails/errors/network/http-request-failed",
+      "tags": [
+        "NETWORK",
+        "HTTP",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_NET_0003",
+      "code": 600003,
+      "name": "REMOTETIMEOUT",
+      "owner": "AFW",
+      "codePrefix": "NET",
+      "codeGroup": "NETWORK",
+      "primaryCategory": "NETWORK",
+      "categories": [
+        "NETWORK",
+        "EXTERNAL_SERVICE"
+      ],
+      "subcategories": [
+        "TIMEOUT"
+      ],
+      "title": "Remote operation timed out",
+      "message": "The remote operation timed out.",
+      "defaultSeverity": "Error",
+      "developerHint": "Check timeout configuration, retry policy, remote service health, and network latency.",
+      "documentationKey": "when-it-fails/errors/network/remote-timeout",
+      "tags": [
+        "NETWORK",
+        "TIMEOUT",
+        "RETRYABLE",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_NET_0004",
+      "code": 600004,
+      "name": "DNSLOOKUPFAILED",
+      "owner": "AFW",
+      "codePrefix": "NET",
+      "codeGroup": "NETWORK",
+      "primaryCategory": "NETWORK",
+      "categories": [
+        "NETWORK"
+      ],
+      "subcategories": [
+        "DNS"
+      ],
+      "title": "DNS lookup failed",
+      "message": "The host name could not be resolved.",
+      "defaultSeverity": "Error",
+      "developerHint": "Check DNS servers, split-DNS rules, search suffixes, VPN routes, and public/private zone configuration.",
+      "documentationKey": "when-it-fails/errors/network/dns-lookup-failed",
+      "tags": [
+        "NETWORK",
+        "DNS",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_DB_0001",
+      "code": 700001,
+      "name": "DATABASEUNAVAILABLE",
+      "owner": "AFW",
+      "codePrefix": "DB",
+      "codeGroup": "DATABASE",
+      "primaryCategory": "DATABASE",
+      "categories": [
+        "DATABASE",
+        "EXTERNAL_SERVICE"
+      ],
+      "subcategories": [
+        "CONNECTIVITY"
+      ],
+      "title": "Database unavailable",
+      "message": "The database is unavailable.",
+      "defaultSeverity": "Error",
+      "developerHint": "Check connection string, credentials, network reachability, server health, migrations, and pool exhaustion.",
+      "documentationKey": "when-it-fails/errors/database/database-unavailable",
+      "tags": [
+        "DATABASE",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_DB_0002",
+      "code": 700002,
+      "name": "DATABASEQUERYFAILED",
+      "owner": "AFW",
+      "codePrefix": "DB",
+      "codeGroup": "DATABASE",
+      "primaryCategory": "DATABASE",
+      "categories": [
+        "DATABASE"
+      ],
+      "subcategories": [
+        "QUERY"
+      ],
+      "title": "Database query failed",
+      "message": "A database query failed.",
+      "defaultSeverity": "Error",
+      "developerHint": "Attach query name, operation type, and provider-specific error code when safe. Do not expose raw SQL to users.",
+      "documentationKey": "when-it-fails/errors/database/database-query-failed",
+      "tags": [
+        "DATABASE",
+        "INTERNAL_ONLY"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_DB_0003",
+      "code": 700003,
+      "name": "ENTITYNOTFOUND",
+      "owner": "AFW",
+      "codePrefix": "DB",
+      "codeGroup": "DATABASE",
+      "primaryCategory": "DATABASE",
+      "categories": [
+        "DATABASE",
+        "VALIDATION"
+      ],
+      "subcategories": [
+        "NOT_FOUND"
+      ],
+      "title": "Entity not found",
+      "message": "The requested item was not found.",
+      "defaultSeverity": "Warning",
+      "developerHint": "Use for missing records or aggregate roots. For web profiles this often maps to HTTP 404.",
+      "documentationKey": "when-it-fails/errors/database/entity-not-found",
+      "tags": [
+        "DATABASE",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_DB_0004",
+      "code": 700004,
+      "name": "CONCURRENCYCONFLICT",
+      "owner": "AFW",
+      "codePrefix": "DB",
+      "codeGroup": "DATABASE",
+      "primaryCategory": "DATABASE",
+      "categories": [
+        "DATABASE",
+        "VALIDATION"
+      ],
+      "subcategories": [
+        "CONCURRENCY"
+      ],
+      "title": "Concurrency conflict",
+      "message": "The item was changed by another operation.",
+      "defaultSeverity": "Warning",
+      "developerHint": "Reload the entity, merge changes, or ask the user to retry with the latest version.",
+      "documentationKey": "when-it-fails/errors/database/concurrency-conflict",
+      "tags": [
+        "DATABASE",
+        "CONCURRENCY",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_EXT_0001",
+      "code": 800001,
+      "name": "EXTERNALSERVICEUNAVAILABLE",
+      "owner": "AFW",
+      "codePrefix": "EXT",
+      "codeGroup": "EXTERNAL_SERVICE",
+      "primaryCategory": "EXTERNAL_SERVICE",
+      "categories": [
+        "EXTERNAL_SERVICE",
+        "NETWORK"
+      ],
+      "subcategories": [
+        "SERVICE_UNAVAILABLE"
+      ],
+      "title": "External service unavailable",
+      "message": "An external service is unavailable.",
+      "defaultSeverity": "Error",
+      "developerHint": "Attach endpoint name, provider name, retry policy, and fallback information when safe.",
+      "documentationKey": "when-it-fails/errors/external-service/external-service-unavailable",
+      "tags": [
+        "EXTERNAL_SERVICE",
+        "RETRYABLE",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_EXT_0002",
+      "code": 800002,
+      "name": "EXTERNALSERVICERETURNEDINVALIDDATA",
+      "owner": "AFW",
+      "codePrefix": "EXT",
+      "codeGroup": "EXTERNAL_SERVICE",
+      "primaryCategory": "EXTERNAL_SERVICE",
+      "categories": [
+        "EXTERNAL_SERVICE",
+        "SERIALIZATION"
+      ],
+      "subcategories": [
+        "INVALID_RESPONSE"
+      ],
+      "title": "External service returned invalid data",
+      "message": "An external service returned data that could not be used.",
+      "defaultSeverity": "Error",
+      "developerHint": "Store a sanitized response sample or schema mismatch summary in diagnostics, not in user-facing text.",
+      "documentationKey": "when-it-fails/errors/external-service/external-service-returned-invalid-data",
+      "tags": [
+        "EXTERNAL_SERVICE",
+        "SERIALIZATION",
+        "INTERNAL_ONLY"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_FMT_0001",
+      "code": 900001,
+      "name": "SERIALIZATIONFAILED",
+      "owner": "AFW",
+      "codePrefix": "FMT",
+      "codeGroup": "SERIALIZATION",
+      "primaryCategory": "SERIALIZATION",
+      "categories": [
+        "SERIALIZATION"
+      ],
+      "subcategories": [
+        "SERIALIZE"
+      ],
+      "title": "Serialization failed",
+      "message": "The value could not be serialized.",
+      "defaultSeverity": "Error",
+      "developerHint": "Check unsupported types, cyclic references, converters, naming policy, and nullable values.",
+      "documentationKey": "when-it-fails/errors/serialization/serialization-failed",
+      "tags": [
+        "SERIALIZATION",
+        "INTERNAL_ONLY"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_FMT_0002",
+      "code": 900002,
+      "name": "DESERIALIZATIONFAILED",
+      "owner": "AFW",
+      "codePrefix": "FMT",
+      "codeGroup": "SERIALIZATION",
+      "primaryCategory": "SERIALIZATION",
+      "categories": [
+        "SERIALIZATION",
+        "VALIDATION"
+      ],
+      "subcategories": [
+        "DESERIALIZE"
+      ],
+      "title": "Deserialization failed",
+      "message": "The value could not be deserialized.",
+      "defaultSeverity": "Error",
+      "developerHint": "Check JSON shape, property names, converters, required properties, and schema version.",
+      "documentationKey": "when-it-fails/errors/serialization/deserialization-failed",
+      "tags": [
+        "SERIALIZATION",
+        "VALIDATION",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    },
+    {
+      "id": "AFW_FMT_0003",
+      "code": 900003,
+      "name": "INVALIDJSONDOCUMENT",
+      "owner": "AFW",
+      "codePrefix": "FMT",
+      "codeGroup": "SERIALIZATION",
+      "primaryCategory": "SERIALIZATION",
+      "categories": [
+        "SERIALIZATION",
+        "VALIDATION"
+      ],
+      "subcategories": [
+        "JSON"
+      ],
+      "title": "Invalid JSON document",
+      "message": "The JSON document is invalid.",
+      "defaultSeverity": "Warning",
+      "developerHint": "Report the JSON path, line number, byte position, and schema version when available.",
+      "documentationKey": "when-it-fails/errors/serialization/invalid-json-document",
+      "tags": [
+        "SERIALIZATION",
+        "VALIDATION",
+        "JSON",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
+    }
+  ]
+}

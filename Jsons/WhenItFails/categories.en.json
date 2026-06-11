@@ -1,0 +1,124 @@
+{
+  "schemaVersion": "1.0",
+  "catalogId": "afw.when-it-fails.categories",
+  "catalogName": "Afrowave WhenItFails default category catalog",
+  "description": "Default category catalog template for project-local customization.",
+  "language": "en",
+  "sourceCatalogId": "afw.when-it-fails.categories",
+  "sourceCatalogVersion": "1.0",
+  "isShadowCopy": true,
+  "tags": [ "default", "categories", "shadow-copy-template" ],
+  "categories": [
+    {
+      "name": "GENERAL",
+      "displayName": "General",
+      "description": "General or fallback errors that do not fit a more specific category.",
+      "aliases": [ "COMMON", "BASIC" ],
+      "parentCategories": [],
+      "defaultTags": [ "GENERAL" ],
+      "defaultMappings": {}
+    },
+    {
+      "name": "CONFIGURATION",
+      "displayName": "Configuration",
+      "description": "Errors related to configuration values, configuration files, and application setup.",
+      "aliases": [ "SETTINGS", "OPTIONS" ],
+      "parentCategories": [],
+      "defaultTags": [ "CONFIGURATION" ],
+      "defaultMappings": {
+        "defaultSeverity": "Error"
+      }
+    },
+    {
+      "name": "VALIDATION",
+      "displayName": "Validation",
+      "description": "Errors related to invalid, missing, unsupported, duplicate, or inconsistent input values.",
+      "aliases": [ "INPUT", "BAD_REQUEST" ],
+      "parentCategories": [],
+      "defaultTags": [ "VALIDATION", "USER_VISIBLE" ],
+      "defaultMappings": {
+        "defaultSeverity": "Warning",
+        "web.httpStatusCode": "400"
+      }
+    },
+    {
+      "name": "STARTUP",
+      "displayName": "Startup",
+      "description": "Errors that usually happen while an application is starting or initializing.",
+      "aliases": [ "INITIALIZATION", "BOOTSTRAP" ],
+      "parentCategories": [],
+      "defaultTags": [ "STARTUP" ],
+      "defaultMappings": {
+        "defaultSeverity": "Error"
+      }
+    },
+    {
+      "name": "FILE_SYSTEM",
+      "displayName": "File system",
+      "description": "Errors related to files, directories, paths, permissions, and project-local workspaces.",
+      "aliases": [ "FILES", "IO", "STORAGE" ],
+      "parentCategories": [],
+      "defaultTags": [ "FILE_SYSTEM" ],
+      "defaultMappings": {
+        "defaultSeverity": "Error"
+      }
+    },
+    {
+      "name": "SECURITY",
+      "displayName": "Security",
+      "description": "Errors related to authentication, authorization, tokens, secrets, and permission checks.",
+      "aliases": [ "AUTH", "AUTHENTICATION", "AUTHORIZATION" ],
+      "parentCategories": [],
+      "defaultTags": [ "SECURITY" ],
+      "defaultMappings": {
+        "defaultSeverity": "Warning"
+      }
+    },
+    {
+      "name": "NETWORK",
+      "displayName": "Network",
+      "description": "Errors related to connectivity, DNS, HTTP, proxies, VPN, timeouts, and remote endpoints.",
+      "aliases": [ "NETWORKING", "COMMUNICATION", "HTTP" ],
+      "parentCategories": [],
+      "defaultTags": [ "NETWORK" ],
+      "defaultMappings": {
+        "defaultSeverity": "Error",
+        "web.httpStatusCode": "503"
+      }
+    },
+    {
+      "name": "DATABASE",
+      "displayName": "Database",
+      "description": "Errors related to database connectivity, queries, records, migrations, and concurrency.",
+      "aliases": [ "DATA", "PERSISTENCE", "DB" ],
+      "parentCategories": [],
+      "defaultTags": [ "DATABASE" ],
+      "defaultMappings": {
+        "defaultSeverity": "Error"
+      }
+    },
+    {
+      "name": "EXTERNAL_SERVICE",
+      "displayName": "External service",
+      "description": "Errors related to third-party services, remote APIs, gateways, and provider integrations.",
+      "aliases": [ "REMOTE_SERVICE", "THIRD_PARTY", "INTEGRATION" ],
+      "parentCategories": [ "NETWORK" ],
+      "defaultTags": [ "EXTERNAL_SERVICE" ],
+      "defaultMappings": {
+        "defaultSeverity": "Error",
+        "web.httpStatusCode": "502"
+      }
+    },
+    {
+      "name": "SERIALIZATION",
+      "displayName": "Serialization",
+      "description": "Errors related to JSON, serialization, deserialization, schema versions, and data formats.",
+      "aliases": [ "FORMAT", "JSON", "PARSING" ],
+      "parentCategories": [ "VALIDATION" ],
+      "defaultTags": [ "SERIALIZATION" ],
+      "defaultMappings": {
+        "defaultSeverity": "Error"
+      }
+    }
+  ]
+}
