@@ -39,6 +39,16 @@ public sealed class ErrorProfileDefinition
     public string? Description { get; set; }
 
     /// <summary>
+    /// Gets or sets the profile source.
+    /// </summary>
+    /// <remarks>
+    /// Examples: BuiltIn, Project, User, Imported.
+    /// This value is intentionally a string to keep the model extensible.
+    /// </remarks>
+    [JsonPropertyName("source")]
+    public string Source { get; set; } = "Project";
+
+    /// <summary>
     /// Gets or sets owners included by this profile.
     /// </summary>
     /// <remarks>
@@ -84,10 +94,30 @@ public sealed class ErrorProfileDefinition
     public List<string> IncludeTags { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets explicit error identifiers included by this profile.
+    /// </summary>
+    /// <remarks>
+    /// Empty list means no explicit error include filter is applied by this profile.
+    /// Values are expected to be stable error identifiers such as AFW_NET_0001.
+    /// </remarks>
+    [JsonPropertyName("includeErrors")]
+    public List<string> IncludeErrors { get; set; } = new();
+
+    /// <summary>
     /// Gets or sets tags excluded by this profile.
     /// </summary>
     [JsonPropertyName("excludeTags")]
     public List<string> ExcludeTags { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets explicit error identifiers excluded by this profile.
+    /// </summary>
+    /// <remarks>
+    /// Exclusions should win over inclusions when a profile is evaluated.
+    /// Values are expected to be stable error identifiers such as AFW_NET_0001.
+    /// </remarks>
+    [JsonPropertyName("excludeErrors")]
+    public List<string> ExcludeErrors { get; set; } = new();
 
     /// <summary>
     /// Gets or sets optional default behavior mappings for this profile.

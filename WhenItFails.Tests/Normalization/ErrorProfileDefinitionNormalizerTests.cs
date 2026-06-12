@@ -23,12 +23,15 @@ public sealed class ErrorProfileDefinitionNormalizerTests
             Name = " web api ",
             DisplayName = " Web API ",
             Description = " Profile for web APIs. ",
+            Source = " imported ",
             IncludeOwners = ["afw", "AFW"],
             IncludeCodeGroups = ["configuration", "validation"],
             IncludeCategories = ["web", "server", "web"],
             IncludeSubcategories = ["required value", "required-value"],
             IncludeTags = ["user visible", "user-visible"],
+            IncludeErrors = ["afw_net_0001", "AFW_NET_0001", " afw_cfg_0001 "],
             ExcludeTags = ["internal only", "internal-only"],
+            ExcludeErrors = ["afw_dbg_0001", "AFW_DBG_0001"],
             DefaultMappings =
             {
                 ["web.problemDetails"] = " true ",
@@ -48,6 +51,8 @@ public sealed class ErrorProfileDefinitionNormalizerTests
         Assert.Equal(["REQUIRED_VALUE"], normalizedDefinition.IncludeSubcategories);
         Assert.Equal(["USER_VISIBLE"], normalizedDefinition.IncludeTags);
         Assert.Equal(["INTERNAL_ONLY"], normalizedDefinition.ExcludeTags);
+        Assert.Equal(["AFW_NET_0001", "AFW_CFG_0001"], normalizedDefinition.IncludeErrors);
+        Assert.Equal(["AFW_DBG_0001"], normalizedDefinition.ExcludeErrors);
 
         Assert.Equal("true", normalizedDefinition.DefaultMappings["WEB_PROBLEMDETAILS"]);
         Assert.Equal("false", normalizedDefinition.DefaultMappings["PRODUCTION_INCLUDEEXCEPTIONDETAILS"]);
@@ -82,7 +87,9 @@ public sealed class ErrorProfileDefinitionNormalizerTests
             IncludeCategories = ["", "web"],
             IncludeSubcategories = ["", "required value"],
             IncludeTags = ["", "user visible"],
-            ExcludeTags = ["", "internal only"]
+            ExcludeTags = ["", "internal only"],
+            IncludeErrors = ["", "afw_net_0001"],
+            ExcludeErrors = ["", "afw_dbg_0001"]
         };
 
         ErrorProfileDefinition normalizedDefinition = normalizer.Normalize(definition);
@@ -93,6 +100,8 @@ public sealed class ErrorProfileDefinitionNormalizerTests
         Assert.Equal(["REQUIRED_VALUE"], normalizedDefinition.IncludeSubcategories);
         Assert.Equal(["USER_VISIBLE"], normalizedDefinition.IncludeTags);
         Assert.Equal(["INTERNAL_ONLY"], normalizedDefinition.ExcludeTags);
+        Assert.Equal(["AFW_NET_0001"], normalizedDefinition.IncludeErrors);
+        Assert.Equal(["AFW_DBG_0001"], normalizedDefinition.ExcludeErrors);
     }
 
     [Fact]
@@ -137,8 +146,11 @@ public sealed class ErrorProfileDefinitionNormalizerTests
         {
             Name = " web api ",
             DisplayName = " Web API ",
+            Source = " imported ",
             IncludeOwners = ["afw"],
-            IncludeTags = ["user visible"]
+            IncludeTags = ["user visible"],
+            IncludeErrors = ["afw_net_0001"],
+            ExcludeErrors = ["afw_dbg_0001"]
         };
 
         ErrorProfileDefinition normalizedDefinition = normalizer.Normalize(definition);
@@ -147,10 +159,28 @@ public sealed class ErrorProfileDefinitionNormalizerTests
         Assert.Equal(" Web API ", definition.DisplayName);
         Assert.Equal(["afw"], definition.IncludeOwners);
         Assert.Equal(["user visible"], definition.IncludeTags);
+        Assert.Equal(" imported ", definition.Source);
+        Assert.Equal(["afw_net_0001"], definition.IncludeErrors);
+        Assert.Equal(["afw_dbg_0001"], definition.ExcludeErrors);
 
         Assert.Equal("WEB_API", normalizedDefinition.Name);
         Assert.Equal("Web API", normalizedDefinition.DisplayName);
         Assert.Equal(["AFW"], normalizedDefinition.IncludeOwners);
         Assert.Equal(["USER_VISIBLE"], normalizedDefinition.IncludeTags);
+        Assert.Equal("imported", normalizedDefinition.Source);
+        Assert.Equal(["AFW_NET_0001"], normalizedDefinition.IncludeErrors);
+        Assert.Equal(["AFW_DBG_0001"], normalizedDefinition.ExcludeErrors);
+    }
+
+    [Fact]
+    public void Normalize_ShouldKeepDefaultSource_WhenSourceIsNotChanged()
+    {
+        ErrorProfileDefinitionNormalizer normalizer = new();
+
+        ErrorProfileDefinition definition = new();
+
+        ErrorProfileDefinition normalizedDefinition = normalizer.Normalize(definition);
+
+        Assert.Equal("Project", normalizedDefinition.Source);
     }
 }

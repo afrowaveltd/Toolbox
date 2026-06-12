@@ -25,6 +25,8 @@ public sealed class ErrorProfileDefinitionNormalizer
             Description = DefinitionNormalizationHelper.NormalizeNullableDisplayText(
                 definition.Description),
 
+            Source = TextKeyNormalizer.NormalizeDisplayName(definition.Source),
+
             IncludeOwners = DefinitionNormalizationHelper.NormalizeStringList(
                 definition.IncludeOwners),
             IncludeCodeGroups = DefinitionNormalizationHelper.NormalizeStringList(
@@ -35,8 +37,12 @@ public sealed class ErrorProfileDefinitionNormalizer
                 definition.IncludeSubcategories),
             IncludeTags = DefinitionNormalizationHelper.NormalizeStringList(
                 definition.IncludeTags),
+            IncludeErrors = DefinitionNormalizationHelper.NormalizeStringList(
+                definition.IncludeErrors),
             ExcludeTags = DefinitionNormalizationHelper.NormalizeStringList(
                 definition.ExcludeTags),
+            ExcludeErrors = DefinitionNormalizationHelper.NormalizeStringList(
+                definition.ExcludeErrors),
 
             DefaultMappings = DefinitionNormalizationHelper.NormalizeDictionary(
                 definition.DefaultMappings),
