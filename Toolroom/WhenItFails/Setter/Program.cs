@@ -48,6 +48,26 @@ try
         return await SetTitleCommand.ExecuteAsync(args);
     }
 
+    if (command == "set-message")
+    {
+        return await SetMessageCommand.ExecuteAsync(args);
+    }
+
+    if (command == "set-developer-hint")
+    {
+        return await SetDeveloperHintCommand.ExecuteAsync(args);
+    }
+
+    if (command == "set-severity")
+    {
+        return await SetSeverityCommand.ExecuteAsync(args);
+    }
+
+    if (command == "set-documentation-key")
+    {
+        return await SetDocumentationKeyCommand.ExecuteAsync(args);
+    }
+
     AnsiConsole.MarkupLine(
         "[red]Unknown command:[/] {0}",
         Markup.Escape(args[0]));
