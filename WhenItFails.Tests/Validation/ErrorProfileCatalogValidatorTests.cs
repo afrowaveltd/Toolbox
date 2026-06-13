@@ -312,6 +312,113 @@ public sealed class ErrorProfileCatalogValidatorTests
         Assert.Contains(result.Issues, issue => issue.Code == "DuplicateExcludeTag");
     }
 
+    [Fact]
+    public void Validate_ShouldReportEmptyIncludeError_AsWarning()
+    {
+        ErrorProfileCatalogValidator validator = new();
+        ErrorProfileCatalogDocument document = CreateValidDocument();
+
+        document.Profiles[0].IncludeErrors =
+        [
+            "",
+        "AFW-CFG-0001"
+        ];
+
+        ErrorCatalogValidationResult result = validator.Validate(document);
+
+        Assert.True(result.IsValid);
+        Assert.Contains(
+            result.Issues,
+            issue => issue.Code == "EmptyIncludeError");
+    }
+
+    [Fact]
+    public void Validate_ShouldReportDuplicateIncludeError_AsWarning()
+    {
+        ErrorProfileCatalogValidator validator = new();
+        ErrorProfileCatalogDocument document = CreateValidDocument();
+
+        document.Profiles[0].IncludeErrors =
+        [
+            "afw-cfg-0001",
+        "AFW-CFG-0001"
+        ];
+
+        ErrorCatalogValidationResult result = validator.Validate(document);
+
+        Assert.True(result.IsValid);
+        Assert.Contains(
+            result.Issues,
+            issue => issue.Code == "DuplicateIncludeError");
+    }
+
+    [Fact]
+    public void Validate_ShouldReportEmptyExcludeError_AsWarning()
+    {
+        ErrorProfileCatalogValidator validator = new();
+        ErrorProfileCatalogDocument document = CreateValidDocument();
+
+        document.Profiles[0].ExcludeErrors =
+        [
+            "",
+        "AFW-CFG-0002"
+        ];
+
+        ErrorCatalogValidationResult result = validator.Validate(document);
+
+        Assert.True(result.IsValid);
+        Assert.Contains(
+            result.Issues,
+            issue => issue.Code == "EmptyExcludeError");
+    }
+
+    [Fact]
+    public void Validate_ShouldReportDuplicateExcludeError_AsWarning()
+    {
+        ErrorProfileCatalogValidator validator = new();
+        ErrorProfileCatalogDocument document = CreateValidDocument();
+
+        document.Profiles[0].ExcludeErrors =
+        [
+            "afw-cfg-0002",
+        "AFW-CFG-0002"
+        ];
+
+        ErrorCatalogValidationResult result = validator.Validate(document);
+
+        Assert.True(result.IsValid);
+        Assert.Contains(
+            result.Issues,
+            issue => issue.Code == "DuplicateExcludeError");
+    }
+
+    [Fact]
+    public void Validate_ShouldReportErrorIncludedAndExcluded_AsWarning()
+    {
+        ErrorProfileCatalogValidator validator = new();
+        ErrorProfileCatalogDocument document = CreateValidDocument();
+
+        document.Profiles[0].IncludeErrors =
+        [
+            "AFW-CFG-0001"
+        ];
+
+        document.Profiles[0].ExcludeErrors =
+        [
+            "afw-cfg-0001"
+        ];
+
+        ErrorCatalogValidationResult result = validator.Validate(document);
+
+        Assert.True(result.IsValid);
+
+        Assert.Contains(
+            result.Issues,
+            issue =>
+                issue.Code == "ProfileErrorIncludedAndExcluded"
+                && issue.Path == "profiles[0].excludeErrors[0]");
+    }
+
     private static ErrorProfileCatalogDocument CreateValidDocument()
     {
         return new ErrorProfileCatalogDocument

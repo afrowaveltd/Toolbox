@@ -11,7 +11,7 @@ namespace Afrowave.Toolbox.WhenItFails.Validation;
 /// It checks cross-document rules such as:
 /// owner exists, code group exists, code belongs to owner and group ranges,
 /// code prefix matches the selected code group, categories are known,
-/// and profiles reference known owners, code groups and categories.
+/// and profiles reference known errors, owners, code groups and categories.
 /// </remarks>
 public sealed class ErrorCatalogCrossValidator
 {
@@ -25,11 +25,11 @@ public sealed class ErrorCatalogCrossValidator
     /// <param name="profileCatalog">Profile catalog document.</param>
     /// <returns>Validation result containing all discovered issues.</returns>
     public ErrorCatalogValidationResult Validate(
-    ErrorCatalogDocument? errorCatalog,
-    ErrorOwnerCatalogDocument? ownerCatalog,
-    ErrorCodeGroupCatalogDocument? codeGroupCatalog,
-    ErrorCategoryCatalogDocument? categoryCatalog,
-    ErrorProfileCatalogDocument? profileCatalog = null)
+        ErrorCatalogDocument? errorCatalog,
+        ErrorOwnerCatalogDocument? ownerCatalog,
+        ErrorCodeGroupCatalogDocument? codeGroupCatalog,
+        ErrorCategoryCatalogDocument? categoryCatalog,
+        ErrorProfileCatalogDocument? profileCatalog = null)
     {
         ErrorCatalogValidationResult result = new();
 
@@ -75,9 +75,17 @@ public sealed class ErrorCatalogCrossValidator
                 path: "profileCatalog");
         }
 
-        Dictionary<string, ErrorOwnerDefinition> ownersByName = BuildOwnerIndex(ownerCatalog);
-        Dictionary<string, ErrorCodeGroupDefinition> codeGroupsByName = BuildCodeGroupIndex(codeGroupCatalog);
-        Dictionary<string, ErrorCategoryDefinition> categoriesByName = BuildCategoryIndex(categoryCatalog);
+        Dictionary<string, ErrorDefinition> errorsById =
+            BuildErrorIndex(errorCatalog);
+
+        Dictionary<string, ErrorOwnerDefinition> ownersByName =
+            BuildOwnerIndex(ownerCatalog);
+
+        Dictionary<string, ErrorCodeGroupDefinition> codeGroupsByName =
+            BuildCodeGroupIndex(codeGroupCatalog);
+
+        Dictionary<string, ErrorCategoryDefinition> categoriesByName =
+            BuildCategoryIndex(categoryCatalog);
 
         for (int errorIndex = 0; errorIndex < errorCatalog.Errors.Count; errorIndex++)
         {
@@ -94,6 +102,7 @@ public sealed class ErrorCatalogCrossValidator
 
         ValidateProfilesAgainstSupportingCatalogs(
             profileCatalog,
+            errorsById,
             ownersByName,
             codeGroupsByName,
             categoriesByName,
@@ -112,8 +121,11 @@ public sealed class ErrorCatalogCrossValidator
     {
         string errorPath = $"errors[{errorIndex}]";
 
-        ErrorOwnerDefinition? owner = ResolveOwner(error.Owner, ownersByName);
-        ErrorCodeGroupDefinition? codeGroup = ResolveCodeGroup(error.CodeGroup, codeGroupsByName);
+        ErrorOwnerDefinition? owner =
+            ResolveOwner(error.Owner, ownersByName);
+
+        ErrorCodeGroupDefinition? codeGroup =
+            ResolveCodeGroup(error.CodeGroup, codeGroupsByName);
 
         if (!string.IsNullOrWhiteSpace(error.Owner) && owner is null)
         {
@@ -135,7 +147,9 @@ public sealed class ErrorCatalogCrossValidator
                 path: $"{errorPath}.codeGroup");
         }
 
-        if (error.Code > 0 && owner is not null && !IsCodeInsideRange(error.Code, owner.CodeFrom, owner.CodeTo))
+        if (error.Code > 0 &&
+            owner is not null &&
+            !IsCodeInsideRange(error.Code, owner.CodeFrom, owner.CodeTo))
         {
             result.AddError(
                 code: "ErrorCodeOutsideOwnerRange",
@@ -145,7 +159,9 @@ public sealed class ErrorCatalogCrossValidator
                 path: $"{errorPath}.code");
         }
 
-        if (error.Code > 0 && codeGroup is not null && !IsCodeInsideRange(error.Code, codeGroup.CodeFrom, codeGroup.CodeTo))
+        if (error.Code > 0 &&
+            codeGroup is not null &&
+            !IsCodeInsideRange(error.Code, codeGroup.CodeFrom, codeGroup.CodeTo))
         {
             result.AddError(
                 code: "ErrorCodeOutsideCodeGroupRange",
@@ -155,12 +171,19 @@ public sealed class ErrorCatalogCrossValidator
                 path: $"{errorPath}.code");
         }
 
-        if (codeGroup is not null && !string.IsNullOrWhiteSpace(error.CodePrefix))
+        if (codeGroup is not null &&
+            !string.IsNullOrWhiteSpace(error.CodePrefix))
         {
-            string normalizedErrorCodePrefix = TextKeyNormalizer.NormalizeKey(error.CodePrefix);
-            string normalizedExpectedCodePrefix = TextKeyNormalizer.NormalizeKey(codeGroup.CodePrefix);
+            string normalizedErrorCodePrefix =
+                TextKeyNormalizer.NormalizeKey(error.CodePrefix);
 
-            if (!string.Equals(normalizedErrorCodePrefix, normalizedExpectedCodePrefix, StringComparison.OrdinalIgnoreCase))
+            string normalizedExpectedCodePrefix =
+                TextKeyNormalizer.NormalizeKey(codeGroup.CodePrefix);
+
+            if (!string.Equals(
+                    normalizedErrorCodePrefix,
+                    normalizedExpectedCodePrefix,
+                    StringComparison.OrdinalIgnoreCase))
             {
                 result.AddError(
                     code: "ErrorCodePrefixDoesNotMatchCodeGroup",
@@ -200,7 +223,8 @@ public sealed class ErrorCatalogCrossValidator
             return;
         }
 
-        string normalizedPrimaryCategory = TextKeyNormalizer.NormalizeKey(error.PrimaryCategory);
+        string normalizedPrimaryCategory =
+            TextKeyNormalizer.NormalizeKey(error.PrimaryCategory);
 
         if (!categoriesByName.ContainsKey(normalizedPrimaryCategory))
         {
@@ -216,9 +240,14 @@ public sealed class ErrorCatalogCrossValidator
 
         bool primaryCategoryIsListedInCategories = error.Categories
             .Select(TextKeyNormalizer.NormalizeKey)
-            .Any(category => string.Equals(category, normalizedPrimaryCategory, StringComparison.OrdinalIgnoreCase));
+            .Any(category =>
+                string.Equals(
+                    category,
+                    normalizedPrimaryCategory,
+                    StringComparison.OrdinalIgnoreCase));
 
-        if (error.Categories.Count > 0 && !primaryCategoryIsListedInCategories)
+        if (error.Categories.Count > 0 &&
+            !primaryCategoryIsListedInCategories)
         {
             result.AddInformation(
                 code: "PrimaryCategoryNotListedInCategories",
@@ -240,7 +269,9 @@ public sealed class ErrorCatalogCrossValidator
             return;
         }
 
-        for (int categoryIndex = 0; categoryIndex < error.Categories.Count; categoryIndex++)
+        for (int categoryIndex = 0;
+             categoryIndex < error.Categories.Count;
+             categoryIndex++)
         {
             string category = error.Categories[categoryIndex];
 
@@ -249,7 +280,8 @@ public sealed class ErrorCatalogCrossValidator
                 continue;
             }
 
-            string normalizedCategory = TextKeyNormalizer.NormalizeKey(category);
+            string normalizedCategory =
+                TextKeyNormalizer.NormalizeKey(category);
 
             if (!categoriesByName.ContainsKey(normalizedCategory))
             {
@@ -265,6 +297,7 @@ public sealed class ErrorCatalogCrossValidator
 
     private static void ValidateProfilesAgainstSupportingCatalogs(
         ErrorProfileCatalogDocument? profileCatalog,
+        IReadOnlyDictionary<string, ErrorDefinition> errorsById,
         IReadOnlyDictionary<string, ErrorOwnerDefinition> ownersByName,
         IReadOnlyDictionary<string, ErrorCodeGroupDefinition> codeGroupsByName,
         IReadOnlyDictionary<string, ErrorCategoryDefinition> categoriesByName,
@@ -275,10 +308,26 @@ public sealed class ErrorCatalogCrossValidator
             return;
         }
 
-        for (int profileIndex = 0; profileIndex < profileCatalog.Profiles.Count; profileIndex++)
+        for (int profileIndex = 0;
+             profileIndex < profileCatalog.Profiles.Count;
+             profileIndex++)
         {
-            ErrorProfileDefinition profile = profileCatalog.Profiles[profileIndex];
+            ErrorProfileDefinition profile =
+                profileCatalog.Profiles[profileIndex];
+
             string profilePath = $"profiles[{profileIndex}]";
+
+            ValidateProfileIncludeErrors(
+                profile,
+                profilePath,
+                errorsById,
+                result);
+
+            ValidateProfileExcludeErrors(
+                profile,
+                profilePath,
+                errorsById,
+                result);
 
             ValidateProfileIncludeOwners(
                 profile,
@@ -300,6 +349,70 @@ public sealed class ErrorCatalogCrossValidator
         }
     }
 
+    private static void ValidateProfileIncludeErrors(
+        ErrorProfileDefinition profile,
+        string profilePath,
+        IReadOnlyDictionary<string, ErrorDefinition> errorsById,
+        ErrorCatalogValidationResult result)
+    {
+        for (int errorIndex = 0;
+             errorIndex < profile.IncludeErrors.Count;
+             errorIndex++)
+        {
+            string errorId = profile.IncludeErrors[errorIndex];
+
+            if (string.IsNullOrWhiteSpace(errorId))
+            {
+                continue;
+            }
+
+            string normalizedErrorId =
+                TextKeyNormalizer.NormalizeKey(errorId);
+
+            if (!errorsById.ContainsKey(normalizedErrorId))
+            {
+                result.AddWarning(
+                    code: "UnknownProfileIncludeError",
+                    message: $"Profile '{profile.Name}' includes error '{errorId}', but this error is not defined in the error catalog.",
+                    errorId: errorId,
+                    errorName: profile.Name,
+                    path: $"{profilePath}.includeErrors[{errorIndex}]");
+            }
+        }
+    }
+
+    private static void ValidateProfileExcludeErrors(
+        ErrorProfileDefinition profile,
+        string profilePath,
+        IReadOnlyDictionary<string, ErrorDefinition> errorsById,
+        ErrorCatalogValidationResult result)
+    {
+        for (int errorIndex = 0;
+             errorIndex < profile.ExcludeErrors.Count;
+             errorIndex++)
+        {
+            string errorId = profile.ExcludeErrors[errorIndex];
+
+            if (string.IsNullOrWhiteSpace(errorId))
+            {
+                continue;
+            }
+
+            string normalizedErrorId =
+                TextKeyNormalizer.NormalizeKey(errorId);
+
+            if (!errorsById.ContainsKey(normalizedErrorId))
+            {
+                result.AddWarning(
+                    code: "UnknownProfileExcludeError",
+                    message: $"Profile '{profile.Name}' excludes error '{errorId}', but this error is not defined in the error catalog.",
+                    errorId: errorId,
+                    errorName: profile.Name,
+                    path: $"{profilePath}.excludeErrors[{errorIndex}]");
+            }
+        }
+    }
+
     private static void ValidateProfileIncludeOwners(
         ErrorProfileDefinition profile,
         string profilePath,
@@ -311,7 +424,9 @@ public sealed class ErrorCatalogCrossValidator
             return;
         }
 
-        for (int ownerIndex = 0; ownerIndex < profile.IncludeOwners.Count; ownerIndex++)
+        for (int ownerIndex = 0;
+             ownerIndex < profile.IncludeOwners.Count;
+             ownerIndex++)
         {
             string owner = profile.IncludeOwners[ownerIndex];
 
@@ -320,7 +435,8 @@ public sealed class ErrorCatalogCrossValidator
                 continue;
             }
 
-            string normalizedOwner = TextKeyNormalizer.NormalizeKey(owner);
+            string normalizedOwner =
+                TextKeyNormalizer.NormalizeKey(owner);
 
             if (!ownersByName.ContainsKey(normalizedOwner))
             {
@@ -344,16 +460,20 @@ public sealed class ErrorCatalogCrossValidator
             return;
         }
 
-        for (int codeGroupIndex = 0; codeGroupIndex < profile.IncludeCodeGroups.Count; codeGroupIndex++)
+        for (int codeGroupIndex = 0;
+             codeGroupIndex < profile.IncludeCodeGroups.Count;
+             codeGroupIndex++)
         {
-            string codeGroup = profile.IncludeCodeGroups[codeGroupIndex];
+            string codeGroup =
+                profile.IncludeCodeGroups[codeGroupIndex];
 
             if (string.IsNullOrWhiteSpace(codeGroup))
             {
                 continue;
             }
 
-            string normalizedCodeGroup = TextKeyNormalizer.NormalizeKey(codeGroup);
+            string normalizedCodeGroup =
+                TextKeyNormalizer.NormalizeKey(codeGroup);
 
             if (!codeGroupsByName.ContainsKey(normalizedCodeGroup))
             {
@@ -377,16 +497,20 @@ public sealed class ErrorCatalogCrossValidator
             return;
         }
 
-        for (int categoryIndex = 0; categoryIndex < profile.IncludeCategories.Count; categoryIndex++)
+        for (int categoryIndex = 0;
+             categoryIndex < profile.IncludeCategories.Count;
+             categoryIndex++)
         {
-            string category = profile.IncludeCategories[categoryIndex];
+            string category =
+                profile.IncludeCategories[categoryIndex];
 
             if (string.IsNullOrWhiteSpace(category))
             {
                 continue;
             }
 
-            string normalizedCategory = TextKeyNormalizer.NormalizeKey(category);
+            string normalizedCategory =
+                TextKeyNormalizer.NormalizeKey(category);
 
             if (!categoriesByName.ContainsKey(normalizedCategory))
             {
@@ -399,9 +523,36 @@ public sealed class ErrorCatalogCrossValidator
         }
     }
 
-    private static Dictionary<string, ErrorOwnerDefinition> BuildOwnerIndex(ErrorOwnerCatalogDocument? ownerCatalog)
+    private static Dictionary<string, ErrorDefinition> BuildErrorIndex(
+        ErrorCatalogDocument errorCatalog)
     {
-        Dictionary<string, ErrorOwnerDefinition> ownersByName = new(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, ErrorDefinition> errorsById =
+            new(StringComparer.OrdinalIgnoreCase);
+
+        foreach (ErrorDefinition error in errorCatalog.Errors)
+        {
+            if (string.IsNullOrWhiteSpace(error.Id))
+            {
+                continue;
+            }
+
+            string normalizedErrorId =
+                TextKeyNormalizer.NormalizeKey(error.Id);
+
+            if (!errorsById.ContainsKey(normalizedErrorId))
+            {
+                errorsById.Add(normalizedErrorId, error);
+            }
+        }
+
+        return errorsById;
+    }
+
+    private static Dictionary<string, ErrorOwnerDefinition> BuildOwnerIndex(
+        ErrorOwnerCatalogDocument? ownerCatalog)
+    {
+        Dictionary<string, ErrorOwnerDefinition> ownersByName =
+            new(StringComparer.OrdinalIgnoreCase);
 
         if (ownerCatalog is null)
         {
@@ -421,9 +572,11 @@ public sealed class ErrorCatalogCrossValidator
         return ownersByName;
     }
 
-    private static Dictionary<string, ErrorCodeGroupDefinition> BuildCodeGroupIndex(ErrorCodeGroupCatalogDocument? codeGroupCatalog)
+    private static Dictionary<string, ErrorCodeGroupDefinition> BuildCodeGroupIndex(
+        ErrorCodeGroupCatalogDocument? codeGroupCatalog)
     {
-        Dictionary<string, ErrorCodeGroupDefinition> codeGroupsByName = new(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, ErrorCodeGroupDefinition> codeGroupsByName =
+            new(StringComparer.OrdinalIgnoreCase);
 
         if (codeGroupCatalog is null)
         {
@@ -437,7 +590,8 @@ public sealed class ErrorCatalogCrossValidator
                 continue;
             }
 
-            string normalizedName = TextKeyNormalizer.NormalizeKey(codeGroup.Name);
+            string normalizedName =
+                TextKeyNormalizer.NormalizeKey(codeGroup.Name);
 
             if (!codeGroupsByName.ContainsKey(normalizedName))
             {
@@ -448,9 +602,11 @@ public sealed class ErrorCatalogCrossValidator
         return codeGroupsByName;
     }
 
-    private static Dictionary<string, ErrorCategoryDefinition> BuildCategoryIndex(ErrorCategoryCatalogDocument? categoryCatalog)
+    private static Dictionary<string, ErrorCategoryDefinition> BuildCategoryIndex(
+        ErrorCategoryCatalogDocument? categoryCatalog)
     {
-        Dictionary<string, ErrorCategoryDefinition> categoriesByName = new(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, ErrorCategoryDefinition> categoriesByName =
+            new(StringComparer.OrdinalIgnoreCase);
 
         if (categoryCatalog is null)
         {
@@ -459,11 +615,17 @@ public sealed class ErrorCatalogCrossValidator
 
         foreach (ErrorCategoryDefinition category in categoryCatalog.Categories)
         {
-            AddCategoryKey(categoriesByName, category.Name, category);
+            AddCategoryKey(
+                categoriesByName,
+                category.Name,
+                category);
 
             foreach (string alias in category.Aliases)
             {
-                AddCategoryKey(categoriesByName, alias, category);
+                AddCategoryKey(
+                    categoriesByName,
+                    alias,
+                    category);
             }
         }
 
@@ -479,9 +641,12 @@ public sealed class ErrorCatalogCrossValidator
             return null;
         }
 
-        string normalizedOwnerName = TextKeyNormalizer.NormalizeKey(ownerName);
+        string normalizedOwnerName =
+            TextKeyNormalizer.NormalizeKey(ownerName);
 
-        return ownersByName.TryGetValue(normalizedOwnerName, out ErrorOwnerDefinition? owner)
+        return ownersByName.TryGetValue(
+            normalizedOwnerName,
+            out ErrorOwnerDefinition? owner)
             ? owner
             : null;
     }
@@ -495,9 +660,12 @@ public sealed class ErrorCatalogCrossValidator
             return null;
         }
 
-        string normalizedCodeGroupName = TextKeyNormalizer.NormalizeKey(codeGroupName);
+        string normalizedCodeGroupName =
+            TextKeyNormalizer.NormalizeKey(codeGroupName);
 
-        return codeGroupsByName.TryGetValue(normalizedCodeGroupName, out ErrorCodeGroupDefinition? codeGroup)
+        return codeGroupsByName.TryGetValue(
+            normalizedCodeGroupName,
+            out ErrorCodeGroupDefinition? codeGroup)
             ? codeGroup
             : null;
     }
@@ -512,7 +680,8 @@ public sealed class ErrorCatalogCrossValidator
             return;
         }
 
-        string normalizedKey = TextKeyNormalizer.NormalizeKey(key);
+        string normalizedKey =
+            TextKeyNormalizer.NormalizeKey(key);
 
         if (!ownersByName.ContainsKey(normalizedKey))
         {
@@ -530,7 +699,8 @@ public sealed class ErrorCatalogCrossValidator
             return;
         }
 
-        string normalizedKey = TextKeyNormalizer.NormalizeKey(key);
+        string normalizedKey =
+            TextKeyNormalizer.NormalizeKey(key);
 
         if (!categoriesByName.ContainsKey(normalizedKey))
         {
@@ -538,8 +708,13 @@ public sealed class ErrorCatalogCrossValidator
         }
     }
 
-    private static bool IsCodeInsideRange(int code, int codeFrom, int codeTo)
+    private static bool IsCodeInsideRange(
+        int code,
+        int codeFrom,
+        int codeTo)
     {
-        return code >= codeFrom && code <= codeTo;
+        return code >= codeFrom &&
+               code <= codeTo;
     }
 }
+
