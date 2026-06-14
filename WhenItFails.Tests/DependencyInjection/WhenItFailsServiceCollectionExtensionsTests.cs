@@ -1,5 +1,12 @@
+using Afrowave.Toolbox.WhenItFails.Bootstrap;
+using Afrowave.Toolbox.WhenItFails.Catalog;
+using Afrowave.Toolbox.WhenItFails.Descriptors;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
+using Afrowave.Toolbox.WhenItFails.Loading;
+using Afrowave.Toolbox.WhenItFails.Normalization;
 using Afrowave.Toolbox.WhenItFails.Resolution;
+using Afrowave.Toolbox.WhenItFails.Services;
+using Afrowave.Toolbox.WhenItFails.Validation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Afrowave.Toolbox.WhenItFails.Tests.DependencyInjection;
@@ -87,6 +94,128 @@ public sealed class WhenItFailsServiceCollectionExtensionsTests
             serviceProvider.GetRequiredService<IErrorProfileResolver>();
 
         Assert.Same(customResolver, resolved);
+    }
+
+    [Fact]
+    public void AddWhenItFails_ShouldBuildCompleteServiceProvider()
+    {
+        ServiceCollection services = new();
+
+        services.AddWhenItFails();
+
+        using ServiceProvider serviceProvider =
+            services.BuildServiceProvider(
+                new ServiceProviderOptions
+                {
+                    ValidateOnBuild = true,
+                    ValidateScopes = true
+                });
+
+        Assert.NotNull(serviceProvider);
+    }
+
+    [Fact]
+    public void AddWhenItFails_ShouldResolveCompleteRuntimeServiceGraph()
+    {
+        ServiceCollection services = new();
+
+        services.AddWhenItFails();
+
+        using ServiceProvider serviceProvider =
+            services.BuildServiceProvider(
+                new ServiceProviderOptions
+                {
+                    ValidateOnBuild = true,
+                    ValidateScopes = true
+                });
+
+        Assert.IsType<DefaultJsonsTemplateProvider>(
+            serviceProvider.GetRequiredService<IJsonsTemplateProvider>());
+
+        Assert.IsType<JsonsBootstrapper>(
+            serviceProvider.GetRequiredService<IJsonsBootstrapper>());
+
+        Assert.IsType<JsonErrorCatalogLoader>(
+            serviceProvider.GetRequiredService<IErrorCatalogLoader>());
+
+        Assert.IsType<ErrorCatalogDocumentNormalizer>(
+            serviceProvider.GetRequiredService<
+                IErrorCatalogDocumentNormalizer>());
+
+        Assert.IsType<ErrorCatalogValidator>(
+            serviceProvider.GetRequiredService<IErrorCatalogValidator>());
+
+        Assert.IsType<ErrorCatalogFactory>(
+            serviceProvider.GetRequiredService<IErrorCatalogFactory>());
+
+        Assert.IsType<ErrorCatalogProvider>(
+            serviceProvider.GetRequiredService<IErrorCatalogProvider>());
+
+        Assert.IsType<ErrorCategoryCatalogProvider>(
+            serviceProvider.GetRequiredService<
+                IErrorCategoryCatalogProvider>());
+
+        Assert.IsType<ErrorCodeGroupCatalogProvider>(
+            serviceProvider.GetRequiredService<
+                IErrorCodeGroupCatalogProvider>());
+
+        Assert.IsType<ErrorOwnerCatalogProvider>(
+            serviceProvider.GetRequiredService<
+                IErrorOwnerCatalogProvider>());
+
+        Assert.IsType<ErrorProfileCatalogProvider>(
+            serviceProvider.GetRequiredService<
+                IErrorProfileCatalogProvider>());
+
+        Assert.IsType<ErrorCatalogContextProvider>(
+            serviceProvider.GetRequiredService<
+                IErrorCatalogContextProvider>());
+
+        Assert.IsType<ErrorDefinitionResolver>(
+            serviceProvider.GetRequiredService<
+                IErrorDefinitionResolver>());
+
+        Assert.IsType<ErrorProfileResolver>(
+            serviceProvider.GetRequiredService<
+                IErrorProfileResolver>());
+
+        Assert.IsType<ErrorProfileSelectionService>(
+            serviceProvider.GetRequiredService<
+                IErrorProfileSelectionService>());
+
+        Assert.IsType<ErrorDescriptorFactory>(
+            serviceProvider.GetRequiredService<
+                IErrorDescriptorFactory>());
+
+        Assert.IsType<ErrorDescriptorResolver>(
+            serviceProvider.GetRequiredService<
+                IErrorDescriptorResolver>());
+
+        Assert.IsType<ErrorDescriptorService>(
+            serviceProvider.GetRequiredService<
+                IErrorDescriptorService>());
+    }
+
+    [Fact]
+    public void AddWhenItFails_ShouldRegisterDescriptorServiceAsSingleton()
+    {
+        ServiceCollection services = new();
+
+        services.AddWhenItFails();
+
+        using ServiceProvider serviceProvider =
+            services.BuildServiceProvider();
+
+        IErrorDescriptorService first =
+            serviceProvider.GetRequiredService<
+                IErrorDescriptorService>();
+
+        IErrorDescriptorService second =
+            serviceProvider.GetRequiredService<
+                IErrorDescriptorService>();
+
+        Assert.IsType<ErrorDescriptorService>(first);
+        Assert.Same(first, second);
     }
 
     private sealed class FakeErrorProfileResolver

@@ -1,5 +1,12 @@
+using Afrowave.Toolbox.WhenItFails.Bootstrap;
+using Afrowave.Toolbox.WhenItFails.Catalog;
+using Afrowave.Toolbox.WhenItFails.Descriptors;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
+using Afrowave.Toolbox.WhenItFails.Loading;
+using Afrowave.Toolbox.WhenItFails.Normalization;
 using Afrowave.Toolbox.WhenItFails.Resolution;
+using Afrowave.Toolbox.WhenItFails.Services;
+using Afrowave.Toolbox.WhenItFails.Validation;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -10,7 +17,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class WhenItFailsServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers core WhenItFails services.
+    /// Registers the default WhenItFails runtime services.
     /// </summary>
     /// <param name="services">
     /// Service collection receiving the registrations.
@@ -23,6 +30,147 @@ public static class WhenItFailsServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
+        RegisterBootstrapServices(services);
+        RegisterCatalogServices(services);
+        RegisterResolutionServices(services);
+        RegisterDescriptorServices(services);
+
+        return services;
+    }
+
+    private static void RegisterBootstrapServices(
+        IServiceCollection services)
+    {
+        services.TryAddSingleton<
+            IJsonsTemplateProvider,
+            DefaultJsonsTemplateProvider>();
+
+        services.TryAddSingleton<
+            IJsonsBootstrapper,
+            JsonsBootstrapper>();
+    }
+
+    private static void RegisterCatalogServices(
+        IServiceCollection services)
+    {
+        RegisterMainErrorCatalogServices(services);
+        RegisterCategoryCatalogServices(services);
+        RegisterCodeGroupCatalogServices(services);
+        RegisterOwnerCatalogServices(services);
+        RegisterProfileCatalogServices(services);
+
+        services.TryAddSingleton<
+            IErrorCatalogContextProvider,
+            ErrorCatalogContextProvider>();
+    }
+
+    private static void RegisterMainErrorCatalogServices(
+        IServiceCollection services)
+    {
+        services.TryAddSingleton<
+            IErrorCatalogLoader,
+            JsonErrorCatalogLoader>();
+
+        services.TryAddSingleton<
+            IErrorCatalogDocumentNormalizer,
+            ErrorCatalogDocumentNormalizer>();
+
+        services.TryAddSingleton<
+            IErrorCatalogValidator,
+            ErrorCatalogValidator>();
+
+        services.TryAddSingleton<
+            IErrorCatalogFactory,
+            ErrorCatalogFactory>();
+
+        services.TryAddSingleton<
+            IErrorCatalogProvider,
+            ErrorCatalogProvider>();
+    }
+
+    private static void RegisterCategoryCatalogServices(
+        IServiceCollection services)
+    {
+        services.TryAddSingleton<
+            IErrorCategoryCatalogLoader,
+            JsonErrorCategoryCatalogLoader>();
+
+        services.TryAddSingleton<
+            ErrorCategoryCatalogDocumentNormalizer>();
+
+        services.TryAddSingleton<
+            IErrorCategoryCatalogValidator,
+            ErrorCategoryCatalogValidator>();
+
+        services.TryAddSingleton<
+            IErrorCategoryCatalogProvider,
+            ErrorCategoryCatalogProvider>();
+    }
+
+    private static void RegisterCodeGroupCatalogServices(
+        IServiceCollection services)
+    {
+        services.TryAddSingleton<
+            IErrorCodeGroupCatalogLoader,
+            JsonErrorCodeGroupCatalogLoader>();
+
+        services.TryAddSingleton<
+            ErrorCodeGroupCatalogDocumentNormalizer>();
+
+        services.TryAddSingleton<
+            IErrorCodeGroupCatalogValidator,
+            ErrorCodeGroupCatalogValidator>();
+
+        services.TryAddSingleton<
+            IErrorCodeGroupCatalogProvider,
+            ErrorCodeGroupCatalogProvider>();
+    }
+
+    private static void RegisterOwnerCatalogServices(
+        IServiceCollection services)
+    {
+        services.TryAddSingleton<
+            IErrorOwnerCatalogLoader,
+            JsonErrorOwnerCatalogLoader>();
+
+        services.TryAddSingleton<
+            ErrorOwnerCatalogDocumentNormalizer>();
+
+        services.TryAddSingleton<
+            IErrorOwnerCatalogValidator,
+            ErrorOwnerCatalogValidator>();
+
+        services.TryAddSingleton<
+            IErrorOwnerCatalogProvider,
+            ErrorOwnerCatalogProvider>();
+    }
+
+    private static void RegisterProfileCatalogServices(
+        IServiceCollection services)
+    {
+        services.TryAddSingleton<
+            IErrorProfileCatalogLoader,
+            JsonErrorProfileCatalogLoader>();
+
+        services.TryAddSingleton<
+            ErrorProfileCatalogDocumentNormalizer>();
+
+        services.TryAddSingleton<
+            IErrorProfileCatalogValidator,
+            ErrorProfileCatalogValidator>();
+
+        services.TryAddSingleton<
+            IErrorProfileCatalogProvider,
+            ErrorProfileCatalogProvider>();
+    }
+
+    private static void RegisterResolutionServices(
+        IServiceCollection services)
+    {
+        services.TryAddSingleton<
+            IErrorDefinitionResolver,
+            ErrorDefinitionResolver>();
+
         services.TryAddSingleton<
             IErrorProfileResolver,
             ErrorProfileResolver>();
@@ -30,7 +178,21 @@ public static class WhenItFailsServiceCollectionExtensions
         services.TryAddSingleton<
             IErrorProfileSelectionService,
             ErrorProfileSelectionService>();
+    }
 
-        return services;
+    private static void RegisterDescriptorServices(
+        IServiceCollection services)
+    {
+        services.TryAddSingleton<
+            IErrorDescriptorFactory,
+            ErrorDescriptorFactory>();
+
+        services.TryAddSingleton<
+            IErrorDescriptorResolver,
+            ErrorDescriptorResolver>();
+
+        services.TryAddSingleton<
+            IErrorDescriptorService,
+            ErrorDescriptorService>();
     }
 }
