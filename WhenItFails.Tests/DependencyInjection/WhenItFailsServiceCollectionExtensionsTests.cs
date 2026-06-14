@@ -218,6 +218,28 @@ public sealed class WhenItFailsServiceCollectionExtensionsTests
         Assert.Same(first, second);
     }
 
+    [Fact]
+    public void AddWhenItFails_ShouldRegisterErrorCatalogContextStoreAsSingleton()
+    {
+        ServiceCollection services = new();
+
+        services.AddWhenItFails();
+
+        using ServiceProvider serviceProvider =
+            services.BuildServiceProvider();
+
+        IErrorCatalogContextStore first =
+            serviceProvider.GetRequiredService<
+                IErrorCatalogContextStore>();
+
+        IErrorCatalogContextStore second =
+            serviceProvider.GetRequiredService<
+                IErrorCatalogContextStore>();
+
+        Assert.IsType<ErrorCatalogContextStore>(first);
+        Assert.Same(first, second);
+    }
+
     private sealed class FakeErrorProfileResolver
         : IErrorProfileResolver
     {
