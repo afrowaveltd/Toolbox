@@ -260,7 +260,94 @@ public void Resolve_ShouldMatchIncludedCodeGroup()
         Assert.Equal("AFW-WEB-0001", error.Id);
     }
 
+    [Fact]
+    public void Resolve_ShouldReturnEmptyCollection_WhenCatalogContainsNoErrors()
+    {
+        ErrorProfileResolver resolver = new();
 
+        ErrorCatalogDocument catalog = CreateErrorCatalog();
+        catalog.Errors.Clear();
+
+        IReadOnlyList<ErrorDefinition> result = resolver.Resolve(
+            catalog,
+            new ErrorProfileDefinition
+            {
+                Name = "ALL",
+                DisplayName = "All errors"
+            });
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void Resolve_ShouldReturnEmptyCollection_WhenNoIncludeFilterMatches()
+    {
+        ErrorProfileResolver resolver = new();
+
+        ErrorProfileDefinition profile = new()
+        {
+            Name = "UNKNOWN_CATEGORY",
+            DisplayName = "Unknown category",
+            IncludeCategories = ["NOT_PRESENT"]
+        };
+
+        IReadOnlyList<ErrorDefinition> result = resolver.Resolve(
+            CreateErrorCatalog(),
+            profile);
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void Resolve_ShouldThrowArgumentNullException_WhenErrorCatalogIsNull()
+    {
+        ErrorProfileResolver resolver = new();
+
+        ErrorProfileDefinition profile = new()
+        {
+            Name = "ALL",
+            DisplayName = "All errors"
+        };
+
+        Assert.Throws<ArgumentNullException>(
+            () => resolver.Resolve(null!, profile));
+    }
+
+    [Fact]
+    public void Resolve_ShouldThrowArgumentNullException_WhenProfileIsNull()
+    {
+        ErrorProfileResolver resolver = new();
+
+        Assert.Throws<ArgumentNullException>(
+            () => resolver.Resolve(CreateErrorCatalog(), null!));
+    }
+
+    [Fact]
+    public void Resolve_ShouldApplyExcludedTagsAfterIncludeMatch()
+    {
+        ErrorProfileResolver resolver = new();
+
+        ErrorProfileDefinition profile = new()
+        {
+            Name = "ALL_AFROWAVE_EXCEPT_INTERNAL",
+            DisplayName = "All Afrowave except internal",
+            IncludeOwners = ["AFW"],
+            ExcludeTags = ["internal"]
+        };
+
+        IReadOnlyList<ErrorDefinition> result = resolver.Resolve(
+            CreateErrorCatalog(),
+            profile);
+
+        Assert.Collection(
+            result,
+            error => Assert.Equal("AFW-WEB-0001", error.Id),
+            error => Assert.Equal("AFW-DSK-0001", error.Id));
+
+        Assert.DoesNotContain(
+            result,
+            error => error.Id == "AFW-DB-0001");
+    }
     private static ErrorCatalogDocument CreateErrorCatalog()
     {
         return new ErrorCatalogDocument
