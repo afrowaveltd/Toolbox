@@ -1,4 +1,5 @@
 using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Interfaces;
 using Afrowave.Toolbox.WhenItFails.Normalization;
 
 namespace Afrowave.Toolbox.WhenItFails.Resolution;
@@ -11,7 +12,7 @@ namespace Afrowave.Toolbox.WhenItFails.Resolution;
 /// Exclusion filters act as vetoes.
 /// Explicitly excluded error identifiers have the final priority.
 /// </remarks>
-public sealed class ErrorProfileResolver
+public sealed class ErrorProfileResolver : IErrorProfileResolver
 {
     /// <summary>
     /// Resolves errors from the specified catalog using the supplied profile.

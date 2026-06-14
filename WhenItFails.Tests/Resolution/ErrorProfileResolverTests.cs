@@ -1,4 +1,5 @@
 using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Interfaces;
 using Afrowave.Toolbox.WhenItFails.Resolution;
 
 namespace Afrowave.Toolbox.WhenItFails.Tests.Resolution;
@@ -155,8 +156,8 @@ public sealed class ErrorProfileResolverTests
             error => Assert.Equal("AFW-DB-0001", error.Id));
     }
 
-[Fact]
-public void Resolve_ShouldMatchIncludedCodeGroup()
+    [Fact]
+    public void Resolve_ShouldMatchIncludedCodeGroup()
     {
         ErrorProfileResolver resolver = new();
 
@@ -347,6 +348,14 @@ public void Resolve_ShouldMatchIncludedCodeGroup()
         Assert.DoesNotContain(
             result,
             error => error.Id == "AFW-DB-0001");
+    }
+
+    [Fact]
+    public void ErrorProfileResolver_ShouldImplementResolverInterface()
+    {
+        IErrorProfileResolver resolver = new ErrorProfileResolver();
+
+        Assert.IsType<ErrorProfileResolver>(resolver);
     }
     private static ErrorCatalogDocument CreateErrorCatalog()
     {
