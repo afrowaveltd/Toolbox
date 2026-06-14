@@ -155,6 +155,112 @@ public sealed class ErrorProfileResolverTests
             error => Assert.Equal("AFW-DB-0001", error.Id));
     }
 
+[Fact]
+public void Resolve_ShouldMatchIncludedCodeGroup()
+    {
+        ErrorProfileResolver resolver = new();
+
+        ErrorProfileDefinition profile = new()
+        {
+            Name = "STORAGE_CODE_GROUP",
+            DisplayName = "Storage code group",
+            IncludeCodeGroups = ["storage"]
+        };
+
+        IReadOnlyList<ErrorDefinition> result = resolver.Resolve(
+            CreateErrorCatalog(),
+            profile);
+
+        ErrorDefinition error = Assert.Single(result);
+
+        Assert.Equal("AFW-DSK-0001", error.Id);
+    }
+
+    [Fact]
+    public void Resolve_ShouldMatchIncludedPrimaryCategory()
+    {
+        ErrorProfileResolver resolver = new();
+
+        ErrorProfileDefinition profile = new()
+        {
+            Name = "DATABASE_CATEGORY",
+            DisplayName = "Database category",
+            IncludeCategories = ["database"]
+        };
+
+        IReadOnlyList<ErrorDefinition> result = resolver.Resolve(
+            CreateErrorCatalog(),
+            profile);
+
+        ErrorDefinition error = Assert.Single(result);
+
+        Assert.Equal("AFW-DB-0001", error.Id);
+    }
+
+    [Fact]
+    public void Resolve_ShouldMatchIncludedAdditionalCategory()
+    {
+        ErrorProfileResolver resolver = new();
+
+        ErrorProfileDefinition profile = new()
+        {
+            Name = "NETWORK_CATEGORY",
+            DisplayName = "Network category",
+            IncludeCategories = ["network"]
+        };
+
+        IReadOnlyList<ErrorDefinition> result = resolver.Resolve(
+            CreateErrorCatalog(),
+            profile);
+
+        ErrorDefinition error = Assert.Single(result);
+
+        Assert.Equal("AFW-WEB-0001", error.Id);
+    }
+
+    [Fact]
+    public void Resolve_ShouldMatchIncludedSubcategory()
+    {
+        ErrorProfileResolver resolver = new();
+
+        ErrorProfileDefinition profile = new()
+        {
+            Name = "READ_SUBCATEGORY",
+            DisplayName = "Read subcategory",
+            IncludeSubcategories = ["read"]
+        };
+
+        IReadOnlyList<ErrorDefinition> result = resolver.Resolve(
+            CreateErrorCatalog(),
+            profile);
+
+        ErrorDefinition error = Assert.Single(result);
+
+        Assert.Equal("AFW-DSK-0001", error.Id);
+    }
+
+    [Fact]
+    public void Resolve_ShouldMatchIncludedTag()
+    {
+        ErrorProfileResolver resolver = new();
+
+        ErrorProfileDefinition profile = new()
+        {
+            Name = "USER_VISIBLE_TAG",
+            DisplayName = "User visible tag",
+            IncludeTags = ["user-visible"]
+        };
+
+        IReadOnlyList<ErrorDefinition> result = resolver.Resolve(
+            CreateErrorCatalog(),
+            profile);
+
+        ErrorDefinition error = Assert.Single(result);
+
+        Assert.Equal("AFW-WEB-0001", error.Id);
+    }
+
+
     private static ErrorCatalogDocument CreateErrorCatalog()
     {
         return new ErrorCatalogDocument
