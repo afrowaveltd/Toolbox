@@ -8,6 +8,7 @@ using Afrowave.Toolbox.WhenItFails.Resolution;
 using Afrowave.Toolbox.WhenItFails.Services;
 using Afrowave.Toolbox.WhenItFails.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using Afrowave.Toolbox.WhenItFails.Initialization;
 
 namespace Afrowave.Toolbox.WhenItFails.Tests.DependencyInjection;
 
@@ -240,7 +241,34 @@ public sealed class WhenItFailsServiceCollectionExtensionsTests
         Assert.Same(first, second);
     }
 
-    private sealed class FakeErrorProfileResolver
+   [Fact]
+   public void AddWhenItFails_ShouldRegisterErrorCatalogInitializerAsSingleton()
+   {
+      ServiceCollection services = new();
+
+      services.AddWhenItFails();
+
+      using ServiceProvider serviceProvider =
+          services.BuildServiceProvider(
+              new ServiceProviderOptions
+              {
+                 ValidateOnBuild = true,
+                 ValidateScopes = true
+              });
+
+      IErrorCatalogInitializer first =
+          serviceProvider.GetRequiredService<
+              IErrorCatalogInitializer>();
+
+      IErrorCatalogInitializer second =
+          serviceProvider.GetRequiredService<
+              IErrorCatalogInitializer>();
+
+      Assert.IsType<ErrorCatalogInitializer>(first);
+      Assert.Same(first, second);
+   }
+
+   private sealed class FakeErrorProfileResolver
         : IErrorProfileResolver
     {
         public IReadOnlyList<Definitions.ErrorDefinition> Resolve(

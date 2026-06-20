@@ -8,6 +8,7 @@ using Afrowave.Toolbox.WhenItFails.Resolution;
 using Afrowave.Toolbox.WhenItFails.Services;
 using Afrowave.Toolbox.WhenItFails.Validation;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Afrowave.Toolbox.WhenItFails.Initialization;
 
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -67,7 +68,11 @@ public static class WhenItFailsServiceCollectionExtensions
         services.TryAddSingleton<
             IErrorCatalogContextStore,
             ErrorCatalogContextStore>();
-    }
+
+      services.TryAddSingleton<
+          IErrorCatalogInitializer,
+         ErrorCatalogInitializer>();
+   }
 
     private static void RegisterMainErrorCatalogServices(
         IServiceCollection services)
