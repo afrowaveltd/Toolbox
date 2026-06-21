@@ -1,18 +1,33 @@
 using Afrowave.Toolbox.Essentials.Results;
+using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Descriptors;
+using Afrowave.Toolbox.WhenItFails.Initialization;
 
 namespace Afrowave.Toolbox.WhenItFails.Interfaces;
 
 /// <summary>
-/// Provides high-level access to the initialized WhenItFails runtime.
+/// Provides high-level access to the complete WhenItFails runtime.
 /// </summary>
 /// <remarks>
-/// The runtime obtains the current catalog context from
-/// <see cref="IErrorCatalogContextStore"/> automatically.
+/// This interface is the main entry point for applications that want to
+/// initialize WhenItFails and use the currently loaded catalog context
+/// without passing that context manually to individual services.
 /// </remarks>
 public interface IErrorCatalogRuntime
 {
+    /// <summary>
+    /// Initializes the complete WhenItFails catalog runtime.
+    /// </summary>
+    /// <param name="options">JSON workspace configuration.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>
+    /// Response containing bootstrap information and the initialized context.
+    /// </returns>
+    Task<Response<ErrorCatalogInitializationPayload>> InitializeAsync(
+        JsonsOptions options,
+        CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Creates an error descriptor from an error identifier.
     /// </summary>

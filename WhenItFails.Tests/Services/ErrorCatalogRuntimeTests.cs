@@ -1,8 +1,11 @@
 using Afrowave.Toolbox.Essentials.Enums;
 using Afrowave.Toolbox.Essentials.Results;
+using Afrowave.Toolbox.WhenItFails.Bootstrap;
 using Afrowave.Toolbox.WhenItFails.Catalog;
+using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Descriptors;
+using Afrowave.Toolbox.WhenItFails.Initialization;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
 using Afrowave.Toolbox.WhenItFails.Services;
 
@@ -11,10 +14,22 @@ namespace Afrowave.Toolbox.WhenItFails.Tests.Services;
 public sealed class ErrorCatalogRuntimeTests
 {
     [Fact]
+    public void Constructor_ShouldThrowArgumentNullException_WhenInitializerIsNull()
+    {
+        Assert.Throws<ArgumentNullException>(
+            () => new ErrorCatalogRuntime(
+                null!,
+                new FakeContextStore(),
+                new FakeDescriptorService(),
+                new FakeProfileSelectionService()));
+    }
+
+    [Fact]
     public void Constructor_ShouldThrowArgumentNullException_WhenContextStoreIsNull()
     {
         Assert.Throws<ArgumentNullException>(
             () => new ErrorCatalogRuntime(
+                new FakeInitializer(),
                 null!,
                 new FakeDescriptorService(),
                 new FakeProfileSelectionService()));
@@ -25,6 +40,7 @@ public sealed class ErrorCatalogRuntimeTests
     {
         Assert.Throws<ArgumentNullException>(
             () => new ErrorCatalogRuntime(
+                new FakeInitializer(),
                 new FakeContextStore(),
                 null!,
                 new FakeProfileSelectionService()));
@@ -35,15 +51,50 @@ public sealed class ErrorCatalogRuntimeTests
     {
         Assert.Throws<ArgumentNullException>(
             () => new ErrorCatalogRuntime(
+                new FakeInitializer(),
                 new FakeContextStore(),
                 new FakeDescriptorService(),
                 null!));
     }
 
     [Fact]
+    public async Task InitializeAsync_ShouldDelegateToInitializer()
+    {
+        JsonsOptions options = new()
+        {
+            RootDirectory = "CustomJsons",
+            PackageDirectoryName = "CustomWhenItFails"
+        };
+
+        ErrorCatalogInitializationPayload payload = new()
+        {
+            Bootstrap = new JsonsBootstrapPayload(),
+            Context = new ErrorCatalogContext()
+        };
+
+        FakeInitializer initializer = new(
+            Response<ErrorCatalogInitializationPayload>.Ok(payload));
+
+        ErrorCatalogRuntime runtime = new(
+            initializer,
+            new FakeContextStore(),
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.InitializeAsync(options);
+
+        Assert.True(response.IsSuccess);
+        Assert.Equal(ResultStatus.Success, response.Status);
+        Assert.Same(payload, response.Data);
+        Assert.Same(options, initializer.LastOptions);
+    }
+
+    [Fact]
     public void FromId_ShouldReturnContextFailure_WhenStoreIsNotInitialized()
     {
         ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(),
             new FakeContextStore(),
             new FakeDescriptorService(),
             new FakeProfileSelectionService());
@@ -68,6 +119,7 @@ public sealed class ErrorCatalogRuntimeTests
             Response<ErrorDescriptor>.Ok(descriptor));
 
         ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(),
             new FakeContextStore(context),
             descriptorService,
             new FakeProfileSelectionService());
@@ -78,8 +130,14 @@ public sealed class ErrorCatalogRuntimeTests
         Assert.True(response.IsSuccess);
         Assert.Same(descriptor, response.Data);
 
-        Assert.Equal("FromId", descriptorService.LastCalledMethod);
-        Assert.Same(context, descriptorService.LastContext);
+        Assert.Equal(
+            "FromId",
+            descriptorService.LastCalledMethod);
+
+        Assert.Same(
+            context,
+            descriptorService.LastContext);
+
         Assert.Equal(
             "AFW-GEN-0001",
             descriptorService.LastTextValue);
@@ -93,14 +151,21 @@ public sealed class ErrorCatalogRuntimeTests
         FakeDescriptorService descriptorService = new();
 
         ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(),
             new FakeContextStore(context),
             descriptorService,
             new FakeProfileSelectionService());
 
         runtime.FromName("UnknownError");
 
-        Assert.Equal("FromName", descriptorService.LastCalledMethod);
-        Assert.Same(context, descriptorService.LastContext);
+        Assert.Equal(
+            "FromName",
+            descriptorService.LastCalledMethod);
+
+        Assert.Same(
+            context,
+            descriptorService.LastContext);
+
         Assert.Equal(
             "UnknownError",
             descriptorService.LastTextValue);
@@ -114,15 +179,24 @@ public sealed class ErrorCatalogRuntimeTests
         FakeDescriptorService descriptorService = new();
 
         ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(),
             new FakeContextStore(context),
             descriptorService,
             new FakeProfileSelectionService());
 
         runtime.FromCode(100001);
 
-        Assert.Equal("FromCode", descriptorService.LastCalledMethod);
-        Assert.Same(context, descriptorService.LastContext);
-        Assert.Equal(100001, descriptorService.LastCode);
+        Assert.Equal(
+            "FromCode",
+            descriptorService.LastCalledMethod);
+
+        Assert.Same(
+            context,
+            descriptorService.LastContext);
+
+        Assert.Equal(
+            100001,
+            descriptorService.LastCode);
     }
 
     [Fact]
@@ -144,6 +218,7 @@ public sealed class ErrorCatalogRuntimeTests
             Response<IReadOnlyList<ErrorDefinition>>.Ok(errors));
 
         ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(),
             new FakeContextStore(context),
             new FakeDescriptorService(),
             profileService);
@@ -154,8 +229,13 @@ public sealed class ErrorCatalogRuntimeTests
         Assert.True(response.IsSuccess);
         Assert.Same(errors, response.Data);
 
-        Assert.Same(context, profileService.LastContext);
-        Assert.Equal("WEB", profileService.LastProfileName);
+        Assert.Same(
+            context,
+            profileService.LastContext);
+
+        Assert.Equal(
+            "WEB",
+            profileService.LastProfileName);
     }
 
     private static ErrorDescriptor CreateDescriptor()
@@ -166,6 +246,40 @@ public sealed class ErrorCatalogRuntimeTests
             Code = 100001,
             Name = "UNKNOWN_ERROR"
         };
+    }
+
+    private sealed class FakeInitializer
+        : IErrorCatalogInitializer
+    {
+        private readonly Response<ErrorCatalogInitializationPayload>
+            _response;
+
+        public FakeInitializer(
+            Response<ErrorCatalogInitializationPayload>? response = null)
+        {
+            _response = response
+                ?? Response<ErrorCatalogInitializationPayload>.Ok(
+                    new ErrorCatalogInitializationPayload
+                    {
+                        Bootstrap = new JsonsBootstrapPayload(),
+                        Context = new ErrorCatalogContext()
+                    });
+        }
+
+        public JsonsOptions? LastOptions { get; private set; }
+
+        public CancellationToken LastCancellationToken { get; private set; }
+
+        public Task<Response<ErrorCatalogInitializationPayload>>
+            InitializeAsync(
+                JsonsOptions options,
+                CancellationToken cancellationToken = default)
+        {
+            LastOptions = options;
+            LastCancellationToken = cancellationToken;
+
+            return Task.FromResult(_response);
+        }
     }
 
     private sealed class FakeContextStore
@@ -287,3 +401,4 @@ public sealed class ErrorCatalogRuntimeTests
         }
     }
 }
+

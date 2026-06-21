@@ -1,29 +1,55 @@
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Catalog;
+using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Descriptors;
+using Afrowave.Toolbox.WhenItFails.Initialization;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
 
 namespace Afrowave.Toolbox.WhenItFails.Services;
 
 /// <summary>
-/// Default high-level facade over the initialized WhenItFails runtime.
+/// Default high-level facade over the complete WhenItFails runtime.
 /// </summary>
-/// <remarks>
-/// Initializes a new instance of the
-/// <see cref="ErrorCatalogRuntime"/> class.
-/// </remarks>
-public sealed class ErrorCatalogRuntime(
-    IErrorCatalogContextStore contextStore,
-    IErrorDescriptorService descriptorService,
-    IErrorProfileSelectionService profileSelectionService) : IErrorCatalogRuntime
+public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
 {
-    private readonly IErrorCatalogContextStore _contextStore = contextStore
+    private readonly IErrorCatalogInitializer _initializer;
+    private readonly IErrorCatalogContextStore _contextStore;
+    private readonly IErrorDescriptorService _descriptorService;
+    private readonly IErrorProfileSelectionService _profileSelectionService;
+
+    /// <summary>
+    /// Initializes a new instance of the
+    /// <see cref="ErrorCatalogRuntime"/> class.
+    /// </summary>
+    public ErrorCatalogRuntime(
+        IErrorCatalogInitializer initializer,
+        IErrorCatalogContextStore contextStore,
+        IErrorDescriptorService descriptorService,
+        IErrorProfileSelectionService profileSelectionService)
+    {
+        _initializer = initializer
+            ?? throw new ArgumentNullException(nameof(initializer));
+
+        _contextStore = contextStore
             ?? throw new ArgumentNullException(nameof(contextStore));
-    private readonly IErrorDescriptorService _descriptorService = descriptorService
+
+        _descriptorService = descriptorService
             ?? throw new ArgumentNullException(nameof(descriptorService));
-    private readonly IErrorProfileSelectionService _profileSelectionService = profileSelectionService
+
+        _profileSelectionService = profileSelectionService
             ?? throw new ArgumentNullException(nameof(profileSelectionService));
+    }
+
+    /// <inheritdoc />
+    public Task<Response<ErrorCatalogInitializationPayload>> InitializeAsync(
+        JsonsOptions options,
+        CancellationToken cancellationToken = default)
+    {
+        return _initializer.InitializeAsync(
+            options,
+            cancellationToken);
+    }
 
     /// <inheritdoc />
     public Response<ErrorDescriptor> FromId(string errorId)
@@ -33,7 +59,8 @@ public sealed class ErrorCatalogRuntime(
 
         if (!contextResponse.IsSuccess)
         {
-            return ForwardFailure<ErrorDescriptor>(contextResponse);
+            return ForwardContextFailure<ErrorDescriptor>(
+                contextResponse);
         }
 
         return _descriptorService.FromId(
@@ -49,7 +76,8 @@ public sealed class ErrorCatalogRuntime(
 
         if (!contextResponse.IsSuccess)
         {
-            return ForwardFailure<ErrorDescriptor>(contextResponse);
+            return ForwardContextFailure<ErrorDescriptor>(
+                contextResponse);
         }
 
         return _descriptorService.FromName(
@@ -65,7 +93,8 @@ public sealed class ErrorCatalogRuntime(
 
         if (!contextResponse.IsSuccess)
         {
-            return ForwardFailure<ErrorDescriptor>(contextResponse);
+            return ForwardContextFailure<ErrorDescriptor>(
+                contextResponse);
         }
 
         return _descriptorService.FromCode(
@@ -82,8 +111,9 @@ public sealed class ErrorCatalogRuntime(
 
         if (!contextResponse.IsSuccess)
         {
-            return ForwardFailure<IReadOnlyList<ErrorDefinition>>(
-                contextResponse);
+            return ForwardContextFailure<
+                IReadOnlyList<ErrorDefinition>>(
+                    contextResponse);
         }
 
         return _profileSelectionService.ResolveByProfileName(
@@ -91,16 +121,17 @@ public sealed class ErrorCatalogRuntime(
             profileName);
     }
 
-    private static Response<TTarget> ForwardFailure<TTarget>(
+    private static Response<TTarget> ForwardContextFailure<TTarget>(
         Response<ErrorCatalogContext> sourceResponse)
     {
         string issueCode = sourceResponse.Issues.Count > 0
             ? sourceResponse.Issues[0].Code
             : "ErrorCatalogContextUnavailable";
 
-        string message = string.IsNullOrWhiteSpace(sourceResponse.Message)
-            ? "The initialized error catalog context is unavailable."
-            : sourceResponse.Message;
+        string message = string.IsNullOrWhiteSpace(
+            sourceResponse.Message)
+                ? "The initialized error catalog context is unavailable."
+                : sourceResponse.Message;
 
         return Response<TTarget>.WithStatus(
             Response<TTarget>.Fail(
