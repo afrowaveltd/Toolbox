@@ -9,6 +9,7 @@ using Afrowave.Toolbox.WhenItFails.Normalization;
 using Afrowave.Toolbox.WhenItFails.Resolution;
 using Afrowave.Toolbox.WhenItFails.Services;
 using Afrowave.Toolbox.WhenItFails.Validation;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 
@@ -67,6 +68,35 @@ public static class WhenItFailsServiceCollectionExtensions
             ServiceDescriptor.Singleton(optionsSnapshot));
 
         return RegisterWhenItFailsServices(services);
+    }
+
+    /// <summary>
+    /// Registers the default WhenItFails runtime services
+    /// using configuration values from the supplied section.
+    /// </summary>
+    /// <param name="services">
+    /// Service collection receiving the registrations.
+    /// </param>
+    /// <param name="configurationSection">
+    /// Configuration section containing WhenItFails settings.
+    /// </param>
+    /// <returns>
+    /// The same service collection for fluent configuration.
+    /// </returns>
+    public static IServiceCollection AddWhenItFails(
+        this IServiceCollection services,
+        IConfigurationSection configurationSection)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configurationSection);
+
+        WhenItFailsOptions configuredOptions = new();
+
+        configurationSection.Bind(
+            configuredOptions);
+
+        return services.AddWhenItFails(
+            configuredOptions);
     }
 
     /// <summary>

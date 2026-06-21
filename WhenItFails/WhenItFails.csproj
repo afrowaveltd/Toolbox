@@ -1,34 +1,35 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-	<PropertyGroup>
-		<PackageId>Afrowave.Toolbox.WhenItFails</PackageId>
-		<AssemblyName>Afrowave.Toolbox.WhenItFails</AssemblyName>
-		<RootNamespace>Afrowave.Toolbox.WhenItFails</RootNamespace>
-		<Description>Core building blocks for the Afrowave Toolbox package family. Provides shared abstractions, contracts, and utility types.</Description>
-		<PackageTags>afrowave;toolbox;whenitfails;errors;errorhandling;dotnet;foundation</PackageTags>
-		<Version>0.1.0</Version>
-	</PropertyGroup>
-
-	<ItemGroup>
-	  <ProjectReference Include="..\Essentials\Essentials.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Codes\" />
-	  <Folder Include="Customization\" />
-	  <Folder Include="Docs\Philosophy\" />
-	  <Folder Include="Mapping\" />
-	  <Folder Include="Exceptions\" />
-	  <Folder Include="DependencyInjection\" />
-	  <Folder Include="Exporting\" />
-	  <Folder Include="Jsons\" />
-	  <Folder Include="Serialization\" />
-	  <Folder Include="Storage\" />
-	  <Folder Include="Profiles\" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
-	</ItemGroup>
-
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <PackageId>Afrowave.Toolbox.WhenItFails</PackageId>
+        <AssemblyName>Afrowave.Toolbox.WhenItFails</AssemblyName>
+        <RootNamespace>Afrowave.Toolbox.WhenItFails</RootNamespace>
+        <Description>Core building blocks for the Afrowave Toolbox package family. Provides shared abstractions, contracts, and utility types.</Description>
+        <PackageTags>afrowave;toolbox;whenitfails;errors;errorhandling;dotnet;foundation</PackageTags>
+        <Version>0.1.0</Version>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Essentials\Essentials.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <Folder Include="Codes\" />
+        <Folder Include="Customization\" />
+        <Folder Include="Docs\Philosophy\" />
+        <Folder Include="Mapping\" />
+        <Folder Include="Exceptions\" />
+        <Folder Include="DependencyInjection\" />
+        <Folder Include="Exporting\" />
+        <Folder Include="Jsons\" />
+        <Folder Include="Serialization\" />
+        <Folder Include="Storage\" />
+        <Folder Include="Profiles\" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions"
+                          Version="10.0.9" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Binder"
+                          Version="10.0.9" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions"
+                          Version="10.0.9" />
+    </ItemGroup>
 </Project>

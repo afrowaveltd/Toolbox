@@ -10,6 +10,7 @@ using Afrowave.Toolbox.WhenItFails.Normalization;
 using Afrowave.Toolbox.WhenItFails.Resolution;
 using Afrowave.Toolbox.WhenItFails.Services;
 using Afrowave.Toolbox.WhenItFails.Validation;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Afrowave.Toolbox.WhenItFails.Tests.DependencyInjection;
@@ -745,6 +746,219 @@ public sealed class WhenItFailsServiceCollectionExtensionsTests
 
         Assert.True(
             registeredOptions.HideRecoverableFailures);
+    }
+
+    [Fact]
+    public void AddWhenItFails_ShouldBindConfigurationSection()
+    {
+        Dictionary<string, string?> configurationValues = new()
+        {
+            ["Afrowave:WhenItFails:InitializationMode"] =
+                "Strict",
+
+            ["Afrowave:WhenItFails:HideRecoverableFailures"] =
+                "true",
+
+            ["Afrowave:WhenItFails:Jsons:RootDirectory"] =
+                "ConfiguredJsons",
+
+            ["Afrowave:WhenItFails:Jsons:PackageDirectoryName"] =
+                "ConfiguredWhenItFails",
+
+            ["Afrowave:WhenItFails:Jsons:ErrorCatalogFileName"] =
+                "configured-errors.json",
+
+            ["Afrowave:WhenItFails:Jsons:CategoryCatalogFileName"] =
+                "configured-categories.json",
+
+            ["Afrowave:WhenItFails:Jsons:CodeGroupCatalogFileName"] =
+                "configured-groups.json",
+
+            ["Afrowave:WhenItFails:Jsons:OwnerCatalogFileName"] =
+                "configured-owners.json",
+
+            ["Afrowave:WhenItFails:Jsons:ProfilesFileName"] =
+                "configured-profiles.json"
+        };
+
+        IConfiguration configuration =
+            new ConfigurationBuilder()
+                .AddInMemoryCollection(configurationValues)
+                .Build();
+
+        ServiceCollection services = new();
+
+        services.AddWhenItFails(
+            configuration.GetSection(
+                "Afrowave:WhenItFails"));
+
+        using ServiceProvider serviceProvider =
+            services.BuildServiceProvider();
+
+        WhenItFailsOptions options =
+            serviceProvider.GetRequiredService<
+                WhenItFailsOptions>();
+
+        Assert.Equal(
+            ErrorCatalogInitializationMode.Strict,
+            options.InitializationMode);
+
+        Assert.True(
+            options.HideRecoverableFailures);
+
+        Assert.Equal(
+            "ConfiguredJsons",
+            options.Jsons.RootDirectory);
+
+        Assert.Equal(
+            "ConfiguredWhenItFails",
+            options.Jsons.PackageDirectoryName);
+
+        Assert.Equal(
+            "configured-errors.json",
+            options.Jsons.ErrorCatalogFileName);
+
+        Assert.Equal(
+            "configured-categories.json",
+            options.Jsons.CategoryCatalogFileName);
+
+        Assert.Equal(
+            "configured-groups.json",
+            options.Jsons.CodeGroupCatalogFileName);
+
+        Assert.Equal(
+            "configured-owners.json",
+            options.Jsons.OwnerCatalogFileName);
+
+        Assert.Equal(
+            "configured-profiles.json",
+            options.Jsons.ProfilesFileName);
+    }
+
+    [Fact]
+    public void AddWhenItFails_ShouldUseDefaultsForMissingConfigurationValues()
+    {
+        IConfiguration configuration =
+            new ConfigurationBuilder()
+                .AddInMemoryCollection(
+                    new Dictionary<string, string?>())
+                .Build();
+
+        ServiceCollection services = new();
+
+        services.AddWhenItFails(
+            configuration.GetSection(
+                "Afrowave:WhenItFails"));
+
+        using ServiceProvider serviceProvider =
+            services.BuildServiceProvider();
+
+        WhenItFailsOptions options =
+            serviceProvider.GetRequiredService<
+                WhenItFailsOptions>();
+
+        Assert.Equal(
+            ErrorCatalogInitializationMode.Flexible,
+            options.InitializationMode);
+
+        Assert.Null(
+            options.HideRecoverableFailures);
+
+        Assert.Equal(
+            "Jsons",
+            options.Jsons.RootDirectory);
+
+        Assert.Equal(
+            "WhenItFails",
+            options.Jsons.PackageDirectoryName);
+    }
+
+    [Fact]
+    public void AddWhenItFails_ShouldBindExplicitFalseForHideRecoverableFailures()
+    {
+        Dictionary<string, string?> configurationValues = new()
+        {
+            ["WhenItFails:HideRecoverableFailures"] =
+                "false"
+        };
+
+        IConfiguration configuration =
+            new ConfigurationBuilder()
+                .AddInMemoryCollection(configurationValues)
+                .Build();
+
+        ServiceCollection services = new();
+
+        services.AddWhenItFails(
+            configuration.GetSection(
+                "WhenItFails"));
+
+        using ServiceProvider serviceProvider =
+            services.BuildServiceProvider();
+
+        WhenItFailsOptions options =
+            serviceProvider.GetRequiredService<
+                WhenItFailsOptions>();
+
+        Assert.False(
+            options.HideRecoverableFailures);
+    }
+
+    [Fact]
+    public void AddWhenItFails_ShouldThrowArgumentNullException_WhenConfigurationSectionIsNull()
+    {
+        ServiceCollection services = new();
+
+        Assert.Throws<ArgumentNullException>(
+            () => services.AddWhenItFails(
+                (IConfigurationSection)null!));
+    }
+
+    [Fact]
+    public void AddWhenItFails_WithConfigurationSection_ShouldReplacePreviousOptions()
+    {
+        ServiceCollection services = new();
+
+        services.AddSingleton(
+            new WhenItFailsOptions
+            {
+                InitializationMode =
+                    ErrorCatalogInitializationMode.Flexible,
+
+                HideRecoverableFailures = null
+            });
+
+        Dictionary<string, string?> configurationValues = new()
+        {
+            ["WhenItFails:InitializationMode"] =
+                "Strict",
+
+            ["WhenItFails:HideRecoverableFailures"] =
+                "true"
+        };
+
+        IConfiguration configuration =
+            new ConfigurationBuilder()
+                .AddInMemoryCollection(configurationValues)
+                .Build();
+
+        services.AddWhenItFails(
+            configuration.GetSection(
+                "WhenItFails"));
+
+        using ServiceProvider serviceProvider =
+            services.BuildServiceProvider();
+
+        WhenItFailsOptions options =
+            serviceProvider.GetRequiredService<
+                WhenItFailsOptions>();
+
+        Assert.Equal(
+            ErrorCatalogInitializationMode.Strict,
+            options.InitializationMode);
+
+        Assert.True(
+            options.HideRecoverableFailures);
     }
 
     private sealed class FakeErrorProfileResolver
