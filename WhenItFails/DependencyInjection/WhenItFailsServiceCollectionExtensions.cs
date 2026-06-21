@@ -1,6 +1,7 @@
 using Afrowave.Toolbox.WhenItFails.Bootstrap;
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Descriptors;
+using Afrowave.Toolbox.WhenItFails.Initialization;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
 using Afrowave.Toolbox.WhenItFails.Loading;
 using Afrowave.Toolbox.WhenItFails.Normalization;
@@ -8,7 +9,6 @@ using Afrowave.Toolbox.WhenItFails.Resolution;
 using Afrowave.Toolbox.WhenItFails.Services;
 using Afrowave.Toolbox.WhenItFails.Validation;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Afrowave.Toolbox.WhenItFails.Initialization;
 
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -69,10 +69,10 @@ public static class WhenItFailsServiceCollectionExtensions
             IErrorCatalogContextStore,
             ErrorCatalogContextStore>();
 
-      services.TryAddSingleton<
-          IErrorCatalogInitializer,
-         ErrorCatalogInitializer>();
-   }
+        services.TryAddSingleton<
+            IErrorCatalogInitializer,
+           ErrorCatalogInitializer>();
+    }
 
     private static void RegisterMainErrorCatalogServices(
         IServiceCollection services)
@@ -204,5 +204,9 @@ public static class WhenItFailsServiceCollectionExtensions
         services.TryAddSingleton<
             IErrorDescriptorService,
             ErrorDescriptorService>();
+
+        services.TryAddSingleton<
+            IErrorCatalogRuntime,
+            ErrorCatalogRuntime>();
     }
 }
