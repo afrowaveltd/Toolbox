@@ -19,6 +19,19 @@ public sealed class ErrorCatalogRuntimeTests
         Assert.Throws<ArgumentNullException>(
             () => new ErrorCatalogRuntime(
                 null!,
+                new WhenItFailsOptions(),
+                new FakeContextStore(),
+                new FakeDescriptorService(),
+                new FakeProfileSelectionService()));
+    }
+
+    [Fact]
+    public void Constructor_ShouldThrowArgumentNullException_WhenOptionsIsNull()
+    {
+        Assert.Throws<ArgumentNullException>(
+            () => new ErrorCatalogRuntime(
+                new FakeInitializer(),
+                null!,
                 new FakeContextStore(),
                 new FakeDescriptorService(),
                 new FakeProfileSelectionService()));
@@ -30,6 +43,7 @@ public sealed class ErrorCatalogRuntimeTests
         Assert.Throws<ArgumentNullException>(
             () => new ErrorCatalogRuntime(
                 new FakeInitializer(),
+                new WhenItFailsOptions(),
                 null!,
                 new FakeDescriptorService(),
                 new FakeProfileSelectionService()));
@@ -41,6 +55,7 @@ public sealed class ErrorCatalogRuntimeTests
         Assert.Throws<ArgumentNullException>(
             () => new ErrorCatalogRuntime(
                 new FakeInitializer(),
+                new WhenItFailsOptions(),
                 new FakeContextStore(),
                 null!,
                 new FakeProfileSelectionService()));
@@ -52,9 +67,83 @@ public sealed class ErrorCatalogRuntimeTests
         Assert.Throws<ArgumentNullException>(
             () => new ErrorCatalogRuntime(
                 new FakeInitializer(),
+                new WhenItFailsOptions(),
                 new FakeContextStore(),
                 new FakeDescriptorService(),
                 null!));
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ShouldUseRegisteredJsonsOptions()
+    {
+        JsonsOptions jsonsOptions = new()
+        {
+            RootDirectory = "RegisteredJsons",
+            PackageDirectoryName = "RegisteredWhenItFails",
+            ErrorCatalogFileName = "registered-errors.json"
+        };
+
+        WhenItFailsOptions options = new()
+        {
+            Jsons = jsonsOptions
+        };
+
+        FakeInitializer initializer = new();
+
+        ErrorCatalogRuntime runtime = new(
+            initializer,
+            options,
+            new FakeContextStore(),
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        using CancellationTokenSource cancellationTokenSource = new();
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.InitializeAsync(
+                cancellationTokenSource.Token);
+
+        Assert.True(response.IsSuccess);
+
+        Assert.Same(
+            jsonsOptions,
+            initializer.LastOptions);
+
+        Assert.Equal(
+            cancellationTokenSource.Token,
+            initializer.LastCancellationToken);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ShouldUseDefaultJsonsOptions_WhenRegisteredJsonsIsNull()
+    {
+        WhenItFailsOptions options = new()
+        {
+            Jsons = null!
+        };
+
+        FakeInitializer initializer = new();
+
+        ErrorCatalogRuntime runtime = new(
+            initializer,
+            options,
+            new FakeContextStore(),
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.InitializeAsync();
+
+        Assert.True(response.IsSuccess);
+        Assert.NotNull(initializer.LastOptions);
+
+        Assert.Equal(
+            "Jsons",
+            initializer.LastOptions.RootDirectory);
+
+        Assert.Equal(
+            "WhenItFails",
+            initializer.LastOptions.PackageDirectoryName);
     }
 
     [Fact]
@@ -77,6 +166,7 @@ public sealed class ErrorCatalogRuntimeTests
 
         ErrorCatalogRuntime runtime = new(
             initializer,
+            new WhenItFailsOptions(),
             new FakeContextStore(),
             new FakeDescriptorService(),
             new FakeProfileSelectionService());
@@ -95,6 +185,7 @@ public sealed class ErrorCatalogRuntimeTests
     {
         ErrorCatalogRuntime runtime = new(
             new FakeInitializer(),
+            new WhenItFailsOptions(),
             new FakeContextStore(),
             new FakeDescriptorService(),
             new FakeProfileSelectionService());
@@ -120,6 +211,7 @@ public sealed class ErrorCatalogRuntimeTests
 
         ErrorCatalogRuntime runtime = new(
             new FakeInitializer(),
+            new WhenItFailsOptions(),
             new FakeContextStore(context),
             descriptorService,
             new FakeProfileSelectionService());
@@ -152,6 +244,7 @@ public sealed class ErrorCatalogRuntimeTests
 
         ErrorCatalogRuntime runtime = new(
             new FakeInitializer(),
+            new WhenItFailsOptions(),
             new FakeContextStore(context),
             descriptorService,
             new FakeProfileSelectionService());
@@ -180,6 +273,7 @@ public sealed class ErrorCatalogRuntimeTests
 
         ErrorCatalogRuntime runtime = new(
             new FakeInitializer(),
+            new WhenItFailsOptions(),
             new FakeContextStore(context),
             descriptorService,
             new FakeProfileSelectionService());
@@ -219,6 +313,7 @@ public sealed class ErrorCatalogRuntimeTests
 
         ErrorCatalogRuntime runtime = new(
             new FakeInitializer(),
+            new WhenItFailsOptions(),
             new FakeContextStore(context),
             new FakeDescriptorService(),
             profileService);
@@ -401,4 +496,3 @@ public sealed class ErrorCatalogRuntimeTests
         }
     }
 }
-

@@ -17,19 +17,24 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
     private readonly IErrorCatalogContextStore _contextStore;
     private readonly IErrorDescriptorService _descriptorService;
     private readonly IErrorProfileSelectionService _profileSelectionService;
+    private readonly WhenItFailsOptions _options;
 
     /// <summary>
     /// Initializes a new instance of the
     /// <see cref="ErrorCatalogRuntime"/> class.
     /// </summary>
     public ErrorCatalogRuntime(
-        IErrorCatalogInitializer initializer,
-        IErrorCatalogContextStore contextStore,
-        IErrorDescriptorService descriptorService,
-        IErrorProfileSelectionService profileSelectionService)
+    IErrorCatalogInitializer initializer,
+    WhenItFailsOptions options,
+    IErrorCatalogContextStore contextStore,
+    IErrorDescriptorService descriptorService,
+    IErrorProfileSelectionService profileSelectionService)
     {
         _initializer = initializer
             ?? throw new ArgumentNullException(nameof(initializer));
+
+        _options = options
+            ?? throw new ArgumentNullException(nameof(options));
 
         _contextStore = contextStore
             ?? throw new ArgumentNullException(nameof(contextStore));
@@ -41,6 +46,18 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
             ?? throw new ArgumentNullException(nameof(profileSelectionService));
     }
 
+    /// <inheritdoc />
+    /// 
+    public Task<Response<ErrorCatalogInitializationPayload>> InitializeAsync(
+        CancellationToken cancellationToken = default)
+    {
+        JsonsOptions jsonsOptions =
+            _options.Jsons ?? new JsonsOptions();
+
+        return _initializer.InitializeAsync(
+            jsonsOptions,
+            cancellationToken);
+    }
     /// <inheritdoc />
     public Task<Response<ErrorCatalogInitializationPayload>> InitializeAsync(
         JsonsOptions options,

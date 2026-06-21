@@ -17,10 +17,29 @@ namespace Afrowave.Toolbox.WhenItFails.Interfaces;
 public interface IErrorCatalogRuntime
 {
     /// <summary>
-    /// Initializes the complete WhenItFails catalog runtime.
+    /// Initializes the complete WhenItFails catalog runtime
+    /// using the registered configuration.
     /// </summary>
-    /// <param name="options">JSON workspace configuration.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="cancellationToken">
+    /// Cancellation token.
+    /// </param>
+    /// <returns>
+    /// Response containing bootstrap information and the initialized context.
+    /// </returns>
+    Task<Response<ErrorCatalogInitializationPayload>> InitializeAsync(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Initializes the complete WhenItFails catalog runtime
+    /// using the supplied JSON workspace configuration.
+    /// </summary>
+    /// <param name="options">
+    /// JSON workspace configuration overriding the registered workspace
+    /// configuration for this initialization call.
+    /// </param>
+    /// <param name="cancellationToken">
+    /// Cancellation token.
+    /// </param>
     /// <returns>
     /// Response containing bootstrap information and the initialized context.
     /// </returns>
