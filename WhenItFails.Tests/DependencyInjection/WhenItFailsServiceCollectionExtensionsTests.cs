@@ -9,6 +9,8 @@ using Afrowave.Toolbox.WhenItFails.Resolution;
 using Afrowave.Toolbox.WhenItFails.Services;
 using Afrowave.Toolbox.WhenItFails.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using Afrowave.Toolbox.WhenItFails.Configuration;
+using Afrowave.Toolbox.WhenItFails.Enums;
 
 namespace Afrowave.Toolbox.WhenItFails.Tests.DependencyInjection;
 
@@ -291,6 +293,237 @@ public sealed class WhenItFailsServiceCollectionExtensionsTests
 
         Assert.IsType<ErrorCatalogRuntime>(first);
         Assert.Same(first, second);
+    }
+
+    [Fact]
+    public void AddWhenItFails_ShouldRegisterDefaultOptions()
+    {
+        ServiceCollection services = new();
+
+        services.AddWhenItFails();
+
+        using ServiceProvider serviceProvider =
+            services.BuildServiceProvider();
+
+        WhenItFailsOptions options =
+            serviceProvider.GetRequiredService<
+                WhenItFailsOptions>();
+
+        Assert.NotNull(options.Jsons);
+
+        Assert.Equal(
+            ErrorCatalogInitializationMode.Flexible,
+            options.InitializationMode);
+
+        Assert.Null(
+            options.HideRecoverableFailures);
+
+        Assert.Equal(
+            "Jsons",
+            options.Jsons.RootDirectory);
+
+        Assert.Equal(
+            "WhenItFails",
+            options.Jsons.PackageDirectoryName);
+    }
+
+    [Fact]
+    public void AddWhenItFails_ShouldRegisterConfiguredOptions()
+    {
+        ServiceCollection services = new();
+
+        services.AddWhenItFails(options =>
+        {
+            options.InitializationMode =
+                ErrorCatalogInitializationMode.Strict;
+
+            options.HideRecoverableFailures = true;
+
+            options.Jsons.RootDirectory =
+                "CustomJsons";
+
+            options.Jsons.PackageDirectoryName =
+                "CustomWhenItFails";
+
+            options.Jsons.ErrorCatalogFileName =
+                "custom-errors.json";
+        });
+
+        using ServiceProvider serviceProvider =
+            services.BuildServiceProvider();
+
+        WhenItFailsOptions options =
+            serviceProvider.GetRequiredService<
+                WhenItFailsOptions>();
+
+        Assert.Equal(
+            ErrorCatalogInitializationMode.Strict,
+            options.InitializationMode);
+
+        Assert.True(
+            options.HideRecoverableFailures);
+
+        Assert.Equal(
+            "CustomJsons",
+            options.Jsons.RootDirectory);
+
+        Assert.Equal(
+            "CustomWhenItFails",
+            options.Jsons.PackageDirectoryName);
+
+        Assert.Equal(
+            "custom-errors.json",
+            options.Jsons.ErrorCatalogFileName);
+    }
+
+    [Fact]
+    public void AddWhenItFails_ShouldRegisterOptionsAsSingleton()
+    {
+        ServiceCollection services = new();
+
+        services.AddWhenItFails(options =>
+        {
+            options.Jsons.RootDirectory =
+                "CustomJsons";
+        });
+
+        using ServiceProvider serviceProvider =
+            services.BuildServiceProvider();
+
+        WhenItFailsOptions first =
+            serviceProvider.GetRequiredService<
+                WhenItFailsOptions>();
+
+        WhenItFailsOptions second =
+            serviceProvider.GetRequiredService<
+                WhenItFailsOptions>();
+
+        Assert.Same(first, second);
+    }
+
+    [Fact]
+    public void AddWhenItFails_ShouldThrowArgumentNullException_WhenConfigureIsNull()
+    {
+        ServiceCollection services = new();
+
+        Assert.Throws<ArgumentNullException>(
+            () => services.AddWhenItFails(
+                (Action<WhenItFailsOptions>)null!));
+    }
+
+    [Fact]
+    public void AddWhenItFails_ShouldNormalizeNullJsonsOptions()
+    {
+        ServiceCollection services = new();
+
+        services.AddWhenItFails(options =>
+        {
+            options.Jsons = null!;
+        });
+
+        using ServiceProvider serviceProvider =
+            services.BuildServiceProvider();
+
+        WhenItFailsOptions options =
+            serviceProvider.GetRequiredService<
+                WhenItFailsOptions>();
+
+        Assert.NotNull(options.Jsons);
+
+        Assert.Equal(
+            "Jsons",
+            options.Jsons.RootDirectory);
+
+        Assert.Equal(
+            "WhenItFails",
+            options.Jsons.PackageDirectoryName);
+    }
+
+    [Fact]
+    public void AddWhenItFails_ShouldStoreConfigurationSnapshot()
+    {
+        ServiceCollection services = new();
+
+        WhenItFailsOptions? configuredOptions = null;
+
+        services.AddWhenItFails(options =>
+        {
+            configuredOptions = options;
+
+            options.InitializationMode =
+                ErrorCatalogInitializationMode.Strict;
+
+            options.Jsons.RootDirectory =
+                "OriginalJsons";
+        });
+
+        Assert.NotNull(configuredOptions);
+
+        configuredOptions.InitializationMode =
+            ErrorCatalogInitializationMode.Flexible;
+
+        configuredOptions.Jsons.RootDirectory =
+            "ChangedLater";
+
+        using ServiceProvider serviceProvider =
+            services.BuildServiceProvider();
+
+        WhenItFailsOptions registeredOptions =
+            serviceProvider.GetRequiredService<
+                WhenItFailsOptions>();
+
+        Assert.Equal(
+            ErrorCatalogInitializationMode.Strict,
+            registeredOptions.InitializationMode);
+
+        Assert.Equal(
+            "OriginalJsons",
+            registeredOptions.Jsons.RootDirectory);
+
+        Assert.NotSame(
+            configuredOptions,
+            registeredOptions);
+
+        Assert.NotSame(
+            configuredOptions.Jsons,
+            registeredOptions.Jsons);
+    }
+
+    [Fact]
+    public void AddWhenItFails_WithConfiguration_ShouldReplacePreviouslyRegisteredOptions()
+    {
+        ServiceCollection services = new();
+
+        services.AddSingleton(
+            new WhenItFailsOptions
+            {
+                InitializationMode =
+                    ErrorCatalogInitializationMode.Flexible,
+
+                HideRecoverableFailures = null
+            });
+
+        services.AddWhenItFails(options =>
+        {
+            options.InitializationMode =
+                ErrorCatalogInitializationMode.Strict;
+
+            options.HideRecoverableFailures = true;
+        });
+
+        using ServiceProvider serviceProvider =
+            services.BuildServiceProvider();
+
+        WhenItFailsOptions options =
+            serviceProvider.GetRequiredService<
+                WhenItFailsOptions>();
+
+        Assert.Equal(
+            ErrorCatalogInitializationMode.Strict,
+            options.InitializationMode);
+
+        Assert.True(
+            options.HideRecoverableFailures);
     }
 
     private sealed class FakeErrorProfileResolver

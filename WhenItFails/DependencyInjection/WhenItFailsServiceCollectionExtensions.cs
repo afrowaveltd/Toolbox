@@ -1,5 +1,6 @@
 using Afrowave.Toolbox.WhenItFails.Bootstrap;
 using Afrowave.Toolbox.WhenItFails.Catalog;
+using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Descriptors;
 using Afrowave.Toolbox.WhenItFails.Initialization;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
@@ -27,11 +28,63 @@ public static class WhenItFailsServiceCollectionExtensions
     /// <returns>
     /// The same service collection for fluent configuration.
     /// </returns>
+    /// <summary>
+    /// Registers the default WhenItFails runtime services
+    /// with the default configuration.
+    /// </summary>
+    /// <returns>
+    /// The same service collection for fluent configuration.
+    /// </returns>
     public static IServiceCollection AddWhenItFails(
         this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 
+        services.TryAddSingleton(
+            new WhenItFailsOptions());
+
+        return RegisterWhenItFailsServices(services);
+    }
+
+    /// <summary>
+    /// Registers the default WhenItFails runtime services
+    /// and applies configuration supplied by code.
+    /// </summary>
+    /// <param name="services">
+    /// Service collection receiving the registrations.
+    /// </param>
+    /// <param name="configure">
+    /// Configuration action applied to a new
+    /// <see cref="WhenItFailsOptions"/> instance.
+    /// </param>
+    /// <returns>
+    /// The same service collection for fluent configuration.
+    /// </returns>
+    public static IServiceCollection AddWhenItFails(
+        this IServiceCollection services,
+        Action<WhenItFailsOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        WhenItFailsOptions configuredOptions = new();
+
+        configure(configuredOptions);
+
+        configuredOptions.Jsons ??= new JsonsOptions();
+
+        WhenItFailsOptions optionsSnapshot =
+            CreateOptionsSnapshot(configuredOptions);
+
+        services.Replace(
+            ServiceDescriptor.Singleton(optionsSnapshot));
+
+        return RegisterWhenItFailsServices(services);
+    }
+
+    private static IServiceCollection RegisterWhenItFailsServices(
+        IServiceCollection services)
+    {
         RegisterBootstrapServices(services);
         RegisterCatalogServices(services);
         RegisterResolutionServices(services);
@@ -39,7 +92,6 @@ public static class WhenItFailsServiceCollectionExtensions
 
         return services;
     }
-
     private static void RegisterBootstrapServices(
         IServiceCollection services)
     {
@@ -208,5 +260,44 @@ public static class WhenItFailsServiceCollectionExtensions
         services.TryAddSingleton<
             IErrorCatalogRuntime,
             ErrorCatalogRuntime>();
+    }
+    private static WhenItFailsOptions CreateOptionsSnapshot(
+    WhenItFailsOptions source)
+    {
+        JsonsOptions sourceJsons =
+            source.Jsons ?? new JsonsOptions();
+
+        return new WhenItFailsOptions
+        {
+            InitializationMode =
+                source.InitializationMode,
+
+            HideRecoverableFailures =
+                source.HideRecoverableFailures,
+
+            Jsons = new JsonsOptions
+            {
+                RootDirectory =
+                    sourceJsons.RootDirectory,
+
+                PackageDirectoryName =
+                    sourceJsons.PackageDirectoryName,
+
+                ErrorCatalogFileName =
+                    sourceJsons.ErrorCatalogFileName,
+
+                CategoryCatalogFileName =
+                    sourceJsons.CategoryCatalogFileName,
+
+                CodeGroupCatalogFileName =
+                    sourceJsons.CodeGroupCatalogFileName,
+
+                OwnerCatalogFileName =
+                    sourceJsons.OwnerCatalogFileName,
+
+                ProfilesFileName =
+                    sourceJsons.ProfilesFileName
+            }
+        };
     }
 }
