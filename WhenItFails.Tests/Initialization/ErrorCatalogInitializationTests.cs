@@ -3,6 +3,7 @@ using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Bootstrap;
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
+using Afrowave.Toolbox.WhenItFails.Enums;
 using Afrowave.Toolbox.WhenItFails.Initialization;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
 
@@ -183,6 +184,18 @@ public sealed class ErrorCatalogInitializerTests
         Assert.Same(bootstrapPayload, response.Data.Bootstrap);
         Assert.Same(context, response.Data.Context);
         Assert.Same(context, contextStore.StoredContext);
+        Assert.Equal(
+            ErrorCatalogContextSource.ProjectCatalog,
+            response.Data.ContextSource);
+
+        Assert.False(
+            response.Data.KeptPreviousContext);
+
+        Assert.False(
+            response.Data.UsedFallback);
+
+        Assert.False(
+            response.Data.IsDegraded);
     }
 
     [Fact]

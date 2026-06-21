@@ -2,6 +2,7 @@ using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Bootstrap;
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
+using Afrowave.Toolbox.WhenItFails.Enums;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
 
 namespace Afrowave.Toolbox.WhenItFails.Initialization;
@@ -88,13 +89,17 @@ public sealed class ErrorCatalogInitializer : IErrorCatalogInitializer
 
       _contextStore.Set(contextResponse.Data);
 
-      ErrorCatalogInitializationPayload payload = new()
-      {
-         Bootstrap = bootstrapResponse.Data,
-         Context = contextResponse.Data
-      };
+        ErrorCatalogInitializationPayload payload = new()
+        {
+            Bootstrap = bootstrapResponse.Data,
+            Context = contextResponse.Data,
+            ContextSource =
+            ErrorCatalogContextSource.ProjectCatalog,
+            KeptPreviousContext = false,
+            UsedFallback = false
+        };
 
-      return Response<ErrorCatalogInitializationPayload>.Ok(payload);
+        return Response<ErrorCatalogInitializationPayload>.Ok(payload);
    }
 
    private static Response<ErrorCatalogInitializationPayload>
