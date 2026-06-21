@@ -20,18 +20,12 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class WhenItFailsServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the default WhenItFails runtime services.
+    /// Registers the default WhenItFails runtime services
+    /// with the default configuration.
     /// </summary>
     /// <param name="services">
     /// Service collection receiving the registrations.
     /// </param>
-    /// <returns>
-    /// The same service collection for fluent configuration.
-    /// </returns>
-    /// <summary>
-    /// Registers the default WhenItFails runtime services
-    /// with the default configuration.
-    /// </summary>
     /// <returns>
     /// The same service collection for fluent configuration.
     /// </returns>
@@ -42,6 +36,35 @@ public static class WhenItFailsServiceCollectionExtensions
 
         services.TryAddSingleton(
             new WhenItFailsOptions());
+
+        return RegisterWhenItFailsServices(services);
+    }
+
+    /// <summary>
+    /// Registers the default WhenItFails runtime services
+    /// using the supplied configuration.
+    /// </summary>
+    /// <param name="services">
+    /// Service collection receiving the registrations.
+    /// </param>
+    /// <param name="options">
+    /// Configuration used by the WhenItFails runtime.
+    /// </param>
+    /// <returns>
+    /// The same service collection for fluent configuration.
+    /// </returns>
+    public static IServiceCollection AddWhenItFails(
+        this IServiceCollection services,
+        WhenItFailsOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(options);
+
+        WhenItFailsOptions optionsSnapshot =
+            CreateOptionsSnapshot(options);
+
+        services.Replace(
+            ServiceDescriptor.Singleton(optionsSnapshot));
 
         return RegisterWhenItFailsServices(services);
     }
@@ -71,15 +94,8 @@ public static class WhenItFailsServiceCollectionExtensions
 
         configure(configuredOptions);
 
-        configuredOptions.Jsons ??= new JsonsOptions();
-
-        WhenItFailsOptions optionsSnapshot =
-            CreateOptionsSnapshot(configuredOptions);
-
-        services.Replace(
-            ServiceDescriptor.Singleton(optionsSnapshot));
-
-        return RegisterWhenItFailsServices(services);
+        return services.AddWhenItFails(
+            configuredOptions);
     }
 
     private static IServiceCollection RegisterWhenItFailsServices(
@@ -262,7 +278,7 @@ public static class WhenItFailsServiceCollectionExtensions
             ErrorCatalogRuntime>();
     }
     private static WhenItFailsOptions CreateOptionsSnapshot(
-    WhenItFailsOptions source)
+     WhenItFailsOptions source)
     {
         JsonsOptions sourceJsons =
             source.Jsons ?? new JsonsOptions();
