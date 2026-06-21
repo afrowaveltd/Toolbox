@@ -112,6 +112,114 @@ public sealed class ErrorCatalogRuntimeIntegrationTests
         }
     }
 
+    [Fact]
+    public async Task Runtime_ShouldInitializeFromRegisteredOptions()
+    {
+        string rootDirectory = CreateTemporaryRootDirectory();
+
+        try
+        {
+            ServiceCollection services = new();
+
+            services.AddWhenItFails(options =>
+            {
+                options.Jsons.RootDirectory =
+                    rootDirectory;
+
+                options.Jsons.PackageDirectoryName =
+                    "ConfiguredWhenItFails";
+            });
+
+            using ServiceProvider serviceProvider =
+                services.BuildServiceProvider(
+                    new ServiceProviderOptions
+                    {
+                        ValidateOnBuild = true,
+                        ValidateScopes = true
+                    });
+
+            IErrorCatalogRuntime runtime =
+                serviceProvider.GetRequiredService<
+                    IErrorCatalogRuntime>();
+
+            Response<ErrorCatalogInitializationPayload>
+                initializationResponse =
+                    await runtime.InitializeAsync();
+
+            Assert.True(
+                initializationResponse.IsSuccess);
+
+            Assert.Equal(
+                ResultStatus.Success,
+                initializationResponse.Status);
+
+            Assert.NotNull(
+                initializationResponse.Data);
+
+            Assert.NotNull(
+                initializationResponse.Data.Bootstrap);
+
+            Assert.NotNull(
+                initializationResponse.Data.Context);
+
+            string expectedPackageDirectoryPath =
+                Path.Combine(
+                    rootDirectory,
+                    "ConfiguredWhenItFails");
+
+            Assert.Equal(
+                expectedPackageDirectoryPath,
+                initializationResponse
+                    .Data
+                    .Bootstrap
+                    .PackageDirectoryPath);
+
+            Assert.True(
+                Directory.Exists(
+                    expectedPackageDirectoryPath));
+
+            Response<ErrorDescriptor> descriptorResponse =
+                runtime.FromId(
+                    "afw net 0001");
+
+            Assert.True(
+                descriptorResponse.IsSuccess);
+
+            Assert.NotNull(
+                descriptorResponse.Data);
+
+            Assert.Equal(
+                "AFW_NET_0001",
+                descriptorResponse.Data.Id);
+
+            Assert.Equal(
+                "NETWORKUNAVAILABLE",
+                descriptorResponse.Data.Name);
+
+            Response<IReadOnlyList<ErrorDefinition>>
+                profileResponse =
+                    runtime.ResolveProfile(
+                        "web");
+
+            Assert.True(
+                profileResponse.IsSuccess);
+
+            Assert.NotNull(
+                profileResponse.Data);
+
+            Assert.Contains(
+                profileResponse.Data,
+                error =>
+                    error.Id == "AFW_NET_0001");
+        }
+        finally
+        {
+            DeleteDirectoryIfExists(
+                rootDirectory);
+        }
+    }
+
+
     private static string CreateTemporaryRootDirectory()
     {
         return Path.Combine(
