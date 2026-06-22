@@ -90,6 +90,52 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
     }
 
     /// <inheritdoc />
+    public async Task<Response<ErrorCatalogInitializationPayload>>
+        ResetToDefaultsAsync(
+            CancellationToken cancellationToken = default)
+    {
+        Response<ErrorCatalogContext> builtInResponse =
+            await _builtInContextProvider.LoadAsync(
+                cancellationToken);
+
+        if (!builtInResponse.IsSuccess
+            || builtInResponse.Data is null)
+        {
+            return CreateResetToDefaultsFailureResponse(
+                builtInResponse);
+        }
+
+        _contextStore.Set(
+            builtInResponse.Data);
+
+        JsonsOptions jsonsOptions =
+            _options.Jsons ?? new JsonsOptions();
+
+        ErrorCatalogInitializationPayload payload = new()
+        {
+            Bootstrap =
+                CreateBootstrapSnapshot(
+                    jsonsOptions),
+
+            Context =
+                builtInResponse.Data,
+
+            ContextSource =
+                ErrorCatalogContextSource.BuiltInDefaults,
+
+            KeptPreviousContext = false,
+
+            // This was an explicit user operation,
+            // not an automatic recovery fallback.
+            UsedFallback = false
+        };
+
+        return Response<ErrorCatalogInitializationPayload>.Ok(
+            payload,
+            "The bundled default error catalog was activated.");
+    }
+
+    /// <inheritdoc />
     public Response<ErrorDescriptor> FromId(
         string errorId)
     {
@@ -161,6 +207,64 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         return _profileSelectionService.ResolveByProfileName(
             contextResponse.Data!,
             profileName);
+    }
+
+    private static Response<ErrorCatalogInitializationPayload>
+    CreateResetToDefaultsFailureResponse(
+        Response<ErrorCatalogContext> builtInResponse)
+    {
+        string failureCode =
+            builtInResponse.Issues.Count > 0
+                ? builtInResponse.Issues[0].Code
+                : builtInResponse.Data is null
+                    ? "WIF_BUILT_IN_CONTEXT_PAYLOAD_NULL"
+                    : "WIF_BUILT_IN_CONTEXT_LOAD_FAILED";
+
+        string failureMessage =
+            string.IsNullOrWhiteSpace(
+                builtInResponse.Message)
+                    ? builtInResponse.Data is null
+                        ? "The bundled default catalog provider "
+                          + "returned no context."
+                        : "The bundled default error catalog "
+                          + "could not be loaded."
+                    : builtInResponse.Message;
+
+        ResultStatus failureStatus =
+            builtInResponse.IsSuccess
+                ? ResultStatus.Invalid
+                : builtInResponse.Status;
+
+        Response<ErrorCatalogInitializationPayload> response =
+            Response<ErrorCatalogInitializationPayload>
+                .WithStatus(
+                    Response<
+                        ErrorCatalogInitializationPayload>.Fail(
+                            code: "WIF_RESET_TO_DEFAULTS_FAILED",
+                            message:
+                                "The bundled default error catalog "
+                                + "could not be activated."),
+                    failureStatus);
+
+        response =
+            Response<ErrorCatalogInitializationPayload>
+                .AddMetadata(
+                    response,
+                    "WhenItFails.ResetFailure.Code",
+                    failureCode);
+
+        response =
+            Response<ErrorCatalogInitializationPayload>
+                .AddMetadata(
+                    response,
+                    "WhenItFails.ResetFailure.Status",
+                    failureStatus.ToString());
+
+        return Response<ErrorCatalogInitializationPayload>
+            .AddMetadata(
+                response,
+                "WhenItFails.ResetFailure.Message",
+                failureMessage);
     }
 
     private async Task<Response<ErrorCatalogInitializationPayload>>

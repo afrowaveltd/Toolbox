@@ -995,6 +995,181 @@ public sealed class ErrorCatalogRuntimeTests
             builtInProvider.LastCancellationToken);
     }
 
+    [Fact]
+    public async Task ResetToDefaultsAsync_ShouldActivateBuiltInContext()
+    {
+        ErrorCatalogContext previousContext = new();
+        ErrorCatalogContext builtInContext = new();
+
+        FakeContextStore contextStore = new(
+            previousContext);
+
+        FakeBuiltInContextProvider builtInProvider = new(
+            Response<ErrorCatalogContext>.Ok(
+                builtInContext));
+
+        ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(),
+            new WhenItFailsOptions(),
+            contextStore,
+            builtInProvider,
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.ResetToDefaultsAsync();
+
+        Assert.True(
+            response.IsSuccess);
+
+        Assert.Equal(
+            ResultStatus.Success,
+            response.Status);
+
+        Assert.True(
+            builtInProvider.WasCalled);
+
+        Assert.NotNull(
+            response.Data);
+
+        Assert.Same(
+            builtInContext,
+            response.Data.Context);
+
+        Assert.Same(
+            builtInContext,
+            contextStore.Current);
+
+        Assert.Equal(
+            ErrorCatalogContextSource.BuiltInDefaults,
+            response.Data.ContextSource);
+
+        Assert.False(
+            response.Data.KeptPreviousContext);
+
+        Assert.False(
+            response.Data.UsedFallback);
+
+        Assert.False(
+            response.Data.IsDegraded);
+    }
+
+    [Fact]
+    public async Task ResetToDefaultsAsync_ShouldKeepCurrentContext_WhenBuiltInLoadingFails()
+    {
+        ErrorCatalogContext previousContext = new();
+
+        FakeContextStore contextStore = new(
+            previousContext);
+
+        FakeBuiltInContextProvider builtInProvider = new(
+            Response<ErrorCatalogContext>.Invalid(
+                code: "BuiltInCatalogInvalid",
+                message: "Built-in catalog is invalid."));
+
+        ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(),
+            new WhenItFailsOptions(),
+            contextStore,
+            builtInProvider,
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.ResetToDefaultsAsync();
+
+        Assert.False(
+            response.IsSuccess);
+
+        Assert.Equal(
+            ResultStatus.Invalid,
+            response.Status);
+
+        Assert.Equal(
+            "WIF_RESET_TO_DEFAULTS_FAILED",
+            response.Issues[0].Code);
+
+        Assert.Same(
+            previousContext,
+            contextStore.Current);
+
+        Assert.Equal(
+            "BuiltInCatalogInvalid",
+            response.Metadata[
+                "WhenItFails.ResetFailure.Code"]);
+    }
+
+    [Fact]
+    public async Task ResetToDefaultsAsync_ShouldReturnInvalid_WhenBuiltInProviderReturnsNullContext()
+    {
+        ErrorCatalogContext previousContext = new();
+
+        FakeContextStore contextStore = new(
+            previousContext);
+
+        FakeBuiltInContextProvider builtInProvider = new(
+            Response<ErrorCatalogContext>.Ok(
+                null));
+
+        ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(),
+            new WhenItFailsOptions(),
+            contextStore,
+            builtInProvider,
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.ResetToDefaultsAsync();
+
+        Assert.False(
+            response.IsSuccess);
+
+        Assert.Equal(
+            ResultStatus.Invalid,
+            response.Status);
+
+        Assert.Equal(
+            "WIF_RESET_TO_DEFAULTS_FAILED",
+            response.Issues[0].Code);
+
+        Assert.Same(
+            previousContext,
+            contextStore.Current);
+
+        Assert.Equal(
+            "WIF_BUILT_IN_CONTEXT_PAYLOAD_NULL",
+            response.Metadata[
+                "WhenItFails.ResetFailure.Code"]);
+    }
+
+    [Fact]
+    public async Task ResetToDefaultsAsync_ShouldPassCancellationTokenToBuiltInProvider()
+    {
+        FakeBuiltInContextProvider builtInProvider = new();
+
+        ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(),
+            new WhenItFailsOptions(),
+            new FakeContextStore(),
+            builtInProvider,
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        using CancellationTokenSource cancellationTokenSource = new();
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.ResetToDefaultsAsync(
+                cancellationTokenSource.Token);
+
+        Assert.True(
+            response.IsSuccess);
+
+        Assert.Equal(
+            cancellationTokenSource.Token,
+            builtInProvider.LastCancellationToken);
+    }
+
     private static ErrorDescriptor CreateDescriptor()
     {
         return new ErrorDescriptor

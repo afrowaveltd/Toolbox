@@ -48,6 +48,23 @@ public interface IErrorCatalogRuntime
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Replaces the currently active catalog context with the bundled
+    /// Afrowave default catalog context.
+    /// </summary>
+    /// <remarks>
+    /// This operation does not overwrite or otherwise modify the
+    /// project-local JSON catalog files.
+    /// </remarks>
+    /// <param name="cancellationToken">
+    /// Cancellation token.
+    /// </param>
+    /// <returns>
+    /// Response containing the activated built-in catalog context.
+    /// </returns>
+    Task<Response<ErrorCatalogInitializationPayload>> ResetToDefaultsAsync(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Creates an error descriptor from an error identifier.
     /// </summary>
     /// <param name="errorId">Error identifier.</param>
