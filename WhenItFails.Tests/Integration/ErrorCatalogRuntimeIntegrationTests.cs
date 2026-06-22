@@ -3,10 +3,10 @@ using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Descriptors;
+using Afrowave.Toolbox.WhenItFails.Enums;
 using Afrowave.Toolbox.WhenItFails.Initialization;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
-
 namespace Afrowave.Toolbox.WhenItFails.Tests.Integration;
 
 public sealed class ErrorCatalogRuntimeIntegrationTests
@@ -218,6 +218,130 @@ public sealed class ErrorCatalogRuntimeIntegrationTests
                 rootDirectory);
         }
     }
+
+    [Fact]
+    public async Task Runtime_ShouldActivateBuiltInDefaults_WhenProjectCatalogIsInvalid()
+    {
+        string rootDirectory = CreateTemporaryRootDirectory();
+
+        JsonsOptions jsonsOptions = new()
+        {
+            RootDirectory = rootDirectory,
+            PackageDirectoryName = "BrokenWhenItFails"
+        };
+
+        try
+        {
+            Directory.CreateDirectory(
+                jsonsOptions.PackageDirectoryPath);
+
+            const string invalidProjectCatalog =
+                "{ this is not valid json";
+
+            await File.WriteAllTextAsync(
+                jsonsOptions.ErrorCatalogFilePath,
+                invalidProjectCatalog);
+
+            ServiceCollection services = new();
+
+            services.AddWhenItFails(
+                new WhenItFailsOptions
+                {
+                    Jsons = jsonsOptions,
+
+                    InitializationMode =
+                        ErrorCatalogInitializationMode.Flexible
+                });
+
+            using ServiceProvider serviceProvider =
+                services.BuildServiceProvider(
+                    new ServiceProviderOptions
+                    {
+                        ValidateOnBuild = true,
+                        ValidateScopes = true
+                    });
+
+            IErrorCatalogRuntime runtime =
+                serviceProvider.GetRequiredService<
+                    IErrorCatalogRuntime>();
+
+            Response<ErrorCatalogInitializationPayload>
+                initializationResponse =
+                    await runtime.InitializeAsync();
+
+            Assert.True(
+                initializationResponse.IsSuccess);
+
+            Assert.Equal(
+                ResultStatus.SuccessWithWarnings,
+                initializationResponse.Status);
+
+            Assert.True(
+                initializationResponse.HasWarnings);
+
+            Assert.NotNull(
+                initializationResponse.Data);
+
+            Assert.Equal(
+                ErrorCatalogContextSource.BuiltInDefaults,
+                initializationResponse.Data.ContextSource);
+
+            Assert.True(
+                initializationResponse.Data.UsedFallback);
+
+            Assert.False(
+                initializationResponse.Data.KeptPreviousContext);
+
+            Assert.True(
+                initializationResponse.Data.IsDegraded);
+
+            Assert.Equal(
+                "WIF_DEFAULT_FALLBACK_ACTIVATED",
+                initializationResponse.Issues[0].Code);
+
+            Assert.True(
+                initializationResponse.Metadata.TryGet(
+                    "WhenItFails.RecoveryReasonCode",
+                    out string? recoveryReasonCode));
+
+            Assert.False(
+                string.IsNullOrWhiteSpace(
+                    recoveryReasonCode));
+
+            Response<ErrorDescriptor> descriptorResponse =
+                runtime.FromId(
+                    "afw net 0001");
+
+            Assert.True(
+                descriptorResponse.IsSuccess);
+
+            Assert.NotNull(
+                descriptorResponse.Data);
+
+            Assert.Equal(
+                "AFW_NET_0001",
+                descriptorResponse.Data.Id);
+
+            Assert.Equal(
+                "NETWORKUNAVAILABLE",
+                descriptorResponse.Data.Name);
+
+            string preservedProjectCatalog =
+                await File.ReadAllTextAsync(
+                    jsonsOptions.ErrorCatalogFilePath);
+
+            Assert.Equal(
+                invalidProjectCatalog,
+                preservedProjectCatalog);
+        }
+        finally
+        {
+            DeleteDirectoryIfExists(
+                rootDirectory);
+        }
+    }
+
+
 
 
     private static string CreateTemporaryRootDirectory()
