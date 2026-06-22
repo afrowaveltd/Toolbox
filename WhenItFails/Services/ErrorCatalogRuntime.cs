@@ -9,6 +9,7 @@ using Afrowave.Toolbox.WhenItFails.Descriptors;
 using Afrowave.Toolbox.WhenItFails.Enums;
 using Afrowave.Toolbox.WhenItFails.Initialization;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
+using Afrowave.Toolbox.WhenItFails.Runtime;
 
 namespace Afrowave.Toolbox.WhenItFails.Services;
 
@@ -23,8 +24,8 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
     private readonly IBuiltInErrorCatalogContextProvider
         _builtInContextProvider;
     private readonly IErrorDescriptorService _descriptorService;
-    private readonly IErrorProfileSelectionService
-        _profileSelectionService;
+    private readonly IErrorProfileSelectionService _profileSelectionService;
+    private ErrorCatalogRuntimeStatus? _currentStatus;
 
     /// <summary>
     /// Initializes a new instance of the
@@ -129,7 +130,8 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
             // not an automatic recovery fallback.
             UsedFallback = false
         };
-
+        RecordStatus(
+            payload);
         return Response<ErrorCatalogInitializationPayload>.Ok(
             payload,
             "The bundled default error catalog was activated.");
@@ -140,6 +142,25 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
     {
         return _contextStore.GetCurrent();
     }
+
+    /// <inheritdoc />
+    public Response<ErrorCatalogRuntimeStatus> GetStatus()
+    {
+        ErrorCatalogRuntimeStatus? currentStatus =
+            Volatile.Read(
+                ref _currentStatus);
+
+        return currentStatus is null
+            ? Response<ErrorCatalogRuntimeStatus>.Invalid(
+                code: "WIF_RUNTIME_STATUS_UNAVAILABLE",
+                message:
+                    "The error catalog runtime has not activated "
+                    + "a catalog context yet.")
+            : Response<ErrorCatalogRuntimeStatus>.Ok(
+                currentStatus);
+    }
+
+
 
     /// <inheritdoc />
     public Response<ErrorDescriptor> FromId(
@@ -286,6 +307,12 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
 
         if (initializationResponse.IsSuccess)
         {
+            if (initializationResponse.Data is not null)
+            {
+                RecordStatus(
+                    initializationResponse.Data);
+            }
+
             return initializationResponse;
         }
 
@@ -347,6 +374,9 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                         recoveryPayload,
                         initializationResponse);
 
+        RecordStatus(
+    recoveryPayload);
+
         return AddRecoveryMetadata(
             recoveryResponse,
             initializationResponse);
@@ -388,6 +418,7 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
             KeptPreviousContext = false,
             UsedFallback = true
         };
+        RecordStatus(fallbackPayload);
 
         Response<ErrorCatalogInitializationPayload> response =
             _options.HideRecoverableFailures == true
@@ -683,5 +714,38 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                 message: message),
             sourceResponse.Status);
     }
+
+    private void RecordStatus(
+        ErrorCatalogInitializationPayload payload)
+    {
+        ArgumentNullException.ThrowIfNull(payload);
+        ArgumentNullException.ThrowIfNull(payload.Bootstrap);
+
+        ErrorCatalogRuntimeStatus status = new()
+        {
+            ContextSource =
+                payload.ContextSource,
+
+            IsDegraded =
+                payload.IsDegraded,
+
+            KeptPreviousContext =
+                payload.KeptPreviousContext,
+
+            UsedFallback =
+                payload.UsedFallback,
+
+            ActivatedAtUtc =
+                DateTimeOffset.UtcNow,
+
+            PackageDirectoryPath =
+                payload.Bootstrap.PackageDirectoryPath
+        };
+
+        Volatile.Write(
+            ref _currentStatus,
+            status);
+    }
+
 }
 

@@ -8,6 +8,7 @@ using Afrowave.Toolbox.WhenItFails.Descriptors;
 using Afrowave.Toolbox.WhenItFails.Enums;
 using Afrowave.Toolbox.WhenItFails.Initialization;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
+using Afrowave.Toolbox.WhenItFails.Runtime;
 using Afrowave.Toolbox.WhenItFails.Services;
 
 namespace Afrowave.Toolbox.WhenItFails.Tests.Services;
@@ -246,8 +247,8 @@ public sealed class ErrorCatalogRuntimeTests
             response.Issues[0].Code);
     }
 
-[Fact]
-public void GetCurrentContext_ShouldReturnActiveContext()
+    [Fact]
+    public void GetCurrentContext_ShouldReturnActiveContext()
     {
         ErrorCatalogContext context = new();
 
@@ -1238,6 +1239,206 @@ public void GetCurrentContext_ShouldReturnActiveContext()
             builtInProvider.LastCancellationToken);
     }
 
+    [Fact]
+    public void GetStatus_ShouldReturnFailure_WhenNoContextWasActivated()
+    {
+        ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(),
+            new WhenItFailsOptions(),
+            new FakeContextStore(),
+            new FakeBuiltInContextProvider(),
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogRuntimeStatus> response =
+            runtime.GetStatus();
+
+        Assert.False(
+            response.IsSuccess);
+
+        Assert.Equal(
+            ResultStatus.Invalid,
+            response.Status);
+
+        Assert.Equal(
+            "WIF_RUNTIME_STATUS_UNAVAILABLE",
+            response.Issues[0].Code);
+    }
+
+    [Fact]
+    public async Task GetStatus_ShouldDescribeProjectCatalogAfterSuccessfulInitialization()
+    {
+        ErrorCatalogInitializationPayload payload = new()
+        {
+            Bootstrap = new JsonsBootstrapPayload
+            {
+                PackageDirectoryPath =
+                    "Jsons/WhenItFails"
+            },
+
+            Context =
+                new ErrorCatalogContext(),
+
+            ContextSource =
+                ErrorCatalogContextSource.ProjectCatalog,
+
+            KeptPreviousContext = false,
+            UsedFallback = false
+        };
+
+        ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(
+                Response<ErrorCatalogInitializationPayload>.Ok(
+                    payload)),
+            new WhenItFailsOptions(),
+            new FakeContextStore(),
+            new FakeBuiltInContextProvider(),
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        DateTimeOffset beforeInitialization =
+            DateTimeOffset.UtcNow;
+
+        Response<ErrorCatalogInitializationPayload>
+            initializationResponse =
+                await runtime.InitializeAsync(
+                    new JsonsOptions());
+
+        DateTimeOffset afterInitialization =
+            DateTimeOffset.UtcNow;
+
+        Assert.True(
+            initializationResponse.IsSuccess);
+
+        Response<ErrorCatalogRuntimeStatus> statusResponse =
+            runtime.GetStatus();
+
+        Assert.True(
+            statusResponse.IsSuccess);
+
+        Assert.NotNull(
+            statusResponse.Data);
+
+        Assert.Equal(
+            ErrorCatalogContextSource.ProjectCatalog,
+            statusResponse.Data.ContextSource);
+
+        Assert.False(
+            statusResponse.Data.IsDegraded);
+
+        Assert.False(
+            statusResponse.Data.KeptPreviousContext);
+
+        Assert.False(
+            statusResponse.Data.UsedFallback);
+
+        Assert.Equal(
+            "Jsons/WhenItFails",
+            statusResponse.Data.PackageDirectoryPath);
+
+        Assert.InRange(
+            statusResponse.Data.ActivatedAtUtc,
+            beforeInitialization,
+            afterInitialization);
+    }
+    [Fact]
+    public async Task GetStatus_ShouldDescribeAutomaticBuiltInFallback()
+    {
+        ErrorCatalogContext fallbackContext = new();
+
+        ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(
+                Response<ErrorCatalogInitializationPayload>.Invalid(
+                    code: "ProjectCatalogInvalid",
+                    message: "Project catalog is invalid.")),
+            new WhenItFailsOptions
+            {
+                InitializationMode =
+                    ErrorCatalogInitializationMode.Flexible
+            },
+            new FakeContextStore(),
+            new FakeBuiltInContextProvider(
+                Response<ErrorCatalogContext>.Ok(
+                    fallbackContext)),
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload>
+            initializationResponse =
+                await runtime.InitializeAsync(
+                    new JsonsOptions
+                    {
+                        RootDirectory = "Jsons",
+                        PackageDirectoryName = "WhenItFails"
+                    });
+
+        Assert.True(
+            initializationResponse.IsSuccess);
+
+        Response<ErrorCatalogRuntimeStatus> statusResponse =
+            runtime.GetStatus();
+
+        Assert.True(
+            statusResponse.IsSuccess);
+
+        Assert.NotNull(
+            statusResponse.Data);
+
+        Assert.Equal(
+            ErrorCatalogContextSource.BuiltInDefaults,
+            statusResponse.Data.ContextSource);
+
+        Assert.True(
+            statusResponse.Data.IsDegraded);
+
+        Assert.False(
+            statusResponse.Data.KeptPreviousContext);
+
+        Assert.True(
+            statusResponse.Data.UsedFallback);
+    }
+    [Fact]
+    public async Task GetStatus_ShouldDescribeExplicitResetAsNonDegraded()
+    {
+        ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(),
+            new WhenItFailsOptions(),
+            new FakeContextStore(),
+            new FakeBuiltInContextProvider(
+                Response<ErrorCatalogContext>.Ok(
+                    new ErrorCatalogContext())),
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload> resetResponse =
+            await runtime.ResetToDefaultsAsync();
+
+        Assert.True(
+            resetResponse.IsSuccess);
+
+        Response<ErrorCatalogRuntimeStatus> statusResponse =
+            runtime.GetStatus();
+
+        Assert.True(
+            statusResponse.IsSuccess);
+
+        Assert.NotNull(
+            statusResponse.Data);
+
+        Assert.Equal(
+            ErrorCatalogContextSource.BuiltInDefaults,
+            statusResponse.Data.ContextSource);
+
+        Assert.False(
+            statusResponse.Data.IsDegraded);
+
+        Assert.False(
+            statusResponse.Data.KeptPreviousContext);
+
+        Assert.False(
+            statusResponse.Data.UsedFallback);
+    }
+    
     private static ErrorDescriptor CreateDescriptor()
     {
         return new ErrorDescriptor
