@@ -342,6 +342,148 @@ public sealed class ErrorCatalogRuntimeIntegrationTests
     }
 
 
+    [Fact]
+    public async Task Runtime_ShouldResetToBuiltInDefaults_WithoutChangingProjectFiles()
+    {
+        string rootDirectory = CreateTemporaryRootDirectory();
+
+        JsonsOptions jsonsOptions = new()
+        {
+            RootDirectory = rootDirectory,
+            PackageDirectoryName = "ResetTestWhenItFails"
+        };
+
+        try
+        {
+            ServiceCollection services = new();
+
+            services.AddWhenItFails(
+                new WhenItFailsOptions
+                {
+                    Jsons = jsonsOptions,
+                    InitializationMode =
+                        ErrorCatalogInitializationMode.Flexible
+                });
+
+            using ServiceProvider serviceProvider =
+                services.BuildServiceProvider(
+                    new ServiceProviderOptions
+                    {
+                        ValidateOnBuild = true,
+                        ValidateScopes = true
+                    });
+
+            IErrorCatalogRuntime runtime =
+                serviceProvider.GetRequiredService<
+                    IErrorCatalogRuntime>();
+
+            Response<ErrorCatalogInitializationPayload>
+                initializationResponse =
+                    await runtime.InitializeAsync();
+
+            Assert.True(
+                initializationResponse.IsSuccess);
+
+            Assert.Equal(
+                ResultStatus.Success,
+                initializationResponse.Status);
+
+            Assert.NotNull(
+                initializationResponse.Data);
+
+            Assert.Equal(
+                ErrorCatalogContextSource.ProjectCatalog,
+                initializationResponse.Data.ContextSource);
+
+            Dictionary<string, string> originalFileContents =
+                Directory
+                    .EnumerateFiles(
+                        jsonsOptions.PackageDirectoryPath,
+                        "*.json",
+                        SearchOption.TopDirectoryOnly)
+                    .ToDictionary(
+                        filePath =>
+                            Path.GetFileName(filePath),
+                        filePath =>
+                            File.ReadAllText(filePath),
+                        StringComparer.OrdinalIgnoreCase);
+
+            Assert.NotEmpty(
+                originalFileContents);
+
+            Response<ErrorCatalogInitializationPayload>
+                resetResponse =
+                    await runtime.ResetToDefaultsAsync();
+
+            Assert.True(
+                resetResponse.IsSuccess);
+
+            Assert.Equal(
+                ResultStatus.Success,
+                resetResponse.Status);
+
+            Assert.NotNull(
+                resetResponse.Data);
+
+            Assert.Equal(
+                ErrorCatalogContextSource.BuiltInDefaults,
+                resetResponse.Data.ContextSource);
+
+            Assert.False(
+                resetResponse.Data.KeptPreviousContext);
+
+            Assert.False(
+                resetResponse.Data.UsedFallback);
+
+            Assert.False(
+                resetResponse.Data.IsDegraded);
+
+            foreach (KeyValuePair<string, string> originalFile
+                in originalFileContents)
+            {
+                string currentFilePath =
+                    Path.Combine(
+                        jsonsOptions.PackageDirectoryPath,
+                        originalFile.Key);
+
+                Assert.True(
+                    File.Exists(currentFilePath));
+
+                string currentContent =
+                    await File.ReadAllTextAsync(
+                        currentFilePath);
+
+                Assert.Equal(
+                    originalFile.Value,
+                    currentContent);
+            }
+
+            Response<ErrorDescriptor> descriptorResponse =
+                runtime.FromId(
+                    "afw net 0001");
+
+            Assert.True(
+                descriptorResponse.IsSuccess);
+
+            Assert.NotNull(
+                descriptorResponse.Data);
+
+            Assert.Equal(
+                "AFW_NET_0001",
+                descriptorResponse.Data.Id);
+
+            Assert.Equal(
+                "NETWORKUNAVAILABLE",
+                descriptorResponse.Data.Name);
+        }
+        finally
+        {
+            DeleteDirectoryIfExists(
+                rootDirectory);
+        }
+    }
+
+
 
 
     private static string CreateTemporaryRootDirectory()
