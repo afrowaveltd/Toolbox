@@ -1438,7 +1438,98 @@ public sealed class ErrorCatalogRuntimeTests
         Assert.False(
             statusResponse.Data.UsedFallback);
     }
-    
+
+
+[Fact]
+public async Task ResetToDefaultsAsync_ShouldKeepPreviousStatus_WhenResetFails()
+    {
+        ErrorCatalogInitializationPayload projectPayload = new()
+        {
+            Bootstrap = new JsonsBootstrapPayload
+            {
+                PackageDirectoryPath =
+                    "Jsons/WhenItFails"
+            },
+
+            Context =
+                new ErrorCatalogContext(),
+
+            ContextSource =
+                ErrorCatalogContextSource.ProjectCatalog,
+
+            KeptPreviousContext = false,
+            UsedFallback = false
+        };
+
+        FakeBuiltInContextProvider builtInProvider = new(
+            Response<ErrorCatalogContext>.Invalid(
+                code: "BuiltInCatalogInvalid",
+                message: "Built-in catalog is invalid."));
+
+        ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(
+                Response<ErrorCatalogInitializationPayload>.Ok(
+                    projectPayload)),
+            new WhenItFailsOptions(),
+            new FakeContextStore(),
+            builtInProvider,
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload>
+            initializationResponse =
+                await runtime.InitializeAsync(
+                    new JsonsOptions());
+
+        Assert.True(
+            initializationResponse.IsSuccess);
+
+        Response<ErrorCatalogRuntimeStatus> statusBeforeReset =
+            runtime.GetStatus();
+
+        Assert.True(
+            statusBeforeReset.IsSuccess);
+
+        Assert.NotNull(
+            statusBeforeReset.Data);
+
+        Response<ErrorCatalogInitializationPayload> resetResponse =
+            await runtime.ResetToDefaultsAsync();
+
+        Assert.False(
+            resetResponse.IsSuccess);
+
+        Assert.Equal(
+            "WIF_RESET_TO_DEFAULTS_FAILED",
+            resetResponse.Issues[0].Code);
+
+        Response<ErrorCatalogRuntimeStatus> statusAfterReset =
+            runtime.GetStatus();
+
+        Assert.True(
+            statusAfterReset.IsSuccess);
+
+        Assert.NotNull(
+            statusAfterReset.Data);
+
+        Assert.Same(
+            statusBeforeReset.Data,
+            statusAfterReset.Data);
+
+        Assert.Equal(
+            ErrorCatalogContextSource.ProjectCatalog,
+            statusAfterReset.Data.ContextSource);
+
+        Assert.False(
+            statusAfterReset.Data.IsDegraded);
+
+        Assert.Equal(
+            "Jsons/WhenItFails",
+            statusAfterReset.Data.PackageDirectoryPath);
+    }
+
+
+
     private static ErrorDescriptor CreateDescriptor()
     {
         return new ErrorDescriptor
