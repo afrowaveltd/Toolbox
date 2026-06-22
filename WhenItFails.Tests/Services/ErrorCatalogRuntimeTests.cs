@@ -22,6 +22,7 @@ public sealed class ErrorCatalogRuntimeTests
                 null!,
                 new WhenItFailsOptions(),
                 new FakeContextStore(),
+                new FakeBuiltInContextProvider(),
                 new FakeDescriptorService(),
                 new FakeProfileSelectionService()));
     }
@@ -34,6 +35,7 @@ public sealed class ErrorCatalogRuntimeTests
                 new FakeInitializer(),
                 null!,
                 new FakeContextStore(),
+                new FakeBuiltInContextProvider(),
                 new FakeDescriptorService(),
                 new FakeProfileSelectionService()));
     }
@@ -45,6 +47,20 @@ public sealed class ErrorCatalogRuntimeTests
             () => new ErrorCatalogRuntime(
                 new FakeInitializer(),
                 new WhenItFailsOptions(),
+                null!,
+                new FakeBuiltInContextProvider(),
+                new FakeDescriptorService(),
+                new FakeProfileSelectionService()));
+    }
+
+    [Fact]
+    public void Constructor_ShouldThrowArgumentNullException_WhenBuiltInContextProviderIsNull()
+    {
+        Assert.Throws<ArgumentNullException>(
+            () => new ErrorCatalogRuntime(
+                new FakeInitializer(),
+                new WhenItFailsOptions(),
+                new FakeContextStore(),
                 null!,
                 new FakeDescriptorService(),
                 new FakeProfileSelectionService()));
@@ -58,6 +74,7 @@ public sealed class ErrorCatalogRuntimeTests
                 new FakeInitializer(),
                 new WhenItFailsOptions(),
                 new FakeContextStore(),
+                new FakeBuiltInContextProvider(),
                 null!,
                 new FakeProfileSelectionService()));
     }
@@ -70,6 +87,7 @@ public sealed class ErrorCatalogRuntimeTests
                 new FakeInitializer(),
                 new WhenItFailsOptions(),
                 new FakeContextStore(),
+                new FakeBuiltInContextProvider(),
                 new FakeDescriptorService(),
                 null!));
     }
@@ -95,6 +113,7 @@ public sealed class ErrorCatalogRuntimeTests
             initializer,
             options,
             new FakeContextStore(),
+            new FakeBuiltInContextProvider(),
             new FakeDescriptorService(),
             new FakeProfileSelectionService());
 
@@ -129,6 +148,7 @@ public sealed class ErrorCatalogRuntimeTests
             initializer,
             options,
             new FakeContextStore(),
+            new FakeBuiltInContextProvider(),
             new FakeDescriptorService(),
             new FakeProfileSelectionService());
 
@@ -163,22 +183,41 @@ public sealed class ErrorCatalogRuntimeTests
         };
 
         FakeInitializer initializer = new(
-            Response<ErrorCatalogInitializationPayload>.Ok(payload));
+            Response<ErrorCatalogInitializationPayload>.Ok(
+                payload));
 
         ErrorCatalogRuntime runtime = new(
             initializer,
             new WhenItFailsOptions(),
             new FakeContextStore(),
+            new FakeBuiltInContextProvider(),
             new FakeDescriptorService(),
             new FakeProfileSelectionService());
 
         Response<ErrorCatalogInitializationPayload> response =
-            await runtime.InitializeAsync(options);
+            await runtime.InitializeAsync(
+                options);
 
         Assert.True(response.IsSuccess);
         Assert.Equal(ResultStatus.Success, response.Status);
         Assert.Same(payload, response.Data);
         Assert.Same(options, initializer.LastOptions);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ShouldThrowArgumentNullException_WhenExplicitOptionsAreNull()
+    {
+        ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(),
+            new WhenItFailsOptions(),
+            new FakeContextStore(),
+            new FakeBuiltInContextProvider(),
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        await Assert.ThrowsAsync<ArgumentNullException>(
+            () => runtime.InitializeAsync(
+                null!));
     }
 
     [Fact]
@@ -188,14 +227,17 @@ public sealed class ErrorCatalogRuntimeTests
             new FakeInitializer(),
             new WhenItFailsOptions(),
             new FakeContextStore(),
+            new FakeBuiltInContextProvider(),
             new FakeDescriptorService(),
             new FakeProfileSelectionService());
 
         Response<ErrorDescriptor> response =
-            runtime.FromId("AFW-GEN-0001");
+            runtime.FromId(
+                "AFW-GEN-0001");
 
         Assert.False(response.IsSuccess);
         Assert.Equal(ResultStatus.Invalid, response.Status);
+
         Assert.Equal(
             "ErrorCatalogContextNotInitialized",
             response.Issues[0].Code);
@@ -208,17 +250,21 @@ public sealed class ErrorCatalogRuntimeTests
         ErrorDescriptor descriptor = CreateDescriptor();
 
         FakeDescriptorService descriptorService = new(
-            Response<ErrorDescriptor>.Ok(descriptor));
+            Response<ErrorDescriptor>.Ok(
+                descriptor));
 
         ErrorCatalogRuntime runtime = new(
             new FakeInitializer(),
             new WhenItFailsOptions(),
-            new FakeContextStore(context),
+            new FakeContextStore(
+                context),
+            new FakeBuiltInContextProvider(),
             descriptorService,
             new FakeProfileSelectionService());
 
         Response<ErrorDescriptor> response =
-            runtime.FromId("AFW-GEN-0001");
+            runtime.FromId(
+                "AFW-GEN-0001");
 
         Assert.True(response.IsSuccess);
         Assert.Same(descriptor, response.Data);
@@ -246,11 +292,14 @@ public sealed class ErrorCatalogRuntimeTests
         ErrorCatalogRuntime runtime = new(
             new FakeInitializer(),
             new WhenItFailsOptions(),
-            new FakeContextStore(context),
+            new FakeContextStore(
+                context),
+            new FakeBuiltInContextProvider(),
             descriptorService,
             new FakeProfileSelectionService());
 
-        runtime.FromName("UnknownError");
+        runtime.FromName(
+            "UnknownError");
 
         Assert.Equal(
             "FromName",
@@ -275,11 +324,14 @@ public sealed class ErrorCatalogRuntimeTests
         ErrorCatalogRuntime runtime = new(
             new FakeInitializer(),
             new WhenItFailsOptions(),
-            new FakeContextStore(context),
+            new FakeContextStore(
+                context),
+            new FakeBuiltInContextProvider(),
             descriptorService,
             new FakeProfileSelectionService());
 
-        runtime.FromCode(100001);
+        runtime.FromCode(
+            100001);
 
         Assert.Equal(
             "FromCode",
@@ -310,17 +362,21 @@ public sealed class ErrorCatalogRuntimeTests
         ];
 
         FakeProfileSelectionService profileService = new(
-            Response<IReadOnlyList<ErrorDefinition>>.Ok(errors));
+            Response<IReadOnlyList<ErrorDefinition>>.Ok(
+                errors));
 
         ErrorCatalogRuntime runtime = new(
             new FakeInitializer(),
             new WhenItFailsOptions(),
-            new FakeContextStore(context),
+            new FakeContextStore(
+                context),
+            new FakeBuiltInContextProvider(),
             new FakeDescriptorService(),
             profileService);
 
         Response<IReadOnlyList<ErrorDefinition>> response =
-            runtime.ResolveProfile("WEB");
+            runtime.ResolveProfile(
+                "WEB");
 
         Assert.True(response.IsSuccess);
         Assert.Same(errors, response.Data);
@@ -344,6 +400,8 @@ public sealed class ErrorCatalogRuntimeTests
                 code: "CatalogDocumentsInvalid",
                 message: "Catalog documents are invalid."));
 
+        FakeBuiltInContextProvider builtInProvider = new();
+
         ErrorCatalogRuntime runtime = new(
             initializer,
             new WhenItFailsOptions
@@ -351,7 +409,9 @@ public sealed class ErrorCatalogRuntimeTests
                 InitializationMode =
                     ErrorCatalogInitializationMode.Flexible
             },
-            new FakeContextStore(previousContext),
+            new FakeContextStore(
+                previousContext),
+            builtInProvider,
             new FakeDescriptorService(),
             new FakeProfileSelectionService());
 
@@ -364,10 +424,16 @@ public sealed class ErrorCatalogRuntimeTests
                 });
 
         Assert.True(response.IsSuccess);
-        Assert.Equal(ResultStatus.SuccessWithWarnings, response.Status);
-        Assert.True(response.HasWarnings);
 
-        Assert.NotNull(response.Data);
+        Assert.Equal(
+            ResultStatus.SuccessWithWarnings,
+            response.Status);
+
+        Assert.True(
+            response.HasWarnings);
+
+        Assert.NotNull(
+            response.Data);
 
         Assert.Same(
             previousContext,
@@ -394,6 +460,9 @@ public sealed class ErrorCatalogRuntimeTests
             "CatalogDocumentsInvalid",
             response.Metadata[
                 "WhenItFails.RecoveryReasonCode"]);
+
+        Assert.False(
+            builtInProvider.WasCalled);
     }
 
     [Fact]
@@ -407,7 +476,9 @@ public sealed class ErrorCatalogRuntimeTests
                 message: "Catalog documents are invalid."));
 
         FakeContextStore contextStore = new(
-     previousContext);
+            previousContext);
+
+        FakeBuiltInContextProvider builtInProvider = new();
 
         ErrorCatalogRuntime runtime = new(
             initializer,
@@ -417,6 +488,7 @@ public sealed class ErrorCatalogRuntimeTests
                     ErrorCatalogInitializationMode.Strict
             },
             contextStore,
+            builtInProvider,
             new FakeDescriptorService(),
             new FakeProfileSelectionService());
 
@@ -425,46 +497,21 @@ public sealed class ErrorCatalogRuntimeTests
                 new JsonsOptions());
 
         Assert.False(response.IsSuccess);
-        Assert.Equal(ResultStatus.Invalid, response.Status);
+
+        Assert.Equal(
+            ResultStatus.Invalid,
+            response.Status);
 
         Assert.Equal(
             "CatalogDocumentsInvalid",
             response.Issues[0].Code);
 
         Assert.Same(
-    previousContext,
-    contextStore.Current);
-    }
+            previousContext,
+            contextStore.Current);
 
-    [Fact]
-    public async Task InitializeAsync_ShouldReturnOriginalFailure_WhenFlexibleModeHasNoPreviousContext()
-    {
-        FakeInitializer initializer = new(
-            Response<ErrorCatalogInitializationPayload>.Invalid(
-                code: "CatalogDocumentsInvalid",
-                message: "Catalog documents are invalid."));
-
-        ErrorCatalogRuntime runtime = new(
-            initializer,
-            new WhenItFailsOptions
-            {
-                InitializationMode =
-                    ErrorCatalogInitializationMode.Flexible
-            },
-            new FakeContextStore(),
-            new FakeDescriptorService(),
-            new FakeProfileSelectionService());
-
-        Response<ErrorCatalogInitializationPayload> response =
-            await runtime.InitializeAsync(
-                new JsonsOptions());
-
-        Assert.False(response.IsSuccess);
-        Assert.Equal(ResultStatus.Invalid, response.Status);
-
-        Assert.Equal(
-            "CatalogDocumentsInvalid",
-            response.Issues[0].Code);
+        Assert.False(
+            builtInProvider.WasCalled);
     }
 
     [Fact]
@@ -477,6 +524,8 @@ public sealed class ErrorCatalogRuntimeTests
                 code: "CatalogDocumentsInvalid",
                 message: "Catalog documents are invalid."));
 
+        FakeBuiltInContextProvider builtInProvider = new();
+
         ErrorCatalogRuntime runtime = new(
             initializer,
             new WhenItFailsOptions
@@ -486,7 +535,9 @@ public sealed class ErrorCatalogRuntimeTests
 
                 HideRecoverableFailures = true
             },
-            new FakeContextStore(previousContext),
+            new FakeContextStore(
+                previousContext),
+            builtInProvider,
             new FakeDescriptorService(),
             new FakeProfileSelectionService());
 
@@ -495,7 +546,10 @@ public sealed class ErrorCatalogRuntimeTests
                 new JsonsOptions());
 
         Assert.True(response.IsSuccess);
-        Assert.Equal(ResultStatus.Success, response.Status);
+
+        Assert.Equal(
+            ResultStatus.Success,
+            response.Status);
 
         Assert.Empty(
             response.Issues);
@@ -508,6 +562,9 @@ public sealed class ErrorCatalogRuntimeTests
 
         Assert.True(
             response.Data.KeptPreviousContext);
+
+        Assert.False(
+            response.Data.UsedFallback);
 
         Assert.Equal(
             ErrorCatalogContextSource.PreviousContext,
@@ -522,6 +579,9 @@ public sealed class ErrorCatalogRuntimeTests
             ResultStatus.Invalid.ToString(),
             response.Metadata[
                 "WhenItFails.RecoveryStatus"]);
+
+        Assert.False(
+            builtInProvider.WasCalled);
     }
 
     [Fact]
@@ -541,6 +601,8 @@ public sealed class ErrorCatalogRuntimeTests
             Response<ErrorCatalogInitializationPayload>.Ok(
                 payload));
 
+        FakeBuiltInContextProvider builtInProvider = new();
+
         ErrorCatalogRuntime runtime = new(
             initializer,
             new WhenItFailsOptions
@@ -552,6 +614,7 @@ public sealed class ErrorCatalogRuntimeTests
             },
             new FakeContextStore(
                 new ErrorCatalogContext()),
+            builtInProvider,
             new FakeDescriptorService(),
             new FakeProfileSelectionService());
 
@@ -560,7 +623,10 @@ public sealed class ErrorCatalogRuntimeTests
                 new JsonsOptions());
 
         Assert.True(response.IsSuccess);
-        Assert.Equal(ResultStatus.Success, response.Status);
+
+        Assert.Equal(
+            ResultStatus.Success,
+            response.Status);
 
         Assert.Same(
             payload,
@@ -571,9 +637,363 @@ public sealed class ErrorCatalogRuntimeTests
 
         Assert.True(
             response.Metadata.IsEmpty);
+
+        Assert.False(
+            builtInProvider.WasCalled);
     }
 
+    [Fact]
+    public async Task InitializeAsync_ShouldActivateBuiltInDefaults_WhenFlexibleModeHasNoPreviousContext()
+    {
+        ErrorCatalogContext fallbackContext = new();
 
+        FakeInitializer initializer = new(
+            Response<ErrorCatalogInitializationPayload>.Invalid(
+                code: "CatalogDocumentsInvalid",
+                message: "Catalog documents are invalid."));
+
+        FakeContextStore contextStore = new();
+
+        FakeBuiltInContextProvider builtInProvider = new(
+            Response<ErrorCatalogContext>.Ok(
+                fallbackContext));
+
+        ErrorCatalogRuntime runtime = new(
+            initializer,
+            new WhenItFailsOptions
+            {
+                InitializationMode =
+                    ErrorCatalogInitializationMode.Flexible
+            },
+            contextStore,
+            builtInProvider,
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.InitializeAsync(
+                new JsonsOptions());
+
+        Assert.True(response.IsSuccess);
+
+        Assert.Equal(
+            ResultStatus.SuccessWithWarnings,
+            response.Status);
+
+        Assert.True(
+            response.HasWarnings);
+
+        Assert.True(
+            builtInProvider.WasCalled);
+
+        Assert.NotNull(
+            response.Data);
+
+        Assert.Same(
+            fallbackContext,
+            response.Data.Context);
+
+        Assert.Same(
+            fallbackContext,
+            contextStore.Current);
+
+        Assert.Equal(
+            ErrorCatalogContextSource.BuiltInDefaults,
+            response.Data.ContextSource);
+
+        Assert.False(
+            response.Data.KeptPreviousContext);
+
+        Assert.True(
+            response.Data.UsedFallback);
+
+        Assert.True(
+            response.Data.IsDegraded);
+
+        Assert.Equal(
+            "WIF_DEFAULT_FALLBACK_ACTIVATED",
+            response.Issues[0].Code);
+
+        Assert.Equal(
+            "CatalogDocumentsInvalid",
+            response.Metadata[
+                "WhenItFails.RecoveryReasonCode"]);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ShouldHideBuiltInFallbackWarning_WhenConfigured()
+    {
+        ErrorCatalogContext fallbackContext = new();
+
+        FakeBuiltInContextProvider builtInProvider = new(
+            Response<ErrorCatalogContext>.Ok(
+                fallbackContext));
+
+        FakeContextStore contextStore = new();
+
+        ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(
+                Response<ErrorCatalogInitializationPayload>.Invalid(
+                    code: "CatalogDocumentsInvalid",
+                    message: "Catalog documents are invalid.")),
+            new WhenItFailsOptions
+            {
+                InitializationMode =
+                    ErrorCatalogInitializationMode.Flexible,
+
+                HideRecoverableFailures = true
+            },
+            contextStore,
+            builtInProvider,
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.InitializeAsync(
+                new JsonsOptions());
+
+        Assert.True(response.IsSuccess);
+
+        Assert.Equal(
+            ResultStatus.Success,
+            response.Status);
+
+        Assert.Empty(
+            response.Issues);
+
+        Assert.NotNull(
+            response.Data);
+
+        Assert.Same(
+            fallbackContext,
+            response.Data.Context);
+
+        Assert.Same(
+            fallbackContext,
+            contextStore.Current);
+
+        Assert.True(
+            response.Data.UsedFallback);
+
+        Assert.True(
+            response.Data.IsDegraded);
+
+        Assert.Equal(
+            ErrorCatalogContextSource.BuiltInDefaults,
+            response.Data.ContextSource);
+
+        Assert.Equal(
+            "CatalogDocumentsInvalid",
+            response.Metadata[
+                "WhenItFails.RecoveryReasonCode"]);
+
+        Assert.Equal(
+            ResultStatus.Invalid.ToString(),
+            response.Metadata[
+                "WhenItFails.RecoveryStatus"]);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ShouldPreferPreviousContextOverBuiltInDefaults()
+    {
+        ErrorCatalogContext previousContext = new();
+
+        FakeBuiltInContextProvider builtInProvider = new();
+
+        ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(
+                Response<ErrorCatalogInitializationPayload>.Invalid(
+                    code: "CatalogDocumentsInvalid",
+                    message: "Catalog documents are invalid.")),
+            new WhenItFailsOptions
+            {
+                InitializationMode =
+                    ErrorCatalogInitializationMode.Flexible
+            },
+            new FakeContextStore(
+                previousContext),
+            builtInProvider,
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.InitializeAsync(
+                new JsonsOptions());
+
+        Assert.True(response.IsSuccess);
+
+        Assert.NotNull(
+            response.Data);
+
+        Assert.Same(
+            previousContext,
+            response.Data.Context);
+
+        Assert.Equal(
+            ErrorCatalogContextSource.PreviousContext,
+            response.Data.ContextSource);
+
+        Assert.False(
+            response.Data.UsedFallback);
+
+        Assert.False(
+            builtInProvider.WasCalled);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ShouldReturnFailure_WhenBuiltInFallbackFails()
+    {
+        FakeBuiltInContextProvider builtInProvider = new(
+            Response<ErrorCatalogContext>.Invalid(
+                code: "BuiltInCatalogInvalid",
+                message: "Built-in catalog is invalid."));
+
+        FakeContextStore contextStore = new();
+
+        ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(
+                Response<ErrorCatalogInitializationPayload>.Invalid(
+                    code: "ProjectCatalogInvalid",
+                    message: "Project catalog is invalid.")),
+            new WhenItFailsOptions
+            {
+                InitializationMode =
+                    ErrorCatalogInitializationMode.Flexible
+            },
+            contextStore,
+            builtInProvider,
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.InitializeAsync(
+                new JsonsOptions());
+
+        Assert.False(response.IsSuccess);
+
+        Assert.Equal(
+            ResultStatus.Invalid,
+            response.Status);
+
+        Assert.Equal(
+            "WIF_DEFAULT_FALLBACK_FAILED",
+            response.Issues[0].Code);
+
+        Assert.Null(
+            contextStore.Current);
+
+        Assert.True(
+            builtInProvider.WasCalled);
+
+        Assert.Equal(
+            "ProjectCatalogInvalid",
+            response.Metadata[
+                "WhenItFails.ProjectFailure.Code"]);
+
+        Assert.Equal(
+            ResultStatus.Invalid.ToString(),
+            response.Metadata[
+                "WhenItFails.ProjectFailure.Status"]);
+
+        Assert.Equal(
+            "BuiltInCatalogInvalid",
+            response.Metadata[
+                "WhenItFails.FallbackFailure.Code"]);
+
+        Assert.Equal(
+            ResultStatus.Invalid.ToString(),
+            response.Metadata[
+                "WhenItFails.FallbackFailure.Status"]);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ShouldReturnInvalid_WhenBuiltInFallbackReturnsNullContext()
+    {
+        FakeBuiltInContextProvider builtInProvider = new(
+            Response<ErrorCatalogContext>.Ok(
+                null));
+
+        FakeContextStore contextStore = new();
+
+        ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(
+                Response<ErrorCatalogInitializationPayload>.Invalid(
+                    code: "ProjectCatalogInvalid",
+                    message: "Project catalog is invalid.")),
+            new WhenItFailsOptions
+            {
+                InitializationMode =
+                    ErrorCatalogInitializationMode.Flexible
+            },
+            contextStore,
+            builtInProvider,
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.InitializeAsync(
+                new JsonsOptions());
+
+        Assert.False(response.IsSuccess);
+
+        Assert.Equal(
+            ResultStatus.Invalid,
+            response.Status);
+
+        Assert.Equal(
+            "WIF_DEFAULT_FALLBACK_FAILED",
+            response.Issues[0].Code);
+
+        Assert.Null(
+            contextStore.Current);
+
+        Assert.Equal(
+            "WIF_BUILT_IN_CONTEXT_PAYLOAD_NULL",
+            response.Metadata[
+                "WhenItFails.FallbackFailure.Code"]);
+
+        Assert.Equal(
+            ResultStatus.Invalid.ToString(),
+            response.Metadata[
+                "WhenItFails.FallbackFailure.Status"]);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ShouldPassCancellationTokenToBuiltInFallback()
+    {
+        FakeBuiltInContextProvider builtInProvider = new();
+
+        ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(
+                Response<ErrorCatalogInitializationPayload>.Invalid(
+                    code: "ProjectCatalogInvalid",
+                    message: "Project catalog is invalid.")),
+            new WhenItFailsOptions
+            {
+                InitializationMode =
+                    ErrorCatalogInitializationMode.Flexible
+            },
+            new FakeContextStore(),
+            builtInProvider,
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        using CancellationTokenSource cancellationTokenSource = new();
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.InitializeAsync(
+                new JsonsOptions(),
+                cancellationTokenSource.Token);
+
+        Assert.True(response.IsSuccess);
+
+        Assert.True(
+            builtInProvider.WasCalled);
+
+        Assert.Equal(
+            cancellationTokenSource.Token,
+            builtInProvider.LastCancellationToken);
+    }
 
     private static ErrorDescriptor CreateDescriptor()
     {
@@ -612,10 +1032,13 @@ public sealed class ErrorCatalogRuntimeTests
                 JsonsOptions options,
                 CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             LastOptions = options;
             LastCancellationToken = cancellationToken;
 
-            return Task.FromResult(_response);
+            return Task.FromResult(
+                _response);
         }
     }
 
@@ -640,10 +1063,12 @@ public sealed class ErrorCatalogRuntimeTests
                     code: "ErrorCatalogContextNotInitialized",
                     message:
                         "Error catalog context has not been initialized.")
-                : Response<ErrorCatalogContext>.Ok(Current);
+                : Response<ErrorCatalogContext>.Ok(
+                    Current);
         }
 
-        public void Set(ErrorCatalogContext context)
+        public void Set(
+            ErrorCatalogContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
 
@@ -651,10 +1076,42 @@ public sealed class ErrorCatalogRuntimeTests
         }
     }
 
+    private sealed class FakeBuiltInContextProvider
+        : IBuiltInErrorCatalogContextProvider
+    {
+        private readonly Response<ErrorCatalogContext>
+            _response;
+
+        public FakeBuiltInContextProvider(
+            Response<ErrorCatalogContext>? response = null)
+        {
+            _response = response
+                ?? Response<ErrorCatalogContext>.Ok(
+                    new ErrorCatalogContext());
+        }
+
+        public bool WasCalled { get; private set; }
+
+        public CancellationToken LastCancellationToken { get; private set; }
+
+        public Task<Response<ErrorCatalogContext>> LoadAsync(
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            WasCalled = true;
+            LastCancellationToken = cancellationToken;
+
+            return Task.FromResult(
+                _response);
+        }
+    }
+
     private sealed class FakeDescriptorService
         : IErrorDescriptorService
     {
-        private readonly Response<ErrorDescriptor> _response;
+        private readonly Response<ErrorDescriptor>
+            _response;
 
         public FakeDescriptorService(
             Response<ErrorDescriptor>? response = null)
@@ -719,7 +1176,8 @@ public sealed class ErrorCatalogRuntimeTests
             Response<IReadOnlyList<ErrorDefinition>>? response = null)
         {
             _response = response
-                ?? Response<IReadOnlyList<ErrorDefinition>>.Ok([]);
+                ?? Response<IReadOnlyList<ErrorDefinition>>.Ok(
+                    []);
         }
 
         public ErrorCatalogContext? LastContext { get; private set; }
@@ -738,3 +1196,4 @@ public sealed class ErrorCatalogRuntimeTests
         }
     }
 }
+

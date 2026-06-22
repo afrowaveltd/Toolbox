@@ -9,6 +9,7 @@ using Afrowave.Toolbox.WhenItFails.Descriptors;
 using Afrowave.Toolbox.WhenItFails.Enums;
 using Afrowave.Toolbox.WhenItFails.Initialization;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
+
 namespace Afrowave.Toolbox.WhenItFails.Services;
 
 /// <summary>
@@ -17,41 +18,55 @@ namespace Afrowave.Toolbox.WhenItFails.Services;
 public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
 {
     private readonly IErrorCatalogInitializer _initializer;
-    private readonly IErrorCatalogContextStore _contextStore;
-    private readonly IErrorDescriptorService _descriptorService;
-    private readonly IErrorProfileSelectionService _profileSelectionService;
     private readonly WhenItFailsOptions _options;
+    private readonly IErrorCatalogContextStore _contextStore;
+    private readonly IBuiltInErrorCatalogContextProvider
+        _builtInContextProvider;
+    private readonly IErrorDescriptorService _descriptorService;
+    private readonly IErrorProfileSelectionService
+        _profileSelectionService;
 
     /// <summary>
     /// Initializes a new instance of the
     /// <see cref="ErrorCatalogRuntime"/> class.
     /// </summary>
     public ErrorCatalogRuntime(
-    IErrorCatalogInitializer initializer,
-    WhenItFailsOptions options,
-    IErrorCatalogContextStore contextStore,
-    IErrorDescriptorService descriptorService,
-    IErrorProfileSelectionService profileSelectionService)
+        IErrorCatalogInitializer initializer,
+        WhenItFailsOptions options,
+        IErrorCatalogContextStore contextStore,
+        IBuiltInErrorCatalogContextProvider builtInContextProvider,
+        IErrorDescriptorService descriptorService,
+        IErrorProfileSelectionService profileSelectionService)
     {
         _initializer = initializer
-            ?? throw new ArgumentNullException(nameof(initializer));
+            ?? throw new ArgumentNullException(
+                nameof(initializer));
 
         _options = options
-            ?? throw new ArgumentNullException(nameof(options));
+            ?? throw new ArgumentNullException(
+                nameof(options));
 
         _contextStore = contextStore
-            ?? throw new ArgumentNullException(nameof(contextStore));
+            ?? throw new ArgumentNullException(
+                nameof(contextStore));
+
+        _builtInContextProvider = builtInContextProvider
+            ?? throw new ArgumentNullException(
+                nameof(builtInContextProvider));
 
         _descriptorService = descriptorService
-            ?? throw new ArgumentNullException(nameof(descriptorService));
+            ?? throw new ArgumentNullException(
+                nameof(descriptorService));
 
         _profileSelectionService = profileSelectionService
-            ?? throw new ArgumentNullException(nameof(profileSelectionService));
+            ?? throw new ArgumentNullException(
+                nameof(profileSelectionService));
     }
 
     /// <inheritdoc />
-    public Task<Response<ErrorCatalogInitializationPayload>> InitializeAsync(
-        CancellationToken cancellationToken = default)
+    public Task<Response<ErrorCatalogInitializationPayload>>
+        InitializeAsync(
+            CancellationToken cancellationToken = default)
     {
         JsonsOptions jsonsOptions =
             _options.Jsons ?? new JsonsOptions();
@@ -62,9 +77,10 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
     }
 
     /// <inheritdoc />
-    public Task<Response<ErrorCatalogInitializationPayload>> InitializeAsync(
-        JsonsOptions options,
-        CancellationToken cancellationToken = default)
+    public Task<Response<ErrorCatalogInitializationPayload>>
+        InitializeAsync(
+            JsonsOptions options,
+            CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(options);
 
@@ -73,10 +89,9 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
             cancellationToken);
     }
 
-
-
     /// <inheritdoc />
-    public Response<ErrorDescriptor> FromId(string errorId)
+    public Response<ErrorDescriptor> FromId(
+        string errorId)
     {
         Response<ErrorCatalogContext> contextResponse =
             _contextStore.GetCurrent();
@@ -93,7 +108,8 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
     }
 
     /// <inheritdoc />
-    public Response<ErrorDescriptor> FromName(string errorName)
+    public Response<ErrorDescriptor> FromName(
+        string errorName)
     {
         Response<ErrorCatalogContext> contextResponse =
             _contextStore.GetCurrent();
@@ -110,7 +126,8 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
     }
 
     /// <inheritdoc />
-    public Response<ErrorDescriptor> FromCode(int code)
+    public Response<ErrorDescriptor> FromCode(
+        int code)
     {
         Response<ErrorCatalogContext> contextResponse =
             _contextStore.GetCurrent();
@@ -127,8 +144,9 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
     }
 
     /// <inheritdoc />
-    public Response<IReadOnlyList<ErrorDefinition>> ResolveProfile(
-        string profileName)
+    public Response<IReadOnlyList<ErrorDefinition>>
+        ResolveProfile(
+            string profileName)
     {
         Response<ErrorCatalogContext> contextResponse =
             _contextStore.GetCurrent();
@@ -144,26 +162,6 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
             contextResponse.Data!,
             profileName);
     }
-
-    private static Response<TTarget> ForwardContextFailure<TTarget>(
-        Response<ErrorCatalogContext> sourceResponse)
-    {
-        string issueCode = sourceResponse.Issues.Count > 0
-            ? sourceResponse.Issues[0].Code
-            : "ErrorCatalogContextUnavailable";
-
-        string message = string.IsNullOrWhiteSpace(
-            sourceResponse.Message)
-                ? "The initialized error catalog context is unavailable."
-                : sourceResponse.Message;
-
-        return Response<TTarget>.WithStatus(
-            Response<TTarget>.Fail(
-                code: issueCode,
-                message: message),
-            sourceResponse.Status);
-    }
-
 
     private async Task<Response<ErrorCatalogInitializationPayload>>
         InitializeCoreAsync(
@@ -190,19 +188,35 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         Response<ErrorCatalogContext> previousContextResponse =
             _contextStore.GetCurrent();
 
-        if (!previousContextResponse.IsSuccess
-            || previousContextResponse.Data is null)
+        if (previousContextResponse.IsSuccess
+            && previousContextResponse.Data is not null)
         {
-            return initializationResponse;
+            return CreatePreviousContextRecoveryResponse(
+                options,
+                previousContextResponse.Data,
+                initializationResponse);
         }
 
+        return await CreateBuiltInFallbackResponseAsync(
+            options,
+            initializationResponse,
+            cancellationToken);
+    }
+
+    private Response<ErrorCatalogInitializationPayload>
+        CreatePreviousContextRecoveryResponse(
+            JsonsOptions options,
+            ErrorCatalogContext previousContext,
+            Response<ErrorCatalogInitializationPayload>
+                initializationResponse)
+    {
         ErrorCatalogInitializationPayload recoveryPayload = new()
         {
             Bootstrap =
                 CreateBootstrapSnapshot(options),
 
             Context =
-                previousContextResponse.Data,
+                previousContext,
 
             ContextSource =
                 ErrorCatalogContextSource.PreviousContext,
@@ -211,22 +225,78 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
             UsedFallback = false
         };
 
-        Response<ErrorCatalogInitializationPayload> recoveryResponse =
-            _options.HideRecoverableFailures == true
-                ? Response<ErrorCatalogInitializationPayload>.Ok(
-                    recoveryPayload,
-                    "The previous valid error catalog context was retained.")
-                : CreateRecoveryWarningResponse(
-                    recoveryPayload,
-                    initializationResponse);
+        Response<ErrorCatalogInitializationPayload>
+            recoveryResponse =
+                _options.HideRecoverableFailures == true
+                    ? Response<
+                        ErrorCatalogInitializationPayload>.Ok(
+                            recoveryPayload,
+                            "The previous valid error catalog "
+                            + "context was retained.")
+                    : CreatePreviousContextWarningResponse(
+                        recoveryPayload,
+                        initializationResponse);
 
         return AddRecoveryMetadata(
             recoveryResponse,
             initializationResponse);
     }
 
+    private async Task<Response<ErrorCatalogInitializationPayload>>
+        CreateBuiltInFallbackResponseAsync(
+            JsonsOptions options,
+            Response<ErrorCatalogInitializationPayload>
+                initializationResponse,
+            CancellationToken cancellationToken)
+    {
+        Response<ErrorCatalogContext> fallbackResponse =
+            await _builtInContextProvider.LoadAsync(
+                cancellationToken);
+
+        if (!fallbackResponse.IsSuccess
+            || fallbackResponse.Data is null)
+        {
+            return CreateBuiltInFallbackFailureResponse(
+                initializationResponse,
+                fallbackResponse);
+        }
+
+        _contextStore.Set(
+            fallbackResponse.Data);
+
+        ErrorCatalogInitializationPayload fallbackPayload = new()
+        {
+            Bootstrap =
+                CreateBootstrapSnapshot(options),
+
+            Context =
+                fallbackResponse.Data,
+
+            ContextSource =
+                ErrorCatalogContextSource.BuiltInDefaults,
+
+            KeptPreviousContext = false,
+            UsedFallback = true
+        };
+
+        Response<ErrorCatalogInitializationPayload> response =
+            _options.HideRecoverableFailures == true
+                ? Response<
+                    ErrorCatalogInitializationPayload>.Ok(
+                        fallbackPayload,
+                        "The bundled default error catalog "
+                        + "was activated.")
+                : CreateBuiltInFallbackWarningResponse(
+                    fallbackPayload,
+                    initializationResponse);
+
+        return AddRecoveryMetadata(
+            response,
+            initializationResponse);
+    }
+
     private static Response<ErrorCatalogInitializationPayload>
-        CreateRecoveryWarningResponse(
+        CreatePreviousContextWarningResponse(
             ErrorCatalogInitializationPayload payload,
             Response<ErrorCatalogInitializationPayload>
                 initializationResponse)
@@ -234,12 +304,18 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         IssueInfo warning = new()
         {
             Code = "WIF_PREVIOUS_CONTEXT_RETAINED",
+
             Message =
-                "The new error catalog context could not be activated. "
-                + "The previous valid context remains active.",
+                "The new error catalog context could not "
+                + "be activated. The previous valid context "
+                + "remains active.",
+
             Details =
-                CreateRecoveryDetails(initializationResponse),
-            Severity = IssueSeverity.Warning
+                CreateRecoveryDetails(
+                    initializationResponse),
+
+            Severity =
+                IssueSeverity.Warning
         };
 
         Response<ErrorCatalogInitializationPayload> response =
@@ -251,7 +327,115 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         return Response<ErrorCatalogInitializationPayload>
             .WithMessage(
                 response,
-                "The previous valid error catalog context was retained.");
+                "The previous valid error catalog "
+                + "context was retained.");
+    }
+
+    private static Response<ErrorCatalogInitializationPayload>
+        CreateBuiltInFallbackWarningResponse(
+            ErrorCatalogInitializationPayload payload,
+            Response<ErrorCatalogInitializationPayload>
+                initializationResponse)
+    {
+        IssueInfo warning = new()
+        {
+            Code = "WIF_DEFAULT_FALLBACK_ACTIVATED",
+
+            Message =
+                "The configured error catalog could not "
+                + "be activated. The bundled Afrowave "
+                + "default catalog is active.",
+
+            Details =
+                CreateRecoveryDetails(
+                    initializationResponse),
+
+            Severity =
+                IssueSeverity.Warning
+        };
+
+        Response<ErrorCatalogInitializationPayload> response =
+            Response<ErrorCatalogInitializationPayload>
+                .OkWithWarnings(
+                    payload,
+                    [warning]);
+
+        return Response<ErrorCatalogInitializationPayload>
+            .WithMessage(
+                response,
+                "The bundled default error catalog "
+                + "was activated.");
+    }
+
+    private static Response<ErrorCatalogInitializationPayload>
+        CreateBuiltInFallbackFailureResponse(
+            Response<ErrorCatalogInitializationPayload>
+                initializationResponse,
+            Response<ErrorCatalogContext> fallbackResponse)
+    {
+        string fallbackCode =
+            fallbackResponse.Issues.Count > 0
+                ? fallbackResponse.Issues[0].Code
+                : fallbackResponse.Data is null
+                    ? "WIF_BUILT_IN_CONTEXT_PAYLOAD_NULL"
+                    : "WIF_BUILT_IN_CONTEXT_LOAD_FAILED";
+
+        string fallbackMessage =
+            string.IsNullOrWhiteSpace(
+                fallbackResponse.Message)
+                    ? fallbackResponse.Data is null
+                        ? "The bundled default catalog "
+                          + "provider returned no context."
+                        : "The bundled default error catalog "
+                          + "could not be loaded."
+                    : fallbackResponse.Message;
+
+        ResultStatus failureStatus =
+            fallbackResponse.IsSuccess
+                ? ResultStatus.Invalid
+                : fallbackResponse.Status;
+
+        Response<ErrorCatalogInitializationPayload> response =
+            Response<ErrorCatalogInitializationPayload>
+                .WithStatus(
+                    Response<
+                        ErrorCatalogInitializationPayload>.Fail(
+                            code:
+                                "WIF_DEFAULT_FALLBACK_FAILED",
+
+                            message:
+                                "The configured error catalog "
+                                + "failed and the bundled default "
+                                + "catalog could not be activated."),
+
+                    failureStatus);
+
+        response =
+            AddInitializationFailureMetadata(
+                response,
+                initializationResponse,
+                prefix:
+                    "WhenItFails.ProjectFailure");
+
+        response =
+            Response<ErrorCatalogInitializationPayload>
+                .AddMetadata(
+                    response,
+                    "WhenItFails.FallbackFailure.Code",
+                    fallbackCode);
+
+        response =
+            Response<ErrorCatalogInitializationPayload>
+                .AddMetadata(
+                    response,
+                    "WhenItFails.FallbackFailure.Status",
+                    failureStatus.ToString());
+
+        return Response<ErrorCatalogInitializationPayload>
+            .AddMetadata(
+                response,
+                "WhenItFails.FallbackFailure.Message",
+                fallbackMessage);
     }
 
     private static Response<ErrorCatalogInitializationPayload>
@@ -268,25 +452,69 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         string failureMessage =
             string.IsNullOrWhiteSpace(
                 initializationResponse.Message)
-                    ? "The requested error catalog initialization failed."
+                    ? "The requested error catalog "
+                      + "initialization failed."
                     : initializationResponse.Message;
 
         Response<ErrorCatalogInitializationPayload> result =
-            Response<ErrorCatalogInitializationPayload>.AddMetadata(
-                response,
-                "WhenItFails.RecoveryReasonCode",
-                failureCode);
+            Response<ErrorCatalogInitializationPayload>
+                .AddMetadata(
+                    response,
+                    "WhenItFails.RecoveryReasonCode",
+                    failureCode);
 
         result =
-            Response<ErrorCatalogInitializationPayload>.AddMetadata(
-                result,
-                "WhenItFails.RecoveryStatus",
-                initializationResponse.Status.ToString());
+            Response<ErrorCatalogInitializationPayload>
+                .AddMetadata(
+                    result,
+                    "WhenItFails.RecoveryStatus",
+                    initializationResponse.Status.ToString());
 
-        return Response<ErrorCatalogInitializationPayload>.AddMetadata(
-            result,
-            "WhenItFails.RecoveryMessage",
-            failureMessage);
+        return Response<ErrorCatalogInitializationPayload>
+            .AddMetadata(
+                result,
+                "WhenItFails.RecoveryMessage",
+                failureMessage);
+    }
+
+    private static Response<ErrorCatalogInitializationPayload>
+        AddInitializationFailureMetadata(
+            Response<ErrorCatalogInitializationPayload> response,
+            Response<ErrorCatalogInitializationPayload>
+                failureResponse,
+            string prefix)
+    {
+        string failureCode =
+            failureResponse.Issues.Count > 0
+                ? failureResponse.Issues[0].Code
+                : "WIF_INITIALIZATION_FAILED";
+
+        string failureMessage =
+            string.IsNullOrWhiteSpace(
+                failureResponse.Message)
+                    ? "The requested error catalog "
+                      + "initialization failed."
+                    : failureResponse.Message;
+
+        Response<ErrorCatalogInitializationPayload> result =
+            Response<ErrorCatalogInitializationPayload>
+                .AddMetadata(
+                    response,
+                    $"{prefix}.Code",
+                    failureCode);
+
+        result =
+            Response<ErrorCatalogInitializationPayload>
+                .AddMetadata(
+                    result,
+                    $"{prefix}.Status",
+                    failureResponse.Status.ToString());
+
+        return Response<ErrorCatalogInitializationPayload>
+            .AddMetadata(
+                result,
+                $"{prefix}.Message",
+                failureMessage);
     }
 
     private static string CreateRecoveryDetails(
@@ -297,7 +525,8 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         {
             return string.IsNullOrWhiteSpace(
                 initializationResponse.Message)
-                    ? "No additional initialization diagnostics were provided."
+                    ? "No additional initialization "
+                      + "diagnostics were provided."
                     : initializationResponse.Message;
         }
 
@@ -308,8 +537,9 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                     $"{issue.Code}: {issue.Message}"));
     }
 
-    private static JsonsBootstrapPayload CreateBootstrapSnapshot(
-        JsonsOptions options)
+    private static JsonsBootstrapPayload
+        CreateBootstrapSnapshot(
+            JsonsOptions options)
     {
         return new JsonsBootstrapPayload
         {
@@ -321,4 +551,27 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         };
     }
 
+    private static Response<TTarget>
+        ForwardContextFailure<TTarget>(
+            Response<ErrorCatalogContext> sourceResponse)
+    {
+        string issueCode =
+            sourceResponse.Issues.Count > 0
+                ? sourceResponse.Issues[0].Code
+                : "ErrorCatalogContextUnavailable";
+
+        string message =
+            string.IsNullOrWhiteSpace(
+                sourceResponse.Message)
+                    ? "The initialized error catalog "
+                      + "context is unavailable."
+                    : sourceResponse.Message;
+
+        return Response<TTarget>.WithStatus(
+            Response<TTarget>.Fail(
+                code: issueCode,
+                message: message),
+            sourceResponse.Status);
+    }
 }
+
