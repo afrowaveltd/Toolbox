@@ -221,6 +221,64 @@ public sealed class ErrorCatalogRuntimeTests
     }
 
     [Fact]
+    public void GetCurrentContext_ShouldReturnFailure_WhenStoreIsNotInitialized()
+    {
+        ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(),
+            new WhenItFailsOptions(),
+            new FakeContextStore(),
+            new FakeBuiltInContextProvider(),
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogContext> response =
+            runtime.GetCurrentContext();
+
+        Assert.False(
+            response.IsSuccess);
+
+        Assert.Equal(
+            ResultStatus.Invalid,
+            response.Status);
+
+        Assert.Equal(
+            "ErrorCatalogContextNotInitialized",
+            response.Issues[0].Code);
+    }
+
+[Fact]
+public void GetCurrentContext_ShouldReturnActiveContext()
+    {
+        ErrorCatalogContext context = new();
+
+        ErrorCatalogRuntime runtime = new(
+            new FakeInitializer(),
+            new WhenItFailsOptions(),
+            new FakeContextStore(
+                context),
+            new FakeBuiltInContextProvider(),
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogContext> response =
+            runtime.GetCurrentContext();
+
+        Assert.True(
+            response.IsSuccess);
+
+        Assert.Equal(
+            ResultStatus.Success,
+            response.Status);
+
+        Assert.Same(
+            context,
+            response.Data);
+    }
+
+
+
+
+    [Fact]
     public void FromId_ShouldReturnContextFailure_WhenStoreIsNotInitialized()
     {
         ErrorCatalogRuntime runtime = new(
@@ -696,6 +754,16 @@ public sealed class ErrorCatalogRuntimeTests
         Assert.Same(
             fallbackContext,
             contextStore.Current);
+
+        Response<ErrorCatalogContext> currentContextResponse =
+    runtime.GetCurrentContext();
+
+        Assert.True(
+            currentContextResponse.IsSuccess);
+
+        Assert.Same(
+            fallbackContext,
+            currentContextResponse.Data);
 
         Assert.Equal(
             ErrorCatalogContextSource.BuiltInDefaults,

@@ -1,4 +1,5 @@
 using Afrowave.Toolbox.Essentials.Results;
+using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Descriptors;
@@ -63,6 +64,15 @@ public interface IErrorCatalogRuntime
     /// </returns>
     Task<Response<ErrorCatalogInitializationPayload>> ResetToDefaultsAsync(
         CancellationToken cancellationToken = default);
+
+/// <summary>
+/// Gets the currently active error catalog context.
+/// </summary>
+/// <returns>
+/// Response containing the active context, or a failure response
+/// when the runtime has not been initialized yet.
+/// </returns>
+Response<ErrorCatalogContext> GetCurrentContext();
 
     /// <summary>
     /// Creates an error descriptor from an error identifier.

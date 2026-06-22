@@ -136,6 +136,12 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
     }
 
     /// <inheritdoc />
+    public Response<ErrorCatalogContext> GetCurrentContext()
+    {
+        return _contextStore.GetCurrent();
+    }
+
+    /// <inheritdoc />
     public Response<ErrorDescriptor> FromId(
         string errorId)
     {
