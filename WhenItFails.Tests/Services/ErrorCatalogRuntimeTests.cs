@@ -5,6 +5,7 @@ using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Descriptors;
+using Afrowave.Toolbox.WhenItFails.Enums;
 using Afrowave.Toolbox.WhenItFails.Initialization;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
 using Afrowave.Toolbox.WhenItFails.Services;
@@ -332,6 +333,247 @@ public sealed class ErrorCatalogRuntimeTests
             "WEB",
             profileService.LastProfileName);
     }
+
+    [Fact]
+    public async Task InitializeAsync_ShouldKeepPreviousContext_WhenFlexibleInitializationFails()
+    {
+        ErrorCatalogContext previousContext = new();
+
+        FakeInitializer initializer = new(
+            Response<ErrorCatalogInitializationPayload>.Invalid(
+                code: "CatalogDocumentsInvalid",
+                message: "Catalog documents are invalid."));
+
+        ErrorCatalogRuntime runtime = new(
+            initializer,
+            new WhenItFailsOptions
+            {
+                InitializationMode =
+                    ErrorCatalogInitializationMode.Flexible
+            },
+            new FakeContextStore(previousContext),
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.InitializeAsync(
+                new JsonsOptions
+                {
+                    RootDirectory = "BrokenJsons",
+                    PackageDirectoryName = "BrokenCatalog"
+                });
+
+        Assert.True(response.IsSuccess);
+        Assert.Equal(ResultStatus.SuccessWithWarnings, response.Status);
+        Assert.True(response.HasWarnings);
+
+        Assert.NotNull(response.Data);
+
+        Assert.Same(
+            previousContext,
+            response.Data.Context);
+
+        Assert.Equal(
+            ErrorCatalogContextSource.PreviousContext,
+            response.Data.ContextSource);
+
+        Assert.True(
+            response.Data.KeptPreviousContext);
+
+        Assert.False(
+            response.Data.UsedFallback);
+
+        Assert.True(
+            response.Data.IsDegraded);
+
+        Assert.Equal(
+            "WIF_PREVIOUS_CONTEXT_RETAINED",
+            response.Issues[0].Code);
+
+        Assert.Equal(
+            "CatalogDocumentsInvalid",
+            response.Metadata[
+                "WhenItFails.RecoveryReasonCode"]);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ShouldReturnOriginalFailure_WhenStrictInitializationFails()
+    {
+        ErrorCatalogContext previousContext = new();
+
+        FakeInitializer initializer = new(
+            Response<ErrorCatalogInitializationPayload>.Invalid(
+                code: "CatalogDocumentsInvalid",
+                message: "Catalog documents are invalid."));
+
+        FakeContextStore contextStore = new(
+     previousContext);
+
+        ErrorCatalogRuntime runtime = new(
+            initializer,
+            new WhenItFailsOptions
+            {
+                InitializationMode =
+                    ErrorCatalogInitializationMode.Strict
+            },
+            contextStore,
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.InitializeAsync(
+                new JsonsOptions());
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Invalid, response.Status);
+
+        Assert.Equal(
+            "CatalogDocumentsInvalid",
+            response.Issues[0].Code);
+
+        Assert.Same(
+    previousContext,
+    contextStore.Current);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ShouldReturnOriginalFailure_WhenFlexibleModeHasNoPreviousContext()
+    {
+        FakeInitializer initializer = new(
+            Response<ErrorCatalogInitializationPayload>.Invalid(
+                code: "CatalogDocumentsInvalid",
+                message: "Catalog documents are invalid."));
+
+        ErrorCatalogRuntime runtime = new(
+            initializer,
+            new WhenItFailsOptions
+            {
+                InitializationMode =
+                    ErrorCatalogInitializationMode.Flexible
+            },
+            new FakeContextStore(),
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.InitializeAsync(
+                new JsonsOptions());
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Invalid, response.Status);
+
+        Assert.Equal(
+            "CatalogDocumentsInvalid",
+            response.Issues[0].Code);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ShouldHideRecoveredFailure_WhenConfigured()
+    {
+        ErrorCatalogContext previousContext = new();
+
+        FakeInitializer initializer = new(
+            Response<ErrorCatalogInitializationPayload>.Invalid(
+                code: "CatalogDocumentsInvalid",
+                message: "Catalog documents are invalid."));
+
+        ErrorCatalogRuntime runtime = new(
+            initializer,
+            new WhenItFailsOptions
+            {
+                InitializationMode =
+                    ErrorCatalogInitializationMode.Flexible,
+
+                HideRecoverableFailures = true
+            },
+            new FakeContextStore(previousContext),
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.InitializeAsync(
+                new JsonsOptions());
+
+        Assert.True(response.IsSuccess);
+        Assert.Equal(ResultStatus.Success, response.Status);
+
+        Assert.Empty(
+            response.Issues);
+
+        Assert.NotNull(
+            response.Data);
+
+        Assert.True(
+            response.Data.IsDegraded);
+
+        Assert.True(
+            response.Data.KeptPreviousContext);
+
+        Assert.Equal(
+            ErrorCatalogContextSource.PreviousContext,
+            response.Data.ContextSource);
+
+        Assert.Equal(
+            "CatalogDocumentsInvalid",
+            response.Metadata[
+                "WhenItFails.RecoveryReasonCode"]);
+
+        Assert.Equal(
+            ResultStatus.Invalid.ToString(),
+            response.Metadata[
+                "WhenItFails.RecoveryStatus"]);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_ShouldNotUseRecovery_WhenInitializationSucceeds()
+    {
+        ErrorCatalogContext newContext = new();
+
+        ErrorCatalogInitializationPayload payload = new()
+        {
+            Bootstrap = new JsonsBootstrapPayload(),
+            Context = newContext,
+            ContextSource =
+                ErrorCatalogContextSource.ProjectCatalog
+        };
+
+        FakeInitializer initializer = new(
+            Response<ErrorCatalogInitializationPayload>.Ok(
+                payload));
+
+        ErrorCatalogRuntime runtime = new(
+            initializer,
+            new WhenItFailsOptions
+            {
+                InitializationMode =
+                    ErrorCatalogInitializationMode.Flexible,
+
+                HideRecoverableFailures = true
+            },
+            new FakeContextStore(
+                new ErrorCatalogContext()),
+            new FakeDescriptorService(),
+            new FakeProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.InitializeAsync(
+                new JsonsOptions());
+
+        Assert.True(response.IsSuccess);
+        Assert.Equal(ResultStatus.Success, response.Status);
+
+        Assert.Same(
+            payload,
+            response.Data);
+
+        Assert.False(
+            response.Data!.IsDegraded);
+
+        Assert.True(
+            response.Metadata.IsEmpty);
+    }
+
+
 
     private static ErrorDescriptor CreateDescriptor()
     {
