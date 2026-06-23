@@ -1,8 +1,10 @@
 using Afrowave.Toolbox.Essentials.Results;
+using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Descriptors;
 using Afrowave.Toolbox.WhenItFails.Initialization;
+using Afrowave.Toolbox.WhenItFails.Runtime;
 
 namespace Afrowave.Toolbox.WhenItFails.Interfaces;
 
@@ -46,6 +48,42 @@ public interface IErrorCatalogRuntime
     Task<Response<ErrorCatalogInitializationPayload>> InitializeAsync(
         JsonsOptions options,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Replaces the currently active catalog context with the bundled
+    /// Afrowave default catalog context.
+    /// </summary>
+    /// <remarks>
+    /// This operation does not overwrite or otherwise modify the
+    /// project-local JSON catalog files.
+    /// </remarks>
+    /// <param name="cancellationToken">
+    /// Cancellation token.
+    /// </param>
+    /// <returns>
+    /// Response containing the activated built-in catalog context.
+    /// </returns>
+    Task<Response<ErrorCatalogInitializationPayload>> ResetToDefaultsAsync(
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets the currently active error catalog context.
+    /// </summary>
+    /// <returns>
+    /// Response containing the active context, or a failure response
+    /// when the runtime has not been initialized yet.
+    /// </returns>
+    Response<ErrorCatalogContext> GetCurrentContext();
+
+    /// <summary>
+    /// Gets a snapshot describing the currently active runtime state.
+    /// </summary>
+    /// <returns>
+    /// Response containing the current runtime status, or a failure response
+    /// when no catalog context has been activated yet.
+    /// </returns>
+    Response<ErrorCatalogRuntimeStatus> GetStatus();
+
 
     /// <summary>
     /// Creates an error descriptor from an error identifier.

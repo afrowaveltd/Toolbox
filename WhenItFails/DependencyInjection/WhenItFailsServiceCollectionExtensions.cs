@@ -164,6 +164,10 @@ public static class WhenItFailsServiceCollectionExtensions
             ErrorCatalogContextProvider>();
 
         services.TryAddSingleton<
+   IBuiltInErrorCatalogContextProvider,
+   BuiltInErrorCatalogContextProvider>();
+
+        services.TryAddSingleton<
             IErrorCatalogContextStore,
             ErrorCatalogContextStore>();
 
