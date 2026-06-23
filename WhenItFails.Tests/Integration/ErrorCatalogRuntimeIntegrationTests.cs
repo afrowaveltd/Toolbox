@@ -724,6 +724,210 @@ public sealed class ErrorCatalogRuntimeIntegrationTests
         }
     }
 
+    [Fact]
+    public async Task Runtime_ShouldReturnToProjectCatalog_AfterDamagedCatalogIsRestored()
+    {
+        string rootDirectory = CreateTemporaryRootDirectory();
+
+        JsonsOptions jsonsOptions = new()
+        {
+            RootDirectory = rootDirectory,
+            PackageDirectoryName = "RecoveredWhenItFails"
+        };
+
+        try
+        {
+            ServiceCollection services = new();
+
+            services.AddWhenItFails(
+                new WhenItFailsOptions
+                {
+                    Jsons = jsonsOptions,
+
+                    InitializationMode =
+                        ErrorCatalogInitializationMode.Flexible
+                });
+
+            using ServiceProvider serviceProvider =
+                services.BuildServiceProvider(
+                    new ServiceProviderOptions
+                    {
+                        ValidateOnBuild = true,
+                        ValidateScopes = true
+                    });
+
+            IErrorCatalogRuntime runtime =
+                serviceProvider.GetRequiredService<
+                    IErrorCatalogRuntime>();
+
+            Response<ErrorCatalogInitializationPayload>
+                firstInitializationResponse =
+                    await runtime.InitializeAsync();
+
+            Assert.True(
+                firstInitializationResponse.IsSuccess);
+
+            Assert.NotNull(
+                firstInitializationResponse.Data);
+
+            Assert.Equal(
+                ErrorCatalogContextSource.ProjectCatalog,
+                firstInitializationResponse.Data.ContextSource);
+
+            string validProjectCatalog =
+                await File.ReadAllTextAsync(
+                    jsonsOptions.ErrorCatalogFilePath);
+
+            Response<ErrorCatalogContext> originalContextResponse =
+                runtime.GetCurrentContext();
+
+            Assert.True(
+                originalContextResponse.IsSuccess);
+
+            Assert.NotNull(
+                originalContextResponse.Data);
+
+            await File.WriteAllTextAsync(
+                jsonsOptions.ErrorCatalogFilePath,
+                "{ damaged project catalog");
+
+            Response<ErrorCatalogInitializationPayload>
+                degradedInitializationResponse =
+                    await runtime.InitializeAsync();
+
+            Assert.True(
+                degradedInitializationResponse.IsSuccess);
+
+            Assert.NotNull(
+                degradedInitializationResponse.Data);
+
+            Assert.Equal(
+                ResultStatus.SuccessWithWarnings,
+                degradedInitializationResponse.Status);
+
+            Assert.Equal(
+                ErrorCatalogContextSource.PreviousContext,
+                degradedInitializationResponse.Data.ContextSource);
+
+            Assert.True(
+                degradedInitializationResponse.Data.IsDegraded);
+
+            Response<ErrorCatalogRuntimeStatus> degradedStatusResponse =
+                runtime.GetStatus();
+
+            Assert.True(
+                degradedStatusResponse.IsSuccess);
+
+            Assert.NotNull(
+                degradedStatusResponse.Data);
+
+            Assert.True(
+                degradedStatusResponse.Data.IsDegraded);
+
+            Assert.Equal(
+                ErrorCatalogContextSource.PreviousContext,
+                degradedStatusResponse.Data.ContextSource);
+
+            Assert.False(
+                string.IsNullOrWhiteSpace(
+                    degradedStatusResponse.Data.RecoveryReasonCode));
+
+            await File.WriteAllTextAsync(
+                jsonsOptions.ErrorCatalogFilePath,
+                validProjectCatalog);
+
+            Response<ErrorCatalogInitializationPayload>
+                recoveredInitializationResponse =
+                    await runtime.InitializeAsync();
+
+            Assert.True(
+                recoveredInitializationResponse.IsSuccess);
+
+            Assert.Equal(
+                ResultStatus.Success,
+                recoveredInitializationResponse.Status);
+
+            Assert.NotNull(
+                recoveredInitializationResponse.Data);
+
+            Assert.Equal(
+                ErrorCatalogContextSource.ProjectCatalog,
+                recoveredInitializationResponse.Data.ContextSource);
+
+            Assert.False(
+                recoveredInitializationResponse.Data.IsDegraded);
+
+            Assert.False(
+                recoveredInitializationResponse.Data.KeptPreviousContext);
+
+            Assert.False(
+                recoveredInitializationResponse.Data.UsedFallback);
+
+            Response<ErrorCatalogContext> recoveredContextResponse =
+                runtime.GetCurrentContext();
+
+            Assert.True(
+                recoveredContextResponse.IsSuccess);
+
+            Assert.NotNull(
+                recoveredContextResponse.Data);
+
+            Assert.NotSame(
+                originalContextResponse.Data,
+                recoveredContextResponse.Data);
+
+            Response<ErrorCatalogRuntimeStatus> recoveredStatusResponse =
+                runtime.GetStatus();
+
+            Assert.True(
+                recoveredStatusResponse.IsSuccess);
+
+            Assert.NotNull(
+                recoveredStatusResponse.Data);
+
+            Assert.Equal(
+                ErrorCatalogContextSource.ProjectCatalog,
+                recoveredStatusResponse.Data.ContextSource);
+
+            Assert.False(
+                recoveredStatusResponse.Data.IsDegraded);
+
+            Assert.False(
+                recoveredStatusResponse.Data.KeptPreviousContext);
+
+            Assert.False(
+                recoveredStatusResponse.Data.UsedFallback);
+
+            Assert.Null(
+                recoveredStatusResponse.Data.RecoveryReasonCode);
+
+            Assert.Null(
+                recoveredStatusResponse.Data.RecoveryStatus);
+
+            Assert.Null(
+                recoveredStatusResponse.Data.RecoveryMessage);
+
+            Response<ErrorDescriptor> descriptorResponse =
+                runtime.FromId(
+                    "afw net 0001");
+
+            Assert.True(
+                descriptorResponse.IsSuccess);
+
+            Assert.NotNull(
+                descriptorResponse.Data);
+
+            Assert.Equal(
+                "AFW_NET_0001",
+                descriptorResponse.Data.Id);
+        }
+        finally
+        {
+            DeleteDirectoryIfExists(
+                rootDirectory);
+        }
+    }
+
 
 
     private static string CreateTemporaryRootDirectory()
