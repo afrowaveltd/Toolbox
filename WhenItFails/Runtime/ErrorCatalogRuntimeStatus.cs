@@ -1,4 +1,3 @@
-
 using Afrowave.Toolbox.Essentials.Enums;
 using Afrowave.Toolbox.WhenItFails.Enums;
 
@@ -13,6 +12,30 @@ public sealed class ErrorCatalogRuntimeStatus
    /// Gets the source of the currently active catalog context.
    /// </summary>
    public ErrorCatalogContextSource ContextSource { get; init; }
+
+   /// <summary>
+   /// Gets the effective semantic runtime state.
+   /// </summary>
+   public ErrorCatalogRuntimeState State =>
+       ContextSource switch
+       {
+          ErrorCatalogContextSource.ProjectCatalog =>
+              ErrorCatalogRuntimeState.ProjectCatalog,
+
+          ErrorCatalogContextSource.PreviousContext
+              when KeptPreviousContext =>
+                  ErrorCatalogRuntimeState.PreviousContextRecovery,
+
+          ErrorCatalogContextSource.BuiltInDefaults
+              when UsedFallback =>
+                  ErrorCatalogRuntimeState.BuiltInFallback,
+
+          ErrorCatalogContextSource.BuiltInDefaults =>
+              ErrorCatalogRuntimeState.BuiltInDefaults,
+
+          _ =>
+              ErrorCatalogRuntimeState.Unknown
+       };
 
    /// <summary>
    /// Gets a value indicating whether the runtime is operating
@@ -31,7 +54,6 @@ public sealed class ErrorCatalogRuntimeStatus
    /// was activated.
    /// </summary>
    public bool UsedFallback { get; init; }
-
 
    /// <summary>
    /// Gets the code describing why recovery mode was activated.
@@ -54,8 +76,6 @@ public sealed class ErrorCatalogRuntimeStatus
    /// </summary>
    public string? RecoveryMessage { get; init; }
 
-
-
    /// <summary>
    /// Gets the UTC timestamp at which this runtime state became active.
    /// </summary>
@@ -70,5 +90,4 @@ public sealed class ErrorCatalogRuntimeStatus
    /// from an isolated temporary workspace.
    /// </remarks>
    public string PackageDirectoryPath { get; init; } = string.Empty;
-
 }

@@ -1,25 +1,25 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "D:\\Toolbox\\",
+  "WorkspaceRootPath": "G:\\Afrowave Projects\\Toolbox\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|d:\\toolbox\\whenitfails.tests\\services\\errorcatalogruntimetests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|solutionrelative:whenitfails.tests\\services\\errorcatalogruntimetests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|d:\\toolbox\\whenitfails.tests\\loading\\jsonerrorcatalogloadertests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|g:\\afrowave projects\\toolbox\\whenitfails.tests\\loading\\jsonerrorcatalogloadertests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|solutionrelative:whenitfails.tests\\loading\\jsonerrorcatalogloadertests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|d:\\toolbox\\whenitfails.tests\\validation\\errorcatalogvalidatortests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|g:\\afrowave projects\\toolbox\\whenitfails.tests\\services\\errorcatalogruntimetests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|solutionrelative:whenitfails.tests\\services\\errorcatalogruntimetests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|g:\\afrowave projects\\toolbox\\whenitfails.tests\\validation\\errorcatalogvalidatortests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{BB1B413F-97E9-4817-A1FB-F3C866321D96}|WhenItFails.Tests\\WhenItFails.Tests.csproj|solutionrelative:whenitfails.tests\\validation\\errorcatalogvalidatortests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\services\\errorcatalogruntime.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|g:\\afrowave projects\\toolbox\\whenitfails\\services\\errorcatalogruntime.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\services\\errorcatalogruntime.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|d:\\toolbox\\whenitfails\\runtime\\errorcatalogruntimestatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|g:\\afrowave projects\\toolbox\\whenitfails\\runtime\\errorcatalogruntimestatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7DD24E17-AB46-DC06-E3C0-5A43E30B6412}|WhenItFails\\WhenItFails.csproj|solutionrelative:whenitfails\\runtime\\errorcatalogruntimestatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
@@ -36,7 +36,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 50,
+          "SelectedChildIndex": 52,
           "Children": [
             {
               "$type": "Bookmark",
@@ -76,11 +76,19 @@
             },
             {
               "$type": "Bookmark",
+              "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
+            },
+            {
+              "$type": "Bookmark",
               "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
             },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{eefa5220-e298-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{4a9b7e51-aa16-11d0-a8c5-00a0c921a4d2}"
             },
             {
               "$type": "Bookmark",
@@ -196,18 +204,6 @@
             },
             {
               "$type": "Bookmark",
-              "Name": "ST:1682933510:0:{bf84ea66-d821-4dba-b1b1-2777d8574775}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{4a9b7e51-aa16-11d0-a8c5-00a0c921a4d2}"
-            },
-            {
-              "$type": "Bookmark",
               "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cde3}"
             },
             {
@@ -232,34 +228,42 @@
             },
             {
               "$type": "Bookmark",
-              "Name": "ST:0:0:{e1b7d1f8-9b3c-49b1-8f4f-bfc63a88835d}"
-            },
-            {
-              "$type": "Bookmark",
               "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
             },
             {
+              "$type": "Bookmark",
+              "Name": "ST:1682933510:0:{bf84ea66-d821-4dba-b1b1-2777d8574775}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{c6f34f0d-7ae5-4f3a-be61-fe0c21ae9eb8}"
+            },
+            {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "ErrorCatalogRuntimeTests.cs",
-              "DocumentMoniker": "D:\\Toolbox\\WhenItFails.Tests\\Services\\ErrorCatalogRuntimeTests.cs",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\WhenItFails.Tests\\Services\\ErrorCatalogRuntimeTests.cs",
               "RelativeDocumentMoniker": "WhenItFails.Tests\\Services\\ErrorCatalogRuntimeTests.cs",
-              "ToolTip": "D:\\Toolbox\\WhenItFails.Tests\\Services\\ErrorCatalogRuntimeTests.cs",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\WhenItFails.Tests\\Services\\ErrorCatalogRuntimeTests.cs",
               "RelativeToolTip": "WhenItFails.Tests\\Services\\ErrorCatalogRuntimeTests.cs",
-              "ViewState": "AgIAAJ4FAAAAAAAAAAAmwL8FAAAvAAAAAAAAAA==",
+              "ViewState": "AgIAAH4FAAAAAAAAAAAqwMAFAAAEAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-06-23T12:41:51.984Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "JsonErrorCatalogLoaderTests.cs",
-              "DocumentMoniker": "D:\\Toolbox\\WhenItFails.Tests\\Loading\\JsonErrorCatalogLoaderTests.cs",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\WhenItFails.Tests\\Loading\\JsonErrorCatalogLoaderTests.cs",
               "RelativeDocumentMoniker": "WhenItFails.Tests\\Loading\\JsonErrorCatalogLoaderTests.cs",
-              "ToolTip": "D:\\Toolbox\\WhenItFails.Tests\\Loading\\JsonErrorCatalogLoaderTests.cs",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\WhenItFails.Tests\\Loading\\JsonErrorCatalogLoaderTests.cs",
               "RelativeToolTip": "WhenItFails.Tests\\Loading\\JsonErrorCatalogLoaderTests.cs",
-              "ViewState": "AgIAADQAAAAAAAAAAAAmwEgAAAAHAAAAAAAAAA==",
+              "ViewState": "AgIAADQAAAAAAAAAAAA4wFMAAAAmAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-06-23T12:41:11.481Z",
               "EditorCaption": ""
@@ -268,40 +272,37 @@
               "$type": "Document",
               "DocumentIndex": 2,
               "Title": "ErrorCatalogValidatorTests.cs",
-              "DocumentMoniker": "D:\\Toolbox\\WhenItFails.Tests\\Validation\\ErrorCatalogValidatorTests.cs",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\WhenItFails.Tests\\Validation\\ErrorCatalogValidatorTests.cs",
               "RelativeDocumentMoniker": "WhenItFails.Tests\\Validation\\ErrorCatalogValidatorTests.cs",
-              "ToolTip": "D:\\Toolbox\\WhenItFails.Tests\\Validation\\ErrorCatalogValidatorTests.cs",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\WhenItFails.Tests\\Validation\\ErrorCatalogValidatorTests.cs",
               "RelativeToolTip": "WhenItFails.Tests\\Validation\\ErrorCatalogValidatorTests.cs",
               "ViewState": "AgIAANgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-23T12:36:13.954Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-23T12:36:13.954Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 3,
               "Title": "ErrorCatalogRuntime.cs",
-              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Services\\ErrorCatalogRuntime.cs",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\WhenItFails\\Services\\ErrorCatalogRuntime.cs",
               "RelativeDocumentMoniker": "WhenItFails\\Services\\ErrorCatalogRuntime.cs",
-              "ToolTip": "D:\\Toolbox\\WhenItFails\\Services\\ErrorCatalogRuntime.cs",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\WhenItFails\\Services\\ErrorCatalogRuntime.cs",
               "RelativeToolTip": "WhenItFails\\Services\\ErrorCatalogRuntime.cs",
               "ViewState": "AgIAAIwBAAAAAAAAAAAiwKcBAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-23T12:15:37.238Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-23T12:15:37.238Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 4,
               "Title": "ErrorCatalogRuntimeStatus.cs",
-              "DocumentMoniker": "D:\\Toolbox\\WhenItFails\\Runtime\\ErrorCatalogRuntimeStatus.cs",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\WhenItFails\\Runtime\\ErrorCatalogRuntimeStatus.cs",
               "RelativeDocumentMoniker": "WhenItFails\\Runtime\\ErrorCatalogRuntimeStatus.cs",
-              "ToolTip": "D:\\Toolbox\\WhenItFails\\Runtime\\ErrorCatalogRuntimeStatus.cs",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\WhenItFails\\Runtime\\ErrorCatalogRuntimeStatus.cs",
               "RelativeToolTip": "WhenItFails\\Runtime\\ErrorCatalogRuntimeStatus.cs",
               "ViewState": "AgIAAAkAAAAAAAAAAAA2wDcAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-06-23T12:13:09.362Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-06-23T12:13:09.362Z"
             },
             {
               "$type": "Document",
@@ -322,6 +323,10 @@
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
               "WhenOpened": "2026-06-23T05:20:33.67Z",
               "EditorCaption": " [N\u00E1hled]"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{e1b7d1f8-9b3c-49b1-8f4f-bfc63a88835d}"
             }
           ]
         },

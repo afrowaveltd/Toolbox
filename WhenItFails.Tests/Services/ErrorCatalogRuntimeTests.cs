@@ -276,9 +276,6 @@ public sealed class ErrorCatalogRuntimeTests
           response.Data);
    }
 
-
-
-
    [Fact]
    public void FromId_ShouldReturnContextFailure_WhenStoreIsNotInitialized()
    {
@@ -1350,6 +1347,7 @@ public sealed class ErrorCatalogRuntimeTests
       Assert.Null(
           statusResponse.Data.RecoveryMessage);
    }
+
    [Fact]
    public async Task GetStatus_ShouldDescribeAutomaticBuiltInFallback()
    {
@@ -1417,10 +1415,8 @@ public sealed class ErrorCatalogRuntimeTests
       Assert.Equal(
           "Project catalog is invalid.",
           statusResponse.Data.RecoveryMessage);
-
-
-
    }
+
    [Fact]
    public async Task GetStatus_ShouldDescribeExplicitResetAsNonDegraded()
    {
@@ -1471,7 +1467,6 @@ public sealed class ErrorCatalogRuntimeTests
       Assert.Null(
           statusResponse.Data.RecoveryMessage);
    }
-
 
    [Fact]
    public async Task ResetToDefaultsAsync_ShouldKeepPreviousStatus_WhenResetFails()
@@ -1560,8 +1555,6 @@ public sealed class ErrorCatalogRuntimeTests
           "Jsons/WhenItFails",
           statusAfterReset.Data.PackageDirectoryPath);
    }
-
-
 
    private static ErrorDescriptor CreateDescriptor()
    {
@@ -1764,4 +1757,3 @@ public sealed class ErrorCatalogRuntimeTests
       }
    }
 }
-
