@@ -21,6 +21,9 @@ public sealed class ErrorCatalogRuntimeStatusTests
       Assert.Equal(
           ErrorCatalogRuntimeState.ProjectCatalog,
           status.State);
+
+      Assert.True(
+          status.IsConsistent);
    }
 
    [Fact]
@@ -39,6 +42,9 @@ public sealed class ErrorCatalogRuntimeStatusTests
       Assert.Equal(
           ErrorCatalogRuntimeState.PreviousContextRecovery,
           status.State);
+
+      Assert.True(
+          status.IsConsistent);
    }
 
    [Fact]
@@ -57,6 +63,9 @@ public sealed class ErrorCatalogRuntimeStatusTests
       Assert.Equal(
           ErrorCatalogRuntimeState.BuiltInFallback,
           status.State);
+
+      Assert.True(
+          status.IsConsistent);
    }
 
    [Fact]
@@ -75,6 +84,9 @@ public sealed class ErrorCatalogRuntimeStatusTests
       Assert.Equal(
           ErrorCatalogRuntimeState.BuiltInDefaults,
           status.State);
+
+      Assert.True(
+          status.IsConsistent);
    }
 
    [Fact]
@@ -93,5 +105,92 @@ public sealed class ErrorCatalogRuntimeStatusTests
       Assert.Equal(
           ErrorCatalogRuntimeState.Unknown,
           status.State);
+
+      Assert.False(
+          status.IsConsistent);
+   }
+
+   [Fact]
+   public void State_ShouldReturnUnknown_WhenProjectCatalogIsMarkedAsDegraded()
+   {
+      ErrorCatalogRuntimeStatus status = new()
+      {
+         ContextSource =
+              ErrorCatalogContextSource.ProjectCatalog,
+
+         IsDegraded = true,
+         KeptPreviousContext = false,
+         UsedFallback = false
+      };
+
+      Assert.Equal(
+          ErrorCatalogRuntimeState.Unknown,
+          status.State);
+
+      Assert.False(
+          status.IsConsistent);
+   }
+
+   [Fact]
+   public void State_ShouldReturnUnknown_WhenProjectCatalogClaimsFallbackWasUsed()
+   {
+      ErrorCatalogRuntimeStatus status = new()
+      {
+         ContextSource =
+              ErrorCatalogContextSource.ProjectCatalog,
+
+         IsDegraded = false,
+         KeptPreviousContext = false,
+         UsedFallback = true
+      };
+
+      Assert.Equal(
+          ErrorCatalogRuntimeState.Unknown,
+          status.State);
+
+      Assert.False(
+          status.IsConsistent);
+   }
+
+   [Fact]
+   public void State_ShouldReturnUnknown_WhenBuiltInFallbackIsNotDegraded()
+   {
+      ErrorCatalogRuntimeStatus status = new()
+      {
+         ContextSource =
+              ErrorCatalogContextSource.BuiltInDefaults,
+
+         IsDegraded = false,
+         KeptPreviousContext = false,
+         UsedFallback = true
+      };
+
+      Assert.Equal(
+          ErrorCatalogRuntimeState.Unknown,
+          status.State);
+
+      Assert.False(
+          status.IsConsistent);
+   }
+
+   [Fact]
+   public void State_ShouldReturnUnknown_WhenBuiltInDefaultsKeepPreviousContext()
+   {
+      ErrorCatalogRuntimeStatus status = new()
+      {
+         ContextSource =
+              ErrorCatalogContextSource.BuiltInDefaults,
+
+         IsDegraded = true,
+         KeptPreviousContext = true,
+         UsedFallback = true
+      };
+
+      Assert.Equal(
+          ErrorCatalogRuntimeState.Unknown,
+          status.State);
+
+      Assert.False(
+          status.IsConsistent);
    }
 }
