@@ -85,6 +85,7 @@ Recovery never overwrites or repairs project JSON files automatically.
 See:
 
 - [Initialization and recovery](Docs/Runtime/Initialization-and-Recovery.md)
+- [Public runtime API](Docs/Runtime/Public-API.md)
 - [Initialization and recovery](Docs/Runtime/Initialization-and-Recovery.md)
 
 ## Runtime status
