@@ -4,7 +4,7 @@
         <PackageId>Afrowave.Toolbox.WhenItFails</PackageId>
         <AssemblyName>Afrowave.Toolbox.WhenItFails</AssemblyName>
         <RootNamespace>Afrowave.Toolbox.WhenItFails</RootNamespace>
-        <Description>Core building blocks for the Afrowave Toolbox package family. Provides shared abstractions, contracts, and utility types.</Description>
+        <Description>Structured error catalogs, runtime resolution, recovery, profiles, mapping, and diagnostics for Afrowave Toolbox.</Description>
         <PackageTags>afrowave;toolbox;whenitfails;errors;errorhandling;dotnet;foundation</PackageTags>
         <Version>0.1.0</Version>
     </PropertyGroup>
