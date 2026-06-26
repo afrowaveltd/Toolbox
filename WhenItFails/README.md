@@ -88,6 +88,7 @@ Recovery never overwrites or repairs project JSON files automatically.
 - [Design philosophy](Docs/Philosophy/en.md)
 - [Configuration](Docs/Configuration/en.md)
 - [Bootstrap and project workspace](Docs/Bootstrap/en.md)
+- [Loading and normalization](Docs/Loading-and-Normalization/en.md)
 - [Catalogs](Docs/Catalogs/en.md)
 - [Profiles](Docs/Profiles/en.md)
 - [Error descriptors](Docs/Descriptors/en.md)
