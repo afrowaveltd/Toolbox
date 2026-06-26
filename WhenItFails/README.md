@@ -82,13 +82,14 @@ Flexible initialization may retain a previously valid context or activate bundle
 
 Recovery never overwrites or repairs project JSON files automatically.
 
-See:
+## Documentation
 
-- [Initialization and recovery](Docs/Runtime/Initialization-and-Recovery.md)
-- [Public runtime API](Docs/Runtime/Public-API.md)
+- [Getting started](Docs/Getting-Started/en.md)
 - [Design philosophy](Docs/Philosophy/en.md)
 - [Configuration](Docs/Configuration/en.md)
 - [Catalogs](Docs/Catalogs/en.md)
+- [Public runtime API](Docs/Runtime/Public-API.md)
+- [Initialization and recovery](Docs/Runtime/Initialization-and-Recovery.md)
 
 ## Runtime status
 
