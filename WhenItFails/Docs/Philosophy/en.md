@@ -1,485 +1,451 @@
-# WhenItFails Philosophy
+# Design philosophy
 
-## Purpose
+WhenItFails is built around the idea that application failures should be structured, identifiable, diagnosable, and reusable.
 
-`Afrowave.Toolbox.WhenItFails` is not designed to make error handling heavier.
+An error is not only a text message.
 
-It is designed to keep everyday application code simple by moving error knowledge into reusable catalogs, presets, profiles, and tooling.
+It may have:
 
-In normal application code, developers should not manually construct large error objects. Most of the time, they should use a small and readable call such as:
+* a stable identity,
+* a numeric code,
+* an owner,
+* a category,
+* a severity,
+* a user-facing explanation,
+* a developer-facing hint,
+* environment-specific mappings,
+* runtime occurrence details,
+* documentation,
+* selection rules,
+* recovery metadata.
 
-```csharp
-errorFactory.FireError("InvalidInput", "Name is required.");
+When those concerns are represented only by exception messages scattered through application code, they become difficult to validate, localize, document, search, and maintain.
+
+WhenItFails separates those concerns into explicit catalog definitions and runtime descriptors.
+
+## Definitions and occurrences
+
+The most important distinction in the package is:
+
+```text
+ErrorDefinition
+→ describes a reusable kind of failure
+
+ErrorDescriptor
+→ describes one concrete occurrence
 ```
 
-or, in the most minimal case:
+A definition answers questions such as:
 
-```csharp
-errorFactory.FireError();
+```text
+What is this error?
+Who owns it?
+What is its stable ID?
+Which categories does it belong to?
+What should its default message and severity be?
 ```
 
-The rich error model exists behind the scenes so that errors can be identified, searched, documented, filtered, translated, logged, mapped to responses, and handled consistently across different kinds of applications.
+A descriptor answers questions such as:
 
----
-
-## Main Idea
-
-Application code should describe what happened.
-
-The error catalog should describe what the error means.
-
-For example, application code may say:
-
-```csharp
-errorFactory.FireError(
-    type: "MissingConfigurationValue",
-    message: "The key 'LibreTranslate:DefaultServer' is missing.");
+```text
+Where did it happen?
+Which operation failed?
+Which component reported it?
+What concrete resource was involved?
+Was an exception attached?
+What runtime metadata belongs to this occurrence?
 ```
 
-The catalog can provide the rest:
+The catalog should not be modified merely because one particular operation failed.
 
-- stable error ID
-- numeric error code
-- owner
-- code prefix
-- code group
-- primary category
-- additional categories
-- subcategories
-- severity
-- tags
-- documentation key
-- developer hint
-- metadata
-- optional response mapping information
+Occurrence-specific information belongs to the descriptor.
 
-This means the developer does not need to repeatedly write the same error metadata throughout the application.
+## Stable identity before wording
 
----
+Human-readable wording may evolve.
 
-## Why the Model Looks Rich
+Stable error identity should not.
 
-At first glance, the error model may look larger than a simple `string errorMessage`.
+For that reason, WhenItFails treats these values as contracts:
 
-That is intentional, but it is not meant to make common usage harder.
-
-The full model exists because real applications often need more than a message:
-
-- support needs stable error IDs
-- logs need searchable codes
-- APIs need consistent response mapping
-- web applications need safe user-facing errors
-- desktop applications need exportable texts for translation
-- documentation needs a list of known errors
-- diagnostics need context and metadata
-- profiles need filtering by categories, tags, and scenarios
-- future tools need structured data instead of scattered strings
-
-The complexity is stored in catalogs and presets, not in everyday business code.
-
----
-
-## Simple Use First
-
-The most important rule of `WhenItFails` is:
-
-> Common usage must stay simple.
-
-A developer should be able to start with:
-
-```csharp
-errorFactory.FireError();
+```text
+error ID
+numeric code
+symbolic name
 ```
 
-Then move to:
+Titles, messages, hints, and presentation mappings may improve over time without changing the identity of the error.
 
-```csharp
-errorFactory.FireError("InvalidInput");
+A consumer should not parse a human-readable message to determine what happened.
+
+It should use the structured identity.
+
+## Separation of concerns
+
+WhenItFails deliberately keeps several concepts separate:
+
+```text
+identity
+classification
+ownership
+numbering
+presentation
+selection
+runtime detail
+recovery state
 ```
 
-Then, only when needed:
-
-```csharp
-errorFactory.FireError(
-    type: "InvalidInput",
-    message: "Name is required.");
-```
-
-And for advanced scenarios:
-
-```csharp
-errorFactory.FireError(
-    type: "MissingConfigurationValue",
-    configure: options =>
-    {
-        options.Message = "The translation server is not configured.";
-        options.Detail = "Missing key: LibreTranslate:DefaultServer";
-        options.OperationName = "LoadTranslationSettings";
-        options.SourceName = "appsettings.json";
-    });
-```
-
-The full model should be available, but not forced.
-
----
-
-## Definitions, Presets, and Descriptors
-
-`WhenItFails` separates three important concepts.
-
-### ErrorDefinition
-
-An `ErrorDefinition` describes a known error type in a catalog.
-
-It is usually loaded from JSON.
-
-It is not something developers should normally create manually inside application logic.
-
-Example:
-
-```json
-{
-  "id": "AFW-CFG-0001",
-  "code": 200001,
-  "name": "MissingConfigurationValue",
-  "owner": "Afrowave",
-  "codePrefix": "CFG",
-  "codeGroup": "Configuration",
-  "primaryCategory": "Configuration",
-  "categories": [ "Configuration", "Startup", "Validation" ],
-  "subcategories": [ "RequiredValue", "AppSettings" ],
-  "title": "Missing configuration value",
-  "message": "A required configuration value is missing.",
-  "defaultSeverity": "Error",
-  "tags": [ "configuration", "startup", "user-visible" ]
-}
-```
-
-### ErrorPreset
-
-An error preset is a convenient application-facing alias or prepared scenario.
+These concepts are related, but they are not interchangeable.
 
 For example:
 
-```text
-MissingConfigurationValue -> AFW-CFG-0001
-InvalidInput              -> AFW-VAL-0001
-UnknownError              -> AFW-GEN-0001
-```
+* an owner says who controls a definition,
+* a code group says what numeric and symbolic family it belongs to,
+* a category says what kind of problem it represents,
+* a profile says where or how it should be selected,
+* a mapping says how a platform may present it,
+* a descriptor says what happened this time.
 
-Application code can use the preset name instead of knowing the full catalog structure.
+Combining all of these into one unstructured message would make the system simpler only at the beginning and much harder to maintain later.
 
-### ErrorDescriptor
+## Catalogs are project-owned data
 
-An `ErrorDescriptor` describes a concrete runtime occurrence of an error.
+Bundled catalogs are package resources.
 
-It is what the application actually returns, logs, maps, or passes to a response object.
+Project catalogs are project-owned data.
 
-A descriptor may be created from a catalog definition and then enriched with runtime information such as:
+The package may create missing project copies during bootstrap, but it must not silently replace or rewrite existing project catalogs.
 
-- detail
-- operation name
-- component name
-- source name
-- exception
-- metadata
-- optional typed attachment
+This distinction protects:
 
----
+* local customization,
+* version-control history,
+* user ownership,
+* reproducibility,
+* auditability,
+* recovery from mistakes.
 
-## ErrorDescriptor and ErrorDescriptor&lt;TAttachment&gt;
+A runtime library should not behave like an invisible catalog editor.
 
-The package follows the same idea as `Response` and `Response<T>`.
+## Runtime is not an authoring tool
 
-There is a normal descriptor:
+The runtime is responsible for:
 
-```csharp
-ErrorDescriptor
-```
+* loading catalogs,
+* normalizing values,
+* validating documents,
+* validating cross-catalog relationships,
+* creating an active context,
+* resolving definitions,
+* creating descriptors,
+* exposing diagnostics,
+* recovering according to explicit policy.
 
-and a generic descriptor with strongly typed additional data:
+The runtime is not responsible for silently:
 
-```csharp
-ErrorDescriptor<TAttachment>
-```
+* repairing malformed JSON,
+* allocating new identifiers,
+* renumbering errors,
+* rewriting deprecated fields,
+* merging package updates into project files,
+* deleting unknown definitions,
+* migrating catalogs without permission.
 
-The generic version is useful when an error should carry structured details.
+Those responsibilities belong to explicit authoring, validation, migration, and maintenance tools.
 
-Example:
+This is the role of tools such as the WhenItFails Setter.
 
-```csharp
-ErrorDescriptor<MissingConfigurationAttachment> error =
-    errorFactory.FireError(
-        type: "MissingConfigurationValue",
-        attachment: new MissingConfigurationAttachment
-        {
-            ConfigurationKey = "LibreTranslate:DefaultServer",
-            SourceName = "appsettings.json"
-        });
-```
+## Recovery without hidden mutation
 
-The attachment is optional. Most errors do not need it.
+WhenItFails may recover by:
 
----
+* retaining a previously valid context,
+* activating bundled defaults.
 
-## Catalogs Are the Source of Error Knowledge
+Recovery may change the active in-memory context.
 
-`WhenItFails` uses JSON catalogs as the primary storage format for error definitions.
+Recovery must not silently change the source catalogs.
 
-This keeps catalogs:
+This gives applications a controlled way to remain operational while keeping the failed project state available for diagnosis and repair.
 
-- human-readable
-- easy to edit
-- easy to version in Git
-- easy to copy
-- easy to customize
-- easy to export
-- easy to load into memory
-- independent from a database server
+## Availability and correctness
 
-The library treats JSON files as a lightweight file-backed store. The expected data size is small, and the typical workflow is:
+Different applications require different priorities.
 
-```text
-load JSON
-validate document
-normalize if needed
-build in-memory indexes
-query in memory
-save only when configuration changes
-```
+A development tool may prefer to continue with bundled defaults.
 
-This is intentionally simpler than using SQLite for this scenario.
+A long-running service may prefer to retain its previously valid context.
 
----
+A security-sensitive application may require strict initialization and refuse to start when the requested project catalog is invalid.
 
-## Built-in Catalogs and Project Copies
+WhenItFails therefore does not impose one universal recovery policy.
 
-Built-in Afrowave catalogs are source catalogs.
+It exposes strict and flexible initialization modes and makes the active runtime state observable.
 
-They should be treated as immutable.
+## Degraded operation must remain visible
 
-A project may create a local copy in its `Jsons` folder. The built-in catalog should be copied only if the project copy does not already exist.
+Successful recovery does not mean that nothing went wrong.
 
-Recommended rule:
+A runtime using a previous context or bundled fallback is operational, but it is degraded relative to the requested project configuration.
 
-```text
-If the project catalog does not exist:
-    copy the built-in catalog.
+That condition must remain inspectable through:
 
-If the project catalog already exists:
-    do not overwrite it.
-```
+* initialization results,
+* response metadata,
+* runtime status,
+* logging and monitoring integrations.
 
-This protects user and project changes.
+An option may hide a recoverable failure from the normal result flow, but it must not erase the diagnostics describing the recovery.
 
-Future tooling may compare the built-in catalog with the project copy and suggest a merge, but automatic overwrite should be avoided.
+## Complete contexts only
 
----
+The active runtime context contains multiple related catalogs.
 
-## Code Ranges and Ownership
+A context must be activated as one validated unit.
 
-Numeric error codes should be block-based.
-
-The purpose is similar to HTTP status code families: a knowledgeable person should be able to look at a code and roughly understand the error family.
-
-Example direction:
+The runtime must never expose a partially updated state such as:
 
 ```text
-100000-199999  General / Core
-200000-299999  Configuration
-300000-399999  Validation / Input
-400000-499999  Authentication / Authorization
-500000-599999  File system / I/O
-600000-699999  Network / external communication
-700000-799999  Database / storage
-800000-849999  Serialization / data format
-850000-899999  Text / language helper areas
-900000-999999  Framework / internal / unexpected
+new errors
++
+old categories
++
+missing profiles
 ```
 
-Application and user-defined errors should have their own reserved code space so they do not collide with future built-in Afrowave errors.
-
-Example direction:
+A consumer should observe either:
 
 ```text
-0-999999        reserved for official catalogs
-1000000-1999999 project/application errors
-2000000-2999999 user/customer errors
-3000000-3999999 integration/plugin errors
+the previous complete valid context
 ```
 
-This avoids a dangerous situation where a user-defined error code collides with a new built-in error introduced by a later package update.
-
----
-
-## Categories and Subcategories
-
-An error can belong to more than one category.
-
-For example, a database connection failure may also be relevant to startup, network, and external service handling.
-
-Because of that, the model should support:
-
-- primary category
-- multiple categories
-- multiple subcategories
-- tags
-
-Recommended distinction:
+or:
 
 ```text
-CodePrefix / CodeGroup
-    Defines where the error lives in the numbering and identity system.
-
-PrimaryCategory / Categories / Subcategories / Tags
-    Defines how the error can be searched, filtered, profiled, and understood.
+the new complete valid context
 ```
 
-This allows one error to be found from multiple useful viewpoints.
+Never an intermediate mixture.
 
----
+## Atomic publication
 
-## Profiles
+Context and status publication must happen only after successful creation and validation.
 
-Profiles are scenario-specific views of the catalog.
+Internally inconsistent status snapshots must be rejected before publication.
 
-Examples:
+This protects concurrent consumers from observing impossible combinations.
 
-- Default
-- Web
-- API
-- Desktop
-- CLI
-- Database
-- Development
-- Production
+## Explicit defaults
 
-A web profile may care about HTTP status mapping and user-safe messages.
-
-A database profile may care about connection, migration, query, and transaction failures.
-
-A production profile may hide internal details.
-
-A development profile may expose more diagnostic hints.
-
-Profiles should not replace the catalog. They should select, filter, or adapt catalog definitions for a specific scenario.
-
----
-
-## Localization Boundary
-
-`WhenItFails` is not a localization system.
-
-Localization belongs to the central Afrowave localization layer, such as `TalkToMe`.
-
-However, `WhenItFails` should be localization-friendly.
-
-It should be able to expose or export all texts that may need translation, such as:
-
-- title
-- message
-- developer hint
-- documentation label
-- profile-specific text variants
-
-For web applications, a localization system may automatically capture texts when code uses something like:
-
-```csharp
-localize[result.ErrorDescription.Message]
-```
-
-For desktop applications, where some errors may never appear during normal runtime, an explicit export helper can provide all catalog texts so they can be added to translation dictionaries.
-
-So the rule is:
+Bundled defaults may be used in two different ways:
 
 ```text
-WhenItFails provides error texts and export helpers.
-TalkToMe or the consuming application handles translation.
+automatic fallback
+or
+explicit reset
 ```
 
----
+These are not the same state.
 
-## Web Error Handling
+Automatic fallback means that the requested project initialization failed and the runtime recovered.
 
-Web error handling is important but should not be forced into the core package.
+Explicit reset means that the caller intentionally selected the bundled defaults.
 
-The core `WhenItFails` package should remain independent from ASP.NET Core.
+Only the first is degraded recovery.
 
-A future integration package may provide web-specific tools, for example:
+## User-safe and developer-safe information
+
+An error may contain information for different audiences.
+
+User-facing information should be:
+
+* understandable,
+* relevant,
+* safe to disclose,
+* free from secrets and internal implementation details.
+
+Developer-facing information may contain:
+
+* operation names,
+* component names,
+* source names,
+* diagnostic details,
+* remediation hints,
+* attached exceptions.
+
+The package stores these concerns separately so presentation layers can decide what is appropriate for the current environment and audience.
+
+## Exceptions are evidence, not identity
+
+An exception may accompany an error occurrence.
+
+It is not the stable identity of the error.
+
+Different low-level exceptions may represent the same catalog error.
+
+The same exception type may also represent different logical failures depending on context.
+
+WhenItFails therefore allows an exception to be attached to a descriptor without making exception types the primary catalog model.
+
+Exceptions are excluded from ordinary descriptor JSON serialization because they are runtime objects and may contain sensitive information.
+
+## Profiles select; they do not duplicate
+
+Profiles provide reusable views over the active catalog.
+
+A profile may select definitions by:
+
+* owner,
+* code group,
+* category,
+* subcategory,
+* tag.
+
+A profile should not copy full error definitions.
+
+Duplicating definitions inside profiles would create multiple sources of truth and make updates inconsistent.
+
+## Mappings are extensible policy
+
+Mappings allow platform-specific or environment-specific behavior without adding a dedicated property for every possible integration.
+
+Examples include:
 
 ```text
-Afrowave.Toolbox.WhenItFails.AspNetCore
+web.httpStatusCode
+web.problemDetails
+cli.includeExitCode
+desktop.showDialog
+service.includeRetryInformation
 ```
 
-That package may handle:
+Mappings should describe presentation or integration policy.
 
-- exception middleware
-- mapping `ErrorDescriptor` to `ProblemDetails`
-- mapping error definitions to HTTP status codes
-- request ID and trace ID metadata
-- safe production responses
-- validation error formatting
-- logging integration
+They should not replace core identity fields that deserve explicit validation.
 
-The core package should provide enough metadata and descriptors to make this possible, but it should not depend on web-specific libraries.
+## Normalization is assistance, not repair
 
----
+Normalization helps the runtime handle canonical forms consistently.
 
-## Why This Helps
+It may normalize values such as:
 
-Without a structured error system, applications often grow inconsistent error handling over time:
+* symbolic names,
+* aliases,
+* tags,
+* prefixes,
+* optional text,
+* empty collections.
 
-```csharp
-return new Response
-{
-    Success = false,
-    ErrorCode = 123,
-    ErrorMessage = "Invalid input",
-    ErrorCategory = "Validation"
-};
+Normalization must not disguise structurally invalid or contradictory catalog data.
+
+Authors should still write clear canonical values.
+
+Validation remains responsible for deciding whether the resulting context is acceptable.
+
+## Validation protects contracts
+
+Validation is not merely defensive parsing.
+
+It protects contracts between:
+
+* definitions,
+* owners,
+* code groups,
+* categories,
+* profiles,
+* consumers,
+* external systems.
+
+A duplicate numeric code or unresolved owner is not just untidy data.
+
+It can make diagnostics ambiguous and integrations unreliable.
+
+For that reason, invalid complete contexts are not activated.
+
+## Portability
+
+Catalogs use JSON so they can be:
+
+* stored in version control,
+* reviewed through ordinary diffs,
+* copied between projects,
+* generated by tools,
+* validated in CI,
+* exported and imported,
+* inspected without proprietary software.
+
+Project-specific profiles and definitions should remain portable whenever possible.
+
+## Local customization without package forks
+
+Projects should be able to customize error catalogs without modifying or forking the WhenItFails package.
+
+The package supplies:
+
+* runtime behavior,
+* validation rules,
+* bundled templates,
+* public contracts,
+* maintenance tooling.
+
+The project supplies:
+
+* its own definitions,
+* its own owners,
+* its own profiles,
+* its own mappings,
+* its own presentation policy.
+
+This separation allows package updates without discarding project-specific work.
+
+## Predictability over cleverness
+
+WhenItFails favors explicit behavior over hidden convenience.
+
+Examples include:
+
+```text
+explicit initialization
+explicit recovery modes
+explicit active context
+explicit runtime status
+explicit reset to defaults
+explicit authoring tools
 ```
 
-Later, somewhere else:
+A caller should be able to determine:
 
-```csharp
-return new Response
-{
-    Success = false,
-    ErrorCode = 124,
-    ErrorMessage = "Bad input",
-    ErrorCategory = "Input"
-};
-```
+* what context is active,
+* where it came from,
+* whether recovery occurred,
+* why recovery occurred,
+* whether project files were changed.
 
-The result is usually:
+Hidden magic may initially reduce code, but it makes failures harder to trust.
 
-- duplicated messages
-- inconsistent codes
-- unclear categories
-- weak diagnostics
-- harder translation
-- harder support
-- harder API documentation
-- harder logging and filtering
+## Main design rules
 
-With `WhenItFails`, application code can stay small:
+Future development should preserve these rules:
 
-```csharp
-return Response.Fail(
-    errorFactory.FireError("InvalidInput", "Name is required."));
-```
+1. Never use human-readable messages as stable identity.
+2. Never publish partially initialized contexts.
+3. Never overwrite project catalogs silently.
+4. Never hide unrecoverable failures.
+5. Never describe fallback as normal project activation.
+6. Never treat a runtime occurrence as a catalog definition.
+7. Never expose attached exceptions blindly to users.
+8. Never duplicate definitions inside profiles.
+9. Never let arbitrary mappings replace validated core fields.
+10. Never publish an internally inconsistent runtime status.
+11. Keep authoring and runtime responsibilities separate.
+12. Keep recovery observable.
+13. Prefer explicit policy over surprising automation.
+14. Preserve stable IDs and numeric codes after publication.
+15. Treat project-local catalogs as user-owned data.
 
-The catalog and preset system provide the rest.
+## Central principle
 
----
+The package can be summarized by one rule:
 
-## Design Rule
+> Failures should be structured enough for machines, understandable enough for people, and explicit enough to remain trustworthy.
 
-A useful way to summarize the design is:
-
-> The rich model is for catalogs and tools.  
-> The simple API is for everyday application code.
-
-If developers feel forced to fill the whole error model manually, the package has failed its purpose.
-
-If developers can use a small `FireError(...)` call while still getting consistent, searchable, documentable, and exportable errors, the package is doing its job.
