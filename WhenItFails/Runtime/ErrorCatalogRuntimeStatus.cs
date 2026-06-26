@@ -52,7 +52,23 @@ public sealed class ErrorCatalogRuntimeStatus
     /// a valid and internally consistent combination of state values.
     /// </summary>
     public bool IsConsistent =>
-        State != ErrorCatalogRuntimeState.Unknown;
+     State switch
+     {
+         ErrorCatalogRuntimeState.ProjectCatalog =>
+             HasNoRecoveryDetails(),
+
+         ErrorCatalogRuntimeState.BuiltInDefaults =>
+             HasNoRecoveryDetails(),
+
+         ErrorCatalogRuntimeState.PreviousContextRecovery =>
+             HasCompleteRecoveryDetails(),
+
+         ErrorCatalogRuntimeState.BuiltInFallback =>
+             HasCompleteRecoveryDetails(),
+
+         _ =>
+             false
+     };
     /// <summary>
     /// Gets a value indicating whether the runtime is operating
     /// in a degraded recovery state.
@@ -106,4 +122,22 @@ public sealed class ErrorCatalogRuntimeStatus
     /// from an isolated temporary workspace.
     /// </remarks>
     public string PackageDirectoryPath { get; init; } = string.Empty;
+
+    private bool HasNoRecoveryDetails()
+    {
+        return string.IsNullOrWhiteSpace(
+                   RecoveryReasonCode)
+               && RecoveryStatus is null
+               && string.IsNullOrWhiteSpace(
+                   RecoveryMessage);
+    }
+
+    private bool HasCompleteRecoveryDetails()
+    {
+        return !string.IsNullOrWhiteSpace(
+                   RecoveryReasonCode)
+               && RecoveryStatus is not null
+               && !string.IsNullOrWhiteSpace(
+                   RecoveryMessage);
+    }
 }
