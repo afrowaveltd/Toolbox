@@ -86,7 +86,9 @@ See:
 
 - [Initialization and recovery](Docs/Runtime/Initialization-and-Recovery.md)
 - [Public runtime API](Docs/Runtime/Public-API.md)
-- [Initialization and recovery](Docs/Runtime/Initialization-and-Recovery.md)
+- [Design philosophy](Docs/Philosophy/en.md)
+- [Configuration](Docs/Configuration/en.md)
+- [Catalogs](Docs/Catalogs/en.md)
 
 ## Runtime status
 
