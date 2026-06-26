@@ -89,6 +89,7 @@ Recovery never overwrites or repairs project JSON files automatically.
 - [Configuration](Docs/Configuration/en.md)
 - [Catalogs](Docs/Catalogs/en.md)
 - [Profiles](Docs/Profiles/en.md)
+- [Error descriptors](Docs/Descriptors/en.md)
 - [Public runtime API](Docs/Runtime/Public-API.md)
 - [Initialization and recovery](Docs/Runtime/Initialization-and-Recovery.md)
 
