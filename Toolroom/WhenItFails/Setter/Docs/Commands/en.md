@@ -1,147 +1,806 @@
-# WhenItFails Setter — Commands
+# WhenItFails Setter — command reference
 
-All commands follow the pattern:
+This document describes all currently supported WhenItFails Setter commands.
 
-```
-dotnet run --project <Setter.csproj> -- <command> [arguments...]
-```
+## Invocation
 
-Or, if published as a standalone tool:
+From the Toolbox repository, use:
 
-```
-when-it-fails-setter <command> [arguments...]
+```bash
+dotnet run --project Toolroom/WhenItFails/Setter -- <command> [arguments]
 ```
 
-## Command Reference
+The double dash separates `dotnet run` arguments from Setter arguments.
 
-### `help`
+Example:
 
-Shows the help screen with all available commands.
-
+```bash
+dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 ```
+
+If Setter is later published as a standalone executable, the equivalent form may be:
+
+```bash
+when-it-fails-setter <command> [arguments]
+```
+
+The examples below use the shorter standalone form where it improves readability.
+
+## Common path argument
+
+Most commands accept:
+
+```text
+<path>
+```
+
+The path may point to:
+
+* a project root containing `Jsons/WhenItFails`,
+* the `Jsons/WhenItFails` directory itself.
+
+Examples:
+
+```bash
+when-it-fails-setter validate ./MyProject
+```
+
+```bash
+when-it-fails-setter validate ./MyProject/Jsons/WhenItFails
+```
+
+```bash
+when-it-fails-setter validate .
+```
+
+## Common lookup argument
+
+Commands that operate on one error accept:
+
+```text
+<id|code|name>
+```
+
+The error may be selected by:
+
+* stable ID,
+* numeric code,
+* symbolic name.
+
+Examples:
+
+```text
+AFW_NET_0001
+600001
+NETWORKUNAVAILABLE
+```
+
+Text lookup is case-insensitive.
+
+## Exit codes
+
+Setter commands use process exit codes.
+
+General convention:
+
+```text
+0
+→ command succeeded
+
+1
+→ command syntax or input was invalid
+
+2
+→ workspace validation, lookup, editing, or save failed
+
+3
+→ unexpected command-level or initialization failure
+```
+
+The exact meaning is documented for each command.
+
+# Commands
+
+## `help`
+
+Shows the help screen.
+
+```bash
 when-it-fails-setter help
+```
+
+Aliases:
+
+```bash
 when-it-fails-setter --help
 when-it-fails-setter -h
 ```
 
-### `init <path>`
+Running Setter without arguments also displays help.
 
-Creates missing WhenItFails JSON files under the specified project root.
-
+```bash
+when-it-fails-setter
 ```
+
+Exit code:
+
+```text
+0
+```
+
+## `init <path>`
+
+Creates missing WhenItFails workspace files.
+
+```bash
 when-it-fails-setter init ./MyProject
 ```
 
-The command creates a `Jsons/WhenItFails/` directory with default catalog files (errors, categories, code groups, owners, profiles). Existing files are skipped.
+The default workspace structure is:
 
-**Exit codes:**
-- `0` — Workspace created or already exists.
-- `1` — Missing path argument.
-- `3` — Initialization failed.
-
-### `validate <path>`
-
-Validates all WhenItFails JSON files at the specified path.
-
-```
-when-it-fails-setter validate ./MyProject
-when-it-fails-setter validate ./MyProject/Jsons/WhenItFails
+```text
+Jsons/
+└── WhenItFails/
+    ├── errors.en.json
+    ├── categories.en.json
+    ├── code-groups.en.json
+    ├── owners.en.json
+    └── profiles.json
 ```
 
-Accepts either a project root or a direct `Jsons/WhenItFails` directory path. Performs per-document validation and cross-document validation.
+Behavior:
 
-**Exit codes:**
-- `0` — All files are valid.
-- `1` — Missing path argument.
-- `2` — Validation errors found.
+* creates missing directories,
+* creates missing files from bundled templates,
+* preserves existing files,
+* never overwrites project-owned catalogs.
 
-### `summary <path>` / `inspect <path>`
+Repeated execution is safe.
 
-Shows a read-only summary of the workspace: catalog overview, owner table, code group table, profile table, and top categories by error count.
+`init` is not a reset command.
 
+Exit codes:
+
+```text
+0
+→ workspace created or already complete
+
+1
+→ path argument missing or invalid
+
+3
+→ workspace initialization failed
 ```
+
+## `validate <path>`
+
+Validates the complete workspace.
+
+```bash
+when-it-fails-setter validate .
+```
+
+Direct catalog-directory example:
+
+```bash
+when-it-fails-setter validate ./Jsons/WhenItFails
+```
+
+Validation includes:
+
+* JSON loading,
+* document validation,
+* required fields,
+* duplicate identities,
+* owner references,
+* code-group references,
+* numeric ranges,
+* categories,
+* profiles,
+* cross-catalog relationships.
+
+Exit codes:
+
+```text
+0
+→ workspace is valid
+
+1
+→ path argument missing or invalid
+
+2
+→ loading or validation errors found
+```
+
+Warnings do not necessarily make the workspace invalid, but they should still be reviewed.
+
+## `summary <path>`
+
+Shows a read-only workspace summary.
+
+```bash
 when-it-fails-setter summary .
+```
+
+The summary may include:
+
+* catalog overview,
+* error count,
+* category count,
+* code-group count,
+* owner count,
+* profile count,
+* owner table,
+* code-group table,
+* profile table,
+* category usage.
+
+The workspace must validate before the summary is shown.
+
+Exit codes:
+
+```text
+0
+→ summary displayed
+
+1
+→ path argument missing or invalid
+
+2
+→ workspace loading or validation failed
+```
+
+## `inspect <path>`
+
+Alias for:
+
+```text
+summary
+```
+
+Example:
+
+```bash
 when-it-fails-setter inspect ./MyProject
 ```
 
-`inspect` is an alias for `summary`.
+Behavior and exit codes are identical to `summary`.
 
-**Exit codes:**
-- `0` — Summary displayed.
-- `1` — Missing path argument.
-- `2` — Validation errors found (summary not shown).
+## `errors <path> [filters]`
 
-### `errors <path> [filters...]`
+Lists error definitions.
 
-Lists error definitions with optional filters.
-
-```
+```bash
 when-it-fails-setter errors .
+```
+
+By default, Setter uses a rich terminal table.
+
+Plain script-friendly output is available through:
+
+```text
+--plain
+```
+
+Example:
+
+```bash
+when-it-fails-setter errors . --plain
+```
+
+### Filters
+
+| Option                 | Description                           |
+| ---------------------- | ------------------------------------- |
+| `--owner <value>`      | Filter by owner name.                 |
+| `--group <value>`      | Filter by code-group name.            |
+| `--code-group <value>` | Alias for `--group`.                  |
+| `--category <value>`   | Filter by primary category.           |
+| `--severity <value>`   | Filter by default severity.           |
+| `--profile <value>`    | Resolve and filter through a profile. |
+| `--search <text>`      | Search across error fields.           |
+| `--plain`              | Produce plain tab-separated output.   |
+
+### Owner filter
+
+```bash
+when-it-fails-setter errors . --owner AFW
+```
+
+### Code-group filter
+
+```bash
+when-it-fails-setter errors . --group NETWORK
+```
+
+Equivalent alias:
+
+```bash
+when-it-fails-setter errors . --code-group NETWORK
+```
+
+### Category filter
+
+```bash
 when-it-fails-setter errors . --category NETWORK
-when-it-fails-setter errors . --owner AFW --severity Error
+```
+
+### Severity filter
+
+```bash
+when-it-fails-setter errors . --severity Warning
+```
+
+### Profile filter
+
+```bash
 when-it-fails-setter errors . --profile API
+```
+
+The profile may be selected by profile name or display name.
+
+### Full-text search
+
+```bash
 when-it-fails-setter errors . --search timeout
-when-it-fails-setter errors . --plain --category NETWORK
 ```
 
-**Filters:**
+Search may inspect fields such as:
 
-| Option | Description |
-|---|---|
-| `--owner <value>` | Filter by owner name (exact match, case-insensitive). |
-| `--group <value>` | Filter by code group name. Alias: `--code-group`. |
-| `--category <value>` | Filter by primary category name. |
-| `--severity <value>` | Filter by severity (e.g., `Error`, `Warning`, `Information`). |
-| `--profile <value>` | Filter by profile name or display name. |
-| `--search <text>` | Full-text search across id, name, title, message, hint, documentation key, code, owner, group, category, tags, and subcategories. |
-| `--plain` | Output as plain tab-separated text instead of rich tables. |
+* ID,
+* numeric code,
+* name,
+* title,
+* message,
+* developer hint,
+* documentation key,
+* owner,
+* code group,
+* primary category,
+* tags,
+* subcategories.
 
-**Exit codes:**
-- `0` — Errors listed.
-- `1` — Missing path or unknown profile.
-- `2` — Validation errors found.
+### Combined filters
 
-### `details <path> <id|code|name>` / `detail <path> <id|code|name>`
-
-Shows all fields of a single error definition.
-
+```bash
+when-it-fails-setter errors . \
+  --owner AFW \
+  --category NETWORK \
+  --severity Warning
 ```
+
+Filters narrow the result together.
+
+### Plain output
+
+```bash
+when-it-fails-setter errors . \
+  --plain \
+  --category NETWORK
+```
+
+Redirect example:
+
+```bash
+when-it-fails-setter errors . --plain > errors.tsv
+```
+
+Exit codes:
+
+```text
+0
+→ error list displayed
+
+1
+→ path, arguments, or profile invalid
+
+2
+→ workspace loading or validation failed
+```
+
+An empty filtered result is not necessarily a command failure.
+
+## `details <path> <id|code|name> [--plain]`
+
+Shows one complete error definition.
+
+By ID:
+
+```bash
 when-it-fails-setter details . AFW_NET_0001
+```
+
+By numeric code:
+
+```bash
 when-it-fails-setter details . 600001
+```
+
+By symbolic name:
+
+```bash
 when-it-fails-setter details . NETWORKUNAVAILABLE
+```
+
+Plain output:
+
+```bash
 when-it-fails-setter details . AFW_NET_0001 --plain
 ```
 
-Lookup works by id, numeric code, or name (case-insensitive). `detail` is an alias for `details`.
+The command displays fields such as:
 
-**Exit codes:**
-- `0` — Detail displayed.
-- `1` — Missing arguments or error definition not found.
-- `2` — Validation errors found.
+* ID,
+* code,
+* name,
+* owner,
+* code prefix,
+* code group,
+* primary category,
+* categories,
+* subcategories,
+* title,
+* message,
+* severity,
+* developer hint,
+* documentation key,
+* tags,
+* metadata.
 
-### `set-title <path> <id|code|name> <new title>`
+Exit codes:
 
-Changes the title of an error definition with safe write semantics.
+```text
+0
+→ error displayed
 
+1
+→ arguments missing or error not found
+
+2
+→ workspace loading or validation failed
 ```
-when-it-fails-setter set-title . AFW_NET_0001 "Network unavailable"
+
+## `detail <path> <id|code|name>`
+
+Alias for:
+
+```text
+details
 ```
 
-The title argument can contain spaces — everything after the lookup value is treated as the new title.
+Example:
 
-**Exit codes:**
-- `0` — Title updated successfully.
-- `1` — Missing arguments.
-- `2` — Edit failed (load error, validation error, or save error).
-
-### `demo`
-
-Shows a sample validation result with example errors, warnings, and information messages.
-
+```bash
+when-it-fails-setter detail . AFW_NET_0001
 ```
+
+Behavior and exit codes are identical to `details`.
+
+# Write commands
+
+All write commands use safe-write behavior.
+
+The general workflow is:
+
+```text
+load workspace
+→ locate target error
+→ create updated in-memory document
+→ validate updated document
+→ create timestamped backup
+→ save updated catalog
+```
+
+A failed edit must not replace the original catalog.
+
+## `set-title <path> <id|code|name> <title>`
+
+Changes the human-facing title.
+
+```bash
+when-it-fails-setter set-title . \
+  AFW_NET_0001 \
+  "Network is not available"
+```
+
+Everything after the lookup argument is joined into the new title.
+
+This means quotes are recommended but not always technically required.
+
+Preferred:
+
+```bash
+when-it-fails-setter set-title . \
+  AFW_NET_0001 \
+  "Network is not available"
+```
+
+The title should be:
+
+* concise,
+* human-readable,
+* naturally capitalized,
+* suitable for display.
+
+Exit codes:
+
+```text
+0
+→ title updated
+
+1
+→ required arguments missing
+
+2
+→ lookup, validation, backup, or save failed
+```
+
+## `set-message <path> <id|code|name> <message>`
+
+Changes the human-facing error message.
+
+```bash
+when-it-fails-setter set-message . \
+  AFW_NET_0001 \
+  "The network is currently unavailable."
+```
+
+Everything after the lookup argument is joined into the new message.
+
+The message should explain the failure in user-facing language.
+
+Avoid placing sensitive internal details directly into this field.
+
+Exit codes:
+
+```text
+0
+→ message updated
+
+1
+→ required arguments missing
+
+2
+→ lookup, validation, backup, or save failed
+```
+
+## `set-developer-hint <path> <id|code|name> <developer-hint>`
+
+Changes the developer-oriented diagnostic hint.
+
+```bash
+when-it-fails-setter set-developer-hint . \
+  AFW_NET_0001 \
+  "Check connectivity, DNS, proxy, VPN, and endpoint availability."
+```
+
+The developer hint may include:
+
+* diagnostic guidance,
+* likely causes,
+* suggested checks,
+* technical recovery advice.
+
+It should not contain secrets, passwords, tokens, or private production data.
+
+Everything after the lookup argument is joined into the new hint.
+
+Exit codes:
+
+```text
+0
+→ developer hint updated
+
+1
+→ required arguments missing
+
+2
+→ lookup, validation, backup, or save failed
+```
+
+## `set-severity <path> <id|code|name> <severity>`
+
+Changes the default severity.
+
+```bash
+when-it-fails-setter set-severity . \
+  AFW_NET_0001 \
+  Warning
+```
+
+Supported values:
+
+```text
+Trace
+Debug
+Information
+Warning
+Error
+Critical
+```
+
+Severity matching should use one of the documented values.
+
+Severity changes may affect:
+
+* logging,
+* monitoring,
+* alerting,
+* filtering,
+* user-interface presentation,
+* profile behavior.
+
+Treat severity changes as behavioral catalog changes.
+
+Exit codes:
+
+```text
+0
+→ severity updated
+
+1
+→ required arguments missing or severity invalid
+
+2
+→ lookup, validation, backup, or save failed
+```
+
+## `set-documentation-key <path> <id|code|name> <documentation-key>`
+
+Changes the documentation key.
+
+```bash
+when-it-fails-setter set-documentation-key . \
+  AFW_NET_0001 \
+  "when-it-fails/errors/network/network-unavailable"
+```
+
+A documentation key may connect the error with:
+
+* online documentation,
+* local help,
+* troubleshooting pages,
+* support articles,
+* administration interfaces.
+
+Recommended properties:
+
+```text
+stable
+machine-friendly
+human-reviewable
+independent of deployment URL
+```
+
+The documentation key is not necessarily a full URL.
+
+Everything after the lookup argument is joined into the new value.
+
+Exit codes:
+
+```text
+0
+→ documentation key updated
+
+1
+→ required arguments missing
+
+2
+→ lookup, validation, backup, or save failed
+```
+
+## `demo`
+
+Shows a sample validation result.
+
+```bash
 when-it-fails-setter demo
 ```
 
-Useful for testing console output formatting.
+The command is useful for:
 
-> Localized versions of this documentation may be generated later by Afrowave translation tooling.
+* checking console rendering,
+* previewing validation output,
+* testing terminal colors and layout,
+* developing presentation components.
+
+It does not modify a workspace.
+
+Exit code:
+
+```text
+0
+```
+
+# Unknown commands
+
+An unsupported command produces an error and displays the help screen.
+
+Example:
+
+```bash
+when-it-fails-setter dance
+```
+
+Exit code:
+
+```text
+1
+```
+
+# Unexpected exceptions
+
+Unexpected command exceptions are rendered through Spectre.Console.
+
+The application returns:
+
+```text
+3
+```
+
+This differs from ordinary validation or editing failures, which should normally return `2`.
+
+# Scripting examples
+
+## Validate in a shell script
+
+```bash
+if ! dotnet run \
+  --project Toolroom/WhenItFails/Setter \
+  -- validate .
+then
+  echo "WhenItFails workspace validation failed."
+  exit 1
+fi
+```
+
+## Export filtered errors
+
+```bash
+dotnet run \
+  --project Toolroom/WhenItFails/Setter \
+  -- errors . --plain --category NETWORK \
+  > network-errors.tsv
+```
+
+## Inspect one error
+
+```bash
+dotnet run \
+  --project Toolroom/WhenItFails/Setter \
+  -- details . AFW_NET_0001 --plain
+```
+
+# Recommended editing workflow
+
+```text
+validate
+→ details
+→ run one write command
+→ details
+→ validate
+→ git diff
+→ commit
+```
+
+Example:
+
+```bash
+when-it-fails-setter validate .
+
+when-it-fails-setter details . AFW_NET_0001
+
+when-it-fails-setter set-message . \
+  AFW_NET_0001 \
+  "The network is currently unavailable."
+
+when-it-fails-setter details . AFW_NET_0001
+
+when-it-fails-setter validate .
+
+git diff
+```
+
+# Central principle
+
+> Setter commands should make inspection easy, editing explicit, and failure visible through both output and exit code.
