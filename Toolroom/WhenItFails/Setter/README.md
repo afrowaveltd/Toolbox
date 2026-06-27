@@ -260,11 +260,12 @@ Jsons/
 
 ## Documentation
 
-* [Overview](Docs/Overview/en.md)
-* [Commands](Docs/Commands/en.md)
-* [Setting Title](Docs/Setting%20Title/en.md)
-* [Plain Output](Docs/Plain%20Output/en.md)
-* [Safe Writes](Docs/Safe%20Writes/en.md)
+- [Getting started](Docs/Getting-Started/en.md)
+- [Overview](Docs/Overview/en.md)
+- [Commands](Docs/Commands/en.md)
+- [Setting Title](Docs/Setting%20Title/en.md)
+- [Plain Output](Docs/Plain%20Output/en.md)
+- [Safe Writes](Docs/Safe%20Writes/en.md)
 
 ## Design
 
