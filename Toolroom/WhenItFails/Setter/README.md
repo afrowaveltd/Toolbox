@@ -265,6 +265,7 @@ Jsons/
 - [Commands](Docs/Commands/en.md)
 - [Workspace Paths and Initialization](Docs/Workspace%20Paths%20and%20Initialization/en.md)
 - [Validation](Docs/Validation/en.md)
+- [Workspace Summary](Docs/Workspace%20Summary/en.md)
 - [Browsing and Filtering Errors](Docs/Browsing%20and%20Filtering%20Errors/en.md)
 - [Inspecting Error Details](Docs/Inspecting%20Error%20Details/en.md)
 - [Editing error fields](Docs/Editing%20Error%20Fields/en.md)
