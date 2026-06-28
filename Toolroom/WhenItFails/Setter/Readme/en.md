@@ -263,6 +263,7 @@ Jsons/
 - [Getting started](Docs/Getting-Started/en.md)
 - [Overview](Docs/Overview/en.md)
 - [Commands](Docs/Commands/en.md)
+- [Workspace Paths and Initialization](Docs/Workspace%20Paths%20and%20Initialization/en.md)
 - [Validation](Docs/Validation/en.md)
 - [Editing error fields](Docs/Editing%20Error%20Fields/en.md)
 - [Setting Title](Docs/Setting%20Title/en.md)
