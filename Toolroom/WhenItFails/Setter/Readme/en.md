@@ -268,6 +268,7 @@ Jsons/
 - [Setting Title](Docs/Setting%20Title/en.md)
 - [Plain Output](Docs/Plain%20Output/en.md)
 - [Safe Writes](Docs/Safe%20Writes/en.md)
+- [Troubleshooting](Docs/Troubleshooting/en.md)
 
 ## Design
 
