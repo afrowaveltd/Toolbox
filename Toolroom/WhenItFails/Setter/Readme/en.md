@@ -263,6 +263,7 @@ Jsons/
 - [Getting started](Docs/Getting-Started/en.md)
 - [Overview](Docs/Overview/en.md)
 - [Commands](Docs/Commands/en.md)
+- [Exit Codes and Automation](Docs/Exit%20Codes%20and%20Automation/en.md)
 - [Workspace Paths and Initialization](Docs/Workspace%20Paths%20and%20Initialization/en.md)
 - [Validation](Docs/Validation/en.md)
 - [Workspace Summary](Docs/Workspace%20Summary/en.md)
