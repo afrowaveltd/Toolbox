@@ -264,6 +264,7 @@ Jsons/
 - [Overview](Docs/Overview/en.md)
 - [Commands](Docs/Commands/en.md)
 - [Exit Codes and Automation](Docs/Exit%20Codes%20and%20Automation/en.md)
+- [Windows and PowerShell](Docs/Windows%20and%20PowerShell/en.md)
 - [Workspace Paths and Initialization](Docs/Workspace%20Paths%20and%20Initialization/en.md)
 - [Validation](Docs/Validation/en.md)
 - [Workspace Summary](Docs/Workspace%20Summary/en.md)
