@@ -284,6 +284,7 @@ Jsons/
 - [Safe Writes](Docs/Safe%20Writes/en.md)
 - [Backups and Recovery](Docs/Backups%20and%20Recovery/en.md)
 - [Testing and CI](Docs/Testing%20and%20CI/en.md)
+- [Release Checklist](Docs/Release%20Checklist/en.md)
 - [Troubleshooting](Docs/Troubleshooting/en.md)
 
 ## Design

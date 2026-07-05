@@ -14,6 +14,7 @@
     <Folder Include="Docs\Glossary\" />
     <Folder Include="Docs\Catalog Files\" />
     <Folder Include="Docs\Catalog Author Checklist\" />
+    <Folder Include="Docs\Release Checklist\" />
     <Folder Include="Docs\Profiles\" />
     <Folder Include="Docs\Windows and PowerShell\" />
   </ItemGroup>
