@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <Folder Include="Docs\Documentation Map\" />
+    <Folder Include="Docs\Glossary\" />
     <Folder Include="Docs\Windows and PowerShell\" />
   </ItemGroup>
 

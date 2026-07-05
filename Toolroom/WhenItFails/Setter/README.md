@@ -261,6 +261,7 @@ Jsons/
 ## Documentation
 
 - [Documentation Map](Docs/Documentation%20Map/en.md)
+- [Glossary](Docs/Glossary/en.md)
 - [Getting started](Docs/Getting-Started/en.md)
 - [Overview](Docs/Overview/en.md)
 - [Commands](Docs/Commands/en.md)
