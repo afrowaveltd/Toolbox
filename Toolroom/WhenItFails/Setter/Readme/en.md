@@ -285,6 +285,7 @@ Jsons/
 - [Backups and Recovery](Docs/Backups%20and%20Recovery/en.md)
 - [Testing and CI](Docs/Testing%20and%20CI/en.md)
 - [Contributing to Setter](Docs/Contributing%20to%20Setter/en.md)
+- [Maintainer Notes](Docs/Maintainer%20Notes/en.md)
 - [Release Checklist](Docs/Release%20Checklist/en.md)
 - [Troubleshooting](Docs/Troubleshooting/en.md)
 
