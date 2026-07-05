@@ -270,6 +270,7 @@ Jsons/
 - [Windows and PowerShell](Docs/Windows%20and%20PowerShell/en.md)
 - [Linux and Bash](Docs/Linux%20and%20Bash/en.md)
 - [Workspace Paths and Initialization](Docs/Workspace%20Paths%20and%20Initialization/en.md)
+- [Catalog Files](Docs/Catalog%20Files/en.md)
 - [Validation](Docs/Validation/en.md)
 - [Workspace Summary](Docs/Workspace%20Summary/en.md)
 - [Profiles](Docs/Profiles/en.md)

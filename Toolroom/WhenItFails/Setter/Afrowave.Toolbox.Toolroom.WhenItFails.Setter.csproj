@@ -12,6 +12,7 @@
   <ItemGroup>
     <Folder Include="Docs\Documentation Map\" />
     <Folder Include="Docs\Glossary\" />
+    <Folder Include="Docs\Catalog Files\" />
     <Folder Include="Docs\Profiles\" />
     <Folder Include="Docs\Windows and PowerShell\" />
   </ItemGroup>
