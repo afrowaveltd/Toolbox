@@ -1,4 +1,4 @@
-# WhenItFails Setter
+ WhenItFails Setter
 
 A command-line tool for managing Afrowave.Toolbox.WhenItFails JSON workspaces.
 
@@ -263,8 +263,10 @@ Jsons/
 - [Getting started](Docs/Getting-Started/en.md)
 - [Overview](Docs/Overview/en.md)
 - [Commands](Docs/Commands/en.md)
+- [Command Quick Reference](Docs/Command%20Quick%20Reference/en.md)
 - [Exit Codes and Automation](Docs/Exit%20Codes%20and%20Automation/en.md)
 - [Windows and PowerShell](Docs/Windows%20and%20PowerShell/en.md)
+- [Linux and Bash](Docs/Linux%20and%20Bash/en.md)
 - [Workspace Paths and Initialization](Docs/Workspace%20Paths%20and%20Initialization/en.md)
 - [Validation](Docs/Validation/en.md)
 - [Workspace Summary](Docs/Workspace%20Summary/en.md)
