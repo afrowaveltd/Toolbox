@@ -260,6 +260,7 @@ Jsons/
 
 ## Documentation
 
+- [Documentation Map](Docs/Documentation%20Map/en.md)
 - [Getting started](Docs/Getting-Started/en.md)
 - [Overview](Docs/Overview/en.md)
 - [Commands](Docs/Commands/en.md)

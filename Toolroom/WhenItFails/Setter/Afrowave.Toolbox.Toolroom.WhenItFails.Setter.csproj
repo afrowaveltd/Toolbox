@@ -10,6 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Docs\Documentation Map\" />
     <Folder Include="Docs\Windows and PowerShell\" />
   </ItemGroup>
 
