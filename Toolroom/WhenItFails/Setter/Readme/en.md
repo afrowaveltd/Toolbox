@@ -278,6 +278,7 @@ Jsons/
 - [Browsing and Filtering Errors](Docs/Browsing%20and%20Filtering%20Errors/en.md)
 - [Inspecting Error Details](Docs/Inspecting%20Error%20Details/en.md)
 - [Editing error fields](Docs/Editing%20Error%20Fields/en.md)
+- [Adding a New Error Definition](Docs/Adding%20a%20New%20Error%20Definition/en.md)
 - [Authoring Error Text](Docs/Authoring%20Error%20Text/en.md)
 - [Setting Title](Docs/Setting%20Title/en.md)
 - [Plain Output](Docs/Plain%20Output/en.md)

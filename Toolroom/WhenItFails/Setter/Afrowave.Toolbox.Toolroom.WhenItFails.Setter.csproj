@@ -18,6 +18,7 @@
     <Folder Include="Docs\Maintainer Notes\" />
     <Folder Include="Docs\Architecture Overview\" />
     <Folder Include="Docs\Adding a New Command\" />
+    <Folder Include="Docs\Adding a New Error Definition\" />
     <Folder Include="Docs\Release Checklist\" />
     <Folder Include="Docs\Profiles\" />
     <Folder Include="Docs\Windows and PowerShell\" />
