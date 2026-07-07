@@ -1,4 +1,4 @@
-# WhenItFails Setter
+ WhenItFails Setter
 
 A command-line tool for managing Afrowave.Toolbox.WhenItFails JSON workspaces.
 
@@ -260,14 +260,21 @@ Jsons/
 
 ## Documentation
 
+- [Documentation Map](Docs/Documentation%20Map/en.md)
+- [Glossary](Docs/Glossary/en.md)
 - [Getting started](Docs/Getting-Started/en.md)
 - [Overview](Docs/Overview/en.md)
 - [Commands](Docs/Commands/en.md)
+- [Command Quick Reference](Docs/Command%20Quick%20Reference/en.md)
 - [Exit Codes and Automation](Docs/Exit%20Codes%20and%20Automation/en.md)
 - [Windows and PowerShell](Docs/Windows%20and%20PowerShell/en.md)
+- [Linux and Bash](Docs/Linux%20and%20Bash/en.md)
 - [Workspace Paths and Initialization](Docs/Workspace%20Paths%20and%20Initialization/en.md)
+- [Catalog Files](Docs/Catalog%20Files/en.md)
+- [Catalog Author Checklist](Docs/Catalog%20Author%20Checklist/en.md)
 - [Validation](Docs/Validation/en.md)
 - [Workspace Summary](Docs/Workspace%20Summary/en.md)
+- [Profiles](Docs/Profiles/en.md)
 - [Browsing and Filtering Errors](Docs/Browsing%20and%20Filtering%20Errors/en.md)
 - [Inspecting Error Details](Docs/Inspecting%20Error%20Details/en.md)
 - [Editing error fields](Docs/Editing%20Error%20Fields/en.md)
@@ -277,6 +284,9 @@ Jsons/
 - [Safe Writes](Docs/Safe%20Writes/en.md)
 - [Backups and Recovery](Docs/Backups%20and%20Recovery/en.md)
 - [Testing and CI](Docs/Testing%20and%20CI/en.md)
+- [Contributing to Setter](Docs/Contributing%20to%20Setter/en.md)
+- [Maintainer Notes](Docs/Maintainer%20Notes/en.md)
+- [Release Checklist](Docs/Release%20Checklist/en.md)
 - [Troubleshooting](Docs/Troubleshooting/en.md)
 
 ## Design

@@ -3,12 +3,16 @@
   "WorkspaceRootPath": "G:\\Afrowave Projects\\Toolbox\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|g:\\afrowave projects\\toolbox\\toolroom\\whenitfails\\setter\\readme\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|solutionrelative:toolroom\\whenitfails\\setter\\readme\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|g:\\afrowave projects\\toolbox\\toolroom\\whenitfails\\setter\\readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
       "RelativeMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|solutionrelative:toolroom\\whenitfails\\setter\\readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|g:\\afrowave projects\\toolbox\\toolroom\\whenitfails\\setter\\docs\\windows and powershell\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
-      "RelativeMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|solutionrelative:toolroom\\whenitfails\\setter\\docs\\windows and powershell\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+      "AbsoluteMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|g:\\afrowave projects\\toolbox\\toolroom\\whenitfails\\setter\\docs\\profiles\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|solutionrelative:toolroom\\whenitfails\\setter\\docs\\profiles\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
     }
   ],
   "DocumentGroupContainers": [
@@ -18,7 +22,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 50,
+          "SelectedChildIndex": 51,
           "Children": [
             {
               "$type": "Bookmark",
@@ -222,28 +226,41 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "README.md",
-              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Toolroom\\WhenItFails\\Setter\\README.md",
-              "RelativeDocumentMoniker": "Toolroom\\WhenItFails\\Setter\\README.md",
-              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\Toolroom\\WhenItFails\\Setter\\README.md",
-              "RelativeToolTip": "Toolroom\\WhenItFails\\Setter\\README.md",
-              "ViewState": "AgIAAPkAAAAAAAAAAAAAAAoBAABBAAAAAAAAAA==",
+              "DocumentIndex": 2,
+              "Title": "en.md",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Toolroom\\WhenItFails\\Setter\\Docs\\Profiles\\en.md",
+              "RelativeDocumentMoniker": "Toolroom\\WhenItFails\\Setter\\Docs\\Profiles\\en.md",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\Toolroom\\WhenItFails\\Setter\\Docs\\Profiles\\en.md",
+              "RelativeToolTip": "Toolroom\\WhenItFails\\Setter\\Docs\\Profiles\\en.md",
+              "ViewState": "AgIAADUEAAAAAAAAAAAxwFIEAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-07-02T15:49:46.29Z",
+              "WhenOpened": "2026-07-05T20:12:39.098Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "en.md",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Toolroom\\WhenItFails\\Setter\\Readme\\en.md",
+              "RelativeDocumentMoniker": "Toolroom\\WhenItFails\\Setter\\Readme\\en.md",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\Toolroom\\WhenItFails\\Setter\\Readme\\en.md",
+              "RelativeToolTip": "Toolroom\\WhenItFails\\Setter\\Readme\\en.md",
+              "ViewState": "AgIAAAABAAAAAAAAAAAYwBIBAAAhAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-07-02T15:50:21.706Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "en.md",
-              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Toolroom\\WhenItFails\\Setter\\Docs\\Windows and PowerShell\\en.md",
-              "RelativeDocumentMoniker": "Toolroom\\WhenItFails\\Setter\\Docs\\Windows and PowerShell\\en.md",
-              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\Toolroom\\WhenItFails\\Setter\\Docs\\Windows and PowerShell\\en.md",
-              "RelativeToolTip": "Toolroom\\WhenItFails\\Setter\\Docs\\Windows and PowerShell\\en.md",
-              "ViewState": "AgIAAMQFAAAAAAAAAAAwwB8GAAAAAAAAAAAAAA==",
+              "Title": "README.md",
+              "DocumentMoniker": "G:\\Afrowave Projects\\Toolbox\\Toolroom\\WhenItFails\\Setter\\README.md",
+              "RelativeDocumentMoniker": "Toolroom\\WhenItFails\\Setter\\README.md",
+              "ToolTip": "G:\\Afrowave Projects\\Toolbox\\Toolroom\\WhenItFails\\Setter\\README.md",
+              "RelativeToolTip": "Toolroom\\WhenItFails\\Setter\\README.md",
+              "ViewState": "AgIAAPwAAAAAAAAAAAAAABIBAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-07-02T15:40:28.078Z",
+              "WhenOpened": "2026-07-02T15:49:46.29Z",
               "EditorCaption": ""
             }
           ]
