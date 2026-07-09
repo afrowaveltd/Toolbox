@@ -275,6 +275,7 @@ Jsons/
 - [Validation](Docs/Validation/en.md)
 - [Workspace Summary](Docs/Workspace%20Summary/en.md)
 - [Profiles](Docs/Profiles/en.md)
+- [Adding a New Profile](Docs/Adding%20a%20New%20Profile/en.md)
 - [Browsing and Filtering Errors](Docs/Browsing%20and%20Filtering%20Errors/en.md)
 - [Inspecting Error Details](Docs/Inspecting%20Error%20Details/en.md)
 - [Editing error fields](Docs/Editing%20Error%20Fields/en.md)
