@@ -272,6 +272,7 @@ Jsons/
 - [Workspace Paths and Initialization](Docs/Workspace%20Paths%20and%20Initialization/en.md)
 - [Catalog Files](Docs/Catalog%20Files/en.md)
 - [Naming and Numbering Conventions](Docs/Naming%20and%20Numbering%20Conventions/en.md)
+- [Deprecation and Migration](Docs/Deprecation%20and%20Migration/en.md)
 - [Adding a New Category](Docs/Adding%20a%20New%20Category/en.md)
 - [Adding a New Code Group](Docs/Adding%20a%20New%20Code%20Group/en.md)
 - [Adding a New Owner](Docs/Adding%20a%20New%20Owner/en.md)
