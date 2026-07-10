@@ -273,6 +273,7 @@ Jsons/
 - [Catalog Files](Docs/Catalog%20Files/en.md)
 - [Adding a New Category](Docs/Adding%20a%20New%20Category/en.md)
 - [Adding a New Code Group](Docs/Adding%20a%20New%20Code%20Group/en.md)
+- [Adding a New Owner](Docs/Adding%20a%20New%20Owner/en.md)
 - [Catalog Author Checklist](Docs/Catalog%20Author%20Checklist/en.md)
 - [Validation](Docs/Validation/en.md)
 - [Workspace Summary](Docs/Workspace%20Summary/en.md)
