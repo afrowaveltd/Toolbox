@@ -58,6 +58,11 @@ try
         return await ListCodeGroupsCommand.ExecuteAsync(args);
     }
 
+    if (command == "list-owners")
+    {
+        return await ListOwnersCommand.ExecuteAsync(args);
+    }
+
     if (command is "details" or "detail")
     {
         return await DetailsCommand.ExecuteAsync(args);
