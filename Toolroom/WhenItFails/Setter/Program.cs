@@ -43,6 +43,11 @@ try
         return await ListProfilesCommand.ExecuteAsync(args);
     }
 
+    if (command == "show-profile")
+    {
+        return await ShowProfileCommand.ExecuteAsync(args);
+    }
+
     if (command is "details" or "detail")
     {
         return await DetailsCommand.ExecuteAsync(args);

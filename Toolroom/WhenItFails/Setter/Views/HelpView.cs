@@ -27,6 +27,9 @@ internal static class HelpView
             "[green]list-profiles[/] [grey]<path>[/] [grey][[--plain]][/]",
             "List profiles from a validated WhenItFails workspace.");
         commandGrid.AddRow(
+            "[green]show-profile[/] [grey]<path>[/] [grey]<profile-name>[/] [grey][[--plain]][/]",
+            "Show one profile from a validated WhenItFails workspace.");
+        commandGrid.AddRow(
             "[green]details[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey][[--plain]][/]",
             "Show one error definition in detail.");
         commandGrid.AddRow("[green]detail[/] [grey]<path>[/] [grey]<id|code|name>[/]", "Alias for details.");
