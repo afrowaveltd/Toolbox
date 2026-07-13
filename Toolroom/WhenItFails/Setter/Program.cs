@@ -63,6 +63,11 @@ try
         return await SetProfileDisplayNameCommand.ExecuteAsync(args);
     }
 
+    if (command == "set-profile-description")
+    {
+        return await SetProfileDescriptionCommand.ExecuteAsync(args);
+    }
+
     if (command == "list-categories")
     {
         return await ListCategoriesCommand.ExecuteAsync(args);
