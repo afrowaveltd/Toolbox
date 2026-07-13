@@ -51,6 +51,9 @@ internal static class HelpView
             "[green]profile-add-category[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<category-name|alias>[/]",
             "Safely include an existing category in one profile.");
         commandGrid.AddRow(
+            "[green]profile-remove-category[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<category-name|alias>[/]",
+            "Safely remove an included category from one profile.");
+        commandGrid.AddRow(
             "[green]list-categories[/] [grey]<path>[/] [grey][[--plain]][/]",
             "List categories from a validated WhenItFails workspace.");
         commandGrid.AddRow(
