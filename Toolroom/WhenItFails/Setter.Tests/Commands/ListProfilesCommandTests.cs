@@ -64,12 +64,24 @@ public sealed class ListProfilesCommandTests
     public async Task ExecuteAsync_WithInitializedWorkspaceAndPlainOutput_ReturnsSuccess()
     {
         using TemporaryWorkspace temporaryWorkspace =
-            await TemporaryWorkspace.CreateAsync();
+            await TemporaryWorkspace.CreateInitializedAsync();
 
         int exitCode = await ListProfilesCommand.ExecuteAsync(
             ["list-profiles", temporaryWorkspace.ProjectRootPath, "--plain"]);
 
         Assert.Equal(0, exitCode);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WithInvalidWorkspace_ReturnsValidationError()
+    {
+        using TemporaryWorkspace temporaryWorkspace =
+            TemporaryWorkspace.CreateEmpty();
+
+        int exitCode = await ListProfilesCommand.ExecuteAsync(
+            ["list-profiles", temporaryWorkspace.ProjectRootPath, "--plain"]);
+
+        Assert.Equal(2, exitCode);
     }
 
     private sealed class TemporaryWorkspace : IDisposable
@@ -81,7 +93,20 @@ public sealed class ListProfilesCommandTests
 
         public string ProjectRootPath { get; }
 
-        public static async Task<TemporaryWorkspace> CreateAsync()
+        public static async Task<TemporaryWorkspace> CreateInitializedAsync()
+        {
+            TemporaryWorkspace temporaryWorkspace = CreateEmpty();
+
+            WhenItFailsWorkspaceInitializer initializer = new();
+            var initializeResponse =
+                await initializer.InitializeAsync(temporaryWorkspace.ProjectRootPath);
+
+            Assert.True(initializeResponse.IsSuccess);
+
+            return temporaryWorkspace;
+        }
+
+        public static TemporaryWorkspace CreateEmpty()
         {
             string projectRootPath = Path.Combine(
                 Path.GetTempPath(),
@@ -89,12 +114,6 @@ public sealed class ListProfilesCommandTests
                 Guid.NewGuid().ToString("N"));
 
             Directory.CreateDirectory(projectRootPath);
-
-            WhenItFailsWorkspaceInitializer initializer = new();
-            var initializeResponse =
-                await initializer.InitializeAsync(projectRootPath);
-
-            Assert.True(initializeResponse.IsSuccess);
 
             return new TemporaryWorkspace(projectRootPath);
         }
