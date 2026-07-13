@@ -83,6 +83,11 @@ try
         return await ProfileAddCategoryCommand.ExecuteAsync(args);
     }
 
+    if (command == "profile-remove-category")
+    {
+        return await ProfileRemoveCategoryCommand.ExecuteAsync(args);
+    }
+
     if (command == "list-categories")
     {
         return await ListCategoriesCommand.ExecuteAsync(args);
