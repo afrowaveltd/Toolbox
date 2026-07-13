@@ -204,6 +204,83 @@ public sealed class WhenItFailsProfileWorkspaceEditorTests
         AssertNoBackupWasCreated(temporaryWorkspace.WhenItFailsJsonsPath);
     }
 
+    [Fact]
+    public async Task SetProfileDisplayNameAsync_ShouldUpdateNormalizedDisplayNameAndCreateBackup()
+    {
+        using TemporaryWhenItFailsWorkspace temporaryWorkspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+
+        WhenItFailsProfileWorkspaceEditor editor = new();
+
+        Response<ErrorProfileDefinition> response =
+            await editor.SetProfileDisplayNameAsync(
+                temporaryWorkspace.ProjectRootPath,
+                "  web  ",
+                "  Web Applications  ");
+
+        Assert.True(response.IsSuccess);
+        Assert.NotNull(response.Data);
+        Assert.Equal("WEB", response.Data.Name);
+        Assert.Equal("Web Applications", response.Data.DisplayName);
+
+        ErrorProfileDefinition savedProfile =
+            await LoadProfileAsync(
+                temporaryWorkspace.WhenItFailsJsonsPath,
+                "WEB");
+
+        Assert.Equal("Web Applications", savedProfile.DisplayName);
+        AssertBackupWasCreated(temporaryWorkspace.WhenItFailsJsonsPath);
+    }
+
+    [Fact]
+    public async Task SetProfileDisplayNameAsync_ShouldReturnNotFound_WhenProfileDoesNotExist()
+    {
+        using TemporaryWhenItFailsWorkspace temporaryWorkspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+
+        WhenItFailsProfileWorkspaceEditor editor = new();
+
+        Response<ErrorProfileDefinition> response =
+            await editor.SetProfileDisplayNameAsync(
+                temporaryWorkspace.ProjectRootPath,
+                "DOES_NOT_EXIST",
+                "Unknown Profile");
+
+        Assert.False(response.IsSuccess);
+        Assert.Contains(
+            response.Issues,
+            issue => issue.Code == "ProfileNotFound");
+        AssertNoBackupWasCreated(temporaryWorkspace.WhenItFailsJsonsPath);
+    }
+
+    [Fact]
+    public async Task SetProfileDisplayNameAsync_ShouldReturnInvalid_WhenDisplayNameIsEmpty()
+    {
+        using TemporaryWhenItFailsWorkspace temporaryWorkspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+
+        WhenItFailsProfileWorkspaceEditor editor = new();
+
+        Response<ErrorProfileDefinition> response =
+            await editor.SetProfileDisplayNameAsync(
+                temporaryWorkspace.ProjectRootPath,
+                "WEB",
+                "   ");
+
+        Assert.False(response.IsSuccess);
+        Assert.Contains(
+            response.Issues,
+            issue => issue.Code == "ProfileDisplayNameIsEmpty");
+
+        ErrorProfileDefinition savedProfile =
+            await LoadProfileAsync(
+                temporaryWorkspace.WhenItFailsJsonsPath,
+                "WEB");
+
+        Assert.Equal("Web", savedProfile.DisplayName);
+        AssertNoBackupWasCreated(temporaryWorkspace.WhenItFailsJsonsPath);
+    }
+
     private static async Task<ErrorProfileDefinition> LoadProfileAsync(
         string whenItFailsJsonsPath,
         string profileName)
