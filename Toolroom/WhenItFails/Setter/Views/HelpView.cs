@@ -24,6 +24,9 @@ internal static class HelpView
             "[green]errors[/] [grey]<path>[/] [grey][[--plain]][/]",
             "List error definitions. Supports --owner, --group, --category, --severity, --profile, --search.");
         commandGrid.AddRow(
+            "[green]list-profiles[/] [grey]<path>[/] [grey][[--plain]][/]",
+            "List profiles from a validated WhenItFails workspace.");
+        commandGrid.AddRow(
             "[green]details[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey][[--plain]][/]",
             "Show one error definition in detail.");
         commandGrid.AddRow("[green]detail[/] [grey]<path>[/] [grey]<id|code|name>[/]", "Alias for details.");
@@ -34,14 +37,14 @@ internal static class HelpView
             "[green]set-message[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<message>[/]",
             "Safely change the message of one error definition.");
         commandGrid.AddRow(
-    "[green]set-developer-hint[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<developer-hint>[/]",
-    "Safely change the developer hint of one error definition.");
+            "[green]set-developer-hint[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<developer-hint>[/]",
+            "Safely change the developer hint of one error definition.");
         commandGrid.AddRow(
-    "[green]set-severity[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<severity>[/]",
-    "Safely change the severity of one error definition.Allowed values: Trace, Debug, Information, Warning, Error, Critical.");
+            "[green]set-severity[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<severity>[/]",
+            "Safely change the severity of one error definition. Allowed values: Trace, Debug, Information, Warning, Error, Critical.");
         commandGrid.AddRow(
-        "[green]set-documentation-key[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<documentation-key>[/]",
-        "Safely change the documentation key of one error definition.");
+            "[green]set-documentation-key[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<documentation-key>[/]",
+            "Safely change the documentation key of one error definition.");
         commandGrid.AddRow("[green]demo[/]", "Show a sample WhenItFails validation result.");
         commandGrid.AddRow("[green]help[/]", "Show this help screen.");
 

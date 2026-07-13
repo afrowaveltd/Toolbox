@@ -38,6 +38,11 @@ try
         return await ErrorsCommand.ExecuteAsync(args);
     }
 
+    if (command == "list-profiles")
+    {
+        return await ListProfilesCommand.ExecuteAsync(args);
+    }
+
     if (command is "details" or "detail")
     {
         return await DetailsCommand.ExecuteAsync(args);
