@@ -9,11 +9,6 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 /// </summary>
 internal static class ListCategoriesCommand
 {
-    /// <summary>
-    /// Executes the list-categories command.
-    /// </summary>
-    /// <param name="args">The full command-line arguments (args[0] is "list-categories").</param>
-    /// <returns>Exit code: 0 on success, 1 on invalid command input, 2 on validation errors.</returns>
     public static async Task<int> ExecuteAsync(string[] args)
     {
         if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
@@ -22,7 +17,6 @@ internal static class ListCategoriesCommand
                 code: "MissingListCategoriesPath",
                 message: "The list-categories command requires a project root or Jsons/WhenItFails directory path.",
                 path: "list-categories <path> [--plain]");
-
             return 1;
         }
 
@@ -32,29 +26,22 @@ internal static class ListCategoriesCommand
                 code: "InvalidListCategoriesArguments",
                 message: "The list-categories command accepts only a path and the optional --plain switch.",
                 path: "list-categories <path> [--plain]");
-
             return 1;
         }
 
         string inputPath = args[1];
         WhenItFailsWorkspaceValidator validator = new();
-        WhenItFailsWorkspaceValidationOutcome validationOutcome =
-            await validator.ValidateAsync(inputPath);
+        WhenItFailsWorkspaceValidationOutcome validationOutcome = await validator.ValidateAsync(inputPath);
 
         if (!validationOutcome.ValidationResult.IsValid)
         {
             new ConsoleValidationResultShow().Show(
                 validationOutcome.ValidationResult,
-                new ConsoleShowOptions
-                {
-                    SourcePath = validationOutcome.DisplayPath
-                });
-
+                new ConsoleShowOptions { SourcePath = validationOutcome.DisplayPath });
             return 2;
         }
 
-        WhenItFailsWorkspaceSummarizer summarizer = new();
-        WhenItFailsWorkspaceSummary summary = await summarizer.LoadAsync(inputPath);
+        WhenItFailsWorkspaceSummary summary = await new WhenItFailsWorkspaceSummarizer().LoadAsync(inputPath);
 
         if (usePlainOutput)
         {
@@ -70,32 +57,15 @@ internal static class ListCategoriesCommand
 
     public static bool TryParseOptions(string[] args, out bool usePlainOutput)
     {
-        usePlainOutput = false;
-
-        for (int index = 2; index < args.Length; index++)
-        {
-            if (!string.Equals(args[index], "--plain", StringComparison.OrdinalIgnoreCase)
-                || usePlainOutput)
-            {
-                return false;
-            }
-
-            usePlainOutput = true;
-        }
-
-        return true;
+        return PlainOutputOptionParser.TryParse(args, optionStartIndex: 2, out usePlainOutput);
     }
 
     private static void ShowCommandInputError(string code, string message, string path)
     {
         ErrorCatalogValidationResult validationResult = new();
         validationResult.AddError(code: code, message: message, path: path);
-
         new ConsoleValidationResultShow().Show(
             validationResult,
-            new ConsoleShowOptions
-            {
-                SourcePath = "command line"
-            });
+            new ConsoleShowOptions { SourcePath = "command line" });
     }
 }
