@@ -73,6 +73,11 @@ try
         return await ListOwnersCommand.ExecuteAsync(args);
     }
 
+    if (command == "show-owner")
+    {
+        return await ShowOwnerCommand.ExecuteAsync(args);
+    }
+
     if (command is "details" or "detail")
     {
         return await DetailsCommand.ExecuteAsync(args);
