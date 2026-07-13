@@ -49,29 +49,15 @@ internal static class ShowProfileCommand
 
         string inputPath = args[1];
         string profileName = args[2];
+        WorkspaceCommandContext? context =
+            await WorkspaceCommandContextLoader.TryLoadAsync(inputPath);
 
-        WhenItFailsWorkspaceValidator validator = new();
-
-        WhenItFailsWorkspaceValidationOutcome validationOutcome =
-            await validator.ValidateAsync(inputPath);
-
-        if (!validationOutcome.ValidationResult.IsValid)
+        if (context is null)
         {
-            new ConsoleValidationResultShow().Show(
-                validationOutcome.ValidationResult,
-                new ConsoleShowOptions
-                {
-                    SourcePath = validationOutcome.DisplayPath
-                });
-
             return 2;
         }
 
-        WhenItFailsWorkspaceSummarizer summarizer = new();
-
-        WhenItFailsWorkspaceSummary summary =
-            await summarizer.LoadAsync(inputPath);
-
+        WhenItFailsWorkspaceSummary summary = context.Summary;
         ErrorProfileDefinition? profile = FindProfile(summary, profileName);
 
         if (profile is null)
