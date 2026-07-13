@@ -23,18 +23,127 @@ internal static class WhenItFailsProfileWorkspaceEditorCategoryExtensions
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(editor);
+
+        Response<ProfileCategoryEditContext> contextResponse =
+            await LoadContextAsync(
+                inputPath,
+                profileName,
+                categoryName,
+                cancellationToken);
+
+        if (!contextResponse.IsSuccess || contextResponse.Data is null)
+        {
+            return CopyFailure<ErrorProfileDefinition, ProfileCategoryEditContext>(contextResponse);
+        }
+
+        ProfileCategoryEditContext context = contextResponse.Data;
+
+        bool categoryAlreadyIncluded =
+            context.ProfileDefinition.IncludeCategories.Any(includedCategory =>
+                string.Equals(
+                    includedCategory,
+                    context.CategoryDefinition.Name,
+                    StringComparison.OrdinalIgnoreCase));
+
+        if (categoryAlreadyIncluded)
+        {
+            return Response<ErrorProfileDefinition>.Invalid(
+                code: "ProfileCategoryAlreadyIncluded",
+                message: $"Profile '{context.ProfileDefinition.Name}' already includes category '{context.CategoryDefinition.Name}'.");
+        }
+
+        context.ProfileDefinition.IncludeCategories.Add(context.CategoryDefinition.Name);
+
+        Response<ErrorProfileDefinition>? saveFailure = await ValidateAndSaveAsync(
+            context,
+            rollback: () => context.ProfileDefinition.IncludeCategories.Remove(context.CategoryDefinition.Name),
+            cancellationToken);
+
+        if (saveFailure is not null)
+        {
+            return saveFailure;
+        }
+
+        return Response<ErrorProfileDefinition>.Ok(
+            context.ProfileDefinition,
+            $"Category '{context.CategoryDefinition.Name}' was added to profile '{context.ProfileDefinition.Name}'.");
+    }
+
+    /// <summary>
+    /// Removes an included workspace category from one profile.
+    /// </summary>
+    public static async Task<Response<ErrorProfileDefinition>> ProfileRemoveCategoryAsync(
+        this WhenItFailsProfileWorkspaceEditor editor,
+        string inputPath,
+        string profileName,
+        string categoryName,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(editor);
+
+        Response<ProfileCategoryEditContext> contextResponse =
+            await LoadContextAsync(
+                inputPath,
+                profileName,
+                categoryName,
+                cancellationToken);
+
+        if (!contextResponse.IsSuccess || contextResponse.Data is null)
+        {
+            return CopyFailure<ErrorProfileDefinition, ProfileCategoryEditContext>(contextResponse);
+        }
+
+        ProfileCategoryEditContext context = contextResponse.Data;
+
+        int categoryIndex = context.ProfileDefinition.IncludeCategories.FindIndex(includedCategory =>
+            string.Equals(
+                includedCategory,
+                context.CategoryDefinition.Name,
+                StringComparison.OrdinalIgnoreCase));
+
+        if (categoryIndex < 0)
+        {
+            return Response<ErrorProfileDefinition>.NotFound(
+                code: "ProfileCategoryNotIncluded",
+                message: $"Profile '{context.ProfileDefinition.Name}' does not include category '{context.CategoryDefinition.Name}'.");
+        }
+
+        string removedCategoryName = context.ProfileDefinition.IncludeCategories[categoryIndex];
+        context.ProfileDefinition.IncludeCategories.RemoveAt(categoryIndex);
+
+        Response<ErrorProfileDefinition>? saveFailure = await ValidateAndSaveAsync(
+            context,
+            rollback: () => context.ProfileDefinition.IncludeCategories.Insert(categoryIndex, removedCategoryName),
+            cancellationToken);
+
+        if (saveFailure is not null)
+        {
+            return saveFailure;
+        }
+
+        return Response<ErrorProfileDefinition>.Ok(
+            context.ProfileDefinition,
+            $"Category '{context.CategoryDefinition.Name}' was removed from profile '{context.ProfileDefinition.Name}'.");
+    }
+
+    private static async Task<Response<ProfileCategoryEditContext>> LoadContextAsync(
+        string inputPath,
+        string profileName,
+        string categoryName,
+        CancellationToken cancellationToken)
+    {
         ArgumentException.ThrowIfNullOrWhiteSpace(inputPath);
 
         if (string.IsNullOrWhiteSpace(profileName))
         {
-            return Response<ErrorProfileDefinition>.Invalid(
+            return Response<ProfileCategoryEditContext>.Invalid(
                 code: "ProfileNameIsEmpty",
                 message: "Profile name cannot be empty.");
         }
 
         if (string.IsNullOrWhiteSpace(categoryName))
         {
-            return Response<ErrorProfileDefinition>.Invalid(
+            return Response<ProfileCategoryEditContext>.Invalid(
                 code: "CategoryNameIsEmpty",
                 message: "Category name cannot be empty.");
         }
@@ -49,7 +158,7 @@ internal static class WhenItFailsProfileWorkspaceEditorCategoryExtensions
 
         if (!profileLoadResponse.IsSuccess || profileLoadResponse.Data is null)
         {
-            return Response<ErrorProfileDefinition>.Fail(
+            return Response<ProfileCategoryEditContext>.Fail(
                 code: "ProfileCatalogLoadFailed",
                 message: string.IsNullOrWhiteSpace(profileLoadResponse.Message)
                     ? $"Profile catalog could not be loaded: {options.ProfilesFilePath}"
@@ -64,7 +173,7 @@ internal static class WhenItFailsProfileWorkspaceEditorCategoryExtensions
 
         if (!profileValidationResult.IsValid)
         {
-            return Response<ErrorProfileDefinition>.Invalid(
+            return Response<ProfileCategoryEditContext>.Invalid(
                 code: "ProfileCatalogIsInvalid",
                 message: "The profile catalog is invalid and cannot be edited safely.");
         }
@@ -79,7 +188,7 @@ internal static class WhenItFailsProfileWorkspaceEditorCategoryExtensions
 
         if (profileDefinition is null)
         {
-            return Response<ErrorProfileDefinition>.NotFound(
+            return Response<ProfileCategoryEditContext>.NotFound(
                 code: "ProfileNotFound",
                 message: $"Profile '{normalizedProfileName}' was not found.");
         }
@@ -91,7 +200,7 @@ internal static class WhenItFailsProfileWorkspaceEditorCategoryExtensions
 
         if (!categoryLoadResponse.IsSuccess || categoryLoadResponse.Data is null)
         {
-            return Response<ErrorProfileDefinition>.Fail(
+            return Response<ProfileCategoryEditContext>.Fail(
                 code: "CategoryCatalogLoadFailed",
                 message: string.IsNullOrWhiteSpace(categoryLoadResponse.Message)
                     ? $"Category catalog could not be loaded: {options.CategoryCatalogFilePath}"
@@ -116,33 +225,30 @@ internal static class WhenItFailsProfileWorkspaceEditorCategoryExtensions
 
         if (categoryDefinition is null)
         {
-            return Response<ErrorProfileDefinition>.NotFound(
+            return Response<ProfileCategoryEditContext>.NotFound(
                 code: "CategoryNotFound",
                 message: $"Category '{normalizedCategoryName}' was not found.");
         }
 
-        bool categoryAlreadyIncluded =
-            profileDefinition.IncludeCategories.Any(includedCategory =>
-                string.Equals(
-                    includedCategory,
-                    categoryDefinition.Name,
-                    StringComparison.OrdinalIgnoreCase));
+        return Response<ProfileCategoryEditContext>.Ok(
+            new ProfileCategoryEditContext(
+                options.ProfilesFilePath,
+                profileCatalog,
+                profileDefinition,
+                categoryDefinition));
+    }
 
-        if (categoryAlreadyIncluded)
-        {
-            return Response<ErrorProfileDefinition>.Invalid(
-                code: "ProfileCategoryAlreadyIncluded",
-                message: $"Profile '{profileDefinition.Name}' already includes category '{categoryDefinition.Name}'.");
-        }
-
-        profileDefinition.IncludeCategories.Add(categoryDefinition.Name);
-
+    private static async Task<Response<ErrorProfileDefinition>?> ValidateAndSaveAsync(
+        ProfileCategoryEditContext context,
+        Action rollback,
+        CancellationToken cancellationToken)
+    {
         ErrorCatalogValidationResult editedValidationResult =
-            new ErrorProfileCatalogValidator().Validate(profileCatalog);
+            new ErrorProfileCatalogValidator().Validate(context.ProfileCatalog);
 
         if (!editedValidationResult.IsValid)
         {
-            profileDefinition.IncludeCategories.Remove(categoryDefinition.Name);
+            rollback();
 
             return Response<ErrorProfileDefinition>.Invalid(
                 code: "EditedProfileCatalogIsInvalid",
@@ -150,29 +256,44 @@ internal static class WhenItFailsProfileWorkspaceEditorCategoryExtensions
         }
 
         Response saveResponse = await new JsonCatalogDocumentWriter().SaveToFileAsync(
-            profileCatalog,
-            options.ProfilesFilePath,
+            context.ProfileCatalog,
+            context.ProfileCatalogFilePath,
             cancellationToken);
 
-        if (!saveResponse.IsSuccess)
+        if (saveResponse.IsSuccess)
         {
-            profileDefinition.IncludeCategories.Remove(categoryDefinition.Name);
-
-            string saveFailureCode = saveResponse.Issues.Count > 0
-                ? saveResponse.Issues[0].Code
-                : "ProfileCatalogSaveFailed";
-
-            string saveFailureMessage = string.IsNullOrWhiteSpace(saveResponse.Message)
-                ? "Profile catalog could not be saved."
-                : saveResponse.Message;
-
-            return Response<ErrorProfileDefinition>.Fail(
-                code: saveFailureCode,
-                message: saveFailureMessage);
+            return null;
         }
 
-        return Response<ErrorProfileDefinition>.Ok(
-            profileDefinition,
-            $"Category '{categoryDefinition.Name}' was added to profile '{profileDefinition.Name}'.");
+        rollback();
+
+        string saveFailureCode = saveResponse.Issues.Count > 0
+            ? saveResponse.Issues[0].Code
+            : "ProfileCatalogSaveFailed";
+
+        string saveFailureMessage = string.IsNullOrWhiteSpace(saveResponse.Message)
+            ? "Profile catalog could not be saved."
+            : saveResponse.Message;
+
+        return Response<ErrorProfileDefinition>.Fail(
+            code: saveFailureCode,
+            message: saveFailureMessage);
     }
+
+    private static Response<TTarget> CopyFailure<TTarget, TSource>(Response<TSource> response)
+    {
+        string code = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "ProfileCategoryEditFailed";
+
+        return Response<TTarget>.Fail(
+            code: code,
+            message: response.Message);
+    }
+
+    private sealed record ProfileCategoryEditContext(
+        string ProfileCatalogFilePath,
+        ErrorProfileCatalogDocument ProfileCatalog,
+        ErrorProfileDefinition ProfileDefinition,
+        ErrorCategoryDefinition CategoryDefinition);
 }
