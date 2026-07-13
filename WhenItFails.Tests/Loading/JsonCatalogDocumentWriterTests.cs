@@ -94,6 +94,52 @@ public sealed class JsonCatalogDocumentWriterTests
     }
 
     [Fact]
+    public async Task SaveToFileAsync_ShouldCreateDistinctBackups_ForRapidConsecutiveWrites()
+    {
+        string temporaryDirectoryPath = CreateTemporaryDirectoryPath();
+        string targetFilePath = Path.Combine(
+            temporaryDirectoryPath,
+            "errors.en.json");
+
+        try
+        {
+            Directory.CreateDirectory(temporaryDirectoryPath);
+
+            JsonCatalogDocumentWriter writer = new();
+
+            Essentials.Results.Response firstResponse =
+                await writer.SaveToFileAsync(
+                    CreateDocument("First catalog"),
+                    targetFilePath);
+
+            Essentials.Results.Response secondResponse =
+                await writer.SaveToFileAsync(
+                    CreateDocument("Second catalog"),
+                    targetFilePath);
+
+            Essentials.Results.Response thirdResponse =
+                await writer.SaveToFileAsync(
+                    CreateDocument("Third catalog"),
+                    targetFilePath);
+
+            Assert.True(firstResponse.IsSuccess);
+            Assert.True(secondResponse.IsSuccess);
+            Assert.True(thirdResponse.IsSuccess);
+
+            string[] backupFilePaths = Directory.GetFiles(
+                temporaryDirectoryPath,
+                "*.bak.json");
+
+            Assert.Equal(2, backupFilePaths.Length);
+            Assert.Equal(2, backupFilePaths.Distinct(StringComparer.Ordinal).Count());
+        }
+        finally
+        {
+            DeleteDirectoryIfExists(temporaryDirectoryPath);
+        }
+    }
+
+    [Fact]
     public async Task SaveToFileAsync_ShouldReturnInvalid_WhenFilePathIsEmpty()
     {
         ErrorCatalogDocument document = CreateDocument("Test catalog");
