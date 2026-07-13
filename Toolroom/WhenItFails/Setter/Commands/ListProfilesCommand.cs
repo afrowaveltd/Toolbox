@@ -82,27 +82,10 @@ internal static class ListProfilesCommand
         string[] args,
         out bool usePlainOutput)
     {
-        usePlainOutput = false;
-
-        for (int index = 2; index < args.Length; index++)
-        {
-            if (!string.Equals(
-                    args[index],
-                    "--plain",
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            if (usePlainOutput)
-            {
-                return false;
-            }
-
-            usePlainOutput = true;
-        }
-
-        return true;
+        return PlainOutputOptionParser.TryParse(
+            args,
+            optionStartIndex: 2,
+            out usePlainOutput);
     }
 
     private static void ShowCommandInputError(
