@@ -135,9 +135,95 @@ public sealed class WhenItFailsProfileWorkspaceEditorTests
         AssertNoBackupWasCreated(temporaryWorkspace.WhenItFailsJsonsPath);
     }
 
+    [Fact]
+    public async Task RemoveProfileAsync_ShouldRemoveNormalizedProfileAndCreateBackup()
+    {
+        using TemporaryWhenItFailsWorkspace temporaryWorkspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+
+        WhenItFailsProfileWorkspaceEditor editor = new();
+
+        Response<ErrorProfileDefinition> response =
+            await editor.RemoveProfileAsync(
+                temporaryWorkspace.ProjectRootPath,
+                "  web  ");
+
+        Assert.True(response.IsSuccess);
+        Assert.NotNull(response.Data);
+        Assert.Equal("WEB", response.Data.Name);
+
+        ErrorProfileCatalogDocument savedCatalog =
+            await LoadProfileCatalogAsync(temporaryWorkspace.WhenItFailsJsonsPath);
+
+        Assert.DoesNotContain(
+            savedCatalog.Profiles,
+            profile => string.Equals(
+                profile.Name,
+                "WEB",
+                StringComparison.OrdinalIgnoreCase));
+        AssertBackupWasCreated(temporaryWorkspace.WhenItFailsJsonsPath);
+    }
+
+    [Fact]
+    public async Task RemoveProfileAsync_ShouldReturnNotFound_WhenProfileDoesNotExist()
+    {
+        using TemporaryWhenItFailsWorkspace temporaryWorkspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+
+        WhenItFailsProfileWorkspaceEditor editor = new();
+
+        Response<ErrorProfileDefinition> response =
+            await editor.RemoveProfileAsync(
+                temporaryWorkspace.ProjectRootPath,
+                "DOES_NOT_EXIST");
+
+        Assert.False(response.IsSuccess);
+        Assert.Contains(
+            response.Issues,
+            issue => issue.Code == "ProfileNotFound");
+        AssertNoBackupWasCreated(temporaryWorkspace.WhenItFailsJsonsPath);
+    }
+
+    [Fact]
+    public async Task RemoveProfileAsync_ShouldReturnInvalid_WhenNameIsEmpty()
+    {
+        using TemporaryWhenItFailsWorkspace temporaryWorkspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+
+        WhenItFailsProfileWorkspaceEditor editor = new();
+
+        Response<ErrorProfileDefinition> response =
+            await editor.RemoveProfileAsync(
+                temporaryWorkspace.ProjectRootPath,
+                "   ");
+
+        Assert.False(response.IsSuccess);
+        Assert.Contains(
+            response.Issues,
+            issue => issue.Code == "ProfileNameIsEmpty");
+        AssertNoBackupWasCreated(temporaryWorkspace.WhenItFailsJsonsPath);
+    }
+
     private static async Task<ErrorProfileDefinition> LoadProfileAsync(
         string whenItFailsJsonsPath,
         string profileName)
+    {
+        ErrorProfileCatalogDocument normalizedDocument =
+            await LoadProfileCatalogAsync(whenItFailsJsonsPath);
+
+        ErrorProfileDefinition? profile =
+            normalizedDocument.Profiles.FirstOrDefault(candidate =>
+                string.Equals(
+                    candidate.Name,
+                    profileName,
+                    StringComparison.OrdinalIgnoreCase));
+
+        Assert.NotNull(profile);
+        return profile;
+    }
+
+    private static async Task<ErrorProfileCatalogDocument> LoadProfileCatalogAsync(
+        string whenItFailsJsonsPath)
     {
         string profileCatalogFilePath = Path.Combine(
             whenItFailsJsonsPath,
@@ -151,18 +237,7 @@ public sealed class WhenItFailsProfileWorkspaceEditorTests
         Assert.True(loadResponse.IsSuccess);
         Assert.NotNull(loadResponse.Data);
 
-        ErrorProfileCatalogDocument normalizedDocument =
-            new ErrorProfileCatalogDocumentNormalizer().Normalize(loadResponse.Data);
-
-        ErrorProfileDefinition? profile =
-            normalizedDocument.Profiles.FirstOrDefault(candidate =>
-                string.Equals(
-                    candidate.Name,
-                    profileName,
-                    StringComparison.OrdinalIgnoreCase));
-
-        Assert.NotNull(profile);
-        return profile;
+        return new ErrorProfileCatalogDocumentNormalizer().Normalize(loadResponse.Data);
     }
 
     private static void AssertBackupWasCreated(string whenItFailsJsonsPath)
