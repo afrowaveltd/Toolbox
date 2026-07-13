@@ -33,6 +33,9 @@ internal static class HelpView
             "[green]list-categories[/] [grey]<path>[/] [grey][[--plain]][/]",
             "List categories from a validated WhenItFails workspace.");
         commandGrid.AddRow(
+            "[green]show-category[/] [grey]<path>[/] [grey]<category-name>[/] [grey][[--plain]][/]",
+            "Show one category by name, display name, or alias.");
+        commandGrid.AddRow(
             "[green]list-code-groups[/] [grey]<path>[/] [grey][[--plain]][/]",
             "List code groups from a validated WhenItFails workspace.");
         commandGrid.AddRow(
