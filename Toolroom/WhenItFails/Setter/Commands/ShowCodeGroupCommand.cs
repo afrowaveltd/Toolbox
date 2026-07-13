@@ -43,18 +43,15 @@ internal static class ShowCodeGroupCommand
 
         string inputPath = args[1];
         string groupNameOrPrefix = args[2];
-        WhenItFailsWorkspaceValidator validator = new();
-        WhenItFailsWorkspaceValidationOutcome validationOutcome = await validator.ValidateAsync(inputPath);
+        WorkspaceCommandContext? context =
+            await WorkspaceCommandContextLoader.TryLoadAsync(inputPath);
 
-        if (!validationOutcome.ValidationResult.IsValid)
+        if (context is null)
         {
-            new ConsoleValidationResultShow().Show(
-                validationOutcome.ValidationResult,
-                new ConsoleShowOptions { SourcePath = validationOutcome.DisplayPath });
             return 2;
         }
 
-        WhenItFailsWorkspaceSummary summary = await new WhenItFailsWorkspaceSummarizer().LoadAsync(inputPath);
+        WhenItFailsWorkspaceSummary summary = context.Summary;
         ErrorCodeGroupDefinition? codeGroup = FindCodeGroup(summary, groupNameOrPrefix);
 
         if (codeGroup is null)
