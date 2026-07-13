@@ -63,6 +63,11 @@ try
         return await ListCodeGroupsCommand.ExecuteAsync(args);
     }
 
+    if (command == "show-code-group")
+    {
+        return await ShowCodeGroupCommand.ExecuteAsync(args);
+    }
+
     if (command == "list-owners")
     {
         return await ListOwnersCommand.ExecuteAsync(args);
