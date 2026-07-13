@@ -1,5 +1,3 @@
-using Afrowave.Toolbox.SeeMe.WhenItFails.Console;
-using Afrowave.Toolbox.WhenItFails.Validation;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Views;
 
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
@@ -29,27 +27,21 @@ internal static class ListOwnersCommand
             return 1;
         }
 
-        string inputPath = args[1];
-        WhenItFailsWorkspaceValidator validator = new();
-        WhenItFailsWorkspaceValidationOutcome validationOutcome = await validator.ValidateAsync(inputPath);
+        WorkspaceCommandContext? context =
+            await WorkspaceCommandContextLoader.TryLoadAsync(args[1]);
 
-        if (!validationOutcome.ValidationResult.IsValid)
+        if (context is null)
         {
-            new ConsoleValidationResultShow().Show(
-                validationOutcome.ValidationResult,
-                new ConsoleShowOptions { SourcePath = validationOutcome.DisplayPath });
             return 2;
         }
 
-        WhenItFailsWorkspaceSummary summary = await new WhenItFailsWorkspaceSummarizer().LoadAsync(inputPath);
-
         if (usePlainOutput)
         {
-            OwnersView.ShowPlain(summary);
+            OwnersView.ShowPlain(context.Summary);
         }
         else
         {
-            OwnersView.Show(summary);
+            OwnersView.Show(context.Summary);
         }
 
         return 0;
