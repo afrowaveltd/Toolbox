@@ -19,6 +19,7 @@
     <Folder Include="Docs\Architecture Overview\" />
     <Folder Include="Docs\Adding a New Command\" />
     <Folder Include="Docs\Adding a New Error Definition\" />
+    <Folder Include="Docs\Known Limitations\" />
     <Folder Include="Docs\NováSložka\" />
     <Folder Include="Docs\Release Checklist\" />
     <Folder Include="Docs\Profiles\" />

@@ -274,6 +274,7 @@ Jsons/
 - [Naming and Numbering Conventions](Docs/Naming%20and%20Numbering%20Conventions/en.md)
 - [Deprecation and Migration](Docs/Deprecation%20and%20Migration/en.md)
 - [Schema Evolution](Docs/Schema%20Evolution/en.md)
+- [Known Limitations](Docs/Known%20Limitations/en.md)
 - [Adding a New Category](Docs/Adding%20a%20New%20Category/en.md)
 - [Adding a New Code Group](Docs/Adding%20a%20New%20Code%20Group/en.md)
 - [Adding a New Owner](Docs/Adding%20a%20New%20Owner/en.md)
