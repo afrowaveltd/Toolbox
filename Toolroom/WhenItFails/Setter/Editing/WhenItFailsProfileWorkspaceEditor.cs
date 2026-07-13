@@ -225,6 +225,113 @@ internal sealed class WhenItFailsProfileWorkspaceEditor
             $"Profile '{profileDefinition.Name}' was removed.");
     }
 
+    /// <summary>
+    /// Sets the human-readable display name of one profile.
+    /// </summary>
+    /// <param name="inputPath">Project root or Jsons/WhenItFails directory.</param>
+    /// <param name="name">Stable profile name.</param>
+    /// <param name="newDisplayName">New human-readable profile name.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The edited profile definition.</returns>
+    public async Task<Response<ErrorProfileDefinition>> SetProfileDisplayNameAsync(
+        string inputPath,
+        string name,
+        string newDisplayName,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(inputPath);
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return Response<ErrorProfileDefinition>.Invalid(
+                code: "ProfileNameIsEmpty",
+                message: "Profile name cannot be empty.");
+        }
+
+        if (string.IsNullOrWhiteSpace(newDisplayName))
+        {
+            return Response<ErrorProfileDefinition>.Invalid(
+                code: "ProfileDisplayNameIsEmpty",
+                message: "Profile display name cannot be empty.");
+        }
+
+        JsonsOptions options =
+            WhenItFailsWorkspacePathResolver.ResolveJsonsOptions(inputPath);
+
+        Response<ErrorProfileCatalogDocument> loadResponse =
+            await LoadProfileCatalogAsync(
+                options.ProfilesFilePath,
+                cancellationToken);
+
+        if (!loadResponse.IsSuccess || loadResponse.Data is null)
+        {
+            return Response<ErrorProfileDefinition>.Fail(
+                code: "ProfileCatalogLoadFailed",
+                message: string.IsNullOrWhiteSpace(loadResponse.Message)
+                    ? $"Profile catalog could not be loaded: {options.ProfilesFilePath}"
+                    : loadResponse.Message);
+        }
+
+        ErrorProfileCatalogDocument normalizedDocument = loadResponse.Data;
+
+        Response<ErrorProfileDefinition>? validationFailure =
+            ValidateEditableCatalog(normalizedDocument);
+
+        if (validationFailure is not null)
+        {
+            return validationFailure;
+        }
+
+        string normalizedName = TextKeyNormalizer.NormalizeKey(name);
+
+        ErrorProfileDefinition? profileDefinition =
+            normalizedDocument.Profiles.FirstOrDefault(profile =>
+                string.Equals(
+                    profile.Name,
+                    normalizedName,
+                    StringComparison.OrdinalIgnoreCase));
+
+        if (profileDefinition is null)
+        {
+            return Response<ErrorProfileDefinition>.NotFound(
+                code: "ProfileNotFound",
+                message: $"Profile '{normalizedName}' was not found.");
+        }
+
+        string oldDisplayName = profileDefinition.DisplayName;
+        string normalizedDisplayName = TextKeyNormalizer.NormalizeDisplayName(newDisplayName);
+        profileDefinition.DisplayName = normalizedDisplayName;
+
+        ErrorCatalogValidationResult editedValidationResult =
+            new ErrorProfileCatalogValidator().Validate(normalizedDocument);
+
+        if (!editedValidationResult.IsValid)
+        {
+            profileDefinition.DisplayName = oldDisplayName;
+
+            return Response<ErrorProfileDefinition>.Invalid(
+                code: "EditedProfileCatalogIsInvalid",
+                message: "The edited profile catalog is invalid and was not saved.");
+        }
+
+        Response saveResponse =
+            await SaveProfileCatalogAsync(
+                normalizedDocument,
+                options.ProfilesFilePath,
+                cancellationToken);
+
+        if (!saveResponse.IsSuccess)
+        {
+            profileDefinition.DisplayName = oldDisplayName;
+
+            return CreateSaveFailure<ErrorProfileDefinition>(saveResponse);
+        }
+
+        return Response<ErrorProfileDefinition>.Ok(
+            profileDefinition,
+            $"Profile '{profileDefinition.Name}' display name changed from '{oldDisplayName}' to '{normalizedDisplayName}'.");
+    }
+
     private static async Task<Response<ErrorProfileCatalogDocument>> LoadProfileCatalogAsync(
         string filePath,
         CancellationToken cancellationToken)
