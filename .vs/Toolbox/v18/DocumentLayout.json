@@ -3,22 +3,18 @@
   "WorkspaceRootPath": "D:\\Toolbox\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|d:\\toolbox\\toolroom\\whenitfails\\setter\\docs\\architecture overview\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
-      "RelativeMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|solutionrelative:toolroom\\whenitfails\\setter\\docs\\architecture overview\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-documentation-for-afrowave.toolbox.essentials.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|MarkdownSecurePreview"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}|MarkdownSecurePreview"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|d:\\toolbox\\toolroom\\whenitfails\\setter\\readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
-      "RelativeMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|solutionrelative:toolroom\\whenitfails\\setter\\readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+      "AbsoluteMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|d:\\toolbox\\toolroom\\whenitfails\\setter\\readme\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|solutionrelative:toolroom\\whenitfails\\setter\\readme\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|d:\\toolbox\\toolroom\\whenitfails\\setter\\docs\\windows and powershell\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
-      "RelativeMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|solutionrelative:toolroom\\whenitfails\\setter\\docs\\windows and powershell\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+      "AbsoluteMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|d:\\toolbox\\toolroom\\whenitfails\\setter\\readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|solutionrelative:toolroom\\whenitfails\\setter\\readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
     }
   ],
   "DocumentGroupContainers": [
@@ -233,35 +229,35 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "en.md",
-              "DocumentMoniker": "D:\\Toolbox\\Toolroom\\WhenItFails\\Setter\\Docs\\Architecture Overview\\en.md",
-              "RelativeDocumentMoniker": "Toolroom\\WhenItFails\\Setter\\Docs\\Architecture Overview\\en.md",
-              "ToolTip": "D:\\Toolbox\\Toolroom\\WhenItFails\\Setter\\Docs\\Architecture Overview\\en.md",
-              "RelativeToolTip": "Toolroom\\WhenItFails\\Setter\\Docs\\Architecture Overview\\en.md",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgCAACpAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-07-07T11:15:17.894Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
               "Title": "plan-create-comprehensive-documentation-for-afrowave.toolbox.essentials.md [N\u00E1hled]",
               "DocumentMoniker": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-documentation-for-afrowave.toolbox.essentials.md",
               "ToolTip": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-documentation-for-afrowave.toolbox.essentials.md [N\u00E1hled]",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-07-07T11:14:46.898Z",
+              "WhenOpened": "2026-07-09T05:01:55.359Z",
+              "EditorCaption": " [N\u00E1hled]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md [N\u00E1hled]",
+              "DocumentMoniker": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md",
+              "ToolTip": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md [N\u00E1hled]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-07-09T05:01:54.632Z",
               "EditorCaption": " [N\u00E1hled]"
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md [N\u00E1hled]",
-              "DocumentMoniker": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md",
-              "ToolTip": "C:\\Users\\lo505926\\.copilot\\plans\\plan-create-comprehensive-unit-tests-for-afrowave.toolbox.essentials.md [N\u00E1hled]",
+              "Title": "en.md",
+              "DocumentMoniker": "D:\\Toolbox\\Toolroom\\WhenItFails\\Setter\\Readme\\en.md",
+              "RelativeDocumentMoniker": "Toolroom\\WhenItFails\\Setter\\Readme\\en.md",
+              "ToolTip": "D:\\Toolbox\\Toolroom\\WhenItFails\\Setter\\Readme\\en.md*",
+              "RelativeToolTip": "Toolroom\\WhenItFails\\Setter\\Readme\\en.md*",
+              "ViewState": "AgIAAPsAAAAAAAAAAADwvxUBAAA/AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-07-07T11:14:43.963Z",
-              "EditorCaption": " [N\u00E1hled]"
+              "WhenOpened": "2026-07-07T11:18:57.664Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -271,22 +267,10 @@
               "RelativeDocumentMoniker": "Toolroom\\WhenItFails\\Setter\\README.md",
               "ToolTip": "D:\\Toolbox\\Toolroom\\WhenItFails\\Setter\\README.md",
               "RelativeToolTip": "Toolroom\\WhenItFails\\Setter\\README.md",
-              "ViewState": "AgIAAPkAAAAAAAAAAAAAAA0BAABBAAAAAAAAAA==",
+              "ViewState": "AgIAAP8AAAAAAAAAAAAAABUBAAA/AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
               "WhenOpened": "2026-07-02T15:49:46.29Z",
               "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "en.md",
-              "DocumentMoniker": "D:\\Toolbox\\Toolroom\\WhenItFails\\Setter\\Docs\\Windows and PowerShell\\en.md",
-              "RelativeDocumentMoniker": "Toolroom\\WhenItFails\\Setter\\Docs\\Windows and PowerShell\\en.md",
-              "ToolTip": "D:\\Toolbox\\Toolroom\\WhenItFails\\Setter\\Docs\\Windows and PowerShell\\en.md",
-              "RelativeToolTip": "Toolroom\\WhenItFails\\Setter\\Docs\\Windows and PowerShell\\en.md",
-              "ViewState": "AgIAAMQFAAAAAAAAAAAwwB8GAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
-              "WhenOpened": "2026-07-02T15:40:28.078Z"
             }
           ]
         },
