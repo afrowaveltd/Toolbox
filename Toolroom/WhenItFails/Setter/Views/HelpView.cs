@@ -39,6 +39,9 @@ internal static class HelpView
             "[green]set-profile-display-name[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<display-name>[/]",
             "Safely change the human-readable name of one profile.");
         commandGrid.AddRow(
+            "[green]set-profile-description[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<description>[/]",
+            "Safely set a profile description. Pass an empty quoted string to clear it.");
+        commandGrid.AddRow(
             "[green]list-categories[/] [grey]<path>[/] [grey][[--plain]][/]",
             "List categories from a validated WhenItFails workspace.");
         commandGrid.AddRow(
