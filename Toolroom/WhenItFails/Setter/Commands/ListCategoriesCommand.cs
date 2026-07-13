@@ -13,7 +13,7 @@ internal static class ListCategoriesCommand
     {
         if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
         {
-            ShowCommandInputError(
+            CommandInputError.Show(
                 code: "MissingListCategoriesPath",
                 message: "The list-categories command requires a project root or Jsons/WhenItFails directory path.",
                 path: "list-categories <path> [--plain]");
@@ -22,7 +22,7 @@ internal static class ListCategoriesCommand
 
         if (!TryParseOptions(args, out bool usePlainOutput))
         {
-            ShowCommandInputError(
+            CommandInputError.Show(
                 code: "InvalidListCategoriesArguments",
                 message: "The list-categories command accepts only a path and the optional --plain switch.",
                 path: "list-categories <path> [--plain]");
@@ -58,14 +58,5 @@ internal static class ListCategoriesCommand
     public static bool TryParseOptions(string[] args, out bool usePlainOutput)
     {
         return PlainOutputOptionParser.TryParse(args, optionStartIndex: 2, out usePlainOutput);
-    }
-
-    private static void ShowCommandInputError(string code, string message, string path)
-    {
-        ErrorCatalogValidationResult validationResult = new();
-        validationResult.AddError(code: code, message: message, path: path);
-        new ConsoleValidationResultShow().Show(
-            validationResult,
-            new ConsoleShowOptions { SourcePath = "command line" });
     }
 }
