@@ -150,7 +150,9 @@ public sealed class JsonCatalogDocumentWriter
         string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
         string extension = Path.GetExtension(filePath);
         string timestamp = DateTimeOffset.UtcNow.ToString("yyyyMMdd-HHmmss-fff");
-        string backupFileName = $"{fileNameWithoutExtension}.{timestamp}.bak{extension}";
+        string uniqueSuffix = Guid.NewGuid().ToString("N");
+        string backupFileName =
+            $"{fileNameWithoutExtension}.{timestamp}-{uniqueSuffix}.bak{extension}";
 
         return Path.Combine(
            directoryPath,
