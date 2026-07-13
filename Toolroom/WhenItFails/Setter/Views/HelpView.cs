@@ -48,6 +48,9 @@ internal static class HelpView
             "[green]profile-remove-owner[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<owner-name|alias>[/]",
             "Safely remove an included owner from one profile.");
         commandGrid.AddRow(
+            "[green]profile-add-category[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<category-name|alias>[/]",
+            "Safely include an existing category in one profile.");
+        commandGrid.AddRow(
             "[green]list-categories[/] [grey]<path>[/] [grey][[--plain]][/]",
             "List categories from a validated WhenItFails workspace.");
         commandGrid.AddRow(
