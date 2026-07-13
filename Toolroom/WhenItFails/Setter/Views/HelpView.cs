@@ -36,6 +36,9 @@ internal static class HelpView
             "[green]remove-profile[/] [grey]<path>[/] [grey]<name>[/]",
             "Safely remove one project profile.");
         commandGrid.AddRow(
+            "[green]set-profile-display-name[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<display-name>[/]",
+            "Safely change the human-readable name of one profile.");
+        commandGrid.AddRow(
             "[green]list-categories[/] [grey]<path>[/] [grey][[--plain]][/]",
             "List categories from a validated WhenItFails workspace.");
         commandGrid.AddRow(
