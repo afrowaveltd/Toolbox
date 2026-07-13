@@ -53,6 +53,11 @@ try
         return await ListCategoriesCommand.ExecuteAsync(args);
     }
 
+    if (command == "show-category")
+    {
+        return await ShowCategoryCommand.ExecuteAsync(args);
+    }
+
     if (command == "list-code-groups")
     {
         return await ListCodeGroupsCommand.ExecuteAsync(args);
