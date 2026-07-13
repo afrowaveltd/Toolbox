@@ -86,7 +86,7 @@ internal static class ShowCodeGroupCommand
     {
         return PlainOutputOptionParser.TryParse(
             args,
-            firstOptionalArgumentIndex: 3,
+            3,
             out usePlainOutput);
     }
 
