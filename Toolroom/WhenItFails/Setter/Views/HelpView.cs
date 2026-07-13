@@ -39,6 +39,9 @@ internal static class HelpView
             "[green]list-code-groups[/] [grey]<path>[/] [grey][[--plain]][/]",
             "List code groups from a validated WhenItFails workspace.");
         commandGrid.AddRow(
+            "[green]show-code-group[/] [grey]<path>[/] [grey]<group-name|prefix>[/] [grey][[--plain]][/]",
+            "Show one code group by name, display name, or prefix.");
+        commandGrid.AddRow(
             "[green]list-owners[/] [grey]<path>[/] [grey][[--plain]][/]",
             "List owners from a validated WhenItFails workspace.");
         commandGrid.AddRow(
