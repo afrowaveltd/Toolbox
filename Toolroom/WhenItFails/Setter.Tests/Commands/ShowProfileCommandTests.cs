@@ -139,6 +139,18 @@ public sealed class ShowProfileCommandTests
         Assert.Equal(1, exitCode);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_WithInvalidWorkspace_ReturnsValidationError()
+    {
+        using TemporaryWorkspace temporaryWorkspace =
+            TemporaryWorkspace.CreateEmpty();
+
+        int exitCode = await ShowProfileCommand.ExecuteAsync(
+            ["show-profile", temporaryWorkspace.ProjectRootPath, "WEB", "--plain"]);
+
+        Assert.Equal(2, exitCode);
+    }
+
     private static WhenItFailsWorkspaceSummary CreateSummary()
     {
         return new WhenItFailsWorkspaceSummary
@@ -168,6 +180,19 @@ public sealed class ShowProfileCommandTests
 
         public static async Task<TemporaryWorkspace> CreateInitializedAsync()
         {
+            TemporaryWorkspace temporaryWorkspace = CreateEmpty();
+
+            WhenItFailsWorkspaceInitializer initializer = new();
+            var initializeResponse =
+                await initializer.InitializeAsync(temporaryWorkspace.ProjectRootPath);
+
+            Assert.True(initializeResponse.IsSuccess);
+
+            return temporaryWorkspace;
+        }
+
+        public static TemporaryWorkspace CreateEmpty()
+        {
             string projectRootPath = Path.Combine(
                 Path.GetTempPath(),
                 "afrowave-whenitfails-setter-command-tests",
@@ -175,14 +200,7 @@ public sealed class ShowProfileCommandTests
 
             Directory.CreateDirectory(projectRootPath);
 
-            TemporaryWorkspace temporaryWorkspace = new(projectRootPath);
-            WhenItFailsWorkspaceInitializer initializer = new();
-            var initializeResponse =
-                await initializer.InitializeAsync(projectRootPath);
-
-            Assert.True(initializeResponse.IsSuccess);
-
-            return temporaryWorkspace;
+            return new TemporaryWorkspace(projectRootPath);
         }
 
         public void Dispose()
