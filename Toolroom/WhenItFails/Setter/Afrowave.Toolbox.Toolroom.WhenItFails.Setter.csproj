@@ -1,6 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <Compile Remove="Docs\NováSložka\**" />
+    <EmbeddedResource Remove="Docs\NováSložka\**" />
+    <None Remove="Docs\NováSložka\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\WhenItFails\WhenItFails.csproj" />
     <ProjectReference Include="..\..\..\SeeMe\WhenItFails\Console\Afrowave.Toolbox.SeeMe.WhenItFails.Console.csproj" />
   </ItemGroup>
@@ -20,7 +26,7 @@
     <Folder Include="Docs\Adding a New Command\" />
     <Folder Include="Docs\Adding a New Error Definition\" />
     <Folder Include="Docs\Known Limitations\" />
-    <Folder Include="Docs\NováSložka\" />
+    <Folder Include="Docs\Roadmap and Future Work\" />
     <Folder Include="Docs\Release Checklist\" />
     <Folder Include="Docs\Profiles\" />
     <Folder Include="Docs\Windows and PowerShell\" />
