@@ -9,6 +9,14 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Commands;
 
 public sealed class AddProfileCommandTests
 {
+    public static TheoryData<string[]> MissingRequiredArgumentCases =>
+        new()
+        {
+            new[] { "add-profile" },
+            new[] { "add-profile", "." },
+            new[] { "add-profile", ".", "DITA" }
+        };
+
     [Fact]
     public async Task ExecuteAsync_WithValidArguments_AddsProfileAndReturnsSuccess()
     {
@@ -52,9 +60,7 @@ public sealed class AddProfileCommandTests
     }
 
     [Theory]
-    [InlineData(new[] { "add-profile" })]
-    [InlineData(new[] { "add-profile", "." })]
-    [InlineData(new[] { "add-profile", ".", "DITA" })]
+    [MemberData(nameof(MissingRequiredArgumentCases))]
     public async Task ExecuteAsync_WithMissingRequiredArgument_ReturnsCommandInputError(
         string[] args)
     {
