@@ -93,6 +93,15 @@ public sealed class ListProfilesCommandTests
         Assert.Equal(1, exitCode);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_WithUnknownArgument_ReturnsCommandInputError()
+    {
+        int exitCode = await ListProfilesCommand.ExecuteAsync(
+            ["list-profiles", ".", "--unknown"]);
+
+        Assert.Equal(1, exitCode);
+    }
+
     private sealed class TemporaryWorkspace : IDisposable
     {
         private TemporaryWorkspace(string projectRootPath)
