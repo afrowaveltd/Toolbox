@@ -16,7 +16,7 @@ internal static class ShowCodeGroupCommand
 
         if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
         {
-            ShowCommandInputError(
+            CommandInputError.Show(
                 "MissingShowCodeGroupPath",
                 "The show-code-group command requires a project root or Jsons/WhenItFails directory path.",
                 usage);
@@ -25,7 +25,7 @@ internal static class ShowCodeGroupCommand
 
         if (args.Length < 3 || string.IsNullOrWhiteSpace(args[2]))
         {
-            ShowCommandInputError(
+            CommandInputError.Show(
                 "MissingShowCodeGroupName",
                 "The show-code-group command requires a code group name or prefix.",
                 usage);
@@ -34,7 +34,7 @@ internal static class ShowCodeGroupCommand
 
         if (!TryParseOptions(args, out bool usePlainOutput))
         {
-            ShowCommandInputError(
+            CommandInputError.Show(
                 "InvalidShowCodeGroupArguments",
                 "The show-code-group command accepts only a path, a code group name or prefix, and the optional --plain switch.",
                 usage);
@@ -98,14 +98,5 @@ internal static class ShowCodeGroupCommand
             string.Equals(codeGroup.Name, groupNameOrPrefix, StringComparison.OrdinalIgnoreCase)
             || string.Equals(codeGroup.DisplayName, groupNameOrPrefix, StringComparison.OrdinalIgnoreCase)
             || string.Equals(codeGroup.CodePrefix, groupNameOrPrefix, StringComparison.OrdinalIgnoreCase));
-    }
-
-    private static void ShowCommandInputError(string code, string message, string path)
-    {
-        ErrorCatalogValidationResult result = new();
-        result.AddError(code, message, path);
-        new ConsoleValidationResultShow().Show(
-            result,
-            new ConsoleShowOptions { SourcePath = "command line" });
     }
 }
