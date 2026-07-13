@@ -45,6 +45,9 @@ internal static class HelpView
             "[green]list-owners[/] [grey]<path>[/] [grey][[--plain]][/]",
             "List owners from a validated WhenItFails workspace.");
         commandGrid.AddRow(
+            "[green]show-owner[/] [grey]<path>[/] [grey]<owner-name|alias>[/] [grey][[--plain]][/]",
+            "Show one owner by name, display name, or alias.");
+        commandGrid.AddRow(
             "[green]details[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey][[--plain]][/]",
             "Show one error definition in detail.");
         commandGrid.AddRow("[green]detail[/] [grey]<path>[/] [grey]<id|code|name>[/]", "Alias for details.");
