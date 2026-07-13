@@ -33,7 +33,7 @@ internal static class WhenItFailsProfileWorkspaceEditorOwnerExtensions
 
         if (!contextResponse.IsSuccess || contextResponse.Data is null)
         {
-            return CopyFailure<ErrorProfileDefinition>(contextResponse);
+            return CopyFailure<ErrorProfileDefinition, ProfileOwnerEditContext>(contextResponse);
         }
 
         ProfileOwnerEditContext context = contextResponse.Data;
@@ -89,7 +89,7 @@ internal static class WhenItFailsProfileWorkspaceEditorOwnerExtensions
 
         if (!contextResponse.IsSuccess || contextResponse.Data is null)
         {
-            return CopyFailure<ErrorProfileDefinition>(contextResponse);
+            return CopyFailure<ErrorProfileDefinition, ProfileOwnerEditContext>(contextResponse);
         }
 
         ProfileOwnerEditContext context = contextResponse.Data;
