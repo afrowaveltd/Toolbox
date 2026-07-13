@@ -130,6 +130,15 @@ public sealed class ShowProfileCommandTests
         Assert.Equal(2, exitCode);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_WithoutProfileName_ReturnsCommandInputError()
+    {
+        int exitCode = await ShowProfileCommand.ExecuteAsync(
+            ["show-profile", "."]);
+
+        Assert.Equal(1, exitCode);
+    }
+
     private static WhenItFailsWorkspaceSummary CreateSummary()
     {
         return new WhenItFailsWorkspaceSummary
