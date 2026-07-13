@@ -58,6 +58,11 @@ try
         return await RemoveProfileCommand.ExecuteAsync(args);
     }
 
+    if (command == "set-profile-display-name")
+    {
+        return await SetProfileDisplayNameCommand.ExecuteAsync(args);
+    }
+
     if (command == "list-categories")
     {
         return await ListCategoriesCommand.ExecuteAsync(args);
