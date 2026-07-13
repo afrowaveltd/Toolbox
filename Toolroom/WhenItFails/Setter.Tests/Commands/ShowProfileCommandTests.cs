@@ -118,6 +118,18 @@ public sealed class ShowProfileCommandTests
         Assert.Equal(0, exitCode);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_WithUnknownProfile_ReturnsLookupError()
+    {
+        using TemporaryWorkspace temporaryWorkspace =
+            await TemporaryWorkspace.CreateInitializedAsync();
+
+        int exitCode = await ShowProfileCommand.ExecuteAsync(
+            ["show-profile", temporaryWorkspace.ProjectRootPath, "DOES_NOT_EXIST", "--plain"]);
+
+        Assert.Equal(2, exitCode);
+    }
+
     private static WhenItFailsWorkspaceSummary CreateSummary()
     {
         return new WhenItFailsWorkspaceSummary
