@@ -33,6 +33,9 @@ internal static class HelpView
             "[green]add-profile[/] [grey]<path>[/] [grey]<name>[/] [grey]<display-name>[/] [grey][[description]][/]",
             "Safely add a project profile. Quote display names or descriptions containing spaces.");
         commandGrid.AddRow(
+            "[green]remove-profile[/] [grey]<path>[/] [grey]<name>[/]",
+            "Safely remove one project profile.");
+        commandGrid.AddRow(
             "[green]list-categories[/] [grey]<path>[/] [grey][[--plain]][/]",
             "List categories from a validated WhenItFails workspace.");
         commandGrid.AddRow(
