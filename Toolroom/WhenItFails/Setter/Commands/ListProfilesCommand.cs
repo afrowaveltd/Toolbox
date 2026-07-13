@@ -18,7 +18,7 @@ internal static class ListProfilesCommand
     {
         if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
         {
-            ShowCommandInputError(
+            CommandInputError.Show(
                 code: "MissingListProfilesPath",
                 message: "The list-profiles command requires a project root or Jsons/WhenItFails directory path.",
                 path: "list-profiles <path> [--plain]");
@@ -28,7 +28,7 @@ internal static class ListProfilesCommand
 
         if (!TryParseOptions(args, out bool usePlainOutput))
         {
-            ShowCommandInputError(
+            CommandInputError.Show(
                 code: "InvalidListProfilesArguments",
                 message: "The list-profiles command accepts only a path and the optional --plain switch.",
                 path: "list-profiles <path> [--plain]");
@@ -86,25 +86,5 @@ internal static class ListProfilesCommand
             args,
             optionStartIndex: 2,
             out usePlainOutput);
-    }
-
-    private static void ShowCommandInputError(
-        string code,
-        string message,
-        string path)
-    {
-        ErrorCatalogValidationResult validationResult = new();
-
-        validationResult.AddError(
-            code: code,
-            message: message,
-            path: path);
-
-        new ConsoleValidationResultShow().Show(
-            validationResult,
-            new ConsoleShowOptions
-            {
-                SourcePath = "command line"
-            });
     }
 }
