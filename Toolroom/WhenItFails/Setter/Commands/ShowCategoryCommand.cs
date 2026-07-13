@@ -16,19 +16,19 @@ internal static class ShowCategoryCommand
 
         if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
         {
-            ShowCommandInputError("MissingShowCategoryPath", "The show-category command requires a project root or Jsons/WhenItFails directory path.", usage);
+            CommandInputError.Show("MissingShowCategoryPath", "The show-category command requires a project root or Jsons/WhenItFails directory path.", usage);
             return 1;
         }
 
         if (args.Length < 3 || string.IsNullOrWhiteSpace(args[2]))
         {
-            ShowCommandInputError("MissingShowCategoryName", "The show-category command requires a category name.", usage);
+            CommandInputError.Show("MissingShowCategoryName", "The show-category command requires a category name.", usage);
             return 1;
         }
 
         if (!TryParseOptions(args, out bool usePlainOutput))
         {
-            ShowCommandInputError("InvalidShowCategoryArguments", "The show-category command accepts only a path, a category name, and the optional --plain switch.", usage);
+            CommandInputError.Show("InvalidShowCategoryArguments", "The show-category command accepts only a path, a category name, and the optional --plain switch.", usage);
             return 1;
         }
 
@@ -82,12 +82,5 @@ internal static class ShowCategoryCommand
             string.Equals(category.Name, categoryName, StringComparison.OrdinalIgnoreCase)
             || string.Equals(category.DisplayName, categoryName, StringComparison.OrdinalIgnoreCase)
             || category.Aliases.Any(alias => string.Equals(alias, categoryName, StringComparison.OrdinalIgnoreCase)));
-    }
-
-    private static void ShowCommandInputError(string code, string message, string path)
-    {
-        ErrorCatalogValidationResult result = new();
-        result.AddError(code, message, path);
-        new ConsoleValidationResultShow().Show(result, new ConsoleShowOptions { SourcePath = "command line" });
     }
 }
