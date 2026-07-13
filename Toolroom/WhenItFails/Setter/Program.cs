@@ -73,6 +73,11 @@ try
         return await ProfileAddOwnerCommand.ExecuteAsync(args);
     }
 
+    if (command == "profile-remove-owner")
+    {
+        return await ProfileRemoveOwnerCommand.ExecuteAsync(args);
+    }
+
     if (command == "list-categories")
     {
         return await ListCategoriesCommand.ExecuteAsync(args);
