@@ -59,4 +59,59 @@ public sealed class ListProfilesCommandTests
         Assert.False(isValid);
         Assert.True(usePlainOutput);
     }
+
+    [Fact]
+    public async Task ExecuteAsync_WithInitializedWorkspaceAndPlainOutput_ReturnsSuccess()
+    {
+        using TemporaryWorkspace temporaryWorkspace =
+            await TemporaryWorkspace.CreateAsync();
+
+        int exitCode = await ListProfilesCommand.ExecuteAsync(
+            ["list-profiles", temporaryWorkspace.ProjectRootPath, "--plain"]);
+
+        Assert.Equal(0, exitCode);
+    }
+
+    private sealed class TemporaryWorkspace : IDisposable
+    {
+        private TemporaryWorkspace(string projectRootPath)
+        {
+            ProjectRootPath = projectRootPath;
+        }
+
+        public string ProjectRootPath { get; }
+
+        public static async Task<TemporaryWorkspace> CreateAsync()
+        {
+            string projectRootPath = Path.Combine(
+                Path.GetTempPath(),
+                "afrowave-whenitfails-setter-command-tests",
+                Guid.NewGuid().ToString("N"));
+
+            Directory.CreateDirectory(projectRootPath);
+
+            WhenItFailsWorkspaceInitializer initializer = new();
+            var initializeResponse =
+                await initializer.InitializeAsync(projectRootPath);
+
+            Assert.True(initializeResponse.IsSuccess);
+
+            return new TemporaryWorkspace(projectRootPath);
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                if (Directory.Exists(ProjectRootPath))
+                {
+                    Directory.Delete(ProjectRootPath, recursive: true);
+                }
+            }
+            catch
+            {
+                // Test cleanup should not hide the real test result.
+            }
+        }
+    }
 }
