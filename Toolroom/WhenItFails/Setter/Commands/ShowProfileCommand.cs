@@ -112,27 +112,10 @@ internal static class ShowProfileCommand
         string[] args,
         out bool usePlainOutput)
     {
-        usePlainOutput = false;
-
-        for (int index = 3; index < args.Length; index++)
-        {
-            if (!string.Equals(
-                    args[index],
-                    "--plain",
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-
-            if (usePlainOutput)
-            {
-                return false;
-            }
-
-            usePlainOutput = true;
-        }
-
-        return true;
+        return PlainOutputOptionParser.TryParse(
+            args,
+            firstOptionalArgumentIndex: 3,
+            out usePlainOutput);
     }
 
     /// <summary>
