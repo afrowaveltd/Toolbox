@@ -114,7 +114,7 @@ internal static class ShowProfileCommand
     {
         return PlainOutputOptionParser.TryParse(
             args,
-            firstOptionalArgumentIndex: 3,
+            3,
             out usePlainOutput);
     }
 
