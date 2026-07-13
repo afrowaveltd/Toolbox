@@ -48,6 +48,11 @@ try
         return await ShowProfileCommand.ExecuteAsync(args);
     }
 
+    if (command == "list-categories")
+    {
+        return await ListCategoriesCommand.ExecuteAsync(args);
+    }
+
     if (command is "details" or "detail")
     {
         return await DetailsCommand.ExecuteAsync(args);
