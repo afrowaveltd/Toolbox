@@ -104,6 +104,37 @@ public sealed class WhenItFailsProfileWorkspaceEditorTests
         AssertNoBackupWasCreated(temporaryWorkspace.WhenItFailsJsonsPath);
     }
 
+    [Fact]
+    public async Task AddProfileAsync_ShouldReturnFailure_WhenProfileCatalogCannotBeLoaded()
+    {
+        using TemporaryWhenItFailsWorkspace temporaryWorkspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+
+        string profileCatalogFilePath = Path.Combine(
+            temporaryWorkspace.WhenItFailsJsonsPath,
+            "profiles.json");
+
+        const string invalidJson = "{ this is not valid JSON";
+        await File.WriteAllTextAsync(profileCatalogFilePath, invalidJson);
+
+        WhenItFailsProfileWorkspaceEditor editor = new();
+
+        Response<ErrorProfileDefinition> response =
+            await editor.AddProfileAsync(
+                temporaryWorkspace.ProjectRootPath,
+                "DITA",
+                "DiTa");
+
+        Assert.False(response.IsSuccess);
+        Assert.Contains(
+            response.Issues,
+            issue => issue.Code == "ProfileCatalogLoadFailed");
+        Assert.Equal(
+            invalidJson,
+            await File.ReadAllTextAsync(profileCatalogFilePath));
+        AssertNoBackupWasCreated(temporaryWorkspace.WhenItFailsJsonsPath);
+    }
+
     private static async Task<ErrorProfileDefinition> LoadProfileAsync(
         string whenItFailsJsonsPath,
         string profileName)
