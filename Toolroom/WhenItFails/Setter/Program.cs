@@ -68,6 +68,11 @@ try
         return await SetProfileDescriptionCommand.ExecuteAsync(args);
     }
 
+    if (command == "profile-add-owner")
+    {
+        return await ProfileAddOwnerCommand.ExecuteAsync(args);
+    }
+
     if (command == "list-categories")
     {
         return await ListCategoriesCommand.ExecuteAsync(args);
