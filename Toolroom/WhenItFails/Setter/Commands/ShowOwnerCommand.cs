@@ -16,7 +16,7 @@ internal static class ShowOwnerCommand
 
         if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
         {
-            ShowCommandInputError(
+            CommandInputError.Show(
                 "MissingShowOwnerPath",
                 "The show-owner command requires a project root or Jsons/WhenItFails directory path.",
                 usage);
@@ -25,7 +25,7 @@ internal static class ShowOwnerCommand
 
         if (args.Length < 3 || string.IsNullOrWhiteSpace(args[2]))
         {
-            ShowCommandInputError(
+            CommandInputError.Show(
                 "MissingShowOwnerName",
                 "The show-owner command requires an owner name or alias.",
                 usage);
@@ -34,7 +34,7 @@ internal static class ShowOwnerCommand
 
         if (!TryParseOptions(args, out bool usePlainOutput))
         {
-            ShowCommandInputError(
+            CommandInputError.Show(
                 "InvalidShowOwnerArguments",
                 "The show-owner command accepts only a path, an owner name or alias, and the optional --plain switch.",
                 usage);
@@ -99,14 +99,5 @@ internal static class ShowOwnerCommand
             || string.Equals(owner.DisplayName, ownerNameOrAlias, StringComparison.OrdinalIgnoreCase)
             || owner.Aliases.Any(alias =>
                 string.Equals(alias, ownerNameOrAlias, StringComparison.OrdinalIgnoreCase)));
-    }
-
-    private static void ShowCommandInputError(string code, string message, string path)
-    {
-        ErrorCatalogValidationResult result = new();
-        result.AddError(code, message, path);
-        new ConsoleValidationResultShow().Show(
-            result,
-            new ConsoleShowOptions { SourcePath = "command line" });
     }
 }
