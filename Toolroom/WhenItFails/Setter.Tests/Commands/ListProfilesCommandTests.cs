@@ -84,6 +84,15 @@ public sealed class ListProfilesCommandTests
         Assert.Equal(2, exitCode);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_WithoutPath_ReturnsCommandInputError()
+    {
+        int exitCode = await ListProfilesCommand.ExecuteAsync(
+            ["list-profiles"]);
+
+        Assert.Equal(1, exitCode);
+    }
+
     private sealed class TemporaryWorkspace : IDisposable
     {
         private TemporaryWorkspace(string projectRootPath)
