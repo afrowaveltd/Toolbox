@@ -22,8 +22,8 @@ internal static class WorkspaceCommandContextLoader
 
         return TryLoadAsync(
             inputPath,
-            validator.ValidateAsync,
-            summarizer.LoadAsync,
+            path => validator.ValidateAsync(path),
+            path => summarizer.LoadAsync(path),
             ShowValidationFailure);
     }
 
