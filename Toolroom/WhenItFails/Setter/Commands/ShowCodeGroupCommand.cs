@@ -84,19 +84,10 @@ internal static class ShowCodeGroupCommand
 
     public static bool TryParseOptions(string[] args, out bool usePlainOutput)
     {
-        usePlainOutput = false;
-
-        for (int index = 3; index < args.Length; index++)
-        {
-            if (!string.Equals(args[index], "--plain", StringComparison.OrdinalIgnoreCase) || usePlainOutput)
-            {
-                return false;
-            }
-
-            usePlainOutput = true;
-        }
-
-        return true;
+        return PlainOutputOptionParser.TryParse(
+            args,
+            firstOptionalArgumentIndex: 3,
+            out usePlainOutput);
     }
 
     public static ErrorCodeGroupDefinition? FindCodeGroup(
