@@ -1,5 +1,3 @@
-using Afrowave.Toolbox.SeeMe.WhenItFails.Console;
-using Afrowave.Toolbox.WhenItFails.Validation;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Views;
 
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
@@ -36,37 +34,21 @@ internal static class ListProfilesCommand
             return 1;
         }
 
-        string inputPath = args[1];
+        WorkspaceCommandContext? context =
+            await WorkspaceCommandContextLoader.TryLoadAsync(args[1]);
 
-        WhenItFailsWorkspaceValidator validator = new();
-
-        WhenItFailsWorkspaceValidationOutcome validationOutcome =
-            await validator.ValidateAsync(inputPath);
-
-        if (!validationOutcome.ValidationResult.IsValid)
+        if (context is null)
         {
-            new ConsoleValidationResultShow().Show(
-                validationOutcome.ValidationResult,
-                new ConsoleShowOptions
-                {
-                    SourcePath = validationOutcome.DisplayPath
-                });
-
             return 2;
         }
 
-        WhenItFailsWorkspaceSummarizer summarizer = new();
-
-        WhenItFailsWorkspaceSummary summary =
-            await summarizer.LoadAsync(inputPath);
-
         if (usePlainOutput)
         {
-            ProfilesView.ShowPlain(summary);
+            ProfilesView.ShowPlain(context.Summary);
         }
         else
         {
-            ProfilesView.Show(summary);
+            ProfilesView.Show(context.Summary);
         }
 
         return 0;
