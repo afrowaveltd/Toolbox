@@ -78,6 +78,11 @@ try
         return await ProfileRemoveOwnerCommand.ExecuteAsync(args);
     }
 
+    if (command == "profile-add-category")
+    {
+        return await ProfileAddCategoryCommand.ExecuteAsync(args);
+    }
+
     if (command == "list-categories")
     {
         return await ListCategoriesCommand.ExecuteAsync(args);
