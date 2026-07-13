@@ -19,7 +19,7 @@ internal static class ShowProfileCommand
     {
         if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
         {
-            ShowCommandInputError(
+            CommandInputError.Show(
                 code: "MissingShowProfilePath",
                 message: "The show-profile command requires a project root or Jsons/WhenItFails directory path.",
                 path: "show-profile <path> <profile-name> [--plain]");
@@ -29,7 +29,7 @@ internal static class ShowProfileCommand
 
         if (args.Length < 3 || string.IsNullOrWhiteSpace(args[2]))
         {
-            ShowCommandInputError(
+            CommandInputError.Show(
                 code: "MissingShowProfileName",
                 message: "The show-profile command requires a profile name.",
                 path: "show-profile <path> <profile-name> [--plain]");
@@ -39,7 +39,7 @@ internal static class ShowProfileCommand
 
         if (!TryParseOptions(args, out bool usePlainOutput))
         {
-            ShowCommandInputError(
+            CommandInputError.Show(
                 code: "InvalidShowProfileArguments",
                 message: "The show-profile command accepts only a path, a profile name, and the optional --plain switch.",
                 path: "show-profile <path> <profile-name> [--plain]");
@@ -134,25 +134,5 @@ internal static class ShowProfileCommand
                 profile.DisplayName,
                 profileName,
                 StringComparison.OrdinalIgnoreCase));
-    }
-
-    private static void ShowCommandInputError(
-        string code,
-        string message,
-        string path)
-    {
-        ErrorCatalogValidationResult validationResult = new();
-
-        validationResult.AddError(
-            code: code,
-            message: message,
-            path: path);
-
-        new ConsoleValidationResultShow().Show(
-            validationResult,
-            new ConsoleShowOptions
-            {
-                SourcePath = "command line"
-            });
     }
 }
