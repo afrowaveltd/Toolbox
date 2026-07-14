@@ -90,6 +90,12 @@ internal static class HelpView
             "[green]profile-remove-excluded-error[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<id|code|name>[/]",
             "Safely stop explicitly excluding one error from a profile.");
         commandGrid.AddRow(
+            "[green]profile-set-default-mapping[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<mapping-key>[/] [grey]<mapping-value>[/]",
+            "Safely add or update a profile default mapping. Quote values containing spaces.");
+        commandGrid.AddRow(
+            "[green]profile-remove-default-mapping[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<mapping-key>[/]",
+            "Safely remove one default mapping from a profile.");
+        commandGrid.AddRow(
             "[green]list-categories[/] [grey]<path>[/] [grey][[--plain]][/]",
             "List categories from a validated WhenItFails workspace.");
         commandGrid.AddRow(
