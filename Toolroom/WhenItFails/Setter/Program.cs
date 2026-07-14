@@ -128,6 +128,16 @@ try
         return await ProfileRemoveExcludedTagCommand.ExecuteAsync(args);
     }
 
+    if (command == "profile-add-error")
+    {
+        return await ProfileAddErrorCommand.ExecuteAsync(args);
+    }
+
+    if (command == "profile-remove-error")
+    {
+        return await ProfileRemoveErrorCommand.ExecuteAsync(args);
+    }
+
     if (command == "list-categories")
     {
         return await ListCategoriesCommand.ExecuteAsync(args);
