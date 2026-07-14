@@ -151,6 +151,9 @@ internal static class HelpView
             "[green]set-primary-category[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<category-name|alias>[/]",
             "Safely change the primary category of one error definition.");
         commandGrid.AddRow(
+            "[green]set-owner[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<owner-name|alias>[/]",
+            "Atomically change an error owner and structured id when the numeric code fits the new owner range.");
+        commandGrid.AddRow(
             "[green]set-title[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<title>[/]",
             "Safely change the title of one error definition.");
         commandGrid.AddRow(
