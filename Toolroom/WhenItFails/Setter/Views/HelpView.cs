@@ -78,6 +78,12 @@ internal static class HelpView
             "[green]profile-remove-excluded-tag[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<tag>[/]",
             "Safely stop excluding an error tag from one profile.");
         commandGrid.AddRow(
+            "[green]profile-add-error[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<id|code|name>[/]",
+            "Safely include one existing error explicitly in a profile.");
+        commandGrid.AddRow(
+            "[green]profile-remove-error[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<id|code|name>[/]",
+            "Safely remove one explicitly included error from a profile.");
+        commandGrid.AddRow(
             "[green]list-categories[/] [grey]<path>[/] [grey][[--plain]][/]",
             "List categories from a validated WhenItFails workspace.");
         commandGrid.AddRow(
