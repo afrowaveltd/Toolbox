@@ -67,6 +67,61 @@ internal static class WhenItFailsProfileWorkspaceEditorExcludedTagExtensions
             $"Tag '{context.CanonicalTagName}' was added to excluded tags for profile '{context.ProfileDefinition.Name}'.");
     }
 
+    /// <summary>
+    /// Removes an existing workspace tag from one profile's excluded tags.
+    /// </summary>
+    public static async Task<Response<ErrorProfileDefinition>> ProfileRemoveExcludedTagAsync(
+        this WhenItFailsProfileWorkspaceEditor editor,
+        string inputPath,
+        string profileName,
+        string tagName,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(editor);
+
+        Response<ProfileExcludedTagEditContext> contextResponse = await LoadContextAsync(
+            inputPath,
+            profileName,
+            tagName,
+            cancellationToken);
+
+        if (!contextResponse.IsSuccess || contextResponse.Data is null)
+        {
+            return CopyFailure<ErrorProfileDefinition, ProfileExcludedTagEditContext>(contextResponse);
+        }
+
+        ProfileExcludedTagEditContext context = contextResponse.Data;
+        int tagIndex = context.ProfileDefinition.ExcludeTags.FindIndex(excludedTag =>
+            string.Equals(
+                excludedTag,
+                context.CanonicalTagName,
+                StringComparison.OrdinalIgnoreCase));
+
+        if (tagIndex < 0)
+        {
+            return Response<ErrorProfileDefinition>.NotFound(
+                code: "ProfileTagNotExcluded",
+                message: $"Profile '{context.ProfileDefinition.Name}' does not exclude tag '{context.CanonicalTagName}'.");
+        }
+
+        string removedTagName = context.ProfileDefinition.ExcludeTags[tagIndex];
+        context.ProfileDefinition.ExcludeTags.RemoveAt(tagIndex);
+
+        Response<ErrorProfileDefinition>? saveFailure = await ValidateAndSaveAsync(
+            context,
+            rollback: () => context.ProfileDefinition.ExcludeTags.Insert(tagIndex, removedTagName),
+            cancellationToken);
+
+        if (saveFailure is not null)
+        {
+            return saveFailure;
+        }
+
+        return Response<ErrorProfileDefinition>.Ok(
+            context.ProfileDefinition,
+            $"Tag '{context.CanonicalTagName}' was removed from excluded tags for profile '{context.ProfileDefinition.Name}'.");
+    }
+
     private static async Task<Response<ProfileExcludedTagEditContext>> LoadContextAsync(
         string inputPath,
         string profileName,
@@ -120,10 +175,7 @@ internal static class WhenItFailsProfileWorkspaceEditorExcludedTagExtensions
 
         string normalizedProfileName = TextKeyNormalizer.NormalizeKey(profileName);
         ErrorProfileDefinition? profileDefinition = profileCatalog.Profiles.FirstOrDefault(profile =>
-            string.Equals(
-                profile.Name,
-                normalizedProfileName,
-                StringComparison.OrdinalIgnoreCase));
+            string.Equals(profile.Name, normalizedProfileName, StringComparison.OrdinalIgnoreCase));
 
         if (profileDefinition is null)
         {
@@ -153,10 +205,7 @@ internal static class WhenItFailsProfileWorkspaceEditorExcludedTagExtensions
         string? canonicalTagName = errorCatalog.Errors
             .SelectMany(error => error.Tags)
             .Select(TextKeyNormalizer.NormalizeKey)
-            .FirstOrDefault(tag => string.Equals(
-                tag,
-                normalizedTagName,
-                StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefault(tag => string.Equals(tag, normalizedTagName, StringComparison.OrdinalIgnoreCase));
 
         if (canonicalTagName is null)
         {
@@ -184,7 +233,6 @@ internal static class WhenItFailsProfileWorkspaceEditorExcludedTagExtensions
         if (!editedValidationResult.IsValid)
         {
             rollback();
-
             return Response<ErrorProfileDefinition>.Invalid(
                 code: "EditedProfileCatalogIsInvalid",
                 message: "The edited profile catalog is invalid and was not saved.");
@@ -221,9 +269,7 @@ internal static class WhenItFailsProfileWorkspaceEditorExcludedTagExtensions
             ? response.Issues[0].Code
             : "ProfileExcludedTagEditFailed";
 
-        return Response<TTarget>.Fail(
-            code: code,
-            message: response.Message);
+        return Response<TTarget>.Fail(code: code, message: response.Message);
     }
 
     private sealed record ProfileExcludedTagEditContext(
