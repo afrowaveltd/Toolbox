@@ -158,6 +158,16 @@ try
         return await ProfileRemoveDefaultMappingCommand.ExecuteAsync(args);
     }
 
+    if (command == "profile-set-metadata")
+    {
+        return await ProfileSetMetadataCommand.ExecuteAsync(args);
+    }
+
+    if (command == "profile-remove-metadata")
+    {
+        return await ProfileRemoveMetadataCommand.ExecuteAsync(args);
+    }
+
     if (command == "list-categories")
     {
         return await ListCategoriesCommand.ExecuteAsync(args);
