@@ -24,9 +24,12 @@ public sealed class WhenItFailsProfileWorkspaceEditorSubcategoryTests
 
         Assert.True(addProfileResponse.IsSuccess);
 
+        string[] backupsBeforeAdd = Directory.GetFiles(
+            temporaryWorkspace.WhenItFailsJsonsPath,
+            "profiles.*.bak.json");
+
         string subcategory = await LoadFirstSubcategoryAsync(
             temporaryWorkspace.WhenItFailsJsonsPath);
-
         Response<ErrorProfileDefinition> response =
             await editor.ProfileAddSubcategoryAsync(
                 temporaryWorkspace.ProjectRootPath,
@@ -47,11 +50,11 @@ public sealed class WhenItFailsProfileWorkspaceEditorSubcategoryTests
             TextKeyNormalizer.NormalizeKey(subcategory),
             savedProfile.IncludeSubcategories);
 
-        string[] backupFiles = Directory.GetFiles(
+        string[] backupsAfterAdd = Directory.GetFiles(
             temporaryWorkspace.WhenItFailsJsonsPath,
             "profiles.*.bak.json");
 
-        Assert.Single(backupFiles);
+        Assert.Equal(backupsBeforeAdd.Length + 1, backupsAfterAdd.Length);
     }
 
     [Fact]
