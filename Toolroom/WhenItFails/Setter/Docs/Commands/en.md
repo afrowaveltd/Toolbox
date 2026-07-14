@@ -1,270 +1,117 @@
 # WhenItFails Setter — command reference
 
-This document describes all currently supported WhenItFails Setter commands.
+This document lists the currently supported Setter commands.
 
 ## Invocation
 
-From the Toolbox repository, use:
+From the Toolbox repository:
 
 ```bash
 dotnet run --project Toolroom/WhenItFails/Setter -- <command> [arguments]
 ```
 
-The double dash separates `dotnet run` arguments from Setter arguments.
-
-Example:
-
-```bash
-dotnet run --project Toolroom/WhenItFails/Setter -- validate .
-```
-
-If Setter is later published as a standalone executable, the equivalent form may be:
+Published executable form:
 
 ```bash
 when-it-fails-setter <command> [arguments]
 ```
 
-The examples below use the shorter standalone form where it improves readability.
+Most examples below use the shorter executable form.
 
-## Common path argument
+## Path argument
 
-Most commands accept:
-
-```text
-<path>
-```
-
-The path may point to:
-
-* a project root containing `Jsons/WhenItFails`,
-* the `Jsons/WhenItFails` directory itself.
-
-Examples:
-
-```bash
-when-it-fails-setter validate ./MyProject
-```
-
-```bash
-when-it-fails-setter validate ./MyProject/Jsons/WhenItFails
-```
-
-```bash
-when-it-fails-setter validate .
-```
-
-## Common lookup argument
-
-Commands that operate on one error accept:
+`<path>` may point to:
 
 ```text
-<id|code|name>
+a project root containing Jsons/WhenItFails
+or
+the Jsons/WhenItFails directory itself
 ```
 
-The error may be selected by:
+## Error lookup
 
-* stable ID,
-* numeric code,
-* symbolic name.
-
-Examples:
+Commands accepting `<id|code|name>` can locate an error by:
 
 ```text
-AFW_NET_0001
-600001
-NETWORKUNAVAILABLE
+stable ID
+numeric code
+symbolic name
 ```
 
 Text lookup is case-insensitive.
 
 ## Exit codes
 
-Setter commands use process exit codes.
-
-General convention:
-
 ```text
-0
-→ command succeeded
-
-1
-→ command syntax or input was invalid
-
-2
-→ workspace validation, lookup, editing, or save failed
-
-3
-→ unexpected command-level or initialization failure
+0  command succeeded
+1  command syntax or input was invalid
+2  workspace validation, lookup, editing, or save failed
+3  unexpected command-level failure
 ```
 
-The exact meaning is documented for each command.
-
-# Commands
+# General commands
 
 ## `help`
 
-Shows the help screen.
-
 ```bash
 when-it-fails-setter help
-```
-
-Aliases:
-
-```bash
 when-it-fails-setter --help
 when-it-fails-setter -h
 ```
 
 Running Setter without arguments also displays help.
 
+## `demo`
+
+Displays a sample validation result without modifying a workspace.
+
 ```bash
-when-it-fails-setter
-```
-
-Exit code:
-
-```text
-0
+when-it-fails-setter demo
 ```
 
 ## `init <path>`
 
-Creates missing WhenItFails workspace files.
+Creates missing workspace files from bundled templates and preserves existing files.
 
 ```bash
-when-it-fails-setter init ./MyProject
+when-it-fails-setter init .
 ```
 
-The default workspace structure is:
+Created catalog set:
 
 ```text
-Jsons/
-└── WhenItFails/
-    ├── errors.en.json
-    ├── categories.en.json
-    ├── code-groups.en.json
-    ├── owners.en.json
-    └── profiles.json
-```
-
-Behavior:
-
-* creates missing directories,
-* creates missing files from bundled templates,
-* preserves existing files,
-* never overwrites project-owned catalogs.
-
-Repeated execution is safe.
-
-`init` is not a reset command.
-
-Exit codes:
-
-```text
-0
-→ workspace created or already complete
-
-1
-→ path argument missing or invalid
-
-3
-→ workspace initialization failed
+errors.en.json
+categories.en.json
+code-groups.en.json
+owners.en.json
+profiles.json
 ```
 
 ## `validate <path>`
 
-Validates the complete workspace.
+Loads and validates the complete workspace, including cross-catalog references.
 
 ```bash
 when-it-fails-setter validate .
 ```
 
-Direct catalog-directory example:
-
-```bash
-when-it-fails-setter validate ./Jsons/WhenItFails
-```
-
-Validation includes:
-
-* JSON loading,
-* document validation,
-* required fields,
-* duplicate identities,
-* owner references,
-* code-group references,
-* numeric ranges,
-* categories,
-* profiles,
-* cross-catalog relationships.
-
-Exit codes:
-
-```text
-0
-→ workspace is valid
-
-1
-→ path argument missing or invalid
-
-2
-→ loading or validation errors found
-```
-
-Warnings do not necessarily make the workspace invalid, but they should still be reviewed.
-
 ## `summary <path>`
 
-Shows a read-only workspace summary.
+Displays a read-only workspace summary.
 
 ```bash
 when-it-fails-setter summary .
 ```
 
-The summary may include:
-
-* catalog overview,
-* error count,
-* category count,
-* code-group count,
-* owner count,
-* profile count,
-* owner table,
-* code-group table,
-* profile table,
-* category usage.
-
-The workspace must validate before the summary is shown.
-
-Exit codes:
-
-```text
-0
-→ summary displayed
-
-1
-→ path argument missing or invalid
-
-2
-→ workspace loading or validation failed
-```
-
 ## `inspect <path>`
 
-Alias for:
-
-```text
-summary
-```
-
-Example:
+Alias for `summary`.
 
 ```bash
-when-it-fails-setter inspect ./MyProject
+when-it-fails-setter inspect .
 ```
 
-Behavior and exit codes are identical to `summary`.
+# Error inspection
 
 ## `errors <path> [filters]`
 
@@ -274,270 +121,115 @@ Lists error definitions.
 when-it-fails-setter errors .
 ```
 
-By default, Setter uses a rich terminal table.
+Supported options:
 
-Plain script-friendly output is available through:
-
-```text
---plain
-```
+| Option | Meaning |
+| --- | --- |
+| `--owner <value>` | Filter by owner. |
+| `--group <value>` | Filter by code group. |
+| `--code-group <value>` | Alias for `--group`. |
+| `--category <value>` | Filter by category. |
+| `--severity <value>` | Filter by severity. |
+| `--profile <value>` | Resolve errors through a profile. |
+| `--search <text>` | Search error fields. |
+| `--plain` | Produce tab-separated output. |
 
 Example:
 
 ```bash
-when-it-fails-setter errors . --plain
-```
-
-### Filters
-
-| Option                 | Description                           |
-| ---------------------- | ------------------------------------- |
-| `--owner <value>`      | Filter by owner name.                 |
-| `--group <value>`      | Filter by code-group name.            |
-| `--code-group <value>` | Alias for `--group`.                  |
-| `--category <value>`   | Filter by primary category.           |
-| `--severity <value>`   | Filter by default severity.           |
-| `--profile <value>`    | Resolve and filter through a profile. |
-| `--search <text>`      | Search across error fields.           |
-| `--plain`              | Produce plain tab-separated output.   |
-
-### Owner filter
-
-```bash
-when-it-fails-setter errors . --owner AFW
-```
-
-### Code-group filter
-
-```bash
-when-it-fails-setter errors . --group NETWORK
-```
-
-Equivalent alias:
-
-```bash
-when-it-fails-setter errors . --code-group NETWORK
-```
-
-### Category filter
-
-```bash
-when-it-fails-setter errors . --category NETWORK
-```
-
-### Severity filter
-
-```bash
-when-it-fails-setter errors . --severity Warning
-```
-
-### Profile filter
-
-```bash
-when-it-fails-setter errors . --profile API
-```
-
-The profile may be selected by profile name or display name.
-
-### Full-text search
-
-```bash
-when-it-fails-setter errors . --search timeout
-```
-
-Search may inspect fields such as:
-
-* ID,
-* numeric code,
-* name,
-* title,
-* message,
-* developer hint,
-* documentation key,
-* owner,
-* code group,
-* primary category,
-* tags,
-* subcategories.
-
-### Combined filters
-
-```bash
 when-it-fails-setter errors . \
-  --owner AFW \
-  --category NETWORK \
-  --severity Warning
+  --profile WEB \
+  --severity Warning \
+  --search network \
+  --plain
 ```
 
-Filters narrow the result together.
-
-### Plain output
-
-```bash
-when-it-fails-setter errors . \
-  --plain \
-  --category NETWORK
-```
-
-Redirect example:
-
-```bash
-when-it-fails-setter errors . --plain > errors.tsv
-```
-
-Exit codes:
-
-```text
-0
-→ error list displayed
-
-1
-→ path, arguments, or profile invalid
-
-2
-→ workspace loading or validation failed
-```
-
-An empty filtered result is not necessarily a command failure.
+Profile resolution runs first. Ordinary command filters then narrow the resolved result.
 
 ## `details <path> <id|code|name> [--plain]`
 
-Shows one complete error definition.
-
-By ID:
+Displays one complete error definition.
 
 ```bash
 when-it-fails-setter details . AFW_NET_0001
-```
-
-By numeric code:
-
-```bash
-when-it-fails-setter details . 600001
-```
-
-By symbolic name:
-
-```bash
-when-it-fails-setter details . NETWORKUNAVAILABLE
-```
-
-Plain output:
-
-```bash
-when-it-fails-setter details . AFW_NET_0001 --plain
-```
-
-The command displays fields such as:
-
-* ID,
-* code,
-* name,
-* owner,
-* code prefix,
-* code group,
-* primary category,
-* categories,
-* subcategories,
-* title,
-* message,
-* severity,
-* developer hint,
-* documentation key,
-* tags,
-* metadata.
-
-Exit codes:
-
-```text
-0
-→ error displayed
-
-1
-→ arguments missing or error not found
-
-2
-→ workspace loading or validation failed
+when-it-fails-setter details . 600001 --plain
 ```
 
 ## `detail <path> <id|code|name>`
 
-Alias for:
+Alias for `details`.
 
-```text
-details
-```
+# Catalog browsing
 
-Example:
+## `list-profiles <path> [--plain]`
 
 ```bash
-when-it-fails-setter detail . AFW_NET_0001
+when-it-fails-setter list-profiles .
 ```
 
-Behavior and exit codes are identical to `details`.
+## `show-profile <path> <profile-name> [--plain]`
 
-# Write commands
+Displays all profile selectors, mappings, and metadata.
 
-All write commands use safe-write behavior.
-
-The general workflow is:
-
-```text
-load workspace
-→ locate target error
-→ create updated in-memory document
-→ validate updated document
-→ create timestamped backup
-→ save updated catalog
+```bash
+when-it-fails-setter show-profile . WEB --plain
 ```
 
-A failed edit must not replace the original catalog.
+Profiles may be selected by stable name or display name.
+
+## `list-categories <path> [--plain]`
+
+```bash
+when-it-fails-setter list-categories .
+```
+
+## `show-category <path> <category-name> [--plain]`
+
+Finds a category by name, display name, or alias.
+
+```bash
+when-it-fails-setter show-category . NETWORK
+```
+
+## `list-code-groups <path> [--plain]`
+
+```bash
+when-it-fails-setter list-code-groups .
+```
+
+## `show-code-group <path> <group-name|prefix> [--plain]`
+
+```bash
+when-it-fails-setter show-code-group . NETWORK
+```
+
+## `list-owners <path> [--plain]`
+
+```bash
+when-it-fails-setter list-owners .
+```
+
+## `show-owner <path> <owner-name|alias> [--plain]`
+
+```bash
+when-it-fails-setter show-owner . AFW
+```
+
+# Error write commands
+
+All write commands use validation, temporary-file writing, timestamped backup creation, and atomic replacement of the target catalog.
+
+Invalid or no-op edits do not replace the catalog.
 
 ## `set-title <path> <id|code|name> <title>`
 
-Changes the human-facing title.
-
 ```bash
 when-it-fails-setter set-title . \
   AFW_NET_0001 \
-  "Network is not available"
-```
-
-Everything after the lookup argument is joined into the new title.
-
-This means quotes are recommended but not always technically required.
-
-Preferred:
-
-```bash
-when-it-fails-setter set-title . \
-  AFW_NET_0001 \
-  "Network is not available"
-```
-
-The title should be:
-
-* concise,
-* human-readable,
-* naturally capitalized,
-* suitable for display.
-
-Exit codes:
-
-```text
-0
-→ title updated
-
-1
-→ required arguments missing
-
-2
-→ lookup, validation, backup, or save failed
+  "Network is unavailable"
 ```
 
 ## `set-message <path> <id|code|name> <message>`
-
-Changes the human-facing error message.
 
 ```bash
 when-it-fails-setter set-message . \
@@ -545,28 +237,7 @@ when-it-fails-setter set-message . \
   "The network is currently unavailable."
 ```
 
-Everything after the lookup argument is joined into the new message.
-
-The message should explain the failure in user-facing language.
-
-Avoid placing sensitive internal details directly into this field.
-
-Exit codes:
-
-```text
-0
-→ message updated
-
-1
-→ required arguments missing
-
-2
-→ lookup, validation, backup, or save failed
-```
-
 ## `set-developer-hint <path> <id|code|name> <developer-hint>`
-
-Changes the developer-oriented diagnostic hint.
 
 ```bash
 when-it-fails-setter set-developer-hint . \
@@ -574,41 +245,9 @@ when-it-fails-setter set-developer-hint . \
   "Check connectivity, DNS, proxy, VPN, and endpoint availability."
 ```
 
-The developer hint may include:
-
-* diagnostic guidance,
-* likely causes,
-* suggested checks,
-* technical recovery advice.
-
-It should not contain secrets, passwords, tokens, or private production data.
-
-Everything after the lookup argument is joined into the new hint.
-
-Exit codes:
-
-```text
-0
-→ developer hint updated
-
-1
-→ required arguments missing
-
-2
-→ lookup, validation, backup, or save failed
-```
-
 ## `set-severity <path> <id|code|name> <severity>`
 
-Changes the default severity.
-
-```bash
-when-it-fails-setter set-severity . \
-  AFW_NET_0001 \
-  Warning
-```
-
-Supported values:
+Supported severities:
 
 ```text
 Trace
@@ -619,165 +258,210 @@ Error
 Critical
 ```
 
-Severity matching should use one of the documented values.
+Example:
 
-Severity changes may affect:
-
-* logging,
-* monitoring,
-* alerting,
-* filtering,
-* user-interface presentation,
-* profile behavior.
-
-Treat severity changes as behavioral catalog changes.
-
-Exit codes:
-
-```text
-0
-→ severity updated
-
-1
-→ required arguments missing or severity invalid
-
-2
-→ lookup, validation, backup, or save failed
+```bash
+when-it-fails-setter set-severity . AFW_NET_0001 Warning
 ```
 
 ## `set-documentation-key <path> <id|code|name> <documentation-key>`
 
-Changes the documentation key.
-
 ```bash
 when-it-fails-setter set-documentation-key . \
   AFW_NET_0001 \
-  "when-it-fails/errors/network/network-unavailable"
+  when-it-fails/errors/network/network-unavailable
 ```
 
-A documentation key may connect the error with:
+# Profile lifecycle and text
 
-* online documentation,
-* local help,
-* troubleshooting pages,
-* support articles,
-* administration interfaces.
-
-Recommended properties:
-
-```text
-stable
-machine-friendly
-human-reviewable
-independent of deployment URL
-```
-
-The documentation key is not necessarily a full URL.
-
-Everything after the lookup argument is joined into the new value.
-
-Exit codes:
-
-```text
-0
-→ documentation key updated
-
-1
-→ required arguments missing
-
-2
-→ lookup, validation, backup, or save failed
-```
-
-## `demo`
-
-Shows a sample validation result.
+## `add-profile <path> <name> <display-name> [description]`
 
 ```bash
-when-it-fails-setter demo
+when-it-fails-setter add-profile . \
+  DITA \
+  "DiTa" \
+  "Disk diagnostics profile"
 ```
 
-The command is useful for:
+## `remove-profile <path> <name>`
 
-* checking console rendering,
-* previewing validation output,
-* testing terminal colors and layout,
-* developing presentation components.
+```bash
+when-it-fails-setter remove-profile . DITA
+```
 
-It does not modify a workspace.
+## `set-profile-display-name <path> <profile-name> <display-name>`
 
-Exit code:
+```bash
+when-it-fails-setter set-profile-display-name . \
+  DITA \
+  "DiTa storage tools"
+```
+
+## `set-profile-description <path> <profile-name> <description>`
+
+```bash
+when-it-fails-setter set-profile-description . \
+  DITA \
+  "Profile for disk diagnostics and storage tools."
+```
+
+Pass an empty quoted string to clear the description.
+
+# Profile include selectors
+
+## Owners
+
+```bash
+when-it-fails-setter profile-add-owner . DITA AFW
+when-it-fails-setter profile-remove-owner . DITA AFW
+```
+
+The owner may be selected by canonical name or alias.
+
+## Categories
+
+```bash
+when-it-fails-setter profile-add-category . DITA FILE_SYSTEM
+when-it-fails-setter profile-remove-category . DITA FILE_SYSTEM
+```
+
+The category may be selected by canonical name or alias.
+
+## Code groups
+
+```bash
+when-it-fails-setter profile-add-code-group . DITA STORAGE
+when-it-fails-setter profile-remove-code-group . DITA STORAGE
+```
+
+The group may be selected by canonical name or prefix.
+
+## Subcategories
+
+```bash
+when-it-fails-setter profile-add-subcategory . DITA TIMEOUT
+when-it-fails-setter profile-remove-subcategory . DITA TIMEOUT
+```
+
+The value must exist in at least one error definition.
+
+## Included tags
+
+```bash
+when-it-fails-setter profile-add-tag . DITA USER_VISIBLE
+when-it-fails-setter profile-remove-tag . DITA USER_VISIBLE
+```
+
+The tag must exist in at least one error definition.
+
+## Explicitly included errors
+
+```bash
+when-it-fails-setter profile-add-error . DITA AFW_NET_0001
+when-it-fails-setter profile-remove-error . DITA AFW_NET_0001
+```
+
+The lookup may be an error ID, numeric code, or symbolic name. Setter stores the canonical error ID.
+
+# Profile exclusion selectors
+
+## Excluded tags
+
+```bash
+when-it-fails-setter profile-add-excluded-tag . DITA DEBUG_ONLY
+when-it-fails-setter profile-remove-excluded-tag . DITA DEBUG_ONLY
+```
+
+## Explicitly excluded errors
+
+```bash
+when-it-fails-setter profile-add-excluded-error . DITA AFW_NET_0001
+when-it-fails-setter profile-remove-excluded-error . DITA AFW_NET_0001
+```
+
+Exclusions are vetoes. An excluded error is removed even when it also matches an include selector.
+
+# Profile default mappings
+
+## `profile-set-default-mapping <path> <profile-name> <mapping-key> <mapping-value>`
+
+Adds or updates one string mapping.
+
+```bash
+when-it-fails-setter profile-set-default-mapping . \
+  DITA \
+  web.problemDetails \
+  true
+```
+
+Mapping keys are normalized with `TextKeyNormalizer.NormalizeKey`.
 
 ```text
-0
+web.problemDetails
+→ WEB_PROBLEMDETAILS
 ```
 
-# Unknown commands
+Quote values containing spaces.
 
-An unsupported command produces an error and displays the help screen.
-
-Example:
+## `profile-remove-default-mapping <path> <profile-name> <mapping-key>`
 
 ```bash
-when-it-fails-setter dance
+when-it-fails-setter profile-remove-default-mapping . \
+  DITA \
+  web.problemDetails
 ```
 
-Exit code:
+# Profile metadata
+
+## `profile-set-metadata <path> <profile-name> <metadata-key> <metadata-value>`
+
+Adds or updates one metadata string.
+
+```bash
+when-it-fails-setter profile-set-metadata . \
+  DITA \
+  documentation.owner \
+  "DiTa Team"
+```
+
+Metadata keys use the same key normalization as default mappings.
+
+## `profile-remove-metadata <path> <profile-name> <metadata-key>`
+
+```bash
+when-it-fails-setter profile-remove-metadata . \
+  DITA \
+  documentation.owner
+```
+
+# Profile resolution summary
+
+The shared `ErrorProfileResolver` evaluates:
 
 ```text
-1
+includeOwners
+includeCodeGroups
+includeCategories
+includeSubcategories
+includeTags
+includeErrors
+excludeTags
+excludeErrors
 ```
 
-# Unexpected exceptions
+Non-empty include collections combine with OR.
 
-Unexpected command exceptions are rendered through Spectre.Console.
+Exclusion rules are vetoes.
 
-The application returns:
+`defaultMappings` and `metadata` do not select errors.
 
-```text
-3
-```
-
-This differs from ordinary validation or editing failures, which should normally return `2`.
-
-# Scripting examples
-
-## Validate in a shell script
-
-```bash
-if ! dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- validate .
-then
-  echo "WhenItFails workspace validation failed."
-  exit 1
-fi
-```
-
-## Export filtered errors
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- errors . --plain --category NETWORK \
-  > network-errors.tsv
-```
-
-## Inspect one error
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- details . AFW_NET_0001 --plain
-```
-
-# Recommended editing workflow
+# Recommended workflow
 
 ```text
 validate
-→ details
+→ inspect target
 → run one write command
-→ details
+→ inspect target again
 → validate
 → git diff
 → commit
@@ -787,20 +471,17 @@ Example:
 
 ```bash
 when-it-fails-setter validate .
-
-when-it-fails-setter details . AFW_NET_0001
-
-when-it-fails-setter set-message . \
-  AFW_NET_0001 \
-  "The network is currently unavailable."
-
-when-it-fails-setter details . AFW_NET_0001
-
+when-it-fails-setter show-profile . DITA --plain
+when-it-fails-setter profile-add-tag . DITA STORAGE
+when-it-fails-setter errors . --profile DITA --plain
 when-it-fails-setter validate .
-
 git diff
 ```
 
+# Unknown commands
+
+An unsupported command returns exit code `1` and displays the help screen.
+
 # Central principle
 
-> Setter commands should make inspection easy, editing explicit, and failure visible through both output and exit code.
+> Setter should make inspection easy, editing explicit, and failure visible through both output and exit code.
