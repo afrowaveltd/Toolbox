@@ -96,6 +96,12 @@ internal static class HelpView
             "[green]profile-remove-default-mapping[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<mapping-key>[/]",
             "Safely remove one default mapping from a profile.");
         commandGrid.AddRow(
+            "[green]profile-set-metadata[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<metadata-key>[/] [grey]<metadata-value>[/]",
+            "Safely add or update profile metadata. Quote values containing spaces.");
+        commandGrid.AddRow(
+            "[green]profile-remove-metadata[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<metadata-key>[/]",
+            "Safely remove one metadata value from a profile.");
+        commandGrid.AddRow(
             "[green]list-categories[/] [grey]<path>[/] [grey][[--plain]][/]",
             "List categories from a validated WhenItFails workspace.");
         commandGrid.AddRow(
