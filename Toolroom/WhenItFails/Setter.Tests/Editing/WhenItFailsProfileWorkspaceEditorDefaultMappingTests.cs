@@ -28,22 +28,25 @@ public sealed class WhenItFailsProfileWorkspaceEditorDefaultMappingTests
             temporaryWorkspace.WhenItFailsJsonsPath,
             "profiles.*.bak.json");
 
+        const string mappingKey = " web.problemDetails ";
+        string normalizedMappingKey = TextKeyNormalizer.NormalizeKey(mappingKey);
+
         Response<ErrorProfileDefinition> response =
             await editor.ProfileSetDefaultMappingAsync(
                 temporaryWorkspace.ProjectRootPath,
                 " dita test ",
-                " web.problemDetails ",
+                mappingKey,
                 " true ");
 
         Assert.True(response.IsSuccess);
         Assert.NotNull(response.Data);
-        Assert.Equal("true", response.Data.DefaultMappings["WEB.PROBLEMDETAILS"]);
+        Assert.Equal("true", response.Data.DefaultMappings[normalizedMappingKey]);
 
         ErrorProfileDefinition savedProfile = await LoadProfileAsync(
             temporaryWorkspace.WhenItFailsJsonsPath,
             "DITA_TEST");
 
-        Assert.Equal("true", savedProfile.DefaultMappings["WEB.PROBLEMDETAILS"]);
+        Assert.Equal("true", savedProfile.DefaultMappings[normalizedMappingKey]);
 
         string[] backupsAfterSet = Directory.GetFiles(
             temporaryWorkspace.WhenItFailsJsonsPath,
@@ -67,11 +70,14 @@ public sealed class WhenItFailsProfileWorkspaceEditorDefaultMappingTests
 
         Assert.True(addProfileResponse.IsSuccess);
 
+        const string mappingKey = "WEB.PROBLEMDETAILS";
+        string normalizedMappingKey = TextKeyNormalizer.NormalizeKey(mappingKey);
+
         Response<ErrorProfileDefinition> firstResponse =
             await editor.ProfileSetDefaultMappingAsync(
                 temporaryWorkspace.ProjectRootPath,
                 "DITA_TEST",
-                "WEB.PROBLEMDETAILS",
+                mappingKey,
                 "true");
 
         Assert.True(firstResponse.IsSuccess);
@@ -86,14 +92,14 @@ public sealed class WhenItFailsProfileWorkspaceEditorDefaultMappingTests
         Assert.True(updateResponse.IsSuccess);
         Assert.NotNull(updateResponse.Data);
         Assert.Single(updateResponse.Data.DefaultMappings);
-        Assert.Equal("false", updateResponse.Data.DefaultMappings["WEB.PROBLEMDETAILS"]);
+        Assert.Equal("false", updateResponse.Data.DefaultMappings[normalizedMappingKey]);
 
         ErrorProfileDefinition savedProfile = await LoadProfileAsync(
             temporaryWorkspace.WhenItFailsJsonsPath,
             "DITA_TEST");
 
         Assert.Single(savedProfile.DefaultMappings);
-        Assert.Equal("false", savedProfile.DefaultMappings["WEB.PROBLEMDETAILS"]);
+        Assert.Equal("false", savedProfile.DefaultMappings[normalizedMappingKey]);
     }
 
     [Fact]
