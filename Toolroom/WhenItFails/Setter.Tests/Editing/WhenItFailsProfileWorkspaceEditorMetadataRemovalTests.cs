@@ -1,0 +1,151 @@
+using Afrowave.Toolbox.Essentials.Results;
+using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Editing;
+using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Infrastructure;
+using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Loading;
+using Afrowave.Toolbox.WhenItFails.Normalization;
+
+namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Editing;
+
+public sealed class WhenItFailsProfileWorkspaceEditorMetadataRemovalTests
+{
+    [Fact]
+    public async Task ProfileRemoveMetadataAsync_WithExistingMetadata_RemovesMetadataAndCreatesBackup()
+    {
+        using TemporaryWhenItFailsWorkspace temporaryWorkspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+
+        WhenItFailsProfileWorkspaceEditor editor = new();
+        Assert.True((await editor.AddProfileAsync(
+            temporaryWorkspace.ProjectRootPath,
+            "DITA_TEST",
+            "DiTa Test")).IsSuccess);
+        Assert.True((await editor.ProfileSetMetadataAsync(
+            temporaryWorkspace.ProjectRootPath,
+            "DITA_TEST",
+            "documentation.owner",
+            "DiTa Team")).IsSuccess);
+
+        string[] backupsBeforeRemove = Directory.GetFiles(
+            temporaryWorkspace.WhenItFailsJsonsPath,
+            "profiles.*.bak.json");
+
+        Response<ErrorProfileDefinition> response =
+            await editor.ProfileRemoveMetadataAsync(
+                temporaryWorkspace.ProjectRootPath,
+                " dita test ",
+                "DOCUMENTATION-OWNER");
+
+        Assert.True(response.IsSuccess);
+        Assert.NotNull(response.Data);
+
+        string normalizedKey = TextKeyNormalizer.NormalizeKey("documentation.owner");
+        Assert.False(response.Data.Metadata.TryGet(normalizedKey, out _));
+
+        ErrorProfileDefinition savedProfile = await LoadProfileAsync(
+            temporaryWorkspace.WhenItFailsJsonsPath,
+            "DITA_TEST");
+
+        Assert.False(savedProfile.Metadata.TryGet(normalizedKey, out _));
+
+        string[] backupsAfterRemove = Directory.GetFiles(
+            temporaryWorkspace.WhenItFailsJsonsPath,
+            "profiles.*.bak.json");
+
+        Assert.Equal(backupsBeforeRemove.Length + 1, backupsAfterRemove.Length);
+    }
+
+    [Fact]
+    public async Task ProfileRemoveMetadataAsync_WithMissingMetadata_ReturnsNotFoundWithoutBackup()
+    {
+        using TemporaryWhenItFailsWorkspace temporaryWorkspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+
+        WhenItFailsProfileWorkspaceEditor editor = new();
+        Assert.True((await editor.AddProfileAsync(
+            temporaryWorkspace.ProjectRootPath,
+            "DITA_TEST",
+            "DiTa Test")).IsSuccess);
+
+        string[] backupsBeforeRemove = Directory.GetFiles(
+            temporaryWorkspace.WhenItFailsJsonsPath,
+            "profiles.*.bak.json");
+
+        Response<ErrorProfileDefinition> response =
+            await editor.ProfileRemoveMetadataAsync(
+                temporaryWorkspace.ProjectRootPath,
+                "DITA_TEST",
+                "documentation.owner");
+
+        Assert.False(response.IsSuccess);
+        Assert.Contains(
+            response.Issues,
+            issue => issue.Code == "ProfileMetadataNotFound");
+
+        string[] backupsAfterRemove = Directory.GetFiles(
+            temporaryWorkspace.WhenItFailsJsonsPath,
+            "profiles.*.bak.json");
+
+        Assert.Equal(backupsBeforeRemove.Length, backupsAfterRemove.Length);
+    }
+
+    [Fact]
+    public async Task ProfileRemoveMetadataAsync_WithUnknownProfile_ReturnsNotFound()
+    {
+        using TemporaryWhenItFailsWorkspace temporaryWorkspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+
+        Response<ErrorProfileDefinition> response =
+            await new WhenItFailsProfileWorkspaceEditor().ProfileRemoveMetadataAsync(
+                temporaryWorkspace.ProjectRootPath,
+                "DOES_NOT_EXIST",
+                "documentation.owner");
+
+        Assert.False(response.IsSuccess);
+        Assert.Contains(
+            response.Issues,
+            issue => issue.Code == "ProfileNotFound");
+    }
+
+    [Theory]
+    [InlineData("", "documentation.owner")]
+    [InlineData("DITA_TEST", "")]
+    public async Task ProfileRemoveMetadataAsync_WithEmptyValue_ReturnsInvalid(
+        string profileName,
+        string metadataKey)
+    {
+        using TemporaryWhenItFailsWorkspace temporaryWorkspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+
+        Response<ErrorProfileDefinition> response =
+            await new WhenItFailsProfileWorkspaceEditor().ProfileRemoveMetadataAsync(
+                temporaryWorkspace.ProjectRootPath,
+                profileName,
+                metadataKey);
+
+        Assert.False(response.IsSuccess);
+    }
+
+    private static async Task<ErrorProfileDefinition> LoadProfileAsync(
+        string whenItFailsJsonsPath,
+        string profileName)
+    {
+        Response<ErrorProfileCatalogDocument> loadResponse =
+            await new JsonErrorProfileCatalogLoader().LoadFromFileAsync(
+                Path.Combine(whenItFailsJsonsPath, "profiles.json"));
+
+        Assert.True(loadResponse.IsSuccess);
+        Assert.NotNull(loadResponse.Data);
+
+        ErrorProfileDefinition? profile = new ErrorProfileCatalogDocumentNormalizer()
+            .Normalize(loadResponse.Data)
+            .Profiles
+            .FirstOrDefault(candidate => string.Equals(
+                candidate.Name,
+                profileName,
+                StringComparison.OrdinalIgnoreCase));
+
+        Assert.NotNull(profile);
+        return profile;
+    }
+}
