@@ -138,6 +138,16 @@ try
         return await ProfileRemoveErrorCommand.ExecuteAsync(args);
     }
 
+    if (command == "profile-add-excluded-error")
+    {
+        return await ProfileAddExcludedErrorCommand.ExecuteAsync(args);
+    }
+
+    if (command == "profile-remove-excluded-error")
+    {
+        return await ProfileRemoveExcludedErrorCommand.ExecuteAsync(args);
+    }
+
     if (command == "list-categories")
     {
         return await ListCategoriesCommand.ExecuteAsync(args);
