@@ -243,6 +243,11 @@ try
         return await ErrorRemoveMetadataCommand.ExecuteAsync(args);
     }
 
+    if (command == "set-primary-category")
+    {
+        return await SetPrimaryCategoryCommand.ExecuteAsync(args);
+    }
+
     if (command == "set-title")
     {
         return await SetTitleCommand.ExecuteAsync(args);
