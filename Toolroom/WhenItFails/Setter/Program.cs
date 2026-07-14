@@ -223,6 +223,16 @@ try
         return await ErrorRemoveCategoryCommand.ExecuteAsync(args);
     }
 
+    if (command == "error-add-subcategory")
+    {
+        return await ErrorAddSubcategoryCommand.ExecuteAsync(args);
+    }
+
+    if (command == "error-remove-subcategory")
+    {
+        return await ErrorRemoveSubcategoryCommand.ExecuteAsync(args);
+    }
+
     if (command == "set-title")
     {
         return await SetTitleCommand.ExecuteAsync(args);
