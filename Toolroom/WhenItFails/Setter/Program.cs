@@ -203,6 +203,16 @@ try
         return await DetailsCommand.ExecuteAsync(args);
     }
 
+    if (command == "error-add-tag")
+    {
+        return await ErrorAddTagCommand.ExecuteAsync(args);
+    }
+
+    if (command == "error-remove-tag")
+    {
+        return await ErrorRemoveTagCommand.ExecuteAsync(args);
+    }
+
     if (command == "set-title")
     {
         return await SetTitleCommand.ExecuteAsync(args);
