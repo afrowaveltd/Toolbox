@@ -148,6 +148,16 @@ try
         return await ProfileRemoveExcludedErrorCommand.ExecuteAsync(args);
     }
 
+    if (command == "profile-set-default-mapping")
+    {
+        return await ProfileSetDefaultMappingCommand.ExecuteAsync(args);
+    }
+
+    if (command == "profile-remove-default-mapping")
+    {
+        return await ProfileRemoveDefaultMappingCommand.ExecuteAsync(args);
+    }
+
     if (command == "list-categories")
     {
         return await ListCategoriesCommand.ExecuteAsync(args);
