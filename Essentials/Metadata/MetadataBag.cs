@@ -1,8 +1,11 @@
-﻿namespace Afrowave.Toolbox.Essentials.Metadata;
+﻿using System.Text.Json.Serialization;
+
+namespace Afrowave.Toolbox.Essentials.Metadata;
 
 /// <summary>
 /// Represents a lightweight collection of metadata values.
 /// </summary>
+[JsonConverter(typeof(MetadataBagJsonConverter))]
 public sealed class MetadataBag
 {
    private readonly Dictionary<string, string> _items;
