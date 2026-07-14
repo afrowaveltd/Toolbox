@@ -26,18 +26,15 @@ internal static class WhenItFailsProfileWorkspaceEditorDefaultMappingExtensions
         ArgumentNullException.ThrowIfNull(editor);
         ArgumentException.ThrowIfNullOrWhiteSpace(inputPath);
 
-        if (string.IsNullOrWhiteSpace(profileName))
-        {
-            return Response<ErrorProfileDefinition>.Invalid(
-                code: "ProfileNameIsEmpty",
-                message: "Profile name cannot be empty.");
-        }
+        Response<ProfileDefaultMappingEditContext> contextResponse = await LoadContextAsync(
+            inputPath,
+            profileName,
+            mappingKey,
+            cancellationToken);
 
-        if (string.IsNullOrWhiteSpace(mappingKey))
+        if (!contextResponse.IsSuccess || contextResponse.Data is null)
         {
-            return Response<ErrorProfileDefinition>.Invalid(
-                code: "ProfileMappingKeyIsEmpty",
-                message: "Profile mapping key cannot be empty.");
+            return CopyFailure<ErrorProfileDefinition, ProfileDefaultMappingEditContext>(contextResponse);
         }
 
         if (string.IsNullOrWhiteSpace(mappingValue))
@@ -45,6 +42,130 @@ internal static class WhenItFailsProfileWorkspaceEditorDefaultMappingExtensions
             return Response<ErrorProfileDefinition>.Invalid(
                 code: "ProfileMappingValueIsEmpty",
                 message: "Profile mapping value cannot be empty.");
+        }
+
+        ProfileDefaultMappingEditContext context = contextResponse.Data;
+        string normalizedMappingValue = TextKeyNormalizer.NormalizeDisplayName(mappingValue);
+        string? existingKey = FindExistingKey(
+            context.ProfileDefinition,
+            context.NormalizedMappingKey);
+        bool mappingExisted = existingKey is not null;
+        string? oldValue = mappingExisted
+            ? context.ProfileDefinition.DefaultMappings[existingKey!]
+            : null;
+
+        if (mappingExisted
+            && string.Equals(
+                oldValue,
+                normalizedMappingValue,
+                StringComparison.Ordinal))
+        {
+            return Response<ErrorProfileDefinition>.Invalid(
+                code: "ProfileMappingAlreadySet",
+                message: $"Profile '{context.ProfileDefinition.Name}' already maps '{context.NormalizedMappingKey}' to '{normalizedMappingValue}'.");
+        }
+
+        if (mappingExisted)
+        {
+            context.ProfileDefinition.DefaultMappings.Remove(existingKey!);
+        }
+
+        context.ProfileDefinition.DefaultMappings[context.NormalizedMappingKey] = normalizedMappingValue;
+
+        Response<ErrorProfileDefinition>? saveFailure = await ValidateAndSaveAsync(
+            context,
+            rollback: () => RollbackMapping(
+                context.ProfileDefinition,
+                context.NormalizedMappingKey,
+                existingKey,
+                oldValue,
+                mappingExisted),
+            cancellationToken);
+
+        if (saveFailure is not null)
+        {
+            return saveFailure;
+        }
+
+        string action = mappingExisted ? "updated" : "added";
+
+        return Response<ErrorProfileDefinition>.Ok(
+            context.ProfileDefinition,
+            $"Default mapping '{context.NormalizedMappingKey}' was {action} for profile '{context.ProfileDefinition.Name}'.");
+    }
+
+    /// <summary>
+    /// Removes one default mapping from an existing profile.
+    /// </summary>
+    public static async Task<Response<ErrorProfileDefinition>> ProfileRemoveDefaultMappingAsync(
+        this WhenItFailsProfileWorkspaceEditor editor,
+        string inputPath,
+        string profileName,
+        string mappingKey,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(editor);
+        ArgumentException.ThrowIfNullOrWhiteSpace(inputPath);
+
+        Response<ProfileDefaultMappingEditContext> contextResponse = await LoadContextAsync(
+            inputPath,
+            profileName,
+            mappingKey,
+            cancellationToken);
+
+        if (!contextResponse.IsSuccess || contextResponse.Data is null)
+        {
+            return CopyFailure<ErrorProfileDefinition, ProfileDefaultMappingEditContext>(contextResponse);
+        }
+
+        ProfileDefaultMappingEditContext context = contextResponse.Data;
+        string? existingKey = FindExistingKey(
+            context.ProfileDefinition,
+            context.NormalizedMappingKey);
+
+        if (existingKey is null)
+        {
+            return Response<ErrorProfileDefinition>.NotFound(
+                code: "ProfileMappingNotFound",
+                message: $"Profile '{context.ProfileDefinition.Name}' does not contain default mapping '{context.NormalizedMappingKey}'.");
+        }
+
+        string oldValue = context.ProfileDefinition.DefaultMappings[existingKey];
+        context.ProfileDefinition.DefaultMappings.Remove(existingKey);
+
+        Response<ErrorProfileDefinition>? saveFailure = await ValidateAndSaveAsync(
+            context,
+            rollback: () => context.ProfileDefinition.DefaultMappings[existingKey] = oldValue,
+            cancellationToken);
+
+        if (saveFailure is not null)
+        {
+            return saveFailure;
+        }
+
+        return Response<ErrorProfileDefinition>.Ok(
+            context.ProfileDefinition,
+            $"Default mapping '{context.NormalizedMappingKey}' was removed from profile '{context.ProfileDefinition.Name}'.");
+    }
+
+    private static async Task<Response<ProfileDefaultMappingEditContext>> LoadContextAsync(
+        string inputPath,
+        string profileName,
+        string mappingKey,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(profileName))
+        {
+            return Response<ProfileDefaultMappingEditContext>.Invalid(
+                code: "ProfileNameIsEmpty",
+                message: "Profile name cannot be empty.");
+        }
+
+        if (string.IsNullOrWhiteSpace(mappingKey))
+        {
+            return Response<ProfileDefaultMappingEditContext>.Invalid(
+                code: "ProfileMappingKeyIsEmpty",
+                message: "Profile mapping key cannot be empty.");
         }
 
         JsonsOptions options = WhenItFailsWorkspacePathResolver.ResolveJsonsOptions(inputPath);
@@ -56,7 +177,7 @@ internal static class WhenItFailsProfileWorkspaceEditorDefaultMappingExtensions
 
         if (!loadResponse.IsSuccess || loadResponse.Data is null)
         {
-            return Response<ErrorProfileDefinition>.Fail(
+            return Response<ProfileDefaultMappingEditContext>.Fail(
                 code: "ProfileCatalogLoadFailed",
                 message: string.IsNullOrWhiteSpace(loadResponse.Message)
                     ? $"Profile catalog could not be loaded: {options.ProfilesFilePath}"
@@ -71,7 +192,7 @@ internal static class WhenItFailsProfileWorkspaceEditorDefaultMappingExtensions
 
         if (!validationResult.IsValid)
         {
-            return Response<ErrorProfileDefinition>.Invalid(
+            return Response<ProfileDefaultMappingEditContext>.Invalid(
                 code: "ProfileCatalogIsInvalid",
                 message: "The profile catalog is invalid and cannot be edited safely.");
         }
@@ -85,54 +206,43 @@ internal static class WhenItFailsProfileWorkspaceEditorDefaultMappingExtensions
 
         if (profileDefinition is null)
         {
-            return Response<ErrorProfileDefinition>.NotFound(
+            return Response<ProfileDefaultMappingEditContext>.NotFound(
                 code: "ProfileNotFound",
                 message: $"Profile '{normalizedProfileName}' was not found.");
         }
 
         string normalizedMappingKey = TextKeyNormalizer.NormalizeKey(mappingKey);
-        string normalizedMappingValue = TextKeyNormalizer.NormalizeDisplayName(mappingValue);
 
-        string? existingKey = profileDefinition.DefaultMappings.Keys.FirstOrDefault(key =>
+        return Response<ProfileDefaultMappingEditContext>.Ok(
+            new ProfileDefaultMappingEditContext(
+                options.ProfilesFilePath,
+                profileCatalog,
+                profileDefinition,
+                normalizedMappingKey));
+    }
+
+    private static string? FindExistingKey(
+        ErrorProfileDefinition profileDefinition,
+        string normalizedMappingKey)
+    {
+        return profileDefinition.DefaultMappings.Keys.FirstOrDefault(key =>
             string.Equals(
                 key,
                 normalizedMappingKey,
                 StringComparison.OrdinalIgnoreCase));
+    }
 
-        bool mappingExisted = existingKey is not null;
-        string? oldValue = mappingExisted
-            ? profileDefinition.DefaultMappings[existingKey!]
-            : null;
-
-        if (mappingExisted
-            && string.Equals(
-                oldValue,
-                normalizedMappingValue,
-                StringComparison.Ordinal))
-        {
-            return Response<ErrorProfileDefinition>.Invalid(
-                code: "ProfileMappingAlreadySet",
-                message: $"Profile '{profileDefinition.Name}' already maps '{normalizedMappingKey}' to '{normalizedMappingValue}'.");
-        }
-
-        if (mappingExisted)
-        {
-            profileDefinition.DefaultMappings.Remove(existingKey!);
-        }
-
-        profileDefinition.DefaultMappings[normalizedMappingKey] = normalizedMappingValue;
-
+    private static async Task<Response<ErrorProfileDefinition>?> ValidateAndSaveAsync(
+        ProfileDefaultMappingEditContext context,
+        Action rollback,
+        CancellationToken cancellationToken)
+    {
         ErrorCatalogValidationResult editedValidationResult =
-            new ErrorProfileCatalogValidator().Validate(profileCatalog);
+            new ErrorProfileCatalogValidator().Validate(context.ProfileCatalog);
 
         if (!editedValidationResult.IsValid)
         {
-            RollbackMapping(
-                profileDefinition,
-                normalizedMappingKey,
-                existingKey,
-                oldValue,
-                mappingExisted);
+            rollback();
 
             return Response<ErrorProfileDefinition>.Invalid(
                 code: "EditedProfileCatalogIsInvalid",
@@ -140,37 +250,28 @@ internal static class WhenItFailsProfileWorkspaceEditorDefaultMappingExtensions
         }
 
         Response saveResponse = await new JsonCatalogDocumentWriter().SaveToFileAsync(
-            profileCatalog,
-            options.ProfilesFilePath,
+            context.ProfileCatalog,
+            context.ProfileCatalogFilePath,
             cancellationToken);
 
-        if (!saveResponse.IsSuccess)
+        if (saveResponse.IsSuccess)
         {
-            RollbackMapping(
-                profileDefinition,
-                normalizedMappingKey,
-                existingKey,
-                oldValue,
-                mappingExisted);
-
-            string saveFailureCode = saveResponse.Issues.Count > 0
-                ? saveResponse.Issues[0].Code
-                : "ProfileCatalogSaveFailed";
-
-            string saveFailureMessage = string.IsNullOrWhiteSpace(saveResponse.Message)
-                ? "Profile catalog could not be saved."
-                : saveResponse.Message;
-
-            return Response<ErrorProfileDefinition>.Fail(
-                code: saveFailureCode,
-                message: saveFailureMessage);
+            return null;
         }
 
-        string action = mappingExisted ? "updated" : "added";
+        rollback();
 
-        return Response<ErrorProfileDefinition>.Ok(
-            profileDefinition,
-            $"Default mapping '{normalizedMappingKey}' was {action} for profile '{profileDefinition.Name}'.");
+        string saveFailureCode = saveResponse.Issues.Count > 0
+            ? saveResponse.Issues[0].Code
+            : "ProfileCatalogSaveFailed";
+
+        string saveFailureMessage = string.IsNullOrWhiteSpace(saveResponse.Message)
+            ? "Profile catalog could not be saved."
+            : saveResponse.Message;
+
+        return Response<ErrorProfileDefinition>.Fail(
+            code: saveFailureCode,
+            message: saveFailureMessage);
     }
 
     private static void RollbackMapping(
@@ -187,4 +288,21 @@ internal static class WhenItFailsProfileWorkspaceEditorDefaultMappingExtensions
             profileDefinition.DefaultMappings[existingKey] = oldValue ?? string.Empty;
         }
     }
+
+    private static Response<TTarget> CopyFailure<TTarget, TSource>(Response<TSource> response)
+    {
+        string code = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "ProfileDefaultMappingEditFailed";
+
+        return Response<TTarget>.Fail(
+            code: code,
+            message: response.Message);
+    }
+
+    private sealed record ProfileDefaultMappingEditContext(
+        string ProfileCatalogFilePath,
+        ErrorProfileCatalogDocument ProfileCatalog,
+        ErrorProfileDefinition ProfileDefinition,
+        string NormalizedMappingKey);
 }
