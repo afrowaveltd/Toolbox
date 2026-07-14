@@ -108,6 +108,16 @@ try
         return await ProfileRemoveSubcategoryCommand.ExecuteAsync(args);
     }
 
+    if (command == "profile-add-tag")
+    {
+        return await ProfileAddTagCommand.ExecuteAsync(args);
+    }
+
+    if (command == "profile-remove-tag")
+    {
+        return await ProfileRemoveTagCommand.ExecuteAsync(args);
+    }
+
     if (command == "list-categories")
     {
         return await ListCategoriesCommand.ExecuteAsync(args);
