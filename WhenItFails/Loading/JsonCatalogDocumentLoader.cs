@@ -1,4 +1,5 @@
-﻿using Afrowave.Toolbox.Essentials.Results;
+﻿using Afrowave.Toolbox.Essentials.Metadata;
+using Afrowave.Toolbox.Essentials.Results;
 using System.Text.Json;
 
 namespace Afrowave.Toolbox.WhenItFails.Loading;
@@ -13,13 +14,7 @@ namespace Afrowave.Toolbox.WhenItFails.Loading;
 /// </remarks>
 public sealed class JsonCatalogDocumentLoader
 {
-   private static readonly JsonSerializerOptions DefaultJsonSerializerOptions = new()
-   {
-      PropertyNameCaseInsensitive = true,
-      ReadCommentHandling = JsonCommentHandling.Skip,
-      AllowTrailingCommas = true,
-      WriteIndented = true
-   };
+   private static readonly JsonSerializerOptions DefaultJsonSerializerOptions = CreateJsonSerializerOptions();
 
    /// <summary>
    /// Loads a JSON catalog document from the specified file path.
@@ -29,9 +24,9 @@ public sealed class JsonCatalogDocumentLoader
    /// <param name="cancellationToken">Cancellation token.</param>
    /// <returns>Response containing the loaded document or loading issues.</returns>
    public async Task<Response<TDocument>> LoadFromFileAsync<TDocument>(
-       string filePath,
-       CancellationToken cancellationToken = default)
-       where TDocument : class
+      string filePath,
+      CancellationToken cancellationToken = default)
+      where TDocument : class
    {
       cancellationToken.ThrowIfCancellationRequested();
 
@@ -92,5 +87,20 @@ public sealed class JsonCatalogDocumentLoader
              code: "InputOutputError",
              message: $"An I/O error occurred while reading JSON catalog file: {normalizedFilePath}. {exception.Message}");
       }
+   }
+
+   private static JsonSerializerOptions CreateJsonSerializerOptions()
+   {
+      JsonSerializerOptions options = new()
+      {
+         PropertyNameCaseInsensitive = true,
+         ReadCommentHandling = JsonCommentHandling.Skip,
+         AllowTrailingCommas = true,
+         WriteIndented = true
+      };
+
+      options.Converters.Add(new MetadataBagJsonConverter());
+
+      return options;
    }
 }
