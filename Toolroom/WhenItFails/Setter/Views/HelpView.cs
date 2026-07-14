@@ -124,6 +124,12 @@ internal static class HelpView
             "Show one error definition in detail.");
         commandGrid.AddRow("[green]detail[/] [grey]<path>[/] [grey]<id|code|name>[/]", "Alias for details.");
         commandGrid.AddRow(
+            "[green]error-add-tag[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<tag>[/]",
+            "Safely add one normalized tag to an error definition.");
+        commandGrid.AddRow(
+            "[green]error-remove-tag[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<tag>[/]",
+            "Safely remove one tag from an error definition.");
+        commandGrid.AddRow(
             "[green]set-title[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<title>[/]",
             "Safely change the title of one error definition.");
         commandGrid.AddRow(
