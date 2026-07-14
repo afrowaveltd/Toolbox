@@ -67,6 +67,64 @@ internal static class WhenItFailsProfileWorkspaceEditorErrorExtensions
             $"Error '{context.CanonicalErrorId}' was added to profile '{context.ProfileDefinition.Name}'.");
     }
 
+    /// <summary>
+    /// Removes an existing workspace error from one profile's explicitly included errors.
+    /// </summary>
+    public static async Task<Response<ErrorProfileDefinition>> ProfileRemoveErrorAsync(
+        this WhenItFailsProfileWorkspaceEditor editor,
+        string inputPath,
+        string profileName,
+        string errorLookup,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(editor);
+
+        Response<ProfileErrorEditContext> contextResponse = await LoadContextAsync(
+            inputPath,
+            profileName,
+            errorLookup,
+            cancellationToken);
+
+        if (!contextResponse.IsSuccess || contextResponse.Data is null)
+        {
+            return CopyFailure<ErrorProfileDefinition, ProfileErrorEditContext>(contextResponse);
+        }
+
+        ProfileErrorEditContext context = contextResponse.Data;
+
+        int includedErrorIndex = context.ProfileDefinition.IncludeErrors.FindIndex(includedErrorId =>
+            string.Equals(
+                TextKeyNormalizer.NormalizeKey(includedErrorId),
+                context.CanonicalErrorId,
+                StringComparison.OrdinalIgnoreCase));
+
+        if (includedErrorIndex < 0)
+        {
+            return Response<ErrorProfileDefinition>.NotFound(
+                code: "ProfileErrorNotIncluded",
+                message: $"Profile '{context.ProfileDefinition.Name}' does not include error '{context.CanonicalErrorId}'.");
+        }
+
+        string removedErrorId = context.ProfileDefinition.IncludeErrors[includedErrorIndex];
+        context.ProfileDefinition.IncludeErrors.RemoveAt(includedErrorIndex);
+
+        Response<ErrorProfileDefinition>? saveFailure = await ValidateAndSaveAsync(
+            context,
+            rollback: () => context.ProfileDefinition.IncludeErrors.Insert(
+                includedErrorIndex,
+                removedErrorId),
+            cancellationToken);
+
+        if (saveFailure is not null)
+        {
+            return saveFailure;
+        }
+
+        return Response<ErrorProfileDefinition>.Ok(
+            context.ProfileDefinition,
+            $"Error '{context.CanonicalErrorId}' was removed from profile '{context.ProfileDefinition.Name}'.");
+    }
+
     private static async Task<Response<ProfileErrorEditContext>> LoadContextAsync(
         string inputPath,
         string profileName,
