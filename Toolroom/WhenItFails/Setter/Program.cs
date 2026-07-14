@@ -233,6 +233,16 @@ try
         return await ErrorRemoveSubcategoryCommand.ExecuteAsync(args);
     }
 
+    if (command == "error-set-metadata")
+    {
+        return await ErrorSetMetadataCommand.ExecuteAsync(args);
+    }
+
+    if (command == "error-remove-metadata")
+    {
+        return await ErrorRemoveMetadataCommand.ExecuteAsync(args);
+    }
+
     if (command == "set-title")
     {
         return await SetTitleCommand.ExecuteAsync(args);
