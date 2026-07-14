@@ -1,3 +1,4 @@
+using Afrowave.Toolbox.Essentials.Metadata;
 using Afrowave.Toolbox.Essentials.Results;
 using System.Text.Json;
 
@@ -13,13 +14,7 @@ namespace Afrowave.Toolbox.WhenItFails.Loading;
 /// </remarks>
 public sealed class JsonCatalogDocumentWriter
 {
-    private static readonly JsonSerializerOptions DefaultJsonSerializerOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        AllowTrailingCommas = true,
-        WriteIndented = true
-    };
+    private static readonly JsonSerializerOptions DefaultJsonSerializerOptions = CreateJsonSerializerOptions();
 
     /// <summary>
     /// Saves a JSON catalog document to the specified file path.
@@ -133,6 +128,21 @@ public sealed class JsonCatalogDocumentWriter
         await fileStream.FlushAsync(cancellationToken);
     }
 
+    private static JsonSerializerOptions CreateJsonSerializerOptions()
+    {
+        JsonSerializerOptions options = new()
+        {
+            PropertyNameCaseInsensitive = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true,
+            WriteIndented = true
+        };
+
+        options.Converters.Add(new MetadataBagJsonConverter());
+
+        return options;
+    }
+
     private static string CreateTemporaryFilePath(string filePath)
     {
         string directoryPath = Path.GetDirectoryName(filePath) ?? string.Empty;
@@ -152,7 +162,7 @@ public sealed class JsonCatalogDocumentWriter
         string timestamp = DateTimeOffset.UtcNow.ToString("yyyyMMdd-HHmmss-fff");
         string uniqueSuffix = Guid.NewGuid().ToString("N");
         string backupFileName =
-            $"{fileNameWithoutExtension}.{timestamp}-{uniqueSuffix}.bak{extension}";
+           $"{fileNameWithoutExtension}.{timestamp}-{uniqueSuffix}.bak{extension}";
 
         return Path.Combine(
            directoryPath,
