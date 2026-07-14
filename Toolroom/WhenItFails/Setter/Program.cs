@@ -213,6 +213,16 @@ try
         return await ErrorRemoveTagCommand.ExecuteAsync(args);
     }
 
+    if (command == "error-add-category")
+    {
+        return await ErrorAddCategoryCommand.ExecuteAsync(args);
+    }
+
+    if (command == "error-remove-category")
+    {
+        return await ErrorRemoveCategoryCommand.ExecuteAsync(args);
+    }
+
     if (command == "set-title")
     {
         return await SetTitleCommand.ExecuteAsync(args);
