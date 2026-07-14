@@ -88,6 +88,16 @@ try
         return await ProfileRemoveCategoryCommand.ExecuteAsync(args);
     }
 
+    if (command == "profile-add-code-group")
+    {
+        return await ProfileAddCodeGroupCommand.ExecuteAsync(args);
+    }
+
+    if (command == "profile-remove-code-group")
+    {
+        return await ProfileRemoveCodeGroupCommand.ExecuteAsync(args);
+    }
+
     if (command == "list-categories")
     {
         return await ListCategoriesCommand.ExecuteAsync(args);
