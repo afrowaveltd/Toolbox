@@ -248,6 +248,11 @@ try
         return await SetPrimaryCategoryCommand.ExecuteAsync(args);
     }
 
+    if (command == "set-owner")
+    {
+        return await SetOwnerCommand.ExecuteAsync(args);
+    }
+
     if (command == "set-title")
     {
         return await SetTitleCommand.ExecuteAsync(args);
