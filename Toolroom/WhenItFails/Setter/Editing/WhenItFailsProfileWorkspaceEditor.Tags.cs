@@ -67,6 +67,62 @@ internal static class WhenItFailsProfileWorkspaceEditorTagExtensions
             $"Tag '{context.CanonicalTagName}' was added to profile '{context.ProfileDefinition.Name}'.");
     }
 
+    /// <summary>
+    /// Removes an included workspace tag from one profile.
+    /// </summary>
+    public static async Task<Response<ErrorProfileDefinition>> ProfileRemoveTagAsync(
+        this WhenItFailsProfileWorkspaceEditor editor,
+        string inputPath,
+        string profileName,
+        string tagName,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(editor);
+
+        Response<ProfileTagEditContext> contextResponse = await LoadContextAsync(
+            inputPath,
+            profileName,
+            tagName,
+            cancellationToken);
+
+        if (!contextResponse.IsSuccess || contextResponse.Data is null)
+        {
+            return CopyFailure<ErrorProfileDefinition, ProfileTagEditContext>(contextResponse);
+        }
+
+        ProfileTagEditContext context = contextResponse.Data;
+
+        int tagIndex = context.ProfileDefinition.IncludeTags.FindIndex(includedTag =>
+            string.Equals(
+                includedTag,
+                context.CanonicalTagName,
+                StringComparison.OrdinalIgnoreCase));
+
+        if (tagIndex < 0)
+        {
+            return Response<ErrorProfileDefinition>.NotFound(
+                code: "ProfileTagNotIncluded",
+                message: $"Profile '{context.ProfileDefinition.Name}' does not include tag '{context.CanonicalTagName}'.");
+        }
+
+        string removedTagName = context.ProfileDefinition.IncludeTags[tagIndex];
+        context.ProfileDefinition.IncludeTags.RemoveAt(tagIndex);
+
+        Response<ErrorProfileDefinition>? saveFailure = await ValidateAndSaveAsync(
+            context,
+            rollback: () => context.ProfileDefinition.IncludeTags.Insert(tagIndex, removedTagName),
+            cancellationToken);
+
+        if (saveFailure is not null)
+        {
+            return saveFailure;
+        }
+
+        return Response<ErrorProfileDefinition>.Ok(
+            context.ProfileDefinition,
+            $"Tag '{context.CanonicalTagName}' was removed from profile '{context.ProfileDefinition.Name}'.");
+    }
+
     private static async Task<Response<ProfileTagEditContext>> LoadContextAsync(
         string inputPath,
         string profileName,
