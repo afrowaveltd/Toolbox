@@ -148,6 +148,9 @@ internal static class HelpView
             "[green]error-remove-metadata[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<metadata-key>[/]",
             "Safely remove one metadata value from an error definition.");
         commandGrid.AddRow(
+            "[green]set-primary-category[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<category-name|alias>[/]",
+            "Safely change the primary category of one error definition.");
+        commandGrid.AddRow(
             "[green]set-title[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<title>[/]",
             "Safely change the title of one error definition.");
         commandGrid.AddRow(
