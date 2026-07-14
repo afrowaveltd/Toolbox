@@ -66,6 +66,12 @@ internal static class HelpView
             "[green]profile-remove-subcategory[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<subcategory>[/]",
             "Safely remove an included error subcategory from one profile.");
         commandGrid.AddRow(
+            "[green]profile-add-tag[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<tag>[/]",
+            "Safely include an existing error tag in one profile.");
+        commandGrid.AddRow(
+            "[green]profile-remove-tag[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<tag>[/]",
+            "Safely remove an included error tag from one profile.");
+        commandGrid.AddRow(
             "[green]list-categories[/] [grey]<path>[/] [grey][[--plain]][/]",
             "List categories from a validated WhenItFails workspace.");
         commandGrid.AddRow(
