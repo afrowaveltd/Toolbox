@@ -1,5 +1,6 @@
 using Afrowave.Toolbox.SeeMe.WhenItFails.Console;
 using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Resolution;
 using Afrowave.Toolbox.WhenItFails.Validation;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Models;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Views;
@@ -141,8 +142,9 @@ internal static class ErrorsCommand
 
         if (profile is not null)
         {
-            errors = errors.Where(errorDefinition =>
-                MatchesProfile(errorDefinition, profile));
+            errors = new ErrorProfileResolver().Resolve(
+                summary.ErrorCatalog,
+                profile);
         }
 
         errors = errors.Where(errorDefinition =>
@@ -208,24 +210,6 @@ internal static class ErrorsCommand
                 StringComparison.OrdinalIgnoreCase));
     }
 
-    private static bool MatchesProfile(
-        ErrorDefinition errorDefinition,
-        ErrorProfileDefinition profile)
-    {
-        bool ownerMatches = profile.IncludeOwners.Count == 0
-            || ContainsExactText(profile.IncludeOwners, errorDefinition.Owner);
-
-        bool codeGroupMatches = profile.IncludeCodeGroups.Count == 0
-            || ContainsExactText(profile.IncludeCodeGroups, errorDefinition.CodeGroup);
-
-        bool categoryMatches = profile.IncludeCategories.Count == 0
-            || ContainsExactText(profile.IncludeCategories, errorDefinition.PrimaryCategory);
-
-        return ownerMatches
-               && codeGroupMatches
-               && categoryMatches;
-    }
-
     private static bool MatchesOptionalFilter(
         string value,
         string? filter)
@@ -287,17 +271,6 @@ internal static class ErrorsCommand
             ContainsText(
                 value,
                 searchText));
-    }
-
-    private static bool ContainsExactText(
-        IReadOnlyCollection<string> values,
-        string searchedValue)
-    {
-        return values.Any(value =>
-            string.Equals(
-                value,
-                searchedValue,
-                StringComparison.OrdinalIgnoreCase));
     }
 
     private static bool HasSwitch(
