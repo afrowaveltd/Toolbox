@@ -130,6 +130,12 @@ internal static class HelpView
             "[green]error-remove-tag[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<tag>[/]",
             "Safely remove one tag from an error definition.");
         commandGrid.AddRow(
+            "[green]error-add-category[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<category-name|alias>[/]",
+            "Safely add one existing category to an error definition.");
+        commandGrid.AddRow(
+            "[green]error-remove-category[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<category-name|alias>[/]",
+            "Safely remove one category from an error definition.");
+        commandGrid.AddRow(
             "[green]set-title[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<title>[/]",
             "Safely change the title of one error definition.");
         commandGrid.AddRow(
