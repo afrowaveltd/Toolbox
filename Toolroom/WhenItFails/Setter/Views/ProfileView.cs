@@ -54,7 +54,8 @@ internal static class ProfileView
         AddListRow(table, "Include errors", profile.IncludeErrors);
         AddListRow(table, "Exclude tags", profile.ExcludeTags);
         AddListRow(table, "Exclude errors", profile.ExcludeErrors);
-        AddMappingsRow(table, profile.DefaultMappings);
+        AddDictionaryRow(table, "Default mappings", profile.DefaultMappings);
+        AddDictionaryRow(table, "Metadata", profile.Metadata.Items);
 
         AnsiConsole.Write(table);
     }
@@ -80,7 +81,8 @@ internal static class ProfileView
         Console.WriteLine($"Include errors: {FormatValues(profile.IncludeErrors)}");
         Console.WriteLine($"Exclude tags: {FormatValues(profile.ExcludeTags)}");
         Console.WriteLine($"Exclude errors: {FormatValues(profile.ExcludeErrors)}");
-        Console.WriteLine($"Default mappings: {FormatMappings(profile.DefaultMappings)}");
+        Console.WriteLine($"Default mappings: {FormatDictionary(profile.DefaultMappings)}");
+        Console.WriteLine($"Metadata: {FormatDictionary(profile.Metadata.Items)}");
     }
 
     private static void AddListRow(
@@ -93,13 +95,14 @@ internal static class ProfileView
             ConsoleTableViewHelper.Escape(FormatValues(values)));
     }
 
-    private static void AddMappingsRow(
+    private static void AddDictionaryRow(
         Table table,
-        IReadOnlyDictionary<string, string> mappings)
+        string label,
+        IReadOnlyDictionary<string, string> values)
     {
         table.AddRow(
-            "Default mappings",
-            ConsoleTableViewHelper.Escape(FormatMappings(mappings)));
+            ConsoleTableViewHelper.Escape(label),
+            ConsoleTableViewHelper.Escape(FormatDictionary(values)));
     }
 
     private static string FormatValues(IReadOnlyCollection<string> values)
@@ -109,14 +112,14 @@ internal static class ProfileView
             : string.Join(", ", values.OrderBy(value => value));
     }
 
-    private static string FormatMappings(IReadOnlyDictionary<string, string> mappings)
+    private static string FormatDictionary(IReadOnlyDictionary<string, string> values)
     {
-        return mappings.Count == 0
+        return values.Count == 0
             ? "None"
             : string.Join(
                 ", ",
-                mappings
-                    .OrderBy(mapping => mapping.Key)
-                    .Select(mapping => $"{mapping.Key}={mapping.Value}"));
+                values
+                    .OrderBy(value => value.Key, StringComparer.OrdinalIgnoreCase)
+                    .Select(value => $"{value.Key}={value.Value}"));
     }
 }
