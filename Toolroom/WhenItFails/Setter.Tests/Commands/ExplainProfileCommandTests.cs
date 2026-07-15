@@ -33,6 +33,29 @@ public sealed class ExplainProfileCommandTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_WithJsonOutput_ReturnsSuccessWithoutChangingWorkspace()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        ErrorProfileDefinition profile = await LoadFirstProfileAsync(workspace.WhenItFailsJsonsPath);
+        Dictionary<string, string> before = await ReadCatalogFilesAsync(workspace.WhenItFailsJsonsPath);
+        int backupsBefore = CountBackups(workspace.WhenItFailsJsonsPath);
+
+        int exitCode = await ExplainProfileCommand.ExecuteAsync(
+        [
+            "explain-profile",
+            workspace.ProjectRootPath,
+            profile.Name,
+            "--json"
+        ]);
+
+        Assert.Equal(0, exitCode);
+        Assert.Equal(backupsBefore, CountBackups(workspace.WhenItFailsJsonsPath));
+        Dictionary<string, string> after = await ReadCatalogFilesAsync(workspace.WhenItFailsJsonsPath);
+        Assert.Equal(before, after);
+    }
+
+    [Fact]
     public async Task ExecuteAsync_WithUnknownProfile_ReturnsExplanationFailure()
     {
         using TemporaryWhenItFailsWorkspace workspace =
@@ -55,6 +78,8 @@ public sealed class ExplainProfileCommandTests
             new[] { "explain-profile", "." },
             new[] { "explain-profile", ".", "WEB", "--unknown" },
             new[] { "explain-profile", ".", "WEB", "--plain", "--plain" },
+            new[] { "explain-profile", ".", "WEB", "--json", "--json" },
+            new[] { "explain-profile", ".", "WEB", "--plain", "--json" },
             new[] { "explain-profile", ".", "WEB", "EXTRA" }
         };
 
