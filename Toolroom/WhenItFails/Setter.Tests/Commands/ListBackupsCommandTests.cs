@@ -33,6 +33,28 @@ public sealed class ListBackupsCommandTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_WithJsonOutput_ReturnsSuccessWithoutChangingFiles()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        await File.WriteAllTextAsync(
+            Path.Combine(workspace.WhenItFailsJsonsPath, "errors.en.20260715T080000000Z.bak.json"),
+            "backup");
+        Dictionary<string, string> before = await ReadAllFilesAsync(workspace.WhenItFailsJsonsPath);
+
+        int exitCode = await ListBackupsCommand.ExecuteAsync(
+        [
+            "list-backups",
+            workspace.ProjectRootPath,
+            "--json"
+        ]);
+
+        Assert.Equal(0, exitCode);
+        Dictionary<string, string> after = await ReadAllFilesAsync(workspace.WhenItFailsJsonsPath);
+        Assert.Equal(before, after);
+    }
+
+    [Fact]
     public async Task ExecuteAsync_WithoutBackups_ReturnsSuccess()
     {
         using TemporaryWhenItFailsWorkspace workspace =
@@ -69,7 +91,9 @@ public sealed class ListBackupsCommandTests
         {
             new[] { "list-backups" },
             new[] { "list-backups", ".", "--unknown" },
-            new[] { "list-backups", ".", "--plain", "EXTRA" }
+            new[] { "list-backups", ".", "--plain", "EXTRA" },
+            new[] { "list-backups", ".", "--plain", "--json" },
+            new[] { "list-backups", ".", "--json", "--json" }
         };
 
     [Theory]
