@@ -122,21 +122,26 @@ public sealed class WhenItFailsWorkspaceEditorAddErrorTests
         Assert.Equal(backupsBefore, CountErrorBackups(workspace.WhenItFailsJsonsPath));
     }
 
-    public static TheoryData<AddErrorRequest, string> InvalidRequestCases =>
+    public static TheoryData<string, string, string, string, string, string, string> InvalidRequestCases =>
         new()
         {
-            { new AddErrorRequest("", "GENERAL", "GENERAL", "NAME", "Title", "Message"), "OwnerNameIsEmpty" },
-            { new AddErrorRequest("AFW", "", "GENERAL", "NAME", "Title", "Message"), "CodeGroupNameIsEmpty" },
-            { new AddErrorRequest("AFW", "GENERAL", "", "NAME", "Title", "Message"), "PrimaryCategoryNameIsEmpty" },
-            { new AddErrorRequest("AFW", "GENERAL", "GENERAL", "", "Title", "Message"), "ErrorNameIsEmpty" },
-            { new AddErrorRequest("AFW", "GENERAL", "GENERAL", "NAME", "", "Message"), "ErrorTitleIsEmpty" },
-            { new AddErrorRequest("AFW", "GENERAL", "GENERAL", "NAME", "Title", ""), "ErrorMessageIsEmpty" }
+            { "", "GENERAL", "GENERAL", "NAME", "Title", "Message", "OwnerNameIsEmpty" },
+            { "AFW", "", "GENERAL", "NAME", "Title", "Message", "CodeGroupNameIsEmpty" },
+            { "AFW", "GENERAL", "", "NAME", "Title", "Message", "PrimaryCategoryNameIsEmpty" },
+            { "AFW", "GENERAL", "GENERAL", "", "Title", "Message", "ErrorNameIsEmpty" },
+            { "AFW", "GENERAL", "GENERAL", "NAME", "", "Message", "ErrorTitleIsEmpty" },
+            { "AFW", "GENERAL", "GENERAL", "NAME", "Title", "", "ErrorMessageIsEmpty" }
         };
 
     [Theory]
     [MemberData(nameof(InvalidRequestCases))]
     public async Task AddErrorAsync_ShouldRejectMissingRequiredValues(
-        AddErrorRequest request,
+        string owner,
+        string group,
+        string category,
+        string name,
+        string title,
+        string message,
         string expectedIssueCode)
     {
         using TemporaryWhenItFailsWorkspace workspace =
@@ -146,7 +151,7 @@ public sealed class WhenItFailsWorkspaceEditorAddErrorTests
         Response<ErrorDefinition> response =
             await new WhenItFailsWorkspaceEditor().AddErrorAsync(
                 workspace.ProjectRootPath,
-                request);
+                new AddErrorRequest(owner, group, category, name, title, message));
 
         Assert.False(response.IsSuccess);
         Assert.Contains(response.Issues, issue => issue.Code == expectedIssueCode);
