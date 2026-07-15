@@ -7,96 +7,155 @@ using Spectre.Console;
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 
 /// <summary>
-/// Handles the 'set-documentation-key' command: changes the documentation key of an error definition with safe JSON writing and backup creation.
+/// Handles the 'set-documentation-key' command.
 /// </summary>
 internal static class SetDocumentationKeyCommand
 {
+    private const string Usage =
+        "set-documentation-key <path> <id|code|name> <documentation-key> [--json]";
+
     /// <summary>
     /// Executes the set-documentation-key command.
     /// </summary>
-    /// <param name="args">The full command-line arguments (args[0] is "set-documentation-key").</param>
-    /// <returns>Exit code: 0 on success, 1 on missing arguments, 2 on failure.</returns>
+    /// <param name="args">The full command-line arguments.</param>
+    /// <returns>Exit code: 0 on success, 1 on invalid input, 2 on domain failure.</returns>
     public static async Task<int> ExecuteAsync(string[] args)
     {
         if (args.Length < 4
             || string.IsNullOrWhiteSpace(args[1])
-            || string.IsNullOrWhiteSpace(args[2])
-            || string.IsNullOrWhiteSpace(args[3]))
+            || string.IsNullOrWhiteSpace(args[2]))
         {
-            ErrorCatalogValidationResult missingSetDocumentationKeyArgumentsResult = new();
+            ShowInvalidArguments();
+            return 1;
+        }
 
-            missingSetDocumentationKeyArgumentsResult.AddError(
-                code: "MissingSetDocumentationKeyArguments",
-                message: "The set-documentation-key command requires a project root or Jsons/WhenItFails directory path, an error id/code/name, and a new documentation key.",
-                path: "set-documentation-key <path> <id|code|name> <documentation-key>");
+        List<string> documentationKeyParts = [];
+        bool useJsonOutput = false;
 
-            new ConsoleValidationResultShow().Show(
-                missingSetDocumentationKeyArgumentsResult,
-                new ConsoleShowOptions
+        for (int index = 3; index < args.Length; index++)
+        {
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput)
                 {
-                    SourcePath = "command line"
-                });
+                    ShowInvalidArguments();
+                    return 1;
+                }
 
+                useJsonOutput = true;
+                continue;
+            }
+
+            documentationKeyParts.Add(args[index]);
+        }
+
+        string newDocumentationKey = string.Join(" ", documentationKeyParts);
+        if (string.IsNullOrWhiteSpace(newDocumentationKey))
+        {
+            ShowInvalidArguments();
             return 1;
         }
 
         string inputPath = args[1];
         string lookupValue = args[2];
-
-        string newDocumentationKey = string.Join(
-            " ",
-            args.Skip(3));
-
-        WhenItFailsWorkspaceEditor editor = new();
-
         Response<ErrorDefinition> response =
-            await editor.SetErrorDocumentationKeyAsync(
+            await new WhenItFailsWorkspaceEditor().SetErrorDocumentationKeyAsync(
                 inputPath,
                 lookupValue,
                 newDocumentationKey);
 
         if (!response.IsSuccess || response.Data is null)
         {
-            ErrorCatalogValidationResult editFailureResult = new();
-
-            string failureCode = response.Issues.Count > 0
-                ? response.Issues[0].Code
-                : "SetDocumentationKeyFailed";
-
-            string failureMessage = string.IsNullOrWhiteSpace(response.Message)
-                ? "Error documentation key could not be changed."
-                : response.Message;
-
-            editFailureResult.AddError(
-                code: failureCode,
-                message: failureMessage,
-                path: lookupValue);
-
-            new ConsoleValidationResultShow().Show(
-                editFailureResult,
-                new ConsoleShowOptions
-                {
-                    SourcePath = inputPath
-                });
+            if (useJsonOutput)
+            {
+                ShowJsonFailure(response);
+            }
+            else
+            {
+                ShowFailure(response, inputPath, lookupValue);
+            }
 
             return 2;
         }
 
-        AnsiConsole.MarkupLine(
-            "[green]Updated documentation key:[/] {0}",
-            Markup.Escape(response.Data.Id));
-
-        AnsiConsole.MarkupLine(
-            "[bold]New documentation key:[/] {0}",
-            Markup.Escape(response.Data.DocumentationKey ?? string.Empty));
-
-        if (!string.IsNullOrWhiteSpace(response.Message))
+        if (useJsonOutput)
+        {
+            CommandJsonOutput.Write(
+                "set-documentation-key",
+                new SetDocumentationKeyResult(
+                    Updated: true,
+                    Error: response.Data,
+                    FailureCode: null,
+                    FailureMessage: null));
+        }
+        else
         {
             AnsiConsole.MarkupLine(
-                "[grey]{0}[/]",
-                Markup.Escape(response.Message));
+                "[green]Updated documentation key:[/] {0}",
+                Markup.Escape(response.Data.Id));
+            AnsiConsole.MarkupLine(
+                "[bold]New documentation key:[/] {0}",
+                Markup.Escape(response.Data.DocumentationKey ?? string.Empty));
+
+            if (!string.IsNullOrWhiteSpace(response.Message))
+            {
+                AnsiConsole.MarkupLine(
+                    "[grey]{0}[/]",
+                    Markup.Escape(response.Message));
+            }
         }
 
         return 0;
     }
+
+    private static void ShowInvalidArguments()
+    {
+        CommandInputError.Show(
+            "InvalidSetDocumentationKeyArguments",
+            "The set-documentation-key command requires a path, an error id/code/name, a new documentation key, and an optional --json switch.",
+            Usage);
+    }
+
+    private static void ShowJsonFailure(Response<ErrorDefinition> response)
+    {
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "SetDocumentationKeyFailed";
+        string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+            ? "Error documentation key could not be changed."
+            : response.Message;
+
+        CommandJsonOutput.Write(
+            "set-documentation-key",
+            new SetDocumentationKeyResult(
+                Updated: false,
+                Error: null,
+                FailureCode: failureCode,
+                FailureMessage: failureMessage));
+    }
+
+    private static void ShowFailure(
+        Response<ErrorDefinition> response,
+        string inputPath,
+        string lookupValue)
+    {
+        ErrorCatalogValidationResult result = new();
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "SetDocumentationKeyFailed";
+        string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+            ? "Error documentation key could not be changed."
+            : response.Message;
+
+        result.AddError(failureCode, failureMessage, lookupValue);
+        new ConsoleValidationResultShow().Show(
+            result,
+            new ConsoleShowOptions { SourcePath = inputPath });
+    }
+
+    private sealed record SetDocumentationKeyResult(
+        bool Updated,
+        ErrorDefinition? Error,
+        string? FailureCode,
+        string? FailureMessage);
 }
