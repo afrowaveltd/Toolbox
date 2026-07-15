@@ -49,18 +49,18 @@ public sealed class WhenItFailsErrorReferenceFinderTests
         Assert.Equal(error.Name, response.Data.ErrorName);
         Assert.Equal(1, response.Data.IncludedByProfiles);
         Assert.Equal(1, response.Data.ExcludedByProfiles);
-        Assert.Collection(
-            response.Data.References,
-            reference =>
-            {
-                Assert.Equal(includeProfile.Name, reference.ProfileName);
-                Assert.Equal("Include", reference.ReferenceKind);
-            },
-            reference =>
-            {
-                Assert.Equal(excludeProfile.Name, reference.ProfileName);
-                Assert.Equal("Exclude", reference.ReferenceKind);
-            });
+
+        ErrorProfileReference[] expectedReferences =
+        [
+            new(includeProfile.Name, includeProfile.DisplayName, "Include"),
+            new(excludeProfile.Name, excludeProfile.DisplayName, "Exclude")
+        ];
+        expectedReferences = expectedReferences
+            .OrderBy(reference => reference.ProfileName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(reference => reference.ReferenceKind, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        Assert.Equal(expectedReferences, response.Data.References);
 
         Dictionary<string, string> after = await ReadAllFilesAsync(workspace.WhenItFailsJsonsPath);
         Assert.Equal(before, after);
