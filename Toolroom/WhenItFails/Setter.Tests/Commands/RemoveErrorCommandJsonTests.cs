@@ -10,6 +10,7 @@ using Afrowave.Toolbox.WhenItFails.Normalization;
 
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Commands;
 
+[Collection("Console output")]
 public sealed class RemoveErrorCommandJsonTests
 {
     [Fact]
