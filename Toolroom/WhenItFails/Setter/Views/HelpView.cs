@@ -172,6 +172,9 @@ internal static class HelpView
             "[green]set-code-group[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<group-name|prefix>[/]",
             "Atomically change an error code group, prefix, numeric code, and structured id using the first compatible free code.");
         commandGrid.AddRow(
+            "[green]set-name[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<new-name>[/]",
+            "Safely change the normalized machine-friendly name of one error definition.");
+        commandGrid.AddRow(
             "[green]set-title[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<title>[/]",
             "Safely change the title of one error definition.");
         commandGrid.AddRow(
