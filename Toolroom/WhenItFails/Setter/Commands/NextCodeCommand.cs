@@ -12,7 +12,7 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 internal static class NextCodeCommand
 {
     private const string Usage =
-        "next-code <path> <owner-name|alias> <group-name|prefix> [--plain]";
+        "next-code <path> <owner-name|alias> <group-name|prefix> [--plain|--json]";
 
     public static async Task<int> ExecuteAsync(string[] args)
     {
@@ -43,14 +43,37 @@ internal static class NextCodeCommand
             return 1;
         }
 
-        bool plain = args.Length == 5
-            && string.Equals(args[4], "--plain", StringComparison.OrdinalIgnoreCase);
-
-        if (args.Length > 5 || (args.Length == 5 && !plain))
+        bool usePlainOutput = false;
+        bool useJsonOutput = false;
+        for (int index = 4; index < args.Length; index++)
         {
+            if (string.Equals(args[index], "--plain", StringComparison.OrdinalIgnoreCase))
+            {
+                if (usePlainOutput || useJsonOutput)
+                {
+                    ShowInvalidOutputArguments();
+                    return 1;
+                }
+
+                usePlainOutput = true;
+                continue;
+            }
+
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput || usePlainOutput)
+                {
+                    ShowInvalidOutputArguments();
+                    return 1;
+                }
+
+                useJsonOutput = true;
+                continue;
+            }
+
             CommandInputError.Show(
                 "InvalidNextCodeArguments",
-                "The next-code command accepts only a path, owner, code group, and optional --plain flag.",
+                $"Unknown next-code argument '{args[index]}'.",
                 Usage);
             return 1;
         }
@@ -72,9 +95,15 @@ internal static class NextCodeCommand
         }
 
         NextCodeSuggestion suggestion = response.Data;
-        if (plain)
+        if (usePlainOutput)
         {
             AnsiConsole.WriteLine($"{suggestion.Code}\t{suggestion.Id}");
+            return 0;
+        }
+
+        if (useJsonOutput)
+        {
+            CommandJsonOutput.Write("next-code", suggestion);
             return 0;
         }
 
@@ -91,6 +120,14 @@ internal static class NextCodeCommand
             suggestion.Sequence);
 
         return 0;
+    }
+
+    private static void ShowInvalidOutputArguments()
+    {
+        CommandInputError.Show(
+            "InvalidNextCodeOutputArguments",
+            "The --plain and --json switches are mutually exclusive and may be specified only once.",
+            Usage);
     }
 
     private static void ShowFailure(
