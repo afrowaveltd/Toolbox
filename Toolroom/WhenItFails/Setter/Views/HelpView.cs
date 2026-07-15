@@ -127,6 +127,9 @@ internal static class HelpView
             "[green]next-code[/] [grey]<path>[/] [grey]<owner-name|alias>[/] [grey]<group-name|prefix>[/] [grey][[--plain]][/]",
             "Read-only suggestion of the first free numeric code and structured id.");
         commandGrid.AddRow(
+            "[green]list-backups[/] [grey]<path>[/] [grey][[--plain]][/]",
+            "Read-only list of catalog backups, newest first.");
+        commandGrid.AddRow(
             "[green]error-add-tag[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<tag>[/]",
             "Safely add one normalized tag to an error definition.");
         commandGrid.AddRow(
