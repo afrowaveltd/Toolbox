@@ -133,6 +133,9 @@ internal static class HelpView
             "[green]list-backups[/] [grey]<path>[/] [grey][[--plain|--json]][/]",
             "Read-only list of catalog backups, newest first.");
         commandGrid.AddRow(
+            "[green]add-error[/] [grey]<path>[/] [grey]<owner>[/] [grey]<group>[/] [grey]<category>[/] [grey]<name>[/] [grey]<title>[/] [grey]<message>[/] [grey][[severity]][/]",
+            "Safely add one complete error definition using the next available id and numeric code.");
+        commandGrid.AddRow(
             "[green]error-add-tag[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<tag>[/]",
             "Safely add one normalized tag to an error definition.");
         commandGrid.AddRow(
