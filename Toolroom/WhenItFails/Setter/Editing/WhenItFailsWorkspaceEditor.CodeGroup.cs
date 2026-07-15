@@ -13,7 +13,8 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Editing;
 internal static class WhenItFailsWorkspaceEditorCodeGroupExtensions
 {
     /// <summary>
-    /// Changes the code group of one error definition and updates its code prefix and structured id atomically.
+    /// Changes the code group of one error definition and updates its numeric code,
+    /// code prefix and structured id atomically.
     /// </summary>
     public static async Task<Response<ErrorDefinition>> SetCodeGroupAsync(
         this WhenItFailsWorkspaceEditor editor,
@@ -112,12 +113,61 @@ internal static class WhenItFailsWorkspaceEditorCodeGroupExtensions
                 message: $"Error '{errorDefinition.Id}' already belongs to code group '{codeGroupDefinition.Name}'.");
         }
 
-        if (errorDefinition.Code < codeGroupDefinition.CodeFrom
-            || errorDefinition.Code > codeGroupDefinition.CodeTo)
+        Response<ErrorOwnerCatalogDocument> ownerLoadResponse =
+            await new JsonErrorOwnerCatalogLoader().LoadFromFileAsync(
+                options.OwnerCatalogFilePath,
+                cancellationToken);
+
+        if (!ownerLoadResponse.IsSuccess || ownerLoadResponse.Data is null)
+        {
+            return Response<ErrorDefinition>.Fail(
+                code: "OwnerCatalogLoadFailed",
+                message: string.IsNullOrWhiteSpace(ownerLoadResponse.Message)
+                    ? $"Owner catalog could not be loaded: {options.OwnerCatalogFilePath}"
+                    : ownerLoadResponse.Message);
+        }
+
+        ErrorOwnerCatalogDocument ownerCatalog =
+            new ErrorOwnerCatalogDocumentNormalizer().Normalize(ownerLoadResponse.Data);
+        ErrorOwnerDefinition? ownerDefinition = ownerCatalog.Owners.FirstOrDefault(owner =>
+            string.Equals(owner.Name, errorDefinition.Owner, StringComparison.OrdinalIgnoreCase));
+
+        if (ownerDefinition is null)
+        {
+            return Response<ErrorDefinition>.NotFound(
+                code: "CurrentOwnerNotFound",
+                message: $"Current owner '{errorDefinition.Owner}' was not found.");
+        }
+
+        int availableCodeFrom = Math.Max(codeGroupDefinition.CodeFrom, ownerDefinition.CodeFrom);
+        int availableCodeTo = Math.Min(codeGroupDefinition.CodeTo, ownerDefinition.CodeTo);
+        if (availableCodeFrom > availableCodeTo)
         {
             return Response<ErrorDefinition>.Invalid(
-                code: "ErrorCodeOutsideCodeGroupRange",
-                message: $"Error code '{errorDefinition.Code}' is outside code group '{codeGroupDefinition.Name}' range {codeGroupDefinition.CodeFrom}-{codeGroupDefinition.CodeTo}.");
+                code: "CodeGroupOutsideOwnerRange",
+                message: $"Code group '{codeGroupDefinition.Name}' range {codeGroupDefinition.CodeFrom}-{codeGroupDefinition.CodeTo} does not intersect owner '{ownerDefinition.Name}' range {ownerDefinition.CodeFrom}-{ownerDefinition.CodeTo}.");
+        }
+
+        HashSet<int> usedCodes = errorCatalog.Errors
+            .Where(error => !ReferenceEquals(error, errorDefinition))
+            .Select(error => error.Code)
+            .ToHashSet();
+
+        int? newCode = null;
+        for (int candidate = availableCodeFrom; candidate <= availableCodeTo; candidate++)
+        {
+            if (!usedCodes.Contains(candidate))
+            {
+                newCode = candidate;
+                break;
+            }
+        }
+
+        if (newCode is null)
+        {
+            return Response<ErrorDefinition>.Invalid(
+                code: "CodeGroupRangeIsFull",
+                message: $"No free numeric code is available for owner '{ownerDefinition.Name}' in code group '{codeGroupDefinition.Name}'.");
         }
 
         string normalizedOwner = TextKeyNormalizer.NormalizeKey(errorDefinition.Owner);
@@ -148,19 +198,19 @@ internal static class WhenItFailsWorkspaceEditorCodeGroupExtensions
         string oldCodeGroup = errorDefinition.CodeGroup;
         string oldCodePrefix = errorDefinition.CodePrefix;
         string oldId = errorDefinition.Id;
+        int oldCode = errorDefinition.Code;
 
         errorDefinition.CodeGroup = codeGroupDefinition.Name;
         errorDefinition.CodePrefix = newCodePrefix;
         errorDefinition.Id = newId;
+        errorDefinition.Code = newCode.Value;
 
         ErrorCatalogValidationResult validationResult =
             new ErrorCatalogValidator().Validate(errorCatalog);
 
         if (!validationResult.IsValid)
         {
-            errorDefinition.CodeGroup = oldCodeGroup;
-            errorDefinition.CodePrefix = oldCodePrefix;
-            errorDefinition.Id = oldId;
+            Rollback(errorDefinition, oldCodeGroup, oldCodePrefix, oldId, oldCode);
             return Response<ErrorDefinition>.Invalid(
                 code: "EditedErrorCatalogIsInvalid",
                 message: "The edited error catalog is invalid and was not saved.");
@@ -173,9 +223,7 @@ internal static class WhenItFailsWorkspaceEditorCodeGroupExtensions
 
         if (!saveResponse.IsSuccess)
         {
-            errorDefinition.CodeGroup = oldCodeGroup;
-            errorDefinition.CodePrefix = oldCodePrefix;
-            errorDefinition.Id = oldId;
+            Rollback(errorDefinition, oldCodeGroup, oldCodePrefix, oldId, oldCode);
             return Response<ErrorDefinition>.Fail(
                 code: saveResponse.Issues.Count > 0
                     ? saveResponse.Issues[0].Code
@@ -187,7 +235,20 @@ internal static class WhenItFailsWorkspaceEditorCodeGroupExtensions
 
         return Response<ErrorDefinition>.Ok(
             errorDefinition,
-            $"Code group was changed from '{oldCodeGroup}' to '{codeGroupDefinition.Name}', code prefix was changed to '{newCodePrefix}', and error id was updated to '{newId}'.");
+            $"Code group was changed from '{oldCodeGroup}' to '{codeGroupDefinition.Name}', numeric code was changed from '{oldCode}' to '{newCode.Value}', code prefix was changed to '{newCodePrefix}', and error id was updated to '{newId}'.");
+    }
+
+    private static void Rollback(
+        ErrorDefinition errorDefinition,
+        string oldCodeGroup,
+        string oldCodePrefix,
+        string oldId,
+        int oldCode)
+    {
+        errorDefinition.CodeGroup = oldCodeGroup;
+        errorDefinition.CodePrefix = oldCodePrefix;
+        errorDefinition.Id = oldId;
+        errorDefinition.Code = oldCode;
     }
 
     private static ErrorDefinition? FindErrorDefinition(
