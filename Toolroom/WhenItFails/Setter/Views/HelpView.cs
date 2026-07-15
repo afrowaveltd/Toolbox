@@ -30,6 +30,9 @@ internal static class HelpView
             "[green]show-profile[/] [grey]<path>[/] [grey]<profile-name>[/] [grey][[--plain]][/]",
             "Show one profile from a validated WhenItFails workspace.");
         commandGrid.AddRow(
+            "[green]explain-profile[/] [grey]<path>[/] [grey]<profile-name|display-name>[/] [grey][[--plain]][/]",
+            "Explain why each error is included in or excluded from one profile.");
+        commandGrid.AddRow(
             "[green]add-profile[/] [grey]<path>[/] [grey]<name>[/] [grey]<display-name>[/] [grey][[description]][/]",
             "Safely add a project profile. Quote display names or descriptions containing spaces.");
         commandGrid.AddRow(
