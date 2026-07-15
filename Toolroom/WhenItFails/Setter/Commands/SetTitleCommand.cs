@@ -7,96 +7,154 @@ using Spectre.Console;
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 
 /// <summary>
-/// Handles the 'set-title' command: changes the title of an error definition with safe JSON writing and backup creation.
+/// Handles the 'set-title' command.
 /// </summary>
 internal static class SetTitleCommand
 {
+    private const string Usage = "set-title <path> <id|code|name> <title> [--json]";
+
     /// <summary>
     /// Executes the set-title command.
     /// </summary>
-    /// <param name="args">The full command-line arguments (args[0] is "set-title").</param>
-    /// <returns>Exit code: 0 on success, 1 on missing arguments, 2 on failure.</returns>
+    /// <param name="args">The full command-line arguments.</param>
+    /// <returns>Exit code: 0 on success, 1 on invalid input, 2 on domain failure.</returns>
     public static async Task<int> ExecuteAsync(string[] args)
     {
         if (args.Length < 4
             || string.IsNullOrWhiteSpace(args[1])
-            || string.IsNullOrWhiteSpace(args[2])
-            || string.IsNullOrWhiteSpace(args[3]))
+            || string.IsNullOrWhiteSpace(args[2]))
         {
-            ErrorCatalogValidationResult missingSetTitleArgumentsResult = new();
+            ShowInvalidArguments();
+            return 1;
+        }
 
-            missingSetTitleArgumentsResult.AddError(
-                code: "MissingSetTitleArguments",
-                message: "The set-title command requires a project root or Jsons/WhenItFails directory path, an error id/code/name, and a new title.",
-                path: "set-title <path> <id|code|name> <title>");
+        List<string> titleParts = [];
+        bool useJsonOutput = false;
 
-            new ConsoleValidationResultShow().Show(
-                missingSetTitleArgumentsResult,
-                new ConsoleShowOptions
+        for (int index = 3; index < args.Length; index++)
+        {
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput)
                 {
-                    SourcePath = "command line"
-                });
+                    ShowInvalidArguments();
+                    return 1;
+                }
 
+                useJsonOutput = true;
+                continue;
+            }
+
+            titleParts.Add(args[index]);
+        }
+
+        string newTitle = string.Join(" ", titleParts);
+        if (string.IsNullOrWhiteSpace(newTitle))
+        {
+            ShowInvalidArguments();
             return 1;
         }
 
         string inputPath = args[1];
         string lookupValue = args[2];
-
-        string newTitle = string.Join(
-            " ",
-            args.Skip(3));
-
-        WhenItFailsWorkspaceEditor editor = new();
-
         Response<ErrorDefinition> response =
-            await editor.SetErrorTitleAsync(
+            await new WhenItFailsWorkspaceEditor().SetErrorTitleAsync(
                 inputPath,
                 lookupValue,
                 newTitle);
 
         if (!response.IsSuccess || response.Data is null)
         {
-            ErrorCatalogValidationResult editFailureResult = new();
-
-            string failureCode = response.Issues.Count > 0
-                ? response.Issues[0].Code
-                : "SetTitleFailed";
-
-            string failureMessage = string.IsNullOrWhiteSpace(response.Message)
-                ? "Error title could not be changed."
-                : response.Message;
-
-            editFailureResult.AddError(
-                code: failureCode,
-                message: failureMessage,
-                path: lookupValue);
-
-            new ConsoleValidationResultShow().Show(
-                editFailureResult,
-                new ConsoleShowOptions
-                {
-                    SourcePath = inputPath
-                });
+            if (useJsonOutput)
+            {
+                ShowJsonFailure(response);
+            }
+            else
+            {
+                ShowFailure(response, inputPath, lookupValue);
+            }
 
             return 2;
         }
 
-        AnsiConsole.MarkupLine(
-            "[green]Updated title:[/] {0}",
-            Markup.Escape(response.Data.Id));
-
-        AnsiConsole.MarkupLine(
-            "[bold]New title:[/] {0}",
-            Markup.Escape(response.Data.Title));
-
-        if (!string.IsNullOrWhiteSpace(response.Message))
+        if (useJsonOutput)
+        {
+            CommandJsonOutput.Write(
+                "set-title",
+                new SetTitleResult(
+                    Updated: true,
+                    Error: response.Data,
+                    FailureCode: null,
+                    FailureMessage: null));
+        }
+        else
         {
             AnsiConsole.MarkupLine(
-                "[grey]{0}[/]",
-                Markup.Escape(response.Message));
+                "[green]Updated title:[/] {0}",
+                Markup.Escape(response.Data.Id));
+            AnsiConsole.MarkupLine(
+                "[bold]New title:[/] {0}",
+                Markup.Escape(response.Data.Title));
+
+            if (!string.IsNullOrWhiteSpace(response.Message))
+            {
+                AnsiConsole.MarkupLine(
+                    "[grey]{0}[/]",
+                    Markup.Escape(response.Message));
+            }
         }
 
         return 0;
     }
+
+    private static void ShowInvalidArguments()
+    {
+        CommandInputError.Show(
+            "InvalidSetTitleArguments",
+            "The set-title command requires a path, an error id/code/name, a new title, and an optional --json switch.",
+            Usage);
+    }
+
+    private static void ShowJsonFailure(Response<ErrorDefinition> response)
+    {
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "SetTitleFailed";
+        string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+            ? "Error title could not be changed."
+            : response.Message;
+
+        CommandJsonOutput.Write(
+            "set-title",
+            new SetTitleResult(
+                Updated: false,
+                Error: null,
+                FailureCode: failureCode,
+                FailureMessage: failureMessage));
+    }
+
+    private static void ShowFailure(
+        Response<ErrorDefinition> response,
+        string inputPath,
+        string lookupValue)
+    {
+        ErrorCatalogValidationResult result = new();
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "SetTitleFailed";
+        string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+            ? "Error title could not be changed."
+            : response.Message;
+
+        result.AddError(failureCode, failureMessage, lookupValue);
+        new ConsoleValidationResultShow().Show(
+            result,
+            new ConsoleShowOptions { SourcePath = inputPath });
+    }
+
+    private sealed record SetTitleResult(
+        bool Updated,
+        ErrorDefinition? Error,
+        string? FailureCode,
+        string? FailureMessage);
 }
