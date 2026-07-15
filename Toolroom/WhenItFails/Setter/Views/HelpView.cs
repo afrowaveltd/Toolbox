@@ -127,7 +127,7 @@ internal static class HelpView
             "Show one error definition in detail.");
         commandGrid.AddRow("[green]detail[/] [grey]<path>[/] [grey]<id|code|name>[/]", "Alias for details.");
         commandGrid.AddRow(
-            "[green]next-code[/] [grey]<path>[/] [grey]<owner-name|alias>[/] [grey]<group-name|prefix>[/] [grey][[--plain]][/]",
+            "[green]next-code[/] [grey]<path>[/] [grey]<owner-name|alias>[/] [grey]<group-name|prefix>[/] [grey][[--plain|--json]][/]",
             "Read-only suggestion of the first free numeric code and structured id.");
         commandGrid.AddRow(
             "[green]list-backups[/] [grey]<path>[/] [grey][[--plain]][/]",
