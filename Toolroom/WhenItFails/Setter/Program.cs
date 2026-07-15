@@ -228,6 +228,11 @@ try
         return await RemoveErrorCommand.ExecuteAsync(args);
     }
 
+    if (command == "error-references")
+    {
+        return await ErrorReferencesCommand.ExecuteAsync(args);
+    }
+
     if (command == "error-add-tag")
     {
         return await ErrorAddTagCommand.ExecuteAsync(args);
