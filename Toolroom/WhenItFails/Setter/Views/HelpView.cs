@@ -136,6 +136,9 @@ internal static class HelpView
             "[green]add-error[/] [grey]<path>[/] [grey]<owner>[/] [grey]<group>[/] [grey]<category>[/] [grey]<name>[/] [grey]<title>[/] [grey]<message>[/] [grey][[severity]][/]",
             "Safely add one complete error definition using the next available id and numeric code.");
         commandGrid.AddRow(
+            "[green]remove-error[/] [grey]<path>[/] [grey]<id|code|name>[/]",
+            "Safely remove one error definition when no profile explicitly references it.");
+        commandGrid.AddRow(
             "[green]error-add-tag[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<tag>[/]",
             "Safely add one normalized tag to an error definition.");
         commandGrid.AddRow(
