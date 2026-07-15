@@ -223,6 +223,11 @@ try
         return await AddErrorCommand.ExecuteAsync(args);
     }
 
+    if (command == "remove-error")
+    {
+        return await RemoveErrorCommand.ExecuteAsync(args);
+    }
+
     if (command == "error-add-tag")
     {
         return await ErrorAddTagCommand.ExecuteAsync(args);
