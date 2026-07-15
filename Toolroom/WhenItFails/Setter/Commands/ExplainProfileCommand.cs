@@ -13,7 +13,7 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 internal static class ExplainProfileCommand
 {
     private const string Usage =
-        "explain-profile <path> <profile-name|display-name> [--plain]";
+        "explain-profile <path> <profile-name|display-name> [--plain|--json]";
 
     public static async Task<int> ExecuteAsync(string[] args)
     {
@@ -36,20 +36,30 @@ internal static class ExplainProfileCommand
         }
 
         bool usePlainOutput = false;
+        bool useJsonOutput = false;
         for (int index = 3; index < args.Length; index++)
         {
             if (string.Equals(args[index], "--plain", StringComparison.OrdinalIgnoreCase))
             {
-                if (usePlainOutput)
+                if (usePlainOutput || useJsonOutput)
                 {
-                    CommandInputError.Show(
-                        "DuplicateExplainProfilePlainSwitch",
-                        "The --plain switch may be specified only once.",
-                        Usage);
+                    ShowInvalidOutputArguments();
                     return 1;
                 }
 
                 usePlainOutput = true;
+                continue;
+            }
+
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput || usePlainOutput)
+                {
+                    ShowInvalidOutputArguments();
+                    return 1;
+                }
+
+                useJsonOutput = true;
                 continue;
             }
 
@@ -74,6 +84,10 @@ internal static class ExplainProfileCommand
         if (usePlainOutput)
         {
             ShowPlain(response.Data);
+        }
+        else if (useJsonOutput)
+        {
+            CommandJsonOutput.Write("explain-profile", response.Data);
         }
         else
         {
@@ -135,6 +149,14 @@ internal static class ExplainProfileCommand
 
             Console.WriteLine(string.Join('\t', fields));
         }
+    }
+
+    private static void ShowInvalidOutputArguments()
+    {
+        CommandInputError.Show(
+            "InvalidExplainProfileOutputArguments",
+            "The --plain and --json switches are mutually exclusive and may be specified only once.",
+            Usage);
     }
 
     private static void ShowFailure(
