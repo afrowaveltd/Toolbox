@@ -9,10 +9,9 @@ using Afrowave.Toolbox.WhenItFails.Normalization;
 
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Commands;
 
+[Collection(ConsoleOutputTestCollection.Name)]
 public sealed class AddErrorCommandJsonTests
 {
-    private static readonly object ConsoleOutputLock = new();
-
     [Fact]
     public async Task ExecuteAsync_WithJsonOutput_AddsErrorAndWritesStableEnvelope()
     {
@@ -151,9 +150,8 @@ public sealed class AddErrorCommandJsonTests
 
     private static async Task<(int ExitCode, string Output)> ExecuteWithCapturedOutputAsync(string[] args)
     {
-        Monitor.Enter(ConsoleOutputLock);
         TextWriter originalOutput = Console.Out;
-        StringWriter output = new();
+        using StringWriter output = new();
 
         try
         {
@@ -164,8 +162,6 @@ public sealed class AddErrorCommandJsonTests
         finally
         {
             Console.SetOut(originalOutput);
-            output.Dispose();
-            Monitor.Exit(ConsoleOutputLock);
         }
     }
 
