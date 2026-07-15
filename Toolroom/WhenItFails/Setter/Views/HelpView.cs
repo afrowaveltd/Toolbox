@@ -133,8 +133,8 @@ internal static class HelpView
             "[green]list-backups[/] [grey]<path>[/] [grey][[--plain|--json]][/]",
             "Read-only list of catalog backups, newest first.");
         commandGrid.AddRow(
-            "[green]add-error[/] [grey]<path>[/] [grey]<owner>[/] [grey]<group>[/] [grey]<category>[/] [grey]<name>[/] [grey]<title>[/] [grey]<message>[/] [grey][[severity]][/]",
-            "Safely add one complete error definition using the next available id and numeric code.");
+            "[green]add-error[/] [grey]<path>[/] [grey]<owner>[/] [grey]<group>[/] [grey]<category>[/] [grey]<name>[/] [grey]<title>[/] [grey]<message>[/] [grey][[severity]][/] [grey][[--json]][/]",
+            "Safely add one complete error definition; JSON output includes structured success or failure details.");
         commandGrid.AddRow(
             "[green]remove-error[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey][[--json]][/]",
             "Safely remove one error definition; JSON failures include blocking profile references.");
