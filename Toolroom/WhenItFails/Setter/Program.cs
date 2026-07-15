@@ -48,6 +48,11 @@ try
         return await ShowProfileCommand.ExecuteAsync(args);
     }
 
+    if (command == "explain-profile")
+    {
+        return await ExplainProfileCommand.ExecuteAsync(args);
+    }
+
     if (command == "add-profile")
     {
         return await AddProfileCommand.ExecuteAsync(args);
