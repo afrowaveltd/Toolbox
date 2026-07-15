@@ -36,6 +36,31 @@ public sealed class NextCodeCommandTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_WithJsonOutput_ReturnsSuccessWithoutChangingCatalogs()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        (ErrorOwnerDefinition owner, ErrorCodeGroupDefinition group) =
+            await FindCompatiblePairAsync(workspace.ProjectRootPath, workspace.WhenItFailsJsonsPath);
+        Dictionary<string, string> before = await ReadCatalogFilesAsync(workspace.WhenItFailsJsonsPath);
+        int backupsBefore = CountBackups(workspace.WhenItFailsJsonsPath);
+
+        int exitCode = await NextCodeCommand.ExecuteAsync(
+        [
+            "next-code",
+            workspace.ProjectRootPath,
+            owner.Name,
+            group.Name,
+            "--json"
+        ]);
+
+        Assert.Equal(0, exitCode);
+        Assert.Equal(backupsBefore, CountBackups(workspace.WhenItFailsJsonsPath));
+        Dictionary<string, string> after = await ReadCatalogFilesAsync(workspace.WhenItFailsJsonsPath);
+        Assert.Equal(before, after);
+    }
+
+    [Fact]
     public async Task ExecuteAsync_WithUnknownOwner_ReturnsPlanningFailure()
     {
         using TemporaryWhenItFailsWorkspace workspace =
@@ -60,7 +85,11 @@ public sealed class NextCodeCommandTests
             new[] { "next-code", "." },
             new[] { "next-code", ".", "AFW" },
             new[] { "next-code", ".", "AFW", "NETWORK", "--unknown" },
-            new[] { "next-code", ".", "AFW", "NETWORK", "--plain", "EXTRA" }
+            new[] { "next-code", ".", "AFW", "NETWORK", "--plain", "EXTRA" },
+            new[] { "next-code", ".", "AFW", "NETWORK", "--plain", "--json" },
+            new[] { "next-code", ".", "AFW", "NETWORK", "--json", "--plain" },
+            new[] { "next-code", ".", "AFW", "NETWORK", "--json", "--json" },
+            new[] { "next-code", ".", "AFW", "NETWORK", "--plain", "--plain" }
         };
 
     [Theory]
