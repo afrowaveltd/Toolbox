@@ -1,3 +1,4 @@
+using System.Globalization;
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.SeeMe.WhenItFails.Console;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
@@ -107,7 +108,7 @@ internal static class ExplainProfileCommand
         {
             table.AddRow(
                 error.IsIncluded ? "[green]Included[/]" : "[red]Excluded[/]",
-                error.Code.ToString(),
+                error.Code.ToString(CultureInfo.InvariantCulture),
                 Markup.Escape(error.Id),
                 Markup.Escape(error.Name),
                 Markup.Escape(string.Join(", ", error.IncludeReasons)),
@@ -121,15 +122,18 @@ internal static class ExplainProfileCommand
     {
         foreach (ProfileErrorExplanation error in explanation.Errors)
         {
-            Console.WriteLine(string.Join(
-                '\t',
+            string[] fields =
+            [
                 explanation.ProfileName,
                 error.IsIncluded ? "INCLUDED" : "EXCLUDED",
-                error.Code,
+                error.Code.ToString(CultureInfo.InvariantCulture),
                 error.Id,
                 error.Name,
                 string.Join('|', error.IncludeReasons),
-                string.Join('|', error.ExclusionReasons)));
+                string.Join('|', error.ExclusionReasons)
+            ];
+
+            Console.WriteLine(string.Join('\t', fields));
         }
     }
 
