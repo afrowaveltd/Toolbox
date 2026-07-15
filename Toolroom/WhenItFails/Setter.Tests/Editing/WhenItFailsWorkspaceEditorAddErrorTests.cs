@@ -37,7 +37,7 @@ public sealed class WhenItFailsWorkspaceEditorAddErrorTests
         Assert.NotNull(response.Data);
         Assert.Equal(suggestion.Id, response.Data.Id);
         Assert.Equal(suggestion.Code, response.Data.Code);
-        Assert.Equal("NEWSAMPLEERROR", response.Data.Name);
+        Assert.Equal("NEW_SAMPLE_ERROR", response.Data.Name);
         Assert.Equal(owner.Name, response.Data.Owner);
         Assert.Equal(group.Name, response.Data.CodeGroup);
         Assert.Equal(group.CodePrefix, response.Data.CodePrefix);
