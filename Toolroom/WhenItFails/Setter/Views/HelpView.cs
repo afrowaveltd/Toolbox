@@ -184,11 +184,11 @@ internal static class HelpView
             "[green]set-message[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<message>[/] [grey][[--json]][/]",
             "Safely change the message; JSON output includes structured success or failure details.");
         commandGrid.AddRow(
-            "[green]set-developer-hint[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<developer-hint>[/]",
-            "Safely change the developer hint of one error definition.");
+            "[green]set-developer-hint[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<developer-hint>[/] [grey][[--json]][/]",
+            "Safely change the developer hint; JSON output includes structured success or failure details.");
         commandGrid.AddRow(
-            "[green]set-severity[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<severity>[/]",
-            "Safely change the severity of one error definition. Allowed values: Trace, Debug, Information, Warning, Error, Critical.");
+            "[green]set-severity[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<severity>[/] [grey][[--json]][/]",
+            "Safely change the severity; JSON output includes structured success or failure details. Allowed values: Trace, Debug, Information, Warning, Error, Critical.");
         commandGrid.AddRow(
             "[green]set-documentation-key[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<documentation-key>[/]",
             "Safely change the documentation key of one error definition.");
