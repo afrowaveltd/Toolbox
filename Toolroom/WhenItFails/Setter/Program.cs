@@ -218,6 +218,11 @@ try
         return await ListBackupsCommand.ExecuteAsync(args);
     }
 
+    if (command == "add-error")
+    {
+        return await AddErrorCommand.ExecuteAsync(args);
+    }
+
     if (command == "error-add-tag")
     {
         return await ErrorAddTagCommand.ExecuteAsync(args);
