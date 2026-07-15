@@ -19,6 +19,8 @@ internal sealed class WhenItFailsProfileExplainer
         string profileName,
         CancellationToken cancellationToken = default)
     {
+        _ = cancellationToken;
+
         if (string.IsNullOrWhiteSpace(inputPath))
         {
             return Response<ProfileExplanation>.Invalid(
@@ -34,7 +36,7 @@ internal sealed class WhenItFailsProfileExplainer
         }
 
         WhenItFailsWorkspaceValidationOutcome validationOutcome =
-            await new WhenItFailsWorkspaceValidator().ValidateAsync(inputPath, cancellationToken);
+            await new WhenItFailsWorkspaceValidator().ValidateAsync(inputPath);
         if (!validationOutcome.ValidationResult.IsValid)
         {
             return Response<ProfileExplanation>.Invalid(
@@ -43,7 +45,7 @@ internal sealed class WhenItFailsProfileExplainer
         }
 
         WhenItFailsWorkspaceSummary summary =
-            await new WhenItFailsWorkspaceSummarizer().LoadAsync(inputPath, cancellationToken);
+            await new WhenItFailsWorkspaceSummarizer().LoadAsync(inputPath);
         ErrorProfileDefinition? profile = ErrorsCommand.FindProfile(summary, profileName.Trim());
         if (profile is null)
         {
