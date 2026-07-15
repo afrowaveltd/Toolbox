@@ -203,6 +203,11 @@ try
         return await DetailsCommand.ExecuteAsync(args);
     }
 
+    if (command == "next-code")
+    {
+        return await NextCodeCommand.ExecuteAsync(args);
+    }
+
     if (command == "error-add-tag")
     {
         return await ErrorAddTagCommand.ExecuteAsync(args);
