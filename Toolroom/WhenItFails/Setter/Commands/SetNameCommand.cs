@@ -12,7 +12,7 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 /// </summary>
 internal static class SetNameCommand
 {
-    private const string Usage = "set-name <path> <id|code|name> <new-name>";
+    private const string Usage = "set-name <path> <id|code|name> <new-name> [--json]";
 
     public static async Task<int> ExecuteAsync(string[] args)
     {
@@ -20,14 +20,31 @@ internal static class SetNameCommand
             || string.IsNullOrWhiteSpace(args[1])
             || string.IsNullOrWhiteSpace(args[2]))
         {
-            CommandInputError.Show(
-                "InvalidSetNameArguments",
-                "The set-name command requires a path, an error id/code/name, and a new machine-friendly name.",
-                Usage);
+            ShowInvalidArguments();
             return 1;
         }
 
-        string newName = string.Join(" ", args.Skip(3));
+        bool useJsonOutput = false;
+        List<string> nameParts = [];
+
+        for (int index = 3; index < args.Length; index++)
+        {
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput)
+                {
+                    ShowInvalidArguments();
+                    return 1;
+                }
+
+                useJsonOutput = true;
+                continue;
+            }
+
+            nameParts.Add(args[index]);
+        }
+
+        string newName = string.Join(" ", nameParts);
         if (string.IsNullOrWhiteSpace(newName))
         {
             CommandInputError.Show(
@@ -47,23 +64,70 @@ internal static class SetNameCommand
 
         if (!response.IsSuccess || response.Data is null)
         {
-            ShowFailure(response, inputPath, lookupValue);
+            if (useJsonOutput)
+            {
+                ShowJsonFailure(response);
+            }
+            else
+            {
+                ShowFailure(response, inputPath, lookupValue);
+            }
+
             return 2;
         }
 
-        AnsiConsole.MarkupLine(
-            "[green]Updated error name:[/] {0}",
-            Markup.Escape(response.Data.Id));
-        AnsiConsole.MarkupLine(
-            "[bold]New name:[/] {0}",
-            Markup.Escape(response.Data.Name));
-
-        if (!string.IsNullOrWhiteSpace(response.Message))
+        if (useJsonOutput)
         {
-            AnsiConsole.MarkupLine("[grey]{0}[/]", Markup.Escape(response.Message));
+            CommandJsonOutput.Write(
+                "set-name",
+                new SetNameResult(
+                    Updated: true,
+                    Error: response.Data,
+                    FailureCode: null,
+                    FailureMessage: null));
+        }
+        else
+        {
+            AnsiConsole.MarkupLine(
+                "[green]Updated error name:[/] {0}",
+                Markup.Escape(response.Data.Id));
+            AnsiConsole.MarkupLine(
+                "[bold]New name:[/] {0}",
+                Markup.Escape(response.Data.Name));
+
+            if (!string.IsNullOrWhiteSpace(response.Message))
+            {
+                AnsiConsole.MarkupLine("[grey]{0}[/]", Markup.Escape(response.Message));
+            }
         }
 
         return 0;
+    }
+
+    private static void ShowInvalidArguments()
+    {
+        CommandInputError.Show(
+            "InvalidSetNameArguments",
+            "The set-name command requires a path, an error id/code/name, a new machine-friendly name, and an optional --json switch.",
+            Usage);
+    }
+
+    private static void ShowJsonFailure(Response<ErrorDefinition> response)
+    {
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "SetNameFailed";
+        string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+            ? "The error name could not be changed."
+            : response.Message;
+
+        CommandJsonOutput.Write(
+            "set-name",
+            new SetNameResult(
+                Updated: false,
+                Error: null,
+                FailureCode: failureCode,
+                FailureMessage: failureMessage));
     }
 
     private static void ShowFailure(
@@ -84,4 +148,10 @@ internal static class SetNameCommand
             result,
             new ConsoleShowOptions { SourcePath = inputPath });
     }
+
+    private sealed record SetNameResult(
+        bool Updated,
+        ErrorDefinition? Error,
+        string? FailureCode,
+        string? FailureMessage);
 }
