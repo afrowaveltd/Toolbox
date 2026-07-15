@@ -208,6 +208,11 @@ try
         return await NextCodeCommand.ExecuteAsync(args);
     }
 
+    if (command == "list-backups")
+    {
+        return await ListBackupsCommand.ExecuteAsync(args);
+    }
+
     if (command == "error-add-tag")
     {
         return await ErrorAddTagCommand.ExecuteAsync(args);
