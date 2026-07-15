@@ -11,7 +11,7 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 /// </summary>
 internal static class ListBackupsCommand
 {
-    private const string Usage = "list-backups <path> [--plain]";
+    private const string Usage = "list-backups <path> [--plain|--json]";
 
     public static Task<int> ExecuteAsync(string[] args)
     {
@@ -24,28 +24,39 @@ internal static class ListBackupsCommand
             return Task.FromResult(1);
         }
 
-        if (args.Length > 3)
+        bool usePlainOutput = false;
+        bool useJsonOutput = false;
+        for (int index = 2; index < args.Length; index++)
         {
-            CommandInputError.Show(
-                "InvalidListBackupsArguments",
-                "The list-backups command accepts only a path and optional --plain switch.",
-                Usage);
-            return Task.FromResult(1);
-        }
-
-        bool plain = false;
-        if (args.Length == 3)
-        {
-            if (!string.Equals(args[2], "--plain", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(args[index], "--plain", StringComparison.OrdinalIgnoreCase))
             {
-                CommandInputError.Show(
-                    "UnknownListBackupsOption",
-                    $"Unknown list-backups option '{args[2]}'.",
-                    Usage);
-                return Task.FromResult(1);
+                if (usePlainOutput || useJsonOutput)
+                {
+                    ShowInvalidOutputArguments();
+                    return Task.FromResult(1);
+                }
+
+                usePlainOutput = true;
+                continue;
             }
 
-            plain = true;
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput || usePlainOutput)
+                {
+                    ShowInvalidOutputArguments();
+                    return Task.FromResult(1);
+                }
+
+                useJsonOutput = true;
+                continue;
+            }
+
+            CommandInputError.Show(
+                "UnknownListBackupsOption",
+                $"Unknown list-backups option '{args[index]}'.",
+                Usage);
+            return Task.FromResult(1);
         }
 
         string inputPath = args[1];
@@ -58,7 +69,7 @@ internal static class ListBackupsCommand
             return Task.FromResult(2);
         }
 
-        if (plain)
+        if (usePlainOutput)
         {
             foreach (WhenItFailsBackupInfo backup in response.Data)
             {
@@ -71,6 +82,12 @@ internal static class ListBackupsCommand
                     backup.FullPath));
             }
 
+            return Task.FromResult(0);
+        }
+
+        if (useJsonOutput)
+        {
+            CommandJsonOutput.Write("list-backups", response.Data);
             return Task.FromResult(0);
         }
 
@@ -100,6 +117,14 @@ internal static class ListBackupsCommand
         AnsiConsole.Write(table);
         AnsiConsole.MarkupLine("[grey]Found {0} backup(s).[/]", response.Data.Count);
         return Task.FromResult(0);
+    }
+
+    private static void ShowInvalidOutputArguments()
+    {
+        CommandInputError.Show(
+            "InvalidListBackupsOutputArguments",
+            "The --plain and --json switches are mutually exclusive and may be specified only once.",
+            Usage);
     }
 
     private static void ShowFailure(
