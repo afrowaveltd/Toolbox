@@ -283,6 +283,11 @@ try
         return await SetCodeGroupCommand.ExecuteAsync(args);
     }
 
+    if (command == "set-name")
+    {
+        return await SetNameCommand.ExecuteAsync(args);
+    }
+
     if (command == "set-title")
     {
         return await SetTitleCommand.ExecuteAsync(args);
