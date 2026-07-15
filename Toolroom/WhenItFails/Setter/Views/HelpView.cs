@@ -181,8 +181,8 @@ internal static class HelpView
             "[green]set-title[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<title>[/] [grey][[--json]][/]",
             "Safely change the title; JSON output includes structured success or failure details.");
         commandGrid.AddRow(
-            "[green]set-message[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<message>[/]",
-            "Safely change the message of one error definition.");
+            "[green]set-message[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<message>[/] [grey][[--json]][/]",
+            "Safely change the message; JSON output includes structured success or failure details.");
         commandGrid.AddRow(
             "[green]set-developer-hint[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<developer-hint>[/]",
             "Safely change the developer hint of one error definition.");
