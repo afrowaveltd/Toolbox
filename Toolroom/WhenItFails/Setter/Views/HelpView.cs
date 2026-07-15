@@ -136,8 +136,8 @@ internal static class HelpView
             "[green]add-error[/] [grey]<path>[/] [grey]<owner>[/] [grey]<group>[/] [grey]<category>[/] [grey]<name>[/] [grey]<title>[/] [grey]<message>[/] [grey][[severity]][/]",
             "Safely add one complete error definition using the next available id and numeric code.");
         commandGrid.AddRow(
-            "[green]remove-error[/] [grey]<path>[/] [grey]<id|code|name>[/]",
-            "Safely remove one error definition when no profile explicitly references it.");
+            "[green]remove-error[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey][[--json]][/]",
+            "Safely remove one error definition; JSON failures include blocking profile references.");
         commandGrid.AddRow(
             "[green]error-references[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey][[--plain|--json]][/]",
             "Read-only list of profiles that explicitly include or exclude one error.");
