@@ -30,7 +30,7 @@ internal static class HelpView
             "[green]show-profile[/] [grey]<path>[/] [grey]<profile-name>[/] [grey][[--plain]][/]",
             "Show one profile from a validated WhenItFails workspace.");
         commandGrid.AddRow(
-            "[green]explain-profile[/] [grey]<path>[/] [grey]<profile-name|display-name>[/] [grey][[--plain]][/]",
+            "[green]explain-profile[/] [grey]<path>[/] [grey]<profile-name|display-name>[/] [grey][[--plain|--json]][/]",
             "Explain why each error is included in or excluded from one profile.");
         commandGrid.AddRow(
             "[green]add-profile[/] [grey]<path>[/] [grey]<name>[/] [grey]<display-name>[/] [grey][[description]][/]",
@@ -130,7 +130,7 @@ internal static class HelpView
             "[green]next-code[/] [grey]<path>[/] [grey]<owner-name|alias>[/] [grey]<group-name|prefix>[/] [grey][[--plain|--json]][/]",
             "Read-only suggestion of the first free numeric code and structured id.");
         commandGrid.AddRow(
-            "[green]list-backups[/] [grey]<path>[/] [grey][[--plain]][/]",
+            "[green]list-backups[/] [grey]<path>[/] [grey][[--plain|--json]][/]",
             "Read-only list of catalog backups, newest first.");
         commandGrid.AddRow(
             "[green]error-add-tag[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<tag>[/]",
