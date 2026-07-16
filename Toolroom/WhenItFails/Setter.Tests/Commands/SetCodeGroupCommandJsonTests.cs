@@ -62,8 +62,9 @@ public sealed class SetCodeGroupCommandJsonTests
     {
         using TemporaryWhenItFailsWorkspace workspace =
             await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
-        (ErrorDefinition error, ErrorCodeGroupDefinition targetGroup, _) =
-            await FindCompatibleMoveAsync(workspace.WhenItFailsJsonsPath);
+        var move = await FindCompatibleMoveAsync(workspace.WhenItFailsJsonsPath);
+        ErrorDefinition error = move.Error;
+        ErrorCodeGroupDefinition targetGroup = move.TargetGroup;
 
         (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
         [
