@@ -8,6 +8,7 @@ public sealed class ReferenceCommandTests
     [InlineData("reference")]
     [InlineData("reference", "summary")]
     [InlineData("reference", "profiles")]
+    [InlineData("reference", "categories")]
     public async Task ExecuteAsync_WithSupportedReferenceCommand_ReturnsSuccess(
         params string[] args)
     {
@@ -53,5 +54,14 @@ public sealed class ReferenceCommandTests
         Assert.Contains("WEB_API", summary.ProfileNames);
         Assert.Contains("DESKTOP_APP", summary.ProfileNames);
         Assert.Contains("FULL", summary.ProfileNames);
+
+        Assert.Equal(16, summary.Categories.Count);
+        Assert.Contains(summary.Categories, category => category.Name == "GENERAL");
+        Assert.Contains(summary.Categories, category => category.Name == "HTTP");
+        Assert.Contains(summary.Categories, category => category.Name == "AUTHENTICATION");
+        Assert.Contains(
+            summary.Categories,
+            category => category.Name == "HTTP"
+                        && category.ParentCategoryNames.Contains("NETWORK"));
     }
 }

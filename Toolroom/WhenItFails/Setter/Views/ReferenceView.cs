@@ -73,4 +73,37 @@ internal static class ReferenceView
 
       AnsiConsole.Write(table);
    }
+
+   /// <summary>
+   /// Shows reference catalog categories.
+   /// </summary>
+   /// <param name="summary">Reference catalog summary.</param>
+   public static void ShowCategories(WhenItFailsReferenceCatalogSummary summary)
+   {
+      ArgumentNullException.ThrowIfNull(summary);
+
+      Table table = new();
+
+      table.Border(TableBorder.Rounded);
+      table.AddColumn("Name");
+      table.AddColumn("Display name");
+      table.AddColumn("Parents");
+
+      AnsiConsole.MarkupLine("[green]WhenItFails reference categories[/]");
+
+      foreach (WhenItFailsReferenceCategorySummary category in summary.Categories)
+      {
+         string parents = category.ParentCategoryNames.Count == 0
+            ? string.Empty
+            : string.Join(", ", category.ParentCategoryNames);
+
+         table.AddRow(
+            Markup.Escape(category.Name),
+            Markup.Escape(category.DisplayName),
+            Markup.Escape(parents));
+      }
+
+      AnsiConsole.Write(table);
+   }
+
 }

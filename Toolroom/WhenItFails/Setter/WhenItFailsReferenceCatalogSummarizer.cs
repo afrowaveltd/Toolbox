@@ -32,8 +32,11 @@ internal sealed class WhenItFailsReferenceCatalogSummarizer
       };
 
       IReadOnlyList<string> profileNames = await ReadProfileNamesAsync(referenceCatalogDirectoryPath);
+      IReadOnlyList<WhenItFailsReferenceCategorySummary> categories =
+         await ReadCategoriesAsync(referenceCatalogDirectoryPath);
 
       summary.ProfileNames.AddRange(profileNames);
+      summary.Categories.AddRange(categories);
 
       return summary;
    }
@@ -127,6 +130,77 @@ internal sealed class WhenItFailsReferenceCatalogSummarizer
       }
 
       return profileNames;
+   }
+
+   private static async Task<IReadOnlyList<WhenItFailsReferenceCategorySummary>> ReadCategoriesAsync(
+      string directoryPath)
+   {
+      using JsonDocument document = await LoadJsonDocumentAsync(directoryPath, "categories.en.json");
+
+      JsonElement rootElement = document.RootElement;
+
+      if (!rootElement.TryGetProperty("categories", out JsonElement categoriesElement)
+          || categoriesElement.ValueKind != JsonValueKind.Array)
+      {
+         return Array.Empty<WhenItFailsReferenceCategorySummary>();
+      }
+
+      List<WhenItFailsReferenceCategorySummary> categories = new();
+
+      foreach (JsonElement categoryElement in categoriesElement.EnumerateArray())
+      {
+         string name = ReadStringProperty(categoryElement, "name");
+         string displayName = ReadStringProperty(categoryElement, "displayName");
+
+         if (string.IsNullOrWhiteSpace(name))
+         {
+            continue;
+         }
+
+         WhenItFailsReferenceCategorySummary category = new()
+         {
+            Name = name,
+            DisplayName = string.IsNullOrWhiteSpace(displayName)
+               ? name
+               : displayName
+         };
+
+         if (categoryElement.TryGetProperty("parentCategories", out JsonElement parentCategoriesElement)
+             && parentCategoriesElement.ValueKind == JsonValueKind.Array)
+         {
+            foreach (JsonElement parentCategoryElement in parentCategoriesElement.EnumerateArray())
+            {
+               if (parentCategoryElement.ValueKind != JsonValueKind.String)
+               {
+                  continue;
+               }
+
+               string? parentCategoryName = parentCategoryElement.GetString();
+
+               if (!string.IsNullOrWhiteSpace(parentCategoryName))
+               {
+                  category.ParentCategoryNames.Add(parentCategoryName);
+               }
+            }
+         }
+
+         categories.Add(category);
+      }
+
+      return categories;
+   }
+
+   private static string ReadStringProperty(
+      JsonElement element,
+      string propertyName)
+   {
+      if (!element.TryGetProperty(propertyName, out JsonElement propertyElement)
+          || propertyElement.ValueKind != JsonValueKind.String)
+      {
+         return string.Empty;
+      }
+
+      return propertyElement.GetString() ?? string.Empty;
    }
 
    private static async Task<JsonDocument> LoadJsonDocumentAsync(

@@ -44,4 +44,9 @@ internal sealed class WhenItFailsReferenceCatalogSummary
    /// Gets the profile names.
    /// </summary>
    public List<string> ProfileNames { get; } = new();
+
+   /// <summary>
+   /// Gets the category summaries.
+   /// </summary>
+   public List<WhenItFailsReferenceCategorySummary> Categories { get; } = new();
 }
