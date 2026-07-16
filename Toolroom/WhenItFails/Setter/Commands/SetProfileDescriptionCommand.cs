@@ -13,7 +13,7 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 internal static class SetProfileDescriptionCommand
 {
     private const string Usage =
-        "set-profile-description <path> <profile-name> <description>";
+        "set-profile-description <path> <profile-name> <description> [--json]";
 
     /// <summary>
     /// Executes the set-profile-description command.
@@ -22,49 +22,16 @@ internal static class SetProfileDescriptionCommand
     /// <returns>Exit code: 0 on success, 1 on invalid command input, 2 on edit failure.</returns>
     public static async Task<int> ExecuteAsync(string[] args)
     {
-        if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
+        if (!TryParseArguments(
+                args,
+                out string inputPath,
+                out string profileName,
+                out string description,
+                out bool useJsonOutput))
         {
-            CommandInputError.Show(
-                code: "MissingSetProfileDescriptionPath",
-                message: "The set-profile-description command requires a project root or Jsons/WhenItFails directory path.",
-                path: Usage);
-
+            ShowInvalidArguments();
             return 1;
         }
-
-        if (args.Length < 3 || string.IsNullOrWhiteSpace(args[2]))
-        {
-            CommandInputError.Show(
-                code: "MissingSetProfileDescriptionProfileName",
-                message: "The set-profile-description command requires a profile name.",
-                path: Usage);
-
-            return 1;
-        }
-
-        if (args.Length < 4)
-        {
-            CommandInputError.Show(
-                code: "MissingSetProfileDescriptionValue",
-                message: "The set-profile-description command requires a description argument. Pass an empty quoted string to clear it.",
-                path: Usage);
-
-            return 1;
-        }
-
-        if (args.Length > 4)
-        {
-            CommandInputError.Show(
-                code: "InvalidSetProfileDescriptionArguments",
-                message: "The set-profile-description command accepts only a path, profile name, and description. Quote values containing spaces.",
-                path: Usage);
-
-            return 1;
-        }
-
-        string inputPath = args[1];
-        string profileName = args[2];
-        string description = args[3];
 
         WhenItFailsProfileWorkspaceEditor editor = new();
         Response<ErrorProfileDefinition> response =
@@ -75,33 +42,127 @@ internal static class SetProfileDescriptionCommand
 
         if (!response.IsSuccess || response.Data is null)
         {
-            ShowFailure(response, inputPath, profileName);
+            if (useJsonOutput)
+            {
+                ShowJsonFailure(response);
+            }
+            else
+            {
+                ShowFailure(response, inputPath, profileName);
+            }
+
             return 2;
         }
 
-        AnsiConsole.MarkupLine(
-            "[green]Updated profile:[/] {0}",
-            Markup.Escape(response.Data.Name));
-
-        if (string.IsNullOrWhiteSpace(response.Data.Description))
+        if (useJsonOutput)
         {
-            AnsiConsole.MarkupLine("[bold]Description:[/] [grey]<empty>[/]");
+            CommandJsonOutput.Write(
+                "set-profile-description",
+                new SetProfileDescriptionResult(
+                    Updated: true,
+                    Profile: response.Data,
+                    Description: response.Data.Description,
+                    FailureCode: null,
+                    FailureMessage: null));
         }
         else
         {
             AnsiConsole.MarkupLine(
-                "[bold]Description:[/] {0}",
-                Markup.Escape(response.Data.Description));
-        }
+                "[green]Updated profile:[/] {0}",
+                Markup.Escape(response.Data.Name));
 
-        if (!string.IsNullOrWhiteSpace(response.Message))
-        {
-            AnsiConsole.MarkupLine(
-                "[grey]{0}[/]",
-                Markup.Escape(response.Message));
+            if (string.IsNullOrWhiteSpace(response.Data.Description))
+            {
+                AnsiConsole.MarkupLine("[bold]Description:[/] [grey]<empty>[/]");
+            }
+            else
+            {
+                AnsiConsole.MarkupLine(
+                    "[bold]Description:[/] {0}",
+                    Markup.Escape(response.Data.Description));
+            }
+
+            if (!string.IsNullOrWhiteSpace(response.Message))
+            {
+                AnsiConsole.MarkupLine(
+                    "[grey]{0}[/]",
+                    Markup.Escape(response.Message));
+            }
         }
 
         return 0;
+    }
+
+    private static bool TryParseArguments(
+        string[] args,
+        out string inputPath,
+        out string profileName,
+        out string description,
+        out bool useJsonOutput)
+    {
+        inputPath = string.Empty;
+        profileName = string.Empty;
+        description = string.Empty;
+        useJsonOutput = false;
+
+        if (args.Length is < 4 or > 5
+            || string.IsNullOrWhiteSpace(args[1])
+            || string.IsNullOrWhiteSpace(args[2]))
+        {
+            return false;
+        }
+
+        inputPath = args[1];
+        profileName = args[2];
+        bool descriptionAssigned = false;
+
+        for (int index = 3; index < args.Length; index++)
+        {
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput)
+                {
+                    return false;
+                }
+
+                useJsonOutput = true;
+            }
+            else if (!descriptionAssigned)
+            {
+                description = args[index];
+                descriptionAssigned = true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        return descriptionAssigned;
+    }
+
+    private static void ShowInvalidArguments() => CommandInputError.Show(
+        code: "InvalidSetProfileDescriptionArguments",
+        message: "The set-profile-description command requires a path, profile name, description, and an optional --json switch. Pass an empty quoted string to clear the description.",
+        path: Usage);
+
+    private static void ShowJsonFailure(Response<ErrorProfileDefinition> response)
+    {
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "SetProfileDescriptionFailed";
+        string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+            ? "The profile description could not be changed."
+            : response.Message;
+
+        CommandJsonOutput.Write(
+            "set-profile-description",
+            new SetProfileDescriptionResult(
+                Updated: false,
+                Profile: null,
+                Description: null,
+                FailureCode: failureCode,
+                FailureMessage: failureMessage));
     }
 
     private static void ShowFailure(
@@ -129,4 +190,11 @@ internal static class SetProfileDescriptionCommand
                 SourcePath = inputPath
             });
     }
+
+    private sealed record SetProfileDescriptionResult(
+        bool Updated,
+        ErrorProfileDefinition? Profile,
+        string? Description,
+        string? FailureCode,
+        string? FailureMessage);
 }
