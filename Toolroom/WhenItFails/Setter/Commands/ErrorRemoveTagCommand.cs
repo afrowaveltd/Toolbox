@@ -13,50 +13,53 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 /// </summary>
 internal static class ErrorRemoveTagCommand
 {
-    private const string Usage = "error-remove-tag <path> <id|code|name> <tag>";
+    private const string Usage = "error-remove-tag <path> <id|code|name> <tag> [--json]";
 
     public static async Task<int> ExecuteAsync(string[] args)
     {
-        if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
+        if (args.Length < 4
+            || args.Length > 5
+            || string.IsNullOrWhiteSpace(args[1])
+            || string.IsNullOrWhiteSpace(args[2]))
         {
-            CommandInputError.Show(
-                "MissingErrorRemoveTagPath",
-                "The error-remove-tag command requires a project root or Jsons/WhenItFails directory path.",
-                Usage);
+            ShowInvalidArguments();
             return 1;
         }
 
-        if (args.Length < 3 || string.IsNullOrWhiteSpace(args[2]))
+        bool useJsonOutput = false;
+        string? tagName = null;
+
+        for (int index = 3; index < args.Length; index++)
         {
-            CommandInputError.Show(
-                "MissingErrorRemoveTagLookup",
-                "The error-remove-tag command requires an error id, code, or name.",
-                Usage);
-            return 1;
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput)
+                {
+                    ShowInvalidArguments();
+                    return 1;
+                }
+
+                useJsonOutput = true;
+                continue;
+            }
+
+            if (tagName is not null || string.IsNullOrWhiteSpace(args[index]))
+            {
+                ShowInvalidArguments();
+                return 1;
+            }
+
+            tagName = args[index];
         }
 
-        if (args.Length < 4 || string.IsNullOrWhiteSpace(args[3]))
+        if (string.IsNullOrWhiteSpace(tagName))
         {
-            CommandInputError.Show(
-                "MissingErrorRemoveTagName",
-                "The error-remove-tag command requires a tag.",
-                Usage);
-            return 1;
-        }
-
-        if (args.Length > 4)
-        {
-            CommandInputError.Show(
-                "InvalidErrorRemoveTagArguments",
-                "The error-remove-tag command accepts only a path, error lookup, and tag.",
-                Usage);
+            ShowInvalidArguments();
             return 1;
         }
 
         string inputPath = args[1];
         string lookupValue = args[2];
-        string tagName = args[3];
-
         Response<ErrorDefinition> response =
             await new WhenItFailsWorkspaceEditor().ErrorRemoveTagAsync(
                 inputPath,
@@ -65,25 +68,75 @@ internal static class ErrorRemoveTagCommand
 
         if (!response.IsSuccess || response.Data is null)
         {
-            ShowFailure(response, inputPath, lookupValue);
+            if (useJsonOutput)
+            {
+                ShowJsonFailure(response);
+            }
+            else
+            {
+                ShowFailure(response, inputPath, lookupValue);
+            }
+
             return 2;
         }
 
-        AnsiConsole.MarkupLine(
-            "[green]Updated error:[/] {0}",
-            Markup.Escape(response.Data.Id));
-        AnsiConsole.MarkupLine(
-            "[bold]Removed tag:[/] {0}",
-            Markup.Escape(TextKeyNormalizer.NormalizeKey(tagName)));
-
-        if (!string.IsNullOrWhiteSpace(response.Message))
+        string normalizedTag = TextKeyNormalizer.NormalizeKey(tagName);
+        if (useJsonOutput)
+        {
+            CommandJsonOutput.Write(
+                "error-remove-tag",
+                new ErrorRemoveTagResult(
+                    Updated: true,
+                    Error: response.Data,
+                    RemovedTag: normalizedTag,
+                    FailureCode: null,
+                    FailureMessage: null));
+        }
+        else
         {
             AnsiConsole.MarkupLine(
-                "[grey]{0}[/]",
-                Markup.Escape(response.Message));
+                "[green]Updated error:[/] {0}",
+                Markup.Escape(response.Data.Id));
+            AnsiConsole.MarkupLine(
+                "[bold]Removed tag:[/] {0}",
+                Markup.Escape(normalizedTag));
+
+            if (!string.IsNullOrWhiteSpace(response.Message))
+            {
+                AnsiConsole.MarkupLine(
+                    "[grey]{0}[/]",
+                    Markup.Escape(response.Message));
+            }
         }
 
         return 0;
+    }
+
+    private static void ShowInvalidArguments()
+    {
+        CommandInputError.Show(
+            "InvalidErrorRemoveTagArguments",
+            "The error-remove-tag command requires a path, error lookup, tag, and an optional --json switch.",
+            Usage);
+    }
+
+    private static void ShowJsonFailure(Response<ErrorDefinition> response)
+    {
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "ErrorRemoveTagFailed";
+        string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+            ? "The tag could not be removed from the error definition."
+            : response.Message;
+
+        CommandJsonOutput.Write(
+            "error-remove-tag",
+            new ErrorRemoveTagResult(
+                Updated: false,
+                Error: null,
+                RemovedTag: null,
+                FailureCode: failureCode,
+                FailureMessage: failureMessage));
     }
 
     private static void ShowFailure(
@@ -103,4 +156,11 @@ internal static class ErrorRemoveTagCommand
             result,
             new ConsoleShowOptions { SourcePath = inputPath });
     }
+
+    private sealed record ErrorRemoveTagResult(
+        bool Updated,
+        ErrorDefinition? Error,
+        string? RemovedTag,
+        string? FailureCode,
+        string? FailureMessage);
 }
