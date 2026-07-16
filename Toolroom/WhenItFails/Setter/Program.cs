@@ -28,6 +28,11 @@ try
         return await ValidateCommand.ExecuteAsync(args);
     }
 
+    if (command == "reference")
+    {
+        return await ReferenceCommand.ExecuteAsync();
+    }
+
     if (command is "summary" or "inspect")
     {
         return await SummaryCommand.ExecuteAsync(args);
