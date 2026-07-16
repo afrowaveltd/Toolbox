@@ -13,50 +13,53 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 internal static class SetCodeGroupCommand
 {
     private const string Usage =
-        "set-code-group <path> <id|code|name> <group-name|prefix>";
+        "set-code-group <path> <id|code|name> <group-name|prefix> [--json]";
 
     public static async Task<int> ExecuteAsync(string[] args)
     {
-        if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
+        if (args.Length < 4
+            || args.Length > 5
+            || string.IsNullOrWhiteSpace(args[1])
+            || string.IsNullOrWhiteSpace(args[2]))
         {
-            CommandInputError.Show(
-                "MissingSetCodeGroupPath",
-                "The set-code-group command requires a project root or Jsons/WhenItFails directory path.",
-                Usage);
+            ShowInvalidArguments();
             return 1;
         }
 
-        if (args.Length < 3 || string.IsNullOrWhiteSpace(args[2]))
+        bool useJsonOutput = false;
+        string? codeGroupName = null;
+
+        for (int index = 3; index < args.Length; index++)
         {
-            CommandInputError.Show(
-                "MissingSetCodeGroupLookup",
-                "The set-code-group command requires an error id, code, or name.",
-                Usage);
-            return 1;
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput)
+                {
+                    ShowInvalidArguments();
+                    return 1;
+                }
+
+                useJsonOutput = true;
+                continue;
+            }
+
+            if (codeGroupName is not null || string.IsNullOrWhiteSpace(args[index]))
+            {
+                ShowInvalidArguments();
+                return 1;
+            }
+
+            codeGroupName = args[index];
         }
 
-        if (args.Length < 4 || string.IsNullOrWhiteSpace(args[3]))
+        if (string.IsNullOrWhiteSpace(codeGroupName))
         {
-            CommandInputError.Show(
-                "MissingSetCodeGroupName",
-                "The set-code-group command requires a code group name or prefix.",
-                Usage);
-            return 1;
-        }
-
-        if (args.Length > 4)
-        {
-            CommandInputError.Show(
-                "InvalidSetCodeGroupArguments",
-                "The set-code-group command accepts only a path, error lookup, and code group name or prefix.",
-                Usage);
+            ShowInvalidArguments();
             return 1;
         }
 
         string inputPath = args[1];
         string lookupValue = args[2];
-        string codeGroupName = args[3];
-
         Response<ErrorDefinition> response =
             await new WhenItFailsWorkspaceEditor().SetCodeGroupAsync(
                 inputPath,
@@ -65,29 +68,76 @@ internal static class SetCodeGroupCommand
 
         if (!response.IsSuccess || response.Data is null)
         {
-            ShowFailure(response, inputPath, lookupValue);
+            if (useJsonOutput)
+            {
+                ShowJsonFailure(response);
+            }
+            else
+            {
+                ShowFailure(response, inputPath, lookupValue);
+            }
+
             return 2;
         }
 
-        AnsiConsole.MarkupLine(
-            "[green]Updated error:[/] {0}",
-            Markup.Escape(response.Data.Id));
-        AnsiConsole.MarkupLine(
-            "[bold]Code group:[/] {0} ({1})",
-            Markup.Escape(response.Data.CodeGroup),
-            Markup.Escape(response.Data.CodePrefix));
-        AnsiConsole.MarkupLine(
-            "[bold]Numeric code:[/] {0}",
-            response.Data.Code);
-
-        if (!string.IsNullOrWhiteSpace(response.Message))
+        if (useJsonOutput)
+        {
+            CommandJsonOutput.Write(
+                "set-code-group",
+                new SetCodeGroupResult(
+                    Updated: true,
+                    Error: response.Data,
+                    FailureCode: null,
+                    FailureMessage: null));
+        }
+        else
         {
             AnsiConsole.MarkupLine(
-                "[grey]{0}[/]",
-                Markup.Escape(response.Message));
+                "[green]Updated error:[/] {0}",
+                Markup.Escape(response.Data.Id));
+            AnsiConsole.MarkupLine(
+                "[bold]Code group:[/] {0} ({1})",
+                Markup.Escape(response.Data.CodeGroup),
+                Markup.Escape(response.Data.CodePrefix));
+            AnsiConsole.MarkupLine(
+                "[bold]Numeric code:[/] {0}",
+                response.Data.Code);
+
+            if (!string.IsNullOrWhiteSpace(response.Message))
+            {
+                AnsiConsole.MarkupLine(
+                    "[grey]{0}[/]",
+                    Markup.Escape(response.Message));
+            }
         }
 
         return 0;
+    }
+
+    private static void ShowInvalidArguments()
+    {
+        CommandInputError.Show(
+            "InvalidSetCodeGroupArguments",
+            "The set-code-group command requires a path, error lookup, code group name or prefix, and an optional --json switch.",
+            Usage);
+    }
+
+    private static void ShowJsonFailure(Response<ErrorDefinition> response)
+    {
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "SetCodeGroupFailed";
+        string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+            ? "The error code group could not be changed."
+            : response.Message;
+
+        CommandJsonOutput.Write(
+            "set-code-group",
+            new SetCodeGroupResult(
+                Updated: false,
+                Error: null,
+                FailureCode: failureCode,
+                FailureMessage: failureMessage));
     }
 
     private static void ShowFailure(
@@ -111,4 +161,10 @@ internal static class SetCodeGroupCommand
             result,
             new ConsoleShowOptions { SourcePath = inputPath });
     }
+
+    private sealed record SetCodeGroupResult(
+        bool Updated,
+        ErrorDefinition? Error,
+        string? FailureCode,
+        string? FailureMessage);
 }
