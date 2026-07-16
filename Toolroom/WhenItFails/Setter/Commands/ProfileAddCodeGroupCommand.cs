@@ -13,53 +13,53 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 internal static class ProfileAddCodeGroupCommand
 {
     private const string Usage =
-        "profile-add-code-group <path> <profile-name> <code-group-name|prefix>";
+        "profile-add-code-group <path> <profile-name> <code-group-name|prefix> [--json]";
 
     public static async Task<int> ExecuteAsync(string[] args)
     {
-        if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
+        if (args.Length < 4
+            || args.Length > 5
+            || string.IsNullOrWhiteSpace(args[1])
+            || string.IsNullOrWhiteSpace(args[2]))
         {
-            CommandInputError.Show(
-                code: "MissingProfileAddCodeGroupPath",
-                message: "The profile-add-code-group command requires a project root or Jsons/WhenItFails directory path.",
-                path: Usage);
-
+            ShowInvalidArguments();
             return 1;
         }
 
-        if (args.Length < 3 || string.IsNullOrWhiteSpace(args[2]))
-        {
-            CommandInputError.Show(
-                code: "MissingProfileAddCodeGroupProfileName",
-                message: "The profile-add-code-group command requires a profile name.",
-                path: Usage);
+        bool useJsonOutput = false;
+        string? codeGroupName = null;
 
-            return 1;
+        for (int index = 3; index < args.Length; index++)
+        {
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput)
+                {
+                    ShowInvalidArguments();
+                    return 1;
+                }
+
+                useJsonOutput = true;
+                continue;
+            }
+
+            if (codeGroupName is not null || string.IsNullOrWhiteSpace(args[index]))
+            {
+                ShowInvalidArguments();
+                return 1;
+            }
+
+            codeGroupName = args[index];
         }
 
-        if (args.Length < 4 || string.IsNullOrWhiteSpace(args[3]))
+        if (string.IsNullOrWhiteSpace(codeGroupName))
         {
-            CommandInputError.Show(
-                code: "MissingProfileAddCodeGroupName",
-                message: "The profile-add-code-group command requires a code group name or prefix.",
-                path: Usage);
-
-            return 1;
-        }
-
-        if (args.Length > 4)
-        {
-            CommandInputError.Show(
-                code: "InvalidProfileAddCodeGroupArguments",
-                message: "The profile-add-code-group command accepts only a path, profile name, and code group name or prefix.",
-                path: Usage);
-
+            ShowInvalidArguments();
             return 1;
         }
 
         string inputPath = args[1];
         string profileName = args[2];
-        string codeGroupName = args[3];
 
         WhenItFailsProfileWorkspaceEditor editor = new();
         Response<ErrorProfileDefinition> response =
@@ -70,7 +70,15 @@ internal static class ProfileAddCodeGroupCommand
 
         if (!response.IsSuccess || response.Data is null)
         {
-            ShowFailure(response, inputPath, profileName);
+            if (useJsonOutput)
+            {
+                ShowJsonFailure(response);
+            }
+            else
+            {
+                ShowFailure(response, inputPath, profileName);
+            }
+
             return 2;
         }
 
@@ -78,21 +86,62 @@ internal static class ProfileAddCodeGroupCommand
             string.Equals(codeGroup, codeGroupName, StringComparison.OrdinalIgnoreCase)
             || response.Message?.Contains($"'{codeGroup}'", StringComparison.Ordinal) == true);
 
-        AnsiConsole.MarkupLine(
-            "[green]Updated profile:[/] {0}",
-            Markup.Escape(response.Data.Name));
-        AnsiConsole.MarkupLine(
-            "[bold]Added code group:[/] {0}",
-            Markup.Escape(canonicalCodeGroupName));
-
-        if (!string.IsNullOrWhiteSpace(response.Message))
+        if (useJsonOutput)
+        {
+            CommandJsonOutput.Write(
+                "profile-add-code-group",
+                new ProfileAddCodeGroupResult(
+                    Updated: true,
+                    Profile: response.Data,
+                    AddedCodeGroup: canonicalCodeGroupName,
+                    FailureCode: null,
+                    FailureMessage: null));
+        }
+        else
         {
             AnsiConsole.MarkupLine(
-                "[grey]{0}[/]",
-                Markup.Escape(response.Message));
+                "[green]Updated profile:[/] {0}",
+                Markup.Escape(response.Data.Name));
+            AnsiConsole.MarkupLine(
+                "[bold]Added code group:[/] {0}",
+                Markup.Escape(canonicalCodeGroupName));
+
+            if (!string.IsNullOrWhiteSpace(response.Message))
+            {
+                AnsiConsole.MarkupLine(
+                    "[grey]{0}[/]",
+                    Markup.Escape(response.Message));
+            }
         }
 
         return 0;
+    }
+
+    private static void ShowInvalidArguments()
+    {
+        CommandInputError.Show(
+            code: "InvalidProfileAddCodeGroupArguments",
+            message: "The profile-add-code-group command requires a path, profile name, code group name or prefix, and an optional --json switch.",
+            path: Usage);
+    }
+
+    private static void ShowJsonFailure(Response<ErrorProfileDefinition> response)
+    {
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "ProfileAddCodeGroupFailed";
+        string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+            ? "The code group could not be added to the profile."
+            : response.Message;
+
+        CommandJsonOutput.Write(
+            "profile-add-code-group",
+            new ProfileAddCodeGroupResult(
+                Updated: false,
+                Profile: null,
+                AddedCodeGroup: null,
+                FailureCode: failureCode,
+                FailureMessage: failureMessage));
     }
 
     private static void ShowFailure(
@@ -120,4 +169,11 @@ internal static class ProfileAddCodeGroupCommand
                 SourcePath = inputPath
             });
     }
+
+    private sealed record ProfileAddCodeGroupResult(
+        bool Updated,
+        ErrorProfileDefinition? Profile,
+        string? AddedCodeGroup,
+        string? FailureCode,
+        string? FailureMessage);
 }
