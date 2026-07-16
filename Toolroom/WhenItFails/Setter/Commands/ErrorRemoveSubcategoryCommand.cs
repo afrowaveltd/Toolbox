@@ -10,68 +10,156 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 
 internal static class ErrorRemoveSubcategoryCommand
 {
-    private const string Usage = "error-remove-subcategory <path> <id|code|name> <subcategory>";
+    private const string Usage =
+        "error-remove-subcategory <path> <id|code|name> <subcategory> [--json]";
 
     public static async Task<int> ExecuteAsync(string[] args)
     {
-        if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
+        if (args.Length < 4
+            || args.Length > 5
+            || string.IsNullOrWhiteSpace(args[1])
+            || string.IsNullOrWhiteSpace(args[2]))
         {
-            CommandInputError.Show("MissingErrorRemoveSubcategoryPath", "The error-remove-subcategory command requires a project root or Jsons/WhenItFails directory path.", Usage);
+            ShowInvalidArguments();
             return 1;
         }
 
-        if (args.Length < 3 || string.IsNullOrWhiteSpace(args[2]))
+        bool useJsonOutput = false;
+        string? subcategoryName = null;
+
+        for (int index = 3; index < args.Length; index++)
         {
-            CommandInputError.Show("MissingErrorRemoveSubcategoryLookup", "The error-remove-subcategory command requires an error id, code, or name.", Usage);
-            return 1;
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput)
+                {
+                    ShowInvalidArguments();
+                    return 1;
+                }
+
+                useJsonOutput = true;
+                continue;
+            }
+
+            if (subcategoryName is not null || string.IsNullOrWhiteSpace(args[index]))
+            {
+                ShowInvalidArguments();
+                return 1;
+            }
+
+            subcategoryName = args[index];
         }
 
-        if (args.Length < 4 || string.IsNullOrWhiteSpace(args[3]))
+        if (string.IsNullOrWhiteSpace(subcategoryName))
         {
-            CommandInputError.Show("MissingErrorRemoveSubcategoryName", "The error-remove-subcategory command requires a subcategory.", Usage);
-            return 1;
-        }
-
-        if (args.Length > 4)
-        {
-            CommandInputError.Show("InvalidErrorRemoveSubcategoryArguments", "The error-remove-subcategory command accepts only a path, error lookup, and subcategory.", Usage);
+            ShowInvalidArguments();
             return 1;
         }
 
         string inputPath = args[1];
         string lookupValue = args[2];
-        string subcategoryName = args[3];
-
         Response<ErrorDefinition> response =
-            await new WhenItFailsWorkspaceEditor().ErrorRemoveSubcategoryAsync(inputPath, lookupValue, subcategoryName);
+            await new WhenItFailsWorkspaceEditor().ErrorRemoveSubcategoryAsync(
+                inputPath,
+                lookupValue,
+                subcategoryName);
 
         if (!response.IsSuccess || response.Data is null)
         {
-            ShowFailure(response, inputPath, lookupValue);
+            if (useJsonOutput)
+            {
+                ShowJsonFailure(response);
+            }
+            else
+            {
+                ShowFailure(response, inputPath, lookupValue);
+            }
+
             return 2;
         }
 
-        AnsiConsole.MarkupLine("[green]Updated error:[/] {0}", Markup.Escape(response.Data.Id));
-        AnsiConsole.MarkupLine(
-            "[bold]Removed subcategory:[/] {0}",
-            Markup.Escape(TextKeyNormalizer.NormalizeKey(subcategoryName)));
+        string removedSubcategory = TextKeyNormalizer.NormalizeKey(subcategoryName);
 
-        if (!string.IsNullOrWhiteSpace(response.Message))
+        if (useJsonOutput)
         {
-            AnsiConsole.MarkupLine("[grey]{0}[/]", Markup.Escape(response.Message));
+            CommandJsonOutput.Write(
+                "error-remove-subcategory",
+                new ErrorRemoveSubcategoryResult(
+                    Updated: true,
+                    Error: response.Data,
+                    RemovedSubcategory: removedSubcategory,
+                    FailureCode: null,
+                    FailureMessage: null));
+        }
+        else
+        {
+            AnsiConsole.MarkupLine(
+                "[green]Updated error:[/] {0}",
+                Markup.Escape(response.Data.Id));
+            AnsiConsole.MarkupLine(
+                "[bold]Removed subcategory:[/] {0}",
+                Markup.Escape(removedSubcategory));
+
+            if (!string.IsNullOrWhiteSpace(response.Message))
+            {
+                AnsiConsole.MarkupLine(
+                    "[grey]{0}[/]",
+                    Markup.Escape(response.Message));
+            }
         }
 
         return 0;
     }
 
-    private static void ShowFailure(Response<ErrorDefinition> response, string inputPath, string lookupValue)
+    private static void ShowInvalidArguments()
+    {
+        CommandInputError.Show(
+            "InvalidErrorRemoveSubcategoryArguments",
+            "The error-remove-subcategory command requires a path, error lookup, subcategory, and an optional --json switch.",
+            Usage);
+    }
+
+    private static void ShowJsonFailure(Response<ErrorDefinition> response)
+    {
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "ErrorRemoveSubcategoryFailed";
+        string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+            ? "The subcategory could not be removed from the error definition."
+            : response.Message;
+
+        CommandJsonOutput.Write(
+            "error-remove-subcategory",
+            new ErrorRemoveSubcategoryResult(
+                Updated: false,
+                Error: null,
+                RemovedSubcategory: null,
+                FailureCode: failureCode,
+                FailureMessage: failureMessage));
+    }
+
+    private static void ShowFailure(
+        Response<ErrorDefinition> response,
+        string inputPath,
+        string lookupValue)
     {
         ErrorCatalogValidationResult result = new();
         result.AddError(
             response.Issues.Count > 0 ? response.Issues[0].Code : "ErrorRemoveSubcategoryFailed",
-            string.IsNullOrWhiteSpace(response.Message) ? "The subcategory could not be removed from the error definition." : response.Message,
+            string.IsNullOrWhiteSpace(response.Message)
+                ? "The subcategory could not be removed from the error definition."
+                : response.Message,
             path: lookupValue);
 
-        new ConsoleValidationResultShow().Show(result, new ConsoleShowOptions { SourcePath = inputPath });
+        new ConsoleValidationResultShow().Show(
+            result,
+            new ConsoleShowOptions { SourcePath = inputPath });
     }
+
+    private sealed record ErrorRemoveSubcategoryResult(
+        bool Updated,
+        ErrorDefinition? Error,
+        string? RemovedSubcategory,
+        string? FailureCode,
+        string? FailureMessage);
 }
