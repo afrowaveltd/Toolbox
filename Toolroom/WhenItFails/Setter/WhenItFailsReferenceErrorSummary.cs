@@ -34,4 +34,29 @@ internal sealed class WhenItFailsReferenceErrorSummary
    /// Gets or sets the human-readable title.
    /// </summary>
    public string Title { get; set; } = string.Empty;
+
+   /// <summary>
+   /// Gets or sets the user-facing message.
+   /// </summary>
+   public string Message { get; set; } = string.Empty;
+
+   /// <summary>
+   /// Gets or sets the default severity.
+   /// </summary>
+   public string DefaultSeverity { get; set; } = string.Empty;
+
+   /// <summary>
+   /// Gets or sets the developer hint.
+   /// </summary>
+   public string DeveloperHint { get; set; } = string.Empty;
+
+   /// <summary>
+   /// Gets the category names.
+   /// </summary>
+   public List<string> CategoryNames { get; } = new();
+
+   /// <summary>
+   /// Gets the tag names.
+   /// </summary>
+   public List<string> TagNames { get; } = new();
 }

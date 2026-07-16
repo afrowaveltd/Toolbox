@@ -164,16 +164,23 @@ internal sealed class WhenItFailsReferenceCatalogSummarizer
             continue;
          }
 
-         errors.Add(
-            new WhenItFailsReferenceErrorSummary
-            {
-               Id = id,
-               Code = ReadInt32Property(errorElement, "code"),
-               Name = name,
-               CodeGroup = ReadStringProperty(errorElement, "codeGroup"),
-               PrimaryCategory = ReadStringProperty(errorElement, "primaryCategory"),
-               Title = ReadStringProperty(errorElement, "title")
-            });
+         WhenItFailsReferenceErrorSummary error = new()
+         {
+            Id = id,
+            Code = ReadInt32Property(errorElement, "code"),
+            Name = name,
+            CodeGroup = ReadStringProperty(errorElement, "codeGroup"),
+            PrimaryCategory = ReadStringProperty(errorElement, "primaryCategory"),
+            Title = ReadStringProperty(errorElement, "title"),
+            Message = ReadStringProperty(errorElement, "message"),
+            DefaultSeverity = ReadStringProperty(errorElement, "defaultSeverity"),
+            DeveloperHint = ReadStringProperty(errorElement, "developerHint")
+         };
+
+         error.CategoryNames.AddRange(ReadStringArrayProperty(errorElement, "categories"));
+         error.TagNames.AddRange(ReadStringArrayProperty(errorElement, "tags"));
+
+         errors.Add(error);
       }
 
       return errors;
@@ -277,6 +284,36 @@ internal sealed class WhenItFailsReferenceCatalogSummarizer
       }
 
       return categories;
+   }
+
+   private static IReadOnlyList<string> ReadStringArrayProperty(
+      JsonElement element,
+      string propertyName)
+   {
+      if (!element.TryGetProperty(propertyName, out JsonElement propertyElement)
+          || propertyElement.ValueKind != JsonValueKind.Array)
+      {
+         return Array.Empty<string>();
+      }
+
+      List<string> values = new();
+
+      foreach (JsonElement valueElement in propertyElement.EnumerateArray())
+      {
+         if (valueElement.ValueKind != JsonValueKind.String)
+         {
+            continue;
+         }
+
+         string? value = valueElement.GetString();
+
+         if (!string.IsNullOrWhiteSpace(value))
+         {
+            values.Add(value);
+         }
+      }
+
+      return values;
    }
 
    private static int ReadInt32Property(

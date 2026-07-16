@@ -12,6 +12,8 @@ public sealed class ReferenceCommandTests
     [InlineData("reference", "code-groups")]
     [InlineData("reference", "errors")]
     [InlineData("reference", "errors", "--all")]
+    [InlineData("reference", "error", "AFW-CFG-0001")]
+    [InlineData("reference", "error", "MissingConfigurationValue")]
     public async Task ExecuteAsync_WithSupportedReferenceCommand_ReturnsSuccess(
         params string[] args)
     {
@@ -43,6 +45,24 @@ public sealed class ReferenceCommandTests
     {
         int exitCode = await ReferenceCommand.ExecuteAsync(
             ["reference", "errors", "--unknown"]);
+
+        Assert.Equal(1, exitCode);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WithErrorSubcommandWithoutIdentifier_ReturnsCommandInputError()
+    {
+        int exitCode = await ReferenceCommand.ExecuteAsync(
+            ["reference", "error"]);
+
+        Assert.Equal(1, exitCode);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WithUnknownReferenceError_ReturnsCommandInputError()
+    {
+        int exitCode = await ReferenceCommand.ExecuteAsync(
+            ["reference", "error", "AFW-NOPE-0001"]);
 
         Assert.Equal(1, exitCode);
     }
@@ -97,6 +117,9 @@ public sealed class ReferenceCommandTests
                      && error.Code == 200001
                      && error.Name == "MissingConfigurationValue"
                      && error.CodeGroup == "CONFIGURATION"
-                     && error.PrimaryCategory == "CONFIGURATION");
+                     && error.PrimaryCategory == "CONFIGURATION"
+                     && error.DefaultSeverity == "Error"
+                     && error.CategoryNames.Contains("CONFIGURATION")
+                     && error.TagNames.Contains("CONFIGURATION"));
     }
 }

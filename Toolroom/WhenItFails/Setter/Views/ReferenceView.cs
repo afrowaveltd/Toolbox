@@ -188,4 +188,36 @@ internal static class ReferenceView
       }
    }
 
+
+   /// <summary>
+   /// Shows one reference catalog error in detail.
+   /// </summary>
+   /// <param name="error">Reference error summary.</param>
+   public static void ShowError(WhenItFailsReferenceErrorSummary error)
+   {
+      ArgumentNullException.ThrowIfNull(error);
+
+      Grid grid = new();
+
+      grid.AddColumn();
+      grid.AddColumn();
+
+      grid.AddRow("[grey]Id[/]", Markup.Escape(error.Id));
+      grid.AddRow("[grey]Code[/]", error.Code.ToString());
+      grid.AddRow("[grey]Name[/]", Markup.Escape(error.Name));
+      grid.AddRow("[grey]Group[/]", Markup.Escape(error.CodeGroup));
+      grid.AddRow("[grey]Primary category[/]", Markup.Escape(error.PrimaryCategory));
+      grid.AddRow("[grey]Categories[/]", Markup.Escape(string.Join(", ", error.CategoryNames)));
+      grid.AddRow("[grey]Severity[/]", Markup.Escape(error.DefaultSeverity));
+      grid.AddRow("[grey]Title[/]", Markup.Escape(error.Title));
+      grid.AddRow("[grey]Message[/]", Markup.Escape(error.Message));
+      grid.AddRow("[grey]Developer hint[/]", Markup.Escape(error.DeveloperHint));
+      grid.AddRow("[grey]Tags[/]", Markup.Escape(string.Join(", ", error.TagNames)));
+
+      AnsiConsole.Write(
+         new Panel(grid)
+            .Header("[green]WhenItFails reference error[/]")
+            .Border(BoxBorder.Rounded));
+   }
+
 }

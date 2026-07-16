@@ -21,16 +21,9 @@ internal static class ReferenceCommand
          ? "summary"
          : args[1].Trim().ToLowerInvariant();
 
-      if (args.Length > 3)
-      {
-         ShowInvalidUsage();
-
-         return 1;
-      }
-
-      if (args.Length == 3
-          && (subcommand != "errors"
-              || !string.Equals(args[2], "--all", StringComparison.OrdinalIgnoreCase)))
+      if (!IsValidArgumentShape(
+             args,
+             subcommand))
       {
          ShowInvalidUsage();
 
@@ -82,9 +75,71 @@ internal static class ReferenceCommand
          return 0;
       }
 
+      if (subcommand == "error")
+      {
+         return ShowError(
+            summary,
+            args[2]);
+      }
+
       ShowUnknownSubcommand(args[1]);
 
       return 1;
+   }
+
+   private static bool IsValidArgumentShape(
+      string[] args,
+      string subcommand)
+   {
+      if (args.Length > 3)
+      {
+         return false;
+      }
+
+      if (args.Length < 3)
+      {
+         return subcommand != "error";
+      }
+
+      if (subcommand == "errors")
+      {
+         return string.Equals(
+            args[2],
+            "--all",
+            StringComparison.OrdinalIgnoreCase);
+      }
+
+      return subcommand == "error"
+             && !string.IsNullOrWhiteSpace(args[2]);
+   }
+
+   private static int ShowError(
+      WhenItFailsReferenceCatalogSummary summary,
+      string idOrName)
+   {
+      WhenItFailsReferenceErrorSummary? error =
+         summary.Errors.FirstOrDefault(candidate =>
+            string.Equals(
+               candidate.Id,
+               idOrName,
+               StringComparison.OrdinalIgnoreCase)
+            || string.Equals(
+               candidate.Name,
+               idOrName,
+               StringComparison.OrdinalIgnoreCase));
+
+      if (error is null)
+      {
+         AnsiConsole.MarkupLine(
+            "[red]Reference error was not found:[/] {0}",
+            Markup.Escape(idOrName));
+
+         return 1;
+      }
+
+      ReferenceView.ShowError(error);
+
+      return 0;
    }
 
    private static void ShowInvalidUsage()
@@ -98,6 +153,7 @@ internal static class ReferenceCommand
       AnsiConsole.MarkupLine("  [grey]reference code-groups[/]");
       AnsiConsole.MarkupLine("  [grey]reference errors[/]");
       AnsiConsole.MarkupLine("  [grey]reference errors --all[/]");
+      AnsiConsole.MarkupLine("  [grey]reference error <id-or-name>[/]");
    }
 
    private static void ShowUnknownSubcommand(string subcommand)
