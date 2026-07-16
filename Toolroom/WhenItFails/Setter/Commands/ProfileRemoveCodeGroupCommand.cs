@@ -119,10 +119,10 @@ internal static class ProfileRemoveCodeGroupCommand
     {
         if (!string.IsNullOrWhiteSpace(message))
         {
-            int firstQuote = message.IndexOf(''');
+            int firstQuote = message.IndexOf('\'');
             if (firstQuote >= 0)
             {
-                int secondQuote = message.IndexOf(''', firstQuote + 1);
+                int secondQuote = message.IndexOf('\'', firstQuote + 1);
                 if (secondQuote > firstQuote + 1)
                 {
                     return message[(firstQuote + 1)..secondQuote];
