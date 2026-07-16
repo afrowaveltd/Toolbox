@@ -54,4 +54,9 @@ internal sealed class WhenItFailsReferenceCatalogSummary
    /// Gets the code group summaries.
    /// </summary>
    public List<WhenItFailsReferenceCodeGroupSummary> CodeGroups { get; } = new();
+
+   /// <summary>
+   /// Gets the error summaries.
+   /// </summary>
+   public List<WhenItFailsReferenceErrorSummary> Errors { get; } = new();
 }

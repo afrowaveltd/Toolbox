@@ -21,7 +21,16 @@ internal static class ReferenceCommand
          ? "summary"
          : args[1].Trim().ToLowerInvariant();
 
-      if (args.Length > 2)
+      if (args.Length > 3)
+      {
+         ShowInvalidUsage();
+
+         return 1;
+      }
+
+      if (args.Length == 3
+          && (subcommand != "errors"
+              || !string.Equals(args[2], "--all", StringComparison.OrdinalIgnoreCase)))
       {
          ShowInvalidUsage();
 
@@ -61,6 +70,18 @@ internal static class ReferenceCommand
          return 0;
       }
 
+      if (subcommand == "errors")
+      {
+         bool showAll = args.Length == 3
+                        && string.Equals(args[2], "--all", StringComparison.OrdinalIgnoreCase);
+
+         ReferenceView.ShowErrors(
+            summary,
+            showAll);
+
+         return 0;
+      }
+
       ShowUnknownSubcommand(args[1]);
 
       return 1;
@@ -75,6 +96,8 @@ internal static class ReferenceCommand
       AnsiConsole.MarkupLine("  [grey]reference profiles[/]");
       AnsiConsole.MarkupLine("  [grey]reference categories[/]");
       AnsiConsole.MarkupLine("  [grey]reference code-groups[/]");
+      AnsiConsole.MarkupLine("  [grey]reference errors[/]");
+      AnsiConsole.MarkupLine("  [grey]reference errors --all[/]");
    }
 
    private static void ShowUnknownSubcommand(string subcommand)

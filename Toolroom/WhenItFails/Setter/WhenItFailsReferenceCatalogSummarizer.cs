@@ -36,10 +36,13 @@ internal sealed class WhenItFailsReferenceCatalogSummarizer
          await ReadCategoriesAsync(referenceCatalogDirectoryPath);
       IReadOnlyList<WhenItFailsReferenceCodeGroupSummary> codeGroups =
          await ReadCodeGroupsAsync(referenceCatalogDirectoryPath);
+      IReadOnlyList<WhenItFailsReferenceErrorSummary> errors =
+         await ReadErrorsAsync(referenceCatalogDirectoryPath);
 
       summary.ProfileNames.AddRange(profileNames);
       summary.Categories.AddRange(categories);
       summary.CodeGroups.AddRange(codeGroups);
+      summary.Errors.AddRange(errors);
 
       return summary;
    }
@@ -133,6 +136,47 @@ internal sealed class WhenItFailsReferenceCatalogSummarizer
       }
 
       return profileNames;
+   }
+
+   private static async Task<IReadOnlyList<WhenItFailsReferenceErrorSummary>> ReadErrorsAsync(
+      string directoryPath)
+   {
+      using JsonDocument document = await LoadJsonDocumentAsync(directoryPath, "errors.en.json");
+
+      JsonElement rootElement = document.RootElement;
+
+      if (!rootElement.TryGetProperty("errors", out JsonElement errorsElement)
+          || errorsElement.ValueKind != JsonValueKind.Array)
+      {
+         return Array.Empty<WhenItFailsReferenceErrorSummary>();
+      }
+
+      List<WhenItFailsReferenceErrorSummary> errors = new();
+
+      foreach (JsonElement errorElement in errorsElement.EnumerateArray())
+      {
+         string id = ReadStringProperty(errorElement, "id");
+         string name = ReadStringProperty(errorElement, "name");
+
+         if (string.IsNullOrWhiteSpace(id)
+             || string.IsNullOrWhiteSpace(name))
+         {
+            continue;
+         }
+
+         errors.Add(
+            new WhenItFailsReferenceErrorSummary
+            {
+               Id = id,
+               Code = ReadInt32Property(errorElement, "code"),
+               Name = name,
+               CodeGroup = ReadStringProperty(errorElement, "codeGroup"),
+               PrimaryCategory = ReadStringProperty(errorElement, "primaryCategory"),
+               Title = ReadStringProperty(errorElement, "title")
+            });
+      }
+
+      return errors;
    }
 
    private static async Task<IReadOnlyList<WhenItFailsReferenceCodeGroupSummary>> ReadCodeGroupsAsync(

@@ -10,6 +10,8 @@ public sealed class ReferenceCommandTests
     [InlineData("reference", "profiles")]
     [InlineData("reference", "categories")]
     [InlineData("reference", "code-groups")]
+    [InlineData("reference", "errors")]
+    [InlineData("reference", "errors", "--all")]
     public async Task ExecuteAsync_WithSupportedReferenceCommand_ReturnsSuccess(
         params string[] args)
     {
@@ -32,6 +34,15 @@ public sealed class ReferenceCommandTests
     {
         int exitCode = await ReferenceCommand.ExecuteAsync(
             ["reference", "summary", "extra"]);
+
+        Assert.Equal(1, exitCode);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WithUnsupportedErrorsArgument_ReturnsCommandInputError()
+    {
+        int exitCode = await ReferenceCommand.ExecuteAsync(
+            ["reference", "errors", "--unknown"]);
 
         Assert.Equal(1, exitCode);
     }
@@ -75,5 +86,17 @@ public sealed class ReferenceCommandTests
                          && codeGroup.CodePrefix == "CFG"
                          && codeGroup.CodeFrom == 200000
                          && codeGroup.CodeTo == 299999);
+
+        Assert.Equal(37, summary.Errors.Count);
+        Assert.Contains(summary.Errors, error => error.Id == "AFW-GEN-0001");
+        Assert.Contains(summary.Errors, error => error.Id == "AFW-CFG-0001");
+        Assert.Contains(summary.Errors, error => error.Id == "AFW-FMT-0003");
+        Assert.Contains(
+            summary.Errors,
+            error => error.Id == "AFW-CFG-0001"
+                     && error.Code == 200001
+                     && error.Name == "MissingConfigurationValue"
+                     && error.CodeGroup == "CONFIGURATION"
+                     && error.PrimaryCategory == "CONFIGURATION");
     }
 }

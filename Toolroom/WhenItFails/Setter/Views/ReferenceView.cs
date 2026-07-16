@@ -139,4 +139,53 @@ internal static class ReferenceView
       AnsiConsole.Write(table);
    }
 
+
+   /// <summary>
+   /// Shows reference catalog errors.
+   /// </summary>
+   /// <param name="summary">Reference catalog summary.</param>
+   /// <param name="showAll">True to show all errors; false to show the default limited list.</param>
+   public static void ShowErrors(
+      WhenItFailsReferenceCatalogSummary summary,
+      bool showAll)
+   {
+      ArgumentNullException.ThrowIfNull(summary);
+
+      const int DefaultLimit = 20;
+
+      IReadOnlyList<WhenItFailsReferenceErrorSummary> errors = showAll
+         ? summary.Errors
+         : summary.Errors.Take(DefaultLimit).ToList();
+
+      Table table = new();
+
+      table.Border(TableBorder.Rounded);
+      table.AddColumn("Id");
+      table.AddColumn("Code");
+      table.AddColumn("Group");
+      table.AddColumn("Name");
+
+      AnsiConsole.MarkupLine("[green]WhenItFails reference errors[/]");
+
+      foreach (WhenItFailsReferenceErrorSummary error in errors)
+      {
+         table.AddRow(
+            Markup.Escape(error.Id),
+            error.Code.ToString(),
+            Markup.Escape(error.CodeGroup),
+            Markup.Escape(error.Name));
+      }
+
+      AnsiConsole.Write(table);
+
+      if (!showAll && summary.Errors.Count > DefaultLimit)
+      {
+         int hiddenCount = summary.Errors.Count - DefaultLimit;
+
+         AnsiConsole.MarkupLine(
+            "[grey]{0} more error(s) hidden. Use [white]reference errors --all[/] to show all.[/]",
+            hiddenCount);
+      }
+   }
+
 }
