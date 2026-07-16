@@ -1,0 +1,170 @@
+﻿{
+    "schemaVersion":  "1.0",
+    "catalogId":  "afw.when-it-fails.reference.code-groups",
+    "catalogName":  "Afrowave WhenItFails reference code groups",
+    "description":  "Reference code groups for reusable WhenItFails error definitions.",
+    "language":  "en",
+    "sourceCatalogId":  "afw.when-it-fails.reference.code-groups",
+    "sourceCatalogVersion":  "1.0",
+    "isShadowCopy":  false,
+    "tags":  [
+                 "reference",
+                 "core",
+                 "code-groups"
+             ],
+    "codeGroups":  [
+                       {
+                           "name":  "GENERAL",
+                           "displayName":  "General",
+                           "codePrefix":  "GEN",
+                           "codeFrom":  100000,
+                           "codeTo":  199999,
+                           "description":  "General and fallback errors.",
+                           "defaultCategories":  [
+                                                     "GENERAL"
+                                                 ],
+                           "defaultTags":  [
+                                               "GENERAL"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "CONFIGURATION",
+                           "displayName":  "Configuration",
+                           "codePrefix":  "CFG",
+                           "codeFrom":  200000,
+                           "codeTo":  299999,
+                           "description":  "Configuration-related errors.",
+                           "defaultCategories":  [
+                                                     "CONFIGURATION"
+                                                 ],
+                           "defaultTags":  [
+                                               "CONFIGURATION"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "VALIDATION",
+                           "displayName":  "Validation",
+                           "codePrefix":  "VAL",
+                           "codeFrom":  300000,
+                           "codeTo":  399999,
+                           "description":  "Validation and input errors.",
+                           "defaultCategories":  [
+                                                     "VALIDATION"
+                                                 ],
+                           "defaultTags":  [
+                                               "VALIDATION"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "FILE_SYSTEM",
+                           "displayName":  "File system",
+                           "codePrefix":  "IO",
+                           "codeFrom":  400000,
+                           "codeTo":  499999,
+                           "description":  "File system and local JSON workspace errors.",
+                           "defaultCategories":  [
+                                                     "FILESYSTEM"
+                                                 ],
+                           "defaultTags":  [
+                                               "FILESYSTEM"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "SECURITY",
+                           "displayName":  "Security",
+                           "codePrefix":  "SEC",
+                           "codeFrom":  500000,
+                           "codeTo":  599999,
+                           "description":  "Security, authentication, and authorization errors.",
+                           "defaultCategories":  [
+                                                     "SECURITY"
+                                                 ],
+                           "defaultTags":  [
+                                               "SECURITY"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "NETWORK",
+                           "displayName":  "Network",
+                           "codePrefix":  "NET",
+                           "codeFrom":  600000,
+                           "codeTo":  699999,
+                           "description":  "Network and HTTP communication errors.",
+                           "defaultCategories":  [
+                                                     "NETWORK"
+                                                 ],
+                           "defaultTags":  [
+                                               "NETWORK"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "DATABASE",
+                           "displayName":  "Database",
+                           "codePrefix":  "DB",
+                           "codeFrom":  700000,
+                           "codeTo":  799999,
+                           "description":  "Database, persistence, entity, and concurrency errors.",
+                           "defaultCategories":  [
+                                                     "DATA"
+                                                 ],
+                           "defaultTags":  [
+                                               "DATA"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "EXTERNAL_SERVICE",
+                           "displayName":  "External service",
+                           "codePrefix":  "EXT",
+                           "codeFrom":  800000,
+                           "codeTo":  899999,
+                           "description":  "External service and integration errors.",
+                           "defaultCategories":  [
+                                                     "EXTERNAL_SERVICE"
+                                                 ],
+                           "defaultTags":  [
+                                               "EXTERNAL_SERVICE"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "SERIALIZATION",
+                           "displayName":  "Serialization",
+                           "codePrefix":  "FMT",
+                           "codeFrom":  900000,
+                           "codeTo":  999999,
+                           "description":  "Serialization, deserialization, format, and JSON document errors.",
+                           "defaultCategories":  [
+                                                     "SERIALIZATION"
+                                                 ],
+                           "defaultTags":  [
+                                               "SERIALIZATION"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       }
+                   ]
+}

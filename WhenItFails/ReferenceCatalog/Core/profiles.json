@@ -1,0 +1,234 @@
+﻿{
+    "schemaVersion":  "1.0",
+    "catalogId":  "afw.when-it-fails.reference.profiles",
+    "catalogName":  "Afrowave WhenItFails reference profiles",
+    "description":  "Reference profiles for extracting practical subsets of the Afrowave WhenItFails reference catalog.",
+    "language":  "en",
+    "sourceCatalogId":  "afw.when-it-fails.reference.profiles",
+    "sourceCatalogVersion":  "1.0",
+    "isShadowCopy":  false,
+    "tags":  [
+                 "reference",
+                 "core",
+                 "profiles"
+             ],
+    "profiles":  [
+                     {
+                         "name":  "MINIMAL",
+                         "displayName":  "Minimal",
+                         "description":  "Smallest practical set for simple libraries and tools.",
+                         "includeOwners":  [
+                                               "AFW"
+                                           ],
+                         "includeCodeGroups":  [
+                                                   "GENERAL",
+                                                   "CONFIGURATION",
+                                                   "VALIDATION"
+                                               ],
+                         "includeCategories":  [
+                                                   "GENERAL",
+                                                   "CONFIGURATION",
+                                                   "VALIDATION"
+                                               ],
+                         "includeSubcategories":  [
+
+                                                  ],
+                         "includeTags":  [
+
+                                         ],
+                         "excludeTags":  [
+                                             "ADVANCED"
+                                         ],
+                         "defaultMappings":  {
+
+                                             },
+                         "metadata":  {
+
+                                      }
+                     },
+                     {
+                         "name":  "CONSOLE_TOOL",
+                         "displayName":  "Console tool",
+                         "description":  "Useful set for command-line tools and developer utilities.",
+                         "includeOwners":  [
+                                               "AFW"
+                                           ],
+                         "includeCodeGroups":  [
+                                                   "GENERAL",
+                                                   "CONFIGURATION",
+                                                   "VALIDATION",
+                                                   "FILE_SYSTEM",
+                                                   "NETWORK",
+                                                   "SERIALIZATION"
+                                               ],
+                         "includeCategories":  [
+                                                   "GENERAL",
+                                                   "CONFIGURATION",
+                                                   "VALIDATION",
+                                                   "FILESYSTEM",
+                                                   "NETWORK",
+                                                   "SERIALIZATION",
+                                                   "TIMEOUT",
+                                                   "LOCALIZATION"
+                                               ],
+                         "includeSubcategories":  [
+
+                                                  ],
+                         "includeTags":  [
+                                             "CLI"
+                                         ],
+                         "excludeTags":  [
+
+                                         ],
+                         "defaultMappings":  {
+
+                                             },
+                         "metadata":  {
+
+                                      }
+                     },
+                     {
+                         "name":  "WEB_API",
+                         "displayName":  "Web API",
+                         "description":  "Useful set for HTTP APIs and web backends.",
+                         "includeOwners":  [
+                                               "AFW"
+                                           ],
+                         "includeCodeGroups":  [
+                                                   "GENERAL",
+                                                   "CONFIGURATION",
+                                                   "VALIDATION",
+                                                   "NETWORK",
+                                                   "SECURITY",
+                                                   "SERIALIZATION",
+                                                   "DATABASE",
+                                                   "EXTERNAL_SERVICE"
+                                               ],
+                         "includeCategories":  [
+                                                   "GENERAL",
+                                                   "CONFIGURATION",
+                                                   "VALIDATION",
+                                                   "NETWORK",
+                                                   "HTTP",
+                                                   "SECURITY",
+                                                   "AUTHENTICATION",
+                                                   "AUTHORIZATION",
+                                                   "SERIALIZATION",
+                                                   "DATA",
+                                                   "CONCURRENCY",
+                                                   "TIMEOUT",
+                                                   "EXTERNAL_SERVICE"
+                                               ],
+                         "includeSubcategories":  [
+
+                                                  ],
+                         "includeTags":  [
+                                             "WEB",
+                                             "API"
+                                         ],
+                         "excludeTags":  [
+
+                                         ],
+                         "defaultMappings":  {
+
+                                             },
+                         "metadata":  {
+
+                                      }
+                     },
+                     {
+                         "name":  "DESKTOP_APP",
+                         "displayName":  "Desktop app",
+                         "description":  "Useful set for desktop applications with local configuration, files, and user-facing validation.",
+                         "includeOwners":  [
+                                               "AFW"
+                                           ],
+                         "includeCodeGroups":  [
+                                                   "GENERAL",
+                                                   "CONFIGURATION",
+                                                   "VALIDATION",
+                                                   "FILE_SYSTEM",
+                                                   "NETWORK",
+                                                   "SERIALIZATION",
+                                                   "DATABASE"
+                                               ],
+                         "includeCategories":  [
+                                                   "GENERAL",
+                                                   "CONFIGURATION",
+                                                   "VALIDATION",
+                                                   "FILESYSTEM",
+                                                   "NETWORK",
+                                                   "SERIALIZATION",
+                                                   "DATA",
+                                                   "TIMEOUT",
+                                                   "LOCALIZATION"
+                                               ],
+                         "includeSubcategories":  [
+
+                                                  ],
+                         "includeTags":  [
+                                             "DESKTOP"
+                                         ],
+                         "excludeTags":  [
+
+                                         ],
+                         "defaultMappings":  {
+
+                                             },
+                         "metadata":  {
+
+                                      }
+                     },
+                     {
+                         "name":  "FULL",
+                         "displayName":  "Full reference",
+                         "description":  "Full reference catalog seed.",
+                         "includeOwners":  [
+                                               "AFW"
+                                           ],
+                         "includeCodeGroups":  [
+                                                   "GENERAL",
+                                                   "CONFIGURATION",
+                                                   "VALIDATION",
+                                                   "FILE_SYSTEM",
+                                                   "SECURITY",
+                                                   "NETWORK",
+                                                   "DATABASE",
+                                                   "EXTERNAL_SERVICE",
+                                                   "SERIALIZATION"
+                                               ],
+                         "includeCategories":  [
+                                                   "GENERAL",
+                                                   "CONFIGURATION",
+                                                   "VALIDATION",
+                                                   "FILESYSTEM",
+                                                   "NETWORK",
+                                                   "HTTP",
+                                                   "SECURITY",
+                                                   "AUTHENTICATION",
+                                                   "AUTHORIZATION",
+                                                   "SERIALIZATION",
+                                                   "DATA",
+                                                   "CONCURRENCY",
+                                                   "TIMEOUT",
+                                                   "EXTERNAL_SERVICE",
+                                                   "LOCALIZATION"
+                                               ],
+                         "includeSubcategories":  [
+
+                                                  ],
+                         "includeTags":  [
+
+                                         ],
+                         "excludeTags":  [
+
+                                         ],
+                         "defaultMappings":  {
+
+                                             },
+                         "metadata":  {
+
+                                      }
+                     }
+                 ]
+}

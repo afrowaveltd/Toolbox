@@ -1,0 +1,31 @@
+﻿{
+    "schemaVersion":  "1.0",
+    "catalogId":  "afw.when-it-fails.reference.owners",
+    "catalogName":  "Afrowave WhenItFails reference owners",
+    "description":  "Reference owners for reusable WhenItFails error definitions.",
+    "language":  "en",
+    "sourceCatalogId":  "afw.when-it-fails.reference.owners",
+    "sourceCatalogVersion":  "1.0",
+    "isShadowCopy":  false,
+    "tags":  [
+                 "reference",
+                 "core",
+                 "owners"
+             ],
+    "owners":  [
+                   {
+                       "name":  "AFW",
+                       "displayName":  "Afrowave",
+                       "description":  "Afrowave reference error definitions.",
+                       "codeFrom":  0,
+                       "codeTo":  999999,
+                       "isBuiltIn":  true,
+                       "aliases":  [
+                                       "AFROWAVE"
+                                   ],
+                       "defaultMappings":  {
+                                               "catalogRole":  "reference"
+                                           }
+                   }
+               ]
+}

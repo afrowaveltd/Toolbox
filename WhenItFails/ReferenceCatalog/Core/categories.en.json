@@ -1,0 +1,301 @@
+﻿{
+    "schemaVersion":  "1.0",
+    "catalogId":  "afw.when-it-fails.reference.categories",
+    "catalogName":  "Afrowave WhenItFails reference categories",
+    "description":  "Reference category catalog for reusable WhenItFails error definitions.",
+    "language":  "en",
+    "sourceCatalogId":  "afw.when-it-fails.reference.categories",
+    "sourceCatalogVersion":  "1.0",
+    "isShadowCopy":  false,
+    "tags":  [
+                 "reference",
+                 "core",
+                 "categories"
+             ],
+    "categories":  [
+                       {
+                           "name":  "GENERAL",
+                           "displayName":  "General",
+                           "description":  "General, fallback, or uncategorized application errors.",
+                           "aliases":  [
+                                           "COMMON"
+                                       ],
+                           "parentCategories":  [
+
+                                                ],
+                           "defaultTags":  [
+                                               "GENERAL"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "CONFIGURATION",
+                           "displayName":  "Configuration",
+                           "description":  "Errors related to configuration files, options, environment variables, and startup settings.",
+                           "aliases":  [
+                                           "CONFIG",
+                                           "SETTINGS"
+                                       ],
+                           "parentCategories":  [
+
+                                                ],
+                           "defaultTags":  [
+                                               "CONFIGURATION"
+                                           ],
+                           "defaultMappings":  {
+                                                   "defaultSeverity":  "Error"
+                                               }
+                       },
+                       {
+                           "name":  "VALIDATION",
+                           "displayName":  "Validation",
+                           "description":  "Errors related to invalid user input, invalid request data, or invalid domain values.",
+                           "aliases":  [
+                                           "INPUT"
+                                       ],
+                           "parentCategories":  [
+
+                                                ],
+                           "defaultTags":  [
+                                               "VALIDATION",
+                                               "USER_VISIBLE"
+                                           ],
+                           "defaultMappings":  {
+                                                   "defaultSeverity":  "Warning",
+                                                   "web.httpStatusCode":  "400"
+                                               }
+                       },
+                       {
+                           "name":  "FILESYSTEM",
+                           "displayName":  "File system",
+                           "description":  "Errors related to files, directories, permissions, paths, and storage access.",
+                           "aliases":  [
+                                           "FILE_SYSTEM",
+                                           "FILES"
+                                       ],
+                           "parentCategories":  [
+
+                                                ],
+                           "defaultTags":  [
+                                               "FILESYSTEM"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "NETWORK",
+                           "displayName":  "Network",
+                           "description":  "Errors related to network availability, DNS, connection failures, and remote endpoints.",
+                           "aliases":  [
+                                           "NET"
+                                       ],
+                           "parentCategories":  [
+
+                                                ],
+                           "defaultTags":  [
+                                               "NETWORK"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "HTTP",
+                           "displayName":  "HTTP",
+                           "description":  "Errors related to HTTP requests, responses, status codes, APIs, and web communication.",
+                           "aliases":  [
+                                           "WEB",
+                                           "API"
+                                       ],
+                           "parentCategories":  [
+                                                    "NETWORK"
+                                                ],
+                           "defaultTags":  [
+                                               "HTTP",
+                                               "API"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "SECURITY",
+                           "displayName":  "Security",
+                           "description":  "Errors related to security policy, credentials, secrets, access protection, and sensitive operations.",
+                           "aliases":  [
+                                           "SEC"
+                                       ],
+                           "parentCategories":  [
+
+                                                ],
+                           "defaultTags":  [
+                                               "SECURITY"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "AUTHENTICATION",
+                           "displayName":  "Authentication",
+                           "description":  "Errors related to identity verification, login, tokens, sessions, and credentials.",
+                           "aliases":  [
+                                           "AUTHN"
+                                       ],
+                           "parentCategories":  [
+                                                    "SECURITY"
+                                                ],
+                           "defaultTags":  [
+                                               "AUTHENTICATION",
+                                               "SECURITY"
+                                           ],
+                           "defaultMappings":  {
+                                                   "web.httpStatusCode":  "401"
+                                               }
+                       },
+                       {
+                           "name":  "AUTHORIZATION",
+                           "displayName":  "Authorization",
+                           "description":  "Errors related to permissions, roles, claims, policies, and forbidden operations.",
+                           "aliases":  [
+                                           "AUTHZ"
+                                       ],
+                           "parentCategories":  [
+                                                    "SECURITY"
+                                                ],
+                           "defaultTags":  [
+                                               "AUTHORIZATION",
+                                               "SECURITY"
+                                           ],
+                           "defaultMappings":  {
+                                                   "web.httpStatusCode":  "403"
+                                               }
+                       },
+                       {
+                           "name":  "SERIALIZATION",
+                           "displayName":  "Serialization",
+                           "description":  "Errors related to JSON, XML, binary serialization, parsing, encoding, and data conversion.",
+                           "aliases":  [
+                                           "PARSING",
+                                           "ENCODING"
+                                       ],
+                           "parentCategories":  [
+
+                                                ],
+                           "defaultTags":  [
+                                               "SERIALIZATION"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "DATA",
+                           "displayName":  "Data",
+                           "description":  "Errors related to persistence, database operations, data integrity, records, and storage models.",
+                           "aliases":  [
+                                           "DATABASE",
+                                           "PERSISTENCE"
+                                       ],
+                           "parentCategories":  [
+
+                                                ],
+                           "defaultTags":  [
+                                               "DATA"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "CONCURRENCY",
+                           "displayName":  "Concurrency",
+                           "description":  "Errors related to locking, race conditions, conflicts, parallel execution, and concurrent state changes.",
+                           "aliases":  [
+                                           "PARALLELISM"
+                                       ],
+                           "parentCategories":  [
+
+                                                ],
+                           "defaultTags":  [
+                                               "CONCURRENCY"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "TIMEOUT",
+                           "displayName":  "Timeout",
+                           "description":  "Errors related to timeouts, cancellation, retry limits, and operations taking too long.",
+                           "aliases":  [
+                                           "CANCELLATION"
+                                       ],
+                           "parentCategories":  [
+
+                                                ],
+                           "defaultTags":  [
+                                               "TIMEOUT"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "EXTERNAL_SERVICE",
+                           "displayName":  "External service",
+                           "description":  "Errors related to third-party services, upstream systems, integrations, and remote dependencies.",
+                           "aliases":  [
+                                           "UPSTREAM",
+                                           "INTEGRATION"
+                                       ],
+                           "parentCategories":  [
+                                                    "NETWORK"
+                                                ],
+                           "defaultTags":  [
+                                               "EXTERNAL_SERVICE"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "LOCALIZATION",
+                           "displayName":  "Localization",
+                           "description":  "Errors related to language, culture, translations, resource keys, and localized text.",
+                           "aliases":  [
+                                           "I18N",
+                                           "L10N"
+                                       ],
+                           "parentCategories":  [
+
+                                                ],
+                           "defaultTags":  [
+                                               "LOCALIZATION"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       },
+                       {
+                           "name":  "STARTUP",
+                           "displayName":  "Startup",
+                           "description":  "Errors that usually happen while an application is starting.",
+                           "aliases":  [
+
+                                       ],
+                           "parentCategories":  [
+
+                                                ],
+                           "defaultTags":  [
+                                               "STARTUP"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
+                       }
+                   ]
+}
