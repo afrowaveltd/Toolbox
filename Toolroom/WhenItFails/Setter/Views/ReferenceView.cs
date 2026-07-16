@@ -106,4 +106,37 @@ internal static class ReferenceView
       AnsiConsole.Write(table);
    }
 
+
+   /// <summary>
+   /// Shows reference catalog code groups.
+   /// </summary>
+   /// <param name="summary">Reference catalog summary.</param>
+   public static void ShowCodeGroups(WhenItFailsReferenceCatalogSummary summary)
+   {
+      ArgumentNullException.ThrowIfNull(summary);
+
+      Table table = new();
+
+      table.Border(TableBorder.Rounded);
+      table.AddColumn("Name");
+      table.AddColumn("Display name");
+      table.AddColumn("Prefix");
+      table.AddColumn("Range");
+
+      AnsiConsole.MarkupLine("[green]WhenItFails reference code groups[/]");
+
+      foreach (WhenItFailsReferenceCodeGroupSummary codeGroup in summary.CodeGroups)
+      {
+         string range = codeGroup.CodeFrom.ToString() + "–" + codeGroup.CodeTo.ToString();
+
+         table.AddRow(
+            Markup.Escape(codeGroup.Name),
+            Markup.Escape(codeGroup.DisplayName),
+            Markup.Escape(codeGroup.CodePrefix),
+            Markup.Escape(range));
+      }
+
+      AnsiConsole.Write(table);
+   }
+
 }

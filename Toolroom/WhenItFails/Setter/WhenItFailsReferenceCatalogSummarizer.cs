@@ -34,9 +34,12 @@ internal sealed class WhenItFailsReferenceCatalogSummarizer
       IReadOnlyList<string> profileNames = await ReadProfileNamesAsync(referenceCatalogDirectoryPath);
       IReadOnlyList<WhenItFailsReferenceCategorySummary> categories =
          await ReadCategoriesAsync(referenceCatalogDirectoryPath);
+      IReadOnlyList<WhenItFailsReferenceCodeGroupSummary> codeGroups =
+         await ReadCodeGroupsAsync(referenceCatalogDirectoryPath);
 
       summary.ProfileNames.AddRange(profileNames);
       summary.Categories.AddRange(categories);
+      summary.CodeGroups.AddRange(codeGroups);
 
       return summary;
    }
@@ -132,6 +135,48 @@ internal sealed class WhenItFailsReferenceCatalogSummarizer
       return profileNames;
    }
 
+   private static async Task<IReadOnlyList<WhenItFailsReferenceCodeGroupSummary>> ReadCodeGroupsAsync(
+      string directoryPath)
+   {
+      using JsonDocument document = await LoadJsonDocumentAsync(directoryPath, "code-groups.en.json");
+
+      JsonElement rootElement = document.RootElement;
+
+      if (!rootElement.TryGetProperty("codeGroups", out JsonElement codeGroupsElement)
+          || codeGroupsElement.ValueKind != JsonValueKind.Array)
+      {
+         return Array.Empty<WhenItFailsReferenceCodeGroupSummary>();
+      }
+
+      List<WhenItFailsReferenceCodeGroupSummary> codeGroups = new();
+
+      foreach (JsonElement codeGroupElement in codeGroupsElement.EnumerateArray())
+      {
+         string name = ReadStringProperty(codeGroupElement, "name");
+         string displayName = ReadStringProperty(codeGroupElement, "displayName");
+         string codePrefix = ReadStringProperty(codeGroupElement, "codePrefix");
+
+         if (string.IsNullOrWhiteSpace(name))
+         {
+            continue;
+         }
+
+         codeGroups.Add(
+            new WhenItFailsReferenceCodeGroupSummary
+            {
+               Name = name,
+               DisplayName = string.IsNullOrWhiteSpace(displayName)
+                  ? name
+                  : displayName,
+               CodePrefix = codePrefix,
+               CodeFrom = ReadInt32Property(codeGroupElement, "codeFrom"),
+               CodeTo = ReadInt32Property(codeGroupElement, "codeTo")
+            });
+      }
+
+      return codeGroups;
+   }
+
    private static async Task<IReadOnlyList<WhenItFailsReferenceCategorySummary>> ReadCategoriesAsync(
       string directoryPath)
    {
@@ -188,6 +233,21 @@ internal sealed class WhenItFailsReferenceCatalogSummarizer
       }
 
       return categories;
+   }
+
+   private static int ReadInt32Property(
+      JsonElement element,
+      string propertyName)
+   {
+      if (!element.TryGetProperty(propertyName, out JsonElement propertyElement)
+          || propertyElement.ValueKind != JsonValueKind.Number)
+      {
+         return 0;
+      }
+
+      return propertyElement.TryGetInt32(out int value)
+         ? value
+         : 0;
    }
 
    private static string ReadStringProperty(

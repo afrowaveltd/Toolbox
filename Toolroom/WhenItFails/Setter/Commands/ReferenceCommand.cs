@@ -54,6 +54,13 @@ internal static class ReferenceCommand
          return 0;
       }
 
+      if (subcommand == "code-groups")
+      {
+         ReferenceView.ShowCodeGroups(summary);
+
+         return 0;
+      }
+
       ShowUnknownSubcommand(args[1]);
 
       return 1;
@@ -67,6 +74,7 @@ internal static class ReferenceCommand
       AnsiConsole.MarkupLine("  [grey]reference summary[/]");
       AnsiConsole.MarkupLine("  [grey]reference profiles[/]");
       AnsiConsole.MarkupLine("  [grey]reference categories[/]");
+      AnsiConsole.MarkupLine("  [grey]reference code-groups[/]");
    }
 
    private static void ShowUnknownSubcommand(string subcommand)

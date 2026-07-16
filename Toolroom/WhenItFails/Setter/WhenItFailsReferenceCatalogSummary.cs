@@ -49,4 +49,9 @@ internal sealed class WhenItFailsReferenceCatalogSummary
    /// Gets the category summaries.
    /// </summary>
    public List<WhenItFailsReferenceCategorySummary> Categories { get; } = new();
+
+   /// <summary>
+   /// Gets the code group summaries.
+   /// </summary>
+   public List<WhenItFailsReferenceCodeGroupSummary> CodeGroups { get; } = new();
 }

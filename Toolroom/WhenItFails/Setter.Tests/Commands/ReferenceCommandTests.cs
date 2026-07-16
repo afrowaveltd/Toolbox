@@ -9,6 +9,7 @@ public sealed class ReferenceCommandTests
     [InlineData("reference", "summary")]
     [InlineData("reference", "profiles")]
     [InlineData("reference", "categories")]
+    [InlineData("reference", "code-groups")]
     public async Task ExecuteAsync_WithSupportedReferenceCommand_ReturnsSuccess(
         params string[] args)
     {
@@ -63,5 +64,16 @@ public sealed class ReferenceCommandTests
             summary.Categories,
             category => category.Name == "HTTP"
                         && category.ParentCategoryNames.Contains("NETWORK"));
+
+        Assert.Equal(9, summary.CodeGroups.Count);
+        Assert.Contains(summary.CodeGroups, codeGroup => codeGroup.Name == "GENERAL");
+        Assert.Contains(summary.CodeGroups, codeGroup => codeGroup.Name == "FILE_SYSTEM");
+        Assert.Contains(summary.CodeGroups, codeGroup => codeGroup.Name == "SERIALIZATION");
+        Assert.Contains(
+            summary.CodeGroups,
+            codeGroup => codeGroup.Name == "CONFIGURATION"
+                         && codeGroup.CodePrefix == "CFG"
+                         && codeGroup.CodeFrom == 200000
+                         && codeGroup.CodeTo == 299999);
     }
 }
