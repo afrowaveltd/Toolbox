@@ -13,7 +13,7 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 internal static class AddProfileCommand
 {
     private const string Usage =
-        "add-profile <path> <name> <display-name> [description]";
+        "add-profile <path> <name> <display-name> [description] [--json]";
 
     /// <summary>
     /// Executes the add-profile command.
@@ -22,52 +22,17 @@ internal static class AddProfileCommand
     /// <returns>Exit code: 0 on success, 1 on invalid command input, 2 on edit failure.</returns>
     public static async Task<int> ExecuteAsync(string[] args)
     {
-        if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
+        if (!TryParseArguments(
+                args,
+                out string inputPath,
+                out string profileName,
+                out string displayName,
+                out string? description,
+                out bool useJsonOutput))
         {
-            CommandInputError.Show(
-                code: "MissingAddProfilePath",
-                message: "The add-profile command requires a project root or Jsons/WhenItFails directory path.",
-                path: Usage);
-
+            ShowInvalidArguments();
             return 1;
         }
-
-        if (args.Length < 3 || string.IsNullOrWhiteSpace(args[2]))
-        {
-            CommandInputError.Show(
-                code: "MissingAddProfileName",
-                message: "The add-profile command requires a stable profile name.",
-                path: Usage);
-
-            return 1;
-        }
-
-        if (args.Length < 4 || string.IsNullOrWhiteSpace(args[3]))
-        {
-            CommandInputError.Show(
-                code: "MissingAddProfileDisplayName",
-                message: "The add-profile command requires a human-readable display name.",
-                path: Usage);
-
-            return 1;
-        }
-
-        if (args.Length > 5)
-        {
-            CommandInputError.Show(
-                code: "InvalidAddProfileArguments",
-                message: "The add-profile command accepts a path, profile name, display name, and one optional description argument. Quote values containing spaces.",
-                path: Usage);
-
-            return 1;
-        }
-
-        string inputPath = args[1];
-        string profileName = args[2];
-        string displayName = args[3];
-        string? description = args.Length == 5
-            ? args[4]
-            : null;
 
         WhenItFailsProfileWorkspaceEditor editor = new();
         Response<ErrorProfileDefinition> response =
@@ -79,32 +44,128 @@ internal static class AddProfileCommand
 
         if (!response.IsSuccess || response.Data is null)
         {
-            ShowFailure(response, inputPath, profileName);
+            if (useJsonOutput)
+            {
+                ShowJsonFailure(response);
+            }
+            else
+            {
+                ShowFailure(response, inputPath, profileName);
+            }
+
             return 2;
         }
 
-        AnsiConsole.MarkupLine(
-            "[green]Added profile:[/] {0}",
-            Markup.Escape(response.Data.Name));
-        AnsiConsole.MarkupLine(
-            "[bold]Display name:[/] {0}",
-            Markup.Escape(response.Data.DisplayName));
-
-        if (!string.IsNullOrWhiteSpace(response.Data.Description))
+        if (useJsonOutput)
         {
-            AnsiConsole.MarkupLine(
-                "[bold]Description:[/] {0}",
-                Markup.Escape(response.Data.Description));
+            CommandJsonOutput.Write(
+                "add-profile",
+                new AddProfileResult(
+                    Added: true,
+                    Profile: response.Data,
+                    FailureCode: null,
+                    FailureMessage: null));
         }
-
-        if (!string.IsNullOrWhiteSpace(response.Message))
+        else
         {
             AnsiConsole.MarkupLine(
-                "[grey]{0}[/]",
-                Markup.Escape(response.Message));
+                "[green]Added profile:[/] {0}",
+                Markup.Escape(response.Data.Name));
+            AnsiConsole.MarkupLine(
+                "[bold]Display name:[/] {0}",
+                Markup.Escape(response.Data.DisplayName));
+
+            if (!string.IsNullOrWhiteSpace(response.Data.Description))
+            {
+                AnsiConsole.MarkupLine(
+                    "[bold]Description:[/] {0}",
+                    Markup.Escape(response.Data.Description));
+            }
+
+            if (!string.IsNullOrWhiteSpace(response.Message))
+            {
+                AnsiConsole.MarkupLine(
+                    "[grey]{0}[/]",
+                    Markup.Escape(response.Message));
+            }
         }
 
         return 0;
+    }
+
+    private static bool TryParseArguments(
+        string[] args,
+        out string inputPath,
+        out string profileName,
+        out string displayName,
+        out string? description,
+        out bool useJsonOutput)
+    {
+        inputPath = string.Empty;
+        profileName = string.Empty;
+        displayName = string.Empty;
+        description = null;
+        useJsonOutput = false;
+
+        if (args.Length is < 4 or > 6
+            || string.IsNullOrWhiteSpace(args[1])
+            || string.IsNullOrWhiteSpace(args[2])
+            || string.IsNullOrWhiteSpace(args[3]))
+        {
+            return false;
+        }
+
+        inputPath = args[1];
+        profileName = args[2];
+        displayName = args[3];
+        bool descriptionAssigned = false;
+
+        for (int index = 4; index < args.Length; index++)
+        {
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput)
+                {
+                    return false;
+                }
+
+                useJsonOutput = true;
+            }
+            else if (!descriptionAssigned)
+            {
+                description = args[index];
+                descriptionAssigned = true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static void ShowInvalidArguments() => CommandInputError.Show(
+        code: "InvalidAddProfileArguments",
+        message: "The add-profile command requires a path, profile name, display name, one optional description, and an optional --json switch. Quote values containing spaces.",
+        path: Usage);
+
+    private static void ShowJsonFailure(Response<ErrorProfileDefinition> response)
+    {
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "AddProfileFailed";
+        string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+            ? "The profile could not be added."
+            : response.Message;
+
+        CommandJsonOutput.Write(
+            "add-profile",
+            new AddProfileResult(
+                Added: false,
+                Profile: null,
+                FailureCode: failureCode,
+                FailureMessage: failureMessage));
     }
 
     private static void ShowFailure(
@@ -132,4 +193,10 @@ internal static class AddProfileCommand
                 SourcePath = inputPath
             });
     }
+
+    private sealed record AddProfileResult(
+        bool Added,
+        ErrorProfileDefinition? Profile,
+        string? FailureCode,
+        string? FailureMessage);
 }
