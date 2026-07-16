@@ -13,7 +13,7 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 internal static class SetPrimaryCategoryCommand
 {
     private const string Usage =
-        "set-primary-category <path> <id|code|name> <category-name|alias>";
+        "set-primary-category <path> <id|code|name> <category-name|alias> [--json]";
 
     public static async Task<int> ExecuteAsync(string[] args)
     {
@@ -35,28 +35,46 @@ internal static class SetPrimaryCategoryCommand
             return 1;
         }
 
-        if (args.Length < 4 || string.IsNullOrWhiteSpace(args[3]))
+        if (args.Length < 4)
         {
-            CommandInputError.Show(
-                "MissingSetPrimaryCategoryName",
-                "The set-primary-category command requires a category name or alias.",
-                Usage);
+            ShowMissingCategory();
             return 1;
         }
 
-        if (args.Length > 4)
+        bool useJsonOutput = false;
+        string? categoryName = null;
+
+        for (int index = 3; index < args.Length; index++)
         {
-            CommandInputError.Show(
-                "InvalidSetPrimaryCategoryArguments",
-                "The set-primary-category command accepts only a path, error lookup, and category name or alias.",
-                Usage);
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput)
+                {
+                    ShowInvalidArguments();
+                    return 1;
+                }
+
+                useJsonOutput = true;
+                continue;
+            }
+
+            if (categoryName is not null || string.IsNullOrWhiteSpace(args[index]))
+            {
+                ShowInvalidArguments();
+                return 1;
+            }
+
+            categoryName = args[index];
+        }
+
+        if (string.IsNullOrWhiteSpace(categoryName))
+        {
+            ShowMissingCategory();
             return 1;
         }
 
         string inputPath = args[1];
         string lookupValue = args[2];
-        string categoryName = args[3];
-
         Response<ErrorDefinition> response =
             await new WhenItFailsWorkspaceEditor().SetPrimaryCategoryAsync(
                 inputPath,
@@ -65,25 +83,80 @@ internal static class SetPrimaryCategoryCommand
 
         if (!response.IsSuccess || response.Data is null)
         {
-            ShowFailure(response, inputPath, lookupValue);
+            if (useJsonOutput)
+            {
+                ShowJsonFailure(response);
+            }
+            else
+            {
+                ShowFailure(response, inputPath, lookupValue);
+            }
+
             return 2;
         }
 
-        AnsiConsole.MarkupLine(
-            "[green]Updated error:[/] {0}",
-            Markup.Escape(response.Data.Id));
-        AnsiConsole.MarkupLine(
-            "[bold]Primary category:[/] {0}",
-            Markup.Escape(response.Data.PrimaryCategory));
-
-        if (!string.IsNullOrWhiteSpace(response.Message))
+        if (useJsonOutput)
+        {
+            CommandJsonOutput.Write(
+                "set-primary-category",
+                new SetPrimaryCategoryResult(
+                    Updated: true,
+                    Error: response.Data,
+                    FailureCode: null,
+                    FailureMessage: null));
+        }
+        else
         {
             AnsiConsole.MarkupLine(
-                "[grey]{0}[/]",
-                Markup.Escape(response.Message));
+                "[green]Updated error:[/] {0}",
+                Markup.Escape(response.Data.Id));
+            AnsiConsole.MarkupLine(
+                "[bold]Primary category:[/] {0}",
+                Markup.Escape(response.Data.PrimaryCategory));
+
+            if (!string.IsNullOrWhiteSpace(response.Message))
+            {
+                AnsiConsole.MarkupLine(
+                    "[grey]{0}[/]",
+                    Markup.Escape(response.Message));
+            }
         }
 
         return 0;
+    }
+
+    private static void ShowMissingCategory()
+    {
+        CommandInputError.Show(
+            "MissingSetPrimaryCategoryName",
+            "The set-primary-category command requires a category name or alias.",
+            Usage);
+    }
+
+    private static void ShowInvalidArguments()
+    {
+        CommandInputError.Show(
+            "InvalidSetPrimaryCategoryArguments",
+            "The set-primary-category command accepts a path, error lookup, category name or alias, and an optional --json switch.",
+            Usage);
+    }
+
+    private static void ShowJsonFailure(Response<ErrorDefinition> response)
+    {
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "SetPrimaryCategoryFailed";
+        string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+            ? "The primary category could not be changed."
+            : response.Message;
+
+        CommandJsonOutput.Write(
+            "set-primary-category",
+            new SetPrimaryCategoryResult(
+                Updated: false,
+                Error: null,
+                FailureCode: failureCode,
+                FailureMessage: failureMessage));
     }
 
     private static void ShowFailure(
@@ -107,4 +180,10 @@ internal static class SetPrimaryCategoryCommand
             result,
             new ConsoleShowOptions { SourcePath = inputPath });
     }
+
+    private sealed record SetPrimaryCategoryResult(
+        bool Updated,
+        ErrorDefinition? Error,
+        string? FailureCode,
+        string? FailureMessage);
 }
