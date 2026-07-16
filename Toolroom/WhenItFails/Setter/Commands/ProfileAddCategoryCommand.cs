@@ -13,7 +13,7 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 internal static class ProfileAddCategoryCommand
 {
     private const string Usage =
-        "profile-add-category <path> <profile-name> <category-name|alias>";
+        "profile-add-category <path> <profile-name> <category-name|alias> [--json]";
 
     /// <summary>
     /// Executes the profile-add-category command.
@@ -22,49 +22,49 @@ internal static class ProfileAddCategoryCommand
     /// <returns>Exit code: 0 on success, 1 on invalid command input, 2 on edit failure.</returns>
     public static async Task<int> ExecuteAsync(string[] args)
     {
-        if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
+        if (args.Length < 4
+            || args.Length > 5
+            || string.IsNullOrWhiteSpace(args[1])
+            || string.IsNullOrWhiteSpace(args[2]))
         {
-            CommandInputError.Show(
-                code: "MissingProfileAddCategoryPath",
-                message: "The profile-add-category command requires a project root or Jsons/WhenItFails directory path.",
-                path: Usage);
-
+            ShowInvalidArguments();
             return 1;
         }
 
-        if (args.Length < 3 || string.IsNullOrWhiteSpace(args[2]))
-        {
-            CommandInputError.Show(
-                code: "MissingProfileAddCategoryProfileName",
-                message: "The profile-add-category command requires a profile name.",
-                path: Usage);
+        bool useJsonOutput = false;
+        string? categoryName = null;
 
-            return 1;
+        for (int index = 3; index < args.Length; index++)
+        {
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput)
+                {
+                    ShowInvalidArguments();
+                    return 1;
+                }
+
+                useJsonOutput = true;
+                continue;
+            }
+
+            if (categoryName is not null || string.IsNullOrWhiteSpace(args[index]))
+            {
+                ShowInvalidArguments();
+                return 1;
+            }
+
+            categoryName = args[index];
         }
 
-        if (args.Length < 4 || string.IsNullOrWhiteSpace(args[3]))
+        if (string.IsNullOrWhiteSpace(categoryName))
         {
-            CommandInputError.Show(
-                code: "MissingProfileAddCategoryCategoryName",
-                message: "The profile-add-category command requires a category name or alias.",
-                path: Usage);
-
-            return 1;
-        }
-
-        if (args.Length > 4)
-        {
-            CommandInputError.Show(
-                code: "InvalidProfileAddCategoryArguments",
-                message: "The profile-add-category command accepts only a path, profile name, and category name or alias.",
-                path: Usage);
-
+            ShowInvalidArguments();
             return 1;
         }
 
         string inputPath = args[1];
         string profileName = args[2];
-        string categoryName = args[3];
 
         WhenItFailsProfileWorkspaceEditor editor = new();
         Response<ErrorProfileDefinition> response =
@@ -75,7 +75,15 @@ internal static class ProfileAddCategoryCommand
 
         if (!response.IsSuccess || response.Data is null)
         {
-            ShowFailure(response, inputPath, profileName);
+            if (useJsonOutput)
+            {
+                ShowJsonFailure(response);
+            }
+            else
+            {
+                ShowFailure(response, inputPath, profileName);
+            }
+
             return 2;
         }
 
@@ -83,21 +91,62 @@ internal static class ProfileAddCategoryCommand
             string.Equals(category, categoryName, StringComparison.OrdinalIgnoreCase)
             || response.Message?.Contains($"'{category}'", StringComparison.Ordinal) == true);
 
-        AnsiConsole.MarkupLine(
-            "[green]Updated profile:[/] {0}",
-            Markup.Escape(response.Data.Name));
-        AnsiConsole.MarkupLine(
-            "[bold]Added category:[/] {0}",
-            Markup.Escape(canonicalCategoryName));
-
-        if (!string.IsNullOrWhiteSpace(response.Message))
+        if (useJsonOutput)
+        {
+            CommandJsonOutput.Write(
+                "profile-add-category",
+                new ProfileAddCategoryResult(
+                    Updated: true,
+                    Profile: response.Data,
+                    AddedCategory: canonicalCategoryName,
+                    FailureCode: null,
+                    FailureMessage: null));
+        }
+        else
         {
             AnsiConsole.MarkupLine(
-                "[grey]{0}[/]",
-                Markup.Escape(response.Message));
+                "[green]Updated profile:[/] {0}",
+                Markup.Escape(response.Data.Name));
+            AnsiConsole.MarkupLine(
+                "[bold]Added category:[/] {0}",
+                Markup.Escape(canonicalCategoryName));
+
+            if (!string.IsNullOrWhiteSpace(response.Message))
+            {
+                AnsiConsole.MarkupLine(
+                    "[grey]{0}[/]",
+                    Markup.Escape(response.Message));
+            }
         }
 
         return 0;
+    }
+
+    private static void ShowInvalidArguments()
+    {
+        CommandInputError.Show(
+            code: "InvalidProfileAddCategoryArguments",
+            message: "The profile-add-category command requires a path, profile name, category name or alias, and an optional --json switch.",
+            path: Usage);
+    }
+
+    private static void ShowJsonFailure(Response<ErrorProfileDefinition> response)
+    {
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "ProfileAddCategoryFailed";
+        string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+            ? "The category could not be added to the profile."
+            : response.Message;
+
+        CommandJsonOutput.Write(
+            "profile-add-category",
+            new ProfileAddCategoryResult(
+                Updated: false,
+                Profile: null,
+                AddedCategory: null,
+                FailureCode: failureCode,
+                FailureMessage: failureMessage));
     }
 
     private static void ShowFailure(
@@ -125,4 +174,11 @@ internal static class ProfileAddCategoryCommand
                 SourcePath = inputPath
             });
     }
+
+    private sealed record ProfileAddCategoryResult(
+        bool Updated,
+        ErrorProfileDefinition? Profile,
+        string? AddedCategory,
+        string? FailureCode,
+        string? FailureMessage);
 }
