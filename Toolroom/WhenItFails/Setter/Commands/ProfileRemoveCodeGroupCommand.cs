@@ -13,53 +13,53 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 internal static class ProfileRemoveCodeGroupCommand
 {
     private const string Usage =
-        "profile-remove-code-group <path> <profile-name> <code-group-name|prefix>";
+        "profile-remove-code-group <path> <profile-name> <code-group-name|prefix> [--json]";
 
     public static async Task<int> ExecuteAsync(string[] args)
     {
-        if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
+        if (args.Length < 4
+            || args.Length > 5
+            || string.IsNullOrWhiteSpace(args[1])
+            || string.IsNullOrWhiteSpace(args[2]))
         {
-            CommandInputError.Show(
-                code: "MissingProfileRemoveCodeGroupPath",
-                message: "The profile-remove-code-group command requires a project root or Jsons/WhenItFails directory path.",
-                path: Usage);
-
+            ShowInvalidArguments();
             return 1;
         }
 
-        if (args.Length < 3 || string.IsNullOrWhiteSpace(args[2]))
-        {
-            CommandInputError.Show(
-                code: "MissingProfileRemoveCodeGroupProfileName",
-                message: "The profile-remove-code-group command requires a profile name.",
-                path: Usage);
+        bool useJsonOutput = false;
+        string? codeGroupName = null;
 
-            return 1;
+        for (int index = 3; index < args.Length; index++)
+        {
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput)
+                {
+                    ShowInvalidArguments();
+                    return 1;
+                }
+
+                useJsonOutput = true;
+                continue;
+            }
+
+            if (codeGroupName is not null || string.IsNullOrWhiteSpace(args[index]))
+            {
+                ShowInvalidArguments();
+                return 1;
+            }
+
+            codeGroupName = args[index];
         }
 
-        if (args.Length < 4 || string.IsNullOrWhiteSpace(args[3]))
+        if (string.IsNullOrWhiteSpace(codeGroupName))
         {
-            CommandInputError.Show(
-                code: "MissingProfileRemoveCodeGroupName",
-                message: "The profile-remove-code-group command requires a code group name or prefix.",
-                path: Usage);
-
-            return 1;
-        }
-
-        if (args.Length > 4)
-        {
-            CommandInputError.Show(
-                code: "InvalidProfileRemoveCodeGroupArguments",
-                message: "The profile-remove-code-group command accepts only a path, profile name, and code group name or prefix.",
-                path: Usage);
-
+            ShowInvalidArguments();
             return 1;
         }
 
         string inputPath = args[1];
         string profileName = args[2];
-        string codeGroupName = args[3];
 
         WhenItFailsProfileWorkspaceEditor editor = new();
         Response<ErrorProfileDefinition> response =
@@ -70,22 +70,94 @@ internal static class ProfileRemoveCodeGroupCommand
 
         if (!response.IsSuccess || response.Data is null)
         {
-            ShowFailure(response, inputPath, profileName);
+            if (useJsonOutput)
+            {
+                ShowJsonFailure(response);
+            }
+            else
+            {
+                ShowFailure(response, inputPath, profileName);
+            }
+
             return 2;
         }
 
-        AnsiConsole.MarkupLine(
-            "[green]Updated profile:[/] {0}",
-            Markup.Escape(response.Data.Name));
+        string canonicalCodeGroupName = ExtractCanonicalCodeGroupName(response.Message, codeGroupName);
 
-        if (!string.IsNullOrWhiteSpace(response.Message))
+        if (useJsonOutput)
+        {
+            CommandJsonOutput.Write(
+                "profile-remove-code-group",
+                new ProfileRemoveCodeGroupResult(
+                    Updated: true,
+                    Profile: response.Data,
+                    RemovedCodeGroup: canonicalCodeGroupName,
+                    FailureCode: null,
+                    FailureMessage: null));
+        }
+        else
         {
             AnsiConsole.MarkupLine(
-                "[grey]{0}[/]",
-                Markup.Escape(response.Message));
+                "[green]Updated profile:[/] {0}",
+                Markup.Escape(response.Data.Name));
+            AnsiConsole.MarkupLine(
+                "[bold]Removed code group:[/] {0}",
+                Markup.Escape(canonicalCodeGroupName));
+
+            if (!string.IsNullOrWhiteSpace(response.Message))
+            {
+                AnsiConsole.MarkupLine(
+                    "[grey]{0}[/]",
+                    Markup.Escape(response.Message));
+            }
         }
 
         return 0;
+    }
+
+    private static string ExtractCanonicalCodeGroupName(string? message, string fallback)
+    {
+        if (!string.IsNullOrWhiteSpace(message))
+        {
+            int firstQuote = message.IndexOf(''');
+            if (firstQuote >= 0)
+            {
+                int secondQuote = message.IndexOf(''', firstQuote + 1);
+                if (secondQuote > firstQuote + 1)
+                {
+                    return message[(firstQuote + 1)..secondQuote];
+                }
+            }
+        }
+
+        return fallback.Trim();
+    }
+
+    private static void ShowInvalidArguments()
+    {
+        CommandInputError.Show(
+            code: "InvalidProfileRemoveCodeGroupArguments",
+            message: "The profile-remove-code-group command requires a path, profile name, code group name or prefix, and an optional --json switch.",
+            path: Usage);
+    }
+
+    private static void ShowJsonFailure(Response<ErrorProfileDefinition> response)
+    {
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "ProfileRemoveCodeGroupFailed";
+        string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+            ? "The code group could not be removed from the profile."
+            : response.Message;
+
+        CommandJsonOutput.Write(
+            "profile-remove-code-group",
+            new ProfileRemoveCodeGroupResult(
+                Updated: false,
+                Profile: null,
+                RemovedCodeGroup: null,
+                FailureCode: failureCode,
+                FailureMessage: failureMessage));
     }
 
     private static void ShowFailure(
@@ -113,4 +185,11 @@ internal static class ProfileRemoveCodeGroupCommand
                 SourcePath = inputPath
             });
     }
+
+    private sealed record ProfileRemoveCodeGroupResult(
+        bool Updated,
+        ErrorProfileDefinition? Profile,
+        string? RemovedCodeGroup,
+        string? FailureCode,
+        string? FailureMessage);
 }
