@@ -11,37 +11,54 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 internal static class ErrorRemoveMetadataCommand
 {
     private const string Usage =
-        "error-remove-metadata <path> <id|code|name> <metadata-key>";
+        "error-remove-metadata <path> <id|code|name> <metadata-key> [--json]";
 
     public static async Task<int> ExecuteAsync(string[] args)
     {
-        if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
+        if (args.Length < 4
+            || args.Length > 5
+            || string.IsNullOrWhiteSpace(args[1])
+            || string.IsNullOrWhiteSpace(args[2]))
         {
-            CommandInputError.Show("MissingErrorRemoveMetadataPath", "The error-remove-metadata command requires a project root or Jsons/WhenItFails directory path.", Usage);
+            ShowInvalidArguments();
             return 1;
         }
 
-        if (args.Length < 3 || string.IsNullOrWhiteSpace(args[2]))
+        bool useJsonOutput = false;
+        string? metadataKey = null;
+
+        for (int index = 3; index < args.Length; index++)
         {
-            CommandInputError.Show("MissingErrorRemoveMetadataLookup", "The error-remove-metadata command requires an error id, code, or name.", Usage);
-            return 1;
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput)
+                {
+                    ShowInvalidArguments();
+                    return 1;
+                }
+
+                useJsonOutput = true;
+                continue;
+            }
+
+            if (metadataKey is not null || string.IsNullOrWhiteSpace(args[index]))
+            {
+                ShowInvalidArguments();
+                return 1;
+            }
+
+            metadataKey = args[index];
         }
 
-        if (args.Length < 4 || string.IsNullOrWhiteSpace(args[3]))
+        if (string.IsNullOrWhiteSpace(metadataKey))
         {
-            CommandInputError.Show("MissingErrorRemoveMetadataKey", "The error-remove-metadata command requires a metadata key.", Usage);
-            return 1;
-        }
-
-        if (args.Length > 4)
-        {
-            CommandInputError.Show("InvalidErrorRemoveMetadataArguments", "The error-remove-metadata command accepts only a path, error lookup, and metadata key.", Usage);
+            ShowInvalidArguments();
             return 1;
         }
 
         string inputPath = args[1];
         string lookupValue = args[2];
-        string metadataKey = args[3];
+        string canonicalKey = TextKeyNormalizer.NormalizeKey(metadataKey);
 
         Response<ErrorDefinition> response =
             await new WhenItFailsWorkspaceEditor().ErrorRemoveMetadataAsync(
@@ -51,30 +68,99 @@ internal static class ErrorRemoveMetadataCommand
 
         if (!response.IsSuccess || response.Data is null)
         {
-            ShowFailure(response, inputPath, lookupValue);
+            if (useJsonOutput)
+            {
+                ShowJsonFailure(response);
+            }
+            else
+            {
+                ShowFailure(response, inputPath, lookupValue);
+            }
+
             return 2;
         }
 
-        AnsiConsole.MarkupLine("[green]Updated error:[/] {0}", Markup.Escape(response.Data.Id));
-        AnsiConsole.MarkupLine("[bold]Removed metadata:[/] {0}", Markup.Escape(TextKeyNormalizer.NormalizeKey(metadataKey)));
-
-        if (!string.IsNullOrWhiteSpace(response.Message))
+        if (useJsonOutput)
         {
-            AnsiConsole.MarkupLine("[grey]{0}[/]", Markup.Escape(response.Message));
+            CommandJsonOutput.Write(
+                "error-remove-metadata",
+                new ErrorRemoveMetadataResult(
+                    Updated: true,
+                    Error: response.Data,
+                    RemovedMetadataKey: canonicalKey,
+                    FailureCode: null,
+                    FailureMessage: null));
+        }
+        else
+        {
+            AnsiConsole.MarkupLine(
+                "[green]Updated error:[/] {0}",
+                Markup.Escape(response.Data.Id));
+            AnsiConsole.MarkupLine(
+                "[bold]Removed metadata:[/] {0}",
+                Markup.Escape(canonicalKey));
+
+            if (!string.IsNullOrWhiteSpace(response.Message))
+            {
+                AnsiConsole.MarkupLine(
+                    "[grey]{0}[/]",
+                    Markup.Escape(response.Message));
+            }
         }
 
         return 0;
     }
 
-    private static void ShowFailure(Response<ErrorDefinition> response, string inputPath, string lookupValue)
+    private static void ShowInvalidArguments()
+    {
+        CommandInputError.Show(
+            "InvalidErrorRemoveMetadataArguments",
+            "The error-remove-metadata command requires a path, error lookup, metadata key, and an optional --json switch.",
+            Usage);
+    }
+
+    private static void ShowJsonFailure(Response<ErrorDefinition> response)
+    {
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "ErrorRemoveMetadataFailed";
+        string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+            ? "The metadata could not be removed from the error definition."
+            : response.Message;
+
+        CommandJsonOutput.Write(
+            "error-remove-metadata",
+            new ErrorRemoveMetadataResult(
+                Updated: false,
+                Error: null,
+                RemovedMetadataKey: null,
+                FailureCode: failureCode,
+                FailureMessage: failureMessage));
+    }
+
+    private static void ShowFailure(
+        Response<ErrorDefinition> response,
+        string inputPath,
+        string lookupValue)
     {
         ErrorCatalogValidationResult result = new();
-        string failureCode = response.Issues.Count > 0 ? response.Issues[0].Code : "ErrorRemoveMetadataFailed";
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "ErrorRemoveMetadataFailed";
         string failureMessage = string.IsNullOrWhiteSpace(response.Message)
             ? "The metadata could not be removed from the error definition."
             : response.Message;
 
         result.AddError(failureCode, failureMessage, path: lookupValue);
-        new ConsoleValidationResultShow().Show(result, new ConsoleShowOptions { SourcePath = inputPath });
+        new ConsoleValidationResultShow().Show(
+            result,
+            new ConsoleShowOptions { SourcePath = inputPath });
     }
+
+    private sealed record ErrorRemoveMetadataResult(
+        bool Updated,
+        ErrorDefinition? Error,
+        string? RemovedMetadataKey,
+        string? FailureCode,
+        string? FailureMessage);
 }
