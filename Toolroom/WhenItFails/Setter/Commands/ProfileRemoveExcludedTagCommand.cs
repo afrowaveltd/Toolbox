@@ -14,49 +14,54 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 internal static class ProfileRemoveExcludedTagCommand
 {
     private const string Usage =
-        "profile-remove-excluded-tag <path> <profile-name> <tag>";
+        "profile-remove-excluded-tag <path> <profile-name> <tag> [--json]";
 
     public static async Task<int> ExecuteAsync(string[] args)
     {
-        if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
+        if (args.Length < 4
+            || args.Length > 5
+            || string.IsNullOrWhiteSpace(args[1])
+            || string.IsNullOrWhiteSpace(args[2]))
         {
-            CommandInputError.Show(
-                code: "MissingProfileRemoveExcludedTagPath",
-                message: "The profile-remove-excluded-tag command requires a project root or Jsons/WhenItFails directory path.",
-                path: Usage);
+            ShowInvalidArguments();
             return 1;
         }
 
-        if (args.Length < 3 || string.IsNullOrWhiteSpace(args[2]))
+        bool useJsonOutput = false;
+        string? tagName = null;
+
+        for (int index = 3; index < args.Length; index++)
         {
-            CommandInputError.Show(
-                code: "MissingProfileRemoveExcludedTagProfileName",
-                message: "The profile-remove-excluded-tag command requires a profile name.",
-                path: Usage);
-            return 1;
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput)
+                {
+                    ShowInvalidArguments();
+                    return 1;
+                }
+
+                useJsonOutput = true;
+                continue;
+            }
+
+            if (tagName is not null || string.IsNullOrWhiteSpace(args[index]))
+            {
+                ShowInvalidArguments();
+                return 1;
+            }
+
+            tagName = args[index];
         }
 
-        if (args.Length < 4 || string.IsNullOrWhiteSpace(args[3]))
+        if (string.IsNullOrWhiteSpace(tagName))
         {
-            CommandInputError.Show(
-                code: "MissingProfileRemoveExcludedTagName",
-                message: "The profile-remove-excluded-tag command requires a tag.",
-                path: Usage);
-            return 1;
-        }
-
-        if (args.Length > 4)
-        {
-            CommandInputError.Show(
-                code: "InvalidProfileRemoveExcludedTagArguments",
-                message: "The profile-remove-excluded-tag command accepts only a path, profile name, and tag.",
-                path: Usage);
+            ShowInvalidArguments();
             return 1;
         }
 
         string inputPath = args[1];
         string profileName = args[2];
-        string tagName = args[3];
+        string canonicalTagName = TextKeyNormalizer.NormalizeKey(tagName);
 
         Response<ErrorProfileDefinition> response =
             await new WhenItFailsProfileWorkspaceEditor().ProfileRemoveExcludedTagAsync(
@@ -66,23 +71,72 @@ internal static class ProfileRemoveExcludedTagCommand
 
         if (!response.IsSuccess || response.Data is null)
         {
-            ShowFailure(response, inputPath, profileName);
+            if (useJsonOutput)
+            {
+                ShowJsonFailure(response);
+            }
+            else
+            {
+                ShowFailure(response, inputPath, profileName);
+            }
+
             return 2;
         }
 
-        AnsiConsole.MarkupLine(
-            "[green]Updated profile:[/] {0}",
-            Markup.Escape(response.Data.Name));
-        AnsiConsole.MarkupLine(
-            "[bold]Removed excluded tag:[/] {0}",
-            Markup.Escape(TextKeyNormalizer.NormalizeKey(tagName)));
-
-        if (!string.IsNullOrWhiteSpace(response.Message))
+        if (useJsonOutput)
         {
-            AnsiConsole.MarkupLine("[grey]{0}[/]", Markup.Escape(response.Message));
+            CommandJsonOutput.Write(
+                "profile-remove-excluded-tag",
+                new ProfileRemoveExcludedTagResult(
+                    Updated: true,
+                    Profile: response.Data,
+                    RemovedExcludedTag: canonicalTagName,
+                    FailureCode: null,
+                    FailureMessage: null));
+        }
+        else
+        {
+            AnsiConsole.MarkupLine(
+                "[green]Updated profile:[/] {0}",
+                Markup.Escape(response.Data.Name));
+            AnsiConsole.MarkupLine(
+                "[bold]Removed excluded tag:[/] {0}",
+                Markup.Escape(canonicalTagName));
+
+            if (!string.IsNullOrWhiteSpace(response.Message))
+            {
+                AnsiConsole.MarkupLine("[grey]{0}[/]", Markup.Escape(response.Message));
+            }
         }
 
         return 0;
+    }
+
+    private static void ShowInvalidArguments()
+    {
+        CommandInputError.Show(
+            code: "InvalidProfileRemoveExcludedTagArguments",
+            message: "The profile-remove-excluded-tag command requires a path, profile name, tag, and an optional --json switch.",
+            path: Usage);
+    }
+
+    private static void ShowJsonFailure(Response<ErrorProfileDefinition> response)
+    {
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "ProfileRemoveExcludedTagFailed";
+        string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+            ? "The excluded tag could not be removed from the profile."
+            : response.Message;
+
+        CommandJsonOutput.Write(
+            "profile-remove-excluded-tag",
+            new ProfileRemoveExcludedTagResult(
+                Updated: false,
+                Profile: null,
+                RemovedExcludedTag: null,
+                FailureCode: failureCode,
+                FailureMessage: failureMessage));
     }
 
     private static void ShowFailure(
@@ -107,4 +161,11 @@ internal static class ProfileRemoveExcludedTagCommand
             result,
             new ConsoleShowOptions { SourcePath = inputPath });
     }
+
+    private sealed record ProfileRemoveExcludedTagResult(
+        bool Updated,
+        ErrorProfileDefinition? Profile,
+        string? RemovedExcludedTag,
+        string? FailureCode,
+        string? FailureMessage);
 }
