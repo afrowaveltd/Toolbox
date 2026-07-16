@@ -14,49 +14,53 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 internal static class ProfileAddSubcategoryCommand
 {
     private const string Usage =
-        "profile-add-subcategory <path> <profile-name> <subcategory>";
+        "profile-add-subcategory <path> <profile-name> <subcategory> [--json]";
 
     public static async Task<int> ExecuteAsync(string[] args)
     {
-        if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
+        if (args.Length < 4
+            || args.Length > 5
+            || string.IsNullOrWhiteSpace(args[1])
+            || string.IsNullOrWhiteSpace(args[2]))
         {
-            CommandInputError.Show(
-                code: "MissingProfileAddSubcategoryPath",
-                message: "The profile-add-subcategory command requires a project root or Jsons/WhenItFails directory path.",
-                path: Usage);
+            ShowInvalidArguments();
             return 1;
         }
 
-        if (args.Length < 3 || string.IsNullOrWhiteSpace(args[2]))
+        bool useJsonOutput = false;
+        string? subcategoryName = null;
+
+        for (int index = 3; index < args.Length; index++)
         {
-            CommandInputError.Show(
-                code: "MissingProfileAddSubcategoryProfileName",
-                message: "The profile-add-subcategory command requires a profile name.",
-                path: Usage);
-            return 1;
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput)
+                {
+                    ShowInvalidArguments();
+                    return 1;
+                }
+
+                useJsonOutput = true;
+                continue;
+            }
+
+            if (subcategoryName is not null || string.IsNullOrWhiteSpace(args[index]))
+            {
+                ShowInvalidArguments();
+                return 1;
+            }
+
+            subcategoryName = args[index];
         }
 
-        if (args.Length < 4 || string.IsNullOrWhiteSpace(args[3]))
+        if (string.IsNullOrWhiteSpace(subcategoryName))
         {
-            CommandInputError.Show(
-                code: "MissingProfileAddSubcategoryName",
-                message: "The profile-add-subcategory command requires a subcategory.",
-                path: Usage);
-            return 1;
-        }
-
-        if (args.Length > 4)
-        {
-            CommandInputError.Show(
-                code: "InvalidProfileAddSubcategoryArguments",
-                message: "The profile-add-subcategory command accepts only a path, profile name, and subcategory.",
-                path: Usage);
+            ShowInvalidArguments();
             return 1;
         }
 
         string inputPath = args[1];
         string profileName = args[2];
-        string subcategoryName = args[3];
 
         WhenItFailsProfileWorkspaceEditor editor = new();
         Response<ErrorProfileDefinition> response =
@@ -67,28 +71,77 @@ internal static class ProfileAddSubcategoryCommand
 
         if (!response.IsSuccess || response.Data is null)
         {
-            ShowFailure(response, inputPath, profileName);
+            if (useJsonOutput)
+            {
+                ShowJsonFailure(response);
+            }
+            else
+            {
+                ShowFailure(response, inputPath, profileName);
+            }
+
             return 2;
         }
 
         string canonicalSubcategoryName =
             TextKeyNormalizer.NormalizeKey(subcategoryName);
 
-        AnsiConsole.MarkupLine(
-            "[green]Updated profile:[/] {0}",
-            Markup.Escape(response.Data.Name));
-        AnsiConsole.MarkupLine(
-            "[bold]Added subcategory:[/] {0}",
-            Markup.Escape(canonicalSubcategoryName));
-
-        if (!string.IsNullOrWhiteSpace(response.Message))
+        if (useJsonOutput)
+        {
+            CommandJsonOutput.Write(
+                "profile-add-subcategory",
+                new ProfileAddSubcategoryResult(
+                    Updated: true,
+                    Profile: response.Data,
+                    AddedSubcategory: canonicalSubcategoryName,
+                    FailureCode: null,
+                    FailureMessage: null));
+        }
+        else
         {
             AnsiConsole.MarkupLine(
-                "[grey]{0}[/]",
-                Markup.Escape(response.Message));
+                "[green]Updated profile:[/] {0}",
+                Markup.Escape(response.Data.Name));
+            AnsiConsole.MarkupLine(
+                "[bold]Added subcategory:[/] {0}",
+                Markup.Escape(canonicalSubcategoryName));
+
+            if (!string.IsNullOrWhiteSpace(response.Message))
+            {
+                AnsiConsole.MarkupLine(
+                    "[grey]{0}[/]",
+                    Markup.Escape(response.Message));
+            }
         }
 
         return 0;
+    }
+
+    private static void ShowInvalidArguments()
+    {
+        CommandInputError.Show(
+            code: "InvalidProfileAddSubcategoryArguments",
+            message: "The profile-add-subcategory command requires a path, profile name, subcategory, and an optional --json switch.",
+            path: Usage);
+    }
+
+    private static void ShowJsonFailure(Response<ErrorProfileDefinition> response)
+    {
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "ProfileAddSubcategoryFailed";
+        string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+            ? "The subcategory could not be added to the profile."
+            : response.Message;
+
+        CommandJsonOutput.Write(
+            "profile-add-subcategory",
+            new ProfileAddSubcategoryResult(
+                Updated: false,
+                Profile: null,
+                AddedSubcategory: null,
+                FailureCode: failureCode,
+                FailureMessage: failureMessage));
     }
 
     private static void ShowFailure(
@@ -116,4 +169,11 @@ internal static class ProfileAddSubcategoryCommand
                 SourcePath = inputPath
             });
     }
+
+    private sealed record ProfileAddSubcategoryResult(
+        bool Updated,
+        ErrorProfileDefinition? Profile,
+        string? AddedSubcategory,
+        string? FailureCode,
+        string? FailureMessage);
 }
