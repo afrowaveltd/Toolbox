@@ -255,4 +255,34 @@ internal static class ReferenceView
             .Border(BoxBorder.Rounded));
    }
 
+
+   /// <summary>
+   /// Shows one reference catalog profile in detail.
+   /// </summary>
+   /// <param name="profile">Reference profile summary.</param>
+   public static void ShowProfile(WhenItFailsReferenceProfileSummary profile)
+   {
+      ArgumentNullException.ThrowIfNull(profile);
+
+      Grid grid = new();
+
+      grid.AddColumn();
+      grid.AddColumn();
+
+      grid.AddRow("[grey]Name[/]", Markup.Escape(profile.Name));
+      grid.AddRow("[grey]Display name[/]", Markup.Escape(profile.DisplayName));
+      grid.AddRow("[grey]Description[/]", Markup.Escape(profile.Description));
+      grid.AddRow("[grey]Owners[/]", Markup.Escape(string.Join(", ", profile.IncludedOwnerNames)));
+      grid.AddRow("[grey]Code groups[/]", Markup.Escape(string.Join(", ", profile.IncludedCodeGroupNames)));
+      grid.AddRow("[grey]Categories[/]", Markup.Escape(string.Join(", ", profile.IncludedCategoryNames)));
+      grid.AddRow("[grey]Subcategories[/]", Markup.Escape(string.Join(", ", profile.IncludedSubcategoryNames)));
+      grid.AddRow("[grey]Tags[/]", Markup.Escape(string.Join(", ", profile.IncludedTagNames)));
+      grid.AddRow("[grey]Excluded tags[/]", Markup.Escape(string.Join(", ", profile.ExcludedTagNames)));
+
+      AnsiConsole.Write(
+         new Panel(grid)
+            .Header("[green]WhenItFails reference profile[/]")
+            .Border(BoxBorder.Rounded));
+   }
+
 }

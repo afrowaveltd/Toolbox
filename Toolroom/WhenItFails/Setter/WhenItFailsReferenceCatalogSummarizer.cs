@@ -31,7 +31,11 @@ internal sealed class WhenItFailsReferenceCatalogSummarizer
          ErrorCount = await CountArrayItemsAsync(referenceCatalogDirectoryPath, "errors.en.json", "errors")
       };
 
-      IReadOnlyList<string> profileNames = await ReadProfileNamesAsync(referenceCatalogDirectoryPath);
+      IReadOnlyList<WhenItFailsReferenceProfileSummary> profiles =
+         await ReadProfilesAsync(referenceCatalogDirectoryPath);
+      IReadOnlyList<string> profileNames = profiles
+         .Select(profile => profile.Name)
+         .ToList();
       IReadOnlyList<WhenItFailsReferenceCategorySummary> categories =
          await ReadCategoriesAsync(referenceCatalogDirectoryPath);
       IReadOnlyList<WhenItFailsReferenceCodeGroupSummary> codeGroups =
@@ -40,6 +44,7 @@ internal sealed class WhenItFailsReferenceCatalogSummarizer
          await ReadErrorsAsync(referenceCatalogDirectoryPath);
 
       summary.ProfileNames.AddRange(profileNames);
+      summary.Profiles.AddRange(profiles);
       summary.Categories.AddRange(categories);
       summary.CodeGroups.AddRange(codeGroups);
       summary.Errors.AddRange(errors);
@@ -105,7 +110,8 @@ internal sealed class WhenItFailsReferenceCatalogSummarizer
       return arrayElement.GetArrayLength();
    }
 
-   private static async Task<IReadOnlyList<string>> ReadProfileNamesAsync(string directoryPath)
+   private static async Task<IReadOnlyList<WhenItFailsReferenceProfileSummary>> ReadProfilesAsync(
+      string directoryPath)
    {
       using JsonDocument document = await LoadJsonDocumentAsync(directoryPath, "profiles.json");
 
@@ -114,28 +120,38 @@ internal sealed class WhenItFailsReferenceCatalogSummarizer
       if (!rootElement.TryGetProperty("profiles", out JsonElement profilesElement)
           || profilesElement.ValueKind != JsonValueKind.Array)
       {
-         return Array.Empty<string>();
+         return Array.Empty<WhenItFailsReferenceProfileSummary>();
       }
 
-      List<string> profileNames = new();
+      List<WhenItFailsReferenceProfileSummary> profiles = new();
 
       foreach (JsonElement profileElement in profilesElement.EnumerateArray())
       {
-         if (!profileElement.TryGetProperty("name", out JsonElement nameElement)
-             || nameElement.ValueKind != JsonValueKind.String)
+         string name = ReadStringProperty(profileElement, "name");
+
+         if (string.IsNullOrWhiteSpace(name))
          {
             continue;
          }
 
-         string? name = nameElement.GetString();
-
-         if (!string.IsNullOrWhiteSpace(name))
+         WhenItFailsReferenceProfileSummary profile = new()
          {
-            profileNames.Add(name);
-         }
+            Name = name,
+            DisplayName = ReadStringProperty(profileElement, "displayName"),
+            Description = ReadStringProperty(profileElement, "description")
+         };
+
+         profile.IncludedOwnerNames.AddRange(ReadStringArrayProperty(profileElement, "includeOwners"));
+         profile.IncludedCodeGroupNames.AddRange(ReadStringArrayProperty(profileElement, "includeCodeGroups"));
+         profile.IncludedCategoryNames.AddRange(ReadStringArrayProperty(profileElement, "includeCategories"));
+         profile.IncludedSubcategoryNames.AddRange(ReadStringArrayProperty(profileElement, "includeSubcategories"));
+         profile.IncludedTagNames.AddRange(ReadStringArrayProperty(profileElement, "includeTags"));
+         profile.ExcludedTagNames.AddRange(ReadStringArrayProperty(profileElement, "excludeTags"));
+
+         profiles.Add(profile);
       }
 
-      return profileNames;
+      return profiles;
    }
 
    private static async Task<IReadOnlyList<WhenItFailsReferenceErrorSummary>> ReadErrorsAsync(

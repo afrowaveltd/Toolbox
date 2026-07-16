@@ -80,6 +80,13 @@ internal static class ReferenceCommand
             args[2]);
       }
 
+      if (subcommand == "profile")
+      {
+         return ShowProfile(
+            summary,
+            args[2]);
+      }
+
       ShowUnknownSubcommand(args[1]);
 
       return 1;
@@ -92,7 +99,7 @@ internal static class ReferenceCommand
    {
       errorListOptions = new();
 
-      if (subcommand == "error")
+      if (subcommand is "error" or "profile")
       {
          return args.Length == 3
                 && !string.IsNullOrWhiteSpace(args[2]);
@@ -158,6 +165,31 @@ internal static class ReferenceCommand
       return true;
    }
 
+   private static int ShowProfile(
+      WhenItFailsReferenceCatalogSummary summary,
+      string profileName)
+   {
+      WhenItFailsReferenceProfileSummary? profile =
+         summary.Profiles.FirstOrDefault(candidate =>
+            string.Equals(
+               candidate.Name,
+               profileName,
+               StringComparison.OrdinalIgnoreCase));
+
+      if (profile is null)
+      {
+         AnsiConsole.MarkupLine(
+            "[red]Reference profile was not found:[/] {0}",
+            Markup.Escape(profileName));
+
+         return 1;
+      }
+
+      ReferenceView.ShowProfile(profile);
+
+      return 0;
+   }
+
    private static int ShowError(
       WhenItFailsReferenceCatalogSummary summary,
       string idOrName)
@@ -194,6 +226,7 @@ internal static class ReferenceCommand
       AnsiConsole.MarkupLine("  [grey]reference[/]");
       AnsiConsole.MarkupLine("  [grey]reference summary[/]");
       AnsiConsole.MarkupLine("  [grey]reference profiles[/]");
+      AnsiConsole.MarkupLine("  [grey]reference profile <name>[/]");
       AnsiConsole.MarkupLine("  [grey]reference categories[/]");
       AnsiConsole.MarkupLine("  [grey]reference code-groups[/]");
       AnsiConsole.MarkupLine("  [grey]reference errors[/]");

@@ -16,6 +16,8 @@ public sealed class ReferenceCommandTests
     [InlineData("reference", "errors", "--category", "NETWORK")]
     [InlineData("reference", "errors", "--all", "--group", "NETWORK")]
     [InlineData("reference", "errors", "--category", "VALIDATION", "--all")]
+    [InlineData("reference", "profile", "WEB_API")]
+    [InlineData("reference", "profile", "web_api")]
     [InlineData("reference", "error", "AFW-CFG-0001")]
     [InlineData("reference", "error", "MissingConfigurationValue")]
     public async Task ExecuteAsync_WithSupportedReferenceCommand_ReturnsSuccess(
@@ -77,10 +79,28 @@ public sealed class ReferenceCommandTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_WithProfileSubcommandWithoutName_ReturnsCommandInputError()
+    {
+        int exitCode = await ReferenceCommand.ExecuteAsync(
+            ["reference", "profile"]);
+
+        Assert.Equal(1, exitCode);
+    }
+
+    [Fact]
     public async Task ExecuteAsync_WithUnknownReferenceError_ReturnsCommandInputError()
     {
         int exitCode = await ReferenceCommand.ExecuteAsync(
             ["reference", "error", "AFW-NOPE-0001"]);
+
+        Assert.Equal(1, exitCode);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WithUnknownReferenceProfile_ReturnsCommandInputError()
+    {
+        int exitCode = await ReferenceCommand.ExecuteAsync(
+            ["reference", "profile", "NOPE"]);
 
         Assert.Equal(1, exitCode);
     }
@@ -104,6 +124,13 @@ public sealed class ReferenceCommandTests
         Assert.Contains("WEB_API", summary.ProfileNames);
         Assert.Contains("DESKTOP_APP", summary.ProfileNames);
         Assert.Contains("FULL", summary.ProfileNames);
+
+        Assert.Equal(5, summary.Profiles.Count);
+        Assert.Contains(
+            summary.Profiles,
+            profile => profile.Name == "WEB_API"
+                       && profile.IncludedCodeGroupNames.Contains("NETWORK")
+                       && profile.IncludedCategoryNames.Contains("HTTP"));
 
         Assert.Equal(16, summary.Categories.Count);
         Assert.Contains(summary.Categories, category => category.Name == "GENERAL");
