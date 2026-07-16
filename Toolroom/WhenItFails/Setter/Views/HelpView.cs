@@ -142,8 +142,8 @@ internal static class HelpView
             "[green]error-references[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey][[--plain|--json]][/]",
             "Read-only list of profiles that explicitly include or exclude one error.");
         commandGrid.AddRow(
-            "[green]error-add-tag[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<tag>[/]",
-            "Safely add one normalized tag to an error definition.");
+            "[green]error-add-tag[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<tag>[/] [grey][[--json]][/]",
+            "Safely add one normalized tag; JSON output includes structured success or failure details.");
         commandGrid.AddRow(
             "[green]error-remove-tag[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<tag>[/]",
             "Safely remove one tag from an error definition.");
@@ -166,14 +166,14 @@ internal static class HelpView
             "[green]error-remove-metadata[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<metadata-key>[/]",
             "Safely remove one metadata value from an error definition.");
         commandGrid.AddRow(
-            "[green]set-primary-category[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<category-name|alias>[/]",
-            "Safely change the primary category of one error definition.");
+            "[green]set-primary-category[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<category-name|alias>[/] [grey][[--json]][/]",
+            "Safely change the primary category; JSON output includes structured success or failure details.");
         commandGrid.AddRow(
-            "[green]set-owner[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<owner-name|alias>[/]",
-            "Atomically change an error owner and structured id when the numeric code fits the new owner range.");
+            "[green]set-owner[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<owner-name|alias>[/] [grey][[--json]][/]",
+            "Atomically change an error owner and structured id; JSON output includes the complete result.");
         commandGrid.AddRow(
-            "[green]set-code-group[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<group-name|prefix>[/]",
-            "Atomically change an error code group, prefix, numeric code, and structured id using the first compatible free code.");
+            "[green]set-code-group[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<group-name|prefix>[/] [grey][[--json]][/]",
+            "Atomically change code group, prefix, numeric code, and structured id; JSON output includes the complete result.");
         commandGrid.AddRow(
             "[green]set-name[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<new-name>[/] [grey][[--json]][/]",
             "Safely change the normalized machine-friendly name; JSON output includes structured success or failure details.");
@@ -190,8 +190,8 @@ internal static class HelpView
             "[green]set-severity[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<severity>[/] [grey][[--json]][/]",
             "Safely change the severity; JSON output includes structured success or failure details. Allowed values: Trace, Debug, Information, Warning, Error, Critical.");
         commandGrid.AddRow(
-            "[green]set-documentation-key[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<documentation-key>[/]",
-            "Safely change the documentation key of one error definition.");
+            "[green]set-documentation-key[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<documentation-key>[/] [grey][[--json]][/]",
+            "Safely change the documentation key; JSON output includes structured success or failure details.");
         commandGrid.AddRow("[green]demo[/]", "Show a sample WhenItFails validation result.");
         commandGrid.AddRow("[green]help[/]", "Show this help screen.");
 
