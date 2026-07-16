@@ -13,7 +13,7 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 internal static class RemoveProfileCommand
 {
     private const string Usage =
-        "remove-profile <path> <name>";
+        "remove-profile <path> <name> [--json]";
 
     /// <summary>
     /// Executes the remove-profile command.
@@ -22,38 +22,11 @@ internal static class RemoveProfileCommand
     /// <returns>Exit code: 0 on success, 1 on invalid command input, 2 on edit failure.</returns>
     public static async Task<int> ExecuteAsync(string[] args)
     {
-        if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
+        if (!TryParseArguments(args, out string inputPath, out string profileName, out bool useJsonOutput))
         {
-            CommandInputError.Show(
-                code: "MissingRemoveProfilePath",
-                message: "The remove-profile command requires a project root or Jsons/WhenItFails directory path.",
-                path: Usage);
-
+            ShowInvalidArguments();
             return 1;
         }
-
-        if (args.Length < 3 || string.IsNullOrWhiteSpace(args[2]))
-        {
-            CommandInputError.Show(
-                code: "MissingRemoveProfileName",
-                message: "The remove-profile command requires a stable profile name.",
-                path: Usage);
-
-            return 1;
-        }
-
-        if (args.Length > 3)
-        {
-            CommandInputError.Show(
-                code: "InvalidRemoveProfileArguments",
-                message: "The remove-profile command accepts only a path and profile name. Quote values containing spaces.",
-                path: Usage);
-
-            return 1;
-        }
-
-        string inputPath = args[1];
-        string profileName = args[2];
 
         WhenItFailsProfileWorkspaceEditor editor = new();
         Response<ErrorProfileDefinition> response =
@@ -63,25 +36,113 @@ internal static class RemoveProfileCommand
 
         if (!response.IsSuccess || response.Data is null)
         {
-            ShowFailure(response, inputPath, profileName);
+            if (useJsonOutput)
+            {
+                ShowJsonFailure(response);
+            }
+            else
+            {
+                ShowFailure(response, inputPath, profileName);
+            }
+
             return 2;
         }
 
-        AnsiConsole.MarkupLine(
-            "[green]Removed profile:[/] {0}",
-            Markup.Escape(response.Data.Name));
-        AnsiConsole.MarkupLine(
-            "[bold]Display name:[/] {0}",
-            Markup.Escape(response.Data.DisplayName));
-
-        if (!string.IsNullOrWhiteSpace(response.Message))
+        if (useJsonOutput)
+        {
+            CommandJsonOutput.Write(
+                "remove-profile",
+                new RemoveProfileResult(
+                    Removed: true,
+                    Profile: response.Data,
+                    FailureCode: null,
+                    FailureMessage: null));
+        }
+        else
         {
             AnsiConsole.MarkupLine(
-                "[grey]{0}[/]",
-                Markup.Escape(response.Message));
+                "[green]Removed profile:[/] {0}",
+                Markup.Escape(response.Data.Name));
+            AnsiConsole.MarkupLine(
+                "[bold]Display name:[/] {0}",
+                Markup.Escape(response.Data.DisplayName));
+
+            if (!string.IsNullOrWhiteSpace(response.Message))
+            {
+                AnsiConsole.MarkupLine(
+                    "[grey]{0}[/]",
+                    Markup.Escape(response.Message));
+            }
         }
 
         return 0;
+    }
+
+    private static bool TryParseArguments(
+        string[] args,
+        out string inputPath,
+        out string profileName,
+        out bool useJsonOutput)
+    {
+        inputPath = string.Empty;
+        profileName = string.Empty;
+        useJsonOutput = false;
+
+        if (args.Length is < 3 or > 4
+            || string.IsNullOrWhiteSpace(args[1]))
+        {
+            return false;
+        }
+
+        inputPath = args[1];
+        bool profileNameAssigned = false;
+
+        for (int index = 2; index < args.Length; index++)
+        {
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput)
+                {
+                    return false;
+                }
+
+                useJsonOutput = true;
+            }
+            else if (!profileNameAssigned && !string.IsNullOrWhiteSpace(args[index]))
+            {
+                profileName = args[index];
+                profileNameAssigned = true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        return profileNameAssigned;
+    }
+
+    private static void ShowInvalidArguments() => CommandInputError.Show(
+        code: "InvalidRemoveProfileArguments",
+        message: "The remove-profile command requires a path, profile name, and an optional --json switch.",
+        path: Usage);
+
+    private static void ShowJsonFailure(Response<ErrorProfileDefinition> response)
+    {
+        string failureCode = response.Issues.Count > 0
+            ? response.Issues[0].Code
+            : "RemoveProfileFailed";
+        string failureMessage = string.IsNullOrWhiteSpace(response.Message)
+            ? "The profile could not be removed."
+            : response.Message;
+
+        CommandJsonOutput.Write(
+            "remove-profile",
+            new RemoveProfileResult(
+                Removed: false,
+                Profile: null,
+                FailureCode: failureCode,
+                FailureMessage: failureMessage));
     }
 
     private static void ShowFailure(
@@ -109,4 +170,10 @@ internal static class RemoveProfileCommand
                 SourcePath = inputPath
             });
     }
+
+    private sealed record RemoveProfileResult(
+        bool Removed,
+        ErrorProfileDefinition? Profile,
+        string? FailureCode,
+        string? FailureMessage);
 }
