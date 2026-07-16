@@ -49,4 +49,28 @@ internal static class ReferenceView
 
       AnsiConsole.Write(table);
    }
+
+
+   /// <summary>
+   /// Shows reference catalog profiles.
+   /// </summary>
+   /// <param name="summary">Reference catalog summary.</param>
+   public static void ShowProfiles(WhenItFailsReferenceCatalogSummary summary)
+   {
+      ArgumentNullException.ThrowIfNull(summary);
+
+      Table table = new();
+
+      table.Border(TableBorder.Rounded);
+      table.AddColumn("Profile");
+
+      AnsiConsole.MarkupLine("[green]WhenItFails reference profiles[/]");
+
+      foreach (string profileName in summary.ProfileNames)
+      {
+         table.AddRow(Markup.Escape(profileName));
+      }
+
+      AnsiConsole.Write(table);
+   }
 }

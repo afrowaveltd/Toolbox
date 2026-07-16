@@ -30,7 +30,7 @@ try
 
     if (command == "reference")
     {
-        return await ReferenceCommand.ExecuteAsync();
+        return await ReferenceCommand.ExecuteAsync(args);
     }
 
     if (command is "summary" or "inspect")

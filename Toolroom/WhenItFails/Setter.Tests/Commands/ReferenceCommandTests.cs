@@ -4,12 +4,34 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Commands;
 
 public sealed class ReferenceCommandTests
 {
-    [Fact]
-    public async Task ExecuteAsync_WithBundledReferenceCatalog_ReturnsSuccess()
+    [Theory]
+    [InlineData("reference")]
+    [InlineData("reference", "summary")]
+    [InlineData("reference", "profiles")]
+    public async Task ExecuteAsync_WithSupportedReferenceCommand_ReturnsSuccess(
+        params string[] args)
     {
-        int exitCode = await ReferenceCommand.ExecuteAsync();
+        int exitCode = await ReferenceCommand.ExecuteAsync(args);
 
         Assert.Equal(0, exitCode);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WithUnknownSubcommand_ReturnsCommandInputError()
+    {
+        int exitCode = await ReferenceCommand.ExecuteAsync(
+            ["reference", "unknown"]);
+
+        Assert.Equal(1, exitCode);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WithTooManyArguments_ReturnsCommandInputError()
+    {
+        int exitCode = await ReferenceCommand.ExecuteAsync(
+            ["reference", "summary", "extra"]);
+
+        Assert.Equal(1, exitCode);
     }
 
     [Fact]
