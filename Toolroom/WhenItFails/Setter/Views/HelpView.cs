@@ -33,76 +33,76 @@ internal static class HelpView
             "[green]explain-profile[/] [grey]<path>[/] [grey]<profile-name|display-name>[/] [grey][[--plain|--json]][/]",
             "Explain why each error is included in or excluded from one profile.");
         commandGrid.AddRow(
-            "[green]add-profile[/] [grey]<path>[/] [grey]<name>[/] [grey]<display-name>[/] [grey][[description]][/]",
+            "[green]add-profile[/] [grey]<path>[/] [grey]<name>[/] [grey]<display-name>[/] [grey][[description]][/] [grey][[--json]][/]",
             "Safely add a project profile. Quote display names or descriptions containing spaces.");
         commandGrid.AddRow(
-            "[green]remove-profile[/] [grey]<path>[/] [grey]<name>[/]",
+            "[green]remove-profile[/] [grey]<path>[/] [grey]<name>[/] [grey][[--json]][/]",
             "Safely remove one project profile.");
         commandGrid.AddRow(
             "[green]set-profile-display-name[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<display-name>[/]",
             "Safely change the human-readable name of one profile.");
         commandGrid.AddRow(
-            "[green]set-profile-description[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<description>[/]",
+            "[green]set-profile-description[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<description>[/] [grey][[--json]][/]",
             "Safely set a profile description. Pass an empty quoted string to clear it.");
         commandGrid.AddRow(
-            "[green]profile-add-owner[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<owner-name|alias>[/]",
+            "[green]profile-add-owner[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<owner-name|alias>[/] [grey][[--json]][/]",
             "Safely include an existing owner in one profile.");
         commandGrid.AddRow(
-            "[green]profile-remove-owner[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<owner-name|alias>[/]",
+            "[green]profile-remove-owner[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<owner-name|alias>[/] [grey][[--json]][/]",
             "Safely remove an included owner from one profile.");
         commandGrid.AddRow(
-            "[green]profile-add-category[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<category-name|alias>[/]",
+            "[green]profile-add-category[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<category-name|alias>[/] [grey][[--json]][/]",
             "Safely include an existing category in one profile.");
         commandGrid.AddRow(
-            "[green]profile-remove-category[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<category-name|alias>[/]",
+            "[green]profile-remove-category[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<category-name|alias>[/] [grey][[--json]][/]",
             "Safely remove an included category from one profile.");
         commandGrid.AddRow(
-            "[green]profile-add-code-group[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<group-name|prefix>[/]",
+            "[green]profile-add-code-group[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<group-name|prefix>[/] [grey][[--json]][/]",
             "Safely include an existing code group in one profile.");
         commandGrid.AddRow(
-            "[green]profile-remove-code-group[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<group-name|prefix>[/]",
+            "[green]profile-remove-code-group[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<group-name|prefix>[/] [grey][[--json]][/]",
             "Safely remove an included code group from one profile.");
         commandGrid.AddRow(
-            "[green]profile-add-subcategory[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<subcategory>[/]",
+            "[green]profile-add-subcategory[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<subcategory>[/] [grey][[--json]][/]",
             "Safely include an existing error subcategory in one profile.");
         commandGrid.AddRow(
-            "[green]profile-remove-subcategory[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<subcategory>[/]",
+            "[green]profile-remove-subcategory[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<subcategory>[/] [grey][[--json]][/]",
             "Safely remove an included error subcategory from one profile.");
         commandGrid.AddRow(
-            "[green]profile-add-tag[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<tag>[/]",
+            "[green]profile-add-tag[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<tag>[/] [grey][[--json]][/]",
             "Safely include an existing error tag in one profile.");
         commandGrid.AddRow(
-            "[green]profile-remove-tag[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<tag>[/]",
+            "[green]profile-remove-tag[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<tag>[/] [grey][[--json]][/]",
             "Safely remove an included error tag from one profile.");
         commandGrid.AddRow(
-            "[green]profile-add-excluded-tag[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<tag>[/]",
+            "[green]profile-add-excluded-tag[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<tag>[/] [grey][[--json]][/]",
             "Safely exclude an existing error tag from one profile.");
         commandGrid.AddRow(
-            "[green]profile-remove-excluded-tag[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<tag>[/]",
+            "[green]profile-remove-excluded-tag[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<tag>[/] [grey][[--json]][/]",
             "Safely stop excluding an error tag from one profile.");
         commandGrid.AddRow(
-            "[green]profile-add-error[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<id|code|name>[/]",
+            "[green]profile-add-error[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<id|code|name>[/] [grey][[--json]][/]",
             "Safely include one existing error explicitly in a profile.");
         commandGrid.AddRow(
-            "[green]profile-remove-error[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<id|code|name>[/]",
+            "[green]profile-remove-error[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<id|code|name>[/] [grey][[--json]][/]",
             "Safely remove one explicitly included error from a profile.");
         commandGrid.AddRow(
-            "[green]profile-add-excluded-error[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<id|code|name>[/]",
+            "[green]profile-add-excluded-error[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<id|code|name>[/] [grey][[--json]][/]",
             "Safely exclude one existing error explicitly from a profile.");
         commandGrid.AddRow(
-            "[green]profile-remove-excluded-error[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<id|code|name>[/]",
+            "[green]profile-remove-excluded-error[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<id|code|name>[/] [grey][[--json]][/]",
             "Safely stop explicitly excluding one error from a profile.");
         commandGrid.AddRow(
-            "[green]profile-set-default-mapping[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<mapping-key>[/] [grey]<mapping-value>[/]",
+            "[green]profile-set-default-mapping[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<mapping-key>[/] [grey]<mapping-value>[/] [grey][[--json]][/]",
             "Safely add or update a profile default mapping. Quote values containing spaces.");
         commandGrid.AddRow(
-            "[green]profile-remove-default-mapping[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<mapping-key>[/]",
+            "[green]profile-remove-default-mapping[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<mapping-key>[/] [grey][[--json]][/]",
             "Safely remove one default mapping from a profile.");
         commandGrid.AddRow(
-            "[green]profile-set-metadata[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<metadata-key>[/] [grey]<metadata-value>[/]",
+            "[green]profile-set-metadata[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<metadata-key>[/] [grey]<metadata-value>[/] [grey][[--json]][/]",
             "Safely add or update profile metadata. Quote values containing spaces.");
         commandGrid.AddRow(
-            "[green]profile-remove-metadata[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<metadata-key>[/]",
+            "[green]profile-remove-metadata[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<metadata-key>[/] [grey][[--json]][/]",
             "Safely remove one metadata value from a profile.");
         commandGrid.AddRow(
             "[green]list-categories[/] [grey]<path>[/] [grey][[--plain]][/]",
@@ -145,25 +145,25 @@ internal static class HelpView
             "[green]error-add-tag[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<tag>[/] [grey][[--json]][/]",
             "Safely add one normalized tag; JSON output includes structured success or failure details.");
         commandGrid.AddRow(
-            "[green]error-remove-tag[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<tag>[/]",
+            "[green]error-remove-tag[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<tag>[/] [grey][[--json]][/]",
             "Safely remove one tag from an error definition.");
         commandGrid.AddRow(
-            "[green]error-add-category[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<category-name|alias>[/]",
+            "[green]error-add-category[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<category-name|alias>[/] [grey][[--json]][/]",
             "Safely add one existing category to an error definition.");
         commandGrid.AddRow(
-            "[green]error-remove-category[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<category-name|alias>[/]",
+            "[green]error-remove-category[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<category-name|alias>[/] [grey][[--json]][/]",
             "Safely remove one category from an error definition.");
         commandGrid.AddRow(
-            "[green]error-add-subcategory[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<subcategory>[/]",
+            "[green]error-add-subcategory[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<subcategory>[/] [grey][[--json]][/]",
             "Safely add one existing subcategory to an error definition.");
         commandGrid.AddRow(
-            "[green]error-remove-subcategory[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<subcategory>[/]",
+            "[green]error-remove-subcategory[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<subcategory>[/] [grey][[--json]][/]",
             "Safely remove one subcategory from an error definition.");
         commandGrid.AddRow(
-            "[green]error-set-metadata[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<metadata-key>[/] [grey]<metadata-value>[/]",
+            "[green]error-set-metadata[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<metadata-key>[/] [grey]<metadata-value>[/] [grey][[--json]][/]",
             "Safely add or update error metadata. Quote values containing spaces.");
         commandGrid.AddRow(
-            "[green]error-remove-metadata[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<metadata-key>[/]",
+            "[green]error-remove-metadata[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<metadata-key>[/] [grey][[--json]][/]",
             "Safely remove one metadata value from an error definition.");
         commandGrid.AddRow(
             "[green]set-primary-category[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<category-name|alias>[/] [grey][[--json]][/]",
