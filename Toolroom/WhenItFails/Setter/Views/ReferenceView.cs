@@ -144,18 +144,23 @@ internal static class ReferenceView
    /// Shows reference catalog errors.
    /// </summary>
    /// <param name="summary">Reference catalog summary.</param>
-   /// <param name="showAll">True to show all errors; false to show the default limited list.</param>
+   /// <param name="options">Reference error list options.</param>
    public static void ShowErrors(
       WhenItFailsReferenceCatalogSummary summary,
-      bool showAll)
+      WhenItFailsReferenceErrorListOptions options)
    {
       ArgumentNullException.ThrowIfNull(summary);
+      ArgumentNullException.ThrowIfNull(options);
 
       const int DefaultLimit = 20;
 
-      IReadOnlyList<WhenItFailsReferenceErrorSummary> errors = showAll
-         ? summary.Errors
-         : summary.Errors.Take(DefaultLimit).ToList();
+      List<WhenItFailsReferenceErrorSummary> matchingErrors = summary.Errors
+         .Where(error => MatchesErrorListOptions(error, options))
+         .ToList();
+
+      IReadOnlyList<WhenItFailsReferenceErrorSummary> errors = options.ShowAll
+         ? matchingErrors
+         : matchingErrors.Take(DefaultLimit).ToList();
 
       Table table = new();
 
@@ -178,14 +183,44 @@ internal static class ReferenceView
 
       AnsiConsole.Write(table);
 
-      if (!showAll && summary.Errors.Count > DefaultLimit)
+      if (!options.ShowAll && matchingErrors.Count > DefaultLimit)
       {
-         int hiddenCount = summary.Errors.Count - DefaultLimit;
+         int hiddenCount = matchingErrors.Count - DefaultLimit;
 
          AnsiConsole.MarkupLine(
-            "[grey]{0} more error(s) hidden. Use [white]reference errors --all[/] to show all.[/]",
+            "[grey]{0} more error(s) hidden. Use [white]reference errors --all[/] to show all matching errors.[/]",
             hiddenCount);
       }
+   }
+
+   private static bool MatchesErrorListOptions(
+      WhenItFailsReferenceErrorSummary error,
+      WhenItFailsReferenceErrorListOptions options)
+   {
+      if (!string.IsNullOrWhiteSpace(options.CodeGroup)
+          && !string.Equals(
+             error.CodeGroup,
+             options.CodeGroup,
+             StringComparison.OrdinalIgnoreCase))
+      {
+         return false;
+      }
+
+      if (!string.IsNullOrWhiteSpace(options.Category)
+          && !string.Equals(
+             error.PrimaryCategory,
+             options.Category,
+             StringComparison.OrdinalIgnoreCase)
+          && !error.CategoryNames.Any(categoryName =>
+             string.Equals(
+                categoryName,
+                options.Category,
+                StringComparison.OrdinalIgnoreCase)))
+      {
+         return false;
+      }
+
+      return true;
    }
 
 

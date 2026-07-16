@@ -12,6 +12,10 @@ public sealed class ReferenceCommandTests
     [InlineData("reference", "code-groups")]
     [InlineData("reference", "errors")]
     [InlineData("reference", "errors", "--all")]
+    [InlineData("reference", "errors", "--group", "CONFIGURATION")]
+    [InlineData("reference", "errors", "--category", "NETWORK")]
+    [InlineData("reference", "errors", "--all", "--group", "NETWORK")]
+    [InlineData("reference", "errors", "--category", "VALIDATION", "--all")]
     [InlineData("reference", "error", "AFW-CFG-0001")]
     [InlineData("reference", "error", "MissingConfigurationValue")]
     public async Task ExecuteAsync_WithSupportedReferenceCommand_ReturnsSuccess(
@@ -45,6 +49,20 @@ public sealed class ReferenceCommandTests
     {
         int exitCode = await ReferenceCommand.ExecuteAsync(
             ["reference", "errors", "--unknown"]);
+
+        Assert.Equal(1, exitCode);
+    }
+
+    [Theory]
+    [InlineData("reference", "errors", "--group")]
+    [InlineData("reference", "errors", "--category")]
+    [InlineData("reference", "errors", "--all", "--all")]
+    [InlineData("reference", "errors", "--group", "NETWORK", "--group", "HTTP")]
+    [InlineData("reference", "errors", "--category", "NETWORK", "--category", "HTTP")]
+    public async Task ExecuteAsync_WithInvalidErrorsFilter_ReturnsCommandInputError(
+        params string[] args)
+    {
+        int exitCode = await ReferenceCommand.ExecuteAsync(args);
 
         Assert.Equal(1, exitCode);
     }

@@ -21,9 +21,10 @@ internal static class ReferenceCommand
          ? "summary"
          : args[1].Trim().ToLowerInvariant();
 
-      if (!IsValidArgumentShape(
+      if (!TryParseArguments(
              args,
-             subcommand))
+             subcommand,
+             out WhenItFailsReferenceErrorListOptions errorListOptions))
       {
          ShowInvalidUsage();
 
@@ -65,12 +66,9 @@ internal static class ReferenceCommand
 
       if (subcommand == "errors")
       {
-         bool showAll = args.Length == 3
-                        && string.Equals(args[2], "--all", StringComparison.OrdinalIgnoreCase);
-
          ReferenceView.ShowErrors(
             summary,
-            showAll);
+            errorListOptions);
 
          return 0;
       }
@@ -87,30 +85,77 @@ internal static class ReferenceCommand
       return 1;
    }
 
-   private static bool IsValidArgumentShape(
+   private static bool TryParseArguments(
       string[] args,
-      string subcommand)
+      string subcommand,
+      out WhenItFailsReferenceErrorListOptions errorListOptions)
    {
-      if (args.Length > 3)
+      errorListOptions = new();
+
+      if (subcommand == "error")
       {
+         return args.Length == 3
+                && !string.IsNullOrWhiteSpace(args[2]);
+      }
+
+      if (subcommand != "errors")
+      {
+         return args.Length <= 2;
+      }
+
+      int index = 2;
+
+      while (index < args.Length)
+      {
+         string argument = args[index];
+
+         if (string.Equals(argument, "--all", StringComparison.OrdinalIgnoreCase))
+         {
+            if (errorListOptions.ShowAll)
+            {
+               return false;
+            }
+
+            errorListOptions.ShowAll = true;
+            index++;
+
+            continue;
+         }
+
+         if (string.Equals(argument, "--group", StringComparison.OrdinalIgnoreCase))
+         {
+            if (!string.IsNullOrWhiteSpace(errorListOptions.CodeGroup)
+                || index + 1 >= args.Length
+                || string.IsNullOrWhiteSpace(args[index + 1]))
+            {
+               return false;
+            }
+
+            errorListOptions.CodeGroup = args[index + 1];
+            index += 2;
+
+            continue;
+         }
+
+         if (string.Equals(argument, "--category", StringComparison.OrdinalIgnoreCase))
+         {
+            if (!string.IsNullOrWhiteSpace(errorListOptions.Category)
+                || index + 1 >= args.Length
+                || string.IsNullOrWhiteSpace(args[index + 1]))
+            {
+               return false;
+            }
+
+            errorListOptions.Category = args[index + 1];
+            index += 2;
+
+            continue;
+         }
+
          return false;
       }
 
-      if (args.Length < 3)
-      {
-         return subcommand != "error";
-      }
-
-      if (subcommand == "errors")
-      {
-         return string.Equals(
-            args[2],
-            "--all",
-            StringComparison.OrdinalIgnoreCase);
-      }
-
-      return subcommand == "error"
-             && !string.IsNullOrWhiteSpace(args[2]);
+      return true;
    }
 
    private static int ShowError(
@@ -153,6 +198,8 @@ internal static class ReferenceCommand
       AnsiConsole.MarkupLine("  [grey]reference code-groups[/]");
       AnsiConsole.MarkupLine("  [grey]reference errors[/]");
       AnsiConsole.MarkupLine("  [grey]reference errors --all[/]");
+      AnsiConsole.MarkupLine("  [grey]reference errors --group <code-group>[/]");
+      AnsiConsole.MarkupLine("  [grey]reference errors --category <category>[/]");
       AnsiConsole.MarkupLine("  [grey]reference error <id-or-name>[/]");
    }
 
