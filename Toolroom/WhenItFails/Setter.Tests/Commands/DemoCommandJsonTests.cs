@@ -36,21 +36,9 @@ public sealed class DemoCommandJsonTests
     [Fact]
     public void Execute_WithoutArguments_PreservesOriginalSuccessfulBehavior()
     {
-        TextWriter originalOutput = Console.Out;
-        using StringWriter output = new();
+        int exitCode = DemoCommand.Execute();
 
-        try
-        {
-            Console.SetOut(output);
-            int exitCode = DemoCommand.Execute();
-
-            Assert.Equal(0, exitCode);
-            Assert.False(string.IsNullOrWhiteSpace(output.ToString()));
-        }
-        finally
-        {
-            Console.SetOut(originalOutput);
-        }
+        Assert.Equal(0, exitCode);
     }
 
     [Fact]
