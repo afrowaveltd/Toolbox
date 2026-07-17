@@ -17,14 +17,13 @@ internal static class ReferenceCommand
    {
       ArgumentNullException.ThrowIfNull(args);
 
-      string subcommand = args.Length < 2
-         ? "summary"
-         : args[1].Trim().ToLowerInvariant();
+      string subcommand = ResolveSubcommand(args);
 
       if (!TryParseArguments(
              args,
              subcommand,
-             out WhenItFailsReferenceErrorListOptions errorListOptions))
+             out WhenItFailsReferenceErrorListOptions errorListOptions,
+             out bool useJsonOutput))
       {
          ShowInvalidUsage();
 
@@ -38,28 +37,56 @@ internal static class ReferenceCommand
 
       if (subcommand == "summary")
       {
-         ReferenceView.Show(summary);
+         if (useJsonOutput)
+         {
+            CommandJsonOutput.Write("reference", new ReferenceResult("summary", summary));
+         }
+         else
+         {
+            ReferenceView.Show(summary);
+         }
 
          return 0;
       }
 
       if (subcommand == "profiles")
       {
-         ReferenceView.ShowProfiles(summary);
+         if (useJsonOutput)
+         {
+            CommandJsonOutput.Write("reference", new ReferenceResult("profiles", summary.Profiles));
+         }
+         else
+         {
+            ReferenceView.ShowProfiles(summary);
+         }
 
          return 0;
       }
 
       if (subcommand == "categories")
       {
-         ReferenceView.ShowCategories(summary);
+         if (useJsonOutput)
+         {
+            CommandJsonOutput.Write("reference", new ReferenceResult("categories", summary.Categories));
+         }
+         else
+         {
+            ReferenceView.ShowCategories(summary);
+         }
 
          return 0;
       }
 
       if (subcommand == "code-groups")
       {
-         ReferenceView.ShowCodeGroups(summary);
+         if (useJsonOutput)
+         {
+            CommandJsonOutput.Write("reference", new ReferenceResult("code-groups", summary.CodeGroups));
+         }
+         else
+         {
+            ReferenceView.ShowCodeGroups(summary);
+         }
 
          return 0;
       }
@@ -92,12 +119,22 @@ internal static class ReferenceCommand
       return 1;
    }
 
+   private static string ResolveSubcommand(string[] args)
+   {
+      return args.Length < 2
+             || string.Equals(args[1], "--json", StringComparison.OrdinalIgnoreCase)
+         ? "summary"
+         : args[1].Trim().ToLowerInvariant();
+   }
+
    private static bool TryParseArguments(
       string[] args,
       string subcommand,
-      out WhenItFailsReferenceErrorListOptions errorListOptions)
+      out WhenItFailsReferenceErrorListOptions errorListOptions,
+      out bool useJsonOutput)
    {
       errorListOptions = new();
+      useJsonOutput = false;
 
       if (subcommand is "error" or "profile")
       {
@@ -105,11 +142,39 @@ internal static class ReferenceCommand
                 && !string.IsNullOrWhiteSpace(args[2]);
       }
 
-      if (subcommand != "errors")
+      if (subcommand == "errors")
+      {
+         return TryParseErrorListArguments(args, errorListOptions);
+      }
+
+      if (subcommand is not ("summary" or "profiles" or "categories" or "code-groups"))
       {
          return args.Length <= 2;
       }
 
+      int optionStartIndex = args.Length >= 2
+                             && string.Equals(args[1], "--json", StringComparison.OrdinalIgnoreCase)
+         ? 1
+         : 2;
+
+      for (int index = optionStartIndex; index < args.Length; index++)
+      {
+         if (!string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase)
+             || useJsonOutput)
+         {
+            return false;
+         }
+
+         useJsonOutput = true;
+      }
+
+      return true;
+   }
+
+   private static bool TryParseErrorListArguments(
+      string[] args,
+      WhenItFailsReferenceErrorListOptions errorListOptions)
+   {
       int index = 2;
 
       while (index < args.Length)
@@ -223,12 +288,12 @@ internal static class ReferenceCommand
    {
       AnsiConsole.MarkupLine("[red]Invalid reference command usage.[/]");
       AnsiConsole.MarkupLine("Usage:");
-      AnsiConsole.MarkupLine("  [grey]reference[/]");
-      AnsiConsole.MarkupLine("  [grey]reference summary[/]");
-      AnsiConsole.MarkupLine("  [grey]reference profiles[/]");
+      AnsiConsole.MarkupLine("  [grey]reference [[--json]][/]");
+      AnsiConsole.MarkupLine("  [grey]reference summary [[--json]][/]");
+      AnsiConsole.MarkupLine("  [grey]reference profiles [[--json]][/]");
       AnsiConsole.MarkupLine("  [grey]reference profile <name>[/]");
-      AnsiConsole.MarkupLine("  [grey]reference categories[/]");
-      AnsiConsole.MarkupLine("  [grey]reference code-groups[/]");
+      AnsiConsole.MarkupLine("  [grey]reference categories [[--json]][/]");
+      AnsiConsole.MarkupLine("  [grey]reference code-groups [[--json]][/]");
       AnsiConsole.MarkupLine("  [grey]reference errors[/]");
       AnsiConsole.MarkupLine("  [grey]reference errors --all[/]");
       AnsiConsole.MarkupLine("  [grey]reference errors --group <code-group>[/]");
@@ -244,4 +309,8 @@ internal static class ReferenceCommand
 
       ShowInvalidUsage();
    }
+
+   private sealed record ReferenceResult(
+      string Subcommand,
+      object Value);
 }
