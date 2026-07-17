@@ -12,73 +12,95 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 /// </summary>
 internal static class ErrorsCommand
 {
+    private const string Usage =
+        "errors <path> [--owner <value>] [--group|--code-group <value>] [--category <value>] [--severity <value>] [--profile <value>] [--search <value>] [--plain|--json]";
+
     /// <summary>
     /// Executes the errors command.
     /// </summary>
     /// <param name="args">The full command-line arguments (args[0] is "errors").</param>
-    /// <returns>Exit code: 0 on success, 1 on missing path or unknown profile, 2 on validation errors.</returns>
+    /// <returns>Exit code: 0 on success, 1 on input errors or unknown profile, 2 on validation errors.</returns>
     public static async Task<int> ExecuteAsync(string[] args)
     {
         if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
         {
-            ErrorCatalogValidationResult missingPathResult = new();
+            CommandInputError.Show(
+                "MissingErrorsPath",
+                "The errors command requires a project root or Jsons/WhenItFails directory path.",
+                Usage);
+            return 1;
+        }
 
-            missingPathResult.AddError(
-                code: "MissingErrorsPath",
-                message: "The errors command requires a project root or Jsons/WhenItFails directory path.",
-                path: "errors <path>");
-
-            new ConsoleValidationResultShow().Show(
-                missingPathResult,
-                new ConsoleShowOptions
-                {
-                    SourcePath = "command line"
-                });
-
+        if (!TryParseErrorListOptions(args, out ErrorListOptions errorListOptions))
+        {
+            CommandInputError.Show(
+                "InvalidErrorsArguments",
+                "The errors command received an unknown, duplicate, conflicting, or incomplete option.",
+                Usage);
             return 1;
         }
 
         string inputPath = args[1];
-        ErrorListOptions errorListOptions = ParseErrorListOptions(args);
-
-        WhenItFailsWorkspaceValidator validator = new();
-
         WhenItFailsWorkspaceValidationOutcome validationOutcome =
-            await validator.ValidateAsync(inputPath);
+            await new WhenItFailsWorkspaceValidator().ValidateAsync(inputPath);
 
         if (!validationOutcome.ValidationResult.IsValid)
         {
-            new ConsoleValidationResultShow().Show(
-                validationOutcome.ValidationResult,
-                new ConsoleShowOptions
-                {
-                    SourcePath = validationOutcome.DisplayPath
-                });
+            if (errorListOptions.UseJsonOutput)
+            {
+                CommandJsonOutput.Write(
+                    "errors",
+                    new ErrorsResult(
+                        Loaded: false,
+                        Errors: null,
+                        Options: errorListOptions,
+                        FailureCode: null,
+                        FailureMessage: null,
+                        Validation: validationOutcome.ValidationResult));
+            }
+            else
+            {
+                new ConsoleValidationResultShow().Show(
+                    validationOutcome.ValidationResult,
+                    new ConsoleShowOptions { SourcePath = validationOutcome.DisplayPath });
+            }
 
             return 2;
         }
 
-        WhenItFailsWorkspaceSummarizer summarizer = new();
-
         WhenItFailsWorkspaceSummary summary =
-            await summarizer.LoadAsync(inputPath);
+            await new WhenItFailsWorkspaceSummarizer().LoadAsync(inputPath);
 
         if (!string.IsNullOrWhiteSpace(errorListOptions.Profile)
             && FindProfile(summary, errorListOptions.Profile) is null)
         {
-            ErrorCatalogValidationResult unknownProfileResult = new();
+            const string failureCode = "UnknownProfileFilter";
+            string failureMessage =
+                $"The selected profile '{errorListOptions.Profile}' does not exist.";
 
-            unknownProfileResult.AddError(
-                code: "UnknownProfileFilter",
-                message: $"The selected profile '{errorListOptions.Profile}' does not exist.",
-                path: "--profile");
-
-            new ConsoleValidationResultShow().Show(
-                unknownProfileResult,
-                new ConsoleShowOptions
-                {
-                    SourcePath = summary.DisplayPath
-                });
+            if (errorListOptions.UseJsonOutput)
+            {
+                CommandJsonOutput.Write(
+                    "errors",
+                    new ErrorsResult(
+                        Loaded: true,
+                        Errors: null,
+                        Options: errorListOptions,
+                        FailureCode: failureCode,
+                        FailureMessage: failureMessage,
+                        Validation: null));
+            }
+            else
+            {
+                ErrorCatalogValidationResult unknownProfileResult = new();
+                unknownProfileResult.AddError(
+                    failureCode,
+                    failureMessage,
+                    "--profile");
+                new ConsoleValidationResultShow().Show(
+                    unknownProfileResult,
+                    new ConsoleShowOptions { SourcePath = summary.DisplayPath });
+            }
 
             return 1;
         }
@@ -88,48 +110,99 @@ internal static class ErrorsCommand
 
         if (errorListOptions.UsePlainOutput)
         {
-            ErrorsView.ShowPlain(
-                summary,
-                filteredErrors,
-                errorListOptions);
+            ErrorsView.ShowPlain(summary, filteredErrors, errorListOptions);
+        }
+        else if (errorListOptions.UseJsonOutput)
+        {
+            CommandJsonOutput.Write(
+                "errors",
+                new ErrorsResult(
+                    Loaded: true,
+                    Errors: filteredErrors,
+                    Options: errorListOptions,
+                    FailureCode: null,
+                    FailureMessage: null,
+                    Validation: null));
         }
         else
         {
-            ErrorsView.Show(
-                summary,
-                filteredErrors,
-                errorListOptions);
+            ErrorsView.Show(summary, filteredErrors, errorListOptions);
         }
 
         return 0;
     }
 
     /// <summary>
+    /// Parses and validates error list filter options from command-line arguments.
+    /// </summary>
+    public static bool TryParseErrorListOptions(
+        string[] args,
+        out ErrorListOptions options)
+    {
+        options = new ErrorListOptions();
+        HashSet<string> seenOptions = new(StringComparer.OrdinalIgnoreCase);
+
+        for (int index = 2; index < args.Length; index++)
+        {
+            string argument = args[index];
+
+            if (string.Equals(argument, "--plain", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!seenOptions.Add("--plain") || options.UseJsonOutput)
+                {
+                    return false;
+                }
+
+                options.UsePlainOutput = true;
+                continue;
+            }
+
+            if (string.Equals(argument, "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!seenOptions.Add("--json") || options.UsePlainOutput)
+                {
+                    return false;
+                }
+
+                options.UseJsonOutput = true;
+                continue;
+            }
+
+            string normalizedOption = string.Equals(
+                argument,
+                "--code-group",
+                StringComparison.OrdinalIgnoreCase)
+                ? "--group"
+                : argument;
+
+            if (!IsValueOption(normalizedOption)
+                || !seenOptions.Add(normalizedOption)
+                || index + 1 >= args.Length
+                || args[index + 1].StartsWith("--", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            string value = args[++index];
+            SetOptionValue(options, normalizedOption, value);
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Parses error list filter options from command-line arguments.
     /// </summary>
-    /// <param name="args">The command-line arguments.</param>
-    /// <returns>The parsed error list options.</returns>
     public static ErrorListOptions ParseErrorListOptions(string[] args)
     {
-        return new ErrorListOptions
-        {
-            UsePlainOutput = HasSwitch(args, "--plain"),
-            Owner = ReadOptionValue(args, "--owner"),
-            CodeGroup = ReadOptionValue(args, "--group")
-                        ?? ReadOptionValue(args, "--code-group"),
-            Category = ReadOptionValue(args, "--category"),
-            Severity = ReadOptionValue(args, "--severity"),
-            Profile = ReadOptionValue(args, "--profile"),
-            SearchText = ReadOptionValue(args, "--search")
-        };
+        return TryParseErrorListOptions(args, out ErrorListOptions options)
+            ? options
+            : new ErrorListOptions();
     }
 
     /// <summary>
     /// Applies all active filters to the error definitions.
     /// </summary>
-    /// <param name="summary">The workspace summary.</param>
-    /// <param name="errorListOptions">The filter options.</param>
-    /// <returns>The filtered error definitions.</returns>
     public static IEnumerable<ErrorDefinition> ApplyErrorFilters(
         WhenItFailsWorkspaceSummary summary,
         ErrorListOptions errorListOptions)
@@ -147,30 +220,25 @@ internal static class ErrorsCommand
                 profile);
         }
 
-        errors = errors.Where(errorDefinition =>
+        return errors.Where(errorDefinition =>
             MatchesOptionalFilter(errorDefinition.Owner, errorListOptions.Owner)
             && MatchesOptionalFilter(errorDefinition.CodeGroup, errorListOptions.CodeGroup)
             && MatchesOptionalFilter(errorDefinition.PrimaryCategory, errorListOptions.Category)
             && MatchesOptionalFilter(errorDefinition.DefaultSeverity, errorListOptions.Severity)
             && MatchesSearchText(errorDefinition, errorListOptions.SearchText));
-
-        return errors;
     }
 
     /// <summary>
     /// Finds an error definition by id, numeric code, or name.
     /// </summary>
-    /// <param name="summary">The workspace summary.</param>
-    /// <param name="lookupValue">The id, code, or name to search for.</param>
-    /// <returns>The matching error definition, or null if not found.</returns>
     public static ErrorDefinition? FindErrorDefinition(
         WhenItFailsWorkspaceSummary summary,
         string lookupValue)
     {
         if (int.TryParse(lookupValue, out int numericCode))
         {
-            ErrorDefinition? byCode = summary.ErrorCatalog.Errors.FirstOrDefault(errorDefinition =>
-                errorDefinition.Code == numericCode);
+            ErrorDefinition? byCode = summary.ErrorCatalog.Errors.FirstOrDefault(
+                errorDefinition => errorDefinition.Code == numericCode);
 
             if (byCode is not null)
             {
@@ -179,50 +247,67 @@ internal static class ErrorsCommand
         }
 
         return summary.ErrorCatalog.Errors.FirstOrDefault(errorDefinition =>
-            string.Equals(
-                errorDefinition.Id,
-                lookupValue,
-                StringComparison.OrdinalIgnoreCase)
-            || string.Equals(
-                errorDefinition.Name,
-                lookupValue,
-                StringComparison.OrdinalIgnoreCase));
+            string.Equals(errorDefinition.Id, lookupValue, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(errorDefinition.Name, lookupValue, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
     /// Finds a profile by name or display name.
     /// </summary>
-    /// <param name="summary">The workspace summary.</param>
-    /// <param name="profileName">The profile name or display name.</param>
-    /// <returns>The matching profile, or null if not found.</returns>
     public static ErrorProfileDefinition? FindProfile(
         WhenItFailsWorkspaceSummary summary,
         string profileName)
     {
         return summary.ProfileCatalog.Profiles.FirstOrDefault(profile =>
-            string.Equals(
-                profile.Name,
-                profileName,
-                StringComparison.OrdinalIgnoreCase)
-            || string.Equals(
-                profile.DisplayName,
-                profileName,
-                StringComparison.OrdinalIgnoreCase));
+            string.Equals(profile.Name, profileName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(profile.DisplayName, profileName, StringComparison.OrdinalIgnoreCase));
     }
 
-    private static bool MatchesOptionalFilter(
-        string value,
-        string? filter)
+    private static bool IsValueOption(string option)
     {
-        if (string.IsNullOrWhiteSpace(filter))
-        {
-            return true;
-        }
+        return option.Equals("--owner", StringComparison.OrdinalIgnoreCase)
+               || option.Equals("--group", StringComparison.OrdinalIgnoreCase)
+               || option.Equals("--category", StringComparison.OrdinalIgnoreCase)
+               || option.Equals("--severity", StringComparison.OrdinalIgnoreCase)
+               || option.Equals("--profile", StringComparison.OrdinalIgnoreCase)
+               || option.Equals("--search", StringComparison.OrdinalIgnoreCase);
+    }
 
-        return string.Equals(
-            value,
-            filter,
-            StringComparison.OrdinalIgnoreCase);
+    private static void SetOptionValue(
+        ErrorListOptions options,
+        string option,
+        string value)
+    {
+        if (option.Equals("--owner", StringComparison.OrdinalIgnoreCase))
+        {
+            options.Owner = value;
+        }
+        else if (option.Equals("--group", StringComparison.OrdinalIgnoreCase))
+        {
+            options.CodeGroup = value;
+        }
+        else if (option.Equals("--category", StringComparison.OrdinalIgnoreCase))
+        {
+            options.Category = value;
+        }
+        else if (option.Equals("--severity", StringComparison.OrdinalIgnoreCase))
+        {
+            options.Severity = value;
+        }
+        else if (option.Equals("--profile", StringComparison.OrdinalIgnoreCase))
+        {
+            options.Profile = value;
+        }
+        else if (option.Equals("--search", StringComparison.OrdinalIgnoreCase))
+        {
+            options.SearchText = value;
+        }
+    }
+
+    private static bool MatchesOptionalFilter(string value, string? filter)
+    {
+        return string.IsNullOrWhiteSpace(filter)
+               || string.Equals(value, filter, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool MatchesSearchText(
@@ -249,72 +334,24 @@ internal static class ErrorsCommand
                || ContainsAnyText(errorDefinition.Tags, searchText);
     }
 
-    private static bool ContainsText(
-        string? value,
-        string searchText)
+    private static bool ContainsText(string? value, string searchText)
     {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return false;
-        }
-
-        return value.Contains(
-            searchText,
-            StringComparison.OrdinalIgnoreCase);
+        return !string.IsNullOrWhiteSpace(value)
+               && value.Contains(searchText, StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool ContainsAnyText(
         IReadOnlyCollection<string> values,
         string searchText)
     {
-        return values.Any(value =>
-            ContainsText(
-                value,
-                searchText));
+        return values.Any(value => ContainsText(value, searchText));
     }
 
-    private static bool HasSwitch(
-        string[] args,
-        string switchName)
-    {
-        return args.Any(argument =>
-            string.Equals(
-                argument,
-                switchName,
-                StringComparison.OrdinalIgnoreCase));
-    }
-
-    private static string? ReadOptionValue(
-        string[] args,
-        string optionName)
-    {
-        for (int index = 0; index < args.Length; index++)
-        {
-            if (!string.Equals(
-                    args[index],
-                    optionName,
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
-            int valueIndex = index + 1;
-
-            if (valueIndex >= args.Length)
-            {
-                return null;
-            }
-
-            string value = args[valueIndex];
-
-            if (value.StartsWith("--", StringComparison.Ordinal))
-            {
-                return null;
-            }
-
-            return value;
-        }
-
-        return null;
-    }
+    private sealed record ErrorsResult(
+        bool Loaded,
+        IReadOnlyList<ErrorDefinition>? Errors,
+        ErrorListOptions Options,
+        string? FailureCode,
+        string? FailureMessage,
+        ErrorCatalogValidationResult? Validation);
 }
