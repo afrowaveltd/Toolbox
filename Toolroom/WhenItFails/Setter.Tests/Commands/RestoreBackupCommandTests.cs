@@ -44,7 +44,7 @@ public sealed class RestoreBackupCommandTests
         string backupPath = Path.Combine(
             workspace.WhenItFailsJsonsPath,
             "profiles.20260718T050000000Z.bak.json");
-        await File.CopyAsync(activePath, backupPath);
+        File.Copy(activePath, backupPath);
 
         int exitCode = await RestoreBackupCommand.ExecuteAsync(
         [
