@@ -24,10 +24,10 @@ internal static class HelpView
             "[green]errors[/] [grey]<path>[/] [grey][[--plain]][/]",
             "List error definitions. Supports --owner, --group, --category, --severity, --profile, --search.");
         commandGrid.AddRow(
-            "[green]list-profiles[/] [grey]<path>[/] [grey][[--plain]][/]",
+            "[green]list-profiles[/] [grey]<path>[/] [grey][[--plain|--json]][/]",
             "List profiles from a validated WhenItFails workspace.");
         commandGrid.AddRow(
-            "[green]show-profile[/] [grey]<path>[/] [grey]<profile-name>[/] [grey][[--plain]][/]",
+            "[green]show-profile[/] [grey]<path>[/] [grey]<profile-name>[/] [grey][[--plain|--json]][/]",
             "Show one profile from a validated WhenItFails workspace.");
         commandGrid.AddRow(
             "[green]explain-profile[/] [grey]<path>[/] [grey]<profile-name|display-name>[/] [grey][[--plain|--json]][/]",
@@ -105,10 +105,10 @@ internal static class HelpView
             "[green]profile-remove-metadata[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<metadata-key>[/] [grey][[--json]][/]",
             "Safely remove one metadata value from a profile.");
         commandGrid.AddRow(
-            "[green]list-categories[/] [grey]<path>[/] [grey][[--plain]][/]",
+            "[green]list-categories[/] [grey]<path>[/] [grey][[--plain|--json]][/]",
             "List categories from a validated WhenItFails workspace.");
         commandGrid.AddRow(
-            "[green]show-category[/] [grey]<path>[/] [grey]<category-name>[/] [grey][[--plain]][/]",
+            "[green]show-category[/] [grey]<path>[/] [grey]<category-name>[/] [grey][[--plain|--json]][/]",
             "Show one category by name, display name, or alias.");
         commandGrid.AddRow(
             "[green]list-code-groups[/] [grey]<path>[/] [grey][[--plain]][/]",
