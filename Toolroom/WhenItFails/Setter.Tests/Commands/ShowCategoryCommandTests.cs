@@ -5,25 +5,42 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 public sealed class ShowCategoryCommandTests
 {
     [Fact]
-    public void TryParseOptions_WithoutOptionalSwitch_ReturnsTrueAndPlainFalse()
+    public void TryParseOptions_WithoutOptionalSwitch_ReturnsRichOutput()
     {
         bool result = ShowCategoryCommand.TryParseOptions(
             ["show-category", ".", "NETWORK"],
-            out bool usePlainOutput);
+            out bool usePlainOutput,
+            out bool useJsonOutput);
 
         Assert.True(result);
         Assert.False(usePlainOutput);
+        Assert.False(useJsonOutput);
     }
 
     [Fact]
-    public void TryParseOptions_WithPlainSwitch_ReturnsTrueAndPlainTrue()
+    public void TryParseOptions_WithPlainSwitch_ReturnsPlainOutput()
     {
         bool result = ShowCategoryCommand.TryParseOptions(
             ["show-category", ".", "NETWORK", "--plain"],
-            out bool usePlainOutput);
+            out bool usePlainOutput,
+            out bool useJsonOutput);
 
         Assert.True(result);
         Assert.True(usePlainOutput);
+        Assert.False(useJsonOutput);
+    }
+
+    [Fact]
+    public void TryParseOptions_WithJsonSwitch_ReturnsJsonOutput()
+    {
+        bool result = ShowCategoryCommand.TryParseOptions(
+            ["show-category", ".", "NETWORK", "--JSON"],
+            out bool usePlainOutput,
+            out bool useJsonOutput);
+
+        Assert.True(result);
+        Assert.False(usePlainOutput);
+        Assert.True(useJsonOutput);
     }
 
     [Fact]
@@ -31,16 +48,24 @@ public sealed class ShowCategoryCommandTests
     {
         bool result = ShowCategoryCommand.TryParseOptions(
             ["show-category", ".", "NETWORK", "--unknown"],
+            out _,
             out _);
 
         Assert.False(result);
     }
 
-    [Fact]
-    public void TryParseOptions_WithDuplicatePlainSwitch_ReturnsFalse()
+    [Theory]
+    [InlineData("--plain", "--plain")]
+    [InlineData("--json", "--json")]
+    [InlineData("--plain", "--json")]
+    [InlineData("--json", "--plain")]
+    public void TryParseOptions_WithConflictingOutputSwitches_ReturnsFalse(
+        string firstSwitch,
+        string secondSwitch)
     {
         bool result = ShowCategoryCommand.TryParseOptions(
-            ["show-category", ".", "NETWORK", "--plain", "--plain"],
+            ["show-category", ".", "NETWORK", firstSwitch, secondSwitch],
+            out _,
             out _);
 
         Assert.False(result);
