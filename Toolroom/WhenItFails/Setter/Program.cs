@@ -15,7 +15,7 @@ try
 {
     if (command == "demo")
     {
-        return DemoCommand.Execute();
+        return DemoCommand.Execute(args);
     }
 
     if (command == "init")
