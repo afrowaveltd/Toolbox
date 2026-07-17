@@ -39,7 +39,7 @@ internal static class HelpView
             "[green]remove-profile[/] [grey]<path>[/] [grey]<name>[/] [grey][[--json]][/]",
             "Safely remove one project profile.");
         commandGrid.AddRow(
-            "[green]set-profile-display-name[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<display-name>[/]",
+            "[green]set-profile-display-name[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<display-name>[/] [grey][[--json]][/]",
             "Safely change the human-readable name of one profile.");
         commandGrid.AddRow(
             "[green]set-profile-description[/] [grey]<path>[/] [grey]<profile-name>[/] [grey]<description>[/] [grey][[--json]][/]",
