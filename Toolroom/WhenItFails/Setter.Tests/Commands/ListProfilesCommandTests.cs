@@ -12,10 +12,12 @@ public sealed class ListProfilesCommandTests
 
         bool isValid = ListProfilesCommand.TryParseOptions(
             args,
-            out bool usePlainOutput);
+            out bool usePlainOutput,
+            out bool useJsonOutput);
 
         Assert.True(isValid);
         Assert.False(usePlainOutput);
+        Assert.False(useJsonOutput);
     }
 
     [Theory]
@@ -27,38 +29,63 @@ public sealed class ListProfilesCommandTests
 
         bool isValid = ListProfilesCommand.TryParseOptions(
             args,
-            out bool usePlainOutput);
+            out bool usePlainOutput,
+            out bool useJsonOutput);
 
         Assert.True(isValid);
         Assert.True(usePlainOutput);
+        Assert.False(useJsonOutput);
     }
 
     [Theory]
     [InlineData("--json")]
-    [InlineData("unexpected")]
-    public void TryParseOptions_WithUnknownArgument_ReturnsInvalid(string unknownArgument)
+    [InlineData("--JSON")]
+    public void TryParseOptions_WithJsonSwitch_ReturnsJsonOutput(string jsonSwitch)
     {
-        string[] args = ["list-profiles", ".", unknownArgument];
+        string[] args = ["list-profiles", ".", jsonSwitch];
 
         bool isValid = ListProfilesCommand.TryParseOptions(
             args,
-            out bool usePlainOutput);
+            out bool usePlainOutput,
+            out bool useJsonOutput);
 
-        Assert.False(isValid);
+        Assert.True(isValid);
         Assert.False(usePlainOutput);
+        Assert.True(useJsonOutput);
     }
 
     [Fact]
-    public void TryParseOptions_WithDuplicatePlainSwitch_ReturnsInvalid()
+    public void TryParseOptions_WithUnknownArgument_ReturnsInvalid()
     {
-        string[] args = ["list-profiles", ".", "--plain", "--plain"];
+        string[] args = ["list-profiles", ".", "unexpected"];
 
         bool isValid = ListProfilesCommand.TryParseOptions(
             args,
-            out bool usePlainOutput);
+            out bool usePlainOutput,
+            out bool useJsonOutput);
 
         Assert.False(isValid);
-        Assert.True(usePlainOutput);
+        Assert.False(usePlainOutput);
+        Assert.False(useJsonOutput);
+    }
+
+    [Theory]
+    [InlineData("--plain", "--plain")]
+    [InlineData("--json", "--json")]
+    [InlineData("--plain", "--json")]
+    [InlineData("--json", "--plain")]
+    public void TryParseOptions_WithDuplicateOrConflictingOutputSwitches_ReturnsInvalid(
+        string firstSwitch,
+        string secondSwitch)
+    {
+        string[] args = ["list-profiles", ".", firstSwitch, secondSwitch];
+
+        bool isValid = ListProfilesCommand.TryParseOptions(
+            args,
+            out _,
+            out _);
+
+        Assert.False(isValid);
     }
 
     [Fact]
