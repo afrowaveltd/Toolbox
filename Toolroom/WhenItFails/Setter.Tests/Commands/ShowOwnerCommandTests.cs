@@ -5,36 +5,42 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 public sealed class ShowOwnerCommandTests
 {
     [Fact]
-    public void TryParseOptions_WithoutOptionalSwitch_ReturnsTrueAndPlainFalse()
+    public void TryParseOptions_WithoutOptionalSwitch_ReturnsRichOutput()
     {
         bool result = ShowOwnerCommand.TryParseOptions(
             ["show-owner", ".", "AFW"],
-            out bool usePlainOutput);
+            out bool usePlainOutput,
+            out bool useJsonOutput);
 
         Assert.True(result);
         Assert.False(usePlainOutput);
+        Assert.False(useJsonOutput);
     }
 
     [Fact]
-    public void TryParseOptions_WithPlainSwitch_ReturnsTrueAndPlainTrue()
+    public void TryParseOptions_WithPlainSwitch_ReturnsPlainOutput()
     {
         bool result = ShowOwnerCommand.TryParseOptions(
             ["show-owner", ".", "AFW", "--plain"],
-            out bool usePlainOutput);
+            out bool usePlainOutput,
+            out bool useJsonOutput);
 
         Assert.True(result);
         Assert.True(usePlainOutput);
+        Assert.False(useJsonOutput);
     }
 
     [Fact]
-    public void TryParseOptions_WithCaseInsensitivePlainSwitch_ReturnsTrue()
+    public void TryParseOptions_WithJsonSwitch_ReturnsJsonOutput()
     {
         bool result = ShowOwnerCommand.TryParseOptions(
-            ["show-owner", ".", "AFW", "--PLAIN"],
-            out bool usePlainOutput);
+            ["show-owner", ".", "AFW", "--JSON"],
+            out bool usePlainOutput,
+            out bool useJsonOutput);
 
         Assert.True(result);
-        Assert.True(usePlainOutput);
+        Assert.False(usePlainOutput);
+        Assert.True(useJsonOutput);
     }
 
     [Fact]
@@ -42,16 +48,23 @@ public sealed class ShowOwnerCommandTests
     {
         bool result = ShowOwnerCommand.TryParseOptions(
             ["show-owner", ".", "AFW", "--unknown"],
+            out _,
             out _);
 
         Assert.False(result);
     }
 
-    [Fact]
-    public void TryParseOptions_WithDuplicatePlainSwitch_ReturnsFalse()
+    [Theory]
+    [InlineData("--plain", "--plain")]
+    [InlineData("--json", "--json")]
+    [InlineData("--plain", "--json")]
+    public void TryParseOptions_WithDuplicateOrConflictingSwitches_ReturnsFalse(
+        string first,
+        string second)
     {
         bool result = ShowOwnerCommand.TryParseOptions(
-            ["show-owner", ".", "AFW", "--plain", "--plain"],
+            ["show-owner", ".", "AFW", first, second],
+            out _,
             out _);
 
         Assert.False(result);
