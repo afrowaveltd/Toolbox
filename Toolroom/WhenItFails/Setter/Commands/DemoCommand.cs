@@ -11,17 +11,12 @@ internal static class DemoCommand
     private const string SourcePath = "Jsons/WhenItFails/errors.json";
 
     /// <summary>
-    /// Executes the demo command while preserving the original parameterless dispatch contract.
+    /// Executes the original parameterless demo command.
     /// </summary>
-    /// <returns>Exit code: 0 on success, 1 on invalid arguments.</returns>
+    /// <returns>Exit code: always 0.</returns>
     public static int Execute()
     {
-        string[] processArguments = Environment.GetCommandLineArgs();
-
-        return processArguments.Length >= 2
-               && string.Equals(processArguments[1], "demo", StringComparison.OrdinalIgnoreCase)
-            ? Execute(processArguments.Skip(1).ToArray())
-            : Execute(["demo"]);
+        return Execute(["demo"]);
     }
 
     /// <summary>
