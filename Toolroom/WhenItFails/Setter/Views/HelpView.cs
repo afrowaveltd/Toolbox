@@ -16,12 +16,12 @@ internal static class HelpView
         commandGrid.AddColumn(new GridColumn().NoWrap());
         commandGrid.AddColumn();
 
-        commandGrid.AddRow("[green]init[/] [grey]<path>[/]", "Create missing WhenItFails JSON files.");
-        commandGrid.AddRow("[green]validate[/] [grey]<path>[/]", "Validate WhenItFails JSON files.");
-        commandGrid.AddRow("[green]summary[/] [grey]<path>[/]", "Show a read-only summary of a WhenItFails JSON workspace.");
-        commandGrid.AddRow("[green]inspect[/] [grey]<path>[/]", "Alias for summary.");
+        commandGrid.AddRow("[green]init[/] [grey]<path>[/] [grey][[--json]][/]", "Create missing WhenItFails JSON files.");
+        commandGrid.AddRow("[green]validate[/] [grey]<path>[/] [grey][[--json]][/]", "Validate WhenItFails JSON files.");
+        commandGrid.AddRow("[green]summary[/] [grey]<path>[/] [grey][[--json]][/]", "Show a read-only summary of a WhenItFails JSON workspace.");
+        commandGrid.AddRow("[green]inspect[/] [grey]<path>[/] [grey][[--json]][/]", "Alias for summary.");
         commandGrid.AddRow(
-            "[green]errors[/] [grey]<path>[/] [grey][[--plain]][/]",
+            "[green]errors[/] [grey]<path>[/] [grey][[--plain|--json]][/]",
             "List error definitions. Supports --owner, --group, --category, --severity, --profile, --search.");
         commandGrid.AddRow(
             "[green]list-profiles[/] [grey]<path>[/] [grey][[--plain|--json]][/]",
@@ -111,21 +111,23 @@ internal static class HelpView
             "[green]show-category[/] [grey]<path>[/] [grey]<category-name>[/] [grey][[--plain|--json]][/]",
             "Show one category by name, display name, or alias.");
         commandGrid.AddRow(
-            "[green]list-code-groups[/] [grey]<path>[/] [grey][[--plain]][/]",
+            "[green]list-code-groups[/] [grey]<path>[/] [grey][[--plain|--json]][/]",
             "List code groups from a validated WhenItFails workspace.");
         commandGrid.AddRow(
-            "[green]show-code-group[/] [grey]<path>[/] [grey]<group-name|prefix>[/] [grey][[--plain]][/]",
+            "[green]show-code-group[/] [grey]<path>[/] [grey]<group-name|prefix>[/] [grey][[--plain|--json]][/]",
             "Show one code group by name, display name, or prefix.");
         commandGrid.AddRow(
-            "[green]list-owners[/] [grey]<path>[/] [grey][[--plain]][/]",
+            "[green]list-owners[/] [grey]<path>[/] [grey][[--plain|--json]][/]",
             "List owners from a validated WhenItFails workspace.");
         commandGrid.AddRow(
-            "[green]show-owner[/] [grey]<path>[/] [grey]<owner-name|alias>[/] [grey][[--plain]][/]",
+            "[green]show-owner[/] [grey]<path>[/] [grey]<owner-name|alias>[/] [grey][[--plain|--json]][/]",
             "Show one owner by name, display name, or alias.");
         commandGrid.AddRow(
-            "[green]details[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey][[--plain]][/]",
+            "[green]details[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey][[--plain|--json]][/]",
             "Show one error definition in detail.");
-        commandGrid.AddRow("[green]detail[/] [grey]<path>[/] [grey]<id|code|name>[/]", "Alias for details.");
+        commandGrid.AddRow(
+            "[green]detail[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey][[--plain|--json]][/]",
+            "Alias for details.");
         commandGrid.AddRow(
             "[green]next-code[/] [grey]<path>[/] [grey]<owner-name|alias>[/] [grey]<group-name|prefix>[/] [grey][[--plain|--json]][/]",
             "Read-only suggestion of the first free numeric code and structured id.");
