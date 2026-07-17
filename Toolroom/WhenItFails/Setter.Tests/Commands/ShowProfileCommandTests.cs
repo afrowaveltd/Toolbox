@@ -7,16 +7,18 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Commands;
 public sealed class ShowProfileCommandTests
 {
     [Fact]
-    public void TryParseOptions_WithoutSwitch_ReturnsFalsePlainOutput()
+    public void TryParseOptions_WithoutSwitch_ReturnsFalseOutputs()
     {
         string[] args = ["show-profile", ".", "WEB"];
 
         bool result = ShowProfileCommand.TryParseOptions(
             args,
-            out bool usePlainOutput);
+            out bool usePlainOutput,
+            out bool useJsonOutput);
 
         Assert.True(result);
         Assert.False(usePlainOutput);
+        Assert.False(useJsonOutput);
     }
 
     [Fact]
@@ -26,10 +28,12 @@ public sealed class ShowProfileCommandTests
 
         bool result = ShowProfileCommand.TryParseOptions(
             args,
-            out bool usePlainOutput);
+            out bool usePlainOutput,
+            out bool useJsonOutput);
 
         Assert.True(result);
         Assert.True(usePlainOutput);
+        Assert.False(useJsonOutput);
     }
 
     [Fact]
@@ -39,19 +43,39 @@ public sealed class ShowProfileCommandTests
 
         bool result = ShowProfileCommand.TryParseOptions(
             args,
-            out bool usePlainOutput);
+            out bool usePlainOutput,
+            out bool useJsonOutput);
 
         Assert.True(result);
         Assert.True(usePlainOutput);
+        Assert.False(useJsonOutput);
+    }
+
+    [Theory]
+    [InlineData("--json")]
+    [InlineData("--JSON")]
+    public void TryParseOptions_WithJsonSwitch_ReturnsTrueJsonOutput(string jsonSwitch)
+    {
+        string[] args = ["show-profile", ".", "WEB", jsonSwitch];
+
+        bool result = ShowProfileCommand.TryParseOptions(
+            args,
+            out bool usePlainOutput,
+            out bool useJsonOutput);
+
+        Assert.True(result);
+        Assert.False(usePlainOutput);
+        Assert.True(useJsonOutput);
     }
 
     [Fact]
     public void TryParseOptions_WithUnknownArgument_ReturnsFalse()
     {
-        string[] args = ["show-profile", ".", "WEB", "--json"];
+        string[] args = ["show-profile", ".", "WEB", "--unknown"];
 
         bool result = ShowProfileCommand.TryParseOptions(
             args,
+            out _,
             out _);
 
         Assert.False(result);
@@ -64,6 +88,20 @@ public sealed class ShowProfileCommandTests
 
         bool result = ShowProfileCommand.TryParseOptions(
             args,
+            out _,
+            out _);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void TryParseOptions_WithPlainAndJsonSwitches_ReturnsFalse()
+    {
+        string[] args = ["show-profile", ".", "WEB", "--plain", "--json"];
+
+        bool result = ShowProfileCommand.TryParseOptions(
+            args,
+            out _,
             out _);
 
         Assert.False(result);
