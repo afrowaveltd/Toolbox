@@ -123,8 +123,16 @@ public sealed class ListProfilesCommandJsonTests
         }
     }
 
-    private static int CountProfileBackups(string jsonsPath) => Directory.GetFiles(
-        jsonsPath,
-        "profiles.*.bak.json",
-        SearchOption.TopDirectoryOnly).Length;
+    private static int CountProfileBackups(string jsonsPath)
+    {
+        if (!Directory.Exists(jsonsPath))
+        {
+            return 0;
+        }
+
+        return Directory.GetFiles(
+            jsonsPath,
+            "profiles.*.bak.json",
+            SearchOption.TopDirectoryOnly).Length;
+    }
 }
