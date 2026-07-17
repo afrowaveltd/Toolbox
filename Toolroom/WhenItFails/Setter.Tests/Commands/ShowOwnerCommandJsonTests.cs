@@ -52,7 +52,7 @@ public sealed class ShowOwnerCommandJsonTests
         [
             "show-owner",
             workspace.ProjectRootPath,
-            "OFFICIAL",
+            "AFROWAVE",
             "--json"
         ]);
 
