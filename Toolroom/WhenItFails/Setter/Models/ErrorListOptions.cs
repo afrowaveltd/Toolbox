@@ -11,6 +11,11 @@ internal sealed class ErrorListOptions
     public bool UsePlainOutput { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether to use structured JSON output.
+    /// </summary>
+    public bool UseJsonOutput { get; set; }
+
+    /// <summary>
     /// Gets or sets the owner filter value.
     /// </summary>
     public string? Owner { get; set; }
