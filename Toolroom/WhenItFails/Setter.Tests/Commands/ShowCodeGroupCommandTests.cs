@@ -5,53 +5,70 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 public sealed class ShowCodeGroupCommandTests
 {
     [Fact]
-    public void TryParseOptions_WithoutOptionalSwitch_ReturnsTrueAndPlainFalse()
+    public void TryParseOptions_WithoutOptionalSwitch_ReturnsRichOutput()
     {
         bool result = ShowCodeGroupCommand.TryParseOptions(
             ["show-code-group", ".", "NETWORK"],
-            out bool usePlainOutput);
+            out bool usePlainOutput,
+            out bool useJsonOutput);
 
         Assert.True(result);
         Assert.False(usePlainOutput);
+        Assert.False(useJsonOutput);
     }
 
     [Fact]
-    public void TryParseOptions_WithPlainSwitch_ReturnsTrueAndPlainTrue()
+    public void TryParseOptions_WithPlainSwitch_ReturnsPlainOutput()
     {
         bool result = ShowCodeGroupCommand.TryParseOptions(
             ["show-code-group", ".", "NETWORK", "--plain"],
-            out bool usePlainOutput);
+            out bool usePlainOutput,
+            out bool useJsonOutput);
 
         Assert.True(result);
         Assert.True(usePlainOutput);
+        Assert.False(useJsonOutput);
     }
 
-    [Fact]
-    public void TryParseOptions_WithCaseInsensitivePlainSwitch_ReturnsTrue()
+    [Theory]
+    [InlineData("--json")]
+    [InlineData("--JSON")]
+    public void TryParseOptions_WithJsonSwitch_ReturnsJsonOutput(string jsonSwitch)
     {
         bool result = ShowCodeGroupCommand.TryParseOptions(
-            ["show-code-group", ".", "NETWORK", "--PLAIN"],
-            out bool usePlainOutput);
+            ["show-code-group", ".", "NETWORK", jsonSwitch],
+            out bool usePlainOutput,
+            out bool useJsonOutput);
 
         Assert.True(result);
-        Assert.True(usePlainOutput);
+        Assert.False(usePlainOutput);
+        Assert.True(useJsonOutput);
     }
 
-    [Fact]
-    public void TryParseOptions_WithUnknownArgument_ReturnsFalse()
+    [Theory]
+    [InlineData("--unknown")]
+    [InlineData("unexpected")]
+    public void TryParseOptions_WithUnknownArgument_ReturnsFalse(string unknownArgument)
     {
         bool result = ShowCodeGroupCommand.TryParseOptions(
-            ["show-code-group", ".", "NETWORK", "--unknown"],
+            ["show-code-group", ".", "NETWORK", unknownArgument],
+            out _,
             out _);
 
         Assert.False(result);
     }
 
-    [Fact]
-    public void TryParseOptions_WithDuplicatePlainSwitch_ReturnsFalse()
+    [Theory]
+    [InlineData("--plain", "--plain")]
+    [InlineData("--json", "--json")]
+    [InlineData("--plain", "--json")]
+    public void TryParseOptions_WithDuplicateOrConflictingSwitches_ReturnsFalse(
+        string first,
+        string second)
     {
         bool result = ShowCodeGroupCommand.TryParseOptions(
-            ["show-code-group", ".", "NETWORK", "--plain", "--plain"],
+            ["show-code-group", ".", "NETWORK", first, second],
+            out _,
             out _);
 
         Assert.False(result);
