@@ -10,16 +10,17 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 /// </summary>
 internal static class ShowCodeGroupCommand
 {
+    private const string Usage =
+        "show-code-group <path> <group-name|prefix> [--plain|--json]";
+
     public static async Task<int> ExecuteAsync(string[] args)
     {
-        const string usage = "show-code-group <path> <group-name|prefix> [--plain]";
-
         if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
         {
             CommandInputError.Show(
                 "MissingShowCodeGroupPath",
                 "The show-code-group command requires a project root or Jsons/WhenItFails directory path.",
-                usage);
+                Usage);
             return 1;
         }
 
@@ -28,48 +29,93 @@ internal static class ShowCodeGroupCommand
             CommandInputError.Show(
                 "MissingShowCodeGroupName",
                 "The show-code-group command requires a code group name or prefix.",
-                usage);
+                Usage);
             return 1;
         }
 
-        if (!TryParseOptions(args, out bool usePlainOutput))
+        if (!TryParseOptions(args, out bool usePlainOutput, out bool useJsonOutput))
         {
             CommandInputError.Show(
-                "InvalidShowCodeGroupArguments",
-                "The show-code-group command accepts only a path, a code group name or prefix, and the optional --plain switch.",
-                usage);
+                "InvalidShowCodeGroupOutputArguments",
+                "The --plain and --json switches are mutually exclusive and may be specified only once.",
+                Usage);
             return 1;
         }
 
         string inputPath = args[1];
         string groupNameOrPrefix = args[2];
-        WorkspaceCommandContext? context =
-            await WorkspaceCommandContextLoader.TryLoadAsync(inputPath);
+        WhenItFailsWorkspaceValidationOutcome validationOutcome =
+            await new WhenItFailsWorkspaceValidator().ValidateAsync(inputPath);
 
-        if (context is null)
+        if (!validationOutcome.ValidationResult.IsValid)
         {
+            if (useJsonOutput)
+            {
+                CommandJsonOutput.Write(
+                    "show-code-group",
+                    new ShowCodeGroupResult(
+                        Found: false,
+                        CodeGroup: null,
+                        FailureCode: null,
+                        FailureMessage: null,
+                        Validation: validationOutcome.ValidationResult));
+            }
+            else
+            {
+                new ConsoleValidationResultShow().Show(
+                    validationOutcome.ValidationResult,
+                    new ConsoleShowOptions { SourcePath = validationOutcome.DisplayPath });
+            }
+
             return 2;
         }
 
-        WhenItFailsWorkspaceSummary summary = context.Summary;
+        WhenItFailsWorkspaceSummary summary =
+            await new WhenItFailsWorkspaceSummarizer().LoadAsync(inputPath);
         ErrorCodeGroupDefinition? codeGroup = FindCodeGroup(summary, groupNameOrPrefix);
 
         if (codeGroup is null)
         {
-            ErrorCatalogValidationResult result = new();
-            result.AddError(
-                "UnknownCodeGroup",
-                $"The code group '{groupNameOrPrefix}' does not exist.",
-                groupNameOrPrefix);
-            new ConsoleValidationResultShow().Show(
-                result,
-                new ConsoleShowOptions { SourcePath = summary.DisplayPath });
+            const string failureCode = "UnknownCodeGroup";
+            string failureMessage = $"The code group '{groupNameOrPrefix}' does not exist.";
+
+            if (useJsonOutput)
+            {
+                CommandJsonOutput.Write(
+                    "show-code-group",
+                    new ShowCodeGroupResult(
+                        Found: false,
+                        CodeGroup: null,
+                        FailureCode: failureCode,
+                        FailureMessage: failureMessage,
+                        Validation: null));
+            }
+            else
+            {
+                ErrorCatalogValidationResult result = new();
+                result.AddError(failureCode, failureMessage, groupNameOrPrefix);
+                new ConsoleValidationResultShow().Show(
+                    result,
+                    new ConsoleShowOptions { SourcePath = summary.DisplayPath });
+            }
+
             return 2;
         }
 
         if (usePlainOutput)
         {
             CodeGroupView.ShowPlain(summary, codeGroup);
+        }
+        else if (useJsonOutput)
+        {
+            CommandJsonOutput.Write(
+                "show-code-group",
+                new ShowCodeGroupResult(
+                    Found: true,
+                    CodeGroup: codeGroup,
+                    FailureCode: null,
+                    FailureMessage: null,
+                    Validation: null));
         }
         else
         {
@@ -79,12 +125,47 @@ internal static class ShowCodeGroupCommand
         return 0;
     }
 
+    public static bool TryParseOptions(
+        string[] args,
+        out bool usePlainOutput,
+        out bool useJsonOutput)
+    {
+        usePlainOutput = false;
+        useJsonOutput = false;
+
+        for (int index = 3; index < args.Length; index++)
+        {
+            if (string.Equals(args[index], "--plain", StringComparison.OrdinalIgnoreCase))
+            {
+                if (usePlainOutput || useJsonOutput)
+                {
+                    return false;
+                }
+
+                usePlainOutput = true;
+                continue;
+            }
+
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput || usePlainOutput)
+                {
+                    return false;
+                }
+
+                useJsonOutput = true;
+                continue;
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
     public static bool TryParseOptions(string[] args, out bool usePlainOutput)
     {
-        return PlainOutputOptionParser.TryParse(
-            args,
-            3,
-            out usePlainOutput);
+        return TryParseOptions(args, out usePlainOutput, out _);
     }
 
     public static ErrorCodeGroupDefinition? FindCodeGroup(
@@ -96,4 +177,11 @@ internal static class ShowCodeGroupCommand
             || string.Equals(codeGroup.DisplayName, groupNameOrPrefix, StringComparison.OrdinalIgnoreCase)
             || string.Equals(codeGroup.CodePrefix, groupNameOrPrefix, StringComparison.OrdinalIgnoreCase));
     }
+
+    private sealed record ShowCodeGroupResult(
+        bool Found,
+        ErrorCodeGroupDefinition? CodeGroup,
+        string? FailureCode,
+        string? FailureMessage,
+        ErrorCatalogValidationResult? Validation);
 }
