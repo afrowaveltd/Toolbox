@@ -1,4 +1,7 @@
+using Afrowave.Toolbox.SeeMe.WhenItFails.Console;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Views;
+using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Validation;
 
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 
@@ -7,6 +10,8 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 /// </summary>
 internal static class ListOwnersCommand
 {
+    private const string Usage = "list-owners <path> [--plain|--json]";
+
     public static async Task<int> ExecuteAsync(string[] args)
     {
         if (args.Length < 2 || string.IsNullOrWhiteSpace(args[1]))
@@ -14,41 +19,117 @@ internal static class ListOwnersCommand
             CommandInputError.Show(
                 code: "MissingListOwnersPath",
                 message: "The list-owners command requires a project root or Jsons/WhenItFails directory path.",
-                path: "list-owners <path> [--plain]");
+                path: Usage);
             return 1;
         }
 
-        if (!TryParseOptions(args, out bool usePlainOutput))
+        if (!TryParseOptions(args, out bool usePlainOutput, out bool useJsonOutput))
         {
             CommandInputError.Show(
-                code: "InvalidListOwnersArguments",
-                message: "The list-owners command accepts only a path and the optional --plain switch.",
-                path: "list-owners <path> [--plain]");
+                code: "InvalidListOwnersOutputArguments",
+                message: "The --plain and --json switches are mutually exclusive and may be specified only once.",
+                path: Usage);
             return 1;
         }
 
-        WorkspaceCommandContext? context =
-            await WorkspaceCommandContextLoader.TryLoadAsync(args[1]);
+        string inputPath = args[1];
+        WhenItFailsWorkspaceValidationOutcome validationOutcome =
+            await new WhenItFailsWorkspaceValidator().ValidateAsync(inputPath);
 
-        if (context is null)
+        if (!validationOutcome.ValidationResult.IsValid)
         {
+            if (useJsonOutput)
+            {
+                CommandJsonOutput.Write(
+                    "list-owners",
+                    new ListOwnersResult(
+                        Loaded: false,
+                        Owners: null,
+                        Validation: validationOutcome.ValidationResult));
+            }
+            else
+            {
+                new ConsoleValidationResultShow().Show(
+                    validationOutcome.ValidationResult,
+                    new ConsoleShowOptions
+                    {
+                        SourcePath = validationOutcome.DisplayPath
+                    });
+            }
+
             return 2;
         }
 
+        WhenItFailsWorkspaceSummary summary =
+            await new WhenItFailsWorkspaceSummarizer().LoadAsync(inputPath);
+        IReadOnlyList<ErrorOwnerDefinition> owners = summary.OwnerCatalog.Owners;
+
         if (usePlainOutput)
         {
-            OwnersView.ShowPlain(context.Summary);
+            OwnersView.ShowPlain(summary);
+        }
+        else if (useJsonOutput)
+        {
+            CommandJsonOutput.Write(
+                "list-owners",
+                new ListOwnersResult(
+                    Loaded: true,
+                    Owners: owners,
+                    Validation: null));
         }
         else
         {
-            OwnersView.Show(context.Summary);
+            OwnersView.Show(summary);
         }
 
         return 0;
     }
 
+    public static bool TryParseOptions(
+        string[] args,
+        out bool usePlainOutput,
+        out bool useJsonOutput)
+    {
+        usePlainOutput = false;
+        useJsonOutput = false;
+
+        for (int index = 2; index < args.Length; index++)
+        {
+            if (string.Equals(args[index], "--plain", StringComparison.OrdinalIgnoreCase))
+            {
+                if (usePlainOutput || useJsonOutput)
+                {
+                    return false;
+                }
+
+                usePlainOutput = true;
+                continue;
+            }
+
+            if (string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+                if (useJsonOutput || usePlainOutput)
+                {
+                    return false;
+                }
+
+                useJsonOutput = true;
+                continue;
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
     public static bool TryParseOptions(string[] args, out bool usePlainOutput)
     {
-        return PlainOutputOptionParser.TryParse(args, optionStartIndex: 2, out usePlainOutput);
+        return TryParseOptions(args, out usePlainOutput, out _);
     }
+
+    private sealed record ListOwnersResult(
+        bool Loaded,
+        IReadOnlyList<ErrorOwnerDefinition>? Owners,
+        ErrorCatalogValidationResult? Validation);
 }
