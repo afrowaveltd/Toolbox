@@ -8,11 +8,73 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 /// </summary>
 internal static class DemoCommand
 {
+    private const string SourcePath = "Jsons/WhenItFails/errors.json";
+
+    /// <summary>
+    /// Executes the demo command without optional output switches.
+    /// </summary>
+    /// <returns>Exit code: 0 on success.</returns>
+    public static int Execute()
+    {
+        return Execute(["demo"]);
+    }
+
     /// <summary>
     /// Executes the demo command.
     /// </summary>
-    /// <returns>Exit code: always 0.</returns>
-    public static int Execute()
+    /// <param name="args">The full command-line arguments.</param>
+    /// <returns>Exit code: 0 on success, 1 on invalid arguments.</returns>
+    public static int Execute(string[] args)
+    {
+        if (!TryParseOptions(args, out bool useJsonOutput))
+        {
+            CommandInputError.Show(
+                "InvalidDemoArguments",
+                "The demo command accepts only the optional --json switch, which may be specified once.",
+                "demo [--json]");
+            return 1;
+        }
+
+        ErrorCatalogValidationResult validationResult = CreateValidationResult();
+
+        if (useJsonOutput)
+        {
+            CommandJsonOutput.Write(
+                "demo",
+                new DemoResult(SourcePath, validationResult));
+        }
+        else
+        {
+            new ConsoleValidationResultShow().Show(
+                validationResult,
+                new ConsoleShowOptions
+                {
+                    SourcePath = SourcePath
+                });
+        }
+
+        return 0;
+    }
+
+    public static bool TryParseOptions(string[] args, out bool useJsonOutput)
+    {
+        useJsonOutput = false;
+
+        for (int index = 1; index < args.Length; index++)
+        {
+            if (!string.Equals(args[index], "--json", StringComparison.OrdinalIgnoreCase)
+                || useJsonOutput)
+            {
+                return false;
+            }
+
+            useJsonOutput = true;
+        }
+
+        return true;
+    }
+
+    private static ErrorCatalogValidationResult CreateValidationResult()
     {
         ErrorCatalogValidationResult validationResult = new();
 
@@ -33,15 +95,10 @@ internal static class DemoCommand
             errorName: "MissingConfigurationValue",
             path: "errors[0].primaryCategory");
 
-        ConsoleValidationResultShow validationResultShow = new();
-
-        validationResultShow.Show(
-            validationResult,
-            new ConsoleShowOptions
-            {
-                SourcePath = "Jsons/WhenItFails/errors.json"
-            });
-
-        return 0;
+        return validationResult;
     }
+
+    private sealed record DemoResult(
+        string SourcePath,
+        ErrorCatalogValidationResult Validation);
 }
