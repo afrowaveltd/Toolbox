@@ -8,6 +8,8 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 /// </summary>
 internal static class ReferenceCommand
 {
+   private const int DefaultErrorLimit = 20;
+
    /// <summary>
    /// Executes the reference command.
    /// </summary>
@@ -93,9 +95,32 @@ internal static class ReferenceCommand
 
       if (subcommand == "errors")
       {
-         ReferenceView.ShowErrors(
-            summary,
-            errorListOptions);
+         if (useJsonOutput)
+         {
+            IReadOnlyList<WhenItFailsReferenceErrorSummary> matchingErrors = summary.Errors
+               .Where(error => MatchesErrorListOptions(error, errorListOptions))
+               .ToList();
+
+            IReadOnlyList<WhenItFailsReferenceErrorSummary> returnedErrors = errorListOptions.ShowAll
+               ? matchingErrors
+               : matchingErrors.Take(DefaultErrorLimit).ToList();
+
+            CommandJsonOutput.Write(
+               "reference",
+               new ReferenceResult(
+                  "errors",
+                  new ReferenceErrorsResult(
+                     errorListOptions,
+                     matchingErrors.Count,
+                     returnedErrors.Count,
+                     returnedErrors)));
+         }
+         else
+         {
+            ReferenceView.ShowErrors(
+               summary,
+               errorListOptions);
+         }
 
          return 0;
       }
@@ -104,14 +129,16 @@ internal static class ReferenceCommand
       {
          return ShowError(
             summary,
-            args[2]);
+            args[2],
+            useJsonOutput);
       }
 
       if (subcommand == "profile")
       {
          return ShowProfile(
             summary,
-            args[2]);
+            args[2],
+            useJsonOutput);
       }
 
       ShowUnknownSubcommand(args[1]);
@@ -138,13 +165,32 @@ internal static class ReferenceCommand
 
       if (subcommand is "error" or "profile")
       {
-         return args.Length == 3
-                && !string.IsNullOrWhiteSpace(args[2]);
+         if (args.Length < 3
+             || args.Length > 4
+             || string.IsNullOrWhiteSpace(args[2]))
+         {
+            return false;
+         }
+
+         if (args.Length == 4)
+         {
+            if (!string.Equals(args[3], "--json", StringComparison.OrdinalIgnoreCase))
+            {
+               return false;
+            }
+
+            useJsonOutput = true;
+         }
+
+         return true;
       }
 
       if (subcommand == "errors")
       {
-         return TryParseErrorListArguments(args, errorListOptions);
+         return TryParseErrorListArguments(
+            args,
+            errorListOptions,
+            out useJsonOutput);
       }
 
       if (subcommand is not ("summary" or "profiles" or "categories" or "code-groups"))
@@ -173,13 +219,28 @@ internal static class ReferenceCommand
 
    private static bool TryParseErrorListArguments(
       string[] args,
-      WhenItFailsReferenceErrorListOptions errorListOptions)
+      WhenItFailsReferenceErrorListOptions errorListOptions,
+      out bool useJsonOutput)
    {
+      useJsonOutput = false;
       int index = 2;
 
       while (index < args.Length)
       {
          string argument = args[index];
+
+         if (string.Equals(argument, "--json", StringComparison.OrdinalIgnoreCase))
+         {
+            if (useJsonOutput)
+            {
+               return false;
+            }
+
+            useJsonOutput = true;
+            index++;
+
+            continue;
+         }
 
          if (string.Equals(argument, "--all", StringComparison.OrdinalIgnoreCase))
          {
@@ -198,7 +259,8 @@ internal static class ReferenceCommand
          {
             if (!string.IsNullOrWhiteSpace(errorListOptions.CodeGroup)
                 || index + 1 >= args.Length
-                || string.IsNullOrWhiteSpace(args[index + 1]))
+                || string.IsNullOrWhiteSpace(args[index + 1])
+                || args[index + 1].StartsWith("--", StringComparison.Ordinal))
             {
                return false;
             }
@@ -213,7 +275,8 @@ internal static class ReferenceCommand
          {
             if (!string.IsNullOrWhiteSpace(errorListOptions.Category)
                 || index + 1 >= args.Length
-                || string.IsNullOrWhiteSpace(args[index + 1]))
+                || string.IsNullOrWhiteSpace(args[index + 1])
+                || args[index + 1].StartsWith("--", StringComparison.Ordinal))
             {
                return false;
             }
@@ -230,9 +293,40 @@ internal static class ReferenceCommand
       return true;
    }
 
+   private static bool MatchesErrorListOptions(
+      WhenItFailsReferenceErrorSummary error,
+      WhenItFailsReferenceErrorListOptions options)
+   {
+      if (!string.IsNullOrWhiteSpace(options.CodeGroup)
+          && !string.Equals(
+             error.CodeGroup,
+             options.CodeGroup,
+             StringComparison.OrdinalIgnoreCase))
+      {
+         return false;
+      }
+
+      if (!string.IsNullOrWhiteSpace(options.Category)
+          && !string.Equals(
+             error.PrimaryCategory,
+             options.Category,
+             StringComparison.OrdinalIgnoreCase)
+          && !error.CategoryNames.Any(categoryName =>
+             string.Equals(
+                categoryName,
+                options.Category,
+                StringComparison.OrdinalIgnoreCase)))
+      {
+         return false;
+      }
+
+      return true;
+   }
+
    private static int ShowProfile(
       WhenItFailsReferenceCatalogSummary summary,
-      string profileName)
+      string profileName,
+      bool useJsonOutput)
    {
       WhenItFailsReferenceProfileSummary? profile =
          summary.Profiles.FirstOrDefault(candidate =>
@@ -243,21 +337,54 @@ internal static class ReferenceCommand
 
       if (profile is null)
       {
-         AnsiConsole.MarkupLine(
-            "[red]Reference profile was not found:[/] {0}",
-            Markup.Escape(profileName));
+         if (useJsonOutput)
+         {
+            CommandJsonOutput.Write(
+               "reference",
+               new ReferenceResult(
+                  "profile",
+                  new ReferenceLookupResult(
+                     false,
+                     profileName,
+                     null,
+                     "ReferenceProfileNotFound",
+                     $"Reference profile '{profileName}' was not found.")));
+         }
+         else
+         {
+            AnsiConsole.MarkupLine(
+               "[red]Reference profile was not found:[/] {0}",
+               Markup.Escape(profileName));
+         }
 
          return 1;
       }
 
-      ReferenceView.ShowProfile(profile);
+      if (useJsonOutput)
+      {
+         CommandJsonOutput.Write(
+            "reference",
+            new ReferenceResult(
+               "profile",
+               new ReferenceLookupResult(
+                  true,
+                  profileName,
+                  profile,
+                  null,
+                  null)));
+      }
+      else
+      {
+         ReferenceView.ShowProfile(profile);
+      }
 
       return 0;
    }
 
    private static int ShowError(
       WhenItFailsReferenceCatalogSummary summary,
-      string idOrName)
+      string idOrName,
+      bool useJsonOutput)
    {
       WhenItFailsReferenceErrorSummary? error =
          summary.Errors.FirstOrDefault(candidate =>
@@ -272,14 +399,46 @@ internal static class ReferenceCommand
 
       if (error is null)
       {
-         AnsiConsole.MarkupLine(
-            "[red]Reference error was not found:[/] {0}",
-            Markup.Escape(idOrName));
+         if (useJsonOutput)
+         {
+            CommandJsonOutput.Write(
+               "reference",
+               new ReferenceResult(
+                  "error",
+                  new ReferenceLookupResult(
+                     false,
+                     idOrName,
+                     null,
+                     "ReferenceErrorNotFound",
+                     $"Reference error '{idOrName}' was not found.")));
+         }
+         else
+         {
+            AnsiConsole.MarkupLine(
+               "[red]Reference error was not found:[/] {0}",
+               Markup.Escape(idOrName));
+         }
 
          return 1;
       }
 
-      ReferenceView.ShowError(error);
+      if (useJsonOutput)
+      {
+         CommandJsonOutput.Write(
+            "reference",
+            new ReferenceResult(
+               "error",
+               new ReferenceLookupResult(
+                  true,
+                  idOrName,
+                  error,
+                  null,
+                  null)));
+      }
+      else
+      {
+         ReferenceView.ShowError(error);
+      }
 
       return 0;
    }
@@ -291,14 +450,11 @@ internal static class ReferenceCommand
       AnsiConsole.MarkupLine("  [grey]reference [[--json]][/]");
       AnsiConsole.MarkupLine("  [grey]reference summary [[--json]][/]");
       AnsiConsole.MarkupLine("  [grey]reference profiles [[--json]][/]");
-      AnsiConsole.MarkupLine("  [grey]reference profile <name>[/]");
+      AnsiConsole.MarkupLine("  [grey]reference profile <name> [[--json]][/]");
       AnsiConsole.MarkupLine("  [grey]reference categories [[--json]][/]");
       AnsiConsole.MarkupLine("  [grey]reference code-groups [[--json]][/]");
-      AnsiConsole.MarkupLine("  [grey]reference errors[/]");
-      AnsiConsole.MarkupLine("  [grey]reference errors --all[/]");
-      AnsiConsole.MarkupLine("  [grey]reference errors --group <code-group>[/]");
-      AnsiConsole.MarkupLine("  [grey]reference errors --category <category>[/]");
-      AnsiConsole.MarkupLine("  [grey]reference error <id-or-name>[/]");
+      AnsiConsole.MarkupLine("  [grey]reference errors [[--all]] [[--group <code-group>]] [[--category <category>]] [[--json]][/]");
+      AnsiConsole.MarkupLine("  [grey]reference error <id-or-name> [[--json]][/]");
    }
 
    private static void ShowUnknownSubcommand(string subcommand)
@@ -313,4 +469,17 @@ internal static class ReferenceCommand
    private sealed record ReferenceResult(
       string Subcommand,
       object Value);
+
+   private sealed record ReferenceErrorsResult(
+      WhenItFailsReferenceErrorListOptions Options,
+      int MatchingCount,
+      int ReturnedCount,
+      IReadOnlyList<WhenItFailsReferenceErrorSummary> Errors);
+
+   private sealed record ReferenceLookupResult(
+      bool Found,
+      string Lookup,
+      object? Item,
+      string? FailureCode,
+      string? FailureMessage);
 }
