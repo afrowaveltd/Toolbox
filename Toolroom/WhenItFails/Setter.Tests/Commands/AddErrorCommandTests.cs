@@ -8,6 +8,7 @@ using Afrowave.Toolbox.WhenItFails.Normalization;
 
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Commands;
 
+[Collection("Console output")]
 public sealed class AddErrorCommandTests
 {
     [Fact]
@@ -20,8 +21,10 @@ public sealed class AddErrorCommandTests
         ErrorCategoryDefinition category = await LoadFirstCategoryAsync(workspace.WhenItFailsJsonsPath);
         int errorsBefore = (await LoadErrorsAsync(workspace.WhenItFailsJsonsPath)).Errors.Count;
         int backupsBefore = CountErrorBackups(workspace.WhenItFailsJsonsPath);
+        string expectedDocumentationKey =
+            $"when-it-fails/errors/{category.Name.ToLowerInvariant().Replace('_', '-')}/cli-sample-error";
 
-        int exitCode = await AddErrorCommand.ExecuteAsync(
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
         [
             "add-error",
             workspace.ProjectRootPath,
@@ -35,6 +38,9 @@ public sealed class AddErrorCommandTests
         ]);
 
         Assert.Equal(0, exitCode);
+        Assert.Contains("Documentation key:", output, StringComparison.Ordinal);
+        Assert.Contains(expectedDocumentationKey, output, StringComparison.Ordinal);
+
         ErrorCatalogDocument saved = await LoadErrorsAsync(workspace.WhenItFailsJsonsPath);
         Assert.Equal(errorsBefore + 1, saved.Errors.Count);
         ErrorDefinition? added = saved.Errors.FirstOrDefault(error => error.Name == "CLI_SAMPLE_ERROR");
@@ -43,9 +49,7 @@ public sealed class AddErrorCommandTests
         Assert.Equal(group.Name, added.CodeGroup);
         Assert.Equal(category.Name, added.PrimaryCategory);
         Assert.Equal("Warning", added.DefaultSeverity);
-        Assert.Equal(
-            $"when-it-fails/errors/{category.Name.ToLowerInvariant().Replace('_', '-')}/cli-sample-error",
-            added.DocumentationKey);
+        Assert.Equal(expectedDocumentationKey, added.DocumentationKey);
         Assert.True(
             WhenItFailsDocumentationKeyFormatChecker.IsCanonical(added.DocumentationKey!));
         Assert.True(new WhenItFailsDocumentationKeyChecker().Check(saved).IsValid);
@@ -126,6 +130,23 @@ public sealed class AddErrorCommandTests
     public async Task ExecuteAsync_WithInvalidArguments_ReturnsCommandInputError(string[] args)
     {
         Assert.Equal(1, await AddErrorCommand.ExecuteAsync(args));
+    }
+
+    private static async Task<(int ExitCode, string Output)> ExecuteWithCapturedOutputAsync(string[] args)
+    {
+        TextWriter originalOutput = Console.Out;
+        using StringWriter output = new();
+
+        try
+        {
+            Console.SetOut(output);
+            int exitCode = await AddErrorCommand.ExecuteAsync(args);
+            return (exitCode, output.ToString());
+        }
+        finally
+        {
+            Console.SetOut(originalOutput);
+        }
     }
 
     private static async Task<(ErrorOwnerDefinition Owner, ErrorCodeGroupDefinition Group)>
