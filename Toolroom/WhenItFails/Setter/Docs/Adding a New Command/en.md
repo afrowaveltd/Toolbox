@@ -1,4 +1,4 @@
-# Adding a New Command
+﻿# Adding a New Command
 
 This guide explains how to add a new command to WhenItFails Setter.
 

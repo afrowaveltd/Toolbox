@@ -1,4 +1,4 @@
-It should not silently guess, repair, migrate, or rewrite large parts of the workspace unless that behavior is explicitly designed, tested, and documented.
+﻿It should not silently guess, repair, migrate, or rewrite large parts of the workspace unless that behavior is explicitly designed, tested, and documented.
 
 ## Main layers
 
@@ -288,7 +288,7 @@ Shared services should handle reusable operations such as:
 
 A service should have a clear responsibility.
 
-If a service becomes a “god object,” split it.
+If a service becomes a â€śgod object,â€ť split it.
 
 ## Tests
 
