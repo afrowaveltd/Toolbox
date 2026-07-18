@@ -16,6 +16,14 @@ internal sealed class WhenItFailsDocumentationLinkChecker
         @"^(?<path>.+?)\s+(?:""[^""]*""|'[^']*'|\([^\)]*\))$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
+    private static readonly Regex FencedCodeBlockRegex = new(
+        @"(?ms)^[ \t]*(?<fence>`{3,}|~{3,})[^\r\n]*\r?\n.*?^[ \t]*\k<fence>[ \t]*$",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    private static readonly Regex InlineCodeRegex = new(
+        @"(?<!`)`+[^\r\n]*?`+(?!`)",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
     /// <summary>
     /// Checks README.md and Markdown files beneath the Setter Docs directory.
     /// </summary>
@@ -49,8 +57,9 @@ internal sealed class WhenItFailsDocumentationLinkChecker
         {
             cancellationToken.ThrowIfCancellationRequested();
             string content = await File.ReadAllTextAsync(markdownPath, cancellationToken);
+            string checkableContent = RemoveCode(content);
 
-            foreach (Match match in MarkdownLinkRegex.Matches(content))
+            foreach (Match match in MarkdownLinkRegex.Matches(checkableContent))
             {
                 string rawTarget = ExtractTarget(match.Groups["target"].Value);
                 if (ShouldIgnore(rawTarget))
@@ -136,6 +145,12 @@ internal sealed class WhenItFailsDocumentationLinkChecker
         {
             yield return markdownPath;
         }
+    }
+
+    private static string RemoveCode(string content)
+    {
+        string withoutFencedBlocks = FencedCodeBlockRegex.Replace(content, string.Empty);
+        return InlineCodeRegex.Replace(withoutFencedBlocks, string.Empty);
     }
 
     private static string ExtractTarget(string targetExpression)
