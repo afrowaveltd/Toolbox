@@ -1,6 +1,7 @@
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Infrastructure;
+using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Loading;
 using Afrowave.Toolbox.WhenItFails.Normalization;
@@ -31,6 +32,32 @@ public sealed class WhenItFailsDocumentationKeySuggesterTests
             suggestion.DocumentationKey,
             StringComparison.Ordinal);
         Assert.True(WhenItFailsDocumentationKeyFormatChecker.IsCanonical(suggestion.DocumentationKey));
+    }
+
+    [Fact]
+    public async Task SuggestAsync_WithResolvedOptions_MatchesPathOverload()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        ErrorCategoryDefinition category = await LoadFirstCategoryAsync(workspace.WhenItFailsJsonsPath);
+        JsonsOptions options = WhenItFailsWorkspacePathResolver.ResolveJsonsOptions(
+            workspace.ProjectRootPath);
+        WhenItFailsDocumentationKeySuggester suggester = new();
+
+        Response<DocumentationKeySuggestion> pathResponse = await suggester.SuggestAsync(
+            workspace.ProjectRootPath,
+            category.Name,
+            "Shared options result");
+        Response<DocumentationKeySuggestion> optionsResponse = await suggester.SuggestAsync(
+            options,
+            category.Name,
+            "Shared options result");
+
+        Assert.True(pathResponse.IsSuccess);
+        Assert.True(optionsResponse.IsSuccess);
+        Assert.NotNull(pathResponse.Data);
+        Assert.NotNull(optionsResponse.Data);
+        Assert.Equal(pathResponse.Data, optionsResponse.Data);
     }
 
     [Fact]
