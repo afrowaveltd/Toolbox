@@ -108,6 +108,35 @@ public sealed class SuggestDocumentationKeyCommandTests
         Assert.Equal(category.Name, data.GetProperty("category").GetString());
         Assert.Equal("JSON sample", data.GetProperty("title").GetString());
         Assert.EndsWith("/json-sample", data.GetProperty("documentationKey").GetString(), StringComparison.Ordinal);
+        Assert.Equal(JsonValueKind.Null, data.GetProperty("failureCode").ValueKind);
+        Assert.Equal(JsonValueKind.Null, data.GetProperty("failureMessage").ValueKind);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WithJsonOutputAndUnknownCategory_ReturnsStructuredFailure()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        [
+            "suggest-doc-key",
+            workspace.ProjectRootPath,
+            "DOES_NOT_EXIST",
+            "JSON failure sample",
+            "--json"
+        ]);
+
+        Assert.Equal(2, exitCode);
+        using JsonDocument document = JsonDocument.Parse(output);
+        JsonElement root = document.RootElement;
+        Assert.Equal("suggest-doc-key", root.GetProperty("command").GetString());
+        JsonElement data = root.GetProperty("data");
+        Assert.Equal("DOES_NOT_EXIST", data.GetProperty("category").GetString());
+        Assert.Equal("JSON failure sample", data.GetProperty("title").GetString());
+        Assert.Equal(JsonValueKind.Null, data.GetProperty("documentationKey").ValueKind);
+        Assert.Equal("CategoryNotFound", data.GetProperty("failureCode").GetString());
+        Assert.False(string.IsNullOrWhiteSpace(data.GetProperty("failureMessage").GetString()));
     }
 
     [Fact]
