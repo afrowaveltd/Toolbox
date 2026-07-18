@@ -88,6 +88,47 @@ public sealed class WhenItFailsDocumentationKeySuggesterTests
         Assert.Contains(response.Issues, issue => issue.Code == "CategoryNotFound");
     }
 
+    [Fact]
+    public async Task SuggestAsync_WithMissingCategoryCatalog_ReturnsStructuredFailure()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        File.Delete(Path.Combine(workspace.WhenItFailsJsonsPath, "categories.en.json"));
+
+        Response<DocumentationKeySuggestion> response =
+            await new WhenItFailsDocumentationKeySuggester().SuggestAsync(
+                workspace.ProjectRootPath,
+                "NETWORK",
+                "Sample title");
+
+        Assert.False(response.IsSuccess);
+        Assert.Null(response.Data);
+        Assert.NotEmpty(response.Issues);
+        Assert.False(string.IsNullOrWhiteSpace(response.Message));
+    }
+
+    [Fact]
+    public async Task SuggestAsync_WithMalformedErrorCatalog_ReturnsStructuredFailure()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        ErrorCategoryDefinition category = await LoadFirstCategoryAsync(workspace.WhenItFailsJsonsPath);
+        await File.WriteAllTextAsync(
+            Path.Combine(workspace.WhenItFailsJsonsPath, "errors.en.json"),
+            "{ this is not valid json }");
+
+        Response<DocumentationKeySuggestion> response =
+            await new WhenItFailsDocumentationKeySuggester().SuggestAsync(
+                workspace.ProjectRootPath,
+                category.Name,
+                "Sample title");
+
+        Assert.False(response.IsSuccess);
+        Assert.Null(response.Data);
+        Assert.NotEmpty(response.Issues);
+        Assert.False(string.IsNullOrWhiteSpace(response.Message));
+    }
+
     private static async Task<ErrorCatalogDocument> LoadErrorsAsync(string jsonsPath)
     {
         Response<ErrorCatalogDocument> response =
