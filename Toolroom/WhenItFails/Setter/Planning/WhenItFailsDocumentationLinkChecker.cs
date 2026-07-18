@@ -4,16 +4,20 @@ using Afrowave.Toolbox.Essentials.Results;
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 
 /// <summary>
-/// Checks local Markdown links in the Setter documentation without modifying files.
+/// Checks local Markdown links in the canonical Setter documentation without modifying files.
 /// </summary>
 internal sealed class WhenItFailsDocumentationLinkChecker
 {
     private static readonly Regex MarkdownLinkRegex = new(
-        @"!?\[[^\]]*\]\((?<target><[^>]+>|[^\s\)]+)",
+        @"!?\[[^\]]*\]\((?<target><[^>]+>|[^)\r\n]+)\)",
+        RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+    private static readonly Regex OptionalTitleRegex = new(
+        @"^(?<path>.+?)\s+(?:\"[^\"]*\"|'[^']*'|\([^\)]*\))$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     /// <summary>
-    /// Checks all Markdown files beneath the Setter directory.
+    /// Checks README.md and Markdown files beneath the Setter Docs directory.
     /// </summary>
     public async Task<Response<DocumentationLinkCheckReport>> CheckAsync(
         string inputPath,
@@ -27,15 +31,14 @@ internal sealed class WhenItFailsDocumentationLinkChecker
         }
 
         string setterPath = ResolveSetterPath(inputPath);
-        if (!Directory.Exists(setterPath))
+        if (!IsSetterDirectory(setterPath))
         {
             return Response<DocumentationLinkCheckReport>.NotFound(
                 code: "SetterDocumentationDirectoryNotFound",
                 message: $"Setter directory was not found: {setterPath}");
         }
 
-        string[] markdownFiles = Directory
-            .EnumerateFiles(setterPath, "*.md", SearchOption.AllDirectories)
+        string[] markdownFiles = EnumerateCanonicalMarkdownFiles(setterPath)
             .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
@@ -49,7 +52,7 @@ internal sealed class WhenItFailsDocumentationLinkChecker
 
             foreach (Match match in MarkdownLinkRegex.Matches(content))
             {
-                string rawTarget = match.Groups["target"].Value.Trim();
+                string rawTarget = ExtractTarget(match.Groups["target"].Value);
                 if (ShouldIgnore(rawTarget))
                 {
                     continue;
@@ -96,42 +99,79 @@ internal sealed class WhenItFailsDocumentationLinkChecker
     private static string ResolveSetterPath(string inputPath)
     {
         string fullPath = Path.GetFullPath(inputPath.Trim());
-        if (File.Exists(Path.Combine(fullPath, "README.md"))
-            && Directory.Exists(Path.Combine(fullPath, "Docs")))
+        return IsSetterDirectory(fullPath)
+            ? fullPath
+            : Path.Combine(fullPath, "Toolroom", "WhenItFails", "Setter");
+    }
+
+    private static bool IsSetterDirectory(string path)
+    {
+        return Directory.Exists(path)
+            && File.Exists(Path.Combine(path, "Program.cs"))
+            && Directory.Exists(Path.Combine(path, "Commands"))
+            && Directory.Exists(Path.Combine(path, "Docs"));
+    }
+
+    private static IEnumerable<string> EnumerateCanonicalMarkdownFiles(string setterPath)
+    {
+        string readmePath = Path.Combine(setterPath, "README.md");
+        if (File.Exists(readmePath))
         {
-            return fullPath;
+            yield return readmePath;
         }
 
-        return Path.Combine(fullPath, "Toolroom", "WhenItFails", "Setter");
+        string docsPath = Path.Combine(setterPath, "Docs");
+        foreach (string markdownPath in Directory.EnumerateFiles(
+                     docsPath,
+                     "*.md",
+                     SearchOption.AllDirectories))
+        {
+            yield return markdownPath;
+        }
+    }
+
+    private static string ExtractTarget(string targetExpression)
+    {
+        string trimmed = targetExpression.Trim();
+        if (trimmed.StartsWith('<'))
+        {
+            int closingBracket = trimmed.IndexOf('>');
+            return closingBracket > 0
+                ? trimmed[1..closingBracket]
+                : trimmed.Trim('<', '>');
+        }
+
+        Match titleMatch = OptionalTitleRegex.Match(trimmed);
+        return titleMatch.Success
+            ? titleMatch.Groups["path"].Value.Trim()
+            : trimmed;
     }
 
     private static bool ShouldIgnore(string target)
     {
-        string unwrapped = target.Trim('<', '>');
-        if (string.IsNullOrWhiteSpace(unwrapped) || unwrapped.StartsWith('#'))
+        if (string.IsNullOrWhiteSpace(target) || target.StartsWith('#'))
         {
             return true;
         }
 
-        return Uri.TryCreate(unwrapped, UriKind.Absolute, out _);
+        return Uri.TryCreate(target, UriKind.Absolute, out _);
     }
 
     private static string NormalizeLocalTarget(string target)
     {
-        string unwrapped = target.Trim('<', '>');
-        int fragmentIndex = unwrapped.IndexOf('#');
+        int fragmentIndex = target.IndexOf('#');
         if (fragmentIndex >= 0)
         {
-            unwrapped = unwrapped[..fragmentIndex];
+            target = target[..fragmentIndex];
         }
 
-        int queryIndex = unwrapped.IndexOf('?');
+        int queryIndex = target.IndexOf('?');
         if (queryIndex >= 0)
         {
-            unwrapped = unwrapped[..queryIndex];
+            target = target[..queryIndex];
         }
 
-        return Uri.UnescapeDataString(unwrapped.Replace('/', Path.DirectorySeparatorChar));
+        return Uri.UnescapeDataString(target.Replace('/', Path.DirectorySeparatorChar));
     }
 }
 
