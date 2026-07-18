@@ -60,6 +60,42 @@ The generated key is:
 
 The normal success output prints the generated key so the author immediately knows where the corresponding extended documentation belongs.
 
+## Previewing a documentation key
+
+Use `suggest-doc-key` when you want to see the key before creating an error:
+
+```text
+suggest-doc-key <path> <category-name|alias> <title> [--plain|--json]
+```
+
+Example:
+
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- \
+  suggest-doc-key . NETWORK "Connection interrupted"
+```
+
+The command resolves the category against the active workspace, reads existing documentation keys, and returns the first available canonical value.
+
+If the base key already exists, Setter adds the first free numeric suffix:
+
+```text
+when-it-fails/errors/network/connection-interrupted
+when-it-fails/errors/network/connection-interrupted-2
+when-it-fails/errors/network/connection-interrupted-3
+```
+
+The command is read-only. It does not change `errors.en.json` and does not create a backup.
+
+Use `--plain` when a script needs only the key:
+
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- \
+  suggest-doc-key . NETWORK "Connection interrupted" --plain
+```
+
+Use `--json` for the standard structured command envelope.
+
 ## Normal success output
 
 A successful command prints the new definition identity and its generated documentation key:
