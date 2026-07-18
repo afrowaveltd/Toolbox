@@ -13,7 +13,7 @@ internal sealed class WhenItFailsDocumentationLinkChecker
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     private static readonly Regex OptionalTitleRegex = new(
-        @"^(?<path>.+?)\s+(?:\"[^\"]*\"|'[^']*'|\([^\)]*\))$",
+        "^(?<path>.+?)\\s+(?:\"[^\"]*\"|'[^']*'|\\([^\\)]*\\))$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     /// <summary>
