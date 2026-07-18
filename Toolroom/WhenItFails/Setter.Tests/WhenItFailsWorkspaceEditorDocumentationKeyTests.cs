@@ -40,6 +40,40 @@ public sealed class WhenItFailsWorkspaceEditorDocumentationKeyTests
     }
 
     [Fact]
+    public async Task SetErrorDocumentationKeyAsync_WithDuplicateKey_DoesNotSaveOrCreateBackup()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        ErrorCatalogDocument before = await LoadErrorsAsync(workspace.WhenItFailsJsonsPath);
+        ErrorDefinition target = before.Errors.First();
+        ErrorDefinition source = before.Errors.Skip(1).First();
+        string? originalKey = target.DocumentationKey;
+        string duplicateKey = Assert.IsType<string>(source.DocumentationKey);
+        int backupsBefore = CountErrorBackups(workspace.WhenItFailsJsonsPath);
+
+        Response<ErrorDefinition> response =
+            await new WhenItFailsWorkspaceEditor().SetErrorDocumentationKeyAsync(
+                workspace.ProjectRootPath,
+                target.Id,
+                duplicateKey.ToUpperInvariant());
+
+        Assert.False(response.IsSuccess);
+        Assert.Contains(
+            response.Issues,
+            issue => string.Equals(
+                issue.Code,
+                "DuplicateDocumentationKey",
+                StringComparison.Ordinal));
+        Assert.Contains(source.Id, response.Message, StringComparison.Ordinal);
+        Assert.Equal(backupsBefore, CountErrorBackups(workspace.WhenItFailsJsonsPath));
+
+        ErrorDefinition saved = (await LoadErrorsAsync(workspace.WhenItFailsJsonsPath))
+            .Errors
+            .Single(error => error.Id == target.Id);
+        Assert.Equal(originalKey, saved.DocumentationKey);
+    }
+
+    [Fact]
     public async Task SetErrorDocumentationKeyAsync_WithCanonicalFormat_SavesValue()
     {
         using TemporaryWhenItFailsWorkspace workspace =
