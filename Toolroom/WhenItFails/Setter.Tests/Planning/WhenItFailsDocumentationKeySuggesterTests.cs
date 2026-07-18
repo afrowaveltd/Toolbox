@@ -129,6 +129,22 @@ public sealed class WhenItFailsDocumentationKeySuggesterTests
         Assert.False(string.IsNullOrWhiteSpace(response.Message));
     }
 
+    [Fact]
+    public async Task SuggestAsync_WithCanceledToken_ThrowsOperationCanceledException()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        using CancellationTokenSource cancellation = new();
+        cancellation.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            new WhenItFailsDocumentationKeySuggester().SuggestAsync(
+                workspace.ProjectRootPath,
+                "NETWORK",
+                "Canceled suggestion",
+                cancellation.Token));
+    }
+
     private static async Task<ErrorCatalogDocument> LoadErrorsAsync(string jsonsPath)
     {
         Response<ErrorCatalogDocument> response =
