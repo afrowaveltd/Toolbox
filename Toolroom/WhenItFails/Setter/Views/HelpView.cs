@@ -141,6 +141,9 @@ internal static class HelpView
             "[green]check-doc-links[/] [grey]<path>[/] [grey][[--plain|--json]][/]",
             "Read-only check of local Markdown links beneath the Setter documentation tree.");
         commandGrid.AddRow(
+            "[green]check-doc-keys[/] [grey]<path>[/] [grey][[--plain|--json]][/]",
+            "Read-only check that every error has a unique non-empty documentation key.");
+        commandGrid.AddRow(
             "[green]add-error[/] [grey]<path>[/] [grey]<owner>[/] [grey]<group>[/] [grey]<category>[/] [grey]<name>[/] [grey]<title>[/] [grey]<message>[/] [grey][[severity]][/] [grey][[--json]][/]",
             "Safely add one complete error definition; JSON output includes structured success or failure details.");
         commandGrid.AddRow(
