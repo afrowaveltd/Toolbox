@@ -1,5 +1,6 @@
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.SeeMe.WhenItFails.Console;
+using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Validation;
 using Spectre.Console;
@@ -53,6 +54,12 @@ internal static class SetDocumentationKeyCommand
         if (string.IsNullOrWhiteSpace(newDocumentationKey))
         {
             ShowInvalidArguments();
+            return 1;
+        }
+
+        if (!WhenItFailsDocumentationKeyFormatChecker.IsCanonical(newDocumentationKey))
+        {
+            ShowInvalidDocumentationKeyFormat();
             return 1;
         }
 
@@ -113,6 +120,14 @@ internal static class SetDocumentationKeyCommand
         CommandInputError.Show(
             "InvalidSetDocumentationKeyArguments",
             "The set-documentation-key command requires a path, an error id/code/name, a new documentation key, and an optional --json switch.",
+            Usage);
+    }
+
+    private static void ShowInvalidDocumentationKeyFormat()
+    {
+        CommandInputError.Show(
+            "InvalidDocumentationKeyFormat",
+            "The documentation key must contain at least two slash-separated lowercase kebab-case segments, for example 'when-it-fails/errors/network-unavailable'.",
             Usage);
     }
 
