@@ -122,7 +122,8 @@ internal sealed class WhenItFailsWorkspaceEditor
           emptyValueMessage: "Documentation key cannot be empty.",
           getCurrentValue: errorDefinition => errorDefinition.DocumentationKey,
           setNewValue: (errorDefinition, value) => errorDefinition.DocumentationKey = value,
-          cancellationToken);
+          cancellationToken,
+          validateNewValue: ValidateDocumentationKeyIsUnique);
    }
 
    /// <summary>
@@ -237,8 +238,6 @@ internal sealed class WhenItFailsWorkspaceEditor
           $"Error severity changed from '{oldSeverity}' to '{normalizedSeverity}'.");
    }
 
-
-
    private static bool TryNormalizeSeverity(
        string inputSeverity,
        out string normalizedSeverity)
@@ -282,7 +281,8 @@ internal sealed class WhenItFailsWorkspaceEditor
        string emptyValueMessage,
        Func<ErrorDefinition, string?> getCurrentValue,
        Action<ErrorDefinition, string> setNewValue,
-       CancellationToken cancellationToken)
+       CancellationToken cancellationToken,
+       Func<ErrorCatalogDocument, ErrorDefinition, string, Response<ErrorDefinition>?>? validateNewValue = null)
    {
       ArgumentException.ThrowIfNullOrWhiteSpace(inputPath);
       ArgumentException.ThrowIfNullOrWhiteSpace(lookupValue);
@@ -329,6 +329,16 @@ internal sealed class WhenItFailsWorkspaceEditor
 
       string oldValue = getCurrentValue(errorDefinition) ?? string.Empty;
       string trimmedNewValue = newValue.Trim();
+
+      Response<ErrorDefinition>? newValueValidation = validateNewValue?.Invoke(
+          normalizedDocument,
+          errorDefinition,
+          trimmedNewValue);
+
+      if (newValueValidation is not null)
+      {
+         return newValueValidation;
+      }
 
       setNewValue(
           errorDefinition,
@@ -378,6 +388,28 @@ internal sealed class WhenItFailsWorkspaceEditor
       return Response<ErrorDefinition>.Ok(
           errorDefinition,
           $"Error {fieldName} changed from '{oldValue}' to '{trimmedNewValue}'.");
+   }
+
+   private static Response<ErrorDefinition>? ValidateDocumentationKeyIsUnique(
+       ErrorCatalogDocument document,
+       ErrorDefinition target,
+       string newDocumentationKey)
+   {
+      ErrorDefinition? duplicate = document.Errors.FirstOrDefault(errorDefinition =>
+          !ReferenceEquals(errorDefinition, target) &&
+          string.Equals(
+              errorDefinition.DocumentationKey?.Trim(),
+              newDocumentationKey,
+              StringComparison.OrdinalIgnoreCase));
+
+      if (duplicate is null)
+      {
+         return null;
+      }
+
+      return Response<ErrorDefinition>.Invalid(
+          code: "DuplicateDocumentationKey",
+          message: $"Documentation key '{newDocumentationKey}' is already used by '{duplicate.Id}'.");
    }
 
    private static ErrorDefinition? FindErrorDefinition(
