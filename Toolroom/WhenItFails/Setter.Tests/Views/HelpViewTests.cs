@@ -31,6 +31,12 @@ public sealed class HelpViewTests
                 renderedHelp,
                 StringComparison.Ordinal);
 
+            Assert.Contains("suggest-doc-key", renderedHelp, StringComparison.Ordinal);
+            Assert.Contains(
+                "Read-only suggestion of the first available canonical documentation key",
+                renderedHelp,
+                StringComparison.Ordinal);
+
             Assert.Contains("add-error", renderedHelp, StringComparison.Ordinal);
             Assert.Contains(
                 "generate its first available canonical documentation key",
