@@ -24,41 +24,15 @@ public sealed class MetadataBagJsonConverter : JsonConverter<MetadataBag>
             throw new JsonException("Metadata must be a JSON object.");
         }
 
-        Dictionary<string, string> items = new(StringComparer.OrdinalIgnoreCase);
+        using JsonDocument document = JsonDocument.ParseValue(ref reader);
+        JsonElement root = document.RootElement;
 
-        while (reader.Read())
+        if (TryGetLegacyItems(root, out JsonElement legacyItems))
         {
-            if (reader.TokenType == JsonTokenType.EndObject)
-            {
-                return new MetadataBag(items);
-            }
-
-            if (reader.TokenType != JsonTokenType.PropertyName)
-            {
-                throw new JsonException("Metadata contains an invalid property token.");
-            }
-
-            string key = reader.GetString() ?? string.Empty;
-
-            if (!reader.Read())
-            {
-                throw new JsonException("Metadata property value is missing.");
-            }
-
-            if (reader.TokenType != JsonTokenType.String)
-            {
-                throw new JsonException($"Metadata value for '{key}' must be a string.");
-            }
-
-            string value = reader.GetString() ?? string.Empty;
-
-            if (!string.IsNullOrWhiteSpace(key))
-            {
-                items[key] = value;
-            }
+            return ReadItems(legacyItems);
         }
 
-        throw new JsonException("Metadata JSON object was not closed.");
+        return ReadItems(root);
     }
 
     /// <inheritdoc />
@@ -79,5 +53,41 @@ public sealed class MetadataBagJsonConverter : JsonConverter<MetadataBag>
         }
 
         writer.WriteEndObject();
+    }
+
+    private static bool TryGetLegacyItems(
+        JsonElement root,
+        out JsonElement items)
+    {
+        items = default;
+
+        return root.TryGetProperty("Count", out JsonElement count)
+            && count.ValueKind == JsonValueKind.Number
+            && root.TryGetProperty("IsEmpty", out JsonElement isEmpty)
+            && (isEmpty.ValueKind == JsonValueKind.True
+                || isEmpty.ValueKind == JsonValueKind.False)
+            && root.TryGetProperty("Items", out items)
+            && items.ValueKind == JsonValueKind.Object;
+    }
+
+    private static MetadataBag ReadItems(JsonElement itemsElement)
+    {
+        Dictionary<string, string> items = new(StringComparer.OrdinalIgnoreCase);
+
+        foreach (JsonProperty property in itemsElement.EnumerateObject())
+        {
+            if (property.Value.ValueKind != JsonValueKind.String)
+            {
+                throw new JsonException(
+                    $"Metadata value for '{property.Name}' must be a string.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(property.Name))
+            {
+                items[property.Name] = property.Value.GetString() ?? string.Empty;
+            }
+        }
+
+        return new MetadataBag(items);
     }
 }
