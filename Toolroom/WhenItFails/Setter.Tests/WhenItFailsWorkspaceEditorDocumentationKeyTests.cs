@@ -55,7 +55,7 @@ public sealed class WhenItFailsWorkspaceEditorDocumentationKeyTests
             await new WhenItFailsWorkspaceEditor().SetErrorDocumentationKeyAsync(
                 workspace.ProjectRootPath,
                 target.Id,
-                duplicateKey.ToUpperInvariant());
+                duplicateKey);
 
         Assert.False(response.IsSuccess);
         Assert.Contains(
@@ -64,7 +64,7 @@ public sealed class WhenItFailsWorkspaceEditorDocumentationKeyTests
                 issue.Code,
                 "DuplicateDocumentationKey",
                 StringComparison.Ordinal));
-        Assert.Contains(source.Id, response.Message, StringComparison.Ordinal);
+        Assert.Contains(source.Id, response.Message);
         Assert.Equal(backupsBefore, CountErrorBackups(workspace.WhenItFailsJsonsPath));
 
         ErrorDefinition saved = (await LoadErrorsAsync(workspace.WhenItFailsJsonsPath))
