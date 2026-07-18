@@ -1,4 +1,3 @@
-using System.Text.RegularExpressions;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Views;
 using Spectre.Console;
 
@@ -16,7 +15,7 @@ public sealed class HelpViewTests
         {
             Ansi = AnsiSupport.No,
             ColorSystem = ColorSystemSupport.NoColors,
-            Out = new AnsiConsoleOutput(output)
+            Out = new FixedWidthAnsiConsoleOutput(output, width: 240)
         });
 
         try
@@ -26,29 +25,42 @@ public sealed class HelpViewTests
             HelpView.Show();
 
             string renderedHelp = output.ToString();
-            HashSet<string> words = Regex.Matches(
-                    renderedHelp,
-                    "[A-Za-z]+(?:-[A-Za-z]+)*")
-                .Select(match => match.Value)
-                .ToHashSet(StringComparer.Ordinal);
+            Assert.Contains("check-doc-keys", renderedHelp, StringComparison.Ordinal);
+            Assert.Contains(
+                "unique, non-empty, canonical documentation key",
+                renderedHelp,
+                StringComparison.Ordinal);
 
-            Assert.Contains("check-doc-keys", words);
-            Assert.Contains("unique", words);
-            Assert.Contains("non-empty", words);
-            Assert.Contains("canonical", words);
-            Assert.Contains("documentation", words);
-            Assert.Contains("key", words);
+            Assert.Contains("add-error", renderedHelp, StringComparison.Ordinal);
+            Assert.Contains(
+                "generate its first available canonical documentation key",
+                renderedHelp,
+                StringComparison.Ordinal);
 
-            Assert.Contains("add-error", words);
-            Assert.Contains("first", words);
-            Assert.Contains("available", words);
-
-            Assert.Contains("set-documentation-key", words);
-            Assert.Contains("value", words);
+            Assert.Contains("set-documentation-key", renderedHelp, StringComparison.Ordinal);
+            Assert.Contains(
+                "the value must be unique and canonical",
+                renderedHelp,
+                StringComparison.Ordinal);
         }
         finally
         {
             AnsiConsole.Console = originalConsole;
+        }
+    }
+
+    private sealed class FixedWidthAnsiConsoleOutput(TextWriter writer, int width) : IAnsiConsoleOutput
+    {
+        public TextWriter Writer { get; } = writer;
+
+        public bool IsTerminal => false;
+
+        public int Width { get; } = width;
+
+        public int Height => 100;
+
+        public void SetEncoding(System.Text.Encoding encoding)
+        {
         }
     }
 }
