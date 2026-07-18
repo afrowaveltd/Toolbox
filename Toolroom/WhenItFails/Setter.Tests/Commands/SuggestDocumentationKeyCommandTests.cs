@@ -140,6 +140,55 @@ public sealed class SuggestDocumentationKeyCommandTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_WithJsonOutputAndMissingCategoryCatalog_ReturnsStructuredFailure()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        File.Delete(Path.Combine(workspace.WhenItFailsJsonsPath, "categories.en.json"));
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        [
+            "suggest-doc-key",
+            workspace.ProjectRootPath,
+            "NETWORK",
+            "Missing category catalog",
+            "--json"
+        ]);
+
+        Assert.Equal(2, exitCode);
+        AssertStructuredJsonFailure(
+            output,
+            expectedCategory: "NETWORK",
+            expectedTitle: "Missing category catalog");
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WithJsonOutputAndMalformedErrorCatalog_ReturnsStructuredFailure()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        ErrorCategoryDefinition category = await LoadFirstCategoryAsync(workspace.WhenItFailsJsonsPath);
+        await File.WriteAllTextAsync(
+            Path.Combine(workspace.WhenItFailsJsonsPath, "errors.en.json"),
+            "{ not valid json");
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        [
+            "suggest-doc-key",
+            workspace.ProjectRootPath,
+            category.Name,
+            "Malformed error catalog",
+            "--json"
+        ]);
+
+        Assert.Equal(2, exitCode);
+        AssertStructuredJsonFailure(
+            output,
+            expectedCategory: category.Name,
+            expectedTitle: "Malformed error catalog");
+    }
+
+    [Fact]
     public async Task ExecuteAsync_WithUnknownCategory_ReturnsLookupFailureWithoutWriting()
     {
         using TemporaryWhenItFailsWorkspace workspace =
@@ -226,6 +275,23 @@ public sealed class SuggestDocumentationKeyCommandTests
     public async Task ExecuteAsync_WithInvalidArguments_ReturnsCommandInputError(string[] args)
     {
         Assert.Equal(1, await SuggestDocumentationKeyCommand.ExecuteAsync(args));
+    }
+
+    private static void AssertStructuredJsonFailure(
+        string output,
+        string expectedCategory,
+        string expectedTitle)
+    {
+        using JsonDocument document = JsonDocument.Parse(output);
+        JsonElement root = document.RootElement;
+        Assert.Equal("suggest-doc-key", root.GetProperty("command").GetString());
+
+        JsonElement data = root.GetProperty("data");
+        Assert.Equal(expectedCategory, data.GetProperty("category").GetString());
+        Assert.Equal(expectedTitle, data.GetProperty("title").GetString());
+        Assert.Equal(JsonValueKind.Null, data.GetProperty("documentationKey").ValueKind);
+        Assert.False(string.IsNullOrWhiteSpace(data.GetProperty("failureCode").GetString()));
+        Assert.False(string.IsNullOrWhiteSpace(data.GetProperty("failureMessage").GetString()));
     }
 
     private static async Task<(int ExitCode, string Output)> ExecuteWithCapturedOutputAsync(string[] args)
