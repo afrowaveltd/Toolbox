@@ -2,7 +2,7 @@
 
 Each error definition may point to its documentation through `documentationKey`.
 
-The key is intended to be stable, non-empty, and unique across the complete error catalog. Setter provides a read-only command that checks these rules without modifying the workspace.
+The key is intended to be stable, non-empty, unique, and canonical across the complete error catalog. Setter provides a read-only command that checks these rules without modifying the workspace.
 
 ## Command
 
@@ -48,14 +48,36 @@ The command reports:
 
 - missing, empty, or whitespace-only documentation keys;
 - duplicate keys using case-insensitive comparison;
-- duplicate keys after trimming surrounding whitespace.
+- duplicate keys after trimming surrounding whitespace;
+- non-canonical keys.
+
+A canonical key contains at least two slash-separated segments. Each segment uses lowercase ASCII letters, digits, and single hyphens only. Segments cannot begin or end with a hyphen, contain consecutive hyphens, or be empty.
+
+Canonical example:
+
+```text
+when-it-fails/errors/network/network-unavailable
+```
+
+Invalid examples:
+
+```text
+single-segment
+When-It-Fails/errors/network
+when_it_fails/errors/network
+when-it-fails//network
+when-it-fails/errors/network unavailable
+when-it-fails/errors/network--unavailable
+```
 
 Results are ordered deterministically by numeric error code and stable error ID.
+
+In `--plain` output, format problems use the issue type `invalid-format`.
 
 ## Exit codes
 
 ```text
-0  every error has a unique non-empty documentation key
+0  every error has a unique, non-empty, canonical documentation key
 1  command syntax or options are invalid
 2  the workspace could not be loaded, or documentation-key issues were found
 3  an unexpected command-level failure occurred
@@ -73,4 +95,4 @@ when-it-fails-setter set-documentation-key . \
 when-it-fails-setter check-doc-keys .
 ```
 
-The Setter test suite also checks the repository catalog directly, so a missing or duplicate documentation key causes the relevant CI test to fail.
+The Setter test suite also checks the repository catalog directly, so a missing, duplicate, or non-canonical documentation key causes the relevant CI test to fail.
