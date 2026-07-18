@@ -61,6 +61,51 @@ public sealed class WhenItFailsDocumentationKeySuggesterTests
     }
 
     [Fact]
+    public async Task SuggestAsync_WithCustomCatalogPaths_UsesResolvedOptions()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        ErrorCategoryDefinition category = await LoadFirstCategoryAsync(workspace.WhenItFailsJsonsPath);
+        string customRoot = Path.Combine(workspace.ProjectRootPath, "AlternativeJsons");
+        string customPackage = Path.Combine(customRoot, "CustomWhenItFails");
+        Directory.CreateDirectory(customPackage);
+
+        const string customCategoryFileName = "category-source.json";
+        const string customErrorFileName = "error-source.json";
+        File.Copy(
+            Path.Combine(workspace.WhenItFailsJsonsPath, "categories.en.json"),
+            Path.Combine(customPackage, customCategoryFileName));
+        File.Copy(
+            Path.Combine(workspace.WhenItFailsJsonsPath, "errors.en.json"),
+            Path.Combine(customPackage, customErrorFileName));
+
+        File.Delete(Path.Combine(workspace.WhenItFailsJsonsPath, "categories.en.json"));
+        File.Delete(Path.Combine(workspace.WhenItFailsJsonsPath, "errors.en.json"));
+
+        JsonsOptions options = new()
+        {
+            RootDirectory = customRoot,
+            PackageDirectoryName = "CustomWhenItFails",
+            CategoryCatalogFileName = customCategoryFileName,
+            ErrorCatalogFileName = customErrorFileName
+        };
+
+        Response<DocumentationKeySuggestion> response =
+            await new WhenItFailsDocumentationKeySuggester().SuggestAsync(
+                options,
+                category.Name,
+                "Custom catalog paths");
+
+        Assert.True(response.IsSuccess);
+        Assert.NotNull(response.Data);
+        Assert.Equal(category.Name, response.Data.Category);
+        Assert.EndsWith(
+            "/custom-catalog-paths",
+            response.Data.DocumentationKey,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task SuggestAsync_WithNullOptions_ThrowsArgumentNullException()
     {
         WhenItFailsDocumentationKeySuggester suggester = new();
