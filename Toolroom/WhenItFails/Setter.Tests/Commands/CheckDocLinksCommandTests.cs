@@ -111,7 +111,9 @@ public sealed class CheckDocLinksCommandTests
                 Path.GetTempPath(),
                 "WhenItFailsSetterTests",
                 Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(Path.Combine(SetterPath, "Commands"));
             Directory.CreateDirectory(Path.Combine(SetterPath, "Docs"));
+            File.WriteAllText(Path.Combine(SetterPath, "Program.cs"), "// Test Setter entry point");
         }
 
         public string SetterPath { get; }
