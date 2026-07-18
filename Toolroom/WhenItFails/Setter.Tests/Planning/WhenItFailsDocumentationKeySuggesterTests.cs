@@ -61,6 +61,20 @@ public sealed class WhenItFailsDocumentationKeySuggesterTests
     }
 
     [Fact]
+    public async Task SuggestAsync_WithNullOptions_ThrowsArgumentNullException()
+    {
+        WhenItFailsDocumentationKeySuggester suggester = new();
+
+        ArgumentNullException exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            suggester.SuggestAsync(
+                (JsonsOptions)null!,
+                "NETWORK",
+                "Null options"));
+
+        Assert.Equal("options", exception.ParamName);
+    }
+
+    [Fact]
     public async Task SuggestAsync_WithCategoryAlias_ResolvesCanonicalCategory()
     {
         using TemporaryWhenItFailsWorkspace workspace =
