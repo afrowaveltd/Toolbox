@@ -132,6 +132,56 @@ public sealed class SuggestDocumentationKeyCommandTests
         Assert.Equal(backupsBefore, CountErrorBackups(workspace.WhenItFailsJsonsPath));
     }
 
+    [Fact]
+    public async Task ExecuteAsync_WhenCategoryCatalogIsMissing_ReturnsFailureWithoutWriting()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        string categoryCatalogPath = Path.Combine(workspace.WhenItFailsJsonsPath, "categories.en.json");
+        string errorCatalogPath = Path.Combine(workspace.WhenItFailsJsonsPath, "errors.en.json");
+        string errorCatalogBefore = await File.ReadAllTextAsync(errorCatalogPath);
+        int backupsBefore = CountErrorBackups(workspace.WhenItFailsJsonsPath);
+        File.Delete(categoryCatalogPath);
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        [
+            "suggest-doc-key",
+            workspace.ProjectRootPath,
+            "NETWORK",
+            "Sample title"
+        ]);
+
+        Assert.Equal(2, exitCode);
+        Assert.False(string.IsNullOrWhiteSpace(output));
+        Assert.Equal(errorCatalogBefore, await File.ReadAllTextAsync(errorCatalogPath));
+        Assert.Equal(backupsBefore, CountErrorBackups(workspace.WhenItFailsJsonsPath));
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WhenErrorCatalogIsMalformed_ReturnsFailureWithoutWriting()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        ErrorCategoryDefinition category = await LoadFirstCategoryAsync(workspace.WhenItFailsJsonsPath);
+        string errorCatalogPath = Path.Combine(workspace.WhenItFailsJsonsPath, "errors.en.json");
+        const string malformedCatalog = "{ not valid json";
+        await File.WriteAllTextAsync(errorCatalogPath, malformedCatalog);
+        int backupsBefore = CountErrorBackups(workspace.WhenItFailsJsonsPath);
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        [
+            "suggest-doc-key",
+            workspace.ProjectRootPath,
+            category.Name,
+            "Sample title"
+        ]);
+
+        Assert.Equal(2, exitCode);
+        Assert.False(string.IsNullOrWhiteSpace(output));
+        Assert.Equal(malformedCatalog, await File.ReadAllTextAsync(errorCatalogPath));
+        Assert.Equal(backupsBefore, CountErrorBackups(workspace.WhenItFailsJsonsPath));
+    }
+
     public static TheoryData<string[]> InvalidArgumentCases =>
         new()
         {
