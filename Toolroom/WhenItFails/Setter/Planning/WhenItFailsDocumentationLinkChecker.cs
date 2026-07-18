@@ -13,7 +13,7 @@ internal sealed class WhenItFailsDocumentationLinkChecker
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     private static readonly Regex OptionalTitleRegex = new(
-        "^(?<path>.+?)\\s+(?:\"[^\"]*\"|'[^']*'|\\([^\\)]*\\))$",
+        @"^(?<path>.+?)\s+(?:""[^""]*""|'[^']*'|\([^\)]*\))$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     /// <summary>
@@ -31,7 +31,7 @@ internal sealed class WhenItFailsDocumentationLinkChecker
         }
 
         string setterPath = ResolveSetterPath(inputPath);
-        if (!IsSetterDirectory(setterPath))
+        if (!IsSetterDocumentationDirectory(setterPath))
         {
             return Response<DocumentationLinkCheckReport>.NotFound(
                 code: "SetterDocumentationDirectoryNotFound",
@@ -99,16 +99,24 @@ internal sealed class WhenItFailsDocumentationLinkChecker
     private static string ResolveSetterPath(string inputPath)
     {
         string fullPath = Path.GetFullPath(inputPath.Trim());
-        return IsSetterDirectory(fullPath)
-            ? fullPath
-            : Path.Combine(fullPath, "Toolroom", "WhenItFails", "Setter");
+        string nestedSetterPath = Path.Combine(
+            fullPath,
+            "Toolroom",
+            "WhenItFails",
+            "Setter");
+
+        if (IsSetterDocumentationDirectory(nestedSetterPath))
+        {
+            return nestedSetterPath;
+        }
+
+        return fullPath;
     }
 
-    private static bool IsSetterDirectory(string path)
+    private static bool IsSetterDocumentationDirectory(string path)
     {
         return Directory.Exists(path)
-            && File.Exists(Path.Combine(path, "Program.cs"))
-            && Directory.Exists(Path.Combine(path, "Commands"))
+            && File.Exists(Path.Combine(path, "README.md"))
             && Directory.Exists(Path.Combine(path, "Docs"));
     }
 
