@@ -142,10 +142,10 @@ internal static class HelpView
             "Read-only check of local Markdown links beneath the Setter documentation tree.");
         commandGrid.AddRow(
             "[green]check-doc-keys[/] [grey]<path>[/] [grey][[--plain|--json]][/]",
-            "Read-only check that every error has a unique non-empty documentation key.");
+            "Read-only check that every error has a unique, non-empty, canonical documentation key.");
         commandGrid.AddRow(
             "[green]add-error[/] [grey]<path>[/] [grey]<owner>[/] [grey]<group>[/] [grey]<category>[/] [grey]<name>[/] [grey]<title>[/] [grey]<message>[/] [grey][[severity]][/] [grey][[--json]][/]",
-            "Safely add one complete error definition; JSON output includes structured success or failure details.");
+            "Safely add one complete error definition and generate its first available canonical documentation key.");
         commandGrid.AddRow(
             "[green]remove-error[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey][[--json]][/]",
             "Safely remove one error definition; JSON failures include blocking profile references.");
@@ -202,7 +202,7 @@ internal static class HelpView
             "Safely change the severity; JSON output includes structured success or failure details. Allowed values: Trace, Debug, Information, Warning, Error, Critical.");
         commandGrid.AddRow(
             "[green]set-documentation-key[/] [grey]<path>[/] [grey]<id|code|name>[/] [grey]<documentation-key>[/] [grey][[--json]][/]",
-            "Safely change the documentation key; JSON output includes structured success or failure details.");
+            "Safely change the documentation key; the value must be unique and canonical.");
         commandGrid.AddRow("[green]demo[/]", "Show a sample WhenItFails validation result.");
         commandGrid.AddRow("[green]help[/]", "Show this help screen.");
 
