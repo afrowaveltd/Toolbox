@@ -223,6 +223,11 @@ try
         return await ListBackupsCommand.ExecuteAsync(args);
     }
 
+    if (command == "restore-backup")
+    {
+        return await RestoreBackupCommand.ExecuteAsync(args);
+    }
+
     if (command == "add-error")
     {
         return await AddErrorCommand.ExecuteAsync(args);
