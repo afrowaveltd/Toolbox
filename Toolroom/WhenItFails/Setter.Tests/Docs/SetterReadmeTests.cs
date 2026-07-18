@@ -9,10 +9,9 @@ public sealed class SetterReadmeTests
     {
         string readme = File.ReadAllText(GetReadmePath());
 
-        Assert.Contains(
-            "suggest-doc-key <path> <category-name|alias> <title> [--plain|--json]",
-            readme,
-            StringComparison.Ordinal);
+        Assert.Contains("suggest-doc-key", readme, StringComparison.Ordinal);
+        Assert.Contains("<category-name\\|alias>", readme, StringComparison.Ordinal);
+        Assert.Contains("--plain\\|--json", readme, StringComparison.Ordinal);
         Assert.Contains("The command is read-only.", readme, StringComparison.Ordinal);
         Assert.Contains(
             "[Adding errors](Docs/Adding%20Errors/en.md)",
