@@ -24,9 +24,7 @@ public sealed class SetDocumentationKeyCommandJsonTests
             "set-documentation-key",
             workspace.ProjectRootPath,
             target.Id,
-            "docs",
-            "network",
-            "interrupted",
+            "docs/network/interrupted",
             "--json"
         ]);
 
@@ -41,14 +39,14 @@ public sealed class SetDocumentationKeyCommandJsonTests
         Assert.Equal(JsonValueKind.Null, data.GetProperty("failureCode").ValueKind);
         Assert.Equal(JsonValueKind.Null, data.GetProperty("failureMessage").ValueKind);
         Assert.Equal(
-            "docs network interrupted",
+            "docs/network/interrupted",
             data.GetProperty("error").GetProperty("documentationKey").GetString());
         Assert.Equal(backupsBefore + 1, CountErrorBackups(workspace.WhenItFailsJsonsPath));
 
         ErrorDefinition saved = (await LoadErrorsAsync(workspace.WhenItFailsJsonsPath))
             .Errors
             .Single(error => error.Id == target.Id);
-        Assert.Equal("docs network interrupted", saved.DocumentationKey);
+        Assert.Equal("docs/network/interrupted", saved.DocumentationKey);
     }
 
     [Fact]
@@ -64,18 +62,44 @@ public sealed class SetDocumentationKeyCommandJsonTests
             workspace.ProjectRootPath,
             target.Code.ToString(),
             "--json",
-            "docs.connection.interrupted"
+            "docs/connection/interrupted"
         ]);
 
         Assert.Equal(0, exitCode);
         using JsonDocument document = JsonDocument.Parse(output);
         Assert.Equal(
-            "docs.connection.interrupted",
+            "docs/connection/interrupted",
             document.RootElement
                 .GetProperty("data")
                 .GetProperty("error")
                 .GetProperty("documentationKey")
                 .GetString());
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WithNoncanonicalKey_ReturnsInputErrorWithoutChangeOrBackup()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        ErrorDefinition target = (await LoadErrorsAsync(workspace.WhenItFailsJsonsPath)).Errors.First();
+        string? originalDocumentationKey = target.DocumentationKey;
+        int backupsBefore = CountErrorBackups(workspace.WhenItFailsJsonsPath);
+
+        int exitCode = await SetDocumentationKeyCommand.ExecuteAsync(
+        [
+            "set-documentation-key",
+            workspace.ProjectRootPath,
+            target.Id,
+            "docs network interrupted"
+        ]);
+
+        Assert.Equal(1, exitCode);
+        Assert.Equal(backupsBefore, CountErrorBackups(workspace.WhenItFailsJsonsPath));
+
+        ErrorDefinition saved = (await LoadErrorsAsync(workspace.WhenItFailsJsonsPath))
+            .Errors
+            .Single(error => error.Id == target.Id);
+        Assert.Equal(originalDocumentationKey, saved.DocumentationKey);
     }
 
     [Fact]
@@ -90,7 +114,7 @@ public sealed class SetDocumentationKeyCommandJsonTests
             "set-documentation-key",
             workspace.ProjectRootPath,
             "DOES_NOT_EXIST",
-            "docs.missing",
+            "docs/missing",
             "--json"
         ]);
 
@@ -117,7 +141,7 @@ public sealed class SetDocumentationKeyCommandJsonTests
             "set-documentation-key",
             workspace.ProjectRootPath,
             target.Id,
-            "docs.sample",
+            "docs/sample",
             "--json",
             "--json"
         ]);
