@@ -138,6 +138,9 @@ internal static class HelpView
             "[green]restore-backup[/] [grey]<path>[/] [grey]<backup-file-name>[/] [grey][[--json]][/]",
             "Safely restore one catalog backup, validate the workspace, and roll back on failure.");
         commandGrid.AddRow(
+            "[green]check-doc-links[/] [grey]<path>[/] [grey][[--plain|--json]][/]",
+            "Read-only check of local Markdown links beneath the Setter documentation tree.");
+        commandGrid.AddRow(
             "[green]add-error[/] [grey]<path>[/] [grey]<owner>[/] [grey]<group>[/] [grey]<category>[/] [grey]<name>[/] [grey]<title>[/] [grey]<message>[/] [grey][[severity]][/] [grey][[--json]][/]",
             "Safely add one complete error definition; JSON output includes structured success or failure details.");
         commandGrid.AddRow(
