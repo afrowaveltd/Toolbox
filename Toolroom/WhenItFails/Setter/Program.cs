@@ -228,6 +228,11 @@ try
         return await RestoreBackupCommand.ExecuteAsync(args);
     }
 
+    if (command == "check-doc-links")
+    {
+        return await CheckDocLinksCommand.ExecuteAsync(args);
+    }
+
     if (command == "add-error")
     {
         return await AddErrorCommand.ExecuteAsync(args);
