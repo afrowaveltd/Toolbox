@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.RegularExpressions;
 using Afrowave.Toolbox.Essentials.Results;
 
@@ -14,10 +15,6 @@ internal sealed class WhenItFailsDocumentationLinkChecker
 
     private static readonly Regex OptionalTitleRegex = new(
         @"^(?<path>.+?)\s+(?:""[^""]*""|'[^']*'|\([^\)]*\))$",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
-    private static readonly Regex FencedCodeBlockRegex = new(
-        @"(?ms)^[ \t]*(?<fence>`{3,}|~{3,})[^\r\n]*\r?\n.*?^[ \t]*\k<fence>[ \t]*$",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     private static readonly Regex InlineCodeRegex = new(
@@ -149,8 +146,73 @@ internal sealed class WhenItFailsDocumentationLinkChecker
 
     private static string RemoveCode(string content)
     {
-        string withoutFencedBlocks = FencedCodeBlockRegex.Replace(content, string.Empty);
-        return InlineCodeRegex.Replace(withoutFencedBlocks, string.Empty);
+        StringBuilder checkable = new(content.Length);
+        bool insideFence = false;
+        char fenceCharacter = '\0';
+        int fenceLength = 0;
+
+        using StringReader reader = new(content);
+        string? line;
+        while ((line = reader.ReadLine()) is not null)
+        {
+            if (TryReadFence(line, out char currentCharacter, out int currentLength))
+            {
+                if (!insideFence)
+                {
+                    insideFence = true;
+                    fenceCharacter = currentCharacter;
+                    fenceLength = currentLength;
+                    continue;
+                }
+
+                if (currentCharacter == fenceCharacter && currentLength >= fenceLength)
+                {
+                    insideFence = false;
+                    fenceCharacter = '\0';
+                    fenceLength = 0;
+                }
+
+                continue;
+            }
+
+            if (insideFence)
+            {
+                continue;
+            }
+
+            checkable.AppendLine(InlineCodeRegex.Replace(line, string.Empty));
+        }
+
+        return checkable.ToString();
+    }
+
+    private static bool TryReadFence(
+        string line,
+        out char fenceCharacter,
+        out int fenceLength)
+    {
+        fenceCharacter = '\0';
+        fenceLength = 0;
+
+        int index = 0;
+        while (index < line.Length && index < 3 && line[index] == ' ')
+        {
+            index++;
+        }
+
+        if (index >= line.Length || (line[index] != '`' && line[index] != '~'))
+        {
+            return false;
+        }
+
+        fenceCharacter = line[index];
+        while (index + fenceLength < line.Length
+               && line[index + fenceLength] == fenceCharacter)
+        {
+            fenceLength++;
+        }
+
+        return fenceLength >= 3;
     }
 
     private static string ExtractTarget(string targetExpression)
