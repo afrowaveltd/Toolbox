@@ -101,6 +101,7 @@ public sealed class SuggestDocumentationKeyCommandTests
     private static async Task<(int ExitCode, string Output)> ExecuteWithCapturedOutputAsync(string[] args)
     {
         IAnsiConsole originalConsole = AnsiConsole.Console;
+        TextWriter originalOutput = Console.Out;
         using StringWriter output = new();
         IAnsiConsole testConsole = AnsiConsole.Create(new AnsiConsoleSettings
         {
@@ -111,6 +112,7 @@ public sealed class SuggestDocumentationKeyCommandTests
 
         try
         {
+            Console.SetOut(output);
             AnsiConsole.Console = testConsole;
             int exitCode = await SuggestDocumentationKeyCommand.ExecuteAsync(args);
             return (exitCode, output.ToString());
@@ -118,6 +120,7 @@ public sealed class SuggestDocumentationKeyCommandTests
         finally
         {
             AnsiConsole.Console = originalConsole;
+            Console.SetOut(originalOutput);
         }
     }
 
