@@ -60,13 +60,17 @@ internal static class CheckDocKeysCommand
         }
 
         string inputPath = args[1];
-        DocumentationKeyCheckReport report;
+        DocumentationKeyCommandReport report;
 
         try
         {
             WhenItFailsWorkspaceSummary workspace =
                 await new WhenItFailsWorkspaceSummarizer().LoadAsync(inputPath);
-            report = new WhenItFailsDocumentationKeyChecker().Check(workspace.ErrorCatalog);
+            DocumentationKeyCheckReport keyReport =
+                new WhenItFailsDocumentationKeyChecker().Check(workspace.ErrorCatalog);
+            DocumentationKeyFormatCheckReport formatReport =
+                new WhenItFailsDocumentationKeyFormatChecker().Check(workspace.ErrorCatalog);
+            report = new DocumentationKeyCommandReport(keyReport, formatReport);
         }
         catch (Exception exception)
         {
@@ -87,12 +91,12 @@ internal static class CheckDocKeysCommand
     }
 
     private static void ShowReport(
-        DocumentationKeyCheckReport report,
+        DocumentationKeyCommandReport report,
         bool usePlainOutput)
     {
         if (usePlainOutput)
         {
-            foreach (DocumentationKeyIssue issue in report.MissingKeys)
+            foreach (DocumentationKeyIssue issue in report.Keys.MissingKeys)
             {
                 AnsiConsole.WriteLine(string.Join(
                     '\t',
@@ -102,7 +106,7 @@ internal static class CheckDocKeysCommand
                     issue.ErrorName));
             }
 
-            foreach (DuplicateDocumentationKey duplicate in report.DuplicateKeys)
+            foreach (DuplicateDocumentationKey duplicate in report.Keys.DuplicateKeys)
             {
                 foreach (DocumentationKeyIssue issue in duplicate.Errors)
                 {
@@ -116,6 +120,17 @@ internal static class CheckDocKeysCommand
                 }
             }
 
+            foreach (InvalidDocumentationKeyFormat issue in report.Format.InvalidKeys)
+            {
+                AnsiConsole.WriteLine(string.Join(
+                    '\t',
+                    "invalid-format",
+                    issue.DocumentationKey,
+                    issue.ErrorCode,
+                    issue.ErrorId,
+                    issue.ErrorName));
+            }
+
             return;
         }
 
@@ -123,11 +138,12 @@ internal static class CheckDocKeysCommand
 
         if (report.IsValid)
         {
-            AnsiConsole.MarkupLine("[green]All errors have unique documentation keys.[/]");
+            AnsiConsole.MarkupLine(
+                "[green]All errors have unique, non-empty, canonical documentation keys.[/]");
             return;
         }
 
-        if (report.MissingKeys.Count > 0)
+        if (report.Keys.MissingKeys.Count > 0)
         {
             Table missingTable = new Table()
                 .Border(TableBorder.Rounded)
@@ -136,7 +152,7 @@ internal static class CheckDocKeysCommand
             missingTable.AddColumn("Id");
             missingTable.AddColumn("Name");
 
-            foreach (DocumentationKeyIssue issue in report.MissingKeys)
+            foreach (DocumentationKeyIssue issue in report.Keys.MissingKeys)
             {
                 missingTable.AddRow(
                     issue.ErrorCode.ToString(),
@@ -144,11 +160,13 @@ internal static class CheckDocKeysCommand
                     Markup.Escape(issue.ErrorName));
             }
 
-            AnsiConsole.MarkupLine("[red]Missing documentation keys:[/] {0}", report.MissingKeys.Count);
+            AnsiConsole.MarkupLine(
+                "[red]Missing documentation keys:[/] {0}",
+                report.Keys.MissingKeys.Count);
             AnsiConsole.Write(missingTable);
         }
 
-        if (report.DuplicateKeys.Count > 0)
+        if (report.Keys.DuplicateKeys.Count > 0)
         {
             Table duplicateTable = new Table()
                 .Border(TableBorder.Rounded)
@@ -158,7 +176,7 @@ internal static class CheckDocKeysCommand
             duplicateTable.AddColumn("Id");
             duplicateTable.AddColumn("Name");
 
-            foreach (DuplicateDocumentationKey duplicate in report.DuplicateKeys)
+            foreach (DuplicateDocumentationKey duplicate in report.Keys.DuplicateKeys)
             {
                 foreach (DocumentationKeyIssue issue in duplicate.Errors)
                 {
@@ -170,8 +188,35 @@ internal static class CheckDocKeysCommand
                 }
             }
 
-            AnsiConsole.MarkupLine("[red]Duplicate documentation keys:[/] {0}", report.DuplicateKeys.Count);
+            AnsiConsole.MarkupLine(
+                "[red]Duplicate documentation keys:[/] {0}",
+                report.Keys.DuplicateKeys.Count);
             AnsiConsole.Write(duplicateTable);
+        }
+
+        if (report.Format.InvalidKeys.Count > 0)
+        {
+            Table formatTable = new Table()
+                .Border(TableBorder.Rounded)
+                .Expand();
+            formatTable.AddColumn("Documentation key");
+            formatTable.AddColumn("Code");
+            formatTable.AddColumn("Id");
+            formatTable.AddColumn("Name");
+
+            foreach (InvalidDocumentationKeyFormat issue in report.Format.InvalidKeys)
+            {
+                formatTable.AddRow(
+                    Markup.Escape(issue.DocumentationKey),
+                    issue.ErrorCode.ToString(),
+                    Markup.Escape(issue.ErrorId),
+                    Markup.Escape(issue.ErrorName));
+            }
+
+            AnsiConsole.MarkupLine(
+                "[red]Non-canonical documentation keys:[/] {0}",
+                report.Format.InvalidKeys.Count);
+            AnsiConsole.Write(formatTable);
         }
     }
 
@@ -196,4 +241,13 @@ internal static class CheckDocKeysCommand
             result,
             new ConsoleShowOptions { SourcePath = inputPath });
     }
+}
+
+internal sealed record DocumentationKeyCommandReport(
+    DocumentationKeyCheckReport Keys,
+    DocumentationKeyFormatCheckReport Format)
+{
+    public int TotalErrors => Keys.TotalErrors;
+
+    public bool IsValid => Keys.IsValid && Format.IsValid;
 }
