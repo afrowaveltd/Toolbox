@@ -94,7 +94,31 @@ dotnet run --project Toolroom/WhenItFails/Setter -- \
   suggest-doc-key . NETWORK "Connection interrupted" --plain
 ```
 
-Use `--json` for the standard structured command envelope.
+Use `--json` for the standard structured command envelope. The `data` object always has the same fields:
+
+```text
+category
+title
+documentationKey
+failureCode
+failureMessage
+```
+
+On success, `category`, `title`, and `documentationKey` are populated while `failureCode` and `failureMessage` are `null`.
+
+On failure, `documentationKey` is `null` and the failure fields describe the problem. For example, an unknown category returns:
+
+```json
+{
+  "category": "DOES_NOT_EXIST",
+  "title": "Connection interrupted",
+  "documentationKey": null,
+  "failureCode": "CategoryNotFound",
+  "failureMessage": "Category 'DOES_NOT_EXIST' was not found."
+}
+```
+
+The command returns exit code `0` for a successful suggestion, `1` for invalid command arguments, and `2` when the workspace lookup or suggestion fails.
 
 ## Normal success output
 
