@@ -33,8 +33,13 @@ internal sealed class WhenItFailsDocumentationKeyFormatChecker
             InvalidKeys: invalidKeys);
     }
 
-    private static bool IsCanonical(string documentationKey)
+    /// <summary>
+    /// Determines whether one non-empty documentation key uses canonical slash-separated kebab-case.
+    /// </summary>
+    public static bool IsCanonical(string documentationKey)
     {
+        ArgumentNullException.ThrowIfNull(documentationKey);
+
         if (!string.Equals(
                 documentationKey,
                 documentationKey.Trim(),
