@@ -238,6 +238,11 @@ try
         return await CheckDocKeysCommand.ExecuteAsync(args);
     }
 
+    if (command == "suggest-doc-key")
+    {
+        return await SuggestDocumentationKeyCommand.ExecuteAsync(args);
+    }
+
     if (command == "add-error")
     {
         return await AddErrorCommand.ExecuteAsync(args);
