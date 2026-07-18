@@ -1,5 +1,3 @@
-using System.Globalization;
-using System.Text;
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 using Afrowave.Toolbox.WhenItFails.Configuration;
@@ -130,23 +128,27 @@ internal static class WhenItFailsWorkspaceEditorAddErrorExtensions
                 message: $"Category '{normalizedCategory}' was not found.");
         }
 
-        string baseDocumentationKey = string.Join(
-            '/',
-            "when-it-fails",
-            "errors",
-            ToDocumentationSegment(category.Name),
-            ToDocumentationSegment(request.Title));
-
-        if (!WhenItFailsDocumentationKeyFormatChecker.IsCanonical(baseDocumentationKey))
+        string documentationKey;
+        try
+        {
+            documentationKey = new WhenItFailsDocumentationKeyGenerator().Generate(
+                category.Name,
+                request.Title,
+                errorCatalog.Errors.Select(error => error.DocumentationKey));
+        }
+        catch (ArgumentException exception)
         {
             return Response<ErrorDefinition>.Invalid(
                 code: "GeneratedDocumentationKeyIsInvalid",
-                message: $"Generated documentation key '{baseDocumentationKey}' is not canonical.");
+                message: exception.Message);
         }
 
-        string documentationKey = FindAvailableDocumentationKey(
-            baseDocumentationKey,
-            errorCatalog.Errors);
+        if (!WhenItFailsDocumentationKeyFormatChecker.IsCanonical(documentationKey))
+        {
+            return Response<ErrorDefinition>.Invalid(
+                code: "GeneratedDocumentationKeyIsInvalid",
+                message: $"Generated documentation key '{documentationKey}' is not canonical.");
+        }
 
         ErrorDefinition errorDefinition = new()
         {
@@ -194,33 +196,6 @@ internal static class WhenItFailsWorkspaceEditorAddErrorExtensions
         return Response<ErrorDefinition>.Ok(
             errorDefinition,
             $"Added error '{errorDefinition.Id}' ({errorDefinition.Code}).");
-    }
-
-    private static string FindAvailableDocumentationKey(
-        string baseDocumentationKey,
-        IEnumerable<ErrorDefinition> errors)
-    {
-        HashSet<string> usedKeys = errors
-            .Where(error => !string.IsNullOrWhiteSpace(error.DocumentationKey))
-            .Select(error => error.DocumentationKey!)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        if (!usedKeys.Contains(baseDocumentationKey))
-        {
-            return baseDocumentationKey;
-        }
-
-        for (int suffix = 2; suffix < int.MaxValue; suffix++)
-        {
-            string candidate = $"{baseDocumentationKey}-{suffix}";
-            if (!usedKeys.Contains(candidate))
-            {
-                return candidate;
-            }
-        }
-
-        throw new InvalidOperationException(
-            $"No available documentation key could be generated from '{baseDocumentationKey}'.");
     }
 
     private static Response<ErrorDefinition>? ValidateRequest(AddErrorRequest request)
@@ -277,38 +252,6 @@ internal static class WhenItFailsWorkspaceEditorAddErrorExtensions
                    value,
                    StringComparison.OrdinalIgnoreCase))
                ?? value;
-    }
-
-    private static string ToDocumentationSegment(string value)
-    {
-        string decomposed = value.Trim().Normalize(NormalizationForm.FormD);
-        StringBuilder builder = new();
-        bool pendingSeparator = false;
-
-        foreach (char character in decomposed)
-        {
-            UnicodeCategory category = CharUnicodeInfo.GetUnicodeCategory(character);
-            if (category == UnicodeCategory.NonSpacingMark)
-            {
-                continue;
-            }
-
-            if (char.IsAsciiLetterOrDigit(character))
-            {
-                if (pendingSeparator && builder.Length > 0)
-                {
-                    builder.Append('-');
-                }
-
-                builder.Append(char.ToLowerInvariant(character));
-                pendingSeparator = false;
-                continue;
-            }
-
-            pendingSeparator = builder.Length > 0;
-        }
-
-        return builder.ToString();
     }
 
     private static Response<ErrorDefinition> Invalid(string code, string message) =>
