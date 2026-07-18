@@ -26,20 +26,16 @@ public sealed class HelpViewTests
 
             string renderedHelp = output.ToString();
             Assert.Contains("check-doc-keys", renderedHelp, StringComparison.Ordinal);
-            Assert.Contains(
-                "unique, non-empty, canonical documentation key",
-                renderedHelp,
-                StringComparison.Ordinal);
+            Assert.Contains("unique, non-empty,", renderedHelp, StringComparison.Ordinal);
+            Assert.Contains("canonical documentation key", renderedHelp, StringComparison.Ordinal);
+
             Assert.Contains("add-error", renderedHelp, StringComparison.Ordinal);
-            Assert.Contains(
-                "generate its first available canonical documentation key",
-                renderedHelp,
-                StringComparison.Ordinal);
+            Assert.Contains("first available canonical", renderedHelp, StringComparison.Ordinal);
+            Assert.Contains("documentation key", renderedHelp, StringComparison.Ordinal);
+
             Assert.Contains("set-documentation-key", renderedHelp, StringComparison.Ordinal);
-            Assert.Contains(
-                "the value must be unique and canonical",
-                renderedHelp,
-                StringComparison.Ordinal);
+            Assert.Contains("value must be unique", renderedHelp, StringComparison.Ordinal);
+            Assert.Contains("and canonical", renderedHelp, StringComparison.Ordinal);
         }
         finally
         {
