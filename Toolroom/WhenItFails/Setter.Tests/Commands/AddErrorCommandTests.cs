@@ -43,6 +43,12 @@ public sealed class AddErrorCommandTests
         Assert.Equal(group.Name, added.CodeGroup);
         Assert.Equal(category.Name, added.PrimaryCategory);
         Assert.Equal("Warning", added.DefaultSeverity);
+        Assert.Equal(
+            $"when-it-fails/errors/{category.Name.ToLowerInvariant().Replace('_', '-')}/cli-sample-error",
+            added.DocumentationKey);
+        Assert.True(
+            WhenItFailsDocumentationKeyFormatChecker.IsCanonical(added.DocumentationKey!));
+        Assert.True(new WhenItFailsDocumentationKeyChecker().Check(saved).IsValid);
         Assert.Equal(backupsBefore + 1, CountErrorBackups(workspace.WhenItFailsJsonsPath));
     }
 
@@ -72,6 +78,9 @@ public sealed class AddErrorCommandTests
         ErrorDefinition? added = saved.Errors.FirstOrDefault(error => error.Name == "DEFAULT_SEVERITY_SAMPLE");
         Assert.NotNull(added);
         Assert.Equal("Error", added.DefaultSeverity);
+        Assert.False(string.IsNullOrWhiteSpace(added.DocumentationKey));
+        Assert.True(new WhenItFailsDocumentationKeyChecker().Check(saved).IsValid);
+        Assert.True(new WhenItFailsDocumentationKeyFormatChecker().Check(saved).IsValid);
     }
 
     [Fact]
