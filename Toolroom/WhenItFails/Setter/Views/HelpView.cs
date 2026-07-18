@@ -132,6 +132,9 @@ internal static class HelpView
             "[green]next-code[/] [grey]<path>[/] [grey]<owner-name|alias>[/] [grey]<group-name|prefix>[/] [grey][[--plain|--json]][/]",
             "Read-only suggestion of the first free numeric code and structured id.");
         commandGrid.AddRow(
+            "[green]suggest-doc-key[/] [grey]<path>[/] [grey]<category-name|alias>[/] [grey]<title>[/] [grey][[--plain|--json]][/]",
+            "Read-only suggestion of the first available canonical documentation key.");
+        commandGrid.AddRow(
             "[green]list-backups[/] [grey]<path>[/] [grey][[--plain|--json]][/]",
             "Read-only list of catalog backups, newest first.");
         commandGrid.AddRow(
