@@ -52,6 +52,39 @@ public sealed class CheckDocKeysCommandTests
         Assert.Equal(0, exitCode);
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("--plain")]
+    [InlineData("--json")]
+    public async Task ExecuteAsync_WithNonCanonicalKey_ReturnsCheckFailure(string? outputOption)
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        string catalogPath = Path.Combine(
+            workspace.WhenItFailsJsonsPath,
+            "errors.en.json");
+        string json = await File.ReadAllTextAsync(catalogPath);
+        json = json.Replace(
+            "when-it-fails/errors/general/unknown-error",
+            "When-It-Fails/errors/general/unknown-error",
+            StringComparison.Ordinal);
+        await File.WriteAllTextAsync(catalogPath, json);
+
+        List<string> args =
+        [
+            "check-doc-keys",
+            workspace.ProjectRootPath
+        ];
+        if (outputOption is not null)
+        {
+            args.Add(outputOption);
+        }
+
+        int exitCode = await CheckDocKeysCommand.ExecuteAsync(args.ToArray());
+
+        Assert.Equal(2, exitCode);
+    }
+
     [Fact]
     public async Task ExecuteAsync_WithMissingDirectory_ReturnsCheckFailure()
     {
