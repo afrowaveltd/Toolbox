@@ -233,6 +233,11 @@ try
         return await CheckDocLinksCommand.ExecuteAsync(args);
     }
 
+    if (command == "check-doc-keys")
+    {
+        return await CheckDocKeysCommand.ExecuteAsync(args);
+    }
+
     if (command == "add-error")
     {
         return await AddErrorCommand.ExecuteAsync(args);
