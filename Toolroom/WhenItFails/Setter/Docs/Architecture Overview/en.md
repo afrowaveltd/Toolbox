@@ -415,7 +415,7 @@ Treat it more strictly than rich output.
 Documentation pages are stored under:
 
 README links should usually look like:
-[Page Name](Docs/Page%20Name/en.md)
+`[Page Name](Docs/Page%20Name/en.md)`
 Spaces in links should be URL-encoded.
 
 Actual folder names may contain spaces.
