@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
+using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Infrastructure;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Loading;
@@ -31,6 +32,34 @@ public sealed class SuggestDocumentationKeyCommandTests
         Assert.Equal(
             $"when-it-fails/errors/{category.Name.ToLowerInvariant().Replace('_', '-')}/prilis-zlutoucky-soubor",
             output.Trim());
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WithPlainOutput_MatchesApplicationSuggester()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        ErrorCategoryDefinition category = await LoadFirstCategoryAsync(workspace.WhenItFailsJsonsPath);
+        const string title = "Shared suggester result";
+
+        var serviceResponse = await new WhenItFailsDocumentationKeySuggester().SuggestAsync(
+            workspace.ProjectRootPath,
+            category.Name,
+            title);
+        Assert.True(serviceResponse.IsSuccess);
+        Assert.NotNull(serviceResponse.Data);
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        [
+            "suggest-doc-key",
+            workspace.ProjectRootPath,
+            category.Name,
+            title,
+            "--plain"
+        ]);
+
+        Assert.Equal(0, exitCode);
+        Assert.Equal(serviceResponse.Data.DocumentationKey, output.Trim());
     }
 
     [Fact]
