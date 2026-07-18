@@ -113,6 +113,9 @@ internal static class AddErrorCommand
             AnsiConsole.MarkupLine("[bold]Code group:[/] {0}", Markup.Escape(error.CodeGroup));
             AnsiConsole.MarkupLine("[bold]Primary category:[/] {0}", Markup.Escape(error.PrimaryCategory));
             AnsiConsole.MarkupLine("[bold]Severity:[/] {0}", Markup.Escape(error.DefaultSeverity));
+            AnsiConsole.MarkupLine(
+                "[bold]Documentation key:[/] {0}",
+                Markup.Escape(error.DocumentationKey ?? string.Empty));
         }
 
         return 0;
