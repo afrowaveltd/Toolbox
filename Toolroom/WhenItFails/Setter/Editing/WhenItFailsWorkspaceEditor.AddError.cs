@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 using Afrowave.Toolbox.WhenItFails.Configuration;
@@ -128,6 +130,32 @@ internal static class WhenItFailsWorkspaceEditorAddErrorExtensions
                 message: $"Category '{normalizedCategory}' was not found.");
         }
 
+        string documentationKey = string.Join(
+            '/',
+            "when-it-fails",
+            "errors",
+            ToDocumentationSegment(category.Name),
+            ToDocumentationSegment(request.Title));
+
+        if (!WhenItFailsDocumentationKeyFormatChecker.IsCanonical(documentationKey))
+        {
+            return Response<ErrorDefinition>.Invalid(
+                code: "GeneratedDocumentationKeyIsInvalid",
+                message: $"Generated documentation key '{documentationKey}' is not canonical.");
+        }
+
+        ErrorDefinition? existingDocumentationKeyOwner = errorCatalog.Errors.FirstOrDefault(error =>
+            string.Equals(
+                error.DocumentationKey,
+                documentationKey,
+                StringComparison.OrdinalIgnoreCase));
+        if (existingDocumentationKeyOwner is not null)
+        {
+            return Response<ErrorDefinition>.Invalid(
+                code: "DuplicateDocumentationKey",
+                message: $"Documentation key '{documentationKey}' is already used by '{existingDocumentationKeyOwner.Id}'.");
+        }
+
         ErrorDefinition errorDefinition = new()
         {
             Id = identity.Id,
@@ -140,7 +168,8 @@ internal static class WhenItFailsWorkspaceEditorAddErrorExtensions
             Categories = [category.Name],
             Title = request.Title.Trim(),
             Message = request.Message.Trim(),
-            DefaultSeverity = normalizedSeverity
+            DefaultSeverity = normalizedSeverity,
+            DocumentationKey = documentationKey
         };
 
         errorCatalog.Errors.Add(errorDefinition);
@@ -229,6 +258,38 @@ internal static class WhenItFailsWorkspaceEditorAddErrorExtensions
                    value,
                    StringComparison.OrdinalIgnoreCase))
                ?? value;
+    }
+
+    private static string ToDocumentationSegment(string value)
+    {
+        string decomposed = value.Trim().Normalize(NormalizationForm.FormD);
+        StringBuilder builder = new();
+        bool pendingSeparator = false;
+
+        foreach (char character in decomposed)
+        {
+            UnicodeCategory category = CharUnicodeInfo.GetUnicodeCategory(character);
+            if (category == UnicodeCategory.NonSpacingMark)
+            {
+                continue;
+            }
+
+            if (char.IsAsciiLetterOrDigit(character))
+            {
+                if (pendingSeparator && builder.Length > 0)
+                {
+                    builder.Append('-');
+                }
+
+                builder.Append(char.ToLowerInvariant(character));
+                pendingSeparator = false;
+                continue;
+            }
+
+            pendingSeparator = builder.Length > 0;
+        }
+
+        return builder.ToString();
     }
 
     private static Response<ErrorDefinition> Invalid(string code, string message) =>
