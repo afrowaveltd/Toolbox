@@ -17,7 +17,9 @@ public sealed class WhenItFailsDocumentationLinkCheckerTests
             await File.WriteAllTextAsync(targetPath, "# Getting started");
             await File.WriteAllTextAsync(
                 Path.Combine(setterPath, "README.md"),
-                "[Local](Docs/Getting%20Started.md#section)\n" +
+                "[Encoded](Docs/Getting%20Started.md#section)\n" +
+                "[Raw spaces](Docs/Getting Started.md)\n" +
+                "[With title](Docs/Getting%20Started.md \"Getting started\")\n" +
                 "[Web](https://example.com/docs)\n" +
                 "[Anchor](#overview)");
 
@@ -27,7 +29,7 @@ public sealed class WhenItFailsDocumentationLinkCheckerTests
             Assert.True(response.IsSuccess);
             Assert.NotNull(response.Data);
             Assert.Equal(2, response.Data.MarkdownFilesChecked);
-            Assert.Equal(1, response.Data.LocalLinksChecked);
+            Assert.Equal(3, response.Data.LocalLinksChecked);
             Assert.Empty(response.Data.BrokenLinks);
         }
         finally
@@ -66,7 +68,7 @@ public sealed class WhenItFailsDocumentationLinkCheckerTests
     }
 
     [Fact]
-    public async Task CheckAsync_WithRepositoryRoot_ResolvesSetterDirectory()
+    public async Task CheckAsync_WithRepositoryRoot_ResolvesOnlySetterDirectory()
     {
         string repositoryPath = Path.Combine(
             Path.GetTempPath(),
@@ -77,8 +79,13 @@ public sealed class WhenItFailsDocumentationLinkCheckerTests
             "Toolroom",
             "WhenItFails",
             "Setter");
-        Directory.CreateDirectory(Path.Combine(setterPath, "Docs"));
+        CreateSetterDirectory(setterPath);
         await File.WriteAllTextAsync(Path.Combine(setterPath, "README.md"), "# Setter");
+
+        Directory.CreateDirectory(Path.Combine(repositoryPath, "Docs"));
+        await File.WriteAllTextAsync(
+            Path.Combine(repositoryPath, "README.md"),
+            "[This must not be scanned](Docs/Missing.md)");
 
         try
         {
@@ -88,10 +95,39 @@ public sealed class WhenItFailsDocumentationLinkCheckerTests
             Assert.True(response.IsSuccess);
             Assert.NotNull(response.Data);
             Assert.Equal(Path.GetFullPath(setterPath), response.Data.SetterPath);
+            Assert.Empty(response.Data.BrokenLinks);
         }
         finally
         {
             Directory.Delete(repositoryPath, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task CheckAsync_IgnoresReadmeSourceDirectory()
+    {
+        string setterPath = CreateSetterDirectory();
+
+        try
+        {
+            await File.WriteAllTextAsync(Path.Combine(setterPath, "README.md"), "# Setter");
+            string sourceDirectory = Path.Combine(setterPath, "Readme");
+            Directory.CreateDirectory(sourceDirectory);
+            await File.WriteAllTextAsync(
+                Path.Combine(sourceDirectory, "en.md"),
+                "[Generated-relative link](Docs/Missing.md)");
+
+            Response<DocumentationLinkCheckReport> response =
+                await new WhenItFailsDocumentationLinkChecker().CheckAsync(setterPath);
+
+            Assert.True(response.IsSuccess);
+            Assert.NotNull(response.Data);
+            Assert.Equal(1, response.Data.MarkdownFilesChecked);
+            Assert.Empty(response.Data.BrokenLinks);
+        }
+        finally
+        {
+            Directory.Delete(setterPath, recursive: true);
         }
     }
 
@@ -131,7 +167,14 @@ public sealed class WhenItFailsDocumentationLinkCheckerTests
             "Afrowave.Toolbox.Tests",
             Guid.NewGuid().ToString("N"),
             "Setter");
-        Directory.CreateDirectory(Path.Combine(setterPath, "Docs"));
+        CreateSetterDirectory(setterPath);
         return setterPath;
+    }
+
+    private static void CreateSetterDirectory(string setterPath)
+    {
+        Directory.CreateDirectory(Path.Combine(setterPath, "Commands"));
+        Directory.CreateDirectory(Path.Combine(setterPath, "Docs"));
+        File.WriteAllText(Path.Combine(setterPath, "Program.cs"), "// test Setter marker");
     }
 }
