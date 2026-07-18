@@ -97,6 +97,15 @@ The singular alias is also available:
 dotnet run --project Toolroom/WhenItFails/Setter -- detail . NETWORKUNAVAILABLE
 ```
 
+### Preview a documentation key
+
+```bash
+dotnet run --project Toolroom/WhenItFails/Setter -- \
+  suggest-doc-key . NETWORK "Connection interrupted"
+```
+
+The command is read-only. It resolves category aliases, checks existing documentation keys, and returns the first available canonical key. Use `--plain` for only the key or `--json` for the stable machine-readable success/failure contract.
+
 ### Change an error title
 
 ```bash
@@ -157,6 +166,7 @@ dotnet run --project Toolroom/WhenItFails/Setter -- \
 | `errors <path> [filters]`                             | List error definitions with optional filters. |
 | `details <path> <id\|code\|name>`                     | Show one error definition in detail.          |
 | `detail <path> <id\|code\|name>`                      | Alias for `details`.                          |
+| `suggest-doc-key <path> <category> <title> [--plain\|--json]` | Suggest the first available canonical documentation key without writing. |
 | `set-title <path> <id\|code\|name> <title>`           | Safely change an error title.                 |
 | `set-message <path> <id\|code\|name> <message>`       | Safely change an error message.               |
 | `set-developer-hint <path> <id\|code\|name> <hint>`   | Safely change a developer hint.               |
@@ -289,6 +299,7 @@ Jsons/
 - [Browsing and Filtering Errors](Docs/Browsing%20and%20Filtering%20Errors/en.md)
 - [Inspecting Error Details](Docs/Inspecting%20Error%20Details/en.md)
 - [Editing error fields](Docs/Editing%20Error%20Fields/en.md)
+- [Adding errors](Docs/Adding%20Errors/en.md)
 - [Adding a New Error Definition](Docs/Adding%20a%20New%20Error%20Definition/en.md)
 - [Authoring Error Text](Docs/Authoring%20Error%20Text/en.md)
 - [Setting Title](Docs/Setting%20Title/en.md)
