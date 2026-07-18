@@ -1,10 +1,6 @@
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.SeeMe.WhenItFails.Console;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
-using Afrowave.Toolbox.WhenItFails.Configuration;
-using Afrowave.Toolbox.WhenItFails.Definitions;
-using Afrowave.Toolbox.WhenItFails.Loading;
-using Afrowave.Toolbox.WhenItFails.Normalization;
 using Afrowave.Toolbox.WhenItFails.Validation;
 using Spectre.Console;
 
@@ -85,90 +81,22 @@ internal static class SuggestDocumentationKeyCommand
         string inputPath = args[1];
         string categoryLookup = args[2];
         string title = args[3];
-        JsonsOptions options = WhenItFailsWorkspacePathResolver.ResolveJsonsOptions(inputPath);
 
-        Response<ErrorCategoryCatalogDocument> categoryResponse =
-            await new JsonErrorCategoryCatalogLoader().LoadFromFileAsync(
-                options.CategoryCatalogFilePath);
-        if (!categoryResponse.IsSuccess || categoryResponse.Data is null)
-        {
-            ShowFailure(
-                categoryResponse,
+        Response<DocumentationKeySuggestion> response =
+            await new WhenItFailsDocumentationKeySuggester().SuggestAsync(
                 inputPath,
                 categoryLookup,
-                "CategoryCatalogLoadFailed",
-                "The category catalog could not be loaded.");
-            return 2;
-        }
-
-        ErrorCategoryCatalogDocument categories =
-            new ErrorCategoryCatalogDocumentNormalizer().Normalize(categoryResponse.Data);
-        string normalizedLookup = TextKeyNormalizer.NormalizeKey(categoryLookup);
-        ErrorCategoryDefinition? category = categories.Categories.FirstOrDefault(candidate =>
-            string.Equals(candidate.Name, normalizedLookup, StringComparison.OrdinalIgnoreCase)
-            || candidate.Aliases.Any(alias => string.Equals(
-                alias,
-                normalizedLookup,
-                StringComparison.OrdinalIgnoreCase)));
-        if (category is null)
-        {
-            ErrorCatalogValidationResult result = new();
-            result.AddError(
-                "CategoryNotFound",
-                $"Category '{normalizedLookup}' was not found.",
-                categoryLookup);
-            new ConsoleValidationResultShow().Show(
-                result,
-                new ConsoleShowOptions { SourcePath = inputPath });
-            return 2;
-        }
-
-        Response<ErrorCatalogDocument> errorResponse =
-            await new JsonErrorCatalogLoader().LoadFromFileAsync(
-                options.ErrorCatalogFilePath);
-        if (!errorResponse.IsSuccess || errorResponse.Data is null)
-        {
-            ShowFailure(
-                errorResponse,
-                inputPath,
-                title,
-                "ErrorCatalogLoadFailed",
-                "The error catalog could not be loaded.");
-            return 2;
-        }
-
-        ErrorCatalogDocument errors =
-            new ErrorCatalogDocumentNormalizer().Normalize(errorResponse.Data);
-
-        string documentationKey;
-        try
-        {
-            documentationKey = new WhenItFailsDocumentationKeyGenerator().Generate(
-                category.Name,
-                title,
-                errors.Errors.Select(error => error.DocumentationKey));
-        }
-        catch (ArgumentException exception)
-        {
-            ErrorCatalogValidationResult result = new();
-            result.AddError(
-                "DocumentationKeyGenerationFailed",
-                exception.Message,
                 title);
-            new ConsoleValidationResultShow().Show(
-                result,
-                new ConsoleShowOptions { SourcePath = inputPath });
+        if (!response.IsSuccess || response.Data is null)
+        {
+            ShowFailure(response, inputPath, categoryLookup);
             return 2;
         }
 
-        SuggestDocumentationKeyResult suggestion = new(
-            category.Name,
-            title.Trim(),
-            documentationKey);
-
+        DocumentationKeySuggestion suggestion = response.Data;
         if (usePlainOutput)
         {
-            AnsiConsole.WriteLine(documentationKey);
+            AnsiConsole.WriteLine(suggestion.DocumentationKey);
             return 0;
         }
 
@@ -179,9 +107,11 @@ internal static class SuggestDocumentationKeyCommand
         }
 
         AnsiConsole.MarkupLine("[green]Suggested documentation key[/]");
-        AnsiConsole.MarkupLine("[bold]Category:[/] {0}", Markup.Escape(category.Name));
-        AnsiConsole.MarkupLine("[bold]Title:[/] {0}", Markup.Escape(title.Trim()));
-        AnsiConsole.MarkupLine("[bold]Documentation key:[/] {0}", Markup.Escape(documentationKey));
+        AnsiConsole.MarkupLine("[bold]Category:[/] {0}", Markup.Escape(suggestion.Category));
+        AnsiConsole.MarkupLine("[bold]Title:[/] {0}", Markup.Escape(suggestion.Title));
+        AnsiConsole.MarkupLine(
+            "[bold]Documentation key:[/] {0}",
+            Markup.Escape(suggestion.DocumentationKey));
         return 0;
     }
 
@@ -193,19 +123,17 @@ internal static class SuggestDocumentationKeyCommand
             Usage);
     }
 
-    private static void ShowFailure<T>(
-        Response<T> response,
+    private static void ShowFailure(
+        Response<DocumentationKeySuggestion> response,
         string inputPath,
-        string lookup,
-        string fallbackCode,
-        string fallbackMessage)
+        string lookup)
     {
         ErrorCatalogValidationResult result = new();
         string failureCode = response.Issues.Count > 0
             ? response.Issues[0].Code
-            : fallbackCode;
+            : "SuggestDocumentationKeyFailed";
         string failureMessage = string.IsNullOrWhiteSpace(response.Message)
-            ? fallbackMessage
+            ? "The documentation key could not be suggested."
             : response.Message;
 
         result.AddError(failureCode, failureMessage, lookup);
@@ -214,11 +142,3 @@ internal static class SuggestDocumentationKeyCommand
             new ConsoleShowOptions { SourcePath = inputPath });
     }
 }
-
-/// <summary>
-/// Describes one read-only documentation key suggestion.
-/// </summary>
-internal sealed record SuggestDocumentationKeyResult(
-    string Category,
-    string Title,
-    string DocumentationKey);
