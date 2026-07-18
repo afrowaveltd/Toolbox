@@ -12,19 +12,32 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 internal sealed class WhenItFailsDocumentationKeySuggester
 {
     /// <summary>
-    /// Suggests a canonical documentation key without modifying the workspace.
+    /// Resolves workspace options from a project or Jsons/WhenItFails path and suggests a canonical documentation key.
     /// </summary>
-    public async Task<Response<DocumentationKeySuggestion>> SuggestAsync(
+    public Task<Response<DocumentationKeySuggestion>> SuggestAsync(
         string inputPath,
         string categoryLookup,
         string title,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(inputPath);
-        ArgumentException.ThrowIfNullOrWhiteSpace(categoryLookup);
-        ArgumentException.ThrowIfNullOrWhiteSpace(title);
 
         JsonsOptions options = WhenItFailsWorkspacePathResolver.ResolveJsonsOptions(inputPath);
+        return SuggestAsync(options, categoryLookup, title, cancellationToken);
+    }
+
+    /// <summary>
+    /// Suggests a canonical documentation key from resolved workspace options without modifying the workspace.
+    /// </summary>
+    public async Task<Response<DocumentationKeySuggestion>> SuggestAsync(
+        JsonsOptions options,
+        string categoryLookup,
+        string title,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+        ArgumentException.ThrowIfNullOrWhiteSpace(categoryLookup);
+        ArgumentException.ThrowIfNullOrWhiteSpace(title);
 
         Response<ErrorCategoryCatalogDocument> categoryResponse =
             await new JsonErrorCategoryCatalogLoader().LoadFromFileAsync(
