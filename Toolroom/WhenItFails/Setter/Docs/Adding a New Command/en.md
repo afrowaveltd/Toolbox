@@ -272,7 +272,7 @@ A command is not finished until users can discover how to use it.
 If the command requires a new documentation page, update both relevant README files.
 
 Example:
-- [Adding a New Command](Docs/Adding%20a%20New%20Command/en.md)
+`- [Adding a New Command](Docs/Adding%20a%20New%20Command/en.md)`
 Actual path:
 Use URL-encoded spaces in Markdown links.
 
