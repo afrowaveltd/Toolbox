@@ -5,6 +5,7 @@ using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Infrastructure;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Loading;
 using Afrowave.Toolbox.WhenItFails.Normalization;
+using Spectre.Console;
 
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Commands;
 
@@ -134,18 +135,24 @@ public sealed class AddErrorCommandTests
 
     private static async Task<(int ExitCode, string Output)> ExecuteWithCapturedOutputAsync(string[] args)
     {
-        TextWriter originalOutput = Console.Out;
+        IAnsiConsole originalConsole = AnsiConsole.Console;
         using StringWriter output = new();
+        IAnsiConsole testConsole = AnsiConsole.Create(new AnsiConsoleSettings
+        {
+            Ansi = AnsiSupport.No,
+            ColorSystem = ColorSystemSupport.NoColors,
+            Out = new AnsiConsoleOutput(output)
+        });
 
         try
         {
-            Console.SetOut(output);
+            AnsiConsole.Console = testConsole;
             int exitCode = await AddErrorCommand.ExecuteAsync(args);
             return (exitCode, output.ToString());
         }
         finally
         {
-            Console.SetOut(originalOutput);
+            AnsiConsole.Console = originalConsole;
         }
     }
 
