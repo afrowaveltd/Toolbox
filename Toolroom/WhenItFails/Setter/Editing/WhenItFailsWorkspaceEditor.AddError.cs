@@ -130,31 +130,23 @@ internal static class WhenItFailsWorkspaceEditorAddErrorExtensions
                 message: $"Category '{normalizedCategory}' was not found.");
         }
 
-        string documentationKey = string.Join(
+        string baseDocumentationKey = string.Join(
             '/',
             "when-it-fails",
             "errors",
             ToDocumentationSegment(category.Name),
             ToDocumentationSegment(request.Title));
 
-        if (!WhenItFailsDocumentationKeyFormatChecker.IsCanonical(documentationKey))
+        if (!WhenItFailsDocumentationKeyFormatChecker.IsCanonical(baseDocumentationKey))
         {
             return Response<ErrorDefinition>.Invalid(
                 code: "GeneratedDocumentationKeyIsInvalid",
-                message: $"Generated documentation key '{documentationKey}' is not canonical.");
+                message: $"Generated documentation key '{baseDocumentationKey}' is not canonical.");
         }
 
-        ErrorDefinition? existingDocumentationKeyOwner = errorCatalog.Errors.FirstOrDefault(error =>
-            string.Equals(
-                error.DocumentationKey,
-                documentationKey,
-                StringComparison.OrdinalIgnoreCase));
-        if (existingDocumentationKeyOwner is not null)
-        {
-            return Response<ErrorDefinition>.Invalid(
-                code: "DuplicateDocumentationKey",
-                message: $"Documentation key '{documentationKey}' is already used by '{existingDocumentationKeyOwner.Id}'.");
-        }
+        string documentationKey = FindAvailableDocumentationKey(
+            baseDocumentationKey,
+            errorCatalog.Errors);
 
         ErrorDefinition errorDefinition = new()
         {
@@ -202,6 +194,33 @@ internal static class WhenItFailsWorkspaceEditorAddErrorExtensions
         return Response<ErrorDefinition>.Ok(
             errorDefinition,
             $"Added error '{errorDefinition.Id}' ({errorDefinition.Code}).");
+    }
+
+    private static string FindAvailableDocumentationKey(
+        string baseDocumentationKey,
+        IEnumerable<ErrorDefinition> errors)
+    {
+        HashSet<string> usedKeys = errors
+            .Where(error => !string.IsNullOrWhiteSpace(error.DocumentationKey))
+            .Select(error => error.DocumentationKey!)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        if (!usedKeys.Contains(baseDocumentationKey))
+        {
+            return baseDocumentationKey;
+        }
+
+        for (int suffix = 2; suffix < int.MaxValue; suffix++)
+        {
+            string candidate = $"{baseDocumentationKey}-{suffix}";
+            if (!usedKeys.Contains(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        throw new InvalidOperationException(
+            $"No available documentation key could be generated from '{baseDocumentationKey}'.");
     }
 
     private static Response<ErrorDefinition>? ValidateRequest(AddErrorRequest request)
