@@ -68,6 +68,56 @@ public sealed class WhenItFailsDocumentationLinkCheckerTests
     }
 
     [Fact]
+    public async Task CheckAsync_IgnoresLinksInsideFencedCodeBlocks()
+    {
+        string setterPath = CreateSetterDirectory();
+
+        try
+        {
+            await File.WriteAllTextAsync(
+                Path.Combine(setterPath, "README.md"),
+                "# Example\n\n```markdown\n[Example](Docs/Missing.md)\n```\n");
+
+            Response<DocumentationLinkCheckReport> response =
+                await new WhenItFailsDocumentationLinkChecker().CheckAsync(setterPath);
+
+            Assert.True(response.IsSuccess);
+            Assert.NotNull(response.Data);
+            Assert.Equal(0, response.Data.LocalLinksChecked);
+            Assert.Empty(response.Data.BrokenLinks);
+        }
+        finally
+        {
+            Directory.Delete(setterPath, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task CheckAsync_IgnoresLinksInsideInlineCode()
+    {
+        string setterPath = CreateSetterDirectory();
+
+        try
+        {
+            await File.WriteAllTextAsync(
+                Path.Combine(setterPath, "README.md"),
+                "Use `[Example](Docs/Missing.md)` as sample Markdown.");
+
+            Response<DocumentationLinkCheckReport> response =
+                await new WhenItFailsDocumentationLinkChecker().CheckAsync(setterPath);
+
+            Assert.True(response.IsSuccess);
+            Assert.NotNull(response.Data);
+            Assert.Equal(0, response.Data.LocalLinksChecked);
+            Assert.Empty(response.Data.BrokenLinks);
+        }
+        finally
+        {
+            Directory.Delete(setterPath, recursive: true);
+        }
+    }
+
+    [Fact]
     public async Task CheckAsync_WithRepositoryRoot_ResolvesOnlySetterDirectory()
     {
         string repositoryPath = Path.Combine(
