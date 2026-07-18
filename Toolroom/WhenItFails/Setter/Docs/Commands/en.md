@@ -159,6 +159,45 @@ when-it-fails-setter details . 600001 --plain
 
 Alias for `details`.
 
+## `suggest-doc-key <path> <category-name|alias> <title> [--plain|--json]`
+
+Resolves the category and suggests the first available canonical documentation key without modifying the workspace.
+
+```bash
+when-it-fails-setter suggest-doc-key . \
+  NETWORK \
+  "Connection interrupted"
+```
+
+Plain output returns only the suggested key:
+
+```bash
+when-it-fails-setter suggest-doc-key . \
+  NETWORK \
+  "Connection interrupted" \
+  --plain
+```
+
+JSON output uses the standard command envelope and returns the same stable result fields for success and failure:
+
+```text
+category
+title
+documentationKey
+failureCode
+failureMessage
+```
+
+The command is read-only. It does not change `errors.en.json` and does not create a backup.
+
+Exit codes:
+
+```text
+0  suggestion produced
+1  command arguments were invalid
+2  workspace loading, category lookup, or key generation failed
+```
+
 # Catalog browsing
 
 ## `list-profiles <path> [--plain]`
