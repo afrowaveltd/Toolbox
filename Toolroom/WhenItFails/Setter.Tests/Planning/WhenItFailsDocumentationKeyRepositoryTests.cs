@@ -37,7 +37,7 @@ public sealed class WhenItFailsDocumentationKeyRepositoryTests
 
         while (directory is not null)
         {
-            if (File.Exists(Path.Combine(directory.FullName, "Toolbox.slnx")) &&
+            if (File.Exists(Path.Combine(directory.FullName, "Toolbox.sln")) &&
                 Directory.Exists(Path.Combine(directory.FullName, "Jsons", "WhenItFails")))
             {
                 return directory.FullName;
