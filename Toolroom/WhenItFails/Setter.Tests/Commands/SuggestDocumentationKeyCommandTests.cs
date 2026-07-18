@@ -82,10 +82,13 @@ public sealed class SuggestDocumentationKeyCommandTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_WithUnknownCategory_ReturnsLookupFailure()
+    public async Task ExecuteAsync_WithUnknownCategory_ReturnsLookupFailureWithoutWriting()
     {
         using TemporaryWhenItFailsWorkspace workspace =
             await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        string errorCatalogPath = Path.Combine(workspace.WhenItFailsJsonsPath, "errors.en.json");
+        string catalogBefore = await File.ReadAllTextAsync(errorCatalogPath);
+        int backupsBefore = CountErrorBackups(workspace.WhenItFailsJsonsPath);
 
         int exitCode = await SuggestDocumentationKeyCommand.ExecuteAsync(
         [
@@ -96,6 +99,25 @@ public sealed class SuggestDocumentationKeyCommandTests
         ]);
 
         Assert.Equal(2, exitCode);
+        Assert.Equal(catalogBefore, await File.ReadAllTextAsync(errorCatalogPath));
+        Assert.Equal(backupsBefore, CountErrorBackups(workspace.WhenItFailsJsonsPath));
+    }
+
+    public static TheoryData<string[]> InvalidArgumentCases =>
+        new()
+        {
+            new[] { "suggest-doc-key" },
+            new[] { "suggest-doc-key", "." },
+            new[] { "suggest-doc-key", ".", "NETWORK" },
+            new[] { "suggest-doc-key", ".", "NETWORK", "Title", "--plain", "--json" },
+            new[] { "suggest-doc-key", ".", "NETWORK", "Title", "--unknown" }
+        };
+
+    [Theory]
+    [MemberData(nameof(InvalidArgumentCases))]
+    public async Task ExecuteAsync_WithInvalidArguments_ReturnsCommandInputError(string[] args)
+    {
+        Assert.Equal(1, await SuggestDocumentationKeyCommand.ExecuteAsync(args));
     }
 
     private static async Task<(int ExitCode, string Output)> ExecuteWithCapturedOutputAsync(string[] args)
@@ -145,4 +167,9 @@ public sealed class SuggestDocumentationKeyCommandTests
         Assert.NotNull(category);
         return category;
     }
+
+    private static int CountErrorBackups(string jsonsPath) => Directory.GetFiles(
+        jsonsPath,
+        "errors.en.*.bak.json",
+        SearchOption.TopDirectoryOnly).Length;
 }
