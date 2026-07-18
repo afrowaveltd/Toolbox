@@ -89,7 +89,15 @@ internal static class SuggestDocumentationKeyCommand
                 title);
         if (!response.IsSuccess || response.Data is null)
         {
-            ShowFailure(response, inputPath, categoryLookup);
+            if (useJsonOutput)
+            {
+                ShowJsonFailure(response, categoryLookup, title);
+            }
+            else
+            {
+                ShowFailure(response, inputPath, categoryLookup);
+            }
+
             return 2;
         }
 
@@ -102,7 +110,14 @@ internal static class SuggestDocumentationKeyCommand
 
         if (useJsonOutput)
         {
-            CommandJsonOutput.Write("suggest-doc-key", suggestion);
+            CommandJsonOutput.Write(
+                "suggest-doc-key",
+                new SuggestDocumentationKeyResult(
+                    suggestion.Category,
+                    suggestion.Title,
+                    suggestion.DocumentationKey,
+                    FailureCode: null,
+                    FailureMessage: null));
             return 0;
         }
 
@@ -123,22 +138,51 @@ internal static class SuggestDocumentationKeyCommand
             Usage);
     }
 
+    private static void ShowJsonFailure(
+        Response<DocumentationKeySuggestion> response,
+        string categoryLookup,
+        string title)
+    {
+        (string failureCode, string failureMessage) = GetFailure(response);
+        CommandJsonOutput.Write(
+            "suggest-doc-key",
+            new SuggestDocumentationKeyResult(
+                categoryLookup.Trim(),
+                title.Trim(),
+                DocumentationKey: null,
+                failureCode,
+                failureMessage));
+    }
+
     private static void ShowFailure(
         Response<DocumentationKeySuggestion> response,
         string inputPath,
         string lookup)
     {
+        (string failureCode, string failureMessage) = GetFailure(response);
         ErrorCatalogValidationResult result = new();
+        result.AddError(failureCode, failureMessage, lookup);
+        new ConsoleValidationResultShow().Show(
+            result,
+            new ConsoleShowOptions { SourcePath = inputPath });
+    }
+
+    private static (string Code, string Message) GetFailure(
+        Response<DocumentationKeySuggestion> response)
+    {
         string failureCode = response.Issues.Count > 0
             ? response.Issues[0].Code
             : "SuggestDocumentationKeyFailed";
         string failureMessage = string.IsNullOrWhiteSpace(response.Message)
             ? "The documentation key could not be suggested."
             : response.Message;
-
-        result.AddError(failureCode, failureMessage, lookup);
-        new ConsoleValidationResultShow().Show(
-            result,
-            new ConsoleShowOptions { SourcePath = inputPath });
+        return (failureCode, failureMessage);
     }
+
+    private sealed record SuggestDocumentationKeyResult(
+        string Category,
+        string Title,
+        string? DocumentationKey,
+        string? FailureCode,
+        string? FailureMessage);
 }
