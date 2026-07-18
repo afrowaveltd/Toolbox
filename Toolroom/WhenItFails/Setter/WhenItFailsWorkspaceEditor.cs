@@ -1,4 +1,5 @@
 using Afrowave.Toolbox.Essentials.Results;
+using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Loading;
@@ -104,6 +105,14 @@ internal sealed class WhenItFailsWorkspaceEditor
        string newDocumentationKey,
        CancellationToken cancellationToken = default)
    {
+      if (!string.IsNullOrWhiteSpace(newDocumentationKey) &&
+          !WhenItFailsDocumentationKeyFormatChecker.IsCanonical(newDocumentationKey))
+      {
+         return Response<ErrorDefinition>.Invalid(
+             code: "InvalidDocumentationKeyFormat",
+             message: "Documentation key must use lowercase slash-separated kebab-case, for example 'when-it-fails/errors/network/network-unavailable'.");
+      }
+
       return await SetErrorTextValueAsync(
           inputPath,
           lookupValue,
