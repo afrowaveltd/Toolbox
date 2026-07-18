@@ -2,7 +2,7 @@
 
 Each error definition may point to its documentation through `documentationKey`.
 
-The key is intended to be stable, non-empty, unique, and canonical across the complete error catalog. Setter provides a read-only command that checks these rules without modifying the workspace.
+The key is intended to be stable, non-empty, unique across the complete error catalog, and written in canonical slash-separated kebab-case. Setter provides a read-only command that checks these rules without modifying the workspace.
 
 ## Command
 
@@ -34,11 +34,15 @@ Tab-separated output suitable for scripts:
 when-it-fails-setter check-doc-keys . --plain
 ```
 
+Successful `--plain` output is intentionally empty. Reported issues use the record types `missing`, `duplicate`, and `invalid-format`; the process exit code communicates overall success or failure.
+
 Structured JSON output:
 
 ```bash
 when-it-fails-setter check-doc-keys . --json
 ```
+
+The JSON result contains separate `keys` and `format` reports together with the combined `isValid` value.
 
 `--plain` and `--json` are mutually exclusive.
 
@@ -51,28 +55,13 @@ The command reports:
 - duplicate keys after trimming surrounding whitespace;
 - non-canonical keys.
 
-A canonical key contains at least two slash-separated segments. Each segment uses lowercase ASCII letters, digits, and single hyphens only. Segments cannot begin or end with a hyphen, contain consecutive hyphens, or be empty.
-
-Canonical example:
+Canonical keys contain at least two slash-separated segments. Each segment uses lowercase ASCII letters, digits, and single internal hyphens only. Segments may not be empty or begin or end with a hyphen.
 
 ```text
 when-it-fails/errors/network/network-unavailable
 ```
 
-Invalid examples:
-
-```text
-single-segment
-When-It-Fails/errors/network
-when_it_fails/errors/network
-when-it-fails//network
-when-it-fails/errors/network unavailable
-when-it-fails/errors/network--unavailable
-```
-
 Results are ordered deterministically by numeric error code and stable error ID.
-
-In `--plain` output, format problems use the issue type `invalid-format`.
 
 ## Exit codes
 
