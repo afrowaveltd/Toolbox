@@ -9,7 +9,7 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 internal sealed class WhenItFailsDocumentationLinkChecker
 {
     private static readonly Regex MarkdownLinkRegex = new(
-        @"!?\[[^\]]*\]\((?<target><[^>]+>|[^\s\)]+)(?:\s+\"[^\"]*\")?\)",
+        @"!?\[[^\]]*\]\((?<target><[^>]+>|[^\s\)]+)",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     /// <summary>
@@ -78,14 +78,19 @@ internal sealed class WhenItFailsDocumentationLinkChecker
             LocalLinksChecked: checkedLinks,
             BrokenLinks: brokenLinks);
 
-        return brokenLinks.Count == 0
-            ? Response<DocumentationLinkCheckReport>.Ok(
+        if (brokenLinks.Count == 0)
+        {
+            return Response<DocumentationLinkCheckReport>.Ok(
                 report,
-                $"Checked {checkedLinks} local Markdown link(s); no broken links were found.")
-            : Response<DocumentationLinkCheckReport>.Invalid(
+                $"Checked {checkedLinks} local Markdown link(s); no broken links were found.");
+        }
+
+        Response<DocumentationLinkCheckReport> invalidResponse =
+            Response<DocumentationLinkCheckReport>.Invalid(
                 code: "BrokenDocumentationLinksFound",
-                message: $"Found {brokenLinks.Count} broken local Markdown link(s).",
-                data: report);
+                message: $"Found {brokenLinks.Count} broken local Markdown link(s).");
+
+        return Response<DocumentationLinkCheckReport>.WithData(invalidResponse, report);
     }
 
     private static string ResolveSetterPath(string inputPath)
