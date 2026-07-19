@@ -5,33 +5,55 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Planning;
 
 public sealed class WhenItFailsDocumentationKeySuggesterInputGuardTests
 {
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public async Task SuggestAsync_WithMissingCategoryLookup_ThrowsArgumentException(
-        string? categoryLookup)
+    [Fact]
+    public async Task SuggestAsync_WithNullCategoryLookup_ThrowsArgumentNullException()
     {
-        ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+        ArgumentNullException exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
             new WhenItFailsDocumentationKeySuggester().SuggestAsync(
                 new JsonsOptions(),
-                categoryLookup!,
+                null!,
                 "Sample title"));
 
         Assert.Equal("categoryLookup", exception.ParamName);
     }
 
     [Theory]
-    [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task SuggestAsync_WithMissingTitle_ThrowsArgumentException(string? title)
+    public async Task SuggestAsync_WithEmptyCategoryLookup_ThrowsArgumentException(
+        string categoryLookup)
+    {
+        ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+            new WhenItFailsDocumentationKeySuggester().SuggestAsync(
+                new JsonsOptions(),
+                categoryLookup,
+                "Sample title"));
+
+        Assert.Equal("categoryLookup", exception.ParamName);
+    }
+
+    [Fact]
+    public async Task SuggestAsync_WithNullTitle_ThrowsArgumentNullException()
+    {
+        ArgumentNullException exception = await Assert.ThrowsAsync<ArgumentNullException>(() =>
+            new WhenItFailsDocumentationKeySuggester().SuggestAsync(
+                new JsonsOptions(),
+                "NETWORK",
+                null!));
+
+        Assert.Equal("title", exception.ParamName);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task SuggestAsync_WithEmptyTitle_ThrowsArgumentException(string title)
     {
         ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(() =>
             new WhenItFailsDocumentationKeySuggester().SuggestAsync(
                 new JsonsOptions(),
                 "NETWORK",
-                title!));
+                title));
 
         Assert.Equal("title", exception.ParamName);
     }
