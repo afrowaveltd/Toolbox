@@ -52,10 +52,10 @@ public sealed class WhenItFailsDocumentationKeySuggesterOptionsEmptyErrorCatalog
             "/empty-catalog-sample",
             suggestion.DocumentationKey,
             StringComparison.Ordinal);
-        Assert.DoesNotEndWith(
-            "-2",
-            suggestion.DocumentationKey,
-            StringComparison.Ordinal);
+        Assert.False(
+            suggestion.DocumentationKey.EndsWith(
+                "-2",
+                StringComparison.Ordinal));
         Assert.True(
             WhenItFailsDocumentationKeyFormatChecker.IsCanonical(
                 suggestion.DocumentationKey));
