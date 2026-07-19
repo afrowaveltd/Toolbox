@@ -33,6 +33,31 @@ public sealed class WhenItFailsDocumentationKeySuggesterTitleTests
             StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task SuggestAsync_WithRepeatedInternalWhitespace_CollapsesKeySeparators()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        ErrorCategoryDefinition category = await LoadFirstCategoryAsync(
+            workspace.WhenItFailsJsonsPath);
+
+        Response<DocumentationKeySuggestion> response =
+            await new WhenItFailsDocumentationKeySuggester().SuggestAsync(
+                workspace.ProjectRootPath,
+                category.Name,
+                "Multiple   spaced\t title");
+
+        Assert.True(response.IsSuccess);
+        DocumentationKeySuggestion suggestion =
+            Assert.IsType<DocumentationKeySuggestion>(response.Data);
+        Assert.Equal("Multiple   spaced\t title", suggestion.Title);
+        Assert.EndsWith(
+            "/multiple-spaced-title",
+            suggestion.DocumentationKey,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("--", suggestion.DocumentationKey, StringComparison.Ordinal);
+    }
+
     private static async Task<ErrorCategoryDefinition> LoadFirstCategoryAsync(
         string jsonsPath)
     {
