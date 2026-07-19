@@ -1,6 +1,7 @@
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Infrastructure;
+using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Loading;
 using Afrowave.Toolbox.WhenItFails.Normalization;
@@ -23,6 +24,31 @@ public sealed class WhenItFailsDocumentationKeySuggesterGenerationFailureTests
                 category.Name,
                 "!!!");
 
+        AssertGenerationFailure(response);
+    }
+
+    [Fact]
+    public async Task SuggestAsync_WithResolvedOptionsAndTitleWithoutSlug_ReturnsStructuredFailure()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        ErrorCategoryDefinition category = await LoadFirstCategoryAsync(
+            workspace.WhenItFailsJsonsPath);
+        JsonsOptions options = WhenItFailsWorkspacePathResolver.ResolveJsonsOptions(
+            workspace.ProjectRootPath);
+
+        Response<DocumentationKeySuggestion> response =
+            await new WhenItFailsDocumentationKeySuggester().SuggestAsync(
+                options,
+                category.Name,
+                "!!!");
+
+        AssertGenerationFailure(response);
+    }
+
+    private static void AssertGenerationFailure(
+        Response<DocumentationKeySuggestion> response)
+    {
         Assert.False(response.IsSuccess);
         Assert.Null(response.Data);
         Assert.Contains(
