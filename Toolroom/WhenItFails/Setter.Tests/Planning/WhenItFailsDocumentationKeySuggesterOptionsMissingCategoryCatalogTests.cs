@@ -14,7 +14,11 @@ public sealed class WhenItFailsDocumentationKeySuggesterOptionsMissingCategoryCa
             await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
         JsonsOptions options = WhenItFailsWorkspacePathResolver.ResolveJsonsOptions(
             workspace.ProjectRootPath);
-        File.Delete(options.CategoryCatalogPath);
+        string categoryCatalogPath = Path.Combine(
+            options.RootDirectory,
+            options.PackageDirectoryName,
+            options.CategoryCatalogFileName);
+        File.Delete(categoryCatalogPath);
 
         Response<DocumentationKeySuggestion> response =
             await new WhenItFailsDocumentationKeySuggester().SuggestAsync(
