@@ -44,7 +44,7 @@ internal sealed class WhenItFailsDocumentationKeyGenerator
         string baseKey = $"when-it-fails/errors/{categorySegment}/{titleSegment}";
         HashSet<string> usedKeys = existingKeys
             .Where(key => !string.IsNullOrWhiteSpace(key))
-            .Select(key => key!)
+            .Select(key => key!.Trim())
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         if (!usedKeys.Contains(baseKey))
