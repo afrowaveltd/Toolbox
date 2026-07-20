@@ -146,6 +146,27 @@ public sealed class DocumentationKeyGeneratorTests
     }
 
     [Theory]
+    [InlineData(null, "Title", "categoryName")]
+    [InlineData("", "Title", "categoryName")]
+    [InlineData("   ", "Title", "categoryName")]
+    [InlineData("NETWORK", null, "title")]
+    [InlineData("NETWORK", "", "title")]
+    [InlineData("NETWORK", "\t", "title")]
+    public void Generate_WithNullOrWhitespaceRequiredInput_ThrowsArgumentException(
+        string? categoryName,
+        string? title,
+        string expectedParameterName)
+    {
+        ArgumentException exception = Assert.Throws<ArgumentException>(() =>
+            new DocumentationKeyGenerator().Generate(
+                categoryName!,
+                title!,
+                []));
+
+        Assert.Equal(expectedParameterName, exception.ParamName);
+    }
+
+    [Theory]
     [InlineData("---", "Title", "categoryName")]
     [InlineData("NETWORK", "!!!", "title")]
     public void Generate_WithoutAsciiContent_ThrowsArgumentException(
