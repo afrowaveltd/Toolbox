@@ -1,4 +1,4 @@
-using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
+using Afrowave.Toolbox.WhenItFails.Documentation;
 
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Planning;
 
@@ -7,7 +7,7 @@ public sealed class WhenItFailsDocumentationKeyGeneratorUnrelatedPrefixTests
     [Fact]
     public void Generate_WhenOnlyLongerPrefixedKeyExists_ReturnsUnsuffixedBaseKey()
     {
-        WhenItFailsDocumentationKeyGenerator generator = new();
+        DocumentationKeyGenerator generator = new();
 
         string result = generator.Generate(
             "NETWORK",
