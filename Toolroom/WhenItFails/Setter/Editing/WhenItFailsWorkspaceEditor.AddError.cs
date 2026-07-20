@@ -2,6 +2,7 @@ using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Documentation;
 using Afrowave.Toolbox.WhenItFails.Loading;
 using Afrowave.Toolbox.WhenItFails.Normalization;
 using Afrowave.Toolbox.WhenItFails.Validation;
@@ -131,7 +132,7 @@ internal static class WhenItFailsWorkspaceEditorAddErrorExtensions
         string documentationKey;
         try
         {
-            documentationKey = new WhenItFailsDocumentationKeyGenerator().Generate(
+            documentationKey = new DocumentationKeyGenerator().Generate(
                 category.Name,
                 request.Title,
                 errorCatalog.Errors.Select(error => error.DocumentationKey));
