@@ -132,4 +132,24 @@ public sealed class DocumentationKeyGeneratorTests
 
         Assert.Equal(expectedParameterName, exception.ParamName);
     }
+
+    [Theory]
+    [InlineData("  FILE_SYSTEM  ", "file-system")]
+    [InlineData("Příliš žluťoučký — soubor!", "prilis-zlutoucky-soubor")]
+    [InlineData("Already--Separated", "already-separated")]
+    public void ToSegment_WithHumanReadableValue_ReturnsCanonicalSegment(
+        string value,
+        string expected)
+    {
+        string result = DocumentationKeyGenerator.ToSegment(value);
+
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void ToSegment_WithNullValue_ThrowsArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+            DocumentationKeyGenerator.ToSegment(null!));
+    }
 }
