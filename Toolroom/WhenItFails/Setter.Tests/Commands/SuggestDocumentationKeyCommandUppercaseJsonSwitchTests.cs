@@ -26,13 +26,15 @@ public sealed class SuggestDocumentationKeyCommandUppercaseJsonSwitchTests
         Assert.Equal(0, exitCode);
         using JsonDocument document = JsonDocument.Parse(output);
         JsonElement root = document.RootElement;
-        Assert.Equal("NETWORK", root.GetProperty("category").GetString());
-        Assert.Equal("Uppercase JSON switch sample", root.GetProperty("title").GetString());
+        Assert.Equal("suggest-doc-key", root.GetProperty("command").GetString());
+        JsonElement data = root.GetProperty("data");
+        Assert.Equal("NETWORK", data.GetProperty("category").GetString());
+        Assert.Equal("Uppercase JSON switch sample", data.GetProperty("title").GetString());
         Assert.Equal(
             "when-it-fails/errors/network/uppercase-json-switch-sample",
-            root.GetProperty("documentationKey").GetString());
-        Assert.Equal(JsonValueKind.Null, root.GetProperty("failureCode").ValueKind);
-        Assert.Equal(JsonValueKind.Null, root.GetProperty("failureMessage").ValueKind);
+            data.GetProperty("documentationKey").GetString());
+        Assert.Equal(JsonValueKind.Null, data.GetProperty("failureCode").ValueKind);
+        Assert.Equal(JsonValueKind.Null, data.GetProperty("failureMessage").ValueKind);
     }
 
     private static async Task<(int ExitCode, string Output)> ExecuteWithCapturedOutputAsync(
