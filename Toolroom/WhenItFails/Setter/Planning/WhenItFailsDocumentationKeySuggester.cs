@@ -1,6 +1,7 @@
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Documentation;
 using Afrowave.Toolbox.WhenItFails.Loading;
 using Afrowave.Toolbox.WhenItFails.Normalization;
 
@@ -90,7 +91,7 @@ internal sealed class WhenItFailsDocumentationKeySuggester
 
         try
         {
-            string documentationKey = new WhenItFailsDocumentationKeyGenerator().Generate(
+            string documentationKey = new DocumentationKeyGenerator().Generate(
                 category.Name,
                 title,
                 errors.Errors.Select(error => error.DocumentationKey));
