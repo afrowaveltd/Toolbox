@@ -1,3 +1,5 @@
+using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
+
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Planning;
 
 public sealed class WhenItFailsDocumentationKeyGeneratorUnrelatedPrefixTests
