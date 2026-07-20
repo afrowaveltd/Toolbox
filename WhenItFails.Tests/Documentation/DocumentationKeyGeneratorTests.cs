@@ -211,6 +211,18 @@ public sealed class DocumentationKeyGeneratorTests
         Assert.Equal(expected, result);
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("---")]
+    [InlineData("!!!")]
+    public void ToSegment_WithoutAsciiContent_ReturnsEmptyString(string value)
+    {
+        string result = DocumentationKeyGenerator.ToSegment(value);
+
+        Assert.Empty(result);
+    }
+
     [Fact]
     public void ToSegment_WithNullValue_ThrowsArgumentNullException()
     {
