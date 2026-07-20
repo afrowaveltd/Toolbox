@@ -53,6 +53,40 @@ public sealed class DocumentationKeyGeneratorTests
     }
 
     [Fact]
+    public void Generate_WithGapInNumericSuffixes_ReturnsFirstFreeSuffix()
+    {
+        DocumentationKeyGenerator generator = new();
+
+        string result = generator.Generate(
+            "NETWORK",
+            "Connection timeout",
+            [
+                "when-it-fails/errors/network/connection-timeout",
+                "when-it-fails/errors/network/connection-timeout-2",
+                "when-it-fails/errors/network/connection-timeout-4"
+            ]);
+
+        Assert.Equal(
+            "when-it-fails/errors/network/connection-timeout-3",
+            result);
+    }
+
+    [Fact]
+    public void Generate_WithDifferentExistingKeyCasing_TreatsItAsCollision()
+    {
+        DocumentationKeyGenerator generator = new();
+
+        string result = generator.Generate(
+            "NETWORK",
+            "Connection timeout",
+            ["WHEN-IT-FAILS/ERRORS/NETWORK/CONNECTION-TIMEOUT"]);
+
+        Assert.Equal(
+            "when-it-fails/errors/network/connection-timeout-2",
+            result);
+    }
+
+    [Fact]
     public void Generate_WithWhitespaceAroundExistingKey_TreatsItAsCollision()
     {
         DocumentationKeyGenerator generator = new();
@@ -80,5 +114,22 @@ public sealed class DocumentationKeyGeneratorTests
         Assert.Equal(
             "when-it-fails/errors/network/connection-timeout",
             result);
+    }
+
+    [Theory]
+    [InlineData("---", "Title", "categoryName")]
+    [InlineData("NETWORK", "!!!", "title")]
+    public void Generate_WithoutAsciiContent_ThrowsArgumentException(
+        string categoryName,
+        string title,
+        string expectedParameterName)
+    {
+        ArgumentException exception = Assert.Throws<ArgumentException>(() =>
+            new DocumentationKeyGenerator().Generate(
+                categoryName,
+                title,
+                []));
+
+        Assert.Equal(expectedParameterName, exception.ParamName);
     }
 }
