@@ -28,9 +28,16 @@ public sealed class WhenItFailsDocumentationKeySuggesterWhitespaceCollisionTests
             .Select(node => Assert.IsType<JsonObject>(node))
             .First(error => !string.IsNullOrWhiteSpace(error["documentationKey"]?.GetValue<string>()));
 
-        string category = Assert.NotNull(existing["primaryCategory"]).GetValue<string>();
-        string title = Assert.NotNull(existing["title"]).GetValue<string>();
-        string documentationKey = Assert.NotNull(existing["documentationKey"]).GetValue<string>();
+        JsonNode? categoryNode = existing["primaryCategory"];
+        JsonNode? titleNode = existing["title"];
+        JsonNode? documentationKeyNode = existing["documentationKey"];
+        Assert.NotNull(categoryNode);
+        Assert.NotNull(titleNode);
+        Assert.NotNull(documentationKeyNode);
+
+        string category = categoryNode.GetValue<string>();
+        string title = titleNode.GetValue<string>();
+        string documentationKey = documentationKeyNode.GetValue<string>();
         existing["documentationKey"] = $"  {documentationKey}\t";
 
         await File.WriteAllTextAsync(
