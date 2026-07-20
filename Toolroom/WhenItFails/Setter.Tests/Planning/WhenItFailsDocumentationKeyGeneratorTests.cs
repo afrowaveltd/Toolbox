@@ -1,4 +1,5 @@
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
+using Afrowave.Toolbox.WhenItFails.Documentation;
 
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Planning;
 
@@ -7,7 +8,7 @@ public sealed class WhenItFailsDocumentationKeyGeneratorTests
     [Fact]
     public void Generate_WithUnusedTitle_ReturnsCanonicalBaseKey()
     {
-        string key = new WhenItFailsDocumentationKeyGenerator().Generate(
+        string key = new DocumentationKeyGenerator().Generate(
             "NETWORK",
             "Connection interrupted",
             []);
@@ -21,7 +22,7 @@ public sealed class WhenItFailsDocumentationKeyGeneratorTests
     [Fact]
     public void Generate_WithDiacriticsAndSeparators_NormalizesSegments()
     {
-        string key = new WhenItFailsDocumentationKeyGenerator().Generate(
+        string key = new DocumentationKeyGenerator().Generate(
             "FILE_SYSTEM",
             "Příliš žluťoučký — soubor!",
             []);
@@ -35,7 +36,7 @@ public sealed class WhenItFailsDocumentationKeyGeneratorTests
     [Fact]
     public void Generate_WithOccupiedBaseKey_ReturnsFirstFreeNumericSuffix()
     {
-        string key = new WhenItFailsDocumentationKeyGenerator().Generate(
+        string key = new DocumentationKeyGenerator().Generate(
             "NETWORK",
             "Connection interrupted",
             [
@@ -52,7 +53,7 @@ public sealed class WhenItFailsDocumentationKeyGeneratorTests
     [Fact]
     public void Generate_TreatsExistingKeysCaseInsensitively()
     {
-        string key = new WhenItFailsDocumentationKeyGenerator().Generate(
+        string key = new DocumentationKeyGenerator().Generate(
             "NETWORK",
             "Connection interrupted",
             ["WHEN-IT-FAILS/ERRORS/NETWORK/CONNECTION-INTERRUPTED"]);
@@ -71,7 +72,7 @@ public sealed class WhenItFailsDocumentationKeyGeneratorTests
         string expectedParameterName)
     {
         ArgumentException exception = Assert.Throws<ArgumentException>(() =>
-            new WhenItFailsDocumentationKeyGenerator().Generate(
+            new DocumentationKeyGenerator().Generate(
                 categoryName,
                 title,
                 []));
