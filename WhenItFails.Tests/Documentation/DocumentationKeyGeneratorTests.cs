@@ -117,6 +117,20 @@ public sealed class DocumentationKeyGeneratorTests
     }
 
     [Fact]
+    public void Generate_WithNullExistingKeys_ThrowsArgumentNullException()
+    {
+        DocumentationKeyGenerator generator = new();
+
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() =>
+            generator.Generate(
+                "NETWORK",
+                "Connection timeout",
+                null!));
+
+        Assert.Equal("existingKeys", exception.ParamName);
+    }
+
+    [Fact]
     public void Generate_WithOnlyLongerPrefixedKey_ReturnsUnsuffixedBaseKey()
     {
         DocumentationKeyGenerator generator = new();
