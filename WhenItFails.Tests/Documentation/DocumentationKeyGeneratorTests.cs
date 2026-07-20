@@ -102,6 +102,21 @@ public sealed class DocumentationKeyGeneratorTests
     }
 
     [Fact]
+    public void Generate_WithNullOrBlankExistingKeys_IgnoresThem()
+    {
+        DocumentationKeyGenerator generator = new();
+
+        string result = generator.Generate(
+            "NETWORK",
+            "Connection timeout",
+            [null, string.Empty, "   ", "\t"]);
+
+        Assert.Equal(
+            "when-it-fails/errors/network/connection-timeout",
+            result);
+    }
+
+    [Fact]
     public void Generate_WithOnlyLongerPrefixedKey_ReturnsUnsuffixedBaseKey()
     {
         DocumentationKeyGenerator generator = new();
