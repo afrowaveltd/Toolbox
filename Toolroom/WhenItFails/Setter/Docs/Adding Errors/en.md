@@ -58,6 +58,8 @@ The generated key is:
 - checked for canonical format,
 - checked for uniqueness before the catalog is saved.
 
+If the base key is already used, `add-error` appends the first available numeric suffix, starting with `-2`. It uses the same collision rules as `suggest-doc-key`.
+
 The normal success output prints the generated key so the author immediately knows where the corresponding extended documentation belongs.
 
 ## Previewing a documentation key
