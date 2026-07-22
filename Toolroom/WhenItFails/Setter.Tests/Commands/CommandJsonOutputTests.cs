@@ -32,5 +32,30 @@ public sealed class CommandJsonOutputTests
             CommandJsonOutput.Serialize("", new SampleData("VALUE", 42)));
     }
 
+    [Fact]
+    public void Serialize_WithWhitespaceCommand_ShouldThrow()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            CommandJsonOutput.Serialize("   ", new SampleData("VALUE", 42)));
+    }
+
+    [Fact]
+    public void Serialize_WithNullCommand_ShouldThrowArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() =>
+            CommandJsonOutput.Serialize(null!, new SampleData("VALUE", 42)));
+    }
+
+    [Fact]
+    public void Serialize_WithNullData_ShouldWriteNullDataProperty()
+    {
+        string json = CommandJsonOutput.Serialize<object?>("sample-command", null);
+
+        using JsonDocument document = JsonDocument.Parse(json);
+        JsonElement root = document.RootElement;
+
+        Assert.Equal(JsonValueKind.Null, root.GetProperty("data").ValueKind);
+    }
+
     private sealed record SampleData(string Name, int Count);
 }
