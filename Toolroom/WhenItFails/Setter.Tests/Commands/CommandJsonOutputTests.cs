@@ -52,6 +52,31 @@ public sealed class CommandJsonOutputTests
         Assert.Equal("VALUE", root.GetProperty("data").GetProperty("name").GetString());
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Write_WithBlankCommand_ShouldThrowWithoutWriting(string command)
+    {
+        TextWriter originalOutput = Console.Out;
+        using StringWriter output = new();
+
+        try
+        {
+            Console.SetOut(output);
+
+            Assert.Throws<ArgumentException>(() =>
+                CommandJsonOutput.Write(
+                    command,
+                    new SampleData("VALUE", 42)));
+        }
+        finally
+        {
+            Console.SetOut(originalOutput);
+        }
+
+        Assert.Equal(string.Empty, output.ToString());
+    }
+
     [Fact]
     public void Serialize_WithEmptyCommand_ShouldThrow()
     {
