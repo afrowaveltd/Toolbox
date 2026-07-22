@@ -26,6 +26,33 @@ public sealed class CommandJsonOutputTests
     }
 
     [Fact]
+    public void Write_ShouldWriteStableEnvelopeToConsole()
+    {
+        TextWriter originalOutput = Console.Out;
+        using StringWriter output = new();
+
+        try
+        {
+            Console.SetOut(output);
+
+            CommandJsonOutput.Write(
+                "sample-command",
+                new SampleData("VALUE", 42));
+        }
+        finally
+        {
+            Console.SetOut(originalOutput);
+        }
+
+        using JsonDocument document = JsonDocument.Parse(output.ToString());
+        JsonElement root = document.RootElement;
+
+        Assert.Equal("1.0", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("sample-command", root.GetProperty("command").GetString());
+        Assert.Equal("VALUE", root.GetProperty("data").GetProperty("name").GetString());
+    }
+
+    [Fact]
     public void Serialize_WithEmptyCommand_ShouldThrow()
     {
         Assert.Throws<ArgumentException>(() =>
