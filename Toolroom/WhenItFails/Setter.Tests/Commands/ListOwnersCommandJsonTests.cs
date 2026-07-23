@@ -60,8 +60,11 @@ public sealed class ListOwnersCommandJsonTests
 
         Assert.Equal(2, exitCode);
         using JsonDocument document = JsonDocument.Parse(output);
-        JsonElement data = document.RootElement.GetProperty("data");
+        JsonElement root = document.RootElement;
+        JsonElement data = root.GetProperty("data");
 
+        Assert.Equal("1.0", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("list-owners", root.GetProperty("command").GetString());
         Assert.False(data.GetProperty("loaded").GetBoolean());
         Assert.Equal(JsonValueKind.Null, data.GetProperty("owners").ValueKind);
         Assert.Equal(JsonValueKind.Object, data.GetProperty("validation").ValueKind);
