@@ -74,7 +74,21 @@ internal static class CheckDocKeysCommand
         }
         catch (Exception exception)
         {
-            ShowFailure(inputPath, exception.Message);
+            ErrorCatalogValidationResult validation = CreateFailure(inputPath, exception.Message);
+
+            if (useJsonOutput)
+            {
+                CommandJsonOutput.Write(
+                    "check-doc-keys",
+                    new DocumentationKeyCommandFailure(
+                        Checked: false,
+                        Validation: validation));
+            }
+            else
+            {
+                ShowFailure(inputPath, validation);
+            }
+
             return 2;
         }
 
@@ -228,7 +242,7 @@ internal static class CheckDocKeysCommand
             Usage);
     }
 
-    private static void ShowFailure(string inputPath, string message)
+    private static ErrorCatalogValidationResult CreateFailure(string inputPath, string message)
     {
         ErrorCatalogValidationResult result = new();
         result.AddError(
@@ -237,6 +251,13 @@ internal static class CheckDocKeysCommand
                 ? "Documentation keys could not be checked."
                 : message,
             inputPath);
+        return result;
+    }
+
+    private static void ShowFailure(
+        string inputPath,
+        ErrorCatalogValidationResult result)
+    {
         new ConsoleValidationResultShow().Show(
             result,
             new ConsoleShowOptions { SourcePath = inputPath });
@@ -251,3 +272,7 @@ internal sealed record DocumentationKeyCommandReport(
 
     public bool IsValid => Keys.IsValid && Format.IsValid;
 }
+
+internal sealed record DocumentationKeyCommandFailure(
+    bool Checked,
+    ErrorCatalogValidationResult Validation);
