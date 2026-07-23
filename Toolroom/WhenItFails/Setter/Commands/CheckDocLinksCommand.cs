@@ -64,30 +64,38 @@ internal static class CheckDocLinksCommand
         Response<DocumentationLinkCheckReport> response =
             await new WhenItFailsDocumentationLinkChecker().CheckAsync(inputPath);
 
-        if (useJsonOutput)
+        if (!response.IsSuccess && response.Data is null)
         {
-            CommandJsonOutput.Write("check-doc-links", response.Data ?? new DocumentationLinkCheckReport(
-                SetterPath: string.Empty,
-                MarkdownFilesChecked: 0,
-                LocalLinksChecked: 0,
-                BrokenLinks: []));
-        }
-        else if (response.Data is not null)
-        {
-            ShowReport(response.Data, usePlainOutput);
-        }
+            ErrorCatalogValidationResult validation = CreateFailure(response, inputPath);
 
-        if (!response.IsSuccess)
-        {
-            if (!useJsonOutput && response.Data is null)
+            if (useJsonOutput)
             {
-                ShowFailure(response, inputPath);
+                CommandJsonOutput.Write(
+                    "check-doc-links",
+                    new DocumentationLinkCommandFailure(
+                        Checked: false,
+                        Validation: validation));
+            }
+            else
+            {
+                ShowFailure(inputPath, validation);
             }
 
             return 2;
         }
 
-        return 0;
+        DocumentationLinkCheckReport report = response.Data!;
+
+        if (useJsonOutput)
+        {
+            CommandJsonOutput.Write("check-doc-links", report);
+        }
+        else
+        {
+            ShowReport(report, usePlainOutput);
+        }
+
+        return response.IsSuccess ? 0 : 2;
     }
 
     private static void ShowReport(
@@ -150,7 +158,7 @@ internal static class CheckDocLinksCommand
             Usage);
     }
 
-    private static void ShowFailure(
+    private static ErrorCatalogValidationResult CreateFailure(
         Response<DocumentationLinkCheckReport> response,
         string inputPath)
     {
@@ -163,8 +171,19 @@ internal static class CheckDocLinksCommand
             : response.Message;
 
         result.AddError(failureCode, failureMessage, inputPath);
+        return result;
+    }
+
+    private static void ShowFailure(
+        string inputPath,
+        ErrorCatalogValidationResult result)
+    {
         new ConsoleValidationResultShow().Show(
             result,
             new ConsoleShowOptions { SourcePath = inputPath });
     }
 }
+
+internal sealed record DocumentationLinkCommandFailure(
+    bool Checked,
+    ErrorCatalogValidationResult Validation);
