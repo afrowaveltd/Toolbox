@@ -52,6 +52,29 @@ public sealed class CommandJsonOutputTests
         Assert.Equal("VALUE", root.GetProperty("data").GetProperty("name").GetString());
     }
 
+    [Fact]
+    public void Write_WithNullData_ShouldWriteNullDataProperty()
+    {
+        TextWriter originalOutput = Console.Out;
+        using StringWriter output = new();
+
+        try
+        {
+            Console.SetOut(output);
+
+            CommandJsonOutput.Write<object?>("sample-command", null);
+        }
+        finally
+        {
+            Console.SetOut(originalOutput);
+        }
+
+        using JsonDocument document = JsonDocument.Parse(output.ToString());
+        JsonElement root = document.RootElement;
+
+        Assert.Equal(JsonValueKind.Null, root.GetProperty("data").ValueKind);
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
