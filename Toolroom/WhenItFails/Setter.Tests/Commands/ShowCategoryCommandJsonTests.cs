@@ -57,8 +57,11 @@ public sealed class ShowCategoryCommandJsonTests
 
         Assert.Equal(2, exitCode);
         using JsonDocument document = JsonDocument.Parse(output);
-        JsonElement data = document.RootElement.GetProperty("data");
+        JsonElement root = document.RootElement;
+        JsonElement data = root.GetProperty("data");
 
+        Assert.Equal("1.0", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("show-category", root.GetProperty("command").GetString());
         Assert.False(data.GetProperty("found").GetBoolean());
         Assert.Equal(JsonValueKind.Null, data.GetProperty("category").ValueKind);
         Assert.Equal("UnknownCategory", data.GetProperty("failureCode").GetString());
@@ -84,8 +87,11 @@ public sealed class ShowCategoryCommandJsonTests
 
         Assert.Equal(2, exitCode);
         using JsonDocument document = JsonDocument.Parse(output);
-        JsonElement data = document.RootElement.GetProperty("data");
+        JsonElement root = document.RootElement;
+        JsonElement data = root.GetProperty("data");
 
+        Assert.Equal("1.0", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("show-category", root.GetProperty("command").GetString());
         Assert.False(data.GetProperty("found").GetBoolean());
         Assert.Equal(JsonValueKind.Null, data.GetProperty("category").ValueKind);
         Assert.Equal(JsonValueKind.Object, data.GetProperty("validation").ValueKind);
