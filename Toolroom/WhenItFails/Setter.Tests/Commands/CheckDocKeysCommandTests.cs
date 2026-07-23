@@ -66,6 +66,44 @@ public sealed class CheckDocKeysCommandTests
         Assert.Equal(backupsBefore, CountBackups(workspace.WhenItFailsJsonsPath));
     }
 
+    [Fact]
+    public async Task ExecuteAsync_WithNonCanonicalKeyAndJson_WritesStableFailureReport()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        int backupsBefore = CountBackups(workspace.WhenItFailsJsonsPath);
+        string catalogPath = Path.Combine(
+            workspace.WhenItFailsJsonsPath,
+            "errors.en.json");
+        string json = await File.ReadAllTextAsync(catalogPath);
+        json = json.Replace(
+            "when-it-fails/errors/general/unknown-error",
+            "When-It-Fails/errors/general/unknown-error",
+            StringComparison.Ordinal);
+        await File.WriteAllTextAsync(catalogPath, json);
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        [
+            "check-doc-keys",
+            workspace.ProjectRootPath,
+            "--json"
+        ]);
+
+        Assert.Equal(2, exitCode);
+        using JsonDocument document = JsonDocument.Parse(output);
+        JsonElement root = document.RootElement;
+        JsonElement data = root.GetProperty("data");
+        JsonElement format = data.GetProperty("format");
+
+        Assert.Equal("1.0", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("check-doc-keys", root.GetProperty("command").GetString());
+        Assert.False(data.GetProperty("isValid").GetBoolean());
+        Assert.True(data.GetProperty("totalErrors").GetInt32() > 0);
+        Assert.Equal(JsonValueKind.Array, format.GetProperty("invalidKeys").ValueKind);
+        Assert.NotEmpty(format.GetProperty("invalidKeys").EnumerateArray());
+        Assert.Equal(backupsBefore, CountBackups(workspace.WhenItFailsJsonsPath));
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("--plain")]
