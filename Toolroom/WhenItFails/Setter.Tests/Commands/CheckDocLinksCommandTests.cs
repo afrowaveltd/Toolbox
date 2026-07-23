@@ -83,6 +83,38 @@ public sealed class CheckDocLinksCommandTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_WithBrokenLinkAndJson_WritesStableFailureReport()
+    {
+        using TemporarySetterDocumentation documentation = new();
+        await documentation.WriteAsync("README.md", "[Missing](Docs/Missing.md)");
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        [
+            "check-doc-links",
+            documentation.SetterPath,
+            "--json"
+        ]);
+
+        Assert.Equal(2, exitCode);
+        using JsonDocument document = JsonDocument.Parse(output);
+        JsonElement root = document.RootElement;
+        JsonElement data = root.GetProperty("data");
+        JsonElement brokenLinks = data.GetProperty("brokenLinks");
+
+        Assert.Equal("1.0", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("check-doc-links", root.GetProperty("command").GetString());
+        Assert.False(string.IsNullOrWhiteSpace(data.GetProperty("setterPath").GetString()));
+        Assert.True(data.GetProperty("markdownFilesChecked").GetInt32() > 0);
+        Assert.True(data.GetProperty("localLinksChecked").GetInt32() > 0);
+        Assert.Single(brokenLinks.EnumerateArray());
+
+        JsonElement brokenLink = brokenLinks.EnumerateArray().Single();
+        Assert.Equal("README.md", brokenLink.GetProperty("sourceFile").GetString());
+        Assert.Equal("Docs/Missing.md", brokenLink.GetProperty("target").GetString());
+        Assert.False(string.IsNullOrWhiteSpace(brokenLink.GetProperty("resolvedPath").GetString()));
+    }
+
+    [Fact]
     public async Task ExecuteAsync_WithMissingDirectory_ReturnsCheckFailure()
     {
         string missingPath = Path.Combine(
