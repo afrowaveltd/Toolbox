@@ -154,6 +154,32 @@ public sealed class CheckDocKeysCommandTests
         Assert.Equal(2, exitCode);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_WithMissingDirectoryAndJson_WritesStableFailureEnvelope()
+    {
+        string missingPath = Path.Combine(
+            Path.GetTempPath(),
+            "WhenItFailsSetterTests",
+            Guid.NewGuid().ToString("N"));
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        [
+            "check-doc-keys",
+            missingPath,
+            "--json"
+        ]);
+
+        Assert.Equal(2, exitCode);
+        using JsonDocument document = JsonDocument.Parse(output);
+        JsonElement root = document.RootElement;
+        JsonElement data = root.GetProperty("data");
+
+        Assert.Equal("1.0", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("check-doc-keys", root.GetProperty("command").GetString());
+        Assert.False(data.GetProperty("checked").GetBoolean());
+        Assert.Equal(JsonValueKind.Object, data.GetProperty("validation").ValueKind);
+    }
+
     public static TheoryData<string[]> InvalidArgumentCases =>
         new()
         {
