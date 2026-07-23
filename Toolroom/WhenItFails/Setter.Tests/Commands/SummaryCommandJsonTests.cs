@@ -57,6 +57,32 @@ public sealed class SummaryCommandJsonTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_WithInspectAliasInvalidWorkspaceAndJson_UsesCanonicalCommandName()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            TemporaryWhenItFailsWorkspace.CreateEmpty();
+        int backupsBefore = CountBackups(workspace.WhenItFailsJsonsPath);
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        [
+            "inspect",
+            workspace.ProjectRootPath,
+            "--json"
+        ]);
+
+        Assert.Equal(2, exitCode);
+        using JsonDocument document = JsonDocument.Parse(output);
+        JsonElement root = document.RootElement;
+        JsonElement data = root.GetProperty("data");
+
+        Assert.Equal("1.0", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("summary", root.GetProperty("command").GetString());
+        Assert.False(data.GetProperty("loaded").GetBoolean());
+        Assert.Equal(JsonValueKind.Object, data.GetProperty("validation").ValueKind);
+        Assert.Equal(backupsBefore, CountBackups(workspace.WhenItFailsJsonsPath));
+    }
+
+    [Fact]
     public async Task ExecuteAsync_WithInvalidWorkspaceAndJson_WritesStructuredValidationFailure()
     {
         using TemporaryWhenItFailsWorkspace workspace =
