@@ -1,7 +1,10 @@
+using System.Text.Json;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
+using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Infrastructure;
 
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Commands;
 
+[Collection(ConsoleOutputTestCollection.Name)]
 public sealed class CheckDocLinksCommandTests
 {
     [Fact]
@@ -38,13 +41,13 @@ public sealed class CheckDocLinksCommandTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_WithValidLinksAndJsonOutput_ReturnsSuccess()
+    public async Task ExecuteAsync_WithValidLinksAndJsonOutput_WritesStableEnvelopeAndCompleteReport()
     {
         using TemporarySetterDocumentation documentation = new();
         await documentation.WriteAsync("Docs/Target.md", "# Target");
         await documentation.WriteAsync("README.md", "[Target](Docs/Target.md)");
 
-        int exitCode = await CheckDocLinksCommand.ExecuteAsync(
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
         [
             "check-doc-links",
             documentation.SetterPath,
@@ -52,6 +55,16 @@ public sealed class CheckDocLinksCommandTests
         ]);
 
         Assert.Equal(0, exitCode);
+        using JsonDocument document = JsonDocument.Parse(output);
+        JsonElement root = document.RootElement;
+        JsonElement data = root.GetProperty("data");
+
+        Assert.Equal("1.0", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("check-doc-links", root.GetProperty("command").GetString());
+        Assert.False(string.IsNullOrWhiteSpace(data.GetProperty("setterPath").GetString()));
+        Assert.True(data.GetProperty("markdownFilesChecked").GetInt32() > 0);
+        Assert.True(data.GetProperty("localLinksChecked").GetInt32() > 0);
+        Assert.Empty(data.GetProperty("brokenLinks").EnumerateArray());
     }
 
     [Fact]
@@ -101,6 +114,23 @@ public sealed class CheckDocLinksCommandTests
     public async Task ExecuteAsync_WithInvalidArguments_ReturnsCommandInputError(string[] args)
     {
         Assert.Equal(1, await CheckDocLinksCommand.ExecuteAsync(args));
+    }
+
+    private static async Task<(int ExitCode, string Output)> ExecuteWithCapturedOutputAsync(string[] args)
+    {
+        TextWriter originalOutput = Console.Out;
+        using StringWriter output = new();
+
+        try
+        {
+            Console.SetOut(output);
+            int exitCode = await CheckDocLinksCommand.ExecuteAsync(args);
+            return (exitCode, output.ToString());
+        }
+        finally
+        {
+            Console.SetOut(originalOutput);
+        }
     }
 
     private sealed class TemporarySetterDocumentation : IDisposable
