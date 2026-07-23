@@ -78,6 +78,29 @@ public sealed class CommandJsonOutputTests
     }
 
     [Fact]
+    public void Write_WithNullCommand_ShouldThrowWithoutWriting()
+    {
+        TextWriter originalOutput = Console.Out;
+        using StringWriter output = new();
+
+        try
+        {
+            Console.SetOut(output);
+
+            Assert.Throws<ArgumentNullException>(() =>
+                CommandJsonOutput.Write(
+                    null!,
+                    new SampleData("VALUE", 42)));
+        }
+        finally
+        {
+            Console.SetOut(originalOutput);
+        }
+
+        Assert.Equal(string.Empty, output.ToString());
+    }
+
+    [Fact]
     public void Serialize_WithEmptyCommand_ShouldThrow()
     {
         Assert.Throws<ArgumentException>(() =>
