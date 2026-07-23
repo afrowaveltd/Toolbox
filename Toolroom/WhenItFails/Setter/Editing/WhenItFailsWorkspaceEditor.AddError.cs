@@ -1,5 +1,4 @@
 using Afrowave.Toolbox.Essentials.Results;
-using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Documentation;
@@ -144,7 +143,7 @@ internal static class WhenItFailsWorkspaceEditorAddErrorExtensions
                 message: exception.Message);
         }
 
-        if (!WhenItFailsDocumentationKeyFormatChecker.IsCanonical(documentationKey))
+        if (!DocumentationKeyFormat.IsCanonical(documentationKey))
         {
             return Response<ErrorDefinition>.Invalid(
                 code: "GeneratedDocumentationKeyIsInvalid",
