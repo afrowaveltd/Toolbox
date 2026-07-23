@@ -119,6 +119,33 @@ public sealed class DetailsCommandJsonTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_WithDetailAliasInvalidWorkspaceAndJson_UsesCanonicalEnvelopeCommand()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            TemporaryWhenItFailsWorkspace.CreateEmpty();
+        int backupsBefore = CountErrorBackups(workspace.WhenItFailsJsonsPath);
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        [
+            "detail",
+            workspace.ProjectRootPath,
+            "AFW_NET_0001",
+            "--json"
+        ]);
+
+        Assert.Equal(2, exitCode);
+        using JsonDocument document = JsonDocument.Parse(output);
+        JsonElement root = document.RootElement;
+        JsonElement data = root.GetProperty("data");
+
+        Assert.Equal("1.0", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("details", root.GetProperty("command").GetString());
+        Assert.False(data.GetProperty("found").GetBoolean());
+        Assert.Equal(JsonValueKind.Object, data.GetProperty("validation").ValueKind);
+        Assert.Equal(backupsBefore, CountErrorBackups(workspace.WhenItFailsJsonsPath));
+    }
+
+    [Fact]
     public async Task ExecuteAsync_WithUnknownErrorAndJson_WritesStructuredLookupFailure()
     {
         using TemporaryWhenItFailsWorkspace workspace =
