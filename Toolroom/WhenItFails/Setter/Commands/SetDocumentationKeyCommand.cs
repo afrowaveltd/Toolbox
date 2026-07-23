@@ -1,7 +1,7 @@
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.SeeMe.WhenItFails.Console;
-using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Documentation;
 using Afrowave.Toolbox.WhenItFails.Validation;
 using Spectre.Console;
 
@@ -57,7 +57,7 @@ internal static class SetDocumentationKeyCommand
             return 1;
         }
 
-        if (!WhenItFailsDocumentationKeyFormatChecker.IsCanonical(newDocumentationKey))
+        if (!DocumentationKeyFormat.IsCanonical(newDocumentationKey))
         {
             ShowInvalidDocumentationKeyFormat();
             return 1;
