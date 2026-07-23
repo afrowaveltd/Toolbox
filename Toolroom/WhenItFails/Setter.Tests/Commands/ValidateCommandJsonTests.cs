@@ -86,8 +86,11 @@ public sealed class ValidateCommandJsonTests
 
         Assert.Equal(2, exitCode);
         using JsonDocument document = JsonDocument.Parse(output);
-        JsonElement data = document.RootElement.GetProperty("data");
+        JsonElement root = document.RootElement;
+        JsonElement data = root.GetProperty("data");
 
+        Assert.Equal("1.0", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("validate", root.GetProperty("command").GetString());
         Assert.False(data.GetProperty("isValid").GetBoolean());
         Assert.False(string.IsNullOrWhiteSpace(data.GetProperty("displayPath").GetString()));
         Assert.Equal(JsonValueKind.Object, data.GetProperty("validation").ValueKind);
