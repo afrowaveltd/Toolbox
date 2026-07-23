@@ -1,8 +1,10 @@
+using System.Text.Json;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Infrastructure;
 
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Commands;
 
+[Collection(ConsoleOutputTestCollection.Name)]
 public sealed class CheckDocKeysCommandTests
 {
     [Fact]
@@ -37,12 +39,13 @@ public sealed class CheckDocKeysCommandTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_WithJsonOutput_ReturnsSuccess()
+    public async Task ExecuteAsync_WithJsonOutput_WritesStableEnvelopeAndCompleteReport()
     {
         using TemporaryWhenItFailsWorkspace workspace =
             await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        int backupsBefore = CountBackups(workspace.WhenItFailsJsonsPath);
 
-        int exitCode = await CheckDocKeysCommand.ExecuteAsync(
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
         [
             "check-doc-keys",
             workspace.ProjectRootPath,
@@ -50,6 +53,17 @@ public sealed class CheckDocKeysCommandTests
         ]);
 
         Assert.Equal(0, exitCode);
+        using JsonDocument document = JsonDocument.Parse(output);
+        JsonElement root = document.RootElement;
+        JsonElement data = root.GetProperty("data");
+
+        Assert.Equal("1.0", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("check-doc-keys", root.GetProperty("command").GetString());
+        Assert.True(data.GetProperty("isValid").GetBoolean());
+        Assert.True(data.GetProperty("totalErrors").GetInt32() > 0);
+        Assert.Equal(JsonValueKind.Object, data.GetProperty("keys").ValueKind);
+        Assert.Equal(JsonValueKind.Object, data.GetProperty("format").ValueKind);
+        Assert.Equal(backupsBefore, CountBackups(workspace.WhenItFailsJsonsPath));
     }
 
     [Theory]
@@ -117,5 +131,32 @@ public sealed class CheckDocKeysCommandTests
     public async Task ExecuteAsync_WithInvalidArguments_ReturnsCommandInputError(string[] args)
     {
         Assert.Equal(1, await CheckDocKeysCommand.ExecuteAsync(args));
+    }
+
+    private static async Task<(int ExitCode, string Output)> ExecuteWithCapturedOutputAsync(string[] args)
+    {
+        TextWriter originalOutput = Console.Out;
+        using StringWriter output = new();
+
+        try
+        {
+            Console.SetOut(output);
+            int exitCode = await CheckDocKeysCommand.ExecuteAsync(args);
+            return (exitCode, output.ToString());
+        }
+        finally
+        {
+            Console.SetOut(originalOutput);
+        }
+    }
+
+    private static int CountBackups(string jsonsPath)
+    {
+        return Directory.Exists(jsonsPath)
+            ? Directory.GetFiles(
+                jsonsPath,
+                "*.bak.json",
+                SearchOption.TopDirectoryOnly).Length
+            : 0;
     }
 }
