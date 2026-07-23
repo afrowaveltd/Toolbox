@@ -3,6 +3,7 @@ using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Infrastructure;
 using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Documentation;
 using Afrowave.Toolbox.WhenItFails.Loading;
 using Afrowave.Toolbox.WhenItFails.Normalization;
 
@@ -57,7 +58,7 @@ public sealed class WhenItFailsDocumentationKeySuggesterOptionsEmptyErrorCatalog
                 "-2",
                 StringComparison.Ordinal));
         Assert.True(
-            WhenItFailsDocumentationKeyFormatChecker.IsCanonical(
+            DocumentationKeyFormat.IsCanonical(
                 suggestion.DocumentationKey));
     }
 
