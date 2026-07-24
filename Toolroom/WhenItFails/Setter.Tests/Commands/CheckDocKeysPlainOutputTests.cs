@@ -84,6 +84,52 @@ public sealed class CheckDocKeysPlainOutputTests
         Assert.False(string.IsNullOrWhiteSpace(fields[3]));
     }
 
+    [Fact]
+    public async Task ExecuteAsync_WithDuplicateKeyAndPlainOutput_WritesCompleteDuplicateRows()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        string catalogPath = Path.Combine(
+            workspace.WhenItFailsJsonsPath,
+            "errors.en.json");
+        string json = await File.ReadAllTextAsync(catalogPath);
+        const string duplicateDocumentationKey =
+            "when-it-fails/errors/general/unknown-error";
+        json = json.Replace(
+            "when-it-fails/errors/general/operation-failed",
+            duplicateDocumentationKey,
+            StringComparison.Ordinal);
+        await File.WriteAllTextAsync(catalogPath, json);
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        [
+            "check-doc-keys",
+            workspace.ProjectRootPath,
+            "--plain"
+        ]);
+
+        Assert.Equal(2, exitCode);
+        string[] duplicateRows = output.Split(
+                Environment.NewLine,
+                StringSplitOptions.RemoveEmptyEntries)
+            .Where(line => line.StartsWith("duplicate\t", StringComparison.Ordinal))
+            .ToArray();
+
+        Assert.Equal(2, duplicateRows.Length);
+
+        foreach (string duplicateRow in duplicateRows)
+        {
+            string[] fields = duplicateRow.Split('\t');
+
+            Assert.Equal(5, fields.Length);
+            Assert.Equal("duplicate", fields[0]);
+            Assert.Equal(duplicateDocumentationKey, fields[1]);
+            Assert.True(int.TryParse(fields[2], out _));
+            Assert.False(string.IsNullOrWhiteSpace(fields[3]));
+            Assert.False(string.IsNullOrWhiteSpace(fields[4]));
+        }
+    }
+
     private static async Task<(int ExitCode, string Output)> ExecuteWithCapturedOutputAsync(
         string[] args)
     {
