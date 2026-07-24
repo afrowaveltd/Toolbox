@@ -3,6 +3,7 @@ using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Infrastructure;
 using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Documentation;
 using Afrowave.Toolbox.WhenItFails.Loading;
 using Afrowave.Toolbox.WhenItFails.Normalization;
 using Spectre.Console;
@@ -52,7 +53,7 @@ public sealed class AddErrorCommandTests
         Assert.Equal("Warning", added.DefaultSeverity);
         Assert.Equal(expectedDocumentationKey, added.DocumentationKey);
         Assert.True(
-            WhenItFailsDocumentationKeyFormatChecker.IsCanonical(added.DocumentationKey!));
+            DocumentationKeyFormat.IsCanonical(added.DocumentationKey!));
         Assert.True(new WhenItFailsDocumentationKeyChecker().Check(saved).IsValid);
         Assert.Equal(backupsBefore + 1, CountErrorBackups(workspace.WhenItFailsJsonsPath));
     }
