@@ -76,14 +76,16 @@ public sealed class WhenItFailsWorkspaceEditorDocumentationKeyTests
         Assert.Equal(originalKey, saved.DocumentationKey);
     }
 
-    [Fact]
-    public async Task SetErrorDocumentationKeyAsync_WithCanonicalFormat_SavesValue()
+    [Theory]
+    [InlineData("when-it-fails/errors/network/editor-test")]
+    [InlineData("a/b")]
+    public async Task SetErrorDocumentationKeyAsync_WithCanonicalFormat_SavesValue(
+        string newKey)
     {
         using TemporaryWhenItFailsWorkspace workspace =
             await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
         ErrorDefinition target = (await LoadErrorsAsync(workspace.WhenItFailsJsonsPath)).Errors.First();
         int backupsBefore = CountErrorBackups(workspace.WhenItFailsJsonsPath);
-        const string newKey = "when-it-fails/errors/network/editor-test";
 
         Response<ErrorDefinition> response =
             await new WhenItFailsWorkspaceEditor().SetErrorDocumentationKeyAsync(
