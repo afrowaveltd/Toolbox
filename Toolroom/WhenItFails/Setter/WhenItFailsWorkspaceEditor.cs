@@ -2,6 +2,7 @@ using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Documentation;
 using Afrowave.Toolbox.WhenItFails.Loading;
 using Afrowave.Toolbox.WhenItFails.Normalization;
 using Afrowave.Toolbox.WhenItFails.Validation;
@@ -106,7 +107,7 @@ internal sealed class WhenItFailsWorkspaceEditor
        CancellationToken cancellationToken = default)
    {
       if (!string.IsNullOrWhiteSpace(newDocumentationKey) &&
-          !WhenItFailsDocumentationKeyFormatChecker.IsCanonical(newDocumentationKey))
+          !DocumentationKeyFormat.IsCanonical(newDocumentationKey))
       {
          return Response<ErrorDefinition>.Invalid(
              code: "InvalidDocumentationKeyFormat",
