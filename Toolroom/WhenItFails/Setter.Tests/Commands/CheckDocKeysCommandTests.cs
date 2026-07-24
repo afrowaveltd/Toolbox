@@ -98,12 +98,16 @@ public sealed class CheckDocKeysCommandTests
         using JsonDocument document = JsonDocument.Parse(output);
         JsonElement root = document.RootElement;
         JsonElement data = root.GetProperty("data");
+        JsonElement keys = data.GetProperty("keys");
         JsonElement format = data.GetProperty("format");
+        int totalErrors = data.GetProperty("totalErrors").GetInt32();
 
         Assert.Equal("1.0", root.GetProperty("schemaVersion").GetString());
         Assert.Equal("check-doc-keys", root.GetProperty("command").GetString());
         Assert.False(data.GetProperty("isValid").GetBoolean());
-        Assert.True(data.GetProperty("totalErrors").GetInt32() > 0);
+        Assert.True(totalErrors > 0);
+        Assert.Equal(totalErrors, keys.GetProperty("totalErrors").GetInt32());
+        Assert.Equal(totalErrors, format.GetProperty("totalErrors").GetInt32());
         Assert.Equal(JsonValueKind.Array, format.GetProperty("invalidKeys").ValueKind);
         Assert.NotEmpty(format.GetProperty("invalidKeys").EnumerateArray());
         Assert.Equal(backupsBefore, CountBackups(workspace.WhenItFailsJsonsPath));
