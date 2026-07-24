@@ -3,6 +3,7 @@ using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Infrastructure;
 using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Documentation;
 using Afrowave.Toolbox.WhenItFails.Loading;
 using Afrowave.Toolbox.WhenItFails.Normalization;
 
@@ -31,7 +32,7 @@ public sealed class WhenItFailsDocumentationKeySuggesterTests
             "/prilis-zlutoucky-soubor",
             suggestion.DocumentationKey,
             StringComparison.Ordinal);
-        Assert.True(WhenItFailsDocumentationKeyFormatChecker.IsCanonical(suggestion.DocumentationKey));
+        Assert.True(DocumentationKeyFormat.IsCanonical(suggestion.DocumentationKey));
     }
 
     [Fact]
