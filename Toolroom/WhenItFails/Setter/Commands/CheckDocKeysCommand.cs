@@ -112,7 +112,7 @@ internal static class CheckDocKeysCommand
         {
             foreach (DocumentationKeyIssue issue in report.Keys.MissingKeys)
             {
-                AnsiConsole.WriteLine(string.Join(
+                Console.WriteLine(string.Join(
                     '\t',
                     "missing",
                     issue.ErrorCode,
@@ -124,7 +124,7 @@ internal static class CheckDocKeysCommand
             {
                 foreach (DocumentationKeyIssue issue in duplicate.Errors)
                 {
-                    AnsiConsole.WriteLine(string.Join(
+                    Console.WriteLine(string.Join(
                         '\t',
                         "duplicate",
                         duplicate.DocumentationKey,
@@ -136,7 +136,7 @@ internal static class CheckDocKeysCommand
 
             foreach (InvalidDocumentationKeyFormat issue in report.Format.InvalidKeys)
             {
-                AnsiConsole.WriteLine(string.Join(
+                Console.WriteLine(string.Join(
                     '\t',
                     "invalid-format",
                     issue.DocumentationKey,
