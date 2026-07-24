@@ -46,6 +46,43 @@ public sealed class CheckDocKeysPlainOutputTests
         Assert.False(string.IsNullOrWhiteSpace(fields[4]));
     }
 
+    [Fact]
+    public async Task ExecuteAsync_WithMissingKeyAndPlainOutput_WritesCompleteMissingRow()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        string catalogPath = Path.Combine(
+            workspace.WhenItFailsJsonsPath,
+            "errors.en.json");
+        string json = await File.ReadAllTextAsync(catalogPath);
+        json = json.Replace(
+            "\"documentationKey\": \"when-it-fails/errors/general/unknown-error\"",
+            "\"documentationKey\": \"\"",
+            StringComparison.Ordinal);
+        await File.WriteAllTextAsync(catalogPath, json);
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        [
+            "check-doc-keys",
+            workspace.ProjectRootPath,
+            "--plain"
+        ]);
+
+        Assert.Equal(2, exitCode);
+        string missingRow = Assert.Single(
+            output.Split(
+                Environment.NewLine,
+                StringSplitOptions.RemoveEmptyEntries),
+            line => line.StartsWith("missing\t", StringComparison.Ordinal));
+        string[] fields = missingRow.Split('\t');
+
+        Assert.Equal(4, fields.Length);
+        Assert.Equal("missing", fields[0]);
+        Assert.True(int.TryParse(fields[1], out _));
+        Assert.False(string.IsNullOrWhiteSpace(fields[2]));
+        Assert.False(string.IsNullOrWhiteSpace(fields[3]));
+    }
+
     private static async Task<(int ExitCode, string Output)> ExecuteWithCapturedOutputAsync(
         string[] args)
     {
