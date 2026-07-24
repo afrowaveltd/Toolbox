@@ -1,11 +1,29 @@
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Documentation;
 using Afrowave.Toolbox.WhenItFails.Loading;
 
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Planning;
 
 public sealed class WhenItFailsDocumentationKeyFormatCheckerTests
 {
+    [Theory]
+    [InlineData("when-it-fails/errors/network/network-unavailable")]
+    [InlineData("errors/general/error-404")]
+    [InlineData("a/b")]
+    [InlineData("single-segment")]
+    [InlineData("When-It-Fails/errors/network")]
+    [InlineData("when_it_fails/errors/network")]
+    [InlineData("when-it-fails//network")]
+    [InlineData("when-it-fails/errors/network--unavailable")]
+    [InlineData("síť/chyba")]
+    public void IsCanonical_MatchesLibraryDocumentationKeyFormat(string documentationKey)
+    {
+        Assert.Equal(
+            DocumentationKeyFormat.IsCanonical(documentationKey),
+            WhenItFailsDocumentationKeyFormatChecker.IsCanonical(documentationKey));
+    }
+
     [Theory]
     [InlineData("when-it-fails/errors/network/network-unavailable")]
     [InlineData("errors/general/error-404")]
