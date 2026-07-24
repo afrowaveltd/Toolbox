@@ -2,6 +2,7 @@ using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Infrastructure;
 using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Documentation;
 using Afrowave.Toolbox.WhenItFails.Loading;
 using Afrowave.Toolbox.WhenItFails.Normalization;
 
@@ -45,7 +46,7 @@ public sealed class WhenItFailsDocumentationKeySuggesterCaseInsensitiveCollision
             Assert.IsType<DocumentationKeySuggestion>(response.Data);
         Assert.Equal($"{existingKey}-2", suggestion.DocumentationKey);
         Assert.True(
-            WhenItFailsDocumentationKeyFormatChecker.IsCanonical(
+            DocumentationKeyFormat.IsCanonical(
                 suggestion.DocumentationKey));
     }
 
