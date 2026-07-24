@@ -43,7 +43,9 @@ public sealed class WhenItFailsDocumentationKeyFormatCheckerTests
         Assert.False(report.IsValid);
         InvalidDocumentationKeyFormat issue = Assert.Single(report.InvalidKeys);
         Assert.Equal(documentationKey, issue.DocumentationKey);
+        Assert.Equal("AFW-TEST-1001", issue.ErrorId);
         Assert.Equal(1001, issue.ErrorCode);
+        Assert.Equal("ERROR1001", issue.ErrorName);
     }
 
     [Fact]
