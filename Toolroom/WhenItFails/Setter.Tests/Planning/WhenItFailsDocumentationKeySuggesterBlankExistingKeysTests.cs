@@ -4,6 +4,7 @@ using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Planning;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Infrastructure;
 using Afrowave.Toolbox.WhenItFails.Configuration;
+using Afrowave.Toolbox.WhenItFails.Documentation;
 
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Planning;
 
@@ -48,7 +49,7 @@ public sealed class WhenItFailsDocumentationKeySuggesterBlankExistingKeysTests
             "when-it-fails/errors/network/blank-existing-keys-sample",
             suggestion.DocumentationKey);
         Assert.True(
-            WhenItFailsDocumentationKeyFormatChecker.IsCanonical(
+            DocumentationKeyFormat.IsCanonical(
                 suggestion.DocumentationKey));
     }
 }
