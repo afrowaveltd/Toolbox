@@ -12,6 +12,7 @@ public sealed class WhenItFailsWorkspaceEditorDocumentationKeyTests
     [InlineData("Docs Network Interrupted")]
     [InlineData("síť/chyba")]
     [InlineData("when-it-fails//network")]
+    [InlineData("when-it-fails/errors/network/")]
     public async Task SetErrorDocumentationKeyAsync_WithInvalidFormat_DoesNotSaveOrCreateBackup(
         string invalidDocumentationKey)
     {
