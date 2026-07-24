@@ -33,6 +33,7 @@ public sealed class WhenItFailsDocumentationKeyFormatCheckerTests
     [InlineData("when-it-fails/errors/network--unavailable")]
     [InlineData(" when-it-fails/errors/network")]
     [InlineData("when-it-fails/errors/network ")]
+    [InlineData("síť/chyba")]
     public void Check_WithNonCanonicalKey_ReportsInvalidKey(string documentationKey)
     {
         DocumentationKeyFormatCheckReport report =
