@@ -57,8 +57,14 @@ public sealed class CheckDocKeysPlainOutputTests
         {
             Ansi = AnsiSupport.No,
             ColorSystem = ColorSystemSupport.NoColors,
-            Out = new AnsiConsoleOutput(output)
+            Out = new AnsiConsoleOutput(output),
+            Interactive = InteractionSupport.No,
+            Enrichment = new ProfileEnrichment
+            {
+                UseDefaultEnrichers = false
+            }
         });
+        testConsole.Profile.Width = 4096;
 
         try
         {
