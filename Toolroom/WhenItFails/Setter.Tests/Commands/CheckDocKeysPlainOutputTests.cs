@@ -1,6 +1,5 @@
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Infrastructure;
-using Spectre.Console;
 
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Commands;
 
@@ -50,32 +49,17 @@ public sealed class CheckDocKeysPlainOutputTests
     private static async Task<(int ExitCode, string Output)> ExecuteWithCapturedOutputAsync(
         string[] args)
     {
-        IAnsiConsole originalConsole = AnsiConsole.Console;
         TextWriter originalOutput = Console.Out;
         using StringWriter output = new();
-        IAnsiConsole testConsole = AnsiConsole.Create(new AnsiConsoleSettings
-        {
-            Ansi = AnsiSupport.No,
-            ColorSystem = ColorSystemSupport.NoColors,
-            Out = new AnsiConsoleOutput(output),
-            Interactive = InteractionSupport.No,
-            Enrichment = new ProfileEnrichment
-            {
-                UseDefaultEnrichers = false
-            }
-        });
-        testConsole.Profile.Width = 4096;
 
         try
         {
             Console.SetOut(output);
-            AnsiConsole.Console = testConsole;
             int exitCode = await CheckDocKeysCommand.ExecuteAsync(args);
             return (exitCode, output.ToString());
         }
         finally
         {
-            AnsiConsole.Console = originalConsole;
             Console.SetOut(originalOutput);
         }
     }
