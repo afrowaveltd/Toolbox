@@ -8,8 +8,11 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests;
 
 public sealed class WhenItFailsWorkspaceEditorDocumentationKeyTests
 {
-    [Fact]
-    public async Task SetErrorDocumentationKeyAsync_WithInvalidFormat_DoesNotSaveOrCreateBackup()
+    [Theory]
+    [InlineData("Docs Network Interrupted")]
+    [InlineData("síť/chyba")]
+    public async Task SetErrorDocumentationKeyAsync_WithInvalidFormat_DoesNotSaveOrCreateBackup(
+        string invalidDocumentationKey)
     {
         using TemporaryWhenItFailsWorkspace workspace =
             await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
@@ -22,7 +25,7 @@ public sealed class WhenItFailsWorkspaceEditorDocumentationKeyTests
             await new WhenItFailsWorkspaceEditor().SetErrorDocumentationKeyAsync(
                 workspace.ProjectRootPath,
                 target.Id,
-                "Docs Network Interrupted");
+                invalidDocumentationKey);
 
         Assert.False(response.IsSuccess);
         Assert.Contains(
