@@ -9,8 +9,8 @@ public sealed class DocumentationKeyCommandReportTests
     public void Constructor_WithNullKeys_ThrowsArgumentNullException()
     {
         DocumentationKeyFormatCheckReport format = new(
-            TotalErrors: 0,
-            InvalidKeys: []);
+            totalErrors: 0,
+            invalidKeys: []);
 
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
             () => new DocumentationKeyCommandReport(null!, format));
@@ -40,8 +40,8 @@ public sealed class DocumentationKeyCommandReportTests
             MissingKeys: [],
             DuplicateKeys: []);
         DocumentationKeyFormatCheckReport format = new(
-            TotalErrors: 3,
-            InvalidKeys: []);
+            totalErrors: 3,
+            invalidKeys: []);
 
         ArgumentException exception = Assert.Throws<ArgumentException>(
             () => new DocumentationKeyCommandReport(keys, format));
@@ -58,8 +58,8 @@ public sealed class DocumentationKeyCommandReportTests
             MissingKeys: [],
             DuplicateKeys: []);
         DocumentationKeyFormatCheckReport format = new(
-            TotalErrors: 2,
-            InvalidKeys: []);
+            totalErrors: 2,
+            invalidKeys: []);
 
         DocumentationKeyCommandReport report = new(keys, format);
 
