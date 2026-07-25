@@ -109,7 +109,7 @@ public sealed class DocumentationKeyReportValidationTests
                 Errors: [firstError, secondError]));
 
         Assert.Equal("Errors", exception.ParamName);
-        Assert.Contains("same documentation key", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("duplicate documentation key", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
