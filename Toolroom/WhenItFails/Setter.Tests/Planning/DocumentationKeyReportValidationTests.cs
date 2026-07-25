@@ -5,6 +5,18 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Planning;
 public sealed class DocumentationKeyReportValidationTests
 {
     [Fact]
+    public void CheckReport_WithNegativeTotalErrors_ThrowsArgumentOutOfRangeException()
+    {
+        ArgumentOutOfRangeException exception = Assert.Throws<ArgumentOutOfRangeException>(
+            () => new DocumentationKeyCheckReport(
+                TotalErrors: -1,
+                MissingKeys: [],
+                DuplicateKeys: []));
+
+        Assert.Equal("TotalErrors", exception.ParamName);
+    }
+
+    [Fact]
     public void CheckReport_WithNullMissingKeys_ThrowsArgumentNullException()
     {
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
