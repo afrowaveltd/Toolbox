@@ -38,9 +38,20 @@ public sealed class DocumentationKeyReportValidationTests
     [Fact]
     public void CheckReport_WithMoreDuplicateKeysThanTotalErrors_ThrowsArgumentException()
     {
+        const string documentationKey = "when-it-fails/errors/network/unavailable";
+        DocumentationKeyIssue firstError = new(
+            ErrorId: "AFW-NET-0001",
+            ErrorCode: 1001,
+            ErrorName: "Unavailable",
+            DocumentationKey: documentationKey);
+        DocumentationKeyIssue secondError = new(
+            ErrorId: "AFW-NET-0002",
+            ErrorCode: 1002,
+            ErrorName: "Offline",
+            DocumentationKey: documentationKey);
         DuplicateDocumentationKey duplicateKey = new(
-            DocumentationKey: "when-it-fails/errors/network/unavailable",
-            Errors: []);
+            DocumentationKey: documentationKey,
+            Errors: [firstError, secondError]);
 
         ArgumentException exception = Assert.Throws<ArgumentException>(
             () => new DocumentationKeyCheckReport(
