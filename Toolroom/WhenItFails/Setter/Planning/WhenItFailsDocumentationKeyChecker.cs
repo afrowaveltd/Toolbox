@@ -124,6 +124,19 @@ internal sealed record DuplicateDocumentationKey
                 nameof(Errors));
         }
 
+        string normalizedDocumentationKey = DocumentationKey.Trim();
+        if (Errors.Any(error =>
+                error is null ||
+                !string.Equals(
+                    error.DocumentationKey?.Trim(),
+                    normalizedDocumentationKey,
+                    StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new ArgumentException(
+                "Every error in a duplicate documentation key group must use the group's documentation key.",
+                nameof(Errors));
+        }
+
         this.DocumentationKey = DocumentationKey;
         this.Errors = Errors;
     }
