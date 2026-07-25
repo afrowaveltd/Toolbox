@@ -108,6 +108,19 @@ internal sealed record DocumentationKeyIssue(
 /// <summary>
 /// Describes one documentation key used by multiple error definitions.
 /// </summary>
-internal sealed record DuplicateDocumentationKey(
-    string DocumentationKey,
-    IReadOnlyList<DocumentationKeyIssue> Errors);
+internal sealed record DuplicateDocumentationKey
+{
+    public DuplicateDocumentationKey(
+        string DocumentationKey,
+        IReadOnlyList<DocumentationKeyIssue> Errors)
+    {
+        ArgumentNullException.ThrowIfNull(Errors);
+
+        this.DocumentationKey = DocumentationKey;
+        this.Errors = Errors;
+    }
+
+    public string DocumentationKey { get; }
+
+    public IReadOnlyList<DocumentationKeyIssue> Errors { get; }
+}
