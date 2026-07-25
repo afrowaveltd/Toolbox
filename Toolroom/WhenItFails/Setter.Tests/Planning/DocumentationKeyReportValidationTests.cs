@@ -53,6 +53,17 @@ public sealed class DocumentationKeyReportValidationTests
     }
 
     [Fact]
+    public void DuplicateKey_WithNullErrors_ThrowsArgumentNullException()
+    {
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
+            () => new DuplicateDocumentationKey(
+                DocumentationKey: "when-it-fails/errors/network/unavailable",
+                Errors: null!));
+
+        Assert.Equal("Errors", exception.ParamName);
+    }
+
+    [Fact]
     public void CheckReport_WithNullMissingKeys_ThrowsArgumentNullException()
     {
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
