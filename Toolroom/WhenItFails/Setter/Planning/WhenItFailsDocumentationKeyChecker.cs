@@ -57,11 +57,27 @@ internal sealed class WhenItFailsDocumentationKeyChecker
 /// <summary>
 /// Result of checking documentation keys in an error catalog.
 /// </summary>
-internal sealed record DocumentationKeyCheckReport(
-    int TotalErrors,
-    IReadOnlyList<DocumentationKeyIssue> MissingKeys,
-    IReadOnlyList<DuplicateDocumentationKey> DuplicateKeys)
+internal sealed record DocumentationKeyCheckReport
 {
+    public DocumentationKeyCheckReport(
+        int TotalErrors,
+        IReadOnlyList<DocumentationKeyIssue> MissingKeys,
+        IReadOnlyList<DuplicateDocumentationKey> DuplicateKeys)
+    {
+        ArgumentNullException.ThrowIfNull(MissingKeys);
+        ArgumentNullException.ThrowIfNull(DuplicateKeys);
+
+        this.TotalErrors = TotalErrors;
+        this.MissingKeys = MissingKeys;
+        this.DuplicateKeys = DuplicateKeys;
+    }
+
+    public int TotalErrors { get; }
+
+    public IReadOnlyList<DocumentationKeyIssue> MissingKeys { get; }
+
+    public IReadOnlyList<DuplicateDocumentationKey> DuplicateKeys { get; }
+
     public bool IsValid => MissingKeys.Count == 0 && DuplicateKeys.Count == 0;
 }
 
