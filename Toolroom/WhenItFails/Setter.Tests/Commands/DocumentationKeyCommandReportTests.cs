@@ -6,6 +6,33 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Commands;
 public sealed class DocumentationKeyCommandReportTests
 {
     [Fact]
+    public void Constructor_WithNullKeys_ThrowsArgumentNullException()
+    {
+        DocumentationKeyFormatCheckReport format = new(
+            TotalErrors: 0,
+            InvalidKeys: []);
+
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
+            () => new DocumentationKeyCommandReport(null!, format));
+
+        Assert.Equal("keys", exception.ParamName);
+    }
+
+    [Fact]
+    public void Constructor_WithNullFormat_ThrowsArgumentNullException()
+    {
+        DocumentationKeyCheckReport keys = new(
+            TotalErrors: 0,
+            MissingKeys: [],
+            DuplicateKeys: []);
+
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
+            () => new DocumentationKeyCommandReport(keys, null!));
+
+        Assert.Equal("format", exception.ParamName);
+    }
+
+    [Fact]
     public void Constructor_WithDifferentTotals_ThrowsArgumentException()
     {
         DocumentationKeyCheckReport keys = new(
