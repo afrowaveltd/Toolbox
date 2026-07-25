@@ -30,8 +30,8 @@ internal sealed class WhenItFailsDocumentationKeyFormatChecker
             .ToArray();
 
         return new DocumentationKeyFormatCheckReport(
-            TotalErrors: errors.Length,
-            InvalidKeys: invalidKeys);
+            totalErrors: errors.Length,
+            invalidKeys: invalidKeys);
     }
 }
 
