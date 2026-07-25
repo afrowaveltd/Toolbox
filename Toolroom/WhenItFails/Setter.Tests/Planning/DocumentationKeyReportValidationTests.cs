@@ -64,6 +64,28 @@ public sealed class DocumentationKeyReportValidationTests
     }
 
     [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public void DuplicateKey_WithFewerThanTwoErrors_ThrowsArgumentException(int errorCount)
+    {
+        const string documentationKey = "when-it-fails/errors/network/unavailable";
+        DocumentationKeyIssue error = new(
+            ErrorId: "AFW-NET-0001",
+            ErrorCode: 1001,
+            ErrorName: "Unavailable",
+            DocumentationKey: documentationKey);
+        IReadOnlyList<DocumentationKeyIssue> errors = errorCount == 0 ? [] : [error];
+
+        ArgumentException exception = Assert.Throws<ArgumentException>(
+            () => new DuplicateDocumentationKey(
+                DocumentationKey: documentationKey,
+                Errors: errors));
+
+        Assert.Equal("Errors", exception.ParamName);
+        Assert.Contains("at least two", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
     [InlineData("")]
     [InlineData("   ")]
     public void DuplicateKey_WithEmptyDocumentationKey_ThrowsArgumentException(
