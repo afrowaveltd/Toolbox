@@ -38,10 +38,22 @@ internal sealed class WhenItFailsDocumentationKeyFormatChecker
 /// <summary>
 /// Result of checking canonical documentation-key formatting.
 /// </summary>
-internal sealed record DocumentationKeyFormatCheckReport(
-    int TotalErrors,
-    IReadOnlyList<InvalidDocumentationKeyFormat> InvalidKeys)
+internal sealed record DocumentationKeyFormatCheckReport
 {
+    public DocumentationKeyFormatCheckReport(
+        int totalErrors,
+        IReadOnlyList<InvalidDocumentationKeyFormat> invalidKeys)
+    {
+        ArgumentNullException.ThrowIfNull(invalidKeys);
+
+        TotalErrors = totalErrors;
+        InvalidKeys = invalidKeys;
+    }
+
+    public int TotalErrors { get; }
+
+    public IReadOnlyList<InvalidDocumentationKeyFormat> InvalidKeys { get; }
+
     public bool IsValid => InvalidKeys.Count == 0;
 }
 
