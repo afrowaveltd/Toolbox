@@ -64,6 +64,7 @@ internal sealed record DocumentationKeyCheckReport
         IReadOnlyList<DocumentationKeyIssue> MissingKeys,
         IReadOnlyList<DuplicateDocumentationKey> DuplicateKeys)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(TotalErrors);
         ArgumentNullException.ThrowIfNull(MissingKeys);
         ArgumentNullException.ThrowIfNull(DuplicateKeys);
 
