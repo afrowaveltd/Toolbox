@@ -264,10 +264,30 @@ internal static class CheckDocKeysCommand
     }
 }
 
-internal sealed record DocumentationKeyCommandReport(
-    DocumentationKeyCheckReport Keys,
-    DocumentationKeyFormatCheckReport Format)
+internal sealed record DocumentationKeyCommandReport
 {
+    public DocumentationKeyCommandReport(
+        DocumentationKeyCheckReport keys,
+        DocumentationKeyFormatCheckReport format)
+    {
+        ArgumentNullException.ThrowIfNull(keys);
+        ArgumentNullException.ThrowIfNull(format);
+
+        if (keys.TotalErrors != format.TotalErrors)
+        {
+            throw new ArgumentException(
+                "Documentation key reports must describe the same number of errors.",
+                nameof(format));
+        }
+
+        Keys = keys;
+        Format = format;
+    }
+
+    public DocumentationKeyCheckReport Keys { get; }
+
+    public DocumentationKeyFormatCheckReport Format { get; }
+
     public int TotalErrors => Keys.TotalErrors;
 
     public bool IsValid => Keys.IsValid && Format.IsValid;
