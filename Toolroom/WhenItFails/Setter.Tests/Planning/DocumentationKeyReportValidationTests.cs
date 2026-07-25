@@ -52,6 +52,20 @@ public sealed class DocumentationKeyReportValidationTests
         Assert.Contains("cannot exceed", exception.Message, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void DuplicateKey_WithEmptyDocumentationKey_ThrowsArgumentException(
+        string documentationKey)
+    {
+        ArgumentException exception = Assert.Throws<ArgumentException>(
+            () => new DuplicateDocumentationKey(
+                DocumentationKey: documentationKey,
+                Errors: []));
+
+        Assert.Equal("DocumentationKey", exception.ParamName);
+    }
+
     [Fact]
     public void DuplicateKey_WithNullErrors_ThrowsArgumentNullException()
     {
