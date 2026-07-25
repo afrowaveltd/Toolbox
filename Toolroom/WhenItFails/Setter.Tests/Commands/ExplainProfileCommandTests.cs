@@ -7,6 +7,7 @@ using Afrowave.Toolbox.WhenItFails.Normalization;
 
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Commands;
 
+[Collection(ConsoleOutputTestCollection.Name)]
 public sealed class ExplainProfileCommandTests
 {
     [Fact]
