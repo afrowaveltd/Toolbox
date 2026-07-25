@@ -86,6 +86,56 @@ public sealed class DocumentationKeyReportValidationTests
     }
 
     [Theory]
+    [InlineData(null)]
+    [InlineData("when-it-fails/errors/network/offline")]
+    public void DuplicateKey_WithMismatchedMemberKey_ThrowsArgumentException(
+        string? memberDocumentationKey)
+    {
+        const string documentationKey = "when-it-fails/errors/network/unavailable";
+        DocumentationKeyIssue firstError = new(
+            ErrorId: "AFW-NET-0001",
+            ErrorCode: 1001,
+            ErrorName: "Unavailable",
+            DocumentationKey: documentationKey);
+        DocumentationKeyIssue secondError = new(
+            ErrorId: "AFW-NET-0002",
+            ErrorCode: 1002,
+            ErrorName: "Offline",
+            DocumentationKey: memberDocumentationKey);
+
+        ArgumentException exception = Assert.Throws<ArgumentException>(
+            () => new DuplicateDocumentationKey(
+                DocumentationKey: documentationKey,
+                Errors: [firstError, secondError]));
+
+        Assert.Equal("Errors", exception.ParamName);
+        Assert.Contains("same documentation key", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void DuplicateKey_WithEquivalentMemberKeys_IsCreated()
+    {
+        const string documentationKey = "when-it-fails/errors/network/unavailable";
+        DocumentationKeyIssue firstError = new(
+            ErrorId: "AFW-NET-0001",
+            ErrorCode: 1001,
+            ErrorName: "Unavailable",
+            DocumentationKey: $"  {documentationKey.ToUpperInvariant()}  ");
+        DocumentationKeyIssue secondError = new(
+            ErrorId: "AFW-NET-0002",
+            ErrorCode: 1002,
+            ErrorName: "Offline",
+            DocumentationKey: documentationKey);
+
+        DuplicateDocumentationKey duplicateKey = new(
+            DocumentationKey: documentationKey,
+            Errors: [firstError, secondError]);
+
+        Assert.Equal(documentationKey, duplicateKey.DocumentationKey);
+        Assert.Equal(2, duplicateKey.Errors.Count);
+    }
+
+    [Theory]
     [InlineData("")]
     [InlineData("   ")]
     public void DuplicateKey_WithEmptyDocumentationKey_ThrowsArgumentException(
