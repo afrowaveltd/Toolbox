@@ -52,6 +52,24 @@ public sealed class DocumentationKeyReportValidationTests
     }
 
     [Fact]
+    public void FormatReport_WithMoreInvalidKeysThanTotalErrors_ThrowsArgumentException()
+    {
+        InvalidDocumentationKeyFormat invalidKey = new(
+            ErrorId: "AFW-NET-0001",
+            ErrorCode: 1001,
+            ErrorName: "Unavailable",
+            DocumentationKey: "Network.Unavailable");
+
+        ArgumentException exception = Assert.Throws<ArgumentException>(
+            () => new DocumentationKeyFormatCheckReport(
+                totalErrors: 0,
+                invalidKeys: [invalidKey]));
+
+        Assert.Equal("invalidKeys", exception.ParamName);
+        Assert.Contains("cannot exceed", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void FormatReport_WithNullInvalidKeys_ThrowsArgumentNullException()
     {
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
