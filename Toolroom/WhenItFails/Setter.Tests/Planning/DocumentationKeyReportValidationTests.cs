@@ -17,6 +17,25 @@ public sealed class DocumentationKeyReportValidationTests
     }
 
     [Fact]
+    public void CheckReport_WithMoreMissingKeysThanTotalErrors_ThrowsArgumentException()
+    {
+        DocumentationKeyIssue missingKey = new(
+            ErrorId: "AFW-NET-0001",
+            ErrorCode: 1001,
+            ErrorName: "Unavailable",
+            DocumentationKey: null);
+
+        ArgumentException exception = Assert.Throws<ArgumentException>(
+            () => new DocumentationKeyCheckReport(
+                TotalErrors: 0,
+                MissingKeys: [missingKey],
+                DuplicateKeys: []));
+
+        Assert.Equal("MissingKeys", exception.ParamName);
+        Assert.Contains("cannot exceed", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void CheckReport_WithNullMissingKeys_ThrowsArgumentNullException()
     {
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
