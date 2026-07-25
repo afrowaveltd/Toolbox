@@ -36,6 +36,23 @@ public sealed class DocumentationKeyReportValidationTests
     }
 
     [Fact]
+    public void CheckReport_WithMoreDuplicateKeysThanTotalErrors_ThrowsArgumentException()
+    {
+        DuplicateDocumentationKey duplicateKey = new(
+            DocumentationKey: "when-it-fails/errors/network/unavailable",
+            Errors: []);
+
+        ArgumentException exception = Assert.Throws<ArgumentException>(
+            () => new DocumentationKeyCheckReport(
+                TotalErrors: 0,
+                MissingKeys: [],
+                DuplicateKeys: [duplicateKey]));
+
+        Assert.Equal("DuplicateKeys", exception.ParamName);
+        Assert.Contains("cannot exceed", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void CheckReport_WithNullMissingKeys_ThrowsArgumentNullException()
     {
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
