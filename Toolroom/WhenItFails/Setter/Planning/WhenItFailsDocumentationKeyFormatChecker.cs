@@ -44,6 +44,7 @@ internal sealed record DocumentationKeyFormatCheckReport
         int totalErrors,
         IReadOnlyList<InvalidDocumentationKeyFormat> invalidKeys)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(totalErrors);
         ArgumentNullException.ThrowIfNull(invalidKeys);
 
         TotalErrors = totalErrors;
