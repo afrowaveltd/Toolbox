@@ -8,6 +8,23 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Commands;
 public sealed class CheckDocKeysPlainOutputTests
 {
     [Fact]
+    public async Task ExecuteAsync_WithValidCatalogAndPlainOutput_WritesNothing()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        [
+            "check-doc-keys",
+            workspace.ProjectRootPath,
+            "--plain"
+        ]);
+
+        Assert.Equal(0, exitCode);
+        Assert.Equal(string.Empty, output);
+    }
+
+    [Fact]
     public async Task ExecuteAsync_WithNonCanonicalKeyAndPlainOutput_WritesCompleteInvalidFormatRow()
     {
         using TemporaryWhenItFailsWorkspace workspace =
