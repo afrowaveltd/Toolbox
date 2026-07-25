@@ -9,11 +9,11 @@ public sealed class DocumentationKeyReportValidationTests
     {
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
             () => new DocumentationKeyCheckReport(
-                totalErrors: 0,
-                missingKeys: null!,
-                duplicateKeys: []));
+                TotalErrors: 0,
+                MissingKeys: null!,
+                DuplicateKeys: []));
 
-        Assert.Equal("missingKeys", exception.ParamName);
+        Assert.Equal("MissingKeys", exception.ParamName);
     }
 
     [Fact]
@@ -21,11 +21,11 @@ public sealed class DocumentationKeyReportValidationTests
     {
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
             () => new DocumentationKeyCheckReport(
-                totalErrors: 0,
-                missingKeys: [],
-                duplicateKeys: null!));
+                TotalErrors: 0,
+                MissingKeys: [],
+                DuplicateKeys: null!));
 
-        Assert.Equal("duplicateKeys", exception.ParamName);
+        Assert.Equal("DuplicateKeys", exception.ParamName);
     }
 
     [Fact]
