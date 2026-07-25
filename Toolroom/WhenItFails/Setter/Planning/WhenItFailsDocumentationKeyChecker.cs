@@ -114,6 +114,7 @@ internal sealed record DuplicateDocumentationKey
         string DocumentationKey,
         IReadOnlyList<DocumentationKeyIssue> Errors)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(DocumentationKey);
         ArgumentNullException.ThrowIfNull(Errors);
 
         this.DocumentationKey = DocumentationKey;
