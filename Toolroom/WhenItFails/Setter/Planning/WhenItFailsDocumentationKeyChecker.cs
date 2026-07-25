@@ -68,6 +68,13 @@ internal sealed record DocumentationKeyCheckReport
         ArgumentNullException.ThrowIfNull(MissingKeys);
         ArgumentNullException.ThrowIfNull(DuplicateKeys);
 
+        if (MissingKeys.Count > TotalErrors)
+        {
+            throw new ArgumentException(
+                "The number of missing documentation keys cannot exceed the total number of errors.",
+                nameof(MissingKeys));
+        }
+
         this.TotalErrors = TotalErrors;
         this.MissingKeys = MissingKeys;
         this.DuplicateKeys = DuplicateKeys;
