@@ -117,6 +117,13 @@ internal sealed record DuplicateDocumentationKey
         ArgumentException.ThrowIfNullOrWhiteSpace(DocumentationKey);
         ArgumentNullException.ThrowIfNull(Errors);
 
+        if (Errors.Count < 2)
+        {
+            throw new ArgumentException(
+                "A duplicate documentation key must reference at least two errors.",
+                nameof(Errors));
+        }
+
         this.DocumentationKey = DocumentationKey;
         this.Errors = Errors;
     }
