@@ -47,6 +47,13 @@ internal sealed record DocumentationKeyFormatCheckReport
         ArgumentOutOfRangeException.ThrowIfNegative(totalErrors);
         ArgumentNullException.ThrowIfNull(invalidKeys);
 
+        if (invalidKeys.Count > totalErrors)
+        {
+            throw new ArgumentException(
+                "The number of invalid documentation keys cannot exceed the total number of errors.",
+                nameof(invalidKeys));
+        }
+
         TotalErrors = totalErrors;
         InvalidKeys = invalidKeys;
     }
