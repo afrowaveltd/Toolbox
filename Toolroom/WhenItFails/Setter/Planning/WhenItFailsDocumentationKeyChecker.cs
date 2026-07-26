@@ -75,6 +75,13 @@ internal sealed record DocumentationKeyCheckReport
                 nameof(MissingKeys));
         }
 
+        if (DuplicateKeys.Any(issue => issue is null))
+        {
+            throw new ArgumentException(
+                "Duplicate documentation key entries cannot be null.",
+                nameof(DuplicateKeys));
+        }
+
         if (MissingKeys.Count > TotalErrors)
         {
             throw new ArgumentException(
