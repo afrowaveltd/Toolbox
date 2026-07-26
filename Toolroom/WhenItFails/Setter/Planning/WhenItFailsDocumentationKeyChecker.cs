@@ -108,6 +108,7 @@ internal sealed record DocumentationKeyIssue
         string? DocumentationKey)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(ErrorId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(ErrorName);
 
         this.ErrorId = ErrorId;
         this.ErrorCode = ErrorCode;
