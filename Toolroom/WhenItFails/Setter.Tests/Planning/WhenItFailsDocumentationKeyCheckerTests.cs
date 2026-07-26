@@ -71,6 +71,23 @@ public sealed class WhenItFailsDocumentationKeyCheckerTests
     }
 
     [Fact]
+    public void Check_WithMissingKey_PreservesIssueValues()
+    {
+        const string documentationKey = "   ";
+        ErrorCatalogDocument catalog = CreateCatalog(
+            CreateError(1001, "AFW-NET-0001", "Unavailable", documentationKey));
+
+        DocumentationKeyCheckReport report =
+            new WhenItFailsDocumentationKeyChecker().Check(catalog);
+
+        DocumentationKeyIssue issue = Assert.Single(report.MissingKeys);
+        Assert.Equal("AFW-NET-0001", issue.ErrorId);
+        Assert.Equal(1001, issue.ErrorCode);
+        Assert.Equal("Unavailable", issue.ErrorName);
+        Assert.Equal(documentationKey, issue.DocumentationKey);
+    }
+
+    [Fact]
     public void Check_WithCaseInsensitiveDuplicateKeys_ReportsOneDuplicateGroup()
     {
         ErrorCatalogDocument catalog = CreateCatalog(
