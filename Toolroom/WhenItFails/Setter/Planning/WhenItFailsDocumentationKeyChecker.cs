@@ -99,11 +99,30 @@ internal sealed record DocumentationKeyCheckReport
 /// <summary>
 /// Identifies one error definition involved in a documentation-key issue.
 /// </summary>
-internal sealed record DocumentationKeyIssue(
-    string ErrorId,
-    int ErrorCode,
-    string ErrorName,
-    string? DocumentationKey);
+internal sealed record DocumentationKeyIssue
+{
+    public DocumentationKeyIssue(
+        string ErrorId,
+        int ErrorCode,
+        string ErrorName,
+        string? DocumentationKey)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(ErrorId);
+
+        this.ErrorId = ErrorId;
+        this.ErrorCode = ErrorCode;
+        this.ErrorName = ErrorName;
+        this.DocumentationKey = DocumentationKey;
+    }
+
+    public string ErrorId { get; }
+
+    public int ErrorCode { get; }
+
+    public string ErrorName { get; }
+
+    public string? DocumentationKey { get; }
+}
 
 /// <summary>
 /// Describes one documentation key used by multiple error definitions.
