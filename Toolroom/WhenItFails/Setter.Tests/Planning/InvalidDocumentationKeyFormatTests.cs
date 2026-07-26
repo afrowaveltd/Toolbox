@@ -51,4 +51,19 @@ public sealed class InvalidDocumentationKeyFormatTests
 
         Assert.Equal("DocumentationKey", exception.ParamName);
     }
+
+    [Fact]
+    public void Constructor_WithValidValues_PreservesValues()
+    {
+        InvalidDocumentationKeyFormat invalidKey = new(
+            ErrorId: "error-1",
+            ErrorCode: 42,
+            ErrorName: "Error one",
+            DocumentationKey: "General/Invalid_Key");
+
+        Assert.Equal("error-1", invalidKey.ErrorId);
+        Assert.Equal(42, invalidKey.ErrorCode);
+        Assert.Equal("Error one", invalidKey.ErrorName);
+        Assert.Equal("General/Invalid_Key", invalidKey.DocumentationKey);
+    }
 }
