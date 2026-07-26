@@ -132,4 +132,37 @@ public sealed class DocumentationKeyCheckReportTests
         Assert.Same(duplicateKeys, report.DuplicateKeys);
         Assert.False(report.IsValid);
     }
+
+    [Fact]
+    public void Constructor_WithDuplicateKeyCountEqualToTotalErrors_CreatesReport()
+    {
+        const string documentationKey = "general/shared-error";
+        DuplicateDocumentationKey duplicateKey = new(
+            DocumentationKey: documentationKey,
+            Errors:
+            [
+                new DocumentationKeyIssue(
+                    ErrorId: "error-1",
+                    ErrorCode: 1,
+                    ErrorName: "Error one",
+                    DocumentationKey: documentationKey),
+                new DocumentationKeyIssue(
+                    ErrorId: "error-2",
+                    ErrorCode: 2,
+                    ErrorName: "Error two",
+                    DocumentationKey: documentationKey)
+            ]);
+        DocumentationKeyIssue[] missingKeys = [];
+        DuplicateDocumentationKey[] duplicateKeys = [duplicateKey];
+
+        DocumentationKeyCheckReport report = new(
+            TotalErrors: 1,
+            MissingKeys: missingKeys,
+            DuplicateKeys: duplicateKeys);
+
+        Assert.Equal(1, report.TotalErrors);
+        Assert.Same(missingKeys, report.MissingKeys);
+        Assert.Same(duplicateKeys, report.DuplicateKeys);
+        Assert.False(report.IsValid);
+    }
 }
