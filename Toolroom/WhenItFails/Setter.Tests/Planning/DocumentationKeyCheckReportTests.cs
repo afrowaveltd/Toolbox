@@ -100,6 +100,18 @@ public sealed class DocumentationKeyCheckReportTests
     }
 
     [Fact]
+    public void Constructor_WithNullDuplicateKey_ThrowsArgumentException()
+    {
+        ArgumentException exception = Assert.Throws<ArgumentException>(
+            () => new DocumentationKeyCheckReport(
+                TotalErrors: 1,
+                MissingKeys: [],
+                DuplicateKeys: [null!]));
+
+        Assert.Equal("DuplicateKeys", exception.ParamName);
+    }
+
+    [Fact]
     public void Constructor_WithMissingKeyCountEqualToTotalErrors_CreatesReport()
     {
         DocumentationKeyIssue missingKey = new(
