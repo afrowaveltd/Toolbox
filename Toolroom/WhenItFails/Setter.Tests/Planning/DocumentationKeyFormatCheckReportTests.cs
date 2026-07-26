@@ -14,4 +14,15 @@ public sealed class DocumentationKeyFormatCheckReportTests
 
         Assert.Equal("invalidKeys", exception.ParamName);
     }
+
+    [Fact]
+    public void Constructor_WithNegativeTotalErrors_ThrowsArgumentOutOfRangeException()
+    {
+        ArgumentOutOfRangeException exception = Assert.Throws<ArgumentOutOfRangeException>(
+            () => new DocumentationKeyFormatCheckReport(
+                totalErrors: -1,
+                invalidKeys: []));
+
+        Assert.Equal("totalErrors", exception.ParamName);
+    }
 }
