@@ -25,4 +25,21 @@ public sealed class DocumentationKeyFormatCheckReportTests
 
         Assert.Equal("totalErrors", exception.ParamName);
     }
+
+    [Fact]
+    public void Constructor_WithMoreInvalidKeysThanErrors_ThrowsArgumentException()
+    {
+        InvalidDocumentationKeyFormat invalidKey = new(
+            ErrorId: "error-1",
+            ErrorCode: 1,
+            ErrorName: "Error one",
+            DocumentationKey: "General/Invalid_Key");
+
+        ArgumentException exception = Assert.Throws<ArgumentException>(
+            () => new DocumentationKeyFormatCheckReport(
+                totalErrors: 0,
+                invalidKeys: [invalidKey]));
+
+        Assert.Equal("invalidKeys", exception.ParamName);
+    }
 }
