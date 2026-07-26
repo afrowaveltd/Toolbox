@@ -20,6 +20,23 @@ public sealed class WhenItFailsDocumentationKeyCheckerTests
     }
 
     [Fact]
+    public void Check_WithNullErrorCollection_ReturnsValidEmptyReport()
+    {
+        ErrorCatalogDocument catalog = new()
+        {
+            Errors = null
+        };
+
+        DocumentationKeyCheckReport report =
+            new WhenItFailsDocumentationKeyChecker().Check(catalog);
+
+        Assert.True(report.IsValid);
+        Assert.Equal(0, report.TotalErrors);
+        Assert.Empty(report.MissingKeys);
+        Assert.Empty(report.DuplicateKeys);
+    }
+
+    [Fact]
     public void Check_WithUniqueNonEmptyKeys_ReturnsValidReport()
     {
         ErrorCatalogDocument catalog = CreateCatalog(
