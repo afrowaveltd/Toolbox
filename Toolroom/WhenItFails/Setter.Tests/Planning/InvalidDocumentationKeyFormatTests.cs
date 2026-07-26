@@ -35,4 +35,20 @@ public sealed class InvalidDocumentationKeyFormatTests
 
         Assert.Equal("ErrorName", exception.ParamName);
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Constructor_WithMissingDocumentationKey_ThrowsArgumentException(string? documentationKey)
+    {
+        ArgumentException exception = Assert.ThrowsAny<ArgumentException>(
+            () => new InvalidDocumentationKeyFormat(
+                ErrorId: "error-1",
+                ErrorCode: 1,
+                ErrorName: "Error one",
+                DocumentationKey: documentationKey!));
+
+        Assert.Equal("DocumentationKey", exception.ParamName);
+    }
 }
