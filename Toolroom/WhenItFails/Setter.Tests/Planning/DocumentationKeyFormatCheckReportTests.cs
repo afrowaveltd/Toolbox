@@ -42,4 +42,23 @@ public sealed class DocumentationKeyFormatCheckReportTests
 
         Assert.Equal("invalidKeys", exception.ParamName);
     }
+
+    [Fact]
+    public void Constructor_WithInvalidKeyCountEqualToTotalErrors_CreatesReport()
+    {
+        InvalidDocumentationKeyFormat invalidKey = new(
+            ErrorId: "error-1",
+            ErrorCode: 1,
+            ErrorName: "Error one",
+            DocumentationKey: "General/Invalid_Key");
+        InvalidDocumentationKeyFormat[] invalidKeys = [invalidKey];
+
+        DocumentationKeyFormatCheckReport report = new(
+            totalErrors: 1,
+            invalidKeys: invalidKeys);
+
+        Assert.Equal(1, report.TotalErrors);
+        Assert.Same(invalidKeys, report.InvalidKeys);
+        Assert.False(report.IsValid);
+    }
 }
