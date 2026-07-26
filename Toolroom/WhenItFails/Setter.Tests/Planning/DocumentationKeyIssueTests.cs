@@ -19,4 +19,20 @@ public sealed class DocumentationKeyIssueTests
 
         Assert.Equal("ErrorId", exception.ParamName);
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Constructor_WithMissingErrorName_ThrowsArgumentException(string? errorName)
+    {
+        ArgumentException exception = Assert.ThrowsAny<ArgumentException>(
+            () => new DocumentationKeyIssue(
+                ErrorId: "error-1",
+                ErrorCode: 1,
+                ErrorName: errorName!,
+                DocumentationKey: null));
+
+        Assert.Equal("ErrorName", exception.ParamName);
+    }
 }
