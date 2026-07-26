@@ -35,4 +35,19 @@ public sealed class DocumentationKeyIssueTests
 
         Assert.Equal("ErrorName", exception.ParamName);
     }
+
+    [Fact]
+    public void Constructor_WithValidValues_PreservesValues()
+    {
+        DocumentationKeyIssue issue = new(
+            ErrorId: "error-1",
+            ErrorCode: 42,
+            ErrorName: "Error one",
+            DocumentationKey: null);
+
+        Assert.Equal("error-1", issue.ErrorId);
+        Assert.Equal(42, issue.ErrorCode);
+        Assert.Equal("Error one", issue.ErrorName);
+        Assert.Null(issue.DocumentationKey);
+    }
 }
