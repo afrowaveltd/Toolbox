@@ -95,4 +95,22 @@ public sealed class DuplicateDocumentationKeyTests
 
         Assert.Equal("Errors", exception.ParamName);
     }
+
+    [Fact]
+    public void Constructor_WithEquivalentDocumentationKeys_PreservesValues()
+    {
+        const string documentationKey = " General/Shared-Key ";
+        DocumentationKeyIssue[] errors =
+        [
+            new("error-1", 1, "Error one", "general/shared-key"),
+            new("error-2", 2, "Error two", " GENERAL/SHARED-KEY ")
+        ];
+
+        DuplicateDocumentationKey duplicate = new(
+            DocumentationKey: documentationKey,
+            Errors: errors);
+
+        Assert.Equal(documentationKey, duplicate.DocumentationKey);
+        Assert.Same(errors, duplicate.Errors);
+    }
 }
