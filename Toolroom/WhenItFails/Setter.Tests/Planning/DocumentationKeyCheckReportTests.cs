@@ -86,4 +86,26 @@ public sealed class DocumentationKeyCheckReportTests
 
         Assert.Equal("DuplicateKeys", exception.ParamName);
     }
+
+    [Fact]
+    public void Constructor_WithMissingKeyCountEqualToTotalErrors_CreatesReport()
+    {
+        DocumentationKeyIssue missingKey = new(
+            ErrorId: "error-1",
+            ErrorCode: 1,
+            ErrorName: "Error one",
+            DocumentationKey: null);
+        DocumentationKeyIssue[] missingKeys = [missingKey];
+        DuplicateDocumentationKey[] duplicateKeys = [];
+
+        DocumentationKeyCheckReport report = new(
+            TotalErrors: 1,
+            MissingKeys: missingKeys,
+            DuplicateKeys: duplicateKeys);
+
+        Assert.Equal(1, report.TotalErrors);
+        Assert.Same(missingKeys, report.MissingKeys);
+        Assert.Same(duplicateKeys, report.DuplicateKeys);
+        Assert.False(report.IsValid);
+    }
 }
