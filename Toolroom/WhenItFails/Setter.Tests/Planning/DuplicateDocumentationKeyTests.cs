@@ -23,4 +23,15 @@ public sealed class DuplicateDocumentationKeyTests
 
         Assert.Equal("DocumentationKey", exception.ParamName);
     }
+
+    [Fact]
+    public void Constructor_WithNullErrors_ThrowsArgumentNullException()
+    {
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
+            () => new DuplicateDocumentationKey(
+                DocumentationKey: "general/shared-key",
+                Errors: null!));
+
+        Assert.Equal("Errors", exception.ParamName);
+    }
 }
