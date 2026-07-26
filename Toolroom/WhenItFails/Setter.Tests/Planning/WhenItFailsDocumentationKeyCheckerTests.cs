@@ -107,6 +107,37 @@ public sealed class WhenItFailsDocumentationKeyCheckerTests
     }
 
     [Fact]
+    public void Check_WithDuplicateKeys_PreservesIssueValues()
+    {
+        const string firstDocumentationKey = "network.unavailable";
+        const string secondDocumentationKey = " Network.Unavailable ";
+        ErrorCatalogDocument catalog = CreateCatalog(
+            CreateError(1002, "AFW-NET-0002", "Second", secondDocumentationKey),
+            CreateError(1001, "AFW-NET-0001", "First", firstDocumentationKey));
+
+        DocumentationKeyCheckReport report =
+            new WhenItFailsDocumentationKeyChecker().Check(catalog);
+
+        DuplicateDocumentationKey duplicate = Assert.Single(report.DuplicateKeys);
+        Assert.Collection(
+            duplicate.Errors,
+            issue =>
+            {
+                Assert.Equal("AFW-NET-0001", issue.ErrorId);
+                Assert.Equal(1001, issue.ErrorCode);
+                Assert.Equal("First", issue.ErrorName);
+                Assert.Equal(firstDocumentationKey, issue.DocumentationKey);
+            },
+            issue =>
+            {
+                Assert.Equal("AFW-NET-0002", issue.ErrorId);
+                Assert.Equal(1002, issue.ErrorCode);
+                Assert.Equal("Second", issue.ErrorName);
+                Assert.Equal(secondDocumentationKey, issue.DocumentationKey);
+            });
+    }
+
+    [Fact]
     public void Check_WithMultipleDuplicateGroups_OrdersGroupsByKey()
     {
         ErrorCatalogDocument catalog = CreateCatalog(
