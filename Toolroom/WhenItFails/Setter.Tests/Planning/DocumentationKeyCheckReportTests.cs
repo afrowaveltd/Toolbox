@@ -165,4 +165,21 @@ public sealed class DocumentationKeyCheckReportTests
         Assert.Same(duplicateKeys, report.DuplicateKeys);
         Assert.False(report.IsValid);
     }
+
+    [Fact]
+    public void Constructor_WithNoIssues_CreatesValidReport()
+    {
+        DocumentationKeyIssue[] missingKeys = [];
+        DuplicateDocumentationKey[] duplicateKeys = [];
+
+        DocumentationKeyCheckReport report = new(
+            TotalErrors: 3,
+            MissingKeys: missingKeys,
+            DuplicateKeys: duplicateKeys);
+
+        Assert.Equal(3, report.TotalErrors);
+        Assert.Same(missingKeys, report.MissingKeys);
+        Assert.Same(duplicateKeys, report.DuplicateKeys);
+        Assert.True(report.IsValid);
+    }
 }
