@@ -1,8 +1,10 @@
 using System.Text.Json;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
+using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Infrastructure;
 
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Commands;
 
+[Collection(ConsoleOutputTestCollection.Name)]
 public sealed class CommandJsonOutputTests
 {
     [Fact]
