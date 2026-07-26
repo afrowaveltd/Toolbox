@@ -59,6 +59,18 @@ public sealed class DocumentationKeyCheckReportTests
     }
 
     [Fact]
+    public void Constructor_WithNullMissingKey_ThrowsArgumentException()
+    {
+        ArgumentException exception = Assert.Throws<ArgumentException>(
+            () => new DocumentationKeyCheckReport(
+                TotalErrors: 1,
+                MissingKeys: [null!],
+                DuplicateKeys: []));
+
+        Assert.Equal("MissingKeys", exception.ParamName);
+    }
+
+    [Fact]
     public void Constructor_WithMoreDuplicateKeysThanErrors_ThrowsArgumentException()
     {
         const string documentationKey = "general/shared-error";
