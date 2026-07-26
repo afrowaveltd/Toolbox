@@ -77,6 +77,7 @@ internal sealed record InvalidDocumentationKeyFormat
         string DocumentationKey)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(ErrorId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(ErrorName);
 
         this.ErrorId = ErrorId;
         this.ErrorCode = ErrorCode;
