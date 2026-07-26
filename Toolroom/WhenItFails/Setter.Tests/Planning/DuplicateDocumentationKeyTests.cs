@@ -78,4 +78,21 @@ public sealed class DuplicateDocumentationKeyTests
 
         Assert.Equal("Errors", exception.ParamName);
     }
+
+    [Fact]
+    public void Constructor_WithMismatchedErrorDocumentationKey_ThrowsArgumentException()
+    {
+        DocumentationKeyIssue[] errors =
+        [
+            new("error-1", 1, "Error one", "general/shared-key"),
+            new("error-2", 2, "Error two", "general/other-key")
+        ];
+
+        ArgumentException exception = Assert.Throws<ArgumentException>(
+            () => new DuplicateDocumentationKey(
+                DocumentationKey: "general/shared-key",
+                Errors: errors));
+
+        Assert.Equal("Errors", exception.ParamName);
+    }
 }
