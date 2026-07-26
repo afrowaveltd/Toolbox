@@ -71,6 +71,21 @@ public sealed class WhenItFailsDocumentationKeyCheckerTests
     }
 
     [Fact]
+    public void Check_WithEqualMissingKeyCodes_OrdersIssuesByIdIgnoringCase()
+    {
+        ErrorCatalogDocument catalog = CreateCatalog(
+            CreateError(1001, "AFW-NET-B", "Second", null),
+            CreateError(1001, "afw-net-a", "First", null));
+
+        DocumentationKeyCheckReport report =
+            new WhenItFailsDocumentationKeyChecker().Check(catalog);
+
+        Assert.Equal(
+            ["afw-net-a", "AFW-NET-B"],
+            report.MissingKeys.Select(issue => issue.ErrorId));
+    }
+
+    [Fact]
     public void Check_WithMissingKey_PreservesIssueValues()
     {
         const string documentationKey = "   ";
