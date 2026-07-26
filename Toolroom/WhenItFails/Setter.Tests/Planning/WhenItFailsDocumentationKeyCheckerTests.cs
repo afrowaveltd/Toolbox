@@ -122,6 +122,22 @@ public sealed class WhenItFailsDocumentationKeyCheckerTests
     }
 
     [Fact]
+    public void Check_WithEqualDuplicateKeyCodes_OrdersIssuesByIdIgnoringCase()
+    {
+        ErrorCatalogDocument catalog = CreateCatalog(
+            CreateError(1001, "AFW-NET-B", "Second", "network.unavailable"),
+            CreateError(1001, "afw-net-a", "First", "NETWORK.UNAVAILABLE"));
+
+        DocumentationKeyCheckReport report =
+            new WhenItFailsDocumentationKeyChecker().Check(catalog);
+
+        DuplicateDocumentationKey duplicate = Assert.Single(report.DuplicateKeys);
+        Assert.Equal(
+            ["afw-net-a", "AFW-NET-B"],
+            duplicate.Errors.Select(issue => issue.ErrorId));
+    }
+
+    [Fact]
     public void Check_WithDuplicateKeys_PreservesIssueValues()
     {
         const string firstDocumentationKey = "network.unavailable";
