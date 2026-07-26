@@ -6,6 +6,20 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Planning;
 public sealed class WhenItFailsDocumentationKeyCheckerTests
 {
     [Fact]
+    public void Check_WithEmptyCatalog_ReturnsValidEmptyReport()
+    {
+        ErrorCatalogDocument catalog = CreateCatalog();
+
+        DocumentationKeyCheckReport report =
+            new WhenItFailsDocumentationKeyChecker().Check(catalog);
+
+        Assert.True(report.IsValid);
+        Assert.Equal(0, report.TotalErrors);
+        Assert.Empty(report.MissingKeys);
+        Assert.Empty(report.DuplicateKeys);
+    }
+
+    [Fact]
     public void Check_WithUniqueNonEmptyKeys_ReturnsValidReport()
     {
         ErrorCatalogDocument catalog = CreateCatalog(
