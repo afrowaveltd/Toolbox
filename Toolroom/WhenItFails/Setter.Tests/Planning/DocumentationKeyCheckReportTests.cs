@@ -39,4 +39,22 @@ public sealed class DocumentationKeyCheckReportTests
 
         Assert.Equal("TotalErrors", exception.ParamName);
     }
+
+    [Fact]
+    public void Constructor_WithMoreMissingKeysThanErrors_ThrowsArgumentException()
+    {
+        DocumentationKeyIssue missingKey = new(
+            ErrorId: "error-1",
+            ErrorCode: 1,
+            ErrorName: "Error one",
+            DocumentationKey: null);
+
+        ArgumentException exception = Assert.Throws<ArgumentException>(
+            () => new DocumentationKeyCheckReport(
+                TotalErrors: 0,
+                MissingKeys: [missingKey],
+                DuplicateKeys: []));
+
+        Assert.Equal("MissingKeys", exception.ParamName);
+    }
 }
