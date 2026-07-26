@@ -34,4 +34,27 @@ public sealed class DuplicateDocumentationKeyTests
 
         Assert.Equal("Errors", exception.ParamName);
     }
+
+    [Theory]
+    [MemberData(nameof(TooFewErrors))]
+    public void Constructor_WithFewerThanTwoErrors_ThrowsArgumentException(
+        IReadOnlyList<DocumentationKeyIssue> errors)
+    {
+        ArgumentException exception = Assert.Throws<ArgumentException>(
+            () => new DuplicateDocumentationKey(
+                DocumentationKey: "general/shared-key",
+                Errors: errors));
+
+        Assert.Equal("Errors", exception.ParamName);
+    }
+
+    public static TheoryData<IReadOnlyList<DocumentationKeyIssue>> TooFewErrors =>
+        new()
+        {
+            Array.Empty<DocumentationKeyIssue>(),
+            new DocumentationKeyIssue[]
+            {
+                new("error-1", 1, "Error one", "general/shared-key")
+            }
+        };
 }
