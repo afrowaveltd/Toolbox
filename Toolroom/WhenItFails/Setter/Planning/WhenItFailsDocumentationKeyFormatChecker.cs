@@ -68,8 +68,27 @@ internal sealed record DocumentationKeyFormatCheckReport
 /// <summary>
 /// Identifies one error whose documentation key is not canonical.
 /// </summary>
-internal sealed record InvalidDocumentationKeyFormat(
-    string ErrorId,
-    int ErrorCode,
-    string ErrorName,
-    string DocumentationKey);
+internal sealed record InvalidDocumentationKeyFormat
+{
+    public InvalidDocumentationKeyFormat(
+        string ErrorId,
+        int ErrorCode,
+        string ErrorName,
+        string DocumentationKey)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(ErrorId);
+
+        this.ErrorId = ErrorId;
+        this.ErrorCode = ErrorCode;
+        this.ErrorName = ErrorName;
+        this.DocumentationKey = DocumentationKey;
+    }
+
+    public string ErrorId { get; }
+
+    public int ErrorCode { get; }
+
+    public string ErrorName { get; }
+
+    public string DocumentationKey { get; }
+}
