@@ -27,4 +27,16 @@ public sealed class DocumentationKeyCheckReportTests
 
         Assert.Equal("DuplicateKeys", exception.ParamName);
     }
+
+    [Fact]
+    public void Constructor_WithNegativeTotalErrors_ThrowsArgumentOutOfRangeException()
+    {
+        ArgumentOutOfRangeException exception = Assert.Throws<ArgumentOutOfRangeException>(
+            () => new DocumentationKeyCheckReport(
+                TotalErrors: -1,
+                MissingKeys: [],
+                DuplicateKeys: []));
+
+        Assert.Equal("TotalErrors", exception.ParamName);
+    }
 }
