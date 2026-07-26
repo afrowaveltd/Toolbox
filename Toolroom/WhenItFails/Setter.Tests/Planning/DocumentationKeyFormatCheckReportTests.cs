@@ -61,4 +61,18 @@ public sealed class DocumentationKeyFormatCheckReportTests
         Assert.Same(invalidKeys, report.InvalidKeys);
         Assert.False(report.IsValid);
     }
+
+    [Fact]
+    public void Constructor_WithNoInvalidKeys_CreatesValidReport()
+    {
+        InvalidDocumentationKeyFormat[] invalidKeys = [];
+
+        DocumentationKeyFormatCheckReport report = new(
+            totalErrors: 3,
+            invalidKeys: invalidKeys);
+
+        Assert.Equal(3, report.TotalErrors);
+        Assert.Same(invalidKeys, report.InvalidKeys);
+        Assert.True(report.IsValid);
+    }
 }
