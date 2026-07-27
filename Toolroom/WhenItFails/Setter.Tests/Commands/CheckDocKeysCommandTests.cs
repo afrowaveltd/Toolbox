@@ -273,6 +273,7 @@ public sealed class CheckDocKeysCommandTests
         new()
         {
             new string[] { "check-doc-keys", null! },
+            new string[] { "check-doc-keys", ".", null! },
             new[] { "check-doc-keys" },
             new[] { "check-doc-keys", "   " },
             new[] { "check-doc-keys", ".", "extra" },
