@@ -24,6 +24,23 @@ public sealed class CheckDocKeysPlainOutputTests
         Assert.Equal(string.Empty, output);
     }
 
+    [Fact]
+    public async Task ExecuteAsync_WithDirectWhenItFailsJsonsPathAndPlainOutput_WritesNothing()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        [
+            "check-doc-keys",
+            workspace.WhenItFailsJsonsPath,
+            "--plain"
+        ]);
+
+        Assert.Equal(0, exitCode);
+        Assert.Equal(string.Empty, output);
+    }
+
     [Theory]
     [InlineData("--plain")]
     [InlineData("--PLAIN")]
