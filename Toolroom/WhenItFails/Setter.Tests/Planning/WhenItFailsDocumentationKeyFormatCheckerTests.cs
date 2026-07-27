@@ -65,6 +65,21 @@ public sealed class WhenItFailsDocumentationKeyFormatCheckerTests
     }
 
     [Fact]
+    public void Check_WithNullErrorEntry_ThrowsArgumentException()
+    {
+        ErrorCatalogDocument catalog = new()
+        {
+            Errors = [null!]
+        };
+
+        ArgumentException exception = Assert.Throws<ArgumentException>(
+            () => new WhenItFailsDocumentationKeyFormatChecker().Check(catalog));
+
+        Assert.Equal("catalog", exception.ParamName);
+        Assert.Contains("Error catalog entries cannot be null.", exception.Message);
+    }
+
+    [Fact]
     public void Check_WithMissingKeys_IgnoresThemBecausePresenceCheckerOwnsThatRule()
     {
         DocumentationKeyFormatCheckReport report =
