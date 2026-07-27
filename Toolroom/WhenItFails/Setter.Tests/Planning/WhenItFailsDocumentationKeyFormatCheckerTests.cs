@@ -147,6 +147,7 @@ public sealed class WhenItFailsDocumentationKeyFormatCheckerTests
         DocumentationKeyFormatCheckReport report =
             new WhenItFailsDocumentationKeyFormatChecker().Check(catalog);
 
+        Assert.Equal(catalog.Errors?.Count ?? 0, report.TotalErrors);
         Assert.True(
             report.IsValid,
             string.Join(
