@@ -50,6 +50,33 @@ public sealed class DocumentationKeyCommandReportTests
         Assert.Contains("same number of errors", exception.Message, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void Constructor_WithAnyInvalidComponent_CreatesInvalidReport(
+        bool invalidKeys,
+        bool invalidFormat)
+    {
+        DocumentationKeyIssue[] missingKeys = invalidKeys
+            ? [new DocumentationKeyIssue("error-1", 1, "Error one", null)]
+            : [];
+        InvalidDocumentationKeyFormat[] invalidFormats = invalidFormat
+            ? [new InvalidDocumentationKeyFormat("error-1", 1, "Error one", "Invalid/Key")]
+            : [];
+        DocumentationKeyCheckReport keys = new(
+            TotalErrors: 1,
+            MissingKeys: missingKeys,
+            DuplicateKeys: []);
+        DocumentationKeyFormatCheckReport format = new(
+            totalErrors: 1,
+            invalidKeys: invalidFormats);
+
+        DocumentationKeyCommandReport report = new(keys, format);
+
+        Assert.False(report.IsValid);
+    }
+
     [Fact]
     public void Constructor_WithMatchingTotals_CreatesConsistentReport()
     {
