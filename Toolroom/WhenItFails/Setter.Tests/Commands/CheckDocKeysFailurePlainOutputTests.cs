@@ -7,20 +7,28 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Commands;
 [Collection(ConsoleOutputTestCollection.Name)]
 public sealed class CheckDocKeysFailurePlainOutputTests
 {
-    [Fact]
-    public async Task ExecuteAsync_WithMissingDirectoryAndPlainOutput_WritesValidationFailure()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("--plain")]
+    [InlineData("--PLAIN")]
+    public async Task ExecuteAsync_WithMissingDirectoryAndHumanReadableOutput_WritesValidationFailure(
+        string? outputSwitch)
     {
         string missingPath = Path.Combine(
             Path.GetTempPath(),
             "WhenItFailsSetterTests",
             Guid.NewGuid().ToString("N"));
-
-        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        List<string> args =
         [
             "check-doc-keys",
-            missingPath,
-            "--plain"
-        ]);
+            missingPath
+        ];
+        if (outputSwitch is not null)
+        {
+            args.Add(outputSwitch);
+        }
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(args.ToArray());
 
         Assert.Equal(2, exitCode);
         Assert.Contains("Validation failed", output, StringComparison.Ordinal);
