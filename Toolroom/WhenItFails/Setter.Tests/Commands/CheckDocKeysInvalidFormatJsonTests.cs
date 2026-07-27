@@ -8,8 +8,11 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Commands;
 [Collection(ConsoleOutputTestCollection.Name)]
 public sealed class CheckDocKeysInvalidFormatJsonTests
 {
-    [Fact]
-    public async Task ExecuteAsync_WithNonCanonicalKeyAndJson_WritesOnlyInvalidFormatIssue()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ExecuteAsync_WithNonCanonicalKeyAndJson_WritesOnlyInvalidFormatIssue(
+        bool useDirectWhenItFailsJsonsPath)
     {
         using TemporaryWhenItFailsWorkspace workspace =
             await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
@@ -25,10 +28,13 @@ public sealed class CheckDocKeysInvalidFormatJsonTests
             StringComparison.Ordinal);
         await File.WriteAllTextAsync(catalogPath, json);
 
+        string workspacePath = useDirectWhenItFailsJsonsPath
+            ? workspace.WhenItFailsJsonsPath
+            : workspace.ProjectRootPath;
         (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
         [
             "check-doc-keys",
-            workspace.ProjectRootPath,
+            workspacePath,
             "--json"
         ]);
 
