@@ -16,6 +16,18 @@ public sealed class DocumentationKeyFormatCheckReportTests
     }
 
     [Fact]
+    public void Constructor_WithNullInvalidKeyEntry_ThrowsArgumentException()
+    {
+        ArgumentException exception = Assert.Throws<ArgumentException>(
+            () => new DocumentationKeyFormatCheckReport(
+                totalErrors: 1,
+                invalidKeys: [null!]));
+
+        Assert.Equal("invalidKeys", exception.ParamName);
+        Assert.Contains("Invalid documentation key entries cannot be null.", exception.Message);
+    }
+
+    [Fact]
     public void Constructor_WithNegativeTotalErrors_ThrowsArgumentOutOfRangeException()
     {
         ArgumentOutOfRangeException exception = Assert.Throws<ArgumentOutOfRangeException>(
