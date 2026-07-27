@@ -15,6 +15,12 @@ internal sealed class WhenItFailsDocumentationKeyChecker
         ArgumentNullException.ThrowIfNull(catalog);
 
         ErrorDefinition[] errors = catalog.Errors?.ToArray() ?? [];
+        if (errors.Any(error => error is null))
+        {
+            throw new ArgumentException(
+                "Error catalog entries cannot be null.",
+                nameof(catalog));
+        }
 
         DocumentationKeyIssue[] missingKeys = errors
             .Where(error => string.IsNullOrWhiteSpace(error.DocumentationKey))
