@@ -39,6 +39,24 @@ public sealed class CheckDocKeysCommandTests
         Assert.Equal(0, exitCode);
     }
 
+    [Theory]
+    [InlineData("--PLAIN")]
+    [InlineData("--JSON")]
+    public async Task ExecuteAsync_WithUppercaseOutputSwitch_ReturnsSuccess(string outputSwitch)
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+
+        int exitCode = await CheckDocKeysCommand.ExecuteAsync(
+        [
+            "check-doc-keys",
+            workspace.ProjectRootPath,
+            outputSwitch
+        ]);
+
+        Assert.Equal(0, exitCode);
+    }
+
     [Fact]
     public async Task ExecuteAsync_WithJsonOutput_WritesStableEnvelopeAndCompleteReport()
     {
