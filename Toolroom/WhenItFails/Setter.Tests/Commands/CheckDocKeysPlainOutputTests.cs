@@ -24,8 +24,11 @@ public sealed class CheckDocKeysPlainOutputTests
         Assert.Equal(string.Empty, output);
     }
 
-    [Fact]
-    public async Task ExecuteAsync_WithNonCanonicalKeyAndPlainOutput_WritesCompleteInvalidFormatRow()
+    [Theory]
+    [InlineData("--plain")]
+    [InlineData("--PLAIN")]
+    public async Task ExecuteAsync_WithNonCanonicalKeyAndPlainOutput_WritesCompleteInvalidFormatRow(
+        string outputSwitch)
     {
         using TemporaryWhenItFailsWorkspace workspace =
             await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
@@ -45,7 +48,7 @@ public sealed class CheckDocKeysPlainOutputTests
         [
             "check-doc-keys",
             workspace.ProjectRootPath,
-            "--plain"
+            outputSwitch
         ]);
 
         Assert.Equal(2, exitCode);
