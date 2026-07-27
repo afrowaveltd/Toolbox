@@ -53,6 +53,28 @@ public sealed class WhenItFailsDocumentationKeyCheckerTests
     }
 
     [Fact]
+    public void Check_WithMixedKeyStates_ReturnsCompleteReport()
+    {
+        ErrorCatalogDocument catalog = CreateCatalog(
+            CreateError(1004, "AFW-NET-0004", "Unique", "network.unique"),
+            CreateError(1002, "AFW-NET-0002", "Duplicate second", "NETWORK.SHARED"),
+            CreateError(1003, "AFW-NET-0003", "Missing", null),
+            CreateError(1001, "AFW-NET-0001", "Duplicate first", "network.shared"));
+
+        DocumentationKeyCheckReport report =
+            new WhenItFailsDocumentationKeyChecker().Check(catalog);
+
+        Assert.False(report.IsValid);
+        Assert.Equal(4, report.TotalErrors);
+        Assert.Equal("AFW-NET-0003", Assert.Single(report.MissingKeys).ErrorId);
+
+        DuplicateDocumentationKey duplicate = Assert.Single(report.DuplicateKeys);
+        Assert.Equal(
+            ["AFW-NET-0001", "AFW-NET-0002"],
+            duplicate.Errors.Select(issue => issue.ErrorId));
+    }
+
+    [Fact]
     public void Check_WithNullEmptyAndWhitespaceKeys_ReportsMissingKeysInCodeOrder()
     {
         ErrorCatalogDocument catalog = CreateCatalog(
