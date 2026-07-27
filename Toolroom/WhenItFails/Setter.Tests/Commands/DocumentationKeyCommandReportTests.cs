@@ -54,7 +54,7 @@ public sealed class DocumentationKeyCommandReportTests
     [InlineData(true, false)]
     [InlineData(false, true)]
     [InlineData(true, true)]
-    public void Constructor_WithAnyInvalidComponent_CreatesInvalidReport(
+    public void Constructor_WithAnyInvalidComponent_CreatesConsistentInvalidReport(
         bool invalidKeys,
         bool invalidFormat)
     {
@@ -74,6 +74,9 @@ public sealed class DocumentationKeyCommandReportTests
 
         DocumentationKeyCommandReport report = new(keys, format);
 
+        Assert.Same(keys, report.Keys);
+        Assert.Same(format, report.Format);
+        Assert.Equal(1, report.TotalErrors);
         Assert.False(report.IsValid);
     }
 
