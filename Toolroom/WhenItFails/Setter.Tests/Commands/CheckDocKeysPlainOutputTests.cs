@@ -124,8 +124,11 @@ public sealed class CheckDocKeysPlainOutputTests
         Assert.False(string.IsNullOrWhiteSpace(fields[4]));
     }
 
-    [Fact]
-    public async Task ExecuteAsync_WithMissingKeyAndPlainOutput_WritesCompleteMissingRow()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ExecuteAsync_WithMissingKeyAndPlainOutput_WritesCompleteMissingRow(
+        bool useDirectCatalogPath)
     {
         using TemporaryWhenItFailsWorkspace workspace =
             await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
@@ -139,10 +142,13 @@ public sealed class CheckDocKeysPlainOutputTests
             StringComparison.Ordinal);
         await File.WriteAllTextAsync(catalogPath, json);
 
+        string inputPath = useDirectCatalogPath
+            ? workspace.WhenItFailsJsonsPath
+            : workspace.ProjectRootPath;
         (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
         [
             "check-doc-keys",
-            workspace.ProjectRootPath,
+            inputPath,
             "--plain"
         ]);
 
