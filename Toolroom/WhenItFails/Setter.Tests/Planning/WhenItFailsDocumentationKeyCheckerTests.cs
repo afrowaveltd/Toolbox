@@ -122,6 +122,20 @@ public sealed class WhenItFailsDocumentationKeyCheckerTests
     }
 
     [Fact]
+    public void Check_WithSurroundingWhitespace_TrimsDuplicateGroupKey()
+    {
+        ErrorCatalogDocument catalog = CreateCatalog(
+            CreateError(1002, "AFW-NET-0002", "Second", " Network.Unavailable "),
+            CreateError(1001, "AFW-NET-0001", "First", "network.unavailable"));
+
+        DocumentationKeyCheckReport report =
+            new WhenItFailsDocumentationKeyChecker().Check(catalog);
+
+        DuplicateDocumentationKey duplicate = Assert.Single(report.DuplicateKeys);
+        Assert.Equal("Network.Unavailable", duplicate.DocumentationKey);
+    }
+
+    [Fact]
     public void Check_WithEqualDuplicateKeyCodes_OrdersIssuesByIdIgnoringCase()
     {
         ErrorCatalogDocument catalog = CreateCatalog(
