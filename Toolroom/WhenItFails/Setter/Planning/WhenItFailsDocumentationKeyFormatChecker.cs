@@ -16,6 +16,12 @@ internal sealed class WhenItFailsDocumentationKeyFormatChecker
         ArgumentNullException.ThrowIfNull(catalog);
 
         ErrorDefinition[] errors = catalog.Errors?.ToArray() ?? [];
+        if (errors.Any(error => error is null))
+        {
+            throw new ArgumentException(
+                "Error catalog entries cannot be null.",
+                nameof(catalog));
+        }
 
         InvalidDocumentationKeyFormat[] invalidKeys = errors
             .Where(error => !string.IsNullOrWhiteSpace(error.DocumentationKey))
