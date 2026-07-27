@@ -103,8 +103,11 @@ public sealed class CheckDocKeysCommandTests
         Assert.Equal(backupsBefore, CountBackups(workspace.WhenItFailsJsonsPath));
     }
 
-    [Fact]
-    public async Task ExecuteAsync_WithNonCanonicalKeyAndJson_WritesStableFailureReport()
+    [Theory]
+    [InlineData("--json")]
+    [InlineData("--JSON")]
+    public async Task ExecuteAsync_WithNonCanonicalKeyAndJson_WritesStableFailureReport(
+        string outputSwitch)
     {
         using TemporaryWhenItFailsWorkspace workspace =
             await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
@@ -123,7 +126,7 @@ public sealed class CheckDocKeysCommandTests
         [
             "check-doc-keys",
             workspace.ProjectRootPath,
-            "--json"
+            outputSwitch
         ]);
 
         Assert.Equal(2, exitCode);
