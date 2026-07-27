@@ -39,6 +39,33 @@ public sealed class CheckDocKeysCommandTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_WithDirectWhenItFailsJsonsPathAndJson_WritesCompleteReport()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        [
+            "check-doc-keys",
+            workspace.WhenItFailsJsonsPath,
+            "--json"
+        ]);
+
+        Assert.Equal(0, exitCode);
+        using JsonDocument document = JsonDocument.Parse(output);
+        JsonElement root = document.RootElement;
+        JsonElement data = root.GetProperty("data");
+        int totalErrors = data.GetProperty("totalErrors").GetInt32();
+
+        Assert.Equal("1.0", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("check-doc-keys", root.GetProperty("command").GetString());
+        Assert.True(data.GetProperty("isValid").GetBoolean());
+        Assert.True(totalErrors > 0);
+        Assert.Equal(totalErrors, data.GetProperty("keys").GetProperty("totalErrors").GetInt32());
+        Assert.Equal(totalErrors, data.GetProperty("format").GetProperty("totalErrors").GetInt32());
+    }
+
+    [Fact]
     public async Task ExecuteAsync_WithPlainOutput_ReturnsSuccess()
     {
         using TemporaryWhenItFailsWorkspace workspace =
