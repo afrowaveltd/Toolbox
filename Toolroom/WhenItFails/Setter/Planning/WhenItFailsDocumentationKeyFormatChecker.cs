@@ -53,6 +53,13 @@ internal sealed record DocumentationKeyFormatCheckReport
         ArgumentOutOfRangeException.ThrowIfNegative(totalErrors);
         ArgumentNullException.ThrowIfNull(invalidKeys);
 
+        if (invalidKeys.Any(invalidKey => invalidKey is null))
+        {
+            throw new ArgumentException(
+                "Invalid documentation key entries cannot be null.",
+                nameof(invalidKeys));
+        }
+
         if (invalidKeys.Count > totalErrors)
         {
             throw new ArgumentException(
