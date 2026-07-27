@@ -24,6 +24,21 @@ public sealed class CheckDocKeysCommandTests
     }
 
     [Fact]
+    public async Task ExecuteAsync_WithDirectWhenItFailsJsonsPath_ReturnsSuccess()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+
+        int exitCode = await CheckDocKeysCommand.ExecuteAsync(
+        [
+            "check-doc-keys",
+            workspace.WhenItFailsJsonsPath
+        ]);
+
+        Assert.Equal(0, exitCode);
+    }
+
+    [Fact]
     public async Task ExecuteAsync_WithPlainOutput_ReturnsSuccess()
     {
         using TemporaryWhenItFailsWorkspace workspace =
