@@ -40,14 +40,16 @@ public sealed class CheckDocKeysCommandTests
     }
 
     [Theory]
-    [InlineData("--PLAIN")]
-    [InlineData("--JSON")]
-    public async Task ExecuteAsync_WithUppercaseOutputSwitch_ReturnsSuccess(string outputSwitch)
+    [InlineData("--PLAIN", false)]
+    [InlineData("--JSON", true)]
+    public async Task ExecuteAsync_WithUppercaseOutputSwitch_UsesRequestedOutputMode(
+        string outputSwitch,
+        bool expectsJson)
     {
         using TemporaryWhenItFailsWorkspace workspace =
             await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
 
-        int exitCode = await CheckDocKeysCommand.ExecuteAsync(
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
         [
             "check-doc-keys",
             workspace.ProjectRootPath,
@@ -55,6 +57,17 @@ public sealed class CheckDocKeysCommandTests
         ]);
 
         Assert.Equal(0, exitCode);
+        if (expectsJson)
+        {
+            using JsonDocument document = JsonDocument.Parse(output);
+            Assert.Equal(
+                "check-doc-keys",
+                document.RootElement.GetProperty("command").GetString());
+        }
+        else
+        {
+            Assert.Equal(string.Empty, output);
+        }
     }
 
     [Fact]
