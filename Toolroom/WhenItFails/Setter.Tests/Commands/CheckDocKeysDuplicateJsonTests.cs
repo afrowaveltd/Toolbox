@@ -8,8 +8,11 @@ namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Commands;
 [Collection(ConsoleOutputTestCollection.Name)]
 public sealed class CheckDocKeysDuplicateJsonTests
 {
-    [Fact]
-    public async Task ExecuteAsync_WithDuplicateKeyAndJson_WritesOnlyDuplicateKeyIssue()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ExecuteAsync_WithDuplicateKeyAndJson_WritesOnlyDuplicateKeyIssue(
+        bool useDirectCatalogPath)
     {
         using TemporaryWhenItFailsWorkspace workspace =
             await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
@@ -25,10 +28,14 @@ public sealed class CheckDocKeysDuplicateJsonTests
             StringComparison.Ordinal);
         await File.WriteAllTextAsync(catalogPath, json);
 
+        string inputPath = useDirectCatalogPath
+            ? workspace.WhenItFailsJsonsPath
+            : workspace.ProjectRootPath;
+
         (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
         [
             "check-doc-keys",
-            workspace.ProjectRootPath,
+            inputPath,
             "--json"
         ]);
 
