@@ -94,6 +94,24 @@ public sealed class WhenItFailsDocumentationKeyFormatCheckerTests
     }
 
     [Fact]
+    public void Check_WithMixedKeyStates_ReturnsCompleteReport()
+    {
+        ErrorCatalogDocument catalog = CreateCatalog(
+            CreateError(1001, "errors/general/valid"),
+            CreateError(1002, null),
+            CreateError(1003, "Errors/General/Invalid"));
+
+        DocumentationKeyFormatCheckReport report =
+            new WhenItFailsDocumentationKeyFormatChecker().Check(catalog);
+
+        Assert.False(report.IsValid);
+        Assert.Equal(3, report.TotalErrors);
+        InvalidDocumentationKeyFormat issue = Assert.Single(report.InvalidKeys);
+        Assert.Equal("AFW-TEST-1003", issue.ErrorId);
+        Assert.Equal("Errors/General/Invalid", issue.DocumentationKey);
+    }
+
+    [Fact]
     public void Check_WithMultipleInvalidKeys_OrdersIssuesByCodeThenId()
     {
         ErrorCatalogDocument catalog = CreateCatalog(
