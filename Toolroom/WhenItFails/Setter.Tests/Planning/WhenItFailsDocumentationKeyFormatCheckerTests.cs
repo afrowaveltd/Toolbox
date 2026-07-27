@@ -49,6 +49,22 @@ public sealed class WhenItFailsDocumentationKeyFormatCheckerTests
     }
 
     [Fact]
+    public void Check_WithNullErrorCollection_ReturnsValidEmptyReport()
+    {
+        ErrorCatalogDocument catalog = new()
+        {
+            Errors = null
+        };
+
+        DocumentationKeyFormatCheckReport report =
+            new WhenItFailsDocumentationKeyFormatChecker().Check(catalog);
+
+        Assert.True(report.IsValid);
+        Assert.Equal(0, report.TotalErrors);
+        Assert.Empty(report.InvalidKeys);
+    }
+
+    [Fact]
     public void Check_WithMissingKeys_IgnoresThemBecausePresenceCheckerOwnsThatRule()
     {
         DocumentationKeyFormatCheckReport report =
