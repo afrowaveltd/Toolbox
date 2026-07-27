@@ -144,6 +144,23 @@ public sealed class WhenItFailsDocumentationKeyCheckerTests
     }
 
     [Fact]
+    public void Check_WithThreeMatchingKeys_ReportsOneCompleteDuplicateGroup()
+    {
+        ErrorCatalogDocument catalog = CreateCatalog(
+            CreateError(1003, "AFW-NET-0003", "Third", "NETWORK.SHARED"),
+            CreateError(1001, "AFW-NET-0001", "First", "network.shared"),
+            CreateError(1002, "AFW-NET-0002", "Second", " Network.Shared "));
+
+        DocumentationKeyCheckReport report =
+            new WhenItFailsDocumentationKeyChecker().Check(catalog);
+
+        DuplicateDocumentationKey duplicate = Assert.Single(report.DuplicateKeys);
+        Assert.Equal(
+            ["AFW-NET-0001", "AFW-NET-0002", "AFW-NET-0003"],
+            duplicate.Errors.Select(issue => issue.ErrorId));
+    }
+
+    [Fact]
     public void Check_WithSurroundingWhitespace_TrimsDuplicateGroupKey()
     {
         ErrorCatalogDocument catalog = CreateCatalog(
