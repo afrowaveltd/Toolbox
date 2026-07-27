@@ -17,5 +17,9 @@ public sealed class WhenItFailsDocumentationKeyCheckerNullEntryTests
             () => new WhenItFailsDocumentationKeyChecker().Check(catalog));
 
         Assert.Equal("catalog", exception.ParamName);
+        Assert.Contains(
+            "Error catalog entries cannot be null.",
+            exception.Message,
+            StringComparison.Ordinal);
     }
 }
