@@ -240,6 +240,28 @@ public sealed class WhenItFailsDocumentationKeyCheckerTests
     }
 
     [Fact]
+    public void Check_WithMultipleDuplicateGroups_KeepsGroupMembersIsolated()
+    {
+        ErrorCatalogDocument catalog = CreateCatalog(
+            CreateError(1004, "AFW-A-0004", "Alpha second", "ALPHA.KEY"),
+            CreateError(1001, "AFW-Z-0001", "Zeta first", "zeta.key"),
+            CreateError(1002, "AFW-A-0002", "Alpha first", "alpha.key"),
+            CreateError(1003, "AFW-Z-0003", "Zeta second", "ZETA.KEY"));
+
+        DocumentationKeyCheckReport report =
+            new WhenItFailsDocumentationKeyChecker().Check(catalog);
+
+        Assert.Collection(
+            report.DuplicateKeys,
+            group => Assert.Equal(
+                ["AFW-A-0002", "AFW-A-0004"],
+                group.Errors.Select(issue => issue.ErrorId)),
+            group => Assert.Equal(
+                ["AFW-Z-0001", "AFW-Z-0003"],
+                group.Errors.Select(issue => issue.ErrorId)));
+    }
+
+    [Fact]
     public void Check_WithNullCatalog_ThrowsArgumentNullException()
     {
         Assert.Throws<ArgumentNullException>(
