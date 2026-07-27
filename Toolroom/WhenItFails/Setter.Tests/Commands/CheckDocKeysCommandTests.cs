@@ -198,7 +198,9 @@ public sealed class CheckDocKeysCommandTests
             new[] { "check-doc-keys", ".", "--unknown" },
             new[] { "check-doc-keys", ".", "--plain", "--json" },
             new[] { "check-doc-keys", ".", "--plain", "--plain" },
-            new[] { "check-doc-keys", ".", "--json", "--json" }
+            new[] { "check-doc-keys", ".", "--plain", "--PLAIN" },
+            new[] { "check-doc-keys", ".", "--json", "--json" },
+            new[] { "check-doc-keys", ".", "--json", "--JSON" }
         };
 
     [Theory]
