@@ -198,8 +198,11 @@ public sealed class CheckDocKeysCommandTests
         Assert.Equal(2, exitCode);
     }
 
-    [Fact]
-    public async Task ExecuteAsync_WithMissingDirectoryAndJson_WritesStableFailureEnvelope()
+    [Theory]
+    [InlineData("--json")]
+    [InlineData("--JSON")]
+    public async Task ExecuteAsync_WithMissingDirectoryAndJson_WritesStableFailureEnvelope(
+        string outputSwitch)
     {
         string missingPath = Path.Combine(
             Path.GetTempPath(),
@@ -210,7 +213,7 @@ public sealed class CheckDocKeysCommandTests
         [
             "check-doc-keys",
             missingPath,
-            "--json"
+            outputSwitch
         ]);
 
         Assert.Equal(2, exitCode);
