@@ -272,6 +272,7 @@ public sealed class CheckDocKeysCommandTests
     public static TheoryData<string[]> InvalidArgumentCases =>
         new()
         {
+            new string[] { "check-doc-keys", null! },
             new[] { "check-doc-keys" },
             new[] { "check-doc-keys", "   " },
             new[] { "check-doc-keys", ".", "extra" },
