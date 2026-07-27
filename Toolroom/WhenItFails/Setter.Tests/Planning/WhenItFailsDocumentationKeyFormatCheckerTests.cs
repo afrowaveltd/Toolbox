@@ -144,10 +144,13 @@ public sealed class WhenItFailsDocumentationKeyFormatCheckerTests
             $"Repository error catalog could not be loaded: {loadResponse.Message}");
 
         ErrorCatalogDocument catalog = Assert.IsType<ErrorCatalogDocument>(loadResponse.Data);
+        Assert.NotNull(catalog.Errors);
+        Assert.NotEmpty(catalog.Errors);
+
         DocumentationKeyFormatCheckReport report =
             new WhenItFailsDocumentationKeyFormatChecker().Check(catalog);
 
-        Assert.Equal(catalog.Errors?.Count ?? 0, report.TotalErrors);
+        Assert.Equal(catalog.Errors.Count, report.TotalErrors);
         Assert.True(
             report.IsValid,
             string.Join(
