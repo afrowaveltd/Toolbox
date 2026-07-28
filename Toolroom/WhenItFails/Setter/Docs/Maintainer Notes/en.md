@@ -1,925 +1,298 @@
-# Maintainer notes
+# Maintainer Notes
 
-This page collects practical notes for maintainers of WhenItFails Setter.
+This guide is the continuation and operating manual for maintainers of `Toolroom/WhenItFails/Setter`.
 
-It is not a user tutorial.
+Setter should remain explicit, testable, safe, and easy to continue after an interruption.
 
-It is a maintenance guide for people who need to understand how the tool should be kept reliable over time.
+> GitHub `master` is the source of truth.
 
-## Maintainer principle
+## Start from the recorded state
 
-Setter is small on purpose.
+Before changing anything:
 
-Its job is to make catalog work safer, not to become a large hidden framework.
+1. fetch the current repository state;
+2. read `Toolroom/WhenItFails/Setter/IMPLEMENTATION_STATUS.md`;
+3. inspect the working tree;
+4. run the focused Setter suite;
+5. confirm the next recommended step still matches the repository.
 
-Prefer changes that keep the tool:
-
-```text
-predictable
-testable
-boring
-clear
-safe
+```powershell
+git status --short
+git diff --check
+dotnet test Toolroom/WhenItFails/Setter.Tests
 ```
 
-A boring tool that protects important catalogs is better than a clever tool that surprises users.
+Do not reconstruct project state from memory when GitHub and `IMPLEMENTATION_STATUS.md` can answer it directly.
 
-## Main responsibilities
+## One small green step at a time
 
-Setter currently helps with:
-
-- initializing a WhenItFails workspace,
-- validating catalog files,
-- summarizing workspace contents,
-- listing and filtering errors,
-- inspecting one error definition,
-- editing selected error fields,
-- creating backups during safe writes,
-- supporting command-line automation.
-
-Everything else should be added deliberately.
-
-## Current command set
-
-Current commands include:
-
-```text
-help
-demo
-init
-validate
-summary
-inspect
-errors
-details
-detail
-set-title
-set-message
-set-developer-hint
-set-severity
-set-documentation-key
-```
-
-Aliases:
+Use this maintenance rhythm:
 
 ```text
 inspect
-→ summary
+→ choose one narrow change
+→ add or update its test immediately
+→ implement or document the change
+→ run focused verification
+→ update documentation and status
+→ commit
+→ stop until green
 ```
+
+One small green step at a time is safer than accumulating several unverified changes.
+
+> Do not continue while the focused Setter suite is red.
+
+## What the continuation status must record
+
+`IMPLEMENTATION_STATUS.md` must remain sufficient for another maintainer to continue without reconstructing history.
+
+Record:
+
+- the latest user-verified focused test result;
+- the change completed in the current slice;
+- synchronized documentation topics;
+- current intentional boundaries;
+- the exact next recommended step;
+- the commits that completed the latest slice.
+
+Do not mark an expected test count as verified until the run has actually been confirmed green.
+
+## Architectural boundaries
+
+Maintain the intended dependency direction:
 
 ```text
-detail
-→ details
+entry point
+→ command dispatch
+→ command workflow
+→ reusable services
+→ workspace and catalog models
+→ loaders, validators, writers
 ```
 
-When adding a command, update:
+Rendering sits beside the command workflow and consumes results. Views must not own catalog rules. Validators must not render or write files. Writers must not decide command semantics.
 
-- help output,
-- Commands documentation,
-- Command Quick Reference,
-- Documentation Map if needed,
-- tests,
-- troubleshooting notes if relevant.
+Expected failures should use structured responses or issues. Unexpected failures may reach the top-level handler and use exit code `3`.
 
-## Command design rules
+## Command contracts
 
-A Setter command should have:
+Treat commands as public interfaces.
 
-- a clear verb,
-- predictable arguments,
-- useful issue codes,
-- stable exit behavior,
-- good documentation,
-- tests for success and failure paths.
+A command change may affect:
 
-Avoid commands that do too many things.
+- canonical name and aliases;
+- arguments and options;
+- issue codes;
+- exit codes;
+- rich output;
+- plain output;
+- `--json` output;
+- help and command-reference documentation;
+- persistence or backup behavior.
 
-Prefer:
+Machine consumers should use exit codes and `--json`. They must not parse rich terminal rendering as a stable schema.
 
-```text
-set-title
-set-message
-set-severity
-```
+## Exit-code model
 
-over:
+Preserve the broad process classification unless a deliberate compatibility change is made:
 
-```text
-edit
-```
+| Exit code | Meaning |
+| --- | --- |
+| `0` | successful command completion |
+| `1` | invalid command usage or arguments |
+| `2` | expected workspace, validation, lookup, editing, persistence, or restore failure |
+| `3` | unexpected top-level failure |
 
-unless a future interactive editor is explicitly designed.
+Issue codes provide the more specific reason. Tests should assert them where they are part of the contract.
 
-## Exit-code rules
+## Workspace and validation
 
-Keep the current broad model:
-
-```text
-0
-→ success
-```
-
-```text
-1
-→ missing or invalid command input
-```
-
-```text
-2
-→ workspace validation, lookup, editing, saving, or operation failure
-```
-
-```text
-3
-→ unexpected top-level application failure
-```
-
-Exit codes are automation contracts.
-
-Changing them is a breaking behavior change.
-
-## Issue-code rules
-
-Issue codes should be:
-
-- stable,
-- specific,
-- searchable,
-- PascalCase or otherwise consistent with current code,
-- more precise than the exit code,
-- useful in tests.
-
-Good:
-
-```text
-MissingValidatePath
-ErrorDefinitionNotFound
-UnsupportedSeverity
-TitleIsEmpty
-```
-
-Weak:
-
-```text
-Bad
-Failed
-Oops
-Invalid
-```
-
-An issue code should help a user or test understand what went wrong.
-
-## Error message rules
-
-Command and validation messages should be:
-
-- clear,
-- neutral,
-- actionable,
-- safe to display,
-- free of secrets,
-- specific enough to fix the problem.
-
-Good:
-
-```text
-The validate command requires a project root or Jsons/WhenItFails directory path.
-```
-
-Weak:
-
-```text
-Bad path.
-```
-
-## Workspace safety
-
-Setter writes to project-local JSON files.
-
-That makes safety more important than convenience.
-
-When maintaining write behavior, preserve these expectations:
-
-- do not write when validation failed before the edit,
-- do not silently overwrite without backup,
-- do not create backup files for failed argument validation,
-- do not hide I/O failures,
-- do not assume one platform’s filesystem behavior applies everywhere,
-- do not make concurrent writes look supported unless they really are.
-
-## Safe-write expectations
-
-A normal successful write should:
-
-```text
-write temporary file
-→ create backup if target exists
-→ replace target
-→ return success
-```
-
-The backup should be in the same directory as the target.
-
-Current backup shape:
-
-```text
-<file-without-extension>.<UTC timestamp>.bak<extension>
-```
-
-Example:
-
-```text
-errors.en.20260627-095820-480.bak.json
-```
-
-If this shape changes, update:
-
-- Safe Writes,
-- Backups and Recovery,
-- Release Checklist,
-- tests,
-- troubleshooting documentation.
-
-## Temporary files
-
-Temporary files should be treated as implementation details.
-
-A stale temporary file after an interrupted write should not be committed.
-
-The recovery documentation explains how to inspect one safely.
-
-Do not add cleanup behavior that deletes potentially useful recovery artifacts before the user can inspect them unless the behavior is deliberate and documented.
-
-## Concurrency
-
-Current safe-write behavior is not a multi-process transaction system.
-
-Maintainer assumption:
-
-```text
-one active writer per workspace
-```
-
-Do not imply stronger guarantees in documentation or command output.
-
-If true concurrent writer support is added later, it needs tests and documentation.
-
-## Catalog package assumptions
-
-The default workspace is:
+The default catalog package is under:
 
 ```text
 Jsons/WhenItFails
 ```
 
-Current files:
+Workspace operations must remain predictable for both project-root and direct-package paths where the command supports them.
 
-```text
-errors.en.json
-categories.en.json
-code-groups.en.json
-owners.en.json
-profiles.json
+Validate before presenting derived workspace information or persisting changes. Do not silently repair, migrate, or reinterpret invalid data unless that behavior is explicitly designed, tested, and documented.
+
+## Safe persistence
+
+Setter write and restore operations are single-file operations. They are not multi-file transactions and they are not a multi-process locking system.
+
+Maintain these invariants:
+
+### Successful write
+
+- the intended target is selected explicitly;
+- the resulting data is valid before replacement;
+- a complete temporary file is written first;
+- an existing target receives a timestamped backup;
+- the persisted result is reloaded in tests;
+- complete-workspace validation succeeds afterward.
+
+### Rejected write
+
+- the target file remains unchanged;
+- no backup is created;
+- the failure is represented by the intended response or issue code.
+
+Do not introduce direct truncation or unprotected replacement of active catalog files.
+
+## Backup and recovery maintenance
+
+Current recovery commands include:
+
+- `list-backups` for discovery;
+- `restore-backup` for explicit restoration.
+
+A backup must be selected by content and intended target, not merely because it is newest.
+
+After restoration:
+
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- validate .
+git status --short
+git diff --check
+dotnet test Toolroom/WhenItFails/Setter.Tests
 ```
 
-Many commands accept either:
+Inspect affected errors, profiles, mappings, and references before accepting the restore.
 
-```text
-project root
-```
+Backup retention cleanup is not automatic. Generated `.bak.json` files are local recovery artifacts and should not normally be committed.
 
-or:
+## Profiles and mappings
 
-```text
-direct Jsons/WhenItFails package path
-```
+Profiles, selectors, mappings, and metadata are implemented authoring surfaces.
 
-The `init` command expects a project root.
+When changing them:
 
-Be careful when changing path resolution.
+- inspect the profile definition;
+- use `explain-profile` to review effective selection and diagnostics;
+- verify include and exclude selectors;
+- verify default and explicit mappings;
+- test success and invalid-reference cases;
+- keep documentation aligned with actual runtime and Setter behavior.
 
-## Path resolution maintenance
-
-Path resolution must behave predictably on:
-
-- Linux,
-- Windows,
-- CI,
-- paths with spaces,
-- direct package paths,
-- project-root paths.
-
-When changing path logic, test both:
-
-```text
-.
-```
-
-and:
-
-```text
-./Jsons/WhenItFails
-```
-
-On Windows, also test:
-
-```text
-.\Jsons\WhenItFails
-```
-
-Do not rely on case-insensitive path behavior.
-
-Canonical documentation casing is:
-
-```text
-Jsons/WhenItFails
-```
-
-## Validation before loading derived views
-
-Commands that display derived catalog data should validate first.
-
-Examples:
-
-```text
-summary
-errors
-details
-```
-
-Recommended flow:
-
-```text
-resolve workspace
-→ validate workspace
-→ stop on validation failure
-→ load normalized data
-→ render output
-```
-
-This prevents presenting a misleading summary from an invalid workspace.
-
-## Editing flow
-
-Editing commands should follow this shape:
-
-```text
-parse arguments
-→ resolve workspace
-→ load current document
-→ locate target
-→ apply focused change
-→ validate resulting workspace or document
-→ save safely
-→ report result
-```
-
-Do not save partial changes after detecting an invalid edit.
-
-## Supported edit fields
-
-Current focused edit commands modify fields in:
-
-```text
-errors.en.json
-```
-
-Supported fields:
-
-```text
-title
-message
-developerHint
-defaultSeverity
-documentationKey
-```
-
-Future edit commands should follow the same focused-command style unless there is a strong reason not to.
-
-## Severity handling
-
-Supported severity values:
-
-```text
-Trace
-Debug
-Information
-Warning
-Error
-Critical
-```
-
-Input may be case-insensitive, but stored values should be canonical.
-
-Unsupported values should produce a useful issue code.
-
-Example:
-
-```text
-UnsupportedSeverity
-```
-
-Do not silently accept new severity values without updating validation, docs, and tests.
-
-## Profile behavior caution
-
-Current Setter profile filtering is intentionally simpler than possible runtime profile behavior.
-
-Current `errors --profile` filtering uses:
-
-```text
-includeOwners
-includeCodeGroups
-includeCategories
-```
-
-It does not currently apply:
-
-```text
-includeSubcategories
-includeTags
-excludeTags
-defaultMappings
-```
-
-Do not accidentally document current Setter browsing as complete runtime profile resolution.
-
-If Setter later delegates to a runtime-equivalent resolver, update:
-
-- Profiles,
-- Browsing and Filtering Errors,
-- Command Quick Reference,
-- tests,
-- summary expectations if affected.
-
-## Plain output maintenance
-
-Plain output is easier to read and process than rich output, but it is still presentation-oriented.
-
-If changing plain output, consider:
-
-- existing scripts,
-- documentation examples,
-- tests,
-- field labels,
-- line order,
-- delimiter behavior.
-
-A future JSON output mode would be better for durable automation.
-
-Do not pretend plain output is JSON.
-
-## Rich output maintenance
-
-Rich output is for humans.
-
-It should prioritize:
-
-- readability,
-- useful tables,
-- clear headings,
-- stable terminology,
-- good terminal behavior.
-
-Avoid writing tests that break because a table width changed unless table layout is the exact behavior under test.
+Do not describe implemented profile editing or explanation as future work.
 
 ## Documentation maintenance
 
-Whenever behavior changes, update focused documentation.
+Setter documentation has two required levels:
 
-Useful rule:
+1. `README.md` for the project overview;
+2. `Docs/<topic>/en.md` for detailed English documentation.
 
-```text
-If a user can observe it, document it.
+Only `en.md` is authored manually at this stage. Other localizations will be generated later.
+
+When behavior changes, update the focused guide, command references, help, and README links where relevant. Add or update a documentation-contract test for important claims.
+
+For documentation keys and Markdown links, run:
+
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-keys .
+dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .
 ```
 
-Update docs when changing:
-
-- commands,
-- arguments,
-- options,
-- exit codes,
-- issue codes,
-- output fields,
-- validation rules,
-- catalog file shapes,
-- safe-write behavior,
-- backup naming,
-- platform-specific behavior.
-
-## README index maintenance
-
-When adding a doc page, update both relevant README files.
-
-Use URL-encoded spaces:
-
-```markdown
-- [Maintainer Notes](Docs/Maintainer%20Notes/en.md)
-```
-
-Actual file path:
-
-```text
-Docs/Maintainer Notes/en.md
-```
-
-Keep README ordering stable and useful.
-
-## Documentation tone
-
-Documentation should be:
-
-- practical,
-- direct,
-- honest,
-- implementation-grounded,
-- careful about current versus future behavior.
-
-Do not oversell.
-
-Do not hide limitations.
-
-A clear limitation today is better than a false promise tomorrow.
-
-## Future features
-
-Future feature lists are useful, but must be marked clearly.
-
-Good:
-
-```text
-Possible future improvements include...
-```
-
-Bad:
-
-```text
-Setter supports restore commands.
-```
-
-when no restore command exists.
-
-Future ideas should not create false user expectations.
+Do not present implemented commands such as `restore-backup`, JSON output, or profile editing as future possibilities.
 
 ## Test maintenance
 
-Tests should protect behavior, not incidental formatting.
+Tests should protect behavior, not accidental formatting noise.
 
-Prefer tests for:
+Use isolated temporary workspaces for mutable operations. Never modify the repository's real catalog workspace from a test.
 
-- command success paths,
-- missing arguments,
-- unknown lookup values,
-- validation failures,
-- issue codes,
-- safe-write backup creation,
-- rejected edits,
-- severity normalization,
-- workspace initialization,
-- path resolution.
+For write operations, test the response, persisted value, backup creation, post-write validation, and rejected-write invariants.
 
-Be cautious with tests that assert large rich-output snapshots.
+For output behavior:
 
-## Test workspace rule
+- rich tests may cover deliberate layout contracts;
+- plain tests should assert meaningful human-readable content;
+- JSON tests should parse and assert structure;
+- command tests should verify exit codes and issue codes.
 
-Tests should use disposable workspaces.
-
-They should not mutate the repository’s real catalog files.
-
-A good test:
-
-```text
-creates temporary project root
-initializes workspace
-performs operation
-asserts result
-cleans up
-```
-
-Cleanup should be best-effort and should not hide the real test failure.
-
-## Negative tests
-
-Negative tests should verify:
-
-- the intended mutation or bad input exists,
-- the command fails,
-- the exit code is expected,
-- the issue code is expected,
-- no unintended backup or write occurred when relevant.
-
-Do not only assert that something failed.
-
-Assert why it failed.
-
-## CI expectations
-
-CI should normally run:
-
-```text
-restore
-build
-test
-validate
-diff check
-```
-
-For shell scripts, use strict mode where appropriate.
-
-Bash:
-
-```bash
-set -euo pipefail
-```
-
-PowerShell must check native exit codes with:
+Run the focused project after every commit-sized Setter change:
 
 ```powershell
-$LASTEXITCODE
+dotnet test Toolroom/WhenItFails/Setter.Tests
 ```
 
-## Platform maintenance
+Run broader repository tests when shared libraries or public cross-project contracts change.
 
-Setter should remain practical on both:
+## Cross-platform maintenance
 
-```text
-Windows
-Linux
-```
+Setter is developed for Windows and Linux workflows.
 
-Be careful with:
+Review:
 
-- path separators,
-- case sensitivity,
-- line endings,
-- file locks,
-- permissions,
-- temporary directory conventions,
-- command examples,
-- shell quoting,
-- process exit-code handling.
+- path separators and casing;
+- paths containing spaces;
+- permissions and file locking;
+- temporary-directory behavior;
+- Bash `$?` and PowerShell `$LASTEXITCODE`;
+- shell quoting and line continuation;
+- newline differences in text assertions.
 
-Do not test only the shell you personally use if the change is platform-sensitive.
+Fix the actual platform assumption rather than weakening a correct contract to hide it.
 
-## Dependency caution
+## Review before commit
 
-Avoid adding dependencies unless they clearly pay for themselves.
+Before every commit:
 
-Setter should remain easy to build, test, and reason about.
-
-Before adding a dependency, ask:
-
-- Is it needed?
-- Is it stable?
-- Is it maintained?
-- Does it affect startup time?
-- Does it complicate packaging?
-- Does it complicate security review?
-- Can simple code solve the problem safely?
-
-## Public behavior
-
-Public behavior includes:
-
-- command names,
-- arguments,
-- options,
-- exit codes,
-- issue codes,
-- file layout,
-- catalog field names,
-- safe-write behavior,
-- backup naming,
-- plain output labels.
-
-Treat public behavior as a contract.
-
-Even if the project is young, users and scripts can quickly depend on these details.
-
-## Compatibility levels
-
-Think of changes in three levels:
-
-```text
-safe additive
-→ new doc, new test, new optional command
-```
-
-```text
-behavioral
-→ changed validation, changed output, changed defaults
-```
-
-```text
-breaking
-→ renamed commands, changed exit codes, changed schema, changed stable IDs
-```
-
-Breaking changes require special care.
-
-## Catalog compatibility
-
-Stable catalog values should not be changed casually.
-
-Be careful with:
-
-- error IDs,
-- numeric codes,
-- error names,
-- owner names,
-- code-group names,
-- code prefixes,
-- category names,
-- profile names.
-
-If a stable value must change, document why and consider migration.
-
-## Security maintenance
-
-Never add examples containing real:
-
-- credentials,
-- tokens,
-- connection strings,
-- private hostnames,
-- customer data,
-- personal data,
-- production stack traces,
-- raw incident logs.
-
-Use placeholders.
-
-Documentation examples should be safe to publish.
-
-## Production safety
-
-Production-oriented defaults should avoid exposing:
-
-- exception details,
-- stack traces,
-- sensitive metadata,
-- internal paths,
-- credentials,
-- raw SQL,
-- debug-only diagnostics.
-
-Development profiles can be more verbose.
-
-Production profiles should be conservative.
-
-## Review checklist for maintainers
-
-Before merging or releasing a Setter change, check:
-
-- build passes,
-- tests pass,
-- catalog validates,
-- command examples still work,
-- docs are updated,
-- README index is updated,
-- exit codes are stable,
-- issue codes are useful,
-- Git diff is intentional,
-- no backup files are included,
-- no temporary files are included,
-- no secrets are included.
-
-## Common maintenance traps
-
-Watch for:
-
-- changing behavior without docs,
-- adding docs for behavior that does not exist,
-- breaking exit codes,
-- making profile filtering look stronger than it is,
-- committing local backups,
-- relying on Windows path casing,
-- relying on Bash syntax in PowerShell docs,
-- overfitting tests to rich output layout,
-- using manual JSON edits without validation,
-- renaming stable catalog identifiers casually.
-
-## Useful local commands
-
-Build:
-
-```bash
-dotnet build
-```
-
-Test:
-
-```bash
-dotnet test
-```
-
-Validate:
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- validate .
-```
-
-Summary:
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- summary .
-```
-
-List errors:
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- errors .
-```
-
-Inspect one error:
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- details . AFW_NET_0001
-```
-
-Diff check:
-
-```bash
+```powershell
+git status --short
 git diff --check
+git diff
+git diff --cached
 ```
 
-## Useful PowerShell commands
+Confirm that:
 
-Build:
+- one logical change is present;
+- implementation, tests, and documentation agree;
+- no backup or temporary files are staged;
+- `IMPLEMENTATION_STATUS.md` is current;
+- the focused Setter suite is green;
+- the actual diff has been read.
 
-```powershell
-dotnet build
-```
+## What not to guess
 
-Test:
+Do not guess:
 
-```powershell
-dotnet test
-```
+- whether a command exists;
+- whether a capability is current or future;
+- the current test count;
+- the correct next task;
+- the exact catalog relationship;
+- whether a backup is safe to restore;
+- whether a public contract is unused.
 
-Validate:
+Inspect GitHub, source, tests, documentation, and status instead.
 
-```powershell
-dotnet run `
-  --project Toolroom/WhenItFails/Setter `
-  -- validate .
-```
+## Completion rule
 
-Summary:
+A maintenance slice is complete only when:
 
-```powershell
-dotnet run `
-  --project Toolroom/WhenItFails/Setter `
-  -- summary .
-```
-
-Check exit code:
-
-```powershell
-$LASTEXITCODE
-```
-
-Diff check:
-
-```powershell
-git diff --check
-```
-
-## When in doubt
-
-When unsure whether a change is safe:
-
-1. Make the change smaller.
-2. Add a focused test.
-3. Update the focused doc.
-4. Run validation.
-5. Review the diff.
-6. Ask whether a user or script could depend on the old behavior.
-
-Small reversible steps beat large mysterious rewrites.
+1. the intended behavior or documentation is finished;
+2. the corresponding test exists;
+3. focused verification is green;
+4. documentation agrees with the implementation;
+5. `IMPLEMENTATION_STATUS.md` records the new continuation point;
+6. the logical change is committed.
 
 ## Related documentation
 
+- [Architecture Overview](../Architecture%20Overview/en.md)
 - [Contributing to Setter](../Contributing%20to%20Setter/en.md)
-- [Release Checklist](../Release%20Checklist/en.md)
+- [Adding a New Command](../Adding%20a%20New%20Command/en.md)
 - [Testing and CI](../Testing%20and%20CI/en.md)
-- [Command Quick Reference](../Command%20Quick%20Reference/en.md)
-- [Exit Codes and Automation](../Exit%20Codes%20and%20Automation/en.md)
-- [Catalog Files](../Catalog%20Files/en.md)
-- [Catalog Author Checklist](../Catalog%20Author%20Checklist/en.md)
-- [Profiles](../Profiles/en.md)
 - [Safe Writes](../Safe%20Writes/en.md)
 - [Backups and Recovery](../Backups%20and%20Recovery/en.md)
-- [Troubleshooting](../Troubleshooting/en.md)
+- [Exit Codes and Automation](../Exit%20Codes%20and%20Automation/en.md)
+- [Known Limitations](../Known%20Limitations/en.md)
 
 ## Central principle
 
-> Maintain Setter like a safety tool: make it clear, predictable, conservative, and easy to verify.
+> Maintain the repository so the next person can trust the source, verify the state, complete one small green step, and continue without guesswork.
