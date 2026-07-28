@@ -27,7 +27,8 @@ Implemented areas include:
 - Runtime `ErrorProfileCatalogProviderMetadataTests`: **1 focused test user-verified green**.
 - Runtime `ErrorCatalogContextProfileMetadataIntegrationTests`: **1 focused test user-verified green**, including writer/loader round-trip, provider/context preservation, metadata values, and normalized mappings.
 - Runtime `ErrorProfileDefinitionNormalizerTests`: **10 focused tests user-verified green** after independent metadata, mapping, and selector-list copy semantics.
-- Current document-metadata ownership slice changes `ErrorProfileCatalogDocumentNormalizer` to copy the catalog `MetadataBag`. The focused document-normalizer suite is not yet user-verified.
+- Runtime `ErrorProfileCatalogDocumentNormalizerTests`: **6 focused tests user-verified green** after independent catalog metadata copy semantics.
+- Current profile-collection ownership slice adds one focused document-normalizer test, so the next successful focused run is expected to report **7 tests**.
 
 Focused verification command for the current slice:
 
@@ -79,7 +80,8 @@ Completed audit slices:
 8. `ErrorProfileDefinitionNormalizer` creates an independent `MetadataBag` copy.
 9. `DefaultMappings` are independently copied and normalized.
 10. All profile selector lists are independently copied and normalized.
-11. The current document-level ownership slice changes `ErrorProfileCatalogDocumentNormalizer` to copy catalog metadata instead of sharing a mutable `MetadataBag` with the source document.
+11. `ErrorProfileCatalogDocumentNormalizer` copies catalog metadata instead of sharing mutable state with the source document.
+12. The current focused contract verifies that the normalized `Profiles` collection and every normalized profile instance are independent from the source catalog. Mutating normalized profile values, nested selector lists, or the normalized collection must not affect the source document.
 
 ## Current intentional boundaries
 
@@ -110,22 +112,19 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify all focused `ErrorProfileCatalogDocumentNormalizerTests`.
+First verify all focused `ErrorProfileCatalogDocumentNormalizerTests`; the expected count is **7 green tests**.
 
-If green, record the result and continue with one separate document-level ownership contract for the `Profiles` list and normalized profile instances. Do not combine that verification with unrelated catalog behavior.
+If green, the profile-catalog ownership audit is complete. Continue with one adjacent runtime/public-API boundary only after inspecting the current source and existing tests; prefer a concrete provider or context behavior over broad refactoring.
 
-Do not invent automatic `DefaultMappings` consumption. Inspect current source and tests before implementation.
+Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The fourteenth runtime/public-API audit slice changed profile-catalog metadata normalization from shared mutable reference semantics to an independent copy. The focused contract verifies metadata value preservation and mutation isolation between the source catalog and normalized catalog.
+The fifteenth runtime/public-API audit slice added an explicit mutation-isolation contract for the normalized profile collection. The implementation already creates a new list and new normalized profile instances, so no production change was required.
 
 Commits in this change sequence:
 
 ```text
-9aa08e11a2f69a3613c967ae434a6ed6e22a4a6c
-Require independent normalized profile catalog metadata
-
-5c2a2cc4a2bc31d17e7b60ff144a1cfa19695b73
-Copy profile catalog metadata during normalization
+2b6b3ba56bba1b308c680df1d39291ef19911ba9
+Protect normalized profile collection isolation
 ```
