@@ -73,6 +73,23 @@ public sealed class ErrorCatalogContextProviderShortCircuitTests
         Assert.Equal("OwnerCatalogUnavailable", Assert.Single(response.Issues).Code);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldReturnFailureWithoutContext_WhenProfileCatalogProviderFails()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new SuccessfulCategoryCatalogProvider(),
+            new SuccessfulCodeGroupCatalogProvider(),
+            new SuccessfulOwnerCatalogProvider(),
+            new FailingProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.False(response.IsSuccess);
+        Assert.Null(response.Data);
+        Assert.Equal("ProfileCatalogUnavailable", Assert.Single(response.Issues).Code);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -231,6 +248,50 @@ public sealed class ErrorCatalogContextProviderShortCircuitTests
             return Task.FromResult(Response<ErrorOwnerCatalogProviderPayload>.Invalid(
                 code: "OwnerCatalogUnavailable",
                 message: "Owner catalog is unavailable."));
+        }
+    }
+
+    private sealed class SuccessfulOwnerCatalogProvider : IErrorOwnerCatalogProvider
+    {
+        public Task<Response<ErrorOwnerCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorOwnerCatalogProviderPayload>.Ok(
+                new ErrorOwnerCatalogProviderPayload
+                {
+                    Document = new ErrorOwnerCatalogDocument
+                    {
+                        Owners =
+                        [
+                            new ErrorOwnerDefinition
+                            {
+                                Name = "AFW",
+                                DisplayName = "Afrowave",
+                                CodeFrom = 0,
+                                CodeTo = 999999,
+                                IsBuiltIn = true
+                            }
+                        ]
+                    },
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
+    private sealed class FailingProfileCatalogProvider : IErrorProfileCatalogProvider
+    {
+        public Task<Response<ErrorProfileCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorProfileCatalogProviderPayload>.Invalid(
+                code: "ProfileCatalogUnavailable",
+                message: "Profile catalog is unavailable."));
         }
     }
 
