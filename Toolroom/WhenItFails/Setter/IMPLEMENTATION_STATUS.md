@@ -21,9 +21,9 @@ The current implementation supports:
 
 ## Verification status
 
-The latest user-verified Setter test run is green with 1,228 tests after the catalog-author checklist synchronization.
+The latest user-verified Setter test run is green with 1,229 tests after the safe-writes documentation assertion was corrected.
 
-The current safe-writes documentation change adds one documentation-contract test, so the next successful focused run is expected to report 1,229 tests.
+The current backups-and-recovery documentation change adds one documentation-contract test, so the next successful focused run is expected to report 1,230 tests.
 Do not mark that count as user-verified until the run is confirmed green.
 
 Primary verification command:
@@ -56,7 +56,8 @@ The following high-level Setter documents have been synchronized with the curren
 - `Docs/Testing and CI/en.md`;
 - `Docs/Reviewing Catalog Changes/en.md`;
 - `Docs/Catalog Author Checklist/en.md`;
-- `Docs/Safe Writes/en.md`.
+- `Docs/Safe Writes/en.md`;
+- `Docs/Backups and Recovery/en.md`.
 
 The synchronized documentation no longer presents implemented capabilities such as `add-error`, `remove-error`, `next-code`, `restore-backup`, JSON output, profile explanation, or documentation checks as missing or future work.
 
@@ -66,7 +67,9 @@ The catalog review guide provides a practical review gate for scope, working-tre
 
 The catalog author checklist follows the current Setter workflow: inspect reference catalogs, prepare codes and documentation keys, create or edit entries with explicit commands, inspect references and profile behavior, validate documentation, review backups and diffs, run tests immediately, and update this continuation file.
 
-The safe-writes guide now describes the current single-file persistence contract across catalog targets: validation before replacement, temporary-file serialization, timestamped backups, success and rejection invariants, structured failure handling, concurrency boundaries, backup listing, explicit restoration, post-write inspection, and focused tests.
+The safe-writes guide describes the current single-file persistence contract across catalog targets: validation before replacement, temporary-file serialization, timestamped backups, success and rejection invariants, structured failure handling, concurrency boundaries, backup listing, explicit restoration, post-write inspection, and focused tests.
+
+The backups-and-recovery guide now uses the implemented `list-backups` and `restore-backup` workflow, requires content-based backup selection, complete-workspace validation, affected-contract inspection, Git diff review, focused tests, and a stop rule after unverified restoration.
 
 ## Current intentional boundaries
 
@@ -97,24 +100,24 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify the current focused Setter run and record whether the expected 1,229 tests are green.
+First verify the current focused Setter run and record whether the expected 1,230 tests are green.
 
-Next documentation target: `Docs/Backups and Recovery/en.md` with one corresponding documentation-contract test.
+Next documentation target: `Docs/Exit Codes and Automation/en.md` with one corresponding documentation-contract test.
 
-That guide should align backup discovery and restoration with `list-backups`, `restore-backup`, explicit backup selection, target inspection, post-restore validation, Git diff review, backup-retention boundaries, and failure recovery without blind retries.
+That guide should align exit-code semantics with success, invalid input, validation and operation failures, unexpected top-level failures, JSON automation, plain versus rich output, scripting examples, and the rule that machine consumers must not parse rich terminal rendering.
 
 After the remaining high-value documentation is synchronized, begin a runtime/public-API audit of WhenItFails integration points, mappings, and profile behavior.
 
 ## Last completed change
 
-`Docs/Safe Writes/en.md` was replaced with a concise current persistence contract, and `SafeWritesDocumentationTests.cs` now protects validation-before-replacement behavior, temporary-file persistence, backup creation, rejected-write invariants, backup listing and restoration, transaction and locking boundaries, post-write inspection, and the no-blind-retry rule.
+`Docs/Backups and Recovery/en.md` was replaced with a concise current recovery workflow, and `BackupsAndRecoveryDocumentationTests.cs` now protects backup discovery, explicit restoration, content-based selection, single-file scope, complete-workspace validation, Git review, focused tests, writer coordination, and the unverified-restore stop rule.
 
 Commits in this change sequence:
 
 ```text
-04a9c174558e33f17f87ee835488b149e24aaed6
-Add safe writes documentation contract
+d9624aa126f57ed682272baaea7f6cccefd3c2a2
+Add backups and recovery documentation contract
 
-85782ae3e65dff8183c25cc7e8687790045c617a
-Refresh Setter safe writes guide
+9786cb3d6b0b4c0d49af85eb79cd0cb03ad8a271
+Refresh backups and recovery guide
 ```
