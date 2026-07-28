@@ -21,7 +21,7 @@ The current implementation supports:
 
 ## Verification status
 
-The latest user-verified Setter test run is green with 1,238 tests after the shared normalized profile-lookup slice.
+The latest user-verified Setter test run is green with 1,239 tests after the shared `show-profile` lookup consolidation.
 
 The first runtime/public-API profile-selection slice is user-verified green with 10 focused `ErrorProfileSelectionServiceTests`.
 
@@ -29,7 +29,7 @@ The public runtime-facade display-name integration test is user-verified green w
 
 The profile resolver and mapping-boundary suite is user-verified green with 19 focused `ErrorProfileResolverTests`.
 
-The current `show-profile` lookup consolidation adds one Setter test, so the next successful full Setter run is expected to report 1,239 tests.
+The current `errors --profile` JSON boundary slice adds one Setter test, so the next successful full Setter run is expected to report 1,240 tests.
 Do not mark that count as user-verified until the run is confirmed green.
 
 Primary Setter verification command:
@@ -41,7 +41,7 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test Toolroom/WhenItFails/Setter.Tests --filter FullyQualifiedName~ShowProfileCommandTests
+dotnet test Toolroom/WhenItFails/Setter.Tests --filter FullyQualifiedName~ErrorsCommandJsonTests
 ```
 
 Before committing catalog changes, also run:
@@ -121,7 +121,9 @@ The mapping audit confirmed an intentional boundary: `DefaultMappings` are consu
 
 Setter's shared `ErrorsCommand.FindProfile` lookup normalizes the requested selector, profile `Name`, and `DisplayName` with `TextKeyNormalizer`. This aligns equivalent forms such as `CUSTOM_PROFILE`, `custom profile`, and `custom-profile`.
 
-`ShowProfileCommand.FindProfile` now delegates to the shared Setter lookup instead of maintaining a second comparison implementation. The compatibility method remains available to existing internal callers and tests, while `show-profile`, `errors --profile`, and `explain-profile` use one normalization contract.
+`ShowProfileCommand.FindProfile` delegates to the shared Setter lookup instead of maintaining a second comparison implementation. The compatibility method remains available to existing internal callers and tests, while `show-profile`, `errors --profile`, and `explain-profile` use one normalization contract.
+
+The current command-output boundary test verifies that `errors --profile custom-profile --json` resolves a stored `CUSTOM_PROFILE` / `Custom Profile`, returns exit code `0`, preserves the stable JSON envelope, reports no failure payload, and retains the raw requested selector in the options object.
 
 ## Current intentional boundaries
 
@@ -152,24 +154,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify the focused `ShowProfileCommandTests` run and then the full Setter suite if the focused run is green.
+First verify the focused `ErrorsCommandJsonTests` run and then the full Setter suite if the focused run is green.
 
 Next documentation target: none. The high-value Setter documentation synchronization is complete.
 
-If the expected 1,239 Setter tests are green, continue with one narrow audit of normalized profile selector behavior at the command-output boundary. Prefer a command-level test proving that `show-profile` or `errors --profile` accepts a separator-normalized selector without changing exit-code, plain-output, or JSON contracts. Do not change both commands in one slice.
+If the expected 1,240 Setter tests are green, continue with one narrow command-output audit for `show-profile --json` using a separator-normalized selector, or move to the next public runtime integration point only after confirming that command contract. Do not combine both in one slice.
 
 Do not begin implementation from documentation assumptions alone. Inspect the current source and tests in GitHub first.
 
 ## Last completed change
 
-The sixth runtime/public-API audit slice removed the remaining independent `show-profile` lookup logic. A focused command test protects separator normalization, and `ShowProfileCommand.FindProfile` delegates to the shared normalized Setter contract.
+The seventh runtime/public-API audit slice added a command-level JSON contract for normalized `errors --profile` selection. It protects successful separator normalization, exit code `0`, the stable JSON envelope, the absence of failure data, and the raw selector retained in output options without changing production behavior.
 
 Commits in this change sequence:
 
 ```text
-95ef9d814b0b5a77a8451d64b8069b76a7c5c351
-Add normalized show-profile lookup contract
-
-e9a7ccf0badcf19834f80f2ac03b27c269d6da0d
-Use shared normalized profile lookup
+ad4691f6bb6e41e65f2617731fb8133224b5cd0f
+Add normalized errors profile JSON contract
 ```
