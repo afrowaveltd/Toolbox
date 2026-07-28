@@ -21,7 +21,7 @@ The current implementation supports:
 
 ## Verification status
 
-The latest user-verified Setter test run is green with 1,239 tests after the shared `show-profile` lookup consolidation.
+The latest user-verified Setter test run is green with 1,240 tests after the normalized `errors --profile` JSON boundary contract.
 
 The first runtime/public-API profile-selection slice is user-verified green with 10 focused `ErrorProfileSelectionServiceTests`.
 
@@ -29,7 +29,7 @@ The public runtime-facade display-name integration test is user-verified green w
 
 The profile resolver and mapping-boundary suite is user-verified green with 19 focused `ErrorProfileResolverTests`.
 
-The current `errors --profile` JSON boundary slice adds one Setter test, so the next successful full Setter run is expected to report 1,240 tests.
+The current normalized `show-profile --json` boundary slice adds one Setter test, so the next successful full Setter run is expected to report 1,241 tests.
 Do not mark that count as user-verified until the run is confirmed green.
 
 Primary Setter verification command:
@@ -41,7 +41,7 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test Toolroom/WhenItFails/Setter.Tests --filter FullyQualifiedName~ErrorsCommandJsonTests
+dotnet test Toolroom/WhenItFails/Setter.Tests --filter FullyQualifiedName~ShowProfileCommandJsonTests
 ```
 
 Before committing catalog changes, also run:
@@ -123,7 +123,9 @@ Setter's shared `ErrorsCommand.FindProfile` lookup normalizes the requested sele
 
 `ShowProfileCommand.FindProfile` delegates to the shared Setter lookup instead of maintaining a second comparison implementation. The compatibility method remains available to existing internal callers and tests, while `show-profile`, `errors --profile`, and `explain-profile` use one normalization contract.
 
-The current command-output boundary test verifies that `errors --profile custom-profile --json` resolves a stored `CUSTOM_PROFILE` / `Custom Profile`, returns exit code `0`, preserves the stable JSON envelope, reports no failure payload, and retains the raw requested selector in the options object.
+The normalized `errors --profile` JSON boundary is user-verified with 1,240 total Setter tests. It protects exit code `0`, the stable JSON envelope, absence of failure data, and retention of the raw requested selector in output options.
+
+The current `show-profile --json` contract verifies the same separator-normalized selector at the profile-detail boundary. It protects exit code `0`, the stable command envelope, the resolved canonical profile identity, absence of failure data, and the read-only no-backup invariant.
 
 ## Current intentional boundaries
 
@@ -154,21 +156,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify the focused `ErrorsCommandJsonTests` run and then the full Setter suite if the focused run is green.
+First verify the focused `ShowProfileCommandJsonTests` run and then the full Setter suite if the focused run is green.
 
 Next documentation target: none. The high-value Setter documentation synchronization is complete.
 
-If the expected 1,240 Setter tests are green, continue with one narrow command-output audit for `show-profile --json` using a separator-normalized selector, or move to the next public runtime integration point only after confirming that command contract. Do not combine both in one slice.
+If the expected 1,241 Setter tests are green, the normalized profile-lookup and command-output audit is complete. Continue with one narrow public runtime integration audit of profile metadata or mapping consumption. Start by identifying an actual consumer contract; do not make `DefaultMappings` affect profile selection and do not invent automatic mapping behavior without a concrete integration requirement.
 
 Do not begin implementation from documentation assumptions alone. Inspect the current source and tests in GitHub first.
 
 ## Last completed change
 
-The seventh runtime/public-API audit slice added a command-level JSON contract for normalized `errors --profile` selection. It protects successful separator normalization, exit code `0`, the stable JSON envelope, the absence of failure data, and the raw selector retained in output options without changing production behavior.
+The eighth runtime/public-API audit slice added a command-level JSON contract for normalized `show-profile` selection. It protects successful separator normalization, exit code `0`, the stable JSON envelope, canonical profile identity, absence of failure data, and the no-backup invariant without changing production behavior.
 
 Commits in this change sequence:
 
 ```text
-ad4691f6bb6e41e65f2617731fb8133224b5cd0f
-Add normalized errors profile JSON contract
+5fec4dcf13accdefb44b28bcaa9f187191ee30e2
+Add normalized show-profile JSON contract
 ```
