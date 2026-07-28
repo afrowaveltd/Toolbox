@@ -153,6 +153,52 @@ public sealed class ErrorProfileDefinitionNormalizerTests
     }
 
     [Fact]
+    public void Normalize_ShouldCopySelectorListsWithoutSharingMutableState()
+    {
+        ErrorProfileDefinitionNormalizer normalizer = new();
+        ErrorProfileDefinition definition = new()
+        {
+            IncludeOwners = ["afw"],
+            IncludeCodeGroups = ["network"],
+            IncludeCategories = ["validation"],
+            IncludeSubcategories = ["required value"],
+            IncludeTags = ["user visible"],
+            IncludeErrors = ["afw_net_0001"],
+            ExcludeTags = ["internal only"],
+            ExcludeErrors = ["afw_dbg_0001"]
+        };
+
+        ErrorProfileDefinition normalizedDefinition = normalizer.Normalize(definition);
+
+        Assert.NotSame(definition.IncludeOwners, normalizedDefinition.IncludeOwners);
+        Assert.NotSame(definition.IncludeCodeGroups, normalizedDefinition.IncludeCodeGroups);
+        Assert.NotSame(definition.IncludeCategories, normalizedDefinition.IncludeCategories);
+        Assert.NotSame(definition.IncludeSubcategories, normalizedDefinition.IncludeSubcategories);
+        Assert.NotSame(definition.IncludeTags, normalizedDefinition.IncludeTags);
+        Assert.NotSame(definition.IncludeErrors, normalizedDefinition.IncludeErrors);
+        Assert.NotSame(definition.ExcludeTags, normalizedDefinition.ExcludeTags);
+        Assert.NotSame(definition.ExcludeErrors, normalizedDefinition.ExcludeErrors);
+
+        normalizedDefinition.IncludeOwners.Add("APP");
+        normalizedDefinition.IncludeCodeGroups.Clear();
+        normalizedDefinition.IncludeCategories[0] = "GENERAL";
+        normalizedDefinition.IncludeSubcategories.Add("OPTIONAL_VALUE");
+        normalizedDefinition.IncludeTags.Add("RUNTIME_ONLY");
+        normalizedDefinition.IncludeErrors.Clear();
+        normalizedDefinition.ExcludeTags[0] = "DEBUG_ONLY";
+        normalizedDefinition.ExcludeErrors.Add("AFW_DBG_0002");
+
+        Assert.Equal(["afw"], definition.IncludeOwners);
+        Assert.Equal(["network"], definition.IncludeCodeGroups);
+        Assert.Equal(["validation"], definition.IncludeCategories);
+        Assert.Equal(["required value"], definition.IncludeSubcategories);
+        Assert.Equal(["user visible"], definition.IncludeTags);
+        Assert.Equal(["afw_net_0001"], definition.IncludeErrors);
+        Assert.Equal(["internal only"], definition.ExcludeTags);
+        Assert.Equal(["afw_dbg_0001"], definition.ExcludeErrors);
+    }
+
+    [Fact]
     public void Normalize_ShouldCopyMetadataWithoutSharingMutableState()
     {
         ErrorProfileDefinitionNormalizer normalizer = new();
