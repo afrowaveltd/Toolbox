@@ -45,6 +45,24 @@ public sealed class ErrorCatalogContextProviderCancellationPropagationTests
                 cancellationTokenSource.Token));
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldPropagateCancellationBetweenCodeGroupAndOwnerProviderCalls()
+    {
+        using CancellationTokenSource cancellationTokenSource = new();
+
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new SuccessfulCategoryCatalogProvider(),
+            new CancellingCodeGroupCatalogProvider(cancellationTokenSource),
+            new CancellationObservingOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => provider.LoadFromJsonsAsync(
+                CreateOptions(),
+                cancellationTokenSource.Token));
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -97,6 +115,28 @@ public sealed class ErrorCatalogContextProviderCancellationPropagationTests
                     {
                         Name = "GENERAL",
                         DisplayName = "General"
+                    }
+                ]
+            },
+            ValidationResult = new ErrorCatalogValidationResult()
+        };
+    }
+
+    private static ErrorCodeGroupCatalogProviderPayload CreateCodeGroupCatalogPayload()
+    {
+        return new ErrorCodeGroupCatalogProviderPayload
+        {
+            Document = new ErrorCodeGroupCatalogDocument
+            {
+                CodeGroups =
+                [
+                    new ErrorCodeGroupDefinition
+                    {
+                        Name = "GENERAL",
+                        DisplayName = "General",
+                        CodePrefix = "GEN",
+                        CodeFrom = 100000,
+                        CodeTo = 199999
                     }
                 ]
             },
@@ -172,6 +212,19 @@ public sealed class ErrorCatalogContextProviderCancellationPropagationTests
         }
     }
 
+    private sealed class SuccessfulCategoryCatalogProvider : IErrorCategoryCatalogProvider
+    {
+        public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorCategoryCatalogProviderPayload>.Ok(
+                CreateCategoryCatalogPayload()));
+        }
+    }
+
     private sealed class CancellationObservingCodeGroupCatalogProvider : IErrorCodeGroupCatalogProvider
     {
         public Task<Response<ErrorCodeGroupCatalogProviderPayload>> LoadFromFileAsync(
@@ -182,6 +235,40 @@ public sealed class ErrorCatalogContextProviderCancellationPropagationTests
 
             throw new InvalidOperationException(
                 "The code-group provider must observe cancellation before producing a response.");
+        }
+    }
+
+    private sealed class CancellingCodeGroupCatalogProvider : IErrorCodeGroupCatalogProvider
+    {
+        private readonly CancellationTokenSource _cancellationTokenSource;
+
+        public CancellingCodeGroupCatalogProvider(CancellationTokenSource cancellationTokenSource)
+        {
+            _cancellationTokenSource = cancellationTokenSource;
+        }
+
+        public Task<Response<ErrorCodeGroupCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            _cancellationTokenSource.Cancel();
+
+            return Task.FromResult(Response<ErrorCodeGroupCatalogProviderPayload>.Ok(
+                CreateCodeGroupCatalogPayload()));
+        }
+    }
+
+    private sealed class CancellationObservingOwnerCatalogProvider : IErrorOwnerCatalogProvider
+    {
+        public Task<Response<ErrorOwnerCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            throw new InvalidOperationException(
+                "The owner provider must observe cancellation before producing a response.");
         }
     }
 
