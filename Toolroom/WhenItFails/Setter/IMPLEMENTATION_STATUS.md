@@ -21,9 +21,9 @@ The current implementation supports:
 
 ## Verification status
 
-The latest user-verified Setter test run is green with 1,230 tests after the backups-and-recovery documentation synchronization.
+The latest user-verified Setter test run is green with 1,231 tests after the exit-codes-and-automation documentation synchronization.
 
-The current exit-codes-and-automation documentation change adds one documentation-contract test, so the next successful focused run is expected to report 1,231 tests.
+The current contribution-guide change adds one documentation-contract test, so the next successful focused run is expected to report 1,232 tests.
 Do not mark that count as user-verified until the run is confirmed green.
 
 Primary verification command:
@@ -58,7 +58,8 @@ The following high-level Setter documents have been synchronized with the curren
 - `Docs/Catalog Author Checklist/en.md`;
 - `Docs/Safe Writes/en.md`;
 - `Docs/Backups and Recovery/en.md`;
-- `Docs/Exit Codes and Automation/en.md`.
+- `Docs/Exit Codes and Automation/en.md`;
+- `Docs/Contributing to Setter/en.md`.
 
 The synchronized documentation no longer presents implemented capabilities such as `add-error`, `remove-error`, `next-code`, `restore-backup`, JSON output, profile explanation, or documentation checks as missing or future work.
 
@@ -72,7 +73,9 @@ The safe-writes guide describes the current single-file persistence contract acr
 
 The backups-and-recovery guide uses the implemented `list-backups` and `restore-backup` workflow, requires content-based backup selection, complete-workspace validation, affected-contract inspection, Git diff review, focused tests, and a stop rule after unverified restoration.
 
-The exit-codes-and-automation guide now documents the stable `0`/`1`/`2`/`3` process classification, the distinction between exit and issue codes, JSON-first machine integration, plain versus rich output, Bash and PowerShell capture patterns, pipeline safety, write and restore verification, and the rule that unexplained failures must not be converted into green automation.
+The exit-codes-and-automation guide documents the stable `0`/`1`/`2`/`3` process classification, the distinction between exit and issue codes, JSON-first machine integration, plain versus rich output, Bash and PowerShell capture patterns, pipeline safety, write and restore verification, and the rule that unexplained failures must not be converted into green automation.
+
+The contribution guide now consolidates the current repository workflow: GitHub `master` as the source of truth, one logical change per commit, immediate corresponding tests, focused verification, README plus `Docs/<topic>/en.md` documentation, mandatory implementation-status maintenance, safe-write and restore review, cross-platform checks, and the red-suite stop rule.
 
 ## Current intentional boundaries
 
@@ -103,24 +106,24 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify the current focused Setter run and record whether the expected 1,231 tests are green.
+First verify the current focused Setter run and record whether the expected 1,232 tests are green.
 
-Next documentation target: `Docs/Contributing to Setter/en.md` with one corresponding documentation-contract test.
+Next documentation target: `Docs/Architecture/en.md` with one corresponding documentation-contract test.
 
-That guide should consolidate repository-source-of-truth rules, narrow commits, immediate tests, documentation synchronization, implementation-status maintenance, safe catalog changes, output and exit-code contracts, and the red-change stop rule without duplicating every specialized guide.
+That guide should describe the current command-dispatch, workspace, catalog loading and validation, editing, persistence, rendering, JSON automation, and test boundaries without presenting implementation details as stronger guarantees than the source and tests support.
 
 After the remaining high-value documentation is synchronized, begin a runtime/public-API audit of WhenItFails integration points, mappings, and profile behavior.
 
 ## Last completed change
 
-`Docs/Exit Codes and Automation/en.md` was replaced with a concise current automation contract, and `ExitCodesAndAutomationDocumentationTests.cs` now protects the stable exit-code classes, JSON-first machine output, plain-versus-rich distinction, Bash and PowerShell capture patterns, pipeline safety, focused tests, and the rule that unexplained non-zero results cannot be hidden.
+`Docs/Contributing to Setter/en.md` was replaced with a concise current contribution workflow, and `ContributingToSetterDocumentationTests.cs` now protects the source-of-truth rule, narrow commits, immediate tests, focused verification, documentation structure, implementation-status maintenance, catalog checks, diff review, and the red-suite stop rule.
 
 Commits in this change sequence:
 
 ```text
-66979c64f2428b75928e17fdc56081b3bff2e905
-Add exit codes and automation documentation contract
+15ed5aafa7cd93af32979f904e29a3e9df1b44d6
+Add Setter contribution documentation contract
 
-e6923714b15637b6b36bca05e39d925e6fcac638
-Refresh exit codes and automation guide
+24532603955c276fe64f8557dee6a234b30d4289
+Refresh Setter contribution guide
 ```
