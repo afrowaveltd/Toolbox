@@ -28,12 +28,13 @@ Implemented areas include:
 - Runtime `ErrorCatalogContextProfileMetadataIntegrationTests`: **1 focused test user-verified green**, including writer/loader round-trip, provider/context preservation, metadata values, and normalized mappings.
 - Runtime `ErrorProfileDefinitionNormalizerTests`: **10 focused tests user-verified green** after independent metadata, mapping, and selector-list copy semantics.
 - Runtime `ErrorProfileCatalogDocumentNormalizerTests`: **8 focused tests user-verified green** after independent catalog metadata, profile collection, profile instance, and tag copy semantics.
-- Current provider-payload ownership slice adds one focused `ErrorProfileCatalogProviderTests` contract. This test is not yet user-verified.
+- Runtime `ErrorProfileCatalogProviderTests`: **10 focused tests user-verified green**, including loader-to-provider payload isolation.
+- Current context-reference slice adds one focused `ErrorCatalogContextProviderProfileReferenceTests` contract. This test is not yet user-verified.
 
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorProfileCatalogProviderTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderProfileReferenceTests
 ```
 
 Primary Setter verification command:
@@ -83,7 +84,8 @@ Completed audit slices:
 11. `ErrorProfileCatalogDocumentNormalizer` copies catalog metadata instead of sharing mutable state with the source document.
 12. The normalized `Profiles` collection and each normalized profile instance are independent from the source catalog.
 13. Catalog `Tags` are independently copied and normalized.
-14. The current focused provider contract verifies that the returned payload document is independent from the document supplied by the loader, including catalog tags, metadata, profile instances, and nested selector lists.
+14. `ErrorProfileCatalogProvider` returns the normalized document copy rather than exposing the mutable document instance supplied by the loader.
+15. The current context contract records intentional reference reuse: `ErrorCatalogContextProvider` aggregates already normalized and validated provider documents without performing a second deep copy.
 
 ## Current intentional boundaries
 
@@ -114,19 +116,19 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify all focused `ErrorProfileCatalogProviderTests`.
+First verify `ErrorCatalogContextProviderProfileReferenceTests`.
 
-If green, record the exact focused count and inspect `ErrorCatalogContextProvider` ownership semantics. Prefer one concrete contract about whether the final context intentionally reuses provider payload documents or should copy them; do not change that behavior without first establishing the surrounding convention.
+If green, record the result and inspect one adjacent context boundary, preferably the reference relationship between `ErrorCatalogContext.ErrorCatalogDocument` and the corresponding provider payload document. Keep the slice limited to one catalog family and preserve the context provider's aggregation role unless a concrete defect is found.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The seventeenth runtime/public-API audit slice added a provider payload isolation contract. It verifies that `ErrorProfileCatalogProvider` returns the normalized document copy rather than exposing the mutable document instance supplied by the loader.
+The eighteenth runtime/public-API audit slice added a focused contract for profile-document ownership at the final context boundary. The context provider intentionally reuses the already normalized and validated profile document supplied by the profile provider instead of performing a redundant second deep copy.
 
 Commit in this change sequence:
 
 ```text
-308d83c387d033bebdb6f75d73b6ab6ec57c57f3
-Protect profile provider payload isolation
+6922e87dd5cd8649ed373188c56eb87c431e0a27
+Protect context profile payload reference
 ```
