@@ -32,8 +32,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorProfileCatalogDocumentNormalizerTests`: **8 focused tests user-verified green** after independent catalog metadata, profile collection, profile instance, and tag copy semantics.
 - Runtime `ErrorProfileCatalogProviderTests`: **10 focused tests user-verified green**, including loader-to-provider payload isolation.
 - Runtime `ErrorCatalogContextProviderProfileReferenceTests`: **1 focused test user-verified green** for direct reuse of validated provider outputs and a newly computed combined `CrossValidationResult`.
-- Runtime `ErrorCatalogContextProviderShortCircuitTests`: **3 focused tests user-verified green** for error-, category-, and code-group-provider failure short-circuiting.
-- Current owner-provider short-circuit slice adds one focused test, so the next successful focused run is expected to report **4 tests**.
+- Runtime `ErrorCatalogContextProviderShortCircuitTests`: **4 focused tests user-verified green** for error-, category-, code-group-, and owner-provider failure short-circuiting.
+- Current profile-provider terminal-failure slice adds one focused test, so the next successful focused run is expected to report **5 tests**.
 
 Focused verification command for the current slice:
 
@@ -100,7 +100,8 @@ Completed audit slices:
 18. Failure of the first error-catalog provider prevents category, code-group, owner, and profile providers from running and preserves the source issue code.
 19. Category-provider failure preserves the source issue and prevents code-group, owner, and profile providers from running.
 20. Code-group-provider failure preserves the source issue and prevents owner and profile providers from running.
-21. The current focused contract extends the same short-circuit guarantee to owner-provider failure: error, category, and code-group providers complete successfully, the owner failure is preserved, and the profile provider must not be invoked.
+21. Owner-provider failure preserves the source issue and prevents the profile provider from running.
+22. The current focused contract completes provider-failure coverage at the profile boundary: all earlier providers succeed, profile failure is preserved, and no partial `ErrorCatalogContext` is returned.
 
 ## Current intentional boundaries
 
@@ -131,21 +132,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderShortCircuitTests`; the expected count is **4 green tests**.
+First verify `ErrorCatalogContextProviderShortCircuitTests`; the expected count is **5 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, finish the provider-failure sequence with one profile-provider failure contract. Since profile is the final provider, verify source status and issue preservation rather than a later-provider suppression.
+If green, the provider-failure sequence is complete. Inspect one adjacent externally observable boundary, preferably cancellation propagation between provider calls or null-payload short-circuiting, before adding another test.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The twenty-fourth runtime/public-API audit slice extended context failure short-circuit coverage to the owner provider. It verifies successful completion of the error, category, and code-group providers, preservation of the owner provider's failure issue, and suppression of the profile provider call.
+The twenty-fifth runtime/public-API audit slice completed context provider-failure coverage at the profile boundary. It verifies successful completion of the error, category, code-group, and owner providers, preservation of the profile provider's failure issue, and absence of a partial context payload.
 
 Commit in this change sequence:
 
 ```text
-e0878be50d3cea5e1d9186e8a0a941c87cd586c5
-Protect owner provider short circuit
+bba3424d4a40a8506c46f3059574d2045aa40466
+Protect profile provider terminal failure
 ```
