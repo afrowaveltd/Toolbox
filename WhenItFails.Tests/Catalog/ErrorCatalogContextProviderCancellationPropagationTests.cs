@@ -10,7 +10,7 @@ namespace Afrowave.Toolbox.WhenItFails.Tests.Catalog;
 public sealed class ErrorCatalogContextProviderCancellationPropagationTests
 {
     [Fact]
-    public async Task LoadFromJsonsAsync_ShouldPropagateCancellationBetweenProviderCalls()
+    public async Task LoadFromJsonsAsync_ShouldPropagateCancellationBetweenErrorAndCategoryProviderCalls()
     {
         using CancellationTokenSource cancellationTokenSource = new();
 
@@ -23,12 +23,85 @@ public sealed class ErrorCatalogContextProviderCancellationPropagationTests
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(
             () => provider.LoadFromJsonsAsync(
-                new JsonsOptions
-                {
-                    RootDirectory = "Jsons",
-                    PackageDirectoryName = "WhenItFails"
-                },
+                CreateOptions(),
                 cancellationTokenSource.Token));
+    }
+
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldPropagateCancellationBetweenCategoryAndCodeGroupProviderCalls()
+    {
+        using CancellationTokenSource cancellationTokenSource = new();
+
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new CancellingCategoryCatalogProvider(cancellationTokenSource),
+            new CancellationObservingCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => provider.LoadFromJsonsAsync(
+                CreateOptions(),
+                cancellationTokenSource.Token));
+    }
+
+    private static JsonsOptions CreateOptions()
+    {
+        return new JsonsOptions
+        {
+            RootDirectory = "Jsons",
+            PackageDirectoryName = "WhenItFails"
+        };
+    }
+
+    private static ErrorCatalogProviderPayload CreateErrorCatalogPayload()
+    {
+        ErrorCatalogDocument document = new()
+        {
+            Errors =
+            [
+                new ErrorDefinition
+                {
+                    Id = "AFW_GEN_0001",
+                    Code = 100001,
+                    Name = "UNKNOWNERROR",
+                    Owner = "AFW",
+                    CodePrefix = "GEN",
+                    CodeGroup = "GENERAL",
+                    PrimaryCategory = "GENERAL",
+                    Categories = ["GENERAL"],
+                    Title = "Unknown error",
+                    Message = "An unknown error occurred.",
+                    DefaultSeverity = "Error"
+                }
+            ]
+        };
+
+        return new ErrorCatalogProviderPayload
+        {
+            Catalog = new ErrorCatalog(document.Errors),
+            Document = document,
+            ValidationResult = new ErrorCatalogValidationResult()
+        };
+    }
+
+    private static ErrorCategoryCatalogProviderPayload CreateCategoryCatalogPayload()
+    {
+        return new ErrorCategoryCatalogProviderPayload
+        {
+            Document = new ErrorCategoryCatalogDocument
+            {
+                Categories =
+                [
+                    new ErrorCategoryDefinition
+                    {
+                        Name = "GENERAL",
+                        DisplayName = "General"
+                    }
+                ]
+            },
+            ValidationResult = new ErrorCatalogValidationResult()
+        };
     }
 
     private sealed class CancellingErrorCatalogProvider : IErrorCatalogProvider
@@ -45,37 +118,23 @@ public sealed class ErrorCatalogContextProviderCancellationPropagationTests
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            ErrorCatalogDocument document = new()
-            {
-                Errors =
-                [
-                    new ErrorDefinition
-                    {
-                        Id = "AFW_GEN_0001",
-                        Code = 100001,
-                        Name = "UNKNOWNERROR",
-                        Owner = "AFW",
-                        CodePrefix = "GEN",
-                        CodeGroup = "GENERAL",
-                        PrimaryCategory = "GENERAL",
-                        Categories = ["GENERAL"],
-                        Title = "Unknown error",
-                        Message = "An unknown error occurred.",
-                        DefaultSeverity = "Error"
-                    }
-                ]
-            };
-
             _cancellationTokenSource.Cancel();
 
             return Task.FromResult(Response<ErrorCatalogProviderPayload>.Ok(
-                new ErrorCatalogProviderPayload
-                {
-                    Catalog = new ErrorCatalog(document.Errors),
-                    Document = document,
-                    ValidationResult = new ErrorCatalogValidationResult()
-                }));
+                CreateErrorCatalogPayload()));
+        }
+    }
+
+    private sealed class SuccessfulErrorCatalogProvider : IErrorCatalogProvider
+    {
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorCatalogProviderPayload>.Ok(
+                CreateErrorCatalogPayload()));
         }
     }
 
@@ -89,6 +148,40 @@ public sealed class ErrorCatalogContextProviderCancellationPropagationTests
 
             throw new InvalidOperationException(
                 "The category provider must observe cancellation before producing a response.");
+        }
+    }
+
+    private sealed class CancellingCategoryCatalogProvider : IErrorCategoryCatalogProvider
+    {
+        private readonly CancellationTokenSource _cancellationTokenSource;
+
+        public CancellingCategoryCatalogProvider(CancellationTokenSource cancellationTokenSource)
+        {
+            _cancellationTokenSource = cancellationTokenSource;
+        }
+
+        public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            _cancellationTokenSource.Cancel();
+
+            return Task.FromResult(Response<ErrorCategoryCatalogProviderPayload>.Ok(
+                CreateCategoryCatalogPayload()));
+        }
+    }
+
+    private sealed class CancellationObservingCodeGroupCatalogProvider : IErrorCodeGroupCatalogProvider
+    {
+        public Task<Response<ErrorCodeGroupCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            throw new InvalidOperationException(
+                "The code-group provider must observe cancellation before producing a response.");
         }
     }
 
