@@ -37,12 +37,13 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderNullPayloadShortCircuitTests`: **5 focused tests user-verified green**, covering null payloads at every provider boundary.
 - Runtime `ErrorCatalogContextProviderCancellationPropagationTests`: **4 focused tests user-verified green**, covering every inter-provider cancellation boundary.
 - Runtime `ErrorCatalogContextProviderPostProfileCancellationTests`: **1 focused test user-verified green** for cancellation after the profile provider and before cross-validation.
-- Current cross-validation response slice adds one focused `ErrorCatalogContextProviderCrossValidationFailureContractTests` contract. Its first local run failed at compile time because the test referenced a non-existent `ResultIssue` type; commit `8892c649de58415ca343baecb9d3adcdbf69a84f` fixes the test by inferring the actual issue type.
+- Runtime `ErrorCatalogContextProviderCrossValidationFailureContractTests`: **1 focused test user-verified green** after correcting the test's issue-type reference.
+- Current provider-local validation slice adds one focused test to `ErrorCatalogContextProviderProfileReferenceTests`; the next successful focused run is expected to report **2 tests**.
 
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderCrossValidationFailureContractTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderProfileReferenceTests
 ```
 
 Primary Setter verification command:
@@ -110,7 +111,8 @@ Completed audit slices:
 24. Null-payload handling short-circuits immediately at every provider boundary.
 25. Cooperative cancellation is protected at all four inter-provider transitions.
 26. Cancellation after the profile provider returns is observed before cross-validation and context construction.
-27. The current slice protects the public cross-validation failure response: when multiple validation issues exist, the first issue supplies the returned code and message, status is `Invalid`, and no partial context is exposed.
+27. Cross-validation failure returns an `Invalid` response based on the first issue's code and message and exposes no partial context.
+28. The current slice explicitly protects provider-local validation isolation: after a provider returns `IsSuccess`, its local `ValidationResult` is not merged into the final context decision; the context receives a fresh cross-validation result computed from the returned documents.
 
 ## Current intentional boundaries
 
@@ -141,24 +143,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-Re-run `ErrorCatalogContextProviderCrossValidationFailureContractTests`; the expected count is **1 green test** after compile fix `8892c649de58415ca343baecb9d3adcdbf69a84f`.
+First verify `ErrorCatalogContextProviderProfileReferenceTests`; the expected count is **2 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect whether provider-local validation results are intentionally ignored after successful provider responses, or add an explicit contract for cross-validation issue ordering only if consumers rely on it.
+If green, inspect one adjacent public contract: whether warnings-only cross-validation results permit successful context construction while preserving warnings in `CrossValidationResult`.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The thirty-seventh runtime/public-API audit slice records the public failure contract when cross-catalog validation finds multiple issues. `ErrorCatalogContextProvider` returns an `Invalid` response based on the first issue's code and message and does not expose a partial `ErrorCatalogContext`. The initial test revision used a non-existent explicit `ResultIssue` type; the test now uses type inference against the actual `Response.Issues` element type.
+The thirty-eighth runtime/public-API audit slice explicitly records provider-local validation isolation. Successful provider responses may carry local validation issues, but `ErrorCatalogContextProvider` does not merge those issues into the final context. Instead, it computes a new `CrossValidationResult` from the five returned documents and bases success or failure on that result alone.
 
-Commits in this change sequence:
+Commit in this change sequence:
 
 ```text
-cf11c782ad54b76687ffdf8a12ce12cc3e5b106c
-Protect cross-validation failure response contract
-
-8892c649de58415ca343baecb9d3adcdbf69a84f
-Fix cross-validation failure contract issue type
+b8183493e1cd68658d624fd5da43e78ba9e7805c
+Protect provider-local validation result isolation
 ```
