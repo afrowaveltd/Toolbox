@@ -1,575 +1,380 @@
-﻿# Adding a New Command
+# Adding a New Command
 
-This guide explains how to add a new command to WhenItFails Setter.
+This guide describes the current workflow for adding a command to WhenItFails Setter.
 
-It is intended for maintainers and contributors who are extending the command-line tool.
+> Treat every command as a public contract.
 
-A new command is public behavior. Treat it as a small API.
+A command is complete only when dispatch, argument handling, service behavior, output surfaces, exit and issue codes, tests, documentation, and continuation status agree.
 
-## Command principle
+## Start with the contract
+
+Before writing code, define:
+
+- the command name and any aliases;
+- whether it is read-only or writes a catalog;
+- required positional arguments;
+- supported options and switches;
+- accepted workspace path forms;
+- success behavior;
+- expected domain and validation failures;
+- process exit codes;
+- stable issue codes;
+- rich, `--plain`, and `--json` output requirements;
+- persistence and backup behavior for writes;
+- documentation and tests that must change.
+
+Do not begin implementation while these decisions are still ambiguous.
+
+## Keep the command focused
 
 A Setter command should do one clear thing.
 
-Good command design is:
-Avoid commands that become hidden workflows with many unrelated side effects.
+Prefer:
 
-## Before adding a command
+```text
+show one definition
+add one error
+set one field
+explain one profile
+restore one selected backup
+```
 
-Before writing code, answer these questions:
+Avoid commands that silently combine unrelated editing, cleanup, migration, validation, and rendering work.
 
-- What problem does the command solve?
-- Is it read-only or does it write files?
-- Which workspace path forms does it accept?
-- Does it require validation before running?
-- What arguments are required?
-- What options are supported?
-- What is the success exit code?
-- What are the failure exit codes?
-- What issue codes can it produce?
-- Does it need rich output?
-- Does it need plain output?
-- Which documentation pages must change?
-- Which tests prove the behavior?
+One logical behavior is easier to test, review, automate, document, and preserve for backward compatibility.
 
-If these answers are unclear, the command design is not ready.
+## Command dispatch
 
-## Prefer focused commands
+The command must be reachable through the application command dispatch.
 
-Prefer focused commands such as:
-over broad commands such as:
-Focused commands are easier to document, test, automate, review, and keep backward-compatible.
+Add the canonical lowercase name and only intentional aliases. Command and alias matching should follow existing normalization rules rather than introducing a private parsing convention.
 
-A broad command can be useful later, but it should be designed deliberately.
+Verify:
 
-## Read-only versus write command
+- canonical command dispatch;
+- alias dispatch where applicable;
+- unknown-command behavior remains unchanged;
+- help output lists the command;
+- existing commands still resolve correctly.
 
-The first architectural decision is whether the command is read-only.
+Aliases are public behavior. Document and test every alias that is added.
 
-Read-only examples:
-Write examples:
-Write commands need extra care because they can change user files.
+## Command class responsibility
 
-## Recommended read-only flow
+The command class owns the CLI workflow:
 
-A read-only workspace command should usually follow this flow:
-Missing required command input should normally return:
-Workspace validation failure should normally return:
-## Recommended write flow
+1. parse and validate command-line arguments;
+2. create a specific input failure when syntax is incomplete;
+3. invoke the appropriate service layer operation;
+4. select rich, plain, or JSON rendering;
+5. map the result to the documented exit code.
 
-A write command should usually follow this flow:
-A write command should not save if:
+The command class should not become the implementation home for catalog loading, cross-catalog validation, persistence, backup discovery, or profile evaluation.
 
-- required arguments are missing,
-- the target cannot be found,
-- the new value is invalid,
-- validation fails,
-- safe write fails.
+Use `CommandInputError` or the established equivalent for missing or malformed command input. Do not use an unhandled exception for an ordinary missing argument.
 
-## Command name checklist
+## Service layer
 
-A command name should be:
+Reusable domain behavior belongs in the service layer.
 
-- lowercase,
-- stable,
-- easy to type,
-- easy to search,
-- specific enough to understand,
-- consistent with existing command names.
+A service should:
 
-Good:
-Weak:
-## Alias checklist
+- accept explicit inputs;
+- return structured results or issues;
+- avoid terminal rendering;
+- remain testable without launching the CLI;
+- preserve cancellation behavior;
+- keep expected failures separate from unexpected exceptions.
 
-Only add an alias when it clearly helps.
+The same service result should be usable by rich, plain, and JSON output paths.
 
-Existing aliases:
-Aliases are public behavior.
+Do not duplicate the same lookup, validation, or write algorithm inside several command classes.
 
-Every alias should be documented, tested, and kept compatible.
+## Workspace and validation behavior
 
-Do not add aliases for every personal preference.
+Decide whether the command requires a workspace and whether validation must happen before the operation.
 
-## Argument design
+Read-only commands that derive trusted catalog information should normally validate the workspace before presenting that information.
 
-Command arguments should be positional only when their meaning is obvious.
+Write commands should reject the operation before persistence when:
 
-Example:
-Example:
-Avoid ambiguous positional shapes such as:
-without clear documentation.
+- required input is missing;
+- the target does not exist;
+- the requested value is invalid;
+- the resulting catalog or workspace would be invalid;
+- the selected backup or catalog target is ambiguous.
 
-## Option design
+Do not save first and validate afterward as the primary safety mechanism.
 
-Options should start with:
-Examples:
-Options should be named for the user concept, not the implementation detail.
+## Read-only command flow
 
-Good:
-Weak:
-unless that is truly what users need.
+A typical read-only command follows:
 
-## Switches and values
+```text
+parse arguments
+→ resolve workspace
+→ load and validate
+→ call query service
+→ render selected output
+→ return exit code
+```
 
-A switch has no value:
-An option with value needs the next argument:
-Document whether an option is:
+Tests should cover:
 
-- required,
-- optional,
-- repeatable,
-- case-sensitive,
-- exact match,
-- substring match.
+- valid success;
+- missing arguments;
+- invalid workspace;
+- lookup not found where relevant;
+- filters or options;
+- rich, plain, and JSON contracts where supported;
+- canonical name and aliases.
 
-Current Setter options are intentionally simple.
+A valid query that returns zero matches may still be a successful command. Define that behavior explicitly.
 
-Keep that spirit unless a stronger parser is introduced.
+## Write command flow
 
-## Missing arguments
+A typical write command follows:
 
-A command should produce a specific issue when required arguments are missing.
+```text
+parse arguments
+→ resolve workspace
+→ load current data
+→ validate requested operation
+→ modify in memory
+→ validate resulting state
+→ safe-write one target file
+→ render result
+→ return exit code
+```
 
-Good issue code examples:
-A missing-argument issue should include:
+For successful writes, tests should verify:
 
-- clear message,
-- expected syntax,
-- useful path or context when applicable.
+1. the structured response;
+2. the persisted value after reloading;
+3. unrelated values remain unchanged;
+4. the expected timestamped backup exists;
+5. the workspace validates after the write.
 
-Expected exit code:
-## Invalid values
+For rejected writes, verify:
 
-Invalid command values should produce specific issue codes.
+1. the intended issue code;
+2. the target file remains unchanged;
+3. no backup is created;
+4. no partial success is reported.
 
-Examples:
-For existing edit commands, invalid edit values generally return:
-Follow existing behavior unless changing it deliberately.
+Setter persistence is a single-file operation. A new command must not imply a multi-file transaction unless such a transaction is explicitly implemented and tested.
 
-## Lookup failures
+## Argument and option design
 
-When a command looks up an error definition and cannot find it, use a specific issue.
+Use positional arguments only when their meaning is obvious from the syntax.
 
-Current issue:
-Do not invent inconsistent lookup behavior without a reason.
+Use explicit option names for optional behavior:
 
-## Exit code model
+```text
+--plain
+--json
+--profile
+--owner
+```
 
-Use the general Setter exit-code model:
-Exit codes are automation contracts.
+Document whether each option is:
 
-Do not change them casually.
+- optional or required;
+- a switch or value-bearing option;
+- repeatable;
+- case-sensitive;
+- an exact or partial match.
 
-## Validation first
+Follow existing option conventions. Do not add a second private mini-parser without a strong reason and tests.
 
-Commands that display derived workspace information should validate before rendering.
+## Exit codes and issue codes
 
-Recommended:
-Not recommended:
-A summary of invalid data can mislead users.
+Exit codes classify the process result broadly:
 
-## Write commands and validation
+```text
+0  success
+1  invalid command usage or arguments
+2  expected workspace, validation, lookup, authoring, persistence, or recovery failure
+3  unexpected top-level failure
+```
 
-Write commands should validate enough to avoid corrupting the catalog.
+An issue code explains the specific reason.
 
-A typical pattern is:
-Do not save first and ask validation questions later.
+For example, several failures may return exit code `2`, while their issue codes distinguish invalid workspace data, an unknown target, a rejected value, or a save failure.
 
-## Safe writes
+Tests should assert both the exit code and useful issue code when both are part of the contract.
 
-If a command writes JSON, it should use the safe-write workflow.
-
-Expected behavior:
-Do not use direct unsafe file replacement for catalog files.
-
-## Backups
-
-A successful edit to an existing catalog should create a backup.
-
-Backup shape:
-Example:
-If a new command writes a different catalog file, document its backup behavior.
-
-## Output design
-
-Decide whether the command needs:
-Most user-facing commands should report what happened.
-
-Automation-friendly commands should also provide stable exit codes.
+Do not change an existing exit code casually. Scripts may depend on it.
 
 ## Rich output
 
-Rich output is for humans.
+Rich output is the interactive human-facing surface.
 
-Use it for:
+Use it for readable tables, panels, summaries, and diagnostics. Keep domain logic out of Spectre.Console views.
 
-- tables,
-- headings,
-- summaries,
-- readable validation results.
-
-Do not make scripts depend on rich output.
+A rich renderer should receive a result or view model and render it. It should not load catalogs, decide persistence, or invent different command semantics.
 
 ## Plain output
 
-Plain output is simpler and line-oriented.
+`--plain` is simplified human-readable output.
 
-It is useful for:
+It should avoid terminal borders, color control sequences, and layout-dependent decoration. It remains presentation-oriented and is not a replacement for a stable machine schema.
 
-- copying,
-- redirecting,
-- simple scripts,
-- logs.
-
-Plain output is not currently JSON.
-
-If a command supports `--plain`, document exactly what it prints.
+Test meaningful text rather than incidental spacing unless formatting itself is the contract.
 
 ## JSON output
 
-If adding a future JSON output mode, treat it as a stronger contract.
+`--json` is the machine-readable surface.
 
-Define:
+When a command supports JSON, define and test:
 
-- supported commands,
-- exact schema,
-- success output,
-- failure output,
-- versioning,
-- tests,
-- documentation.
+- success schema;
+- failure schema;
+- issue representation;
+- field names and casing;
+- null and empty collection behavior;
+- exit-code relationship;
+- schema or contract version where applicable.
 
-Do not improvise JSON output casually.
+Parse JSON in tests and assert its structure. Do not compare it only as a whitespace-sensitive string.
 
-## Help output
+Machine consumers should use `--json` and process exit codes. They must not parse rich terminal rendering as a stable API.
 
-When adding a command, update help output.
+## Help and discoverability
 
-Help should include:
+Update the command help with:
 
-- command name,
-- short description,
-- syntax,
-- important aliases if any.
+- canonical name;
+- short purpose;
+- syntax;
+- important options;
+- aliases where applicable.
 
-Help is often the first documentation a user sees.
+A command hidden from help and documentation is not finished.
 
-## Documentation updates
+## Required documentation updates
 
-A new command usually needs updates to:
+At minimum, review and update:
 
-- Commands,
-- Command Quick Reference,
-- Documentation Map,
-- Architecture Overview if architectural behavior changes,
-- Maintainer Notes if it changes maintenance rules,
-- Testing and CI if it affects checks,
-- Troubleshooting if it introduces common failure modes.
+- `README.md` when the high-level command surface changes;
+- `Docs/Commands/en.md`;
+- `Docs/Command Quick Reference/en.md`;
+- the focused topic page for substantial behavior;
+- `Docs/Exit Codes and Automation/en.md` when automation behavior changes;
+- `Docs/Safe Writes/en.md` or `Docs/Backups and Recovery/en.md` for persistence changes;
+- `Docs/Architecture Overview/en.md` when layer boundaries change;
+- `IMPLEMENTATION_STATUS.md`.
 
-A command is not finished until users can discover how to use it.
+Important documentation behavior should receive a documentation-contract test under:
 
-## README updates
+```text
+Toolroom/WhenItFails/Setter.Tests/Docs
+```
 
-If the command requires a new documentation page, update both relevant README files.
+## Test structure
 
-Example:
-`- [Adding a New Command](Docs/Adding%20a%20New%20Command/en.md)`
-Actual path:
-Use URL-encoded spaces in Markdown links.
+Add tests immediately with the command change.
 
-## Test plan for a read-only command
+Use the narrowest useful layers:
 
-A read-only command should have tests for:
+- service tests for domain behavior;
+- command tests for argument, output, and exit-code behavior;
+- persistence tests for actual reloaded values and backups;
+- renderer tests for rich, plain, and JSON surfaces;
+- documentation tests for public usage claims.
 
-- success with valid workspace,
-- missing required path,
-- validation failure,
-- expected rendering model or output,
-- alias if one exists,
-- important options,
-- unknown or invalid option behavior if supported.
+Use isolated temporary workspaces for all mutating tests. Never modify the repository's real catalog workspace in a test.
 
-If the command searches or filters, test:
+## Cross-platform checks
 
-- match found,
-- no match found,
-- case behavior,
-- combined filters where applicable.
+Commands that use paths, processes, files, or shell examples must consider Windows and Linux.
 
-## Test plan for a write command
-
-A write command should have tests for:
-
-- successful write,
-- expected field changed,
-- unrelated fields preserved,
-- backup created,
-- missing arguments,
-- target not found,
-- invalid value rejected,
-- unsupported value rejected,
-- no backup for rejected input when applicable,
-- validation still passes after successful write.
-
-Use disposable workspaces.
-
-Do not mutate the real repository catalogs.
-
-## Smoke test
-
-After adding a command, run a manual smoke test.
-
-Example for read-only command:
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- <command> .
-Example for write command in a disposable workspace:
-test_root="$(mktemp -d /tmp/when-it-fails-command-XXXXXXXXXX)"
-
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- init "$test_root"
-
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- <new-command> "$test_root" ...
-
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- validate "$test_root"
-
-rm -rf "$test_root"
-PowerShell equivalent should be added to documentation when relevant.
-
-## Command implementation checklist
-
-Before implementation is considered done:
-
-- command is reachable from dispatch,
-- help mentions it,
-- missing arguments are handled,
-- invalid values are handled,
-- validation failure is handled,
-- success path returns `0`,
-- failure paths return expected codes,
-- issue codes are specific,
-- rich output is readable,
-- plain output exists if needed,
-- tests cover important paths,
-- docs are updated.
-
-## Example: adding a read-only command
-
-Imagine a future command:
-Purpose:
-Possible syntax:
-Expected flow:
-Expected failures:
-Documentation updates:
-
-- Commands,
-- Command Quick Reference,
-- Profiles,
-- Documentation Map.
-
-Tests:
-
-- lists profiles,
-- missing path,
-- invalid workspace,
-- plain output if supported.
-
-## Example: adding a write command
-
-Imagine a future command:
-Possible syntax:
-Expected flow:
-Expected issue codes could include:
-Documentation updates:
-
-- Commands,
-- Command Quick Reference,
-- Profiles,
-- Safe Writes,
-- Backups and Recovery if backup behavior differs.
-
-Tests:
-
-- successful description update,
-- backup created for profiles.json,
-- unknown profile rejected,
-- empty description rejected,
-- validation still passes.
-
-## Naming issue codes
-
-Issue code names should explain the problem.
-
-Good pattern:
-Examples:
-Avoid generic issue codes.
-
-## Adding command docs
-
-A command documentation page should usually include:
-
-- purpose,
-- syntax,
-- accepted paths,
-- examples,
-- options,
-- exit codes,
-- validation behavior,
-- output behavior,
-- automation notes,
-- troubleshooting notes,
-- related documentation.
-
-Keep examples copy-paste friendly.
-
-Include both Bash and PowerShell if the command is important for both platforms.
-
-## Updating quick reference
-
-The quick reference should include:
-
-- syntax,
-- one or two common examples,
-- expected exit codes,
-- important issue codes.
-
-Do not turn the quick reference into a duplicate full manual.
-
-It should remain compact.
-
-## Updating troubleshooting
-
-Add troubleshooting notes when the command can fail in ways users may not understand.
-
-Examples:
-
-- path confusion,
-- profile not found,
-- unsupported severity,
-- backup not created,
-- permission denied,
-- invalid workspace.
-
-Troubleshooting should explain what to check next.
-
-## Backward compatibility
-
-When adding a new command, compatibility risk is usually low.
-
-However, check for:
-
-- command name conflicts,
-- alias conflicts,
-- option name conflicts,
-- changes to existing command parsing,
-- changed help behavior,
-- changed exit codes,
-- changed validation timing.
-
-A new command should not break existing commands.
-
-## Do not add hidden behavior
-
-Avoid commands that silently:
-
-- rewrite unrelated files,
-- normalize whole catalogs unexpectedly,
-- delete backups,
-- delete temporary files,
-- rename stable IDs,
-- change profiles,
-- change severity defaults,
-- hide validation failures.
-
-If a command does one of these, it must be explicit, documented, and tested.
-
-## Platform checklist
-
-If the command handles paths or files, test on:
 Check:
 
-- spaces in paths,
-- path separators,
-- case sensitivity,
-- permissions,
-- file locks,
-- temporary directories,
-- line endings where relevant.
+- spaces in paths;
+- path separators and casing assumptions;
+- permissions and file locking;
+- temporary-directory behavior;
+- Bash and PowerShell quoting;
+- `$?` and `$LASTEXITCODE` examples;
+- line-ending assumptions.
 
-## Security checklist
+Do not weaken a correct contract merely to hide a platform-specific defect.
 
-If the command prints or writes user-provided values, ensure it does not accidentally expose:
+## Security review
 
-- secrets,
-- tokens,
-- connection strings,
-- stack traces,
-- private paths,
-- sensitive metadata.
+A command that renders or writes user-provided data must not expose or persist unintended:
 
-Documentation examples should use safe placeholder values.
+- credentials or tokens;
+- connection strings;
+- private paths;
+- stack traces in normal user-facing output;
+- sensitive metadata;
+- raw internal exceptions as structured success data.
 
-## Review checklist
+Use safe placeholder values in tests and documentation.
 
-A reviewer should check:
+## Verification gate
 
-- command purpose is clear,
-- command name is appropriate,
-- argument order is intuitive,
-- exit codes match conventions,
-- issue codes are useful,
-- validation behavior is safe,
-- write behavior uses safe writes,
-- tests cover success and failure,
-- docs are updated,
-- existing commands are not broken.
+Run the focused Setter suite:
 
-## Final check
+```powershell
+dotnet test Toolroom/WhenItFails/Setter.Tests
+```
 
-Before committing a new command:
-dotnet build
+Run broader repository tests when the command changes shared libraries, public runtime contracts, package wiring, or cross-project integrations:
 
+```powershell
 dotnet test
+```
 
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- validate .
+For catalog or documentation behavior, also run the relevant checks:
 
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- validate .
+dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-keys .
+dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .
 git diff --check
+```
 
-git status --short
-PowerShell:
-dotnet build
+## Final command checklist
 
-dotnet test
+Before the command is complete, confirm:
 
-dotnet run `
-  --project Toolroom/WhenItFails/Setter `
-  -- validate .
+- [ ] the command has one clear purpose;
+- [ ] canonical dispatch and aliases are tested;
+- [ ] missing and invalid arguments are handled;
+- [ ] service behavior is independent of rendering;
+- [ ] success and expected failures return documented exit codes;
+- [ ] useful issue codes identify specific failures;
+- [ ] rich output is readable;
+- [ ] `--plain` is tested where supported;
+- [ ] `--json` has a parsed structural test where supported;
+- [ ] successful writes reload correctly and create expected backups;
+- [ ] rejected writes preserve the target and create no backup;
+- [ ] help and command references are updated;
+- [ ] `README.md` and focused documentation remain aligned;
+- [ ] `IMPLEMENTATION_STATUS.md` records the completed step;
+- [ ] the complete Git diff was reviewed;
+- [ ] the focused Setter suite is green.
 
-git diff --check
+## Stop rule
 
-git status --short
-## Commit message
+> Do not start the next command while the focused Setter suite is red.
 
-Good:
-Weak:
+Complete one command-sized green step, document it, commit it, and only then continue.
+
 ## Related documentation
 
 - [Architecture Overview](../Architecture%20Overview/en.md)
-- [Maintainer Notes](../Maintainer%20Notes/en.md)
 - [Contributing to Setter](../Contributing%20to%20Setter/en.md)
-- [Command Quick Reference](../Command%20Quick%20Reference/en.md)
-- [Exit Codes and Automation](../Exit%20Codes%20and%20Automation/en.md)
 - [Testing and CI](../Testing%20and%20CI/en.md)
+- [Exit Codes and Automation](../Exit%20Codes%20and%20Automation/en.md)
+- [Commands](../Commands/en.md)
+- [Command Quick Reference](../Command%20Quick%20Reference/en.md)
 - [Safe Writes](../Safe%20Writes/en.md)
 - [Backups and Recovery](../Backups%20and%20Recovery/en.md)
-- [Troubleshooting](../Troubleshooting/en.md)
 
 ## Central principle
 
-> A new command is done when it is reachable, tested, documented, safe on failure, and boring enough that automation can trust it.
+> A new command is complete only when users, services, automation, tests, documentation, and the continuation status all describe the same behavior.
