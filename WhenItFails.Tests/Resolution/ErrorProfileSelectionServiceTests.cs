@@ -147,10 +147,27 @@ public sealed class ErrorProfileSelectionServiceTests
     }
 
     [Fact]
-    public void ResolveByProfileName_ShouldReturnSuccessfulEmptyCollection_WhenProfileMatchesNoErrors()
+    public void ResolveByProfileName_ShouldResolveErrors_WhenDisplayNameMatches()
     {
         ErrorProfileSelectionService service = CreateService();
 
+        Response<IReadOnlyList<ErrorDefinition>> response =
+            service.ResolveByProfileName(
+                CreateContext(),
+                "Web API");
+
+        Assert.True(response.IsSuccess);
+        Assert.NotNull(response.Data);
+
+        ErrorDefinition error = Assert.Single(response.Data);
+
+        Assert.Equal("AFW-WEB-0001", error.Id);
+    }
+
+    [Fact]
+    public void ResolveByProfileName_ShouldReturnSuccessfulEmptyCollection_WhenProfileMatchesNoErrors()
+    {
+        ErrorProfileSelectionService service = CreateService();
         ErrorCatalogContext context = CreateContext();
 
         context.ProfileCatalog.Profiles.Add(
