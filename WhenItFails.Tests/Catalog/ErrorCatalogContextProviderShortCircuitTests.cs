@@ -57,6 +57,22 @@ public sealed class ErrorCatalogContextProviderShortCircuitTests
         Assert.Equal("CodeGroupCatalogUnavailable", Assert.Single(response.Issues).Code);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldNotCallProfileProvider_WhenOwnerCatalogProviderFails()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new SuccessfulCategoryCatalogProvider(),
+            new SuccessfulCodeGroupCatalogProvider(),
+            new FailingOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal("OwnerCatalogUnavailable", Assert.Single(response.Issues).Code);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -171,6 +187,50 @@ public sealed class ErrorCatalogContextProviderShortCircuitTests
             return Task.FromResult(Response<ErrorCodeGroupCatalogProviderPayload>.Invalid(
                 code: "CodeGroupCatalogUnavailable",
                 message: "Code-group catalog is unavailable."));
+        }
+    }
+
+    private sealed class SuccessfulCodeGroupCatalogProvider : IErrorCodeGroupCatalogProvider
+    {
+        public Task<Response<ErrorCodeGroupCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorCodeGroupCatalogProviderPayload>.Ok(
+                new ErrorCodeGroupCatalogProviderPayload
+                {
+                    Document = new ErrorCodeGroupCatalogDocument
+                    {
+                        CodeGroups =
+                        [
+                            new ErrorCodeGroupDefinition
+                            {
+                                Name = "GENERAL",
+                                DisplayName = "General",
+                                CodePrefix = "GEN",
+                                CodeFrom = 100000,
+                                CodeTo = 199999
+                            }
+                        ]
+                    },
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
+    private sealed class FailingOwnerCatalogProvider : IErrorOwnerCatalogProvider
+    {
+        public Task<Response<ErrorOwnerCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorOwnerCatalogProviderPayload>.Invalid(
+                code: "OwnerCatalogUnavailable",
+                message: "Owner catalog is unavailable."));
         }
     }
 
