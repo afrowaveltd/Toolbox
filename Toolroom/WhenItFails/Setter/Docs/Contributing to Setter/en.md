@@ -115,6 +115,8 @@ dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-keys .
 dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .
 ```
 
+Use `check-doc-keys` to verify documentation-key quality and `check-doc-links` to verify local Markdown links.
+
 Inspect affected definitions, references, profiles, mappings, backups, and restore behavior with the relevant Setter commands rather than relying only on raw JSON.
 
 ## Documentation structure
