@@ -20,9 +20,9 @@ Implemented areas include:
 
 ## Verification status
 
-The latest user-verified Setter test run reported **5,028 passed, 1 failed, 0 skipped** out of **5,029 tests**. The only failure was the documentation continuation-point contract itself; runtime and command behavior were green.
+The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 skipped**. The complete Setter suite is green after restoring the implementation-status continuation-point contract.
 
-- Setter focused baseline before the full run: **1,241 tests user-verified green** after normalized `errors --profile` and `show-profile --json` command-boundary contracts.
+- Setter complete suite: **5,029 tests user-verified green**.
 - Runtime `ErrorProfileSelectionServiceTests`: **10 focused tests user-verified green**.
 - Runtime `ErrorCatalogRuntimeProfileDisplayNameTests`: **1 focused test user-verified green**.
 - Runtime `ErrorProfileResolverTests`: **19 focused tests user-verified green**, including mapping-selection invariance.
@@ -31,12 +31,13 @@ The latest user-verified Setter test run reported **5,028 passed, 1 failed, 0 sk
 - Runtime `ErrorProfileDefinitionNormalizerTests`: **10 focused tests user-verified green** after independent metadata, mapping, and selector-list copy semantics.
 - Runtime `ErrorProfileCatalogDocumentNormalizerTests`: **8 focused tests user-verified green** after independent catalog metadata, profile collection, profile instance, and tag copy semantics.
 - Runtime `ErrorProfileCatalogProviderTests`: **10 focused tests user-verified green**, including loader-to-provider payload isolation.
-- Runtime `ErrorCatalogContextProviderProfileReferenceTests`: **1 focused test user-verified green** for direct reuse of all validated provider documents, the runtime error catalog, and a newly computed combined `CrossValidationResult`.
+- Runtime `ErrorCatalogContextProviderProfileReferenceTests`: **1 focused test user-verified green** for direct reuse of validated provider outputs and a newly computed combined `CrossValidationResult`.
+- Current short-circuit slice adds one focused `ErrorCatalogContextProviderShortCircuitTests` contract. This test is not yet user-verified.
 
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderProfileReferenceTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderShortCircuitTests
 ```
 
 Primary Setter verification command:
@@ -95,6 +96,7 @@ Completed audit slices:
 15. `ErrorCatalogContextProvider` intentionally aggregates already normalized and validated provider outputs without a second deep copy.
 16. The aggregation contract covers `ErrorCatalog`, `ErrorCatalogDocument`, category, code-group, owner, and profile documents.
 17. The final context receives a newly computed cross-catalog validation result rather than reusing any provider-local validation result.
+18. The current focused contract protects failure short-circuiting at the first provider boundary: if the error catalog provider fails, category, code-group, owner, and profile providers must not be invoked.
 
 ## Current intentional boundaries
 
@@ -125,23 +127,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First rerun the focused documentation contract, then the complete Setter suite.
+First verify `ErrorCatalogContextProviderShortCircuitTests`.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-After the suite is green, inspect externally observable context behavior next. Prefer stable provider call ordering or failure short-circuiting after reviewing the existing `ErrorCatalogContextProviderTests`; do not continue ownership checks without a concrete gap.
+If green, extend short-circuit coverage by one adjacent provider boundary only, preferably category-provider failure, while preserving source status and issue code.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The twentieth runtime/public-API audit slice extended the context aggregation test with cross-validation ownership. Provider documents and the runtime error catalog are intentionally reused, while `CrossValidationResult` must be a new result produced by validating the complete combined context.
+The twenty-first runtime/public-API audit slice added a focused failure short-circuit contract for `ErrorCatalogContextProvider`. It verifies that failure of the first error-catalog provider prevents every later provider from running and preserves the source issue code.
 
-The follow-up documentation repair restored all stable continuation-point phrases required by `ImplementationStatusDocumentationTests` after the status file had been compacted during incremental updates.
-
-Commits in this change sequence:
+Commit in this change sequence:
 
 ```text
-d82053a32207d4ea0ed4734b919bb46a48aba6a7
-Protect context cross-validation ownership
+085e9bf29971bed7c1b95a3c35b595c9a23c5277
+Protect context provider failure short circuit
 ```
