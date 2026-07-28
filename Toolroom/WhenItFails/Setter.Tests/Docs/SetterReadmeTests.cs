@@ -19,6 +19,27 @@ public sealed class SetterReadmeTests
             StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Readme_DescribesCurrentAuthoringScope()
+    {
+        string readme = File.ReadAllText(GetReadmePath());
+
+        Assert.Contains("add-error", readme, StringComparison.Ordinal);
+        Assert.Contains("remove-error", readme, StringComparison.Ordinal);
+        Assert.Contains("restore-backup", readme, StringComparison.Ordinal);
+        Assert.Contains("profile-set-default-mapping", readme, StringComparison.Ordinal);
+        Assert.Contains("check-doc-links", readme, StringComparison.Ordinal);
+        Assert.Contains("check-doc-keys", readme, StringComparison.Ordinal);
+        Assert.Contains(
+            "complete day-to-day authoring workflow",
+            readme,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain(
+            "Setter currently edits selected presentation and diagnostic fields",
+            readme,
+            StringComparison.Ordinal);
+    }
+
     private static string GetReadmePath(
         [CallerFilePath] string sourceFilePath = "")
     {
