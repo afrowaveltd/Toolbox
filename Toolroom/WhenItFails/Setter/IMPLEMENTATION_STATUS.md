@@ -21,10 +21,9 @@ The current implementation supports:
 
 ## Verification status
 
-The latest user-verified Setter test run is green after adding this implementation-status document.
-That run contained 1,225 tests.
+The latest user-verified Setter test run is green with 1,226 tests after the implementation-status test was made resilient.
 
-The current Testing and CI documentation change adds one documentation-contract test, so the next successful focused run is expected to report 1,226 tests.
+The current catalog-review documentation change adds one documentation-contract test, so the next successful focused run is expected to report 1,227 tests.
 Do not mark that count as user-verified until the run is confirmed green.
 
 Primary verification command:
@@ -54,11 +53,14 @@ The following high-level Setter documents have been synchronized with the curren
 - `Docs/Roadmap and Future Work/en.md`;
 - `Docs/Getting-Started/en.md`;
 - `Docs/FAQ/en.md`;
-- `Docs/Testing and CI/en.md`.
+- `Docs/Testing and CI/en.md`;
+- `Docs/Reviewing Catalog Changes/en.md`.
 
 The synchronized documentation no longer presents implemented capabilities such as `add-error`, `remove-error`, `next-code`, `restore-backup`, JSON output, profile explanation, or documentation checks as missing or future work.
 
-The Testing and CI guide now documents the current verification strategy rather than the early narrow set of text-edit tests. It covers focused and repository-wide runs, service and command contracts, temporary workspaces, persistence and backup invariants, rich/plain/JSON output, exit codes, documentation checks, failure diagnosis, and the rule that each change receives an immediate corresponding test.
+The Testing and CI guide documents focused and repository-wide runs, service and command contracts, temporary workspaces, persistence and backup invariants, rich/plain/JSON output, exit codes, documentation checks, failure diagnosis, and the immediate one-change/one-test rule.
+
+The catalog review guide now provides a practical review gate for scope, working-tree inspection, validation, reference checks, profiles and mappings, documentation checks, output contracts, safe-write invariants, focused tests, and the rule that red changes are not approved.
 
 ## Current intentional boundaries
 
@@ -89,22 +91,24 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify the current focused Setter run and record whether the expected 1,226 tests are green.
+First verify the current focused Setter run and record whether the expected 1,227 tests are green.
 
-After that, continue the documentation audit with `Docs/Reviewing Catalog Changes/en.md` and one corresponding documentation test. This is the next high-value maintainer workflow because it should align catalog review with current commands, documentation checks, backups, JSON output, and the narrow-change testing discipline.
+Next documentation target: `Docs/Catalog Author Checklist/en.md` with one corresponding documentation-contract test.
+
+That guide should align the author workflow with `reference`, `next-code`, `suggest-doc-key`, `add-error`, focused edits, `details`, `error-references`, profile explanation, documentation checks, focused tests, Git diff review, and implementation-status maintenance.
 
 After the remaining high-value documentation is synchronized, begin a runtime/public-API audit of WhenItFails integration points, mappings, and profile behavior.
 
 ## Last completed change
 
-`Docs/Testing and CI/en.md` was replaced with a concise current maintainer guide, and `TestingAndCiDocumentationTests.cs` now protects the focused verification command, one-change/one-test workflow, temporary-workspace isolation, persistence and backup checks, output modes, exit codes, documentation checks, and the red-test stop rule.
+`Docs/Reviewing Catalog Changes/en.md` was replaced with a concise current review workflow, and `ReviewingCatalogChangesDocumentationTests.cs` now protects its validation gate, reference checks, profile explanation, documentation checks, output contracts, backup review, focused-commit rule, and red-change stop rule.
 
 Commits in this change sequence:
 
 ```text
-226d31690fbe1d2e4efc4ac2f6942faf5b381981
-Refresh Setter testing and CI guide
+dc39a8d75e5de6957fa0691a4c0ab3ba342ed8ff
+Add catalog review documentation contract
 
- eb8e505663f5fb9ca2b4754c9d50875b672ed1f3
-Refresh Setter testing and CI guide
+fdb5fa062885ebb17922991e883e142757fdfc5e
+Refresh catalog change review guide
 ```
