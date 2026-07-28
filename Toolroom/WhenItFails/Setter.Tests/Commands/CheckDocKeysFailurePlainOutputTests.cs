@@ -51,7 +51,7 @@ public sealed class CheckDocKeysFailurePlainOutputTests
                 {
                     Ansi = AnsiSupport.No,
                     ColorSystem = ColorSystemSupport.NoColors,
-                    Out = new AnsiConsoleOutput(output)
+                    Out = new FixedWidthAnsiConsoleOutput(output, width: 240)
                 });
 
             int exitCode = await CheckDocKeysCommand.ExecuteAsync(args);
@@ -61,6 +61,21 @@ public sealed class CheckDocKeysFailurePlainOutputTests
         {
             Console.SetOut(originalOutput);
             AnsiConsole.Console = originalConsole;
+        }
+    }
+
+    private sealed class FixedWidthAnsiConsoleOutput(TextWriter writer, int width) : IAnsiConsoleOutput
+    {
+        public TextWriter Writer { get; } = writer;
+
+        public bool IsTerminal => false;
+
+        public int Width { get; } = width;
+
+        public int Height => 100;
+
+        public void SetEncoding(System.Text.Encoding encoding)
+        {
         }
     }
 }
