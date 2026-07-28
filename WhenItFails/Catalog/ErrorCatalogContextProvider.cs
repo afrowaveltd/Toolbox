@@ -136,6 +136,8 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
             return CreateNullPayloadResponse();
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         ErrorCatalogCrossValidator crossValidator = new();
 
         ErrorCatalogValidationResult crossValidationResult = crossValidator.Validate(
