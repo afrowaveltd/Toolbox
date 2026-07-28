@@ -171,7 +171,7 @@ Inspect the profile:
 dotnet run --project Toolroom/WhenItFails/Setter -- show-profile . WEB
 ```
 
-Explain its effective selection:
+Use `explain-profile` to review its effective selection and the reasons errors are included or excluded:
 
 ```powershell
 dotnet run --project Toolroom/WhenItFails/Setter -- explain-profile . WEB
