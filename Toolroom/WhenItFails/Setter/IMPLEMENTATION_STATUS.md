@@ -26,8 +26,8 @@ Implemented areas include:
 - Runtime `ErrorProfileResolverTests`: **19 focused tests user-verified green**, including mapping-selection invariance.
 - Runtime `ErrorProfileCatalogProviderMetadataTests`: **1 focused test user-verified green**.
 - Runtime `ErrorCatalogContextProfileMetadataIntegrationTests`: **1 focused test user-verified green**, including writer/loader round-trip, provider/context preservation, metadata values, and normalized mappings.
-- Runtime `ErrorProfileDefinitionNormalizerTests`: **7 focused tests user-verified green** after independent `MetadataBag` copy semantics.
-- Current mapping-ownership slice adds one focused normalizer test, so the next successful focused run is expected to report **8 tests**.
+- Runtime `ErrorProfileDefinitionNormalizerTests`: **9 focused tests user-verified green** after independent metadata and mapping copy semantics.
+- Current selector-list ownership slice adds one focused normalizer test, so the next successful focused run is expected to report **10 tests**.
 
 Focused verification command for the current slice:
 
@@ -77,7 +77,8 @@ Completed audit slices:
 6. Profile metadata survives JSON load, normalization, validation, provider payload creation, safe writer/loader round-trip, and final `ErrorCatalogContext` construction.
 7. `MetadataBag` keys are case-insensitive only; separator normalization is intentionally not applied.
 8. `ErrorProfileDefinitionNormalizer` creates an independent `MetadataBag` copy. Mutating a normalized profile does not mutate the source definition.
-9. The current focused contract verifies the same mutable-state isolation for `DefaultMappings`; normalized keys and trimmed values must be preserved without sharing the source dictionary.
+9. `DefaultMappings` are also independently copied and normalized without sharing mutable state with the source profile.
+10. The current focused contract verifies mutation isolation for all profile selector lists while preserving their normalized values.
 
 ## Current intentional boundaries
 
@@ -108,19 +109,19 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify all focused `ErrorProfileDefinitionNormalizerTests`; the expected count is **8 green tests**.
+First verify all focused `ErrorProfileDefinitionNormalizerTests`; the expected count is **10 green tests**.
 
-If green, record the result and audit one adjacent ownership boundary: verify mutation isolation for one selector list, preferably `IncludeOwners`, without combining all selector collections into one change.
+If green, the profile-normalizer ownership audit is complete. Continue with one narrow audit of document-level ownership in `ErrorProfileCatalogDocumentNormalizer`, ensuring normalized profile collections do not share mutable list instances with the source document.
 
 Do not invent automatic `DefaultMappings` consumption. Inspect current source and tests before implementation.
 
 ## Last completed change
 
-The twelfth runtime/public-API audit slice added an explicit mutation-isolation contract for `DefaultMappings`. The implementation already creates a normalized dictionary copy, so no production change was required.
+The thirteenth runtime/public-API audit slice added an explicit mutation-isolation contract for all profile selector lists. The implementation already creates normalized list copies through `NormalizeStringList`, so no production change was required.
 
 Commits in this change sequence:
 
 ```text
-89cc02753d4723e31a1fa51c53bef6f562b3786c
-Protect profile mapping copy isolation
+454de86e049ab45ccacfde1d797724b085b7e0ed
+Protect normalized profile selector isolation
 ```
