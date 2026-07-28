@@ -32,7 +32,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorProfileCatalogDocumentNormalizerTests`: **8 focused tests user-verified green** after independent catalog metadata, profile collection, profile instance, and tag copy semantics.
 - Runtime `ErrorProfileCatalogProviderTests`: **10 focused tests user-verified green**, including loader-to-provider payload isolation.
 - Runtime `ErrorCatalogContextProviderProfileReferenceTests`: **1 focused test user-verified green** for direct reuse of validated provider outputs and a newly computed combined `CrossValidationResult`.
-- Current short-circuit slice adds one focused `ErrorCatalogContextProviderShortCircuitTests` contract. This test is not yet user-verified.
+- Runtime `ErrorCatalogContextProviderShortCircuitTests`: **1 focused test user-verified green** for first-provider failure short-circuiting.
+- Current category-provider short-circuit slice adds one focused test, so the next successful focused run is expected to report **2 tests**.
 
 Focused verification command for the current slice:
 
@@ -96,7 +97,8 @@ Completed audit slices:
 15. `ErrorCatalogContextProvider` intentionally aggregates already normalized and validated provider outputs without a second deep copy.
 16. The aggregation contract covers `ErrorCatalog`, `ErrorCatalogDocument`, category, code-group, owner, and profile documents.
 17. The final context receives a newly computed cross-catalog validation result rather than reusing any provider-local validation result.
-18. The current focused contract protects failure short-circuiting at the first provider boundary: if the error catalog provider fails, category, code-group, owner, and profile providers must not be invoked.
+18. Failure of the first error-catalog provider prevents category, code-group, owner, and profile providers from running and preserves the source issue code.
+19. The current focused contract extends the same short-circuit guarantee to category-provider failure: the error provider runs successfully, category failure is preserved, and code-group, owner, and profile providers must not be invoked.
 
 ## Current intentional boundaries
 
@@ -127,21 +129,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderShortCircuitTests`.
+First verify `ErrorCatalogContextProviderShortCircuitTests`; the expected count is **2 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, extend short-circuit coverage by one adjacent provider boundary only, preferably category-provider failure, while preserving source status and issue code.
+If green, extend short-circuit coverage by one adjacent provider boundary only, preferably code-group-provider failure, while preserving source status and issue code.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The twenty-first runtime/public-API audit slice added a focused failure short-circuit contract for `ErrorCatalogContextProvider`. It verifies that failure of the first error-catalog provider prevents every later provider from running and preserves the source issue code.
+The twenty-second runtime/public-API audit slice extended context failure short-circuit coverage to the category provider. It verifies successful completion of the first provider, preservation of the category provider's failure issue, and suppression of every later provider call.
 
 Commit in this change sequence:
 
 ```text
-085e9bf29971bed7c1b95a3c35b595c9a23c5277
-Protect context provider failure short circuit
+71dc44c47af23385fcdb9780e5eb97acd04f3d86
+Protect category provider short circuit
 ```
