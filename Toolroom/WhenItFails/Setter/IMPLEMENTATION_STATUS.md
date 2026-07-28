@@ -27,8 +27,8 @@ Implemented areas include:
 - Runtime `ErrorProfileCatalogProviderMetadataTests`: **1 focused test user-verified green**.
 - Runtime `ErrorCatalogContextProfileMetadataIntegrationTests`: **1 focused test user-verified green**, including writer/loader round-trip, provider/context preservation, metadata values, and normalized mappings.
 - Runtime `ErrorProfileDefinitionNormalizerTests`: **10 focused tests user-verified green** after independent metadata, mapping, and selector-list copy semantics.
-- Runtime `ErrorProfileCatalogDocumentNormalizerTests`: **6 focused tests user-verified green** after independent catalog metadata copy semantics.
-- Current profile-collection ownership slice adds one focused document-normalizer test, so the next successful focused run is expected to report **7 tests**.
+- Runtime `ErrorProfileCatalogDocumentNormalizerTests`: **7 focused tests user-verified green** after independent catalog metadata, profile collection, and profile instance copy semantics.
+- Current catalog-tag ownership slice adds one focused document-normalizer test, so the next successful focused run is expected to report **8 tests**.
 
 Focused verification command for the current slice:
 
@@ -81,7 +81,8 @@ Completed audit slices:
 9. `DefaultMappings` are independently copied and normalized.
 10. All profile selector lists are independently copied and normalized.
 11. `ErrorProfileCatalogDocumentNormalizer` copies catalog metadata instead of sharing mutable state with the source document.
-12. The current focused contract verifies that the normalized `Profiles` collection and every normalized profile instance are independent from the source catalog. Mutating normalized profile values, nested selector lists, or the normalized collection must not affect the source document.
+12. The normalized `Profiles` collection and each normalized profile instance are independent from the source catalog.
+13. The current focused contract verifies the same mutation isolation for catalog `Tags`, while preserving normalized and de-duplicated values.
 
 ## Current intentional boundaries
 
@@ -112,19 +113,19 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify all focused `ErrorProfileCatalogDocumentNormalizerTests`; the expected count is **7 green tests**.
+First verify all focused `ErrorProfileCatalogDocumentNormalizerTests`; the expected count is **8 green tests**.
 
-If green, the profile-catalog ownership audit is complete. Continue with one adjacent runtime/public-API boundary only after inspecting the current source and existing tests; prefer a concrete provider or context behavior over broad refactoring.
+If green, the profile-catalog ownership audit is complete. Continue with one adjacent runtime/public-API boundary only after inspecting current provider and context source plus existing tests; prefer a concrete externally observable behavior over broad refactoring.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The fifteenth runtime/public-API audit slice added an explicit mutation-isolation contract for the normalized profile collection. The implementation already creates a new list and new normalized profile instances, so no production change was required.
+The sixteenth runtime/public-API audit slice added an explicit mutation-isolation contract for catalog tags. The implementation already creates a normalized list copy through `NormalizeStringList`, so no production change was required.
 
 Commits in this change sequence:
 
 ```text
-2b6b3ba56bba1b308c680df1d39291ef19911ba9
-Protect normalized profile collection isolation
+c3571f5fb71fcd984eb455ef099e9994e9d622e0
+Protect profile catalog tag copy isolation
 ```
