@@ -1,849 +1,321 @@
 # Reviewing Catalog Changes
 
-This guide explains how to review changes to WhenItFails catalog files.
+This guide describes the current review workflow for changes to WhenItFails catalogs, Setter documentation, and the commands that maintain them.
 
-It is intended for maintainers, pull-request reviewers, and catalog authors who want to catch mistakes before they become stable public references.
+Catalog entries are public contracts. A small JSON diff can affect runtime lookup, logs, dashboards, support procedures, documentation, profiles, mappings, and released consumers.
 
-Catalog changes can look small in Git, but they may affect code, logs, documentation, support, automation, and runtime behavior.
+> Review the contract, not only the JSON diff.
 
-## Main principle
+## Review order
 
-Review catalog changes as contracts, not as ordinary text edits.
+Use this order:
 
-A good review checks:
+1. confirm the change has one clear purpose;
+2. inspect the exact diff and untracked files;
+3. validate the workspace;
+4. inspect affected catalog relationships;
+5. run documentation checks when documentation or keys are involved;
+6. run the focused Setter tests;
+7. review persisted values, backups, and output contracts;
+8. approve only when the change is green and understandable.
 
-```text
-meaning
-stability
-safety
-references
-validation
-documentation
-diff cleanliness
-```
+## One logical change per commit
 
-## Files commonly reviewed
+One logical change per commit is the default rule.
 
-Catalog changes usually affect files under:
+Do not mix:
 
-```text
-Jsons/WhenItFails
-```
+- unrelated catalog edits;
+- broad JSON reformatting;
+- generated backup files;
+- temporary diagnostics;
+- documentation cleanup unrelated to the behavior change;
+- multiple independent command changes.
 
-Common files:
+A narrow diff is easier to explain, test, review, revert, and recover.
 
-```text
-errors.en.json
-categories.en.json
-code-groups.en.json
-owners.en.json
-profiles.json
-```
+## Inspect the working tree first
 
-Documentation changes usually affect:
+From the repository root:
 
-```text
-Toolroom/WhenItFails/Setter/Docs
-```
-
-Some changes may also affect:
-
-- source code,
-- tests,
-- README files,
-- release notes,
-- examples,
-- scripts.
-
-## Start with validation
-
-Before reviewing details, run:
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- validate .
-```
-
-Expected successful exit code:
-
-```text
-0
-```
-
-If validation fails, review should usually stop until the catalog is fixed.
-
-## Run tests
-
-Run:
-
-```bash
-dotnet build
-
-dotnet test
-```
-
-Catalog changes can affect tests, examples, and command behavior.
-
-Do not assume JSON-only changes are isolated.
-
-## Review whitespace and formatting
-
-Run:
-
-```bash
+```powershell
+git status --short
 git diff --check
-```
-
-This catches common whitespace problems such as trailing spaces.
-
-Then review the changed files:
-
-```bash
-git diff -- Jsons/WhenItFails
-```
-
-If docs changed:
-
-```bash
-git diff -- Toolroom/WhenItFails/Setter/Docs
-```
-
-## Review scope
-
-Ask:
-
-- Is this change focused?
-- Does the commit do one logical thing?
-- Are unrelated formatting changes mixed in?
-- Are generated backup files accidentally included?
-- Are temporary files accidentally included?
-- Are docs and catalogs changed together for a reason?
-
-A focused diff is easier to trust.
-
-## Watch for accidental backup files
-
-Setter may create backup files such as:
-
-```text
-errors.en.20260627-095820-480.bak.json
-```
-
-These should usually not be committed.
-
-Check:
-
-```bash
-git status --short
-```
-
-If backup files appear, review carefully before staging.
-
-Usually they should remain local recovery files.
-
-## Reviewing a new error definition
-
-When a new error is added, check:
-
-```text
-id
-code
-name
-owner
-codePrefix
-codeGroup
-primaryCategory
-categories
-subcategories
-title
-message
-defaultSeverity
-developerHint
-documentationKey
-tags
-metadata
-```
-
-Then inspect it:
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- details . NEW_ERROR_ID
-```
-
-Use the actual new ID.
-
-## New error checklist
-
-Confirm:
-
-```text
-ID is unique
-numeric code is unique
-numeric code fits the code-group range
-owner exists
-code group exists
-code prefix matches the code group
-primary category exists
-categories exist
-severity is canonical
-title is short and clear
-message is safe and neutral
-developer hint is useful and safe
-documentation key is stable
-tags are intentional
-metadata is necessary
-```
-
-## Reviewing a changed error title
-
-A title should be:
-
-- short,
-- specific,
-- neutral,
-- readable,
-- not a full diagnostic paragraph,
-- usually without a final period.
-
-Good:
-
-```text
-Network unavailable
-```
-
-Weak:
-
-```text
-The network request failed because DNS, firewall, proxy, or VPN settings may be wrong.
-```
-
-That belongs in message, hint, or documentation.
-
-## Reviewing a changed error message
-
-A message should be:
-
-- a complete sentence,
-- safe to display,
-- reusable,
-- neutral,
-- not blaming the user,
-- not claiming an unproven cause.
-
-Good:
-
-```text
-The network is unavailable.
-```
-
-Weak:
-
-```text
-Your internet is broken.
-```
-
-Weak:
-
-```text
-The firewall blocked the request.
-```
-
-unless the firewall cause is actually known.
-
-## Reviewing a developer hint
-
-A developer hint should be:
-
-- actionable,
-- technical,
-- safe,
-- concise,
-- not a secret store,
-- not a stack trace.
-
-Good:
-
-```text
-Check connectivity, DNS, firewall, proxy, VPN, and host availability.
-```
-
-Weak:
-
-```text
-Fix it.
-```
-
-Dangerous:
-
-```text
-Try the production password from the deployment notes.
-```
-
-## Reviewing severity changes
-
-Supported values:
-
-```text
-Trace
-Debug
-Information
-Warning
-Error
-Critical
-```
-
-Check that severity reflects operational impact, not emotion.
-
-Ask:
-
-- Did the operation fail?
-- Can the system continue?
-- Is data safety affected?
-- Is security affected?
-- Is availability affected?
-- Is this user-facing or diagnostic only?
-
-Severity changes may affect logging, alerting, dashboards, and support triage.
-
-## Reviewing documentation keys
-
-A documentation key should be:
-
-- stable,
-- predictable,
-- lowercase where convention expects it,
-- not a local filesystem path,
-- not a temporary URL,
-- not secret.
-
-Good:
-
-```text
-when-it-fails/errors/network/network-unavailable
-```
-
-Weak:
-
-```text
-C:\Users\Me\Desktop\notes.md
-```
-
-Weak:
-
-```text
-http://localhost:5000/test
-```
-
-## Reviewing user-visible errors
-
-If an error is tagged or intended as user-visible, check that it does not expose:
-
-- secrets,
-- tokens,
-- credentials,
-- stack traces,
-- private paths,
-- internal hostnames,
-- raw SQL,
-- customer identifiers,
-- sensitive metadata.
-
-User-visible should be clear, not reckless.
-
-## Reviewing production-facing profiles
-
-Profiles such as:
-
-```text
-PRODUCTION
-WEB
-API
-```
-
-may affect what users or external systems see.
-
-Check:
-
-- included owners,
-- included code groups,
-- included categories,
-- include tags,
-- exclude tags,
-- default mappings,
-- exception-detail policy,
-- stack-trace policy,
-- sensitive metadata policy.
-
-Remember that current Setter profile browsing uses simplified filtering.
-
-Runtime code must still enforce production safety.
-
-## Reviewing a new category
-
-Check:
-
-```text
-name
-displayName
-description
-aliases
-parentCategories
-defaultTags
-defaultMappings
-```
-
-Ask:
-
-- Is the category stable?
-- Is it broad enough to reuse?
-- Is it specific enough to mean something?
-- Does an existing category already fit?
-- Is this really a tag instead?
-- Is this really a code group instead?
-
-Avoid junk-drawer categories:
-
-```text
-MISC
-OTHER
-STUFF
-SPECIAL
-```
-
-## Reviewing a new code group
-
-Check:
-
-```text
-name
-displayName
-codePrefix
-codeFrom
-codeTo
-description
-defaultCategories
-defaultTags
-defaultMappings
-```
-
-Ask:
-
-- Is the prefix unique?
-- Does the numeric range overlap unintentionally?
-- Is the range large enough?
-- Is this really a code group, not just a category?
-- Are related errors using matching `codePrefix`?
-- Are related errors inside the range?
-
-## Reviewing a new owner
-
-Check:
-
-```text
-name
-displayName
-description
-codeFrom
-codeTo
-isBuiltIn
-aliases
-defaultMappings
-```
-
-Ask:
-
-- Is this a real responsibility boundary?
-- Is the range intentional?
-- Does it overlap unintentionally?
-- Is `isBuiltIn` correct?
-- Is this really an owner, not a category or profile?
-- Are affected profiles updated intentionally?
-
-## Reviewing a new profile
-
-Check:
-
-```text
-name
-displayName
-description
-includeOwners
-includeCodeGroups
-includeCategories
-includeSubcategories
-includeTags
-excludeTags
-defaultMappings
-```
-
-Ask:
-
-- Is this a stable reusable context?
-- Does an existing profile already fit?
-- Are included values known?
-- Are excluded tags safe?
-- Are production mappings conservative?
-- Does the profile accidentally expose internal details?
-
-Test:
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- errors . --profile PROFILE_NAME
-```
-
-## Reviewing renames
-
-Stable values should not be renamed casually.
-
-Before approving a rename, check references.
-
-Bash:
-
-```bash
-grep -R "OLD_VALUE" .
-```
-
-PowerShell:
-
-```powershell
-Get-ChildItem `
-  -Path . `
-  -Recurse `
-  -File |
-Select-String `
-  -Pattern "OLD_VALUE"
-```
-
-Ask:
-
-- Is the rename necessary?
-- Is there a migration note?
-- Can an alias solve it?
-- Are tests updated?
-- Are docs updated?
-- Are old logs still understandable?
-
-## Reviewing deletions
-
-Before approving deletion, ask:
-
-- Is the value released?
-- Is it referenced in code?
-- Is it referenced in tests?
-- Is it referenced in docs?
-- Is it referenced by profiles?
-- Is it used in logs or support?
-- Is deprecation safer?
-- Is there a migration path?
-
-Deletion is often more serious than addition.
-
-## Reviewing numeric code changes
-
-Changing a numeric code is high risk.
-
-Ask:
-
-- Has the code appeared in logs?
-- Is it referenced by support?
-- Is it used in tests?
-- Is it documented?
-- Is the old code being reused?
-- Would adding a new error be safer?
-
-Usually, do not change released numeric codes.
-
-## Reviewing profile filter expectations
-
-If a change depends on profile behavior, remember:
-
-```text
-Setter browsing currently uses simplified profile filtering.
-```
-
-It focuses on:
-
-```text
-includeOwners
-includeCodeGroups
-includeCategories
-```
-
-It does not fully enforce all runtime-style profile semantics.
-
-Review runtime code separately if production behavior matters.
-
-## Reviewing docs changes
-
-Documentation changes should be checked for:
-
-- correct paths,
-- correct README links,
-- URL-encoded spaces,
-- accurate command examples,
-- current command names,
-- current exit codes,
-- working relative links,
-- no stale behavior claims,
-- no future features described as current behavior.
-
-Docs should be clear about current behavior versus future ideas.
-
-## README link checklist
-
-Documentation page path:
-
-```text
-Toolroom/WhenItFails/Setter/Docs/Page Name/en.md
-```
-
-README link:
-
-```markdown
-[Page Name](Docs/Page%20Name/en.md)
-```
-
-Spaces in links should be URL-encoded.
-
-## Reviewing command examples
-
-Check that examples include:
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- <command> .
-```
-
-For PowerShell examples, check backticks:
-
-```powershell
-dotnet run `
-  --project Toolroom/WhenItFails/Setter `
-  -- <command> .
-```
-
-Do not mix Bash line continuation with PowerShell line continuation.
-
-## Reviewing exit-code claims
-
-If documentation mentions exit codes, check against current behavior.
-
-General model:
-
-```text
-0
-→ success
-```
-
-```text
-1
-→ missing or invalid command input
-```
-
-```text
-2
-→ validation, lookup, editing, save, or operation failure
-```
-
-```text
-3
-→ unexpected top-level application failure
-```
-
-Command-specific behavior should match actual implementation.
-
-## Reviewing generated or copied content
-
-When adding large docs or copied examples, check:
-
-- no duplicate wrong paths,
-- no stale command names,
-- no invented options,
-- no broken Markdown fences,
-- no accidental Czech text inside English docs unless intended,
-- no internal notes accidentally included.
-
-Long docs should still be technically precise.
-
-## Manual smoke tests
-
-Useful smoke tests:
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- help
-```
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- validate .
-```
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- summary .
-```
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- errors . --search network
-```
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- details . AFW_NET_0001
-```
-
-Use catalog-specific IDs when examples differ.
-
-## Review before staging
-
-Check changed files:
-
-```bash
-git status --short
-```
-
-Review diff:
-
-```bash
 git diff
 ```
 
-Stage only intended files.
+Review staged changes separately before committing:
 
-Example:
-
-```bash
-git add Jsons/WhenItFails/errors.en.json
-git add Toolroom/WhenItFails/Setter/Docs/Reviewing Catalog Changes/en.md
-```
-
-Avoid:
-
-```bash
-git add .
-```
-
-when backup or temporary files may exist.
-
-## Review after staging
-
-Check staged diff:
-
-```bash
+```powershell
 git diff --cached
 ```
 
-This is the exact content that will be committed.
+`git diff --check` must be clean. `git status --short` must not hide unexpected files.
 
-Review it before commit.
+## Watch for local backup files
 
-## Commit message checklist
-
-A good commit message is specific.
-
-Good:
+Setter safe-write commands create timestamped local recovery files. Their names contain:
 
 ```text
-Add storage category
+.bak.json
 ```
 
-```text
-Add network timeout error definition
+Backup files should normally remain local and should not be committed.
+
+Before staging, check for them explicitly:
+
+```powershell
+git status --short
+git diff --name-only
 ```
 
-```text
-Update network unavailable message
+A backup is recovery material, not a replacement for Git history or a release artifact.
+
+## Validate before detailed review
+
+Run:
+
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 ```
 
-```text
-Add Setter catalog review guide
+Validation checks the catalog schema and known relationships. A failing validation result blocks approval.
+
+Validation is necessary but does not replace semantic review. It cannot decide whether wording is ideal, severity is the best product decision, a new concept duplicates an existing one, or a released identifier may be safely removed.
+
+## Review a new error
+
+Before approving a new error, confirm that:
+
+- its stable ID, symbolic name, and numeric code are unique;
+- the numeric code belongs to the selected code group;
+- owner, category, code group, and profile references exist;
+- title and message are clear, neutral, reusable, and safe;
+- developer guidance is actionable and contains no secrets;
+- severity reflects operational impact rather than emotion;
+- the documentation key is canonical and intentional;
+- tags and aliases add real meaning;
+- the change has a corresponding test or documented reason why an existing test already covers it.
+
+Inspect the result:
+
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- details . NEW_ERROR_ID
 ```
 
-Weak:
+Use `next-code` and `suggest-doc-key` during authoring, but review the chosen values as contracts rather than accepting suggestions blindly.
 
-```text
-changes
+## Review edits to an existing error
+
+Use stable lookup values and inspect the complete definition:
+
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- details . AFW_NET_0001
 ```
 
-```text
-json fix
+Check both the field that changed and fields whose meaning may now conflict with it.
+
+Examples:
+
+- a title change may require message or documentation updates;
+- a category change may affect profiles and mappings;
+- an owner or code-group change may conflict with numbering policy;
+- a documentation-key change may break external references;
+- a severity change may alter alerting, logging, and support expectations.
+
+## Review renames and removals
+
+Renames and removals are compatibility-sensitive.
+
+Before approving them, use `error-references`:
+
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- error-references . AFW_NET_0001
 ```
 
-```text
-misc
+Also search source code, tests, documentation, scripts, and released integration points.
+
+Ask:
+
+- can an alias preserve compatibility;
+- is deprecation safer than deletion;
+- is a migration note required;
+- will old logs and support records remain understandable;
+- is a new error safer than changing the meaning of an existing numeric code.
+
+Do not reuse a released numeric code for a different meaning.
+
+## Review categories, code groups, and owners
+
+For a new or changed category, ask whether it is a stable problem-domain concept rather than a temporary tag.
+
+For a code group, verify:
+
+- prefix uniqueness;
+- numeric range boundaries;
+- absence of unintended overlap;
+- enough capacity for future additions;
+- consistency between the group, error prefix, and numeric code.
+
+For an owner, verify that it represents a real responsibility boundary rather than another name for a category or feature.
+
+Use the list and show commands to inspect the current reference catalogs before approving additions.
+
+## Review profiles and mappings
+
+Profile and mapping changes may alter which errors a consumer receives and how they are represented.
+
+Inspect the profile:
+
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- show-profile . WEB
 ```
 
-## Pull request checklist
+Explain its effective selection:
 
-A pull request should explain:
-
-- what changed,
-- why it changed,
-- whether stable identifiers changed,
-- whether migration is needed,
-- which validation/tests were run,
-- which docs were updated,
-- whether production-facing behavior changed.
-
-Short and precise is better than vague and long.
-
-## Red flags
-
-Pause review if you see:
-
-- numeric code reuse,
-- renamed stable IDs without migration,
-- deleted public errors,
-- production profile becoming more permissive,
-- user-facing messages exposing internals,
-- unrelated formatting churn,
-- backup files staged,
-- docs claiming future behavior as current,
-- validation not run,
-- tests not run after command behavior changes.
-
-## Final reviewer checklist
-
-Before approving, confirm:
-
-```text
-validation passes
-tests pass
-diff is focused
-stable identifiers are preserved or migration is documented
-new references are valid
-user-facing text is safe
-production profiles remain safe
-docs are updated
-README links are correct
-no backup/temp files are staged
-commit message is specific
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- explain-profile . WEB
 ```
+
+Review include and exclude selectors, default mappings, explicit mapping entries, and metadata together.
+
+The explanation output is an authoring and diagnostic aid. The consuming application remains responsible for enforcing its runtime safety policy.
+
+## Review user-facing text
+
+User-facing messages must not expose:
+
+- credentials, tokens, or secrets;
+- stack traces;
+- raw SQL;
+- private filesystem paths;
+- internal hostnames;
+- customer identifiers;
+- sensitive metadata;
+- an unproven technical cause presented as fact.
+
+A title should be short and specific. A message should be a complete, neutral sentence. A developer hint may be technical, but must remain safe and actionable.
+
+## Review documentation keys and Markdown
+
+When documentation keys or Markdown files change, run:
+
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-keys .
+dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .
+```
+
+`check-doc-keys` reviews presence, uniqueness, and canonical form according to current catalog policy.
+
+`check-doc-links` reviews local Markdown links. It does not prove that arbitrary remote URLs are available or that every document is complete and correct.
+
+Review documentation for:
+
+- current command names and examples;
+- correct relative paths and encoded spaces;
+- accurate current-versus-future claims;
+- alignment between root README and `Docs/<topic>/en.md`;
+- a corresponding documentation-contract test for important behavior claims.
+
+## Review output contracts
+
+Commands may expose rich terminal output, `--plain`, and `--json`.
+
+Review each supported surface intentionally:
+
+- rich output is for interactive use;
+- plain output is simplified human-readable text;
+- `--json` is the machine-readable contract;
+- exit codes are part of automation behavior.
+
+Do not parse rich or plain output as though it were a stable JSON schema.
+
+When a command changes, check success, validation failure, lookup failure, and unexpected failure behavior where applicable.
+
+## Review safe writes
+
+For write operations, tests should verify more than the returned object.
+
+Check:
+
+1. the response or issue contract;
+2. the persisted catalog value after reloading;
+3. expected backup creation on success;
+4. no source mutation and no backup on rejected input;
+5. post-write validation;
+6. clear failure behavior if saving cannot complete.
+
+A successful in-memory response is not enough if persistence failed.
+
+## Run the focused Setter suite
+
+The primary review gate is:
+
+```powershell
+dotnet test Toolroom/WhenItFails/Setter.Tests
+```
+
+Every implementation or documentation change should add or update its corresponding test immediately.
+
+Do not postpone tests until several unrelated changes have accumulated.
+
+## Run broader verification when required
+
+Run the repository-wide suite when the change touches shared libraries, public runtime contracts, project wiring, package behavior, or other projects:
+
+```powershell
+dotnet test
+```
+
+A focused Setter run is the minimum gate for Setter-only work, not evidence that unrelated consumers remain compatible after a shared API change.
+
+## Diagnose failures before changing assertions
+
+When a test fails:
+
+1. read the exact expected and actual values;
+2. identify whether implementation, documentation, test expectation, fixture, or environment is stale;
+3. fix the source of truth;
+4. rerun the focused test or class;
+5. rerun the complete Setter suite.
+
+Do not weaken a correct assertion merely to obtain green output.
+
+Do not retain brittle historical values, such as a test count or commit SHA, unless that exact value is itself the contract being tested.
+
+## Final review checklist
+
+Before approval, confirm:
+
+- [ ] the change has one clear purpose;
+- [ ] `git status --short` contains no unexpected files;
+- [ ] `git diff --check` is clean;
+- [ ] backup files are not staged;
+- [ ] the workspace validates;
+- [ ] affected references, profiles, and mappings were inspected;
+- [ ] documentation checks pass when relevant;
+- [ ] persisted state and backup behavior are tested for writes;
+- [ ] output and exit-code contracts remain intentional;
+- [ ] `dotnet test Toolroom/WhenItFails/Setter.Tests` is green;
+- [ ] `IMPLEMENTATION_STATUS.md` is updated;
+- [ ] the actual diff was read before commit.
+
+## Stop rule
+
+> Do not approve a red change.
+
+If validation, documentation checks, or relevant tests fail, fix the current change before starting another one.
 
 ## Related documentation
 
-- [Catalog Author Checklist](../Catalog%20Author%20Checklist/en.md)
-- [Naming and Numbering Conventions](../Naming%20and%20Numbering%20Conventions/en.md)
-- [Deprecation and Migration](../Deprecation%20and%20Migration/en.md)
-- [Known Limitations](../Known%20Limitations/en.md)
-- [Release Checklist](../Release%20Checklist/en.md)
+- [Getting Started](../Getting-Started/en.md)
 - [Testing and CI](../Testing%20and%20CI/en.md)
-- [Authoring Error Text](../Authoring%20Error%20Text/en.md)
-- [Profiles](../Profiles/en.md)
+- [Catalog Author Checklist](../Catalog%20Author%20Checklist/en.md)
+- [Safe Writes](../Safe%20Writes/en.md)
+- [Backups and Recovery](../Backups%20and%20Recovery/en.md)
+- [Exit Codes and Automation](../Exit%20Codes%20and%20Automation/en.md)
+- [Known Limitations](../Known%20Limitations/en.md)
 
 ## Central principle
 
-> A catalog review is not just checking JSON syntax; it is checking whether future people can safely trust the names, numbers, text, and meanings being committed.
+> A catalog review is complete only when the meaning, compatibility, persistence, documentation, and verification evidence agree.
