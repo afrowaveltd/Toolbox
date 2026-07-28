@@ -1,6 +1,10 @@
 using System.Text.Json;
+using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Infrastructure;
+using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Loading;
+using Afrowave.Toolbox.WhenItFails.Normalization;
 
 namespace Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Commands;
 
@@ -67,6 +71,44 @@ public sealed class ErrorsCommandJsonTests
         Assert.All(
             errors.EnumerateArray(),
             error => Assert.Equal("NETWORK", error.GetProperty("codeGroup").GetString()));
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WithNormalizedProfileSelectorAndJson_ReturnsSuccessfulStableEnvelope()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        ErrorProfileCatalogDocument profiles = await LoadProfilesAsync(workspace.WhenItFailsJsonsPath);
+        ErrorProfileDefinition profile = profiles.Profiles.First();
+        profile.Name = "CUSTOM_PROFILE";
+        profile.DisplayName = "Custom Profile";
+        await SaveProfilesAsync(workspace.WhenItFailsJsonsPath, profiles);
+        int backupsBefore = CountBackups(workspace.WhenItFailsJsonsPath);
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        [
+            "errors",
+            workspace.ProjectRootPath,
+            "--profile",
+            "custom-profile",
+            "--json"
+        ]);
+
+        Assert.Equal(0, exitCode);
+        using JsonDocument document = JsonDocument.Parse(output);
+        JsonElement root = document.RootElement;
+        JsonElement data = root.GetProperty("data");
+        JsonElement options = data.GetProperty("options");
+
+        Assert.Equal("1.0", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("errors", root.GetProperty("command").GetString());
+        Assert.True(data.GetProperty("loaded").GetBoolean());
+        Assert.Equal(JsonValueKind.Array, data.GetProperty("errors").ValueKind);
+        Assert.Equal(JsonValueKind.Null, data.GetProperty("failureCode").ValueKind);
+        Assert.Equal(JsonValueKind.Null, data.GetProperty("validation").ValueKind);
+        Assert.Equal("custom-profile", options.GetProperty("profile").GetString());
+        Assert.True(options.GetProperty("useJsonOutput").GetBoolean());
+        Assert.Equal(backupsBefore, CountBackups(workspace.WhenItFailsJsonsPath));
     }
 
     [Fact]
@@ -152,6 +194,26 @@ public sealed class ErrorsCommandJsonTests
             out _);
 
         Assert.False(result);
+    }
+
+    private static async Task<ErrorProfileCatalogDocument> LoadProfilesAsync(string jsonsPath)
+    {
+        Response<ErrorProfileCatalogDocument> response =
+            await new JsonErrorProfileCatalogLoader().LoadFromFileAsync(
+                Path.Combine(jsonsPath, "profiles.json"));
+        Assert.True(response.IsSuccess);
+        Assert.NotNull(response.Data);
+        return new ErrorProfileCatalogDocumentNormalizer().Normalize(response.Data);
+    }
+
+    private static async Task SaveProfilesAsync(
+        string jsonsPath,
+        ErrorProfileCatalogDocument profiles)
+    {
+        Response response = await new JsonCatalogDocumentWriter().SaveToFileAsync(
+            profiles,
+            Path.Combine(jsonsPath, "profiles.json"));
+        Assert.True(response.IsSuccess);
     }
 
     private static async Task<(int ExitCode, string Output)> ExecuteWithCapturedOutputAsync(
