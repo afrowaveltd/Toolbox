@@ -185,21 +185,13 @@ internal static class ShowProfileCommand
     }
 
     /// <summary>
-    /// Finds a profile by normalized name or display name.
+    /// Finds a profile by normalized name or display name using the shared Setter lookup contract.
     /// </summary>
     public static ErrorProfileDefinition? FindProfile(
         WhenItFailsWorkspaceSummary summary,
         string profileName)
     {
-        return summary.ProfileCatalog.Profiles.FirstOrDefault(profile =>
-            string.Equals(
-                profile.Name,
-                profileName,
-                StringComparison.OrdinalIgnoreCase)
-            || string.Equals(
-                profile.DisplayName,
-                profileName,
-                StringComparison.OrdinalIgnoreCase));
+        return ErrorsCommand.FindProfile(summary, profileName);
     }
 
     private static void ShowInvalidOutputArguments()
