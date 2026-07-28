@@ -17,24 +17,25 @@ public sealed class ImplementationStatusDocumentationTests
         string[] requiredContent =
         [
             "# Implementation status",
-            "Last updated: 2026-07-28",
+            "Last updated:",
             "## Current state",
             "## Verification status",
-            "1,224 tests",
+            "The latest user-verified Setter test run",
+            "dotnet test Toolroom/WhenItFails/Setter.Tests",
             "## Documentation synchronization completed",
             "Docs/Commands/en.md",
             "Docs/Known Limitations/en.md",
             "Docs/Roadmap and Future Work/en.md",
             "Docs/Getting-Started/en.md",
             "Docs/FAQ/en.md",
+            "Docs/Testing and CI/en.md",
             "## Current intentional boundaries",
             "## Working rules",
             "GitHub `master` is the source of truth.",
             "## Recommended next step",
-            "Docs/Testing and CI/en.md",
+            "Docs/Reviewing Catalog Changes/en.md",
             "runtime/public-API audit",
-            "## Last completed change",
-            "1b770d7506b92c76caf3c3e0f7766133f9fb7a14"
+            "## Last completed change"
         ];
 
         foreach (string expected in requiredContent)
