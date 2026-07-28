@@ -21,9 +21,9 @@ The current implementation supports:
 
 ## Verification status
 
-The latest user-verified Setter test run is green with 1,233 tests after the architecture-overview documentation synchronization.
+The latest user-verified Setter test run is green with 1,234 tests after the new-command documentation synchronization.
 
-The current new-command documentation change adds one documentation-contract test, so the next successful focused run is expected to report 1,234 tests.
+The current maintainer-notes change adds one documentation-contract test, so the next successful focused run is expected to report 1,235 tests.
 Do not mark that count as user-verified until the run is confirmed green.
 
 Primary verification command:
@@ -61,7 +61,8 @@ The following high-level Setter documents have been synchronized with the curren
 - `Docs/Exit Codes and Automation/en.md`;
 - `Docs/Contributing to Setter/en.md`;
 - `Docs/Architecture Overview/en.md`;
-- `Docs/Adding a New Command/en.md`.
+- `Docs/Adding a New Command/en.md`;
+- `Docs/Maintainer Notes/en.md`.
 
 The synchronized documentation no longer presents implemented capabilities such as `add-error`, `remove-error`, `next-code`, `restore-backup`, JSON output, profile explanation, or documentation checks as missing or future work.
 
@@ -81,7 +82,9 @@ The contribution guide consolidates the current repository workflow: GitHub `mas
 
 The architecture overview maps the actual entry-point, command, service, workspace-model, validation, persistence, recovery, rendering, and testing boundaries. It records the intended dependency direction and the distinction between rich, plain, and JSON output without presenting implemented capabilities as future work.
 
-The new-command guide now defines the complete command lifecycle: contract design, dispatch, command and service responsibilities, workspace validation, read and write flows, safe persistence, rich/plain/JSON surfaces, exit and issue codes, documentation updates, cross-platform review, and immediate focused tests.
+The new-command guide defines the complete command lifecycle: contract design, dispatch, command and service responsibilities, workspace validation, read and write flows, safe persistence, rich/plain/JSON surfaces, exit and issue codes, documentation updates, cross-platform review, and immediate focused tests.
+
+The maintainer notes now define the continuation workflow: verify GitHub and the status file, complete one small green step, preserve architectural and persistence boundaries, maintain automation contracts, verify recovery explicitly, synchronize documentation, and never guess state that can be inspected.
 
 ## Current intentional boundaries
 
@@ -112,24 +115,24 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify the current focused Setter run and record whether the expected 1,234 tests are green.
+First verify the current focused Setter run and record whether the expected 1,235 tests are green.
 
-Next documentation target: `Docs/Maintainer Notes/en.md` with one corresponding documentation-contract test.
+Next documentation target: `Docs/Overview/en.md` with one corresponding documentation-contract test.
 
-That guide should summarize the source-of-truth rule, continuation status, focused green-step workflow, architecture boundaries, documentation synchronization, safe persistence, automation contracts, and recovery expectations without duplicating every specialized guide.
+That guide should provide a concise current product overview, point users to the correct specialized documentation, describe implemented command families and output modes, and avoid duplicating the full command reference or presenting implemented capabilities as future work.
 
-After the remaining high-value documentation is synchronized, begin a runtime/public-API audit of WhenItFails integration points, mappings, and profile behavior.
+After that final high-value overview synchronization, begin a runtime/public-API audit of WhenItFails integration points, mappings, and profile behavior.
 
 ## Last completed change
 
-`Docs/Adding a New Command/en.md` was replaced with a current command-authoring workflow, and `AddingANewCommandDocumentationTests.cs` now protects dispatch, service separation, command-input failures, rich/plain/JSON output, exit and issue codes, focused verification, required documentation updates, status maintenance, and the red-suite stop rule.
+`Docs/Maintainer Notes/en.md` was replaced with a concise continuation and operating manual, and `MaintainerNotesDocumentationTests.cs` now protects the GitHub source-of-truth rule, implementation-status handoff, small-green-step workflow, automation and persistence boundaries, backup discovery and restoration, focused verification, and the red-suite stop rule.
 
 Commits in this change sequence:
 
 ```text
-ae24252ee4078f51754723ce7013998c6b55a450
-Add new command documentation contract
+a462dfde998cd20ca348e20e59b0d7c260edad03
+Add maintainer notes documentation contract
 
-b80a68630806dc9116e8e64f34f41bb9e7fadf61
-Refresh new command authoring guide
+a6b3a21225b4d89f2e8cc69028c048631e7a4f38
+Refresh Setter maintainer notes
 ```
