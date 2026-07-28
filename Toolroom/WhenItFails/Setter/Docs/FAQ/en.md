@@ -2,506 +2,280 @@
 
 This page answers common questions about WhenItFails Setter.
 
-It is intended for users, catalog authors, contributors, and maintainers who need quick guidance without reading every detailed guide first.
+For complete command syntax, see [Commands](../Commands/en.md). For the shortest working flow, see [Getting Started](../Getting-Started/en.md).
 
 ## What is Setter?
 
-Setter is a command-line companion for WhenItFails JSON catalogs.
+Setter is a command-line authoring and maintenance tool for WhenItFails JSON catalogs.
 
-It helps with:
+It can initialize and validate workspaces, browse reference catalogs, inspect and edit error definitions, manage profile selectors and mappings, create and restore backups, and check documentation keys and local Markdown links.
 
-- initializing catalog workspaces,
-- validating catalog files,
-- summarizing catalog contents,
-- browsing errors,
-- inspecting one error,
-- editing selected error text fields,
-- saving changes with backups.
+Setter is not the runtime failure-handling library.
 
-It is intentionally focused.
+## Where is a WhenItFails workspace?
 
-## What is a WhenItFails catalog?
+A normal workspace is stored under:
 
-A WhenItFails catalog is a set of JSON files that describe structured errors and related metadata.
+```text
+Jsons/WhenItFails
+```
 
-A typical package lives here:
-Typical files include:
-The catalog gives applications a stable vocabulary for failures.
+Most commands accept either the project root or the package directory. The `init` command expects the project root.
 
-## Is Setter a runtime library?
+## How do I start?
 
-No.
+From the repository root:
 
-Setter is a command-line tool for catalog authors and maintainers.
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- validate .
+dotnet run --project Toolroom/WhenItFails/Setter -- summary .
+dotnet run --project Toolroom/WhenItFails/Setter -- reference .
+```
 
-Runtime applications may consume WhenItFails catalogs, but Setter itself is not the runtime failure-handling engine.
+For a new workspace:
 
-## Is Setter a full editor?
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- init .
+```
 
-No.
+## How do I list and inspect errors?
 
-Setter currently provides focused edit commands for selected fields in `errors.en.json`.
+List errors:
 
-For broader catalog changes, edit JSON manually and then validate.
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- errors .
+```
 
-## How do I initialize a workspace?
+Inspect one error by stable ID, numeric code, or symbolic name:
 
-Run:
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- init .
-This expects a project root and creates or ensures:
-Do not pass `Jsons/WhenItFails` itself to `init` unless you intentionally want a nested package.
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- details . AFW_NET_0001
+```
 
-## How do I validate the catalog?
+Use stable identifiers for scripts and maintenance work. Titles and messages are human-facing text and may change.
 
-Run:
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- validate .
-Expected successful exit code:
-Validation failure returns:
-Missing command input usually returns:
-## Can I pass the package directory instead of project root?
+## Can I filter the error list?
 
-For most commands, yes.
+Yes. Common filters include:
 
-These are usually both accepted:
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- validate .
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- validate Jsons/WhenItFails
-The main exception is:
-which expects the project root.
+```text
+--owner <value>
+--group <value>
+--code-group <value>
+--category <value>
+--severity <value>
+--profile <value>
+--search <text>
+```
 
-## How do I see a summary?
+Filters combine with logical AND.
 
-Run:
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- summary .
-Alias:
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- inspect .
-The summary is read-only.
+## Can Setter add a new error?
 
-## How do I list errors?
+Yes. First inspect the reference catalogs and obtain safe candidate values:
 
-Run:
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- errors .
-You can filter:
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- errors . --owner AFW
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- errors . --group NETWORK
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- errors . --category NETWORK
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- errors . --severity Error
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- errors . --search network
-## How do I inspect one error?
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- reference .
+dotnet run --project Toolroom/WhenItFails/Setter -- next-code . NETWORK
+dotnet run --project Toolroom/WhenItFails/Setter -- suggest-doc-key . NETWORK "Network unavailable"
+```
 
-Run:
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- details . AFW_NET_0001
-Alias:
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- detail . AFW_NET_0001
-Lookup can use:
-Numeric lookup searches numeric code.
+Then use `add-error` with the required explicit values. Setter validates the workspace and protects the write with a backup.
 
-Text lookup searches stable ID and symbolic name.
+After creation, inspect the result:
 
-## Can I inspect by title?
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- details . NEW_ERROR_ID
+```
 
-No.
+## Can Setter remove an error?
 
-Titles are human-facing text and may change.
+Yes, through `remove-error`.
 
-Use stable identifiers instead:
-## How do I change an error title?
+Removal is compatibility-sensitive. Before removing a stable error, inspect references:
 
-Run:
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- set-title . AFW_NET_0001 "Network unavailable"
-This updates:
-and creates a backup when the write succeeds.
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- error-references . AFW_NET_0001
+```
 
-## How do I change an error message?
+Search the repository as well, review migration impact, and prefer deprecation when external consumers may already use the error.
 
-Run:
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- set-message . AFW_NET_0001 "The network is unavailable."
-Keep messages safe, neutral, and reusable.
+## Which error fields can Setter edit?
 
-## How do I change a developer hint?
+Setter has focused commands for error text, classification, ownership, identifiers, tags, and aliases. These include:
 
-Run:
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- set-developer-hint . AFW_NET_0001 "Check connectivity, DNS, firewall, proxy, VPN, and host availability."
-Developer hints should be actionable and safe.
+```text
+set-title
+set-message
+set-developer-hint
+set-severity
+set-documentation-key
+set-name
+set-subcategory
+set-owner
+set-code-group
+set-primary-category
+add-error-tag
+remove-error-tag
+add-error-alias
+remove-error-alias
+```
 
-Do not include secrets.
+Use the detailed command reference for exact argument shapes.
 
-## How do I change severity?
+## Can Setter browse reference catalogs?
 
-Run:
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- set-severity . AFW_NET_0001 Warning
-Supported values:
-Severity input is case-insensitive and is stored using canonical casing.
+Yes. Setter can list and show owners, categories, code groups, and profiles. It can also display a combined workspace reference overview.
 
-## How do I change a documentation key?
+Examples:
 
-Run:
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- set-documentation-key . AFW_NET_0001 when-it-fails/errors/network/network-unavailable
-A documentation key is a stable reference to extended guidance.
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- list-owners .
+dotnet run --project Toolroom/WhenItFails/Setter -- show-category . NETWORK
+dotnet run --project Toolroom/WhenItFails/Setter -- show-code-group . NETWORK
+dotnet run --project Toolroom/WhenItFails/Setter -- show-profile . WEB
+```
 
-It is not necessarily a URL.
+## Can Setter edit profiles and mappings?
+
+Yes. Setter supports profile metadata, include and exclude selectors, default mappings, mapping entries, and workspace metadata.
+
+Use `explain-profile` to understand why errors are included or excluded:
+
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- explain-profile . WEB
+```
+
+Profile output helps with authoring and diagnostics, but the consuming application remains responsible for enforcing runtime policy.
 
 ## Does Setter create backups?
 
-Yes, successful focused edits create timestamped backups next to the target file.
+Yes. Safe write commands create timestamped local backups before replacing an active catalog file.
 
-Example:
-Backups are local recovery files.
+Backups reduce recovery risk, but they do not replace Git history, external backups, release tags, or code review.
 
-They are not a replacement for Git.
+## How do I list or restore backups?
 
-## How do I restore a backup?
+List available backups:
 
-There is no `restore-backup` command yet.
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- list-backups .
+```
 
-Restore manually:
-cp Jsons/WhenItFails/errors.en.20260627-095820-480.bak.json Jsons/WhenItFails/errors.en.json
-Then validate:
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- validate .
-Use the actual backup file name.
+Restore a selected backup:
 
-## Does Setter delete old backups?
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- restore-backup . <backup-file>
+```
 
-No.
+Review the selected file carefully. Restoration is a write operation and should be followed by validation and diff inspection.
 
-Backup cleanup is manual.
+## Does Setter delete old backups automatically?
 
-Before deleting backups, make sure:
+No. Backup retention and cleanup remain deliberate manual responsibilities.
 
-- active catalogs validate,
-- changes are committed,
-- no recovery is needed,
-- no backup files are accidentally staged.
-
-## Can I run multiple Setter write commands at once?
-
-Avoid it.
-
-Recommended rule:
-Safe writes protect individual file replacement, but they are not a multi-process transaction system.
-
-## Does validation prove everything is good?
-
-No.
-
-Validation checks catalog structure and known relationships.
-
-It does not prove every product-level policy, documentation target, production safety decision, or wording quality.
-
-Validation is necessary, not sufficient.
-
-## Does Setter verify documentation links?
-
-Not fully.
-
-Setter stores and displays `documentationKey`, but current behavior does not fully prove that every key resolves to a real page.
-
-Review documentation separately.
+Before deleting backups, confirm that the active workspace validates, the desired changes are committed, and no recovery is needed.
 
 ## Does Setter support JSON output?
 
-Not currently.
+Yes. Commands that support machine-readable output accept `--json`; uppercase `--JSON` is also recognized where documented and tested.
 
-There is no stable `--json` output mode yet.
+Use JSON output for automation when available. Treat its schema as a public contract and avoid parsing rich terminal output.
 
-Use exit codes for automation decisions.
-
-Use `--plain` where available for simpler human-readable output.
-
-## Is plain output stable for scripts?
-
-Not as a formal machine-readable API.
-
-Plain output is simpler than rich output, but it is not currently a versioned JSON/TSV/CSV contract.
-
-For robust automation, use exit codes.
+`--plain` provides simpler human-readable text, not a universal JSON, CSV, or TSV API.
 
 ## What are the exit codes?
 
-General model:
-See the exit-code guide for command-specific details.
+The general model is:
 
-## What is an owner?
+```text
+0 = success
+1 = missing or invalid command input
+2 = validation, lookup, editing, backup, save, or operation failure
+3 = unexpected top-level application failure
+```
 
-An owner describes responsibility.
+A valid query that returns no matching rows may still succeed with exit code `0`.
 
-Examples:
-Owner answers:
-It does not answer what kind of problem occurred.
+## Does Setter verify documentation?
 
-## What is a code group?
+Setter provides two complementary checks:
 
-A code group defines a numeric range and symbolic prefix for a family of related errors.
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-keys .
+dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .
+```
 
-Example:
-It helps keep numeric codes organized.
+`check-doc-keys` checks documentation-key presence, uniqueness, and canonical format according to current catalog rules.
 
-## What is a category?
+`check-doc-links` checks local Markdown links. It does not verify arbitrary remote URLs or prove the quality of every document.
 
-A category describes the problem domain.
+## Does validation prove the catalog is perfect?
 
-Examples:
-A category answers:
-## What is a profile?
+No. Validation checks schema and known relationships. It cannot decide whether every message is ideal, every severity is the best business choice, every profile is safe for every application, or two differently named errors are semantically duplicates.
 
-A profile describes a usage context.
+Validation is necessary, not sufficient.
 
-Examples:
-A profile answers:
-## What is the difference between category and code group?
+## Can I run multiple write commands at the same time?
 
-A code group controls numbering.
+Avoid concurrent writers against the same workspace.
 
-A category describes meaning.
+Safe writes protect individual file replacement, but Setter is not a multi-process locking system or a multi-file transaction manager.
 
-They may have the same name, but they are different concepts.
+## Does Setter migrate old schemas automatically?
 
-Example:
-## What is the difference between owner and category?
+No. Validation does not silently rewrite catalog structures.
 
-Owner:
-Category:
-Example:
-## What is the difference between profile and category?
+Any future migration workflow should be explicit, versioned, backed up, validated before and after, and documented.
 
-Category:
-Profile:
-Example:
-## Can I add a new error through Setter?
+## Does Setter provide a GUI or interactive TUI?
 
-Not yet.
+No. Setter is currently a command-line tool.
 
-Add it manually to:
-Then run:
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- validate .
-and inspect it:
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- details . NEW_ERROR_ID
-## Can I add a new profile through Setter?
+A future interface may build on the same catalog rules, but the CLI remains the authoritative authoring surface today.
 
-Not yet.
+## Does Setter provide full localization management?
 
-Add it manually to:
-Then validate and inspect summary.
+Not yet. Current catalogs and documentation are primarily English-oriented.
 
-## Can I add a new category, code group, or owner through Setter?
+A complete localization workflow would need translation completeness checks, language-neutral field rules, fallback behavior, stale-translation detection, and synchronization across localized files.
 
-Not yet.
+## What makes a good error message?
 
-Edit the relevant JSON manually:
-Then validate.
+A good user-facing message is clear, neutral, safe, reusable, and does not claim an unproven cause. Do not expose credentials, tokens, stack traces, private paths, internal hostnames, customer identifiers, or raw SQL.
 
-## Should I create a new category or tag?
-
-Create a category when the concept is central, stable, and useful for classification.
-
-Use a tag when the concept is flexible, secondary, or used as a profile/runtime hint.
-
-Example:
-## Should I create a new code group or category?
-
-Create a code group when you need a stable numeric range and prefix.
-
-Create a category when you need a problem-domain classification.
-
-Do not create a code group just because one category exists.
-
-## Should I create a new owner?
-
-Create an owner when there is a real responsibility boundary.
-
-Do not create an owner for every feature, category, or temporary idea.
-
-## Should I create a new profile?
-
-Create a profile when a usage context is stable and reusable.
-
-Do not create a profile just because one temporary filter was convenient.
-
-## What is a good error message?
-
-A good message is:
-
-- clear,
-- neutral,
-- safe,
-- reusable,
-- a complete sentence,
-- not blaming the user,
-- not claiming an unproven cause.
-
-Good:
-Weak:
-## What is a good developer hint?
-
-A good developer hint is actionable and safe.
-
-Good:
-Weak:
-Never put secrets in hints.
-
-## Can user-facing messages expose technical details?
-
-Be careful.
-
-User-facing messages should not expose:
-
-- tokens,
-- credentials,
-- stack traces,
-- private paths,
-- internal hostnames,
-- customer identifiers,
-- raw SQL.
-
-Use developer hints and documentation for deeper troubleshooting.
-
-## What should I do before renaming something?
-
-Search references first.
-
-Bash:
-grep -R "OLD_VALUE" .
-Then consider compatibility.
-
-Stable names should not be renamed casually.
-
-Prefer aliases, migration notes, or additive replacements where possible.
+Developer hints may contain deeper troubleshooting guidance, but they must remain safe and actionable.
 
 ## Can I reuse an old numeric code?
 
-Avoid it.
+Avoid it. Old codes may remain in logs, tickets, telemetry, dashboards, integrations, or released applications. Reusing a code for a different meaning corrupts historical interpretation.
 
-Old numeric codes may exist in logs, support tickets, dashboards, or external systems.
+## What should I run before committing?
 
-Reusing a code for a different meaning can corrupt history.
+At minimum:
 
-## Should validation automatically fix catalogs?
-
-No.
-
-Validation should report problems.
-
-It should not silently rewrite catalogs.
-
-Any migration or formatting command should be explicit and documented.
-
-## What should I commit?
-
-A good commit should be focused.
-
-Good:
-Weak:
-## What should I run before commit?
-
-Run:
-dotnet build
-
-dotnet test
-
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- validate .
-
+```powershell
+dotnet test Toolroom/WhenItFails/Setter.Tests
+dotnet run --project Toolroom/WhenItFails/Setter -- validate .
+dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-keys .
+dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .
 git diff --check
-
 git status --short
-Also review the actual diff:
 git diff
-## Why does the documentation repeat some ideas?
+```
 
-Because catalog work has expensive mistakes.
+Keep each commit focused and review generated backup files before staging.
 
-Stable IDs, numeric codes, profile safety, and migration rules appear in multiple guides because they matter in multiple workflows.
+## Where should I read next?
 
-A little repetition is cheaper than one broken public error code.
-
-## Where should I start reading?
-
-For a new user:
-
-1. Getting started
-2. Overview
-3. Documentation Map
-4. Command Quick Reference
-5. Workspace Paths and Initialization
-6. Validation
-7. Browsing and Filtering Errors
-8. Inspecting Error Details
-
-For a catalog author:
-
-1. Catalog Files
-2. Naming and Numbering Conventions
-3. Catalog Author Checklist
-4. Adding a New Error Definition
-5. Authoring Error Text
-6. Profiles
-
-For a maintainer:
-
-1. Architecture Overview
-2. Adding a New Command
-3. Testing and CI
-4. Maintainer Notes
-5. Schema Evolution
-6. Deprecation and Migration
-7. Known Limitations
-8. Roadmap and Future Work
-
-## Related documentation
-
-- [Documentation Map](../Documentation%20Map/en.md)
+- [Getting Started](../Getting-Started/en.md)
+- [Commands](../Commands/en.md)
 - [Command Quick Reference](../Command%20Quick%20Reference/en.md)
-- [Workspace Paths and Initialization](../Workspace%20Paths%20and%20Initialization/en.md)
-- [Validation](../Validation/en.md)
-- [Catalog Files](../Catalog%20Files/en.md)
 - [Catalog Author Checklist](../Catalog%20Author%20Checklist/en.md)
+- [Backups and Recovery](../Backups%20and%20Recovery/en.md)
 - [Known Limitations](../Known%20Limitations/en.md)
 - [Roadmap and Future Work](../Roadmap%20and%20Future%20Work/en.md)
 
 ## Central principle
 
-> If a catalog value may appear in code, logs, docs, tests, or support, treat it as a contract before changing it.
+> Validate first, make explicit changes, inspect the result, test it, and preserve a recoverable history.
