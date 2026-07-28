@@ -36,12 +36,13 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderCallOrderTests`: **1 focused test user-verified green** for exact provider order and configured path routing.
 - Runtime `ErrorCatalogContextProviderNullPayloadShortCircuitTests`: **5 focused tests user-verified green**, covering null payloads at every provider boundary.
 - Runtime `ErrorCatalogContextProviderCancellationPropagationTests`: **4 focused tests user-verified green**, covering every inter-provider cancellation boundary.
-- Current post-profile cancellation slice adds one focused `ErrorCatalogContextProviderPostProfileCancellationTests` contract and a production cancellation check before cross-validation. This test is not yet user-verified.
+- Runtime `ErrorCatalogContextProviderPostProfileCancellationTests`: **1 focused test user-verified green** for cancellation after the profile provider and before cross-validation.
+- Current cross-validation response slice adds one focused `ErrorCatalogContextProviderCrossValidationFailureContractTests` contract. This test is not yet user-verified.
 
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderPostProfileCancellationTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderCrossValidationFailureContractTests
 ```
 
 Primary Setter verification command:
@@ -108,7 +109,8 @@ Completed audit slices:
 23. Exact provider invocation order and matching `JsonsOptions` path routing are protected.
 24. Null-payload handling short-circuits immediately at every provider boundary.
 25. Cooperative cancellation is protected at all four inter-provider transitions.
-26. The current slice closes the final cancellation gap after the profile provider returns: cancellation is checked before cross-validation and context construction.
+26. Cancellation after the profile provider returns is observed before cross-validation and context construction.
+27. The current slice protects the public cross-validation failure response: when multiple validation issues exist, the first issue supplies the returned code and message, status is `Invalid`, and no partial context is exposed.
 
 ## Current intentional boundaries
 
@@ -139,24 +141,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderPostProfileCancellationTests`; the expected count is **1 green test**.
+First verify `ErrorCatalogContextProviderCrossValidationFailureContractTests`; the expected count is **1 green test**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, cancellation coverage is complete from method entry through the final pre-cross-validation boundary. Inspect the cross-validation failure response contract next, especially whether returning only the first issue is intentional and sufficiently documented.
+If green, inspect whether provider-local validation results are intentionally ignored after successful provider responses, or add an explicit contract for cross-validation issue ordering only if consumers rely on it.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The thirty-sixth runtime/public-API audit slice found and fixed the final cancellation gap. A profile provider may successfully return a payload after cancellation is requested; `ErrorCatalogContextProvider` now checks the token again before entering cross-validation or constructing an `ErrorCatalogContext`.
+The thirty-seventh runtime/public-API audit slice records the public failure contract when cross-catalog validation finds multiple issues. `ErrorCatalogContextProvider` returns an `Invalid` response based on the first issue's code and message and does not expose a partial `ErrorCatalogContext`.
 
-Commits in this change sequence:
+Commit in this change sequence:
 
 ```text
-2fc7e1624b186fa0a62ef5070522a0466ef6f503
-Protect cancellation before context cross-validation
-
-17b9e785de01ba9a19ae5e4c30a3b8b3bbe1e3a0
-Observe cancellation before context cross-validation
+cf11c782ad54b76687ffdf8a12ce12cc3e5b106c
+Protect cross-validation failure response contract
 ```
