@@ -94,6 +94,45 @@ public sealed class WhenItFailsProfileExplainerTests
     }
 
     [Fact]
+    public async Task ExplainAsync_WithExcludedTag_ShouldReportIncludeMatchAndFinalVeto()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        ErrorCatalogDocument errors = await LoadErrorsAsync(workspace.WhenItFailsJsonsPath);
+        ErrorProfileCatalogDocument profiles = await LoadProfilesAsync(workspace.WhenItFailsJsonsPath);
+        ErrorDefinition error = errors.Errors.First(candidate => candidate.Tags.Count > 0);
+        ErrorProfileDefinition profile = profiles.Profiles.First();
+        string tag = error.Tags.First();
+
+        profile.IncludeErrors.Clear();
+        profile.ExcludeErrors.Clear();
+        profile.IncludeOwners.Clear();
+        profile.IncludeCodeGroups.Clear();
+        profile.IncludeCategories.Clear();
+        profile.IncludeSubcategories.Clear();
+        profile.IncludeTags.Clear();
+        profile.IncludeTags.Add(tag);
+        profile.ExcludeTags.Clear();
+        profile.ExcludeTags.Add(tag);
+        await SaveProfilesAsync(workspace.WhenItFailsJsonsPath, profiles);
+
+        Response<ProfileExplanation> response =
+            await new WhenItFailsProfileExplainer().ExplainAsync(
+                workspace.WhenItFailsJsonsPath,
+                profile.DisplayName);
+
+        Assert.True(response.IsSuccess);
+        Assert.NotNull(response.Data);
+        ProfileErrorExplanation explanation = response.Data.Errors.Single(item =>
+            string.Equals(item.Id, error.Id, StringComparison.OrdinalIgnoreCase));
+        string normalizedTag = TextKeyNormalizer.NormalizeKey(tag);
+
+        Assert.False(explanation.IsIncluded);
+        Assert.Contains($"tag:{normalizedTag}", explanation.IncludeReasons);
+        Assert.Contains($"tag:{normalizedTag}", explanation.ExclusionReasons);
+    }
+
+    [Fact]
     public async Task ExplainAsync_WithUnknownProfile_ShouldReturnNotFound()
     {
         using TemporaryWhenItFailsWorkspace workspace =
