@@ -41,9 +41,9 @@ dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .
 git diff --check
 ```
 
-## High-value documentation synchronization completed
+## Documentation synchronization completed
 
-The following high-level Setter documents have been synchronized with the current command surface and protected by documentation tests:
+The high-value Setter documentation synchronization is complete. The following high-level documents have been synchronized with the current command surface and protected by documentation tests:
 
 - `README.md`;
 - `Readme/en.md`;
