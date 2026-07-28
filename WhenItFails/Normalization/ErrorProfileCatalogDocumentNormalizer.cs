@@ -1,3 +1,4 @@
+using Afrowave.Toolbox.Essentials.Metadata;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 
 namespace Afrowave.Toolbox.WhenItFails.Normalization;
@@ -57,7 +58,7 @@ public sealed class ErrorProfileCatalogDocumentNormalizer
             IsShadowCopy = document.IsShadowCopy,
 
             Tags = DefinitionNormalizationHelper.NormalizeStringList(document.Tags),
-            Metadata = document.Metadata,
+            Metadata = new MetadataBag(document.Metadata.Items),
 
             Profiles = document.Profiles
                 .Select(_profileDefinitionNormalizer.Normalize)
