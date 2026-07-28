@@ -41,6 +41,22 @@ public sealed class ErrorCatalogContextProviderShortCircuitTests
         Assert.Equal("CategoryCatalogUnavailable", Assert.Single(response.Issues).Code);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldNotCallLaterProviders_WhenCodeGroupCatalogProviderFails()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new SuccessfulCategoryCatalogProvider(),
+            new FailingCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal("CodeGroupCatalogUnavailable", Assert.Single(response.Issues).Code);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -114,6 +130,47 @@ public sealed class ErrorCatalogContextProviderShortCircuitTests
             return Task.FromResult(Response<ErrorCategoryCatalogProviderPayload>.Invalid(
                 code: "CategoryCatalogUnavailable",
                 message: "Category catalog is unavailable."));
+        }
+    }
+
+    private sealed class SuccessfulCategoryCatalogProvider : IErrorCategoryCatalogProvider
+    {
+        public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorCategoryCatalogProviderPayload>.Ok(
+                new ErrorCategoryCatalogProviderPayload
+                {
+                    Document = new ErrorCategoryCatalogDocument
+                    {
+                        Categories =
+                        [
+                            new ErrorCategoryDefinition
+                            {
+                                Name = "GENERAL",
+                                DisplayName = "General"
+                            }
+                        ]
+                    },
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
+    private sealed class FailingCodeGroupCatalogProvider : IErrorCodeGroupCatalogProvider
+    {
+        public Task<Response<ErrorCodeGroupCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorCodeGroupCatalogProviderPayload>.Invalid(
+                code: "CodeGroupCatalogUnavailable",
+                message: "Code-group catalog is unavailable."));
         }
     }
 
