@@ -32,8 +32,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorProfileCatalogDocumentNormalizerTests`: **8 focused tests user-verified green** after independent catalog metadata, profile collection, profile instance, and tag copy semantics.
 - Runtime `ErrorProfileCatalogProviderTests`: **10 focused tests user-verified green**, including loader-to-provider payload isolation.
 - Runtime `ErrorCatalogContextProviderProfileReferenceTests`: **1 focused test user-verified green** for direct reuse of validated provider outputs and a newly computed combined `CrossValidationResult`.
-- Runtime `ErrorCatalogContextProviderShortCircuitTests`: **2 focused tests user-verified green** for error- and category-provider failure short-circuiting.
-- Current code-group-provider short-circuit slice adds one focused test, so the next successful focused run is expected to report **3 tests**.
+- Runtime `ErrorCatalogContextProviderShortCircuitTests`: **3 focused tests user-verified green** for error-, category-, and code-group-provider failure short-circuiting.
+- Current owner-provider short-circuit slice adds one focused test, so the next successful focused run is expected to report **4 tests**.
 
 Focused verification command for the current slice:
 
@@ -99,7 +99,8 @@ Completed audit slices:
 17. The final context receives a newly computed cross-catalog validation result rather than reusing any provider-local validation result.
 18. Failure of the first error-catalog provider prevents category, code-group, owner, and profile providers from running and preserves the source issue code.
 19. Category-provider failure preserves the source issue and prevents code-group, owner, and profile providers from running.
-20. The current focused contract extends the same short-circuit guarantee to code-group-provider failure: error and category providers complete successfully, the code-group failure is preserved, and owner and profile providers must not be invoked.
+20. Code-group-provider failure preserves the source issue and prevents owner and profile providers from running.
+21. The current focused contract extends the same short-circuit guarantee to owner-provider failure: error, category, and code-group providers complete successfully, the owner failure is preserved, and the profile provider must not be invoked.
 
 ## Current intentional boundaries
 
@@ -130,21 +131,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderShortCircuitTests`; the expected count is **3 green tests**.
+First verify `ErrorCatalogContextProviderShortCircuitTests`; the expected count is **4 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, extend short-circuit coverage by one adjacent provider boundary only, preferably owner-provider failure, while preserving source status and issue code.
+If green, finish the provider-failure sequence with one profile-provider failure contract. Since profile is the final provider, verify source status and issue preservation rather than a later-provider suppression.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The twenty-third runtime/public-API audit slice extended context failure short-circuit coverage to the code-group provider. It verifies successful completion of the error and category providers, preservation of the code-group provider's failure issue, and suppression of owner and profile provider calls.
+The twenty-fourth runtime/public-API audit slice extended context failure short-circuit coverage to the owner provider. It verifies successful completion of the error, category, and code-group providers, preservation of the owner provider's failure issue, and suppression of the profile provider call.
 
 Commit in this change sequence:
 
 ```text
-c0057bf412030b50d193c4694169e5abb0ed6f3e
-Protect code-group provider failure short circuit
+e0878be50d3cea5e1d9186e8a0a941c87cd586c5
+Protect owner provider short circuit
 ```
