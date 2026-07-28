@@ -1,4 +1,5 @@
 using Afrowave.Toolbox.Essentials.Enums;
+using Afrowave.Toolbox.Essentials.Metadata;
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Definitions;
@@ -171,6 +172,44 @@ public sealed class ErrorProfileCatalogProviderTests
         Assert.Equal(["USER_VISIBLE"], profile.IncludeTags);
         Assert.Equal(["INTERNAL_ONLY"], profile.ExcludeTags);
         Assert.Equal("true", profile.DefaultMappings["WEB_PROBLEMDETAILS"]);
+    }
+
+    [Fact]
+    public async Task LoadFromFileAsync_ShouldReturnPayloadIndependentFromLoaderDocument()
+    {
+        ErrorProfileCatalogDocument loaderDocument = CreateValidDocument();
+        loaderDocument.Tags = ["source tag"];
+        loaderDocument.Metadata = new MetadataBag(
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["consumer"] = "Setter"
+            });
+
+        ErrorProfileCatalogProvider provider = new(
+            new FakeSuccessfulLoader(loaderDocument),
+            new ErrorProfileCatalogDocumentNormalizer(),
+            new ErrorProfileCatalogValidator());
+
+        Response<ErrorProfileCatalogProviderPayload> response =
+            await provider.LoadFromFileAsync("profiles.json");
+
+        Assert.True(response.IsSuccess);
+        Assert.NotNull(response.Data);
+        Assert.NotSame(loaderDocument, response.Data.Document);
+        Assert.NotSame(loaderDocument.Tags, response.Data.Document.Tags);
+        Assert.NotSame(loaderDocument.Metadata, response.Data.Document.Metadata);
+        Assert.NotSame(loaderDocument.Profiles, response.Data.Document.Profiles);
+        Assert.NotSame(loaderDocument.Profiles[0], response.Data.Document.Profiles[0]);
+
+        response.Data.Document.Tags.Add("RUNTIME_ONLY");
+        response.Data.Document.Metadata.Set("consumer", "Runtime");
+        response.Data.Document.Profiles[0].Name = "CHANGED";
+        response.Data.Document.Profiles[0].IncludeOwners.Add("RUNTIME");
+
+        Assert.Equal(["source tag"], loaderDocument.Tags);
+        Assert.Equal("Setter", loaderDocument.Metadata["consumer"]);
+        Assert.Equal("WEB_API", loaderDocument.Profiles[0].Name);
+        Assert.Equal(["AFW", "APP"], loaderDocument.Profiles[0].IncludeOwners);
     }
 
     [Fact]
