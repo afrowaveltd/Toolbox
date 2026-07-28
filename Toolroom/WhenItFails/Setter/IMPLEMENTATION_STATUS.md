@@ -29,7 +29,8 @@ Implemented areas include:
 - Runtime `ErrorProfileDefinitionNormalizerTests`: **10 focused tests user-verified green** after independent metadata, mapping, and selector-list copy semantics.
 - Runtime `ErrorProfileCatalogDocumentNormalizerTests`: **8 focused tests user-verified green** after independent catalog metadata, profile collection, profile instance, and tag copy semantics.
 - Runtime `ErrorProfileCatalogProviderTests`: **10 focused tests user-verified green**, including loader-to-provider payload isolation.
-- Current context-reference slice adds one focused `ErrorCatalogContextProviderProfileReferenceTests` contract. This test is not yet user-verified.
+- Runtime `ErrorCatalogContextProviderProfileReferenceTests`: **1 focused test user-verified green** for profile-document reference reuse.
+- Current context-reference extension keeps the same focused test count while expanding the contract to every provider payload document and the runtime `ErrorCatalog` instance. This revision is not yet user-verified.
 
 Focused verification command for the current slice:
 
@@ -85,7 +86,8 @@ Completed audit slices:
 12. The normalized `Profiles` collection and each normalized profile instance are independent from the source catalog.
 13. Catalog `Tags` are independently copied and normalized.
 14. `ErrorProfileCatalogProvider` returns the normalized document copy rather than exposing the mutable document instance supplied by the loader.
-15. The current context contract records intentional reference reuse: `ErrorCatalogContextProvider` aggregates already normalized and validated provider documents without performing a second deep copy.
+15. `ErrorCatalogContextProvider` intentionally aggregates already normalized and validated provider outputs without a second deep copy.
+16. The current extension protects that aggregation convention for `ErrorCatalog`, `ErrorCatalogDocument`, category, code-group, owner, and profile provider documents.
 
 ## Current intentional boundaries
 
@@ -116,19 +118,19 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderProfileReferenceTests`.
+First verify the expanded `ErrorCatalogContextProviderProfileReferenceTests` contract.
 
-If green, record the result and inspect one adjacent context boundary, preferably the reference relationship between `ErrorCatalogContext.ErrorCatalogDocument` and the corresponding provider payload document. Keep the slice limited to one catalog family and preserve the context provider's aggregation role unless a concrete defect is found.
+If green, record the result and inspect one externally observable context behavior rather than continuing ownership checks. Prefer cancellation propagation, provider call ordering, or stable failure short-circuiting only after reviewing existing tests for a concrete missing boundary.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The eighteenth runtime/public-API audit slice added a focused contract for profile-document ownership at the final context boundary. The context provider intentionally reuses the already normalized and validated profile document supplied by the profile provider instead of performing a redundant second deep copy.
+The nineteenth runtime/public-API audit slice expanded the context aggregation reference contract from the profile catalog alone to all provider outputs used by `ErrorCatalogContext`. It protects direct reuse of the runtime error catalog and every already normalized provider document without redundant deep copies.
 
 Commit in this change sequence:
 
 ```text
-6922e87dd5cd8649ed373188c56eb87c431e0a27
-Protect context profile payload reference
+a20cb5d995cc12ba798c11ea2ae2a5c43d49abef
+Protect context provider payload references
 ```
