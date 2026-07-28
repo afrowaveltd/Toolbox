@@ -35,7 +35,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderShortCircuitTests`: **5 focused tests user-verified green**, covering failure at every provider boundary.
 - Runtime `ErrorCatalogContextProviderCallOrderTests`: **1 focused test user-verified green** for exact provider order and configured path routing.
 - Runtime `ErrorCatalogContextProviderCancellationPropagationTests`: **1 focused test user-verified green** for cooperative cancellation between provider calls.
-- Current null-payload slice adds one focused `ErrorCatalogContextProviderNullPayloadShortCircuitTests` contract and a production short-circuit at the first provider boundary. This test is not yet user-verified.
+- Runtime `ErrorCatalogContextProviderNullPayloadShortCircuitTests`: **1 focused test user-verified green** for immediate rejection of a null error-catalog payload.
+- Current category null-payload slice adds one focused test, so the next successful focused run is expected to report **2 tests**.
 
 Focused verification command for the current slice:
 
@@ -106,7 +107,8 @@ Completed audit slices:
 22. Profile-provider failure preserves the source issue and returns no partial `ErrorCatalogContext`.
 23. Exact provider invocation order and matching `JsonsOptions` path routing are protected.
 24. Cooperative cancellation between provider calls is protected: cancellation requested during one successful provider call is observed by the next provider and prevents all later calls.
-25. The current slice makes null-payload handling short-circuit at the error-provider boundary instead of loading every remaining catalog before reporting `ErrorCatalogContextPayloadIsNull`.
+25. Null-payload handling short-circuits immediately at the error-provider boundary.
+26. The current slice extends immediate null-payload rejection to the category-provider boundary, preventing code-group, owner, and profile provider calls.
 
 ## Current intentional boundaries
 
@@ -137,24 +139,24 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderNullPayloadShortCircuitTests`; the expected count is **1 green test**.
+First verify `ErrorCatalogContextProviderNullPayloadShortCircuitTests`; the expected count is **2 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, extend immediate null-payload short-circuiting by one adjacent provider boundary only, preferably category-provider null payload, while preserving the stable invalid response contract.
+If green, extend immediate null-payload short-circuiting by one adjacent provider boundary only, preferably code-group-provider null payload, while preserving the stable invalid response contract.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The twenty-eighth runtime/public-API audit slice changed null-payload handling from an end-of-pipeline aggregate check to immediate rejection at the first provider boundary. A successful error-catalog response with no payload now returns `ErrorCatalogContextPayloadIsNull` before category, code-group, owner, or profile providers are invoked.
+The twenty-ninth runtime/public-API audit slice extended immediate null-payload rejection to the category provider. A successful category response with no payload now returns `ErrorCatalogContextPayloadIsNull` before code-group, owner, or profile providers are invoked.
 
 Commits in this change sequence:
 
 ```text
-11cf7e98ee6cc9786cfef969481b52727481822a
-Add null payload short-circuit contract
+75f82efa7fc9c5ec5c2a03ff801754ae97de83da
+Protect category null payload short circuit
 
-26afee1923f0a862bb6ea87526a5c470c1f72909
-Short-circuit null error catalog payload
+9a9673c65556365dc10eae6fd1b7cbe5b8f8e680
+Short circuit null category payload
 ```
