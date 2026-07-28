@@ -157,4 +157,36 @@ public sealed class ErrorProfileCatalogDocumentNormalizerTests
         Assert.Equal("SeeMe", document.Metadata["consumer"]);
         Assert.False(document.Metadata.TryGet("runtimeOnly", out _));
     }
+
+    [Fact]
+    public void Normalize_ShouldCopyProfilesWithoutSharingMutableState()
+    {
+        ErrorProfileCatalogDocumentNormalizer normalizer = new();
+        ErrorProfileCatalogDocument document = new()
+        {
+            Profiles =
+            [
+                new ErrorProfileDefinition
+                {
+                    Name = " web api ",
+                    IncludeOwners = ["afw"]
+                }
+            ]
+        };
+
+        ErrorProfileCatalogDocument normalizedDocument = normalizer.Normalize(document);
+
+        Assert.NotSame(document.Profiles, normalizedDocument.Profiles);
+        Assert.NotSame(document.Profiles[0], normalizedDocument.Profiles[0]);
+        Assert.Equal("WEB_API", normalizedDocument.Profiles[0].Name);
+        Assert.Equal(["AFW"], normalizedDocument.Profiles[0].IncludeOwners);
+
+        normalizedDocument.Profiles[0].Name = "CHANGED";
+        normalizedDocument.Profiles[0].IncludeOwners.Add("RUNTIME");
+        normalizedDocument.Profiles.Add(new ErrorProfileDefinition { Name = "RUNTIME_ONLY" });
+
+        Assert.Single(document.Profiles);
+        Assert.Equal(" web api ", document.Profiles[0].Name);
+        Assert.Equal(["afw"], document.Profiles[0].IncludeOwners);
+    }
 }
