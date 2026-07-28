@@ -27,7 +27,10 @@ The first runtime/public-API profile-selection slice is user-verified green with
 
 The public runtime-facade display-name integration test is user-verified green with 1 focused `ErrorCatalogRuntimeProfileDisplayNameTests` test.
 
-The current profile-mapping boundary slice adds one focused runtime resolver test. That test is not yet user-verified.
+The profile resolver and mapping-boundary suite is user-verified green with 19 focused `ErrorProfileResolverTests`.
+
+The current normalized Setter profile-lookup slice adds one Setter test, so the next successful full Setter run is expected to report 1,238 tests.
+Do not mark that count as user-verified until the run is confirmed green.
 
 Primary Setter verification command:
 
@@ -35,10 +38,10 @@ Primary Setter verification command:
 dotnet test Toolroom/WhenItFails/Setter.Tests
 ```
 
-Focused runtime verification command for the current slice:
+Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorProfileResolverTests
+dotnet test Toolroom/WhenItFails/Setter.Tests --filter FullyQualifiedName~WhenItFailsProfileExplainerTests
 ```
 
 Before committing catalog changes, also run:
@@ -112,9 +115,11 @@ The public interface XML documentation now states the actual name-or-display-nam
 
 A user-verified runtime-facade integration test confirms that `ErrorCatalogRuntime.ResolveProfile` accepts a normalized display name and returns the expected runtime selection.
 
-Profile explanation precedence is now user-verified. When an error matches an include tag but the same tag appears in `ExcludeTags`, runtime exclusion wins and the Setter explanation reports both the include match and the final exclusion veto.
+Profile explanation precedence is user-verified. When an error matches an include tag but the same tag appears in `ExcludeTags`, runtime exclusion wins and the Setter explanation reports both the include match and the final exclusion veto.
 
-The mapping audit confirmed an intentional boundary: `DefaultMappings` are consumer recommendations for presentation or integration behavior. They do not modify error definitions and must not participate in `ErrorProfileResolver` selection. The current focused runtime test protects selection invariance with and without mappings.
+The mapping audit confirmed an intentional boundary: `DefaultMappings` are consumer recommendations for presentation or integration behavior. They do not modify error definitions and do not participate in `ErrorProfileResolver` selection. Nineteen focused runtime resolver tests are user-verified green, including the mapping-invariance contract.
+
+Setter's shared `ErrorsCommand.FindProfile` lookup now normalizes the requested selector, profile `Name`, and `DisplayName` with `TextKeyNormalizer`. This aligns `errors --profile`, `show-profile`, and `explain-profile` with the public runtime lookup contract for equivalent forms such as `CUSTOM_PROFILE` and `custom-profile`.
 
 ## Current intentional boundaries
 
@@ -145,21 +150,24 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify the focused `ErrorProfileResolverTests` run and record the result.
+First verify the focused `WhenItFailsProfileExplainerTests` run and then the full Setter suite if the focused run is green.
 
 Next documentation target: none. The high-value Setter documentation synchronization is complete.
 
-If the mapping-boundary test is green, continue with one narrow audit of duplicated profile lookup inside Setter or define a separate public mapping-consumption contract only after a concrete consumer requirement exists. Do not make `DefaultMappings` affect profile selection.
+If the normalized lookup contract is green, continue with one narrow audit of profile selector behavior in `errors --profile` and `show-profile`, ensuring both command paths accept the same normalized name and display-name forms without changing exit-code or JSON contracts.
 
 Do not begin implementation from documentation assumptions alone. Inspect the current source and tests in GitHub first.
 
 ## Last completed change
 
-The fourth runtime/public-API audit slice added a focused runtime contract for profile mapping boundaries. It verifies that `DefaultMappings` do not affect the errors selected by `ErrorProfileResolver`, preserving their documented role as consumer-facing presentation or integration recommendations.
+The fifth runtime/public-API audit slice aligned Setter's shared profile lookup with runtime normalization. A focused explainer test protects separator normalization, and `ErrorsCommand.FindProfile` now compares normalized stable names and display names for all Setter consumers.
 
 Commits in this change sequence:
 
 ```text
-e6d67a147130327cd5e1ad4e50bf75b942403825
-Protect profile mapping selection boundary
+343a1cdc3440b273e9360ec3962907b92210a5e2
+Add normalized Setter profile lookup contract
+
+3b2bb8f6a20ba6a8d2c9313b9d5582a3e060b5f9
+Normalize Setter profile lookup
 ```
