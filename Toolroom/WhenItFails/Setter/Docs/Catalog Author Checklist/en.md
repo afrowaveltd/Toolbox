@@ -1,907 +1,282 @@
 # Catalog author checklist
 
-This checklist is for people who edit WhenItFails catalog content.
+This checklist describes the current safe authoring workflow for WhenItFails catalogs maintained with Setter.
 
-Use it before changing catalog files, while editing them, and before committing the result.
+Catalog entries are stable contracts used by runtime lookup, logs, support, documentation, profiles, mappings, automation, and released consumers.
 
-The checklist is intentionally practical and repetitive.
+> One logical catalog change at a time.
 
-Catalog work is safest when every change is small, validated, inspected, and reviewed.
+## Before editing
 
-## Scope
+From the repository root:
 
-This checklist applies to catalog files under:
-
-```text
-Jsons/WhenItFails
-```
-
-Typical files:
-
-```text
-errors.en.json
-categories.en.json
-code-groups.en.json
-owners.en.json
-profiles.json
-```
-
-## Basic rule
-
-For every meaningful catalog change:
-
-```text
-inspect
-→ edit
-→ validate
-→ inspect again
-→ review diff
-→ commit
-```
-
-Do not skip validation just because the change looks small.
-
-Small JSON changes can still break cross-file relationships.
-
-## Before you start
-
-Confirm the repository root:
-
-```bash
-pwd
-```
-
-Confirm the workspace path:
-
-```bash
-realpath Jsons/WhenItFails
-```
-
-Confirm Git state:
-
-```bash
+```powershell
 git status --short
+dotnet run --project Toolroom/WhenItFails/Setter -- validate .
+dotnet run --project Toolroom/WhenItFails/Setter -- summary .
+dotnet run --project Toolroom/WhenItFails/Setter -- reference .
 ```
 
-Run validation before changing anything:
+Use `reference` to inspect the current owners, categories, code groups, profiles, and other workspace metadata before inventing a new value.
 
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- validate .
+Confirm that:
+
+- the workspace is already valid;
+- the working tree contains no unrelated changes;
+- the intended change has one clear purpose;
+- an existing error, category, owner, code group, profile, tag, alias, or mapping does not already express the same concept.
+
+## Choose stable identifiers
+
+Stable identifiers include error IDs, symbolic names, numeric codes, owner names, category names, code-group names and prefixes, profile names, aliases, and documentation keys.
+
+Before adding or changing one, ask:
+
+- is it unique;
+- is it understandable without temporary project context;
+- is it already referenced by source code, tests, documentation, scripts, logs, dashboards, or support procedures;
+- can compatibility be preserved with an alias or deprecation instead of a rename or removal;
+- would adding a new entry be safer than changing the meaning of a released one.
+
+Do not reuse a released numeric code for a different meaning.
+
+## Prepare a new error
+
+Use `next-code` to obtain a candidate code within the intended group:
+
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- next-code . NETWORK
 ```
 
-Run summary:
+Use `suggest-doc-key` to obtain a canonical documentation-key candidate:
 
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- summary .
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- suggest-doc-key . NETWORK "Network unavailable"
 ```
 
-Starting from a known valid workspace makes later failures easier to understand.
+Suggestions are authoring aids, not automatic approval. Review the selected values against the catalog contract.
 
-## Confirm you are editing the right workspace
+Before creation, confirm:
 
-Common mistake:
+- stable ID, symbolic name, and numeric code are unique;
+- the code belongs to the selected code-group range;
+- owner, category, code group, and profile references exist;
+- title is short and specific;
+- message is a complete, neutral, reusable sentence;
+- developer guidance is actionable and safe;
+- severity reflects operational impact;
+- documentation key is canonical and stable;
+- tags, aliases, and metadata add real meaning.
 
-```text
-editing a copied workspace
-while validating another workspace
+Create the error with `add-error` using explicit values:
+
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- add-error . AFW_NET_0042 network operational "Network is unavailable" network-is-unavailable --owner platform --profile default
 ```
 
-Check:
+After creation, inspect the persisted definition with `details`:
 
-```bash
-realpath Jsons/WhenItFails
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- details . AFW_NET_0042
 ```
 
-and compare it with the path passed to Setter.
+## Edit an existing error
 
-If you use a temporary workspace, always store it in a named variable:
-
-```bash
-test_root="$(mktemp -d /tmp/when-it-fails-edit-XXXXXXXXXX)"
-```
-
-Then use the variable consistently:
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- validate "$test_root"
-```
-
-## Choose the smallest safe change
-
-Prefer one semantic change at a time.
-
-Good:
-
-```text
-change one title
-validate
-commit
-```
-
-Good:
-
-```text
-add one category
-validate
-commit
-```
-
-Risky:
-
-```text
-rename categories
-change profiles
-change severities
-rewrite messages
-add owners
-reformat all JSON
-commit everything together
-```
-
-Large edits are sometimes necessary, but they should be deliberate and carefully reviewed.
-
-## Use Setter commands where available
-
-Prefer Setter edit commands for supported error fields:
-
-```text
-set-title
-set-message
-set-developer-hint
-set-severity
-set-documentation-key
-```
-
-Example:
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- set-title . \
-  AFW_NET_0001 \
-  "Network is not available"
-```
-
-Setter commands provide:
-
-- lookup by ID, code, or name,
-- validation,
-- safe writes,
-- timestamped backups,
-- consistent JSON serialization.
-
-## Use manual editing only where needed
-
-Manual JSON editing is currently needed for:
-
-- adding a new error,
-- adding a category,
-- adding a code group,
-- adding an owner,
-- adding or changing profiles,
-- changing fields not yet supported by Setter edit commands.
-
-After manual edits, run validation immediately.
-
-## Error definition checklist
-
-When adding or reviewing an error definition, check:
-
-- `id` is stable and follows project convention.
-- `code` is unique.
-- `code` is inside the intended code-group range.
-- `name` is stable and machine-friendly.
-- `owner` references a known owner.
-- `codePrefix` matches the selected code group.
-- `codeGroup` references a known code group.
-- `primaryCategory` references a known category.
-- `categories` contains known categories.
-- `subcategories` are intentional and consistently named.
-- `title` is short and human-readable.
-- `message` is a complete reusable sentence.
-- `defaultSeverity` is supported and correctly cased.
-- `developerHint` is actionable and safe.
-- `documentationKey` is stable and predictable.
-- `tags` are meaningful and stable.
-- `metadata` is used only for advanced structured data.
-
-## Error ID checklist
-
-Good error IDs are:
-
-- stable,
-- readable,
-- unique,
-- consistent with active catalog style,
-- not tied to temporary wording,
-- not renumbered casually.
-
-Example:
-
-```text
-AFW_NET_0001
-```
-
-Avoid:
-
-```text
-ERROR1
-TEMP_ERROR
-NETWORK_ERROR_FINAL
-PLEASE_DELETE
-```
-
-## Numeric code checklist
-
-Check that the code:
-
-- is an integer,
-- is unique,
-- belongs to the intended code group,
-- belongs to the intended owner range where applicable,
-- does not reuse a retired code without deliberate reason,
-- is not changed after release unless compatibility is considered.
-
-Example:
-
-```json
-"code": 600001
-```
-
-## Code group checklist
-
-When choosing or adding a code group, check:
-
-- `name` is stable.
-- `displayName` is readable.
-- `codePrefix` is short and unique.
-- `codeFrom` and `codeTo` define a clear range.
-- range does not overlap unintentionally.
-- `defaultCategories` reference existing categories.
-- `defaultTags` are meaningful.
-- description explains the group.
-
-## Owner checklist
-
-When choosing or adding an owner, check:
-
-- `name` is stable.
-- `displayName` is readable.
-- code range is intentional.
-- `isBuiltIn` is correct.
-- aliases are useful and not misleading.
-- default mappings are policy-like and understandable.
-
-Do not use owners as categories.
-
-Owners describe responsibility.
-
-Categories describe the problem domain.
-
-## Category checklist
-
-When choosing or adding a category, check:
-
-- `name` is stable.
-- `displayName` is readable.
-- description is specific.
-- aliases are useful.
-- parent categories are intentional.
-- default tags are meaningful.
-- default mappings do not conflict with error-level decisions.
-
-Do not create a new category if an existing category clearly fits.
-
-Do create a new category when repeated errors need a stable shared classification.
-
-## Profile checklist
-
-When adding or changing a profile, check:
-
-- `name` is stable.
-- `displayName` is human-readable.
-- description states the target context.
-- included owners are intentional.
-- included code groups are intentional.
-- included categories are intentional.
-- included and excluded tags are intentional.
-- default mappings are safe for the target context.
-- production profiles do not expose sensitive details.
-- development profiles are clearly not production profiles.
-
-Then test:
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- errors . --profile <PROFILE_NAME>
-```
-
-## Text authoring checklist
-
-For `title`, ask:
-
-- Is it short?
-- Is it specific?
-- Does it avoid implementation details?
-- Does it avoid a final period?
-- Does it differ from the message?
-
-For `message`, ask:
-
-- Is it a complete sentence?
-- Does it state what is known?
-- Does it avoid blaming the user?
-- Does it avoid unsupported assumptions?
-- Is it reusable?
-- Is it safe to display?
-
-For `developerHint`, ask:
-
-- Is it actionable?
-- Does it suggest plausible checks?
-- Does it avoid claiming an unproven cause?
-- Is it useful to developers or operators?
-- Is it free of secrets?
-
-## Severity checklist
-
-Supported values:
-
-```text
-Trace
-Debug
-Information
-Warning
-Error
-Critical
-```
-
-Ask:
-
-```text
-diagnostic only?
-→ Trace or Debug
-```
-
-```text
-notable but not harmful?
-→ Information
-```
-
-```text
-degraded but continued?
-→ Warning
-```
-
-```text
-operation failed?
-→ Error
-```
-
-```text
-system or data safety threatened?
-→ Critical
-```
-
-Do not choose severity based on frustration.
-
-Choose it based on operational impact.
-
-## Documentation key checklist
-
-A good documentation key is:
-
-- stable,
-- predictable,
-- lowercase where project convention expects it,
-- not a temporary URL,
-- not a local filesystem path,
-- not secret,
-- connected to the same error concept.
-
-Example:
-
-```text
-when-it-fails/errors/network/network-unavailable
-```
-
-Avoid:
-
-```text
-C:\Users\Me\Desktop\final-error-help.md
-```
-
-```text
-http://localhost:5000/test
-```
-
-```text
-page-final-v3
-```
-
-## Tag checklist
-
-Tags should be:
-
-- stable,
-- meaningful,
-- uppercase if that is the catalog convention,
-- useful for searching, filtering, profiles, or future tooling.
-
-Good:
-
-```text
-USER_VISIBLE
-NETWORK
-DEBUG_ONLY
-INTERNAL_ONLY
-```
-
-Weak:
-
-```text
-TEMP
-MISC
-THING
-TODO
-```
-
-Do not create tags that nobody can interpret later.
-
-## Security checklist
-
-Before committing catalog text, confirm it does not contain:
-
-- passwords,
-- tokens,
-- connection strings,
-- private filesystem paths,
-- customer identifiers,
-- internal hostnames unless intentional,
-- raw SQL with sensitive data,
-- personal data,
-- stack traces in production-oriented messages,
-- secret URLs.
-
-Catalog files are likely to be stored in source control and may be distributed.
-
-## Localization readiness checklist
-
-Even if English is the only current language, write text that can be translated later.
-
-Prefer:
-
-- complete sentences,
-- clear subject and object,
-- simple punctuation,
-- no concatenated sentence fragments,
-- no culture-specific jokes in operational errors,
-- placeholders only when the tooling supports them.
-
-Avoid:
-
-```text
-"File " + name + " failed"
-```
-
-Prefer a full sentence template when placeholders become supported.
-
-## Manual JSON editing checklist
-
-Before saving manual JSON edits, check:
-
-- brackets and braces are balanced,
-- commas are valid,
-- strings are quoted,
-- property names are correct,
-- arrays remain arrays,
-- numeric codes remain numbers,
-- boolean-like mapping values are intentionally strings where the model expects strings,
-- no accidental editor auto-format changed unrelated sections.
-
-Then run validation.
-
-## Before changing stable identifiers
-
-Stable identifiers include:
-
-```text
-error id
-error name
-numeric code
-owner name
-code group name
-code prefix
-category name
-profile name
-```
-
-Before changing one, ask:
-
-- Is this already referenced in code?
-- Is it referenced in docs?
-- Is it used by tests?
-- Is it used in scripts?
-- Is it visible to users or support?
-- Is this change worth the compatibility cost?
-- Should this be a new entry instead of a rename?
-
-Renames need more care than wording changes.
-
-## Before changing ranges
-
-Range fields include:
-
-```text
-codeFrom
-codeTo
-```
-
-Before changing ranges, ask:
-
-- Which existing errors are inside the old range?
-- Which existing errors move out of range?
-- Does another range overlap?
-- Are profiles or docs affected?
-- Is this a breaking catalog change?
-- Is migration needed?
-
-Always validate after range changes.
-
-## Before changing profiles
-
-Before changing profile policy, ask:
-
-- Which applications use this profile?
-- Is it a development or production profile?
-- Does it expose more information than before?
-- Does it hide information that support needs?
-- Does `errors --profile` still return plausible results?
-- Do runtime consumers interpret mappings the same way?
-- Should this be a new profile instead of changing an existing one?
-
-Production-facing changes deserve extra review.
-
-## Validation loop
-
-Run:
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- validate .
-```
-
-Expected:
-
-```text
-exit code 0
-```
-
-If validation fails, do not continue editing blindly.
-
-Fix the first clear issue, then validate again.
-
-## Inspection loop
-
-After editing an error field:
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- details . AFW_NET_0001
-```
-
-After editing profiles:
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- summary .
-
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- errors . --profile WEB
-```
-
-After editing categories or code groups:
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- summary .
-```
-
-## Git diff checklist
-
-Run:
-
-```bash
-git diff --stat
-```
-
-Then:
-
-```bash
-git diff -- Jsons/WhenItFails
-```
-
-Then:
-
-```bash
-git diff --check
-```
-
-Confirm:
-
-- only intended files changed,
-- no unrelated reformatting occurred,
-- no backup files are being committed accidentally,
-- no temporary files are present,
-- changed wording is intentional,
-- changed identifiers are intentional,
-- changed profile policy is intentional.
-
-## Backup file checklist
-
-Setter backups look like:
-
-```text
-errors.en.<timestamp>.bak.json
-```
-
-Before committing, check:
-
-```bash
-git status --short
-```
-
-If backup files appear, decide deliberately whether project policy allows them in Git.
-
-Most projects should not commit local timestamped backups.
-
-## Temporary file checklist
-
-Temporary files may look like:
-
-```text
-.errors.en.json.<guid>.tmp
-```
-
-If a temporary file remains:
-
-- confirm no Setter process is running,
-- inspect it if recovery may be needed,
-- do not commit it,
-- delete it only after it is understood.
-
-## Commit checklist
-
-Before committing:
-
-```bash
-dotnet build
-dotnet test
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- validate .
-git diff --check
-git status --short
-```
-
-Commit message should describe the catalog change.
+Prefer focused Setter commands for supported changes. Current commands cover user-facing text, developer guidance, severity, documentation key, name, subcategory, owner, code group, primary category, tags, and aliases.
 
 Examples:
 
-```text
-Update network error wording
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- set-title . AFW_NET_0001 "Network unavailable"
+dotnet run --project Toolroom/WhenItFails/Setter -- set-message . AFW_NET_0001 "The network is unavailable."
+dotnet run --project Toolroom/WhenItFails/Setter -- add-error-tag . AFW_NET_0001 USER_VISIBLE
 ```
 
-```text
-Add storage diagnostics profile
+After every focused edit:
+
+1. inspect the result with `details`;
+2. verify that related fields still agree;
+3. validate the workspace;
+4. review the actual diff;
+5. run the corresponding tests.
+
+A title change may require message or documentation updates. A category, owner, code-group, tag, or alias change may affect profiles, mappings, filtering, compatibility, and support expectations.
+
+## Review renames and removals
+
+Renames and removals are compatibility-sensitive.
+
+Before changing or removing a stable error, use `error-references`:
+
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- error-references . AFW_NET_0001
 ```
 
-```text
-Add external service timeout error
+Also search source code, tests, documentation, scripts, release notes, and known integration points.
+
+Prefer:
+
+- aliases for compatible alternate lookup;
+- deprecation when consumers may still depend on an entry;
+- migration notes for intentional breaking changes;
+- a new error instead of changing the historical meaning of an existing code.
+
+## Author categories, code groups, and owners
+
+Before adding a category, decide whether the concept is a stable problem domain rather than a temporary tag.
+
+For a code group, verify:
+
+- prefix uniqueness;
+- numeric range boundaries;
+- absence of unintended overlap;
+- enough capacity for future entries;
+- consistency between group, prefix, and error codes.
+
+For an owner, verify that it represents a real responsibility boundary rather than another name for a category, feature, or profile.
+
+Use the list and show commands to compare the proposed value with the existing reference catalogs.
+
+## Author profiles and mappings
+
+Profiles and mappings can change which errors a consumer receives and how failures are represented.
+
+Inspect the current profile:
+
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- show-profile . WEB
 ```
 
-```text
-Refine production profile mappings
+Use `explain-profile` to understand the effective selection and why errors are included or excluded:
+
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- explain-profile . WEB
 ```
 
-## Good commit size
+Review together:
 
-A good catalog commit usually contains one clear idea.
+- include and exclude selectors;
+- owners, categories, code groups, tags, and subcategories;
+- default mappings;
+- explicit mapping entries;
+- metadata;
+- production safety expectations.
 
-Good:
+Profile explanation is an authoring and diagnostic aid. Runtime consumers remain responsible for enforcing their safety policy.
 
-```text
-Add storage code group
+## Author safe text
+
+User-facing titles and messages must not expose:
+
+- credentials, tokens, or secrets;
+- stack traces;
+- raw SQL;
+- private filesystem paths;
+- internal hostnames;
+- customer identifiers;
+- sensitive metadata;
+- an unproven technical cause presented as fact.
+
+A title should be short and specific. A message should be a complete sentence describing what is known. A developer hint may be technical, but must remain safe and actionable.
+
+Write English text so it can be localized later: use complete sentences, clear grammar, simple punctuation, and no concatenated fragments or culture-dependent jokes in operational messages.
+
+## Validate documentation
+
+When documentation keys or Markdown files change, run both checks:
+
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-keys .
+dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .
 ```
 
-Good:
+`check-doc-keys` checks presence, uniqueness, and canonical form according to current catalog policy.
 
-```text
-Update validation error messages
-```
+`check-doc-links` checks local Markdown links. It does not prove that remote URLs are available or that every document is semantically complete.
 
-Good:
+Keep root README links and `Docs/<topic>/en.md` content aligned with actual behavior.
 
-```text
-Add production-safe profile mappings
-```
+## Review safe writes and backups
 
-Risky:
-
-```text
-Update everything
-```
-
-```text
-Many fixes
-```
-
-```text
-Catalog cleanup
-```
-
-Large cleanup commits should have a clear plan and careful review.
-
-## Review checklist for pull requests
-
-A reviewer should check:
-
-- validation passes,
-- tests pass,
-- changed files are expected,
-- stable identifiers were not changed casually,
-- new references point to existing catalog entries,
-- severity choices are reasonable,
-- production mappings remain safe,
-- messages avoid secrets,
-- documentation keys are stable,
-- backups and temporary files are not included,
-- diffs are readable.
-
-## Negative test checklist
-
-When creating a negative validation test:
-
-- use a disposable workspace,
-- mutate exactly one thing,
-- confirm the mutation happened,
-- expect a specific non-zero exit code,
-- clean up the workspace.
-
-Bash pattern:
-
-```bash
-test_root="$(mktemp -d /tmp/when-it-fails-negative-XXXXXXXXXX)"
-trap 'rm -rf "$test_root"' EXIT
-```
-
-Do not damage the real workspace for negative tests.
-
-## Disposable workspace checklist
-
-Use disposable workspaces for experiments.
-
-Create:
-
-```bash
-test_root="$(mktemp -d /tmp/when-it-fails-edit-XXXXXXXXXX)"
-```
-
-Initialize:
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- init "$test_root"
-```
-
-Validate:
-
-```bash
-dotnet run \
-  --project Toolroom/WhenItFails/Setter \
-  -- validate "$test_root"
-```
-
-Clean up:
-
-```bash
-rm -rf "$test_root"
-```
-
-## Recovery checklist
-
-If a catalog edit goes wrong:
-
-1. Stop active writers.
-2. Confirm the workspace path.
-3. Preserve the current active file.
-4. List backups.
-5. Compare candidate backups.
-6. Test the candidate in a temporary workspace.
-7. Restore deliberately.
-8. Validate.
-9. Inspect affected definitions.
-10. Review Git diff.
-
-Do not restore the newest backup blindly.
-
-## “Do not” checklist
-
-Do not:
-
-- edit the wrong workspace,
-- skip validation,
-- commit backup files accidentally,
-- commit temporary files,
-- change stable IDs casually,
-- use display names where stable names are required,
-- copy development mappings into production,
-- expose secrets in messages,
-- use severity as an emotional label,
-- create vague categories,
-- create profiles that duplicate existing profiles without reason,
-- reformat whole catalog files unintentionally,
-- run normal edit commands with `sudo`.
-
-## Quick full checklist
-
-Before edit:
+Setter write commands create timestamped local recovery files containing:
 
 ```text
-workspace path confirmed
-git status checked
-validation passes
-summary looks plausible
+.bak.json
 ```
 
-During edit:
+After a write, verify:
 
-```text
-one semantic change
-stable names preserved
-references checked
-wording reviewed
-security reviewed
+- the command response succeeded;
+- the intended value is present after reloading or inspecting the catalog;
+- validation still succeeds;
+- a backup was created when expected;
+- rejected input did not modify the source or create a backup.
+
+Backups normally remain local and should not be committed.
+
+Check the working tree:
+
+```powershell
+git status --short
+git diff --check
+git diff
 ```
 
-After edit:
+Read the complete diff. Do not stage unrelated formatting, temporary diagnostics, or generated backup files.
 
-```text
-validation passes
-details or summary inspected
-profile behavior checked if relevant
-git diff reviewed
-backup/temp files checked
-tests pass if needed
-commit message clear
+## Run tests immediately
+
+Every implementation or documentation change must add or update its corresponding test immediately.
+
+Primary Setter verification:
+
+```powershell
+dotnet test Toolroom/WhenItFails/Setter.Tests
 ```
+
+Run the repository-wide suite when shared libraries, runtime contracts, project wiring, or other consumers are affected:
+
+```powershell
+dotnet test
+```
+
+Do not weaken a correct assertion merely to obtain green output. Fix the stale implementation, documentation, fixture, or test expectation that is actually wrong.
+
+## Before committing
+
+Confirm:
+
+- [ ] the change has one logical purpose;
+- [ ] stable identifiers and references were reviewed;
+- [ ] new codes and documentation keys were deliberately selected;
+- [ ] affected errors were inspected with `details`;
+- [ ] renames or removals were checked with `error-references`;
+- [ ] profile changes were inspected with `explain-profile`;
+- [ ] validation passes;
+- [ ] documentation checks pass when relevant;
+- [ ] persistence and backup behavior are correct;
+- [ ] `git status --short` contains no unexpected files;
+- [ ] `git diff --check` is clean;
+- [ ] the focused Setter test suite is green;
+- [ ] `IMPLEMENTATION_STATUS.md` is updated;
+- [ ] the actual diff was read before commit.
+
+## Stop rule
+
+> Do not start the next catalog change while this one is red.
+
+Finish, verify, document, and commit the current change before opening another authoring task.
 
 ## Related documentation
 
-- [Catalog Files](../Catalog%20Files/en.md)
-- [Authoring Error Text](../Authoring%20Error%20Text/en.md)
-- [Profiles](../Profiles/en.md)
-- [Validation](../Validation/en.md)
-- [Workspace Summary](../Workspace%20Summary/en.md)
-- [Inspecting Error Details](../Inspecting%20Error%20Details/en.md)
+- [Getting Started](../Getting-Started/en.md)
+- [Commands](../Commands/en.md)
+- [Reviewing Catalog Changes](../Reviewing%20Catalog%20Changes/en.md)
+- [Testing and CI](../Testing%20and%20CI/en.md)
 - [Safe Writes](../Safe%20Writes/en.md)
 - [Backups and Recovery](../Backups%20and%20Recovery/en.md)
-- [Testing and CI](../Testing%20and%20CI/en.md)
-- [Troubleshooting](../Troubleshooting/en.md)
+- [Documentation Keys](../Documentation%20Keys/en.md)
 
 ## Central principle
 
-> A catalog edit is finished only after it validates, reads correctly, and produces an intentional diff.
+> Author one clear contract change, inspect its consequences, preserve recovery evidence, and keep it red only long enough to understand and fix it.
