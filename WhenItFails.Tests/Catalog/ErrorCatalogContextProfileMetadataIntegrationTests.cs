@@ -23,6 +23,7 @@ public sealed class ErrorCatalogContextProfileMetadataIntegrationTests
         {
             JsonsOptions options = await BootstrapWorkspaceAsync(rootDirectory);
             await AddProfileMetadataAsync(options.ProfilesFilePath);
+            await AssertPersistedProfileMetadataAsync(options.ProfilesFilePath);
 
             Response<ErrorCatalogContext> response =
                 await CreateContextProvider().LoadFromJsonsAsync(options);
@@ -35,11 +36,7 @@ public sealed class ErrorCatalogContextProfileMetadataIntegrationTests
                 candidate => candidate.Name == "WEB");
 
             Assert.Equal("true", profile.DefaultMappings["WEB_PROBLEMDETAILS"]);
-            Assert.Equal(2, profile.Metadata.Count);
-            Assert.True(profile.Metadata.TryGet("consumer", out string? consumer));
-            Assert.Equal("SeeMe", consumer);
-            Assert.True(profile.Metadata.TryGet("AUDIT_NOTE", out string? auditNote));
-            Assert.Equal("preserved through context", auditNote);
+            AssertProfileMetadata(profile);
         }
         finally
         {
@@ -92,6 +89,40 @@ public sealed class ErrorCatalogContextProfileMetadataIntegrationTests
             profileCatalogFilePath);
 
         Assert.True(saveResponse.IsSuccess);
+    }
+
+    private static async Task AssertPersistedProfileMetadataAsync(string profileCatalogFilePath)
+    {
+        Response<ErrorProfileCatalogDocument> response =
+            await new JsonErrorProfileCatalogLoader().LoadFromFileAsync(profileCatalogFilePath);
+
+        Assert.True(response.IsSuccess);
+        Assert.NotNull(response.Data);
+
+        ErrorProfileDefinition profile = Assert.Single(
+            response.Data.Profiles,
+            candidate => string.Equals(
+                candidate.Name,
+                "WEB",
+                StringComparison.OrdinalIgnoreCase));
+
+        AssertProfileMetadata(profile);
+    }
+
+    private static void AssertProfileMetadata(ErrorProfileDefinition profile)
+    {
+        Assert.Equal(2, profile.Metadata.Count);
+        Assert.Equal(
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["consumer"] = "SeeMe",
+                ["auditNote"] = "preserved through context"
+            },
+            profile.Metadata.Items);
+        Assert.True(profile.Metadata.TryGet("consumer", out string? consumer));
+        Assert.Equal("SeeMe", consumer);
+        Assert.True(profile.Metadata.TryGet("AUDIT_NOTE", out string? auditNote));
+        Assert.Equal("preserved through context", auditNote);
     }
 
     private static ErrorCatalogContextProvider CreateContextProvider()
