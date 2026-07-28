@@ -133,6 +133,26 @@ public sealed class ErrorProfileCatalogDocumentNormalizerTests
     }
 
     [Fact]
+    public void Normalize_ShouldCopyTagsWithoutSharingMutableState()
+    {
+        ErrorProfileCatalogDocumentNormalizer normalizer = new();
+        ErrorProfileCatalogDocument document = new()
+        {
+            Tags = ["default catalog", "profiles"]
+        };
+
+        ErrorProfileCatalogDocument normalizedDocument = normalizer.Normalize(document);
+
+        Assert.NotSame(document.Tags, normalizedDocument.Tags);
+        Assert.Equal(["DEFAULT_CATALOG", "PROFILES"], normalizedDocument.Tags);
+
+        normalizedDocument.Tags[0] = "CHANGED";
+        normalizedDocument.Tags.Add("RUNTIME_ONLY");
+
+        Assert.Equal(["default catalog", "profiles"], document.Tags);
+    }
+
+    [Fact]
     public void Normalize_ShouldCopyMetadataWithoutSharingMutableState()
     {
         ErrorProfileCatalogDocumentNormalizer normalizer = new();
