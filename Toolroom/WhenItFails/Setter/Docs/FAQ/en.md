@@ -72,7 +72,7 @@ Filters combine with logical AND.
 
 ## Can Setter add a new error?
 
-Yes. First inspect the reference catalogs and obtain safe candidate values:
+Yes. First inspect the reference catalogs and obtain safe candidate values. Use `next-code` to suggest an available numeric code and `suggest-doc-key` to create a canonical documentation-key candidate:
 
 ```powershell
 dotnet run --project Toolroom/WhenItFails/Setter -- reference .
@@ -156,13 +156,13 @@ Backups reduce recovery risk, but they do not replace Git history, external back
 
 ## How do I list or restore backups?
 
-List available backups:
+Use `list-backups` to inspect available backups:
 
 ```powershell
 dotnet run --project Toolroom/WhenItFails/Setter -- list-backups .
 ```
 
-Restore a selected backup:
+Use `restore-backup` to restore a selected backup:
 
 ```powershell
 dotnet run --project Toolroom/WhenItFails/Setter -- restore-backup . <backup-file>
