@@ -20,7 +20,9 @@ Implemented areas include:
 
 ## Verification status
 
-- Setter: **1,241 tests user-verified green** after normalized `errors --profile` and `show-profile --json` command-boundary contracts.
+The latest user-verified Setter test run reported **5,028 passed, 1 failed, 0 skipped** out of **5,029 tests**. The only failure was the documentation continuation-point contract itself; runtime and command behavior were green.
+
+- Setter focused baseline before the full run: **1,241 tests user-verified green** after normalized `errors --profile` and `show-profile --json` command-boundary contracts.
 - Runtime `ErrorProfileSelectionServiceTests`: **10 focused tests user-verified green**.
 - Runtime `ErrorCatalogRuntimeProfileDisplayNameTests`: **1 focused test user-verified green**.
 - Runtime `ErrorProfileResolverTests`: **19 focused tests user-verified green**, including mapping-selection invariance.
@@ -29,8 +31,7 @@ Implemented areas include:
 - Runtime `ErrorProfileDefinitionNormalizerTests`: **10 focused tests user-verified green** after independent metadata, mapping, and selector-list copy semantics.
 - Runtime `ErrorProfileCatalogDocumentNormalizerTests`: **8 focused tests user-verified green** after independent catalog metadata, profile collection, profile instance, and tag copy semantics.
 - Runtime `ErrorProfileCatalogProviderTests`: **10 focused tests user-verified green**, including loader-to-provider payload isolation.
-- Runtime `ErrorCatalogContextProviderProfileReferenceTests`: **1 focused test user-verified green** for direct reuse of all validated provider documents and the runtime error catalog.
-- Current extension keeps the same focused test count and adds the contract that `CrossValidationResult` is a new combined validation result, not any provider payload's local validation result. This revision is not yet user-verified.
+- Runtime `ErrorCatalogContextProviderProfileReferenceTests`: **1 focused test user-verified green** for direct reuse of all validated provider documents, the runtime error catalog, and a newly computed combined `CrossValidationResult`.
 
 Focused verification command for the current slice:
 
@@ -53,7 +54,7 @@ dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .
 git diff --check
 ```
 
-## Documentation synchronization
+## Documentation synchronization completed
 
 High-value Setter documentation synchronization is complete. The maintained English documentation covers the implemented command surface, architecture, testing, safe writes, backups, automation, contribution workflow, and maintainer continuation rules.
 
@@ -62,7 +63,12 @@ Primary synchronized documents include:
 - `README.md` and `Readme/en.md`;
 - `Docs/Overview/en.md`;
 - `Docs/Commands/en.md` and `Docs/Command Quick Reference/en.md`;
+- `Docs/Getting-Started/en.md`;
+- `Docs/FAQ/en.md`;
+- `Docs/Known Limitations/en.md`;
+- `Docs/Roadmap and Future Work/en.md`;
 - `Docs/Testing and CI/en.md`;
+- `Docs/Reviewing Catalog Changes/en.md`;
 - `Docs/Safe Writes/en.md` and `Docs/Backups and Recovery/en.md`;
 - `Docs/Architecture Overview/en.md`;
 - `Docs/Contributing to Setter/en.md`;
@@ -88,7 +94,7 @@ Completed audit slices:
 14. `ErrorProfileCatalogProvider` returns the normalized document copy rather than exposing the mutable document instance supplied by the loader.
 15. `ErrorCatalogContextProvider` intentionally aggregates already normalized and validated provider outputs without a second deep copy.
 16. The aggregation contract covers `ErrorCatalog`, `ErrorCatalogDocument`, category, code-group, owner, and profile documents.
-17. The current extension protects the complementary validation boundary: the final context receives a newly computed cross-catalog validation result rather than reusing any provider-local validation result.
+17. The final context receives a newly computed cross-catalog validation result rather than reusing any provider-local validation result.
 
 ## Current intentional boundaries
 
@@ -119,9 +125,11 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify the expanded `ErrorCatalogContextProviderProfileReferenceTests` contract.
+First rerun the focused documentation contract, then the complete Setter suite.
 
-If green, inspect externally observable context behavior next. Prefer stable provider call ordering or failure short-circuiting after reviewing the existing `ErrorCatalogContextProviderTests`; do not continue ownership checks without a concrete gap.
+Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
+
+After the suite is green, inspect externally observable context behavior next. Prefer stable provider call ordering or failure short-circuiting after reviewing the existing `ErrorCatalogContextProviderTests`; do not continue ownership checks without a concrete gap.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -129,7 +137,9 @@ Do not invent automatic `DefaultMappings` consumption.
 
 The twentieth runtime/public-API audit slice extended the context aggregation test with cross-validation ownership. Provider documents and the runtime error catalog are intentionally reused, while `CrossValidationResult` must be a new result produced by validating the complete combined context.
 
-Commit in this change sequence:
+The follow-up documentation repair restored all stable continuation-point phrases required by `ImplementationStatusDocumentationTests` after the status file had been compacted during incremental updates.
+
+Commits in this change sequence:
 
 ```text
 d82053a32207d4ea0ed4734b919bb46a48aba6a7
