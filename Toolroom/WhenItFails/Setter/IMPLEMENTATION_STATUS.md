@@ -29,7 +29,9 @@ The public runtime-facade display-name integration test is user-verified green w
 
 The profile resolver and mapping-boundary suite is user-verified green with 19 focused `ErrorProfileResolverTests`.
 
-The current profile-metadata provider slice adds one focused runtime test in `ErrorProfileCatalogProviderMetadataTests.cs`. That test is not yet user-verified.
+The profile-metadata provider contract is user-verified green with 1 focused `ErrorProfileCatalogProviderMetadataTests` test.
+
+The current context-integration slice adds one focused runtime test in `ErrorCatalogContextProfileMetadataIntegrationTests.cs`. That test is not yet user-verified.
 
 Primary Setter verification command:
 
@@ -40,7 +42,7 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorProfileCatalogProviderMetadataTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProfileMetadataIntegrationTests
 ```
 
 Before committing catalog changes, also run:
@@ -124,7 +126,9 @@ Setter's shared `ErrorsCommand.FindProfile` lookup normalizes the requested sele
 
 The normalized `errors --profile` and `show-profile --json` command boundaries are user-verified with 1,241 total Setter tests. They protect successful separator normalization, stable JSON envelopes, expected exit codes, absence of failure data, canonical profile identity where applicable, and read-only no-backup behavior.
 
-The current runtime provider audit protects profile metadata. A focused test verifies that non-empty `MetadataBag` values survive load, normalization, validation, and provider payload creation, including case-insensitive metadata key access.
+The runtime provider metadata contract is user-verified. Non-empty `MetadataBag` values survive load, normalization, validation, and provider payload creation with case-insensitive key access.
+
+The current context-integration contract extends that audit through bootstrapping and `ErrorCatalogContextProvider`. It verifies that profile metadata and normalized `DefaultMappings` remain available from the final `ErrorCatalogContext` consumed by runtime services.
 
 ## Current intentional boundaries
 
@@ -155,21 +159,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify the focused `ErrorProfileCatalogProviderMetadataTests` run.
+First verify the focused `ErrorCatalogContextProfileMetadataIntegrationTests` run.
 
 Next documentation target: none. The high-value Setter documentation synchronization is complete.
 
-If the metadata provider test is green, record the runtime result and continue with one narrow audit of metadata ownership semantics. Determine whether the normalizer intentionally preserves the same mutable `MetadataBag` instance or should create an independent copy; protect the chosen contract with a focused test before changing implementation.
+If the context integration test is green, record the result and then audit metadata ownership semantics. Determine whether `ErrorProfileDefinitionNormalizer` should preserve the same mutable `MetadataBag` reference or create an independent copy. Protect the chosen contract with a focused test before changing implementation.
 
 Do not begin implementation from documentation assumptions alone. Inspect the current source and tests in GitHub first.
 
 ## Last completed change
 
-The ninth runtime/public-API audit slice added a focused runtime provider contract for profile metadata preservation. It verifies that metadata authored through the shared profile model survives the complete catalog provider pipeline without being dropped or made inaccessible by key casing.
+The tenth runtime/public-API audit slice added a full context integration contract for profile metadata and mappings. It edits a bootstrapped profile catalog, loads the complete runtime context, and verifies that consumer metadata and normalized mappings survive to the public `ErrorCatalogContext` boundary.
 
 Commits in this change sequence:
 
 ```text
-bca3a6239b3310fce2323553432be69c7ce5e2fb
-Protect profile metadata provider contract
+68e85a11ce09ad506f85c7bbe0ddd2bdf11b16cf
+Add profile metadata context integration contract
 ```
