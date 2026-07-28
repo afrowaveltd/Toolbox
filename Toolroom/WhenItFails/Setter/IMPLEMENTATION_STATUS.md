@@ -26,13 +26,13 @@ Implemented areas include:
 - Runtime `ErrorProfileResolverTests`: **19 focused tests user-verified green**, including mapping-selection invariance.
 - Runtime `ErrorProfileCatalogProviderMetadataTests`: **1 focused test user-verified green**.
 - Runtime `ErrorCatalogContextProfileMetadataIntegrationTests`: **1 focused test user-verified green**, including writer/loader round-trip, provider/context preservation, metadata values, and normalized mappings.
-- Runtime `ErrorProfileDefinitionNormalizerTests`: **9 focused tests user-verified green** after independent metadata and mapping copy semantics.
-- Current selector-list ownership slice adds one focused normalizer test, so the next successful focused run is expected to report **10 tests**.
+- Runtime `ErrorProfileDefinitionNormalizerTests`: **10 focused tests user-verified green** after independent metadata, mapping, and selector-list copy semantics.
+- Current document-metadata ownership slice changes `ErrorProfileCatalogDocumentNormalizer` to copy the catalog `MetadataBag`. The focused document-normalizer suite is not yet user-verified.
 
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorProfileDefinitionNormalizerTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorProfileCatalogDocumentNormalizerTests
 ```
 
 Primary Setter verification command:
@@ -76,9 +76,10 @@ Completed audit slices:
 5. `DefaultMappings` remain consumer recommendations and do not affect `ErrorProfileResolver` selection.
 6. Profile metadata survives JSON load, normalization, validation, provider payload creation, safe writer/loader round-trip, and final `ErrorCatalogContext` construction.
 7. `MetadataBag` keys are case-insensitive only; separator normalization is intentionally not applied.
-8. `ErrorProfileDefinitionNormalizer` creates an independent `MetadataBag` copy. Mutating a normalized profile does not mutate the source definition.
-9. `DefaultMappings` are also independently copied and normalized without sharing mutable state with the source profile.
-10. The current focused contract verifies mutation isolation for all profile selector lists while preserving their normalized values.
+8. `ErrorProfileDefinitionNormalizer` creates an independent `MetadataBag` copy.
+9. `DefaultMappings` are independently copied and normalized.
+10. All profile selector lists are independently copied and normalized.
+11. The current document-level ownership slice changes `ErrorProfileCatalogDocumentNormalizer` to copy catalog metadata instead of sharing a mutable `MetadataBag` with the source document.
 
 ## Current intentional boundaries
 
@@ -109,19 +110,22 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify all focused `ErrorProfileDefinitionNormalizerTests`; the expected count is **10 green tests**.
+First verify all focused `ErrorProfileCatalogDocumentNormalizerTests`.
 
-If green, the profile-normalizer ownership audit is complete. Continue with one narrow audit of document-level ownership in `ErrorProfileCatalogDocumentNormalizer`, ensuring normalized profile collections do not share mutable list instances with the source document.
+If green, record the result and continue with one separate document-level ownership contract for the `Profiles` list and normalized profile instances. Do not combine that verification with unrelated catalog behavior.
 
 Do not invent automatic `DefaultMappings` consumption. Inspect current source and tests before implementation.
 
 ## Last completed change
 
-The thirteenth runtime/public-API audit slice added an explicit mutation-isolation contract for all profile selector lists. The implementation already creates normalized list copies through `NormalizeStringList`, so no production change was required.
+The fourteenth runtime/public-API audit slice changed profile-catalog metadata normalization from shared mutable reference semantics to an independent copy. The focused contract verifies metadata value preservation and mutation isolation between the source catalog and normalized catalog.
 
 Commits in this change sequence:
 
 ```text
-454de86e049ab45ccacfde1d797724b085b7e0ed
-Protect normalized profile selector isolation
+9aa08e11a2f69a3613c967ae434a6ed6e22a4a6c
+Require independent normalized profile catalog metadata
+
+5c2a2cc4a2bc31d17e7b60ff144a1cfa19695b73
+Copy profile catalog metadata during normalization
 ```
