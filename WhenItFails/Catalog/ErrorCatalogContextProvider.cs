@@ -77,6 +77,11 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
                 "Category catalog loading failed while creating catalog context.");
         }
 
+        if (categoryCatalogResponse.Data is null)
+        {
+            return CreateNullPayloadResponse();
+        }
+
         Response<ErrorCodeGroupCatalogProviderPayload> codeGroupCatalogResponse =
             await _codeGroupCatalogProvider.LoadFromFileAsync(
                 options.CodeGroupCatalogFilePath,
@@ -116,8 +121,7 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
                 "Profile catalog loading failed while creating catalog context.");
         }
 
-        if (categoryCatalogResponse.Data is null
-            || codeGroupCatalogResponse.Data is null
+        if (codeGroupCatalogResponse.Data is null
             || ownerCatalogResponse.Data is null
             || profileCatalogResponse.Data is null)
         {
