@@ -26,11 +26,7 @@ public sealed class ErrorCatalogContextProviderProfileReferenceTests
             new FakeProfileCatalogProvider(profilePayload));
 
         Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
-            new JsonsOptions
-            {
-                RootDirectory = "Jsons",
-                PackageDirectoryName = "WhenItFails"
-            });
+            CreateOptions());
 
         Assert.True(response.IsSuccess);
         Assert.NotNull(response.Data);
@@ -47,6 +43,61 @@ public sealed class ErrorCatalogContextProviderProfileReferenceTests
         Assert.NotSame(ownerPayload.ValidationResult, response.Data.CrossValidationResult);
         Assert.NotSame(profilePayload.ValidationResult, response.Data.CrossValidationResult);
         Assert.True(response.Data.CrossValidationResult.IsValid);
+    }
+
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldUseFreshCrossValidation_WhenSuccessfulProviderPayloadsContainLocalIssues()
+    {
+        ErrorCatalogProviderPayload errorPayload = CreateErrorCatalogPayload();
+        ErrorCategoryCatalogProviderPayload categoryPayload = CreateCategoryPayload();
+        ErrorCodeGroupCatalogProviderPayload codeGroupPayload = CreateCodeGroupPayload();
+        ErrorOwnerCatalogProviderPayload ownerPayload = CreateOwnerPayload();
+        ErrorProfileCatalogProviderPayload profilePayload = CreateProfilePayload();
+
+        AddProviderLocalError(errorPayload.ValidationResult, "ErrorProviderLocalIssue");
+        AddProviderLocalError(categoryPayload.ValidationResult, "CategoryProviderLocalIssue");
+        AddProviderLocalError(codeGroupPayload.ValidationResult, "CodeGroupProviderLocalIssue");
+        AddProviderLocalError(ownerPayload.ValidationResult, "OwnerProviderLocalIssue");
+        AddProviderLocalError(profilePayload.ValidationResult, "ProfileProviderLocalIssue");
+
+        ErrorCatalogContextProvider provider = new(
+            new FakeErrorCatalogProvider(errorPayload),
+            new FakeCategoryCatalogProvider(categoryPayload),
+            new FakeCodeGroupCatalogProvider(codeGroupPayload),
+            new FakeOwnerCatalogProvider(ownerPayload),
+            new FakeProfileCatalogProvider(profilePayload));
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
+            CreateOptions());
+
+        Assert.True(response.IsSuccess);
+        Assert.NotNull(response.Data);
+        Assert.True(response.Data.CrossValidationResult.IsValid);
+        Assert.Empty(response.Data.CrossValidationResult.Issues);
+        Assert.NotSame(errorPayload.ValidationResult, response.Data.CrossValidationResult);
+        Assert.NotSame(categoryPayload.ValidationResult, response.Data.CrossValidationResult);
+        Assert.NotSame(codeGroupPayload.ValidationResult, response.Data.CrossValidationResult);
+        Assert.NotSame(ownerPayload.ValidationResult, response.Data.CrossValidationResult);
+        Assert.NotSame(profilePayload.ValidationResult, response.Data.CrossValidationResult);
+    }
+
+    private static JsonsOptions CreateOptions()
+    {
+        return new JsonsOptions
+        {
+            RootDirectory = "Jsons",
+            PackageDirectoryName = "WhenItFails"
+        };
+    }
+
+    private static void AddProviderLocalError(
+        ErrorCatalogValidationResult validationResult,
+        string code)
+    {
+        validationResult.AddError(
+            code: code,
+            message: "Provider-local validation issue.",
+            path: "$");
     }
 
     private static ErrorCatalogProviderPayload CreateErrorCatalogPayload()
