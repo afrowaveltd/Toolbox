@@ -35,8 +35,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderShortCircuitTests`: **5 focused tests user-verified green**, covering failure at every provider boundary.
 - Runtime `ErrorCatalogContextProviderCallOrderTests`: **1 focused test user-verified green** for exact provider order and configured path routing.
 - Runtime `ErrorCatalogContextProviderNullPayloadShortCircuitTests`: **5 focused tests user-verified green**, covering null payloads at every provider boundary.
-- Runtime `ErrorCatalogContextProviderCancellationPropagationTests`: **2 focused tests user-verified green** for cancellation between error/category and category/code-group providers.
-- Current cancellation slice adds one focused code-group-to-owner boundary test, so the next successful focused run is expected to report **3 tests**.
+- Runtime `ErrorCatalogContextProviderCancellationPropagationTests`: **3 focused tests user-verified green** for cancellation at the first three inter-provider boundaries.
+- Current cancellation slice adds the final owner-to-profile boundary test, so the next successful focused run is expected to report **4 tests**.
 
 Focused verification command for the current slice:
 
@@ -109,7 +109,8 @@ Completed audit slices:
 24. Cooperative cancellation between error and category provider calls is protected.
 25. Null-payload handling short-circuits immediately at every provider boundary.
 26. Cooperative cancellation between category and code-group provider calls is protected.
-27. The current slice extends cooperative cancellation coverage to the code-group-to-owner transition: cancellation requested during a successful code-group provider call must be observed by the owner provider, and the profile provider must not run.
+27. Cooperative cancellation between code-group and owner provider calls is protected.
+28. The current slice completes inter-provider cancellation coverage at the owner-to-profile transition: cancellation requested during a successful owner provider call must be observed by the profile provider before context construction or cross-validation.
 
 ## Current intentional boundaries
 
@@ -140,21 +141,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderCancellationPropagationTests`; the expected count is **3 green tests**.
+First verify `ErrorCatalogContextProviderCancellationPropagationTests`; the expected count is **4 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, extend cancellation propagation by one adjacent provider boundary only, preferably owner-to-profile, while preserving `OperationCanceledException` propagation and suppression of context construction.
+If green, inter-provider cancellation coverage is complete. Inspect the final success-path cancellation boundary after the profile provider returns successfully, before cross-validation begins, or move to the cross-validation failure response contract if no defect is found.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The thirty-fourth runtime/public-API audit slice extended cooperative cancellation coverage to the code-group-to-owner boundary. It verifies that cancellation requested during a successful code-group provider response is observed by the owner provider and prevents the profile provider from running.
+The thirty-fifth runtime/public-API audit slice completed inter-provider cooperative cancellation coverage at the owner-to-profile boundary. It verifies that cancellation requested during a successful owner provider response is observed by the profile provider before it can produce a response, so no context is constructed and cross-validation is not entered.
 
 Commit in this change sequence:
 
 ```text
-88042133cf8000912e226e328b898ae060d398ea
-Protect cancellation between code-group and owner providers
+3f00f8cd5305afb6f6d166878af289b6b6a5b567
+Protect cancellation after owner provider
 ```
