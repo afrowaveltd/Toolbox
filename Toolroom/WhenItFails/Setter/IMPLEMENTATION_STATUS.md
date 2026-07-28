@@ -21,9 +21,9 @@ The current implementation supports:
 
 ## Verification status
 
-The latest user-verified Setter test run is green with 1,232 tests after the contribution-guide documentation correction.
+The latest user-verified Setter test run is green with 1,233 tests after the architecture-overview documentation synchronization.
 
-The current architecture-overview change adds one documentation-contract test, so the next successful focused run is expected to report 1,233 tests.
+The current new-command documentation change adds one documentation-contract test, so the next successful focused run is expected to report 1,234 tests.
 Do not mark that count as user-verified until the run is confirmed green.
 
 Primary verification command:
@@ -60,7 +60,8 @@ The following high-level Setter documents have been synchronized with the curren
 - `Docs/Backups and Recovery/en.md`;
 - `Docs/Exit Codes and Automation/en.md`;
 - `Docs/Contributing to Setter/en.md`;
-- `Docs/Architecture Overview/en.md`.
+- `Docs/Architecture Overview/en.md`;
+- `Docs/Adding a New Command/en.md`.
 
 The synchronized documentation no longer presents implemented capabilities such as `add-error`, `remove-error`, `next-code`, `restore-backup`, JSON output, profile explanation, or documentation checks as missing or future work.
 
@@ -78,7 +79,9 @@ The exit-codes-and-automation guide documents the stable `0`/`1`/`2`/`3` process
 
 The contribution guide consolidates the current repository workflow: GitHub `master` as the source of truth, one logical change per commit, immediate corresponding tests, focused verification, README plus `Docs/<topic>/en.md` documentation, mandatory implementation-status maintenance, safe-write and restore review, cross-platform checks, and the red-suite stop rule.
 
-The architecture overview now maps the actual entry-point, command, service, workspace-model, validation, persistence, recovery, rendering, and testing boundaries. It records the intended dependency direction and the distinction between rich, plain, and JSON output without presenting implemented capabilities as future work.
+The architecture overview maps the actual entry-point, command, service, workspace-model, validation, persistence, recovery, rendering, and testing boundaries. It records the intended dependency direction and the distinction between rich, plain, and JSON output without presenting implemented capabilities as future work.
+
+The new-command guide now defines the complete command lifecycle: contract design, dispatch, command and service responsibilities, workspace validation, read and write flows, safe persistence, rich/plain/JSON surfaces, exit and issue codes, documentation updates, cross-platform review, and immediate focused tests.
 
 ## Current intentional boundaries
 
@@ -109,24 +112,24 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify the current focused Setter run and record whether the expected 1,233 tests are green.
+First verify the current focused Setter run and record whether the expected 1,234 tests are green.
 
-Next documentation target: `Docs/Adding a New Command/en.md` with one corresponding documentation-contract test.
+Next documentation target: `Docs/Maintainer Notes/en.md` with one corresponding documentation-contract test.
 
-That guide should align command authoring with dispatch, argument validation, service boundaries, rich/plain/JSON output, exit and issue codes, focused tests, documentation updates, and implementation-status maintenance.
+That guide should summarize the source-of-truth rule, continuation status, focused green-step workflow, architecture boundaries, documentation synchronization, safe persistence, automation contracts, and recovery expectations without duplicating every specialized guide.
 
 After the remaining high-value documentation is synchronized, begin a runtime/public-API audit of WhenItFails integration points, mappings, and profile behavior.
 
 ## Last completed change
 
-`Docs/Architecture Overview/en.md` was replaced with a coherent current architecture map, and `ArchitectureOverviewDocumentationTests.cs` now protects command/service/view separation, workspace and validation boundaries, single-file persistence, JSON automation, dependency direction, and focused verification.
+`Docs/Adding a New Command/en.md` was replaced with a current command-authoring workflow, and `AddingANewCommandDocumentationTests.cs` now protects dispatch, service separation, command-input failures, rich/plain/JSON output, exit and issue codes, focused verification, required documentation updates, status maintenance, and the red-suite stop rule.
 
 Commits in this change sequence:
 
 ```text
-e2966becb3ca15a64edd779c7b4377821ab98e21
-Add Setter architecture documentation contract
+ae24252ee4078f51754723ce7013998c6b55a450
+Add new command documentation contract
 
-c415d2c5015a580c055f47d3a6e26c83ccf39c0d
-Refresh Setter architecture overview
+b80a68630806dc9116e8e64f34f41bb9e7fadf61
+Refresh new command authoring guide
 ```
