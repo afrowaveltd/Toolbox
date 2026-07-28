@@ -21,7 +21,7 @@ The current implementation supports:
 
 ## Verification status
 
-The latest user-verified Setter test run is green with 1,240 tests after the normalized `errors --profile` JSON boundary contract.
+The latest user-verified Setter test run is green with 1,241 tests after the normalized `show-profile --json` boundary contract.
 
 The first runtime/public-API profile-selection slice is user-verified green with 10 focused `ErrorProfileSelectionServiceTests`.
 
@@ -29,8 +29,7 @@ The public runtime-facade display-name integration test is user-verified green w
 
 The profile resolver and mapping-boundary suite is user-verified green with 19 focused `ErrorProfileResolverTests`.
 
-The current normalized `show-profile --json` boundary slice adds one Setter test, so the next successful full Setter run is expected to report 1,241 tests.
-Do not mark that count as user-verified until the run is confirmed green.
+The current profile-metadata provider slice adds one focused runtime test in `ErrorProfileCatalogProviderMetadataTests.cs`. That test is not yet user-verified.
 
 Primary Setter verification command:
 
@@ -41,7 +40,7 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test Toolroom/WhenItFails/Setter.Tests --filter FullyQualifiedName~ShowProfileCommandJsonTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorProfileCatalogProviderMetadataTests
 ```
 
 Before committing catalog changes, also run:
@@ -123,9 +122,9 @@ Setter's shared `ErrorsCommand.FindProfile` lookup normalizes the requested sele
 
 `ShowProfileCommand.FindProfile` delegates to the shared Setter lookup instead of maintaining a second comparison implementation. The compatibility method remains available to existing internal callers and tests, while `show-profile`, `errors --profile`, and `explain-profile` use one normalization contract.
 
-The normalized `errors --profile` JSON boundary is user-verified with 1,240 total Setter tests. It protects exit code `0`, the stable JSON envelope, absence of failure data, and retention of the raw requested selector in output options.
+The normalized `errors --profile` and `show-profile --json` command boundaries are user-verified with 1,241 total Setter tests. They protect successful separator normalization, stable JSON envelopes, expected exit codes, absence of failure data, canonical profile identity where applicable, and read-only no-backup behavior.
 
-The current `show-profile --json` contract verifies the same separator-normalized selector at the profile-detail boundary. It protects exit code `0`, the stable command envelope, the resolved canonical profile identity, absence of failure data, and the read-only no-backup invariant.
+The current runtime provider audit protects profile metadata. A focused test verifies that non-empty `MetadataBag` values survive load, normalization, validation, and provider payload creation, including case-insensitive metadata key access.
 
 ## Current intentional boundaries
 
@@ -156,21 +155,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify the focused `ShowProfileCommandJsonTests` run and then the full Setter suite if the focused run is green.
+First verify the focused `ErrorProfileCatalogProviderMetadataTests` run.
 
 Next documentation target: none. The high-value Setter documentation synchronization is complete.
 
-If the expected 1,241 Setter tests are green, the normalized profile-lookup and command-output audit is complete. Continue with one narrow public runtime integration audit of profile metadata or mapping consumption. Start by identifying an actual consumer contract; do not make `DefaultMappings` affect profile selection and do not invent automatic mapping behavior without a concrete integration requirement.
+If the metadata provider test is green, record the runtime result and continue with one narrow audit of metadata ownership semantics. Determine whether the normalizer intentionally preserves the same mutable `MetadataBag` instance or should create an independent copy; protect the chosen contract with a focused test before changing implementation.
 
 Do not begin implementation from documentation assumptions alone. Inspect the current source and tests in GitHub first.
 
 ## Last completed change
 
-The eighth runtime/public-API audit slice added a command-level JSON contract for normalized `show-profile` selection. It protects successful separator normalization, exit code `0`, the stable JSON envelope, canonical profile identity, absence of failure data, and the no-backup invariant without changing production behavior.
+The ninth runtime/public-API audit slice added a focused runtime provider contract for profile metadata preservation. It verifies that metadata authored through the shared profile model survives the complete catalog provider pipeline without being dropped or made inaccessible by key casing.
 
 Commits in this change sequence:
 
 ```text
-5fec4dcf13accdefb44b28bcaa9f187191ee30e2
-Add normalized show-profile JSON contract
+bca3a6239b3310fce2323553432be69c7ce5e2fb
+Protect profile metadata provider contract
 ```
