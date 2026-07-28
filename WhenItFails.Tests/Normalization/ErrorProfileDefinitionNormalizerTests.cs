@@ -127,6 +127,32 @@ public sealed class ErrorProfileDefinitionNormalizerTests
     }
 
     [Fact]
+    public void Normalize_ShouldCopyDefaultMappingsWithoutSharingMutableState()
+    {
+        ErrorProfileDefinitionNormalizer normalizer = new();
+        ErrorProfileDefinition definition = new()
+        {
+            DefaultMappings =
+            {
+                ["web.problemDetails"] = " true ",
+                ["web.includeTraceId"] = " false "
+            }
+        };
+
+        ErrorProfileDefinition normalizedDefinition = normalizer.Normalize(definition);
+
+        Assert.NotSame(definition.DefaultMappings, normalizedDefinition.DefaultMappings);
+        Assert.Equal("true", normalizedDefinition.DefaultMappings["WEB_PROBLEMDETAILS"]);
+        Assert.Equal("false", normalizedDefinition.DefaultMappings["WEB_INCLUDETRACEID"]);
+
+        normalizedDefinition.DefaultMappings["WEB_PROBLEMDETAILS"] = "false";
+        normalizedDefinition.DefaultMappings["RUNTIME_ONLY"] = "true";
+
+        Assert.Equal(" true ", definition.DefaultMappings["web.problemDetails"]);
+        Assert.False(definition.DefaultMappings.ContainsKey("RUNTIME_ONLY"));
+    }
+
+    [Fact]
     public void Normalize_ShouldCopyMetadataWithoutSharingMutableState()
     {
         ErrorProfileDefinitionNormalizer normalizer = new();
