@@ -35,8 +35,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderShortCircuitTests`: **5 focused tests user-verified green**, covering failure at every provider boundary.
 - Runtime `ErrorCatalogContextProviderCallOrderTests`: **1 focused test user-verified green** for exact provider order and configured path routing.
 - Runtime `ErrorCatalogContextProviderCancellationPropagationTests`: **1 focused test user-verified green** for cooperative cancellation between provider calls.
-- Runtime `ErrorCatalogContextProviderNullPayloadShortCircuitTests`: **3 focused tests user-verified green** for immediate rejection of null error-, category-, and code-group-catalog payloads.
-- Current owner null-payload slice adds one focused test, so the next successful focused run is expected to report **4 tests**.
+- Runtime `ErrorCatalogContextProviderNullPayloadShortCircuitTests`: **4 focused tests user-verified green** for immediate rejection of null error-, category-, code-group-, and owner-catalog payloads.
+- Current profile null-payload slice adds one focused test, so the next successful focused run is expected to report **5 tests**.
 
 Focused verification command for the current slice:
 
@@ -110,7 +110,8 @@ Completed audit slices:
 25. Null-payload handling short-circuits immediately at the error-provider boundary.
 26. Null-payload handling short-circuits immediately at the category-provider boundary.
 27. Null-payload handling short-circuits immediately at the code-group-provider boundary.
-28. The current slice extends immediate null-payload rejection to the owner-provider boundary, preventing the profile provider call.
+28. Null-payload handling short-circuits immediately at the owner-provider boundary.
+29. The current slice completes null-payload coverage at the profile-provider boundary: a successful profile response with no payload returns `ErrorCatalogContextPayloadIsNull`, no context is created, and cross-validation is not entered.
 
 ## Current intentional boundaries
 
@@ -141,24 +142,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderNullPayloadShortCircuitTests`; the expected count is **4 green tests**.
+First verify `ErrorCatalogContextProviderNullPayloadShortCircuitTests`; the expected count is **5 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, finish the null-payload sequence with a profile-provider null-payload contract. Production already checks that final boundary immediately before cross-validation, so prefer a test-only lock unless inspection reveals a concrete defect.
+If green, the null-payload sequence is complete. Inspect one adjacent success-path boundary, preferably whether provider-local validation results are intentionally ignored after successful provider responses or whether cross-validation failure preserves only the first issue by design.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The thirty-first runtime/public-API audit slice extended immediate null-payload rejection to the owner provider. A successful owner response with no payload now returns `ErrorCatalogContextPayloadIsNull` before the profile provider is invoked. The final profile payload is also checked independently before cross-validation.
+The thirty-second runtime/public-API audit slice completed null-payload coverage at the profile provider. All earlier providers return valid payloads, while a successful profile response with no payload returns the stable invalid response and produces no partial context. Production already checked this terminal boundary before cross-validation, so this slice required only a focused contract test.
 
-Commits in this change sequence:
+Commit in this change sequence:
 
 ```text
-f153cab38333a427bf3278a20e4d20f4367b5c7b
-Protect owner null payload short circuit
-
-4f7c280dfcd6afce1c2ef4c98383d10b1117c874
-Short circuit null owner payload
+fe37393b37c98ad05f2b3f1a75a433fad99a2d7e
+Protect profile null payload terminal boundary
 ```
