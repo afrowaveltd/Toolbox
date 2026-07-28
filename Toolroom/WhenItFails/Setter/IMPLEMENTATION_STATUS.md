@@ -2,47 +2,42 @@
 
 Last updated: 2026-07-28
 
-This file is the continuation point for `Toolroom/WhenItFails/Setter` development.
-Update it after every implementation or documentation change that alters the current state, completed work, known limitations, or recommended next step.
+This file is the continuation point for `Toolroom/WhenItFails/Setter` development. Update it after every implementation, test, or documentation change that alters the current state or recommended next step.
 
 ## Current state
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the WhenItFails JSON catalog workspace under `Jsons/WhenItFails`.
 
-The current implementation supports:
+Implemented areas include:
 
 - workspace initialization, validation, summary, and reference inspection;
 - error listing, filtering, detail inspection, creation, removal, and focused field editing;
 - tags, aliases, ownership, categories, code groups, and documentation keys;
 - profile creation, selectors, mappings, metadata, and explanation output;
 - safe writes with timestamped backups, backup listing, and restore operations;
-- rich terminal output, plain output, JSON output, and stable exit-code conventions;
+- rich, plain, and JSON output with stable exit-code conventions;
 - documentation-key validation and local Markdown link checking.
 
 ## Verification status
 
-The latest user-verified Setter test run is green with 1,241 tests after the normalized `show-profile --json` boundary contract.
+- Setter: **1,241 tests user-verified green** after normalized `errors --profile` and `show-profile --json` command-boundary contracts.
+- Runtime `ErrorProfileSelectionServiceTests`: **10 focused tests user-verified green**.
+- Runtime `ErrorCatalogRuntimeProfileDisplayNameTests`: **1 focused test user-verified green**.
+- Runtime `ErrorProfileResolverTests`: **19 focused tests user-verified green**, including mapping-selection invariance.
+- Runtime `ErrorProfileCatalogProviderMetadataTests`: **1 focused test user-verified green**.
+- Runtime `ErrorCatalogContextProfileMetadataIntegrationTests`: **1 focused test user-verified green**, including writer/loader round-trip, provider/context preservation, metadata values, and normalized mappings.
+- Current metadata-ownership slice changes `ErrorProfileDefinitionNormalizer` to copy `MetadataBag` instead of sharing mutable state. This focused normalization test is not yet user-verified.
 
-The first runtime/public-API profile-selection slice is user-verified green with 10 focused `ErrorProfileSelectionServiceTests`.
+Focused verification command for the current slice:
 
-The public runtime-facade display-name integration test is user-verified green with 1 focused `ErrorCatalogRuntimeProfileDisplayNameTests` test.
-
-The profile resolver and mapping-boundary suite is user-verified green with 19 focused `ErrorProfileResolverTests`.
-
-The profile-metadata provider contract is user-verified green with 1 focused `ErrorProfileCatalogProviderMetadataTests` test.
-
-The current context-integration slice adds one focused runtime test in `ErrorCatalogContextProfileMetadataIntegrationTests.cs`. That test is not yet user-verified.
+```powershell
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorProfileDefinitionNormalizerTests
+```
 
 Primary Setter verification command:
 
 ```powershell
 dotnet test Toolroom/WhenItFails/Setter.Tests
-```
-
-Focused verification command for the current slice:
-
-```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProfileMetadataIntegrationTests
 ```
 
 Before committing catalog changes, also run:
@@ -54,81 +49,33 @@ dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .
 git diff --check
 ```
 
-## Documentation synchronization completed
+## Documentation synchronization
 
-The high-value Setter documentation synchronization is complete. The following high-level documents have been synchronized with the current command surface and protected by documentation tests:
+High-value Setter documentation synchronization is complete. The maintained English documentation covers the implemented command surface, architecture, testing, safe writes, backups, automation, contribution workflow, and maintainer continuation rules.
 
-- `README.md`;
-- `Readme/en.md`;
+Primary synchronized documents include:
+
+- `README.md` and `Readme/en.md`;
 - `Docs/Overview/en.md`;
-- `Docs/Commands/en.md`;
-- `Docs/Command Quick Reference/en.md`;
-- `Docs/Known Limitations/en.md`;
-- `Docs/Roadmap and Future Work/en.md`;
-- `Docs/Getting-Started/en.md`;
-- `Docs/FAQ/en.md`;
+- `Docs/Commands/en.md` and `Docs/Command Quick Reference/en.md`;
 - `Docs/Testing and CI/en.md`;
-- `Docs/Reviewing Catalog Changes/en.md`;
-- `Docs/Catalog Author Checklist/en.md`;
-- `Docs/Safe Writes/en.md`;
-- `Docs/Backups and Recovery/en.md`;
-- `Docs/Exit Codes and Automation/en.md`;
-- `Docs/Contributing to Setter/en.md`;
+- `Docs/Safe Writes/en.md` and `Docs/Backups and Recovery/en.md`;
 - `Docs/Architecture Overview/en.md`;
-- `Docs/Adding a New Command/en.md`;
+- `Docs/Contributing to Setter/en.md`;
 - `Docs/Maintainer Notes/en.md`.
-
-The synchronized documentation no longer presents implemented capabilities such as `add-error`, `remove-error`, `next-code`, `restore-backup`, JSON output, profile explanation, or documentation checks as missing or future work.
-
-The overview provides a stable product map for workspace lifecycle, catalog discovery, error authoring, profiles and mappings, documentation integrity, backup recovery, rich/plain/JSON output, exit codes, safe writes, verification, and specialized documentation without duplicating the complete command reference or relying on a brittle source-file inventory.
-
-The Testing and CI guide documents focused and repository-wide runs, service and command contracts, temporary workspaces, persistence and backup invariants, rich/plain/JSON output, exit codes, documentation checks, failure diagnosis, and the immediate one-change/one-test rule.
-
-The catalog review guide provides a practical review gate for scope, working-tree inspection, validation, reference checks, profiles and mappings, documentation checks, output contracts, safe-write invariants, focused tests, and the rule that red changes are not approved.
-
-The catalog author checklist follows the current Setter workflow: inspect reference catalogs, prepare codes and documentation keys, create or edit entries with explicit commands, inspect references and profile behavior, validate documentation, review backups and diffs, run tests immediately, and update this continuation file.
-
-The safe-writes guide describes the current single-file persistence contract across catalog targets: validation before replacement, temporary-file serialization, timestamped backups, success and rejection invariants, structured failure handling, concurrency boundaries, backup listing, explicit restoration, post-write inspection, and focused tests.
-
-The backups-and-recovery guide uses the implemented `list-backups` and `restore-backup` workflow, requires content-based backup selection, complete-workspace validation, affected-contract inspection, Git diff review, focused tests, and a stop rule after unverified restoration.
-
-The exit-codes-and-automation guide documents the stable `0`/`1`/`2`/`3` process classification, the distinction between exit and issue codes, JSON-first machine integration, plain versus rich output, Bash and PowerShell capture patterns, pipeline safety, write and restore verification, and the rule that unexplained failures must not be converted into green automation.
-
-The contribution guide consolidates the current repository workflow: GitHub `master` as the source of truth, one logical change per commit, immediate corresponding tests, focused verification, README plus `Docs/<topic>/en.md` documentation, mandatory implementation-status maintenance, safe-write and restore review, cross-platform checks, and the red-suite stop rule.
-
-The architecture overview maps the actual entry-point, command, service, workspace-model, validation, persistence, recovery, rendering, and testing boundaries. It records the intended dependency direction and the distinction between rich, plain, and JSON output without presenting implemented capabilities as future work.
-
-The new-command guide defines the complete command lifecycle: contract design, dispatch, command and service responsibilities, workspace validation, read and write flows, safe persistence, rich/plain/JSON surfaces, exit and issue codes, documentation updates, cross-platform review, and immediate focused tests.
-
-The maintainer notes define the continuation workflow: verify GitHub and the status file, complete one small green step, preserve architectural and persistence boundaries, maintain automation contracts, verify recovery explicitly, synchronize documentation, and never guess state that can be inspected.
 
 ## Runtime/public-API audit
 
-The first confirmed integration gap was profile lookup divergence:
+Completed audit slices:
 
-- Setter accepts a profile by stable `Name` or human-readable `DisplayName`;
-- runtime `IErrorProfileSelectionService.ResolveByProfileName` previously matched only `Name`;
-- both paths normalize values with `TextKeyNormalizer`, but the duplicated lookup behavior could disagree.
-
-The runtime selection service now matches either normalized `Name` or normalized `DisplayName` while retaining the existing method name and `ErrorProfileNotFoundByName` issue code for backward compatibility.
-
-The public interface XML documentation now states the actual name-or-display-name contract.
-
-A user-verified runtime-facade integration test confirms that `ErrorCatalogRuntime.ResolveProfile` accepts a normalized display name and returns the expected runtime selection.
-
-Profile explanation precedence is user-verified. When an error matches an include tag but the same tag appears in `ExcludeTags`, runtime exclusion wins and the Setter explanation reports both the include match and the final exclusion veto.
-
-The mapping audit confirmed an intentional boundary: `DefaultMappings` are consumer recommendations for presentation or integration behavior. They do not modify error definitions and do not participate in `ErrorProfileResolver` selection. Nineteen focused runtime resolver tests are user-verified green, including the mapping-invariance contract.
-
-Setter's shared `ErrorsCommand.FindProfile` lookup normalizes the requested selector, profile `Name`, and `DisplayName` with `TextKeyNormalizer`. This aligns equivalent forms such as `CUSTOM_PROFILE`, `custom profile`, and `custom-profile`.
-
-`ShowProfileCommand.FindProfile` delegates to the shared Setter lookup instead of maintaining a second comparison implementation. The compatibility method remains available to existing internal callers and tests, while `show-profile`, `errors --profile`, and `explain-profile` use one normalization contract.
-
-The normalized `errors --profile` and `show-profile --json` command boundaries are user-verified with 1,241 total Setter tests. They protect successful separator normalization, stable JSON envelopes, expected exit codes, absence of failure data, canonical profile identity where applicable, and read-only no-backup behavior.
-
-The runtime provider metadata contract is user-verified. Non-empty `MetadataBag` values survive load, normalization, validation, and provider payload creation with case-insensitive key access.
-
-The current context-integration contract extends that audit through bootstrapping and `ErrorCatalogContextProvider`. It verifies that profile metadata and normalized `DefaultMappings` remain available from the final `ErrorCatalogContext` consumed by runtime services.
+1. Runtime profile lookup accepts normalized `Name` or `DisplayName`, aligned with Setter.
+2. Setter `errors --profile`, `show-profile`, and `explain-profile` share one normalized lookup path.
+3. Command-level JSON contracts protect normalized selectors, exit codes, envelopes, failure fields, and no-backup behavior.
+4. Profile explanation reports include matches and final exclusion vetoes consistently with runtime selection.
+5. `DefaultMappings` remain consumer recommendations and do not affect `ErrorProfileResolver` selection.
+6. Profile metadata survives JSON load, normalization, validation, provider payload creation, safe writer/loader round-trip, and final `ErrorCatalogContext` construction.
+7. `MetadataBag` keys are case-insensitive only; separator normalization is intentionally not applied.
+8. `ErrorProfileDefinitionNormalizer` now creates an independent `MetadataBag` copy. Mutating a normalized profile must not mutate the source definition.
 
 ## Current intentional boundaries
 
@@ -153,27 +100,28 @@ These are boundaries or future candidates, not undocumented defects.
 - Keep each change narrow and intentional.
 - Add or update tests immediately with each implementation or documentation change.
 - Run the affected focused test project after every commit-sized change.
-- Do not advance to another area until the current tests are green.
-- Keep README and localized English documentation aligned with actual behavior.
-- Update this file after every change so another session can continue without reconstructing project history.
+- Do not advance while the current test slice is red.
+- Keep README and `Docs/<topic>/en.md` aligned with actual behavior.
+- Update this file after every change.
 
 ## Recommended next step
 
-First verify the focused `ErrorCatalogContextProfileMetadataIntegrationTests` run.
+First verify all focused `ErrorProfileDefinitionNormalizerTests`.
 
-Next documentation target: none. The high-value Setter documentation synchronization is complete.
+If green, record the result and audit one adjacent ownership boundary: determine whether `DefaultMappings` and mutable selector lists are also independently copied by normalization, and protect only one concrete gap per slice.
 
-If the context integration test is green, record the result and then audit metadata ownership semantics. Determine whether `ErrorProfileDefinitionNormalizer` should preserve the same mutable `MetadataBag` reference or create an independent copy. Protect the chosen contract with a focused test before changing implementation.
-
-Do not begin implementation from documentation assumptions alone. Inspect the current source and tests in GitHub first.
+Do not invent automatic `DefaultMappings` consumption. Inspect current source and tests before implementation.
 
 ## Last completed change
 
-The tenth runtime/public-API audit slice added a full context integration contract for profile metadata and mappings. It edits a bootstrapped profile catalog, loads the complete runtime context, and verifies that consumer metadata and normalized mappings survive to the public `ErrorCatalogContext` boundary.
+The eleventh runtime/public-API audit slice changed profile metadata normalization from shared mutable reference semantics to an independent copy. The focused contract verifies value preservation and mutation isolation between the source profile and normalized profile.
 
 Commits in this change sequence:
 
 ```text
-68e85a11ce09ad506f85c7bbe0ddd2bdf11b16cf
-Add profile metadata context integration contract
+c7e6ca0ba1cc90d4a72bb778555cfbd683f0e16b
+Require independent normalized profile metadata
+
+d4aa01044ab0108aa33f73fa8f4b4b0c847678e0
+Copy profile metadata during normalization
 ```
