@@ -21,9 +21,9 @@ The current implementation supports:
 
 ## Verification status
 
-The latest user-verified Setter test run is green with 1,234 tests after the new-command documentation synchronization.
+The latest user-verified Setter test run is green with 1,235 tests after the maintainer-notes documentation synchronization.
 
-The current maintainer-notes change adds one documentation-contract test, so the next successful focused run is expected to report 1,235 tests.
+The current overview documentation change adds one documentation-contract test, so the next successful focused run is expected to report 1,236 tests.
 Do not mark that count as user-verified until the run is confirmed green.
 
 Primary verification command:
@@ -41,12 +41,13 @@ dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .
 git diff --check
 ```
 
-## Documentation synchronization completed
+## High-value documentation synchronization completed
 
 The following high-level Setter documents have been synchronized with the current command surface and protected by documentation tests:
 
 - `README.md`;
 - `Readme/en.md`;
+- `Docs/Overview/en.md`;
 - `Docs/Commands/en.md`;
 - `Docs/Command Quick Reference/en.md`;
 - `Docs/Known Limitations/en.md`;
@@ -66,6 +67,8 @@ The following high-level Setter documents have been synchronized with the curren
 
 The synchronized documentation no longer presents implemented capabilities such as `add-error`, `remove-error`, `next-code`, `restore-backup`, JSON output, profile explanation, or documentation checks as missing or future work.
 
+The overview now provides a stable product map for workspace lifecycle, catalog discovery, error authoring, profiles and mappings, documentation integrity, backup recovery, rich/plain/JSON output, exit codes, safe writes, verification, and specialized documentation without duplicating the complete command reference or relying on a brittle source-file inventory.
+
 The Testing and CI guide documents focused and repository-wide runs, service and command contracts, temporary workspaces, persistence and backup invariants, rich/plain/JSON output, exit codes, documentation checks, failure diagnosis, and the immediate one-change/one-test rule.
 
 The catalog review guide provides a practical review gate for scope, working-tree inspection, validation, reference checks, profiles and mappings, documentation checks, output contracts, safe-write invariants, focused tests, and the rule that red changes are not approved.
@@ -84,7 +87,7 @@ The architecture overview maps the actual entry-point, command, service, workspa
 
 The new-command guide defines the complete command lifecycle: contract design, dispatch, command and service responsibilities, workspace validation, read and write flows, safe persistence, rich/plain/JSON surfaces, exit and issue codes, documentation updates, cross-platform review, and immediate focused tests.
 
-The maintainer notes now define the continuation workflow: verify GitHub and the status file, complete one small green step, preserve architectural and persistence boundaries, maintain automation contracts, verify recovery explicitly, synchronize documentation, and never guess state that can be inspected.
+The maintainer notes define the continuation workflow: verify GitHub and the status file, complete one small green step, preserve architectural and persistence boundaries, maintain automation contracts, verify recovery explicitly, synchronize documentation, and never guess state that can be inspected.
 
 ## Current intentional boundaries
 
@@ -115,24 +118,24 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify the current focused Setter run and record whether the expected 1,235 tests are green.
+First verify the current focused Setter run and record whether the expected 1,236 tests are green.
 
-Next documentation target: `Docs/Overview/en.md` with one corresponding documentation-contract test.
+The high-value Setter documentation synchronization is now complete.
 
-That guide should provide a concise current product overview, point users to the correct specialized documentation, describe implemented command families and output modes, and avoid duplicating the full command reference or presenting implemented capabilities as future work.
+Begin a runtime/public-API audit of WhenItFails integration points, mappings, and profile behavior. Start with a narrow inventory of the public runtime types and services that Setter consumes or mirrors, identify any duplicated or divergent logic, add focused tests for the first confirmed gap, and update this file before moving to the next gap.
 
-After that final high-value overview synchronization, begin a runtime/public-API audit of WhenItFails integration points, mappings, and profile behavior.
+Do not begin implementation from documentation assumptions alone. Inspect the current source and tests in GitHub first.
 
 ## Last completed change
 
-`Docs/Maintainer Notes/en.md` was replaced with a concise continuation and operating manual, and `MaintainerNotesDocumentationTests.cs` now protects the GitHub source-of-truth rule, implementation-status handoff, small-green-step workflow, automation and persistence boundaries, backup discovery and restoration, focused verification, and the red-suite stop rule.
+`Docs/Overview/en.md` was replaced with a concise current product map, and `OverviewDocumentationTests.cs` now protects workspace scope, implemented command families, profile explanation, backup recovery, documentation checks, rich/plain/JSON output, machine-integration guidance, focused verification, and status maintenance.
 
 Commits in this change sequence:
 
 ```text
-a462dfde998cd20ca348e20e59b0d7c260edad03
-Add maintainer notes documentation contract
+877c05ee3a69305499ee2d02e8899888e9b858ef
+Add Setter overview documentation contract
 
-a6b3a21225b4d89f2e8cc69028c048631e7a4f38
-Refresh Setter maintainer notes
+76d1f2237851b72df3208ad6186735b1b08d0de1
+Refresh Setter product overview
 ```
