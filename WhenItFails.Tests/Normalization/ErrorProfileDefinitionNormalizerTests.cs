@@ -1,3 +1,4 @@
+using Afrowave.Toolbox.Essentials.Metadata;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Normalization;
 
@@ -126,15 +127,29 @@ public sealed class ErrorProfileDefinitionNormalizerTests
     }
 
     [Fact]
-    public void Normalize_ShouldKeepMetadataReference()
+    public void Normalize_ShouldCopyMetadataWithoutSharingMutableState()
     {
         ErrorProfileDefinitionNormalizer normalizer = new();
-
-        ErrorProfileDefinition definition = new();
+        ErrorProfileDefinition definition = new()
+        {
+            Metadata = new MetadataBag(
+                new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["consumer"] = "SeeMe",
+                    ["auditNote"] = "preserve independently"
+                })
+        };
 
         ErrorProfileDefinition normalizedDefinition = normalizer.Normalize(definition);
 
-        Assert.Same(definition.Metadata, normalizedDefinition.Metadata);
+        Assert.NotSame(definition.Metadata, normalizedDefinition.Metadata);
+        Assert.Equal(definition.Metadata.Items, normalizedDefinition.Metadata.Items);
+
+        normalizedDefinition.Metadata.Set("consumer", "Changed");
+        normalizedDefinition.Metadata.Set("newValue", "runtime-only");
+
+        Assert.Equal("SeeMe", definition.Metadata["consumer"]);
+        Assert.False(definition.Metadata.TryGet("newValue", out _));
     }
 
     [Fact]
