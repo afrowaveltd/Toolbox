@@ -29,11 +29,12 @@ public sealed class ImplementationStatusDocumentationTests
             "Docs/Getting-Started/en.md",
             "Docs/FAQ/en.md",
             "Docs/Testing and CI/en.md",
+            "Docs/Reviewing Catalog Changes/en.md",
             "## Current intentional boundaries",
             "## Working rules",
             "GitHub `master` is the source of truth.",
             "## Recommended next step",
-            "Docs/Reviewing Catalog Changes/en.md",
+            "Next documentation target:",
             "runtime/public-API audit",
             "## Last completed change"
         ];
