@@ -55,6 +55,21 @@ public sealed class ErrorCatalogContextProviderNullPayloadShortCircuitTests
         AssertNullPayloadFailure(response);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldNotCallProfileProvider_WhenOwnerCatalogProviderSucceedsWithoutPayload()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new SuccessfulCategoryCatalogProvider(),
+            new SuccessfulCodeGroupCatalogProvider(),
+            new NullPayloadOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
+
+        AssertNullPayloadFailure(response);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -168,6 +183,47 @@ public sealed class ErrorCatalogContextProviderNullPayloadShortCircuitTests
         {
             cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult(Response<ErrorCodeGroupCatalogProviderPayload>.Ok(null));
+        }
+    }
+
+    private sealed class SuccessfulCodeGroupCatalogProvider : IErrorCodeGroupCatalogProvider
+    {
+        public Task<Response<ErrorCodeGroupCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorCodeGroupCatalogProviderPayload>.Ok(
+                new ErrorCodeGroupCatalogProviderPayload
+                {
+                    Document = new ErrorCodeGroupCatalogDocument
+                    {
+                        CodeGroups =
+                        [
+                            new ErrorCodeGroupDefinition
+                            {
+                                Name = "GENERAL",
+                                DisplayName = "General",
+                                CodePrefix = "GEN",
+                                CodeFrom = 100000,
+                                CodeTo = 199999
+                            }
+                        ]
+                    },
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
+    private sealed class NullPayloadOwnerCatalogProvider : IErrorOwnerCatalogProvider
+    {
+        public Task<Response<ErrorOwnerCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(Response<ErrorOwnerCatalogProviderPayload>.Ok(null));
         }
     }
 
