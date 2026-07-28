@@ -21,8 +21,11 @@ The current implementation supports:
 
 ## Verification status
 
-The latest user-verified Setter test run is green after the FAQ documentation corrections.
-The Setter test project currently contains 1,224 tests.
+The latest user-verified Setter test run is green after adding this implementation-status document.
+That run contained 1,225 tests.
+
+The current Testing and CI documentation change adds one documentation-contract test, so the next successful focused run is expected to report 1,226 tests.
+Do not mark that count as user-verified until the run is confirmed green.
 
 Primary verification command:
 
@@ -50,9 +53,12 @@ The following high-level Setter documents have been synchronized with the curren
 - `Docs/Known Limitations/en.md`;
 - `Docs/Roadmap and Future Work/en.md`;
 - `Docs/Getting-Started/en.md`;
-- `Docs/FAQ/en.md`.
+- `Docs/FAQ/en.md`;
+- `Docs/Testing and CI/en.md`.
 
 The synchronized documentation no longer presents implemented capabilities such as `add-error`, `remove-error`, `next-code`, `restore-backup`, JSON output, profile explanation, or documentation checks as missing or future work.
+
+The Testing and CI guide now documents the current verification strategy rather than the early narrow set of text-edit tests. It covers focused and repository-wide runs, service and command contracts, temporary workspaces, persistence and backup invariants, rich/plain/JSON output, exit codes, documentation checks, failure diagnosis, and the rule that each change receives an immediate corresponding test.
 
 ## Current intentional boundaries
 
@@ -83,18 +89,22 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-Continue the documentation audit one topic at a time.
-The next recommended target is `Docs/Testing and CI/en.md` with one corresponding documentation test, because it is a central maintainer guide and may still describe an older command and verification surface.
+First verify the current focused Setter run and record whether the expected 1,226 tests are green.
+
+After that, continue the documentation audit with `Docs/Reviewing Catalog Changes/en.md` and one corresponding documentation test. This is the next high-value maintainer workflow because it should align catalog review with current commands, documentation checks, backups, JSON output, and the narrow-change testing discipline.
 
 After the remaining high-value documentation is synchronized, begin a runtime/public-API audit of WhenItFails integration points, mappings, and profile behavior.
 
 ## Last completed change
 
-The Setter FAQ was synchronized with the current feature set and its test now verifies explicit references to `add-error`, `remove-error`, `error-references`, `next-code`, `suggest-doc-key`, backup operations, JSON output, documentation checks, and profile explanation.
+`Docs/Testing and CI/en.md` was replaced with a concise current maintainer guide, and `TestingAndCiDocumentationTests.cs` now protects the focused verification command, one-change/one-test workflow, temporary-workspace isolation, persistence and backup checks, output modes, exit codes, documentation checks, and the red-test stop rule.
 
-Latest completed commit before this status file:
+Commits in this change sequence:
 
 ```text
-1b770d7506b92c76caf3c3e0f7766133f9fb7a14
-Clarify Setter error creation helpers in FAQ
+226d31690fbe1d2e4efc4ac2f6942faf5b381981
+Refresh Setter testing and CI guide
+
+ eb8e505663f5fb9ca2b4754c9d50875b672ed1f3
+Refresh Setter testing and CI guide
 ```
