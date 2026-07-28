@@ -1,7 +1,9 @@
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
+using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
+using Afrowave.Toolbox.WhenItFails.Validation;
 
 namespace Afrowave.Toolbox.WhenItFails.Tests.Catalog;
 
@@ -17,15 +19,35 @@ public sealed class ErrorCatalogContextProviderShortCircuitTests
             new UnexpectedOwnerCatalogProvider(),
             new UnexpectedProfileCatalogProvider());
 
-        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
-            new JsonsOptions
-            {
-                RootDirectory = "Jsons",
-                PackageDirectoryName = "WhenItFails"
-            });
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
 
         Assert.False(response.IsSuccess);
         Assert.Equal("ErrorCatalogUnavailable", Assert.Single(response.Issues).Code);
+    }
+
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldNotCallLaterProviders_WhenCategoryCatalogProviderFails()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new FailingCategoryCatalogProvider(),
+            new UnexpectedCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal("CategoryCatalogUnavailable", Assert.Single(response.Issues).Code);
+    }
+
+    private static JsonsOptions CreateOptions()
+    {
+        return new JsonsOptions
+        {
+            RootDirectory = "Jsons",
+            PackageDirectoryName = "WhenItFails"
+        };
     }
 
     private sealed class FailingErrorCatalogProvider : IErrorCatalogProvider
@@ -39,6 +61,59 @@ public sealed class ErrorCatalogContextProviderShortCircuitTests
             return Task.FromResult(Response<ErrorCatalogProviderPayload>.NotFound(
                 code: "ErrorCatalogUnavailable",
                 message: "Error catalog is unavailable."));
+        }
+    }
+
+    private sealed class SuccessfulErrorCatalogProvider : IErrorCatalogProvider
+    {
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            ErrorCatalogDocument document = new()
+            {
+                Errors =
+                [
+                    new ErrorDefinition
+                    {
+                        Id = "AFW_GEN_0001",
+                        Code = 100001,
+                        Name = "UNKNOWNERROR",
+                        Owner = "AFW",
+                        CodePrefix = "GEN",
+                        CodeGroup = "GENERAL",
+                        PrimaryCategory = "GENERAL",
+                        Categories = ["GENERAL"],
+                        Title = "Unknown error",
+                        Message = "An unknown error occurred.",
+                        DefaultSeverity = "Error"
+                    }
+                ]
+            };
+
+            return Task.FromResult(Response<ErrorCatalogProviderPayload>.Ok(
+                new ErrorCatalogProviderPayload
+                {
+                    Catalog = new ErrorCatalog(document.Errors),
+                    Document = document,
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
+    private sealed class FailingCategoryCatalogProvider : IErrorCategoryCatalogProvider
+    {
+        public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorCategoryCatalogProviderPayload>.Invalid(
+                code: "CategoryCatalogUnavailable",
+                message: "Category catalog is unavailable."));
         }
     }
 
@@ -58,7 +133,7 @@ public sealed class ErrorCatalogContextProviderShortCircuitTests
             string filePath,
             CancellationToken cancellationToken = default)
         {
-            throw new InvalidOperationException("Code-group provider must not be called after the error catalog provider fails.");
+            throw new InvalidOperationException("Code-group provider must not be called after an earlier provider fails.");
         }
     }
 
@@ -68,7 +143,7 @@ public sealed class ErrorCatalogContextProviderShortCircuitTests
             string filePath,
             CancellationToken cancellationToken = default)
         {
-            throw new InvalidOperationException("Owner provider must not be called after the error catalog provider fails.");
+            throw new InvalidOperationException("Owner provider must not be called after an earlier provider fails.");
         }
     }
 
@@ -78,7 +153,7 @@ public sealed class ErrorCatalogContextProviderShortCircuitTests
             string filePath,
             CancellationToken cancellationToken = default)
         {
-            throw new InvalidOperationException("Profile provider must not be called after the error catalog provider fails.");
+            throw new InvalidOperationException("Profile provider must not be called after an earlier provider fails.");
         }
     }
 }
