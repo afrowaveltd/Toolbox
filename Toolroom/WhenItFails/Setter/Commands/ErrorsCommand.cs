@@ -1,5 +1,6 @@
 using Afrowave.Toolbox.SeeMe.WhenItFails.Console;
 using Afrowave.Toolbox.WhenItFails.Definitions;
+using Afrowave.Toolbox.WhenItFails.Normalization;
 using Afrowave.Toolbox.WhenItFails.Resolution;
 using Afrowave.Toolbox.WhenItFails.Validation;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Models;
@@ -252,15 +253,23 @@ internal static class ErrorsCommand
     }
 
     /// <summary>
-    /// Finds a profile by name or display name.
+    /// Finds a profile by normalized name or display name.
     /// </summary>
     public static ErrorProfileDefinition? FindProfile(
         WhenItFailsWorkspaceSummary summary,
         string profileName)
     {
+        string normalizedProfileName = TextKeyNormalizer.NormalizeKey(profileName);
+
         return summary.ProfileCatalog.Profiles.FirstOrDefault(profile =>
-            string.Equals(profile.Name, profileName, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(profile.DisplayName, profileName, StringComparison.OrdinalIgnoreCase));
+            string.Equals(
+                TextKeyNormalizer.NormalizeKey(profile.Name),
+                normalizedProfileName,
+                StringComparison.OrdinalIgnoreCase)
+            || string.Equals(
+                TextKeyNormalizer.NormalizeKey(profile.DisplayName),
+                normalizedProfileName,
+                StringComparison.OrdinalIgnoreCase));
     }
 
     private static bool IsValueOption(string option)
