@@ -35,13 +35,13 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderShortCircuitTests`: **5 focused tests user-verified green**, covering failure at every provider boundary.
 - Runtime `ErrorCatalogContextProviderCallOrderTests`: **1 focused test user-verified green** for exact provider order and configured path routing.
 - Runtime `ErrorCatalogContextProviderNullPayloadShortCircuitTests`: **5 focused tests user-verified green**, covering null payloads at every provider boundary.
-- Runtime `ErrorCatalogContextProviderCancellationPropagationTests`: **3 focused tests user-verified green** for cancellation at the first three inter-provider boundaries.
-- Current cancellation slice adds the final owner-to-profile boundary test, so the next successful focused run is expected to report **4 tests**.
+- Runtime `ErrorCatalogContextProviderCancellationPropagationTests`: **4 focused tests user-verified green**, covering every inter-provider cancellation boundary.
+- Current post-profile cancellation slice adds one focused `ErrorCatalogContextProviderPostProfileCancellationTests` contract and a production cancellation check before cross-validation. This test is not yet user-verified.
 
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderCancellationPropagationTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderPostProfileCancellationTests
 ```
 
 Primary Setter verification command:
@@ -106,11 +106,9 @@ Completed audit slices:
 21. Owner-provider failure preserves the source issue and prevents the profile provider from running.
 22. Profile-provider failure preserves the source issue and returns no partial `ErrorCatalogContext`.
 23. Exact provider invocation order and matching `JsonsOptions` path routing are protected.
-24. Cooperative cancellation between error and category provider calls is protected.
-25. Null-payload handling short-circuits immediately at every provider boundary.
-26. Cooperative cancellation between category and code-group provider calls is protected.
-27. Cooperative cancellation between code-group and owner provider calls is protected.
-28. The current slice completes inter-provider cancellation coverage at the owner-to-profile transition: cancellation requested during a successful owner provider call must be observed by the profile provider before context construction or cross-validation.
+24. Null-payload handling short-circuits immediately at every provider boundary.
+25. Cooperative cancellation is protected at all four inter-provider transitions.
+26. The current slice closes the final cancellation gap after the profile provider returns: cancellation is checked before cross-validation and context construction.
 
 ## Current intentional boundaries
 
@@ -141,21 +139,24 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderCancellationPropagationTests`; the expected count is **4 green tests**.
+First verify `ErrorCatalogContextProviderPostProfileCancellationTests`; the expected count is **1 green test**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inter-provider cancellation coverage is complete. Inspect the final success-path cancellation boundary after the profile provider returns successfully, before cross-validation begins, or move to the cross-validation failure response contract if no defect is found.
+If green, cancellation coverage is complete from method entry through the final pre-cross-validation boundary. Inspect the cross-validation failure response contract next, especially whether returning only the first issue is intentional and sufficiently documented.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The thirty-fifth runtime/public-API audit slice completed inter-provider cooperative cancellation coverage at the owner-to-profile boundary. It verifies that cancellation requested during a successful owner provider response is observed by the profile provider before it can produce a response, so no context is constructed and cross-validation is not entered.
+The thirty-sixth runtime/public-API audit slice found and fixed the final cancellation gap. A profile provider may successfully return a payload after cancellation is requested; `ErrorCatalogContextProvider` now checks the token again before entering cross-validation or constructing an `ErrorCatalogContext`.
 
-Commit in this change sequence:
+Commits in this change sequence:
 
 ```text
-3f00f8cd5305afb6f6d166878af289b6b6a5b567
-Protect cancellation after owner provider
+2fc7e1624b186fa0a62ef5070522a0466ef6f503
+Protect cancellation before context cross-validation
+
+17b9e785de01ba9a19ae5e4c30a3b8b3bbe1e3a0
+Observe cancellation before context cross-validation
 ```
