@@ -6,15 +6,15 @@ namespace Afrowave.Toolbox.WhenItFails.Interfaces;
 
 /// <summary>
 /// Selects error definitions from a loaded catalog context
-/// using a named error profile.
+/// using an error profile name or display name.
 /// </summary>
 public interface IErrorProfileSelectionService
 {
     /// <summary>
-    /// Finds a profile by name and resolves its effective error selection.
+    /// Finds a profile by stable name or display name and resolves its effective error selection.
     /// </summary>
     /// <param name="context">Loaded error catalog context.</param>
-    /// <param name="profileName">Raw or normalized profile name.</param>
+    /// <param name="profileName">Raw or normalized profile name or display name.</param>
     /// <returns>
     /// Response containing errors selected by the requested profile.
     /// </returns>
@@ -22,4 +22,3 @@ public interface IErrorProfileSelectionService
         ErrorCatalogContext? context,
         string profileName);
 }
-
