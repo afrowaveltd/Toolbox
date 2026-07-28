@@ -37,7 +37,7 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderNullPayloadShortCircuitTests`: **5 focused tests user-verified green**, covering null payloads at every provider boundary.
 - Runtime `ErrorCatalogContextProviderCancellationPropagationTests`: **4 focused tests user-verified green**, covering every inter-provider cancellation boundary.
 - Runtime `ErrorCatalogContextProviderPostProfileCancellationTests`: **1 focused test user-verified green** for cancellation after the profile provider and before cross-validation.
-- Current cross-validation response slice adds one focused `ErrorCatalogContextProviderCrossValidationFailureContractTests` contract. This test is not yet user-verified.
+- Current cross-validation response slice adds one focused `ErrorCatalogContextProviderCrossValidationFailureContractTests` contract. Its first local run failed at compile time because the test referenced a non-existent `ResultIssue` type; commit `8892c649de58415ca343baecb9d3adcdbf69a84f` fixes the test by inferring the actual issue type.
 
 Focused verification command for the current slice:
 
@@ -141,7 +141,7 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderCrossValidationFailureContractTests`; the expected count is **1 green test**.
+Re-run `ErrorCatalogContextProviderCrossValidationFailureContractTests`; the expected count is **1 green test** after compile fix `8892c649de58415ca343baecb9d3adcdbf69a84f`.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
@@ -151,11 +151,14 @@ Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The thirty-seventh runtime/public-API audit slice records the public failure contract when cross-catalog validation finds multiple issues. `ErrorCatalogContextProvider` returns an `Invalid` response based on the first issue's code and message and does not expose a partial `ErrorCatalogContext`.
+The thirty-seventh runtime/public-API audit slice records the public failure contract when cross-catalog validation finds multiple issues. `ErrorCatalogContextProvider` returns an `Invalid` response based on the first issue's code and message and does not expose a partial `ErrorCatalogContext`. The initial test revision used a non-existent explicit `ResultIssue` type; the test now uses type inference against the actual `Response.Issues` element type.
 
-Commit in this change sequence:
+Commits in this change sequence:
 
 ```text
 cf11c782ad54b76687ffdf8a12ce12cc3e5b106c
 Protect cross-validation failure response contract
+
+8892c649de58415ca343baecb9d3adcdbf69a84f
+Fix cross-validation failure contract issue type
 ```
