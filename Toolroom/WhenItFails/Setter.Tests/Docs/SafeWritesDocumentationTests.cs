@@ -44,7 +44,7 @@ public sealed class SafeWritesDocumentationTests
         [
             "All currently supported Setter edits affect one error definition at a time.",
             "Each current write command modifies only:",
-            "errors.en.json"
+            "Every write targets `errors.en.json`."
         ];
 
         foreach (string stale in staleContent)
