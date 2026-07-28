@@ -73,6 +73,10 @@ public sealed class ErrorProfileSelectionService
                     string.Equals(
                         TextKeyNormalizer.NormalizeKey(candidate.Name),
                         normalizedProfileName,
+                        StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(
+                        TextKeyNormalizer.NormalizeKey(candidate.DisplayName),
+                        normalizedProfileName,
                         StringComparison.OrdinalIgnoreCase));
 
         if (profile is null)
@@ -80,7 +84,7 @@ public sealed class ErrorProfileSelectionService
             return Response<IReadOnlyList<ErrorDefinition>>.NotFound(
                 code: "ErrorProfileNotFoundByName",
                 message:
-                    $"Error profile with name '{profileName}' was not found.");
+                    $"Error profile with name or display name '{profileName}' was not found.");
         }
 
         IReadOnlyList<ErrorDefinition> resolvedErrors =
