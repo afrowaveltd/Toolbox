@@ -1,5 +1,4 @@
-using System.Text.Json;
-using System.Text.Json.Nodes;
+using Afrowave.Toolbox.Essentials.Metadata;
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Bootstrap;
 using Afrowave.Toolbox.WhenItFails.Catalog;
@@ -68,27 +67,31 @@ public sealed class ErrorCatalogContextProfileMetadataIntegrationTests
 
     private static async Task AddProfileMetadataAsync(string profileCatalogFilePath)
     {
-        JsonNode root = JsonNode.Parse(await File.ReadAllTextAsync(profileCatalogFilePath))
-            ?? throw new InvalidOperationException("Profile catalog JSON could not be parsed.");
-        JsonArray profiles = root["profiles"]?.AsArray()
-            ?? throw new InvalidOperationException("Profile catalog does not contain profiles.");
-        JsonObject webProfile = profiles
-            .Select(node => node?.AsObject())
-            .First(profile => string.Equals(
-                profile?["name"]?.GetValue<string>(),
+        Response<ErrorProfileCatalogDocument> loadResponse =
+            await new JsonErrorProfileCatalogLoader().LoadFromFileAsync(profileCatalogFilePath);
+
+        Assert.True(loadResponse.IsSuccess);
+        Assert.NotNull(loadResponse.Data);
+
+        ErrorProfileDefinition webProfile = Assert.Single(
+            loadResponse.Data.Profiles,
+            profile => string.Equals(
+                profile.Name,
                 "WEB",
-                StringComparison.OrdinalIgnoreCase))
-            ?? throw new InvalidOperationException("WEB profile was not found.");
+                StringComparison.OrdinalIgnoreCase));
 
-        webProfile["metadata"] = new JsonObject
-        {
-            ["consumer"] = "SeeMe",
-            ["auditNote"] = "preserved through context"
-        };
+        webProfile.Metadata = new MetadataBag(
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["consumer"] = "SeeMe",
+                ["auditNote"] = "preserved through context"
+            });
 
-        await File.WriteAllTextAsync(
-            profileCatalogFilePath,
-            root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+        Response saveResponse = await new JsonCatalogDocumentWriter().SaveToFileAsync(
+            loadResponse.Data,
+            profileCatalogFilePath);
+
+        Assert.True(saveResponse.IsSuccess);
     }
 
     private static ErrorCatalogContextProvider CreateContextProvider()
