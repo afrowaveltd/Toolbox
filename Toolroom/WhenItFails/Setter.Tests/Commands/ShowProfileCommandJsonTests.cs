@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Commands;
 using Afrowave.Toolbox.Toolroom.WhenItFails.Setter.Tests.Infrastructure;
 
@@ -61,6 +62,38 @@ public sealed class ShowProfileCommandJsonTests
         Assert.Equal(
             "WEB",
             document.RootElement.GetProperty("data").GetProperty("profile").GetProperty("name").GetString());
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_WithSeparatorNormalizedSelectorAndJson_WritesStableSuccess()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        int backupsBefore = CountProfileBackups(workspace.WhenItFailsJsonsPath);
+        await AddCustomProfileAsync(workspace.WhenItFailsJsonsPath);
+
+        (int exitCode, string output) = await ExecuteWithCapturedOutputAsync(
+        [
+            "show-profile",
+            workspace.ProjectRootPath,
+            "custom-profile",
+            "--json"
+        ]);
+
+        Assert.Equal(0, exitCode);
+        using JsonDocument document = JsonDocument.Parse(output);
+        JsonElement root = document.RootElement;
+        JsonElement data = root.GetProperty("data");
+        JsonElement profile = data.GetProperty("profile");
+
+        Assert.Equal("1.0", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("show-profile", root.GetProperty("command").GetString());
+        Assert.True(data.GetProperty("loaded").GetBoolean());
+        Assert.Equal(JsonValueKind.Null, data.GetProperty("validation").ValueKind);
+        Assert.Equal(JsonValueKind.Null, data.GetProperty("failureCode").ValueKind);
+        Assert.Equal("CUSTOM_PROFILE", profile.GetProperty("name").GetString());
+        Assert.Equal("Custom Profile", profile.GetProperty("displayName").GetString());
+        Assert.Equal(backupsBefore, CountProfileBackups(workspace.WhenItFailsJsonsPath));
     }
 
     [Fact]
@@ -140,6 +173,22 @@ public sealed class ShowProfileCommandJsonTests
 
         Assert.Equal(1, exitCode);
         Assert.Equal(backupsBefore, CountProfileBackups(workspace.WhenItFailsJsonsPath));
+    }
+
+    private static async Task AddCustomProfileAsync(string jsonsPath)
+    {
+        string profilePath = Path.Combine(jsonsPath, "profiles.json");
+        JsonNode root = JsonNode.Parse(await File.ReadAllTextAsync(profilePath))!;
+        JsonArray profiles = root["profiles"]!.AsArray();
+        JsonObject customProfile = profiles[0]!.DeepClone().AsObject();
+        customProfile["name"] = "CUSTOM_PROFILE";
+        customProfile["displayName"] = "Custom Profile";
+        customProfile["description"] = "Profile used by normalized selector tests.";
+        profiles.Add(customProfile);
+
+        await File.WriteAllTextAsync(
+            profilePath,
+            root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
     }
 
     private static async Task<(int ExitCode, string Output)> ExecuteWithCapturedOutputAsync(string[] args)
