@@ -40,6 +40,13 @@ public sealed class ErrorCatalogContextProviderProfileReferenceTests
         Assert.Same(codeGroupPayload.Document, response.Data.CodeGroupCatalog);
         Assert.Same(ownerPayload.Document, response.Data.OwnerCatalog);
         Assert.Same(profilePayload.Document, response.Data.ProfileCatalog);
+
+        Assert.NotSame(errorPayload.ValidationResult, response.Data.CrossValidationResult);
+        Assert.NotSame(categoryPayload.ValidationResult, response.Data.CrossValidationResult);
+        Assert.NotSame(codeGroupPayload.ValidationResult, response.Data.CrossValidationResult);
+        Assert.NotSame(ownerPayload.ValidationResult, response.Data.CrossValidationResult);
+        Assert.NotSame(profilePayload.ValidationResult, response.Data.CrossValidationResult);
+        Assert.True(response.Data.CrossValidationResult.IsValid);
     }
 
     private static ErrorCatalogProviderPayload CreateErrorCatalogPayload()
