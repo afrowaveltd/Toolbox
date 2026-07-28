@@ -25,6 +25,39 @@ public sealed class CommandReferenceDocumentationTests
             StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Documentation_ListsCurrentCommandGroups()
+    {
+        string documentation = File.ReadAllText(GetDocumentationPath());
+
+        string[] expectedCommands =
+        [
+            "reference <path>",
+            "next-code <path> <owner> <code-group>",
+            "add-error <path> ...",
+            "remove-error <path> <id|code|name>",
+            "error-references <path> <id|code|name>",
+            "explain-profile <path> <profile-name> [--plain|--json]",
+            "profile-set-default-mapping",
+            "list-backups <path> [--plain|--json]",
+            "restore-backup <path> <backup-file> [--plain|--json]",
+            "check-doc-links <path> [--plain|--json]",
+            "check-doc-keys <path> [--plain|--json]"
+        ];
+
+        foreach (string expectedCommand in expectedCommands)
+        {
+            Assert.Contains(
+                expectedCommand,
+                documentation,
+                StringComparison.Ordinal);
+        }
+
+        Assert.Contains("## Error lifecycle", documentation, StringComparison.Ordinal);
+        Assert.Contains("## Backups", documentation, StringComparison.Ordinal);
+        Assert.Contains("## Documentation checks", documentation, StringComparison.Ordinal);
+    }
+
     private static string GetDocumentationPath(
         [CallerFilePath] string sourceFilePath = "")
     {
