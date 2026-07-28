@@ -21,9 +21,9 @@ The current implementation supports:
 
 ## Verification status
 
-The latest user-verified Setter test run is green with 1,231 tests after the exit-codes-and-automation documentation synchronization.
+The latest user-verified Setter test run is green with 1,232 tests after the contribution-guide documentation correction.
 
-The current contribution-guide change adds one documentation-contract test, so the next successful focused run is expected to report 1,232 tests.
+The current architecture-overview change adds one documentation-contract test, so the next successful focused run is expected to report 1,233 tests.
 Do not mark that count as user-verified until the run is confirmed green.
 
 Primary verification command:
@@ -59,7 +59,8 @@ The following high-level Setter documents have been synchronized with the curren
 - `Docs/Safe Writes/en.md`;
 - `Docs/Backups and Recovery/en.md`;
 - `Docs/Exit Codes and Automation/en.md`;
-- `Docs/Contributing to Setter/en.md`.
+- `Docs/Contributing to Setter/en.md`;
+- `Docs/Architecture Overview/en.md`.
 
 The synchronized documentation no longer presents implemented capabilities such as `add-error`, `remove-error`, `next-code`, `restore-backup`, JSON output, profile explanation, or documentation checks as missing or future work.
 
@@ -75,7 +76,9 @@ The backups-and-recovery guide uses the implemented `list-backups` and `restore-
 
 The exit-codes-and-automation guide documents the stable `0`/`1`/`2`/`3` process classification, the distinction between exit and issue codes, JSON-first machine integration, plain versus rich output, Bash and PowerShell capture patterns, pipeline safety, write and restore verification, and the rule that unexplained failures must not be converted into green automation.
 
-The contribution guide now consolidates the current repository workflow: GitHub `master` as the source of truth, one logical change per commit, immediate corresponding tests, focused verification, README plus `Docs/<topic>/en.md` documentation, mandatory implementation-status maintenance, safe-write and restore review, cross-platform checks, and the red-suite stop rule.
+The contribution guide consolidates the current repository workflow: GitHub `master` as the source of truth, one logical change per commit, immediate corresponding tests, focused verification, README plus `Docs/<topic>/en.md` documentation, mandatory implementation-status maintenance, safe-write and restore review, cross-platform checks, and the red-suite stop rule.
+
+The architecture overview now maps the actual entry-point, command, service, workspace-model, validation, persistence, recovery, rendering, and testing boundaries. It records the intended dependency direction and the distinction between rich, plain, and JSON output without presenting implemented capabilities as future work.
 
 ## Current intentional boundaries
 
@@ -106,24 +109,24 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify the current focused Setter run and record whether the expected 1,232 tests are green.
+First verify the current focused Setter run and record whether the expected 1,233 tests are green.
 
-Next documentation target: `Docs/Architecture/en.md` with one corresponding documentation-contract test.
+Next documentation target: `Docs/Adding a New Command/en.md` with one corresponding documentation-contract test.
 
-That guide should describe the current command-dispatch, workspace, catalog loading and validation, editing, persistence, rendering, JSON automation, and test boundaries without presenting implementation details as stronger guarantees than the source and tests support.
+That guide should align command authoring with dispatch, argument validation, service boundaries, rich/plain/JSON output, exit and issue codes, focused tests, documentation updates, and implementation-status maintenance.
 
 After the remaining high-value documentation is synchronized, begin a runtime/public-API audit of WhenItFails integration points, mappings, and profile behavior.
 
 ## Last completed change
 
-`Docs/Contributing to Setter/en.md` was replaced with a concise current contribution workflow, and `ContributingToSetterDocumentationTests.cs` now protects the source-of-truth rule, narrow commits, immediate tests, focused verification, documentation structure, implementation-status maintenance, catalog checks, diff review, and the red-suite stop rule.
+`Docs/Architecture Overview/en.md` was replaced with a coherent current architecture map, and `ArchitectureOverviewDocumentationTests.cs` now protects command/service/view separation, workspace and validation boundaries, single-file persistence, JSON automation, dependency direction, and focused verification.
 
 Commits in this change sequence:
 
 ```text
-15ed5aafa7cd93af32979f904e29a3e9df1b44d6
-Add Setter contribution documentation contract
+e2966becb3ca15a64edd779c7b4377821ab98e21
+Add Setter architecture documentation contract
 
-24532603955c276fe64f8557dee6a234b30d4289
-Refresh Setter contribution guide
+c415d2c5015a580c055f47d3a6e26c83ccf39c0d
+Refresh Setter architecture overview
 ```
