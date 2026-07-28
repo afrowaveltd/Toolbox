@@ -23,9 +23,12 @@ The current implementation supports:
 
 The latest user-verified Setter test run is green with 1,236 tests after the overview documentation synchronization and contract corrections.
 
-The first runtime/public-API profile-selection slice is user-verified green with 10 focused tests from `ErrorProfileSelectionServiceTests`.
+The first runtime/public-API profile-selection slice is user-verified green with 10 focused `ErrorProfileSelectionServiceTests`.
 
-The current runtime-facade integration slice adds one focused test in `ErrorCatalogRuntimeProfileDisplayNameTests.cs`. That test is not yet user-verified.
+The public runtime-facade display-name integration test is also user-verified green with 1 focused test from `ErrorCatalogRuntimeProfileDisplayNameTests`.
+
+The current profile-explanation precedence slice adds one Setter test, so the next successful full Setter run is expected to report 1,237 tests.
+Do not mark that count as user-verified until the run is confirmed green.
 
 Primary Setter verification command:
 
@@ -33,10 +36,10 @@ Primary Setter verification command:
 dotnet test Toolroom/WhenItFails/Setter.Tests
 ```
 
-Focused runtime verification command for the current slice:
+Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogRuntimeProfileDisplayNameTests
+dotnet test Toolroom/WhenItFails/Setter.Tests --filter FullyQualifiedName~WhenItFailsProfileExplainerTests
 ```
 
 Before committing catalog changes, also run:
@@ -108,7 +111,9 @@ The runtime selection service now matches either normalized `Name` or normalized
 
 The public interface XML documentation now states the actual name-or-display-name contract.
 
-A runtime-facade integration test now verifies that `ErrorCatalogRuntime.ResolveProfile` passes a normalized display name through the public selection service and returns the expected error. This protects the high-level runtime entry point, not only the lower-level service.
+A user-verified runtime-facade integration test confirms that `ErrorCatalogRuntime.ResolveProfile` accepts a normalized display name and returns the expected runtime selection.
+
+The current Setter slice protects profile explanation precedence. When an error matches an include tag but the same tag appears in `ExcludeTags`, runtime exclusion wins and the explanation must report both the include match and the final exclusion veto.
 
 ## Current intentional boundaries
 
@@ -139,21 +144,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify the focused runtime facade test and record the result.
+First verify the focused `WhenItFailsProfileExplainerTests` run and then the full Setter suite if the focused run is green.
 
 Next documentation target: none. The high-value Setter documentation synchronization is complete.
 
-After the facade test is green, audit Setter's `WhenItFailsProfileExplainer` reason generation against `ErrorProfileResolver` veto precedence. Start with one focused test for an error that matches an include filter but is excluded by tag. Do not refactor lookup and reason generation in the same slice.
+If the excluded-tag precedence test is green without an implementation change, record the existing behavior as confirmed and continue with one narrow audit of duplicated profile lookup inside Setter. If it fails, fix only the reason-generation mismatch before moving on.
 
 Do not begin implementation from documentation assumptions alone. Inspect the current source and tests in GitHub first.
 
 ## Last completed change
 
-The second runtime/public-API audit slice added an integration test at the public `ErrorCatalogRuntime` facade. It verifies that normalized profile display names resolve through the runtime facade and return the expected error selection, protecting the newly aligned lookup contract above the service layer.
+The third runtime/public-API audit slice added a focused Setter contract for profile explanation precedence. It verifies that an error matching an include tag but vetoed by `ExcludeTags` is excluded exactly as `ErrorProfileResolver` requires, while the explanation preserves both the include reason and the exclusion reason.
 
 Commits in this change sequence:
 
 ```text
-1ac3ff9f38295f9144b894018a1e8e148f5de677
-Add runtime profile display-name integration test
+0f670217b952baaa9773c7a5f441fb2f5869a8ff
+Add excluded-tag profile explanation contract
 ```
