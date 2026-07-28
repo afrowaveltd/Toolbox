@@ -2,7 +2,7 @@
 
 WhenItFails Setter is a `.NET 10` command-line tool for creating, inspecting, validating, editing, reviewing, and recovering project-local WhenItFails catalog workspaces.
 
-The standard workspace lives under:
+The standard workspace lives under `Jsons/WhenItFails`:
 
 ```text
 Jsons/WhenItFails
