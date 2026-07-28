@@ -21,9 +21,9 @@ The current implementation supports:
 
 ## Verification status
 
-The latest user-verified Setter test run is green with 1,229 tests after the safe-writes documentation assertion was corrected.
+The latest user-verified Setter test run is green with 1,230 tests after the backups-and-recovery documentation synchronization.
 
-The current backups-and-recovery documentation change adds one documentation-contract test, so the next successful focused run is expected to report 1,230 tests.
+The current exit-codes-and-automation documentation change adds one documentation-contract test, so the next successful focused run is expected to report 1,231 tests.
 Do not mark that count as user-verified until the run is confirmed green.
 
 Primary verification command:
@@ -57,7 +57,8 @@ The following high-level Setter documents have been synchronized with the curren
 - `Docs/Reviewing Catalog Changes/en.md`;
 - `Docs/Catalog Author Checklist/en.md`;
 - `Docs/Safe Writes/en.md`;
-- `Docs/Backups and Recovery/en.md`.
+- `Docs/Backups and Recovery/en.md`;
+- `Docs/Exit Codes and Automation/en.md`.
 
 The synchronized documentation no longer presents implemented capabilities such as `add-error`, `remove-error`, `next-code`, `restore-backup`, JSON output, profile explanation, or documentation checks as missing or future work.
 
@@ -69,7 +70,9 @@ The catalog author checklist follows the current Setter workflow: inspect refere
 
 The safe-writes guide describes the current single-file persistence contract across catalog targets: validation before replacement, temporary-file serialization, timestamped backups, success and rejection invariants, structured failure handling, concurrency boundaries, backup listing, explicit restoration, post-write inspection, and focused tests.
 
-The backups-and-recovery guide now uses the implemented `list-backups` and `restore-backup` workflow, requires content-based backup selection, complete-workspace validation, affected-contract inspection, Git diff review, focused tests, and a stop rule after unverified restoration.
+The backups-and-recovery guide uses the implemented `list-backups` and `restore-backup` workflow, requires content-based backup selection, complete-workspace validation, affected-contract inspection, Git diff review, focused tests, and a stop rule after unverified restoration.
+
+The exit-codes-and-automation guide now documents the stable `0`/`1`/`2`/`3` process classification, the distinction between exit and issue codes, JSON-first machine integration, plain versus rich output, Bash and PowerShell capture patterns, pipeline safety, write and restore verification, and the rule that unexplained failures must not be converted into green automation.
 
 ## Current intentional boundaries
 
@@ -100,24 +103,24 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify the current focused Setter run and record whether the expected 1,230 tests are green.
+First verify the current focused Setter run and record whether the expected 1,231 tests are green.
 
-Next documentation target: `Docs/Exit Codes and Automation/en.md` with one corresponding documentation-contract test.
+Next documentation target: `Docs/Contributing to Setter/en.md` with one corresponding documentation-contract test.
 
-That guide should align exit-code semantics with success, invalid input, validation and operation failures, unexpected top-level failures, JSON automation, plain versus rich output, scripting examples, and the rule that machine consumers must not parse rich terminal rendering.
+That guide should consolidate repository-source-of-truth rules, narrow commits, immediate tests, documentation synchronization, implementation-status maintenance, safe catalog changes, output and exit-code contracts, and the red-change stop rule without duplicating every specialized guide.
 
 After the remaining high-value documentation is synchronized, begin a runtime/public-API audit of WhenItFails integration points, mappings, and profile behavior.
 
 ## Last completed change
 
-`Docs/Backups and Recovery/en.md` was replaced with a concise current recovery workflow, and `BackupsAndRecoveryDocumentationTests.cs` now protects backup discovery, explicit restoration, content-based selection, single-file scope, complete-workspace validation, Git review, focused tests, writer coordination, and the unverified-restore stop rule.
+`Docs/Exit Codes and Automation/en.md` was replaced with a concise current automation contract, and `ExitCodesAndAutomationDocumentationTests.cs` now protects the stable exit-code classes, JSON-first machine output, plain-versus-rich distinction, Bash and PowerShell capture patterns, pipeline safety, focused tests, and the rule that unexplained non-zero results cannot be hidden.
 
 Commits in this change sequence:
 
 ```text
-d9624aa126f57ed682272baaea7f6cccefd3c2a2
-Add backups and recovery documentation contract
+66979c64f2428b75928e17fdc56081b3bff2e905
+Add exit codes and automation documentation contract
 
-9786cb3d6b0b4c0d49af85eb79cd0cb03ad8a271
-Refresh backups and recovery guide
+e6923714b15637b6b36bca05e39d925e6fcac638
+Refresh exit codes and automation guide
 ```
