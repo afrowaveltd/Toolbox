@@ -59,6 +59,11 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
                 "Error catalog loading failed while creating catalog context.");
         }
 
+        if (errorCatalogResponse.Data is null)
+        {
+            return CreateNullPayloadResponse();
+        }
+
         Response<ErrorCategoryCatalogProviderPayload> categoryCatalogResponse =
             await _categoryCatalogProvider.LoadFromFileAsync(
                 options.CategoryCatalogFilePath,
@@ -111,25 +116,22 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
                 "Profile catalog loading failed while creating catalog context.");
         }
 
-        if (errorCatalogResponse.Data is null
-            || categoryCatalogResponse.Data is null
+        if (categoryCatalogResponse.Data is null
             || codeGroupCatalogResponse.Data is null
             || ownerCatalogResponse.Data is null
             || profileCatalogResponse.Data is null)
         {
-            return Response<ErrorCatalogContext>.Invalid(
-                code: "ErrorCatalogContextPayloadIsNull",
-                message: "One or more catalog provider responses succeeded without payload data.");
+            return CreateNullPayloadResponse();
         }
 
         ErrorCatalogCrossValidator crossValidator = new();
 
         ErrorCatalogValidationResult crossValidationResult = crossValidator.Validate(
-    errorCatalogResponse.Data.Document,
-    ownerCatalogResponse.Data.Document,
-    codeGroupCatalogResponse.Data.Document,
-    categoryCatalogResponse.Data.Document,
-    profileCatalogResponse.Data.Document);
+            errorCatalogResponse.Data.Document,
+            ownerCatalogResponse.Data.Document,
+            codeGroupCatalogResponse.Data.Document,
+            categoryCatalogResponse.Data.Document,
+            profileCatalogResponse.Data.Document);
 
         if (!crossValidationResult.IsValid)
         {
@@ -179,5 +181,12 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
                 code: issueCode,
                 message: message),
             sourceResponse.Status);
+    }
+
+    private static Response<ErrorCatalogContext> CreateNullPayloadResponse()
+    {
+        return Response<ErrorCatalogContext>.Invalid(
+            code: "ErrorCatalogContextPayloadIsNull",
+            message: "One or more catalog provider responses succeeded without payload data.");
     }
 }
