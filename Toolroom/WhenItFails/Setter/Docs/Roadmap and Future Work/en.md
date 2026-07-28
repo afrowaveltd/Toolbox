@@ -1,553 +1,185 @@
 # Roadmap and Future Work
 
-This page collects possible future improvements for WhenItFails Setter.
+This page records genuine future candidates for WhenItFails Setter.
 
-It is not a promise, schedule, or release commitment.
-
-It is a planning map.
-
-Use it to understand which ideas are natural next steps and which boundaries should remain deliberate.
+It is not a promise, schedule, or release commitment. Implemented behavior belongs in the command reference and README, not in the roadmap.
 
 ## Main principle
 
-Setter should grow carefully.
+Setter should grow carefully. A useful feature should have a clear command contract, validation behavior, output, exit codes, tests, documentation, and safe write semantics where applicable.
 
-A useful future feature should be:
-Setter should not become a large hidden framework by accident.
+Setter should remain a focused catalog-authoring tool rather than becoming a hidden runtime framework, full IDE, remote registry, package publisher, or general-purpose JSON editor.
 
-## Roadmap status
+## Completed foundation
 
-Items in this document are ideas or candidates unless explicitly implemented elsewhere.
+The following capabilities already exist and are not roadmap items:
 
-Do not treat this page as a feature contract.
+- workspace initialization, validation, reference inspection, and summary,
+- error browsing, detail inspection, profile filtering, and profile explanation,
+- error code suggestion, creation, removal, reference inspection, and focused editing,
+- error tags, categories, subcategories, metadata, ownership, code-group, severity, and documentation-key editing,
+- profile creation, removal, text editing, selectors, exclusions, mappings, and metadata,
+- category, code-group, owner, and profile browsing,
+- timestamped backup listing and validated restore,
+- documentation-link and documentation-key checks,
+- rich output, selected plain output, selected versioned JSON output, and stable exit codes.
 
-Before implementing any item, define:
+See [Commands](../Commands/en.md) for the current public command surface.
 
-- exact command name,
-- arguments,
-- options,
-- output,
-- exit codes,
-- issue codes,
-- validation behavior,
-- write behavior,
-- tests,
-- documentation updates.
+## Near-term documentation candidates
 
-## Current foundation
-
-Setter already provides a useful base:
+Useful documentation work that does not change runtime behavior includes:
 
-- workspace initialization,
-- workspace validation,
-- workspace summary,
-- error browsing,
-- error detail inspection,
-- focused error text editing,
-- severity editing,
-- documentation-key editing,
-- safe writes with backups,
-- rich human output,
-- selected plain output,
-- exit codes for automation.
+- runtime consumer guidance,
+- catalog design principles,
+- a security review checklist,
+- worked examples and recipes,
+- release-note templates,
+- clearer policy guidance for public identifiers and deprecation.
 
-Future work should build on this base rather than bypass it.
-
-## Near-term documentation improvements
+## Catalog formatting and sorting
 
-Good near-term documentation candidates:
+Possible explicit commands could normalize JSON formatting or reorder catalog entries.
 
-- Examples Cookbook,
-- FAQ,
-- Reviewing Catalog Changes,
-- Documentation Link Checks,
-- Runtime Consumer Guide,
-- Catalog Design Principles,
-- Release Notes Template,
-- Security Review Checklist.
+Any implementation should:
 
-These are low-risk because they improve clarity without changing behavior.
+- avoid hidden formatting or sorting during validation,
+- define ordering rules precisely,
+- support preview or dry-run where useful,
+- create backups before writes,
+- avoid unrelated diff churn.
 
-## Near-term command candidates
+## Backup retention
 
-Good near-term command candidates:
-These are read-only and can reuse existing validation and rendering patterns.
+Automatic backup cleanup remains a possible feature, but it is destructive and requires a deliberate retention contract.
 
-Read-only commands are safer first steps than broad write commands.
+A safe design should provide:
 
-## list-profiles
+- dry-run output,
+- exact file selection,
+- protection for active catalogs,
+- explicit retention criteria,
+- validation before deletion,
+- clear confirmation and exit-code behavior.
 
-Candidate command:
-Purpose:
-Possible output:
+## Schema migration
 
-- profile name,
-- display name,
-- description,
-- included owners,
-- included code groups,
-- included categories.
+Setter does not automatically migrate workspace schemas.
 
-Expected flow:
-## show-profile
+A future explicit migration command would require:
 
-Candidate command:
-Purpose:
-Useful fields:
-
-- name,
-- display name,
-- description,
-- include owners,
-- include code groups,
-- include categories,
-- include tags,
-- exclude tags,
-- default mappings.
-
-This would make profile review easier without requiring direct JSON inspection.
-
-## list-categories
-
-Candidate command:
-Purpose:
-Useful fields:
-
-- category name,
-- display name,
-- description,
-- aliases,
-- parent categories,
-- default tags.
-
-This would support catalog authors before adding new error definitions.
-
-## list-code-groups
-
-Candidate command:
-Purpose:
-Useful fields:
-
-- name,
-- display name,
-- code prefix,
-- codeFrom,
-- codeTo,
-- description,
-- default categories,
-- default tags.
-
-This would reduce mistakes when choosing numeric codes.
-
-## list-owners
-
-Candidate command:
-Purpose:
-Useful fields:
-
-- name,
-- display name,
-- description,
-- codeFrom,
-- codeTo,
-- isBuiltIn,
-- aliases,
-- mappings.
-
-This would help authors choose the correct responsibility boundary.
-
-## JSON output mode
-
-A future JSON output mode could improve automation.
-
-Candidate option:
-Possible supported commands:
-JSON output should be versioned and tested.
-
-It should define:
-
-- success shape,
-- failure shape,
-- issue shape,
-- command payload shape,
-- ordering,
-- null/empty behavior,
-- schema version.
-
-Do not add JSON output casually.
-
-It becomes a machine-readable public contract.
-
-## Stable issue output
-
-If JSON output is added, validation and operation issues should have a stable shape.
-
-Possible shape:
-{
-  "code": "ErrorDefinitionNotFound",
-  "message": "Error definition was not found.",
-  "severity": "Error",
-  "path": "Jsons/WhenItFails/errors.en.json"
-}
-This would make CI and editor integrations easier.
-
-## add-error command
-
-A future `add-error` command would be valuable but should be designed carefully.
-
-Candidate command:
-Important design questions:
-
-- Should it auto-select numeric code?
-- Should it auto-select ID sequence?
-- Should it require explicit code?
-- Should it require explicit documentation key?
-- Should it create backup?
-- Should it validate before and after?
-- Should it refuse duplicate concepts?
-- Should it support interactive mode later?
-
-This command should not be rushed.
-
-## add-error minimal design
-
-A safer first version may require explicit stable identifiers:
-This avoids hidden numbering decisions.
-
-Auto-numbering can come later.
-
-## next-code helper
-
-Before full `add-error`, a read-only helper may be useful.
-
-Candidate command:
-Purpose:
-This should be read-only.
-
-It should clearly say “suggested,” not silently reserve anything.
-
-## restore-backup command
-
-A future restore command could reduce manual recovery mistakes.
-
-Candidate command:
-Design requirements:
-
-- list available backups,
-- confirm target file,
-- backup current active file before restore,
-- validate after restore,
-- clear output,
-- safe exit codes.
-
-Restoring should be as careful as writing.
-
-## list-backups command
-
-Candidate command:
-Purpose:
-Useful fields:
-
-- target file,
-- backup file,
-- timestamp,
-- size,
-- age.
-
-This could be added before `restore-backup`.
-
-## backup cleanup command
-
-Backup cleanup is risky.
-
-Candidate command:
-Requirements:
-
-- dry-run by default or strongly recommended,
-- never delete active catalog files,
-- show exact files,
-- require explicit confirmation or option,
-- validate workspace first,
-- document retention policy.
-
-Do not add destructive cleanup casually.
-
-## documentation link check
-
-A future documentation checker could validate internal documentation links.
-
-Candidate command:
-or:
-Potential checks:
-
-- README links resolve,
-- relative links resolve,
-- doc folders contain `en.md`,
-- documentation keys are represented somewhere,
-- no broken internal references,
-- no empty docs.
-
-This would make the growing documentation set easier to maintain.
-
-## documentation-key check
-
-A narrower checker could focus only on error documentation keys.
-
-Candidate command:
-Potential checks:
-
-- documentationKey is present,
-- documentationKey follows naming convention,
-- documentationKey maps to an expected documentation location if policy exists,
-- duplicate keys are reported.
-
-This should not assume external web URLs unless the project defines that behavior.
-
-## catalog format command
-
-A future format command could normalize JSON formatting.
-
-Candidate command:
-Possible behavior:
-Design caution:
-
-- formatting creates large diffs,
-- ordering policy must be defined,
-- comments are not supported in strict JSON,
-- backup behavior must be clear.
-
-## catalog sort command
-
-A future sort command could reorder catalog entries.
-
-Candidate command:
-Possible sort keys:
-This should be explicit.
-
-Never sort as a hidden side effect of validation.
-
-## schema migration command
-
-A future schema migration command could help with breaking schema changes.
-
-Candidate command:
-Requirements:
-
-- explicit source and target versions,
-- dry-run option,
+- source and target schema versions,
+- preview or dry-run support,
 - backups,
-- validation before and after,
-- migration report,
-- tests for old and new shape,
-- documentation.
+- validation before and after migration,
+- a migration report,
+- fixtures and tests for every supported transition.
 
-Validation should not silently migrate.
+Validation must never silently migrate files.
 
-## localization workflow
+## Localization workflow
 
-Future localization support may include:
-Possible commands:
-Design questions:
+A future localization workflow may coordinate language-neutral and translatable fields across catalog files.
 
-- Which fields are language-neutral?
-- Which fields are translatable?
-- How are fallback languages handled?
-- How are stale translations detected?
-- How are documentation keys localized?
+Open design questions include:
 
-Localization is both schema and workflow evolution.
+- fallback language behavior,
+- stale translation detection,
+- translation completeness,
+- synchronization of language-neutral identifiers,
+- localized documentation relationships.
 
-## profile resolver improvements
+Setter should integrate with the future TalkToMe tooling rather than accidentally becoming a separate translation platform.
 
-Future profile support may apply more of the full profile model.
+## Generated schemas and editor integration
 
-Possible improvements:
+Possible future work includes generated JSON schemas and editor integrations such as diagnostics, tasks, hover documentation, profile previews, and safe quick fixes.
 
-- include subcategories,
-- include tags,
-- exclude tags,
-- mapping-aware output,
-- profile explanation output,
-- “why included” diagnostics.
-
-Candidate command:
-This could help users understand why a given error appears or does not appear in a profile.
-
-## explain command
-
-A future explain command could clarify catalog relationships.
-
-Candidate examples:
-This would be useful for teaching and debugging.
-
-## validation profiles
-
-Future validation may support modes.
-
-Possible examples:
-Design caution:
-
-- default validation must remain predictable,
-- CI behavior must be documented,
-- warning/error levels must be stable,
-- release validation should not surprise local authors.
-
-## editor integration
-
-Future editor integrations could use Setter as a backend.
-
-Possibilities:
-
-- VS Code tasks,
-- language-server-like diagnostics,
-- JSON schema files,
-- quick fixes,
-- hover docs,
-- profile previews.
-
-This likely requires stable JSON output first.
-
-## generated JSON schemas
-
-Future generated schema files could help editors validate catalog JSON.
-
-Possible outputs:
-Requirements:
+These features require:
 
 - schema versioning,
-- accurate required/optional fields,
-- enums where appropriate,
-- documentation for editor setup,
-- tests to keep schemas aligned with models.
+- alignment tests against runtime models,
+- stable machine-readable output,
+- documented editor setup,
+- no hidden writes.
 
-## package templates
+## Import and export
 
-Future project templates could create starter catalog packages.
+Profile or catalog package import/export may be useful for sharing reviewed policies or producing release artifacts.
 
-Candidate command:
-Potential templates:
-Templates should remain small and explain what they create.
+A safe design should define:
 
-## import/export profiles
-
-Future profile portability may support:
-Requirements:
-
-- metadata,
-- versioning,
+- package and schema versions,
 - conflict handling,
 - validation,
-- preview/dry-run,
-- documentation,
-- tests.
+- preview or dry-run behavior,
+- metadata preservation,
+- deterministic output.
 
-This is useful for sharing profile policies across projects.
+Export must not replace Git as the source of truth.
 
-## catalog package export
+## Dependency discovery
 
-A broader export command could package the whole catalog.
+Setter currently reports catalog-level references but does not scan every source repository, generated artifact, external application, or published package for identifier usage.
 
-Candidate command:
-Possible contents:
+A future dependency-discovery integration could help with renames and removals, but it must distinguish authoritative references from textual matches and avoid claiming completeness it cannot guarantee.
 
-- JSON catalogs,
-- docs,
-- schema version metadata,
-- README,
-- validation report.
+## Validation modes
 
-This should not replace Git, but it may help release artifacts.
+Specialized validation modes may be useful for authoring, CI, release, or compatibility review.
 
-## runtime consumer guide
+Any mode system must preserve one predictable default and define stable warning and failure behavior. Release validation must not silently differ from local validation.
 
-Future docs should explain how applications should consume catalogs.
+## Security review assistance
 
-Topics:
+A future read-only security review command could flag suspicious patterns such as secrets, private paths, internal hostnames, raw SQL, stack traces, or unsafe user-facing text.
 
-- resolving errors by ID/code/name,
-- profile use,
-- severity use,
-- user-facing safety,
-- developer hints,
-- documentation keys,
-- mappings,
-- fallback behavior,
-- logging.
-
-Setter supports catalog authors, but runtime consumers need their own guide.
-
-## security review checklist
-
-A future security-focused doc or command could help review production-facing errors.
-
-Manual checklist topics:
-
-- no secrets,
-- no stack traces,
-- no raw SQL,
-- no private paths,
-- no internal hostnames,
-- safe production profiles,
-- safe user-facing messages.
-
-A command may help find suspicious patterns, but human review remains necessary.
+Such a command would be advisory. Human review remains necessary, and Setter should not claim to be a complete security scanner.
 
 ## Non-goals
 
-Setter should probably not become:
+Setter should not become:
 
-- a full IDE,
+- a full IDE or GUI platform,
 - a hidden runtime framework,
+- a remote catalog registry,
 - a package publisher,
-- a remote registry,
-- a general JSON editor,
 - a replacement for Git,
-- a security scanner,
-- a localization platform by accident.
-
-It can integrate with these areas later, but its core should stay focused.
+- a general-purpose JSON editor,
+- a complete security scanner,
+- a standalone localization platform.
 
 ## Feature acceptance checklist
 
-Before accepting a new feature into Setter, confirm:
-## Roadmap priority guide
+Before accepting a new roadmap item, confirm that it:
 
-Prefer features in this order:
-This keeps risk manageable.
+- solves a repeated and concrete problem,
+- has an explicit public contract,
+- preserves safe-write guarantees,
+- has focused tests,
+- documents automation behavior,
+- updates README and topic documentation,
+- does not duplicate an existing command.
 
-## Suggested implementation order
+## Priority guide
 
-A practical future order could be:
+Prefer future work in this order:
 
-1. `list-profiles`
-2. `show-profile`
-3. `list-categories`
-4. `list-code-groups`
-5. `list-owners`
-6. JSON output for read-only commands
-7. backup listing
-8. restore-backup
-9. documentation link checks
-10. next-code helper
-11. carefully designed add-error
-12. schema migration tooling
-13. localization workflow
-
-This order is not mandatory.
-
-It is just a safe path.
+1. documentation and read-only diagnostics,
+2. explicit previewable transformations,
+3. schema and editor integration,
+4. import/export workflows,
+5. destructive or cross-file operations only after their rollback contract is proven.
 
 ## Related documentation
 
 - [Known Limitations](../Known%20Limitations/en.md)
+- [Commands](../Commands/en.md)
 - [Architecture Overview](../Architecture%20Overview/en.md)
-- [Adding a New Command](../Adding%20a%20New%20Command/en.md)
 - [Schema Evolution](../Schema%20Evolution/en.md)
 - [Deprecation and Migration](../Deprecation%20and%20Migration/en.md)
-- [Maintainer Notes](../Maintainer%20Notes/en.md)
-- [Release Checklist](../Release%20Checklist/en.md)
 - [Testing and CI](../Testing%20and%20CI/en.md)
 
 ## Central principle
 
-> Setter should grow like a good toolbox: one useful, tested, well-labeled tool at a time.
+> Roadmap items describe work that is genuinely still ahead; completed features belong in current documentation.
