@@ -1,3 +1,4 @@
+using Afrowave.Toolbox.Essentials.Metadata;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 
 namespace Afrowave.Toolbox.WhenItFails.Normalization;
@@ -46,7 +47,10 @@ public sealed class ErrorProfileDefinitionNormalizer
 
             DefaultMappings = DefinitionNormalizationHelper.NormalizeDictionary(
                 definition.DefaultMappings),
-            Metadata = definition.Metadata
+            Metadata = new MetadataBag(
+                new Dictionary<string, string>(
+                    definition.Metadata.Items,
+                    StringComparer.OrdinalIgnoreCase))
         };
     }
 }
