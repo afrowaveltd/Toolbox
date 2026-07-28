@@ -23,7 +23,9 @@ The current implementation supports:
 
 The latest user-verified Setter test run is green with 1,236 tests after the overview documentation synchronization and contract corrections.
 
-The first runtime/public-API audit slice adds one focused test to `WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceTests.cs`. That runtime test is not yet user-verified.
+The first runtime/public-API profile-selection slice is user-verified green with 10 focused tests from `ErrorProfileSelectionServiceTests`.
+
+The current runtime-facade integration slice adds one focused test in `ErrorCatalogRuntimeProfileDisplayNameTests.cs`. That test is not yet user-verified.
 
 Primary Setter verification command:
 
@@ -34,7 +36,7 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 Focused runtime verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorProfileSelectionServiceTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogRuntimeProfileDisplayNameTests
 ```
 
 Before committing catalog changes, also run:
@@ -106,6 +108,8 @@ The runtime selection service now matches either normalized `Name` or normalized
 
 The public interface XML documentation now states the actual name-or-display-name contract.
 
+A runtime-facade integration test now verifies that `ErrorCatalogRuntime.ResolveProfile` passes a normalized display name through the public selection service and returns the expected error. This protects the high-level runtime entry point, not only the lower-level service.
+
 ## Current intentional boundaries
 
 Setter currently does not provide:
@@ -135,27 +139,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify the focused runtime profile-selection tests and record the result.
+First verify the focused runtime facade test and record the result.
 
 Next documentation target: none. The high-value Setter documentation synchronization is complete.
 
-After the current runtime tests are green, update Setter profile lookup to consume the public runtime selection contract where practical, or continue the audit by comparing profile explanation reasons with `ErrorProfileResolver` veto precedence. Do not change both areas in one slice.
+After the facade test is green, audit Setter's `WhenItFailsProfileExplainer` reason generation against `ErrorProfileResolver` veto precedence. Start with one focused test for an error that matches an include filter but is excluded by tag. Do not refactor lookup and reason generation in the same slice.
 
 Do not begin implementation from documentation assumptions alone. Inspect the current source and tests in GitHub first.
 
 ## Last completed change
 
-The first runtime/public-API audit slice aligned profile lookup semantics between Setter and runtime WhenItFails. `ErrorProfileSelectionService` now resolves by stable name or display name, its public interface documentation reflects that contract, and a focused runtime test protects display-name lookup.
+The second runtime/public-API audit slice added an integration test at the public `ErrorCatalogRuntime` facade. It verifies that normalized profile display names resolve through the runtime facade and return the expected error selection, protecting the newly aligned lookup contract above the service layer.
 
 Commits in this change sequence:
 
 ```text
-6adb53edfe999e70d25a8d93adf9483efc9e0f8e
-Add profile display-name selection contract
-
-e568a76f7a2afdfd47f896c1f4a35bdbf2b77862
-Resolve profiles by name or display name
-
-14b1072bdd57c0cbbaafe4ac498bb22b723a37ed
-Document profile display-name lookup
+1ac3ff9f38295f9144b894018a1e8e148f5de677
+Add runtime profile display-name integration test
 ```
