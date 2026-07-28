@@ -53,7 +53,7 @@ public sealed class WhenItFailsDocumentationKeyFormatCheckerTests
     {
         ErrorCatalogDocument catalog = new()
         {
-            Errors = null
+            Errors = null!
         };
 
         DocumentationKeyFormatCheckReport report =
@@ -138,7 +138,6 @@ public sealed class WhenItFailsDocumentationKeyFormatCheckerTests
             "errors.en.json");
 
         var loadResponse = await new JsonErrorCatalogLoader().LoadFromFileAsync(catalogPath);
-
         Assert.True(
             loadResponse.IsSuccess,
             $"Repository error catalog could not be loaded: {loadResponse.Message}");

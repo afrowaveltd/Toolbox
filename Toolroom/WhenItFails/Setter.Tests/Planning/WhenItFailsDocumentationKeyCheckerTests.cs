@@ -24,7 +24,7 @@ public sealed class WhenItFailsDocumentationKeyCheckerTests
     {
         ErrorCatalogDocument catalog = new()
         {
-            Errors = null
+            Errors = null!
         };
 
         DocumentationKeyCheckReport report =
