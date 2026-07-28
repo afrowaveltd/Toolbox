@@ -70,6 +70,21 @@ public sealed class ErrorCatalogContextProviderNullPayloadShortCircuitTests
         AssertNullPayloadFailure(response);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldReturnInvalidWithoutContext_WhenProfileCatalogProviderSucceedsWithoutPayload()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new SuccessfulCategoryCatalogProvider(),
+            new SuccessfulCodeGroupCatalogProvider(),
+            new SuccessfulOwnerCatalogProvider(),
+            new NullPayloadProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
+
+        AssertNullPayloadFailure(response);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -224,6 +239,47 @@ public sealed class ErrorCatalogContextProviderNullPayloadShortCircuitTests
         {
             cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult(Response<ErrorOwnerCatalogProviderPayload>.Ok(null));
+        }
+    }
+
+    private sealed class SuccessfulOwnerCatalogProvider : IErrorOwnerCatalogProvider
+    {
+        public Task<Response<ErrorOwnerCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorOwnerCatalogProviderPayload>.Ok(
+                new ErrorOwnerCatalogProviderPayload
+                {
+                    Document = new ErrorOwnerCatalogDocument
+                    {
+                        Owners =
+                        [
+                            new ErrorOwnerDefinition
+                            {
+                                Name = "AFW",
+                                DisplayName = "Afrowave",
+                                CodeFrom = 0,
+                                CodeTo = 999999,
+                                IsBuiltIn = true
+                            }
+                        ]
+                    },
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
+    private sealed class NullPayloadProfileCatalogProvider : IErrorProfileCatalogProvider
+    {
+        public Task<Response<ErrorProfileCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(Response<ErrorProfileCatalogProviderPayload>.Ok(null));
         }
     }
 
