@@ -23,7 +23,7 @@ public sealed class ErrorCatalogContextProfileMetadataIntegrationTests
         try
         {
             JsonsOptions options = await BootstrapWorkspaceAsync(rootDirectory);
-            await AddProfileMetadataAsync(options.ProfileCatalogFilePath);
+            await AddProfileMetadataAsync(options.ProfilesFilePath);
 
             Response<ErrorCatalogContext> response =
                 await CreateContextProvider().LoadFromJsonsAsync(options);
