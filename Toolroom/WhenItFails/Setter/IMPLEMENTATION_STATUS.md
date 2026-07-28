@@ -120,7 +120,7 @@ These are boundaries or future candidates, not undocumented defects.
 
 First verify the current focused Setter run and record whether the expected 1,236 tests are green.
 
-The high-value Setter documentation synchronization is now complete.
+Next documentation target: none. The high-value Setter documentation synchronization is complete.
 
 Begin a runtime/public-API audit of WhenItFails integration points, mappings, and profile behavior. Start with a narrow inventory of the public runtime types and services that Setter consumes or mirrors, identify any duplicated or divergent logic, add focused tests for the first confirmed gap, and update this file before moving to the next gap.
 
