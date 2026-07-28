@@ -10,31 +10,19 @@ namespace Afrowave.Toolbox.WhenItFails.Tests.Catalog;
 public sealed class ErrorCatalogContextProviderProfileReferenceTests
 {
     [Fact]
-    public async Task LoadFromJsonsAsync_ShouldReuseValidatedProfileDocumentFromProviderPayload()
+    public async Task LoadFromJsonsAsync_ShouldReuseValidatedDocumentsFromProviderPayloads()
     {
-        ErrorProfileCatalogDocument profileDocument = new()
-        {
-            Profiles =
-            [
-                new ErrorProfileDefinition
-                {
-                    Name = "WEB",
-                    DisplayName = "Web"
-                }
-            ]
-        };
-
-        ErrorProfileCatalogProviderPayload profilePayload = new()
-        {
-            Document = profileDocument,
-            ValidationResult = new ErrorCatalogValidationResult()
-        };
+        ErrorCatalogProviderPayload errorPayload = CreateErrorCatalogPayload();
+        ErrorCategoryCatalogProviderPayload categoryPayload = CreateCategoryPayload();
+        ErrorCodeGroupCatalogProviderPayload codeGroupPayload = CreateCodeGroupPayload();
+        ErrorOwnerCatalogProviderPayload ownerPayload = CreateOwnerPayload();
+        ErrorProfileCatalogProviderPayload profilePayload = CreateProfilePayload();
 
         ErrorCatalogContextProvider provider = new(
-            new FakeErrorCatalogProvider(),
-            new FakeCategoryCatalogProvider(),
-            new FakeCodeGroupCatalogProvider(),
-            new FakeOwnerCatalogProvider(),
+            new FakeErrorCatalogProvider(errorPayload),
+            new FakeCategoryCatalogProvider(categoryPayload),
+            new FakeCodeGroupCatalogProvider(codeGroupPayload),
+            new FakeOwnerCatalogProvider(ownerPayload),
             new FakeProfileCatalogProvider(profilePayload));
 
         Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
@@ -46,7 +34,12 @@ public sealed class ErrorCatalogContextProviderProfileReferenceTests
 
         Assert.True(response.IsSuccess);
         Assert.NotNull(response.Data);
-        Assert.Same(profileDocument, response.Data.ProfileCatalog);
+        Assert.Same(errorPayload.Catalog, response.Data.ErrorCatalog);
+        Assert.Same(errorPayload.Document, response.Data.ErrorCatalogDocument);
+        Assert.Same(categoryPayload.Document, response.Data.CategoryCatalog);
+        Assert.Same(codeGroupPayload.Document, response.Data.CodeGroupCatalog);
+        Assert.Same(ownerPayload.Document, response.Data.OwnerCatalog);
+        Assert.Same(profilePayload.Document, response.Data.ProfileCatalog);
     }
 
     private static ErrorCatalogProviderPayload CreateErrorCatalogPayload()
@@ -147,51 +140,94 @@ public sealed class ErrorCatalogContextProviderProfileReferenceTests
         };
     }
 
+    private static ErrorProfileCatalogProviderPayload CreateProfilePayload()
+    {
+        return new ErrorProfileCatalogProviderPayload
+        {
+            Document = new ErrorProfileCatalogDocument
+            {
+                Profiles =
+                [
+                    new ErrorProfileDefinition
+                    {
+                        Name = "WEB",
+                        DisplayName = "Web"
+                    }
+                ]
+            },
+            ValidationResult = new ErrorCatalogValidationResult()
+        };
+    }
+
     private sealed class FakeErrorCatalogProvider : IErrorCatalogProvider
     {
+        private readonly ErrorCatalogProviderPayload _payload;
+
+        public FakeErrorCatalogProvider(ErrorCatalogProviderPayload payload)
+        {
+            _payload = payload;
+        }
+
         public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
             string filePath,
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult(Response<ErrorCatalogProviderPayload>.Ok(
-                CreateErrorCatalogPayload()));
+            return Task.FromResult(Response<ErrorCatalogProviderPayload>.Ok(_payload));
         }
     }
 
     private sealed class FakeCategoryCatalogProvider : IErrorCategoryCatalogProvider
     {
+        private readonly ErrorCategoryCatalogProviderPayload _payload;
+
+        public FakeCategoryCatalogProvider(ErrorCategoryCatalogProviderPayload payload)
+        {
+            _payload = payload;
+        }
+
         public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
             string filePath,
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult(Response<ErrorCategoryCatalogProviderPayload>.Ok(
-                CreateCategoryPayload()));
+            return Task.FromResult(Response<ErrorCategoryCatalogProviderPayload>.Ok(_payload));
         }
     }
 
     private sealed class FakeCodeGroupCatalogProvider : IErrorCodeGroupCatalogProvider
     {
+        private readonly ErrorCodeGroupCatalogProviderPayload _payload;
+
+        public FakeCodeGroupCatalogProvider(ErrorCodeGroupCatalogProviderPayload payload)
+        {
+            _payload = payload;
+        }
+
         public Task<Response<ErrorCodeGroupCatalogProviderPayload>> LoadFromFileAsync(
             string filePath,
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult(Response<ErrorCodeGroupCatalogProviderPayload>.Ok(
-                CreateCodeGroupPayload()));
+            return Task.FromResult(Response<ErrorCodeGroupCatalogProviderPayload>.Ok(_payload));
         }
     }
 
     private sealed class FakeOwnerCatalogProvider : IErrorOwnerCatalogProvider
     {
+        private readonly ErrorOwnerCatalogProviderPayload _payload;
+
+        public FakeOwnerCatalogProvider(ErrorOwnerCatalogProviderPayload payload)
+        {
+            _payload = payload;
+        }
+
         public Task<Response<ErrorOwnerCatalogProviderPayload>> LoadFromFileAsync(
             string filePath,
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult(Response<ErrorOwnerCatalogProviderPayload>.Ok(
-                CreateOwnerPayload()));
+            return Task.FromResult(Response<ErrorOwnerCatalogProviderPayload>.Ok(_payload));
         }
     }
 
