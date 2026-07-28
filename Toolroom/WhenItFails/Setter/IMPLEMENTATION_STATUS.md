@@ -21,14 +21,13 @@ The current implementation supports:
 
 ## Verification status
 
-The latest user-verified Setter test run is green with 1,236 tests after the overview documentation synchronization and contract corrections.
+The latest user-verified Setter test run is green with 1,237 tests after the profile-explanation excluded-tag precedence contract.
 
 The first runtime/public-API profile-selection slice is user-verified green with 10 focused `ErrorProfileSelectionServiceTests`.
 
-The public runtime-facade display-name integration test is also user-verified green with 1 focused test from `ErrorCatalogRuntimeProfileDisplayNameTests`.
+The public runtime-facade display-name integration test is user-verified green with 1 focused `ErrorCatalogRuntimeProfileDisplayNameTests` test.
 
-The current profile-explanation precedence slice adds one Setter test, so the next successful full Setter run is expected to report 1,237 tests.
-Do not mark that count as user-verified until the run is confirmed green.
+The current profile-mapping boundary slice adds one focused runtime resolver test. That test is not yet user-verified.
 
 Primary Setter verification command:
 
@@ -36,10 +35,10 @@ Primary Setter verification command:
 dotnet test Toolroom/WhenItFails/Setter.Tests
 ```
 
-Focused verification command for the current slice:
+Focused runtime verification command for the current slice:
 
 ```powershell
-dotnet test Toolroom/WhenItFails/Setter.Tests --filter FullyQualifiedName~WhenItFailsProfileExplainerTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorProfileResolverTests
 ```
 
 Before committing catalog changes, also run:
@@ -113,7 +112,9 @@ The public interface XML documentation now states the actual name-or-display-nam
 
 A user-verified runtime-facade integration test confirms that `ErrorCatalogRuntime.ResolveProfile` accepts a normalized display name and returns the expected runtime selection.
 
-The current Setter slice protects profile explanation precedence. When an error matches an include tag but the same tag appears in `ExcludeTags`, runtime exclusion wins and the explanation must report both the include match and the final exclusion veto.
+Profile explanation precedence is now user-verified. When an error matches an include tag but the same tag appears in `ExcludeTags`, runtime exclusion wins and the Setter explanation reports both the include match and the final exclusion veto.
+
+The mapping audit confirmed an intentional boundary: `DefaultMappings` are consumer recommendations for presentation or integration behavior. They do not modify error definitions and must not participate in `ErrorProfileResolver` selection. The current focused runtime test protects selection invariance with and without mappings.
 
 ## Current intentional boundaries
 
@@ -144,21 +145,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify the focused `WhenItFailsProfileExplainerTests` run and then the full Setter suite if the focused run is green.
+First verify the focused `ErrorProfileResolverTests` run and record the result.
 
 Next documentation target: none. The high-value Setter documentation synchronization is complete.
 
-If the excluded-tag precedence test is green without an implementation change, record the existing behavior as confirmed and continue with one narrow audit of duplicated profile lookup inside Setter. If it fails, fix only the reason-generation mismatch before moving on.
+If the mapping-boundary test is green, continue with one narrow audit of duplicated profile lookup inside Setter or define a separate public mapping-consumption contract only after a concrete consumer requirement exists. Do not make `DefaultMappings` affect profile selection.
 
 Do not begin implementation from documentation assumptions alone. Inspect the current source and tests in GitHub first.
 
 ## Last completed change
 
-The third runtime/public-API audit slice added a focused Setter contract for profile explanation precedence. It verifies that an error matching an include tag but vetoed by `ExcludeTags` is excluded exactly as `ErrorProfileResolver` requires, while the explanation preserves both the include reason and the exclusion reason.
+The fourth runtime/public-API audit slice added a focused runtime contract for profile mapping boundaries. It verifies that `DefaultMappings` do not affect the errors selected by `ErrorProfileResolver`, preserving their documented role as consumer-facing presentation or integration recommendations.
 
 Commits in this change sequence:
 
 ```text
-0f670217b952baaa9773c7a5f441fb2f5869a8ff
-Add excluded-tag profile explanation contract
+e6d67a147130327cd5e1ad4e50bf75b942403825
+Protect profile mapping selection boundary
 ```
