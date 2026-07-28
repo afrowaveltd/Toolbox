@@ -21,15 +21,20 @@ The current implementation supports:
 
 ## Verification status
 
-The latest user-verified Setter test run is green with 1,235 tests after the maintainer-notes documentation synchronization.
+The latest user-verified Setter test run is green with 1,236 tests after the overview documentation synchronization and contract corrections.
 
-The current overview documentation change adds one documentation-contract test, so the next successful focused run is expected to report 1,236 tests.
-Do not mark that count as user-verified until the run is confirmed green.
+The first runtime/public-API audit slice adds one focused test to `WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceTests.cs`. That runtime test is not yet user-verified.
 
-Primary verification command:
+Primary Setter verification command:
 
 ```powershell
 dotnet test Toolroom/WhenItFails/Setter.Tests
+```
+
+Focused runtime verification command for the current slice:
+
+```powershell
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorProfileSelectionServiceTests
 ```
 
 Before committing catalog changes, also run:
@@ -67,7 +72,7 @@ The high-value Setter documentation synchronization is complete. The following h
 
 The synchronized documentation no longer presents implemented capabilities such as `add-error`, `remove-error`, `next-code`, `restore-backup`, JSON output, profile explanation, or documentation checks as missing or future work.
 
-The overview now provides a stable product map for workspace lifecycle, catalog discovery, error authoring, profiles and mappings, documentation integrity, backup recovery, rich/plain/JSON output, exit codes, safe writes, verification, and specialized documentation without duplicating the complete command reference or relying on a brittle source-file inventory.
+The overview provides a stable product map for workspace lifecycle, catalog discovery, error authoring, profiles and mappings, documentation integrity, backup recovery, rich/plain/JSON output, exit codes, safe writes, verification, and specialized documentation without duplicating the complete command reference or relying on a brittle source-file inventory.
 
 The Testing and CI guide documents focused and repository-wide runs, service and command contracts, temporary workspaces, persistence and backup invariants, rich/plain/JSON output, exit codes, documentation checks, failure diagnosis, and the immediate one-change/one-test rule.
 
@@ -88,6 +93,18 @@ The architecture overview maps the actual entry-point, command, service, workspa
 The new-command guide defines the complete command lifecycle: contract design, dispatch, command and service responsibilities, workspace validation, read and write flows, safe persistence, rich/plain/JSON surfaces, exit and issue codes, documentation updates, cross-platform review, and immediate focused tests.
 
 The maintainer notes define the continuation workflow: verify GitHub and the status file, complete one small green step, preserve architectural and persistence boundaries, maintain automation contracts, verify recovery explicitly, synchronize documentation, and never guess state that can be inspected.
+
+## Runtime/public-API audit
+
+The first confirmed integration gap was profile lookup divergence:
+
+- Setter accepts a profile by stable `Name` or human-readable `DisplayName`;
+- runtime `IErrorProfileSelectionService.ResolveByProfileName` previously matched only `Name`;
+- both paths normalize values with `TextKeyNormalizer`, but the duplicated lookup behavior could disagree.
+
+The runtime selection service now matches either normalized `Name` or normalized `DisplayName` while retaining the existing method name and `ErrorProfileNotFoundByName` issue code for backward compatibility.
+
+The public interface XML documentation now states the actual name-or-display-name contract.
 
 ## Current intentional boundaries
 
@@ -111,31 +128,34 @@ These are boundaries or future candidates, not undocumented defects.
 - GitHub `master` is the source of truth.
 - Keep each change narrow and intentional.
 - Add or update tests immediately with each implementation or documentation change.
-- Run the Setter test project after every commit-sized change.
+- Run the affected focused test project after every commit-sized change.
 - Do not advance to another area until the current tests are green.
 - Keep README and localized English documentation aligned with actual behavior.
 - Update this file after every change so another session can continue without reconstructing project history.
 
 ## Recommended next step
 
-First verify the current focused Setter run and record whether the expected 1,236 tests are green.
+First verify the focused runtime profile-selection tests and record the result.
 
 Next documentation target: none. The high-value Setter documentation synchronization is complete.
 
-Begin a runtime/public-API audit of WhenItFails integration points, mappings, and profile behavior. Start with a narrow inventory of the public runtime types and services that Setter consumes or mirrors, identify any duplicated or divergent logic, add focused tests for the first confirmed gap, and update this file before moving to the next gap.
+After the current runtime tests are green, update Setter profile lookup to consume the public runtime selection contract where practical, or continue the audit by comparing profile explanation reasons with `ErrorProfileResolver` veto precedence. Do not change both areas in one slice.
 
 Do not begin implementation from documentation assumptions alone. Inspect the current source and tests in GitHub first.
 
 ## Last completed change
 
-`Docs/Overview/en.md` was replaced with a concise current product map, and `OverviewDocumentationTests.cs` now protects workspace scope, implemented command families, profile explanation, backup recovery, documentation checks, rich/plain/JSON output, machine-integration guidance, focused verification, and status maintenance.
+The first runtime/public-API audit slice aligned profile lookup semantics between Setter and runtime WhenItFails. `ErrorProfileSelectionService` now resolves by stable name or display name, its public interface documentation reflects that contract, and a focused runtime test protects display-name lookup.
 
 Commits in this change sequence:
 
 ```text
-877c05ee3a69305499ee2d02e8899888e9b858ef
-Add Setter overview documentation contract
+6adb53edfe999e70d25a8d93adf9483efc9e0f8e
+Add profile display-name selection contract
 
-76d1f2237851b72df3208ad6186735b1b08d0de1
-Refresh Setter product overview
+e568a76f7a2afdfd47f896c1f4a35bdbf2b77862
+Resolve profiles by name or display name
+
+14b1072bdd57c0cbbaafe4ac498bb22b723a37ed
+Document profile display-name lookup
 ```
