@@ -121,7 +121,7 @@ public sealed class ErrorCatalogContextProfileMetadataIntegrationTests
             profile.Metadata.Items);
         Assert.True(profile.Metadata.TryGet("consumer", out string? consumer));
         Assert.Equal("SeeMe", consumer);
-        Assert.True(profile.Metadata.TryGet("AUDIT_NOTE", out string? auditNote));
+        Assert.True(profile.Metadata.TryGet("AUDITNOTE", out string? auditNote));
         Assert.Equal("preserved through context", auditNote);
     }
 
