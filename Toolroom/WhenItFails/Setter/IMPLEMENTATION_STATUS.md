@@ -27,13 +27,13 @@ Implemented areas include:
 - Runtime `ErrorProfileCatalogProviderMetadataTests`: **1 focused test user-verified green**.
 - Runtime `ErrorCatalogContextProfileMetadataIntegrationTests`: **1 focused test user-verified green**, including writer/loader round-trip, provider/context preservation, metadata values, and normalized mappings.
 - Runtime `ErrorProfileDefinitionNormalizerTests`: **10 focused tests user-verified green** after independent metadata, mapping, and selector-list copy semantics.
-- Runtime `ErrorProfileCatalogDocumentNormalizerTests`: **7 focused tests user-verified green** after independent catalog metadata, profile collection, and profile instance copy semantics.
-- Current catalog-tag ownership slice adds one focused document-normalizer test, so the next successful focused run is expected to report **8 tests**.
+- Runtime `ErrorProfileCatalogDocumentNormalizerTests`: **8 focused tests user-verified green** after independent catalog metadata, profile collection, profile instance, and tag copy semantics.
+- Current provider-payload ownership slice adds one focused `ErrorProfileCatalogProviderTests` contract. This test is not yet user-verified.
 
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorProfileCatalogDocumentNormalizerTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorProfileCatalogProviderTests
 ```
 
 Primary Setter verification command:
@@ -82,7 +82,8 @@ Completed audit slices:
 10. All profile selector lists are independently copied and normalized.
 11. `ErrorProfileCatalogDocumentNormalizer` copies catalog metadata instead of sharing mutable state with the source document.
 12. The normalized `Profiles` collection and each normalized profile instance are independent from the source catalog.
-13. The current focused contract verifies the same mutation isolation for catalog `Tags`, while preserving normalized and de-duplicated values.
+13. Catalog `Tags` are independently copied and normalized.
+14. The current focused provider contract verifies that the returned payload document is independent from the document supplied by the loader, including catalog tags, metadata, profile instances, and nested selector lists.
 
 ## Current intentional boundaries
 
@@ -113,19 +114,19 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify all focused `ErrorProfileCatalogDocumentNormalizerTests`; the expected count is **8 green tests**.
+First verify all focused `ErrorProfileCatalogProviderTests`.
 
-If green, the profile-catalog ownership audit is complete. Continue with one adjacent runtime/public-API boundary only after inspecting current provider and context source plus existing tests; prefer a concrete externally observable behavior over broad refactoring.
+If green, record the exact focused count and inspect `ErrorCatalogContextProvider` ownership semantics. Prefer one concrete contract about whether the final context intentionally reuses provider payload documents or should copy them; do not change that behavior without first establishing the surrounding convention.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The sixteenth runtime/public-API audit slice added an explicit mutation-isolation contract for catalog tags. The implementation already creates a normalized list copy through `NormalizeStringList`, so no production change was required.
+The seventeenth runtime/public-API audit slice added a provider payload isolation contract. It verifies that `ErrorProfileCatalogProvider` returns the normalized document copy rather than exposing the mutable document instance supplied by the loader.
 
-Commits in this change sequence:
+Commit in this change sequence:
 
 ```text
-c3571f5fb71fcd984eb455ef099e9994e9d622e0
-Protect profile catalog tag copy isolation
+308d83c387d033bebdb6f75d73b6ab6ec57c57f3
+Protect profile provider payload isolation
 ```
