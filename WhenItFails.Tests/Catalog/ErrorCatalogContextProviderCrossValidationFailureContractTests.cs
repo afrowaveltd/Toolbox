@@ -31,7 +31,7 @@ public sealed class ErrorCatalogContextProviderCrossValidationFailureContractTes
         Assert.Equal(ResultStatus.Invalid, response.Status);
         Assert.Null(response.Data);
 
-        ResultIssue issue = Assert.Single(response.Issues);
+        var issue = Assert.Single(response.Issues);
         Assert.Equal("UnknownErrorOwner", issue.Code);
         Assert.Equal(
             "Error owner 'MISSING_OWNER' is not defined in the owner catalog.",
