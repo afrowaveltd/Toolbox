@@ -4,6 +4,7 @@ using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Descriptors;
+using Afrowave.Toolbox.WhenItFails.Initialization;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
 using Afrowave.Toolbox.WhenItFails.Resolution;
 using Afrowave.Toolbox.WhenItFails.Services;
@@ -75,6 +76,10 @@ public sealed class ErrorCatalogRuntimeProfileDisplayNameTests
     private sealed class FixedContextStore(ErrorCatalogContext context)
         : IErrorCatalogContextStore
     {
+        public bool IsInitialized => true;
+
+        public ErrorCatalogContext Current => context;
+
         public Response<ErrorCatalogContext> GetCurrent() =>
             Response<ErrorCatalogContext>.Ok(context);
 
@@ -102,17 +107,17 @@ public sealed class ErrorCatalogRuntimeProfileDisplayNameTests
     private sealed class UnusedDescriptorService : IErrorDescriptorService
     {
         public Response<ErrorDescriptor> FromId(
-            ErrorCatalogContext context,
+            ErrorCatalogContext? context,
             string errorId) =>
             throw new NotSupportedException();
 
         public Response<ErrorDescriptor> FromName(
-            ErrorCatalogContext context,
+            ErrorCatalogContext? context,
             string errorName) =>
             throw new NotSupportedException();
 
         public Response<ErrorDescriptor> FromCode(
-            ErrorCatalogContext context,
+            ErrorCatalogContext? context,
             int code) =>
             throw new NotSupportedException();
     }
