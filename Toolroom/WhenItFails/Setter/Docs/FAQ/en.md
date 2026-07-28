@@ -92,7 +92,7 @@ dotnet run --project Toolroom/WhenItFails/Setter -- details . NEW_ERROR_ID
 
 Yes, through `remove-error`.
 
-Removal is compatibility-sensitive. Before removing a stable error, inspect references:
+Removal is compatibility-sensitive. Before removing a stable error, use `error-references` to inspect catalog references:
 
 ```powershell
 dotnet run --project Toolroom/WhenItFails/Setter -- error-references . AFW_NET_0001
