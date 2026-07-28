@@ -1,521 +1,281 @@
-﻿It should not silently guess, repair, migrate, or rewrite large parts of the workspace unless that behavior is explicitly designed, tested, and documented.
+# Architecture Overview
 
-## Main layers
+This page is a high-level map of `Toolroom/WhenItFails/Setter` for contributors and maintainers.
 
-At a high level, Setter can be understood in these layers:
+Setter is a .NET 10 command-line authoring tool for the WhenItFails JSON catalog workspace. Its architecture favors explicit orchestration, reusable services, structured failures, conservative persistence, and output contracts that remain understandable to both humans and automation.
 
-# Architecture overview
+> Commands orchestrate; services implement reusable behavior; views render.
 
-This page describes the high-level architecture of WhenItFails Setter.
+## Architectural goals
 
-It is intended for contributors and maintainers who need to understand how the command-line tool is organized and how the main parts fit together.
+Setter should make the safe path obvious:
 
-This is not a full source-code reference.
+1. resolve the requested workspace;
+2. load and normalize catalog documents;
+3. validate before trusting derived data or persisting changes;
+4. perform one focused operation;
+5. return structured success or failure information;
+6. render the selected rich, plain, or JSON output;
+7. preserve the active catalog through the safe-write and backup contract.
 
-It is a map.
+The project deliberately prefers small explicit components over hidden repair, broad mutation, or clever command behavior.
 
-## Main idea
+## Entry point and dispatch
 
-Setter is a command-line companion for WhenItFails JSON catalogs.
+The application entry point accepts raw command-line arguments and dispatches them to command implementations.
 
-Its job is to make catalog work safer by providing focused operations such as:
+Its responsibilities include:
 
-- initialize workspace,
-- validate catalogs,
-- summarize workspace,
-- list errors,
-- inspect one error,
-- edit selected error fields,
-- save with backups.
+- normalizing the command name;
+- selecting the command or alias;
+- showing help for help and no-argument cases;
+- returning the command exit code;
+- converting an unexpected top-level failure into exit code `3`.
 
-Setter should stay small, explicit, and predictable.
+The entry point should not contain catalog business logic. New behavior belongs in a command or reusable service, with the entry point limited to composition and dispatch.
 
-## Architectural principle
+## Command layer
 
-Setter should behave like a careful workshop tool:
+Command classes own one user-facing workflow.
 
-Not every command uses every layer.
+A command normally:
 
-Read-only commands usually stop before safe writing.
+1. validates its command-line arguments;
+2. interprets supported switches;
+3. invokes workspace, catalog, validation, editing, or recovery services;
+4. chooses the relevant view or JSON contract;
+5. returns the documented process exit code.
 
-Editing commands use the full path.
+Commands may coordinate several services, but should not duplicate reusable loading, validation, persistence, lookup, or formatting rules.
 
-## Program entry point
+Read-only commands stop before persistence. Write commands continue through validation and the safe-write boundary.
 
-The entry point is responsible for:
+## Service layer
 
-- accepting raw command-line arguments,
-- deciding which command was requested,
-- dispatching to the correct command implementation,
-- showing help for help/no-argument cases,
-- returning process exit codes,
-- catching unexpected top-level exceptions.
+Services implement reusable behavior independently of terminal decoration.
 
-The command name is normalized before dispatch.
+Current service responsibilities include:
 
-Top-level unexpected failures should return:
+- resolving a project root or direct `Jsons/WhenItFails` workspace;
+- initializing a workspace;
+- loading and normalizing catalogs;
+- validating individual documents and cross-catalog relationships;
+- summarizing and inspecting workspace content;
+- locating errors and related references;
+- creating, editing, and removing catalog entries;
+- evaluating profiles and mappings;
+- checking documentation keys and local Markdown links;
+- writing catalog files safely;
+- listing and restoring backups.
 
-## Command dispatch
+A service should have one coherent responsibility. When orchestration, validation, persistence, and rendering begin accumulating in the same class, the boundary should be split rather than expanded into a god object.
 
-Command dispatch maps command names such as:
+## Workspace and catalog models
 
-to command implementations.
+The logical workspace lives under:
 
-Aliases are also handled here or through equivalent dispatch logic.
+```text
+Jsons/WhenItFails
+```
 
-Current aliases:
+Its catalog documents include errors, categories, code groups, owners, and profiles. These files form one logical package even though persistence currently operates on one target file at a time.
 
-When adding a command, update both dispatch and documentation.
+Catalog models represent serialized data and normalized in-memory state. They should remain easy to compare with the JSON contract.
 
-## Command implementations
+Models do not render themselves.
 
-A command implementation should own the user-facing workflow for one command.
+Behavior such as lookup, validation, profile evaluation, editing, and persistence belongs in services rather than hidden model side effects.
 
-Examples:
+## Loading and normalization
 
-A command should:
+Loading converts JSON files into catalog document models while preserving useful distinctions between missing files, malformed JSON, access failures, and unsupported data.
 
-- parse its arguments,
-- report missing or invalid input clearly,
-- call shared workspace services,
-- render success or failure output,
-- return the intended exit code.
+Normalization creates predictable in-memory shapes and canonical values where the current contract allows it. It is not silent schema migration and must not disguise invalid catalog meaning.
 
-A command should not hide failure details.
+A normalized workspace may still be invalid. Validation remains a separate gate.
 
-## Command argument parsing
+## Validation and structured failures
 
-Argument parsing is intentionally simple.
+Validation protects all derived output and write operations.
 
-Commands currently use direct command-line argument arrays and command-specific parsing.
+Read-only workflows generally follow:
 
-This keeps behavior easy to inspect.
+```text
+resolve → load → normalize → validate → query → render
+```
 
-When adding options, prefer:
+Write workflows generally follow:
 
-- explicit option names,
-- predictable values,
-- case-insensitive switches where existing behavior does that,
-- useful behavior when values are missing.
+```text
+resolve → load → normalize → validate input → modify in memory
+→ validate resulting state → persist → reload or inspect → render
+```
 
-Do not add complicated parsing rules without tests.
+Expected failures are represented through structured responses, issues, and stable issue codes. Process exit codes classify the broad result:
 
-## Workspace resolution
+- `0` — success;
+- `1` — command usage or argument failure;
+- `2` — expected workspace, validation, lookup, edit, save, or recovery failure;
+- `3` — unexpected top-level failure.
 
-Most commands accept either:
+Exceptions are not the normal representation for missing command arguments or ordinary catalog rejection.
 
-or:
+## Query and authoring operations
 
-The resolver determines the actual package directory.
+Read-only operations include workspace validation, summaries, reference catalogs, error details, filtering, profile explanation, documentation checks, and backup discovery.
 
-The `init` command is different:
+Authoring operations include error creation and removal, focused field editing, tag and alias changes, ownership and category changes, profile authoring, mappings, metadata, and explicit restoration.
 
-because it creates or ensures:
+Operations should stay focused. A narrowly named command is easier to test, document, automate, and review than a broad command that mutates unrelated concepts.
 
-Path behavior must remain predictable across Windows and Linux.
+## Persistence and recovery
 
-## Workspace package
+Setter persistence uses a single-file safe write.
 
-The logical workspace package is:
+The intended sequence is:
 
-Current catalog files:
+```text
+validate new state
+→ serialize a complete temporary file
+→ create a timestamped backup of the current target
+→ replace the target
+```
 
-The package is validated as a whole.
+Rejected input or failed pre-write validation must leave the target unchanged and create no backup.
 
-One file may be syntactically valid but still invalid because it references unknown values from another file.
+A successful write should expose enough information to inspect the target and generated backup. Tests should reload the persisted document rather than trusting only the in-memory result.
 
-## Loading
+This is not a multi-file transaction and not a multi-process locking system. Commands that conceptually affect several relationships must still respect the current one-target persistence boundary and validate the complete workspace afterward.
 
-Loading reads JSON catalog files from disk.
+Recovery is explicit:
 
-The loader is responsible for turning JSON into catalog document models.
+```text
+list-backups → select by content → restore-backup
+→ validate complete workspace → inspect diff → run tests
+```
 
-Loading should preserve the distinction between:
+Backup age alone does not prove that a backup is the correct recovery point.
 
-These failures are different and should produce useful diagnostics.
+## Output boundaries
 
-## Normalization
+Setter has three distinct output surfaces:
 
-Normalization prepares loaded data for consistent use.
+- rich terminal output for interactive use;
+- `--plain` human-readable output without rich decoration;
+- `--json` machine-readable output.
 
-It may ensure predictable collections, defaults, or model shapes.
+Views do not decide command semantics.
 
-Normalization is not a substitute for validation.
+Views receive already prepared results and render them. They should not load catalogs, validate workspaces, write files, or choose exit codes.
 
-Do not rely on normalization to silently fix broken catalog meaning.
+Automation should use `--json` together with process exit codes. Rich and plain output remain presentation surfaces and must not be parsed as stable JSON schemas.
 
-A normalized invalid workspace is still invalid.
+## Dependency direction
 
-## Validation
+The intended conceptual direction is:
 
-Validation checks whether the catalog package is structurally and logically acceptable.
+```text
+entry point
+→ commands
+→ services
+→ catalog models and persistence abstractions
+```
 
-Validation should happen before commands present derived data.
+Rendering is called by commands after service results exist:
 
-Recommended read-only command flow:
+```text
+command result
+→ rich view | plain renderer | JSON renderer
+```
 
-Validation protects users from trusting summaries or details produced from broken data.
+Important boundaries:
 
-## Summary model
+- Models do not render themselves.
+- Views do not decide command semantics.
+- Validators do not write files.
+- Writers do not choose user-facing exit codes.
+- Commands do not duplicate reusable validation and persistence rules.
+- Services do not depend on Spectre.Console layout decisions.
 
-The summary workflow produces a workspace overview.
+These boundaries keep service tests independent from terminal formatting and prevent presentation changes from altering catalog behavior.
 
-It is useful because it gives users a fast sanity check:
+## Testing boundaries
 
-- how many errors exist,
-- which owners exist,
-- which code groups exist,
-- which profiles exist,
-- primary-category distribution.
+Tests should cover behavior at the smallest useful boundary:
 
-The summary should remain read-only.
+- service tests for loading, validation, lookup, editing, persistence, profiles, mappings, and recovery;
+- command tests for arguments, exit codes, aliases, output selection, and failure mapping;
+- view tests for intentional rich or plain rendering contracts;
+- JSON tests by parsing and asserting the machine-readable structure;
+- documentation-contract tests for important published behavior.
 
-It should not mutate catalogs.
+Writable tests use isolated temporary workspaces and must not mutate the repository catalog.
 
-## Error listing
+The minimum Setter-wide verification gate is:
 
-The `errors` command lists error definitions and supports filters.
+```powershell
+dotnet test Toolroom/WhenItFails/Setter.Tests
+```
 
-Current filter concepts include:
+Run repository-wide tests when a change affects shared libraries, runtime contracts, package wiring, or other projects.
 
-The command should stay useful for discovery.
+## Adding or changing architecture
 
-It should not become a full query language unless that is deliberately designed.
+For a new command or capability, decide before implementation:
 
-## Error lookup
+- which layer owns the behavior;
+- whether the operation is read-only or writes one catalog target;
+- which service responsibilities are reusable;
+- what validation occurs before derived output or persistence;
+- which issue and exit-code contracts apply;
+- which output modes are supported;
+- how persistence and backup behavior are verified;
+- which tests and documentation must change.
 
-The detail workflow locates one error definition by:
-
-Numeric lookup checks numeric error code.
-
-Text lookup checks stable ID and symbolic name.
-
-The detail view should show enough information for a catalog author to safely edit or review the definition.
-
-## Editing operations
-
-Editing operations are focused.
-
-Current edit commands update:
-
-in:
-
-Focused commands are preferred because they are easier to test, document, and reason about.
-
-## Editing workflow shape
-
-A safe edit should generally follow:
-
-Avoid saving if the edit is invalid.
-
-Avoid saving if the target error cannot be found.
-
-## Safe writing
-
-Safe writing should protect the active catalog from careless replacement.
-
-Current safe-write concept:
-
-Backups are local recovery artifacts.
-
-Safe writing is not a complete multi-file transaction system.
-
-## Rendering
-
-Rendering is responsible for user-facing output.
-
-There are two broad styles:
-
-Rich output should be pleasant for humans.
-
-Plain output should be easier to copy, redirect, or inspect.
-
-Neither should be confused with a stable JSON API unless a JSON mode is explicitly added later.
-
-## Views
-
-View classes should focus on presentation.
-
-They should not own core catalog logic.
-
-Good separation:
-
-This makes tests and future output formats easier.
-
-## Exit code boundary
-
-The process exit code is part of the command contract.
-
-The command implementation should return the intended code.
-
-General model:
-
-Do not bury exit-code decisions deep in presentation code.
-
-## Issue codes
-
-Issue codes describe specific problems.
-
-They are more precise than exit codes.
-
-Examples:
-
-Tests should prefer checking issue codes where practical.
-
-Issue codes should stay stable.
-
-## Models
-
-Catalog models represent JSON document data.
-
-They should remain close enough to the JSON shape that catalog authors and maintainers can reason about the file format.
-
-Avoid adding hidden behavior to simple catalog models.
-
-Prefer explicit services for behavior.
-
-## Services
-
-Shared services should handle reusable operations such as:
-
-- workspace resolution,
-- initialization,
-- validation,
-- loading,
-- summarization,
-- editing,
-- writing.
-
-A service should have a clear responsibility.
-
-If a service becomes a â€śgod object,â€ť split it.
-
-## Tests
-
-Tests should cover behavior at useful boundaries:
-
-- command argument handling,
-- workspace initialization,
-- workspace validation,
-- editing success,
-- editing rejection,
-- backup creation,
-- severity normalization,
-- lookup behavior,
-- profile filtering,
-- exit-code behavior.
-
-Tests should use disposable workspaces.
-
-They should not mutate the real repository workspace.
-
-## Documentation as architecture support
-
-For Setter, documentation is part of maintainability.
-
-Whenever architecture changes, update the relevant documentation:
-
-- Commands,
-- Command Quick Reference,
-- Exit Codes and Automation,
-- Catalog Files,
-- Profiles,
-- Safe Writes,
-- Backups and Recovery,
-- Testing and CI,
-- Maintainer Notes.
-
-A command that exists only in code but not in docs is not really finished.
-
-## Adding a new command
-
-Before adding a command, decide:
-
-- command name,
-- purpose,
-- arguments,
-- options,
-- success exit code,
-- failure exit codes,
-- issue codes,
-- whether it reads or writes,
-- whether it needs validation first,
-- whether it needs plain output,
-- what tests prove it works,
-- which docs must change.
-
-Recommended implementation path:
-
-## Adding a read-only command
-
-A read-only command should normally:
-
-On invalid workspace:
-
-On missing required command input:
-
-## Adding a write command
-
-A write command should normally:
-
-Rejected command input should usually return:
-
-Rejected operation or invalid resulting data should usually return:
-
-Follow existing command behavior for consistency.
-
-## Adding a validation rule
-
-When adding a validation rule, also add:
-
-- a success test,
-- a failure test,
-- a useful issue code,
-- a useful issue message,
-- documentation if users can hit the rule,
-- migration notes if existing catalogs may fail.
-
-Validation should be strict enough to protect users and clear enough to help them fix problems.
-
-## Adding a catalog field
-
-Adding a new catalog field may require updates to:
-
-- model classes,
-- loaders,
-- normalizers,
-- validators,
-- summary or detail views,
-- documentation,
-- tests,
-- example catalogs,
-- profiles or mappings,
-- backward compatibility behavior.
-
-Do not add a field only in JSON without considering model and validation behavior.
-
-## Adding a new output mode
-
-If adding a future output mode such as JSON, define:
-
-- which commands support it,
-- exact output shape,
-- whether it is stable,
-- error output behavior,
-- relationship to exit codes,
-- tests,
-- documentation.
-
-JSON output would be a machine-readable contract.
-
-Treat it more strictly than rich output.
-
-## Maintaining documentation paths
-
-Documentation pages are stored under:
-
-README links should usually look like:
-`[Page Name](Docs/Page%20Name/en.md)`
-Spaces in links should be URL-encoded.
-
-Actual folder names may contain spaces.
-
-Keep the link and file path aligned.
+A new output mode, public model, issue code, exit-code behavior, JSON property, stable catalog identifier, or persistence rule is a compatibility-sensitive contract.
 
 ## Common architecture traps
 
 Avoid:
 
-- mixing rendering logic into validators,
-- mixing validation logic into views,
-- saving before validation,
-- treating plain output as stable JSON,
-- adding commands without tests,
-- changing exit codes without documentation,
-- silently accepting invalid catalog data,
-- hiding file I/O failures,
-- overloading one command with many unrelated behaviors,
-- making profile browsing look runtime-complete when it is not.
-
-## Dependency direction
-
-Recommended dependency direction:
-
-Avoid circular conceptual dependencies.
-
-Views should not call commands.
-
-Models should not render themselves.
-
-Validators should not write files.
-
-Writers should not decide command semantics.
-
-## Error-handling style
-
-Expected failures should be represented as structured operation results or validation issues.
-
-Unexpected failures may reach the top-level catch and return:
-
-Do not use exceptions for ordinary missing command arguments.
-
-Do not swallow exceptions that indicate real I/O or serialization failure.
-
-## Performance expectations
-
-Catalogs are currently small.
-
-Prefer clarity over micro-optimization.
-
-However, avoid obviously wasteful behavior such as:
-
-- repeatedly parsing the same file in one command without need,
-- validating many times inside a tight loop,
-- using expensive reflection where simple code is clearer.
-
-If catalogs become large later, optimize with tests and measurements.
-
-## Backward compatibility
-
-Backward compatibility matters for:
-
-- command names,
-- exit codes,
-- issue codes,
-- JSON field names,
-- stable catalog IDs,
-- numeric error codes,
-- profile names,
-- README links.
-
-When changing one of these, consider whether users or scripts may already depend on it.
+- rendering inside validators or catalog models;
+- validation rules hidden inside views;
+- direct target truncation before serialization completes;
+- saving before the resulting state validates;
+- parsing rich output in automation;
+- treating `--plain` as a JSON schema;
+- changing issue or exit codes without tests and documentation;
+- broad commands that mix unrelated mutations;
+- services that combine orchestration, rendering, validation, and persistence;
+- presenting future behavior as already implemented;
+- presenting implemented behavior as future work.
 
 ## Architecture review checklist
 
-For a non-trivial code change, ask:
+Before completing a non-trivial change, confirm:
 
-- Is the responsibility in the right layer?
-- Does validation happen before derived output?
-- Does write behavior remain safe?
-- Are exit codes preserved?
-- Are issue codes useful?
-- Are tests focused?
-- Are docs updated?
-- Does the change work on Windows and Linux?
-- Is the diff understandable?
+- [ ] the responsibility is in the correct layer;
+- [ ] command orchestration remains thin and understandable;
+- [ ] reusable logic is service-owned;
+- [ ] validation happens before trust and persistence;
+- [ ] expected failures remain structured;
+- [ ] exit codes and output contracts remain intentional;
+- [ ] a write preserves safe-write and backup invariants;
+- [ ] tests use appropriate service, command, view, or documentation boundaries;
+- [ ] Windows and Linux behavior was considered;
+- [ ] documentation and `IMPLEMENTATION_STATUS.md` are updated;
+- [ ] the focused Setter suite is green.
 
 ## Related documentation
 
-- [Maintainer Notes](../Maintainer%20Notes/en.md)
+- [Adding a New Command](../Adding%20a%20New%20Command/en.md)
 - [Contributing to Setter](../Contributing%20to%20Setter/en.md)
 - [Testing and CI](../Testing%20and%20CI/en.md)
 - [Exit Codes and Automation](../Exit%20Codes%20and%20Automation/en.md)
-- [Command Quick Reference](../Command%20Quick%20Reference/en.md)
-- [Catalog Files](../Catalog%20Files/en.md)
 - [Safe Writes](../Safe%20Writes/en.md)
 - [Backups and Recovery](../Backups%20and%20Recovery/en.md)
-- [Profiles](../Profiles/en.md)
+- [Known Limitations](../Known%20Limitations/en.md)
 
 ## Central principle
 
-> Setter architecture should make the safe path obvious: validate before trust, edit one thing at a time, write carefully, and return a result automation can understand.
+> Setter architecture is healthy when command orchestration, reusable behavior, catalog state, persistence, and rendering remain separately testable and agree on one explicit contract.
