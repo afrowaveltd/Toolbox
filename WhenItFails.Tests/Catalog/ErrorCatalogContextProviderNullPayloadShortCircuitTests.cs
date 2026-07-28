@@ -40,6 +40,21 @@ public sealed class ErrorCatalogContextProviderNullPayloadShortCircuitTests
         AssertNullPayloadFailure(response);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldNotCallLaterProviders_WhenCodeGroupCatalogProviderSucceedsWithoutPayload()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new SuccessfulCategoryCatalogProvider(),
+            new NullPayloadCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
+
+        AssertNullPayloadFailure(response);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -115,6 +130,44 @@ public sealed class ErrorCatalogContextProviderNullPayloadShortCircuitTests
         {
             cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult(Response<ErrorCategoryCatalogProviderPayload>.Ok(null));
+        }
+    }
+
+    private sealed class SuccessfulCategoryCatalogProvider : IErrorCategoryCatalogProvider
+    {
+        public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorCategoryCatalogProviderPayload>.Ok(
+                new ErrorCategoryCatalogProviderPayload
+                {
+                    Document = new ErrorCategoryCatalogDocument
+                    {
+                        Categories =
+                        [
+                            new ErrorCategoryDefinition
+                            {
+                                Name = "GENERAL",
+                                DisplayName = "General"
+                            }
+                        ]
+                    },
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
+    private sealed class NullPayloadCodeGroupCatalogProvider : IErrorCodeGroupCatalogProvider
+    {
+        public Task<Response<ErrorCodeGroupCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(Response<ErrorCodeGroupCatalogProviderPayload>.Ok(null));
         }
     }
 
