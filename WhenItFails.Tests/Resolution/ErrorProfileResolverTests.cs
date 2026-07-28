@@ -23,6 +23,40 @@ public sealed class ErrorProfileResolverTests
     }
 
     [Fact]
+    public void Resolve_ShouldIgnoreDefaultMappings_WhenSelectingErrors()
+    {
+        ErrorProfileResolver resolver = new();
+        ErrorCatalogDocument catalog = CreateErrorCatalog();
+        ErrorProfileDefinition withoutMappings = new()
+        {
+            Name = "WEB",
+            DisplayName = "Web",
+            IncludeCategories = ["WEB"]
+        };
+        ErrorProfileDefinition withMappings = new()
+        {
+            Name = "WEB_WITH_MAPPINGS",
+            DisplayName = "Web with mappings",
+            IncludeCategories = ["WEB"],
+            DefaultMappings = new Dictionary<string, string>
+            {
+                ["web.problemDetails"] = "true",
+                ["web.includeTraceId"] = "false"
+            }
+        };
+
+        IReadOnlyList<string> withoutMappingIds = resolver.Resolve(catalog, withoutMappings)
+            .Select(error => error.Id)
+            .ToList();
+        IReadOnlyList<string> withMappingIds = resolver.Resolve(catalog, withMappings)
+            .Select(error => error.Id)
+            .ToList();
+
+        Assert.Equal(withoutMappingIds, withMappingIds);
+        Assert.Equal(["AFW-WEB-0001"], withMappingIds);
+    }
+
+    [Fact]
     public void Resolve_ShouldCombineIncludeFiltersUsingOrLogic()
     {
         ErrorProfileResolver resolver = new();
@@ -87,7 +121,6 @@ public sealed class ErrorProfileResolverTests
         Assert.DoesNotContain(
             result,
             error => error.Id == "AFW-DB-0001");
-
         Assert.Equal(2, result.Count);
     }
 
@@ -416,4 +449,3 @@ public sealed class ErrorProfileResolverTests
         };
     }
 }
-
