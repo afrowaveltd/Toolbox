@@ -32,13 +32,13 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorProfileCatalogDocumentNormalizerTests`: **8 focused tests user-verified green** after independent catalog metadata, profile collection, profile instance, and tag copy semantics.
 - Runtime `ErrorProfileCatalogProviderTests`: **10 focused tests user-verified green**, including loader-to-provider payload isolation.
 - Runtime `ErrorCatalogContextProviderProfileReferenceTests`: **1 focused test user-verified green** for direct reuse of validated provider outputs and a newly computed combined `CrossValidationResult`.
-- Runtime `ErrorCatalogContextProviderShortCircuitTests`: **4 focused tests user-verified green** for error-, category-, code-group-, and owner-provider failure short-circuiting.
-- Current profile-provider terminal-failure slice adds one focused test, so the next successful focused run is expected to report **5 tests**.
+- Runtime `ErrorCatalogContextProviderShortCircuitTests`: **5 focused tests user-verified green**, covering failure at every provider boundary.
+- Current call-order slice adds one focused `ErrorCatalogContextProviderCallOrderTests` contract. This test is not yet user-verified.
 
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderShortCircuitTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderCallOrderTests
 ```
 
 Primary Setter verification command:
@@ -101,7 +101,8 @@ Completed audit slices:
 19. Category-provider failure preserves the source issue and prevents code-group, owner, and profile providers from running.
 20. Code-group-provider failure preserves the source issue and prevents owner and profile providers from running.
 21. Owner-provider failure preserves the source issue and prevents the profile provider from running.
-22. The current focused contract completes provider-failure coverage at the profile boundary: all earlier providers succeed, profile failure is preserved, and no partial `ErrorCatalogContext` is returned.
+22. Profile-provider failure preserves the source issue and returns no partial `ErrorCatalogContext`.
+23. The current focused contract protects exact provider invocation order and verifies that each provider receives its corresponding configured path from `JsonsOptions`.
 
 ## Current intentional boundaries
 
@@ -132,21 +133,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderShortCircuitTests`; the expected count is **5 green tests**.
+First verify `ErrorCatalogContextProviderCallOrderTests`; the expected count is **1 green test**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, the provider-failure sequence is complete. Inspect one adjacent externally observable boundary, preferably cancellation propagation between provider calls or null-payload short-circuiting, before adding another test.
+If green, inspect cancellation propagation between provider calls or null-payload short-circuiting before adding another focused contract.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The twenty-fifth runtime/public-API audit slice completed context provider-failure coverage at the profile boundary. It verifies successful completion of the error, category, code-group, and owner providers, preservation of the profile provider's failure issue, and absence of a partial context payload.
+The twenty-sixth runtime/public-API audit slice added an explicit call-order and path-routing contract for `ErrorCatalogContextProvider`. It verifies sequential invocation of error, category, code-group, owner, and profile providers and confirms that each receives the matching path calculated by `JsonsOptions`.
 
 Commit in this change sequence:
 
 ```text
-bba3424d4a40a8506c46f3059574d2045aa40466
-Protect profile provider terminal failure
+701c115945c03e618f09b3138badd1bff5205ad6
+Protect context provider call order and paths
 ```
