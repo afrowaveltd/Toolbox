@@ -40,6 +40,15 @@ public sealed class SetterReadmeTests
             StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void EnglishReadmeSource_MatchesRootReadme()
+    {
+        string readme = File.ReadAllText(GetReadmePath());
+        string englishReadme = File.ReadAllText(GetEnglishReadmePath());
+
+        Assert.Equal(readme, englishReadme);
+    }
+
     private static string GetReadmePath(
         [CallerFilePath] string sourceFilePath = "")
     {
@@ -52,5 +61,20 @@ public sealed class SetterReadmeTests
             "..",
             "Setter",
             "README.md"));
+    }
+
+    private static string GetEnglishReadmePath(
+        [CallerFilePath] string sourceFilePath = "")
+    {
+        string sourceDirectory = Path.GetDirectoryName(sourceFilePath)
+            ?? throw new InvalidOperationException("The test source directory could not be resolved.");
+
+        return Path.GetFullPath(Path.Combine(
+            sourceDirectory,
+            "..",
+            "..",
+            "Setter",
+            "Readme",
+            "en.md"));
     }
 }
