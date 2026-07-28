@@ -134,6 +134,19 @@ public sealed class ShowProfileCommandTests
     }
 
     [Fact]
+    public void FindProfile_NormalizesSeparatorsLikeRuntimeLookup()
+    {
+        WhenItFailsWorkspaceSummary summary = CreateSummary();
+
+        ErrorProfileDefinition? profile = ShowProfileCommand.FindProfile(
+            summary,
+            "custom-profile");
+
+        Assert.NotNull(profile);
+        Assert.Equal("CUSTOM_PROFILE", profile.Name);
+    }
+
+    [Fact]
     public void FindProfile_WithUnknownName_ReturnsNull()
     {
         WhenItFailsWorkspaceSummary summary = CreateSummary();
@@ -202,6 +215,11 @@ public sealed class ShowProfileCommandTests
                     {
                         Name = "WEB",
                         DisplayName = "Web Application"
+                    },
+                    new ErrorProfileDefinition
+                    {
+                        Name = "CUSTOM_PROFILE",
+                        DisplayName = "Custom Profile"
                     }
                 ]
             }
