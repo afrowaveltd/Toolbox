@@ -133,6 +133,27 @@ public sealed class WhenItFailsProfileExplainerTests
     }
 
     [Fact]
+    public async Task ExplainAsync_ShouldNormalizeStableProfileNameBeforeLookup()
+    {
+        using TemporaryWhenItFailsWorkspace workspace =
+            await TemporaryWhenItFailsWorkspace.CreateInitializedAsync();
+        ErrorProfileCatalogDocument profiles = await LoadProfilesAsync(workspace.WhenItFailsJsonsPath);
+        ErrorProfileDefinition profile = profiles.Profiles.First();
+        profile.Name = "CUSTOM_PROFILE";
+        profile.DisplayName = "Custom profile";
+        await SaveProfilesAsync(workspace.WhenItFailsJsonsPath, profiles);
+
+        Response<ProfileExplanation> response =
+            await new WhenItFailsProfileExplainer().ExplainAsync(
+                workspace.WhenItFailsJsonsPath,
+                "custom-profile");
+
+        Assert.True(response.IsSuccess);
+        Assert.NotNull(response.Data);
+        Assert.Equal("CUSTOM_PROFILE", response.Data.ProfileName);
+    }
+
+    [Fact]
     public async Task ExplainAsync_WithUnknownProfile_ShouldReturnNotFound()
     {
         using TemporaryWhenItFailsWorkspace workspace =
