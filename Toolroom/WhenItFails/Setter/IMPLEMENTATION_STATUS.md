@@ -29,8 +29,8 @@ Implemented areas include:
 - Runtime `ErrorProfileDefinitionNormalizerTests`: **10 focused tests user-verified green** after independent metadata, mapping, and selector-list copy semantics.
 - Runtime `ErrorProfileCatalogDocumentNormalizerTests`: **8 focused tests user-verified green** after independent catalog metadata, profile collection, profile instance, and tag copy semantics.
 - Runtime `ErrorProfileCatalogProviderTests`: **10 focused tests user-verified green**, including loader-to-provider payload isolation.
-- Runtime `ErrorCatalogContextProviderProfileReferenceTests`: **1 focused test user-verified green** for profile-document reference reuse.
-- Current context-reference extension keeps the same focused test count while expanding the contract to every provider payload document and the runtime `ErrorCatalog` instance. This revision is not yet user-verified.
+- Runtime `ErrorCatalogContextProviderProfileReferenceTests`: **1 focused test user-verified green** for direct reuse of all validated provider documents and the runtime error catalog.
+- Current extension keeps the same focused test count and adds the contract that `CrossValidationResult` is a new combined validation result, not any provider payload's local validation result. This revision is not yet user-verified.
 
 Focused verification command for the current slice:
 
@@ -87,7 +87,8 @@ Completed audit slices:
 13. Catalog `Tags` are independently copied and normalized.
 14. `ErrorProfileCatalogProvider` returns the normalized document copy rather than exposing the mutable document instance supplied by the loader.
 15. `ErrorCatalogContextProvider` intentionally aggregates already normalized and validated provider outputs without a second deep copy.
-16. The current extension protects that aggregation convention for `ErrorCatalog`, `ErrorCatalogDocument`, category, code-group, owner, and profile provider documents.
+16. The aggregation contract covers `ErrorCatalog`, `ErrorCatalogDocument`, category, code-group, owner, and profile documents.
+17. The current extension protects the complementary validation boundary: the final context receives a newly computed cross-catalog validation result rather than reusing any provider-local validation result.
 
 ## Current intentional boundaries
 
@@ -120,17 +121,17 @@ These are boundaries or future candidates, not undocumented defects.
 
 First verify the expanded `ErrorCatalogContextProviderProfileReferenceTests` contract.
 
-If green, record the result and inspect one externally observable context behavior rather than continuing ownership checks. Prefer cancellation propagation, provider call ordering, or stable failure short-circuiting only after reviewing existing tests for a concrete missing boundary.
+If green, inspect externally observable context behavior next. Prefer stable provider call ordering or failure short-circuiting after reviewing the existing `ErrorCatalogContextProviderTests`; do not continue ownership checks without a concrete gap.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The nineteenth runtime/public-API audit slice expanded the context aggregation reference contract from the profile catalog alone to all provider outputs used by `ErrorCatalogContext`. It protects direct reuse of the runtime error catalog and every already normalized provider document without redundant deep copies.
+The twentieth runtime/public-API audit slice extended the context aggregation test with cross-validation ownership. Provider documents and the runtime error catalog are intentionally reused, while `CrossValidationResult` must be a new result produced by validating the complete combined context.
 
 Commit in this change sequence:
 
 ```text
-a20cb5d995cc12ba798c11ea2ae2a5c43d49abef
-Protect context provider payload references
+d82053a32207d4ea0ed4734b919bb46a48aba6a7
+Protect context cross-validation ownership
 ```
