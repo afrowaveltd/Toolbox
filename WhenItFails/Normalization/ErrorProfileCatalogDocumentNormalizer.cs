@@ -58,7 +58,11 @@ public sealed class ErrorProfileCatalogDocumentNormalizer
             IsShadowCopy = document.IsShadowCopy,
 
             Tags = DefinitionNormalizationHelper.NormalizeStringList(document.Tags),
-            Metadata = new MetadataBag(document.Metadata.Items),
+            Metadata = new MetadataBag(
+                document.Metadata.Items.ToDictionary(
+                    item => item.Key,
+                    item => item.Value,
+                    StringComparer.OrdinalIgnoreCase)),
 
             Profiles = document.Profiles
                 .Select(_profileDefinitionNormalizer.Normalize)
