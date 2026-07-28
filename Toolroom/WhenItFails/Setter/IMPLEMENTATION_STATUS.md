@@ -34,14 +34,14 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderProfileReferenceTests`: **1 focused test user-verified green** for direct reuse of validated provider outputs and a newly computed combined `CrossValidationResult`.
 - Runtime `ErrorCatalogContextProviderShortCircuitTests`: **5 focused tests user-verified green**, covering failure at every provider boundary.
 - Runtime `ErrorCatalogContextProviderCallOrderTests`: **1 focused test user-verified green** for exact provider order and configured path routing.
-- Runtime `ErrorCatalogContextProviderCancellationPropagationTests`: **1 focused test user-verified green** for cooperative cancellation between provider calls.
-- Runtime `ErrorCatalogContextProviderNullPayloadShortCircuitTests`: **4 focused tests user-verified green** for immediate rejection of null error-, category-, code-group-, and owner-catalog payloads.
-- Current profile null-payload slice adds one focused test, so the next successful focused run is expected to report **5 tests**.
+- Runtime `ErrorCatalogContextProviderNullPayloadShortCircuitTests`: **5 focused tests user-verified green**, covering null payloads at every provider boundary.
+- Runtime `ErrorCatalogContextProviderCancellationPropagationTests`: **1 focused test user-verified green** for cancellation between error and category providers.
+- Current cancellation slice adds one focused category-to-code-group boundary test, so the next successful focused run is expected to report **2 tests**.
 
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderNullPayloadShortCircuitTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderCancellationPropagationTests
 ```
 
 Primary Setter verification command:
@@ -106,12 +106,9 @@ Completed audit slices:
 21. Owner-provider failure preserves the source issue and prevents the profile provider from running.
 22. Profile-provider failure preserves the source issue and returns no partial `ErrorCatalogContext`.
 23. Exact provider invocation order and matching `JsonsOptions` path routing are protected.
-24. Cooperative cancellation between provider calls is protected: cancellation requested during one successful provider call is observed by the next provider and prevents all later calls.
-25. Null-payload handling short-circuits immediately at the error-provider boundary.
-26. Null-payload handling short-circuits immediately at the category-provider boundary.
-27. Null-payload handling short-circuits immediately at the code-group-provider boundary.
-28. Null-payload handling short-circuits immediately at the owner-provider boundary.
-29. The current slice completes null-payload coverage at the profile-provider boundary: a successful profile response with no payload returns `ErrorCatalogContextPayloadIsNull`, no context is created, and cross-validation is not entered.
+24. Cooperative cancellation between error and category provider calls is protected.
+25. Null-payload handling short-circuits immediately at every provider boundary.
+26. The current slice extends cooperative cancellation coverage to the category-to-code-group transition: cancellation requested during a successful category provider call must be observed by the code-group provider, and owner/profile providers must not run.
 
 ## Current intentional boundaries
 
@@ -142,21 +139,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderNullPayloadShortCircuitTests`; the expected count is **5 green tests**.
+First verify `ErrorCatalogContextProviderCancellationPropagationTests`; the expected count is **2 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, the null-payload sequence is complete. Inspect one adjacent success-path boundary, preferably whether provider-local validation results are intentionally ignored after successful provider responses or whether cross-validation failure preserves only the first issue by design.
+If green, extend cancellation propagation by one adjacent provider boundary only, preferably code-group-to-owner, while preserving `OperationCanceledException` propagation and suppression of later provider calls.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The thirty-second runtime/public-API audit slice completed null-payload coverage at the profile provider. All earlier providers return valid payloads, while a successful profile response with no payload returns the stable invalid response and produces no partial context. Production already checked this terminal boundary before cross-validation, so this slice required only a focused contract test.
+The thirty-third runtime/public-API audit slice extended cooperative cancellation coverage to the category-to-code-group boundary. It verifies that cancellation requested during a successful category provider response is observed by the code-group provider and prevents owner and profile provider calls.
 
 Commit in this change sequence:
 
 ```text
-fe37393b37c98ad05f2b3f1a75a433fad99a2d7e
-Protect profile null payload terminal boundary
+1d45372646b84f05bb1765c4af012223777ec0de
+Protect cancellation after category provider
 ```
