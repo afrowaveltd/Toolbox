@@ -34,12 +34,13 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderProfileReferenceTests`: **1 focused test user-verified green** for direct reuse of validated provider outputs and a newly computed combined `CrossValidationResult`.
 - Runtime `ErrorCatalogContextProviderShortCircuitTests`: **5 focused tests user-verified green**, covering failure at every provider boundary.
 - Runtime `ErrorCatalogContextProviderCallOrderTests`: **1 focused test user-verified green** for exact provider order and configured path routing.
-- Current cancellation-propagation slice adds one focused `ErrorCatalogContextProviderCancellationPropagationTests` contract. This test is not yet user-verified.
+- Runtime `ErrorCatalogContextProviderCancellationPropagationTests`: **1 focused test user-verified green** for cooperative cancellation between provider calls.
+- Current null-payload slice adds one focused `ErrorCatalogContextProviderNullPayloadShortCircuitTests` contract and a production short-circuit at the first provider boundary. This test is not yet user-verified.
 
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderCancellationPropagationTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderNullPayloadShortCircuitTests
 ```
 
 Primary Setter verification command:
@@ -104,7 +105,8 @@ Completed audit slices:
 21. Owner-provider failure preserves the source issue and prevents the profile provider from running.
 22. Profile-provider failure preserves the source issue and returns no partial `ErrorCatalogContext`.
 23. Exact provider invocation order and matching `JsonsOptions` path routing are protected.
-24. The current focused contract protects cooperative cancellation between provider calls: cancellation requested during one successful provider call must be observed by the next provider, and no later provider may run.
+24. Cooperative cancellation between provider calls is protected: cancellation requested during one successful provider call is observed by the next provider and prevents all later calls.
+25. The current slice makes null-payload handling short-circuit at the error-provider boundary instead of loading every remaining catalog before reporting `ErrorCatalogContextPayloadIsNull`.
 
 ## Current intentional boundaries
 
@@ -135,21 +137,24 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderCancellationPropagationTests`; the expected count is **1 green test**.
+First verify `ErrorCatalogContextProviderNullPayloadShortCircuitTests`; the expected count is **1 green test**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect null-payload short-circuiting at one provider boundary or cancellation behavior at a later provider boundary before adding another focused contract.
+If green, extend immediate null-payload short-circuiting by one adjacent provider boundary only, preferably category-provider null payload, while preserving the stable invalid response contract.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The twenty-seventh runtime/public-API audit slice added a cooperative cancellation contract between provider calls. It verifies that cancellation requested during a successful error-catalog provider call is observed by the category provider and prevents code-group, owner, and profile providers from running.
+The twenty-eighth runtime/public-API audit slice changed null-payload handling from an end-of-pipeline aggregate check to immediate rejection at the first provider boundary. A successful error-catalog response with no payload now returns `ErrorCatalogContextPayloadIsNull` before category, code-group, owner, or profile providers are invoked.
 
-Commit in this change sequence:
+Commits in this change sequence:
 
 ```text
-226e96fbadcd752a9e1c4bd747817195ef9504c7
-Protect context cancellation between providers
+11cf7e98ee6cc9786cfef969481b52727481822a
+Add null payload short-circuit contract
+
+26afee1923f0a862bb6ea87526a5c470c1f72909
+Short-circuit null error catalog payload
 ```
