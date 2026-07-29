@@ -57,6 +57,24 @@ public sealed class ErrorCatalogContextProviderInputOrderingTests
         Assert.Equal(parameterName, exception.ParamName);
     }
 
+    [Fact]
+    public void Constructor_ShouldReportFirstNullDependencyInParameterOrder()
+    {
+        UnexpectedCodeGroupCatalogProvider codeGroupProvider = new();
+        UnexpectedOwnerCatalogProvider ownerProvider = new();
+        UnexpectedProfileCatalogProvider profileProvider = new();
+
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() =>
+            new ErrorCatalogContextProvider(
+                null!,
+                null!,
+                codeGroupProvider,
+                ownerProvider,
+                profileProvider));
+
+        Assert.Equal("errorCatalogProvider", exception.ParamName);
+    }
+
     private static ErrorCatalogContextProvider CreateProvider()
     {
         return new ErrorCatalogContextProvider(
