@@ -30,8 +30,8 @@ Recent runtime/public-API audit verification:
 - `ErrorCatalogContextProviderOwnerNullTaskTests`: **1 green**.
 - `ErrorCatalogContextProviderProfileNullTaskTests`: **1 green**.
 - `ErrorCatalogContextProviderNullResponseTaskResultTests`: **5 user-verified green**, completing null-response-result coverage across all five provider boundaries.
-- `ErrorCatalogContextProviderFailureFallbackTests`: **2 user-verified green** for error- and category-provider fallback contracts.
-- Current code-group fallback slice adds a third focused test to `ErrorCatalogContextProviderFailureFallbackTests`; the next successful run is expected to report **3 tests**.
+- `ErrorCatalogContextProviderFailureFallbackTests`: **3 user-verified green** for error-, category-, and code-group-provider fallback contracts.
+- Current owner fallback slice adds a fourth focused test to `ErrorCatalogContextProviderFailureFallbackTests`; the next successful run is expected to report **4 tests**.
 
 Focused verification command for the current slice:
 
@@ -88,7 +88,8 @@ Completed contracts now protect:
 10. failure responses with no issues and no message use provider-specific fallback details while preserving the original status and short-circuiting later providers;
 11. error fallback preserves `ResultStatus.NotFound` and synthesizes `ErrorCatalogContextErrorCatalogLoadFailed` plus its documented message;
 12. category fallback preserves `ResultStatus.NotSupported` and synthesizes `ErrorCatalogContextCategoryCatalogLoadFailed` plus its documented message;
-13. the current code-group fallback contract preserves `ResultStatus.Cancelled`, synthesizes `ErrorCatalogContextCodeGroupCatalogLoadFailed` and the documented code-group message, returns no context, and prevents owner and profile execution.
+13. code-group fallback preserves `ResultStatus.Cancelled` and synthesizes `ErrorCatalogContextCodeGroupCatalogLoadFailed` plus its documented message;
+14. the current owner fallback contract preserves `ResultStatus.Failed`, synthesizes `ErrorCatalogContextOwnerCatalogLoadFailed` and the documented owner message, returns no context, and prevents profile execution.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -121,19 +122,19 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderFailureFallbackTests`; the expected count is **3 green tests**.
+First verify `ErrorCatalogContextProviderFailureFallbackTests`; the expected count is **4 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect exactly one adjacent fallback boundary, preferably the owner-provider failure fallback after successful error, category, and code-group providers.
+If green, inspect the final adjacent fallback boundary: the profile-provider failure fallback after successful error, category, code-group, and owner providers.
 
 ## Last completed change
 
-The seventy-third runtime/public-API audit slice extends failure fallback coverage to the code-group-provider boundary. After valid error and category responses, a code-group provider returns `ResultStatus.Cancelled` with no issues and no message. `ErrorCatalogContextProvider` must preserve `Cancelled`, synthesize `ErrorCatalogContextCodeGroupCatalogLoadFailed` and the documented code-group fallback message, return no context, and invoke neither the owner nor profile provider.
+The seventy-fourth runtime/public-API audit slice extends failure fallback coverage to the owner-provider boundary. After valid error, category, and code-group responses, an owner provider returns `ResultStatus.Failed` with no issues and no message. `ErrorCatalogContextProvider` must preserve `Failed`, synthesize `ErrorCatalogContextOwnerCatalogLoadFailed` and the documented owner fallback message, return no context, and not invoke the profile provider.
 
 Commit in this change sequence:
 
 ```text
-a46f0b450564f91ab396256293641183b3a67ae3
-Protect code-group failure fallback details
+83e1e83fe85dd7d94618a499abdac34c9f9e0aba
+Protect owner failure fallback details
 ```
