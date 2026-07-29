@@ -57,6 +57,29 @@ public sealed class ErrorCatalogContextProviderCrossValidationWarningTests
             issue.Message);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldKeepMixedNonErrorIssuesInsideCrossValidationResult()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new InformationErrorProvider(),
+            new InformationCategoryProvider(),
+            new CodeGroupProvider(),
+            new OwnerProvider(),
+            new WarningProfileProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
+            CreateOptions());
+
+        Assert.True(response.IsSuccess);
+        Assert.NotNull(response.Data);
+        Assert.Empty(response.Issues);
+        Assert.True(response.Data.CrossValidationResult.IsValid);
+        Assert.Collection(
+            response.Data.CrossValidationResult.Issues,
+            issue => Assert.Equal("PrimaryCategoryNotListedInCategories", issue.Code),
+            issue => Assert.Equal("UnknownProfileIncludeError", issue.Code));
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
