@@ -1,3 +1,4 @@
+using Afrowave.Toolbox.Essentials.Enums;
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
@@ -71,6 +72,7 @@ public sealed class ErrorCatalogContextProviderCrossValidationWarningTests
             CreateOptions());
 
         Assert.True(response.IsSuccess);
+        Assert.Equal(ResultStatus.Success, response.Status);
         Assert.NotNull(response.Data);
         Assert.Empty(response.Issues);
         Assert.True(string.IsNullOrEmpty(response.Message));
