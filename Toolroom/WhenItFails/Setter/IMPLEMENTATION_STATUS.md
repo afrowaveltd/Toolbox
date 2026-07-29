@@ -38,8 +38,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderCancellationPropagationTests`: **4 focused tests user-verified green**, covering every inter-provider cancellation boundary.
 - Runtime `ErrorCatalogContextProviderPostProfileCancellationTests`: **1 focused test user-verified green** for cancellation after the profile provider and before cross-validation.
 - Runtime `ErrorCatalogContextProviderCrossValidationFailureContractTests`: **1 focused test user-verified green** after correcting the test's issue-type reference.
-- Runtime `ErrorCatalogContextProviderCrossValidationWarningTests`: **2 focused tests user-verified green** for warning-only and information-only successful context construction and issue preservation.
-- Current mixed non-error slice adds one test to `ErrorCatalogContextProviderCrossValidationWarningTests`; the next successful focused run is expected to report **3 tests**.
+- Runtime `ErrorCatalogContextProviderCrossValidationWarningTests`: **3 focused tests user-verified green** for warning-only, information-only, and mixed non-error context construction and deterministic issue preservation.
+- Current response-envelope slice adds `Success` status and empty-message assertions to the existing mixed non-error test; the focused test count remains **3**.
 
 Focused verification command for the current slice:
 
@@ -116,7 +116,8 @@ Completed audit slices:
 28. Provider-local validation results are intentionally isolated after successful provider responses; final success or failure uses a fresh cross-validation result computed from the returned documents.
 29. Warning-only cross-validation issues remain available in the final `CrossValidationResult` but do not prevent successful context construction.
 30. Information-only cross-validation issues remain available in the final `CrossValidationResult`, preserve `IsValid == true`, and do not prevent successful context construction.
-31. The current slice protects mixed non-error behavior: deterministic information-then-warning ordering is preserved inside `CrossValidationResult`, while the successful outer `Response` keeps an empty `Issues` collection.
+31. Mixed non-error behavior preserves deterministic information-then-warning ordering inside `CrossValidationResult`, while the successful outer `Response` keeps an empty `Issues` collection.
+32. The current slice protects the remaining outer success-envelope contract: mixed non-error diagnostics do not alter `ResultStatus.Success` and do not populate the outer response message.
 
 ## Current intentional boundaries
 
@@ -147,21 +148,24 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderCrossValidationWarningTests`; the expected count is **3 green tests**.
+Re-run `ErrorCatalogContextProviderCrossValidationWarningTests`; the expected count remains **3 green tests** with the new success-status and empty-message assertions.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect one adjacent response-envelope contract only, preferably the exact success `Status` and message behavior when non-error cross-validation issues are present.
+If green, the non-error cross-validation response-envelope sequence is complete. Inspect one adjacent public contract only, preferably whether `ErrorCatalogContextProvider` validates `JsonsOptions` before observing a pre-cancelled token, or whether the current cancellation-first argument order is intentional and should be protected.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The forty-first runtime/public-API audit slice protects mixed non-error cross-validation behavior. One informational issue and one warning are preserved in deterministic validator order inside the newly computed `CrossValidationResult`; the outer successful `Response` remains free of failure issues and exposes the valid context normally.
+The forty-second runtime/public-API audit slice completes the outer response-envelope contract for successful contexts containing non-error cross-validation diagnostics. The response retains `ResultStatus.Success`, an empty failure-issue collection, and no outer message; warning and information diagnostics remain exclusively inside the context's `CrossValidationResult`.
 
-Commit in this change sequence:
+Commits in this change sequence:
 
 ```text
-4d0fc30575c01fa0263e070a5d1fdcb2c262d5d2
-Protect mixed non-error cross-validation envelope
+c5b23a6e1609d24d6260ee503c614e1fe577df35
+Protect successful response envelope from cross-validation diagnostics
+
+b7f917d6b472e31b00bef5d30effebc68899532c
+Protect successful status with non-error cross-validation issues
 ```
