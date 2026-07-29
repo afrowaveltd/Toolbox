@@ -40,8 +40,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderCrossValidationFailureContractTests`: **1 focused test user-verified green** after correcting the test's issue-type reference.
 - Runtime `ErrorCatalogContextProviderCrossValidationWarningTests`: **3 focused tests user-verified green** for warning-only, information-only, mixed non-error context construction, deterministic issue preservation, and a clean outer success envelope.
 - Runtime `ErrorCatalogContextProviderCrossValidationErrorSelectionTests`: **2 focused tests user-verified green** for selecting the first error after earlier information or warning diagnostics.
-- Runtime `ErrorCatalogContextProviderInputOrderingTests`: **7 focused tests user-verified green** for cancellation-first entry ordering, ordinary null-options validation, and all five constructor dependency null guards.
-- Current constructor-order slice adds one focused test to `ErrorCatalogContextProviderInputOrderingTests`; the next successful focused run is expected to report **8 tests**.
+- Runtime `ErrorCatalogContextProviderInputOrderingTests`: **8 focused tests user-verified green** for method-entry ordering, exact constructor null guards, and deterministic multi-null precedence.
+- Current constructor-success slice adds one focused test to `ErrorCatalogContextProviderInputOrderingTests`; the next successful focused run is expected to report **9 tests**.
 
 Focused verification command for the current slice:
 
@@ -125,7 +125,8 @@ Completed audit slices:
 35. A pre-cancelled token is observed before null `JsonsOptions` validation, and no provider is invoked.
 36. With a live token, null `JsonsOptions` produces `ArgumentNullException` with parameter name `options` before any provider invocation.
 37. Constructor dependency validation protects exact `ArgumentNullException.ParamName` values for all five providers.
-38. The current slice protects deterministic constructor validation order: when multiple dependencies are null, the first declared constructor parameter is reported.
+38. When multiple dependencies are null, the first declared constructor parameter is reported.
+39. The current slice protects successful construction: five valid dependencies produce an `IErrorCatalogContextProvider` instance without invoking any provider during construction.
 
 ## Current intentional boundaries
 
@@ -156,21 +157,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderInputOrderingTests`; the expected count is **8 green tests**.
+First verify `ErrorCatalogContextProviderInputOrderingTests`; the expected count is **9 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, the constructor input-validation sequence is complete. Inspect one adjacent provider-exception contract only, preferably whether exceptions thrown by a provider are intentionally propagated rather than converted into a `Response` failure.
+If green, the constructor contract sequence is complete. Inspect one adjacent provider-exception contract only, preferably whether an exception thrown by the first provider is intentionally propagated rather than converted into a `Response` failure.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The forty-eighth runtime/public-API audit slice protects constructor validation precedence. When more than one dependency is null, `ErrorCatalogContextProvider` reports the first declared constructor parameter, preserving deterministic guard behavior and making constructor refactors observable through the public exception contract.
+The forty-ninth runtime/public-API audit slice completes the constructor contract sequence. `ErrorCatalogContextProvider` can be constructed successfully from five valid dependencies, implements `IErrorCatalogContextProvider`, and performs no provider work during construction; provider execution remains deferred until `LoadFromJsonsAsync`.
 
 Commit in this change sequence:
 
 ```text
-66b2b4ee574b6a3485f15a76400d11eca515f47b
-Protect constructor null dependency ordering
+110185fdb836d6cb512ca9dfda22b38114031a36
+Protect successful context provider construction
 ```
