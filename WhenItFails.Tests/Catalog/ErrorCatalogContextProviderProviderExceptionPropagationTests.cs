@@ -28,6 +28,24 @@ public sealed class ErrorCatalogContextProviderProviderExceptionPropagationTests
     }
 
     [Fact]
+    public async Task LoadFromJsonsAsync_ShouldPropagateFaultedErrorProviderTaskWithoutCallingLaterProviders()
+    {
+        InvalidOperationException expectedException = new("Provider task faulted unexpectedly.");
+
+        ErrorCatalogContextProvider provider = new(
+            new FaultedErrorCatalogProvider(expectedException),
+            new UnexpectedCategoryCatalogProvider(),
+            new UnexpectedCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        InvalidOperationException actualException = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => provider.LoadFromJsonsAsync(CreateOptions()));
+
+        Assert.Same(expectedException, actualException);
+    }
+
+    [Fact]
     public async Task LoadFromJsonsAsync_ShouldPropagateCategoryProviderExceptionAfterErrorProviderSucceeds()
     {
         InvalidOperationException expectedException = new("Category provider failed unexpectedly.");
@@ -122,6 +140,23 @@ public sealed class ErrorCatalogContextProviderProviderExceptionPropagationTests
             CancellationToken cancellationToken = default)
         {
             throw _exception;
+        }
+    }
+
+    private sealed class FaultedErrorCatalogProvider : IErrorCatalogProvider
+    {
+        private readonly InvalidOperationException _exception;
+
+        public FaultedErrorCatalogProvider(InvalidOperationException exception)
+        {
+            _exception = exception;
+        }
+
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromException<Response<ErrorCatalogProviderPayload>>(_exception);
         }
     }
 
