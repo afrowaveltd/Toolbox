@@ -8,50 +8,34 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the WhenItFails JSON catalog workspace under `Jsons/WhenItFails`.
 
-Implemented areas include:
-
-- workspace initialization, validation, summary, and reference inspection;
-- error listing, filtering, detail inspection, creation, removal, and focused field editing;
-- tags, aliases, ownership, categories, code groups, and documentation keys;
-- profile creation, selectors, mappings, metadata, and explanation output;
-- safe writes with timestamped backups, backup listing, and restore operations;
-- rich, plain, and JSON output with stable exit-code conventions;
-- documentation-key validation and local Markdown link checking.
+Implemented areas include workspace initialization and validation, catalog inspection and editing, profile management, safe writes and backups, rich/plain/JSON output, documentation-key validation, and local Markdown link checking.
 
 ## Verification status
 
-The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 skipped**. The complete Setter suite is green after restoring the implementation-status continuation-point contract.
+The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-- Setter complete suite: **5,029 tests user-verified green**.
-- Runtime `ErrorProfileSelectionServiceTests`: **10 focused tests user-verified green**.
-- Runtime `ErrorCatalogRuntimeProfileDisplayNameTests`: **1 focused test user-verified green**.
-- Runtime `ErrorProfileResolverTests`: **19 focused tests user-verified green**, including mapping-selection invariance.
-- Runtime `ErrorProfileCatalogProviderMetadataTests`: **1 focused test user-verified green**.
-- Runtime `ErrorCatalogContextProfileMetadataIntegrationTests`: **1 focused test user-verified green**, including writer/loader round-trip, provider/context preservation, metadata values, and normalized mappings.
-- Runtime `ErrorProfileDefinitionNormalizerTests`: **10 focused tests user-verified green** after independent metadata, mapping, and selector-list copy semantics.
-- Runtime `ErrorProfileCatalogDocumentNormalizerTests`: **8 focused tests user-verified green** after independent catalog metadata, profile collection, profile instance, and tag copy semantics.
-- Runtime `ErrorProfileCatalogProviderTests`: **10 focused tests user-verified green**, including loader-to-provider payload isolation.
-- Runtime `ErrorCatalogContextProviderProfileReferenceTests`: **2 focused tests user-verified green** for direct reuse of validated provider outputs, a newly computed combined `CrossValidationResult`, and provider-local validation-result isolation.
-- Runtime `ErrorCatalogContextProviderShortCircuitTests`: **5 focused tests user-verified green**, covering failure at every provider boundary.
-- Runtime `ErrorCatalogContextProviderCallOrderTests`: **1 focused test user-verified green** for exact provider order and configured path routing.
-- Runtime `ErrorCatalogContextProviderNullPayloadShortCircuitTests`: **5 focused tests user-verified green**, covering null payloads at every provider boundary.
-- Runtime `ErrorCatalogContextProviderCancellationPropagationTests`: **4 focused tests user-verified green**, covering every inter-provider cancellation boundary.
-- Runtime `ErrorCatalogContextProviderPostProfileCancellationTests`: **1 focused test user-verified green** for cancellation after the profile provider and before cross-validation.
-- Runtime `ErrorCatalogContextProviderCrossValidationFailureContractTests`: **1 focused test user-verified green** after correcting the test's issue-type reference.
-- Runtime `ErrorCatalogContextProviderCrossValidationWarningTests`: **3 focused tests user-verified green** for warning-only, information-only, mixed non-error context construction, deterministic issue preservation, and a clean outer success envelope.
-- Runtime `ErrorCatalogContextProviderCrossValidationErrorSelectionTests`: **2 focused tests user-verified green** for selecting the first error after earlier information or warning diagnostics.
-- Runtime `ErrorCatalogContextProviderInputOrderingTests`: **9 focused tests user-verified green** for method-entry ordering, constructor guards, deterministic multi-null precedence, and successful construction without provider execution.
-- Runtime `ErrorCatalogContextProviderProviderExceptionPropagationTests`: **6 focused tests user-verified green** for transparent synchronous exception propagation across all five provider boundaries and asynchronous faulted-task propagation.
-- Runtime `ErrorCatalogContextProviderExceptionShapeTests`: **8 focused tests user-verified green** for exception identity and metadata preservation plus null-task behavior at the error, category, and code-group provider boundaries.
-- Runtime `ErrorCatalogContextProviderOwnerNullTaskTests`: **1 focused test user-verified green** for the owner-provider null-task boundary.
-- Runtime `ErrorCatalogContextProviderProfileNullTaskTests`: **1 focused test user-verified green** for the profile-provider null-task boundary before cross-validation or context construction.
-- Runtime `ErrorCatalogContextProviderNullResponseTaskResultTests`: **4 focused tests user-verified green** for completed error-, category-, code-group-, and owner-provider tasks whose response results are null.
-- Current profile null-response slice adds a fifth focused test to `ErrorCatalogContextProviderNullResponseTaskResultTests`; the next successful focused run is expected to report **5 tests**.
+Recent runtime/public-API audit verification:
+
+- `ErrorCatalogContextProviderShortCircuitTests`: **5 green**.
+- `ErrorCatalogContextProviderCallOrderTests`: **1 green**.
+- `ErrorCatalogContextProviderNullPayloadShortCircuitTests`: **5 green**.
+- `ErrorCatalogContextProviderCancellationPropagationTests`: **4 green**.
+- `ErrorCatalogContextProviderPostProfileCancellationTests`: **1 green**.
+- `ErrorCatalogContextProviderCrossValidationFailureContractTests`: **1 green**.
+- `ErrorCatalogContextProviderCrossValidationWarningTests`: **3 green**.
+- `ErrorCatalogContextProviderCrossValidationErrorSelectionTests`: **2 green**.
+- `ErrorCatalogContextProviderInputOrderingTests`: **9 green**.
+- `ErrorCatalogContextProviderProviderExceptionPropagationTests`: **6 green**.
+- `ErrorCatalogContextProviderExceptionShapeTests`: **8 green**.
+- `ErrorCatalogContextProviderOwnerNullTaskTests`: **1 green**.
+- `ErrorCatalogContextProviderProfileNullTaskTests`: **1 green**.
+- `ErrorCatalogContextProviderNullResponseTaskResultTests`: **5 user-verified green**, completing null-response-result coverage across all five provider boundaries.
+- Current failure-fallback slice adds **1 focused test** in `ErrorCatalogContextProviderFailureFallbackTests`; it is not yet user-verified.
 
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderNullResponseTaskResultTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderFailureFallbackTests
 ```
 
 Primary Setter verification command:
@@ -71,9 +55,7 @@ git diff --check
 
 ## Documentation synchronization completed
 
-High-value Setter documentation synchronization is complete. The maintained English documentation covers the implemented command surface, architecture, testing, safe writes, backups, automation, contribution workflow, and maintainer continuation rules.
-
-Primary synchronized documents include:
+High-value Setter documentation synchronization is complete. Maintained English documentation includes:
 
 - `README.md` and `Readme/en.md`;
 - `Docs/Overview/en.md`;
@@ -91,68 +73,20 @@ Primary synchronized documents include:
 
 ## Runtime/public-API audit
 
-Completed audit slices:
+Completed contracts now protect:
 
-1. Runtime profile lookup accepts normalized `Name` or `DisplayName`, aligned with Setter.
-2. Setter `errors --profile`, `show-profile`, and `explain-profile` share one normalized lookup path.
-3. Command-level JSON contracts protect normalized selectors, exit codes, envelopes, failure fields, and no-backup behavior.
-4. Profile explanation reports include matches and final exclusion vetoes consistently with runtime selection.
-5. `DefaultMappings` remain consumer recommendations and do not affect `ErrorProfileResolver` selection.
-6. Profile metadata survives JSON load, normalization, validation, provider payload creation, safe writer/loader round-trip, and final `ErrorCatalogContext` construction.
-7. `MetadataBag` keys are case-insensitive only; separator normalization is intentionally not applied.
-8. `ErrorProfileDefinitionNormalizer` creates an independent `MetadataBag` copy.
-9. `DefaultMappings` are independently copied and normalized.
-10. All profile selector lists are independently copied and normalized.
-11. `ErrorProfileCatalogDocumentNormalizer` copies catalog metadata instead of sharing mutable state with the source document.
-12. The normalized `Profiles` collection and each normalized profile instance are independent from the source catalog.
-13. Catalog `Tags` are independently copied and normalized.
-14. `ErrorProfileCatalogProvider` returns the normalized document copy rather than exposing the mutable document instance supplied by the loader.
-15. `ErrorCatalogContextProvider` intentionally aggregates already normalized and validated provider outputs without a second deep copy.
-16. The aggregation contract covers `ErrorCatalog`, `ErrorCatalogDocument`, category, code-group, owner, and profile documents.
-17. The final context receives a newly computed cross-catalog validation result rather than reusing any provider-local validation result.
-18. Failure of the first error-catalog provider prevents category, code-group, owner, and profile providers from running and preserves the source issue code.
-19. Category-provider failure preserves the source issue and prevents code-group, owner, and profile providers from running.
-20. Code-group-provider failure preserves the source issue and prevents owner and profile providers from running.
-21. Owner-provider failure preserves the source issue and prevents the profile provider from running.
-22. Profile-provider failure preserves the source issue and returns no partial `ErrorCatalogContext`.
-23. Exact provider invocation order and matching `JsonsOptions` path routing are protected.
-24. Null-payload handling short-circuits immediately at every provider boundary.
-25. Cooperative cancellation is protected at all four inter-provider transitions.
-26. Cancellation after the profile provider returns is observed before cross-validation and context construction.
-27. Cross-validation failure returns an `Invalid` response and exposes no partial context.
-28. Provider-local validation results are intentionally isolated after successful provider responses; final success or failure uses a fresh cross-validation result computed from the returned documents.
-29. Warning-only cross-validation issues remain available in the final `CrossValidationResult` but do not prevent successful context construction.
-30. Information-only cross-validation issues remain available in the final `CrossValidationResult`, preserve `IsValid == true`, and do not prevent successful context construction.
-31. Mixed non-error behavior preserves deterministic information-then-warning ordering inside `CrossValidationResult`, while the successful outer `Response` keeps an empty `Issues` collection.
-32. The outer success envelope retains `ResultStatus.Success` and no message when non-error cross-validation diagnostics exist.
-33. Mixed-severity failure selection uses the first error-severity issue when information diagnostics precede it.
-34. The same failure-selection contract is protected when warning diagnostics precede the first error.
-35. A pre-cancelled token is observed before null `JsonsOptions` validation, and no provider is invoked.
-36. With a live token, null `JsonsOptions` produces `ArgumentNullException` with parameter name `options` before any provider invocation.
-37. Constructor dependency validation protects exact `ArgumentNullException.ParamName` values for all five providers.
-38. When multiple dependencies are null, the first declared constructor parameter is reported.
-39. Five valid dependencies construct the context provider without invoking provider work.
-40. An exception thrown by the first provider escapes unchanged and prevents all later provider calls rather than being converted into a `Response` failure.
-41. Exception transparency at the category boundary preserves the exact thrown instance and prevents code-group, owner, and profile provider calls.
-42. Exception transparency at the code-group boundary preserves the exact thrown instance and prevents owner and profile provider calls.
-43. Exception transparency at the owner boundary preserves the exact thrown instance and prevents profile provider execution.
-44. Exception transparency at the profile boundary preserves the exact thrown instance and prevents context or response construction.
-45. A faulted task returned by the error provider propagates its original exception instance unchanged and prevents every later provider call.
-46. Exception-type transparency preserves a provider-thrown `FormatException` as the same concrete type and instance and prevents later provider calls.
-47. Canceled-task transparency preserves the provider task's original cancellation token, avoids failure-response conversion, and prevents later provider calls.
-48. Nested exception identity preserves both the custom provider exception and its exact `InnerException` reference.
-49. Exception-data transparency preserves custom string and numeric values stored in `Exception.Data`.
-50. Custom exception-property transparency preserves a strongly typed provider-specific `CatalogPath` property.
-51. Null-task transparency at the error-provider boundary surfaces `NullReferenceException`, avoids failure-response conversion, and prevents later provider work.
-52. Null-task transparency at the category boundary surfaces `NullReferenceException` after a successful error provider and prevents code-group, owner, and profile execution.
-53. Null-task transparency at the code-group boundary surfaces `NullReferenceException` after successful error and category providers and prevents owner plus profile execution.
-54. Null-task transparency at the owner boundary surfaces `NullReferenceException` after successful error, category, and code-group providers and prevents profile execution.
-55. Null-task transparency at the profile boundary surfaces `NullReferenceException` after all earlier providers succeed and prevents cross-validation or context construction.
-56. A completed error-provider task whose response result is null surfaces `NullReferenceException` and prevents all later provider work.
-57. A completed category-provider task whose response result is null surfaces `NullReferenceException` after a valid error response and prevents code-group, owner, and profile execution.
-58. A completed code-group-provider task whose response result is null surfaces `NullReferenceException` after valid error and category responses and prevents owner plus profile execution.
-59. A completed owner-provider task whose response result is null surfaces `NullReferenceException` after valid error, category, and code-group responses and prevents profile execution.
-60. The current slice completes null-response-result transparency at the profile boundary: after all earlier providers return valid responses and payloads, a completed profile-provider task yields a null response result, `NullReferenceException` escapes, and cross-validation plus context construction do not begin.
+1. normalized profile lookup, selection, metadata, mappings, and independent-copy semantics;
+2. provider output aggregation, reference behavior, exact order, and configured path routing;
+3. short-circuit behavior for provider failures and null payloads at every boundary;
+4. cancellation before, between, and after provider calls;
+5. cross-validation success, warnings, information diagnostics, error selection, and failure envelopes;
+6. constructor and method-entry validation ordering;
+7. transparent propagation of synchronous exceptions, faulted tasks, canceled tasks, custom exception state, and exact exception identity;
+8. null `Task` behavior at every provider boundary;
+9. completed provider tasks yielding a null `Response<T>` at every provider boundary;
+10. the current fallback contract for a failure response with no issues and no message: use the provider-specific fallback code and message, preserve the original status, return no context, and invoke no later provider.
+
+Do not invent automatic `DefaultMappings` consumption.
 
 ## Current intentional boundaries
 
@@ -183,21 +117,19 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderNullResponseTaskResultTests`; the expected count is **5 green tests**.
+First verify `ErrorCatalogContextProviderFailureFallbackTests`; the expected count is **1 green test**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, the null-response-result provider-boundary sequence is complete. Inspect exactly one adjacent asynchronous contract outside this sequence, preferably whether a provider failure response with no issues and no message uses the documented fallback code and fallback message while preserving the original status.
-
-Do not invent automatic `DefaultMappings` consumption.
+If green, inspect exactly one adjacent fallback boundary, preferably the category-provider failure fallback after a successful error provider.
 
 ## Last completed change
 
-The seventieth runtime/public-API audit slice completes missing asynchronous response-result coverage at the profile-provider boundary. After the error, category, code-group, and owner providers return valid responses and payloads, a profile provider whose completed `Task<Response<ErrorProfileCatalogProviderPayload>>` yields `null` causes `NullReferenceException` to escape while the absent response is evaluated. The context provider does not convert this programming-contract violation into a failure response, does not run cross-validation, and does not construct an `ErrorCatalogContext`.
+The seventy-first runtime/public-API audit slice protects provider failure fallback behavior. An error provider returns `ResultStatus.NotFound` with no issues and no message. `ErrorCatalogContextProvider` must preserve `NotFound`, synthesize `ErrorCatalogContextErrorCatalogLoadFailed` and the documented fallback message, return no context, and perform no later provider work.
 
 Commit in this change sequence:
 
 ```text
-a1ec0215d6707614de47a01bd3b9477a8914ec4b
-Protect profile null response task result
+ded7170c7be2b05d22df3c39a2955a0a391787d4
+Protect provider failure fallback response
 ```
