@@ -13,17 +13,33 @@ public sealed class ErrorCatalogContextProviderInputOrderingTests
         using CancellationTokenSource cancellationTokenSource = new();
         cancellationTokenSource.Cancel();
 
-        ErrorCatalogContextProvider provider = new(
-            new UnexpectedErrorCatalogProvider(),
-            new UnexpectedCategoryCatalogProvider(),
-            new UnexpectedCodeGroupCatalogProvider(),
-            new UnexpectedOwnerCatalogProvider(),
-            new UnexpectedProfileCatalogProvider());
+        ErrorCatalogContextProvider provider = CreateProvider();
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(
             () => provider.LoadFromJsonsAsync(
                 null!,
                 cancellationTokenSource.Token));
+    }
+
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldRejectNullOptionsBeforeCallingProviders()
+    {
+        ErrorCatalogContextProvider provider = CreateProvider();
+
+        ArgumentNullException exception = await Assert.ThrowsAsync<ArgumentNullException>(
+            () => provider.LoadFromJsonsAsync(null!));
+
+        Assert.Equal("options", exception.ParamName);
+    }
+
+    private static ErrorCatalogContextProvider CreateProvider()
+    {
+        return new ErrorCatalogContextProvider(
+            new UnexpectedErrorCatalogProvider(),
+            new UnexpectedCategoryCatalogProvider(),
+            new UnexpectedCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
     }
 
     private sealed class UnexpectedErrorCatalogProvider : IErrorCatalogProvider
@@ -33,7 +49,7 @@ public sealed class ErrorCatalogContextProviderInputOrderingTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The error provider must not be called when the token is already cancelled.");
+                "The error provider must not be called during input validation.");
         }
     }
 
@@ -44,7 +60,7 @@ public sealed class ErrorCatalogContextProviderInputOrderingTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The category provider must not be called when the token is already cancelled.");
+                "The category provider must not be called during input validation.");
         }
     }
 
@@ -55,7 +71,7 @@ public sealed class ErrorCatalogContextProviderInputOrderingTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The code-group provider must not be called when the token is already cancelled.");
+                "The code-group provider must not be called during input validation.");
         }
     }
 
@@ -66,7 +82,7 @@ public sealed class ErrorCatalogContextProviderInputOrderingTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The owner provider must not be called when the token is already cancelled.");
+                "The owner provider must not be called during input validation.");
         }
     }
 
@@ -77,7 +93,7 @@ public sealed class ErrorCatalogContextProviderInputOrderingTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The profile provider must not be called when the token is already cancelled.");
+                "The profile provider must not be called during input validation.");
         }
     }
 }
