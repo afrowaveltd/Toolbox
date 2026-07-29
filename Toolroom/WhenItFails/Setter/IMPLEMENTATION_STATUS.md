@@ -42,8 +42,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderCrossValidationErrorSelectionTests`: **2 focused tests user-verified green** for selecting the first error after earlier information or warning diagnostics.
 - Runtime `ErrorCatalogContextProviderInputOrderingTests`: **9 focused tests user-verified green** for method-entry ordering, constructor guards, deterministic multi-null precedence, and successful construction without provider execution.
 - Runtime `ErrorCatalogContextProviderProviderExceptionPropagationTests`: **6 focused tests user-verified green** for transparent synchronous exception propagation across all five provider boundaries and asynchronous faulted-task propagation.
-- Runtime `ErrorCatalogContextProviderExceptionShapeTests`: **2 focused tests user-verified green** for preserving a non-default exception type and instance plus canceled-task token transparency.
-- Current inner-exception slice adds a third focused test to `ErrorCatalogContextProviderExceptionShapeTests`; the next successful focused run is expected to report **3 tests**.
+- Runtime `ErrorCatalogContextProviderExceptionShapeTests`: **3 focused tests user-verified green** for exception-type identity, canceled-task token transparency, and exact outer/inner exception references.
+- Current exception-data slice adds a fourth focused test to `ErrorCatalogContextProviderExceptionShapeTests`; the next successful focused run is expected to report **4 tests**.
 
 Focused verification command for the current slice:
 
@@ -137,7 +137,8 @@ Completed audit slices:
 45. A faulted task returned by the error provider propagates its original exception instance unchanged and prevents every later provider call.
 46. Exception-type transparency preserves a provider-thrown `FormatException` as the same concrete type and instance and prevents later provider calls.
 47. Canceled-task transparency preserves the provider task's original cancellation token, avoids failure-response conversion, and prevents later provider calls.
-48. The current slice protects nested exception identity: a custom provider exception and its exact `InnerException` reference both survive propagation unchanged, while later providers remain uninvoked.
+48. Nested exception identity preserves both the custom provider exception and its exact `InnerException` reference.
+49. The current slice protects exception-data transparency: custom entries in `Exception.Data`, including string and numeric values, remain available unchanged because the exact provider exception instance is propagated.
 
 ## Current intentional boundaries
 
@@ -168,21 +169,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderExceptionShapeTests`; the expected count is **3 green tests**.
+First verify `ErrorCatalogContextProviderExceptionShapeTests`; the expected count is **4 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect one adjacent exception-shape contract only, preferably whether custom exception data stored in the `Exception.Data` dictionary remains available through propagation.
+If green, the current exception-shape sequence is complete. Inspect one adjacent asynchronous-contract boundary only, preferably whether a provider returning a null `Task` is surfaced transparently rather than converted into a `Response` failure.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The fifty-eighth runtime/public-API audit slice protects nested exception identity. When the error provider throws a custom exception carrying an inner exception, `ErrorCatalogContextProvider` propagates the same outer exception instance and preserves the exact inner-exception reference. It does not wrap, clone, normalize, or convert the exception into a `Response` failure, and no later provider runs.
+The fifty-ninth runtime/public-API audit slice protects exception-data transparency. When a provider throws a custom exception carrying entries in `Exception.Data`, `ErrorCatalogContextProvider` propagates the same exception instance so both the keys and their original string or numeric values remain intact. The exception is not wrapped, reconstructed, or translated into a `Response` failure, and no later provider runs.
 
 Commit in this change sequence:
 
 ```text
-c31b44bc916856ed57997018a59638a708421599
-Protect provider inner exception references
+4e41fc98484c7bb6aa08a58ecec58b7f4ba05730
+Protect provider exception data preservation
 ```
