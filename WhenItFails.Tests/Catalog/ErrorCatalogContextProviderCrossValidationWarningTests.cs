@@ -17,14 +17,10 @@ public sealed class ErrorCatalogContextProviderCrossValidationWarningTests
             new CategoryProvider(),
             new CodeGroupProvider(),
             new OwnerProvider(),
-            new ProfileProvider());
+            new WarningProfileProvider());
 
         Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
-            new JsonsOptions
-            {
-                RootDirectory = "Jsons",
-                PackageDirectoryName = "WhenItFails"
-            });
+            CreateOptions());
 
         Assert.True(response.IsSuccess);
         Assert.NotNull(response.Data);
@@ -35,6 +31,39 @@ public sealed class ErrorCatalogContextProviderCrossValidationWarningTests
         Assert.Equal(
             "Profile 'WEB' includes error 'MISSING_ERROR', but this error is not defined in the error catalog.",
             issue.Message);
+    }
+
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldSucceedAndPreserveCrossValidationInformation()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new InformationErrorProvider(),
+            new InformationCategoryProvider(),
+            new CodeGroupProvider(),
+            new OwnerProvider(),
+            new EmptyProfileProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
+            CreateOptions());
+
+        Assert.True(response.IsSuccess);
+        Assert.NotNull(response.Data);
+        Assert.True(response.Data.CrossValidationResult.IsValid);
+
+        var issue = Assert.Single(response.Data.CrossValidationResult.Issues);
+        Assert.Equal("PrimaryCategoryNotListedInCategories", issue.Code);
+        Assert.Equal(
+            "Primary category 'GENERAL' is not listed in the additional categories collection.",
+            issue.Message);
+    }
+
+    private static JsonsOptions CreateOptions()
+    {
+        return new JsonsOptions
+        {
+            RootDirectory = "Jsons",
+            PackageDirectoryName = "WhenItFails"
+        };
     }
 
     private sealed class ErrorProvider : IErrorCatalogProvider
@@ -49,31 +78,63 @@ public sealed class ErrorCatalogContextProviderCrossValidationWarningTests
             {
                 Errors =
                 [
-                    new ErrorDefinition
-                    {
-                        Id = "AFW_GEN_0001",
-                        Code = 100001,
-                        Name = "UNKNOWNERROR",
-                        Owner = "AFW",
-                        CodePrefix = "GEN",
-                        CodeGroup = "GENERAL",
-                        PrimaryCategory = "GENERAL",
-                        Categories = ["GENERAL"],
-                        Title = "Unknown error",
-                        Message = "An unknown error occurred.",
-                        DefaultSeverity = "Error"
-                    }
+                    CreateErrorDefinition(["GENERAL"])
                 ]
             };
 
             return Task.FromResult(Response<ErrorCatalogProviderPayload>.Ok(
-                new ErrorCatalogProviderPayload
-                {
-                    Catalog = new ErrorCatalog(document.Errors),
-                    Document = document,
-                    ValidationResult = new ErrorCatalogValidationResult()
-                }));
+                CreateErrorPayload(document)));
         }
+    }
+
+    private sealed class InformationErrorProvider : IErrorCatalogProvider
+    {
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            ErrorCatalogDocument document = new()
+            {
+                Errors =
+                [
+                    CreateErrorDefinition(["SECONDARY"])
+                ]
+            };
+
+            return Task.FromResult(Response<ErrorCatalogProviderPayload>.Ok(
+                CreateErrorPayload(document)));
+        }
+    }
+
+    private static ErrorDefinition CreateErrorDefinition(List<string> categories)
+    {
+        return new ErrorDefinition
+        {
+            Id = "AFW_GEN_0001",
+            Code = 100001,
+            Name = "UNKNOWNERROR",
+            Owner = "AFW",
+            CodePrefix = "GEN",
+            CodeGroup = "GENERAL",
+            PrimaryCategory = "GENERAL",
+            Categories = categories,
+            Title = "Unknown error",
+            Message = "An unknown error occurred.",
+            DefaultSeverity = "Error"
+        };
+    }
+
+    private static ErrorCatalogProviderPayload CreateErrorPayload(
+        ErrorCatalogDocument document)
+    {
+        return new ErrorCatalogProviderPayload
+        {
+            Catalog = new ErrorCatalog(document.Errors),
+            Document = document,
+            ValidationResult = new ErrorCatalogValidationResult()
+        };
     }
 
     private sealed class CategoryProvider : IErrorCategoryCatalogProvider
@@ -85,22 +146,49 @@ public sealed class ErrorCatalogContextProviderCrossValidationWarningTests
             cancellationToken.ThrowIfCancellationRequested();
 
             return Task.FromResult(Response<ErrorCategoryCatalogProviderPayload>.Ok(
-                new ErrorCategoryCatalogProviderPayload
-                {
-                    Document = new ErrorCategoryCatalogDocument
+                CreateCategoryPayload(
+                    new ErrorCategoryDefinition
                     {
-                        Categories =
-                        [
-                            new ErrorCategoryDefinition
-                            {
-                                Name = "GENERAL",
-                                DisplayName = "General"
-                            }
-                        ]
-                    },
-                    ValidationResult = new ErrorCatalogValidationResult()
-                }));
+                        Name = "GENERAL",
+                        DisplayName = "General"
+                    })));
         }
+    }
+
+    private sealed class InformationCategoryProvider : IErrorCategoryCatalogProvider
+    {
+        public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorCategoryCatalogProviderPayload>.Ok(
+                CreateCategoryPayload(
+                    new ErrorCategoryDefinition
+                    {
+                        Name = "GENERAL",
+                        DisplayName = "General"
+                    },
+                    new ErrorCategoryDefinition
+                    {
+                        Name = "SECONDARY",
+                        DisplayName = "Secondary"
+                    })));
+        }
+    }
+
+    private static ErrorCategoryCatalogProviderPayload CreateCategoryPayload(
+        params ErrorCategoryDefinition[] categories)
+    {
+        return new ErrorCategoryCatalogProviderPayload
+        {
+            Document = new ErrorCategoryCatalogDocument
+            {
+                Categories = [.. categories]
+            },
+            ValidationResult = new ErrorCatalogValidationResult()
+        };
     }
 
     private sealed class CodeGroupProvider : IErrorCodeGroupCatalogProvider
@@ -163,7 +251,7 @@ public sealed class ErrorCatalogContextProviderCrossValidationWarningTests
         }
     }
 
-    private sealed class ProfileProvider : IErrorProfileCatalogProvider
+    private sealed class WarningProfileProvider : IErrorProfileCatalogProvider
     {
         public Task<Response<ErrorProfileCatalogProviderPayload>> LoadFromFileAsync(
             string filePath,
@@ -186,6 +274,23 @@ public sealed class ErrorCatalogContextProviderCrossValidationWarningTests
                             }
                         ]
                     },
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
+    private sealed class EmptyProfileProvider : IErrorProfileCatalogProvider
+    {
+        public Task<Response<ErrorProfileCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorProfileCatalogProviderPayload>.Ok(
+                new ErrorProfileCatalogProviderPayload
+                {
+                    Document = new ErrorProfileCatalogDocument(),
                     ValidationResult = new ErrorCatalogValidationResult()
                 }));
         }
