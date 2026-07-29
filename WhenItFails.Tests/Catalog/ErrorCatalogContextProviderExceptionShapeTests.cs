@@ -113,6 +113,20 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
         Assert.Equal(expectedCatalogPath, actualException.CatalogPath);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldSurfaceNullProviderTaskWithoutCallingLaterProviders()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new NullTaskErrorCatalogProvider(),
+            new UnexpectedCategoryCatalogProvider(),
+            new UnexpectedCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        await Assert.ThrowsAsync<NullReferenceException>(
+            () => provider.LoadFromJsonsAsync(CreateOptions()));
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -170,6 +184,16 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
             CancellationToken cancellationToken = default)
         {
             throw _exception;
+        }
+    }
+
+    private sealed class NullTaskErrorCatalogProvider : IErrorCatalogProvider
+    {
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            return null!;
         }
     }
 
