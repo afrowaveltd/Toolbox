@@ -66,6 +66,30 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
         Assert.Same(innerException, actualException.InnerException);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldPreserveExceptionDataEntries()
+    {
+        ProviderCatalogException expectedException = new(
+            "Provider could not load the catalog.",
+            new FormatException("Catalog value has an invalid format."));
+        expectedException.Data["catalog-path"] = "Jsons/WhenItFails/errors.en.json";
+        expectedException.Data["attempt"] = 3;
+
+        ErrorCatalogContextProvider provider = new(
+            new ThrowingCustomExceptionErrorCatalogProvider(expectedException),
+            new UnexpectedCategoryCatalogProvider(),
+            new UnexpectedCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        ProviderCatalogException actualException = await Assert.ThrowsAsync<ProviderCatalogException>(
+            () => provider.LoadFromJsonsAsync(CreateOptions()));
+
+        Assert.Same(expectedException, actualException);
+        Assert.Equal("Jsons/WhenItFails/errors.en.json", actualException.Data["catalog-path"]);
+        Assert.Equal(3, actualException.Data["attempt"]);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
