@@ -45,8 +45,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderExceptionShapeTests`: **8 focused tests user-verified green** for exception identity and metadata preservation plus null-task behavior at the error, category, and code-group provider boundaries.
 - Runtime `ErrorCatalogContextProviderOwnerNullTaskTests`: **1 focused test user-verified green** for the owner-provider null-task boundary.
 - Runtime `ErrorCatalogContextProviderProfileNullTaskTests`: **1 focused test user-verified green** for the profile-provider null-task boundary before cross-validation or context construction.
-- Runtime `ErrorCatalogContextProviderNullResponseTaskResultTests`: **3 focused tests user-verified green** for completed error-, category-, and code-group-provider tasks whose response results are null.
-- Current owner null-response slice adds a fourth focused test to `ErrorCatalogContextProviderNullResponseTaskResultTests`; the next successful focused run is expected to report **4 tests**.
+- Runtime `ErrorCatalogContextProviderNullResponseTaskResultTests`: **4 focused tests user-verified green** for completed error-, category-, code-group-, and owner-provider tasks whose response results are null.
+- Current profile null-response slice adds a fifth focused test to `ErrorCatalogContextProviderNullResponseTaskResultTests`; the next successful focused run is expected to report **5 tests**.
 
 Focused verification command for the current slice:
 
@@ -151,7 +151,8 @@ Completed audit slices:
 56. A completed error-provider task whose response result is null surfaces `NullReferenceException` and prevents all later provider work.
 57. A completed category-provider task whose response result is null surfaces `NullReferenceException` after a valid error response and prevents code-group, owner, and profile execution.
 58. A completed code-group-provider task whose response result is null surfaces `NullReferenceException` after valid error and category responses and prevents owner plus profile execution.
-59. The current slice extends null-response-result transparency to the owner boundary: after valid error, category, and code-group responses, a completed owner-provider task returns a null response result, `NullReferenceException` escapes, and the profile provider remains uninvoked.
+59. A completed owner-provider task whose response result is null surfaces `NullReferenceException` after valid error, category, and code-group responses and prevents profile execution.
+60. The current slice completes null-response-result transparency at the profile boundary: after all earlier providers return valid responses and payloads, a completed profile-provider task yields a null response result, `NullReferenceException` escapes, and cross-validation plus context construction do not begin.
 
 ## Current intentional boundaries
 
@@ -182,21 +183,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderNullResponseTaskResultTests`; the expected count is **4 green tests**.
+First verify `ErrorCatalogContextProviderNullResponseTaskResultTests`; the expected count is **5 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect the final adjacent null-response boundary: whether a completed profile-provider task returning a null `Response<ErrorProfileCatalogProviderPayload>` surfaces before cross-validation or context construction after all earlier providers succeed.
+If green, the null-response-result provider-boundary sequence is complete. Inspect exactly one adjacent asynchronous contract outside this sequence, preferably whether a provider failure response with no issues and no message uses the documented fallback code and fallback message while preserving the original status.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The sixty-ninth runtime/public-API audit slice extends missing asynchronous response-result coverage to the owner-provider boundary. After the error, category, and code-group providers return valid responses and payloads, an owner provider whose completed `Task<Response<ErrorOwnerCatalogProviderPayload>>` yields `null` causes `NullReferenceException` to escape while the absent response is evaluated. The context provider does not convert this programming-contract violation into a failure response and does not invoke the profile provider.
+The seventieth runtime/public-API audit slice completes missing asynchronous response-result coverage at the profile-provider boundary. After the error, category, code-group, and owner providers return valid responses and payloads, a profile provider whose completed `Task<Response<ErrorProfileCatalogProviderPayload>>` yields `null` causes `NullReferenceException` to escape while the absent response is evaluated. The context provider does not convert this programming-contract violation into a failure response, does not run cross-validation, and does not construct an `ErrorCatalogContext`.
 
 Commit in this change sequence:
 
 ```text
-3d5da5b173afb11a1e950110b4314286df3408bf
-Protect owner null response task result
+a1ec0215d6707614de47a01bd3b9477a8914ec4b
+Protect profile null response task result
 ```
