@@ -41,7 +41,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderCrossValidationWarningTests`: **3 focused tests user-verified green** for warning-only, information-only, mixed non-error context construction, deterministic issue preservation, and a clean outer success envelope.
 - Runtime `ErrorCatalogContextProviderCrossValidationErrorSelectionTests`: **2 focused tests user-verified green** for selecting the first error after earlier information or warning diagnostics.
 - Runtime `ErrorCatalogContextProviderInputOrderingTests`: **9 focused tests user-verified green** for method-entry ordering, constructor guards, deterministic multi-null precedence, and successful construction without provider execution.
-- Current provider-exception slice adds one focused `ErrorCatalogContextProviderProviderExceptionPropagationTests` contract. This test is not yet user-verified.
+- Runtime `ErrorCatalogContextProviderProviderExceptionPropagationTests`: **1 focused test user-verified green** for transparent exception propagation at the first provider boundary.
+- Current category-boundary exception slice adds a second focused test to `ErrorCatalogContextProviderProviderExceptionPropagationTests`; the next successful focused run is expected to report **2 tests**.
 
 Focused verification command for the current slice:
 
@@ -127,7 +128,8 @@ Completed audit slices:
 37. Constructor dependency validation protects exact `ArgumentNullException.ParamName` values for all five providers.
 38. When multiple dependencies are null, the first declared constructor parameter is reported.
 39. Five valid dependencies construct the context provider without invoking provider work.
-40. The current slice protects provider-exception propagation: an exception thrown by the first provider escapes unchanged and prevents all later provider calls rather than being converted into a `Response` failure.
+40. An exception thrown by the first provider escapes unchanged and prevents all later provider calls rather than being converted into a `Response` failure.
+41. The current slice extends exception transparency to the category boundary: the error provider succeeds, the category provider's exact exception escapes unchanged, and code-group, owner, and profile providers are not invoked.
 
 ## Current intentional boundaries
 
@@ -158,21 +160,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderProviderExceptionPropagationTests`; the expected count is **1 green test**.
+First verify `ErrorCatalogContextProviderProviderExceptionPropagationTests`; the expected count is **2 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect exactly one adjacent provider-exception boundary, preferably exception propagation after one successful provider and before later providers, without broadening into all five provider positions at once.
+If green, inspect exactly one adjacent provider-exception boundary, preferably exception propagation at the code-group provider after error and category providers succeed.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The fiftieth runtime/public-API audit slice protects exception transparency at the first provider boundary. If the error-catalog provider throws, `ErrorCatalogContextProvider` propagates the same exception instance and performs no later provider work; only explicit provider `Response` failures are converted into context-level failure responses.
+The fifty-first runtime/public-API audit slice protects exception transparency at the category-provider boundary. After the error provider returns a valid payload, an exception thrown by the category provider is propagated as the same exception instance. The context provider does not translate it into a `Response` failure and performs no code-group, owner, or profile provider work.
 
 Commit in this change sequence:
 
 ```text
-83cc1e81645c0c5061946e538c2ebedcbd15f1a6
-Protect provider exception propagation contract
+9977d261f038d8a4bcd2fa069559a2e2453939a2
+Protect category provider exception propagation
 ```
