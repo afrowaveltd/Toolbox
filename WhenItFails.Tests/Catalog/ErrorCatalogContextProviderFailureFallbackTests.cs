@@ -38,7 +38,7 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
     {
         ErrorCatalogContextProvider provider = new(
             new SuccessfulErrorCatalogProvider(),
-            new EmptyUnauthorizedCategoryCatalogProvider(),
+            new EmptyNotSupportedCategoryCatalogProvider(),
             new UnexpectedCodeGroupCatalogProvider(),
             new UnexpectedOwnerCatalogProvider(),
             new UnexpectedProfileCatalogProvider());
@@ -46,7 +46,7 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
         Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
 
         Assert.False(response.IsSuccess);
-        Assert.Equal(ResultStatus.Unauthorized, response.Status);
+        Assert.Equal(ResultStatus.NotSupported, response.Status);
         Assert.Null(response.Data);
         Assert.Equal(
             "Category catalog loading failed while creating catalog context.",
@@ -100,7 +100,7 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
         }
     }
 
-    private sealed class EmptyUnauthorizedCategoryCatalogProvider : IErrorCategoryCatalogProvider
+    private sealed class EmptyNotSupportedCategoryCatalogProvider : IErrorCategoryCatalogProvider
     {
         public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
             string filePath,
@@ -110,7 +110,7 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
 
             return Task.FromResult(new Response<ErrorCategoryCatalogProviderPayload>
             {
-                Status = ResultStatus.Unauthorized
+                Status = ResultStatus.NotSupported
             });
         }
     }
