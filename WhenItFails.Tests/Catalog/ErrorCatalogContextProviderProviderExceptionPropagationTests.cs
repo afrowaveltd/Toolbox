@@ -45,6 +45,24 @@ public sealed class ErrorCatalogContextProviderProviderExceptionPropagationTests
         Assert.Same(expectedException, actualException);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldPropagateCodeGroupProviderExceptionAfterEarlierProvidersSucceed()
+    {
+        InvalidOperationException expectedException = new("Code-group provider failed unexpectedly.");
+
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new SuccessfulCategoryCatalogProvider(),
+            new ThrowingCodeGroupCatalogProvider(expectedException),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        InvalidOperationException actualException = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => provider.LoadFromJsonsAsync(CreateOptions()));
+
+        Assert.Same(expectedException, actualException);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -99,6 +117,38 @@ public sealed class ErrorCatalogContextProviderProviderExceptionPropagationTests
         }
 
         public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            throw _exception;
+        }
+    }
+
+    private sealed class SuccessfulCategoryCatalogProvider : IErrorCategoryCatalogProvider
+    {
+        public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(Response<ErrorCategoryCatalogProviderPayload>.Ok(
+                new ErrorCategoryCatalogProviderPayload
+                {
+                    Document = new ErrorCategoryCatalogDocument(),
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
+    private sealed class ThrowingCodeGroupCatalogProvider : IErrorCodeGroupCatalogProvider
+    {
+        private readonly InvalidOperationException _exception;
+
+        public ThrowingCodeGroupCatalogProvider(InvalidOperationException exception)
+        {
+            _exception = exception;
+        }
+
+        public Task<Response<ErrorCodeGroupCatalogProviderPayload>> LoadFromFileAsync(
             string filePath,
             CancellationToken cancellationToken = default)
         {
