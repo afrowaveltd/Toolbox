@@ -45,7 +45,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderExceptionShapeTests`: **8 focused tests user-verified green** for exception identity and metadata preservation plus null-task behavior at the error, category, and code-group provider boundaries.
 - Runtime `ErrorCatalogContextProviderOwnerNullTaskTests`: **1 focused test user-verified green** for the owner-provider null-task boundary.
 - Runtime `ErrorCatalogContextProviderProfileNullTaskTests`: **1 focused test user-verified green** for the profile-provider null-task boundary before cross-validation or context construction.
-- Current null-response task-result slice adds **1 focused test** in `ErrorCatalogContextProviderNullResponseTaskResultTests`. This test is not yet user-verified.
+- Runtime `ErrorCatalogContextProviderNullResponseTaskResultTests`: **1 focused test user-verified green** for a completed error-provider task whose response result is null.
+- Current category null-response slice adds a second focused test to `ErrorCatalogContextProviderNullResponseTaskResultTests`; the next successful focused run is expected to report **2 tests**.
 
 Focused verification command for the current slice:
 
@@ -147,7 +148,8 @@ Completed audit slices:
 53. Null-task transparency at the code-group boundary surfaces `NullReferenceException` after successful error and category providers and prevents owner plus profile execution.
 54. Null-task transparency at the owner boundary surfaces `NullReferenceException` after successful error, category, and code-group providers and prevents profile execution.
 55. Null-task transparency at the profile boundary surfaces `NullReferenceException` after all earlier providers succeed and prevents cross-validation or context construction.
-56. The current slice distinguishes a completed task with a `null` response result from a valid response carrying null payload data: dereferencing the missing response surfaces `NullReferenceException`, and no later provider runs.
+56. A completed error-provider task whose response result is null surfaces `NullReferenceException` and prevents all later provider work.
+57. The current slice extends null-response-result transparency to the category boundary: after a valid error response, a completed category-provider task returns a null response result, `NullReferenceException` escapes, and code-group, owner, and profile providers remain uninvoked.
 
 ## Current intentional boundaries
 
@@ -178,21 +180,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderNullResponseTaskResultTests`; the expected count is **1 green test**.
+First verify `ErrorCatalogContextProviderNullResponseTaskResultTests`; the expected count is **2 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect exactly one adjacent null-response boundary, preferably whether a completed category-provider task returning a null `Response<ErrorCategoryCatalogProviderPayload>` prevents code-group, owner, and profile execution after the error provider succeeds.
+If green, inspect exactly one adjacent null-response boundary, preferably whether a completed code-group-provider task returning a null `Response<ErrorCodeGroupCatalogProviderPayload>` prevents owner and profile execution after successful error and category providers.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The sixty-sixth runtime/public-API audit slice distinguishes a missing asynchronous response result from an ordinary null payload. When the error provider returns a completed `Task<Response<ErrorCatalogProviderPayload>>` whose result is `null`, `ErrorCatalogContextProvider` surfaces the resulting `NullReferenceException` while evaluating the absent response, does not convert it into a failure response, and performs no later provider work.
+The sixty-seventh runtime/public-API audit slice extends missing asynchronous response-result coverage to the category-provider boundary. After the error provider returns a valid response and payload, a category provider whose completed `Task<Response<ErrorCategoryCatalogProviderPayload>>` yields `null` causes `NullReferenceException` to escape while the absent response is evaluated. The context provider does not convert this programming-contract violation into a failure response and does not invoke the code-group, owner, or profile provider.
 
 Commit in this change sequence:
 
 ```text
-1964e7e5323683921dd457e7a30fff11e462b7b3
-Protect null provider response task result
+348c444364e9000694c95c8d7cf591ce7e81aedd
+Protect category null response task result
 ```
