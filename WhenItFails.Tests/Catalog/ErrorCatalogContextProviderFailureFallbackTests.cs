@@ -56,6 +56,29 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
             Assert.Single(response.Issues).Code);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldUseCodeGroupFallbackDetailsAndPreserveStatus()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new SuccessfulCategoryCatalogProvider(),
+            new EmptyCancelledCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Cancelled, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal(
+            "Code group catalog loading failed while creating catalog context.",
+            response.Message);
+        Assert.Equal(
+            "ErrorCatalogContextCodeGroupCatalogLoadFailed",
+            Assert.Single(response.Issues).Code);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -111,6 +134,38 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
             return Task.FromResult(new Response<ErrorCategoryCatalogProviderPayload>
             {
                 Status = ResultStatus.NotSupported
+            });
+        }
+    }
+
+    private sealed class SuccessfulCategoryCatalogProvider : IErrorCategoryCatalogProvider
+    {
+        public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorCategoryCatalogProviderPayload>.Ok(
+                new ErrorCategoryCatalogProviderPayload
+                {
+                    Document = new ErrorCategoryCatalogDocument(),
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
+    private sealed class EmptyCancelledCodeGroupCatalogProvider : IErrorCodeGroupCatalogProvider
+    {
+        public Task<Response<ErrorCodeGroupCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(new Response<ErrorCodeGroupCatalogProviderPayload>
+            {
+                Status = ResultStatus.Cancelled
             });
         }
     }
