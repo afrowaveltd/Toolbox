@@ -65,6 +65,20 @@ public sealed class ErrorCatalogContextProviderNullResponseTaskResultTests
             () => provider.LoadFromJsonsAsync(CreateOptions()));
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldSurfaceNullProfileResponseBeforeCrossValidation()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new SuccessfulCategoryCatalogProvider(),
+            new SuccessfulCodeGroupCatalogProvider(),
+            new SuccessfulOwnerCatalogProvider(),
+            new NullResponseProfileCatalogProvider());
+
+        await Assert.ThrowsAsync<NullReferenceException>(
+            () => provider.LoadFromJsonsAsync(CreateOptions()));
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -169,6 +183,34 @@ public sealed class ErrorCatalogContextProviderNullResponseTaskResultTests
         {
             cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult<Response<ErrorOwnerCatalogProviderPayload>>(null!);
+        }
+    }
+
+    private sealed class SuccessfulOwnerCatalogProvider : IErrorOwnerCatalogProvider
+    {
+        public Task<Response<ErrorOwnerCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorOwnerCatalogProviderPayload>.Ok(
+                new ErrorOwnerCatalogProviderPayload
+                {
+                    Document = new ErrorOwnerCatalogDocument(),
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
+    private sealed class NullResponseProfileCatalogProvider : IErrorProfileCatalogProvider
+    {
+        public Task<Response<ErrorProfileCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult<Response<ErrorProfileCatalogProviderPayload>>(null!);
         }
     }
 
