@@ -102,6 +102,29 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
             Assert.Single(response.Issues).Code);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldUseProfileFallbackDetailsAndPreserveStatus()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new SuccessfulCategoryCatalogProvider(),
+            new SuccessfulCodeGroupCatalogProvider(),
+            new SuccessfulOwnerCatalogProvider(),
+            new EmptyInvalidProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Invalid, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal(
+            "Profile catalog loading failed while creating catalog context.",
+            response.Message);
+        Assert.Equal(
+            "ErrorCatalogContextProfileCatalogLoadFailed",
+            Assert.Single(response.Issues).Code);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -221,6 +244,38 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
             return Task.FromResult(new Response<ErrorOwnerCatalogProviderPayload>
             {
                 Status = ResultStatus.Failed
+            });
+        }
+    }
+
+    private sealed class SuccessfulOwnerCatalogProvider : IErrorOwnerCatalogProvider
+    {
+        public Task<Response<ErrorOwnerCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorOwnerCatalogProviderPayload>.Ok(
+                new ErrorOwnerCatalogProviderPayload
+                {
+                    Document = new ErrorOwnerCatalogDocument(),
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
+    private sealed class EmptyInvalidProfileCatalogProvider : IErrorProfileCatalogProvider
+    {
+        public Task<Response<ErrorProfileCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(new Response<ErrorProfileCatalogProviderPayload>
+            {
+                Status = ResultStatus.Invalid
             });
         }
     }
