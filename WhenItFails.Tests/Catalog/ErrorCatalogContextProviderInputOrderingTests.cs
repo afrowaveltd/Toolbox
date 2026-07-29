@@ -22,7 +22,7 @@ public sealed class ErrorCatalogContextProviderInputOrderingTests
     }
 
     [Fact]
-    public async Task LoadFromJsonsAsync_ShouldRejectNullOptionsBeforeCallingProviders()
+    public async Task LoadFromJsonsAsync_ShouldValidateNullOptionsBeforeCallingAnyProvider()
     {
         ErrorCatalogContextProvider provider = CreateProvider();
 
@@ -30,6 +30,31 @@ public sealed class ErrorCatalogContextProviderInputOrderingTests
             () => provider.LoadFromJsonsAsync(null!));
 
         Assert.Equal("options", exception.ParamName);
+    }
+
+    [Theory]
+    [InlineData("errorCatalogProvider")]
+    [InlineData("categoryCatalogProvider")]
+    [InlineData("codeGroupCatalogProvider")]
+    [InlineData("ownerCatalogProvider")]
+    [InlineData("profileCatalogProvider")]
+    public void Constructor_ShouldRejectNullProviderDependency(string parameterName)
+    {
+        UnexpectedErrorCatalogProvider errorProvider = new();
+        UnexpectedCategoryCatalogProvider categoryProvider = new();
+        UnexpectedCodeGroupCatalogProvider codeGroupProvider = new();
+        UnexpectedOwnerCatalogProvider ownerProvider = new();
+        UnexpectedProfileCatalogProvider profileProvider = new();
+
+        ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() =>
+            new ErrorCatalogContextProvider(
+                parameterName == "errorCatalogProvider" ? null! : errorProvider,
+                parameterName == "categoryCatalogProvider" ? null! : categoryProvider,
+                parameterName == "codeGroupCatalogProvider" ? null! : codeGroupProvider,
+                parameterName == "ownerCatalogProvider" ? null! : ownerProvider,
+                parameterName == "profileCatalogProvider" ? null! : profileProvider));
+
+        Assert.Equal(parameterName, exception.ParamName);
     }
 
     private static ErrorCatalogContextProvider CreateProvider()
@@ -49,7 +74,7 @@ public sealed class ErrorCatalogContextProviderInputOrderingTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The error provider must not be called during input validation.");
+                "The error provider must not be called while validating context-provider inputs.");
         }
     }
 
@@ -60,7 +85,7 @@ public sealed class ErrorCatalogContextProviderInputOrderingTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The category provider must not be called during input validation.");
+                "The category provider must not be called while validating context-provider inputs.");
         }
     }
 
@@ -71,7 +96,7 @@ public sealed class ErrorCatalogContextProviderInputOrderingTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The code-group provider must not be called during input validation.");
+                "The code-group provider must not be called while validating context-provider inputs.");
         }
     }
 
@@ -82,7 +107,7 @@ public sealed class ErrorCatalogContextProviderInputOrderingTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The owner provider must not be called during input validation.");
+                "The owner provider must not be called while validating context-provider inputs.");
         }
     }
 
@@ -93,7 +118,7 @@ public sealed class ErrorCatalogContextProviderInputOrderingTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The profile provider must not be called during input validation.");
+                "The profile provider must not be called while validating context-provider inputs.");
         }
     }
 }
