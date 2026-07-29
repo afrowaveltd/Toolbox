@@ -51,6 +51,20 @@ public sealed class ErrorCatalogContextProviderNullResponseTaskResultTests
             () => provider.LoadFromJsonsAsync(CreateOptions()));
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldSurfaceNullOwnerResponseAfterEarlierProvidersSucceed()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new SuccessfulCategoryCatalogProvider(),
+            new SuccessfulCodeGroupCatalogProvider(),
+            new NullResponseOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        await Assert.ThrowsAsync<NullReferenceException>(
+            () => provider.LoadFromJsonsAsync(CreateOptions()));
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -127,6 +141,34 @@ public sealed class ErrorCatalogContextProviderNullResponseTaskResultTests
         {
             cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult<Response<ErrorCodeGroupCatalogProviderPayload>>(null!);
+        }
+    }
+
+    private sealed class SuccessfulCodeGroupCatalogProvider : IErrorCodeGroupCatalogProvider
+    {
+        public Task<Response<ErrorCodeGroupCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorCodeGroupCatalogProviderPayload>.Ok(
+                new ErrorCodeGroupCatalogProviderPayload
+                {
+                    Document = new ErrorCodeGroupCatalogDocument(),
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
+    private sealed class NullResponseOwnerCatalogProvider : IErrorOwnerCatalogProvider
+    {
+        public Task<Response<ErrorOwnerCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult<Response<ErrorOwnerCatalogProviderPayload>>(null!);
         }
     }
 
