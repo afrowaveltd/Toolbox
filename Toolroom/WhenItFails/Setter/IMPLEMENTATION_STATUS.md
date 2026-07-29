@@ -38,7 +38,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderCancellationPropagationTests`: **4 focused tests user-verified green**, covering every inter-provider cancellation boundary.
 - Runtime `ErrorCatalogContextProviderPostProfileCancellationTests`: **1 focused test user-verified green** for cancellation after the profile provider and before cross-validation.
 - Runtime `ErrorCatalogContextProviderCrossValidationFailureContractTests`: **1 focused test user-verified green** after correcting the test's issue-type reference.
-- Current warning-only cross-validation slice adds one focused `ErrorCatalogContextProviderCrossValidationWarningTests` contract. This test is not yet user-verified.
+- Runtime `ErrorCatalogContextProviderCrossValidationWarningTests`: **1 focused test user-verified green** for warning-only successful context construction and warning preservation.
+- Current information-only slice adds one test to `ErrorCatalogContextProviderCrossValidationWarningTests`; the next successful focused run is expected to report **2 tests**.
 
 Focused verification command for the current slice:
 
@@ -113,7 +114,8 @@ Completed audit slices:
 26. Cancellation after the profile provider returns is observed before cross-validation and context construction.
 27. Cross-validation failure returns an `Invalid` response based on the first issue's code and message and exposes no partial context.
 28. Provider-local validation results are intentionally isolated after successful provider responses; final success or failure uses a fresh cross-validation result computed from the returned documents.
-29. The current slice protects warning-only cross-validation behavior: warnings remain available in the final `CrossValidationResult`, but do not prevent successful context construction when no error-level issue exists.
+29. Warning-only cross-validation issues remain available in the final `CrossValidationResult` but do not prevent successful context construction.
+30. The current slice protects information-only cross-validation behavior: informational issues remain available in the final `CrossValidationResult`, preserve `IsValid == true`, and do not prevent successful context construction.
 
 ## Current intentional boundaries
 
@@ -144,21 +146,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderCrossValidationWarningTests`; the expected count is **1 green test**.
+First verify `ErrorCatalogContextProviderCrossValidationWarningTests`; the expected count is **2 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect one adjacent success-path contract only, preferably whether information-only cross-validation issues behave like warnings and remain preserved without failing context construction.
+If green, inspect one adjacent severity contract only, preferably whether a mixed information-and-warning result preserves deterministic issue order while still returning a successful context.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The thirty-ninth runtime/public-API audit slice protects warning-only cross-validation behavior. A profile may reference an unknown error and produce `UnknownProfileIncludeError`; because that issue is a warning rather than an error, `ErrorCatalogContextProvider` still returns a successful context and preserves the warning in the newly computed `CrossValidationResult`.
+The fortieth runtime/public-API audit slice protects information-only cross-validation behavior. An error whose primary category is valid but omitted from its additional category list produces `PrimaryCategoryNotListedInCategories`; because the issue is informational rather than an error, `ErrorCatalogContextProvider` returns a successful context and preserves the issue in the newly computed `CrossValidationResult`.
 
 Commit in this change sequence:
 
 ```text
-c89cd6ea7cb69e8bb61bb6c783cf53415afe1d63
-Protect cross-validation warning success contract
+62422326f1f8b516d1cff968197b84318f41746f
+Protect information-only cross-validation success
 ```
