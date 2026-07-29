@@ -13,20 +13,50 @@ public sealed class ErrorCatalogContextProviderCrossValidationErrorSelectionTest
     [Fact]
     public async Task LoadFromJsonsAsync_ShouldSelectFirstErrorIssueAfterEarlierInformationIssue()
     {
-        ErrorCatalogContextProvider provider = new(
-            new MixedSeverityErrorCatalogProvider(),
+        ErrorCatalogContextProvider provider = CreateProvider(
+            new InformationBeforeErrorCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
+            CreateOptions());
+
+        AssertInvalidResponseUsesMissingOwnerError(response);
+    }
+
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldSelectFirstErrorIssueAfterEarlierWarningIssue()
+    {
+        ErrorCatalogContextProvider provider = CreateProvider(
+            new WarningBeforeErrorCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
+            CreateOptions());
+
+        AssertInvalidResponseUsesMissingOwnerError(response);
+    }
+
+    private static ErrorCatalogContextProvider CreateProvider(
+        IErrorCatalogProvider errorCatalogProvider)
+    {
+        return new ErrorCatalogContextProvider(
+            errorCatalogProvider,
             new CategoryCatalogProvider(),
             new CodeGroupCatalogProvider(),
             new OwnerCatalogProvider(),
             new EmptyProfileCatalogProvider());
+    }
 
-        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
-            new JsonsOptions
-            {
-                RootDirectory = "Jsons",
-                PackageDirectoryName = "WhenItFails"
-            });
+    private static JsonsOptions CreateOptions()
+    {
+        return new JsonsOptions
+        {
+            RootDirectory = "Jsons",
+            PackageDirectoryName = "WhenItFails"
+        };
+    }
 
+    private static void AssertInvalidResponseUsesMissingOwnerError(
+        Response<ErrorCatalogContext> response)
+    {
         Assert.False(response.IsSuccess);
         Assert.Equal(ResultStatus.Invalid, response.Status);
         Assert.Null(response.Data);
@@ -39,7 +69,7 @@ public sealed class ErrorCatalogContextProviderCrossValidationErrorSelectionTest
         Assert.Equal(issue.Message, response.Message);
     }
 
-    private sealed class MixedSeverityErrorCatalogProvider : IErrorCatalogProvider
+    private sealed class InformationBeforeErrorCatalogProvider : IErrorCatalogProvider
     {
         public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
             string filePath,
@@ -65,31 +95,77 @@ public sealed class ErrorCatalogContextProviderCrossValidationErrorSelectionTest
                         Message = "Produces information before a later error.",
                         DefaultSeverity = "Error"
                     },
-                    new ErrorDefinition
-                    {
-                        Id = "AFW_GEN_0002",
-                        Code = 100002,
-                        Name = "ERRORSECOND",
-                        Owner = "MISSING_OWNER",
-                        CodePrefix = "GEN",
-                        CodeGroup = "GENERAL",
-                        PrimaryCategory = "GENERAL",
-                        Categories = ["GENERAL"],
-                        Title = "Error second",
-                        Message = "Produces the actual cross-validation error.",
-                        DefaultSeverity = "Error"
-                    }
+                    CreateMissingOwnerError()
                 ]
             };
 
             return Task.FromResult(Response<ErrorCatalogProviderPayload>.Ok(
-                new ErrorCatalogProviderPayload
-                {
-                    Catalog = new ErrorCatalog(document.Errors),
-                    Document = document,
-                    ValidationResult = new ErrorCatalogValidationResult()
-                }));
+                CreatePayload(document)));
         }
+    }
+
+    private sealed class WarningBeforeErrorCatalogProvider : IErrorCatalogProvider
+    {
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            ErrorCatalogDocument document = new()
+            {
+                Errors =
+                [
+                    new ErrorDefinition
+                    {
+                        Id = "AFW_GEN_0001",
+                        Code = 100001,
+                        Name = "WARNINGFIRST",
+                        Owner = "AFW",
+                        CodePrefix = "GEN",
+                        CodeGroup = "GENERAL",
+                        PrimaryCategory = "GENERAL",
+                        Categories = ["GENERAL", "MISSING_CATEGORY"],
+                        Title = "Warning first",
+                        Message = "Produces a warning before a later error.",
+                        DefaultSeverity = "Error"
+                    },
+                    CreateMissingOwnerError()
+                ]
+            };
+
+            return Task.FromResult(Response<ErrorCatalogProviderPayload>.Ok(
+                CreatePayload(document)));
+        }
+    }
+
+    private static ErrorDefinition CreateMissingOwnerError()
+    {
+        return new ErrorDefinition
+        {
+            Id = "AFW_GEN_0002",
+            Code = 100002,
+            Name = "ERRORSECOND",
+            Owner = "MISSING_OWNER",
+            CodePrefix = "GEN",
+            CodeGroup = "GENERAL",
+            PrimaryCategory = "GENERAL",
+            Categories = ["GENERAL"],
+            Title = "Error second",
+            Message = "Produces the actual cross-validation error.",
+            DefaultSeverity = "Error"
+        };
+    }
+
+    private static ErrorCatalogProviderPayload CreatePayload(
+        ErrorCatalogDocument document)
+    {
+        return new ErrorCatalogProviderPayload
+        {
+            Catalog = new ErrorCatalog(document.Errors),
+            Document = document,
+            ValidationResult = new ErrorCatalogValidationResult()
+        };
     }
 
     private sealed class CategoryCatalogProvider : IErrorCategoryCatalogProvider
