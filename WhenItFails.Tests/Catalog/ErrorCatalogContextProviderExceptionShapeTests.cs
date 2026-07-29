@@ -1,7 +1,9 @@
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
+using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
+using Afrowave.Toolbox.WhenItFails.Validation;
 
 namespace Afrowave.Toolbox.WhenItFails.Tests.Catalog;
 
@@ -127,6 +129,20 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
             () => provider.LoadFromJsonsAsync(CreateOptions()));
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldSurfaceNullCategoryProviderTaskAfterErrorProviderSucceeds()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new NullTaskCategoryCatalogProvider(),
+            new UnexpectedCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        await Assert.ThrowsAsync<NullReferenceException>(
+            () => provider.LoadFromJsonsAsync(CreateOptions()));
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -197,6 +213,34 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
         }
     }
 
+    private sealed class SuccessfulErrorCatalogProvider : IErrorCatalogProvider
+    {
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            ErrorCatalogDocument document = new();
+
+            return Task.FromResult(Response<ErrorCatalogProviderPayload>.Ok(
+                new ErrorCatalogProviderPayload
+                {
+                    Catalog = new ErrorCatalog(document.Errors),
+                    Document = document,
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
+    private sealed class NullTaskCategoryCatalogProvider : IErrorCategoryCatalogProvider
+    {
+        public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            return null!;
+        }
+    }
+
     private sealed class ProviderCatalogException : Exception
     {
         public ProviderCatalogException(
@@ -229,7 +273,7 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The code-group provider must not run after the error provider stops the operation.");
+                "The code-group provider must not run after an earlier provider stops the operation.");
         }
     }
 
@@ -240,7 +284,7 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The owner provider must not run after the error provider stops the operation.");
+                "The owner provider must not run after an earlier provider stops the operation.");
         }
     }
 
@@ -251,7 +295,7 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The profile provider must not run after the error provider stops the operation.");
+                "The profile provider must not run after an earlier provider stops the operation.");
         }
     }
 }
