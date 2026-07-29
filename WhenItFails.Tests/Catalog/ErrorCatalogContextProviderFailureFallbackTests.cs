@@ -2,7 +2,9 @@ using Afrowave.Toolbox.Essentials.Enums;
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
+using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
+using Afrowave.Toolbox.WhenItFails.Validation;
 
 namespace Afrowave.Toolbox.WhenItFails.Tests.Catalog;
 
@@ -31,6 +33,29 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
             Assert.Single(response.Issues).Code);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldUseCategoryFallbackDetailsAndPreserveStatus()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new EmptyUnauthorizedCategoryCatalogProvider(),
+            new UnexpectedCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Unauthorized, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal(
+            "Category catalog loading failed while creating catalog context.",
+            response.Message);
+        Assert.Equal(
+            "ErrorCatalogContextCategoryCatalogLoadFailed",
+            Assert.Single(response.Issues).Code);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -55,6 +80,41 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
         }
     }
 
+    private sealed class SuccessfulErrorCatalogProvider : IErrorCatalogProvider
+    {
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            ErrorCatalogDocument document = new();
+
+            return Task.FromResult(Response<ErrorCatalogProviderPayload>.Ok(
+                new ErrorCatalogProviderPayload
+                {
+                    Catalog = new ErrorCatalog(document.Errors),
+                    Document = document,
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
+    private sealed class EmptyUnauthorizedCategoryCatalogProvider : IErrorCategoryCatalogProvider
+    {
+        public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(new Response<ErrorCategoryCatalogProviderPayload>
+            {
+                Status = ResultStatus.Unauthorized
+            });
+        }
+    }
+
     private sealed class UnexpectedCategoryCatalogProvider : IErrorCategoryCatalogProvider
     {
         public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
@@ -73,7 +133,7 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The code-group provider must not run after the error provider fails.");
+                "The code-group provider must not run after an earlier provider fails.");
         }
     }
 
@@ -84,7 +144,7 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The owner provider must not run after the error provider fails.");
+                "The owner provider must not run after an earlier provider fails.");
         }
     }
 
@@ -95,7 +155,7 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The profile provider must not run after the error provider fails.");
+                "The profile provider must not run after an earlier provider fails.");
         }
     }
 }
