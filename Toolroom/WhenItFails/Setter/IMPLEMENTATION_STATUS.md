@@ -38,8 +38,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderCancellationPropagationTests`: **4 focused tests user-verified green**, covering every inter-provider cancellation boundary.
 - Runtime `ErrorCatalogContextProviderPostProfileCancellationTests`: **1 focused test user-verified green** for cancellation after the profile provider and before cross-validation.
 - Runtime `ErrorCatalogContextProviderCrossValidationFailureContractTests`: **1 focused test user-verified green** after correcting the test's issue-type reference.
-- Runtime `ErrorCatalogContextProviderCrossValidationWarningTests`: **1 focused test user-verified green** for warning-only successful context construction and warning preservation.
-- Current information-only slice adds one test to `ErrorCatalogContextProviderCrossValidationWarningTests`; the next successful focused run is expected to report **2 tests**.
+- Runtime `ErrorCatalogContextProviderCrossValidationWarningTests`: **2 focused tests user-verified green** for warning-only and information-only successful context construction and issue preservation.
+- Current mixed non-error slice adds one test to `ErrorCatalogContextProviderCrossValidationWarningTests`; the next successful focused run is expected to report **3 tests**.
 
 Focused verification command for the current slice:
 
@@ -115,7 +115,8 @@ Completed audit slices:
 27. Cross-validation failure returns an `Invalid` response based on the first issue's code and message and exposes no partial context.
 28. Provider-local validation results are intentionally isolated after successful provider responses; final success or failure uses a fresh cross-validation result computed from the returned documents.
 29. Warning-only cross-validation issues remain available in the final `CrossValidationResult` but do not prevent successful context construction.
-30. The current slice protects information-only cross-validation behavior: informational issues remain available in the final `CrossValidationResult`, preserve `IsValid == true`, and do not prevent successful context construction.
+30. Information-only cross-validation issues remain available in the final `CrossValidationResult`, preserve `IsValid == true`, and do not prevent successful context construction.
+31. The current slice protects mixed non-error behavior: deterministic information-then-warning ordering is preserved inside `CrossValidationResult`, while the successful outer `Response` keeps an empty `Issues` collection.
 
 ## Current intentional boundaries
 
@@ -146,21 +147,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderCrossValidationWarningTests`; the expected count is **2 green tests**.
+First verify `ErrorCatalogContextProviderCrossValidationWarningTests`; the expected count is **3 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect one adjacent severity contract only, preferably whether a mixed information-and-warning result preserves deterministic issue order while still returning a successful context.
+If green, inspect one adjacent response-envelope contract only, preferably the exact success `Status` and message behavior when non-error cross-validation issues are present.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The fortieth runtime/public-API audit slice protects information-only cross-validation behavior. An error whose primary category is valid but omitted from its additional category list produces `PrimaryCategoryNotListedInCategories`; because the issue is informational rather than an error, `ErrorCatalogContextProvider` returns a successful context and preserves the issue in the newly computed `CrossValidationResult`.
+The forty-first runtime/public-API audit slice protects mixed non-error cross-validation behavior. One informational issue and one warning are preserved in deterministic validator order inside the newly computed `CrossValidationResult`; the outer successful `Response` remains free of failure issues and exposes the valid context normally.
 
 Commit in this change sequence:
 
 ```text
-62422326f1f8b516d1cff968197b84318f41746f
-Protect information-only cross-validation success
+4d0fc30575c01fa0263e070a5d1fdcb2c262d5d2
+Protect mixed non-error cross-validation envelope
 ```
