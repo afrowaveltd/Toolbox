@@ -42,13 +42,13 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderCrossValidationErrorSelectionTests`: **2 focused tests user-verified green** for selecting the first error after earlier information or warning diagnostics.
 - Runtime `ErrorCatalogContextProviderInputOrderingTests`: **9 focused tests user-verified green** for method-entry ordering, constructor guards, deterministic multi-null precedence, and successful construction without provider execution.
 - Runtime `ErrorCatalogContextProviderProviderExceptionPropagationTests`: **6 focused tests user-verified green** for transparent synchronous exception propagation across all five provider boundaries and asynchronous faulted-task propagation.
-- Runtime `ErrorCatalogContextProviderExceptionShapeTests`: **7 focused tests user-verified green** for exception identity and metadata preservation plus null-task behavior at the error and category provider boundaries.
-- Current code-group null-task slice adds an eighth focused test to `ErrorCatalogContextProviderExceptionShapeTests`; the next successful focused run is expected to report **8 tests**.
+- Runtime `ErrorCatalogContextProviderExceptionShapeTests`: **8 focused tests user-verified green** for exception identity and metadata preservation plus null-task behavior at the error, category, and code-group provider boundaries.
+- Current owner null-task slice adds **1 focused test** in `ErrorCatalogContextProviderOwnerNullTaskTests`. This test is not yet user-verified.
 
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderExceptionShapeTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderOwnerNullTaskTests
 ```
 
 Primary Setter verification command:
@@ -142,7 +142,8 @@ Completed audit slices:
 50. Custom exception-property transparency preserves a strongly typed provider-specific `CatalogPath` property.
 51. Null-task transparency at the error-provider boundary surfaces `NullReferenceException`, avoids failure-response conversion, and prevents later provider work.
 52. Null-task transparency at the category boundary surfaces `NullReferenceException` after a successful error provider and prevents code-group, owner, and profile execution.
-53. The current slice extends null-task transparency to the code-group boundary: successful error and category providers are followed by a code-group provider returning `null`; the resulting `NullReferenceException` escapes and owner plus profile providers remain uninvoked.
+53. Null-task transparency at the code-group boundary surfaces `NullReferenceException` after successful error and category providers and prevents owner plus profile execution.
+54. The current slice extends null-task transparency to the owner boundary: successful error, category, and code-group providers are followed by an owner provider returning `null`; the resulting `NullReferenceException` escapes and the profile provider remains uninvoked.
 
 ## Current intentional boundaries
 
@@ -173,21 +174,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderExceptionShapeTests`; the expected count is **8 green tests**.
+First verify `ErrorCatalogContextProviderOwnerNullTaskTests`; the expected count is **1 green test**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect exactly one adjacent invalid-provider asynchronous boundary: whether a `null` task returned by the owner provider after successful error, category, and code-group providers prevents profile execution.
+If green, inspect exactly one adjacent invalid-provider asynchronous boundary: whether a `null` task returned by the profile provider after all earlier providers succeed surfaces transparently before cross-validation or context construction.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The sixty-third runtime/public-API audit slice extends null-task transparency to the code-group-provider boundary. After valid error and category payloads are returned, a code-group provider that violates its interface contract by returning `null` instead of `Task<Response<ErrorCodeGroupCatalogProviderPayload>>` causes `NullReferenceException` to escape. The context provider does not translate it into a `Response` failure and does not invoke the owner or profile provider.
+The sixty-fourth runtime/public-API audit slice extends null-task transparency to the owner-provider boundary. After valid error, category, and code-group payloads are returned, an owner provider that violates its interface contract by returning `null` instead of `Task<Response<ErrorOwnerCatalogProviderPayload>>` causes `NullReferenceException` to escape. The context provider does not translate it into a `Response` failure and does not invoke the profile provider.
 
 Commit in this change sequence:
 
 ```text
-2236e411689776ea73abb2b638134be3b69ed723
-Protect null code-group provider task behavior
+2a5982c6b913e794aa6d2ac1a5b1ca3900eaedad
+Protect owner null task boundary
 ```
