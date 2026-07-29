@@ -20,14 +20,37 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
             new UnexpectedProfileCatalogProvider());
 
         FormatException actualException = await Assert.ThrowsAsync<FormatException>(
-            () => provider.LoadFromJsonsAsync(
-                new JsonsOptions
-                {
-                    RootDirectory = "Jsons",
-                    PackageDirectoryName = "WhenItFails"
-                }));
+            () => provider.LoadFromJsonsAsync(CreateOptions()));
 
         Assert.Same(expectedException, actualException);
+    }
+
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldPropagateCanceledProviderTaskWithOriginalToken()
+    {
+        using CancellationTokenSource providerCancellation = new();
+        providerCancellation.Cancel();
+
+        ErrorCatalogContextProvider provider = new(
+            new CanceledErrorCatalogProvider(providerCancellation.Token),
+            new UnexpectedCategoryCatalogProvider(),
+            new UnexpectedCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        OperationCanceledException exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => provider.LoadFromJsonsAsync(CreateOptions(), CancellationToken.None));
+
+        Assert.Equal(providerCancellation.Token, exception.CancellationToken);
+    }
+
+    private static JsonsOptions CreateOptions()
+    {
+        return new JsonsOptions
+        {
+            RootDirectory = "Jsons",
+            PackageDirectoryName = "WhenItFails"
+        };
     }
 
     private sealed class ThrowingFormatExceptionErrorCatalogProvider : IErrorCatalogProvider
@@ -47,6 +70,23 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
         }
     }
 
+    private sealed class CanceledErrorCatalogProvider : IErrorCatalogProvider
+    {
+        private readonly CancellationToken _cancellationToken;
+
+        public CanceledErrorCatalogProvider(CancellationToken cancellationToken)
+        {
+            _cancellationToken = cancellationToken;
+        }
+
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromCanceled<Response<ErrorCatalogProviderPayload>>(_cancellationToken);
+        }
+    }
+
     private sealed class UnexpectedCategoryCatalogProvider : IErrorCategoryCatalogProvider
     {
         public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
@@ -54,7 +94,7 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The category provider must not run after the error provider throws.");
+                "The category provider must not run after the error provider stops the operation.");
         }
     }
 
@@ -65,7 +105,7 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The code-group provider must not run after the error provider throws.");
+                "The code-group provider must not run after the error provider stops the operation.");
         }
     }
 
@@ -76,7 +116,7 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The owner provider must not run after the error provider throws.");
+                "The owner provider must not run after the error provider stops the operation.");
         }
     }
 
@@ -87,7 +127,7 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The profile provider must not run after the error provider throws.");
+                "The profile provider must not run after the error provider stops the operation.");
         }
     }
 }
