@@ -143,6 +143,20 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
             () => provider.LoadFromJsonsAsync(CreateOptions()));
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldSurfaceNullCodeGroupProviderTaskAfterEarlierProvidersSucceed()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new SuccessfulCategoryCatalogProvider(),
+            new NullTaskCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        await Assert.ThrowsAsync<NullReferenceException>(
+            () => provider.LoadFromJsonsAsync(CreateOptions()));
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -234,6 +248,31 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
     private sealed class NullTaskCategoryCatalogProvider : IErrorCategoryCatalogProvider
     {
         public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            return null!;
+        }
+    }
+
+    private sealed class SuccessfulCategoryCatalogProvider : IErrorCategoryCatalogProvider
+    {
+        public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(Response<ErrorCategoryCatalogProviderPayload>.Ok(
+                new ErrorCategoryCatalogProviderPayload
+                {
+                    Document = new ErrorCategoryCatalogDocument(),
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
+    private sealed class NullTaskCodeGroupCatalogProvider : IErrorCodeGroupCatalogProvider
+    {
+        public Task<Response<ErrorCodeGroupCatalogProviderPayload>> LoadFromFileAsync(
             string filePath,
             CancellationToken cancellationToken = default)
         {
