@@ -42,7 +42,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderCrossValidationErrorSelectionTests`: **2 focused tests user-verified green** for selecting the first error after earlier information or warning diagnostics.
 - Runtime `ErrorCatalogContextProviderInputOrderingTests`: **9 focused tests user-verified green** for method-entry ordering, constructor guards, deterministic multi-null precedence, and successful construction without provider execution.
 - Runtime `ErrorCatalogContextProviderProviderExceptionPropagationTests`: **6 focused tests user-verified green** for transparent synchronous exception propagation across all five provider boundaries and asynchronous faulted-task propagation.
-- Current exception-shape slice adds one focused `ErrorCatalogContextProviderExceptionShapeTests` contract. This test is not yet user-verified.
+- Runtime `ErrorCatalogContextProviderExceptionShapeTests`: **1 focused test user-verified green** for preserving a non-default exception type and instance.
+- Current canceled-task slice adds a second focused test to `ErrorCatalogContextProviderExceptionShapeTests`; the next successful focused run is expected to report **2 tests**.
 
 Focused verification command for the current slice:
 
@@ -134,7 +135,8 @@ Completed audit slices:
 43. Exception transparency at the owner boundary preserves the exact thrown instance and prevents profile provider execution.
 44. Exception transparency at the profile boundary preserves the exact thrown instance and prevents context or response construction.
 45. A faulted task returned by the error provider propagates its original exception instance unchanged and prevents every later provider call.
-46. The current slice protects exception-type transparency: a provider-thrown `FormatException` remains the same concrete type and instance, is not normalized into `InvalidOperationException`, and prevents later provider calls.
+46. Exception-type transparency preserves a provider-thrown `FormatException` as the same concrete type and instance and prevents later provider calls.
+47. The current slice protects canceled-task transparency: a canceled task returned by the error provider propagates `OperationCanceledException` with the provider task's original cancellation token, is not converted into a failure response, and prevents every later provider call.
 
 ## Current intentional boundaries
 
@@ -165,7 +167,7 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderExceptionShapeTests`; the expected count is **1 green test**.
+First verify `ErrorCatalogContextProviderExceptionShapeTests`; the expected count is **2 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
@@ -175,11 +177,11 @@ Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The fifty-sixth runtime/public-API audit slice protects exception-type transparency. When the error provider throws a `FormatException`, `ErrorCatalogContextProvider` propagates the same concrete exception instance unchanged, does not normalize it into another exception type or a `Response` failure, and performs no later provider work.
+The fifty-seventh runtime/public-API audit slice protects canceled-task transparency. When the error provider returns `Task.FromCanceled` with its own cancellation token while the context-provider method receives a live token, `ErrorCatalogContextProvider` propagates cancellation with the provider task's original token, does not create a failure response, and performs no later provider work.
 
 Commit in this change sequence:
 
 ```text
-2d03513f6f5421f0ab0382cc1f76fd52e770a70e
-Protect provider exception type transparency
+ae2c0ef4a83c017437158eb2e9f6e3dda42ea427
+Protect canceled provider task propagation
 ```
