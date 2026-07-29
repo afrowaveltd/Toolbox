@@ -41,8 +41,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderCrossValidationWarningTests`: **3 focused tests user-verified green** for warning-only, information-only, mixed non-error context construction, deterministic issue preservation, and a clean outer success envelope.
 - Runtime `ErrorCatalogContextProviderCrossValidationErrorSelectionTests`: **2 focused tests user-verified green** for selecting the first error after earlier information or warning diagnostics.
 - Runtime `ErrorCatalogContextProviderInputOrderingTests`: **9 focused tests user-verified green** for method-entry ordering, constructor guards, deterministic multi-null precedence, and successful construction without provider execution.
-- Runtime `ErrorCatalogContextProviderProviderExceptionPropagationTests`: **2 focused tests user-verified green** for transparent exception propagation at the error and category provider boundaries.
-- Current code-group-boundary exception slice adds a third focused test to `ErrorCatalogContextProviderProviderExceptionPropagationTests`; the next successful focused run is expected to report **3 tests**.
+- Runtime `ErrorCatalogContextProviderProviderExceptionPropagationTests`: **3 focused tests user-verified green** for transparent exception propagation at the error, category, and code-group provider boundaries.
+- Current owner-boundary exception slice adds a fourth focused test to `ErrorCatalogContextProviderProviderExceptionPropagationTests`; the next successful focused run is expected to report **4 tests**.
 
 Focused verification command for the current slice:
 
@@ -130,7 +130,8 @@ Completed audit slices:
 39. Five valid dependencies construct the context provider without invoking provider work.
 40. An exception thrown by the first provider escapes unchanged and prevents all later provider calls rather than being converted into a `Response` failure.
 41. Exception transparency at the category boundary preserves the exact thrown instance and prevents code-group, owner, and profile provider calls.
-42. The current slice extends exception transparency to the code-group boundary: error and category providers succeed, the code-group provider's exact exception escapes unchanged, and owner and profile providers are not invoked.
+42. Exception transparency at the code-group boundary preserves the exact thrown instance and prevents owner and profile provider calls.
+43. The current slice extends exception transparency to the owner boundary: error, category, and code-group providers succeed, the owner provider's exact exception escapes unchanged, and the profile provider is not invoked.
 
 ## Current intentional boundaries
 
@@ -161,21 +162,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderProviderExceptionPropagationTests`; the expected count is **3 green tests**.
+First verify `ErrorCatalogContextProviderProviderExceptionPropagationTests`; the expected count is **4 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect exactly one adjacent provider-exception boundary, preferably exception propagation at the owner provider after error, category, and code-group providers succeed.
+If green, inspect exactly one adjacent provider-exception boundary, preferably exception propagation at the profile provider after error, category, code-group, and owner providers succeed.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The fifty-second runtime/public-API audit slice protects exception transparency at the code-group-provider boundary. After the error and category providers return valid payloads, an exception thrown by the code-group provider is propagated as the same exception instance. The context provider does not translate it into a `Response` failure and performs no owner or profile provider work.
+The fifty-third runtime/public-API audit slice protects exception transparency at the owner-provider boundary. After the error, category, and code-group providers return valid payloads, an exception thrown by the owner provider is propagated as the same exception instance. The context provider does not translate it into a `Response` failure and performs no profile provider work.
 
 Commit in this change sequence:
 
 ```text
-08d0c36481a2c8ebf78cce3c38b631a690e47403
-Protect code-group provider exception propagation
+98e80fd023b6fb5f24566bb599cc86a1357776ad
+Protect owner provider exception propagation
 ```
