@@ -1,5 +1,6 @@
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Configuration;
+using Afrowave.Toolbox.WhenItFails.Enums;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
 using Afrowave.Toolbox.WhenItFails.Validation;
 
@@ -149,13 +150,14 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
 
         if (!crossValidationResult.IsValid)
         {
-            string issueCode = crossValidationResult.Issues.Count > 0
-                ? crossValidationResult.Issues[0].Code
-                : "ErrorCatalogContextCrossValidationFailed";
+            var errorIssue = crossValidationResult.Issues.FirstOrDefault(
+                issue => issue.Severity == ErrorCatalogValidationSeverity.Error);
 
-            string issueMessage = crossValidationResult.Issues.Count > 0
-                ? crossValidationResult.Issues[0].Message
-                : "Error catalog cross-validation failed while creating catalog context.";
+            string issueCode = errorIssue?.Code
+                ?? "ErrorCatalogContextCrossValidationFailed";
+
+            string issueMessage = errorIssue?.Message
+                ?? "Error catalog cross-validation failed while creating catalog context.";
 
             return Response<ErrorCatalogContext>.Invalid(
                 code: issueCode,
