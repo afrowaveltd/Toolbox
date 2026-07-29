@@ -40,8 +40,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderCrossValidationFailureContractTests`: **1 focused test user-verified green** after correcting the test's issue-type reference.
 - Runtime `ErrorCatalogContextProviderCrossValidationWarningTests`: **3 focused tests user-verified green** for warning-only, information-only, mixed non-error context construction, deterministic issue preservation, and a clean outer success envelope.
 - Runtime `ErrorCatalogContextProviderCrossValidationErrorSelectionTests`: **2 focused tests user-verified green** for selecting the first error after earlier information or warning diagnostics.
-- Runtime `ErrorCatalogContextProviderInputOrderingTests`: **1 focused test user-verified green** for cancellation-first entry ordering.
-- Current complementary null-options slice adds a second focused test to `ErrorCatalogContextProviderInputOrderingTests`; the next successful focused run is expected to report **2 tests**.
+- Runtime `ErrorCatalogContextProviderInputOrderingTests`: **2 focused tests user-verified green** for cancellation-first entry ordering and ordinary null-options validation.
+- Current constructor-guard slice adds one five-case theory to `ErrorCatalogContextProviderInputOrderingTests`; the next successful focused run is expected to report **7 tests**.
 
 Focused verification command for the current slice:
 
@@ -123,7 +123,8 @@ Completed audit slices:
 33. Mixed-severity failure selection uses the first error-severity issue when information diagnostics precede it.
 34. The same failure-selection contract is protected when warning diagnostics precede the first error.
 35. A pre-cancelled token is observed before null `JsonsOptions` validation, and no provider is invoked.
-36. The current complementary input contract protects ordinary null validation: with a live token, null `JsonsOptions` produces `ArgumentNullException` with parameter name `options` before any provider invocation.
+36. With a live token, null `JsonsOptions` produces `ArgumentNullException` with parameter name `options` before any provider invocation.
+37. The current slice protects constructor dependency validation for all five providers, including exact `ArgumentNullException.ParamName` values.
 
 ## Current intentional boundaries
 
@@ -154,24 +155,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderInputOrderingTests`; the expected count is **2 green tests**.
+First verify `ErrorCatalogContextProviderInputOrderingTests`; the expected count is **7 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, the method-entry input-ordering sequence is complete. Inspect constructor dependency validation next, one dependency at a time or with one focused theory, while preserving exact parameter names and avoiding provider execution.
+If green, inspect one adjacent constructor contract only, preferably constructor validation order when multiple dependencies are null, so the first declared parameter remains the deterministic failure.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The forty-sixth runtime/public-API audit slice completes the method-entry input-validation pair. Cancellation retains priority when the token is already cancelled; otherwise null `JsonsOptions` is rejected with `ArgumentNullException` for parameter `options`, and no catalog provider is invoked.
+The forty-seventh runtime/public-API audit slice protects constructor null guards for all five `ErrorCatalogContextProvider` dependencies. One focused theory verifies exact `ArgumentNullException.ParamName` values for `errorCatalogProvider`, `categoryCatalogProvider`, `codeGroupCatalogProvider`, `ownerCatalogProvider`, and `profileCatalogProvider`, while the two existing method-entry contracts remain unchanged.
 
-Commits in this change sequence:
+Commit in this change sequence:
 
 ```text
-7389c6d55c0aec9a0e9a3fce1fb018926e49c702
-Protect cancellation-first input ordering
-
-feb21ea8557b954427f2347259539d194016096d
-Protect null options validation before providers
+c7d20a7cfe37c68e65cd24ac99d41734c2943b8d
+Protect context provider constructor null guards
 ```
