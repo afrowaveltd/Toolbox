@@ -73,6 +73,7 @@ public sealed class ErrorCatalogContextProviderCrossValidationWarningTests
         Assert.True(response.IsSuccess);
         Assert.NotNull(response.Data);
         Assert.Empty(response.Issues);
+        Assert.True(string.IsNullOrEmpty(response.Message));
         Assert.True(response.Data.CrossValidationResult.IsValid);
         Assert.Collection(
             response.Data.CrossValidationResult.Issues,
