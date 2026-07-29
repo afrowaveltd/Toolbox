@@ -90,6 +90,29 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
         Assert.Equal(3, actualException.Data["attempt"]);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldPreserveCustomExceptionProperties()
+    {
+        const string expectedCatalogPath = "Jsons/WhenItFails/errors.en.json";
+        ProviderCatalogException expectedException = new(
+            "Provider could not load the catalog.",
+            new FormatException("Catalog value has an invalid format."),
+            expectedCatalogPath);
+
+        ErrorCatalogContextProvider provider = new(
+            new ThrowingCustomExceptionErrorCatalogProvider(expectedException),
+            new UnexpectedCategoryCatalogProvider(),
+            new UnexpectedCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        ProviderCatalogException actualException = await Assert.ThrowsAsync<ProviderCatalogException>(
+            () => provider.LoadFromJsonsAsync(CreateOptions()));
+
+        Assert.Same(expectedException, actualException);
+        Assert.Equal(expectedCatalogPath, actualException.CatalogPath);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -152,10 +175,16 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
 
     private sealed class ProviderCatalogException : Exception
     {
-        public ProviderCatalogException(string message, Exception innerException)
+        public ProviderCatalogException(
+            string message,
+            Exception innerException,
+            string? catalogPath = null)
             : base(message, innerException)
         {
+            CatalogPath = catalogPath;
         }
+
+        public string? CatalogPath { get; }
     }
 
     private sealed class UnexpectedCategoryCatalogProvider : IErrorCategoryCatalogProvider
