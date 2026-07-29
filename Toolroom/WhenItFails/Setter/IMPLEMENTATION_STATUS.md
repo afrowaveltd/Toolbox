@@ -41,13 +41,13 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderCrossValidationWarningTests`: **3 focused tests user-verified green** for warning-only, information-only, mixed non-error context construction, deterministic issue preservation, and a clean outer success envelope.
 - Runtime `ErrorCatalogContextProviderCrossValidationErrorSelectionTests`: **2 focused tests user-verified green** for selecting the first error after earlier information or warning diagnostics.
 - Runtime `ErrorCatalogContextProviderInputOrderingTests`: **9 focused tests user-verified green** for method-entry ordering, constructor guards, deterministic multi-null precedence, and successful construction without provider execution.
-- Runtime `ErrorCatalogContextProviderProviderExceptionPropagationTests`: **5 focused tests user-verified green** for transparent synchronous exception propagation across all five provider boundaries.
-- Current asynchronous-fault slice adds a sixth focused test to `ErrorCatalogContextProviderProviderExceptionPropagationTests`; the next successful focused run is expected to report **6 tests**.
+- Runtime `ErrorCatalogContextProviderProviderExceptionPropagationTests`: **6 focused tests user-verified green** for transparent synchronous exception propagation across all five provider boundaries and asynchronous faulted-task propagation.
+- Current exception-shape slice adds one focused `ErrorCatalogContextProviderExceptionShapeTests` contract. This test is not yet user-verified.
 
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderProviderExceptionPropagationTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderExceptionShapeTests
 ```
 
 Primary Setter verification command:
@@ -133,7 +133,8 @@ Completed audit slices:
 42. Exception transparency at the code-group boundary preserves the exact thrown instance and prevents owner and profile provider calls.
 43. Exception transparency at the owner boundary preserves the exact thrown instance and prevents profile provider execution.
 44. Exception transparency at the profile boundary preserves the exact thrown instance and prevents context or response construction.
-45. The current slice protects the asynchronous exception shape: a faulted task returned by the error provider propagates its original exception instance unchanged and prevents every later provider call.
+45. A faulted task returned by the error provider propagates its original exception instance unchanged and prevents every later provider call.
+46. The current slice protects exception-type transparency: a provider-thrown `FormatException` remains the same concrete type and instance, is not normalized into `InvalidOperationException`, and prevents later provider calls.
 
 ## Current intentional boundaries
 
@@ -164,21 +165,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderProviderExceptionPropagationTests`; the expected count is **6 green tests**.
+First verify `ErrorCatalogContextProviderExceptionShapeTests`; the expected count is **1 green test**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect one adjacent exception-shape contract only, preferably whether a non-`InvalidOperationException` subtype is also propagated unchanged rather than being normalized.
+If green, inspect one adjacent exception-shape contract only, preferably whether a custom exception carrying an inner exception preserves both the outer instance and its inner-exception reference.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The fifty-fifth runtime/public-API audit slice distinguishes synchronous provider throws from asynchronously faulted provider tasks. When the error provider returns `Task.FromException`, `ErrorCatalogContextProvider` propagates the same exception instance, does not convert it into a `Response` failure, and performs no later provider work.
+The fifty-sixth runtime/public-API audit slice protects exception-type transparency. When the error provider throws a `FormatException`, `ErrorCatalogContextProvider` propagates the same concrete exception instance unchanged, does not normalize it into another exception type or a `Response` failure, and performs no later provider work.
 
 Commit in this change sequence:
 
 ```text
-f8b3d21a70fb6b1e3e2d0592b009378e8daa9665
-Protect faulted provider task exception propagation
+2d03513f6f5421f0ab0382cc1f76fd52e770a70e
+Protect provider exception type transparency
 ```
