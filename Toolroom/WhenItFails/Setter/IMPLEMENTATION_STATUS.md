@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-07-28
+Last updated: 2026-07-29
 
 This file is the continuation point for `Toolroom/WhenItFails/Setter` development. Update it after every implementation, test, or documentation change that alters the current state or recommended next step.
 
@@ -31,19 +31,19 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorProfileDefinitionNormalizerTests`: **10 focused tests user-verified green** after independent metadata, mapping, and selector-list copy semantics.
 - Runtime `ErrorProfileCatalogDocumentNormalizerTests`: **8 focused tests user-verified green** after independent catalog metadata, profile collection, profile instance, and tag copy semantics.
 - Runtime `ErrorProfileCatalogProviderTests`: **10 focused tests user-verified green**, including loader-to-provider payload isolation.
-- Runtime `ErrorCatalogContextProviderProfileReferenceTests`: **1 focused test user-verified green** for direct reuse of validated provider outputs and a newly computed combined `CrossValidationResult`.
+- Runtime `ErrorCatalogContextProviderProfileReferenceTests`: **2 focused tests user-verified green** for direct reuse of validated provider outputs, a newly computed combined `CrossValidationResult`, and provider-local validation-result isolation.
 - Runtime `ErrorCatalogContextProviderShortCircuitTests`: **5 focused tests user-verified green**, covering failure at every provider boundary.
 - Runtime `ErrorCatalogContextProviderCallOrderTests`: **1 focused test user-verified green** for exact provider order and configured path routing.
 - Runtime `ErrorCatalogContextProviderNullPayloadShortCircuitTests`: **5 focused tests user-verified green**, covering null payloads at every provider boundary.
 - Runtime `ErrorCatalogContextProviderCancellationPropagationTests`: **4 focused tests user-verified green**, covering every inter-provider cancellation boundary.
 - Runtime `ErrorCatalogContextProviderPostProfileCancellationTests`: **1 focused test user-verified green** for cancellation after the profile provider and before cross-validation.
 - Runtime `ErrorCatalogContextProviderCrossValidationFailureContractTests`: **1 focused test user-verified green** after correcting the test's issue-type reference.
-- Current provider-local validation slice adds one focused test to `ErrorCatalogContextProviderProfileReferenceTests`; the next successful focused run is expected to report **2 tests**.
+- Current warning-only cross-validation slice adds one focused `ErrorCatalogContextProviderCrossValidationWarningTests` contract. This test is not yet user-verified.
 
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderProfileReferenceTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderCrossValidationWarningTests
 ```
 
 Primary Setter verification command:
@@ -112,7 +112,8 @@ Completed audit slices:
 25. Cooperative cancellation is protected at all four inter-provider transitions.
 26. Cancellation after the profile provider returns is observed before cross-validation and context construction.
 27. Cross-validation failure returns an `Invalid` response based on the first issue's code and message and exposes no partial context.
-28. The current slice explicitly protects provider-local validation isolation: after a provider returns `IsSuccess`, its local `ValidationResult` is not merged into the final context decision; the context receives a fresh cross-validation result computed from the returned documents.
+28. Provider-local validation results are intentionally isolated after successful provider responses; final success or failure uses a fresh cross-validation result computed from the returned documents.
+29. The current slice protects warning-only cross-validation behavior: warnings remain available in the final `CrossValidationResult`, but do not prevent successful context construction when no error-level issue exists.
 
 ## Current intentional boundaries
 
@@ -143,21 +144,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderProfileReferenceTests`; the expected count is **2 green tests**.
+First verify `ErrorCatalogContextProviderCrossValidationWarningTests`; the expected count is **1 green test**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect one adjacent public contract: whether warnings-only cross-validation results permit successful context construction while preserving warnings in `CrossValidationResult`.
+If green, inspect one adjacent success-path contract only, preferably whether information-only cross-validation issues behave like warnings and remain preserved without failing context construction.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The thirty-eighth runtime/public-API audit slice explicitly records provider-local validation isolation. Successful provider responses may carry local validation issues, but `ErrorCatalogContextProvider` does not merge those issues into the final context. Instead, it computes a new `CrossValidationResult` from the five returned documents and bases success or failure on that result alone.
+The thirty-ninth runtime/public-API audit slice protects warning-only cross-validation behavior. A profile may reference an unknown error and produce `UnknownProfileIncludeError`; because that issue is a warning rather than an error, `ErrorCatalogContextProvider` still returns a successful context and preserves the warning in the newly computed `CrossValidationResult`.
 
 Commit in this change sequence:
 
 ```text
-b8183493e1cd68658d624fd5da43e78ba9e7805c
-Protect provider-local validation result isolation
+c89cd6ea7cb69e8bb61bb6c783cf53415afe1d63
+Protect cross-validation warning success contract
 ```
