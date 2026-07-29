@@ -39,7 +39,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderPostProfileCancellationTests`: **1 focused test user-verified green** for cancellation after the profile provider and before cross-validation.
 - Runtime `ErrorCatalogContextProviderCrossValidationFailureContractTests`: **1 focused test user-verified green** after correcting the test's issue-type reference.
 - Runtime `ErrorCatalogContextProviderCrossValidationWarningTests`: **3 focused tests user-verified green** for warning-only, information-only, mixed non-error context construction, deterministic issue preservation, and a clean outer success envelope.
-- Current error-selection slice adds one focused `ErrorCatalogContextProviderCrossValidationErrorSelectionTests` contract and changes production selection from the first issue to the first error-severity issue. This test is not yet user-verified.
+- Runtime `ErrorCatalogContextProviderCrossValidationErrorSelectionTests`: **1 focused test user-verified green** for selecting the first error after earlier information diagnostics.
+- Current adjacent error-selection slice adds warning-before-error coverage, so the next successful focused run is expected to report **2 tests**.
 
 Focused verification command for the current slice:
 
@@ -118,7 +119,8 @@ Completed audit slices:
 30. Information-only cross-validation issues remain available in the final `CrossValidationResult`, preserve `IsValid == true`, and do not prevent successful context construction.
 31. Mixed non-error behavior preserves deterministic information-then-warning ordering inside `CrossValidationResult`, while the successful outer `Response` keeps an empty `Issues` collection.
 32. The outer success envelope retains `ResultStatus.Success` and no message when non-error cross-validation diagnostics exist.
-33. The current slice fixes mixed-severity failure selection: if information or warning issues precede an error, the invalid outer response now uses the first error-severity issue rather than blindly using `Issues[0]`.
+33. Mixed-severity failure selection uses the first error-severity issue when information diagnostics precede it.
+34. The current slice extends the same failure-selection contract to warnings: a warning discovered before an error must remain diagnostic-only and cannot replace the error code or message in the invalid outer response.
 
 ## Current intentional boundaries
 
@@ -149,24 +151,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderCrossValidationErrorSelectionTests`; the expected count is **1 green test**.
+First verify `ErrorCatalogContextProviderCrossValidationErrorSelectionTests`; the expected count is **2 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect one adjacent failure-selection contract only, preferably whether a warning preceding an error is also skipped correctly, without broadening the slice.
+If green, the mixed-severity error-selection sequence is complete. Inspect the input-contract boundary next: whether a pre-cancelled token is intentionally observed before null `JsonsOptions` validation, and protect exactly one ordering contract.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The forty-third runtime/public-API audit slice found and fixed a mixed-severity failure-selection defect. `ErrorCatalogCrossValidator` preserves discovery order, so an informational issue from an earlier error definition can precede a later error-level issue. `ErrorCatalogContextProvider` previously used `Issues[0]` and could therefore return an `Invalid` response carrying an informational code and message. It now selects the first issue whose severity is `Error` and falls back to the generic cross-validation failure only if no such issue exists.
+The forty-fourth runtime/public-API audit slice extends mixed-severity failure selection to warning-first discovery order. A valid error entry that references one unknown additional category produces `UnknownAdditionalCategory` before a later error entry produces `UnknownErrorOwner`. The invalid outer response must still use the first error-severity issue and must not promote the earlier warning into the failure envelope.
 
-Commits in this change sequence:
+Commit in this change sequence:
 
 ```text
-8de94e172ebcdc1bfc487f60b5547ee40440f658
-Protect first error selection after non-error diagnostics
-
-8263d22b2b5f6d7f7094d19e03c7c81941f0945b
-Select first cross-validation error issue
+7e970202d720b8bad5b731bca42384c244d081e8
+Protect first error selection after warning diagnostics
 ```
