@@ -79,6 +79,29 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
             Assert.Single(response.Issues).Code);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldUseOwnerFallbackDetailsAndPreserveStatus()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new SuccessfulCategoryCatalogProvider(),
+            new SuccessfulCodeGroupCatalogProvider(),
+            new EmptyFailedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal(
+            "Owner catalog loading failed while creating catalog context.",
+            response.Message);
+        Assert.Equal(
+            "ErrorCatalogContextOwnerCatalogLoadFailed",
+            Assert.Single(response.Issues).Code);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -166,6 +189,38 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
             return Task.FromResult(new Response<ErrorCodeGroupCatalogProviderPayload>
             {
                 Status = ResultStatus.Cancelled
+            });
+        }
+    }
+
+    private sealed class SuccessfulCodeGroupCatalogProvider : IErrorCodeGroupCatalogProvider
+    {
+        public Task<Response<ErrorCodeGroupCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(Response<ErrorCodeGroupCatalogProviderPayload>.Ok(
+                new ErrorCodeGroupCatalogProviderPayload
+                {
+                    Document = new ErrorCodeGroupCatalogDocument(),
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
+    private sealed class EmptyFailedOwnerCatalogProvider : IErrorOwnerCatalogProvider
+    {
+        public Task<Response<ErrorOwnerCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(new Response<ErrorOwnerCatalogProviderPayload>
+            {
+                Status = ResultStatus.Failed
             });
         }
     }
