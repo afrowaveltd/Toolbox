@@ -42,8 +42,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderCrossValidationErrorSelectionTests`: **2 focused tests user-verified green** for selecting the first error after earlier information or warning diagnostics.
 - Runtime `ErrorCatalogContextProviderInputOrderingTests`: **9 focused tests user-verified green** for method-entry ordering, constructor guards, deterministic multi-null precedence, and successful construction without provider execution.
 - Runtime `ErrorCatalogContextProviderProviderExceptionPropagationTests`: **6 focused tests user-verified green** for transparent synchronous exception propagation across all five provider boundaries and asynchronous faulted-task propagation.
-- Runtime `ErrorCatalogContextProviderExceptionShapeTests`: **4 focused tests user-verified green** for exception-type identity, canceled-task token transparency, exact outer/inner references, and `Exception.Data` preservation.
-- Current custom-property slice adds a fifth focused test to `ErrorCatalogContextProviderExceptionShapeTests`; the next successful focused run is expected to report **5 tests**.
+- Runtime `ErrorCatalogContextProviderExceptionShapeTests`: **5 focused tests user-verified green** for exception-type identity, canceled-task token transparency, exact outer/inner references, `Exception.Data` preservation, and custom-property preservation.
+- Current null-task slice adds a sixth focused test to `ErrorCatalogContextProviderExceptionShapeTests`; the next successful focused run is expected to report **6 tests**.
 
 Focused verification command for the current slice:
 
@@ -139,7 +139,8 @@ Completed audit slices:
 47. Canceled-task transparency preserves the provider task's original cancellation token, avoids failure-response conversion, and prevents later provider calls.
 48. Nested exception identity preserves both the custom provider exception and its exact `InnerException` reference.
 49. Exception-data transparency preserves custom string and numeric values stored in `Exception.Data`.
-50. The current slice protects custom exception-property transparency: a strongly typed provider-specific `CatalogPath` property remains available unchanged because the exact exception instance is propagated.
+50. Custom exception-property transparency preserves a strongly typed provider-specific `CatalogPath` property.
+51. The current slice protects null-task transparency: if a provider violates its asynchronous contract by returning `null` instead of a `Task`, the resulting `NullReferenceException` escapes rather than being translated into a `Response` failure, and no later provider runs.
 
 ## Current intentional boundaries
 
@@ -170,21 +171,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderExceptionShapeTests`; the expected count is **5 green tests**.
+First verify `ErrorCatalogContextProviderExceptionShapeTests`; the expected count is **6 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, the exception-shape sequence is complete. Inspect exactly one adjacent asynchronous-contract boundary, preferably whether a provider returning a null `Task` is surfaced transparently rather than converted into a `Response` failure.
+If green, inspect exactly one adjacent invalid-provider asynchronous boundary, preferably whether a `null` task returned by the category provider after a successful error provider also prevents code-group, owner, and profile execution.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The sixtieth runtime/public-API audit slice protects provider-specific custom exception properties. When the error provider throws a custom exception carrying a strongly typed `CatalogPath` property, `ErrorCatalogContextProvider` propagates the same exception instance so the property remains available unchanged. The exception is not wrapped, reconstructed, normalized, or converted into a `Response` failure, and no later provider runs.
+The sixty-first runtime/public-API audit slice protects null-task behavior at the first provider boundary. When the error provider violates its interface contract by returning `null` instead of a `Task<Response<ErrorCatalogProviderPayload>>`, `ErrorCatalogContextProvider` surfaces the resulting `NullReferenceException`, does not convert it into a `Response` failure, and performs no later provider work.
 
 Commit in this change sequence:
 
 ```text
-3942033c9470f2bd8ae0190f99b71fa1e4898c4a
-Protect custom provider exception properties
+385a83233e2c47058d2a0c1a022a85007f679cbb
+Protect null provider task behavior
 ```
