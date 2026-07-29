@@ -44,6 +44,28 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
         Assert.Equal(providerCancellation.Token, exception.CancellationToken);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldPreserveOuterAndInnerExceptionReferences()
+    {
+        FormatException innerException = new("Catalog value has an invalid format.");
+        ProviderCatalogException expectedException = new(
+            "Provider could not load the catalog.",
+            innerException);
+
+        ErrorCatalogContextProvider provider = new(
+            new ThrowingCustomExceptionErrorCatalogProvider(expectedException),
+            new UnexpectedCategoryCatalogProvider(),
+            new UnexpectedCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        ProviderCatalogException actualException = await Assert.ThrowsAsync<ProviderCatalogException>(
+            () => provider.LoadFromJsonsAsync(CreateOptions()));
+
+        Assert.Same(expectedException, actualException);
+        Assert.Same(innerException, actualException.InnerException);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -84,6 +106,31 @@ public sealed class ErrorCatalogContextProviderExceptionShapeTests
             CancellationToken cancellationToken = default)
         {
             return Task.FromCanceled<Response<ErrorCatalogProviderPayload>>(_cancellationToken);
+        }
+    }
+
+    private sealed class ThrowingCustomExceptionErrorCatalogProvider : IErrorCatalogProvider
+    {
+        private readonly ProviderCatalogException _exception;
+
+        public ThrowingCustomExceptionErrorCatalogProvider(ProviderCatalogException exception)
+        {
+            _exception = exception;
+        }
+
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            throw _exception;
+        }
+    }
+
+    private sealed class ProviderCatalogException : Exception
+    {
+        public ProviderCatalogException(string message, Exception innerException)
+            : base(message, innerException)
+        {
         }
     }
 
