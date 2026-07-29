@@ -75,6 +75,15 @@ public sealed class ErrorCatalogContextProviderInputOrderingTests
         Assert.Equal("errorCatalogProvider", exception.ParamName);
     }
 
+    [Fact]
+    public void Constructor_ShouldCreateProviderWithoutInvokingDependencies()
+    {
+        ErrorCatalogContextProvider provider = CreateProvider();
+
+        Assert.NotNull(provider);
+        Assert.IsAssignableFrom<IErrorCatalogContextProvider>(provider);
+    }
+
     private static ErrorCatalogContextProvider CreateProvider()
     {
         return new ErrorCatalogContextProvider(
