@@ -40,8 +40,8 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderCrossValidationFailureContractTests`: **1 focused test user-verified green** after correcting the test's issue-type reference.
 - Runtime `ErrorCatalogContextProviderCrossValidationWarningTests`: **3 focused tests user-verified green** for warning-only, information-only, mixed non-error context construction, deterministic issue preservation, and a clean outer success envelope.
 - Runtime `ErrorCatalogContextProviderCrossValidationErrorSelectionTests`: **2 focused tests user-verified green** for selecting the first error after earlier information or warning diagnostics.
-- Runtime `ErrorCatalogContextProviderInputOrderingTests`: **2 focused tests user-verified green** for cancellation-first entry ordering and ordinary null-options validation.
-- Current constructor-guard slice adds one five-case theory to `ErrorCatalogContextProviderInputOrderingTests`; the next successful focused run is expected to report **7 tests**.
+- Runtime `ErrorCatalogContextProviderInputOrderingTests`: **7 focused tests user-verified green** for cancellation-first entry ordering, ordinary null-options validation, and all five constructor dependency null guards.
+- Current constructor-order slice adds one focused test to `ErrorCatalogContextProviderInputOrderingTests`; the next successful focused run is expected to report **8 tests**.
 
 Focused verification command for the current slice:
 
@@ -124,7 +124,8 @@ Completed audit slices:
 34. The same failure-selection contract is protected when warning diagnostics precede the first error.
 35. A pre-cancelled token is observed before null `JsonsOptions` validation, and no provider is invoked.
 36. With a live token, null `JsonsOptions` produces `ArgumentNullException` with parameter name `options` before any provider invocation.
-37. The current slice protects constructor dependency validation for all five providers, including exact `ArgumentNullException.ParamName` values.
+37. Constructor dependency validation protects exact `ArgumentNullException.ParamName` values for all five providers.
+38. The current slice protects deterministic constructor validation order: when multiple dependencies are null, the first declared constructor parameter is reported.
 
 ## Current intentional boundaries
 
@@ -155,21 +156,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderInputOrderingTests`; the expected count is **7 green tests**.
+First verify `ErrorCatalogContextProviderInputOrderingTests`; the expected count is **8 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect one adjacent constructor contract only, preferably constructor validation order when multiple dependencies are null, so the first declared parameter remains the deterministic failure.
+If green, the constructor input-validation sequence is complete. Inspect one adjacent provider-exception contract only, preferably whether exceptions thrown by a provider are intentionally propagated rather than converted into a `Response` failure.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The forty-seventh runtime/public-API audit slice protects constructor null guards for all five `ErrorCatalogContextProvider` dependencies. One focused theory verifies exact `ArgumentNullException.ParamName` values for `errorCatalogProvider`, `categoryCatalogProvider`, `codeGroupCatalogProvider`, `ownerCatalogProvider`, and `profileCatalogProvider`, while the two existing method-entry contracts remain unchanged.
+The forty-eighth runtime/public-API audit slice protects constructor validation precedence. When more than one dependency is null, `ErrorCatalogContextProvider` reports the first declared constructor parameter, preserving deterministic guard behavior and making constructor refactors observable through the public exception contract.
 
 Commit in this change sequence:
 
 ```text
-c7d20a7cfe37c68e65cd24ac99d41734c2943b8d
-Protect context provider constructor null guards
+66b2b4ee574b6a3485f15a76400d11eca515f47b
+Protect constructor null dependency ordering
 ```
