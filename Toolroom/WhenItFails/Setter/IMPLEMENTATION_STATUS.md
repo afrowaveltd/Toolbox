@@ -43,12 +43,13 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderInputOrderingTests`: **9 focused tests user-verified green** for method-entry ordering, constructor guards, deterministic multi-null precedence, and successful construction without provider execution.
 - Runtime `ErrorCatalogContextProviderProviderExceptionPropagationTests`: **6 focused tests user-verified green** for transparent synchronous exception propagation across all five provider boundaries and asynchronous faulted-task propagation.
 - Runtime `ErrorCatalogContextProviderExceptionShapeTests`: **8 focused tests user-verified green** for exception identity and metadata preservation plus null-task behavior at the error, category, and code-group provider boundaries.
-- Current owner null-task slice adds **1 focused test** in `ErrorCatalogContextProviderOwnerNullTaskTests`. This test is not yet user-verified.
+- Runtime `ErrorCatalogContextProviderOwnerNullTaskTests`: **1 focused test user-verified green** for the owner-provider null-task boundary.
+- Current profile null-task slice adds **1 focused test** in `ErrorCatalogContextProviderProfileNullTaskTests`. This test is not yet user-verified.
 
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderOwnerNullTaskTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderProfileNullTaskTests
 ```
 
 Primary Setter verification command:
@@ -143,7 +144,8 @@ Completed audit slices:
 51. Null-task transparency at the error-provider boundary surfaces `NullReferenceException`, avoids failure-response conversion, and prevents later provider work.
 52. Null-task transparency at the category boundary surfaces `NullReferenceException` after a successful error provider and prevents code-group, owner, and profile execution.
 53. Null-task transparency at the code-group boundary surfaces `NullReferenceException` after successful error and category providers and prevents owner plus profile execution.
-54. The current slice extends null-task transparency to the owner boundary: successful error, category, and code-group providers are followed by an owner provider returning `null`; the resulting `NullReferenceException` escapes and the profile provider remains uninvoked.
+54. Null-task transparency at the owner boundary surfaces `NullReferenceException` after successful error, category, and code-group providers and prevents profile execution.
+55. The current slice completes null-task boundary coverage at the profile provider: all earlier providers succeed, the profile provider returns `null`, and `NullReferenceException` escapes before cross-validation or context construction.
 
 ## Current intentional boundaries
 
@@ -174,21 +176,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderOwnerNullTaskTests`; the expected count is **1 green test**.
+First verify `ErrorCatalogContextProviderProfileNullTaskTests`; the expected count is **1 green test**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect exactly one adjacent invalid-provider asynchronous boundary: whether a `null` task returned by the profile provider after all earlier providers succeed surfaces transparently before cross-validation or context construction.
+If green, the null-task provider-boundary sequence is complete. Inspect exactly one adjacent asynchronous contract, preferably whether a provider returning a task whose result is `null` is handled by the existing null-payload short-circuit contract rather than as a null-task failure.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The sixty-fourth runtime/public-API audit slice extends null-task transparency to the owner-provider boundary. After valid error, category, and code-group payloads are returned, an owner provider that violates its interface contract by returning `null` instead of `Task<Response<ErrorOwnerCatalogProviderPayload>>` causes `NullReferenceException` to escape. The context provider does not translate it into a `Response` failure and does not invoke the profile provider.
+The sixty-fifth runtime/public-API audit slice completes null-task transparency across all provider boundaries. After valid error, category, code-group, and owner payloads are returned, a profile provider that violates its interface contract by returning `null` instead of `Task<Response<ErrorProfileCatalogProviderPayload>>` causes `NullReferenceException` to escape before cross-validation or context construction.
 
 Commit in this change sequence:
 
 ```text
-2a5982c6b913e794aa6d2ac1a5b1ca3900eaedad
-Protect owner null task boundary
+6c213404fe7c8b27c13921bb276775b733d7b28b
+Protect profile null task boundary
 ```
