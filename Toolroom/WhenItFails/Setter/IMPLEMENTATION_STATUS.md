@@ -30,8 +30,8 @@ Recent runtime/public-API audit verification:
 - `ErrorCatalogContextProviderOwnerNullTaskTests`: **1 green**.
 - `ErrorCatalogContextProviderProfileNullTaskTests`: **1 green**.
 - `ErrorCatalogContextProviderNullResponseTaskResultTests`: **5 user-verified green**, completing null-response-result coverage across all five provider boundaries.
-- `ErrorCatalogContextProviderFailureFallbackTests`: **3 user-verified green** for error-, category-, and code-group-provider fallback contracts.
-- Current owner fallback slice adds a fourth focused test to `ErrorCatalogContextProviderFailureFallbackTests`; the next successful run is expected to report **4 tests**.
+- `ErrorCatalogContextProviderFailureFallbackTests`: **4 user-verified green** for error-, category-, code-group-, and owner-provider fallback contracts.
+- Current profile fallback slice adds a fifth focused test to `ErrorCatalogContextProviderFailureFallbackTests`; the next successful run is expected to report **5 tests**.
 
 Focused verification command for the current slice:
 
@@ -89,7 +89,8 @@ Completed contracts now protect:
 11. error fallback preserves `ResultStatus.NotFound` and synthesizes `ErrorCatalogContextErrorCatalogLoadFailed` plus its documented message;
 12. category fallback preserves `ResultStatus.NotSupported` and synthesizes `ErrorCatalogContextCategoryCatalogLoadFailed` plus its documented message;
 13. code-group fallback preserves `ResultStatus.Cancelled` and synthesizes `ErrorCatalogContextCodeGroupCatalogLoadFailed` plus its documented message;
-14. the current owner fallback contract preserves `ResultStatus.Failed`, synthesizes `ErrorCatalogContextOwnerCatalogLoadFailed` and the documented owner message, returns no context, and prevents profile execution.
+14. owner fallback preserves `ResultStatus.Failed` and synthesizes `ErrorCatalogContextOwnerCatalogLoadFailed` plus its documented message;
+15. the current profile fallback contract preserves `ResultStatus.Invalid`, synthesizes `ErrorCatalogContextProfileCatalogLoadFailed` and the documented profile message, returns no context, and prevents cross-validation or context construction.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -122,19 +123,19 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderFailureFallbackTests`; the expected count is **4 green tests**.
+First verify `ErrorCatalogContextProviderFailureFallbackTests`; the expected count is **5 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect the final adjacent fallback boundary: the profile-provider failure fallback after successful error, category, code-group, and owner providers.
+If green, the provider-specific empty-failure fallback sequence is complete. Inspect exactly one adjacent failure-envelope contract outside this sequence, preferably behavior when a failure response has a non-empty message but no issues: preserve that source message while synthesizing only the provider-specific fallback code.
 
 ## Last completed change
 
-The seventy-fourth runtime/public-API audit slice extends failure fallback coverage to the owner-provider boundary. After valid error, category, and code-group responses, an owner provider returns `ResultStatus.Failed` with no issues and no message. `ErrorCatalogContextProvider` must preserve `Failed`, synthesize `ErrorCatalogContextOwnerCatalogLoadFailed` and the documented owner fallback message, return no context, and not invoke the profile provider.
+The seventy-fifth runtime/public-API audit slice completes provider-specific empty-failure fallback coverage at the profile boundary. After valid error, category, code-group, and owner responses, a profile provider returns `ResultStatus.Invalid` with no issues and no message. `ErrorCatalogContextProvider` must preserve `Invalid`, synthesize `ErrorCatalogContextProfileCatalogLoadFailed` and the documented profile fallback message, return no context, and not begin cross-validation or construct an `ErrorCatalogContext`.
 
 Commit in this change sequence:
 
 ```text
-83e1e83fe85dd7d94618a499abdac34c9f9e0aba
-Protect owner failure fallback details
+fc91899b5ae90efb95c9aa5e3a9ff3f7841b7c69
+Protect profile failure fallback details
 ```
