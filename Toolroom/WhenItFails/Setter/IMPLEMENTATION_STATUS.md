@@ -31,7 +31,7 @@ Recent runtime/public-API audit verification:
 - `ErrorCatalogContextProviderProfileNullTaskTests`: **1 green**.
 - `ErrorCatalogContextProviderNullResponseTaskResultTests`: **5 user-verified green**, completing null-response-result coverage across all five provider boundaries.
 - `ErrorCatalogContextProviderFailureFallbackTests`: **1 user-verified green** for the error-provider fallback contract.
-- Current category fallback slice adds a second focused test to `ErrorCatalogContextProviderFailureFallbackTests`; the next successful run is expected to report **2 tests**.
+- Current category fallback slice still expects **2 focused tests**. The first local build failed because the test used nonexistent `ResultStatus.Unauthorized`; the test now uses the real `ResultStatus.NotSupported` member and requires re-verification.
 
 Focused verification command for the current slice:
 
@@ -86,7 +86,7 @@ Completed contracts now protect:
 8. null `Task` behavior at every provider boundary;
 9. completed provider tasks yielding a null `Response<T>` at every provider boundary;
 10. failure responses with no issues and no message use provider-specific fallback details while preserving the original status and short-circuiting later providers;
-11. the current category fallback contract preserves `ResultStatus.Unauthorized`, synthesizes `ErrorCatalogContextCategoryCatalogLoadFailed` and the documented category message, returns no context, and prevents later provider work.
+11. the current category fallback contract preserves `ResultStatus.NotSupported`, synthesizes `ErrorCatalogContextCategoryCatalogLoadFailed` and the documented category message, returns no context, and prevents later provider work.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -119,7 +119,7 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderFailureFallbackTests`; the expected count is **2 green tests**.
+First re-run `ErrorCatalogContextProviderFailureFallbackTests`; the expected count remains **2 green tests** after replacing the invalid enum member.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
@@ -127,11 +127,14 @@ If green, inspect exactly one adjacent fallback boundary, preferably the code-gr
 
 ## Last completed change
 
-The seventy-second runtime/public-API audit slice extends failure fallback coverage to the category-provider boundary. After a valid error response, a category provider returns `ResultStatus.Unauthorized` with no issues and no message. `ErrorCatalogContextProvider` must preserve `Unauthorized`, synthesize `ErrorCatalogContextCategoryCatalogLoadFailed` and the documented category fallback message, return no context, and invoke no code-group, owner, or profile provider.
+The seventy-second runtime/public-API audit slice extends failure fallback coverage to the category-provider boundary. After a valid error response, a category provider returns `ResultStatus.NotSupported` with no issues and no message. `ErrorCatalogContextProvider` must preserve `NotSupported`, synthesize `ErrorCatalogContextCategoryCatalogLoadFailed` and the documented category fallback message, return no context, and invoke no code-group, owner, or profile provider. The initial test revision incorrectly referenced nonexistent `ResultStatus.Unauthorized`; commit `062fd7ded1c18e3dee7621f2e9388868a842d4ec` corrects the test to the real enum member.
 
-Commit in this change sequence:
+Commits in this change sequence:
 
 ```text
 29374f42b564a53a5c846cf55f0104fa6b495ba7
 Protect category failure fallback details
+
+062fd7ded1c18e3dee7621f2e9388868a842d4ec
+Fix category fallback test status
 ```
