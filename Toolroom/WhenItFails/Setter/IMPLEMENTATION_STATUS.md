@@ -39,13 +39,13 @@ The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 sk
 - Runtime `ErrorCatalogContextProviderPostProfileCancellationTests`: **1 focused test user-verified green** for cancellation after the profile provider and before cross-validation.
 - Runtime `ErrorCatalogContextProviderCrossValidationFailureContractTests`: **1 focused test user-verified green** after correcting the test's issue-type reference.
 - Runtime `ErrorCatalogContextProviderCrossValidationWarningTests`: **3 focused tests user-verified green** for warning-only, information-only, mixed non-error context construction, deterministic issue preservation, and a clean outer success envelope.
-- Runtime `ErrorCatalogContextProviderCrossValidationErrorSelectionTests`: **1 focused test user-verified green** for selecting the first error after earlier information diagnostics.
-- Current adjacent error-selection slice adds warning-before-error coverage, so the next successful focused run is expected to report **2 tests**.
+- Runtime `ErrorCatalogContextProviderCrossValidationErrorSelectionTests`: **2 focused tests user-verified green** for selecting the first error after earlier information or warning diagnostics.
+- Current input-ordering slice adds one focused `ErrorCatalogContextProviderInputOrderingTests` contract. This test is not yet user-verified.
 
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderCrossValidationErrorSelectionTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderInputOrderingTests
 ```
 
 Primary Setter verification command:
@@ -120,7 +120,8 @@ Completed audit slices:
 31. Mixed non-error behavior preserves deterministic information-then-warning ordering inside `CrossValidationResult`, while the successful outer `Response` keeps an empty `Issues` collection.
 32. The outer success envelope retains `ResultStatus.Success` and no message when non-error cross-validation diagnostics exist.
 33. Mixed-severity failure selection uses the first error-severity issue when information diagnostics precede it.
-34. The current slice extends the same failure-selection contract to warnings: a warning discovered before an error must remain diagnostic-only and cannot replace the error code or message in the invalid outer response.
+34. The same failure-selection contract is protected when warning diagnostics precede the first error.
+35. The current slice protects input ordering: a pre-cancelled token is observed before null `JsonsOptions` validation, and no provider is invoked.
 
 ## Current intentional boundaries
 
@@ -151,21 +152,21 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderCrossValidationErrorSelectionTests`; the expected count is **2 green tests**.
+First verify `ErrorCatalogContextProviderInputOrderingTests`; the expected count is **1 green test**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, the mixed-severity error-selection sequence is complete. Inspect the input-contract boundary next: whether a pre-cancelled token is intentionally observed before null `JsonsOptions` validation, and protect exactly one ordering contract.
+If green, inspect the complementary non-cancelled null-options contract and verify that `ArgumentNullException` is thrown before any provider invocation.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Last completed change
 
-The forty-fourth runtime/public-API audit slice extends mixed-severity failure selection to warning-first discovery order. A valid error entry that references one unknown additional category produces `UnknownAdditionalCategory` before a later error entry produces `UnknownErrorOwner`. The invalid outer response must still use the first error-severity issue and must not promote the earlier warning into the failure envelope.
+The forty-fifth runtime/public-API audit slice records the method-entry precedence contract. `ErrorCatalogContextProvider.LoadFromJsonsAsync` observes an already-cancelled token before validating `JsonsOptions`; therefore `LoadFromJsonsAsync(null, cancelledToken)` propagates cancellation and never invokes a catalog provider.
 
 Commit in this change sequence:
 
 ```text
-7e970202d720b8bad5b731bca42384c244d081e8
-Protect first error selection after warning diagnostics
+7389c6d55c0aec9a0e9a3fce1fb018926e49c702
+Protect cancellation-first input ordering
 ```
