@@ -63,6 +63,24 @@ public sealed class ErrorCatalogContextProviderProviderExceptionPropagationTests
         Assert.Same(expectedException, actualException);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldPropagateOwnerProviderExceptionAfterEarlierProvidersSucceed()
+    {
+        InvalidOperationException expectedException = new("Owner provider failed unexpectedly.");
+
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new SuccessfulCategoryCatalogProvider(),
+            new SuccessfulCodeGroupCatalogProvider(),
+            new ThrowingOwnerCatalogProvider(expectedException),
+            new UnexpectedProfileCatalogProvider());
+
+        InvalidOperationException actualException = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => provider.LoadFromJsonsAsync(CreateOptions()));
+
+        Assert.Same(expectedException, actualException);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -149,6 +167,38 @@ public sealed class ErrorCatalogContextProviderProviderExceptionPropagationTests
         }
 
         public Task<Response<ErrorCodeGroupCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            throw _exception;
+        }
+    }
+
+    private sealed class SuccessfulCodeGroupCatalogProvider : IErrorCodeGroupCatalogProvider
+    {
+        public Task<Response<ErrorCodeGroupCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(Response<ErrorCodeGroupCatalogProviderPayload>.Ok(
+                new ErrorCodeGroupCatalogProviderPayload
+                {
+                    Document = new ErrorCodeGroupCatalogDocument(),
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
+    private sealed class ThrowingOwnerCatalogProvider : IErrorOwnerCatalogProvider
+    {
+        private readonly InvalidOperationException _exception;
+
+        public ThrowingOwnerCatalogProvider(InvalidOperationException exception)
+        {
+            _exception = exception;
+        }
+
+        public Task<Response<ErrorOwnerCatalogProviderPayload>> LoadFromFileAsync(
             string filePath,
             CancellationToken cancellationToken = default)
         {
