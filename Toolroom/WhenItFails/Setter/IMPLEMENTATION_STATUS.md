@@ -22,14 +22,14 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderProfileSourceEnvelopeTests`: **1 green**.
 - `ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests`: **1 green**.
 - `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: **3 green**.
-- `ErrorCatalogContextProviderFailureIssueSeverityTests`: **2 user-verified green** for severity normalization, source issue immutability, and suppression of source-only issue fields.
-- Current provider-response-metadata slice adds a third test to `ErrorCatalogContextProviderFailureIssueSeverityTests`; the expected count is **3 tests**.
+- `ErrorCatalogContextProviderFailureIssueSeverityTests`: **3 user-verified green** for severity normalization, source issue immutability, suppression of source-only issue fields, and suppression of provider-response metadata.
+- Current status-flags slice adds a fourth test to `ErrorCatalogContextProviderFailureIssueSeverityTests`; the expected count is **4 tests**.
 - Setter CI repair pair — `ImplementationStatusDocumentationTests` and `SuggestDocumentationKeyBracketTitleTests`: **2 user-verified green**.
 - Complete `Toolroom/WhenItFails/Setter.Tests` suite: **1,241 user-verified green, 0 failed, 0 skipped**.
 
-The runtime/public-API audit protects provider ordering and configured paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallbacks, source-message and source-code selection, malformed envelopes, first-issue selection, later-issue suppression, synthesized issue severity, source object immutability, and suppression of source-only failure fields.
+The runtime/public-API audit protects provider ordering and configured paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallbacks, source-message and source-code selection, malformed envelopes, first-issue selection, later-issue suppression, synthesized issue severity, source object immutability, suppression of source-only failure fields, and suppression of provider-response metadata.
 
-The current response-shape contract additionally requires provider-response metadata not to cross into the synthesized `Response<ErrorCatalogContext>`. The output must have empty independent metadata, `Data == null`, `HasData == false`, and `IsFailure == true`, while the source response metadata remains unchanged.
+The current synthesized-response contract additionally requires a preserved non-success source status to expose internally consistent derived flags. For a `NotFound` source response with a synthesized `Error` issue, the output must preserve `NotFound`, expose `IsSuccess == false`, `IsFailure == true`, `HasWarnings == true`, and `HasData == false`, return no context, and retain empty response metadata.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -58,7 +58,7 @@ Run the current runtime/public-API focused command:
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderFailureIssueSeverityTests
 ```
 
-Expected result: **3 green tests**.
+Expected result: **4 green tests**.
 
 Before committing catalog changes, also run:
 
@@ -103,17 +103,17 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Run `ErrorCatalogContextProviderFailureIssueSeverityTests`; the expected count is **3 green tests**.
+Run `ErrorCatalogContextProviderFailureIssueSeverityTests`; the expected count is **4 green tests**.
 
-If green, record verification and inspect exactly one adjacent synthesized-response contract outside provider-response metadata.
+If green, record verification and inspect exactly one adjacent provider-failure contract outside synthesized response flags.
 
 ## Last completed change
 
-The ninety-fourth runtime/public-API audit slice extends `ErrorCatalogContextProviderFailureIssueSeverityTests` with provider-response metadata coverage. A failed error provider returns meaningful response metadata and a warning source issue. `ErrorCatalogContextProvider` must synthesize a failed context response with no data, empty independent metadata, one normalized error issue, and unchanged source metadata. No production change is expected.
+The ninety-fifth runtime/public-API audit slice extends `ErrorCatalogContextProviderFailureIssueSeverityTests` with derived failure-status coverage. A source provider returns `ResultStatus.NotFound` and a warning-severity source issue. `ErrorCatalogContextProvider` must preserve `NotFound`, synthesize one `Error` issue, expose consistent `IsSuccess`, `IsFailure`, `HasWarnings`, and `HasData` values, return no context, keep response metadata empty, and invoke no later provider. No production change is expected.
 
 Commit:
 
 ```text
-6683dad459916b26816f9ca80fb3226721c855fc
-Suppress provider response metadata in context failures
+2d8fae303647d5b1ec375c19a84824b0cfa41a3a
+Verify synthesized failure status flags
 ```
