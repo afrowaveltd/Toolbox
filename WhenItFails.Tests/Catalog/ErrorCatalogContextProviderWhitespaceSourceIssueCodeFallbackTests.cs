@@ -10,13 +10,16 @@ namespace Afrowave.Toolbox.WhenItFails.Tests.Catalog;
 
 public sealed class ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests
 {
-    [Fact]
-    public async Task LoadFromJsonsAsync_ShouldUseFallbackCode_WhenFirstSourceIssueCodeIsWhitespace()
+    [Theory]
+    [InlineData("")]
+    [InlineData(" \t\r\n ")]
+    public async Task LoadFromJsonsAsync_ShouldUseFallbackCode_WhenFirstSourceIssueCodeIsEmptyOrWhitespace(
+        string malformedSourceCode)
     {
         const string sourceMessage = "The source error catalog provider rejected the catalog.";
 
         ErrorCatalogContextProvider provider = new(
-            new WhitespaceIssueCodeFailedErrorCatalogProvider(sourceMessage),
+            new MalformedIssueCodeFailedErrorCatalogProvider(sourceMessage, malformedSourceCode),
             new UnexpectedCategoryCatalogProvider(),
             new UnexpectedCodeGroupCatalogProvider(),
             new UnexpectedOwnerCatalogProvider(),
@@ -43,7 +46,9 @@ public sealed class ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallback
         };
     }
 
-    private sealed class WhitespaceIssueCodeFailedErrorCatalogProvider(string message)
+    private sealed class MalformedIssueCodeFailedErrorCatalogProvider(
+        string message,
+        string malformedSourceCode)
         : IErrorCatalogProvider
     {
         public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
@@ -60,7 +65,7 @@ public sealed class ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallback
                 [
                     new IssueInfo
                     {
-                        Code = " \t\r\n "
+                        Code = malformedSourceCode
                     },
                     new IssueInfo
                     {
