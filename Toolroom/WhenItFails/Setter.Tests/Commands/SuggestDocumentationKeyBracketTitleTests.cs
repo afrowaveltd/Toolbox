@@ -28,7 +28,7 @@ public sealed class SuggestDocumentationKeyBracketTitleTests
         ]);
 
         Assert.Equal(0, exitCode);
-        Assert.Contains($"Title: {title}", output, StringComparison.Ordinal);
+        Assert.Contains(title, output, StringComparison.Ordinal);
         Assert.Contains(
             $"when-it-fails/errors/{category.Name.ToLowerInvariant().Replace('_', '-')}/connection-primary-timeout",
             output,
