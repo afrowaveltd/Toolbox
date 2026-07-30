@@ -19,27 +19,28 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderNullResponseTaskResultTests`: **5 green**.
 - `ErrorCatalogContextProviderFailureFallbackTests`: **7 green**.
 - `ErrorCatalogContextProviderCategorySourceMessageFallbackTests`: **2 green**.
-- Current `ErrorCatalogContextProviderCodeGroupSourceEnvelopeTests`: **1 test pending verification**.
+- `ErrorCatalogContextProviderCodeGroupSourceEnvelopeTests`: **1 user-verified green**.
+- Current `ErrorCatalogContextProviderOwnerSourceEnvelopeTests`: **1 test pending verification**.
 
 The audit currently protects provider ordering and paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallback details, source-message preservation, source-code preservation, first-issue selection, and later-issue suppression.
 
-The new code-group source-envelope contract requires:
+The new owner source-envelope contract requires:
 
-- successful error and category providers;
-- a code-group failure with `ResultStatus.Cancelled`;
+- successful error, category, and code-group providers;
+- an owner failure with `ResultStatus.Failed`;
 - preservation of the source response message;
 - preservation of the first source issue code;
 - exactly one output issue;
 - suppression of later source issues;
 - no context;
-- no owner or profile provider execution.
+- no profile provider execution.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Focused verification
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderCodeGroupSourceEnvelopeTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderOwnerSourceEnvelopeTests
 ```
 
 Expected result: **1 green test**.
@@ -79,17 +80,17 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderCodeGroupSourceEnvelopeTests`; the expected count is **1 green test**.
+First verify `ErrorCatalogContextProviderOwnerSourceEnvelopeTests`; the expected count is **1 green test**.
 
-If green, inspect exactly one adjacent full-source failure-envelope boundary, preferably owner after successful error, category, and code-group providers.
+If green, inspect the final adjacent full-source failure-envelope boundary: profile after successful error, category, code-group, and owner providers.
 
 ## Last completed change
 
-The eightieth runtime/public-API audit slice adds `ErrorCatalogContextProviderCodeGroupSourceEnvelopeTests`. After valid error and category responses, the code-group provider returns `ResultStatus.Cancelled`, a non-empty response message, and two source issues. The context provider must preserve the status, response message, and first issue code; emit one issue; discard the later issue; return no context; and invoke neither owner nor profile provider.
+The eighty-first runtime/public-API audit slice adds `ErrorCatalogContextProviderOwnerSourceEnvelopeTests`. After valid error, category, and code-group responses, the owner provider returns `ResultStatus.Failed`, a non-empty response message, and two source issues. The context provider must preserve the status, response message, and first issue code; emit one issue; discard the later issue; return no context; and not invoke the profile provider.
 
 Commit:
 
 ```text
-ee435b59fda5ccb9d886e8ff2257b9e0bc44131a
-Protect full code-group failure source envelope
+5d32464d2a66a36ddb1afb08f86127f123ddc83e
+Protect full owner failure source envelope
 ```
