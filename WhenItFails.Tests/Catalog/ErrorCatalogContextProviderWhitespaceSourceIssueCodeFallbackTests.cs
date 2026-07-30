@@ -37,6 +37,31 @@ public sealed class ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallback
         Assert.Equal(sourceMessage, issue.Message);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldUseBothFallbacks_WhenSourceCodeAndMessageAreWhitespace()
+    {
+        const string fallbackCode = "ErrorCatalogContextErrorCatalogLoadFailed";
+        const string fallbackMessage = "Error catalog loading failed while creating catalog context.";
+
+        ErrorCatalogContextProvider provider = new(
+            new MalformedIssueCodeFailedErrorCatalogProvider(" \t\r\n ", " \t\r\n "),
+            new UnexpectedCategoryCatalogProvider(),
+            new UnexpectedCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal(fallbackMessage, response.Message);
+
+        var issue = Assert.Single(response.Issues);
+        Assert.Equal(fallbackCode, issue.Code);
+        Assert.Equal(fallbackMessage, issue.Message);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
