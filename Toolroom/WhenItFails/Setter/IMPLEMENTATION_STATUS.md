@@ -25,7 +25,7 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderFailureIssueSeverityTests`: **1 user-verified green** for severity normalization and source issue immutability.
 - Current source-only-field slice adds a second test to `ErrorCatalogContextProviderFailureIssueSeverityTests`; the expected count is **2 tests**.
 
-The audit protects provider ordering and configured paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallbacks, source-message and source-code selection, malformed envelopes, first-issue selection, later-issue suppression, synthesized issue severity, and source object immutability.
+The runtime/public-API audit protects provider ordering and configured paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallbacks, source-message and source-code selection, malformed envelopes, first-issue selection, later-issue suppression, synthesized issue severity, and source object immutability.
 
 The current response-shape contract requires the synthesized failure issue to preserve only the selected code and response-level message, normalize severity to `Error`, and suppress source-only `Number`, `Details`, and `Metadata`. The source `IssueInfo` and its metadata bag must remain unchanged.
 
@@ -37,8 +37,8 @@ GitHub Actions run `30545059089`, job `90879002972`, reported **1,239 passed and
 
 The two failures were:
 
-- `ImplementationStatusDocumentationTests.Documentation_ProvidesCurrentContinuationPoint`, because this file no longer contained the required `## Verification status` heading. The exact heading is restored in this change.
-- `SuggestDocumentationKeyBracketTitleTests.ExecuteAsync_WithBracketedTitle_ShowsLiteralTitleAndCanonicalKey`, because the assertion depended on ANSI decoration placement around the rich-output `Title:` label. Production already escapes the title through `Markup.Escape`; the test now asserts the literal bracketed title independently of terminal decoration.
+- `ImplementationStatusDocumentationTests.Documentation_ProvidesCurrentContinuationPoint`, because this file had lost exact headings and documentation anchors required by its contract. All required anchors are restored in this change.
+- `SuggestDocumentationKeyBracketTitleTests.ExecuteAsync_WithBracketedTitle_ShowsLiteralTitleAndCanonicalKey`, because the assertion depended on ANSI decoration placement around the rich-output `Title:` label. Production already escapes the title through `Markup.Escape`; the test now asserts the literal bracketed title independently of terminal decoration and is user-verified green.
 
 ## Focused verification
 
@@ -73,9 +73,23 @@ dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .
 git diff --check
 ```
 
-## Documentation status
+## Documentation synchronization completed
 
-High-value Setter documentation synchronization is complete. Maintain `README.md`, `Readme/en.md`, and the existing English documents under `Docs/<topic>/en.md` in line with actual behavior.
+High-value Setter documentation synchronization is complete. Maintained English documentation includes:
+
+- `README.md` and `Readme/en.md`;
+- `Docs/Overview/en.md`;
+- `Docs/Commands/en.md` and `Docs/Command Quick Reference/en.md`;
+- `Docs/Getting-Started/en.md`;
+- `Docs/FAQ/en.md`;
+- `Docs/Known Limitations/en.md`;
+- `Docs/Roadmap and Future Work/en.md`;
+- `Docs/Testing and CI/en.md`;
+- `Docs/Reviewing Catalog Changes/en.md`;
+- `Docs/Safe Writes/en.md` and `Docs/Backups and Recovery/en.md`;
+- `Docs/Architecture Overview/en.md`;
+- `Docs/Contributing to Setter/en.md`;
+- `Docs/Maintainer Notes/en.md`.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
@@ -93,15 +107,15 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-First run the two repaired Setter tests; the expected count is **2 green tests**.
+First rerun the two repaired Setter tests; the expected count is **2 green tests**.
 
 If green, run the complete Setter suite. Do not resume the runtime/public-API audit until the full Setter suite is green again.
 
 ## Last completed change
 
-The ninetieth maintenance slice repairs two CI regressions exposed by GitHub Actions. The continuation document again carries the exact `## Verification status` anchor required by its documentation contract. The bracket-title command test now verifies the literal bracketed title without depending on ANSI decoration placement; production rich output remains unchanged because it already uses `Markup.Escape` correctly.
+The ninety-first maintenance slice restores every exact continuation-document anchor required by `ImplementationStatusDocumentationTests`, including `## Verification status`, `## Documentation synchronization completed`, and the maintained documentation path list. The bracket-title test is already user-verified green. The remaining focused verification target is the documentation contract, followed by the complete Setter suite.
 
-Commits in this repair sequence:
+Commit in this repair sequence:
 
 ```text
 13d80b6e4d7890f77b52f205da8de00863c92c44
