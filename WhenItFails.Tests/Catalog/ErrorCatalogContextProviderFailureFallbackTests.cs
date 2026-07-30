@@ -34,6 +34,30 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
     }
 
     [Fact]
+    public async Task LoadFromJsonsAsync_ShouldPreserveSourceMessageAndUseFallbackCode_WhenFailureHasNoIssues()
+    {
+        const string sourceMessage = "The source error catalog provider rejected the catalog.";
+
+        ErrorCatalogContextProvider provider = new(
+            new MessageOnlyFailedErrorCatalogProvider(sourceMessage),
+            new UnexpectedCategoryCatalogProvider(),
+            new UnexpectedCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal(sourceMessage, response.Message);
+
+        var issue = Assert.Single(response.Issues);
+        Assert.Equal("ErrorCatalogContextErrorCatalogLoadFailed", issue.Code);
+        Assert.Equal(sourceMessage, issue.Message);
+    }
+
+    [Fact]
     public async Task LoadFromJsonsAsync_ShouldUseCategoryFallbackDetailsAndPreserveStatus()
     {
         ErrorCatalogContextProvider provider = new(
@@ -145,6 +169,22 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
             return Task.FromResult(new Response<ErrorCatalogProviderPayload>
             {
                 Status = ResultStatus.NotFound
+            });
+        }
+    }
+
+    private sealed class MessageOnlyFailedErrorCatalogProvider(string message) : IErrorCatalogProvider
+    {
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(new Response<ErrorCatalogProviderPayload>
+            {
+                Status = ResultStatus.Failed,
+                Message = message
             });
         }
     }
