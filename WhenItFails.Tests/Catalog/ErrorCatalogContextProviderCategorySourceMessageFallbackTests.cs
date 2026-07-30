@@ -1,4 +1,5 @@
 using Afrowave.Toolbox.Essentials.Enums;
+using Afrowave.Toolbox.Essentials.Issues;
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
@@ -32,6 +33,36 @@ public sealed class ErrorCatalogContextProviderCategorySourceMessageFallbackTest
         var issue = Assert.Single(response.Issues);
         Assert.Equal("ErrorCatalogContextCategoryCatalogLoadFailed", issue.Code);
         Assert.Equal(sourceMessage, issue.Message);
+    }
+
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldPreserveFirstCategorySourceIssueCodeAndSourceMessage()
+    {
+        const string firstSourceCode = "SourceCategoryCatalogRejected";
+        const string secondSourceCode = "SourceCategoryCatalogSecondary";
+        const string sourceMessage = "The category catalog source supplied a detailed failure.";
+
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new FullSourceNotSupportedCategoryCatalogProvider(
+                firstSourceCode,
+                secondSourceCode,
+                sourceMessage),
+            new UnexpectedCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.NotSupported, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal(sourceMessage, response.Message);
+
+        var issue = Assert.Single(response.Issues);
+        Assert.Equal(firstSourceCode, issue.Code);
+        Assert.Equal(sourceMessage, issue.Message);
+        Assert.DoesNotContain(response.Issues, candidate => candidate.Code == secondSourceCode);
     }
 
     private static JsonsOptions CreateOptions()
@@ -76,6 +107,38 @@ public sealed class ErrorCatalogContextProviderCategorySourceMessageFallbackTest
             {
                 Status = ResultStatus.NotSupported,
                 Message = message
+            });
+        }
+    }
+
+    private sealed class FullSourceNotSupportedCategoryCatalogProvider(
+        string firstCode,
+        string secondCode,
+        string message) : IErrorCategoryCatalogProvider
+    {
+        public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(new Response<ErrorCategoryCatalogProviderPayload>
+            {
+                Status = ResultStatus.NotSupported,
+                Message = message,
+                Issues =
+                [
+                    new IssueInfo
+                    {
+                        Code = firstCode,
+                        Message = "The first source issue message must not replace the response message."
+                    },
+                    new IssueInfo
+                    {
+                        Code = secondCode,
+                        Message = "The second source issue must not escape the context boundary."
+                    }
+                ]
             });
         }
     }
