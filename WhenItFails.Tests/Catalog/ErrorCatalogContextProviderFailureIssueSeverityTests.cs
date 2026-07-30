@@ -97,6 +97,53 @@ public sealed class ErrorCatalogContextProviderFailureIssueSeverityTests
         Assert.Same(sourceMetadata, sourceIssue.Metadata);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldSuppressProviderResponseMetadataAndUseFailureDefaults()
+    {
+        const string sourceCode = "SourceErrorCatalogRejected";
+        const string sourceMessage = "The source error catalog provider rejected the catalog.";
+
+        MetadataBag sourceResponseMetadata = new();
+        sourceResponseMetadata["provider-path"] = "Jsons/WhenItFails/errors.en.json";
+
+        IssueInfo sourceIssue = new()
+        {
+            Code = sourceCode,
+            Message = "The source issue message must not be reused.",
+            Severity = IssueSeverity.Warning
+        };
+
+        ErrorCatalogContextProvider provider = new(
+            new WarningIssueFailedErrorCatalogProvider(
+                sourceMessage,
+                sourceIssue,
+                sourceResponseMetadata),
+            new UnexpectedCategoryCatalogProvider(),
+            new UnexpectedCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.False(response.IsSuccess);
+        Assert.True(response.IsFailure);
+        Assert.False(response.HasData);
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal(sourceMessage, response.Message);
+        Assert.True(response.Metadata.IsEmpty);
+        Assert.NotSame(sourceResponseMetadata, response.Metadata);
+
+        IssueInfo outputIssue = Assert.Single(response.Issues);
+        Assert.Equal(sourceCode, outputIssue.Code);
+        Assert.Equal(sourceMessage, outputIssue.Message);
+        Assert.Equal(IssueSeverity.Error, outputIssue.Severity);
+
+        Assert.Equal(
+            "Jsons/WhenItFails/errors.en.json",
+            sourceResponseMetadata["provider-path"]);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -108,7 +155,8 @@ public sealed class ErrorCatalogContextProviderFailureIssueSeverityTests
 
     private sealed class WarningIssueFailedErrorCatalogProvider(
         string message,
-        IssueInfo sourceIssue)
+        IssueInfo sourceIssue,
+        MetadataBag? responseMetadata = null)
         : IErrorCatalogProvider
     {
         public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
@@ -121,7 +169,8 @@ public sealed class ErrorCatalogContextProviderFailureIssueSeverityTests
             {
                 Status = ResultStatus.Failed,
                 Message = message,
-                Issues = [sourceIssue]
+                Issues = [sourceIssue],
+                Metadata = responseMetadata ?? new MetadataBag()
             });
         }
     }
