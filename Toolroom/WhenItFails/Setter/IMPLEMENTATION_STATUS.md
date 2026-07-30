@@ -23,12 +23,15 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests`: **1 green**.
 - `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: **3 green**.
 - `ErrorCatalogContextProviderFailureIssueSeverityTests`: **4 user-verified green** for severity normalization, source issue immutability, suppression of source-only issue fields, suppression of provider-response metadata, and the distinct `NotFound` flag contract.
+- Current `ErrorCatalogContextProviderSuccessWithWarningsTests`: **1 test pending verification**.
 - Setter CI repair pair — `ImplementationStatusDocumentationTests` and `SuggestDocumentationKeyBracketTitleTests`: **2 user-verified green**.
 - Complete `Toolroom/WhenItFails/Setter.Tests` suite: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The runtime/public-API audit protects provider ordering and configured paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallbacks, source-message and source-code selection, malformed envelopes, first-issue selection, later-issue suppression, synthesized issue severity, source object immutability, suppression of source-only failure fields, suppression of provider-response metadata, and status-derived response flags.
 
 `ResultStatus.NotFound` is intentionally context-neutral rather than automatically successful or failed. It may represent a successful lookup that found no matching item, or a wider operation that cannot complete because a required item was not found. The status therefore remains a distinct non-success category: `IsNotFound == true`, `IsSuccess == false`, and `IsFailure == false`. Severity and surrounding operation context communicate whether the overall outcome is problematic.
+
+The current adjacent success-envelope contract requires `SuccessWithWarnings` from a catalog provider to continue through the remaining providers and cross-validation. The resulting context response must preserve the warning issue and expose `ResultStatus.SuccessWithWarnings`, `IsSuccess == true`, `HasWarnings == true`, and a valid non-null context. Successful provider warnings must not disappear at the composition boundary.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -51,13 +54,13 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 
 Latest user-verified result: **1,241 passed, 0 failed, 0 skipped**.
 
-The current runtime/public-API focused suite is also green:
+Run the current runtime/public-API focused command:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderFailureIssueSeverityTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderSuccessWithWarningsTests
 ```
 
-Latest user-verified result: **4 passed, 0 failed, 0 skipped**.
+Expected result: **1 test**. The test is intentionally capable of exposing a production gap if successful provider warnings are currently discarded.
 
 Before committing catalog changes, also run:
 
@@ -102,15 +105,15 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Inspect exactly one adjacent provider-failure contract outside synthesized response flags. Add one focused test, run it, and do not proceed while red.
+Run `ErrorCatalogContextProviderSuccessWithWarningsTests` and inspect the exact result. Do not change production until the focused test establishes whether provider warnings survive context composition.
 
 ## Last completed change
 
-The ninety-seventh runtime/public-API audit slice records **4 user-verified green tests** in `ErrorCatalogContextProviderFailureIssueSeverityTests`. The final case confirms that `NotFound` remains distinct from `IsFailure`, while an attached synthesized `Error` issue still makes `HasWarnings` true. This preserves the intended context-neutral meaning of `NotFound` without changing production behavior.
+The ninety-eighth runtime/public-API audit slice adds `ErrorCatalogContextProviderSuccessWithWarningsTests`. The error-catalog provider succeeds with a valid payload plus one warning. The remaining providers and cross-validation must complete, and the final context response must remain successful while preserving the warning as `SuccessWithWarnings`. This test intentionally checks whether successful provider diagnostics are currently lost at the context boundary.
 
-Commits:
+Commit:
 
 ```text
-d8066e18c4c68fa11c364c1daf9e69d9907646c5
-Align NotFound response flag expectations
+b73380b641088a6c8df28729fb71699ca65f20b8
+Preserve provider warnings in catalog context
 ```
