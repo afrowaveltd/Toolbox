@@ -1,4 +1,5 @@
 using Afrowave.Toolbox.Essentials.Enums;
+using Afrowave.Toolbox.Essentials.Issues;
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
@@ -55,6 +56,31 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
         var issue = Assert.Single(response.Issues);
         Assert.Equal("ErrorCatalogContextErrorCatalogLoadFailed", issue.Code);
         Assert.Equal(sourceMessage, issue.Message);
+    }
+
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldPreserveSourceIssueCodeAndUseFallbackMessage_WhenFailureMessageIsEmpty()
+    {
+        const string sourceCode = "SourceErrorCatalogRejected";
+        const string fallbackMessage = "Error catalog loading failed while creating catalog context.";
+
+        ErrorCatalogContextProvider provider = new(
+            new IssueCodeOnlyInvalidErrorCatalogProvider(sourceCode),
+            new UnexpectedCategoryCatalogProvider(),
+            new UnexpectedCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Invalid, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal(fallbackMessage, response.Message);
+
+        var issue = Assert.Single(response.Issues);
+        Assert.Equal(sourceCode, issue.Code);
+        Assert.Equal(fallbackMessage, issue.Message);
     }
 
     [Fact]
@@ -185,6 +211,28 @@ public sealed class ErrorCatalogContextProviderFailureFallbackTests
             {
                 Status = ResultStatus.Failed,
                 Message = message
+            });
+        }
+    }
+
+    private sealed class IssueCodeOnlyInvalidErrorCatalogProvider(string code) : IErrorCatalogProvider
+    {
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(new Response<ErrorCatalogProviderPayload>
+            {
+                Status = ResultStatus.Invalid,
+                Issues =
+                [
+                    new IssueInfo
+                    {
+                        Code = code
+                    }
+                ]
             });
         }
     }
