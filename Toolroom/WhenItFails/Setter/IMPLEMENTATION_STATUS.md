@@ -22,18 +22,18 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderCodeGroupSourceEnvelopeTests`: **1 green**.
 - `ErrorCatalogContextProviderOwnerSourceEnvelopeTests`: **1 green**.
 - `ErrorCatalogContextProviderProfileSourceEnvelopeTests`: **1 green**.
-- `ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests`: **1 user-verified green**.
-- Current `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: **1 test pending verification**.
+- `ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests`: **1 green**.
+- `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: initially **1 red**, exposing a missing malformed-code guard; production fix is committed and awaiting rerun.
 
-The audit protects provider ordering and paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallback details, source-message preservation, source-code preservation, first-issue selection, later-issue suppression, and whitespace-only message fallback.
+The audit protects provider ordering and paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallback details, source-message preservation, source-code preservation, first-issue selection, later-issue suppression, whitespace-only message fallback, and malformed first-issue-code fallback.
 
 The full-source failure-envelope sequence is complete across error, category, code-group, owner, and profile boundaries.
 
-The new malformed-source-code contract requires:
+The malformed-source-code production fix now requires:
 
 - an error-provider failure with `ResultStatus.Failed`;
 - a non-empty source response message;
-- a first source issue whose code is whitespace-only;
+- a first source issue whose code is null, empty, or whitespace-only;
 - use of `ErrorCatalogContextErrorCatalogLoadFailed` instead of exposing the malformed code;
 - preservation of the source message in both the outer response and output issue;
 - exactly one output issue;
@@ -48,7 +48,7 @@ Do not invent automatic `DefaultMappings` consumption.
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests
 ```
 
-Expected result: **1 green test**. The current implementation may expose a missing guard and produce one focused failure; if so, fix only `CreateFailedContextResponse` and rerun this test.
+Expected result after commit `15c67cf7ace0974384fb23b8fe07b3fef272fd42`: **1 green test**.
 
 Primary Setter verification command:
 
@@ -85,17 +85,17 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`; the expected count is **1 test**.
+Rerun `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`; the expected count is **1 green test**.
 
-If it fails because the output issue code remains whitespace, update `CreateFailedContextResponse` so a null, empty, or whitespace first source issue code uses the provider-specific fallback code. Do not select a later source issue.
+If green, record the verification and inspect exactly one adjacent malformed-source contract outside this slice.
 
 ## Last completed change
 
-The eighty-fourth runtime/public-API audit slice adds `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`. The error provider returns `ResultStatus.Failed`, a meaningful response message, and two source issues: the first has a whitespace-only code and the second has a valid code. The context provider must retain first-issue selection semantics while replacing the malformed first code with `ErrorCatalogContextErrorCatalogLoadFailed`, preserve the source message, emit one issue, return no context, and invoke no later provider.
+The eighty-fifth runtime/public-API audit slice fixes the malformed first-source-issue-code path in `ErrorCatalogContextProvider.CreateFailedContextResponse`. The helper now reads the first source issue code, validates it with `string.IsNullOrWhiteSpace`, and uses the provider-specific fallback code when the source code is null, empty, or whitespace. It retains first-issue selection semantics, does not promote a later source issue, preserves the source response message and status, and prevents the lower-level `IssueInfoFactory` validation exception.
 
 Commit:
 
 ```text
-80609d830106e68043d5ac2af7dd7a22695ba79b
-Protect whitespace-only source issue codes
+15c67cf7ace0974384fb23b8fe07b3fef272fd42
+Guard malformed provider failure issue codes
 ```
