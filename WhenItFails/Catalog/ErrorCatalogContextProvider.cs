@@ -1,3 +1,4 @@
+using Afrowave.Toolbox.Essentials.Issues;
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Enums;
@@ -47,6 +48,8 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(options);
 
+        List<IssueInfo> providerIssues = [];
+
         Response<ErrorCatalogProviderPayload> errorCatalogResponse =
             await _errorCatalogProvider.LoadFromFileAsync(
                 options.ErrorCatalogFilePath,
@@ -64,6 +67,8 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
         {
             return CreateNullPayloadResponse();
         }
+
+        providerIssues.AddRange(errorCatalogResponse.Issues);
 
         Response<ErrorCategoryCatalogProviderPayload> categoryCatalogResponse =
             await _categoryCatalogProvider.LoadFromFileAsync(
@@ -83,6 +88,8 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
             return CreateNullPayloadResponse();
         }
 
+        providerIssues.AddRange(categoryCatalogResponse.Issues);
+
         Response<ErrorCodeGroupCatalogProviderPayload> codeGroupCatalogResponse =
             await _codeGroupCatalogProvider.LoadFromFileAsync(
                 options.CodeGroupCatalogFilePath,
@@ -100,6 +107,8 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
         {
             return CreateNullPayloadResponse();
         }
+
+        providerIssues.AddRange(codeGroupCatalogResponse.Issues);
 
         Response<ErrorOwnerCatalogProviderPayload> ownerCatalogResponse =
             await _ownerCatalogProvider.LoadFromFileAsync(
@@ -119,6 +128,8 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
             return CreateNullPayloadResponse();
         }
 
+        providerIssues.AddRange(ownerCatalogResponse.Issues);
+
         Response<ErrorProfileCatalogProviderPayload> profileCatalogResponse =
             await _profileCatalogProvider.LoadFromFileAsync(
                 options.ProfilesFilePath,
@@ -136,6 +147,8 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
         {
             return CreateNullPayloadResponse();
         }
+
+        providerIssues.AddRange(profileCatalogResponse.Issues);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -175,7 +188,9 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
             CrossValidationResult = crossValidationResult
         };
 
-        return Response<ErrorCatalogContext>.Ok(context);
+        return providerIssues.Count == 0
+            ? Response<ErrorCatalogContext>.Ok(context)
+            : Response<ErrorCatalogContext>.OkWithWarnings(context, providerIssues);
     }
 
     private static Response<ErrorCatalogContext> CreateFailedContextResponse<TPayload>(
