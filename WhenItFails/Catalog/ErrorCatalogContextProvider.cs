@@ -184,9 +184,13 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
         string fallbackMessage)
         where TPayload : class
     {
-        string issueCode = sourceResponse.Issues.Count > 0
+        string? sourceIssueCode = sourceResponse.Issues.Count > 0
             ? sourceResponse.Issues[0].Code
-            : fallbackCode;
+            : null;
+
+        string issueCode = string.IsNullOrWhiteSpace(sourceIssueCode)
+            ? fallbackCode
+            : sourceIssueCode;
 
         string message = string.IsNullOrWhiteSpace(sourceResponse.Message)
             ? fallbackMessage
