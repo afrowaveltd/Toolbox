@@ -22,14 +22,13 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderProfileSourceEnvelopeTests`: **1 green**.
 - `ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests`: **1 green**.
 - `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: **3 green**.
-- `ErrorCatalogContextProviderFailureIssueSeverityTests`: **3 user-verified green** for severity normalization, source issue immutability, suppression of source-only issue fields, and suppression of provider-response metadata.
-- Current status-flags slice contains a fourth test in `ErrorCatalogContextProviderFailureIssueSeverityTests`; the previous run reported **3 passed and 1 failed** because the test incorrectly treated `NotFound` as `IsFailure`.
+- `ErrorCatalogContextProviderFailureIssueSeverityTests`: **4 user-verified green** for severity normalization, source issue immutability, suppression of source-only issue fields, suppression of provider-response metadata, and the distinct `NotFound` flag contract.
 - Setter CI repair pair — `ImplementationStatusDocumentationTests` and `SuggestDocumentationKeyBracketTitleTests`: **2 user-verified green**.
 - Complete `Toolroom/WhenItFails/Setter.Tests` suite: **1,241 user-verified green, 0 failed, 0 skipped**.
 
-The runtime/public-API audit protects provider ordering and configured paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallbacks, source-message and source-code selection, malformed envelopes, first-issue selection, later-issue suppression, synthesized issue severity, source object immutability, suppression of source-only failure fields, and suppression of provider-response metadata.
+The runtime/public-API audit protects provider ordering and configured paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallbacks, source-message and source-code selection, malformed envelopes, first-issue selection, later-issue suppression, synthesized issue severity, source object immutability, suppression of source-only failure fields, suppression of provider-response metadata, and status-derived response flags.
 
-The corrected synthesized-response contract preserves `ResultStatus.NotFound` as its own non-success category. The output must expose `Status.IsNotFound() == true`, `IsSuccess == false`, `IsFailure == false`, `HasWarnings == true` because the synthesized issue has `Error` severity, and `HasData == false`. It must return no context, retain empty response metadata, and invoke no later provider.
+`ResultStatus.NotFound` is intentionally context-neutral rather than automatically successful or failed. It may represent a successful lookup that found no matching item, or a wider operation that cannot complete because a required item was not found. The status therefore remains a distinct non-success category: `IsNotFound == true`, `IsSuccess == false`, and `IsFailure == false`. Severity and surrounding operation context communicate whether the overall outcome is problematic.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -52,13 +51,13 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 
 Latest user-verified result: **1,241 passed, 0 failed, 0 skipped**.
 
-Run the corrected runtime/public-API focused command:
+The current runtime/public-API focused suite is also green:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderFailureIssueSeverityTests
 ```
 
-Expected result: **4 green tests**.
+Latest user-verified result: **4 passed, 0 failed, 0 skipped**.
 
 Before committing catalog changes, also run:
 
@@ -103,15 +102,13 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Run `ErrorCatalogContextProviderFailureIssueSeverityTests`; the expected count is **4 green tests**.
-
-If green, record verification and inspect exactly one adjacent provider-failure contract outside synthesized response flags.
+Inspect exactly one adjacent provider-failure contract outside synthesized response flags. Add one focused test, run it, and do not proceed while red.
 
 ## Last completed change
 
-The ninety-sixth runtime/public-API audit slice corrects the `NotFound` derived-flag expectation. Essentials intentionally classifies `NotFound` separately from `IsFailure`; the test now asserts `IsNotFound == true`, `IsSuccess == false`, and `IsFailure == false`, while retaining `HasWarnings == true` because the synthesized output issue has `Error` severity. Production behavior remains unchanged.
+The ninety-seventh runtime/public-API audit slice records **4 user-verified green tests** in `ErrorCatalogContextProviderFailureIssueSeverityTests`. The final case confirms that `NotFound` remains distinct from `IsFailure`, while an attached synthesized `Error` issue still makes `HasWarnings` true. This preserves the intended context-neutral meaning of `NotFound` without changing production behavior.
 
-Commit:
+Commits:
 
 ```text
 d8066e18c4c68fa11c364c1daf9e69d9907646c5
