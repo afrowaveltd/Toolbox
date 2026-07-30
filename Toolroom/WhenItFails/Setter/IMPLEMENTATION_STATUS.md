@@ -21,35 +21,32 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderOwnerSourceEnvelopeTests`: **1 green**.
 - `ErrorCatalogContextProviderProfileSourceEnvelopeTests`: **1 green**.
 - `ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests`: **1 green**.
-- `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: **2 user-verified green** for empty-string and whitespace-only first source issue codes.
-- Current combined malformed-envelope slice adds a third test to `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`; the next successful run is expected to report **3 tests**.
+- `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: **3 user-verified green**, covering empty and whitespace issue codes plus the combined malformed-code/malformed-message envelope.
+- Current `ErrorCatalogContextProviderFailureIssueSeverityTests`: **1 test pending verification**.
 
-The audit protects provider ordering and paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallback details, source-message preservation, source-code preservation, first-issue selection, later-issue suppression, whitespace-only message fallback, and malformed first-issue-code fallback.
+The audit protects provider ordering and configured paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallback details, source-message preservation, source-code preservation, first-issue selection, later-issue suppression, malformed code/message fallback, and original status preservation.
 
 The full-source failure-envelope sequence is complete across error, category, code-group, owner, and profile boundaries.
 
-The malformed-source guard now has focused coverage for:
+The current response-shape contract requires:
 
-- empty first source issue code;
-- whitespace-only first source issue code;
-- simultaneous whitespace-only source code and response message;
-- provider-specific fallback code and fallback message selection;
-- preservation of the original failure status;
+- an error-provider failure with `ResultStatus.Failed`;
+- a first source issue with a meaningful code but misleading `Warning` severity and its own message;
+- preservation of the source issue code and source response message;
+- synthesis of a distinct output issue with `Error` severity;
+- no mutation or reuse of the source `IssueInfo` instance;
 - exactly one output issue;
-- no promotion of a later valid source issue;
 - no context or later provider execution.
-
-The production guard also handles null through `string.IsNullOrWhiteSpace`; no null test is added because `IssueInfo.Code` is a non-nullable public contract and forcing null would add artificial nullable noise.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Focused verification
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderFailureIssueSeverityTests
 ```
 
-Expected result: **3 green tests**.
+Expected result: **1 green test**.
 
 Primary Setter verification command:
 
@@ -86,17 +83,17 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Run `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`; the expected count is **3 green tests**.
+Run `ErrorCatalogContextProviderFailureIssueSeverityTests`; the expected count is **1 green test**.
 
-If green, the malformed code/message fallback interaction is complete. Inspect exactly one adjacent response-shape contract outside this slice.
+If green, record the verification and inspect exactly one adjacent synthesized-issue shape contract, such as suppression of source issue details, number, or metadata.
 
 ## Last completed change
 
-The eighty-seventh runtime/public-API audit slice adds a combined malformed-envelope test. The error provider returns `ResultStatus.Failed`, a whitespace-only response message, and two source issues whose first code is whitespace-only while the second code is valid. `ErrorCatalogContextProvider` must select both documented error-catalog fallbacks, preserve `Failed`, emit exactly one issue, avoid promoting the later valid issue, return no context, and invoke no later provider.
+The eighty-eighth runtime/public-API audit slice adds `ErrorCatalogContextProviderFailureIssueSeverityTests`. A failed error provider returns a source issue with a valid code, a source-only message, and `Warning` severity. `ErrorCatalogContextProvider` must create a distinct output issue, preserve the code and response-level message, normalize severity to `Error`, leave the source issue unchanged, emit exactly one issue, return no context, and invoke no later provider.
 
 Commit:
 
 ```text
-118e982c34852c53eef50018ab06a2a9fbb72165
-Protect combined malformed failure fallbacks
+e6c2cba84ce5dbdfefe006b6e9dc570ef2116264
+Normalize provider failure issue severity
 ```
