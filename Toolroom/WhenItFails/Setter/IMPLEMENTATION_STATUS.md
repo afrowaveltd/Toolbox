@@ -23,22 +23,25 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderOwnerSourceEnvelopeTests`: **1 green**.
 - `ErrorCatalogContextProviderProfileSourceEnvelopeTests`: **1 green**.
 - `ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests`: **1 green**.
-- `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: initially **1 red**, exposing a missing malformed-code guard; production fix is committed and awaiting rerun.
+- `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: **1 user-verified green** after the malformed-code production guard fix.
+- Current expansion converts that test into a theory for empty-string and whitespace-only first source issue codes; the expected count is **2 tests**.
 
 The audit protects provider ordering and paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallback details, source-message preservation, source-code preservation, first-issue selection, later-issue suppression, whitespace-only message fallback, and malformed first-issue-code fallback.
 
 The full-source failure-envelope sequence is complete across error, category, code-group, owner, and profile boundaries.
 
-The malformed-source-code production fix now requires:
+The malformed-source-code guard requires:
 
 - an error-provider failure with `ResultStatus.Failed`;
 - a non-empty source response message;
-- a first source issue whose code is null, empty, or whitespace-only;
+- a first source issue whose code is empty or whitespace-only;
 - use of `ErrorCatalogContextErrorCatalogLoadFailed` instead of exposing the malformed code;
 - preservation of the source message in both the outer response and output issue;
 - exactly one output issue;
 - no promotion of a later source issue code;
 - no context or later provider execution.
+
+The production guard also handles null through `string.IsNullOrWhiteSpace`; no null test is added because `IssueInfo.Code` is a non-nullable public contract and forcing null would add artificial nullable noise.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -48,7 +51,7 @@ Do not invent automatic `DefaultMappings` consumption.
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests
 ```
 
-Expected result after commit `15c67cf7ace0974384fb23b8fe07b3fef272fd42`: **1 green test**.
+Expected result: **2 green tests**.
 
 Primary Setter verification command:
 
@@ -85,17 +88,17 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Rerun `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`; the expected count is **1 green test**.
+Run `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`; the expected count is **2 green tests**.
 
 If green, record the verification and inspect exactly one adjacent malformed-source contract outside this slice.
 
 ## Last completed change
 
-The eighty-fifth runtime/public-API audit slice fixes the malformed first-source-issue-code path in `ErrorCatalogContextProvider.CreateFailedContextResponse`. The helper now reads the first source issue code, validates it with `string.IsNullOrWhiteSpace`, and uses the provider-specific fallback code when the source code is null, empty, or whitespace. It retains first-issue selection semantics, does not promote a later source issue, preserves the source response message and status, and prevents the lower-level `IssueInfoFactory` validation exception.
+The eighty-sixth runtime/public-API audit slice expands `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests` from one fact into a two-case theory. Both empty-string and whitespace-only first source issue codes must use `ErrorCatalogContextErrorCatalogLoadFailed`, preserve the source response message and status, emit exactly one issue, retain first-issue selection semantics, and avoid all later provider execution. No production change is required beyond the already committed malformed-code guard.
 
 Commit:
 
 ```text
-15c67cf7ace0974384fb23b8fe07b3fef272fd42
-Guard malformed provider failure issue codes
+d19d6f57b4726ca7f4bdbcd51c673913e058636d
+Cover empty and whitespace source issue codes
 ```
