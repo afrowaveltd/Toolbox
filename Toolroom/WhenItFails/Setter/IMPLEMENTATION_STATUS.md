@@ -30,8 +30,8 @@ Recent runtime/public-API audit verification:
 - `ErrorCatalogContextProviderOwnerNullTaskTests`: **1 green**.
 - `ErrorCatalogContextProviderProfileNullTaskTests`: **1 green**.
 - `ErrorCatalogContextProviderNullResponseTaskResultTests`: **5 user-verified green**, completing null-response-result coverage across all five provider boundaries.
-- `ErrorCatalogContextProviderFailureFallbackTests`: **5 user-verified green**, completing empty failure-response fallback coverage across all five provider boundaries.
-- Current source-message slice adds a sixth focused test to `ErrorCatalogContextProviderFailureFallbackTests`; the next successful run is expected to report **6 tests**.
+- `ErrorCatalogContextProviderFailureFallbackTests`: **6 user-verified green**, covering empty provider failures across all five boundaries plus preservation of a source message when no source issues exist.
+- Current source-code slice adds a seventh focused test to `ErrorCatalogContextProviderFailureFallbackTests`; the next successful run is expected to report **7 tests**.
 
 Focused verification command for the current slice:
 
@@ -91,7 +91,8 @@ Completed contracts now protect:
 13. code-group fallback preserves `ResultStatus.Cancelled` and synthesizes `ErrorCatalogContextCodeGroupCatalogLoadFailed` plus its documented message;
 14. owner fallback preserves `ResultStatus.Failed` and synthesizes `ErrorCatalogContextOwnerCatalogLoadFailed` plus its documented message;
 15. profile fallback preserves `ResultStatus.Invalid` and synthesizes `ErrorCatalogContextProfileCatalogLoadFailed` plus its documented message;
-16. the current source-message contract preserves a provider's non-empty message in both the outer response and synthesized issue while adding only the provider-specific fallback code when no source issues exist.
+16. a provider's non-empty message is preserved in both the outer response and synthesized issue while only the provider-specific fallback code is added when no source issues exist;
+17. the current source-code contract preserves the first source issue code, supplies the provider-specific fallback message when the source response message is empty, mirrors that message into the synthesized issue, preserves the original status, and short-circuits later providers.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -124,19 +125,19 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderFailureFallbackTests`; the expected count is **6 green tests**.
+First verify `ErrorCatalogContextProviderFailureFallbackTests`; the expected count is **7 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect exactly one adjacent source-message boundary, preferably the category-provider failure response with a non-empty message and no issues after a successful error provider.
+If green, inspect exactly one adjacent full-source failure-envelope contract: when a failure response supplies both a source issue code and a non-empty source message, preserve both values while keeping only the first issue and the original status.
 
 ## Last completed change
 
-The seventy-sixth runtime/public-API audit slice protects the failure-envelope contract when an error provider returns `ResultStatus.Failed` with a non-empty source message but no issues. `ErrorCatalogContextProvider` must preserve that message in both the outer response and the synthesized issue, add `ErrorCatalogContextErrorCatalogLoadFailed` as the fallback code, return no context, and invoke no later provider.
+The seventy-seventh runtime/public-API audit slice protects the complementary failure-envelope branch. An error provider returns `ResultStatus.Invalid`, one source issue with code `SourceErrorCatalogRejected`, and an empty response message. `ErrorCatalogContextProvider` must preserve the source issue code, use the documented error-catalog fallback message in both the outer response and synthesized issue, preserve `Invalid`, return no context, and invoke no later provider.
 
 Commit in this change sequence:
 
 ```text
-d7e1656497cf8f5569ce235ce6636dd1071c46e1
-Preserve provider failure source message
+8038fe62760c72532e248cb54d4ab794a983910f
+Protect source issue code with fallback message
 ```
