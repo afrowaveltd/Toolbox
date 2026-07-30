@@ -23,7 +23,7 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests`: **1 green**.
 - `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: **3 green**.
 - `ErrorCatalogContextProviderFailureIssueSeverityTests`: **4 user-verified green** for severity normalization, source issue immutability, suppression of source-only issue fields, suppression of provider-response metadata, and the distinct `NotFound` flag contract.
-- `ErrorCatalogContextProviderSuccessWithWarningsTests`: previous focused run reported **1 failed** because the final context response discarded a successful provider warning and returned `Success` instead of `SuccessWithWarnings`; production is now fixed and the rerun is pending.
+- `ErrorCatalogContextProviderSuccessWithWarningsTests`: **1 user-verified green** confirming that a successful provider warning survives context composition; a second aggregation-order test is pending.
 - Setter CI repair pair — `ImplementationStatusDocumentationTests` and `SuggestDocumentationKeyBracketTitleTests`: **2 user-verified green**.
 - Complete `Toolroom/WhenItFails/Setter.Tests` suite: **1,241 user-verified green, 0 failed, 0 skipped**.
 
@@ -31,7 +31,7 @@ The runtime/public-API audit protects provider ordering and configured paths, sh
 
 `ResultStatus.NotFound` is intentionally context-neutral rather than automatically successful or failed. It may represent a successful lookup that found no matching item, or a wider operation that cannot complete because a required item was not found. The status therefore remains a distinct non-success category: `IsNotFound == true`, `IsSuccess == false`, and `IsFailure == false`. Severity and surrounding operation context communicate whether the overall outcome is problematic.
 
-The successful-provider composition contract now collects issues from all five successful catalog responses in provider order. If no issues are present, the context response remains plain `Success`. If one or more issues are present, the context response uses `SuccessWithWarnings`, preserves the issues, remains successful, and returns the fully validated non-null context. Failure short-circuit and cross-validation behavior are unchanged.
+The successful-provider composition contract collects issues from all five successful catalog responses in provider order. If no issues are present, the context response remains plain `Success`. If one or more issues are present, the context response uses `SuccessWithWarnings`, preserves every issue in provider execution order, remains successful, and returns the fully validated non-null context. Failure short-circuit and cross-validation behavior are unchanged.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -54,13 +54,13 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 
 Latest user-verified result: **1,241 passed, 0 failed, 0 skipped**.
 
-Rerun the current runtime/public-API focused test after the production fix:
+Run the expanded successful-provider warning suite:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderSuccessWithWarningsTests
 ```
 
-Expected result: **1 green test**.
+Expected result: **2 green tests**.
 
 Before committing catalog changes, also run:
 
@@ -105,18 +105,18 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Rerun `ErrorCatalogContextProviderSuccessWithWarningsTests`; the expected count is **1 green test**. Do not proceed until the focused test confirms that successful provider warnings survive context composition.
+Run `ErrorCatalogContextProviderSuccessWithWarningsTests`; the expected count is **2 green tests**. Do not proceed until warning aggregation completeness and provider-order preservation are verified.
 
 ## Last completed change
 
-The ninety-ninth runtime/public-API audit slice fixes a real composition defect exposed by `ErrorCatalogContextProviderSuccessWithWarningsTests`. `ErrorCatalogContextProvider` now aggregates issues from each successful catalog provider in execution order. A warning-bearing successful provider therefore produces a final `SuccessWithWarnings` context response instead of silently losing the warning and returning plain `Success`. A completely clean provider sequence still returns plain `Success`.
+The one-hundredth runtime/public-API audit slice records the user-verified production fix for successful provider warnings and extends `ErrorCatalogContextProviderSuccessWithWarningsTests` with a second focused case. Warning issues emitted by the error-catalog and owner-catalog providers must both survive context composition and remain ordered by provider execution. No additional production change is expected unless this aggregation-order test fails.
 
 Commits:
 
 ```text
-b73380b641088a6c8df28729fb71699ca65f20b8
-Add successful provider warning preservation test
-
 24dd625047033cc8a285f07552421eeed23b5ab7
 Preserve provider warnings in catalog context
+
+a1ce12c505031b4a4780d6951c6a3d048885779a
+Verify warning aggregation order
 ```
