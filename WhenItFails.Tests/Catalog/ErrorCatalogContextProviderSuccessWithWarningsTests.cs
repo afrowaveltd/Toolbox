@@ -91,6 +91,45 @@ public sealed class ErrorCatalogContextProviderSuccessWithWarningsTests
             });
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldPreserveInformationWithoutReportingWarnings()
+    {
+        const string informationCode = "ErrorCatalogProviderInformation";
+        const string informationMessage = "The error catalog provider supplied additional diagnostic information.";
+
+        IssueInfo information = IssueInfoFactory.Information(
+            informationCode,
+            informationMessage);
+
+        Response<ErrorCatalogProviderPayload> sourceResponse = new()
+        {
+            Status = ResultStatus.Success,
+            Data = CreateErrorCatalogPayload(),
+            Issues = [information]
+        };
+
+        ErrorCatalogContextProvider provider = new(
+            new FakeErrorCatalogProvider(sourceResponse),
+            new FakeCategoryCatalogProvider(),
+            new FakeCodeGroupCatalogProvider(),
+            new FakeOwnerCatalogProvider(),
+            new FakeProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response =
+            await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.True(response.IsSuccess);
+        Assert.Equal(ResultStatus.Success, response.Status);
+        Assert.False(response.HasWarnings);
+        Assert.NotNull(response.Data);
+        Assert.True(response.Data.CrossValidationResult.IsValid);
+
+        IssueInfo outputInformation = Assert.Single(response.Issues);
+        Assert.Equal(informationCode, outputInformation.Code);
+        Assert.Equal(informationMessage, outputInformation.Message);
+        Assert.Equal(IssueSeverity.Information, outputInformation.Severity);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
