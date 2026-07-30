@@ -30,13 +30,13 @@ Recent runtime/public-API audit verification:
 - `ErrorCatalogContextProviderOwnerNullTaskTests`: **1 green**.
 - `ErrorCatalogContextProviderProfileNullTaskTests`: **1 green**.
 - `ErrorCatalogContextProviderNullResponseTaskResultTests`: **5 user-verified green**, completing null-response-result coverage across all five provider boundaries.
-- `ErrorCatalogContextProviderFailureFallbackTests`: **6 user-verified green**, covering empty provider failures across all five boundaries plus preservation of a source message when no source issues exist.
-- Current source-code slice adds a seventh focused test to `ErrorCatalogContextProviderFailureFallbackTests`; the next successful run is expected to report **7 tests**.
+- `ErrorCatalogContextProviderFailureFallbackTests`: **7 user-verified green**, covering empty provider failures across all five boundaries, source-message preservation, and source-code preservation with a fallback message.
+- Current category source-message slice adds **1 focused test** in `ErrorCatalogContextProviderCategorySourceMessageFallbackTests`; it is not yet user-verified.
 
 Focused verification command for the current slice:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderFailureFallbackTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderCategorySourceMessageFallbackTests
 ```
 
 Primary Setter verification command:
@@ -92,7 +92,8 @@ Completed contracts now protect:
 14. owner fallback preserves `ResultStatus.Failed` and synthesizes `ErrorCatalogContextOwnerCatalogLoadFailed` plus its documented message;
 15. profile fallback preserves `ResultStatus.Invalid` and synthesizes `ErrorCatalogContextProfileCatalogLoadFailed` plus its documented message;
 16. a provider's non-empty message is preserved in both the outer response and synthesized issue while only the provider-specific fallback code is added when no source issues exist;
-17. the current source-code contract preserves the first source issue code, supplies the provider-specific fallback message when the source response message is empty, mirrors that message into the synthesized issue, preserves the original status, and short-circuits later providers.
+17. the first source issue code is preserved while the provider-specific fallback message is supplied when the source response message is empty;
+18. the current category source-message contract preserves the category provider's non-empty message in both the outer response and synthesized issue, adds only `ErrorCatalogContextCategoryCatalogLoadFailed`, preserves `NotSupported`, and prevents code-group, owner, and profile execution.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -125,19 +126,19 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderFailureFallbackTests`; the expected count is **7 green tests**.
+First verify `ErrorCatalogContextProviderCategorySourceMessageFallbackTests`; the expected count is **1 green test**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, inspect exactly one adjacent full-source failure-envelope contract: when a failure response supplies both a source issue code and a non-empty source message, preserve both values while keeping only the first issue and the original status.
+If green, inspect exactly one adjacent category failure-envelope contract: when the category failure response supplies both a source issue code and a non-empty source message, preserve both values while keeping only the first issue and the original status.
 
 ## Last completed change
 
-The seventy-seventh runtime/public-API audit slice protects the complementary failure-envelope branch. An error provider returns `ResultStatus.Invalid`, one source issue with code `SourceErrorCatalogRejected`, and an empty response message. `ErrorCatalogContextProvider` must preserve the source issue code, use the documented error-catalog fallback message in both the outer response and synthesized issue, preserve `Invalid`, return no context, and invoke no later provider.
+The seventy-eighth runtime/public-API audit slice extends source-message preservation to the category-provider boundary. After a valid error-catalog response, the category provider returns `ResultStatus.NotSupported` with a non-empty source message and no issues. `ErrorCatalogContextProvider` must preserve that message in both the outer response and synthesized issue, add `ErrorCatalogContextCategoryCatalogLoadFailed` as the fallback code, return no context, and invoke no code-group, owner, or profile provider.
 
 Commit in this change sequence:
 
 ```text
-8038fe62760c72532e248cb54d4ab794a983910f
-Protect source issue code with fallback message
+2f405ea7d4d066861340d0b649edf9e0e820d43a
+Protect category failure source message
 ```
