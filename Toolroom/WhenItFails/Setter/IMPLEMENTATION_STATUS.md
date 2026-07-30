@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-07-29
+Last updated: 2026-07-30
 
 This file is the continuation point for `Toolroom/WhenItFails/Setter` development. Update it after every implementation, test, or documentation change that alters the current state or recommended next step.
 
@@ -30,8 +30,8 @@ Recent runtime/public-API audit verification:
 - `ErrorCatalogContextProviderOwnerNullTaskTests`: **1 green**.
 - `ErrorCatalogContextProviderProfileNullTaskTests`: **1 green**.
 - `ErrorCatalogContextProviderNullResponseTaskResultTests`: **5 user-verified green**, completing null-response-result coverage across all five provider boundaries.
-- `ErrorCatalogContextProviderFailureFallbackTests`: **4 user-verified green** for error-, category-, code-group-, and owner-provider fallback contracts.
-- Current profile fallback slice adds a fifth focused test to `ErrorCatalogContextProviderFailureFallbackTests`; the next successful run is expected to report **5 tests**.
+- `ErrorCatalogContextProviderFailureFallbackTests`: **5 user-verified green**, completing empty failure-response fallback coverage across all five provider boundaries.
+- Current source-message slice adds a sixth focused test to `ErrorCatalogContextProviderFailureFallbackTests`; the next successful run is expected to report **6 tests**.
 
 Focused verification command for the current slice:
 
@@ -90,7 +90,8 @@ Completed contracts now protect:
 12. category fallback preserves `ResultStatus.NotSupported` and synthesizes `ErrorCatalogContextCategoryCatalogLoadFailed` plus its documented message;
 13. code-group fallback preserves `ResultStatus.Cancelled` and synthesizes `ErrorCatalogContextCodeGroupCatalogLoadFailed` plus its documented message;
 14. owner fallback preserves `ResultStatus.Failed` and synthesizes `ErrorCatalogContextOwnerCatalogLoadFailed` plus its documented message;
-15. the current profile fallback contract preserves `ResultStatus.Invalid`, synthesizes `ErrorCatalogContextProfileCatalogLoadFailed` and the documented profile message, returns no context, and prevents cross-validation or context construction.
+15. profile fallback preserves `ResultStatus.Invalid` and synthesizes `ErrorCatalogContextProfileCatalogLoadFailed` plus its documented message;
+16. the current source-message contract preserves a provider's non-empty message in both the outer response and synthesized issue while adding only the provider-specific fallback code when no source issues exist.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -123,19 +124,19 @@ These are boundaries or future candidates, not undocumented defects.
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderFailureFallbackTests`; the expected count is **5 green tests**.
+First verify `ErrorCatalogContextProviderFailureFallbackTests`; the expected count is **6 green tests**.
 
 Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
 
-If green, the provider-specific empty-failure fallback sequence is complete. Inspect exactly one adjacent failure-envelope contract outside this sequence, preferably behavior when a failure response has a non-empty message but no issues: preserve that source message while synthesizing only the provider-specific fallback code.
+If green, inspect exactly one adjacent source-message boundary, preferably the category-provider failure response with a non-empty message and no issues after a successful error provider.
 
 ## Last completed change
 
-The seventy-fifth runtime/public-API audit slice completes provider-specific empty-failure fallback coverage at the profile boundary. After valid error, category, code-group, and owner responses, a profile provider returns `ResultStatus.Invalid` with no issues and no message. `ErrorCatalogContextProvider` must preserve `Invalid`, synthesize `ErrorCatalogContextProfileCatalogLoadFailed` and the documented profile fallback message, return no context, and not begin cross-validation or construct an `ErrorCatalogContext`.
+The seventy-sixth runtime/public-API audit slice protects the failure-envelope contract when an error provider returns `ResultStatus.Failed` with a non-empty source message but no issues. `ErrorCatalogContextProvider` must preserve that message in both the outer response and the synthesized issue, add `ErrorCatalogContextErrorCatalogLoadFailed` as the fallback code, return no context, and invoke no later provider.
 
 Commit in this change sequence:
 
 ```text
-fc91899b5ae90efb95c9aa5e3a9ff3f7841b7c69
-Protect profile failure fallback details
+d7e1656497cf8f5569ce235ce6636dd1071c46e1
+Preserve provider failure source message
 ```
