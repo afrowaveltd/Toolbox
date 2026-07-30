@@ -10,7 +10,7 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-## Runtime/public-API verification
+## Verification status
 
 Recently verified focused contracts:
 
@@ -31,19 +31,38 @@ The current response-shape contract requires the synthesized failure issue to pr
 
 Do not invent automatic `DefaultMappings` consumption.
 
+## Current CI repair
+
+GitHub Actions run `30545059089`, job `90879002972`, reported **1,239 passed and 2 failed** in the Setter test project.
+
+The two failures were:
+
+- `ImplementationStatusDocumentationTests.Documentation_ProvidesCurrentContinuationPoint`, because this file no longer contained the required `## Verification status` heading. The exact heading is restored in this change.
+- `SuggestDocumentationKeyBracketTitleTests.ExecuteAsync_WithBracketedTitle_ShowsLiteralTitleAndCanonicalKey`, because the assertion depended on ANSI decoration placement around the rich-output `Title:` label. Production already escapes the title through `Markup.Escape`; the test now asserts the literal bracketed title independently of terminal decoration.
+
 ## Focused verification
+
+Run the two repaired Setter tests first:
+
+```powershell
+dotnet test Toolroom/WhenItFails/Setter.Tests --filter "FullyQualifiedName~ImplementationStatusDocumentationTests|FullyQualifiedName~SuggestDocumentationKeyBracketTitleTests"
+```
+
+Expected result: **2 green tests**.
+
+Then run the complete Setter suite:
+
+```powershell
+dotnet test Toolroom/WhenItFails/Setter.Tests
+```
+
+Also retain the current runtime/public-API focused command:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderFailureIssueSeverityTests
 ```
 
 Expected result: **2 green tests**.
-
-Primary Setter verification command:
-
-```powershell
-dotnet test Toolroom/WhenItFails/Setter.Tests
-```
 
 Before committing catalog changes, also run:
 
@@ -74,17 +93,17 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Run `ErrorCatalogContextProviderFailureIssueSeverityTests`; the expected count is **2 green tests**.
+First run the two repaired Setter tests; the expected count is **2 green tests**.
 
-If green, record verification and inspect exactly one adjacent synthesized-response shape contract, preferably default response fields not derived from the source issue.
+If green, run the complete Setter suite. Do not resume the runtime/public-API audit until the full Setter suite is green again.
 
 ## Last completed change
 
-The eighty-ninth runtime/public-API audit slice extends `ErrorCatalogContextProviderFailureIssueSeverityTests`. A source failure issue carries a number, provider-only details, warning severity, and metadata. `ErrorCatalogContextProvider` must synthesize a distinct error issue containing only the selected source code and response-level message, leaving `Number` and `Details` null and output metadata empty while preserving the complete source issue and its original metadata bag.
+The ninetieth maintenance slice repairs two CI regressions exposed by GitHub Actions. The continuation document again carries the exact `## Verification status` anchor required by its documentation contract. The bracket-title command test now verifies the literal bracketed title without depending on ANSI decoration placement; production rich output remains unchanged because it already uses `Markup.Escape` correctly.
 
-Commit:
+Commits in this repair sequence:
 
 ```text
-f515195185c905461e45bfaae1e0795b737ba444
-Suppress source-only failure issue fields
+13d80b6e4d7890f77b52f205da8de00863c92c44
+Make bracket title assertion ANSI-safe
 ```
