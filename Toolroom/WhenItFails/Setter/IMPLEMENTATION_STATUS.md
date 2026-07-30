@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the WhenItFails JSON catalog workspace under `Jsons/WhenItFails`.
 
-The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
+The latest user-verified Setter test run reported **5,029 passed, 0 failed, 0 skipped**. The complete Setter suite was green at that verification point.
 
 ## Verification status
 
@@ -22,8 +22,8 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderProfileSourceEnvelopeTests`: **1 green**.
 - `ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests`: **1 green**.
 - `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: **3 green**.
-- `ErrorCatalogContextProviderFailureIssueSeverityTests`: **1 user-verified green** for severity normalization and source issue immutability.
-- Current source-only-field slice adds a second test to `ErrorCatalogContextProviderFailureIssueSeverityTests`; the expected count is **2 tests**.
+- `ErrorCatalogContextProviderFailureIssueSeverityTests`: **1 user-verified green** for severity normalization and source issue immutability; the second source-only-field test remains pending focused verification.
+- Setter CI repair pair — `ImplementationStatusDocumentationTests` and `SuggestDocumentationKeyBracketTitleTests`: **2 user-verified green**.
 
 The runtime/public-API audit protects provider ordering and configured paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallbacks, source-message and source-code selection, malformed envelopes, first-issue selection, later-issue suppression, synthesized issue severity, and source object immutability.
 
@@ -35,28 +35,22 @@ Do not invent automatic `DefaultMappings` consumption.
 
 GitHub Actions run `30545059089`, job `90879002972`, reported **1,239 passed and 2 failed** in the Setter test project.
 
-The two failures were:
+Both exposed regressions are now repaired and user-verified green:
 
-- `ImplementationStatusDocumentationTests.Documentation_ProvidesCurrentContinuationPoint`, because this file had lost exact headings and documentation anchors required by its contract. All required anchors are restored in this change.
-- `SuggestDocumentationKeyBracketTitleTests.ExecuteAsync_WithBracketedTitle_ShowsLiteralTitleAndCanonicalKey`, because the assertion depended on ANSI decoration placement around the rich-output `Title:` label. Production already escapes the title through `Markup.Escape`; the test now asserts the literal bracketed title independently of terminal decoration and is user-verified green.
+- `ImplementationStatusDocumentationTests.Documentation_ProvidesCurrentContinuationPoint`: exact continuation-document headings and maintained documentation anchors are restored.
+- `SuggestDocumentationKeyBracketTitleTests.ExecuteAsync_WithBracketedTitle_ShowsLiteralTitleAndCanonicalKey`: the test now verifies the literal bracketed title without depending on ANSI decoration placement; production already used `Markup.Escape` correctly.
 
 ## Focused verification
 
-Run the two repaired Setter tests first:
-
-```powershell
-dotnet test Toolroom/WhenItFails/Setter.Tests --filter "FullyQualifiedName~ImplementationStatusDocumentationTests|FullyQualifiedName~SuggestDocumentationKeyBracketTitleTests"
-```
-
-Expected result: **2 green tests**.
-
-Then run the complete Setter suite:
+The repaired Setter pair is green. Run the complete Setter suite now:
 
 ```powershell
 dotnet test Toolroom/WhenItFails/Setter.Tests
 ```
 
-Also retain the current runtime/public-API focused command:
+The previous GitHub Actions run contained **1,239 passed and 2 failed**; with both repaired tests restored, the expected complete count is **1,241 green tests**.
+
+After the complete Setter suite is green, retain the current runtime/public-API focused command:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderFailureIssueSeverityTests
@@ -107,17 +101,17 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-First rerun the two repaired Setter tests; the expected count is **2 green tests**.
+Run the complete Setter suite. Expected result: **1,241 green tests**.
 
-If green, run the complete Setter suite. Do not resume the runtime/public-API audit until the full Setter suite is green again.
+Do not resume the runtime/public-API audit until the full Setter suite is green again.
 
 ## Last completed change
 
-The ninety-first maintenance slice restores every exact continuation-document anchor required by `ImplementationStatusDocumentationTests`, including `## Verification status`, `## Documentation synchronization completed`, and the maintained documentation path list. The bracket-title test is already user-verified green. The remaining focused verification target is the documentation contract, followed by the complete Setter suite.
+The ninety-second maintenance slice records user verification that both targeted Setter CI repairs are green. The exact implementation-status anchors are restored, and the bracket-title assertion is ANSI-independent. The only current Setter gate is the complete suite.
 
 Commit in this repair sequence:
 
 ```text
-13d80b6e4d7890f77b52f205da8de00863c92c44
-Make bracket title assertion ANSI-safe
+62a7ca927e9e1712d2fc1c3de107aa85e4ebee89
+Restore required implementation status anchors
 ```
