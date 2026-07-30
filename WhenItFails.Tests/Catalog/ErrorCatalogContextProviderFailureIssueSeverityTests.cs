@@ -144,6 +144,46 @@ public sealed class ErrorCatalogContextProviderFailureIssueSeverityTests
             sourceResponseMetadata["provider-path"]);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldExposeConsistentFailureFlags_WhenSourceStatusIsNotFound()
+    {
+        const string sourceCode = "SourceErrorCatalogNotFound";
+        const string sourceMessage = "The source error catalog could not be found.";
+
+        IssueInfo sourceIssue = new()
+        {
+            Code = sourceCode,
+            Message = "The source issue message must not be reused.",
+            Severity = IssueSeverity.Warning
+        };
+
+        ErrorCatalogContextProvider provider = new(
+            new WarningIssueFailedErrorCatalogProvider(
+                sourceMessage,
+                sourceIssue,
+                status: ResultStatus.NotFound),
+            new UnexpectedCategoryCatalogProvider(),
+            new UnexpectedCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.Equal(ResultStatus.NotFound, response.Status);
+        Assert.False(response.IsSuccess);
+        Assert.True(response.IsFailure);
+        Assert.True(response.HasWarnings);
+        Assert.False(response.HasData);
+        Assert.Null(response.Data);
+        Assert.Equal(sourceMessage, response.Message);
+        Assert.True(response.Metadata.IsEmpty);
+
+        IssueInfo outputIssue = Assert.Single(response.Issues);
+        Assert.Equal(sourceCode, outputIssue.Code);
+        Assert.Equal(sourceMessage, outputIssue.Message);
+        Assert.Equal(IssueSeverity.Error, outputIssue.Severity);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -156,7 +196,8 @@ public sealed class ErrorCatalogContextProviderFailureIssueSeverityTests
     private sealed class WarningIssueFailedErrorCatalogProvider(
         string message,
         IssueInfo sourceIssue,
-        MetadataBag? responseMetadata = null)
+        MetadataBag? responseMetadata = null,
+        ResultStatus status = ResultStatus.Failed)
         : IErrorCatalogProvider
     {
         public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
@@ -167,7 +208,7 @@ public sealed class ErrorCatalogContextProviderFailureIssueSeverityTests
 
             return Task.FromResult(new Response<ErrorCatalogProviderPayload>
             {
-                Status = ResultStatus.Failed,
+                Status = status,
                 Message = message,
                 Issues = [sourceIssue],
                 Metadata = responseMetadata ?? new MetadataBag()
