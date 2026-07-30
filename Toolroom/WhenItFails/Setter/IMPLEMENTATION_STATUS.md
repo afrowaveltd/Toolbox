@@ -22,13 +22,14 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderProfileSourceEnvelopeTests`: **1 green**.
 - `ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests`: **1 green**.
 - `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: **3 green**.
-- `ErrorCatalogContextProviderFailureIssueSeverityTests`: **1 user-verified green** for severity normalization and source issue immutability; the second source-only-field test remains pending focused verification.
+- `ErrorCatalogContextProviderFailureIssueSeverityTests`: **2 user-verified green** for severity normalization, source issue immutability, and suppression of source-only issue fields.
+- Current provider-response-metadata slice adds a third test to `ErrorCatalogContextProviderFailureIssueSeverityTests`; the expected count is **3 tests**.
 - Setter CI repair pair — `ImplementationStatusDocumentationTests` and `SuggestDocumentationKeyBracketTitleTests`: **2 user-verified green**.
 - Complete `Toolroom/WhenItFails/Setter.Tests` suite: **1,241 user-verified green, 0 failed, 0 skipped**.
 
-The runtime/public-API audit protects provider ordering and configured paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallbacks, source-message and source-code selection, malformed envelopes, first-issue selection, later-issue suppression, synthesized issue severity, and source object immutability.
+The runtime/public-API audit protects provider ordering and configured paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallbacks, source-message and source-code selection, malformed envelopes, first-issue selection, later-issue suppression, synthesized issue severity, source object immutability, and suppression of source-only failure fields.
 
-The current response-shape contract requires the synthesized failure issue to preserve only the selected code and response-level message, normalize severity to `Error`, and suppress source-only `Number`, `Details`, and `Metadata`. The source `IssueInfo` and its metadata bag must remain unchanged.
+The current response-shape contract additionally requires provider-response metadata not to cross into the synthesized `Response<ErrorCatalogContext>`. The output must have empty independent metadata, `Data == null`, `HasData == false`, and `IsFailure == true`, while the source response metadata remains unchanged.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -36,7 +37,7 @@ Do not invent automatic `DefaultMappings` consumption.
 
 GitHub Actions run `30545059089`, job `90879002972`, originally reported **1,239 passed and 2 failed** in the Setter test project.
 
-Both exposed regressions are repaired and the complete local Setter suite is now user-verified green:
+Both exposed regressions are repaired and the complete local Setter suite is user-verified green:
 
 - `ImplementationStatusDocumentationTests.Documentation_ProvidesCurrentContinuationPoint`: exact continuation-document headings and maintained documentation anchors are restored.
 - `SuggestDocumentationKeyBracketTitleTests.ExecuteAsync_WithBracketedTitle_ShowsLiteralTitleAndCanonicalKey`: the test verifies the literal bracketed title without depending on ANSI decoration placement; production already used `Markup.Escape` correctly.
@@ -51,13 +52,13 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 
 Latest user-verified result: **1,241 passed, 0 failed, 0 skipped**.
 
-Resume the current runtime/public-API focused command:
+Run the current runtime/public-API focused command:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderFailureIssueSeverityTests
 ```
 
-Expected result: **2 green tests**.
+Expected result: **3 green tests**.
 
 Before committing catalog changes, also run:
 
@@ -102,17 +103,17 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Run `ErrorCatalogContextProviderFailureIssueSeverityTests`; the expected count is **2 green tests**.
+Run `ErrorCatalogContextProviderFailureIssueSeverityTests`; the expected count is **3 green tests**.
 
-If green, record verification and inspect exactly one adjacent synthesized-response shape contract, preferably default response fields not derived from the source issue.
+If green, record verification and inspect exactly one adjacent synthesized-response contract outside provider-response metadata.
 
 ## Last completed change
 
-The ninety-third maintenance slice records the user-verified complete Setter run: **1,241 passed, 0 failed, 0 skipped**. The earlier two-test CI regression is closed, the complete Setter gate is green again, and the runtime/public-API audit may resume at the pending two-test synthesized-issue shape slice.
+The ninety-fourth runtime/public-API audit slice extends `ErrorCatalogContextProviderFailureIssueSeverityTests` with provider-response metadata coverage. A failed error provider returns meaningful response metadata and a warning source issue. `ErrorCatalogContextProvider` must synthesize a failed context response with no data, empty independent metadata, one normalized error issue, and unchanged source metadata. No production change is expected.
 
-Commit in the completed CI repair sequence:
+Commit:
 
 ```text
-62a7ca927e9e1712d2fc1c3de107aa85e4ebee89
-Restore required implementation status anchors
+6683dad459916b26816f9ca80fb3226721c855fc
+Suppress provider response metadata in context failures
 ```
