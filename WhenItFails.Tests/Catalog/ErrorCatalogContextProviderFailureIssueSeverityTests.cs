@@ -1,4 +1,5 @@
 using Afrowave.Toolbox.Essentials.Enums;
+using Afrowave.Toolbox.Essentials.Extensions;
 using Afrowave.Toolbox.Essentials.Issues;
 using Afrowave.Toolbox.Essentials.Metadata;
 using Afrowave.Toolbox.Essentials.Results;
@@ -145,7 +146,7 @@ public sealed class ErrorCatalogContextProviderFailureIssueSeverityTests
     }
 
     [Fact]
-    public async Task LoadFromJsonsAsync_ShouldExposeConsistentFailureFlags_WhenSourceStatusIsNotFound()
+    public async Task LoadFromJsonsAsync_ShouldExposeConsistentNonSuccessFlags_WhenSourceStatusIsNotFound()
     {
         const string sourceCode = "SourceErrorCatalogNotFound";
         const string sourceMessage = "The source error catalog could not be found.";
@@ -170,8 +171,9 @@ public sealed class ErrorCatalogContextProviderFailureIssueSeverityTests
         Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(CreateOptions());
 
         Assert.Equal(ResultStatus.NotFound, response.Status);
+        Assert.True(response.Status.IsNotFound());
         Assert.False(response.IsSuccess);
-        Assert.True(response.IsFailure);
+        Assert.False(response.IsFailure);
         Assert.True(response.HasWarnings);
         Assert.False(response.HasData);
         Assert.Null(response.Data);
