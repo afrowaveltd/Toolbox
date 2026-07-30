@@ -20,27 +20,30 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderFailureFallbackTests`: **7 green**.
 - `ErrorCatalogContextProviderCategorySourceMessageFallbackTests`: **2 green**.
 - `ErrorCatalogContextProviderCodeGroupSourceEnvelopeTests`: **1 green**.
-- `ErrorCatalogContextProviderOwnerSourceEnvelopeTests`: **1 user-verified green**.
-- Current `ErrorCatalogContextProviderProfileSourceEnvelopeTests`: **1 test pending verification**.
+- `ErrorCatalogContextProviderOwnerSourceEnvelopeTests`: **1 green**.
+- `ErrorCatalogContextProviderProfileSourceEnvelopeTests`: **1 user-verified green**.
+- Current `ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests`: **1 test pending verification**.
 
-The audit currently protects provider ordering and paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallback details, source-message preservation, source-code preservation, first-issue selection, and later-issue suppression.
+The audit protects provider ordering and paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallback details, source-message preservation, source-code preservation, first-issue selection, and later-issue suppression.
 
-The new profile source-envelope contract requires:
+The full-source failure-envelope sequence is complete across error, category, code-group, owner, and profile boundaries.
 
-- successful error, category, code-group, and owner providers;
-- a profile failure with `ResultStatus.Invalid`;
-- preservation of the source response message;
+The new whitespace-source-message contract requires:
+
+- an error-provider failure with `ResultStatus.Invalid`;
+- a whitespace-only source response message;
 - preservation of the first source issue code;
+- replacement of whitespace with the documented error-catalog fallback message in both the outer response and output issue;
 - exactly one output issue;
-- suppression of later source issues;
-- no context construction.
+- no context;
+- no later provider execution.
 
 Do not invent automatic `DefaultMappings` consumption.
 
 ## Focused verification
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderProfileSourceEnvelopeTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests
 ```
 
 Expected result: **1 green test**.
@@ -80,17 +83,17 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-First verify `ErrorCatalogContextProviderProfileSourceEnvelopeTests`; the expected count is **1 green test**.
+First verify `ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests`; the expected count is **1 green test**.
 
-If green, the full-source failure-envelope sequence is complete across error, category, code-group, owner, and profile boundaries. Inspect exactly one adjacent contract outside this sequence.
+If green, inspect exactly one adjacent malformed-source failure-envelope contract, preferably behavior when the first source issue code is empty or whitespace.
 
 ## Last completed change
 
-The eighty-second runtime/public-API audit slice adds `ErrorCatalogContextProviderProfileSourceEnvelopeTests`. After valid error, category, code-group, and owner responses, the profile provider returns `ResultStatus.Invalid`, a non-empty response message, and two source issues. The context provider must preserve the status, response message, and first issue code; emit one issue; discard the later issue; and return no context.
+The eighty-third runtime/public-API audit slice adds `ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests`. The error provider returns `ResultStatus.Invalid`, a whitespace-only response message, and one source issue with a meaningful code. The context provider must preserve the source issue code, replace the whitespace response message with the documented error-catalog fallback message in both the outer response and output issue, return no context, and invoke no later provider.
 
 Commit:
 
 ```text
-072892ad08f99b070c10c1609b7dc15328437e4b
-Protect full profile failure source envelope
+1fc71e6eff7d6be09dbffe2266073f05991620a8
+Protect whitespace-only provider failure messages
 ```
