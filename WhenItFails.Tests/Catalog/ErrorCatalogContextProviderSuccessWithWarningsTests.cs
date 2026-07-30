@@ -46,6 +46,51 @@ public sealed class ErrorCatalogContextProviderSuccessWithWarningsTests
         Assert.Equal(IssueSeverity.Warning, outputWarning.Severity);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldPreserveWarningsInProviderOrder_WhenMultipleProvidersSucceedWithWarnings()
+    {
+        IssueInfo errorCatalogWarning = IssueInfoFactory.Warning(
+            "ErrorCatalogProviderWarning",
+            "The error catalog loaded with a recoverable warning.");
+        IssueInfo ownerCatalogWarning = IssueInfoFactory.Warning(
+            "OwnerCatalogProviderWarning",
+            "The owner catalog loaded with a recoverable warning.");
+
+        ErrorCatalogContextProvider provider = new(
+            new FakeErrorCatalogProvider(
+                Response<ErrorCatalogProviderPayload>.OkWithWarnings(
+                    CreateErrorCatalogPayload(),
+                    [errorCatalogWarning])),
+            new FakeCategoryCatalogProvider(),
+            new FakeCodeGroupCatalogProvider(),
+            new FakeOwnerCatalogProvider(
+                Response<ErrorOwnerCatalogProviderPayload>.OkWithWarnings(
+                    CreateOwnerCatalogPayload(),
+                    [ownerCatalogWarning])),
+            new FakeProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response =
+            await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.True(response.IsSuccess);
+        Assert.Equal(ResultStatus.SuccessWithWarnings, response.Status);
+        Assert.True(response.HasWarnings);
+        Assert.NotNull(response.Data);
+        Assert.True(response.Data.CrossValidationResult.IsValid);
+        Assert.Collection(
+            response.Issues,
+            issue =>
+            {
+                Assert.Equal("ErrorCatalogProviderWarning", issue.Code);
+                Assert.Equal(IssueSeverity.Warning, issue.Severity);
+            },
+            issue =>
+            {
+                Assert.Equal("OwnerCatalogProviderWarning", issue.Code);
+                Assert.Equal(IssueSeverity.Warning, issue.Severity);
+            });
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -211,7 +256,9 @@ public sealed class ErrorCatalogContextProviderSuccessWithWarningsTests
         }
     }
 
-    private sealed class FakeOwnerCatalogProvider : IErrorOwnerCatalogProvider
+    private sealed class FakeOwnerCatalogProvider(
+        Response<ErrorOwnerCatalogProviderPayload>? response = null)
+        : IErrorOwnerCatalogProvider
     {
         public Task<Response<ErrorOwnerCatalogProviderPayload>> LoadFromFileAsync(
             string filePath,
@@ -219,7 +266,8 @@ public sealed class ErrorCatalogContextProviderSuccessWithWarningsTests
         {
             cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult(
-                Response<ErrorOwnerCatalogProviderPayload>.Ok(
+                response
+                ?? Response<ErrorOwnerCatalogProviderPayload>.Ok(
                     CreateOwnerCatalogPayload()));
         }
     }
