@@ -23,13 +23,13 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests`: **1 green**.
 - `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: **3 green**.
 - `ErrorCatalogContextProviderFailureIssueSeverityTests`: **3 user-verified green** for severity normalization, source issue immutability, suppression of source-only issue fields, and suppression of provider-response metadata.
-- Current status-flags slice adds a fourth test to `ErrorCatalogContextProviderFailureIssueSeverityTests`; the expected count is **4 tests**.
+- Current status-flags slice contains a fourth test in `ErrorCatalogContextProviderFailureIssueSeverityTests`; the previous run reported **3 passed and 1 failed** because the test incorrectly treated `NotFound` as `IsFailure`.
 - Setter CI repair pair — `ImplementationStatusDocumentationTests` and `SuggestDocumentationKeyBracketTitleTests`: **2 user-verified green**.
 - Complete `Toolroom/WhenItFails/Setter.Tests` suite: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The runtime/public-API audit protects provider ordering and configured paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallbacks, source-message and source-code selection, malformed envelopes, first-issue selection, later-issue suppression, synthesized issue severity, source object immutability, suppression of source-only failure fields, and suppression of provider-response metadata.
 
-The current synthesized-response contract additionally requires a preserved non-success source status to expose internally consistent derived flags. For a `NotFound` source response with a synthesized `Error` issue, the output must preserve `NotFound`, expose `IsSuccess == false`, `IsFailure == true`, `HasWarnings == true`, and `HasData == false`, return no context, and retain empty response metadata.
+The corrected synthesized-response contract preserves `ResultStatus.NotFound` as its own non-success category. The output must expose `Status.IsNotFound() == true`, `IsSuccess == false`, `IsFailure == false`, `HasWarnings == true` because the synthesized issue has `Error` severity, and `HasData == false`. It must return no context, retain empty response metadata, and invoke no later provider.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -52,7 +52,7 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 
 Latest user-verified result: **1,241 passed, 0 failed, 0 skipped**.
 
-Run the current runtime/public-API focused command:
+Run the corrected runtime/public-API focused command:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderFailureIssueSeverityTests
@@ -109,11 +109,11 @@ If green, record verification and inspect exactly one adjacent provider-failure 
 
 ## Last completed change
 
-The ninety-fifth runtime/public-API audit slice extends `ErrorCatalogContextProviderFailureIssueSeverityTests` with derived failure-status coverage. A source provider returns `ResultStatus.NotFound` and a warning-severity source issue. `ErrorCatalogContextProvider` must preserve `NotFound`, synthesize one `Error` issue, expose consistent `IsSuccess`, `IsFailure`, `HasWarnings`, and `HasData` values, return no context, keep response metadata empty, and invoke no later provider. No production change is expected.
+The ninety-sixth runtime/public-API audit slice corrects the `NotFound` derived-flag expectation. Essentials intentionally classifies `NotFound` separately from `IsFailure`; the test now asserts `IsNotFound == true`, `IsSuccess == false`, and `IsFailure == false`, while retaining `HasWarnings == true` because the synthesized output issue has `Error` severity. Production behavior remains unchanged.
 
 Commit:
 
 ```text
-2d8fae303647d5b1ec375c19a84824b0cfa41a3a
-Verify synthesized failure status flags
+d8066e18c4c68fa11c364c1daf9e69d9907646c5
+Align NotFound response flag expectations
 ```
