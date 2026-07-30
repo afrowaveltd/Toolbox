@@ -21,22 +21,13 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderOwnerSourceEnvelopeTests`: **1 green**.
 - `ErrorCatalogContextProviderProfileSourceEnvelopeTests`: **1 green**.
 - `ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests`: **1 green**.
-- `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: **3 user-verified green**, covering empty and whitespace issue codes plus the combined malformed-code/malformed-message envelope.
-- Current `ErrorCatalogContextProviderFailureIssueSeverityTests`: **1 test pending verification**.
+- `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: **3 green**.
+- `ErrorCatalogContextProviderFailureIssueSeverityTests`: **1 user-verified green** for severity normalization and source issue immutability.
+- Current source-only-field slice adds a second test to `ErrorCatalogContextProviderFailureIssueSeverityTests`; the expected count is **2 tests**.
 
-The audit protects provider ordering and configured paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallback details, source-message preservation, source-code preservation, first-issue selection, later-issue suppression, malformed code/message fallback, and original status preservation.
+The audit protects provider ordering and configured paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallbacks, source-message and source-code selection, malformed envelopes, first-issue selection, later-issue suppression, synthesized issue severity, and source object immutability.
 
-The full-source failure-envelope sequence is complete across error, category, code-group, owner, and profile boundaries.
-
-The current response-shape contract requires:
-
-- an error-provider failure with `ResultStatus.Failed`;
-- a first source issue with a meaningful code but misleading `Warning` severity and its own message;
-- preservation of the source issue code and source response message;
-- synthesis of a distinct output issue with `Error` severity;
-- no mutation or reuse of the source `IssueInfo` instance;
-- exactly one output issue;
-- no context or later provider execution.
+The current response-shape contract requires the synthesized failure issue to preserve only the selected code and response-level message, normalize severity to `Error`, and suppress source-only `Number`, `Details`, and `Metadata`. The source `IssueInfo` and its metadata bag must remain unchanged.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -46,7 +37,7 @@ Do not invent automatic `DefaultMappings` consumption.
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderFailureIssueSeverityTests
 ```
 
-Expected result: **1 green test**.
+Expected result: **2 green tests**.
 
 Primary Setter verification command:
 
@@ -83,17 +74,17 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Run `ErrorCatalogContextProviderFailureIssueSeverityTests`; the expected count is **1 green test**.
+Run `ErrorCatalogContextProviderFailureIssueSeverityTests`; the expected count is **2 green tests**.
 
-If green, record the verification and inspect exactly one adjacent synthesized-issue shape contract, such as suppression of source issue details, number, or metadata.
+If green, record verification and inspect exactly one adjacent synthesized-response shape contract, preferably default response fields not derived from the source issue.
 
 ## Last completed change
 
-The eighty-eighth runtime/public-API audit slice adds `ErrorCatalogContextProviderFailureIssueSeverityTests`. A failed error provider returns a source issue with a valid code, a source-only message, and `Warning` severity. `ErrorCatalogContextProvider` must create a distinct output issue, preserve the code and response-level message, normalize severity to `Error`, leave the source issue unchanged, emit exactly one issue, return no context, and invoke no later provider.
+The eighty-ninth runtime/public-API audit slice extends `ErrorCatalogContextProviderFailureIssueSeverityTests`. A source failure issue carries a number, provider-only details, warning severity, and metadata. `ErrorCatalogContextProvider` must synthesize a distinct error issue containing only the selected source code and response-level message, leaving `Number` and `Details` null and output metadata empty while preserving the complete source issue and its original metadata bag.
 
 Commit:
 
 ```text
-e6c2cba84ce5dbdfefe006b6e9dc570ef2116264
-Normalize provider failure issue severity
+f515195185c905461e45bfaae1e0795b737ba444
+Suppress source-only failure issue fields
 ```
