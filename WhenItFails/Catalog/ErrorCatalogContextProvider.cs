@@ -64,7 +64,8 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
                 "Error catalog loading failed while creating catalog context.");
         }
 
-        if (errorCatalogResponse.Data is null)
+        if (errorCatalogResponse.Data is null
+            || errorCatalogResponse.Data.Document is null)
         {
             return CreateNullPayloadResponse();
         }
