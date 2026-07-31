@@ -33,9 +33,10 @@ public sealed class ErrorCatalogContextProviderProviderWarningBeforeCrossValidat
         Assert.False(response.IsSuccess);
         Assert.Equal(ResultStatus.Invalid, response.Status);
         Assert.Null(response.Data);
-        Assert.False(response.HasWarnings);
+        Assert.True(response.HasWarnings);
 
         IssueInfo issue = Assert.Single(response.Issues);
+        Assert.Equal(IssueSeverity.Error, issue.Severity);
         Assert.Equal("UnknownErrorOwner", issue.Code);
         Assert.Equal(
             "Error owner 'MISSING_OWNER' is not defined in the owner catalog.",
