@@ -1,4 +1,5 @@
 using Afrowave.Toolbox.Essentials.Enums;
+using Afrowave.Toolbox.Essentials.Issues;
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
@@ -21,11 +22,7 @@ public sealed class ErrorCatalogContextProviderCategoryNullFailureIssuesTests
             new UnexpectedProfileCatalogProvider());
 
         Response<ErrorCatalogContext> response =
-            await provider.LoadFromJsonsAsync(new JsonsOptions
-            {
-                RootDirectory = "Jsons",
-                PackageDirectoryName = "WhenItFails"
-            });
+            await provider.LoadFromJsonsAsync(CreateOptions());
 
         Assert.False(response.IsSuccess);
         Assert.Equal(ResultStatus.NotSupported, response.Status);
@@ -37,6 +34,41 @@ public sealed class ErrorCatalogContextProviderCategoryNullFailureIssuesTests
         var issue = Assert.Single(response.Issues);
         Assert.Equal("ErrorCatalogContextCategoryCatalogLoadFailed", issue.Code);
         Assert.Equal(response.Message, issue.Message);
+    }
+
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldSkipNullCategoryFailureIssueAndPreserveFirstValidSourceCode()
+    {
+        const string sourceCode = "CategoryCatalogUnavailable";
+        const string sourceMessage = "The category catalog provider is temporarily unavailable.";
+
+        ErrorCatalogContextProvider provider = new(
+            new SuccessfulErrorCatalogProvider(),
+            new NullElementCategoryCatalogProvider(sourceCode, sourceMessage),
+            new UnexpectedCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response =
+            await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal(sourceMessage, response.Message);
+
+        var issue = Assert.Single(response.Issues);
+        Assert.Equal(sourceCode, issue.Code);
+        Assert.Equal(sourceMessage, issue.Message);
+    }
+
+    private static JsonsOptions CreateOptions()
+    {
+        return new JsonsOptions
+        {
+            RootDirectory = "Jsons",
+            PackageDirectoryName = "WhenItFails"
+        };
     }
 
     private sealed class SuccessfulErrorCatalogProvider : IErrorCatalogProvider
@@ -71,6 +103,35 @@ public sealed class ErrorCatalogContextProviderCategoryNullFailureIssuesTests
             {
                 Status = ResultStatus.NotSupported,
                 Issues = null!
+            });
+        }
+    }
+
+    private sealed class NullElementCategoryCatalogProvider(
+        string code,
+        string message)
+        : IErrorCategoryCatalogProvider
+    {
+        public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(new Response<ErrorCategoryCatalogProviderPayload>
+            {
+                Status = ResultStatus.Failed,
+                Message = message,
+                Issues =
+                [
+                    null!,
+                    new IssueInfo
+                    {
+                        Code = code,
+                        Message = message,
+                        Severity = IssueSeverity.Error
+                    }
+                ]
             });
         }
     }
