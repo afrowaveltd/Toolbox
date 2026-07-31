@@ -29,7 +29,7 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderNullFailureIssueElementTests`: **3 user-verified green** confirming null skipping, preservation of the first valid source code, preservation of first-actual-issue semantics when that issue has a blank code, and fallback behavior when every collection element is null.
 - `ErrorCatalogContextProviderCategoryNullFailureIssuesTests`: **2 user-verified green** confirming both runtime-null failure collections and runtime-null issue elements at the category-provider position.
 - `ErrorCatalogContextProviderCrossValidationWarningTests`: **5 user-verified green** confirming nested warning/information storage and strict separation of provider diagnostics from cross-validation diagnostics.
-- `ErrorCatalogContextProviderProviderWarningBeforeCrossValidationErrorTests`: latest focused run reported **0 passed and 1 failed** only because the test incorrectly expected `HasWarnings == false`. Essentials defines `HasWarnings` as true when attached issues contain `Warning` or any higher severity, so the single cross-validation `Error` correctly produces `HasWarnings == true`. The expectation is corrected and the rerun is pending.
+- `ErrorCatalogContextProviderProviderWarningBeforeCrossValidationErrorTests`: **1 user-verified green** confirming that the final cross-validation error replaces an earlier provider warning while `HasWarnings` remains true because the attached issue has `Error` severity. A second mixed provider-information-plus-warning suppression case is pending.
 - Setter CI repair pair — `ImplementationStatusDocumentationTests` and `SuggestDocumentationKeyBracketTitleTests`: **2 user-verified green**.
 - Complete `Toolroom/WhenItFails/Setter.Tests` suite: **1,241 user-verified green, 0 failed, 0 skipped**.
 
@@ -39,7 +39,7 @@ The runtime/public-API audit protects provider ordering and configured paths, sh
 
 The successful-provider composition contract collects issues from all five successful catalog responses in provider order. Informational issues survive composition while the final response remains plain `Success` with `HasWarnings == false`. Only an aggregated provider issue whose severity is `Warning` or higher promotes the final response to `SuccessWithWarnings`. Mixed lower- and warning-level provider diagnostics remain present and ordered while the warning determines the final status. Runtime-null `Issues` collections are treated as empty across all five provider positions. Runtime-null elements inside a non-null collection are filtered during aggregation, while surrounding valid diagnostics retain their original order and identity. In every case the fully validated non-null context is preserved.
 
-Cross-validation diagnostics form a separate layer. Non-error cross-validation issues remain inside `ErrorCatalogContext.CrossValidationResult` and do not themselves populate outer `Response.Issues` or promote outer status. Provider warnings and information remain in the outer response while non-error cross-validation diagnostics remain solely inside the valid context, without duplication or loss. When cross-validation produces an error, no valid context exists; the final outer response becomes `Invalid` with exactly the selected cross-validation error and omits earlier provider diagnostics. `HasWarnings` nevertheless remains true because Essentials treats an attached `Error` as warning-or-higher severity; this flag does not imply that the earlier provider warning survived.
+Cross-validation diagnostics form a separate layer. Non-error cross-validation issues remain inside `ErrorCatalogContext.CrossValidationResult` and do not themselves populate outer `Response.Issues` or promote outer status. Provider warnings and information remain in the outer response while non-error cross-validation diagnostics remain solely inside the valid context, without duplication or loss. When cross-validation produces an error, no valid context exists; the final outer response becomes `Invalid` with exactly the selected cross-validation error and omits earlier provider diagnostics. `HasWarnings` nevertheless remains true because Essentials treats an attached `Error` as warning-or-higher severity; this flag does not imply that any provider warning survived. The pending mixed case verifies that both provider information and provider warning are discarded together rather than only a single warning code.
 
 The failure-envelope contract treats both a runtime-null `Issues` collection and runtime-null elements inside a non-null collection defensively. Failure mapping preserves source status and message, selects the first actual source issue after null elements, and uses its code only when non-blank. A blank code on that first actual issue triggers the provider-specific fallback rather than promoting a later issue code. A non-null collection containing no actual issues at all behaves exactly like an empty collection and produces the same fallback envelope. Later providers remain short-circuited.
 
@@ -64,13 +64,13 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 
 Latest user-verified result: **1,241 passed, 0 failed, 0 skipped**.
 
-Rerun the corrected provider-warning-before-cross-validation-error contract:
+Run the expanded provider-diagnostics-before-cross-validation-error suite:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderProviderWarningBeforeCrossValidationErrorTests
 ```
 
-Expected result: **1 green test**.
+Expected result: **2 green tests**.
 
 Before committing catalog changes, also run:
 
@@ -115,18 +115,18 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Rerun `ErrorCatalogContextProviderProviderWarningBeforeCrossValidationErrorTests`; the expected count is **1 green test**. Do not proceed until the corrected `HasWarnings` expectation is verified together with suppression of the earlier provider warning.
+Run `ErrorCatalogContextProviderProviderWarningBeforeCrossValidationErrorTests`; the expected count is **2 green tests**. Do not proceed until a cross-validation error is confirmed to suppress the complete earlier provider diagnostic layer, including both information and warning issues.
 
 ## Last completed change
 
-The one-hundred-eighteenth runtime/public-API audit slice corrects a test expectation rather than production behavior. The focused test already confirmed that cross-validation replaces the earlier provider warning with exactly one `UnknownErrorOwner` error issue, but failed at `Assert.False(response.HasWarnings)`. Essentials intentionally defines `HasWarnings` from either warning-bearing status or any attached issue with severity `Warning` or higher, so an `Invalid` response carrying an `Error` correctly reports `HasWarnings == true`. The test now asserts that real contract, verifies the resulting issue severity is `Error`, and continues to require that the original provider warning code is absent.
+The one-hundred-nineteenth runtime/public-API audit slice records the corrected provider-warning-before-cross-validation-error contract as **1 user-verified green test** and adds one closing composition case. The error-catalog provider now contributes both an informational issue and a warning before the loaded documents fail cross-validation on an undefined owner. The final response must still be `Invalid`, contain no context, expose exactly one `UnknownErrorOwner` error issue, omit both provider diagnostics, and report `HasWarnings == true` solely because the remaining error is warning-or-higher severity. No production change is expected because the cross-validation failure path already creates a fresh invalid envelope.
 
 Commits:
 
 ```text
-bee27b4767f66a0affa9d76401d902ad1354ff35
-Verify cross-validation error suppresses provider warnings
-
 33ca5bb2a2d7ab3978b68c98faa204d8bf7fa1f0
 Correct cross-validation error warning expectation
+
+21b928ba26638d64627ed05ce015cc8158e3e336
+Verify cross-validation errors suppress provider diagnostics
 ```
