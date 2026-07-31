@@ -65,6 +65,7 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
         }
 
         if (errorCatalogResponse.Data is null
+            || errorCatalogResponse.Data.Catalog is null
             || errorCatalogResponse.Data.Document is null)
         {
             return CreateNullPayloadResponse();
