@@ -32,7 +32,8 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderProviderWarningBeforeCrossValidationErrorTests`: **4 user-verified green** confirming that a final cross-validation error replaces the complete earlier provider envelope, including issues, metadata, and message.
 - `ErrorCatalogContextProviderSuccessfulEnvelopeSuppressionTests`: **2 user-verified green** confirming both plain `Success` and `SuccessWithWarnings` composition preserve provider issues while suppressing provider message and metadata.
 - `ErrorCatalogContextProviderSuccessfulStatusNormalizationTests`: **3 user-verified green** confirming downward normalization from informational-only diagnostics, upward promotion from a real warning, and successful composition with a preserved `Error` diagnostic.
-- `ErrorCatalogContextProviderEmptyWarningEnvelopeNormalizationTests`: **2 user-verified green** confirming both empty and runtime-null `SuccessWithWarnings` issue collections normalize to plain `Success`; a null-only element collection case is pending verification.
+- `ErrorCatalogContextProviderEmptyWarningEnvelopeNormalizationTests`: **3 user-verified green** confirming empty, runtime-null, and null-only `SuccessWithWarnings` issue collections all normalize to plain `Success`.
+- `ErrorCatalogContextProviderNullInnerPayloadTests`: **1 test pending verification** for an error-catalog payload whose `Document` is runtime null.
 - Setter CI repair pair — `ImplementationStatusDocumentationTests` and `SuggestDocumentationKeyBracketTitleTests`: **2 user-verified green**.
 - Complete `Toolroom/WhenItFails/Setter.Tests` suite: **1,241 user-verified green, 0 failed, 0 skipped**.
 
@@ -40,11 +41,13 @@ The runtime/public-API audit protects provider ordering and configured paths, sh
 
 `ResultStatus.NotFound` is intentionally context-neutral rather than automatically successful or failed. It may represent a successful lookup that found no matching item, or a wider operation that cannot complete because a required item was not found. The status therefore remains a distinct non-success category: `IsNotFound == true`, `IsSuccess == false`, and `IsFailure == false`. Severity and surrounding operation context communicate whether the overall outcome is problematic.
 
-The successful-provider composition contract collects issues from all five successful catalog responses in provider order. Informational issues survive composition while the final response remains plain `Success` with `HasWarnings == false`. Any aggregated provider issue whose severity is `Warning` or higher promotes the final response to `SuccessWithWarnings`. Mixed lower- and warning-level provider diagnostics remain present and ordered while the highest relevant severity determines warning state. Runtime-null `Issues` collections are treated as empty across all five provider positions. Runtime-null elements inside a non-null collection are filtered during aggregation, while surrounding valid diagnostics retain their original order and identity. In every case the fully validated non-null context is preserved. Provider response messages and metadata describe the individual load operations rather than the newly composed context response, so they remain suppressed while provider issues are preserved. Final successful status is normalized from the aggregated issue severities rather than copied from any single provider envelope. Informational-only diagnostics normalize an inconsistent `SuccessWithWarnings` declaration to `Success`; a real warning promotes an inconsistent plain `Success` declaration to `SuccessWithWarnings`; and an explicitly successful provider response carrying an `Error` diagnostic remains a successful context composition represented as `SuccessWithWarnings`. Empty and runtime-null warning-bearing issue collections are user-verified to normalize to plain `Success`; the pending null-only element collection must behave identically after filtering.
+The successful-provider composition contract collects issues from all five successful catalog responses in provider order. Informational issues survive composition while the final response remains plain `Success` with `HasWarnings == false`. Any aggregated provider issue whose severity is `Warning` or higher promotes the final response to `SuccessWithWarnings`. Mixed lower- and warning-level provider diagnostics remain present and ordered while the highest relevant severity determines warning state. Runtime-null `Issues` collections are treated as empty across all five provider positions. Runtime-null elements inside a non-null collection are filtered during aggregation, while surrounding valid diagnostics retain their original order and identity. In every case the fully validated non-null context is preserved. Provider response messages and metadata describe the individual load operations rather than the newly composed context response, so they remain suppressed while provider issues are preserved. Final successful status is normalized from the aggregated issue severities rather than copied from any single provider envelope. Informational-only diagnostics normalize an inconsistent `SuccessWithWarnings` declaration to `Success`; a real warning promotes an inconsistent plain `Success` declaration to `SuccessWithWarnings`; and an explicitly successful provider response carrying an `Error` diagnostic remains a successful context composition represented as `SuccessWithWarnings`. Empty, runtime-null, and null-only warning-bearing issue collections are user-verified to normalize to plain `Success`.
 
 Cross-validation diagnostics form a separate layer. Non-error cross-validation issues remain inside `ErrorCatalogContext.CrossValidationResult` and do not themselves populate outer `Response.Issues` or promote outer status. Provider warnings and information remain in the outer response while non-error cross-validation diagnostics remain solely inside the valid context, without duplication or loss. When cross-validation produces an error, no valid context exists; the final outer response becomes a fresh `Invalid` envelope with exactly the selected cross-validation error and omits the complete earlier provider envelope. `HasWarnings` nevertheless remains true because Essentials treats an attached `Error` as warning-or-higher severity; this flag does not imply that any provider warning survived.
 
 The failure-envelope contract treats both a runtime-null `Issues` collection and runtime-null elements inside a non-null collection defensively. Failure mapping preserves source status and message, selects the first actual source issue after null elements, and uses its code only when non-blank. A blank code on that first actual issue triggers the provider-specific fallback rather than promoting a later issue code. A non-null collection containing no actual issues at all behaves exactly like an empty collection and produces the same fallback envelope. Later providers remain short-circuited.
+
+A non-null provider payload can still violate its public contract internally. The current audit now begins with `ErrorCatalogProviderPayload.Document == null`: this must be treated as an invalid/null payload boundary rather than allowing later providers or cross-validation to run. The focused test is expected to expose whether production currently lacks this inner-payload guard.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -67,13 +70,13 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 
 Latest user-verified result: **1,241 passed, 0 failed, 0 skipped**.
 
-Run the expanded empty warning-envelope normalization contract:
+Run the new null inner-payload contract:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderEmptyWarningEnvelopeNormalizationTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderNullInnerPayloadTests
 ```
 
-Expected result: **3 green tests**.
+Expected result after the contract is implemented: **1 green test**. The first run may fail by calling the category provider, which would confirm the missing guard.
 
 Before committing catalog changes, also run:
 
@@ -118,18 +121,18 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Run `ErrorCatalogContextProviderEmptyWarningEnvelopeNormalizationTests`; the expected count is **3 green tests**. Do not proceed until empty, runtime-null, and null-only issue collections on a provider response declaring `SuccessWithWarnings` are all confirmed to normalize to plain `Success`, report no warnings, retain the valid context, and suppress provider message and metadata.
+Run `ErrorCatalogContextProviderNullInnerPayloadTests`. Do not proceed until the exact current behavior of a successful error-catalog provider returning a non-null payload with `Document == null` is known. The desired contract is an `Invalid` response with no context and `ErrorCatalogContextPayloadIsNull`, while all later providers remain uncalled.
 
 ## Last completed change
 
-The one-hundred-twenty-ninth runtime/public-API audit slice records `ErrorCatalogContextProviderEmptyWarningEnvelopeNormalizationTests` as **2 user-verified green tests** and adds the final null-element-only variant. The error-catalog provider declares `SuccessWithWarnings`, returns valid payload data, and supplies a non-null issue collection containing only runtime-null entries. Provider issue aggregation must filter those entries, leaving no actual diagnostics. The composed context response must therefore normalize to plain `Success`, report `HasWarnings == false`, expose no issues, retain the valid context, and continue suppressing provider message and metadata. No production change is expected because `AddProviderIssues` already ignores null elements.
+The one-hundred-thirtieth runtime/public-API audit slice records `ErrorCatalogContextProviderEmptyWarningEnvelopeNormalizationTests` as **3 user-verified green tests**, closing empty, runtime-null, and null-only issue normalization. The audit then moves from outer response-envelope robustness to inner payload integrity. A new focused test supplies an otherwise successful `ErrorCatalogProviderPayload` whose required `Document` property is runtime null and makes every later provider throw if invoked. The desired behavior is immediate short-circuiting through the existing null-payload failure envelope. No production change has been made yet; the focused run must first establish the current failure shape.
 
 Commits:
 
 ```text
-dd7202b434ec218fbeb790b9bc809bc171f6d48f
-Verify null warning issue normalization
-
 1721375ead6c1fffd9d120c16fb990362b916a2f
 Verify null-only warning issue normalization
+
+96b2165386bc487aa5f479559b138af8a78306a8
+Add null inner payload contract test
 ```
