@@ -23,7 +23,7 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests`: **1 green**.
 - `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: **3 green**.
 - `ErrorCatalogContextProviderFailureIssueSeverityTests`: **4 user-verified green** for severity normalization, source issue immutability, suppression of source-only issue fields, suppression of provider-response metadata, and the distinct `NotFound` flag contract.
-- `ErrorCatalogContextProviderSuccessWithWarningsTests`: **4 user-verified green** confirming warning preservation, provider-order aggregation, informational diagnostics without false warning status, and mixed-severity preservation. A fifth null-issues defensive case is pending.
+- `ErrorCatalogContextProviderSuccessWithWarningsTests`: latest focused run reported **4 passed and 1 failed**. Warning preservation, provider-order aggregation, informational diagnostics, and mixed-severity preservation are green. The runtime-null issues case failed with `ArgumentNullException` in `List<T>.AddRange`; production is corrected and the rerun is pending.
 - Setter CI repair pair — `ImplementationStatusDocumentationTests` and `SuggestDocumentationKeyBracketTitleTests`: **2 user-verified green**.
 - Complete `Toolroom/WhenItFails/Setter.Tests` suite: **1,241 user-verified green, 0 failed, 0 skipped**.
 
@@ -31,7 +31,7 @@ The runtime/public-API audit protects provider ordering and configured paths, sh
 
 `ResultStatus.NotFound` is intentionally context-neutral rather than automatically successful or failed. It may represent a successful lookup that found no matching item, or a wider operation that cannot complete because a required item was not found. The status therefore remains a distinct non-success category: `IsNotFound == true`, `IsSuccess == false`, and `IsFailure == false`. Severity and surrounding operation context communicate whether the overall outcome is problematic.
 
-The successful-provider composition contract collects issues from all five successful catalog responses in provider order. Informational issues survive composition while the final response remains plain `Success` with `HasWarnings == false`. Only an aggregated issue whose severity is `Warning` or higher promotes the final response to `SuccessWithWarnings`. Mixed lower- and warning-level diagnostics must all remain present and ordered while the warning determines the final status. A runtime-null `Issues` collection from an otherwise successful provider must be treated defensively as an empty diagnostic collection rather than crashing composition. In every case the fully validated non-null context is preserved. Failure short-circuit and cross-validation behavior are unchanged.
+The successful-provider composition contract collects issues from all five successful catalog responses in provider order. Informational issues survive composition while the final response remains plain `Success` with `HasWarnings == false`. Only an aggregated issue whose severity is `Warning` or higher promotes the final response to `SuccessWithWarnings`. Mixed lower- and warning-level diagnostics remain present and ordered while the warning determines the final status. Runtime-null `Issues` collections from otherwise successful providers are now treated as empty diagnostic collections across all five provider positions. In every case the fully validated non-null context is preserved. Failure short-circuit and cross-validation behavior are unchanged.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -54,13 +54,13 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 
 Latest user-verified result: **1,241 passed, 0 failed, 0 skipped**.
 
-Run the expanded successful-provider diagnostic suite:
+Rerun the successful-provider diagnostic suite after the null-issues production fix:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderSuccessWithWarningsTests
 ```
 
-Expected result: **5 tests**. The new null-issues case may expose an unguarded `AddRange` call in production.
+Expected result: **5 green tests**.
 
 Before committing catalog changes, also run:
 
@@ -105,18 +105,18 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Run `ErrorCatalogContextProviderSuccessWithWarningsTests`; the expected count is **5 tests**. Do not proceed until the runtime-null successful-provider issues contract is established.
+Rerun `ErrorCatalogContextProviderSuccessWithWarningsTests`; the expected count is **5 green tests**. Do not proceed until the runtime-null successful-provider issues fix is verified.
 
 ## Last completed change
 
-The one-hundred-fourth runtime/public-API audit slice records **4 user-verified green tests** for successful-provider diagnostic composition and adds one defensive null-issues case. Although `Response<T>.Issues` is non-nullable, an external or malformed provider can still return `null` at runtime. `ErrorCatalogContextProvider` must treat that value as an empty collection, continue through all providers and cross-validation, and return a clean successful context rather than throwing from `List<T>.AddRange`. No production change is made until the focused test establishes the current behavior.
+The one-hundred-fifth runtime/public-API audit slice fixes a third successful-provider composition defect. The focused suite reported **4 passed and 1 failed** because an otherwise successful provider supplied `Issues = null` at runtime and `List<T>.AddRange` threw `ArgumentNullException`. A shared `AddProviderIssues` helper now treats null as an empty collection for every provider position while preserving all existing ordering and severity behavior.
 
 Commits:
 
 ```text
-320a774557017cc8ef5b8636f6d5123ae611599c
-Verify mixed provider diagnostic severity
-
 1cf1226fa141fede43b787ebd54bebf4d2e82dac
 Verify null successful provider issues
+
+e35553a7a22562a63627b5b39866be7e33a54209
+Treat null provider issues as empty
 ```
