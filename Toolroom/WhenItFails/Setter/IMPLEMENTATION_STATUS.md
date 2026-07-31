@@ -26,7 +26,8 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderSuccessWithWarningsTests`: **5 user-verified green** confirming warning preservation, provider-order aggregation, informational diagnostics, mixed-severity preservation, and defensive handling of a runtime-null `Issues` collection.
 - `ErrorCatalogContextProviderNullIssueElementTests`: **1 user-verified green** confirming that runtime-null issue elements are filtered without losing surrounding valid diagnostics.
 - `ErrorCatalogContextProviderNullFailureIssuesTests`: **1 user-verified green** confirming that a runtime-null failure `Issues` collection uses the provider fallback envelope without invoking later providers.
-- `ErrorCatalogContextProviderNullFailureIssueElementTests`: latest focused run reported **0 passed and 1 failed** with `NullReferenceException` because failure mapping dereferenced the first list slot even when it was null. Production is corrected and the rerun is pending.
+- `ErrorCatalogContextProviderNullFailureIssueElementTests`: **1 user-verified green** confirming that failure mapping skips runtime-null issue elements and preserves the first valid source issue code.
+- `ErrorCatalogContextProviderCategoryNullFailureIssuesTests`: **1 test pending verification** for the same runtime-null failure collection contract at the category-provider position.
 - Setter CI repair pair — `ImplementationStatusDocumentationTests` and `SuggestDocumentationKeyBracketTitleTests`: **2 user-verified green**.
 - Complete `Toolroom/WhenItFails/Setter.Tests` suite: **1,241 user-verified green, 0 failed, 0 skipped**.
 
@@ -36,7 +37,7 @@ The runtime/public-API audit protects provider ordering and configured paths, sh
 
 The successful-provider composition contract collects issues from all five successful catalog responses in provider order. Informational issues survive composition while the final response remains plain `Success` with `HasWarnings == false`. Only an aggregated issue whose severity is `Warning` or higher promotes the final response to `SuccessWithWarnings`. Mixed lower- and warning-level diagnostics remain present and ordered while the warning determines the final status. Runtime-null `Issues` collections are treated as empty across all five provider positions. Runtime-null elements inside a non-null collection are filtered during aggregation, while surrounding valid diagnostics retain their original order and identity. In every case the fully validated non-null context is preserved.
 
-The failure-envelope contract now treats both a runtime-null `Issues` collection and runtime-null elements inside a non-null collection defensively. Failure mapping preserves source status and message, selects the first valid source issue code when available, otherwise uses the provider-specific fallback code, and keeps later providers short-circuited.
+The failure-envelope contract treats both a runtime-null `Issues` collection and runtime-null elements inside a non-null collection defensively. Failure mapping preserves source status and message, selects the first valid source issue code when available, otherwise uses the provider-specific fallback code, and keeps later providers short-circuited. The same generic behavior must hold at every provider position, not only for the first error-catalog provider.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -59,10 +60,10 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 
 Latest user-verified result: **1,241 passed, 0 failed, 0 skipped**.
 
-Rerun the focused null-failure-element contract after the production fix:
+Run the focused category-provider null-failure-issues contract:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderNullFailureIssueElementTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderCategoryNullFailureIssuesTests
 ```
 
 Expected result: **1 green test**.
@@ -110,18 +111,18 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Rerun `ErrorCatalogContextProviderNullFailureIssueElementTests`; the expected count is **1 green test**. Do not proceed until the null failure issue-element fix is verified.
+Run `ErrorCatalogContextProviderCategoryNullFailureIssuesTests`; the expected count is **1 green test**. Do not proceed until the generic null-failure-issues behavior is verified beyond the first provider position.
 
 ## Last completed change
 
-The one-hundred-tenth runtime/public-API audit slice fixes the malformed failure-issue element defect exposed by `ErrorCatalogContextProviderNullFailureIssueElementTests`. The focused run reported **0 passed and 1 failed** because `CreateFailedContextResponse` dereferenced `sourceResponse.Issues[0]` when that slot was null. Failure mapping now tolerates a null collection, skips null elements, selects the first valid source issue, preserves its code when non-blank, and otherwise falls back without changing source status, message, or short-circuit behavior.
+The one-hundred-eleventh runtime/public-API audit slice records `ErrorCatalogContextProviderNullFailureIssueElementTests` as **1 user-verified green test** and adds one generic-position verification. The error-catalog provider succeeds, then the category provider returns `NotSupported` with `Issues = null` at runtime. Failure mapping must synthesize the category-specific fallback code and message, preserve `NotSupported`, and short-circuit code-group, owner, and profile providers. No production change is expected because the shared failure mapper was already corrected.
 
 Commits:
 
 ```text
-77c4606c34c7b2032881cea7f49e1d24e50a7d3a
-Verify null failure issue elements
-
 19167597f436507285a051c6d6d9af6bf904b721
 Ignore null failure issue elements
+
+dfcc324a9e038ef78997e8d9a0c041e5cac659b0
+Verify category null failure issues fallback
 ```
