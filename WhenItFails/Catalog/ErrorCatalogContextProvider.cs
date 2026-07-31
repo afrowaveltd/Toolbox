@@ -206,9 +206,17 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
         List<IssueInfo> target,
         IReadOnlyList<IssueInfo>? issues)
     {
-        if (issues is not null)
+        if (issues is null)
         {
-            target.AddRange(issues);
+            return;
+        }
+
+        foreach (IssueInfo? issue in issues)
+        {
+            if (issue is not null)
+            {
+                target.Add(issue);
+            }
         }
     }
 
