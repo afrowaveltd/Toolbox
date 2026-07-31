@@ -1,5 +1,6 @@
 using Afrowave.Toolbox.Essentials.Enums;
 using Afrowave.Toolbox.Essentials.Issues;
+using Afrowave.Toolbox.Essentials.Metadata;
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
@@ -49,6 +50,22 @@ public sealed class ErrorCatalogContextProviderProviderWarningBeforeCrossValidat
         Assert.DoesNotContain(
             response.Issues,
             candidate => candidate.Code == providerWarningCode);
+    }
+
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldDiscardProviderMetadata_WhenCrossValidationFails()
+    {
+        const string metadataKey = "provider-source";
+
+        ErrorCatalogContextProvider provider = CreateProvider(
+            new MetadataErrorCatalogProvider(metadataKey));
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
+            CreateOptions());
+
+        AssertCrossValidationErrorResponse(response);
+        Assert.Empty(response.Metadata.Items);
+        Assert.False(response.Metadata.TryGet(metadataKey, out _));
     }
 
     private static ErrorCatalogContextProvider CreateProvider(
@@ -161,6 +178,26 @@ public sealed class ErrorCatalogContextProviderProviderWarningBeforeCrossValidat
                             warningCode,
                             "The error catalog loaded with a recoverable warning.")
                     ]));
+        }
+    }
+
+    private sealed class MetadataErrorCatalogProvider(string metadataKey)
+        : IErrorCatalogProvider
+    {
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(new Response<ErrorCatalogProviderPayload>
+            {
+                Status = ResultStatus.Success,
+                Data = CreatePayload(),
+                Metadata = MetadataBagFactory.From(
+                    metadataKey,
+                    "error-catalog-provider")
+            });
         }
     }
 
