@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-07-30
+Last updated: 2026-07-31
 
 This file is the continuation point for `Toolroom/WhenItFails/Setter` development. Update it after every implementation, test, or documentation change that alters the current state or recommended next step.
 
@@ -23,7 +23,7 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests`: **1 green**.
 - `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: **3 green**.
 - `ErrorCatalogContextProviderFailureIssueSeverityTests`: **4 user-verified green** for severity normalization, source issue immutability, suppression of source-only issue fields, suppression of provider-response metadata, and the distinct `NotFound` flag contract.
-- `ErrorCatalogContextProviderSuccessWithWarningsTests`: **2 user-verified green** confirming preservation of successful provider warnings, aggregation completeness, and provider-order stability; a third informational-diagnostic case is pending.
+- `ErrorCatalogContextProviderSuccessWithWarningsTests`: latest focused run reported **2 passed and 1 failed**. Warning preservation and provider-order aggregation are green; the informational-diagnostic case exposed an over-broad promotion from `Success` to `SuccessWithWarnings`. Production is corrected and the rerun is pending.
 - Setter CI repair pair — `ImplementationStatusDocumentationTests` and `SuggestDocumentationKeyBracketTitleTests`: **2 user-verified green**.
 - Complete `Toolroom/WhenItFails/Setter.Tests` suite: **1,241 user-verified green, 0 failed, 0 skipped**.
 
@@ -31,7 +31,7 @@ The runtime/public-API audit protects provider ordering and configured paths, sh
 
 `ResultStatus.NotFound` is intentionally context-neutral rather than automatically successful or failed. It may represent a successful lookup that found no matching item, or a wider operation that cannot complete because a required item was not found. The status therefore remains a distinct non-success category: `IsNotFound == true`, `IsSuccess == false`, and `IsFailure == false`. Severity and surrounding operation context communicate whether the overall outcome is problematic.
 
-The successful-provider composition contract collects issues from all five successful catalog responses in provider order. Informational issues must survive composition without changing plain `Success` or making `HasWarnings` true. Warning-or-higher diagnostics must produce `SuccessWithWarnings`. In both cases the fully validated non-null context and original issue order are preserved. Failure short-circuit and cross-validation behavior are unchanged.
+The successful-provider composition contract collects issues from all five successful catalog responses in provider order. Informational issues survive composition while the final response remains plain `Success` with `HasWarnings == false`. Only an aggregated issue whose severity is `Warning` or higher promotes the final response to `SuccessWithWarnings`. In both cases the fully validated non-null context and original issue order are preserved. Failure short-circuit and cross-validation behavior are unchanged.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -54,13 +54,13 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 
 Latest user-verified result: **1,241 passed, 0 failed, 0 skipped**.
 
-Run the expanded successful-provider diagnostic suite:
+Rerun the successful-provider diagnostic suite after the severity-aware production fix:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderSuccessWithWarningsTests
 ```
 
-Expected result: **3 tests**. The new informational case may expose an over-broad status promotion if every preserved issue currently forces `SuccessWithWarnings`.
+Expected result: **3 green tests**.
 
 Before committing catalog changes, also run:
 
@@ -105,21 +105,18 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Run `ErrorCatalogContextProviderSuccessWithWarningsTests`; the expected count is **3 tests**. Do not proceed until the informational-diagnostic status contract is verified.
+Rerun `ErrorCatalogContextProviderSuccessWithWarningsTests`; the expected count is **3 green tests**. Do not proceed until the severity-aware informational-diagnostic contract is verified.
 
 ## Last completed change
 
-The one-hundred-first runtime/public-API audit slice records **2 user-verified green tests** for successful-provider warning aggregation and adds one focused informational-diagnostic case. A successful provider may attach an `Information` issue; the composed response must preserve it while remaining plain `Success` with `HasWarnings == false`. This distinguishes retained diagnostics from actual warning status and intentionally tests whether the current production aggregation promotes every issue too broadly.
+The one-hundred-second runtime/public-API audit slice fixes a second real composition defect exposed by `ErrorCatalogContextProviderSuccessWithWarningsTests`. The context provider previously treated every preserved issue as a warning and returned `SuccessWithWarnings` even when the only diagnostic was `Information`. Final status selection is now severity-aware: issues remain preserved, but only `Warning` or higher produces `SuccessWithWarnings`; lower severities retain plain `Success`.
 
 Commits:
 
 ```text
-24dd625047033cc8a285f07552421eeed23b5ab7
-Preserve provider warnings in catalog context
-
-a1ce12c505031b4a4780d6951c6a3d048885779a
-Verify warning aggregation order
-
 72434329977adcc3b8d406f593a249b3687076d2
 Distinguish informational provider diagnostics
+
+d15cfbc9b157ae04ec14d1a26c0858a411951833
+Keep informational provider issues successful
 ```
