@@ -130,6 +130,55 @@ public sealed class ErrorCatalogContextProviderSuccessWithWarningsTests
         Assert.Equal(IssueSeverity.Information, outputInformation.Severity);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldPreserveMixedDiagnosticsAndReportWarnings_WhenWarningIsPresent()
+    {
+        IssueInfo information = IssueInfoFactory.Information(
+            "ErrorCatalogProviderInformation",
+            "The error catalog provider supplied additional diagnostic information.");
+        IssueInfo warning = IssueInfoFactory.Warning(
+            "OwnerCatalogProviderWarning",
+            "The owner catalog loaded with a recoverable warning.");
+
+        Response<ErrorCatalogProviderPayload> errorCatalogResponse = new()
+        {
+            Status = ResultStatus.Success,
+            Data = CreateErrorCatalogPayload(),
+            Issues = [information]
+        };
+
+        ErrorCatalogContextProvider provider = new(
+            new FakeErrorCatalogProvider(errorCatalogResponse),
+            new FakeCategoryCatalogProvider(),
+            new FakeCodeGroupCatalogProvider(),
+            new FakeOwnerCatalogProvider(
+                Response<ErrorOwnerCatalogProviderPayload>.OkWithWarnings(
+                    CreateOwnerCatalogPayload(),
+                    [warning])),
+            new FakeProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response =
+            await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.True(response.IsSuccess);
+        Assert.Equal(ResultStatus.SuccessWithWarnings, response.Status);
+        Assert.True(response.HasWarnings);
+        Assert.NotNull(response.Data);
+        Assert.True(response.Data.CrossValidationResult.IsValid);
+        Assert.Collection(
+            response.Issues,
+            issue =>
+            {
+                Assert.Equal("ErrorCatalogProviderInformation", issue.Code);
+                Assert.Equal(IssueSeverity.Information, issue.Severity);
+            },
+            issue =>
+            {
+                Assert.Equal("OwnerCatalogProviderWarning", issue.Code);
+                Assert.Equal(IssueSeverity.Warning, issue.Severity);
+            });
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
