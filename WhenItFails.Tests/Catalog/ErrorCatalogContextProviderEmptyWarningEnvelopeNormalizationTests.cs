@@ -14,6 +14,22 @@ public sealed class ErrorCatalogContextProviderEmptyWarningEnvelopeNormalization
     [Fact]
     public async Task LoadFromJsonsAsync_ShouldNormalizeSuccessWithWarningsToSuccess_WhenIssuesAreEmpty()
     {
+        Response<ErrorCatalogContext> response = await LoadAsync([]);
+
+        AssertNormalizedSuccess(response);
+    }
+
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldNormalizeSuccessWithWarningsToSuccess_WhenIssuesAreNull()
+    {
+        Response<ErrorCatalogContext> response = await LoadAsync(null!);
+
+        AssertNormalizedSuccess(response);
+    }
+
+    private static async Task<Response<ErrorCatalogContext>> LoadAsync(
+        IReadOnlyList<Afrowave.Toolbox.Essentials.Issues.IssueInfo> issues)
+    {
         const string providerMessage = "The provider declared success with warnings without diagnostics.";
         const string metadataKey = "provider-source";
 
@@ -22,7 +38,7 @@ public sealed class ErrorCatalogContextProviderEmptyWarningEnvelopeNormalization
             Status = ResultStatus.SuccessWithWarnings,
             Data = CreateErrorCatalogPayload(),
             Message = providerMessage,
-            Issues = [],
+            Issues = issues,
             Metadata = MetadataBagFactory.From(
                 metadataKey,
                 "error-catalog-provider")
@@ -42,6 +58,15 @@ public sealed class ErrorCatalogContextProviderEmptyWarningEnvelopeNormalization
                 PackageDirectoryName = "WhenItFails"
             });
 
+        Assert.NotEqual(providerMessage, response.Message);
+        Assert.False(response.Metadata.TryGet(metadataKey, out _));
+
+        return response;
+    }
+
+    private static void AssertNormalizedSuccess(
+        Response<ErrorCatalogContext> response)
+    {
         Assert.True(response.IsSuccess);
         Assert.Equal(ResultStatus.Success, response.Status);
         Assert.False(response.HasWarnings);
@@ -49,9 +74,7 @@ public sealed class ErrorCatalogContextProviderEmptyWarningEnvelopeNormalization
         Assert.NotNull(response.Data);
         Assert.True(response.Data.CrossValidationResult.IsValid);
         Assert.True(string.IsNullOrEmpty(response.Message));
-        Assert.NotEqual(providerMessage, response.Message);
         Assert.Empty(response.Metadata.Items);
-        Assert.False(response.Metadata.TryGet(metadataKey, out _));
     }
 
     private static ErrorCatalogProviderPayload CreateErrorCatalogPayload()
