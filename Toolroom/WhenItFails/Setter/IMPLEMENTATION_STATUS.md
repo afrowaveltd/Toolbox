@@ -27,7 +27,7 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderNullIssueElementTests`: **1 user-verified green** confirming that runtime-null issue elements are filtered without losing surrounding valid diagnostics.
 - `ErrorCatalogContextProviderNullFailureIssuesTests`: **1 user-verified green** confirming that a runtime-null failure `Issues` collection uses the provider fallback envelope without invoking later providers.
 - `ErrorCatalogContextProviderNullFailureIssueElementTests`: **1 user-verified green** confirming that failure mapping skips runtime-null issue elements and preserves the first valid source issue code.
-- `ErrorCatalogContextProviderCategoryNullFailureIssuesTests`: **1 test pending verification** for the same runtime-null failure collection contract at the category-provider position.
+- `ErrorCatalogContextProviderCategoryNullFailureIssuesTests`: **1 user-verified green** for a runtime-null failure collection at the category-provider position; a second null-element-plus-valid-source-code case is pending.
 - Setter CI repair pair — `ImplementationStatusDocumentationTests` and `SuggestDocumentationKeyBracketTitleTests`: **2 user-verified green**.
 - Complete `Toolroom/WhenItFails/Setter.Tests` suite: **1,241 user-verified green, 0 failed, 0 skipped**.
 
@@ -60,13 +60,13 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 
 Latest user-verified result: **1,241 passed, 0 failed, 0 skipped**.
 
-Run the focused category-provider null-failure-issues contract:
+Run the expanded category-provider malformed-failure suite:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderCategoryNullFailureIssuesTests
 ```
 
-Expected result: **1 green test**.
+Expected result: **2 green tests**.
 
 Before committing catalog changes, also run:
 
@@ -111,18 +111,18 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Run `ErrorCatalogContextProviderCategoryNullFailureIssuesTests`; the expected count is **1 green test**. Do not proceed until the generic null-failure-issues behavior is verified beyond the first provider position.
+Run `ErrorCatalogContextProviderCategoryNullFailureIssuesTests`; the expected count is **2 green tests**. Do not proceed until both null-collection and null-element behavior are verified at the category-provider position.
 
 ## Last completed change
 
-The one-hundred-eleventh runtime/public-API audit slice records `ErrorCatalogContextProviderNullFailureIssueElementTests` as **1 user-verified green test** and adds one generic-position verification. The error-catalog provider succeeds, then the category provider returns `NotSupported` with `Issues = null` at runtime. Failure mapping must synthesize the category-specific fallback code and message, preserve `NotSupported`, and short-circuit code-group, owner, and profile providers. No production change is expected because the shared failure mapper was already corrected.
+The one-hundred-twelfth runtime/public-API audit slice records the category-provider null-collection case as **1 user-verified green test** and adds a second generic-position verification. The error-catalog provider succeeds, then the category provider returns `Failed` with a source message and `Issues = [null, validIssue]`. Failure mapping must skip the malformed element, preserve the first valid source code and source message, retain `Failed`, and short-circuit all later providers. No production change is expected because the shared generic failure mapper is already corrected.
 
 Commits:
 
 ```text
-19167597f436507285a051c6d6d9af6bf904b721
-Ignore null failure issue elements
-
 dfcc324a9e038ef78997e8d9a0c041e5cac659b0
 Verify category null failure issues fallback
+
+fe8636534a3ddc7e0de95efffb2129b0118a1335
+Verify category null failure issue elements
 ```
