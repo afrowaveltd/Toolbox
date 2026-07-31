@@ -2,6 +2,7 @@ using Afrowave.Toolbox.Essentials.Enums;
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
+using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
 using Afrowave.Toolbox.WhenItFails.Validation;
 
@@ -12,26 +13,80 @@ public sealed class ErrorCatalogContextProviderNullInnerPayloadTests
     [Fact]
     public async Task LoadFromJsonsAsync_ShouldReturnInvalidAndShortCircuit_WhenErrorCatalogDocumentIsNull()
     {
-        ErrorCatalogContextProvider provider = new(
-            new NullDocumentErrorCatalogProvider(),
+        ErrorCatalogContextProvider provider = CreateProvider(
+            new NullDocumentErrorCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
+            CreateOptions());
+
+        AssertNullInnerPayloadFailure(response);
+    }
+
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldReturnInvalidAndShortCircuit_WhenErrorCatalogIsNull()
+    {
+        ErrorCatalogContextProvider provider = CreateProvider(
+            new NullCatalogErrorCatalogProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
+            CreateOptions());
+
+        AssertNullInnerPayloadFailure(response);
+    }
+
+    private static ErrorCatalogContextProvider CreateProvider(
+        IErrorCatalogProvider errorCatalogProvider)
+    {
+        return new ErrorCatalogContextProvider(
+            errorCatalogProvider,
             new UnexpectedCategoryCatalogProvider(),
             new UnexpectedCodeGroupCatalogProvider(),
             new UnexpectedOwnerCatalogProvider(),
             new UnexpectedProfileCatalogProvider());
+    }
 
-        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
-            new JsonsOptions
-            {
-                RootDirectory = "Jsons",
-                PackageDirectoryName = "WhenItFails"
-            });
+    private static JsonsOptions CreateOptions()
+    {
+        return new JsonsOptions
+        {
+            RootDirectory = "Jsons",
+            PackageDirectoryName = "WhenItFails"
+        };
+    }
 
+    private static void AssertNullInnerPayloadFailure(
+        Response<ErrorCatalogContext> response)
+    {
         Assert.False(response.IsSuccess);
         Assert.Equal(ResultStatus.Invalid, response.Status);
         Assert.Null(response.Data);
         Assert.Equal(
             "ErrorCatalogContextPayloadIsNull",
             Assert.Single(response.Issues).Code);
+    }
+
+    private static ErrorCatalogDocument CreateDocument()
+    {
+        return new ErrorCatalogDocument
+        {
+            Errors =
+            [
+                new ErrorDefinition
+                {
+                    Id = "AFW_GEN_0001",
+                    Code = 100001,
+                    Name = "UNKNOWNERROR",
+                    Owner = "AFW",
+                    CodePrefix = "GEN",
+                    CodeGroup = "GENERAL",
+                    PrimaryCategory = "GENERAL",
+                    Categories = ["GENERAL"],
+                    Title = "Unknown error",
+                    Message = "An unknown error occurred.",
+                    DefaultSeverity = "Error"
+                }
+            ]
+        };
     }
 
     private sealed class NullDocumentErrorCatalogProvider : IErrorCatalogProvider
@@ -52,6 +107,26 @@ public sealed class ErrorCatalogContextProviderNullInnerPayloadTests
         }
     }
 
+    private sealed class NullCatalogErrorCatalogProvider : IErrorCatalogProvider
+    {
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            ErrorCatalogDocument document = CreateDocument();
+
+            return Task.FromResult(Response<ErrorCatalogProviderPayload>.Ok(
+                new ErrorCatalogProviderPayload
+                {
+                    Catalog = null!,
+                    Document = document,
+                    ValidationResult = new ErrorCatalogValidationResult()
+                }));
+        }
+    }
+
     private sealed class UnexpectedCategoryCatalogProvider : IErrorCategoryCatalogProvider
     {
         public Task<Response<ErrorCategoryCatalogProviderPayload>> LoadFromFileAsync(
@@ -59,7 +134,7 @@ public sealed class ErrorCatalogContextProviderNullInnerPayloadTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "Category provider must not be called after an error-catalog payload with a null document.");
+                "Category provider must not be called after an error-catalog payload with a null required member.");
         }
     }
 
@@ -70,7 +145,7 @@ public sealed class ErrorCatalogContextProviderNullInnerPayloadTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "Code-group provider must not be called after an error-catalog payload with a null document.");
+                "Code-group provider must not be called after an error-catalog payload with a null required member.");
         }
     }
 
@@ -81,7 +156,7 @@ public sealed class ErrorCatalogContextProviderNullInnerPayloadTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "Owner provider must not be called after an error-catalog payload with a null document.");
+                "Owner provider must not be called after an error-catalog payload with a null required member.");
         }
     }
 
@@ -92,7 +167,7 @@ public sealed class ErrorCatalogContextProviderNullInnerPayloadTests
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "Profile provider must not be called after an error-catalog payload with a null document.");
+                "Profile provider must not be called after an error-catalog payload with a null required member.");
         }
     }
 }
