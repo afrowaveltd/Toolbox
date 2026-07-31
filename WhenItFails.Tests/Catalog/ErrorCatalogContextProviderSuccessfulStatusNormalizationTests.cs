@@ -35,19 +35,8 @@ public sealed class ErrorCatalogContextProviderSuccessfulStatusNormalizationTest
                 "error-catalog-provider")
         };
 
-        ErrorCatalogContextProvider provider = new(
-            new ErrorCatalogProvider(sourceResponse),
-            new CategoryCatalogProvider(),
-            new CodeGroupCatalogProvider(),
-            new OwnerCatalogProvider(),
-            new ProfileCatalogProvider());
-
-        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
-            new JsonsOptions
-            {
-                RootDirectory = "Jsons",
-                PackageDirectoryName = "WhenItFails"
-            });
+        Response<ErrorCatalogContext> response = await CreateProvider(sourceResponse)
+            .LoadFromJsonsAsync(CreateOptions());
 
         Assert.True(response.IsSuccess);
         Assert.Equal(ResultStatus.Success, response.Status);
@@ -62,6 +51,67 @@ public sealed class ErrorCatalogContextProviderSuccessfulStatusNormalizationTest
         IssueInfo outputIssue = Assert.Single(response.Issues);
         Assert.Equal(informationCode, outputIssue.Code);
         Assert.Equal(IssueSeverity.Information, outputIssue.Severity);
+    }
+
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldNormalizeSuccessToSuccessWithWarnings_WhenWarningExists()
+    {
+        const string warningCode = "ErrorCatalogProviderWarning";
+        const string providerMessage = "The provider declared plain success.";
+        const string metadataKey = "provider-source";
+
+        Response<ErrorCatalogProviderPayload> sourceResponse = new()
+        {
+            Status = ResultStatus.Success,
+            Data = CreateErrorCatalogPayload(),
+            Message = providerMessage,
+            Issues =
+            [
+                IssueInfoFactory.Warning(
+                    warningCode,
+                    "The provider supplied a recoverable warning.")
+            ],
+            Metadata = MetadataBagFactory.From(
+                metadataKey,
+                "error-catalog-provider")
+        };
+
+        Response<ErrorCatalogContext> response = await CreateProvider(sourceResponse)
+            .LoadFromJsonsAsync(CreateOptions());
+
+        Assert.True(response.IsSuccess);
+        Assert.Equal(ResultStatus.SuccessWithWarnings, response.Status);
+        Assert.True(response.HasWarnings);
+        Assert.NotNull(response.Data);
+        Assert.True(response.Data.CrossValidationResult.IsValid);
+        Assert.True(string.IsNullOrEmpty(response.Message));
+        Assert.NotEqual(providerMessage, response.Message);
+        Assert.Empty(response.Metadata.Items);
+        Assert.False(response.Metadata.TryGet(metadataKey, out _));
+
+        IssueInfo outputIssue = Assert.Single(response.Issues);
+        Assert.Equal(warningCode, outputIssue.Code);
+        Assert.Equal(IssueSeverity.Warning, outputIssue.Severity);
+    }
+
+    private static ErrorCatalogContextProvider CreateProvider(
+        Response<ErrorCatalogProviderPayload> sourceResponse)
+    {
+        return new ErrorCatalogContextProvider(
+            new ErrorCatalogProvider(sourceResponse),
+            new CategoryCatalogProvider(),
+            new CodeGroupCatalogProvider(),
+            new OwnerCatalogProvider(),
+            new ProfileCatalogProvider());
+    }
+
+    private static JsonsOptions CreateOptions()
+    {
+        return new JsonsOptions
+        {
+            RootDirectory = "Jsons",
+            PackageDirectoryName = "WhenItFails"
+        };
     }
 
     private static ErrorCatalogProviderPayload CreateErrorCatalogPayload()
