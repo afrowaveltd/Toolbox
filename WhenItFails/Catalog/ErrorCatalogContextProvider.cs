@@ -1,3 +1,4 @@
+using Afrowave.Toolbox.Essentials.Enums;
 using Afrowave.Toolbox.Essentials.Issues;
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Configuration;
@@ -188,9 +189,17 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
             CrossValidationResult = crossValidationResult
         };
 
-        return providerIssues.Count == 0
-            ? Response<ErrorCatalogContext>.Ok(context)
-            : Response<ErrorCatalogContext>.OkWithWarnings(context, providerIssues);
+        bool hasWarnings = providerIssues.Any(
+            issue => issue.Severity >= IssueSeverity.Warning);
+
+        return hasWarnings
+            ? Response<ErrorCatalogContext>.OkWithWarnings(context, providerIssues)
+            : new Response<ErrorCatalogContext>
+            {
+                Status = ResultStatus.Success,
+                Data = context,
+                Issues = providerIssues
+            };
     }
 
     private static Response<ErrorCatalogContext> CreateFailedContextResponse<TPayload>(
