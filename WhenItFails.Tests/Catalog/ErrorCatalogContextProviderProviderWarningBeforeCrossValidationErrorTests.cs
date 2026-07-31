@@ -16,20 +16,64 @@ public sealed class ErrorCatalogContextProviderProviderWarningBeforeCrossValidat
     {
         const string providerWarningCode = "ErrorCatalogProviderWarning";
 
-        ErrorCatalogContextProvider provider = new(
-            new WarningErrorCatalogProvider(providerWarningCode),
+        ErrorCatalogContextProvider provider = CreateProvider(
+            new WarningErrorCatalogProvider(providerWarningCode));
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
+            CreateOptions());
+
+        AssertCrossValidationErrorResponse(response);
+        Assert.DoesNotContain(
+            response.Issues,
+            candidate => candidate.Code == providerWarningCode);
+    }
+
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldReturnOnlyCrossValidationError_WhenMixedProviderDiagnosticsPrecedeIt()
+    {
+        const string providerInformationCode = "ErrorCatalogProviderInformation";
+        const string providerWarningCode = "ErrorCatalogProviderWarning";
+
+        ErrorCatalogContextProvider provider = CreateProvider(
+            new MixedDiagnosticsErrorCatalogProvider(
+                providerInformationCode,
+                providerWarningCode));
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
+            CreateOptions());
+
+        AssertCrossValidationErrorResponse(response);
+        Assert.DoesNotContain(
+            response.Issues,
+            candidate => candidate.Code == providerInformationCode);
+        Assert.DoesNotContain(
+            response.Issues,
+            candidate => candidate.Code == providerWarningCode);
+    }
+
+    private static ErrorCatalogContextProvider CreateProvider(
+        IErrorCatalogProvider errorCatalogProvider)
+    {
+        return new ErrorCatalogContextProvider(
+            errorCatalogProvider,
             new CategoryCatalogProvider(),
             new CodeGroupCatalogProvider(),
             new OwnerCatalogProvider(),
             new EmptyProfileCatalogProvider());
+    }
 
-        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
-            new JsonsOptions
-            {
-                RootDirectory = "Jsons",
-                PackageDirectoryName = "WhenItFails"
-            });
+    private static JsonsOptions CreateOptions()
+    {
+        return new JsonsOptions
+        {
+            RootDirectory = "Jsons",
+            PackageDirectoryName = "WhenItFails"
+        };
+    }
 
+    private static void AssertCrossValidationErrorResponse(
+        Response<ErrorCatalogContext> response)
+    {
         Assert.False(response.IsSuccess);
         Assert.Equal(ResultStatus.Invalid, response.Status);
         Assert.Null(response.Data);
@@ -42,9 +86,37 @@ public sealed class ErrorCatalogContextProviderProviderWarningBeforeCrossValidat
             "Error owner 'MISSING_OWNER' is not defined in the owner catalog.",
             issue.Message);
         Assert.Equal(issue.Message, response.Message);
-        Assert.DoesNotContain(
-            response.Issues,
-            candidate => candidate.Code == providerWarningCode);
+    }
+
+    private static ErrorCatalogProviderPayload CreatePayload()
+    {
+        ErrorCatalogDocument document = new()
+        {
+            Errors =
+            [
+                new ErrorDefinition
+                {
+                    Id = "AFW_GEN_0001",
+                    Code = 100001,
+                    Name = "MISSINGOWNER",
+                    Owner = "MISSING_OWNER",
+                    CodePrefix = "GEN",
+                    CodeGroup = "GENERAL",
+                    PrimaryCategory = "GENERAL",
+                    Categories = ["GENERAL"],
+                    Title = "Missing owner",
+                    Message = "Produces a cross-validation error.",
+                    DefaultSeverity = "Error"
+                }
+            ]
+        };
+
+        return new ErrorCatalogProviderPayload
+        {
+            Catalog = new ErrorCatalog(document.Errors),
+            Document = document,
+            ValidationResult = new ErrorCatalogValidationResult()
+        };
     }
 
     private sealed class WarningErrorCatalogProvider(string warningCode)
@@ -56,40 +128,39 @@ public sealed class ErrorCatalogContextProviderProviderWarningBeforeCrossValidat
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            ErrorCatalogDocument document = new()
-            {
-                Errors =
-                [
-                    new ErrorDefinition
-                    {
-                        Id = "AFW_GEN_0001",
-                        Code = 100001,
-                        Name = "MISSINGOWNER",
-                        Owner = "MISSING_OWNER",
-                        CodePrefix = "GEN",
-                        CodeGroup = "GENERAL",
-                        PrimaryCategory = "GENERAL",
-                        Categories = ["GENERAL"],
-                        Title = "Missing owner",
-                        Message = "Produces a cross-validation error.",
-                        DefaultSeverity = "Error"
-                    }
-                ]
-            };
-
             IssueInfo warning = IssueInfoFactory.Warning(
                 warningCode,
                 "The error catalog loaded with a recoverable warning.");
 
             return Task.FromResult(
                 Response<ErrorCatalogProviderPayload>.OkWithWarnings(
-                    new ErrorCatalogProviderPayload
-                    {
-                        Catalog = new ErrorCatalog(document.Errors),
-                        Document = document,
-                        ValidationResult = new ErrorCatalogValidationResult()
-                    },
+                    CreatePayload(),
                     [warning]));
+        }
+    }
+
+    private sealed class MixedDiagnosticsErrorCatalogProvider(
+        string informationCode,
+        string warningCode)
+        : IErrorCatalogProvider
+    {
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(
+                Response<ErrorCatalogProviderPayload>.OkWithWarnings(
+                    CreatePayload(),
+                    [
+                        IssueInfoFactory.Information(
+                            informationCode,
+                            "The error catalog provider reported informational context."),
+                        IssueInfoFactory.Warning(
+                            warningCode,
+                            "The error catalog loaded with a recoverable warning.")
+                    ]));
         }
     }
 
