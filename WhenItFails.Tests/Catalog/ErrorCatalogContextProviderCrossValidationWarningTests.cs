@@ -112,6 +112,34 @@ public sealed class ErrorCatalogContextProviderCrossValidationWarningTests
         Assert.Equal("UnknownProfileIncludeError", crossValidationWarning.Code);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldKeepProviderInformationSeparateFromCrossValidationWarning()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new ProviderInformationErrorProvider(),
+            new CategoryProvider(),
+            new CodeGroupProvider(),
+            new OwnerProvider(),
+            new WarningProfileProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
+            CreateOptions());
+
+        Assert.True(response.IsSuccess);
+        Assert.Equal(ResultStatus.Success, response.Status);
+        Assert.False(response.HasWarnings);
+        Assert.NotNull(response.Data);
+        Assert.True(response.Data.CrossValidationResult.IsValid);
+
+        IssueInfo providerInformation = Assert.Single(response.Issues);
+        Assert.Equal("ErrorCatalogProviderInformation", providerInformation.Code);
+        Assert.Equal(IssueSeverity.Information, providerInformation.Severity);
+
+        var crossValidationWarning = Assert.Single(
+            response.Data.CrossValidationResult.Issues);
+        Assert.Equal("UnknownProfileIncludeError", crossValidationWarning.Code);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -166,6 +194,35 @@ public sealed class ErrorCatalogContextProviderCrossValidationWarningTests
                 Response<ErrorCatalogProviderPayload>.OkWithWarnings(
                     CreateErrorPayload(document),
                     [warning]));
+        }
+    }
+
+    private sealed class ProviderInformationErrorProvider : IErrorCatalogProvider
+    {
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            ErrorCatalogDocument document = new()
+            {
+                Errors =
+                [
+                    CreateErrorDefinition(["GENERAL"])
+                ]
+            };
+
+            IssueInfo information = IssueInfoFactory.Information(
+                "ErrorCatalogProviderInformation",
+                "The error catalog provider supplied additional diagnostic information.");
+
+            return Task.FromResult(new Response<ErrorCatalogProviderPayload>
+            {
+                Status = ResultStatus.Success,
+                Data = CreateErrorPayload(document),
+                Issues = [information]
+            });
         }
     }
 
