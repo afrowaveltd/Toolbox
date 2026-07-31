@@ -27,6 +27,14 @@ public sealed class ErrorCatalogContextProviderEmptyWarningEnvelopeNormalization
         AssertNormalizedSuccess(response);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldNormalizeSuccessWithWarningsToSuccess_WhenEveryIssueIsNull()
+    {
+        Response<ErrorCatalogContext> response = await LoadAsync([null!, null!]);
+
+        AssertNormalizedSuccess(response);
+    }
+
     private static async Task<Response<ErrorCatalogContext>> LoadAsync(
         IReadOnlyList<Afrowave.Toolbox.Essentials.Issues.IssueInfo> issues)
     {
