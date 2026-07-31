@@ -179,6 +179,34 @@ public sealed class ErrorCatalogContextProviderSuccessWithWarningsTests
             });
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldTreatNullIssuesAsEmpty_WhenProviderSucceeds()
+    {
+        Response<ErrorCatalogProviderPayload> sourceResponse = new()
+        {
+            Status = ResultStatus.Success,
+            Data = CreateErrorCatalogPayload(),
+            Issues = null!
+        };
+
+        ErrorCatalogContextProvider provider = new(
+            new FakeErrorCatalogProvider(sourceResponse),
+            new FakeCategoryCatalogProvider(),
+            new FakeCodeGroupCatalogProvider(),
+            new FakeOwnerCatalogProvider(),
+            new FakeProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response =
+            await provider.LoadFromJsonsAsync(CreateOptions());
+
+        Assert.True(response.IsSuccess);
+        Assert.Equal(ResultStatus.Success, response.Status);
+        Assert.False(response.HasWarnings);
+        Assert.Empty(response.Issues);
+        Assert.NotNull(response.Data);
+        Assert.True(response.Data.CrossValidationResult.IsValid);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
