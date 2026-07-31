@@ -1,4 +1,5 @@
 using Afrowave.Toolbox.Essentials.Enums;
+using Afrowave.Toolbox.Essentials.Issues;
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
@@ -83,6 +84,34 @@ public sealed class ErrorCatalogContextProviderCrossValidationWarningTests
             issue => Assert.Equal("UnknownProfileIncludeError", issue.Code));
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldKeepProviderAndCrossValidationWarningsInSeparateLayers()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new WarningErrorProvider(),
+            new CategoryProvider(),
+            new CodeGroupProvider(),
+            new OwnerProvider(),
+            new WarningProfileProvider());
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
+            CreateOptions());
+
+        Assert.True(response.IsSuccess);
+        Assert.Equal(ResultStatus.SuccessWithWarnings, response.Status);
+        Assert.True(response.HasWarnings);
+        Assert.NotNull(response.Data);
+        Assert.True(response.Data.CrossValidationResult.IsValid);
+
+        IssueInfo providerWarning = Assert.Single(response.Issues);
+        Assert.Equal("ErrorCatalogProviderWarning", providerWarning.Code);
+        Assert.Equal(IssueSeverity.Warning, providerWarning.Severity);
+
+        var crossValidationWarning = Assert.Single(
+            response.Data.CrossValidationResult.Issues);
+        Assert.Equal("UnknownProfileIncludeError", crossValidationWarning.Code);
+    }
+
     private static JsonsOptions CreateOptions()
     {
         return new JsonsOptions
@@ -110,6 +139,33 @@ public sealed class ErrorCatalogContextProviderCrossValidationWarningTests
 
             return Task.FromResult(Response<ErrorCatalogProviderPayload>.Ok(
                 CreateErrorPayload(document)));
+        }
+    }
+
+    private sealed class WarningErrorProvider : IErrorCatalogProvider
+    {
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            ErrorCatalogDocument document = new()
+            {
+                Errors =
+                [
+                    CreateErrorDefinition(["GENERAL"])
+                ]
+            };
+
+            IssueInfo warning = IssueInfoFactory.Warning(
+                "ErrorCatalogProviderWarning",
+                "The error catalog loaded with a recoverable warning.");
+
+            return Task.FromResult(
+                Response<ErrorCatalogProviderPayload>.OkWithWarnings(
+                    CreateErrorPayload(document),
+                    [warning]));
         }
     }
 
