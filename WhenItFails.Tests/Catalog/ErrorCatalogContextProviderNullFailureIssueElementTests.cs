@@ -68,6 +68,35 @@ public sealed class ErrorCatalogContextProviderNullFailureIssueElementTests
         Assert.Equal(sourceMessage, outputIssue.Message);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldUseFallbackEnvelope_WhenAllFailureIssueElementsAreNull()
+    {
+        ErrorCatalogContextProvider provider = new(
+            new AllNullIssuesErrorCatalogProvider(),
+            new UnexpectedCategoryCatalogProvider(),
+            new UnexpectedCodeGroupCatalogProvider(),
+            new UnexpectedOwnerCatalogProvider(),
+            new UnexpectedProfileCatalogProvider());
+
+        Response<ErrorCatalogContext> response =
+            await provider.LoadFromJsonsAsync(new JsonsOptions
+            {
+                RootDirectory = "Jsons",
+                PackageDirectoryName = "WhenItFails"
+            });
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.NotFound, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal(
+            "Error catalog loading failed while creating catalog context.",
+            response.Message);
+
+        IssueInfo outputIssue = Assert.Single(response.Issues);
+        Assert.Equal("ErrorCatalogContextErrorCatalogLoadFailed", outputIssue.Code);
+        Assert.Equal(response.Message, outputIssue.Message);
+    }
+
     private sealed class NullFirstIssueErrorCatalogProvider(
         string sourceCode,
         string sourceMessage)
@@ -126,6 +155,22 @@ public sealed class ErrorCatalogContextProviderNullFailureIssueElementTests
                         Severity = IssueSeverity.Error
                     }
                 ]
+            });
+        }
+    }
+
+    private sealed class AllNullIssuesErrorCatalogProvider : IErrorCatalogProvider
+    {
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(new Response<ErrorCatalogProviderPayload>
+            {
+                Status = ResultStatus.NotFound,
+                Issues = [null!, null!]
             });
         }
     }
