@@ -94,6 +94,47 @@ public sealed class ErrorCatalogContextProviderSuccessfulStatusNormalizationTest
         Assert.Equal(IssueSeverity.Warning, outputIssue.Severity);
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldKeepSuccessfulContextWithWarnings_WhenProviderAddsErrorIssue()
+    {
+        const string errorCode = "ErrorCatalogProviderDiagnosticError";
+        const string providerMessage = "The provider completed but attached an error diagnostic.";
+        const string metadataKey = "provider-source";
+
+        Response<ErrorCatalogProviderPayload> sourceResponse = new()
+        {
+            Status = ResultStatus.Success,
+            Data = CreateErrorCatalogPayload(),
+            Message = providerMessage,
+            Issues =
+            [
+                IssueInfoFactory.Error(
+                    errorCode,
+                    "The provider attached a severe diagnostic without failing the load operation.")
+            ],
+            Metadata = MetadataBagFactory.From(
+                metadataKey,
+                "error-catalog-provider")
+        };
+
+        Response<ErrorCatalogContext> response = await CreateProvider(sourceResponse)
+            .LoadFromJsonsAsync(CreateOptions());
+
+        Assert.True(response.IsSuccess);
+        Assert.Equal(ResultStatus.SuccessWithWarnings, response.Status);
+        Assert.True(response.HasWarnings);
+        Assert.NotNull(response.Data);
+        Assert.True(response.Data.CrossValidationResult.IsValid);
+        Assert.True(string.IsNullOrEmpty(response.Message));
+        Assert.NotEqual(providerMessage, response.Message);
+        Assert.Empty(response.Metadata.Items);
+        Assert.False(response.Metadata.TryGet(metadataKey, out _));
+
+        IssueInfo outputIssue = Assert.Single(response.Issues);
+        Assert.Equal(errorCode, outputIssue.Code);
+        Assert.Equal(IssueSeverity.Error, outputIssue.Severity);
+    }
+
     private static ErrorCatalogContextProvider CreateProvider(
         Response<ErrorCatalogProviderPayload> sourceResponse)
     {
