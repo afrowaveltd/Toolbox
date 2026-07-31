@@ -69,7 +69,7 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
             return CreateNullPayloadResponse();
         }
 
-        providerIssues.AddRange(errorCatalogResponse.Issues);
+        AddProviderIssues(providerIssues, errorCatalogResponse.Issues);
 
         Response<ErrorCategoryCatalogProviderPayload> categoryCatalogResponse =
             await _categoryCatalogProvider.LoadFromFileAsync(
@@ -89,7 +89,7 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
             return CreateNullPayloadResponse();
         }
 
-        providerIssues.AddRange(categoryCatalogResponse.Issues);
+        AddProviderIssues(providerIssues, categoryCatalogResponse.Issues);
 
         Response<ErrorCodeGroupCatalogProviderPayload> codeGroupCatalogResponse =
             await _codeGroupCatalogProvider.LoadFromFileAsync(
@@ -109,7 +109,7 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
             return CreateNullPayloadResponse();
         }
 
-        providerIssues.AddRange(codeGroupCatalogResponse.Issues);
+        AddProviderIssues(providerIssues, codeGroupCatalogResponse.Issues);
 
         Response<ErrorOwnerCatalogProviderPayload> ownerCatalogResponse =
             await _ownerCatalogProvider.LoadFromFileAsync(
@@ -129,7 +129,7 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
             return CreateNullPayloadResponse();
         }
 
-        providerIssues.AddRange(ownerCatalogResponse.Issues);
+        AddProviderIssues(providerIssues, ownerCatalogResponse.Issues);
 
         Response<ErrorProfileCatalogProviderPayload> profileCatalogResponse =
             await _profileCatalogProvider.LoadFromFileAsync(
@@ -149,7 +149,7 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
             return CreateNullPayloadResponse();
         }
 
-        providerIssues.AddRange(profileCatalogResponse.Issues);
+        AddProviderIssues(providerIssues, profileCatalogResponse.Issues);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -200,6 +200,16 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
                 Data = context,
                 Issues = providerIssues
             };
+    }
+
+    private static void AddProviderIssues(
+        List<IssueInfo> target,
+        IReadOnlyList<IssueInfo>? issues)
+    {
+        if (issues is not null)
+        {
+            target.AddRange(issues);
+        }
     }
 
     private static Response<ErrorCatalogContext> CreateFailedContextResponse<TPayload>(
