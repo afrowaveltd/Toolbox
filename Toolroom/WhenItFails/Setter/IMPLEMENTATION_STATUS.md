@@ -24,7 +24,8 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: **3 green**.
 - `ErrorCatalogContextProviderFailureIssueSeverityTests`: **4 user-verified green** for severity normalization, source issue immutability, suppression of source-only issue fields, suppression of provider-response metadata, and the distinct `NotFound` flag contract.
 - `ErrorCatalogContextProviderSuccessWithWarningsTests`: **5 user-verified green** confirming warning preservation, provider-order aggregation, informational diagnostics, mixed-severity preservation, and defensive handling of a runtime-null `Issues` collection.
-- `ErrorCatalogContextProviderNullIssueElementTests`: previous focused run reported **1 failed** with `NullReferenceException` during severity evaluation because a runtime-null issue element remained in the aggregate. Production is corrected and the rerun is pending.
+- `ErrorCatalogContextProviderNullIssueElementTests`: **1 user-verified green** confirming that runtime-null issue elements are filtered without losing surrounding valid diagnostics.
+- `ErrorCatalogContextProviderNullFailureIssuesTests`: **1 test pending verification** for a failed provider response whose `Issues` collection is null at runtime.
 - Setter CI repair pair — `ImplementationStatusDocumentationTests` and `SuggestDocumentationKeyBracketTitleTests`: **2 user-verified green**.
 - Complete `Toolroom/WhenItFails/Setter.Tests` suite: **1,241 user-verified green, 0 failed, 0 skipped**.
 
@@ -32,7 +33,9 @@ The runtime/public-API audit protects provider ordering and configured paths, sh
 
 `ResultStatus.NotFound` is intentionally context-neutral rather than automatically successful or failed. It may represent a successful lookup that found no matching item, or a wider operation that cannot complete because a required item was not found. The status therefore remains a distinct non-success category: `IsNotFound == true`, `IsSuccess == false`, and `IsFailure == false`. Severity and surrounding operation context communicate whether the overall outcome is problematic.
 
-The successful-provider composition contract collects issues from all five successful catalog responses in provider order. Informational issues survive composition while the final response remains plain `Success` with `HasWarnings == false`. Only an aggregated issue whose severity is `Warning` or higher promotes the final response to `SuccessWithWarnings`. Mixed lower- and warning-level diagnostics remain present and ordered while the warning determines the final status. Runtime-null `Issues` collections are treated as empty across all five provider positions. Runtime-null elements inside a non-null collection are now filtered during aggregation, while surrounding valid diagnostics retain their original order and identity. In every case the fully validated non-null context is preserved. Failure short-circuit and cross-validation behavior are unchanged.
+The successful-provider composition contract collects issues from all five successful catalog responses in provider order. Informational issues survive composition while the final response remains plain `Success` with `HasWarnings == false`. Only an aggregated issue whose severity is `Warning` or higher promotes the final response to `SuccessWithWarnings`. Mixed lower- and warning-level diagnostics remain present and ordered while the warning determines the final status. Runtime-null `Issues` collections are treated as empty across all five provider positions. Runtime-null elements inside a non-null collection are filtered during aggregation, while surrounding valid diagnostics retain their original order and identity. In every case the fully validated non-null context is preserved.
+
+The adjacent failure-envelope contract requires a runtime-null `Issues` collection to behave like an empty collection. The context provider must preserve the source status, use the provider-specific fallback code and message, short-circuit later providers, and return a normal synthesized failure response rather than throwing while inspecting the malformed source envelope.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -55,13 +58,13 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 
 Latest user-verified result: **1,241 passed, 0 failed, 0 skipped**.
 
-Rerun the focused null-element contract after the production fix:
+Run the new focused null-failure-issues contract:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderNullIssueElementTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderNullFailureIssuesTests
 ```
 
-Expected result: **1 green test**.
+Expected result: **1 test**. The test may expose an unguarded access to `sourceResponse.Issues.Count` in failure mapping.
 
 Before committing catalog changes, also run:
 
@@ -106,18 +109,18 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Rerun `ErrorCatalogContextProviderNullIssueElementTests`; the expected count is **1 green test**. Do not proceed until null issue elements are confirmed to be filtered without losing valid diagnostics.
+Run `ErrorCatalogContextProviderNullFailureIssuesTests`; the expected count is **1 test**. Do not proceed until failure mapping with a runtime-null issues collection is established.
 
 ## Last completed change
 
-The one-hundred-seventh runtime/public-API audit slice fixes a fourth successful-provider composition defect. The focused null-element test failed with `NullReferenceException` because `AddProviderIssues` retained a runtime-null item and final severity evaluation dereferenced it. The shared aggregation helper now ignores both a null collection and null elements within a collection, while preserving every valid issue in its original provider and collection order.
+The one-hundred-eighth runtime/public-API audit slice records the null-element contract as **1 user-verified green test** and adds one adjacent malformed failure-envelope case. The error-catalog provider returns `NotFound` with `Issues = null` at runtime. The context provider must synthesize the usual error-catalog fallback code and message, retain `NotFound`, and avoid invoking later providers. No production change is made until the focused test establishes current behavior.
 
 Commits:
 
 ```text
-babe7f5422f08e7a7b51d58d1597a04b993018eb
-Verify null provider issue elements
-
 e821f12100005430cb4679ea896370f2d471a2c9
 Ignore null provider issue elements
+
+aab7a57aa2d37c964ed029a40a40a0759d28368b
+Verify null failure issues fallback
 ```
