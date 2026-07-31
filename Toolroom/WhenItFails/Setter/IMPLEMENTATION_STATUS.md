@@ -26,8 +26,9 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderSuccessWithWarningsTests`: **5 user-verified green** confirming warning preservation, provider-order aggregation, informational diagnostics, mixed-severity preservation, and defensive handling of a runtime-null `Issues` collection.
 - `ErrorCatalogContextProviderNullIssueElementTests`: **1 user-verified green** confirming that runtime-null issue elements are filtered without losing surrounding valid diagnostics.
 - `ErrorCatalogContextProviderNullFailureIssuesTests`: **1 user-verified green** confirming that a runtime-null failure `Issues` collection uses the provider fallback envelope without invoking later providers.
-- `ErrorCatalogContextProviderNullFailureIssueElementTests`: **2 user-verified green** confirming null skipping, preservation of the first valid source code, and preservation of first-actual-issue semantics when that issue has a blank code. A third all-null-elements fallback case is pending.
+- `ErrorCatalogContextProviderNullFailureIssueElementTests`: **3 user-verified green** confirming null skipping, preservation of the first valid source code, preservation of first-actual-issue semantics when that issue has a blank code, and fallback behavior when every collection element is null.
 - `ErrorCatalogContextProviderCategoryNullFailureIssuesTests`: **2 user-verified green** confirming both runtime-null failure collections and runtime-null issue elements at the category-provider position.
+- `ErrorCatalogContextProviderCrossValidationWarningTests`: **3 existing green contracts** protect cross-validation warning/information storage inside `CrossValidationResult`; a fourth provider-warning plus cross-validation-warning separation case is pending verification.
 - Setter CI repair pair — `ImplementationStatusDocumentationTests` and `SuggestDocumentationKeyBracketTitleTests`: **2 user-verified green**.
 - Complete `Toolroom/WhenItFails/Setter.Tests` suite: **1,241 user-verified green, 0 failed, 0 skipped**.
 
@@ -35,9 +36,11 @@ The runtime/public-API audit protects provider ordering and configured paths, sh
 
 `ResultStatus.NotFound` is intentionally context-neutral rather than automatically successful or failed. It may represent a successful lookup that found no matching item, or a wider operation that cannot complete because a required item was not found. The status therefore remains a distinct non-success category: `IsNotFound == true`, `IsSuccess == false`, and `IsFailure == false`. Severity and surrounding operation context communicate whether the overall outcome is problematic.
 
-The successful-provider composition contract collects issues from all five successful catalog responses in provider order. Informational issues survive composition while the final response remains plain `Success` with `HasWarnings == false`. Only an aggregated issue whose severity is `Warning` or higher promotes the final response to `SuccessWithWarnings`. Mixed lower- and warning-level diagnostics remain present and ordered while the warning determines the final status. Runtime-null `Issues` collections are treated as empty across all five provider positions. Runtime-null elements inside a non-null collection are filtered during aggregation, while surrounding valid diagnostics retain their original order and identity. In every case the fully validated non-null context is preserved.
+The successful-provider composition contract collects issues from all five successful catalog responses in provider order. Informational issues survive composition while the final response remains plain `Success` with `HasWarnings == false`. Only an aggregated provider issue whose severity is `Warning` or higher promotes the final response to `SuccessWithWarnings`. Mixed lower- and warning-level provider diagnostics remain present and ordered while the warning determines the final status. Runtime-null `Issues` collections are treated as empty across all five provider positions. Runtime-null elements inside a non-null collection are filtered during aggregation, while surrounding valid diagnostics retain their original order and identity. In every case the fully validated non-null context is preserved.
 
-The failure-envelope contract treats both a runtime-null `Issues` collection and runtime-null elements inside a non-null collection defensively. Failure mapping preserves source status and message, selects the first actual source issue after null elements, and uses its code only when non-blank. A blank code on that first actual issue triggers the provider-specific fallback rather than promoting a later issue code. A non-null collection containing no actual issues at all must behave exactly like an empty collection and produce the same fallback envelope. Later providers remain short-circuited.
+Cross-validation diagnostics form a separate layer. Non-error cross-validation issues remain inside `ErrorCatalogContext.CrossValidationResult` and do not themselves populate outer `Response.Issues` or promote outer status. When a provider warning and a cross-validation warning occur together, the provider warning must remain the sole outer issue and determine `SuccessWithWarnings`, while the cross-validation warning remains solely inside the context without duplication or loss.
+
+The failure-envelope contract treats both a runtime-null `Issues` collection and runtime-null elements inside a non-null collection defensively. Failure mapping preserves source status and message, selects the first actual source issue after null elements, and uses its code only when non-blank. A blank code on that first actual issue triggers the provider-specific fallback rather than promoting a later issue code. A non-null collection containing no actual issues at all behaves exactly like an empty collection and produces the same fallback envelope. Later providers remain short-circuited.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -60,13 +63,13 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 
 Latest user-verified result: **1,241 passed, 0 failed, 0 skipped**.
 
-Run the expanded null-failure-issue-element suite:
+Run the expanded cross-validation diagnostic-layer suite:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderNullFailureIssueElementTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderCrossValidationWarningTests
 ```
 
-Expected result: **3 green tests**.
+Expected result: **4 green tests**.
 
 Before committing catalog changes, also run:
 
@@ -111,18 +114,18 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Run `ErrorCatalogContextProviderNullFailureIssueElementTests`; the expected count is **3 green tests**. Do not proceed until a non-null failure issue collection containing only null elements is confirmed to use the normal provider fallback envelope.
+Run `ErrorCatalogContextProviderCrossValidationWarningTests`; the expected count is **4 green tests**. Do not proceed until provider-response warnings and cross-validation warnings are confirmed to remain in their separate diagnostic layers.
 
 ## Last completed change
 
-The one-hundred-fourteenth runtime/public-API audit slice records the first-actual-issue semantic guard as **2 user-verified green tests** and adds the closing null-safety boundary for failure mapping. The source response has a non-null issue collection containing only null elements. Because no actual source issue exists, the mapper must preserve `NotFound`, synthesize the normal error-catalog fallback code and message, return one valid failure issue, and keep all later providers short-circuited. No production change is expected because the corrected mapper already returns no source issue when every element is null.
+The one-hundred-fifteenth runtime/public-API audit slice records `ErrorCatalogContextProviderNullFailureIssueElementTests` as **3 user-verified green tests** and moves to diagnostic-layer composition. Existing contracts establish that cross-validation information and warnings remain inside `CrossValidationResult` while outer status stays plain success when providers have no warnings. The new case combines an error-catalog provider warning with a profile cross-validation warning. The outer response must be `SuccessWithWarnings` with exactly the provider warning, while the cross-validation warning remains exactly once inside the valid context. No production change is expected because the current architecture already separates these layers.
 
 Commits:
 
 ```text
-e5c00dd2b28288bad1636c120fa2eb51e94f4f4c
-Preserve first failure issue semantics after null entries
-
 800d0fe039965e6773582c99d8d50d99065c20d4
 Verify all-null failure issue elements
+
+21682071d5af7dae2abd553297f683731f07f007
+Verify provider and cross-validation warning separation
 ```
