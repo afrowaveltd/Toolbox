@@ -33,7 +33,7 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderSuccessfulEnvelopeSuppressionTests`: **2 user-verified green** confirming both plain `Success` and `SuccessWithWarnings` composition preserve provider issues while suppressing provider message and metadata.
 - `ErrorCatalogContextProviderSuccessfulStatusNormalizationTests`: **3 user-verified green** confirming downward normalization from informational-only diagnostics, upward promotion from a real warning, and successful composition with a preserved `Error` diagnostic.
 - `ErrorCatalogContextProviderEmptyWarningEnvelopeNormalizationTests`: **3 user-verified green** confirming empty, runtime-null, and null-only `SuccessWithWarnings` issue collections all normalize to plain `Success`.
-- `ErrorCatalogContextProviderNullInnerPayloadTests`: **1 test pending verification** for an error-catalog payload whose `Document` is runtime null.
+- `ErrorCatalogContextProviderNullInnerPayloadTests`: the first focused run **failed as expected** because the category provider was called after an error-catalog payload with `Document == null`; production now contains the missing short-circuit guard and awaits rerun.
 - Setter CI repair pair — `ImplementationStatusDocumentationTests` and `SuggestDocumentationKeyBracketTitleTests`: **2 user-verified green**.
 - Complete `Toolroom/WhenItFails/Setter.Tests` suite: **1,241 user-verified green, 0 failed, 0 skipped**.
 
@@ -47,7 +47,7 @@ Cross-validation diagnostics form a separate layer. Non-error cross-validation i
 
 The failure-envelope contract treats both a runtime-null `Issues` collection and runtime-null elements inside a non-null collection defensively. Failure mapping preserves source status and message, selects the first actual source issue after null elements, and uses its code only when non-blank. A blank code on that first actual issue triggers the provider-specific fallback rather than promoting a later issue code. A non-null collection containing no actual issues at all behaves exactly like an empty collection and produces the same fallback envelope. Later providers remain short-circuited.
 
-A non-null provider payload can still violate its public contract internally. The current audit now begins with `ErrorCatalogProviderPayload.Document == null`: this must be treated as an invalid/null payload boundary rather than allowing later providers or cross-validation to run. The focused test is expected to expose whether production currently lacks this inner-payload guard.
+A non-null provider payload can still violate its public contract internally. The first confirmed case is `ErrorCatalogProviderPayload.Document == null`. The focused test demonstrated that production previously continued to the category provider. `ErrorCatalogContextProvider` now checks both `Data` and its required `Document` immediately after a successful error-catalog response and returns the existing `ErrorCatalogContextPayloadIsNull` invalid envelope before any later provider is invoked. The repair still requires user verification.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -70,13 +70,13 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 
 Latest user-verified result: **1,241 passed, 0 failed, 0 skipped**.
 
-Run the new null inner-payload contract:
+Rerun the repaired null inner-payload contract:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderNullInnerPayloadTests
 ```
 
-Expected result after the contract is implemented: **1 green test**. The first run may fail by calling the category provider, which would confirm the missing guard.
+Expected result: **1 green test**.
 
 Before committing catalog changes, also run:
 
@@ -121,18 +121,18 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Run `ErrorCatalogContextProviderNullInnerPayloadTests`. Do not proceed until the exact current behavior of a successful error-catalog provider returning a non-null payload with `Document == null` is known. The desired contract is an `Invalid` response with no context and `ErrorCatalogContextPayloadIsNull`, while all later providers remain uncalled.
+Rerun `ErrorCatalogContextProviderNullInnerPayloadTests`. Do not proceed until the production guard is confirmed to return `Invalid` with `ErrorCatalogContextPayloadIsNull`, keep `Data == null`, and prevent the category and all later providers from being called.
 
 ## Last completed change
 
-The one-hundred-thirtieth runtime/public-API audit slice records `ErrorCatalogContextProviderEmptyWarningEnvelopeNormalizationTests` as **3 user-verified green tests**, closing empty, runtime-null, and null-only issue normalization. The audit then moves from outer response-envelope robustness to inner payload integrity. A new focused test supplies an otherwise successful `ErrorCatalogProviderPayload` whose required `Document` property is runtime null and makes every later provider throw if invoked. The desired behavior is immediate short-circuiting through the existing null-payload failure envelope. No production change has been made yet; the focused run must first establish the current failure shape.
+The one-hundred-thirty-first runtime/public-API audit slice records the expected red result for `ErrorCatalogContextProviderNullInnerPayloadTests`: the category provider was invoked after an otherwise successful error-catalog payload whose required `Document` property was runtime null. Production now treats `errorCatalogResponse.Data == null` and `errorCatalogResponse.Data.Document == null` as the same invalid payload boundary and short-circuits through `CreateNullPayloadResponse`. The focused repair is committed but remains pending user verification.
 
 Commits:
 
 ```text
-1721375ead6c1fffd9d120c16fb990362b916a2f
-Verify null-only warning issue normalization
-
 96b2165386bc487aa5f479559b138af8a78306a8
 Add null inner payload contract test
+
+c9770d70c849472fecb977e3993c4b7f7a79d595
+Reject null error catalog documents before composition
 ```
