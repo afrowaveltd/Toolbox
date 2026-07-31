@@ -68,6 +68,21 @@ public sealed class ErrorCatalogContextProviderProviderWarningBeforeCrossValidat
         Assert.False(response.Metadata.TryGet(metadataKey, out _));
     }
 
+    [Fact]
+    public async Task LoadFromJsonsAsync_ShouldDiscardProviderMessage_WhenCrossValidationFails()
+    {
+        const string providerMessage = "The error catalog provider completed successfully.";
+
+        ErrorCatalogContextProvider provider = CreateProvider(
+            new MessageErrorCatalogProvider(providerMessage));
+
+        Response<ErrorCatalogContext> response = await provider.LoadFromJsonsAsync(
+            CreateOptions());
+
+        AssertCrossValidationErrorResponse(response);
+        Assert.NotEqual(providerMessage, response.Message);
+    }
+
     private static ErrorCatalogContextProvider CreateProvider(
         IErrorCatalogProvider errorCatalogProvider)
     {
@@ -197,6 +212,24 @@ public sealed class ErrorCatalogContextProviderProviderWarningBeforeCrossValidat
                 Metadata = MetadataBagFactory.From(
                     metadataKey,
                     "error-catalog-provider")
+            });
+        }
+    }
+
+    private sealed class MessageErrorCatalogProvider(string message)
+        : IErrorCatalogProvider
+    {
+        public Task<Response<ErrorCatalogProviderPayload>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(new Response<ErrorCatalogProviderPayload>
+            {
+                Status = ResultStatus.Success,
+                Message = message,
+                Data = CreatePayload()
             });
         }
     }
