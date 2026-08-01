@@ -46,7 +46,24 @@ The authoritative owner catalog now uses these non-overlapping ranges:
 
 No existing error code was renumbered. The formerly reserved `APP` range had no catalog definitions, so moving its lower boundary preserved compatibility while allowing the built-in thermal block to remain `1000000–1099999`.
 
+A new focused bootstrap contract has now been added to `DefaultJsonsTemplateProviderTests`. It parses the embedded JSON templates and requires newly initialized workspaces to receive:
+
+- the revised `AFW` and `APP` owner boundaries;
+- category `THERMAL`;
+- code group `THERMAL` with prefix `THM` and range `1000000–1099999`;
+- the first thermal error `AFW-THM-0001` with code `1000001`.
+
+The production bootstrap templates have not yet been changed. The focused test should therefore establish the expected red baseline before implementation.
+
 ## Focused verification
+
+Run the new bootstrap synchronization gate:
+
+```powershell
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges
+```
+
+Expected current result: **1 red test**. The first failure should identify a stale embedded owner boundary or a missing thermal template item.
 
 The complete catalog workspace is user-verified green:
 
@@ -56,7 +73,7 @@ dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 
 Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
 
-The focused thermal contract remains available through:
+The focused thermal catalog contract remains available through:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~TemperatureLimitExceededCatalogTests
@@ -93,7 +110,7 @@ Maintained English documentation includes:
 - `Docs/Reviewing Catalog Changes/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-Next documentation target: synchronize the bootstrap owner template, bootstrap thermal category/code-group/error templates, owner-range documentation, and maintained reference catalog copies. Keep this file synchronized while the runtime/public-API audit continues.
+Next documentation target: after the bootstrap synchronization test is repaired and verified, synchronize owner-range documentation and maintained reference catalog copies. Keep this file synchronized while the runtime/public-API audit continues.
 
 ## Current intentional boundaries
 
@@ -112,18 +129,18 @@ Thermal easter eggs are explicitly deferred. Any future absurd-temperature wordi
 
 ## Recommended next step
 
-Add a focused bootstrap-template test that requires newly initialized workspaces to receive the revised owner ranges and the thermal category, code group, and first error definition. Confirm the test fails against the current embedded templates before synchronizing `DefaultJsonsTemplateProvider` and maintained reference catalogs.
+Run the focused bootstrap-template test and capture the exact red result. Do not modify `DefaultJsonsTemplateProvider` until the stale embedded contract is demonstrated. After diagnosis, update the embedded owner, category, code-group, and error templates as one tightly coupled production change, then rerun the focused test.
 
 ## Last completed change
 
-The latest slice closes the first thermal catalog increment. `TemperatureLimitExceededCatalogTests` is **1 user-verified green test**, and the complete `Setter validate .` run is user-verified green with **0 errors, 0 warnings, and 0 information issues**. `AFW_THM_0001` remains code `1000001`; the authoritative owner ranges now accommodate the built-in thermal block without overlap or renumbering. The next slice must protect and synchronize bootstrap generation rather than adding another thermal error prematurely.
+The latest slice adds one integration-style bootstrap test without changing production. Unlike earlier string-fragment checks, the test parses the five generated templates and verifies their semantic content. It protects the revised non-overlapping owner ranges and ensures that a newly initialized workspace includes the same thermal category, code group, and first thermal error already present in the authoritative project-local catalogs.
 
 Commits:
 
 ```text
-c4c0afd5f744404132ee3e633b26988d57114d2a
-Add temperature limit exceeded catalog error
+0cfed041c4ca76fa0850b839ac3c740db28048fc
+Add thermal bootstrap template contract test
 
-4fd02d927057a3290539627d737eb89bd2a0264b
-Extend AFW owner range for thermal errors
+2bbacfca4fae47cf73118eaaebeffe0d86cabd37
+Record green thermal catalog validation
 ```
