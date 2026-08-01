@@ -755,6 +755,24 @@
       "documentationKey": "when-it-fails/errors/thermal/temperature-reading-stale",
       "tags": ["THERMAL", "TEMPERATURE", "SENSOR", "STALE_DATA", "FAIL_SAFE", "USER_VISIBLE"],
       "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
+    },
+    {
+      "id": "AFW_THM_0005",
+      "code": 1000005,
+      "name": "TEMPERATURERATEOFCHANGEEXCEEDED",
+      "owner": "AFW",
+      "codePrefix": "THM",
+      "codeGroup": "THERMAL",
+      "primaryCategory": "THERMAL",
+      "categories": ["THERMAL", "VALIDATION"],
+      "subcategories": ["SENSOR", "RATE_OF_CHANGE"],
+      "title": "Temperature rate of change exceeded",
+      "message": "Temperature from sensor {sensor} changed at {rate}{unitPerTime}, exceeding the configured maximum rate of {maxRate}{unitPerTime}.",
+      "defaultSeverity": "Warning",
+      "developerHint": "Verify sensor sampling intervals, timestamp order, unit conversion, filtering, workload changes, cooling response, and the configured thermal trend policy.",
+      "documentationKey": "when-it-fails/errors/thermal/temperature-rate-of-change-exceeded",
+      "tags": ["THERMAL", "TEMPERATURE", "SENSOR", "TREND", "USER_VISIBLE"],
+      "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
     }
   ]
 }
