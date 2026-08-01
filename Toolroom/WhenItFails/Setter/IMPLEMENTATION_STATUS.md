@@ -73,13 +73,13 @@ dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 
 Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
 
-After the thermal documentation update, run the complete core project:
+The final gate for this increment is the complete core project:
 
 ```bash
 dotnet test WhenItFails.Tests
 ```
 
-Expected next full result: **699 passed, 0 failed, 0 skipped**.
+Expected result: **699 passed, 0 failed, 0 skipped**.
 
 The complete Setter suite remains available through:
 
@@ -111,7 +111,7 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-The thermal document currently covers the first six verified contracts. The next documentation slice adds the minimum-temperature contract without merging it with upper-limit or critical-temperature states.
+`WhenItFails/Docs/Thermal Errors/en.md` now documents all seven thermal contracts. The minimum-temperature section distinguishes a trusted lower-bound violation from invalid sensor data, defines structured diagnostic fields, leaves warm-up and low-temperature actions to application policy, and documents hysteresis and coexistence with trend or redundancy conditions.
 
 ## Current intentional boundaries
 
@@ -133,11 +133,11 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Document `TEMPERATUREBELOWMINIMUMLIMIT`, then run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **699-test** core gate is user-verified green.
+Run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **699-test** core gate is user-verified green.
 
 ## Last completed change
 
-`AFW_THM_0007` is now focused-test and workspace-validation verified. The remaining work for this increment is English thermal documentation followed by the complete core regression gate.
+The English thermal documentation now includes `TEMPERATUREBELOWMINIMUMLIMIT` and preserves the boundary between a valid lower operating-limit violation, sensor invalidity, data freshness, trend evaluation, redundancy disagreement, and upper thresholds. The remaining gate is the complete core regression suite.
 
 Commits:
 
@@ -147,4 +147,7 @@ Add temperature below minimum limit catalog contract
 
 c09177baa5a67b893b871d670110399e2a40ef09
 Add temperature below minimum limit catalog error
+
+d72f27034bbcfb67ec18734ce72e69eeef143a21
+Document temperature below minimum limit
 ```
