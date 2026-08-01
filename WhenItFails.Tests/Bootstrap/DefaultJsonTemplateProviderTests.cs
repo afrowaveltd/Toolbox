@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Afrowave.Toolbox.WhenItFails.Bootstrap;
 using Afrowave.Toolbox.WhenItFails.Configuration;
 
@@ -167,5 +168,69 @@ public sealed class DefaultJsonsTemplateProviderTests
                 .Single(file => file.Name == "Profiles");
 
         Assert.Contains("\"profiles\"", templateFile.Content);
+    }
+
+    [Fact]
+    public void GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges()
+    {
+        DefaultJsonsTemplateProvider provider = new();
+        IReadOnlyList<JsonsTemplateFile> templateFiles =
+            provider.GetTemplateFiles(new JsonsOptions());
+
+        using JsonDocument ownerDocument = ParseTemplate(templateFiles, "Owner catalog");
+        JsonElement afwOwner = FindByName(
+            ownerDocument.RootElement.GetProperty("owners"),
+            "AFW");
+        JsonElement appOwner = FindByName(
+            ownerDocument.RootElement.GetProperty("owners"),
+            "APP");
+
+        Assert.Equal(1_099_999, afwOwner.GetProperty("codeTo").GetInt32());
+        Assert.Equal(1_100_000, appOwner.GetProperty("codeFrom").GetInt32());
+
+        using JsonDocument categoryDocument = ParseTemplate(templateFiles, "Category catalog");
+        JsonElement thermalCategory = FindByName(
+            categoryDocument.RootElement.GetProperty("categories"),
+            "THERMAL");
+        Assert.Equal("Thermal", thermalCategory.GetProperty("displayName").GetString());
+
+        using JsonDocument codeGroupDocument = ParseTemplate(templateFiles, "Code group catalog");
+        JsonElement thermalCodeGroup = FindByName(
+            codeGroupDocument.RootElement.GetProperty("codeGroups"),
+            "THERMAL");
+        Assert.Equal("THM", thermalCodeGroup.GetProperty("codePrefix").GetString());
+        Assert.Equal(1_000_000, thermalCodeGroup.GetProperty("codeFrom").GetInt32());
+        Assert.Equal(1_099_999, thermalCodeGroup.GetProperty("codeTo").GetInt32());
+
+        using JsonDocument errorDocument = ParseTemplate(templateFiles, "Error catalog");
+        JsonElement thermalError = FindByName(
+            errorDocument.RootElement.GetProperty("errors"),
+            "TemperatureLimitExceeded");
+        Assert.Equal("AFW-THM-0001", thermalError.GetProperty("id").GetString());
+        Assert.Equal(1_000_001, thermalError.GetProperty("code").GetInt32());
+    }
+
+    private static JsonDocument ParseTemplate(
+        IReadOnlyList<JsonsTemplateFile> templateFiles,
+        string name)
+    {
+        string content = templateFiles.Single(file => file.Name == name).Content;
+        return JsonDocument.Parse(content);
+    }
+
+    private static JsonElement FindByName(JsonElement items, string name)
+    {
+        foreach (JsonElement item in items.EnumerateArray())
+        {
+            if (string.Equals(
+                item.GetProperty("name").GetString(),
+                name,
+                StringComparison.Ordinal))
+            {
+                return item;
+            }
+        }
+
+        throw new Xunit.Sdk.XunitException($"Template item '{name}' was not found.");
     }
 }
