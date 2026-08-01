@@ -809,6 +809,24 @@
       "documentationKey": "when-it-fails/errors/thermal/temperature-below-minimum-limit",
       "tags": ["THERMAL", "TEMPERATURE", "LOW_TEMPERATURE", "USER_VISIBLE"],
       "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
+    },
+    {
+      "id": "AFW_THM_0008",
+      "code": 1000008,
+      "name": "CRITICALTEMPERATUREBELOWMINIMUMLIMIT",
+      "owner": "AFW",
+      "codePrefix": "THM",
+      "codeGroup": "THERMAL",
+      "primaryCategory": "THERMAL",
+      "categories": ["THERMAL", "VALIDATION"],
+      "subcategories": ["CRITICAL_MINIMUM_LIMIT", "SHUTDOWN"],
+      "title": "Critical temperature below minimum limit",
+      "message": "The reported temperature {temperature}{unit} is below the configured critical minimum operating limit of {limit}{unit}.",
+      "defaultSeverity": "Critical",
+      "developerHint": "Verify the sensor reading and unit conversion, activate the configured critical low-temperature policy, and inspect ambient conditions, heating, fluids, batteries, and hardware before restart.",
+      "documentationKey": "when-it-fails/errors/thermal/critical-temperature-below-minimum-limit",
+      "tags": ["THERMAL", "TEMPERATURE", "LOW_TEMPERATURE", "SHUTDOWN", "USER_VISIBLE"],
+      "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
     }
   ]
 }
