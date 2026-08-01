@@ -10,7 +10,7 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-The complete `WhenItFails.Tests` core suite is user-verified green with **695 passed, 0 failed, 0 skipped** before the new stale-reading catalog test was added.
+The complete `WhenItFails.Tests` core suite is user-verified green with **695 passed, 0 failed, 0 skipped** before the stale-reading catalog test was added. The next full run should contain **696 tests**.
 
 The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
@@ -21,36 +21,26 @@ Recently verified focused contracts include:
 - `TemperatureLimitExceededCatalogTests`: **1 user-verified green**.
 - `CriticalTemperatureLimitExceededCatalogTests`: **1 user-verified green**.
 - `TemperatureSensorReadingInvalidCatalogTests`: **1 user-verified green**.
-- `TemperatureReadingStaleCatalogTests`: **1 user-verified expected red**, reporting that `TEMPERATUREREADINGSTALE` was not found.
+- `TemperatureReadingStaleCatalogTests`: **1 user-verified green**.
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
-- Complete catalog validation after adding `AFW_THM_0003`: **0 errors, 0 warnings, 0 information issues**.
+- Complete catalog validation after adding `AFW_THM_0004`: **0 errors, 0 warnings, 0 information issues**.
 - Complete `WhenItFails.Tests`: **695 user-verified green, 0 failed, 0 skipped** before the latest test addition.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
 
-The first three thermal definitions remain complete and verified:
+The first four thermal definitions are present and focused-validation verified:
 
 - `AFW_THM_0001` / `1000001` / `TEMPERATURELIMITEXCEEDED` / `Warning`;
 - `AFW_THM_0002` / `1000002` / `CRITICALTEMPERATURELIMITEXCEEDED` / `Critical`;
-- `AFW_THM_0003` / `1000003` / `TEMPERATURESENSORREADINGINVALID` / `Error`.
+- `AFW_THM_0003` / `1000003` / `TEMPERATURESENSORREADINGINVALID` / `Error`;
+- `AFW_THM_0004` / `1000004` / `TEMPERATUREREADINGSTALE` / `Error`.
 
-The fourth thermal definition is now present in the authoritative catalog and requires user verification:
-
-- ID `AFW_THM_0004`;
-- code `1000004`;
-- name `TEMPERATUREREADINGSTALE`;
-- title `Temperature reading stale`;
-- message `Temperature reading from sensor {sensor} is stale; its age of {age} exceeds the configured maximum age of {maxAge}.`;
-- default severity `Error`;
-- categories `THERMAL` and `VALIDATION`;
-- subcategories `SENSOR` and `STALE_READING`;
-- tags `THERMAL`, `TEMPERATURE`, `SENSOR`, `STALE_DATA`, `FAIL_SAFE`, and `USER_VISIBLE`;
-- documentation key `when-it-fails/errors/thermal/temperature-reading-stale`.
+`TEMPERATUREREADINGSTALE` uses message `Temperature reading from sensor {sensor} is stale; its age of {age} exceeds the configured maximum age of {maxAge}.`, categories `THERMAL` and `VALIDATION`, subcategories `SENSOR` and `STALE_READING`, tags `THERMAL`, `TEMPERATURE`, `SENSOR`, `STALE_DATA`, `FAIL_SAFE`, and `USER_VISIBLE`, and documentation key `when-it-fails/errors/thermal/temperature-reading-stale`.
 
 This contract represents a reading that may be structurally valid and plausible but is too old for safe decision-making. It must not be treated as current, silently refreshed, or merged with invalid-reading or limit-exceeded contracts.
 
-Because bootstrap templates are generated from embedded authoritative catalogs, this definition also flows into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
+Because bootstrap templates are generated from embedded authoritative catalogs, all four thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
 
 The authoritative owner catalog continues to use non-overlapping ranges:
 
@@ -61,23 +51,29 @@ The authoritative owner catalog continues to use non-overlapping ranges:
 
 ## Focused verification
 
-Run the stale-reading contract:
+The stale-reading contract is user-verified green:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~TemperatureReadingStaleCatalogTests
 ```
 
-Expected result: **1 green test**.
+Latest user-verified result: **1 passed, 0 failed, 0 skipped**.
 
-Then validate the complete catalog workspace:
+The complete catalog workspace is user-verified green after adding `AFW_THM_0004`:
 
 ```powershell
 dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 ```
 
-Expected result: **0 errors, 0 warnings, and 0 information issues**.
+Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
 
-After both focused gates are green, update the thermal documentation and rerun the complete core project. The next full run should contain **696 tests**.
+After the thermal documentation update, rerun the complete core project:
+
+```powershell
+dotnet test WhenItFails.Tests
+```
+
+Expected next full result: **696 passed, 0 failed, 0 skipped**.
 
 The complete Setter suite remains available through:
 
@@ -109,7 +105,7 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-The thermal document currently covers the first three verified contracts. Add the stale-reading definition only after its focused contract and workspace validation are green.
+Next documentation target: add the verified stale-reading contract and its data-freshness boundary to `WhenItFails/Docs/Thermal Errors/en.md`.
 
 ## Current intentional boundaries
 
@@ -128,11 +124,11 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Pull the latest commits, rerun `TemperatureReadingStaleCatalogTests`, and run `Setter validate .`. Do not update thermal documentation or add another thermal definition until both gates are green.
+Document `TEMPERATUREREADINGSTALE` and its data-freshness boundary, then run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **696-test** core gate is user-verified green.
 
 ## Last completed change
 
-The expected red stale-reading contract was user-verified with the exact missing-item failure. `AFW_THM_0004` is now added to `Jsons/WhenItFails/errors.en.json` as a distinct data-freshness and fail-safe condition, without changing the existing invalid-reading or temperature-limit contracts.
+`AFW_THM_0004` is now focused-test and workspace-validation verified. The catalog distinguishes a stale but otherwise plausible reading from both an invalid reading and a trusted current reading.
 
 Commits:
 
