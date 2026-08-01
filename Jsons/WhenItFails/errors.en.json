@@ -773,6 +773,24 @@
       "documentationKey": "when-it-fails/errors/thermal/temperature-rate-of-change-exceeded",
       "tags": ["THERMAL", "TEMPERATURE", "SENSOR", "TREND", "USER_VISIBLE"],
       "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
+    },
+    {
+      "id": "AFW_THM_0006",
+      "code": 1000006,
+      "name": "TEMPERATURESENSORDISAGREEMENT",
+      "owner": "AFW",
+      "codePrefix": "THM",
+      "codeGroup": "THERMAL",
+      "primaryCategory": "THERMAL",
+      "categories": ["THERMAL", "VALIDATION"],
+      "subcategories": ["SENSOR", "REDUNDANCY"],
+      "title": "Temperature sensor disagreement",
+      "message": "Temperature sensors {sensorA} and {sensorB} disagree by {difference}{unit}, exceeding the configured maximum difference of {maxDifference}{unit}.",
+      "defaultSeverity": "Warning",
+      "developerHint": "Verify sensor placement, calibration, sampling timestamps, unit conversion, thermal gradients, wiring or transport integrity, and the configured redundancy policy.",
+      "documentationKey": "when-it-fails/errors/thermal/temperature-sensor-disagreement",
+      "tags": ["THERMAL", "TEMPERATURE", "SENSOR", "REDUNDANCY", "USER_VISIBLE"],
+      "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
     }
   ]
 }
