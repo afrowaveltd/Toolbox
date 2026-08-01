@@ -1134,6 +1134,38 @@
         "IsEmpty": true,
         "Items": {}
       }
+    },
+    {
+      "id": "AFW_THM_0001",
+      "code": 1000001,
+      "name": "TEMPERATURELIMITEXCEEDED",
+      "owner": "AFW",
+      "codePrefix": "THM",
+      "codeGroup": "THERMAL",
+      "primaryCategory": "THERMAL",
+      "categories": [
+        "THERMAL",
+        "VALIDATION"
+      ],
+      "subcategories": [
+        "SAFE_LIMIT",
+        "TEMPERATURE"
+      ],
+      "title": "Temperature limit exceeded",
+      "message": "The reported temperature {temperature}{unit} exceeds the configured safe limit of {limit}{unit}.",
+      "defaultSeverity": "Warning",
+      "developerHint": "Verify the sensor reading, unit conversion, cooling path, workload, configured limits, and shutdown policy.",
+      "documentationKey": "when-it-fails/errors/thermal/temperature-limit-exceeded",
+      "tags": [
+        "THERMAL",
+        "TEMPERATURE",
+        "USER_VISIBLE"
+      ],
+      "metadata": {
+        "Count": 0,
+        "IsEmpty": true,
+        "Items": {}
+      }
     }
   ]
 }
