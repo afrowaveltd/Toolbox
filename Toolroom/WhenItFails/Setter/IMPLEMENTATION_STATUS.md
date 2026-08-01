@@ -46,9 +46,13 @@ The authoritative owner catalog uses these non-overlapping ranges:
 
 No existing error code was renumbered.
 
-The new bootstrap contract test was run with the full `WhenItFails.Tests` project and reported **692 green and 1 expected red**. The failure was exact: the embedded owner template still returned `AFW.codeTo = 999999` instead of `1099999`.
+The bootstrap synchronization contract first failed on the stale owner boundary, then after introducing resource-backed templates failed because the expected embedded resource was not present in the Linux-built assembly:
 
-Bootstrap synchronization is now implemented but requires user verification. `WhenItFails.csproj` embeds the authoritative catalogs from `Jsons/WhenItFails`, and `DefaultJsonsTemplateProvider` reads those resources instead of maintaining large duplicate raw JSON strings. The error template retains the established bootstrap representation by converting IDs such as `AFW_THM_0001` to `AFW-THM-0001` and deriving PascalCase names such as `TemperatureLimitExceeded` from documentation keys.
+```text
+Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.errors.en.json
+```
+
+The failure occurred in `DefaultJsonsTemplateProvider.ReadEmbeddedCatalog` before any template content was parsed. `WhenItFails.csproj` now uses forward-slash paths for the external JSON files and explicit child `LogicalName` metadata for all five resources. This path fix requires user verification.
 
 ## Focused verification
 
@@ -58,7 +62,7 @@ Rerun the bootstrap synchronization contract:
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges
 ```
 
-Expected result: **1 green test**. Depending on local shell filtering, the complete `WhenItFails.Tests` project may run; that is acceptable and should be fully green.
+Expected result: **1 green test**. Do not continue while this gate is red.
 
 The complete catalog workspace is user-verified green:
 
@@ -124,11 +128,11 @@ Thermal easter eggs are explicitly deferred. Any future absurd-temperature wordi
 
 ## Recommended next step
 
-Rerun `GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`. Do not continue with another thermal definition until the embedded resource build and bootstrap normalization are confirmed green. If the focused contract is green, run the complete `WhenItFails.Tests` project before documenting the new resource-backed bootstrap architecture.
+Rerun `GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges` after pulling commit `b1969de2db48e8533e4ae9c6c20337fa026523b9`. If the resource is still missing, inspect the actual assembly manifest resource names before changing the provider or resource contract further.
 
 ## Last completed change
 
-The latest slice records the bootstrap synchronization test as **692 green and 1 expected red**, with the failure occurring at the first stale owner boundary. Rather than adding more hand-maintained JSON to `DefaultJsonsTemplateProvider`, the implementation now embeds the authoritative workspace catalogs and reads them at runtime. This removes the primary duplication that allowed owner ranges and thermal definitions to drift. The established bootstrap ID and PascalCase-name conventions remain preserved through deterministic normalization of the embedded error catalog.
+The latest slice records the exact resource-loading failure and corrects the external embedded-resource paths for cross-platform MSBuild. The provider and expected logical resource names remain unchanged; only the project resource declarations were made portable and explicit.
 
 Commits:
 
@@ -141,4 +145,7 @@ Embed authoritative WhenItFails bootstrap catalogs
 
 20eca00c1f02b628a5f678f6a9d1f8791767770d
 Synchronize bootstrap templates from embedded catalogs
+
+b1969de2db48e8533e4ae9c6c20337fa026523b9
+Fix embedded catalog resource paths
 ```
