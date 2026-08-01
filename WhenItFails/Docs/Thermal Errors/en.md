@@ -2,7 +2,7 @@
 
 Thermal errors describe temperature-related states that can apply to computer hardware, batteries, power systems, motors, converters, servers, switchboards, industrial sensors, and general monitoring systems.
 
-The thermal family deliberately separates an ordinary safe-limit warning, a critical shutdown-limit condition, and the loss of a trustworthy sensor reading. Applications must not infer that every thermal warning requires an emergency stop, must not downgrade a critical shutdown-limit state to an ordinary warning, and must not treat an invalid sensor value as a confirmed temperature.
+The thermal family deliberately separates an ordinary safe-limit warning, a critical shutdown-limit condition, an invalid sensor reading, and a stale reading. Applications must not infer that every thermal warning requires an emergency stop, must not downgrade a critical shutdown-limit state to an ordinary warning, must not treat an invalid sensor value as a confirmed temperature, and must not treat an old measurement as current.
 
 ## Temperature limit exceeded
 
@@ -86,9 +86,9 @@ A consumer should normally treat this state as non-retryable until the temperatu
 | Default severity | `Error` |
 | Documentation key | `when-it-fails/errors/thermal/temperature-sensor-reading-invalid` |
 
-Use this definition when a temperature sensor reports a value that is invalid, stale, unavailable, physically implausible, outside the sensor's supported range, equal to a known sentinel value, or otherwise unreliable.
+Use this definition when a temperature sensor reports a value that is unavailable, malformed, physically implausible, outside the sensor's supported range, equal to a known sentinel value, or otherwise unreliable because of its content or acquisition state.
 
-This contract does not say that the monitored component is hot, cold, safe, or unsafe. It says that the application no longer has a trustworthy temperature input for that sensor.
+This contract does not say that the monitored component is hot, cold, safe, or unsafe. It says that the application does not have a trustworthy temperature value from that sensor. A structurally valid but outdated measurement belongs to `TEMPERATUREREADINGSTALE` instead.
 
 ### Message
 
@@ -100,7 +100,7 @@ Required message parameter:
 
 - `sensor` — a stable sensor name, channel, identifier, or other safe label that tells the operator which input cannot be trusted.
 
-Structured runtime data should preserve the raw reading, sensor identifier, expected unit, acquisition timestamp, data age, source protocol, validation reason, and whether a fallback source was available when those values are safe to expose.
+Structured runtime data should preserve the raw reading, sensor identifier, expected unit, acquisition timestamp, source protocol, validation reason, and whether a fallback source was available when those values are safe to expose.
 
 ### Developer guidance
 
@@ -112,11 +112,53 @@ The error definition does not itself choose whether the system should continue, 
 
 A later valid sample may clear the immediate reading error, but applications should consider hysteresis, repeated-failure counts, sensor-health history, and independent verification before restoring full trust or automatically resuming operation.
 
+## Temperature reading stale
+
+| Field | Value |
+|---|---|
+| ID | `AFW_THM_0004` |
+| Code | `1000004` |
+| Name | `TEMPERATUREREADINGSTALE` |
+| Code group | `THERMAL` |
+| Primary category | `THERMAL` |
+| Default severity | `Error` |
+| Documentation key | `when-it-fails/errors/thermal/temperature-reading-stale` |
+
+Use this definition when the temperature value may be structurally valid and plausible, but its age exceeds the maximum allowed by the consuming application's freshness policy.
+
+A stale reading is not automatically an invalid numeric value and does not prove that a thermal limit was crossed. It means that the system no longer has sufficiently recent evidence to treat the value as the current temperature.
+
+### Message
+
+```text
+Temperature reading from sensor {sensor} is stale; its age of {age} exceeds the configured maximum age of {maxAge}.
+```
+
+Required message parameters:
+
+- `sensor` — the sensor or channel whose measurement is stale;
+- `age` — the calculated age of the available reading;
+- `maxAge` — the configured maximum acceptable age.
+
+`age` and `maxAge` must use the same unambiguous representation. Prefer structured durations or a documented invariant duration format over locale-dependent free text.
+
+Structured runtime data should preserve the measurement timestamp, evaluation timestamp, calculated age, configured maximum age, clock source, sensor identity, transport or polling state, and whether a newer fallback source was available.
+
+### Developer guidance
+
+Verify sensor polling, timestamps, clock synchronization, transport delays, buffering, cache invalidation, and the configured stale-data fail-safe policy.
+
+Do not silently refresh the timestamp of an old value, and do not present a cached value as current merely because its number looks plausible. Reusing the last known reading is an application policy decision and must preserve the fact that the value is stale.
+
+A stale-reading error may clear when a new validated sample arrives. Consumers should still consider repeated polling failures, clock jumps, queue backlogs, delayed telemetry, and redundant-sensor agreement before restoring normal operation.
+
+The catalog does not prescribe whether stale data causes throttling, degraded operation, sensor failover, shutdown, or operator intervention. Those actions belong to the consuming application's freshness and fail-safe policies.
+
 ## Choosing the correct definition
 
 Use `AFW_THM_0001` when:
 
-- the temperature reading is trusted;
+- the temperature reading is trusted and current;
 - the safe operating limit was exceeded;
 - continued operation may still be allowed by policy;
 - throttling, cooling, workload reduction, or operator attention is appropriate;
@@ -124,7 +166,7 @@ Use `AFW_THM_0001` when:
 
 Use `AFW_THM_0002` when:
 
-- the temperature reading is trusted;
+- the temperature reading is trusted and current;
 - the configured critical shutdown limit was exceeded;
 - the application must evaluate or activate its emergency thermal policy;
 - continued operation may cause damage or create an unsafe condition;
@@ -132,13 +174,19 @@ Use `AFW_THM_0002` when:
 
 Use `AFW_THM_0003` when:
 
-- the reported value cannot be trusted as a valid current temperature;
-- the sensor is unavailable, stale, implausible, malformed, or returning a sentinel value;
-- no limit comparison can be made safely from that reading;
-- the application must follow its configured sensor-loss or fail-safe policy.
+- the reported value cannot be trusted because it is missing, malformed, implausible, out of sensor range, or a sentinel value;
+- no limit comparison can be made safely from that value;
+- the application must follow its configured sensor-loss or invalid-reading policy.
 
-Do not select between these definitions from severity text alone. For limit errors, the trusted measurement and configured threshold are the source of truth. For the sensor-reading error, the loss of measurement trust is the source of truth.
+Use `AFW_THM_0004` when:
+
+- the available value may be numerically valid and plausible;
+- the measurement timestamp is known or its age can be established;
+- the reading is older than the configured maximum age;
+- the application must follow its stale-data or freshness fail-safe policy.
+
+Do not select between these definitions from severity text alone. For limit errors, a trusted current measurement and configured threshold are the source of truth. For `AFW_THM_0003`, content or acquisition validity is the source of truth. For `AFW_THM_0004`, measurement age is the source of truth.
 
 ## Humorous alternative messages
 
-Extremely unusual but still valid values may eventually use restrained alternative wording. Such wording must never change the error ID, code, severity, categories, structured data, control flow, shutdown decision, restart policy, sensor-trust decision, or fail-safe policy. It is deliberately outside the current implementation slice.
+Extremely unusual but still valid values may eventually use restrained alternative wording. Such wording must never change the error ID, code, severity, categories, structured data, control flow, shutdown decision, restart policy, sensor-trust decision, data-freshness decision, or fail-safe policy. It is deliberately outside the current implementation slice.
