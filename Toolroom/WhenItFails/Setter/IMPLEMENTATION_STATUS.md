@@ -19,19 +19,13 @@ Recently verified focused contracts include:
 - `ErrorCatalogContextProviderSuccessfulEnvelopeSuppressionTests`: **2 user-verified green**.
 - `ErrorCatalogContextProviderSuccessfulStatusNormalizationTests`: **3 user-verified green**.
 - `ErrorCatalogContextProviderEmptyWarningEnvelopeNormalizationTests`: **3 user-verified green**.
-- `ErrorCatalogContextProviderNullInnerPayloadTests`: **2 user-verified green**, confirming both `Document == null` and `Catalog == null` return `Invalid` with `ErrorCatalogContextPayloadIsNull` before later providers run.
+- `ErrorCatalogContextProviderNullInnerPayloadTests`: **2 user-verified green**.
+- `TemperatureLimitExceededCatalogTests`: **1 user-verified green**.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
-The thermal domain is registered with:
+The thermal domain is registered with category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
 
-- category `THERMAL`;
-- code group `THERMAL`;
-- prefix `THM`;
-- range `1000000–1099999`.
-
-The user verified `Setter validate .` after registration with **0 errors, 0 warnings, and 0 information issues**.
-
-`TemperatureLimitExceededCatalogTests` then produced the expected red result because `TEMPERATURELIMITEXCEEDED` was not yet present. The first thermal definition has now been added to `errors.en.json`:
+The first thermal definition is present:
 
 - ID `AFW_THM_0001`;
 - code `1000001`;
@@ -41,25 +35,34 @@ The user verified `Setter validate .` after registration with **0 errors, 0 warn
 - categories `THERMAL` and `VALIDATION`;
 - documentation key `when-it-fails/errors/thermal/temperature-limit-exceeded`.
 
-The English documentation is now present at `WhenItFails/Docs/Thermal Errors/en.md`. The focused test and catalog validation require user verification after these commits.
+The focused catalog test is user-verified green. The subsequent complete workspace validation correctly exposed one owner-range error: code `1000001` was outside the former built-in `AFW` range `0–999999`.
+
+No actual catalog definition currently uses owner `APP`; its range was only reserved. The authoritative owner catalog now preserves the thermal code and removes overlap by using:
+
+- `AFW`: `0–1099999`;
+- `APP`: `1100000–1999999`;
+- `PLUGIN`: unchanged at `2000000–2999999`;
+- `USER`: unchanged at `9000000–9999999`.
+
+This owner-range repair is committed and requires validation before bootstrap templates or range documentation are synchronized.
 
 ## Focused verification
 
-Run the implemented thermal contract:
-
-```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~TemperatureLimitExceededCatalogTests
-```
-
-Expected result: **1 green test**.
-
-Then validate the complete catalog workspace:
+Rerun the complete catalog validation:
 
 ```powershell
 dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 ```
 
 Expected result: **0 errors, 0 warnings, and 0 information issues**.
+
+The focused thermal contract remains available through:
+
+```powershell
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~TemperatureLimitExceededCatalogTests
+```
+
+Latest user-verified result: **1 green test**.
 
 The complete Setter suite remains available through:
 
@@ -90,7 +93,7 @@ Maintained English documentation includes:
 - `Docs/Reviewing Catalog Changes/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-Next documentation target: keep the thermal document synchronized as the error family expands. Keep this file synchronized while the runtime/public-API audit continues.
+Next documentation target: after the owner-range repair validates, synchronize `DefaultJsonsTemplateProvider`, owner-range documentation, and any maintained reference catalog copies. Keep this file synchronized while the runtime/public-API audit continues.
 
 ## Current intentional boundaries
 
@@ -109,21 +112,18 @@ Thermal easter eggs are explicitly deferred. Any future absurd-temperature wordi
 
 ## Recommended next step
 
-Run `TemperatureLimitExceededCatalogTests` and `Setter validate .`. Do not add another thermal definition until the first catalog item is confirmed green and the complete workspace validates without issues.
+Run `Setter validate .`. Do not continue with another thermal definition until the revised non-overlapping owner ranges are confirmed to accept `AFW_THM_0001`. After a green result, synchronize the bootstrap owner template and maintained range documentation.
 
 ## Last completed change
 
-The latest slice records the expected red TDD result and implements the first thermal catalog definition. `AFW_THM_0001` now represents a reported temperature above the configured safe operating limit without conflating that condition with a critical or shutdown threshold. Its message is parameterized, its developer guidance covers sensor and cooling verification, and its documentation explicitly preserves structured data as the source of truth. Humorous extreme-temperature wording remains deferred and contract-neutral.
+The latest slice records `TemperatureLimitExceededCatalogTests` as **1 user-verified green test** and the complete workspace validation as **1 expected owner-range error**. The error was not in the thermal definition itself: the newly reserved built-in thermal block extended beyond the former `AFW` owner boundary. Because the `APP` owner range is unused, the authoritative owner catalog now extends `AFW` through `1099999` and starts `APP` at `1100000`, preserving all existing error codes and avoiding overlap.
 
 Commits:
 
 ```text
-8acba4041a9603e4175cc3e8d76efb9813219b64
-Add thermal catalog contract test
-
 c4c0afd5f744404132ee3e633b26988d57114d2a
 Add temperature limit exceeded catalog error
 
-620f34b715142bd06acefb78c98068379625827f
-Document temperature limit exceeded error
+4fd02d927057a3290539627d737eb89bd2a0264b
+Extend AFW owner range for thermal errors
 ```
