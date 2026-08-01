@@ -33,7 +33,8 @@ Recently verified focused contracts:
 - `ErrorCatalogContextProviderSuccessfulEnvelopeSuppressionTests`: **2 user-verified green** confirming both plain `Success` and `SuccessWithWarnings` composition preserve provider issues while suppressing provider message and metadata.
 - `ErrorCatalogContextProviderSuccessfulStatusNormalizationTests`: **3 user-verified green** confirming downward normalization from informational-only diagnostics, upward promotion from a real warning, and successful composition with a preserved `Error` diagnostic.
 - `ErrorCatalogContextProviderEmptyWarningEnvelopeNormalizationTests`: **3 user-verified green** confirming empty, runtime-null, and null-only `SuccessWithWarnings` issue collections all normalize to plain `Success`.
-- `ErrorCatalogContextProviderNullInnerPayloadTests`: **1 user-verified green** for `Document == null`; the first two-test run then failed exactly as expected for `Catalog == null`, and production now contains the matching guard pending rerun.
+- `ErrorCatalogContextProviderNullInnerPayloadTests`: **2 user-verified green** confirming both `Document == null` and `Catalog == null` return the null-payload failure envelope before later providers run.
+- Thermal catalog registration: `THERMAL` category and `THERMAL`/`THM` code group are committed and pending catalog validation.
 - Setter CI repair pair — `ImplementationStatusDocumentationTests` and `SuggestDocumentationKeyBracketTitleTests`: **2 user-verified green**.
 - Complete `Toolroom/WhenItFails/Setter.Tests` suite: **1,241 user-verified green, 0 failed, 0 skipped**.
 
@@ -47,7 +48,20 @@ Cross-validation diagnostics form a separate layer. Non-error cross-validation i
 
 The failure-envelope contract treats both a runtime-null `Issues` collection and runtime-null elements inside a non-null collection defensively. Failure mapping preserves source status and message, selects the first actual source issue after null elements, and uses its code only when non-blank. A blank code on that first actual issue triggers the provider-specific fallback rather than promoting a later issue code. A non-null collection containing no actual issues at all behaves exactly like an empty collection and produces the same fallback envelope. Later providers remain short-circuited.
 
-A non-null provider payload can still violate its public contract internally. `ErrorCatalogProviderPayload.Document == null` is user-verified to return the existing `ErrorCatalogContextPayloadIsNull` invalid envelope before any later provider is called. The complementary `Catalog == null` test then demonstrated that production still called the category provider. `ErrorCatalogContextProvider` now checks `Data`, `Catalog`, and `Document` together immediately after the successful error-catalog response. Both missing required members therefore use the same invalid envelope and short-circuit point; the new runtime-catalog guard still requires user verification.
+A non-null provider payload can still violate its public contract internally. Both `ErrorCatalogProviderPayload.Document == null` and `ErrorCatalogProviderPayload.Catalog == null` are now user-verified to return the existing `ErrorCatalogContextPayloadIsNull` invalid envelope before any later provider is called.
+
+## Thermal error family
+
+The thermal family is now registered at the catalog-domain level:
+
+- category: `THERMAL`;
+- aliases: `TEMPERATURE`, `HEAT`, `COOLING`;
+- code group: `THERMAL`;
+- prefix: `THM`;
+- range: `1000000`–`1099999`;
+- planned first definition: `AFW_THM_0001` / `1000001` / `TEMPERATURELIMITEXCEEDED`.
+
+The first error definition will use the parameterized message `The reported temperature {temperature}{unit} exceeds the configured safe limit of {limit}{unit}.` Its developer hint will direct callers to verify sensor reading, unit conversion, cooling path, workload, configured limits, and shutdown policy. Optional absurd-value wording remains a later presentation-only concern and must never alter status, severity, structured data, or application decisions.
 
 Do not invent automatic `DefaultMappings` consumption.
 
@@ -70,18 +84,17 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 
 Latest user-verified result: **1,241 passed, 0 failed, 0 skipped**.
 
-Rerun the repaired null inner-payload contract:
-
-```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCatalogContextProviderNullInnerPayloadTests
-```
-
-Expected result: **2 green tests**.
-
-Before committing catalog changes, also run:
+Validate the newly registered thermal category and code group:
 
 ```powershell
 dotnet run --project Toolroom/WhenItFails/Setter -- validate .
+```
+
+Expected result: successful validation with **11 categories** and **10 code groups**. Do not add the first thermal error until this gate is green.
+
+Before committing further catalog changes, also run:
+
+```powershell
 dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-keys .
 dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .
 git diff --check
@@ -105,7 +118,7 @@ High-value Setter documentation synchronization is complete. Maintained English 
 - `Docs/Contributing to Setter/en.md`;
 - `Docs/Maintainer Notes/en.md`.
 
-Next documentation target: keep this file synchronized while the runtime/public-API audit continues; no separate documentation expansion is currently required.
+Next documentation target: add `Docs/Thermal Errors/en.md` together with the first `TemperatureLimitExceeded` catalog definition after the thermal domain registration validates.
 
 ## Current intentional boundaries
 
@@ -121,18 +134,21 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Rerun `ErrorCatalogContextProviderNullInnerPayloadTests`; the expected count is **2 green tests**. Do not proceed until both required error-catalog payload members, `Document` and `Catalog`, are confirmed to return `Invalid` with `ErrorCatalogContextPayloadIsNull`, keep `Data == null`, and prevent every later provider from being called.
+Run the Setter `validate` command against the repository root. Do not proceed until the new `THERMAL` category and `THERMAL`/`THM` code group are accepted together and the summary reports 11 categories and 10 code groups. Once green, add only `TemperatureLimitExceeded`, its focused catalog test, and its English documentation.
 
 ## Last completed change
 
-The one-hundred-thirty-third runtime/public-API audit slice records a two-test focused run with **1 green and 1 expected red**. The existing `Document == null` guard remained green, while `Catalog == null` still allowed the category provider to run. Production now extends the same early payload-integrity check to `errorCatalogResponse.Data.Catalog`. The repair is committed and the two-test class remains the verification gate before further work.
+The one-hundred-thirty-fourth implementation slice closes the error-catalog inner-payload guard with **2 user-verified green tests** and begins the thermal error family. `Jsons/WhenItFails/categories.en.json` now contains a standalone `THERMAL` category for temperature measurements, cooling, limits, and shutdown behavior. `Jsons/WhenItFails/code-groups.en.json` now contains the `THERMAL` group with prefix `THM` and range `1000000`–`1099999`. No thermal error definition has been added yet; catalog validation is the required gate before `AFW_THM_0001` is introduced.
 
 Commits:
 
 ```text
-fca00ebcbbdfcdf76b170fcd7ca4741fc6348b8c
-Verify null runtime catalog inner payload
-
 05a6f3a7b8a8757ab0d4827f95108633302d57c8
 Reject null error catalogs before composition
+
+a4d5996ab11de803b641213b9fcae578c24e60ef
+Add thermal error category
+
+7715d1b46ae74c72cad7e31d81fdc1929e90a8bd
+Add thermal error code group
 ```
