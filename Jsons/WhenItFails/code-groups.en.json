@@ -107,6 +107,17 @@
       "defaultCategories": [ "SERIALIZATION" ],
       "defaultTags": [ "SERIALIZATION" ],
       "defaultMappings": {}
+    },
+    {
+      "name": "THERMAL",
+      "displayName": "Thermal",
+      "codePrefix": "THM",
+      "codeFrom": 1000000,
+      "codeTo": 1099999,
+      "description": "Temperature monitoring, thermal protection, cooling, sensor, and shutdown errors.",
+      "defaultCategories": [ "THERMAL" ],
+      "defaultTags": [ "THERMAL", "MONITORING" ],
+      "defaultMappings": {}
     }
   ]
 }
