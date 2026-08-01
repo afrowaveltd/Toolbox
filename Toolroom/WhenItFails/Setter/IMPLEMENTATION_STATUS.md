@@ -46,13 +46,22 @@ The authoritative owner catalog uses these non-overlapping ranges:
 
 No existing error code was renumbered.
 
-The bootstrap synchronization contract first failed on the stale owner boundary, then after introducing resource-backed templates failed because the expected embedded resource was not present in the Linux-built assembly:
+The bootstrap synchronization contract currently remains red. Assembly diagnostics showed that only this resource was present in the main assembly:
 
 ```text
-Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.errors.en.json
+Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.profiles.json
 ```
 
-Changing path separators and explicit `LogicalName` metadata did not alter this result. `DefaultJsonsTemplateProvider` now includes deterministic diagnostics that list every actual manifest resource name when an expected catalog resource is missing. The next focused run must capture that list before any further build or provider changes are made.
+The four `*.en.json` catalogs were absent even though their explicit `LogicalName` values matched the provider. This identifies MSBuild culture inference as the cause: filenames containing `.en.` were treated as localized culture resources rather than neutral resources in the main assembly.
+
+`WhenItFails.csproj` now sets `<WithCulture>false</WithCulture>` for:
+
+- `errors.en.json`;
+- `categories.en.json`;
+- `code-groups.en.json`;
+- `owners.en.json`.
+
+This correction is committed and requires user verification.
 
 ## Focused verification
 
@@ -62,7 +71,7 @@ Rerun the bootstrap synchronization contract:
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges
 ```
 
-Expected current result: the test may remain red, but the exception must now include `Available manifest resources:` followed by the actual assembly resource names or `<none>`. Do not continue without that exact output.
+Expected result: **1 green test**. Do not continue while this gate is red.
 
 The complete catalog workspace is user-verified green:
 
@@ -128,11 +137,11 @@ Thermal easter eggs are explicitly deferred. Any future absurd-temperature wordi
 
 ## Recommended next step
 
-Pull commit `d97b88896156c65c8ef2b041c201f9ef8d8ef310` and rerun `GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`. Capture the complete `Available manifest resources:` portion of the exception. Use that exact evidence to decide whether the resources are absent or merely named differently.
+Pull commit `26e3690276401d75edc435c8a75def99b001d7b2` and rerun `GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`. If the test remains red, use the existing `Available manifest resources:` diagnostic rather than changing the provider speculatively.
 
 ## Last completed change
 
-The latest slice confirms that cross-platform path syntax alone did not make the catalog resources visible to the assembly. The provider now reports all actual manifest resource names whenever lookup fails, replacing further guesswork with direct assembly evidence.
+The manifest-resource diagnostic proved that neutral `profiles.json` was embedded correctly while all four filenames containing `.en.` were omitted from the main assembly. The project now disables culture inference for those catalogs with `WithCulture=false`, preserving their explicit logical names and keeping all authoritative bootstrap catalogs in the primary WhenItFails assembly.
 
 Commits:
 
@@ -151,4 +160,7 @@ Fix embedded catalog resource paths
 
 d97b88896156c65c8ef2b041c201f9ef8d8ef310
 Improve embedded catalog diagnostics
+
+26e3690276401d75edc435c8a75def99b001d7b2
+Keep English catalogs in main assembly
 ```
