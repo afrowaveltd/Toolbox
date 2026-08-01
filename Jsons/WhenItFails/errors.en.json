@@ -719,6 +719,24 @@
       "documentationKey": "when-it-fails/errors/thermal/critical-temperature-limit-exceeded",
       "tags": ["THERMAL", "TEMPERATURE", "SHUTDOWN", "USER_VISIBLE"],
       "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
+    },
+    {
+      "id": "AFW_THM_0003",
+      "code": 1000003,
+      "name": "TEMPERATURESENSORREADINGINVALID",
+      "owner": "AFW",
+      "codePrefix": "THM",
+      "codeGroup": "THERMAL",
+      "primaryCategory": "THERMAL",
+      "categories": ["THERMAL", "VALIDATION"],
+      "subcategories": ["SENSOR", "INVALID_READING"],
+      "title": "Temperature sensor reading invalid",
+      "message": "Temperature sensor {sensor} reported an invalid or unreliable reading.",
+      "defaultSeverity": "Error",
+      "developerHint": "Verify sensor availability, wiring or bus communication, raw values, unit conversion, stale-data handling, sentinel values, and the configured fail-safe policy.",
+      "documentationKey": "when-it-fails/errors/thermal/temperature-sensor-reading-invalid",
+      "tags": ["THERMAL", "TEMPERATURE", "SENSOR", "FAIL_SAFE", "USER_VISIBLE"],
+      "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
     }
   ]
 }
