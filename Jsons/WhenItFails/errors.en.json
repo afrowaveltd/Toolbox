@@ -737,6 +737,24 @@
       "documentationKey": "when-it-fails/errors/thermal/temperature-sensor-reading-invalid",
       "tags": ["THERMAL", "TEMPERATURE", "SENSOR", "FAIL_SAFE", "USER_VISIBLE"],
       "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
+    },
+    {
+      "id": "AFW_THM_0004",
+      "code": 1000004,
+      "name": "TEMPERATUREREADINGSTALE",
+      "owner": "AFW",
+      "codePrefix": "THM",
+      "codeGroup": "THERMAL",
+      "primaryCategory": "THERMAL",
+      "categories": ["THERMAL", "VALIDATION"],
+      "subcategories": ["SENSOR", "STALE_READING"],
+      "title": "Temperature reading stale",
+      "message": "Temperature reading from sensor {sensor} is stale; its age of {age} exceeds the configured maximum age of {maxAge}.",
+      "defaultSeverity": "Error",
+      "developerHint": "Verify sensor polling, timestamps, clock synchronization, transport delays, buffering, cache invalidation, and the configured stale-data fail-safe policy.",
+      "documentationKey": "when-it-fails/errors/thermal/temperature-reading-stale",
+      "tags": ["THERMAL", "TEMPERATURE", "SENSOR", "STALE_DATA", "FAIL_SAFE", "USER_VISIBLE"],
+      "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
     }
   ]
 }
