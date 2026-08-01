@@ -71,13 +71,13 @@ dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 
 Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
 
-After the thermal documentation update, run the complete core project:
+The final gate for this increment is the complete core project:
 
 ```bash
 dotnet test WhenItFails.Tests
 ```
 
-Expected next full result: **698 passed, 0 failed, 0 skipped**.
+Expected result: **698 passed, 0 failed, 0 skipped**.
 
 The complete Setter suite remains available through:
 
@@ -109,7 +109,7 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-The thermal document currently covers the first five verified contracts. The next documentation slice adds the sensor-disagreement contract without assigning fault to either sensor or merging redundancy disagreement with sensor validity.
+`WhenItFails/Docs/Thermal Errors/en.md` now documents all six thermal contracts. The sensor-disagreement section defines comparable trusted readings, tolerance parameters, timestamp and placement requirements, diagnostic metadata, recovery hysteresis, coexistence with absolute-limit states, and the rule that disagreement alone must not assign fault to either sensor.
 
 ## Current intentional boundaries
 
@@ -131,11 +131,11 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Document `TEMPERATURESENSORDISAGREEMENT`, then run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **698-test** core gate is user-verified green.
+Run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **698-test** core gate is user-verified green.
 
 ## Last completed change
 
-`AFW_THM_0006` is now focused-test and workspace-validation verified. The remaining work for this increment is English thermal documentation followed by the complete core regression gate.
+The English thermal documentation now includes `TEMPERATURESENSORDISAGREEMENT` and preserves the boundary between redundancy inconsistency, invalid data, stale data, trend evaluation, and absolute thresholds. The remaining gate is the complete core regression suite.
 
 Commits:
 
@@ -145,4 +145,7 @@ Add temperature sensor disagreement catalog contract
 
 aca4ff661bdb160f17f0dc85ed2989857e28bf7d
 Add temperature sensor disagreement catalog error
+
+ee35bac65cc43b172c994c3914e2d1e3485dc82e
+Document temperature sensor disagreement
 ```
