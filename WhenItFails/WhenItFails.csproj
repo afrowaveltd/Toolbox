@@ -25,21 +25,26 @@
         <Folder Include="Profiles\" />
     </ItemGroup>
     <ItemGroup>
-        <EmbeddedResource Include="..\Jsons\WhenItFails\errors.en.json"
-                          Link="Bootstrap\Templates\errors.en.json"
-                          LogicalName="Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.errors.en.json" />
-        <EmbeddedResource Include="..\Jsons\WhenItFails\categories.en.json"
-                          Link="Bootstrap\Templates\categories.en.json"
-                          LogicalName="Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.categories.en.json" />
-        <EmbeddedResource Include="..\Jsons\WhenItFails\code-groups.en.json"
-                          Link="Bootstrap\Templates\code-groups.en.json"
-                          LogicalName="Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.code-groups.en.json" />
-        <EmbeddedResource Include="..\Jsons\WhenItFails\owners.en.json"
-                          Link="Bootstrap\Templates\owners.en.json"
-                          LogicalName="Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.owners.en.json" />
-        <EmbeddedResource Include="..\Jsons\WhenItFails\profiles.json"
-                          Link="Bootstrap\Templates\profiles.json"
-                          LogicalName="Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.profiles.json" />
+        <EmbeddedResource Include="../Jsons/WhenItFails/errors.en.json">
+            <Link>Bootstrap/Templates/errors.en.json</Link>
+            <LogicalName>Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.errors.en.json</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="../Jsons/WhenItFails/categories.en.json">
+            <Link>Bootstrap/Templates/categories.en.json</Link>
+            <LogicalName>Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.categories.en.json</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="../Jsons/WhenItFails/code-groups.en.json">
+            <Link>Bootstrap/Templates/code-groups.en.json</Link>
+            <LogicalName>Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.code-groups.en.json</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="../Jsons/WhenItFails/owners.en.json">
+            <Link>Bootstrap/Templates/owners.en.json</Link>
+            <LogicalName>Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.owners.en.json</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="../Jsons/WhenItFails/profiles.json">
+            <Link>Bootstrap/Templates/profiles.json</Link>
+            <LogicalName>Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.profiles.json</LogicalName>
+        </EmbeddedResource>
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions"
