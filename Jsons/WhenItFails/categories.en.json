@@ -119,6 +119,17 @@
       "defaultMappings": {
         "defaultSeverity": "Error"
       }
+    },
+    {
+      "name": "THERMAL",
+      "displayName": "Thermal",
+      "description": "Errors and protective states related to temperature measurements, thermal limits, cooling, and thermal shutdown behavior.",
+      "aliases": [ "TEMPERATURE", "HEAT", "COOLING" ],
+      "parentCategories": [],
+      "defaultTags": [ "THERMAL", "MONITORING" ],
+      "defaultMappings": {
+        "defaultSeverity": "Warning"
+      }
     }
   ]
 }
