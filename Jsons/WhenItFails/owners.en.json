@@ -14,7 +14,7 @@
       "displayName": "Afrowave",
       "description": "Built-in Afrowave error definitions.",
       "codeFrom": 0,
-      "codeTo": 999999,
+      "codeTo": 1099999,
       "isBuiltIn": true,
       "aliases": [ "AFROWAVE", "AFROWAVE_TOOLBOX" ],
       "defaultMappings": {
@@ -26,7 +26,7 @@
       "name": "APP",
       "displayName": "Application",
       "description": "Project-local application error definitions.",
-      "codeFrom": 1000000,
+      "codeFrom": 1100000,
       "codeTo": 1999999,
       "isBuiltIn": false,
       "aliases": [ "APPLICATION", "PROJECT" ],
