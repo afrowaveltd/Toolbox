@@ -2,7 +2,7 @@
 
 Thermal errors describe temperature-related states that can apply to computer hardware, batteries, power systems, motors, converters, servers, switchboards, industrial sensors, and general monitoring systems.
 
-The thermal family deliberately separates an ordinary upper safe-limit warning, a critical upper shutdown-limit condition, a lower minimum operating-limit warning, an invalid sensor reading, a stale reading, an excessive rate of temperature change, and disagreement between redundant sensors. Applications must not infer that every thermal warning requires an emergency stop, must not downgrade a critical shutdown-limit state to an ordinary warning, must not treat an invalid sensor value as a confirmed temperature, must not treat an old measurement as current, must not confuse a fast trend with an already-crossed absolute limit, must not assume that sensor disagreement identifies which sensor is wrong, and must not treat a trusted low-temperature reading as a sensor failure merely because it is below the operating range.
+The thermal family deliberately separates an ordinary upper safe-limit warning, a critical upper shutdown-limit condition, an ordinary lower minimum operating-limit warning, a critical lower minimum-limit condition, an invalid sensor reading, a stale reading, an excessive rate of temperature change, and disagreement between redundant sensors. Applications must not infer that every thermal warning requires an emergency stop, must not downgrade a critical boundary to an ordinary warning, must not treat an invalid sensor value as a confirmed temperature, must not treat an old measurement as current, must not confuse a fast trend with an already-crossed absolute limit, must not assume that sensor disagreement identifies which sensor is wrong, and must not treat a trusted low-temperature reading as a sensor failure merely because it is below the operating range.
 
 ## Temperature limit exceeded
 
@@ -285,6 +285,48 @@ Recovery should follow the consuming application's policy. A single sample just 
 
 The condition may coexist with `TEMPERATURERATEOFCHANGEEXCEEDED` when the system is warming or cooling too quickly, and with `TEMPERATURESENSORDISAGREEMENT` when redundant sensors disagree. Those contracts describe separate facts and should not be suppressed solely because the lower limit was crossed.
 
+## Critical temperature below minimum limit
+
+| Field | Value |
+|---|---|
+| ID | `AFW_THM_0008` |
+| Code | `1000008` |
+| Name | `CRITICALTEMPERATUREBELOWMINIMUMLIMIT` |
+| Code group | `THERMAL` |
+| Primary category | `THERMAL` |
+| Default severity | `Critical` |
+| Documentation key | `when-it-fails/errors/thermal/critical-temperature-below-minimum-limit` |
+
+Use this definition when a trusted, current temperature falls below the configured critical minimum operating limit. This is a separate contract from `TEMPERATUREBELOWMINIMUMLIMIT`; it represents a lower boundary at which continued operation, charging, fluid circulation, movement, startup, or another system-specific activity may cause damage or create an unsafe condition.
+
+The critical state does not mean that the sensor is invalid. It means that a trusted value crossed the application's critical lower threshold.
+
+### Message
+
+```text
+The reported temperature {temperature}{unit} is below the configured critical minimum operating limit of {limit}{unit}.
+```
+
+Required message parameters:
+
+- `temperature` — the reported numeric temperature;
+- `unit` — the unit suffix used consistently for the reported value and critical minimum limit;
+- `limit` — the configured critical minimum operating limit.
+
+Structured runtime data should preserve the measured value, unit, configured critical minimum, ordinary minimum when available, sensor identity, affected component, ambient temperature, timestamp, warm-up state, heater state, battery or fluid state, selected safety action, and restart-policy result.
+
+### Developer guidance
+
+Verify the sensor reading and unit conversion, activate the configured critical low-temperature policy, and inspect ambient conditions, heating, fluids, batteries, and hardware before restart.
+
+The error definition describes the critical condition; it does not itself stop equipment, isolate a battery, inhibit charging, start a heater, drain or circulate fluid, terminate a process, or authorize restart. Those actions belong to the consuming application's safety policy and platform-specific control layer.
+
+Do not downgrade this condition to `TEMPERATUREBELOWMINIMUMLIMIT` merely because both refer to low temperature. The ordinary contract marks a lower operating-boundary warning; this contract marks the separate critical lower boundary selected by policy.
+
+A later sample above the critical minimum does not necessarily prove safe recovery. Consumers should normally require the temperature to rise into an acceptable recovery range, remain stable for a configured interval, and satisfy any warm-up, condensation, viscosity, battery, fluid, or inspection requirements before resuming operation.
+
+The condition may coexist with trend or sensor-disagreement contracts. Do not suppress this critical threshold merely because the system is warming rapidly or redundant sensors disagree. Conversely, disagreement should remain visible because it can affect confidence in the recovery decision.
+
 ## Choosing the correct definition
 
 Use `AFW_THM_0001` when:
@@ -333,14 +375,22 @@ Use `AFW_THM_0006` when:
 Use `AFW_THM_0007` when:
 
 - the temperature reading is trusted and current;
-- the configured minimum operating limit was crossed downward;
-- the reading itself remains plausible and valid;
-- the application must evaluate warm-up, heating, startup inhibition, reduced-load, charging, or other low-temperature policy.
+- the configured ordinary minimum operating limit was crossed downward;
+- the configured critical minimum has not been crossed;
+- the application must evaluate warm-up, heating, startup inhibition, reduced-load, charging, or another low-temperature operating policy.
 
-More than one definition may legitimately apply at the same time. A fast temperature rise can trigger `AFW_THM_0005` before later samples also trigger `AFW_THM_0001` or `AFW_THM_0002`. Two sensors may trigger `AFW_THM_0006` while one or both also cross an absolute limit. A system below its minimum limit may also trigger a trend or redundancy warning. Do not suppress a relevant threshold condition merely because another thermal condition was emitted first.
+Use `AFW_THM_0008` when:
 
-Do not select between these definitions from severity text alone. For upper-limit errors, a trusted current measurement and configured upper threshold are the source of truth. For `AFW_THM_0003`, content or acquisition validity is the source of truth. For `AFW_THM_0004`, measurement age is the source of truth. For `AFW_THM_0005`, the validated rate calculation and configured trend threshold are the source of truth. For `AFW_THM_0006`, two validated comparable readings and the configured redundancy tolerance are the source of truth. For `AFW_THM_0007`, a trusted current measurement and configured lower operating threshold are the source of truth.
+- the temperature reading is trusted and current;
+- the configured critical minimum operating limit was crossed downward;
+- continued operation or a system-specific activity may cause damage or create an unsafe condition;
+- the application must evaluate or activate its critical low-temperature policy;
+- recovery and restart require policy-defined evidence rather than a single warmer sample.
+
+More than one definition may legitimately apply at the same time. A fast temperature rise can trigger `AFW_THM_0005` before later samples also trigger `AFW_THM_0001` or `AFW_THM_0002`. Two sensors may trigger `AFW_THM_0006` while one or both also cross an absolute limit. A system below either minimum may also trigger a trend or redundancy warning. Do not suppress a relevant threshold condition merely because another thermal condition was emitted first.
+
+Do not select between these definitions from severity text alone. For upper-limit errors, a trusted current measurement and configured upper threshold are the source of truth. For `AFW_THM_0003`, content or acquisition validity is the source of truth. For `AFW_THM_0004`, measurement age is the source of truth. For `AFW_THM_0005`, the validated rate calculation and configured trend threshold are the source of truth. For `AFW_THM_0006`, two validated comparable readings and the configured redundancy tolerance are the source of truth. For `AFW_THM_0007`, a trusted current measurement and configured ordinary lower operating threshold are the source of truth. For `AFW_THM_0008`, a trusted current measurement and configured critical lower threshold are the source of truth.
 
 ## Humorous alternative messages
 
-Extremely unusual but still valid values may eventually use restrained alternative wording. Such wording must never change the error ID, code, severity, categories, structured data, control flow, shutdown decision, restart policy, sensor-trust decision, data-freshness decision, thermal-trend decision, redundancy decision, low-temperature decision, or fail-safe policy. It is deliberately outside the current implementation slice.
+Extremely unusual but still valid values may eventually use restrained alternative wording. Such wording must never change the error ID, code, severity, categories, structured data, control flow, shutdown decision, restart policy, sensor-trust decision, data-freshness decision, thermal-trend decision, redundancy decision, low-temperature decision, critical low-temperature decision, or fail-safe policy. It is deliberately outside the current implementation slice.
