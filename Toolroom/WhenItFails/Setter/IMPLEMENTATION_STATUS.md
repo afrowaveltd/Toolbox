@@ -40,7 +40,7 @@ The first five thermal definitions are present and focused-validation verified:
 
 `TEMPERATURERATEOFCHANGEEXCEEDED` uses message `Temperature from sensor {sensor} changed at {rate}{unitPerTime}, exceeding the configured maximum rate of {maxRate}{unitPerTime}.`, categories `THERMAL` and `VALIDATION`, subcategories `SENSOR` and `RATE_OF_CHANGE`, tags `THERMAL`, `TEMPERATURE`, `SENSOR`, `TREND`, and `USER_VISIBLE`, and documentation key `when-it-fails/errors/thermal/temperature-rate-of-change-exceeded`.
 
-This contract concerns the speed of temperature change, not the absolute temperature. A reading may be valid, fresh, and below the critical limit while its trend still exceeds the configured safe rate.
+This contract concerns the speed of temperature change, not the absolute temperature. A reading may be valid, fresh, and below the critical limit while its trend still exceeds the configured safe rate. A trend warning can later coexist with an absolute safe-limit or critical-limit error.
 
 Because bootstrap templates are generated from embedded authoritative catalogs, all five thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
 
@@ -69,13 +69,13 @@ dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 
 Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
 
-After the thermal documentation update, run the complete core project:
+The final gate for this increment is the complete core project:
 
 ```powershell
 dotnet test WhenItFails.Tests
 ```
 
-Expected next full result: **697 passed, 0 failed, 0 skipped**.
+Expected result: **697 passed, 0 failed, 0 skipped**.
 
 The complete Setter suite remains available through:
 
@@ -107,7 +107,7 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-The thermal document currently covers the first four verified contracts. The next documentation slice adds the distinct rate-of-change contract without merging it with absolute temperature limits.
+`WhenItFails/Docs/Thermal Errors/en.md` now documents all five thermal contracts. It defines the rate calculation parameters, timestamp and sampling requirements, signed-rate policy boundary, diagnostic metadata, hysteresis guidance, and the fact that trend and absolute-limit contracts may coexist.
 
 ## Current intentional boundaries
 
@@ -127,11 +127,11 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Document `TEMPERATURERATEOFCHANGEEXCEEDED`, then run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **697-test** core gate is user-verified green.
+Run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **697-test** core gate is user-verified green.
 
 ## Last completed change
 
-`AFW_THM_0005` is now focused-test and workspace-validation verified. The catalog keeps thermal trend separate from absolute limits, sensor validity, and data freshness.
+The English thermal documentation now includes `TEMPERATURERATEOFCHANGEEXCEEDED` and keeps trend evaluation distinct from absolute thresholds, invalid measurements, and stale data. The remaining gate is the complete core regression suite.
 
 Commits:
 
@@ -141,4 +141,7 @@ Add temperature rate of change catalog contract
 
 287ffa9343f66ef5f504a3f4367043d5a0386d58
 Add temperature rate of change catalog error
+
+9209d13338ca74b06fcc291cc1a989d33f8c2b7a
+Document temperature rate of change
 ```
