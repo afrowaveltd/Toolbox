@@ -10,7 +10,7 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-The complete `WhenItFails.Tests` core suite is user-verified green with **696 passed, 0 failed, 0 skipped** before the temperature-rate catalog test was added. The next complete run should contain **697 tests**.
+The complete `WhenItFails.Tests` core suite is user-verified green with **697 passed, 0 failed, 0 skipped**.
 
 The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
@@ -25,12 +25,12 @@ Recently verified focused contracts include:
 - `TemperatureRateOfChangeExceededCatalogTests`: **1 user-verified green**.
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
 - Complete catalog validation after adding `AFW_THM_0005`: **0 errors, 0 warnings, 0 information issues**.
-- Complete `WhenItFails.Tests`: **696 user-verified green, 0 failed, 0 skipped** before the latest test addition.
+- Complete `WhenItFails.Tests`: **697 user-verified green, 0 failed, 0 skipped**.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
 
-The first five thermal definitions are present and focused-validation verified:
+The first five thermal definitions are complete and verified:
 
 - `AFW_THM_0001` / `1000001` / `TEMPERATURELIMITEXCEEDED` / `Warning`;
 - `AFW_THM_0002` / `1000002` / `CRITICALTEMPERATURELIMITEXCEEDED` / `Critical`;
@@ -38,11 +38,9 @@ The first five thermal definitions are present and focused-validation verified:
 - `AFW_THM_0004` / `1000004` / `TEMPERATUREREADINGSTALE` / `Error`;
 - `AFW_THM_0005` / `1000005` / `TEMPERATURERATEOFCHANGEEXCEEDED` / `Warning`.
 
-`TEMPERATURERATEOFCHANGEEXCEEDED` uses message `Temperature from sensor {sensor} changed at {rate}{unitPerTime}, exceeding the configured maximum rate of {maxRate}{unitPerTime}.`, categories `THERMAL` and `VALIDATION`, subcategories `SENSOR` and `RATE_OF_CHANGE`, tags `THERMAL`, `TEMPERATURE`, `SENSOR`, `TREND`, and `USER_VISIBLE`, and documentation key `when-it-fails/errors/thermal/temperature-rate-of-change-exceeded`.
+`TEMPERATURERATEOFCHANGEEXCEEDED` concerns the speed of temperature change, not the absolute temperature. A reading may be valid, fresh, and below the critical limit while its trend still exceeds the configured safe rate. A trend warning can coexist with an absolute safe-limit or critical-limit error.
 
-This contract concerns the speed of temperature change, not the absolute temperature. A reading may be valid, fresh, and below the critical limit while its trend still exceeds the configured safe rate. A trend warning can later coexist with an absolute safe-limit or critical-limit error.
-
-Because bootstrap templates are generated from embedded authoritative catalogs, all five thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
+Because bootstrap templates are generated from embedded authoritative catalogs, all verified thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
 
 The authoritative owner catalog continues to use non-overlapping ranges:
 
@@ -53,39 +51,31 @@ The authoritative owner catalog continues to use non-overlapping ranges:
 
 ## Focused verification
 
-The temperature-rate contract is user-verified green:
+The complete core baseline is:
 
-```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~TemperatureRateOfChangeExceededCatalogTests
+```bash
+dotnet test WhenItFails.Tests
 ```
 
-Latest user-verified result: **1 passed, 0 failed, 0 skipped**.
+Latest user-verified result: **697 passed, 0 failed, 0 skipped**.
 
-The complete catalog workspace is user-verified green after adding `AFW_THM_0005`:
+The complete catalog workspace remains user-verified green:
 
-```powershell
+```bash
 dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 ```
 
 Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
 
-The final gate for this increment is the complete core project:
-
-```powershell
-dotnet test WhenItFails.Tests
-```
-
-Expected result: **697 passed, 0 failed, 0 skipped**.
-
 The complete Setter suite remains available through:
 
-```powershell
+```bash
 dotnet test Toolroom/WhenItFails/Setter.Tests
 ```
 
 Before committing further catalog changes, also run these commands individually:
 
-```powershell
+```bash
 dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-keys .
 dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .
 git diff --check
@@ -107,7 +97,7 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-`WhenItFails/Docs/Thermal Errors/en.md` now documents all five thermal contracts. It defines the rate calculation parameters, timestamp and sampling requirements, signed-rate policy boundary, diagnostic metadata, hysteresis guidance, and the fact that trend and absolute-limit contracts may coexist.
+`WhenItFails/Docs/Thermal Errors/en.md` documents all five verified thermal contracts, including trend calculation and coexistence with absolute-limit errors.
 
 ## Current intentional boundaries
 
@@ -124,14 +114,15 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 - Update this file after every change.
 - Prefer one file plus its directly related test, then commit.
 - Prefer one-line shell commands and avoid line-continuation characters where practical.
+- Match command examples to the user's current shell; the current working shell is Bash on Linux.
 
 ## Recommended next step
 
-Run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **697-test** core gate is user-verified green.
+Add a standalone red catalog contract for disagreement between redundant temperature sensors. Do not change the authoritative production catalog until the exact expected missing-item failure is user-verified.
 
 ## Last completed change
 
-The English thermal documentation now includes `TEMPERATURERATEOFCHANGEEXCEEDED` and keeps trend evaluation distinct from absolute thresholds, invalid measurements, and stale data. The remaining gate is the complete core regression suite.
+The `AFW_THM_0005` increment is closed with **697/697 user-verified green core tests**. Its catalog definition, workspace validation, bootstrap propagation, and English documentation are synchronized.
 
 Commits:
 
