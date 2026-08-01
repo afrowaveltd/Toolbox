@@ -10,7 +10,7 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-The complete `WhenItFails.Tests` core suite is user-verified green with **698 passed, 0 failed, 0 skipped**.
+The complete `WhenItFails.Tests` core suite is user-verified green with **698 passed, 0 failed, 0 skipped** before the new intentionally red minimum-temperature contract.
 
 The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
@@ -26,7 +26,7 @@ Recently verified focused contracts include:
 - `TemperatureSensorDisagreementCatalogTests`: **1 user-verified green**.
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
 - Complete catalog validation after adding `AFW_THM_0006`: **0 errors, 0 warnings, 0 information issues**.
-- Complete `WhenItFails.Tests`: **698 user-verified green, 0 failed, 0 skipped**.
+- Complete `WhenItFails.Tests`: **698 user-verified green, 0 failed, 0 skipped** before the intentional red test.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
@@ -40,9 +40,24 @@ The first six thermal definitions are complete and verified:
 - `AFW_THM_0005` / `1000005` / `TEMPERATURERATEOFCHANGEEXCEEDED` / `Warning`;
 - `AFW_THM_0006` / `1000006` / `TEMPERATURESENSORDISAGREEMENT` / `Warning`.
 
-The next planned thermal state is a trusted, current temperature below a configured minimum operating limit. It must remain distinct from invalid data, stale data, sensor disagreement, trend evaluation, and upper temperature limits.
+A focused TDD contract has now been added for a seventh, semantically separate state:
 
-Because bootstrap templates are generated from embedded authoritative catalogs, all completed thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
+- ID `AFW_THM_0007`;
+- code `1000007`;
+- name `TEMPERATUREBELOWMINIMUMLIMIT`;
+- title `Temperature below minimum limit`;
+- message `The reported temperature {temperature}{unit} is below the configured minimum operating limit of {limit}{unit}.`;
+- default severity `Warning`;
+- categories `THERMAL` and `VALIDATION`;
+- subcategories `MINIMUM_LIMIT` and `TEMPERATURE`;
+- tags `THERMAL`, `TEMPERATURE`, `LOW_TEMPERATURE`, and `USER_VISIBLE`;
+- documentation key `when-it-fails/errors/thermal/temperature-below-minimum-limit`.
+
+This contract represents a trusted, current reading below the configured minimum operating boundary. It must not be merged with upper-limit, invalid-reading, stale-reading, trend, or sensor-disagreement contracts.
+
+The production catalog has not yet been changed. The focused test is expected to be red because `TEMPERATUREBELOWMINIMUMLIMIT` does not exist yet.
+
+Because bootstrap templates are generated from embedded authoritative catalogs, any later production definition will automatically flow into newly initialized workspaces. Existing project-local catalogs remain untouched by bootstrap.
 
 The authoritative owner catalog continues to use non-overlapping ranges:
 
@@ -53,7 +68,15 @@ The authoritative owner catalog continues to use non-overlapping ranges:
 
 ## Focused verification
 
-The complete core baseline is:
+Run the new minimum-temperature TDD contract:
+
+```bash
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~TemperatureBelowMinimumLimitCatalogTests
+```
+
+Expected result: **1 red test** reporting that catalog item `TEMPERATUREBELOWMINIMUMLIMIT` was not found. Do not add the production definition until this exact red gate is user-verified.
+
+The complete core baseline before the intentional red test is:
 
 ```bash
 dotnet test WhenItFails.Tests
@@ -99,7 +122,7 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-`WhenItFails/Docs/Thermal Errors/en.md` documents all six completed thermal contracts and preserves their semantic boundaries.
+The thermal document currently covers the first six verified contracts. Add the minimum-temperature definition only after its focused contract and workspace validation are green.
 
 ## Current intentional boundaries
 
@@ -121,18 +144,18 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Add a standalone TDD contract for the minimum-temperature state. Do not change the production catalog until the focused test is user-verified red with only the expected missing-item failure.
+Run `TemperatureBelowMinimumLimitCatalogTests` and confirm the exact missing-item failure. After that expected red gate, add only `AFW_THM_0007` to the authoritative error catalog, then rerun the focused test and complete catalog validation before updating documentation.
 
 ## Last completed change
 
-The `AFW_THM_0006` increment is closed at **698/698 green core tests**. The next slice will define a trusted current temperature below the configured minimum operating limit.
+The `AFW_THM_0006` increment remains closed at **698/698 green core tests**. A standalone red contract now defines the intended semantics of `TEMPERATUREBELOWMINIMUMLIMIT`; no production catalog data has been changed.
 
 Commits:
 
 ```text
-aca4ff661bdb160f17f0dc85ed2989857e28bf7d
-Add temperature sensor disagreement catalog error
+d723a3dd4f7c55085281d23d4eae756682ea38db
+Record green temperature sensor disagreement core gate
 
-ee35bac65cc43b172c994c3914e2d1e3485dc82e
-Document temperature sensor disagreement
+7c2a95bc75cd688266610ccb725ddf793eaacfb7
+Add temperature below minimum limit catalog contract
 ```
