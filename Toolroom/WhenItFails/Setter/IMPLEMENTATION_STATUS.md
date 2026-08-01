@@ -10,7 +10,7 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-The complete `WhenItFails.Tests` core suite is user-verified green with **697 passed, 0 failed, 0 skipped** before the new intentionally red sensor-disagreement contract.
+The complete `WhenItFails.Tests` core suite is user-verified green with **697 passed, 0 failed, 0 skipped** before the sensor-disagreement catalog test was added.
 
 The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
@@ -23,14 +23,15 @@ Recently verified focused contracts include:
 - `TemperatureSensorReadingInvalidCatalogTests`: **1 user-verified green**.
 - `TemperatureReadingStaleCatalogTests`: **1 user-verified green**.
 - `TemperatureRateOfChangeExceededCatalogTests`: **1 user-verified green**.
+- `TemperatureSensorDisagreementCatalogTests`: **1 user-verified expected red**, reporting that `TEMPERATURESENSORDISAGREEMENT` was not found.
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
 - Complete catalog validation after adding `AFW_THM_0005`: **0 errors, 0 warnings, 0 information issues**.
-- Complete `WhenItFails.Tests`: **697 user-verified green, 0 failed, 0 skipped** before the intentional red test.
+- Complete `WhenItFails.Tests`: **697 user-verified green, 0 failed, 0 skipped** before the latest test addition.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
 
-The first five thermal definitions are complete and verified:
+The first five thermal definitions remain complete and verified:
 
 - `AFW_THM_0001` / `1000001` / `TEMPERATURELIMITEXCEEDED` / `Warning`;
 - `AFW_THM_0002` / `1000002` / `CRITICALTEMPERATURELIMITEXCEEDED` / `Critical`;
@@ -38,7 +39,7 @@ The first five thermal definitions are complete and verified:
 - `AFW_THM_0004` / `1000004` / `TEMPERATUREREADINGSTALE` / `Error`;
 - `AFW_THM_0005` / `1000005` / `TEMPERATURERATEOFCHANGEEXCEEDED` / `Warning`.
 
-A focused TDD contract has now been added for a sixth, semantically separate state:
+The sixth thermal definition is now present in the authoritative catalog and requires user verification:
 
 - ID `AFW_THM_0006`;
 - code `1000006`;
@@ -53,9 +54,7 @@ A focused TDD contract has now been added for a sixth, semantically separate sta
 
 This contract represents disagreement between two otherwise valid and current sensor readings. It does not identify which sensor is wrong and must not be merged with invalid-reading, stale-reading, trend, or absolute-limit contracts.
 
-The production catalog has not yet been changed. The focused test is expected to be red because `TEMPERATURESENSORDISAGREEMENT` does not exist yet.
-
-Because bootstrap templates are generated from embedded authoritative catalogs, any later production definition will automatically flow into newly initialized workspaces. Existing project-local catalogs remain untouched by bootstrap.
+Because bootstrap templates are generated from embedded authoritative catalogs, this definition also flows into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
 
 The authoritative owner catalog continues to use non-overlapping ranges:
 
@@ -66,29 +65,23 @@ The authoritative owner catalog continues to use non-overlapping ranges:
 
 ## Focused verification
 
-Run the new sensor-disagreement TDD contract:
+Run the sensor-disagreement contract:
 
 ```bash
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~TemperatureSensorDisagreementCatalogTests
 ```
 
-Expected result: **1 red test** reporting that catalog item `TEMPERATURESENSORDISAGREEMENT` was not found. Do not add the production definition until this exact red gate is user-verified.
+Expected result: **1 green test**.
 
-The complete core baseline before the intentional red test is:
-
-```bash
-dotnet test WhenItFails.Tests
-```
-
-Latest user-verified result: **697 passed, 0 failed, 0 skipped**.
-
-The complete catalog workspace remains user-verified green:
+Then validate the complete catalog workspace:
 
 ```bash
 dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 ```
 
-Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
+Expected result: **0 errors, 0 warnings, and 0 information issues**.
+
+After both focused gates are green, update the thermal documentation and rerun the complete core project. The next full run should contain **698 tests**.
 
 The complete Setter suite remains available through:
 
@@ -138,21 +131,22 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 - Prefer one file plus its directly related test, then commit.
 - Prefer one-line shell commands and avoid line-continuation characters where practical.
 - Match command examples to the user's current shell; the current working shell is Bash on Linux.
+- Use the user's `to-clipboard` helper whenever a long local output or file content is needed.
 
 ## Recommended next step
 
-Run `TemperatureSensorDisagreementCatalogTests` and confirm the exact missing-item failure. After that expected red gate, add only `AFW_THM_0006` to the authoritative error catalog, then rerun the focused test and complete catalog validation before updating documentation.
+Pull the latest commits, rerun `TemperatureSensorDisagreementCatalogTests`, and run `Setter validate .`. Do not update thermal documentation or add another thermal definition until both gates are green.
 
 ## Last completed change
 
-The `AFW_THM_0005` increment remains closed at **697/697 green core tests**. A standalone red contract now defines the intended semantics of `TEMPERATURESENSORDISAGREEMENT`; no production catalog data has been changed.
+The expected red sensor-disagreement contract was user-verified with the exact missing-item failure. `AFW_THM_0006` is now added to `Jsons/WhenItFails/errors.en.json` as a distinct redundancy-consistency condition, without changing the existing sensor-validity, freshness, trend, or absolute-limit contracts.
 
 Commits:
 
 ```text
-b2026d1372094963f5575be2cc730cc4ea87ab13
-Record green temperature rate core gate
-
 d2298a87811be18f9bdaa54161d979dd8ef743db
 Add temperature sensor disagreement catalog contract
+
+aca4ff661bdb160f17f0dc85ed2989857e28bf7d
+Add temperature sensor disagreement catalog error
 ```
