@@ -10,7 +10,7 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-The complete `WhenItFails.Tests` core suite is user-verified green with **696 passed, 0 failed, 0 skipped**.
+The complete `WhenItFails.Tests` core suite is user-verified green with **696 passed, 0 failed, 0 skipped** before the new intentionally red temperature-rate contract.
 
 The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
@@ -24,7 +24,7 @@ Recently verified focused contracts include:
 - `TemperatureReadingStaleCatalogTests`: **1 user-verified green**.
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
 - Complete catalog validation after adding `AFW_THM_0004`: **0 errors, 0 warnings, 0 information issues**.
-- Complete `WhenItFails.Tests`: **696 user-verified green, 0 failed, 0 skipped**.
+- Complete `WhenItFails.Tests`: **696 user-verified green, 0 failed, 0 skipped** before the new intentional red test.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
@@ -36,9 +36,24 @@ The first four thermal definitions are complete and verified:
 - `AFW_THM_0003` / `1000003` / `TEMPERATURESENSORREADINGINVALID` / `Error`;
 - `AFW_THM_0004` / `1000004` / `TEMPERATUREREADINGSTALE` / `Error`.
 
-`TEMPERATUREREADINGSTALE` represents a reading that may be structurally valid and plausible but is too old for safe decision-making. It is distinct from invalid-reading and limit-exceeded contracts.
+A focused TDD contract has now been added for a fifth, semantically separate state:
 
-Because bootstrap templates are generated from embedded authoritative catalogs, all four verified thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
+- ID `AFW_THM_0005`;
+- code `1000005`;
+- name `TEMPERATURERATEOFCHANGEEXCEEDED`;
+- title `Temperature rate of change exceeded`;
+- message `Temperature from sensor {sensor} changed at {rate}{unitPerTime}, exceeding the configured maximum rate of {maxRate}{unitPerTime}.`;
+- default severity `Warning`;
+- categories `THERMAL` and `VALIDATION`;
+- subcategories `SENSOR` and `RATE_OF_CHANGE`;
+- tags `THERMAL`, `TEMPERATURE`, `SENSOR`, `TREND`, and `USER_VISIBLE`;
+- documentation key `when-it-fails/errors/thermal/temperature-rate-of-change-exceeded`.
+
+This contract concerns the speed of temperature change, not the absolute temperature. A reading may be valid, fresh, and below the critical limit while its trend still exceeds the configured safe rate.
+
+The production catalog has not yet been changed. The focused test is expected to be red because `TEMPERATURERATEOFCHANGEEXCEEDED` does not exist yet.
+
+Because bootstrap templates are generated from embedded authoritative catalogs, any later production definition will automatically flow into newly initialized workspaces. Existing project-local catalogs remain untouched by bootstrap.
 
 The authoritative owner catalog continues to use non-overlapping ranges:
 
@@ -49,7 +64,15 @@ The authoritative owner catalog continues to use non-overlapping ranges:
 
 ## Focused verification
 
-The complete core baseline is:
+Run the new temperature-rate TDD contract:
+
+```powershell
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~TemperatureRateOfChangeExceededCatalogTests
+```
+
+Expected result: **1 red test** reporting that catalog item `TEMPERATURERATEOFCHANGEEXCEEDED` was not found. Do not add the production definition until this exact red gate is user-verified.
+
+The complete core baseline before the intentional red test is:
 
 ```powershell
 dotnet test WhenItFails.Tests
@@ -95,7 +118,7 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-`WhenItFails/Docs/Thermal Errors/en.md` documents all four verified thermal contracts and explicitly separates invalid-value trust from measurement freshness.
+The thermal document currently covers the first four verified contracts. Add the rate-of-change definition only after its focused contract and workspace validation are green.
 
 ## Current intentional boundaries
 
@@ -114,21 +137,18 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Add a standalone red catalog contract for `TEMPERATURERATEOFCHANGEEXCEEDED`. Do not change the authoritative production catalog until the exact expected missing-item failure is user-verified.
+Run `TemperatureRateOfChangeExceededCatalogTests` and confirm the exact missing-item failure. After that expected red gate, add only `AFW_THM_0005` to the authoritative error catalog, then rerun the focused test and complete catalog validation before updating documentation.
 
 ## Last completed change
 
-The `AFW_THM_0004` increment is closed with **696/696 user-verified green core tests**. Its catalog definition, workspace validation, bootstrap propagation, and English documentation are synchronized.
+The `AFW_THM_0004` increment remains closed at **696/696 green core tests**. A standalone red contract now defines the intended semantics of `TEMPERATURERATEOFCHANGEEXCEEDED`; no production catalog data has been changed.
 
 Commits:
 
 ```text
-203c6335fb0188e89991e7581b9ab93d13c7b296
-Add stale temperature reading catalog contract
+3af3d9a7edf2de5f2a4732d6091edb10fe8e9da2
+Record green stale temperature reading core gate
 
-9a181e58ece8a6497555da92c71eedbb111cfe6c
-Add stale temperature reading catalog error
-
-049ad6fd3faefb0a37494ceac4f2549e41bb535d
-Document stale temperature readings
+5c09d66e5d54bd77bfbe5f1c9ab3f502403722bf
+Add temperature rate of change catalog contract
 ```
