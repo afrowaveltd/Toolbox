@@ -28,18 +28,22 @@
         <EmbeddedResource Include="../Jsons/WhenItFails/errors.en.json">
             <Link>Bootstrap/Templates/errors.en.json</Link>
             <LogicalName>Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.errors.en.json</LogicalName>
+            <WithCulture>false</WithCulture>
         </EmbeddedResource>
         <EmbeddedResource Include="../Jsons/WhenItFails/categories.en.json">
             <Link>Bootstrap/Templates/categories.en.json</Link>
             <LogicalName>Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.categories.en.json</LogicalName>
+            <WithCulture>false</WithCulture>
         </EmbeddedResource>
         <EmbeddedResource Include="../Jsons/WhenItFails/code-groups.en.json">
             <Link>Bootstrap/Templates/code-groups.en.json</Link>
             <LogicalName>Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.code-groups.en.json</LogicalName>
+            <WithCulture>false</WithCulture>
         </EmbeddedResource>
         <EmbeddedResource Include="../Jsons/WhenItFails/owners.en.json">
             <Link>Bootstrap/Templates/owners.en.json</Link>
             <LogicalName>Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.owners.en.json</LogicalName>
+            <WithCulture>false</WithCulture>
         </EmbeddedResource>
         <EmbeddedResource Include="../Jsons/WhenItFails/profiles.json">
             <Link>Bootstrap/Templates/profiles.json</Link>
