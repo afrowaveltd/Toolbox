@@ -2,99 +2,67 @@
 
 Last updated: 2026-08-01
 
-This file is the continuation point for `Toolroom/WhenItFails/Setter` development. Update it after every implementation, test, or documentation change that alters the current state or recommended next step.
+This file is the continuation point for `Toolroom/WhenItFails/Setter` development. Update it after every implementation, test, catalog, or documentation change that alters the current state or recommended next step.
 
 ## Current state
 
-WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the WhenItFails JSON catalog workspace under `Jsons/WhenItFails`.
+WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
 The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
+The runtime/public-API audit has also verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
+
 ## Verification status
 
-Recently verified focused contracts:
+Recently verified focused contracts include:
 
-- `ErrorCatalogContextProviderNullResponseTaskResultTests`: **5 green**.
-- `ErrorCatalogContextProviderFailureFallbackTests`: **7 green**.
-- `ErrorCatalogContextProviderCategorySourceMessageFallbackTests`: **2 green**.
-- `ErrorCatalogContextProviderCodeGroupSourceEnvelopeTests`: **1 green**.
-- `ErrorCatalogContextProviderOwnerSourceEnvelopeTests`: **1 green**.
-- `ErrorCatalogContextProviderProfileSourceEnvelopeTests`: **1 green**.
-- `ErrorCatalogContextProviderWhitespaceSourceMessageFallbackTests`: **1 green**.
-- `ErrorCatalogContextProviderWhitespaceSourceIssueCodeFallbackTests`: **3 green**.
-- `ErrorCatalogContextProviderFailureIssueSeverityTests`: **4 user-verified green** for severity normalization, source issue immutability, suppression of source-only issue fields, suppression of provider-response metadata, and the distinct `NotFound` flag contract.
-- `ErrorCatalogContextProviderSuccessWithWarningsTests`: **5 user-verified green** confirming warning preservation, provider-order aggregation, informational diagnostics, mixed-severity preservation, and defensive handling of a runtime-null `Issues` collection.
-- `ErrorCatalogContextProviderNullIssueElementTests`: **1 user-verified green** confirming that runtime-null issue elements are filtered without losing surrounding valid diagnostics.
-- `ErrorCatalogContextProviderNullFailureIssuesTests`: **1 user-verified green** confirming that a runtime-null failure `Issues` collection uses the provider fallback envelope without invoking later providers.
-- `ErrorCatalogContextProviderNullFailureIssueElementTests`: **3 user-verified green** confirming null skipping, preservation of the first valid source code, preservation of first-actual-issue semantics when that issue has a blank code, and fallback behavior when every collection element is null.
-- `ErrorCatalogContextProviderCategoryNullFailureIssuesTests`: **2 user-verified green** confirming both runtime-null failure collections and runtime-null issue elements at the category-provider position.
-- `ErrorCatalogContextProviderCrossValidationWarningTests`: **5 user-verified green** confirming nested warning/information storage and strict separation of provider diagnostics from cross-validation diagnostics.
-- `ErrorCatalogContextProviderProviderWarningBeforeCrossValidationErrorTests`: **4 user-verified green** confirming that a final cross-validation error replaces the complete earlier provider envelope, including issues, metadata, and message.
-- `ErrorCatalogContextProviderSuccessfulEnvelopeSuppressionTests`: **2 user-verified green** confirming both plain `Success` and `SuccessWithWarnings` composition preserve provider issues while suppressing provider message and metadata.
-- `ErrorCatalogContextProviderSuccessfulStatusNormalizationTests`: **3 user-verified green** confirming downward normalization from informational-only diagnostics, upward promotion from a real warning, and successful composition with a preserved `Error` diagnostic.
-- `ErrorCatalogContextProviderEmptyWarningEnvelopeNormalizationTests`: **3 user-verified green** confirming empty, runtime-null, and null-only `SuccessWithWarnings` issue collections all normalize to plain `Success`.
-- `ErrorCatalogContextProviderNullInnerPayloadTests`: **2 user-verified green** confirming both `Document == null` and `Catalog == null` return the null-payload failure envelope before later providers run.
-- Thermal catalog registration: `THERMAL` category and `THERMAL`/`THM` code group are committed and pending catalog validation.
-- Setter CI repair pair — `ImplementationStatusDocumentationTests` and `SuggestDocumentationKeyBracketTitleTests`: **2 user-verified green**.
-- Complete `Toolroom/WhenItFails/Setter.Tests` suite: **1,241 user-verified green, 0 failed, 0 skipped**.
+- `ErrorCatalogContextProviderSuccessfulEnvelopeSuppressionTests`: **2 user-verified green**.
+- `ErrorCatalogContextProviderSuccessfulStatusNormalizationTests`: **3 user-verified green**.
+- `ErrorCatalogContextProviderEmptyWarningEnvelopeNormalizationTests`: **3 user-verified green**.
+- `ErrorCatalogContextProviderNullInnerPayloadTests`: **2 user-verified green**, confirming both `Document == null` and `Catalog == null` return `Invalid` with `ErrorCatalogContextPayloadIsNull` before later providers run.
+- Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
-The runtime/public-API audit protects provider ordering and configured paths, short-circuiting, cancellation, exception identity and shape, null tasks, null responses, null payloads, cross-validation envelopes, provider-specific fallbacks, source-message and source-code selection, malformed envelopes, first-issue selection, later-issue suppression, synthesized issue severity, source object immutability, suppression of source-only failure fields, suppression of provider-response metadata, status-derived response flags, preservation of diagnostics from successful providers, and separation of provider diagnostics from cross-validation diagnostics.
+A new thermal domain is now registered:
 
-`ResultStatus.NotFound` is intentionally context-neutral rather than automatically successful or failed. It may represent a successful lookup that found no matching item, or a wider operation that cannot complete because a required item was not found. The status therefore remains a distinct non-success category: `IsNotFound == true`, `IsSuccess == false`, and `IsFailure == false`. Severity and surrounding operation context communicate whether the overall outcome is problematic.
+- category `THERMAL`;
+- code group `THERMAL`;
+- prefix `THM`;
+- range `1000000–1099999`.
 
-The successful-provider composition contract collects issues from all five successful catalog responses in provider order. Informational issues survive composition while the final response remains plain `Success` with `HasWarnings == false`. Any aggregated provider issue whose severity is `Warning` or higher promotes the final response to `SuccessWithWarnings`. Mixed lower- and warning-level provider diagnostics remain present and ordered while the highest relevant severity determines warning state. Runtime-null `Issues` collections are treated as empty across all five provider positions. Runtime-null elements inside a non-null collection are filtered during aggregation, while surrounding valid diagnostics retain their original order and identity. In every case the fully validated non-null context is preserved. Provider response messages and metadata describe the individual load operations rather than the newly composed context response, so they remain suppressed while provider issues are preserved. Final successful status is normalized from the aggregated issue severities rather than copied from any single provider envelope. Informational-only diagnostics normalize an inconsistent `SuccessWithWarnings` declaration to `Success`; a real warning promotes an inconsistent plain `Success` declaration to `SuccessWithWarnings`; and an explicitly successful provider response carrying an `Error` diagnostic remains a successful context composition represented as `SuccessWithWarnings`. Empty, runtime-null, and null-only warning-bearing issue collections are user-verified to normalize to plain `Success`.
+The user verified `Setter validate .` after this registration with **0 errors, 0 warnings, and 0 information issues**.
 
-Cross-validation diagnostics form a separate layer. Non-error cross-validation issues remain inside `ErrorCatalogContext.CrossValidationResult` and do not themselves populate outer `Response.Issues` or promote outer status. Provider warnings and information remain in the outer response while non-error cross-validation diagnostics remain solely inside the valid context, without duplication or loss. When cross-validation produces an error, no valid context exists; the final outer response becomes a fresh `Invalid` envelope with exactly the selected cross-validation error and omits the complete earlier provider envelope. `HasWarnings` nevertheless remains true because Essentials treats an attached `Error` as warning-or-higher severity; this flag does not imply that any provider warning survived.
+A new focused TDD test, `TemperatureLimitExceededCatalogTests`, is committed and currently expects the first thermal definition:
 
-The failure-envelope contract treats both a runtime-null `Issues` collection and runtime-null elements inside a non-null collection defensively. Failure mapping preserves source status and message, selects the first actual source issue after null elements, and uses its code only when non-blank. A blank code on that first actual issue triggers the provider-specific fallback rather than promoting a later issue code. A non-null collection containing no actual issues at all behaves exactly like an empty collection and produces the same fallback envelope. Later providers remain short-circuited.
+- ID `AFW_THM_0001`;
+- code `1000001`;
+- name `TEMPERATURELIMITEXCEEDED`;
+- parameterized message using `{temperature}`, `{unit}`, and `{limit}`;
+- warning severity;
+- thermal and validation categories;
+- documentation key `when-it-fails/errors/thermal/temperature-limit-exceeded`.
 
-A non-null provider payload can still violate its public contract internally. Both `ErrorCatalogProviderPayload.Document == null` and `ErrorCatalogProviderPayload.Catalog == null` are now user-verified to return the existing `ErrorCatalogContextPayloadIsNull` invalid envelope before any later provider is called.
-
-## Thermal error family
-
-The thermal family is now registered at the catalog-domain level:
-
-- category: `THERMAL`;
-- aliases: `TEMPERATURE`, `HEAT`, `COOLING`;
-- code group: `THERMAL`;
-- prefix: `THM`;
-- range: `1000000`–`1099999`;
-- planned first definition: `AFW_THM_0001` / `1000001` / `TEMPERATURELIMITEXCEEDED`.
-
-The first error definition will use the parameterized message `The reported temperature {temperature}{unit} exceeds the configured safe limit of {limit}{unit}.` Its developer hint will direct callers to verify sensor reading, unit conversion, cooling path, workload, configured limits, and shutdown policy. Optional absurd-value wording remains a later presentation-only concern and must never alter status, severity, structured data, or application decisions.
-
-Do not invent automatic `DefaultMappings` consumption.
-
-## Current CI repair
-
-GitHub Actions run `30545059089`, job `90879002972`, originally reported **1,239 passed and 2 failed** in the Setter test project.
-
-Both exposed regressions are repaired and the complete local Setter suite is user-verified green:
-
-- `ImplementationStatusDocumentationTests.Documentation_ProvidesCurrentContinuationPoint`: exact continuation-document headings and maintained documentation anchors are restored.
-- `SuggestDocumentationKeyBracketTitleTests.ExecuteAsync_WithBracketedTitle_ShowsLiteralTitleAndCanonicalKey`: the test verifies the literal bracketed title without depending on ANSI decoration placement; production already used `Markup.Escape` correctly.
+The error definition is intentionally not yet present, so the focused test should first fail by reporting that catalog item `TEMPERATURELIMITEXCEEDED` was not found.
 
 ## Focused verification
 
-The complete Setter suite is green:
+Run the thermal TDD gate:
+
+```powershell
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~TemperatureLimitExceededCatalogTests
+```
+
+Expected current result: **1 red test** because the category and code group exist but `AFW_THM_0001` has not yet been added to `errors.en.json`.
+
+The complete Setter suite remains available through:
 
 ```powershell
 dotnet test Toolroom/WhenItFails/Setter.Tests
 ```
 
-Latest user-verified result: **1,241 passed, 0 failed, 0 skipped**.
-
-Validate the newly registered thermal category and code group:
+Before committing catalog changes, also run:
 
 ```powershell
 dotnet run --project Toolroom/WhenItFails/Setter -- validate .
-```
-
-Expected result: successful validation with **11 categories** and **10 code groups**. Do not add the first thermal error until this gate is green.
-
-Before committing further catalog changes, also run:
-
-```powershell
 dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-keys .
 dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .
 git diff --check
@@ -102,27 +70,25 @@ git diff --check
 
 ## Documentation synchronization completed
 
-High-value Setter documentation synchronization is complete. Maintained English documentation includes:
+Maintained English documentation includes:
 
 - `README.md` and `Readme/en.md`;
 - `Docs/Overview/en.md`;
-- `Docs/Commands/en.md` and `Docs/Command Quick Reference/en.md`;
-- `Docs/Getting-Started/en.md`;
-- `Docs/FAQ/en.md`;
+- `Docs/Commands/en.md`;
 - `Docs/Known Limitations/en.md`;
 - `Docs/Roadmap and Future Work/en.md`;
+- `Docs/Getting-Started/en.md`;
+- `Docs/FAQ/en.md`;
 - `Docs/Testing and CI/en.md`;
-- `Docs/Reviewing Catalog Changes/en.md`;
-- `Docs/Safe Writes/en.md` and `Docs/Backups and Recovery/en.md`;
-- `Docs/Architecture Overview/en.md`;
-- `Docs/Contributing to Setter/en.md`;
-- `Docs/Maintainer Notes/en.md`.
+- `Docs/Reviewing Catalog Changes/en.md`.
 
-Next documentation target: add `Docs/Thermal Errors/en.md` together with the first `TemperatureLimitExceeded` catalog definition after the thermal domain registration validates.
+Next documentation target: add the focused English document for `TemperatureLimitExceeded` after its catalog definition is committed and validated. Keep this file synchronized while the runtime/public-API audit continues.
 
 ## Current intentional boundaries
 
-Setter currently does not provide automatic schema migration, multi-file atomic transactions, multi-process locking, backup-retention cleanup, complete localization lifecycle management, remote catalog synchronization, package publishing, a GUI or interactive TUI, complete source-code dependency discovery, or a full security audit and semantic duplicate detector.
+Setter currently does not provide automatic schema migration, multi-file atomic transactions, multi-process locking, automatic translation generation, remote catalog synchronization, package publishing, a GUI, complete source-code dependency discovery, or automatic runtime behavior for humorous message variants.
+
+Thermal easter eggs are explicitly deferred. Any future absurd-temperature wording must never alter the structured contract, severity, metadata, thresholds, or application decision-making.
 
 ## Working rules
 
@@ -131,24 +97,25 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 - Add or update tests immediately.
 - Do not advance while the current slice is red.
 - Update this file after every change.
+- Prefer one file plus its directly related test, then commit.
 
 ## Recommended next step
 
-Run the Setter `validate` command against the repository root. Do not proceed until the new `THERMAL` category and `THERMAL`/`THM` code group are accepted together and the summary reports 11 categories and 10 code groups. Once green, add only `TemperatureLimitExceeded`, its focused catalog test, and its English documentation.
+Run `TemperatureLimitExceededCatalogTests`. Confirm the expected red result before adding `AFW_THM_0001` to `Jsons/WhenItFails/errors.en.json`. After the definition is added, rerun the focused test and `Setter validate .`, then add `Docs/Temperature Limit Exceeded/en.md`.
 
 ## Last completed change
 
-The one-hundred-thirty-fourth implementation slice closes the error-catalog inner-payload guard with **2 user-verified green tests** and begins the thermal error family. `Jsons/WhenItFails/categories.en.json` now contains a standalone `THERMAL` category for temperature measurements, cooling, limits, and shutdown behavior. `Jsons/WhenItFails/code-groups.en.json` now contains the `THERMAL` group with prefix `THM` and range `1000000`–`1099999`. No thermal error definition has been added yet; catalog validation is the required gate before `AFW_THM_0001` is introduced.
+The latest slice introduces the thermal domain incrementally. `THERMAL` was added to the category catalog, `THERMAL/THM` was assigned range `1000000–1099999`, and the registration passed catalog validation. A focused integration-style test now locks the complete intended contract for the first thermal error before implementation.
 
 Commits:
 
 ```text
-05a6f3a7b8a8757ab0d4827f95108633302d57c8
-Reject null error catalogs before composition
-
 a4d5996ab11de803b641213b9fcae578c24e60ef
-Add thermal error category
+Register thermal category
 
 7715d1b46ae74c72cad7e31d81fdc1929e90a8bd
-Add thermal error code group
+Register thermal code group
+
+8acba4041a9603e4175cc3e8d76efb9813219b64
+Add thermal catalog contract test
 ```
