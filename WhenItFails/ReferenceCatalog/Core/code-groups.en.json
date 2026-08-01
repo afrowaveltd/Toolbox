@@ -165,6 +165,24 @@
                            "defaultMappings":  {
 
                                                }
+                       },
+                       {
+                           "name":  "THERMAL",
+                           "displayName":  "Thermal",
+                           "codePrefix":  "THM",
+                           "codeFrom":  1000000,
+                           "codeTo":  1099999,
+                           "description":  "Temperature monitoring, thermal limits, cooling, sensor consistency, and thermal shutdown errors.",
+                           "defaultCategories":  [
+                                                     "THERMAL"
+                                                 ],
+                           "defaultTags":  [
+                                               "THERMAL",
+                                               "MONITORING"
+                                           ],
+                           "defaultMappings":  {
+
+                                               }
                        }
                    ]
 }
