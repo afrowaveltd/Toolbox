@@ -10,7 +10,7 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-The complete `WhenItFails.Tests` core suite is user-verified green with **695 passed, 0 failed, 0 skipped** before the stale-reading catalog test was added. The next full run should contain **696 tests**.
+The complete `WhenItFails.Tests` core suite is user-verified green with **696 passed, 0 failed, 0 skipped**.
 
 The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
@@ -24,23 +24,21 @@ Recently verified focused contracts include:
 - `TemperatureReadingStaleCatalogTests`: **1 user-verified green**.
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
 - Complete catalog validation after adding `AFW_THM_0004`: **0 errors, 0 warnings, 0 information issues**.
-- Complete `WhenItFails.Tests`: **695 user-verified green, 0 failed, 0 skipped** before the latest test addition.
+- Complete `WhenItFails.Tests`: **696 user-verified green, 0 failed, 0 skipped**.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
 
-The first four thermal definitions are present and focused-validation verified:
+The first four thermal definitions are complete and verified:
 
 - `AFW_THM_0001` / `1000001` / `TEMPERATURELIMITEXCEEDED` / `Warning`;
 - `AFW_THM_0002` / `1000002` / `CRITICALTEMPERATURELIMITEXCEEDED` / `Critical`;
 - `AFW_THM_0003` / `1000003` / `TEMPERATURESENSORREADINGINVALID` / `Error`;
 - `AFW_THM_0004` / `1000004` / `TEMPERATUREREADINGSTALE` / `Error`.
 
-`TEMPERATUREREADINGSTALE` uses message `Temperature reading from sensor {sensor} is stale; its age of {age} exceeds the configured maximum age of {maxAge}.`, categories `THERMAL` and `VALIDATION`, subcategories `SENSOR` and `STALE_READING`, tags `THERMAL`, `TEMPERATURE`, `SENSOR`, `STALE_DATA`, `FAIL_SAFE`, and `USER_VISIBLE`, and documentation key `when-it-fails/errors/thermal/temperature-reading-stale`.
+`TEMPERATUREREADINGSTALE` represents a reading that may be structurally valid and plausible but is too old for safe decision-making. It is distinct from invalid-reading and limit-exceeded contracts.
 
-This contract represents a reading that may be structurally valid and plausible but is too old for safe decision-making. It must not be treated as current, silently refreshed, or merged with invalid-reading or limit-exceeded contracts.
-
-Because bootstrap templates are generated from embedded authoritative catalogs, all four thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
+Because bootstrap templates are generated from embedded authoritative catalogs, all four verified thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
 
 The authoritative owner catalog continues to use non-overlapping ranges:
 
@@ -51,29 +49,21 @@ The authoritative owner catalog continues to use non-overlapping ranges:
 
 ## Focused verification
 
-The stale-reading contract is user-verified green:
+The complete core baseline is:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~TemperatureReadingStaleCatalogTests
+dotnet test WhenItFails.Tests
 ```
 
-Latest user-verified result: **1 passed, 0 failed, 0 skipped**.
+Latest user-verified result: **696 passed, 0 failed, 0 skipped**.
 
-The complete catalog workspace is user-verified green after adding `AFW_THM_0004`:
+The complete catalog workspace remains user-verified green:
 
 ```powershell
 dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 ```
 
 Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
-
-The final gate for this increment is the complete core project:
-
-```powershell
-dotnet test WhenItFails.Tests
-```
-
-Expected result: **696 passed, 0 failed, 0 skipped**.
 
 The complete Setter suite remains available through:
 
@@ -105,13 +95,13 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-`WhenItFails/Docs/Thermal Errors/en.md` now documents all four thermal contracts and explicitly separates invalid-value trust from measurement freshness. `AFW_THM_0003` covers missing, malformed, implausible, out-of-range, or sentinel readings; `AFW_THM_0004` covers plausible values whose age exceeds policy.
+`WhenItFails/Docs/Thermal Errors/en.md` documents all four verified thermal contracts and explicitly separates invalid-value trust from measurement freshness.
 
 ## Current intentional boundaries
 
 Setter currently does not provide automatic schema migration, multi-file atomic transactions, multi-process locking, automatic translation generation, remote catalog synchronization, package publishing, a GUI, complete source-code dependency discovery, or automatic runtime behavior for humorous message variants.
 
-Thermal easter eggs are explicitly deferred. Any future alternative wording must never alter the structured contract, severity, metadata, thresholds, control flow, shutdown decision, restart policy, sensor trust decision, data-freshness decision, or fail-safe policy.
+Thermal easter eggs are explicitly deferred. Any future alternative wording must never alter the structured contract, severity, metadata, thresholds, control flow, shutdown decision, restart policy, sensor trust decision, data-freshness decision, thermal-trend decision, or fail-safe policy.
 
 ## Working rules
 
@@ -124,11 +114,11 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **696-test** core gate is user-verified green.
+Add a standalone red catalog contract for `TEMPERATURERATEOFCHANGEEXCEEDED`. Do not change the authoritative production catalog until the exact expected missing-item failure is user-verified.
 
 ## Last completed change
 
-The English thermal documentation now includes `TEMPERATUREREADINGSTALE`, its duration parameters, structured diagnostic guidance, and the strict boundary between invalid data and stale data. The remaining gate is the complete core regression suite.
+The `AFW_THM_0004` increment is closed with **696/696 user-verified green core tests**. Its catalog definition, workspace validation, bootstrap propagation, and English documentation are synchronized.
 
 Commits:
 
