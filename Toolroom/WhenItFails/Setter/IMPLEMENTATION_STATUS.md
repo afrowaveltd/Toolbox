@@ -21,6 +21,7 @@ Recently verified focused contracts include:
 - `ErrorCatalogContextProviderEmptyWarningEnvelopeNormalizationTests`: **3 user-verified green**.
 - `ErrorCatalogContextProviderNullInnerPayloadTests`: **2 user-verified green**.
 - `TemperatureLimitExceededCatalogTests`: **1 user-verified green**.
+- `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The thermal domain is registered with category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
@@ -46,32 +47,19 @@ The authoritative owner catalog uses these non-overlapping ranges:
 
 No existing error code was renumbered.
 
-The bootstrap synchronization contract currently remains red. Assembly diagnostics showed that only this resource was present in the main assembly:
+Bootstrap synchronization is now user-verified green on Linux. `DefaultJsonsTemplateProvider` reads embedded copies of the authoritative catalogs under `Jsons/WhenItFails` instead of maintaining large duplicate raw JSON strings. The error template preserves the established bootstrap representation by converting IDs such as `AFW_THM_0001` to `AFW-THM-0001` and deriving PascalCase names such as `TemperatureLimitExceeded` from documentation keys.
 
-```text
-Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.profiles.json
-```
-
-The four `*.en.json` catalogs were absent even though their explicit `LogicalName` values matched the provider. This identifies MSBuild culture inference as the cause: filenames containing `.en.` were treated as localized culture resources rather than neutral resources in the main assembly.
-
-`WhenItFails.csproj` now sets `<WithCulture>false</WithCulture>` for:
-
-- `errors.en.json`;
-- `categories.en.json`;
-- `code-groups.en.json`;
-- `owners.en.json`.
-
-This correction is committed and requires user verification.
+The four `*.en.json` resources explicitly set `<WithCulture>false</WithCulture>` so MSBuild keeps them in the main assembly rather than treating them as English satellite resources. The focused bootstrap contract confirmed the revised owner ranges, thermal category, `THERMAL/THM` code group, and `AFW-THM-0001` definition.
 
 ## Focused verification
 
-Rerun the bootstrap synchronization contract:
+The bootstrap synchronization contract is user-verified green:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges
 ```
 
-Expected result: **1 green test**. Do not continue while this gate is red.
+Latest user-verified result: **1 passed, 0 failed, 0 skipped**.
 
 The complete catalog workspace is user-verified green:
 
@@ -81,13 +69,19 @@ dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 
 Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
 
-The focused thermal contract remains available through:
+The focused thermal catalog contract remains available through:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~TemperatureLimitExceededCatalogTests
 ```
 
 Latest user-verified result: **1 green test**.
+
+The next regression gate should be the complete core test project:
+
+```powershell
+dotnet test WhenItFails.Tests
+```
 
 The complete Setter suite remains available through:
 
@@ -118,7 +112,7 @@ Maintained English documentation includes:
 - `Docs/Reviewing Catalog Changes/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-Next documentation target: document that bootstrap templates are generated from embedded authoritative catalogs, then synchronize maintained owner-range documentation and reference catalog copies. Keep this file synchronized while the runtime/public-API audit continues.
+Next documentation target: document the resource-backed bootstrap architecture and synchronize maintained owner-range documentation and reference catalog copies. Keep this file synchronized while the runtime/public-API audit continues.
 
 ## Current intentional boundaries
 
@@ -137,11 +131,11 @@ Thermal easter eggs are explicitly deferred. Any future absurd-temperature wordi
 
 ## Recommended next step
 
-Pull commit `26e3690276401d75edc435c8a75def99b001d7b2` and rerun `GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`. If the test remains red, use the existing `Available manifest resources:` diagnostic rather than changing the provider speculatively.
+Run the complete `WhenItFails.Tests` project. If it is green, document the resource-backed bootstrap design and synchronize maintained reference catalogs before adding the second thermal error definition.
 
 ## Last completed change
 
-The manifest-resource diagnostic proved that neutral `profiles.json` was embedded correctly while all four filenames containing `.en.` were omitted from the main assembly. The project now disables culture inference for those catalogs with `WithCulture=false`, preserving their explicit logical names and keeping all authoritative bootstrap catalogs in the primary WhenItFails assembly.
+The thermal bootstrap increment is closed. The focused bootstrap contract is **1 user-verified green test** on Linux. The fix uses the authoritative catalog files as embedded resources, preserves established bootstrap naming, and disables MSBuild culture inference for the four `*.en.json` catalogs so all five templates remain available in the main WhenItFails assembly.
 
 Commits:
 
