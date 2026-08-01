@@ -35,26 +35,26 @@ The first thermal definition is present:
 - categories `THERMAL` and `VALIDATION`;
 - documentation key `when-it-fails/errors/thermal/temperature-limit-exceeded`.
 
-The focused catalog test is user-verified green. The subsequent complete workspace validation correctly exposed one owner-range error: code `1000001` was outside the former built-in `AFW` range `0–999999`.
+The focused catalog test is user-verified green. The complete workspace validation is also user-verified green after correcting the built-in owner ranges.
 
-No actual catalog definition currently uses owner `APP`; its range was only reserved. The authoritative owner catalog now preserves the thermal code and removes overlap by using:
+The authoritative owner catalog now uses these non-overlapping ranges:
 
 - `AFW`: `0–1099999`;
 - `APP`: `1100000–1999999`;
-- `PLUGIN`: unchanged at `2000000–2999999`;
-- `USER`: unchanged at `9000000–9999999`.
+- `PLUGIN`: `2000000–2999999`;
+- `USER`: `9000000–9999999`.
 
-This owner-range repair is committed and requires validation before bootstrap templates or range documentation are synchronized.
+No existing error code was renumbered. The formerly reserved `APP` range had no catalog definitions, so moving its lower boundary preserved compatibility while allowing the built-in thermal block to remain `1000000–1099999`.
 
 ## Focused verification
 
-Rerun the complete catalog validation:
+The complete catalog workspace is user-verified green:
 
 ```powershell
 dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 ```
 
-Expected result: **0 errors, 0 warnings, and 0 information issues**.
+Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
 
 The focused thermal contract remains available through:
 
@@ -93,7 +93,7 @@ Maintained English documentation includes:
 - `Docs/Reviewing Catalog Changes/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-Next documentation target: after the owner-range repair validates, synchronize `DefaultJsonsTemplateProvider`, owner-range documentation, and any maintained reference catalog copies. Keep this file synchronized while the runtime/public-API audit continues.
+Next documentation target: synchronize the bootstrap owner template, bootstrap thermal category/code-group/error templates, owner-range documentation, and maintained reference catalog copies. Keep this file synchronized while the runtime/public-API audit continues.
 
 ## Current intentional boundaries
 
@@ -112,11 +112,11 @@ Thermal easter eggs are explicitly deferred. Any future absurd-temperature wordi
 
 ## Recommended next step
 
-Run `Setter validate .`. Do not continue with another thermal definition until the revised non-overlapping owner ranges are confirmed to accept `AFW_THM_0001`. After a green result, synchronize the bootstrap owner template and maintained range documentation.
+Add a focused bootstrap-template test that requires newly initialized workspaces to receive the revised owner ranges and the thermal category, code group, and first error definition. Confirm the test fails against the current embedded templates before synchronizing `DefaultJsonsTemplateProvider` and maintained reference catalogs.
 
 ## Last completed change
 
-The latest slice records `TemperatureLimitExceededCatalogTests` as **1 user-verified green test** and the complete workspace validation as **1 expected owner-range error**. The error was not in the thermal definition itself: the newly reserved built-in thermal block extended beyond the former `AFW` owner boundary. Because the `APP` owner range is unused, the authoritative owner catalog now extends `AFW` through `1099999` and starts `APP` at `1100000`, preserving all existing error codes and avoiding overlap.
+The latest slice closes the first thermal catalog increment. `TemperatureLimitExceededCatalogTests` is **1 user-verified green test**, and the complete `Setter validate .` run is user-verified green with **0 errors, 0 warnings, and 0 information issues**. `AFW_THM_0001` remains code `1000001`; the authoritative owner ranges now accommodate the built-in thermal block without overlap or renumbering. The next slice must protect and synchronize bootstrap generation rather than adding another thermal error prematurely.
 
 Commits:
 
