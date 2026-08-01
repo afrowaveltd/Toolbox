@@ -10,7 +10,7 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-The complete `WhenItFails.Tests` core suite is user-verified green with **700 passed, 0 failed, 0 skipped**.
+The complete `WhenItFails.Tests` core suite is user-verified green with **700 passed, 0 failed, 0 skipped** before the new intentionally red thermal-protection-action contract.
 
 The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
@@ -28,7 +28,7 @@ Recently verified focused contracts include:
 - `CriticalTemperatureBelowMinimumLimitCatalogTests`: **1 user-verified green**.
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
 - Complete catalog validation after adding `AFW_THM_0008`: **0 errors, 0 warnings, 0 information issues**.
-- Complete `WhenItFails.Tests`: **700 user-verified green, 0 failed, 0 skipped**.
+- Complete `WhenItFails.Tests`: **700 user-verified green, 0 failed, 0 skipped** before the intentional red test.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
@@ -44,9 +44,24 @@ The first eight thermal definitions are complete and verified:
 - `AFW_THM_0007` / `1000007` / `TEMPERATUREBELOWMINIMUMLIMIT` / `Warning`;
 - `AFW_THM_0008` / `1000008` / `CRITICALTEMPERATUREBELOWMINIMUMLIMIT` / `Critical`.
 
-The next planned thermal state is failure of an application-selected thermal protection action after a thermal condition has already been detected. This must remain separate from the detected temperature condition itself and from generic operation failures.
+A standalone TDD contract now defines the planned ninth thermal state:
 
-Because bootstrap templates are generated from embedded authoritative catalogs, all completed thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
+- ID `AFW_THM_0009`;
+- code `1000009`;
+- name `THERMALPROTECTIONACTIONFAILED`;
+- title `Thermal protection action failed`;
+- message `Thermal protection action {action} failed for {component} while handling {condition}.`;
+- default severity `Critical`;
+- categories `THERMAL` and `GENERAL`;
+- subcategories `PROTECTION_ACTION` and `FAIL_SAFE`;
+- tags `THERMAL`, `FAIL_SAFE`, `SHUTDOWN`, `OPERATOR_ACTION_REQUIRED`, and `USER_VISIBLE`;
+- documentation key `when-it-fails/errors/thermal/thermal-protection-action-failed`.
+
+This contract represents failure to execute an application-selected protective response after a thermal condition has already been detected. It does not replace the original threshold, sensor, freshness, trend, or redundancy condition, and it must not claim that a specific shutdown or actuator was selected unless runtime metadata says so.
+
+The production catalog has not yet been changed. The focused test is expected to be red because `THERMALPROTECTIONACTIONFAILED` does not exist yet.
+
+Because bootstrap templates are generated from embedded authoritative catalogs, completed thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
 
 The authoritative owner catalog continues to use non-overlapping ranges:
 
@@ -57,7 +72,15 @@ The authoritative owner catalog continues to use non-overlapping ranges:
 
 ## Focused verification
 
-The complete core baseline is:
+Run the new thermal-protection-action TDD contract:
+
+```bash
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ThermalProtectionActionFailedCatalogTests
+```
+
+Expected result: **1 red test** reporting that catalog item `THERMALPROTECTIONACTIONFAILED` was not found. Do not add the production definition until this exact red gate is user-verified.
+
+The complete core baseline before the intentional red test is:
 
 ```bash
 dotnet test WhenItFails.Tests
@@ -103,7 +126,7 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-`WhenItFails/Docs/Thermal Errors/en.md` documents all eight completed thermal contracts and preserves their semantic boundaries.
+`WhenItFails/Docs/Thermal Errors/en.md` documents all eight completed thermal contracts. Add the protection-action failure only after its focused contract and workspace validation are green.
 
 ## Current intentional boundaries
 
@@ -125,21 +148,18 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Add a standalone TDD contract for failure of a configured thermal protection action. Do not change the production catalog until the focused test is user-verified red with only the expected missing-item failure.
+Run `ThermalProtectionActionFailedCatalogTests` and confirm the exact missing-item failure. Do not change the production catalog until that expected red gate is user-verified.
 
 ## Last completed change
 
-The `AFW_THM_0008` increment is closed at **700/700 green core tests**. The next slice moves from thermal detection to failure of the selected protective response.
+The `AFW_THM_0008` increment remains closed at **700/700 green core tests**. A standalone red contract now defines failure of an application-selected thermal protection response; no production catalog data has been changed.
 
 Commits:
 
 ```text
-9e657ada98ddfe604c3e721d53f7f88c01e68b02
-Add critical temperature below minimum catalog error
+19d46685439068b777c62bfff95196fed0106bd9
+Record green critical minimum temperature core gate
 
-32b79370eee7489ef1052c04d8529f401948b329
-Document critical temperature below minimum limit
-
-c224c4e231051d683af9d6b8096a0080a742dccd
-Record critical minimum documentation and pending core gate
+36f35853c308615a12eba9da10fee7280b0e8c4e
+Add thermal protection action failed catalog contract
 ```
