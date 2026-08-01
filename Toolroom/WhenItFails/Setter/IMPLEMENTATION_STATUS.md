@@ -10,7 +10,7 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-The complete `WhenItFails.Tests` core suite is user-verified green with **698 passed, 0 failed, 0 skipped** before the minimum-temperature catalog test was added. The next complete run should contain **699 tests**.
+The complete `WhenItFails.Tests` core suite is user-verified green with **699 passed, 0 failed, 0 skipped**.
 
 The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
@@ -27,12 +27,12 @@ Recently verified focused contracts include:
 - `TemperatureBelowMinimumLimitCatalogTests`: **1 user-verified green**.
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
 - Complete catalog validation after adding `AFW_THM_0007`: **0 errors, 0 warnings, 0 information issues**.
-- Complete `WhenItFails.Tests`: **698 user-verified green, 0 failed, 0 skipped** before the latest test addition.
+- Complete `WhenItFails.Tests`: **699 user-verified green, 0 failed, 0 skipped**.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
 
-The first seven thermal definitions are present and focused-validation verified:
+The first seven thermal definitions are complete and verified:
 
 - `AFW_THM_0001` / `1000001` / `TEMPERATURELIMITEXCEEDED` / `Warning`;
 - `AFW_THM_0002` / `1000002` / `CRITICALTEMPERATURELIMITEXCEEDED` / `Critical`;
@@ -44,7 +44,7 @@ The first seven thermal definitions are present and focused-validation verified:
 
 `TEMPERATUREBELOWMINIMUMLIMIT` uses message `The reported temperature {temperature}{unit} is below the configured minimum operating limit of {limit}{unit}.`, categories `THERMAL` and `VALIDATION`, subcategories `MINIMUM_LIMIT` and `TEMPERATURE`, tags `THERMAL`, `TEMPERATURE`, `LOW_TEMPERATURE`, and `USER_VISIBLE`, and documentation key `when-it-fails/errors/thermal/temperature-below-minimum-limit`.
 
-This contract represents a trusted, current reading below the configured minimum operating boundary. It must remain distinct from upper-limit, invalid-reading, stale-reading, trend, and sensor-disagreement contracts.
+This contract represents a trusted, current reading below the configured minimum operating boundary. It remains distinct from upper-limit, invalid-reading, stale-reading, trend, and sensor-disagreement contracts.
 
 Because bootstrap templates are generated from embedded authoritative catalogs, all seven thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
 
@@ -73,13 +73,13 @@ dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 
 Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
 
-The final gate for this increment is the complete core project:
+The complete core project is user-verified green:
 
 ```bash
 dotnet test WhenItFails.Tests
 ```
 
-Expected result: **699 passed, 0 failed, 0 skipped**.
+Latest user-verified result: **699 passed, 0 failed, 0 skipped**.
 
 The complete Setter suite remains available through:
 
@@ -111,7 +111,7 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-`WhenItFails/Docs/Thermal Errors/en.md` now documents all seven thermal contracts. The minimum-temperature section distinguishes a trusted lower-bound violation from invalid sensor data, defines structured diagnostic fields, leaves warm-up and low-temperature actions to application policy, and documents hysteresis and coexistence with trend or redundancy conditions.
+`WhenItFails/Docs/Thermal Errors/en.md` documents all seven completed thermal contracts. The minimum-temperature section distinguishes a trusted lower-bound violation from invalid sensor data, defines structured diagnostic fields, leaves warm-up and low-temperature actions to application policy, and documents hysteresis and coexistence with trend or redundancy conditions.
 
 ## Current intentional boundaries
 
@@ -133,21 +133,21 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **699-test** core gate is user-verified green.
+Add a standalone TDD contract for a trusted, current reading below a configured critical minimum temperature. Keep it distinct from the ordinary minimum-temperature warning and do not change the production catalog until the expected focused red gate is user-verified.
 
 ## Last completed change
 
-The English thermal documentation now includes `TEMPERATUREBELOWMINIMUMLIMIT` and preserves the boundary between a valid lower operating-limit violation, sensor invalidity, data freshness, trend evaluation, redundancy disagreement, and upper thresholds. The remaining gate is the complete core regression suite.
+The `AFW_THM_0007` increment is closed at **699/699 green core tests**. The next slice will define the critical low-temperature boundary as a separate contract.
 
 Commits:
 
 ```text
-7c2a95bc75cd688266610ccb725ddf793eaacfb7
-Add temperature below minimum limit catalog contract
-
 c09177baa5a67b893b871d670110399e2a40ef09
 Add temperature below minimum limit catalog error
 
 d72f27034bbcfb67ec18734ce72e69eeef143a21
 Document temperature below minimum limit
+
+8d3ac0da9898b3a2249df3806cd72b36d69c749d
+Record minimum temperature documentation and pending core gate
 ```
