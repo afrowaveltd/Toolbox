@@ -2,7 +2,7 @@
 
 Thermal errors describe temperature-related states that can apply to computer hardware, batteries, power systems, motors, converters, servers, switchboards, industrial sensors, and general monitoring systems.
 
-The thermal family deliberately separates an ordinary safe-limit warning, a critical shutdown-limit condition, an invalid sensor reading, a stale reading, and an excessive rate of temperature change. Applications must not infer that every thermal warning requires an emergency stop, must not downgrade a critical shutdown-limit state to an ordinary warning, must not treat an invalid sensor value as a confirmed temperature, must not treat an old measurement as current, and must not confuse a fast trend with an already-crossed absolute limit.
+The thermal family deliberately separates an ordinary safe-limit warning, a critical shutdown-limit condition, an invalid sensor reading, a stale reading, an excessive rate of temperature change, and disagreement between redundant sensors. Applications must not infer that every thermal warning requires an emergency stop, must not downgrade a critical shutdown-limit state to an ordinary warning, must not treat an invalid sensor value as a confirmed temperature, must not treat an old measurement as current, must not confuse a fast trend with an already-crossed absolute limit, and must not assume that sensor disagreement identifies which sensor is wrong.
 
 ## Temperature limit exceeded
 
@@ -197,6 +197,52 @@ This warning does not itself command throttling, shutdown, or process terminatio
 
 A later slower sample does not necessarily prove recovery. Applications should consider hysteresis, a stable observation window, repeated trend breaches, and the resulting absolute temperature before clearing the condition.
 
+## Temperature sensor disagreement
+
+| Field | Value |
+|---|---|
+| ID | `AFW_THM_0006` |
+| Code | `1000006` |
+| Name | `TEMPERATURESENSORDISAGREEMENT` |
+| Code group | `THERMAL` |
+| Primary category | `THERMAL` |
+| Default severity | `Warning` |
+| Documentation key | `when-it-fails/errors/thermal/temperature-sensor-disagreement` |
+
+Use this definition when two temperature sensors that are expected to agree report trusted, current, unit-compatible values whose difference exceeds the maximum permitted by the configured redundancy policy.
+
+This condition does not prove that either sensor is invalid. A real thermal gradient, different sensor placement, response lag, calibration drift, timestamp skew, or a developing sensor fault can all produce disagreement.
+
+### Message
+
+```text
+Temperature sensors {sensorA} and {sensorB} disagree by {difference}{unit}, exceeding the configured maximum difference of {maxDifference}{unit}.
+```
+
+Required message parameters:
+
+- `sensorA` — the first sensor or channel in the comparison;
+- `sensorB` — the second sensor or channel in the comparison;
+- `difference` — the calculated difference between the two readings;
+- `unit` — the common temperature unit used for the comparison;
+- `maxDifference` — the configured maximum permitted difference in the same unit.
+
+The application must define whether `difference` is always absolute or whether signed direction is preserved. That policy should be stable and explicit; message formatting must not silently change the calculation.
+
+Structured runtime data should preserve both sensor identifiers, both original values, their units, timestamps and ages, normalized values, calculated difference, configured tolerance, sensor placement or role when known, calibration information, and the redundancy-policy result.
+
+### Developer guidance
+
+Verify sensor placement, calibration, sampling timestamps, unit conversion, thermal gradients, wiring or transport integrity, and the configured redundancy policy.
+
+Do not automatically mark one sensor as failed merely because two readings disagree. Selecting a preferred sensor, voting across three or more sensors, using a reference sensor, entering degraded mode, or stopping operation belongs to the consuming application's redundancy and fail-safe policy.
+
+The comparison should normally use readings that are close enough in time and represent the same physical quantity. Comparing asynchronous samples, sensors with different response times, or sensors in intentionally different locations can create a valid difference that should not be treated as a fault.
+
+The condition may coexist with another thermal contract. For example, both sensors may disagree while one or both readings also exceed a safe or critical limit. Do not suppress the absolute-limit condition merely because redundancy disagreement was reported.
+
+Clearing the warning should normally require agreement within a recovery tolerance for a stable observation window. A single matching pair may not be enough when calibration drift, intermittent wiring, transport loss, or rapidly changing temperature remains possible.
+
 ## Choosing the correct definition
 
 Use `AFW_THM_0001` when:
@@ -218,7 +264,7 @@ Use `AFW_THM_0002` when:
 Use `AFW_THM_0003` when:
 
 - the reported value cannot be trusted because it is missing, malformed, implausible, out of sensor range, or a sentinel value;
-- no limit or trend comparison can be made safely from that value;
+- no limit, trend, or redundancy comparison can be made safely from that value;
 - the application must follow its configured sensor-loss or invalid-reading policy.
 
 Use `AFW_THM_0004` when:
@@ -235,10 +281,17 @@ Use `AFW_THM_0005` when:
 - the current absolute temperature may still be below its safe or critical threshold;
 - the application must evaluate its thermal-trend response policy.
 
-More than one definition may legitimately apply at the same time. For example, a fast temperature rise can trigger `AFW_THM_0005` before later samples also trigger `AFW_THM_0001` or `AFW_THM_0002`. Do not suppress the absolute-limit condition merely because the trend warning was emitted first.
+Use `AFW_THM_0006` when:
 
-Do not select between these definitions from severity text alone. For limit errors, a trusted current measurement and configured threshold are the source of truth. For `AFW_THM_0003`, content or acquisition validity is the source of truth. For `AFW_THM_0004`, measurement age is the source of truth. For `AFW_THM_0005`, the validated rate calculation and configured trend threshold are the source of truth.
+- two sensors are expected to represent the same or policy-comparable thermal condition;
+- both readings are individually trusted, current, and normalized to compatible units;
+- their calculated difference exceeds the configured redundancy tolerance;
+- the system cannot infer from the disagreement alone which reading is correct.
+
+More than one definition may legitimately apply at the same time. For example, a fast temperature rise can trigger `AFW_THM_0005` before later samples also trigger `AFW_THM_0001` or `AFW_THM_0002`. Two sensors may trigger `AFW_THM_0006` while one or both also cross an absolute limit. Do not suppress a relevant absolute-limit condition merely because a trend or redundancy warning was emitted first.
+
+Do not select between these definitions from severity text alone. For limit errors, a trusted current measurement and configured threshold are the source of truth. For `AFW_THM_0003`, content or acquisition validity is the source of truth. For `AFW_THM_0004`, measurement age is the source of truth. For `AFW_THM_0005`, the validated rate calculation and configured trend threshold are the source of truth. For `AFW_THM_0006`, two validated comparable readings and the configured redundancy tolerance are the source of truth.
 
 ## Humorous alternative messages
 
-Extremely unusual but still valid values may eventually use restrained alternative wording. Such wording must never change the error ID, code, severity, categories, structured data, control flow, shutdown decision, restart policy, sensor-trust decision, data-freshness decision, thermal-trend decision, or fail-safe policy. It is deliberately outside the current implementation slice.
+Extremely unusual but still valid values may eventually use restrained alternative wording. Such wording must never change the error ID, code, severity, categories, structured data, control flow, shutdown decision, restart policy, sensor-trust decision, data-freshness decision, thermal-trend decision, redundancy decision, or fail-safe policy. It is deliberately outside the current implementation slice.
