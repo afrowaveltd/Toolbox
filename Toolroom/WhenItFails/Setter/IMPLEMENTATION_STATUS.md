@@ -10,7 +10,7 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-The complete `WhenItFails.Tests` core suite is user-verified green with **693 passed, 0 failed, 0 skipped**, including the documentation and reference-catalog synchronization.
+The complete `WhenItFails.Tests` core suite was most recently user-verified green with **693 passed, 0 failed, 0 skipped** before the new critical-temperature TDD slice.
 
 The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
@@ -18,18 +18,15 @@ The runtime/public-API audit has verified defensive handling of provider failure
 
 Recently verified focused contracts include:
 
-- `ErrorCatalogContextProviderSuccessfulEnvelopeSuppressionTests`: **2 user-verified green**.
-- `ErrorCatalogContextProviderSuccessfulStatusNormalizationTests`: **3 user-verified green**.
-- `ErrorCatalogContextProviderEmptyWarningEnvelopeNormalizationTests`: **3 user-verified green**.
-- `ErrorCatalogContextProviderNullInnerPayloadTests`: **2 user-verified green**.
 - `TemperatureLimitExceededCatalogTests`: **1 user-verified green**.
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
-- Complete `WhenItFails.Tests`: **693 user-verified green, 0 failed, 0 skipped**.
+- `CriticalTemperatureLimitExceededCatalogTests`: **1 user-verified expected red**, reporting that `CRITICALTEMPERATURELIMITEXCEEDED` was not found.
+- Complete `WhenItFails.Tests`: **693 user-verified green, 0 failed, 0 skipped** before the intentional red test.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
-The thermal domain is registered with category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
+The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
 
-The first thermal definition is present and verified:
+The first thermal definition remains unchanged and verified:
 
 - ID `AFW_THM_0001`;
 - code `1000001`;
@@ -37,7 +34,7 @@ The first thermal definition is present and verified:
 - default severity `Warning`;
 - documentation key `when-it-fails/errors/thermal/temperature-limit-exceeded`.
 
-A focused TDD contract has now been added for the second thermal definition. It requires:
+The second thermal definition is now present in the authoritative error catalog but requires user verification:
 
 - ID `AFW_THM_0002`;
 - code `1000002`;
@@ -50,46 +47,38 @@ A focused TDD contract has now been added for the second thermal definition. It 
 - tags `THERMAL`, `TEMPERATURE`, `SHUTDOWN`, and `USER_VISIBLE`;
 - documentation key `when-it-fails/errors/thermal/critical-temperature-limit-exceeded`.
 
-The production catalog has not yet been changed. The new focused test is expected to be red because `CRITICALTEMPERATURELIMITEXCEEDED` does not yet exist.
+Because bootstrap templates are generated from embedded authoritative catalogs, this new definition will also flow into newly initialized workspaces after the project rebuilds. Existing project-local catalogs remain untouched by bootstrap.
 
-The authoritative owner catalog uses these non-overlapping ranges:
+The authoritative owner catalog continues to use non-overlapping ranges:
 
 - `AFW`: `0–1099999`;
 - `APP`: `1100000–1999999`;
 - `PLUGIN`: `2000000–2999999`;
 - `USER`: `9000000–9999999`.
 
-No existing error code was renumbered.
-
-Bootstrap synchronization is user-verified green on Linux. `DefaultJsonsTemplateProvider` reads embedded copies of the authoritative catalogs under `Jsons/WhenItFails` instead of maintaining large duplicate raw JSON strings. The four `*.en.json` resources explicitly set `<WithCulture>false</WithCulture>` so MSBuild keeps them in the main assembly rather than treating them as English satellite resources.
-
-The resource-backed bootstrap architecture is documented in `WhenItFails/Docs/Bootstrap/en.md`. The maintained reference catalogs contain category `THERMAL` and code group `THERMAL/THM`.
-
 ## Focused verification
 
-Run the new critical thermal TDD contract:
+Run the critical thermal contract:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~CriticalTemperatureLimitExceededCatalogTests
 ```
 
-Expected result: **1 red test** reporting that catalog item `CRITICALTEMPERATURELIMITEXCEEDED` was not found. Do not add the production definition until this exact red gate is user-verified.
+Expected result: **1 green test**.
 
-The complete core project remains user-verified green before this new intentionally red test:
-
-```powershell
-dotnet test WhenItFails.Tests
-```
-
-Latest baseline: **693 passed, 0 failed, 0 skipped**.
-
-The complete catalog workspace remains available through:
+Then validate the complete catalog workspace:
 
 ```powershell
 dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 ```
 
-Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
+Expected result: **0 errors, 0 warnings, and 0 information issues**.
+
+After both focused gates are green, rerun the complete core project:
+
+```powershell
+dotnet test WhenItFails.Tests
+```
 
 The complete Setter suite remains available through:
 
@@ -121,7 +110,7 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-Next documentation target: add the critical temperature definition after its catalog contract is green.
+Next documentation target: add the critical temperature definition after its focused catalog contract and complete validation are green.
 
 ## Current intentional boundaries
 
@@ -140,24 +129,18 @@ Thermal easter eggs are explicitly deferred. Any future absurd-temperature wordi
 
 ## Recommended next step
 
-Run `CriticalTemperatureLimitExceededCatalogTests` and confirm the expected missing-item failure. After that exact red gate, add only `AFW_THM_0002` to the authoritative error catalog, then rerun the focused test and complete catalog validation before updating thermal documentation.
+Pull the latest commits, rerun `CriticalTemperatureLimitExceededCatalogTests`, and run `Setter validate .`. Do not update thermal documentation or add another thermal definition until both gates are green.
 
 ## Last completed change
 
-The documentation/reference synchronization remains user-verified green at **693/693 core tests**. The next thermal slice has started with a standalone red catalog contract for `CRITICALTEMPERATURELIMITEXCEEDED`; no production catalog data has been changed yet.
+The expected red contract was user-verified with the exact missing-item failure. `AFW_THM_0002` is now added to `Jsons/WhenItFails/errors.en.json` as a distinct critical shutdown condition, without changing the warning-level `AFW_THM_0001` contract.
 
 Commits:
 
 ```text
-42e2f5bf66ac937499257c1a297867658f1f8334
-Document resource-backed bootstrap templates
-
-70d6fc445741329ceb630831a092d330c275653b
-Add thermal reference category
-
-41ca5150ddd84816c42a20daeca474e4a9f0dc59
-Add thermal reference code group
-
 b539dffc0c165c7c92b3b3212b536d12a4c0c34f
 Add critical temperature limit catalog contract
+
+11cad246ad67bcbaac8a9c3cdb002c8993024308
+Add critical temperature limit exceeded catalog error
 ```
