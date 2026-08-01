@@ -10,7 +10,7 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-The complete `WhenItFails.Tests` core suite is user-verified green with **699 passed, 0 failed, 0 skipped**.
+The complete `WhenItFails.Tests` core suite is user-verified green with **699 passed, 0 failed, 0 skipped** before the new intentionally red critical minimum-temperature contract.
 
 The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
@@ -27,7 +27,7 @@ Recently verified focused contracts include:
 - `TemperatureBelowMinimumLimitCatalogTests`: **1 user-verified green**.
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
 - Complete catalog validation after adding `AFW_THM_0007`: **0 errors, 0 warnings, 0 information issues**.
-- Complete `WhenItFails.Tests`: **699 user-verified green, 0 failed, 0 skipped**.
+- Complete `WhenItFails.Tests`: **699 user-verified green, 0 failed, 0 skipped** before the intentional red test.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
@@ -42,11 +42,24 @@ The first seven thermal definitions are complete and verified:
 - `AFW_THM_0006` / `1000006` / `TEMPERATURESENSORDISAGREEMENT` / `Warning`;
 - `AFW_THM_0007` / `1000007` / `TEMPERATUREBELOWMINIMUMLIMIT` / `Warning`.
 
-`TEMPERATUREBELOWMINIMUMLIMIT` uses message `The reported temperature {temperature}{unit} is below the configured minimum operating limit of {limit}{unit}.`, categories `THERMAL` and `VALIDATION`, subcategories `MINIMUM_LIMIT` and `TEMPERATURE`, tags `THERMAL`, `TEMPERATURE`, `LOW_TEMPERATURE`, and `USER_VISIBLE`, and documentation key `when-it-fails/errors/thermal/temperature-below-minimum-limit`.
+A standalone TDD contract now defines the planned eighth thermal state:
 
-This contract represents a trusted, current reading below the configured minimum operating boundary. It remains distinct from upper-limit, invalid-reading, stale-reading, trend, and sensor-disagreement contracts.
+- ID `AFW_THM_0008`;
+- code `1000008`;
+- name `CRITICALTEMPERATUREBELOWMINIMUMLIMIT`;
+- title `Critical temperature below minimum limit`;
+- message `The reported temperature {temperature}{unit} is below the configured critical minimum operating limit of {limit}{unit}.`;
+- default severity `Critical`;
+- categories `THERMAL` and `VALIDATION`;
+- subcategories `CRITICAL_MINIMUM_LIMIT` and `SHUTDOWN`;
+- tags `THERMAL`, `TEMPERATURE`, `LOW_TEMPERATURE`, `SHUTDOWN`, and `USER_VISIBLE`;
+- documentation key `when-it-fails/errors/thermal/critical-temperature-below-minimum-limit`.
 
-Because bootstrap templates are generated from embedded authoritative catalogs, all seven thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
+This contract represents a trusted, current reading below a critical minimum boundary. It is separate from the ordinary minimum-temperature warning and does not itself perform shutdown, heating, battery isolation, fluid protection, or restart authorization; those actions belong to application policy.
+
+The production catalog has not yet been changed. The focused test is expected to be red because `CRITICALTEMPERATUREBELOWMINIMUMLIMIT` does not exist yet.
+
+Because bootstrap templates are generated from embedded authoritative catalogs, completed thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
 
 The authoritative owner catalog continues to use non-overlapping ranges:
 
@@ -57,29 +70,29 @@ The authoritative owner catalog continues to use non-overlapping ranges:
 
 ## Focused verification
 
-The minimum-temperature contract is user-verified green:
+Run the new critical minimum-temperature TDD contract:
 
 ```bash
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~TemperatureBelowMinimumLimitCatalogTests
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~CriticalTemperatureBelowMinimumLimitCatalogTests
 ```
 
-Latest user-verified result: **1 passed, 0 failed, 0 skipped**.
+Expected result: **1 red test** reporting that catalog item `CRITICALTEMPERATUREBELOWMINIMUMLIMIT` was not found. Do not add the production definition until this exact red gate is user-verified.
 
-The complete catalog workspace is user-verified green after adding `AFW_THM_0007`:
-
-```bash
-dotnet run --project Toolroom/WhenItFails/Setter -- validate .
-```
-
-Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
-
-The complete core project is user-verified green:
+The complete core baseline before the intentional red test is:
 
 ```bash
 dotnet test WhenItFails.Tests
 ```
 
 Latest user-verified result: **699 passed, 0 failed, 0 skipped**.
+
+The complete catalog workspace remains user-verified green:
+
+```bash
+dotnet run --project Toolroom/WhenItFails/Setter -- validate .
+```
+
+Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
 
 The complete Setter suite remains available through:
 
@@ -111,13 +124,13 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-`WhenItFails/Docs/Thermal Errors/en.md` documents all seven completed thermal contracts. The minimum-temperature section distinguishes a trusted lower-bound violation from invalid sensor data, defines structured diagnostic fields, leaves warm-up and low-temperature actions to application policy, and documents hysteresis and coexistence with trend or redundancy conditions.
+`WhenItFails/Docs/Thermal Errors/en.md` documents all seven completed thermal contracts. Add the critical minimum-temperature definition only after its focused contract and workspace validation are green.
 
 ## Current intentional boundaries
 
 Setter currently does not provide automatic schema migration, multi-file atomic transactions, multi-process locking, automatic translation generation, remote catalog synchronization, package publishing, a GUI, complete source-code dependency discovery, or automatic runtime behavior for humorous message variants.
 
-Thermal easter eggs are explicitly deferred. Any future alternative wording must never alter the structured contract, severity, metadata, thresholds, control flow, shutdown decision, restart policy, sensor trust decision, data-freshness decision, thermal-trend decision, redundancy decision, low-temperature decision, or fail-safe policy.
+Thermal easter eggs are explicitly deferred. Any future alternative wording must never alter the structured contract, severity, metadata, thresholds, control flow, shutdown decision, restart policy, sensor trust decision, data-freshness decision, thermal-trend decision, redundancy decision, low-temperature decision, critical low-temperature decision, or fail-safe policy.
 
 ## Working rules
 
@@ -133,21 +146,18 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Add a standalone TDD contract for a trusted, current reading below a configured critical minimum temperature. Keep it distinct from the ordinary minimum-temperature warning and do not change the production catalog until the expected focused red gate is user-verified.
+Run `CriticalTemperatureBelowMinimumLimitCatalogTests` and confirm the exact missing-item failure. After that expected red gate, add only `AFW_THM_0008` to the authoritative error catalog, then rerun the focused test and complete catalog validation before updating documentation.
 
 ## Last completed change
 
-The `AFW_THM_0007` increment is closed at **699/699 green core tests**. The next slice will define the critical low-temperature boundary as a separate contract.
+The `AFW_THM_0007` increment remains closed at **699/699 green core tests**. A standalone red contract now defines the intended semantics of `CRITICALTEMPERATUREBELOWMINIMUMLIMIT`; no production catalog data has been changed.
 
 Commits:
 
 ```text
-c09177baa5a67b893b871d670110399e2a40ef09
-Add temperature below minimum limit catalog error
+5306615df800eedd6e95d49e49c9963e0e5677ca
+Record green minimum temperature core gate
 
-d72f27034bbcfb67ec18734ce72e69eeef143a21
-Document temperature below minimum limit
-
-8d3ac0da9898b3a2249df3806cd72b36d69c749d
-Record minimum temperature documentation and pending core gate
+76a17e2f33bf4eef7fd54ec15adbb679f879a45e
+Add critical temperature below minimum limit catalog contract
 ```
