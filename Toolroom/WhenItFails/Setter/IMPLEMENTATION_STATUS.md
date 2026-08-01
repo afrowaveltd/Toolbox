@@ -10,7 +10,9 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-The runtime/public-API audit has also verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
+The complete `WhenItFails.Tests` core suite is also user-verified green with **693 passed, 0 failed, 0 skipped**.
+
+The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
 ## Verification status
 
@@ -22,6 +24,7 @@ Recently verified focused contracts include:
 - `ErrorCatalogContextProviderNullInnerPayloadTests`: **2 user-verified green**.
 - `TemperatureLimitExceededCatalogTests`: **1 user-verified green**.
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
+- Complete `WhenItFails.Tests`: **693 user-verified green, 0 failed, 0 skipped**.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The thermal domain is registered with category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
@@ -47,11 +50,19 @@ The authoritative owner catalog uses these non-overlapping ranges:
 
 No existing error code was renumbered.
 
-Bootstrap synchronization is now user-verified green on Linux. `DefaultJsonsTemplateProvider` reads embedded copies of the authoritative catalogs under `Jsons/WhenItFails` instead of maintaining large duplicate raw JSON strings. The error template preserves the established bootstrap representation by converting IDs such as `AFW_THM_0001` to `AFW-THM-0001` and deriving PascalCase names such as `TemperatureLimitExceeded` from documentation keys.
+Bootstrap synchronization is user-verified green on Linux. `DefaultJsonsTemplateProvider` reads embedded copies of the authoritative catalogs under `Jsons/WhenItFails` instead of maintaining large duplicate raw JSON strings. The error template preserves the established bootstrap representation by converting IDs such as `AFW_THM_0001` to `AFW-THM-0001` and deriving PascalCase names such as `TemperatureLimitExceeded` from documentation keys.
 
 The four `*.en.json` resources explicitly set `<WithCulture>false</WithCulture>` so MSBuild keeps them in the main assembly rather than treating them as English satellite resources. The focused bootstrap contract confirmed the revised owner ranges, thermal category, `THERMAL/THM` code group, and `AFW-THM-0001` definition.
 
 ## Focused verification
+
+The complete core project is user-verified green:
+
+```powershell
+dotnet test WhenItFails.Tests
+```
+
+Latest user-verified result: **693 passed, 0 failed, 0 skipped**.
 
 The bootstrap synchronization contract is user-verified green:
 
@@ -76,12 +87,6 @@ dotnet test WhenItFails.Tests --filter FullyQualifiedName~TemperatureLimitExceed
 ```
 
 Latest user-verified result: **1 green test**.
-
-The next regression gate should be the complete core test project:
-
-```powershell
-dotnet test WhenItFails.Tests
-```
 
 The complete Setter suite remains available through:
 
@@ -131,11 +136,11 @@ Thermal easter eggs are explicitly deferred. Any future absurd-temperature wordi
 
 ## Recommended next step
 
-Run the complete `WhenItFails.Tests` project. If it is green, document the resource-backed bootstrap design and synchronize maintained reference catalogs before adding the second thermal error definition.
+Document the resource-backed bootstrap design and synchronize maintained reference catalogs. After that documentation slice is green, add a focused red catalog test for the second thermal definition, `CriticalTemperatureLimitExceeded`, without changing the existing warning-level `TemperatureLimitExceeded` contract.
 
 ## Last completed change
 
-The thermal bootstrap increment is closed. The focused bootstrap contract is **1 user-verified green test** on Linux. The fix uses the authoritative catalog files as embedded resources, preserves established bootstrap naming, and disables MSBuild culture inference for the four `*.en.json` catalogs so all five templates remain available in the main WhenItFails assembly.
+The complete `WhenItFails.Tests` project is now **693 user-verified green tests**. This closes the resource-backed bootstrap synchronization increment across focused and full regression gates. Newly initialized workspaces receive the same owner ranges, thermal category, code group, and first thermal definition as the authoritative project catalogs, without maintaining a second raw-JSON implementation in C#.
 
 Commits:
 
@@ -157,4 +162,7 @@ Improve embedded catalog diagnostics
 
 26e3690276401d75edc435c8a75def99b001d7b2
 Keep English catalogs in main assembly
+
+0310c0c112cc4e60b99ee30aea4bcf41f11d27b5
+Record green thermal bootstrap synchronization
 ```
