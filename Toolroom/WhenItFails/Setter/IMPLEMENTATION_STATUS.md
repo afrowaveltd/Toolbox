@@ -67,13 +67,13 @@ dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 
 Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
 
-After the thermal documentation update, rerun the complete core project:
+The final gate for this increment is the complete core project:
 
 ```powershell
 dotnet test WhenItFails.Tests
 ```
 
-Expected next full result: **696 passed, 0 failed, 0 skipped**.
+Expected result: **696 passed, 0 failed, 0 skipped**.
 
 The complete Setter suite remains available through:
 
@@ -105,7 +105,7 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-Next documentation target: add the verified stale-reading contract and its data-freshness boundary to `WhenItFails/Docs/Thermal Errors/en.md`.
+`WhenItFails/Docs/Thermal Errors/en.md` now documents all four thermal contracts and explicitly separates invalid-value trust from measurement freshness. `AFW_THM_0003` covers missing, malformed, implausible, out-of-range, or sentinel readings; `AFW_THM_0004` covers plausible values whose age exceeds policy.
 
 ## Current intentional boundaries
 
@@ -124,11 +124,11 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Document `TEMPERATUREREADINGSTALE` and its data-freshness boundary, then run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **696-test** core gate is user-verified green.
+Run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **696-test** core gate is user-verified green.
 
 ## Last completed change
 
-`AFW_THM_0004` is now focused-test and workspace-validation verified. The catalog distinguishes a stale but otherwise plausible reading from both an invalid reading and a trusted current reading.
+The English thermal documentation now includes `TEMPERATUREREADINGSTALE`, its duration parameters, structured diagnostic guidance, and the strict boundary between invalid data and stale data. The remaining gate is the complete core regression suite.
 
 Commits:
 
@@ -138,4 +138,7 @@ Add stale temperature reading catalog contract
 
 9a181e58ece8a6497555da92c71eedbb111cfe6c
 Add stale temperature reading catalog error
+
+049ad6fd3faefb0a37494ceac4f2549e41bb535d
+Document stale temperature readings
 ```
