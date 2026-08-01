@@ -163,6 +163,90 @@ Bundled templates are package-owned read-only resources.
 
 The project copies created from them become project-owned files.
 
+## Resource-backed default templates
+
+The default provider does not maintain a second hand-written copy of all catalog JSON inside C# source code.
+
+The authoritative default catalogs live under:
+
+```text
+Jsons/WhenItFails
+```
+
+During the `WhenItFails` project build, those files are embedded into the main assembly as manifest resources. `DefaultJsonsTemplateProvider` reads those embedded resources when a new project-local workspace needs to be created.
+
+This design keeps one catalog source of truth for:
+
+* normal workspace validation,
+* bootstrap generation,
+* package defaults,
+* focused bootstrap contract tests.
+
+The English catalog files use names such as:
+
+```text
+errors.en.json
+categories.en.json
+code-groups.en.json
+owners.en.json
+```
+
+MSBuild would normally interpret the `.en.` segment as a culture marker and place those files into an English satellite assembly. The project therefore sets:
+
+```xml
+<WithCulture>false</WithCulture>
+```
+
+for these resources so they remain available in the main `Afrowave.Toolbox.WhenItFails` assembly on every supported platform.
+
+Each embedded catalog also has an explicit logical manifest name. Missing-resource failures report the expected resource and the manifest resources that were actually found, which makes packaging and cross-platform build problems diagnosable.
+
+### Bootstrap error normalization
+
+The authoritative project catalogs use canonical uppercase names and underscore-separated IDs, for example:
+
+```text
+AFW_THM_0001
+TEMPERATURELIMITEXCEEDED
+```
+
+The established bootstrap template contract uses:
+
+```text
+AFW-THM-0001
+TemperatureLimitExceeded
+```
+
+`DefaultJsonsTemplateProvider` performs this deterministic representation-only normalization while reading the embedded error catalog. It does not change:
+
+* numeric codes,
+* owners,
+* code groups,
+* categories,
+* severities,
+* messages,
+* developer hints,
+* documentation keys,
+* tags,
+* structured metadata.
+
+The normalized bootstrap copy and the authoritative project catalog therefore describe the same error contract.
+
+### Package build versus project workspace
+
+Embedding authoritative catalogs into the package does not create a live link between the package and an existing application workspace.
+
+The relationship is:
+
+```text
+authoritative package catalog
+→ embedded read-only template
+→ copied once when target file is missing
+→ independent project-owned file
+```
+
+After creation, the project-local catalog remains independent and is never silently replaced by a later package version.
+
 ## Missing file behavior
 
 When a target catalog file does not exist:
@@ -650,6 +734,7 @@ It does not configure operating-system security policy.
 10. Protect production catalogs from unauthorized writes.
 11. Preserve bootstrap diagnostics in startup logs.
 12. Remember that successful bootstrap does not guarantee valid catalogs.
+13. Keep authoritative catalog changes covered by bootstrap synchronization tests.
 
 ## Central principle
 
