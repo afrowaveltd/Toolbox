@@ -10,7 +10,7 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-The complete `WhenItFails.Tests` core suite is user-verified green with **694 passed, 0 failed, 0 skipped** before the new intentionally red sensor-reading contract.
+The complete `WhenItFails.Tests` core suite is user-verified green with **694 passed, 0 failed, 0 skipped** before the invalid-sensor-reading test was added. The next full run should contain **695 tests**.
 
 The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
@@ -20,35 +20,25 @@ Recently verified focused contracts include:
 
 - `TemperatureLimitExceededCatalogTests`: **1 user-verified green**.
 - `CriticalTemperatureLimitExceededCatalogTests`: **1 user-verified green**.
+- `TemperatureSensorReadingInvalidCatalogTests`: **1 user-verified green**.
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
-- `TemperatureSensorReadingInvalidCatalogTests`: **1 user-verified expected red**, reporting that `TEMPERATURESENSORREADINGINVALID` was not found.
-- Complete catalog validation after adding `AFW_THM_0002`: **0 errors, 0 warnings, 0 information issues**.
-- Complete `WhenItFails.Tests`: **694 user-verified green, 0 failed, 0 skipped** before the new intentional red test.
+- Complete catalog validation after adding `AFW_THM_0003`: **0 errors, 0 warnings, 0 information issues**.
+- Complete `WhenItFails.Tests`: **694 user-verified green, 0 failed, 0 skipped** before the latest test addition.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
 
-The first two thermal definitions are complete and verified:
+The first three thermal definitions are present and focused-validation verified:
 
 - `AFW_THM_0001` / `1000001` / `TEMPERATURELIMITEXCEEDED` / `Warning`;
-- `AFW_THM_0002` / `1000002` / `CRITICALTEMPERATURELIMITEXCEEDED` / `Critical`.
+- `AFW_THM_0002` / `1000002` / `CRITICALTEMPERATURELIMITEXCEEDED` / `Critical`;
+- `AFW_THM_0003` / `1000003` / `TEMPERATURESENSORREADINGINVALID` / `Error`.
 
-The third thermal definition is now present in the authoritative catalog and requires user verification:
-
-- ID `AFW_THM_0003`;
-- code `1000003`;
-- name `TEMPERATURESENSORREADINGINVALID`;
-- title `Temperature sensor reading invalid`;
-- message `Temperature sensor {sensor} reported an invalid or unreliable reading.`;
-- default severity `Error`;
-- categories `THERMAL` and `VALIDATION`;
-- subcategories `SENSOR` and `INVALID_READING`;
-- tags `THERMAL`, `TEMPERATURE`, `SENSOR`, `FAIL_SAFE`, and `USER_VISIBLE`;
-- documentation key `when-it-fails/errors/thermal/temperature-sensor-reading-invalid`.
+`TEMPERATURESENSORREADINGINVALID` uses message `Temperature sensor {sensor} reported an invalid or unreliable reading.`, categories `THERMAL` and `VALIDATION`, subcategories `SENSOR` and `INVALID_READING`, tags `THERMAL`, `TEMPERATURE`, `SENSOR`, `FAIL_SAFE`, and `USER_VISIBLE`, and documentation key `when-it-fails/errors/thermal/temperature-sensor-reading-invalid`.
 
 This definition does not claim that a thermal limit was exceeded. It represents the loss of trustworthy temperature input, so application safety decisions must follow the configured fail-safe policy rather than treating the reported value as valid.
 
-Because bootstrap templates are generated from embedded authoritative catalogs, this definition also flows into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
+Because bootstrap templates are generated from embedded authoritative catalogs, all three thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
 
 The authoritative owner catalog continues to use non-overlapping ranges:
 
@@ -59,23 +49,23 @@ The authoritative owner catalog continues to use non-overlapping ranges:
 
 ## Focused verification
 
-Run the invalid-sensor-reading contract:
+The invalid-sensor-reading contract is user-verified green:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~TemperatureSensorReadingInvalidCatalogTests
 ```
 
-Expected result: **1 green test**.
+Latest user-verified result: **1 passed, 0 failed, 0 skipped**.
 
-Then validate the complete catalog workspace:
+The complete catalog workspace is user-verified green after adding `AFW_THM_0003`:
 
 ```powershell
 dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 ```
 
-Expected result: **0 errors, 0 warnings, and 0 information issues**.
+Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
 
-After both focused gates are green, rerun the complete core project:
+After the thermal documentation update, rerun the complete core project:
 
 ```powershell
 dotnet test WhenItFails.Tests
@@ -113,7 +103,7 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-The thermal document currently covers the first two verified contracts. Add the invalid sensor-reading definition only after its focused contract and workspace validation are green.
+Next documentation target: add the verified invalid sensor-reading contract and its fail-safe semantics to `WhenItFails/Docs/Thermal Errors/en.md`.
 
 ## Current intentional boundaries
 
@@ -132,11 +122,11 @@ Thermal easter eggs are explicitly deferred. Any future absurd-temperature wordi
 
 ## Recommended next step
 
-Pull the latest commits, rerun `TemperatureSensorReadingInvalidCatalogTests`, and run `Setter validate .`. Do not update thermal documentation or add another thermal definition until both gates are green.
+Document `TEMPERATURESENSORREADINGINVALID` and its fail-safe boundary, then run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **695-test** core gate is user-verified green.
 
 ## Last completed change
 
-The expected red contract was user-verified with the exact missing-item failure. `AFW_THM_0003` is now added to `Jsons/WhenItFails/errors.en.json` as a distinct fail-safe sensor-trust condition, without changing either temperature-limit contract.
+`AFW_THM_0003` is now focused-test and workspace-validation verified. The catalog distinguishes an invalid or unreliable sensor reading from both safe-limit and critical-limit exceedance; no production reaction is implied beyond following the application's configured fail-safe policy.
 
 Commits:
 
