@@ -75,13 +75,13 @@ dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 
 Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
 
-After the thermal documentation update, run the complete core project:
+The final gate for this increment is the complete core project:
 
 ```bash
 dotnet test WhenItFails.Tests
 ```
 
-Expected next full result: **700 passed, 0 failed, 0 skipped**.
+Expected result: **700 passed, 0 failed, 0 skipped**.
 
 The complete Setter suite remains available through:
 
@@ -113,7 +113,7 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-`WhenItFails/Docs/Thermal Errors/en.md` currently documents the first seven verified contracts. The next documentation slice adds the critical minimum-temperature contract while preserving the boundary between an ordinary low-temperature warning and a critical lower-bound state.
+`WhenItFails/Docs/Thermal Errors/en.md` now documents all eight thermal contracts. The critical minimum-temperature section preserves the boundary between ordinary and critical lower thresholds, defines required diagnostics and recovery evidence, and leaves shutdown, heating, battery, fluid, and restart actions to application policy.
 
 ## Current intentional boundaries
 
@@ -135,11 +135,11 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Document `CRITICALTEMPERATUREBELOWMINIMUMLIMIT`, then run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **700-test** core gate is user-verified green.
+Run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **700-test** core gate is user-verified green.
 
 ## Last completed change
 
-`AFW_THM_0008` is now focused-test and workspace-validation verified. The remaining work for this increment is English thermal documentation followed by the complete core regression gate.
+The English thermal documentation now includes `CRITICALTEMPERATUREBELOWMINIMUMLIMIT` and preserves the boundary between ordinary and critical lower operating limits. The remaining gate is the complete core regression suite.
 
 Commits:
 
@@ -149,4 +149,7 @@ Add critical temperature below minimum limit catalog contract
 
 9e657ada98ddfe604c3e721d53f7f88c01e68b02
 Add critical temperature below minimum catalog error
+
+32b79370eee7489ef1052c04d8529f401948b329
+Document critical temperature below minimum limit
 ```
