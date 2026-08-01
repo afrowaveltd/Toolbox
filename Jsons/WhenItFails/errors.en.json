@@ -827,6 +827,24 @@
       "documentationKey": "when-it-fails/errors/thermal/critical-temperature-below-minimum-limit",
       "tags": ["THERMAL", "TEMPERATURE", "LOW_TEMPERATURE", "SHUTDOWN", "USER_VISIBLE"],
       "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
+    },
+    {
+      "id": "AFW_THM_0009",
+      "code": 1000009,
+      "name": "THERMALPROTECTIONACTIONFAILED",
+      "owner": "AFW",
+      "codePrefix": "THM",
+      "codeGroup": "THERMAL",
+      "primaryCategory": "THERMAL",
+      "categories": ["THERMAL", "GENERAL"],
+      "subcategories": ["PROTECTION_ACTION", "FAIL_SAFE"],
+      "title": "Thermal protection action failed",
+      "message": "Thermal protection action {action} failed for {component} while handling {condition}.",
+      "defaultSeverity": "Critical",
+      "developerHint": "Verify the selected protection policy, actuator or control path, permissions, command result, hardware state, fallback action, operator escalation, and evidence required before restart.",
+      "documentationKey": "when-it-fails/errors/thermal/thermal-protection-action-failed",
+      "tags": ["THERMAL", "FAIL_SAFE", "SHUTDOWN", "OPERATOR_ACTION_REQUIRED", "USER_VISIBLE"],
+      "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
     }
   ]
 }
