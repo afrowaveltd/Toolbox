@@ -52,7 +52,7 @@ The bootstrap synchronization contract first failed on the stale owner boundary,
 Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.errors.en.json
 ```
 
-The failure occurred in `DefaultJsonsTemplateProvider.ReadEmbeddedCatalog` before any template content was parsed. `WhenItFails.csproj` now uses forward-slash paths for the external JSON files and explicit child `LogicalName` metadata for all five resources. This path fix requires user verification.
+Changing path separators and explicit `LogicalName` metadata did not alter this result. `DefaultJsonsTemplateProvider` now includes deterministic diagnostics that list every actual manifest resource name when an expected catalog resource is missing. The next focused run must capture that list before any further build or provider changes are made.
 
 ## Focused verification
 
@@ -62,7 +62,7 @@ Rerun the bootstrap synchronization contract:
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges
 ```
 
-Expected result: **1 green test**. Do not continue while this gate is red.
+Expected current result: the test may remain red, but the exception must now include `Available manifest resources:` followed by the actual assembly resource names or `<none>`. Do not continue without that exact output.
 
 The complete catalog workspace is user-verified green:
 
@@ -128,11 +128,11 @@ Thermal easter eggs are explicitly deferred. Any future absurd-temperature wordi
 
 ## Recommended next step
 
-Rerun `GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges` after pulling commit `b1969de2db48e8533e4ae9c6c20337fa026523b9`. If the resource is still missing, inspect the actual assembly manifest resource names before changing the provider or resource contract further.
+Pull commit `d97b88896156c65c8ef2b041c201f9ef8d8ef310` and rerun `GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`. Capture the complete `Available manifest resources:` portion of the exception. Use that exact evidence to decide whether the resources are absent or merely named differently.
 
 ## Last completed change
 
-The latest slice records the exact resource-loading failure and corrects the external embedded-resource paths for cross-platform MSBuild. The provider and expected logical resource names remain unchanged; only the project resource declarations were made portable and explicit.
+The latest slice confirms that cross-platform path syntax alone did not make the catalog resources visible to the assembly. The provider now reports all actual manifest resource names whenever lookup fails, replacing further guesswork with direct assembly evidence.
 
 Commits:
 
@@ -148,4 +148,7 @@ Synchronize bootstrap templates from embedded catalogs
 
 b1969de2db48e8533e4ae9c6c20337fa026523b9
 Fix embedded catalog resource paths
+
+d97b88896156c65c8ef2b041c201f9ef8d8ef310
+Improve embedded catalog diagnostics
 ```
