@@ -791,6 +791,24 @@
       "documentationKey": "when-it-fails/errors/thermal/temperature-sensor-disagreement",
       "tags": ["THERMAL", "TEMPERATURE", "SENSOR", "REDUNDANCY", "USER_VISIBLE"],
       "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
+    },
+    {
+      "id": "AFW_THM_0007",
+      "code": 1000007,
+      "name": "TEMPERATUREBELOWMINIMUMLIMIT",
+      "owner": "AFW",
+      "codePrefix": "THM",
+      "codeGroup": "THERMAL",
+      "primaryCategory": "THERMAL",
+      "categories": ["THERMAL", "VALIDATION"],
+      "subcategories": ["MINIMUM_LIMIT", "TEMPERATURE"],
+      "title": "Temperature below minimum limit",
+      "message": "The reported temperature {temperature}{unit} is below the configured minimum operating limit of {limit}{unit}.",
+      "defaultSeverity": "Warning",
+      "developerHint": "Verify the sensor reading, unit conversion, ambient conditions, heating path, warm-up requirements, configured limits, and low-temperature operating policy.",
+      "documentationKey": "when-it-fails/errors/thermal/temperature-below-minimum-limit",
+      "tags": ["THERMAL", "TEMPERATURE", "LOW_TEMPERATURE", "USER_VISIBLE"],
+      "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
     }
   ]
 }
