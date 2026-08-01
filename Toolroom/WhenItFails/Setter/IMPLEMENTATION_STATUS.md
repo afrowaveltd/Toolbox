@@ -10,7 +10,7 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-The complete `WhenItFails.Tests` core suite is user-verified green with **696 passed, 0 failed, 0 skipped** before the new intentionally red temperature-rate contract.
+The complete `WhenItFails.Tests` core suite is user-verified green with **696 passed, 0 failed, 0 skipped** before the new temperature-rate catalog test was added.
 
 The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
@@ -22,21 +22,22 @@ Recently verified focused contracts include:
 - `CriticalTemperatureLimitExceededCatalogTests`: **1 user-verified green**.
 - `TemperatureSensorReadingInvalidCatalogTests`: **1 user-verified green**.
 - `TemperatureReadingStaleCatalogTests`: **1 user-verified green**.
+- `TemperatureRateOfChangeExceededCatalogTests`: **1 user-verified expected red**, reporting that `TEMPERATURERATEOFCHANGEEXCEEDED` was not found.
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
 - Complete catalog validation after adding `AFW_THM_0004`: **0 errors, 0 warnings, 0 information issues**.
-- Complete `WhenItFails.Tests`: **696 user-verified green, 0 failed, 0 skipped** before the new intentional red test.
+- Complete `WhenItFails.Tests`: **696 user-verified green, 0 failed, 0 skipped** before the latest test addition.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
 
-The first four thermal definitions are complete and verified:
+The first four thermal definitions remain complete and verified:
 
 - `AFW_THM_0001` / `1000001` / `TEMPERATURELIMITEXCEEDED` / `Warning`;
 - `AFW_THM_0002` / `1000002` / `CRITICALTEMPERATURELIMITEXCEEDED` / `Critical`;
 - `AFW_THM_0003` / `1000003` / `TEMPERATURESENSORREADINGINVALID` / `Error`;
 - `AFW_THM_0004` / `1000004` / `TEMPERATUREREADINGSTALE` / `Error`.
 
-A focused TDD contract has now been added for a fifth, semantically separate state:
+The fifth thermal definition is now present in the authoritative catalog and requires user verification:
 
 - ID `AFW_THM_0005`;
 - code `1000005`;
@@ -51,9 +52,7 @@ A focused TDD contract has now been added for a fifth, semantically separate sta
 
 This contract concerns the speed of temperature change, not the absolute temperature. A reading may be valid, fresh, and below the critical limit while its trend still exceeds the configured safe rate.
 
-The production catalog has not yet been changed. The focused test is expected to be red because `TEMPERATURERATEOFCHANGEEXCEEDED` does not exist yet.
-
-Because bootstrap templates are generated from embedded authoritative catalogs, any later production definition will automatically flow into newly initialized workspaces. Existing project-local catalogs remain untouched by bootstrap.
+Because bootstrap templates are generated from embedded authoritative catalogs, this definition also flows into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
 
 The authoritative owner catalog continues to use non-overlapping ranges:
 
@@ -64,29 +63,23 @@ The authoritative owner catalog continues to use non-overlapping ranges:
 
 ## Focused verification
 
-Run the new temperature-rate TDD contract:
+Run the temperature-rate contract:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~TemperatureRateOfChangeExceededCatalogTests
 ```
 
-Expected result: **1 red test** reporting that catalog item `TEMPERATURERATEOFCHANGEEXCEEDED` was not found. Do not add the production definition until this exact red gate is user-verified.
+Expected result: **1 green test**.
 
-The complete core baseline before the intentional red test is:
-
-```powershell
-dotnet test WhenItFails.Tests
-```
-
-Latest user-verified result: **696 passed, 0 failed, 0 skipped**.
-
-The complete catalog workspace remains user-verified green:
+Then validate the complete catalog workspace:
 
 ```powershell
 dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 ```
 
-Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
+Expected result: **0 errors, 0 warnings, and 0 information issues**.
+
+After both focused gates are green, update the thermal documentation and rerun the complete core project. The next full run should contain **697 tests**.
 
 The complete Setter suite remains available through:
 
@@ -137,18 +130,18 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Run `TemperatureRateOfChangeExceededCatalogTests` and confirm the exact missing-item failure. After that expected red gate, add only `AFW_THM_0005` to the authoritative error catalog, then rerun the focused test and complete catalog validation before updating documentation.
+Pull the latest commits, rerun `TemperatureRateOfChangeExceededCatalogTests`, and run `Setter validate .`. Do not update thermal documentation or add another thermal definition until both gates are green.
 
 ## Last completed change
 
-The `AFW_THM_0004` increment remains closed at **696/696 green core tests**. A standalone red contract now defines the intended semantics of `TEMPERATURERATEOFCHANGEEXCEEDED`; no production catalog data has been changed.
+The expected red temperature-rate contract was user-verified with the exact missing-item failure. `AFW_THM_0005` is now added to `Jsons/WhenItFails/errors.en.json` as a distinct thermal-trend condition, without changing the absolute-limit, sensor-validity, or data-freshness contracts.
 
 Commits:
 
 ```text
-3af3d9a7edf2de5f2a4732d6091edb10fe8e9da2
-Record green stale temperature reading core gate
-
 5c09d66e5d54bd77bfbe5f1c9ab3f502403722bf
 Add temperature rate of change catalog contract
+
+287ffa9343f66ef5f504a3f4367043d5a0386d58
+Add temperature rate of change catalog error
 ```
