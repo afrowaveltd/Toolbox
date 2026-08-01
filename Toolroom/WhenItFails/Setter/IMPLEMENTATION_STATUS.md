@@ -10,7 +10,7 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-The complete `WhenItFails.Tests` core suite was most recently user-verified green with **693 passed, 0 failed, 0 skipped** before the new critical-temperature catalog definition.
+The complete `WhenItFails.Tests` core suite was most recently user-verified green with **693 passed, 0 failed, 0 skipped** before the new critical-temperature catalog test was added. The next full run should contain **694 tests**.
 
 The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
@@ -22,7 +22,7 @@ Recently verified focused contracts include:
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
 - `CriticalTemperatureLimitExceededCatalogTests`: **1 user-verified green**.
 - Complete catalog validation after adding `AFW_THM_0002`: **0 errors, 0 warnings, 0 information issues**.
-- Complete `WhenItFails.Tests`: **693 user-verified green, 0 failed, 0 skipped** before the latest catalog addition.
+- Complete `WhenItFails.Tests`: **693 user-verified green, 0 failed, 0 skipped** before the latest test addition.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
@@ -75,11 +75,13 @@ dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 
 Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
 
-After thermal documentation is synchronized, rerun the complete core project:
+Run the complete core project after the catalog and documentation changes:
 
 ```powershell
 dotnet test WhenItFails.Tests
 ```
+
+Expected result: **694 passed, 0 failed, 0 skipped**.
 
 The complete Setter suite remains available through:
 
@@ -111,13 +113,13 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-Next documentation target: add the verified critical temperature definition and clearly distinguish safe-limit warnings from shutdown-limit critical states.
+`WhenItFails/Docs/Thermal Errors/en.md` now documents both thermal contracts and explicitly distinguishes safe-limit warnings from critical shutdown-limit states. It also records that the catalog describes the condition but does not itself execute shutdown or restart actions.
 
 ## Current intentional boundaries
 
 Setter currently does not provide automatic schema migration, multi-file atomic transactions, multi-process locking, automatic translation generation, remote catalog synchronization, package publishing, a GUI, complete source-code dependency discovery, or automatic runtime behavior for humorous message variants.
 
-Thermal easter eggs are explicitly deferred. Any future absurd-temperature wording must never alter the structured contract, severity, metadata, thresholds, or application decision-making.
+Thermal easter eggs are explicitly deferred. Any future absurd-temperature wording must never alter the structured contract, severity, metadata, thresholds, control flow, shutdown decision, or restart policy.
 
 ## Working rules
 
@@ -130,11 +132,11 @@ Thermal easter eggs are explicitly deferred. Any future absurd-temperature wordi
 
 ## Recommended next step
 
-Synchronize `WhenItFails/Docs/Thermal Errors/en.md` with the now-verified `AFW_THM_0002` contract. Then run the complete `WhenItFails.Tests` project before opening another thermal definition.
+Run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **694-test** core gate is user-verified green.
 
 ## Last completed change
 
-The critical-temperature TDD slice passed both required gates. `CriticalTemperatureLimitExceededCatalogTests` is **1 user-verified green**, and complete Setter workspace validation reports **0 errors, 0 warnings, and 0 information issues**. The warning-level `AFW_THM_0001` contract remains unchanged.
+The critical thermal definition is focused-test and workspace-validation verified, and its English documentation is synchronized. The documentation preserves a strict boundary between the structured critical state and application-specific actions: `Critical` does not itself execute shutdown, power control, process termination, or restart authorization.
 
 Commits:
 
@@ -144,4 +146,10 @@ Add critical temperature limit catalog contract
 
 11cad246ad67bcbaac8a9c3cdb002c8993024308
 Add critical temperature limit exceeded catalog error
+
+37fd76e34b2319c5013e837914c3cb6968bc9d1b
+Record green critical thermal validation
+
+8b23c8f2e8bc8de7bf9657e885ee392603817956
+Document critical thermal shutdown limit
 ```
