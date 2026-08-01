@@ -74,14 +74,19 @@ public sealed class DefaultJsonsTemplateProvider : IJsonsTemplateProvider
     private static string ReadEmbeddedCatalog(string resourceFileName)
     {
         string resourceName = ResourcePrefix + resourceFileName;
-        Stream? stream = typeof(DefaultJsonsTemplateProvider)
-            .Assembly
-            .GetManifestResourceStream(resourceName);
+        System.Reflection.Assembly assembly = typeof(DefaultJsonsTemplateProvider).Assembly;
+        Stream? stream = assembly.GetManifestResourceStream(resourceName);
 
         if (stream is null)
         {
+            string[] availableResourceNames = assembly.GetManifestResourceNames();
+            string availableResources = availableResourceNames.Length == 0
+                ? "<none>"
+                : string.Join(", ", availableResourceNames.OrderBy(name => name, StringComparer.Ordinal));
+
             throw new InvalidOperationException(
-                $"The embedded WhenItFails catalog resource '{resourceName}' was not found.");
+                $"The embedded WhenItFails catalog resource '{resourceName}' was not found. " +
+                $"Available manifest resources: {availableResources}.");
         }
 
         using (stream)
