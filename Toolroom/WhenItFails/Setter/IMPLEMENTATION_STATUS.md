@@ -65,13 +65,13 @@ dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 
 Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
 
-After the thermal documentation update, rerun the complete core project:
+The final gate for this increment is the complete core project:
 
 ```powershell
 dotnet test WhenItFails.Tests
 ```
 
-Expected next full result: **695 passed, 0 failed, 0 skipped**.
+Expected result: **695 passed, 0 failed, 0 skipped**.
 
 The complete Setter suite remains available through:
 
@@ -103,7 +103,7 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-Next documentation target: add the verified invalid sensor-reading contract and its fail-safe semantics to `WhenItFails/Docs/Thermal Errors/en.md`.
+`WhenItFails/Docs/Thermal Errors/en.md` now documents all three thermal contracts and explicitly distinguishes trusted safe-limit exceedance, trusted critical-limit exceedance, and loss of sensor trust. It also records that fallback, throttling, shutdown, sensor switching, and restart decisions belong to the consuming application's policy.
 
 ## Current intentional boundaries
 
@@ -122,11 +122,11 @@ Thermal easter eggs are explicitly deferred. Any future absurd-temperature wordi
 
 ## Recommended next step
 
-Document `TEMPERATURESENSORREADINGINVALID` and its fail-safe boundary, then run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **695-test** core gate is user-verified green.
+Run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **695-test** core gate is user-verified green.
 
 ## Last completed change
 
-`AFW_THM_0003` is now focused-test and workspace-validation verified. The catalog distinguishes an invalid or unreliable sensor reading from both safe-limit and critical-limit exceedance; no production reaction is implied beyond following the application's configured fail-safe policy.
+The English thermal documentation now includes `TEMPERATURESENSORREADINGINVALID`, its structured diagnostic guidance, and the boundary between measurement trust and application-specific fail-safe actions. The remaining gate is the complete core regression suite.
 
 Commits:
 
@@ -136,4 +136,7 @@ Add invalid temperature sensor reading catalog contract
 
 9d3c8ea16ee7ef7f5cb33376d254de1a045e9587
 Add invalid temperature sensor reading catalog error
+
+5fdc99944bdf5668368ccdc2614ecdc2a7cbe35c
+Document invalid temperature sensor readings
 ```
