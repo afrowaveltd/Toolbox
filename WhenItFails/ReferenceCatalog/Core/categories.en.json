@@ -296,6 +296,26 @@
                            "defaultMappings":  {
 
                                                }
+                       },
+                       {
+                           "name":  "THERMAL",
+                           "displayName":  "Thermal",
+                           "description":  "Errors and monitored states related to temperature readings, thermal limits, cooling, sensor consistency, and thermal shutdown.",
+                           "aliases":  [
+                                           "TEMPERATURE",
+                                           "HEAT",
+                                           "THERMAL_MANAGEMENT"
+                                       ],
+                           "parentCategories":  [
+
+                                                ],
+                           "defaultTags":  [
+                                               "THERMAL",
+                                               "MONITORING"
+                                           ],
+                           "defaultMappings":  {
+                                                   "defaultSeverity":  "Warning"
+                                               }
                        }
                    ]
 }
