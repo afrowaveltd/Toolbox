@@ -22,36 +22,44 @@ Recently verified focused contracts include:
 - `ErrorCatalogContextProviderNullInnerPayloadTests`: **2 user-verified green**, confirming both `Document == null` and `Catalog == null` return `Invalid` with `ErrorCatalogContextPayloadIsNull` before later providers run.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
-A new thermal domain is now registered:
+The thermal domain is registered with:
 
 - category `THERMAL`;
 - code group `THERMAL`;
 - prefix `THM`;
 - range `1000000–1099999`.
 
-The user verified `Setter validate .` after this registration with **0 errors, 0 warnings, and 0 information issues**.
+The user verified `Setter validate .` after registration with **0 errors, 0 warnings, and 0 information issues**.
 
-A new focused TDD test, `TemperatureLimitExceededCatalogTests`, is committed and currently expects the first thermal definition:
+`TemperatureLimitExceededCatalogTests` then produced the expected red result because `TEMPERATURELIMITEXCEEDED` was not yet present. The first thermal definition has now been added to `errors.en.json`:
 
 - ID `AFW_THM_0001`;
 - code `1000001`;
 - name `TEMPERATURELIMITEXCEEDED`;
 - parameterized message using `{temperature}`, `{unit}`, and `{limit}`;
-- warning severity;
-- thermal and validation categories;
+- default severity `Warning`;
+- categories `THERMAL` and `VALIDATION`;
 - documentation key `when-it-fails/errors/thermal/temperature-limit-exceeded`.
 
-The error definition is intentionally not yet present, so the focused test should first fail by reporting that catalog item `TEMPERATURELIMITEXCEEDED` was not found.
+The English documentation is now present at `WhenItFails/Docs/Thermal Errors/en.md`. The focused test and catalog validation require user verification after these commits.
 
 ## Focused verification
 
-Run the thermal TDD gate:
+Run the implemented thermal contract:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~TemperatureLimitExceededCatalogTests
 ```
 
-Expected current result: **1 red test** because the category and code group exist but `AFW_THM_0001` has not yet been added to `errors.en.json`.
+Expected result: **1 green test**.
+
+Then validate the complete catalog workspace:
+
+```powershell
+dotnet run --project Toolroom/WhenItFails/Setter -- validate .
+```
+
+Expected result: **0 errors, 0 warnings, and 0 information issues**.
 
 The complete Setter suite remains available through:
 
@@ -59,10 +67,9 @@ The complete Setter suite remains available through:
 dotnet test Toolroom/WhenItFails/Setter.Tests
 ```
 
-Before committing catalog changes, also run:
+Before committing further catalog changes, also run:
 
 ```powershell
-dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-keys .
 dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .
 git diff --check
@@ -80,9 +87,10 @@ Maintained English documentation includes:
 - `Docs/Getting-Started/en.md`;
 - `Docs/FAQ/en.md`;
 - `Docs/Testing and CI/en.md`;
-- `Docs/Reviewing Catalog Changes/en.md`.
+- `Docs/Reviewing Catalog Changes/en.md`;
+- `WhenItFails/Docs/Thermal Errors/en.md`.
 
-Next documentation target: add the focused English document for `TemperatureLimitExceeded` after its catalog definition is committed and validated. Keep this file synchronized while the runtime/public-API audit continues.
+Next documentation target: keep the thermal document synchronized as the error family expands. Keep this file synchronized while the runtime/public-API audit continues.
 
 ## Current intentional boundaries
 
@@ -101,21 +109,21 @@ Thermal easter eggs are explicitly deferred. Any future absurd-temperature wordi
 
 ## Recommended next step
 
-Run `TemperatureLimitExceededCatalogTests`. Confirm the expected red result before adding `AFW_THM_0001` to `Jsons/WhenItFails/errors.en.json`. After the definition is added, rerun the focused test and `Setter validate .`, then add `Docs/Temperature Limit Exceeded/en.md`.
+Run `TemperatureLimitExceededCatalogTests` and `Setter validate .`. Do not add another thermal definition until the first catalog item is confirmed green and the complete workspace validates without issues.
 
 ## Last completed change
 
-The latest slice introduces the thermal domain incrementally. `THERMAL` was added to the category catalog, `THERMAL/THM` was assigned range `1000000–1099999`, and the registration passed catalog validation. A focused integration-style test now locks the complete intended contract for the first thermal error before implementation.
+The latest slice records the expected red TDD result and implements the first thermal catalog definition. `AFW_THM_0001` now represents a reported temperature above the configured safe operating limit without conflating that condition with a critical or shutdown threshold. Its message is parameterized, its developer guidance covers sensor and cooling verification, and its documentation explicitly preserves structured data as the source of truth. Humorous extreme-temperature wording remains deferred and contract-neutral.
 
 Commits:
 
 ```text
-a4d5996ab11de803b641213b9fcae578c24e60ef
-Register thermal category
-
-7715d1b46ae74c72cad7e31d81fdc1929e90a8bd
-Register thermal code group
-
 8acba4041a9603e4175cc3e8d76efb9813219b64
 Add thermal catalog contract test
+
+c4c0afd5f744404132ee3e633b26988d57114d2a
+Add temperature limit exceeded catalog error
+
+620f34b715142bd06acefb78c98068379625827f
+Document temperature limit exceeded error
 ```
