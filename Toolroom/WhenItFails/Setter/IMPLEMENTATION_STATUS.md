@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit now protects the bootstrap payload DTOs, `ErrorDescriptorRequest`, `ErrorCategoryCatalogProviderPayload`, and `ErrorCodeGroupCatalogProviderPayload`.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit now protects the bootstrap payload DTOs, `ErrorDescriptorRequest`, `ErrorCategoryCatalogProviderPayload`, `ErrorCodeGroupCatalogProviderPayload`, and `ErrorOwnerCatalogProviderPayload`.
 
 The latest fully verified complete regression baseline is:
 
@@ -55,6 +55,12 @@ Result: **2 passed, 0 failed, 0 skipped**.
 
 ```bash
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCodeGroupCatalogProviderPayloadContractTests
+```
+
+Result: **2 passed, 0 failed, 0 skipped**.
+
+```bash
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorOwnerCatalogProviderPayloadContractTests
 ```
 
 Result: **2 passed, 0 failed, 0 skipped**.
@@ -116,12 +122,12 @@ Thermal easter eggs are explicitly deferred. Alternative wording must never alte
 
 ## Recommended next step
 
-Continue the runtime/public-API audit with `ErrorOwnerCatalogProviderPayload`.
+Continue the runtime/public-API audit with `ErrorProfileCatalogProviderPayload`.
 
 Add a focused contract test first. Verify that a new payload exposes null defaults for its required reference properties and that assigned `Document` and `ValidationResult` instances are preserved exactly. Do not change provider implementation unless the focused test exposes an actual defect.
 
-After the focused test passes, continue with the remaining provider payload DTOs and then run the complete core suite to record the exact new total.
+After the focused test passes, inspect the main `ErrorCatalogProviderPayload`, which additionally carries the runtime `Catalog` reference, and then run the complete core suite to record the exact new total.
 
 ## Last completed change
 
-`ErrorCodeGroupCatalogProviderPayloadContractTests` passed all **2 focused tests**. The provider DTO now has direct regression coverage for null defaults and exact reference storage. The latest complete core baseline remains **708 passed, 0 failed, 0 skipped** pending the next full regression run.
+`ErrorOwnerCatalogProviderPayloadContractTests` passed all **2 focused tests**. The provider DTO now has direct regression coverage for null defaults and exact reference storage. The latest complete core baseline remains **708 passed, 0 failed, 0 skipped** pending the next full regression run.
