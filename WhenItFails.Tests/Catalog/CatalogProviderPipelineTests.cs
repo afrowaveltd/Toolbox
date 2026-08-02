@@ -217,6 +217,47 @@ public sealed class CatalogProviderPipelineTests
             calls);
     }
 
+    [Fact]
+    public async Task LoadNormalizeValidateAsync_ShouldThrowBeforeLoader_WhenCancellationIsAlreadyRequested()
+    {
+        List<string> calls = new();
+        using CancellationTokenSource cancellationTokenSource = new();
+        cancellationTokenSource.Cancel();
+
+        await Assert.ThrowsAsync<OperationCanceledException>(
+            () => CatalogProviderPipeline.LoadNormalizeValidateAsync<TestDocument, TestPayload>(
+                filePath: "catalog.json",
+                cancellationToken: cancellationTokenSource.Token,
+                loadAsync: (filePath, cancellationToken) =>
+                {
+                    calls.Add($"load:{filePath}");
+                    return Task.FromResult(Response<TestDocument>.Ok(new TestDocument("loaded")));
+                },
+                normalize: document =>
+                {
+                    calls.Add("normalize");
+                    return document;
+                },
+                validate: document =>
+                {
+                    calls.Add("validate");
+                    return new ErrorCatalogValidationResult();
+                },
+                createPayload: (document, validation) =>
+                {
+                    calls.Add("create-payload");
+                    return new TestPayload(document, validation);
+                },
+                loadFailedCode: "LoadFailed",
+                loadFailedMessage: "Load failed.",
+                loadedDocumentIsNullCode: "DocumentNull",
+                loadedDocumentIsNullMessage: "Document is null.",
+                validationFailedCode: "ValidationFailed",
+                validationFailedMessage: "Validation failed."));
+
+        Assert.Empty(calls);
+    }
+
     private sealed record TestDocument(string Value);
 
     private sealed record TestPayload(
