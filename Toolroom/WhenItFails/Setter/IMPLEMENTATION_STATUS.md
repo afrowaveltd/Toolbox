@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit now directly protects the bootstrap payload DTOs, `ErrorDescriptorRequest`, the full provider-payload DTO family, the complete `ErrorCatalogContext` runtime snapshot, and both the successful and loader-failure orchestration paths of `CatalogProviderPipeline`.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit now directly protects the bootstrap payload DTOs, `ErrorDescriptorRequest`, the full provider-payload DTO family, the complete `ErrorCatalogContext` runtime snapshot, and the successful, loader-failure, and null-document orchestration paths of `CatalogProviderPipeline`.
 
 The current user-verified complete regression baseline is fully green:
 
@@ -43,9 +43,9 @@ Completed runtime/public-API focused checkpoints:
 - `ErrorProfileCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorCatalogContextContractTests`: **2 passed, 0 failed, 0 skipped**;
-- `CatalogProviderPipelineTests`: **2 passed, 0 failed, 0 skipped**.
+- `CatalogProviderPipelineTests`: **3 passed, 0 failed, 0 skipped**.
 
-The provider payload contracts verify null defaults for required reference properties and exact preservation of assigned instances. The main payload additionally verifies the `Catalog` reference by using a real empty `ErrorCatalog` instance. The context contract verifies all seven required references of the atomically published runtime snapshot. The pipeline tests verify exact `load → normalize → validate → create payload` ordering and that loader failure short-circuits all later stages while preserving status, first issue code, and loader message.
+The provider payload contracts verify null defaults for required reference properties and exact preservation of assigned instances. The main payload additionally verifies the `Catalog` reference by using a real empty `ErrorCatalog` instance. The context contract verifies all seven required references of the atomically published runtime snapshot. The pipeline tests verify exact `load → normalize → validate → create payload` ordering, loader-failure propagation, and rejection of a successful load carrying a null document before any later stage runs.
 
 Other verified gates for the completed thermal slice:
 
@@ -102,12 +102,12 @@ Thermal easter eggs are explicitly deferred. Alternative wording must never alte
 
 ## Recommended next step
 
-Add the successful-load/null-document failure contract to `CatalogProviderPipeline`.
+Add the validation-failure contract to `CatalogProviderPipeline`.
 
-Verify that a loader response marked successful but carrying a null document returns the dedicated invalid response and short-circuits normalization, validation, and payload creation. Do not change production code unless the focused test exposes an actual defect.
+Verify that loading and normalization complete, validation returns an error, payload creation is skipped, and the configured validation failure code and message are returned. Do not change production code unless the focused test exposes an actual defect.
 
-After this focused test passes, continue with validation failure and cancellation coverage incrementally, then run the complete core suite.
+After this focused test passes, add cancellation coverage and then run the complete core suite.
 
 ## Last completed change
 
-`CatalogProviderPipelineTests` passed **2 focused tests**. The shared provider orchestration now has direct coverage for both the successful flow and loader-failure propagation. The latest complete core baseline remains **720 passed, 0 failed, 0 skipped** pending the next full regression run.
+`CatalogProviderPipelineTests` passed **3 focused tests**. The shared provider orchestration now has direct coverage for the successful flow, loader-failure propagation, and successful-load/null-document rejection. The latest complete core baseline remains **720 passed, 0 failed, 0 skipped** pending the next full regression run.
