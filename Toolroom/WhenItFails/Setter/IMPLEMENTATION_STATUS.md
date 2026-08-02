@@ -89,6 +89,8 @@ dotnet test WhenItFails.Tests
 
 Latest user-verified result: **703 passed, 0 failed, 0 skipped**.
 
+Repository-wide documentation hygiene is now in progress. The first `check-doc-links` run found one stale link in `Docs/Catalog Author Checklist/en.md`: it pointed to the nonexistent `Docs/Documentation Keys/en.md`. The link was corrected to the existing `Docs/Checking Documentation Keys/en.md`. Rerun the link checker before advancing.
+
 Before another catalog definition is added, run these documentation and repository gates individually:
 
 ```bash
@@ -123,6 +125,8 @@ Maintained English documentation includes:
 
 `WhenItFails/Docs/Thermal Errors/en.md` now documents all eleven thermal contracts. The latest section requires evidence that an approved fallback was actually selected, attempted, and failed; preserves the triggering condition and primary-action result; records structured fallback evidence; warns against unsafe retries; and leaves remaining options, escalation, and restart authorization to application policy.
 
+`Docs/Catalog Author Checklist/en.md` now links to the actual `Docs/Checking Documentation Keys/en.md` topic instead of the obsolete `Docs/Documentation Keys/en.md` path.
+
 ## Current intentional boundaries
 
 Setter currently does not provide automatic schema migration, multi-file atomic transactions, multi-process locking, automatic translation generation, remote catalog synchronization, package publishing, a GUI, complete source-code dependency discovery, or automatic runtime behavior for humorous message variants.
@@ -143,21 +147,21 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Run `check-doc-keys`, `check-doc-links`, and `git diff --check`, then rerun the complete Setter suite. Do not add a twelfth thermal definition until these repository-wide gates are user-verified green.
+Pull the documentation-link fix and rerun `check-doc-links .`. If it is green, run `check-doc-keys .`, `git diff --check`, and the complete Setter suite. Do not add a twelfth thermal definition until these repository-wide gates are user-verified green.
 
 ## Last completed change
 
-The complete core regression suite is user-verified green with **703 passed, 0 failed, 0 skipped** after the `AFW_THM_0011` implementation and documentation. The next slice is repository-wide documentation hygiene followed by the complete Setter regression gate.
+The repository-wide documentation check exposed one stale link in the catalog author checklist. That link now targets the existing `Checking Documentation Keys` topic. The correction is committed and awaits a user-verified green `check-doc-links` rerun.
 
 Commits:
 
 ```text
-fa982187d95e1cebc0993ef0facb336e3667d9fa
-Add thermal fallback protection action failed catalog contract
-
-b661d0fc2d93514a07548337cb4b021108ec0114
-Add thermal fallback protection action failure catalog error
-
 9600137d357877a2ac37301ccf52158581a42639
 Document thermal fallback protection action failure
+
+9e15175c0d8cec31d515242a562640c3e301f547
+Record green fallback thermal action core gate
+
+ea741ac09a99560e3b1dc7604b6fd7f8f16e1034
+Fix catalog author checklist documentation link
 ```
