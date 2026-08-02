@@ -275,7 +275,7 @@ Finish, verify, document, and commit the current change before opening another a
 - [Testing and CI](../Testing%20and%20CI/en.md)
 - [Safe Writes](../Safe%20Writes/en.md)
 - [Backups and Recovery](../Backups%20and%20Recovery/en.md)
-- [Documentation Keys](../Documentation%20Keys/en.md)
+- [Documentation Keys](../Checking%20Documentation%20Keys/en.md)
 
 ## Central principle
 
