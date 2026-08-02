@@ -310,6 +310,62 @@ public sealed class CatalogProviderPipelineTests
         Assert.Empty(calls);
     }
 
+    [Fact]
+    public async Task LoadNormalizeValidateAsync_ShouldThrowArgumentNullException_WhenLoaderIsNull()
+    {
+        await Assert.ThrowsAsync<ArgumentNullException>(
+            () => InvokePipelineAsync(loadAsync: null!));
+    }
+
+    [Fact]
+    public async Task LoadNormalizeValidateAsync_ShouldThrowArgumentNullException_WhenNormalizerIsNull()
+    {
+        await Assert.ThrowsAsync<ArgumentNullException>(
+            () => InvokePipelineAsync(normalize: null!));
+    }
+
+    [Fact]
+    public async Task LoadNormalizeValidateAsync_ShouldThrowArgumentNullException_WhenValidatorIsNull()
+    {
+        await Assert.ThrowsAsync<ArgumentNullException>(
+            () => InvokePipelineAsync(validate: null!));
+    }
+
+    [Fact]
+    public async Task LoadNormalizeValidateAsync_ShouldThrowArgumentNullException_WhenPayloadFactoryIsNull()
+    {
+        await Assert.ThrowsAsync<ArgumentNullException>(
+            () => InvokePipelineAsync(createPayload: null!));
+    }
+
+    private static Task<Response<TestPayload>> InvokePipelineAsync(
+        Func<string, CancellationToken, Task<Response<TestDocument>>>? loadAsync = null,
+        Func<TestDocument, TestDocument>? normalize = null,
+        Func<TestDocument, ErrorCatalogValidationResult>? validate = null,
+        Func<TestDocument, ErrorCatalogValidationResult, TestPayload>? createPayload = null)
+    {
+        loadAsync ??= (_, _) =>
+            Task.FromResult(Response<TestDocument>.Ok(new TestDocument("loaded")));
+
+        normalize ??= document => document;
+        validate ??= _ => new ErrorCatalogValidationResult();
+        createPayload ??= (document, validation) => new TestPayload(document, validation);
+
+        return CatalogProviderPipeline.LoadNormalizeValidateAsync<TestDocument, TestPayload>(
+            filePath: "catalog.json",
+            cancellationToken: CancellationToken.None,
+            loadAsync: loadAsync,
+            normalize: normalize,
+            validate: validate,
+            createPayload: createPayload,
+            loadFailedCode: "LoadFailed",
+            loadFailedMessage: "Load failed.",
+            loadedDocumentIsNullCode: "DocumentNull",
+            loadedDocumentIsNullMessage: "Document is null.",
+            validationFailedCode: "ValidationFailed",
+            validationFailedMessage: "Validation failed.");
+    }
+
     private sealed record TestDocument(string Value);
 
     private sealed record TestPayload(
