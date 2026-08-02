@@ -113,6 +113,51 @@ public sealed class CatalogProviderPipelineTests
         Assert.Equal(["load:catalog.json"], calls);
     }
 
+    [Fact]
+    public async Task LoadNormalizeValidateAsync_ShouldRejectSuccessfulLoadWithNullDocumentAndShortCircuit()
+    {
+        List<string> calls = new();
+
+        Response<TestPayload> response =
+            await CatalogProviderPipeline.LoadNormalizeValidateAsync<TestDocument, TestPayload>(
+                filePath: "catalog.json",
+                cancellationToken: CancellationToken.None,
+                loadAsync: (filePath, cancellationToken) =>
+                {
+                    calls.Add($"load:{filePath}");
+                    Assert.False(cancellationToken.IsCancellationRequested);
+                    return Task.FromResult(Response<TestDocument>.Ok(null!));
+                },
+                normalize: document =>
+                {
+                    calls.Add("normalize");
+                    return document;
+                },
+                validate: document =>
+                {
+                    calls.Add("validate");
+                    return new ErrorCatalogValidationResult();
+                },
+                createPayload: (document, validation) =>
+                {
+                    calls.Add("create-payload");
+                    return new TestPayload(document, validation);
+                },
+                loadFailedCode: "LoadFailed",
+                loadFailedMessage: "Load failed.",
+                loadedDocumentIsNullCode: "SpecificDocumentNull",
+                loadedDocumentIsNullMessage: "The loaded catalog document is null.",
+                validationFailedCode: "ValidationFailed",
+                validationFailedMessage: "Validation failed.");
+
+        Assert.False(response.IsSuccess);
+        Assert.Null(response.Data);
+        Assert.NotEmpty(response.Issues);
+        Assert.Equal("SpecificDocumentNull", response.Issues[0].Code);
+        Assert.Equal("The loaded catalog document is null.", response.Message);
+        Assert.Equal(["load:catalog.json"], calls);
+    }
+
     private sealed record TestDocument(string Value);
 
     private sealed record TestPayload(
