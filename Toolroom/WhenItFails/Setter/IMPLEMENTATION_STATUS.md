@@ -10,7 +10,7 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-The complete `WhenItFails.Tests` core suite is user-verified green with **701 passed, 0 failed, 0 skipped** before the new action-verification catalog test was added.
+The complete `WhenItFails.Tests` core suite is user-verified green with **701 passed, 0 failed, 0 skipped** before the `AFW_THM_0010` catalog test was added. The next complete run should contain **702 tests**.
 
 The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
@@ -27,15 +27,15 @@ Recently verified focused contracts include:
 - `TemperatureBelowMinimumLimitCatalogTests`: **1 user-verified green**.
 - `CriticalTemperatureBelowMinimumLimitCatalogTests`: **1 user-verified green**.
 - `ThermalProtectionActionFailedCatalogTests`: **1 user-verified green**.
-- `ThermalProtectionActionUnverifiedCatalogTests`: **1 user-verified expected red**, reporting that `THERMALPROTECTIONACTIONUNVERIFIED` was not found.
+- `ThermalProtectionActionUnverifiedCatalogTests`: **1 user-verified green**.
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
-- Complete catalog validation after adding `AFW_THM_0009`: **0 errors, 0 warnings, 0 information issues**.
+- Complete catalog validation after adding `AFW_THM_0010`: **0 errors, 0 warnings, 0 information issues**.
 - Complete `WhenItFails.Tests`: **701 user-verified green, 0 failed, 0 skipped** before the latest test addition.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
 
-The first nine thermal definitions remain complete and verified:
+The first ten thermal definitions are present and focused-validation verified:
 
 - `AFW_THM_0001` / `1000001` / `TEMPERATURELIMITEXCEEDED` / `Warning`;
 - `AFW_THM_0002` / `1000002` / `CRITICALTEMPERATURELIMITEXCEEDED` / `Critical`;
@@ -45,24 +45,14 @@ The first nine thermal definitions remain complete and verified:
 - `AFW_THM_0006` / `1000006` / `TEMPERATURESENSORDISAGREEMENT` / `Warning`;
 - `AFW_THM_0007` / `1000007` / `TEMPERATUREBELOWMINIMUMLIMIT` / `Warning`;
 - `AFW_THM_0008` / `1000008` / `CRITICALTEMPERATUREBELOWMINIMUMLIMIT` / `Critical`;
-- `AFW_THM_0009` / `1000009` / `THERMALPROTECTIONACTIONFAILED` / `Critical`.
+- `AFW_THM_0009` / `1000009` / `THERMALPROTECTIONACTIONFAILED` / `Critical`;
+- `AFW_THM_0010` / `1000010` / `THERMALPROTECTIONACTIONUNVERIFIED` / `Critical`.
 
-The tenth thermal definition is now present in the authoritative catalog and requires user verification:
+`THERMALPROTECTIONACTIONUNVERIFIED` uses message `Thermal protection action {action} for {component} could not be verified while handling {condition}.`, categories `THERMAL` and `GENERAL`, subcategories `PROTECTION_ACTION` and `VERIFICATION`, tags `THERMAL`, `FAIL_SAFE`, `VERIFICATION_REQUIRED`, `OPERATOR_ACTION_REQUIRED`, and `USER_VISIBLE`, and documentation key `when-it-fails/errors/thermal/thermal-protection-action-unverified`.
 
-- ID `AFW_THM_0010`;
-- code `1000010`;
-- name `THERMALPROTECTIONACTIONUNVERIFIED`;
-- title `Thermal protection action unverified`;
-- message `Thermal protection action {action} for {component} could not be verified while handling {condition}.`;
-- default severity `Critical`;
-- categories `THERMAL` and `GENERAL`;
-- subcategories `PROTECTION_ACTION` and `VERIFICATION`;
-- tags `THERMAL`, `FAIL_SAFE`, `VERIFICATION_REQUIRED`, `OPERATOR_ACTION_REQUIRED`, and `USER_VISIBLE`;
-- documentation key `when-it-fails/errors/thermal/thermal-protection-action-unverified`.
+The contract represents an indeterminate outcome after a thermal protection command was issued or initiated but completion could not be verified. It remains distinct from `THERMALPROTECTIONACTIONFAILED`, which requires evidence of failure. An unverified outcome must not be treated as success, confirmed failure, or restart authorization.
 
-This contract represents an indeterminate outcome after a protection command was issued or initiated but completion could not be verified. It remains distinct from `THERMALPROTECTIONACTIONFAILED`, which requires evidence of failure. An unverified outcome must not be silently treated as success, confirmed failure, or authorization to restart.
-
-Because bootstrap templates are generated from embedded authoritative catalogs, this definition also flows into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
+Because bootstrap templates are generated from embedded authoritative catalogs, all ten thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
 
 The authoritative owner catalog continues to use non-overlapping ranges:
 
@@ -73,23 +63,29 @@ The authoritative owner catalog continues to use non-overlapping ranges:
 
 ## Focused verification
 
-Run the action-verification contract:
+The action-verification contract is user-verified green:
 
 ```bash
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~ThermalProtectionActionUnverifiedCatalogTests
 ```
 
-Expected result: **1 green test**.
+Latest user-verified result: **1 passed, 0 failed, 0 skipped**.
 
-Then validate the complete catalog workspace:
+The complete catalog workspace is user-verified green after adding `AFW_THM_0010`:
 
 ```bash
 dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 ```
 
-Expected result: **0 errors, 0 warnings, and 0 information issues**.
+Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
 
-After both focused gates are green, update the thermal documentation and rerun the complete core project. The next full run should contain **702 tests**.
+After the thermal documentation update, run the complete core project:
+
+```bash
+dotnet test WhenItFails.Tests
+```
+
+Expected next full result: **702 passed, 0 failed, 0 skipped**.
 
 The complete Setter suite remains available through:
 
@@ -121,7 +117,7 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-`WhenItFails/Docs/Thermal Errors/en.md` documents all nine completed thermal contracts. Add the unverified-action contract only after its focused contract and workspace validation are green.
+`WhenItFails/Docs/Thermal Errors/en.md` now documents all ten thermal contracts. The latest section distinguishes confirmed action failure from an unknown outcome, preserves the triggering thermal condition, requires correlation and freshness evidence, warns against unsafe duplicate commands, and leaves fallback and restart authorization to application policy.
 
 ## Current intentional boundaries
 
@@ -143,11 +139,11 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Pull the latest commits, rerun `ThermalProtectionActionUnverifiedCatalogTests`, and run `Setter validate .`. Do not update thermal documentation or add another thermal definition until both gates are green.
+Run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **702-test** core gate is user-verified green.
 
 ## Last completed change
 
-The expected red action-verification contract was user-verified with the exact missing-item failure. `AFW_THM_0010` is now added to `Jsons/WhenItFails/errors.en.json` as a distinct indeterminate protection-action outcome, without changing the confirmed-failure contract or the underlying detected thermal conditions.
+The English thermal documentation now includes `THERMALPROTECTIONACTIONUNVERIFIED` and preserves the boundary between confirmed failure and an indeterminate action result. The remaining gate is the complete core regression suite.
 
 Commits:
 
@@ -157,4 +153,7 @@ Add thermal protection action unverified catalog contract
 
 f3ea9bb6dc0b7312df63f96b3220fd27728f5825
 Add unverified thermal protection action catalog error
+
+b8a3ae3cfd26d2fd7e20a4cef89e00c881154fdc
+Document unverified thermal protection action
 ```
