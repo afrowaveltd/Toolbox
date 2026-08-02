@@ -8,9 +8,15 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite was green at that checkpoint and should now be rerun after the latest catalog and documentation increments.
+The latest user-verified Setter test run reported **1,238 passed, 3 failed, 0 skipped, 1,241 total**. The three failures were traced to stale test/documentation expectations after the THERMAL catalog increment:
 
-The complete `WhenItFails.Tests` core suite is user-verified green with **703 passed, 0 failed, 0 skipped** after adding and documenting `AFW_THM_0011`.
+- `ImplementationStatusDocumentationTests.Documentation_ProvidesCurrentContinuationPoint` required the obsolete literal `Next documentation target:` even though the status already exposes `## Recommended next step`;
+- `ReferenceCommandTests.SummarizeAsync_WithBundledReferenceCatalog_ReturnsExpectedCounts` still expected 16 categories;
+- `ReferenceCommandJsonTests.ExecuteAsync_WithJsonListSubcommand_WritesStableEnvelope` still expected 16 categories.
+
+All three expectations are corrected on `master` and now await a user-verified rerun.
+
+The complete `WhenItFails.Tests` core suite remains user-verified green with **703 passed, 0 failed, 0 skipped** after adding and documenting `AFW_THM_0011`.
 
 The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
@@ -32,7 +38,10 @@ Recently verified focused contracts include:
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
 - Complete catalog validation after adding `AFW_THM_0011`: **0 errors, 0 warnings, 0 information issues**.
 - Complete `WhenItFails.Tests`: **703 user-verified green, 0 failed, 0 skipped**.
-- Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped** at the previous Setter checkpoint; rerun is pending after the latest increments.
+- Repository Markdown-link check: **45 files, 424 local links, 0 broken links** after pulling the catalog-author-checklist fix.
+- Complete `Toolroom/WhenItFails/Setter.Tests`: latest run **1,238 passed, 3 failed, 0 skipped**; fixes are committed and rerun is pending.
+
+The THERMAL increment raised the bundled reference catalog to **17 categories**. The reference summary tests now assert both the count and presence of category `THERMAL`.
 
 The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
 
@@ -49,19 +58,6 @@ The first eleven thermal definitions are complete and core-regression verified:
 - `AFW_THM_0009` / `1000009` / `THERMALPROTECTIONACTIONFAILED` / `Critical`;
 - `AFW_THM_0010` / `1000010` / `THERMALPROTECTIONACTIONUNVERIFIED` / `Critical`;
 - `AFW_THM_0011` / `1000011` / `THERMALFALLBACKPROTECTIONACTIONFAILED` / `Critical`.
-
-`THERMALFALLBACKPROTECTIONACTIONFAILED` uses message `Thermal fallback protection action {fallbackAction} failed for {component} after {primaryAction} while handling {condition}.`, categories `THERMAL` and `GENERAL`, subcategories `FALLBACK_ACTION` and `FAIL_SAFE`, tags `THERMAL`, `FAIL_SAFE`, `FALLBACK_FAILED`, `OPERATOR_ACTION_REQUIRED`, and `USER_VISIBLE`, and documentation key `when-it-fails/errors/thermal/thermal-fallback-protection-action-failed`.
-
-This contract represents confirmed failure of an approved fallback response after the primary thermal protection action failed or remained unverified. It remains separate from the triggering thermal condition and the primary action result. It must not be emitted merely because a fallback exists or was considered; runtime evidence must show that the selected fallback was attempted and failed.
-
-Because bootstrap templates are generated from embedded authoritative catalogs, all eleven thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
-
-The authoritative owner catalog continues to use non-overlapping ranges:
-
-- `AFW`: `0–1099999`;
-- `APP`: `1100000–1999999`;
-- `PLUGIN`: `2000000–2999999`;
-- `USER`: `9000000–9999999`.
 
 ## Focused verification
 
@@ -89,23 +85,13 @@ dotnet test WhenItFails.Tests
 
 Latest user-verified result: **703 passed, 0 failed, 0 skipped**.
 
-Repository-wide documentation hygiene is now in progress. The first `check-doc-links` run found one stale link in `Docs/Catalog Author Checklist/en.md`: it pointed to the nonexistent `Docs/Documentation Keys/en.md`. The link was corrected to the existing `Docs/Checking Documentation Keys/en.md`. Rerun the link checker before advancing.
-
-Before another catalog definition is added, run these documentation and repository gates individually:
+The local Markdown-link checker is user-verified green after the corrected catalog-author-checklist link:
 
 ```bash
-dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-keys .
 dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .
-git diff --check
 ```
 
-Then rerun the complete Setter suite:
-
-```bash
-dotnet test Toolroom/WhenItFails/Setter.Tests
-```
-
-The previous Setter baseline was **1,241 passed, 0 failed, 0 skipped**. Do not record the current result until it is user-verified.
+Latest user-verified result: **45 Markdown files checked, 424 local links checked, 0 broken links**.
 
 ## Documentation synchronization completed
 
@@ -123,9 +109,7 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-`WhenItFails/Docs/Thermal Errors/en.md` now documents all eleven thermal contracts. The latest section requires evidence that an approved fallback was actually selected, attempted, and failed; preserves the triggering condition and primary-action result; records structured fallback evidence; warns against unsafe retries; and leaves remaining options, escalation, and restart authorization to application policy.
-
-`Docs/Catalog Author Checklist/en.md` now links to the actual `Docs/Checking Documentation Keys/en.md` topic instead of the obsolete `Docs/Documentation Keys/en.md` path.
+`Docs/Catalog Author Checklist/en.md` links to the actual `Docs/Checking Documentation Keys/en.md` topic instead of the obsolete `Docs/Documentation Keys/en.md` path.
 
 ## Current intentional boundaries
 
@@ -147,21 +131,32 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Pull the documentation-link fix and rerun `check-doc-links .`. If it is green, run `check-doc-keys .`, `git diff --check`, and the complete Setter suite. Do not add a twelfth thermal definition until these repository-wide gates are user-verified green.
+Pull `master` and rerun the complete Setter suite:
+
+```bash
+dotnet test Toolroom/WhenItFails/Setter.Tests
+```
+
+If it is green, update this file with the exact passed/failed/skipped totals and commit that verified checkpoint. Then run `check-doc-keys .` and `git diff --check` if their latest results have not already been captured. Do not add a twelfth thermal definition while the Setter suite is red or unverified.
 
 ## Last completed change
 
-The repository-wide documentation check exposed one stale link in the catalog author checklist. That link now targets the existing `Checking Documentation Keys` topic. The correction is committed and awaits a user-verified green `check-doc-links` rerun.
+The stale Setter regression expectations were corrected:
+
+- reference summary category count changed from 16 to 17;
+- JSON reference summary category count changed from 16 to 17;
+- the object-summary test now explicitly verifies category `THERMAL`;
+- the implementation-status documentation contract no longer requires the obsolete `Next documentation target:` literal and instead relies on the existing `## Recommended next step` continuation section.
 
 Commits:
 
 ```text
-9600137d357877a2ac37301ccf52158581a42639
-Document thermal fallback protection action failure
+9d61bc8c761c57be670e45bbc7fa0699d13ac071
+Update reference category count expectation
 
-9e15175c0d8cec31d515242a562640c3e301f547
-Record green fallback thermal action core gate
+ee912570d584442758a786abd17b92938a5d58aa
+Update JSON reference category count expectation
 
-ea741ac09a99560e3b1dc7604b6fd7f8f16e1034
-Fix catalog author checklist documentation link
+85dfe9433615b9782a45660b55857a4a4c297d06
+Align implementation status continuation contract
 ```
