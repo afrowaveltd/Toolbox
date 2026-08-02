@@ -8,27 +8,45 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-Current user-verified gates:
+The thermal catalog now contains twelve definitions through `AFW_THM_0012` / `THERMALFALLBACKPROTECTIONACTIONUNVERIFIED`. This contract represents an approved fallback action that was selected and initiated, but whose required result cannot be established from trustworthy evidence. It is neither confirmed success nor confirmed failure and deliberately does not carry the `FALLBACK_FAILED` tag.
 
-- complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 passed, 0 failed, 0 skipped**;
+The complete `WhenItFails.Tests` core suite is user-verified green with **704 passed, 0 failed, 0 skipped**.
+
+The latest Setter rerun reported **1,240 passed, 1 failed, 0 skipped, 1,241 total**. The only failure was `ImplementationStatusDocumentationTests.Documentation_ProvidesCurrentContinuationPoint`, because this file no longer contained the required `## Verification status` continuation marker. The implementation and catalog behavior were not implicated.
+
+## Verification status
+
+The latest user-verified Setter test run:
+
+```bash
+dotnet test Toolroom/WhenItFails/Setter.Tests
+```
+
+Result before this documentation repair:
+
+- **1,240 passed**;
+- **1 failed**;
+- **0 skipped**;
+- **1,241 total**;
+- failure: required implementation-status marker `## Verification status` was missing.
+
+Other current user-verified gates:
+
 - complete `WhenItFails.Tests`: **704 passed, 0 failed, 0 skipped**;
+- focused `ThermalFallbackProtectionActionUnverifiedCatalogTests`: **1 passed, 0 failed, 0 skipped**;
+- expected TDD red checkpoint before adding `AFW_THM_0012`: **0 passed, 1 failed**, catalog item not found;
 - catalog validation after `AFW_THM_0012`: user-verified green;
-- Markdown-link validation: **45 Markdown files, 424 local links, 0 broken links**;
-- documentation-key validation: user-verified green;
-- `git diff --check`: user-verified clean.
+- documentation-key validation: user-verified green before the latest documentation synchronization;
+- Markdown-link validation: user-verified green before the latest documentation synchronization;
+- `git diff --check`: user-verified clean before the latest documentation synchronization.
 
-The bundled reference catalog contains:
-
-- **17 categories**, including `THERMAL`;
-- **10 code groups**, including `THERMAL`;
-- **5 profiles**;
-- **37 bundled reference errors**.
+The bundled reference catalog contains **17 categories**, **10 code groups**, **5 profiles**, and **37 bundled reference errors**. The project-local authoritative catalog additionally contains the twelve thermal definitions through `AFW_THM_0012`.
 
 ## Thermal catalog state
 
 The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
 
-The first twelve thermal definitions are now present:
+The current thermal contracts are:
 
 - `AFW_THM_0001` / `1000001` / `TEMPERATURELIMITEXCEEDED` / `Warning`;
 - `AFW_THM_0002` / `1000002` / `CRITICALTEMPERATURELIMITEXCEEDED` / `Critical`;
@@ -43,46 +61,32 @@ The first twelve thermal definitions are now present:
 - `AFW_THM_0011` / `1000011` / `THERMALFALLBACKPROTECTIONACTIONFAILED` / `Critical`;
 - `AFW_THM_0012` / `1000012` / `THERMALFALLBACKPROTECTIONACTIONUNVERIFIED` / `Critical`.
 
-`AFW_THM_0012` applies only when an approved fallback action was selected and initiated, but trustworthy evidence cannot establish whether its required result completed. It is an indeterminate fallback outcome, not confirmed success and not confirmed failure. It deliberately does not carry the `FALLBACK_FAILED` tag.
+`AFW_THM_0011` requires evidence that a distinct approved fallback was attempted and failed. `AFW_THM_0012` requires evidence that a distinct approved fallback was initiated, while its required result remains unverified. An unknown fallback outcome must not be collapsed into confirmed failure.
 
-## TDD checkpoint for AFW_THM_0012
+## Documentation synchronization completed
 
-The focused test was added first:
+The English documentation is maintained in the project root and localized topic folders. Current synchronized documentation includes:
 
-```bash
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ThermalFallbackProtectionActionUnverifiedCatalogTests
-```
+- `README.md` and `Readme/en.md`;
+- `Docs/Overview/en.md`;
+- `Docs/Commands/en.md`;
+- `Docs/Known Limitations/en.md`;
+- `Docs/Roadmap and Future Work/en.md`;
+- `Docs/Getting-Started/en.md`;
+- `Docs/FAQ/en.md`;
+- `Docs/Testing and CI/en.md`;
+- `Docs/Reviewing Catalog Changes/en.md`;
+- `Docs/Catalog Author Checklist/en.md`;
+- `WhenItFails/Docs/Bootstrap/en.md`;
+- `WhenItFails/Docs/Thermal Errors/en.md`.
 
-Expected red result before the catalog entry existed:
-
-- **0 passed**;
-- **1 failed**;
-- failure: catalog item `THERMALFALLBACKPROTECTIONACTIONUNVERIFIED` was not found.
-
-After adding the catalog definition, the focused test passed. The complete core suite then passed **704 tests, 0 failed, 0 skipped**.
-
-Relevant commits:
-
-```text
-44594207369bc8d3f1a5a972049dc4b129e96c24
-Add unverified thermal fallback action contract test
-```
-
-The catalog entry was committed locally and pushed to `master` with message:
-
-```text
-Add unverified thermal fallback action error
-```
-
-## Documentation status
-
-`WhenItFails/Docs/Thermal Errors/en.md` currently documents `AFW_THM_0001` through `AFW_THM_0011`. The next required slice is to document `AFW_THM_0012` and update the choosing-the-correct-definition guidance so that unverified fallback outcome remains distinct from confirmed fallback failure.
+`WhenItFails/Docs/Thermal Errors/en.md` now documents `AFW_THM_0001` through `AFW_THM_0012`, including the distinction between confirmed fallback failure and an unverified fallback outcome, required runtime evidence, retry hazards, escalation boundaries, and restart requirements.
 
 ## Current intentional boundaries
 
 Setter currently does not provide automatic schema migration, multi-file atomic transactions, multi-process locking, automatic translation generation, remote catalog synchronization, package publishing, a GUI, complete source-code dependency discovery, or automatic runtime behavior for humorous message variants.
 
-Thermal easter eggs are explicitly deferred. Alternative wording must never alter the structured contract, severity, metadata, thresholds, control flow, shutdown decision, restart policy, sensor trust decision, data-freshness decision, thermal-trend decision, redundancy decision, protection-action decision, action-verification decision, fallback-action decision, or fail-safe policy.
+Thermal easter eggs are explicitly deferred. Alternative wording must never alter the structured contract, severity, metadata, thresholds, control flow, shutdown decision, restart policy, sensor-trust decision, data-freshness decision, thermal-trend decision, redundancy decision, protection-action decision, action-verification decision, fallback-action decision, fallback-verification decision, or fail-safe policy.
 
 ## Working rules
 
@@ -98,19 +102,16 @@ Thermal easter eggs are explicitly deferred. Alternative wording must never alte
 
 ## Recommended next step
 
-Document `AFW_THM_0012` in `WhenItFails/Docs/Thermal Errors/en.md`.
+Pull this documentation-contract repair and rerun the complete Setter suite:
 
-The documentation must state that:
+```bash
+dotnet test Toolroom/WhenItFails/Setter.Tests
+```
 
-- the fallback was actually selected and initiated;
-- its required result cannot be verified from trustworthy evidence;
-- this is neither confirmed success nor confirmed failure;
-- uncontrolled retry may repeat an action that already completed;
-- the triggering thermal condition and primary-action result remain visible;
-- restart or return to normal operation requires policy-approved evidence.
+If the suite is green, rerun `check-doc-keys .`, `check-doc-links .`, `git diff --check`, and the complete core suite. Record the exact totals as the final `AFW_THM_0012` checkpoint.
 
-After the documentation update, run the focused documentation test if one exists, then the complete core suite, `check-doc-keys .`, `check-doc-links .`, and `git diff --check`.
+After that clean checkpoint, continue the runtime/public-API audit rather than adding another thermal definition automatically. The next implementation slice should come from a demonstrated missing runtime contract, not from increasing the catalog count.
 
 ## Last completed change
 
-`AFW_THM_0012` is present on GitHub `master`, its focused TDD contract is green, catalog validation is green, and the complete core suite is user-verified green with **704 passed, 0 failed, 0 skipped**.
+`AFW_THM_0012` is implemented, documented, catalog-validated, and core-regression verified with **704 passed, 0 failed, 0 skipped**. The subsequent Setter regression exposed only a stale structure problem in this continuation document: the required `## Verification status` section was absent. This change restores the complete documentation contract and records the exact red checkpoint pending user verification.
