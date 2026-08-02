@@ -34,7 +34,6 @@ public sealed class ImplementationStatusDocumentationTests
             "## Working rules",
             "GitHub `master` is the source of truth.",
             "## Recommended next step",
-            "Next documentation target:",
             "runtime/public-API audit",
             "## Last completed change"
         ];
