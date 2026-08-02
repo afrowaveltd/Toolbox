@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit now directly protects the bootstrap payload DTOs, `ErrorDescriptorRequest`, the full provider-payload DTO family, the complete `ErrorCatalogContext` runtime snapshot, and the successful, loader-failure, null-document, validation-failure, and pre-cancelled orchestration paths of `CatalogProviderPipeline`.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit now directly protects the bootstrap payload DTOs, `ErrorDescriptorRequest`, the full provider-payload DTO family, the complete `ErrorCatalogContext` runtime snapshot, and the successful, loader-failure, loader-fallback, null-document, validation-failure, and pre-cancelled orchestration paths of `CatalogProviderPipeline`.
 
 The current user-verified complete regression baseline is fully green:
 
@@ -43,9 +43,9 @@ Completed runtime/public-API focused checkpoints:
 - `ErrorProfileCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorCatalogContextContractTests`: **2 passed, 0 failed, 0 skipped**;
-- `CatalogProviderPipelineTests`: **5 passed, 0 failed, 0 skipped**.
+- `CatalogProviderPipelineTests`: **6 passed, 0 failed, 0 skipped**.
 
-The provider payload contracts verify null defaults for required reference properties and exact preservation of assigned instances. The main payload additionally verifies the `Catalog` reference by using a real empty `ErrorCatalog` instance. The context contract verifies all seven required references of the atomically published runtime snapshot. The pipeline tests verify exact `load → normalize → validate → create payload` ordering, loader-failure propagation, rejection of a successful load carrying a null document, validation-failure short-circuiting before payload creation, and cancellation before the loader or any later delegate runs.
+The provider payload contracts verify null defaults for required reference properties and exact preservation of assigned instances. The main payload additionally verifies the `Catalog` reference by using a real empty `ErrorCatalog` instance. The context contract verifies all seven required references of the atomically published runtime snapshot. The pipeline tests verify exact `load → normalize → validate → create payload` ordering, loader-failure propagation, configured loader fallback values when failure details are absent, rejection of a successful load carrying a null document, validation-failure short-circuiting before payload creation, and cancellation before the loader or any later delegate runs.
 
 Other verified gates for the completed thermal slice:
 
@@ -102,12 +102,12 @@ Thermal easter eggs are explicitly deferred. Alternative wording must never alte
 
 ## Recommended next step
 
-Continue `CatalogProviderPipeline` failure-path coverage with the loader fallback contract.
+Complete the `CatalogProviderPipeline` contract with null-guard coverage for all four required delegates: `loadAsync`, `normalize`, `validate`, and `createPayload`.
 
-Verify that a failed loader response with no issues and no non-whitespace message uses the configured fallback load code and fallback load message, preserves the loader status, and short-circuits all later delegates. Do not change production code unless the focused test exposes an actual defect.
+Verify that each missing delegate throws `ArgumentNullException` before cancellation or any pipeline work. Do not change production code unless the focused tests expose an actual defect.
 
-After this focused test passes, inspect the next demonstrated unprotected runtime surface and keep the complete **727-test** core baseline as the reference point.
+After these focused tests pass, run the complete core suite and record the exact new total.
 
 ## Last completed change
 
-The completed `CatalogProviderPipeline` focused block passed all **5 tests**, and the subsequent complete core regression passed **727 tests, 0 failed, 0 skipped**.
+`CatalogProviderPipelineTests` passed **6 focused tests**. Loader failures without issues or a usable message now have direct regression coverage for configured fallback code and message propagation. The latest complete core baseline remains **727 passed, 0 failed, 0 skipped** pending the next full regression run.
