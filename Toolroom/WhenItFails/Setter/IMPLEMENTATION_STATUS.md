@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit now protects the bootstrap payload DTOs and `ErrorDescriptorRequest`.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit now protects the bootstrap payload DTOs, `ErrorDescriptorRequest`, and `ErrorCategoryCatalogProviderPayload`.
 
 The latest fully verified complete regression baseline is:
 
@@ -47,7 +47,13 @@ dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorDescriptorRequest
 
 Result: **2 passed, 0 failed, 0 skipped**.
 
-The `ErrorDescriptorRequest` contract verifies safe null defaults and exact round-trip storage of all eight public properties: `ErrorId`, `ErrorName`, `Code`, `Title`, `Message`, `Severity`, `DeveloperHint`, and `DocumentationKey`.
+```bash
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCategoryCatalogProviderPayloadContractTests
+```
+
+Result: **2 passed, 0 failed, 0 skipped**.
+
+The `ErrorCategoryCatalogProviderPayload` contract verifies null defaults for its required reference properties and exact preservation of assigned `Document` and `ValidationResult` instances.
 
 Other verified gates for the completed thermal slice:
 
@@ -104,7 +110,7 @@ Thermal easter eggs are explicitly deferred. Alternative wording must never alte
 
 ## Recommended next step
 
-Continue the runtime/public-API audit with `ErrorCategoryCatalogProviderPayload`.
+Continue the runtime/public-API audit with `ErrorCodeGroupCatalogProviderPayload`.
 
 Add a focused contract test first. Verify that a new payload exposes null defaults for its required reference properties and that assigned `Document` and `ValidationResult` instances are preserved exactly. Do not change provider implementation unless the focused test exposes an actual defect.
 
@@ -112,4 +118,4 @@ After the focused test passes, run the complete core suite and record the exact 
 
 ## Last completed change
 
-`ErrorDescriptorRequestContractTests` passed all **2 focused tests**. The public request DTO now has direct regression coverage for safe defaults and exact property storage. The latest complete core baseline remains **708 passed, 0 failed, 0 skipped** pending the next full regression run.
+`ErrorCategoryCatalogProviderPayloadContractTests` passed all **2 focused tests**. The provider DTO now has direct regression coverage for null defaults and exact reference storage. The latest complete core baseline remains **708 passed, 0 failed, 0 skipped** pending the next full regression run.
