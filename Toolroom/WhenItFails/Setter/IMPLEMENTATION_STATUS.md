@@ -10,7 +10,7 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-The complete `WhenItFails.Tests` core suite is user-verified green with **702 passed, 0 failed, 0 skipped**.
+The complete `WhenItFails.Tests` core suite is user-verified green with **702 passed, 0 failed, 0 skipped** before the new intentionally red fallback-action contract.
 
 The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
@@ -30,7 +30,7 @@ Recently verified focused contracts include:
 - `ThermalProtectionActionUnverifiedCatalogTests`: **1 user-verified green**.
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
 - Complete catalog validation after adding `AFW_THM_0010`: **0 errors, 0 warnings, 0 information issues**.
-- Complete `WhenItFails.Tests`: **702 user-verified green, 0 failed, 0 skipped**.
+- Complete `WhenItFails.Tests`: **702 user-verified green, 0 failed, 0 skipped** before the intentional red test.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
@@ -48,9 +48,24 @@ The first ten thermal definitions are complete and verified:
 - `AFW_THM_0009` / `1000009` / `THERMALPROTECTIONACTIONFAILED` / `Critical`;
 - `AFW_THM_0010` / `1000010` / `THERMALPROTECTIONACTIONUNVERIFIED` / `Critical`.
 
-The next planned thermal state is failure of an application-selected fallback protection action after a primary thermal response has failed or remained unverified. It must remain distinct from the original thermal condition, the primary action result, and a generic operation failure.
+A standalone TDD contract now defines the planned eleventh thermal state:
 
-Because bootstrap templates are generated from embedded authoritative catalogs, all completed thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
+- ID `AFW_THM_0011`;
+- code `1000011`;
+- name `THERMALFALLBACKPROTECTIONACTIONFAILED`;
+- title `Thermal fallback protection action failed`;
+- message `Thermal fallback protection action {fallbackAction} failed for {component} after {primaryAction} while handling {condition}.`;
+- default severity `Critical`;
+- categories `THERMAL` and `GENERAL`;
+- subcategories `FALLBACK_ACTION` and `FAIL_SAFE`;
+- tags `THERMAL`, `FAIL_SAFE`, `FALLBACK_FAILED`, `OPERATOR_ACTION_REQUIRED`, and `USER_VISIBLE`;
+- documentation key `when-it-fails/errors/thermal/thermal-fallback-protection-action-failed`.
+
+This contract represents confirmed failure of an approved fallback response after the primary thermal protection action failed or remained unverified. It must remain separate from the triggering thermal condition and the primary action result. It must not be emitted merely because a fallback exists or was considered; runtime evidence must show that the selected fallback was attempted and failed.
+
+The production catalog has not yet been changed. The focused test is expected to be red because `THERMALFALLBACKPROTECTIONACTIONFAILED` does not exist yet.
+
+Because bootstrap templates are generated from embedded authoritative catalogs, completed thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
 
 The authoritative owner catalog continues to use non-overlapping ranges:
 
@@ -61,7 +76,15 @@ The authoritative owner catalog continues to use non-overlapping ranges:
 
 ## Focused verification
 
-The complete core baseline is:
+Run the new fallback-action TDD contract:
+
+```bash
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ThermalFallbackProtectionActionFailedCatalogTests
+```
+
+Expected result: **1 red test** reporting that catalog item `THERMALFALLBACKPROTECTIONACTIONFAILED` was not found. Do not add the production definition until this exact red gate is user-verified.
+
+The complete core baseline before the intentional red test is:
 
 ```bash
 dotnet test WhenItFails.Tests
@@ -107,7 +130,7 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-`WhenItFails/Docs/Thermal Errors/en.md` documents all ten completed thermal contracts and preserves the boundary between confirmed action failure and an indeterminate action result.
+`WhenItFails/Docs/Thermal Errors/en.md` documents all ten completed thermal contracts. Add the fallback-action failure only after its focused contract and workspace validation are green.
 
 ## Current intentional boundaries
 
@@ -129,21 +152,18 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Add a standalone TDD contract for failure of a configured fallback thermal protection action. Do not change the production catalog until the focused test is user-verified red with only the expected missing-item failure.
+Run `ThermalFallbackProtectionActionFailedCatalogTests` and confirm the exact missing-item failure. Do not change the production catalog until that expected red gate is user-verified.
 
 ## Last completed change
 
-The `AFW_THM_0010` increment is closed at **702/702 green core tests**. The next slice distinguishes failure of an approved fallback response from failure or uncertainty of the primary protection action.
+The `AFW_THM_0010` increment remains closed at **702/702 green core tests**. A standalone red contract now defines confirmed failure of an approved fallback thermal protection response; no production catalog data has been changed.
 
 Commits:
 
 ```text
-f3ea9bb6dc0b7312df63f96b3220fd27728f5825
-Add unverified thermal protection action catalog error
+c94fe6a303c1389e3d52366811a67db057814812
+Record green unverified thermal action core gate
 
-b8a3ae3cfd26d2fd7e20a4cef89e00c881154fdc
-Document unverified thermal protection action
-
-8231e3acf00ebeb487393695d17fd799676fc32e
-Record unverified action documentation and pending core gate
+fa982187d95e1cebc0993ef0facb336e3667d9fa
+Add thermal fallback protection action failed catalog contract
 ```
