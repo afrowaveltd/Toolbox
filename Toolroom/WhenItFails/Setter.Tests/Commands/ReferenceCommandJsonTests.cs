@@ -37,7 +37,7 @@ public sealed class ReferenceCommandJsonTests
             Assert.Equal(JsonValueKind.Object, value.ValueKind);
             Assert.Equal(1, value.GetProperty("ownerCount").GetInt32());
             Assert.Equal(17, value.GetProperty("categoryCount").GetInt32());
-            Assert.Equal(9, value.GetProperty("codeGroupCount").GetInt32());
+            Assert.Equal(10, value.GetProperty("codeGroupCount").GetInt32());
             Assert.Equal(5, value.GetProperty("profileCount").GetInt32());
             Assert.Equal(37, value.GetProperty("errorCount").GetInt32());
         }
