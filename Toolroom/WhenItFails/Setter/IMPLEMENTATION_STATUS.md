@@ -8,9 +8,9 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
+The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite was green at that checkpoint and should now be rerun after the latest catalog and documentation increments.
 
-The complete `WhenItFails.Tests` core suite is user-verified green with **702 passed, 0 failed, 0 skipped** before the `AFW_THM_0011` catalog test was added. The next complete run should contain **703 tests**.
+The complete `WhenItFails.Tests` core suite is user-verified green with **703 passed, 0 failed, 0 skipped** after adding and documenting `AFW_THM_0011`.
 
 The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
@@ -31,12 +31,12 @@ Recently verified focused contracts include:
 - `ThermalFallbackProtectionActionFailedCatalogTests`: **1 user-verified green**.
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
 - Complete catalog validation after adding `AFW_THM_0011`: **0 errors, 0 warnings, 0 information issues**.
-- Complete `WhenItFails.Tests`: **702 user-verified green, 0 failed, 0 skipped** before the latest test addition.
-- Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
+- Complete `WhenItFails.Tests`: **703 user-verified green, 0 failed, 0 skipped**.
+- Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped** at the previous Setter checkpoint; rerun is pending after the latest increments.
 
 The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
 
-The first eleven thermal definitions are present and focused-validation verified:
+The first eleven thermal definitions are complete and core-regression verified:
 
 - `AFW_THM_0001` / `1000001` / `TEMPERATURELIMITEXCEEDED` / `Warning`;
 - `AFW_THM_0002` / `1000002` / `CRITICALTEMPERATURELIMITEXCEEDED` / `Critical`;
@@ -81,27 +81,29 @@ dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 
 Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
 
-After the thermal documentation update, run the complete core project:
+The complete core project is user-verified green:
 
 ```bash
 dotnet test WhenItFails.Tests
 ```
 
-Expected next full result: **703 passed, 0 failed, 0 skipped**.
+Latest user-verified result: **703 passed, 0 failed, 0 skipped**.
 
-The complete Setter suite remains available through:
-
-```bash
-dotnet test Toolroom/WhenItFails/Setter.Tests
-```
-
-Before committing further catalog changes, also run these commands individually:
+Before another catalog definition is added, run these documentation and repository gates individually:
 
 ```bash
 dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-keys .
 dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .
 git diff --check
 ```
+
+Then rerun the complete Setter suite:
+
+```bash
+dotnet test Toolroom/WhenItFails/Setter.Tests
+```
+
+The previous Setter baseline was **1,241 passed, 0 failed, 0 skipped**. Do not record the current result until it is user-verified.
 
 ## Documentation synchronization completed
 
@@ -141,11 +143,11 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **703-test** core gate is user-verified green.
+Run `check-doc-keys`, `check-doc-links`, and `git diff --check`, then rerun the complete Setter suite. Do not add a twelfth thermal definition until these repository-wide gates are user-verified green.
 
 ## Last completed change
 
-The English thermal documentation now includes `THERMALFALLBACKPROTECTIONACTIONFAILED` and preserves the distinction between the triggering thermal condition, primary-action outcome, and confirmed fallback failure. The remaining gate is the complete core regression suite.
+The complete core regression suite is user-verified green with **703 passed, 0 failed, 0 skipped** after the `AFW_THM_0011` implementation and documentation. The next slice is repository-wide documentation hygiene followed by the complete Setter regression gate.
 
 Commits:
 
