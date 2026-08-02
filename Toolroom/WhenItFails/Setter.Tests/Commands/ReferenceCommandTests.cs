@@ -114,7 +114,7 @@ public sealed class ReferenceCommandTests
             await summarizer.SummarizeAsync(Environment.CurrentDirectory);
 
         Assert.Equal(1, summary.OwnerCount);
-        Assert.Equal(16, summary.CategoryCount);
+        Assert.Equal(17, summary.CategoryCount);
         Assert.Equal(9, summary.CodeGroupCount);
         Assert.Equal(5, summary.ProfileCount);
         Assert.Equal(37, summary.ErrorCount);
@@ -132,10 +132,11 @@ public sealed class ReferenceCommandTests
                        && profile.IncludedCodeGroupNames.Contains("NETWORK")
                        && profile.IncludedCategoryNames.Contains("HTTP"));
 
-        Assert.Equal(16, summary.Categories.Count);
+        Assert.Equal(17, summary.Categories.Count);
         Assert.Contains(summary.Categories, category => category.Name == "GENERAL");
         Assert.Contains(summary.Categories, category => category.Name == "HTTP");
         Assert.Contains(summary.Categories, category => category.Name == "AUTHENTICATION");
+        Assert.Contains(summary.Categories, category => category.Name == "THERMAL");
         Assert.Contains(
             summary.Categories,
             category => category.Name == "HTTP"
