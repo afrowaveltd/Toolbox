@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit now protects the bootstrap payload DTOs, `ErrorDescriptorRequest`, `ErrorCategoryCatalogProviderPayload`, `ErrorCodeGroupCatalogProviderPayload`, `ErrorOwnerCatalogProviderPayload`, and `ErrorProfileCatalogProviderPayload`.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit now directly protects the bootstrap payload DTOs, `ErrorDescriptorRequest`, and the full provider-payload DTO family: category, code group, owner, profile, and main error catalog payloads.
 
 The latest fully verified complete regression baseline is:
 
@@ -35,43 +35,15 @@ Result: **708 passed, 0 failed, 0 skipped**.
 
 Completed runtime/public-API focused checkpoints:
 
-```bash
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~JsonsBootstrapPayloadContractTests
-```
+- `JsonsBootstrapPayloadContractTests`: **4 passed, 0 failed, 0 skipped**;
+- `ErrorDescriptorRequestContractTests`: **2 passed, 0 failed, 0 skipped**;
+- `ErrorCategoryCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
+- `ErrorCodeGroupCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
+- `ErrorOwnerCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
+- `ErrorProfileCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
+- `ErrorCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**.
 
-Result: **4 passed, 0 failed, 0 skipped**.
-
-```bash
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorDescriptorRequestContractTests
-```
-
-Result: **2 passed, 0 failed, 0 skipped**.
-
-```bash
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCategoryCatalogProviderPayloadContractTests
-```
-
-Result: **2 passed, 0 failed, 0 skipped**.
-
-```bash
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorCodeGroupCatalogProviderPayloadContractTests
-```
-
-Result: **2 passed, 0 failed, 0 skipped**.
-
-```bash
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorOwnerCatalogProviderPayloadContractTests
-```
-
-Result: **2 passed, 0 failed, 0 skipped**.
-
-```bash
-dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorProfileCatalogProviderPayloadContractTests
-```
-
-Result: **2 passed, 0 failed, 0 skipped**.
-
-The provider payload contracts verify null defaults for required reference properties and exact preservation of assigned `Document` and `ValidationResult` instances.
+The provider payload contracts verify null defaults for required reference properties and exact preservation of assigned instances. The main payload additionally verifies the `Catalog` reference by using a real empty `ErrorCatalog` instance.
 
 Other verified gates for the completed thermal slice:
 
@@ -128,12 +100,14 @@ Thermal easter eggs are explicitly deferred. Alternative wording must never alte
 
 ## Recommended next step
 
-Complete the provider-payload DTO series with `ErrorCatalogProviderPayload`.
+Run the complete core suite after the completed provider-payload DTO audit:
 
-Add a focused contract test first. Verify that a new payload exposes null defaults for `Catalog`, `Document`, and `ValidationResult`, and that assigned instances are preserved exactly. Use a real empty `ErrorCatalog` instance rather than a test double. Do not change provider implementation unless the focused test exposes an actual defect.
+```bash
+dotnet test WhenItFails.Tests
+```
 
-After the focused test passes, run the complete core suite and record the exact new total.
+Record the exact new total. If green, continue the runtime/public-API audit with the next demonstrated unprotected public surface rather than adding catalog entries automatically.
 
 ## Last completed change
 
-`ErrorProfileCatalogProviderPayloadContractTests` passed all **2 focused tests**. The provider DTO now has direct regression coverage for null defaults and exact reference storage. The latest complete core baseline remains **708 passed, 0 failed, 0 skipped** pending the next full regression run.
+`ErrorCatalogProviderPayloadContractTests` passed all **2 focused tests**. The complete provider-payload DTO family now has direct public-contract coverage for safe defaults and exact reference preservation. The latest complete core baseline remains **708 passed, 0 failed, 0 skipped** pending the new full regression run.
