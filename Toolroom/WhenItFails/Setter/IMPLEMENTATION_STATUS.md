@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit now directly protects the bootstrap payload DTOs, `ErrorDescriptorRequest`, and the full provider-payload DTO family: category, code group, owner, profile, and main error catalog payloads.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit now directly protects the bootstrap payload DTOs, `ErrorDescriptorRequest`, the full provider-payload DTO family, and the complete `ErrorCatalogContext` runtime snapshot.
 
 The current user-verified complete regression baseline is fully green:
 
@@ -41,9 +41,10 @@ Completed runtime/public-API focused checkpoints:
 - `ErrorCodeGroupCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorOwnerCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorProfileCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
-- `ErrorCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**.
+- `ErrorCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
+- `ErrorCatalogContextContractTests`: **2 passed, 0 failed, 0 skipped**.
 
-The provider payload contracts verify null defaults for required reference properties and exact preservation of assigned instances. The main payload additionally verifies the `Catalog` reference by using a real empty `ErrorCatalog` instance.
+The provider payload contracts verify null defaults for required reference properties and exact preservation of assigned instances. The main payload additionally verifies the `Catalog` reference by using a real empty `ErrorCatalog` instance. The context contract verifies all seven required references of the atomically published runtime snapshot.
 
 Other verified gates for the completed thermal slice:
 
@@ -100,12 +101,12 @@ Thermal easter eggs are explicitly deferred. Alternative wording must never alte
 
 ## Recommended next step
 
-Continue the runtime/public-API audit with `ErrorCatalogContext`, the complete active catalog snapshot shared by runtime, profile, and descriptor services.
+Continue the runtime audit with the internal `CatalogProviderPipeline`, which centralizes the load, normalize, validate, and payload-creation sequence used by catalog providers.
 
-Add a focused contract test first. Verify null defaults for all seven required references and exact preservation of assigned `ErrorCatalog`, catalog documents, and `CrossValidationResult` instances. Use a real empty `ErrorCatalog` rather than a mock. Do not change runtime implementation unless the focused test exposes an actual defect.
+Add one focused behavior test first. Verify the exact successful execution order and that the normalized document plus its validation result are the same instances passed into payload creation. Do not change production code unless the focused test exposes an actual defect.
 
-After the focused test passes, run the complete core suite and record the exact new total.
+After the focused test passes, add failure-path coverage incrementally and then run the complete core suite.
 
 ## Last completed change
 
-The provider-payload DTO audit is complete. All focused tests passed, and the subsequent complete core regression passed **720 tests, 0 failed, 0 skipped**.
+`ErrorCatalogContextContractTests` passed all **2 focused tests**. The complete active catalog snapshot now has direct regression coverage for null defaults and exact reference preservation. The latest complete core baseline remains **720 passed, 0 failed, 0 skipped** pending the next full regression run.
