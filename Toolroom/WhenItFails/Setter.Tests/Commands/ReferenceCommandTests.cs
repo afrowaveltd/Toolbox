@@ -115,7 +115,7 @@ public sealed class ReferenceCommandTests
 
         Assert.Equal(1, summary.OwnerCount);
         Assert.Equal(17, summary.CategoryCount);
-        Assert.Equal(9, summary.CodeGroupCount);
+        Assert.Equal(10, summary.CodeGroupCount);
         Assert.Equal(5, summary.ProfileCount);
         Assert.Equal(37, summary.ErrorCount);
 
@@ -142,10 +142,11 @@ public sealed class ReferenceCommandTests
             category => category.Name == "HTTP"
                         && category.ParentCategoryNames.Contains("NETWORK"));
 
-        Assert.Equal(9, summary.CodeGroups.Count);
+        Assert.Equal(10, summary.CodeGroups.Count);
         Assert.Contains(summary.CodeGroups, codeGroup => codeGroup.Name == "GENERAL");
         Assert.Contains(summary.CodeGroups, codeGroup => codeGroup.Name == "FILE_SYSTEM");
         Assert.Contains(summary.CodeGroups, codeGroup => codeGroup.Name == "SERIALIZATION");
+        Assert.Contains(summary.CodeGroups, codeGroup => codeGroup.Name == "THERMAL");
         Assert.Contains(
             summary.CodeGroups,
             codeGroup => codeGroup.Name == "CONFIGURATION"
