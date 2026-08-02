@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit now directly protects the bootstrap payload DTOs, `ErrorDescriptorRequest`, generic `ErrorDescriptor<TAttachment>`, the full provider-payload DTO family, the complete `ErrorCatalogContext` runtime snapshot, `ErrorCatalogInitializationPayload`, and the complete current contract of `CatalogProviderPipeline`.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit now directly protects the bootstrap payload DTOs, `ErrorDescriptorRequest`, base `ErrorDescriptor`, generic `ErrorDescriptor<TAttachment>`, the full provider-payload DTO family, the complete `ErrorCatalogContext` runtime snapshot, `ErrorCatalogInitializationPayload`, and the complete current contract of `CatalogProviderPipeline`.
 
 The current user-verified complete regression baseline is fully green:
 
@@ -37,6 +37,7 @@ Completed runtime/public-API focused checkpoints:
 
 - `JsonsBootstrapPayloadContractTests`: **4 passed, 0 failed, 0 skipped**;
 - `ErrorDescriptorRequestContractTests`: **2 passed, 0 failed, 0 skipped**;
+- `ErrorDescriptorContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorDescriptorOfTContractTests`: **3 passed, 0 failed, 0 skipped**;
 - `ErrorCategoryCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorCodeGroupCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
@@ -47,7 +48,7 @@ Completed runtime/public-API focused checkpoints:
 - `CatalogProviderPipelineTests`: **10 passed, 0 failed, 0 skipped**;
 - `ErrorCatalogInitializationPayloadContractTests`: **5 passed, 0 failed, 0 skipped**.
 
-The generic descriptor contract verifies the null attachment default and exact preservation of both reference-type and value-type attachments. The provider payload contracts verify null defaults for required reference properties and exact preservation of assigned instances. The main payload additionally verifies the `Catalog` reference by using a real empty `ErrorCatalog` instance. The context contract verifies all seven required references of the atomically published runtime snapshot. The initialization payload contract verifies project-catalog defaults, exact reference preservation, and the complete `IsDegraded` truth table for retained-context and fallback recovery flags. The pipeline tests cover successful execution, all current failure and short-circuit paths, cancellation, configured loader fallbacks, and required delegate null guards.
+The base descriptor contract verifies safe scalar defaults and confirms that categories, subcategories, tags, and metadata are independently allocated for each descriptor instance. The generic descriptor contract verifies the null attachment default and exact preservation of both reference-type and value-type attachments. The provider payload contracts verify null defaults for required reference properties and exact preservation of assigned instances. The main payload additionally verifies the `Catalog` reference by using a real empty `ErrorCatalog` instance. The context contract verifies all seven required references of the atomically published runtime snapshot. The initialization payload contract verifies project-catalog defaults, exact reference preservation, and the complete `IsDegraded` truth table for retained-context and fallback recovery flags. The pipeline tests cover successful execution, all current failure and short-circuit paths, cancellation, configured loader fallbacks, and required delegate null guards.
 
 Other verified gates for the completed thermal slice:
 
@@ -104,12 +105,12 @@ Thermal easter eggs are explicitly deferred. Alternative wording must never alte
 
 ## Recommended next step
 
-Continue the runtime/public-API audit with the base `ErrorDescriptor` contract.
+Continue the runtime/public-API audit with the base `ErrorDefinition` contract.
 
-Add focused coverage for its safe defaults and verify that mutable category, subcategory, tag, and metadata containers are not shared between separate descriptor instances. Do not change production code unless the focused tests expose an actual defect.
+Add focused coverage for safe defaults and verify that mutable category, subcategory, tag, and metadata containers are not shared between separate catalog definition instances. Do not change production code unless the focused tests expose an actual defect.
 
-After the focused test passes, run the complete core suite and record the exact new total.
+After the focused test passes, continue incrementally and retain the complete **732-test** core baseline until the next full regression run.
 
 ## Last completed change
 
-`ErrorDescriptorOfTContractTests` passed all **3 focused tests**. Generic descriptor attachments now have direct coverage for null defaults and exact reference/value preservation. The latest complete core baseline remains **732 passed, 0 failed, 0 skipped**.
+`ErrorDescriptorContractTests` passed all **2 focused tests**. Base runtime descriptors now have direct coverage for safe defaults and independently allocated mutable containers. The latest complete core baseline remains **732 passed, 0 failed, 0 skipped**.
