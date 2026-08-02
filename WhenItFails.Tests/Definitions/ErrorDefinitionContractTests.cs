@@ -1,6 +1,6 @@
 using Afrowave.Toolbox.WhenItFails.Definitions;
 
-namespace Afrowave.Toolbox.WhenItFails.Tests.Definitions;
+namespace Afrowave.Toolbox.WhenItFails.Tests.DefinitionContracts;
 
 public sealed class ErrorDefinitionContractTests
 {
