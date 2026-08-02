@@ -845,6 +845,24 @@
       "documentationKey": "when-it-fails/errors/thermal/thermal-protection-action-failed",
       "tags": ["THERMAL", "FAIL_SAFE", "SHUTDOWN", "OPERATOR_ACTION_REQUIRED", "USER_VISIBLE"],
       "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
+    },
+    {
+      "id": "AFW_THM_0010",
+      "code": 1000010,
+      "name": "THERMALPROTECTIONACTIONUNVERIFIED",
+      "owner": "AFW",
+      "codePrefix": "THM",
+      "codeGroup": "THERMAL",
+      "primaryCategory": "THERMAL",
+      "categories": ["THERMAL", "GENERAL"],
+      "subcategories": ["PROTECTION_ACTION", "VERIFICATION"],
+      "title": "Thermal protection action unverified",
+      "message": "Thermal protection action {action} for {component} could not be verified while handling {condition}.",
+      "defaultSeverity": "Critical",
+      "developerHint": "Verify command delivery, acknowledgement, actuator feedback, telemetry freshness, correlation identifiers, timeout policy, fallback action, operator escalation, and evidence required before restart.",
+      "documentationKey": "when-it-fails/errors/thermal/thermal-protection-action-unverified",
+      "tags": ["THERMAL", "FAIL_SAFE", "VERIFICATION_REQUIRED", "OPERATOR_ACTION_REQUIRED", "USER_VISIBLE"],
+      "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
     }
   ]
 }
