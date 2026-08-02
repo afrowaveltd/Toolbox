@@ -13,7 +13,7 @@ The `AFW_THM_0012` slice is complete. The runtime/public-API audit now directly 
 The current user-verified complete regression baseline is fully green:
 
 - complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 passed, 0 failed, 0 skipped**;
-- complete `WhenItFails.Tests`: **727 passed, 0 failed, 0 skipped**.
+- complete `WhenItFails.Tests`: **732 passed, 0 failed, 0 skipped**.
 
 ## Verification status
 
@@ -31,7 +31,7 @@ The latest complete core test run:
 dotnet test WhenItFails.Tests
 ```
 
-Result: **727 passed, 0 failed, 0 skipped**.
+Result: **732 passed, 0 failed, 0 skipped**.
 
 Completed runtime/public-API focused checkpoints:
 
@@ -102,14 +102,10 @@ Thermal easter eggs are explicitly deferred. Alternative wording must never alte
 
 ## Recommended next step
 
-Run the complete core suite after the now-complete `CatalogProviderPipeline` contract block:
+Continue the runtime/public-API audit with the next demonstrated unprotected runtime surface outside `CatalogProviderPipeline`. Inspect existing tests first and avoid duplicating already-covered constructor, status, initialization, context-provider, and runtime facade contracts.
 
-```bash
-dotnet test WhenItFails.Tests
-```
-
-Record the exact new total. If green, continue the runtime/public-API audit with the next demonstrated unprotected runtime surface outside the pipeline.
+Add one narrow focused test, run it immediately, and update this file with the exact result before moving further.
 
 ## Last completed change
 
-`CatalogProviderPipelineTests` passed all **10 focused tests**. The shared provider pipeline now has direct coverage for its successful flow, all current failure and short-circuit branches, cancellation, configured loader fallbacks, and all required delegate null guards. The latest complete core baseline remains **727 passed, 0 failed, 0 skipped** pending the new full regression run.
+`CatalogProviderPipelineTests` passed all **10 focused tests**, and the subsequent complete core regression passed **732 tests, 0 failed, 0 skipped**. The shared provider pipeline contract block is complete.
