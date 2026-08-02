@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit now directly protects the bootstrap payload DTOs, `ErrorDescriptorRequest`, the full provider-payload DTO family, the complete `ErrorCatalogContext` runtime snapshot, and the successful, loader-failure, loader-fallback, null-document, validation-failure, pre-cancelled, and required-delegate guard paths of `CatalogProviderPipeline`.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit now directly protects the bootstrap payload DTOs, `ErrorDescriptorRequest`, the full provider-payload DTO family, the complete `ErrorCatalogContext` runtime snapshot, `ErrorCatalogInitializationPayload`, and the complete current contract of `CatalogProviderPipeline`.
 
 The current user-verified complete regression baseline is fully green:
 
@@ -43,9 +43,10 @@ Completed runtime/public-API focused checkpoints:
 - `ErrorProfileCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorCatalogContextContractTests`: **2 passed, 0 failed, 0 skipped**;
-- `CatalogProviderPipelineTests`: **10 passed, 0 failed, 0 skipped**.
+- `CatalogProviderPipelineTests`: **10 passed, 0 failed, 0 skipped**;
+- `ErrorCatalogInitializationPayloadContractTests`: **5 passed, 0 failed, 0 skipped**.
 
-The provider payload contracts verify null defaults for required reference properties and exact preservation of assigned instances. The main payload additionally verifies the `Catalog` reference by using a real empty `ErrorCatalog` instance. The context contract verifies all seven required references of the atomically published runtime snapshot. The pipeline tests verify exact `load → normalize → validate → create payload` ordering, loader-failure propagation, configured loader fallback values when failure details are absent, rejection of a successful load carrying a null document, validation-failure short-circuiting before payload creation, cancellation before the loader or any later delegate runs, and `ArgumentNullException` guards for all four required delegates.
+The provider payload contracts verify null defaults for required reference properties and exact preservation of assigned instances. The main payload additionally verifies the `Catalog` reference by using a real empty `ErrorCatalog` instance. The context contract verifies all seven required references of the atomically published runtime snapshot. The initialization payload contract verifies project-catalog defaults, exact reference preservation, and the complete `IsDegraded` truth table for retained-context and fallback recovery flags. The pipeline tests cover successful execution, all current failure and short-circuit paths, cancellation, configured loader fallbacks, and required delegate null guards.
 
 Other verified gates for the completed thermal slice:
 
@@ -102,10 +103,12 @@ Thermal easter eggs are explicitly deferred. Alternative wording must never alte
 
 ## Recommended next step
 
-Continue the runtime/public-API audit with the next demonstrated unprotected runtime surface outside `CatalogProviderPipeline`. Inspect existing tests first and avoid duplicating already-covered constructor, status, initialization, context-provider, and runtime facade contracts.
+Continue the runtime/public-API audit with generic `ErrorDescriptor<TAttachment>`, which currently has no direct contract test.
 
-Add one narrow focused test, run it immediately, and update this file with the exact result before moving further.
+Add focused coverage for its null attachment default and exact preservation of assigned reference and value-type attachments. Do not change production code unless the focused tests expose an actual defect.
+
+After the focused test passes, run the complete core suite and record the exact new total.
 
 ## Last completed change
 
-`CatalogProviderPipelineTests` passed all **10 focused tests**, and the subsequent complete core regression passed **732 tests, 0 failed, 0 skipped**. The shared provider pipeline contract block is complete.
+`ErrorCatalogInitializationPayloadContractTests` passed all **5 focused tests**. The public initialization result now has direct coverage for defaults, reference preservation, and degraded-state derivation. The latest complete core baseline remains **732 passed, 0 failed, 0 skipped**.
