@@ -881,6 +881,24 @@
       "documentationKey": "when-it-fails/errors/thermal/thermal-fallback-protection-action-failed",
       "tags": ["THERMAL", "FAIL_SAFE", "FALLBACK_FAILED", "OPERATOR_ACTION_REQUIRED", "USER_VISIBLE"],
       "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
+    },
+    {
+      "id": "AFW_THM_0012",
+      "code": 1000012,
+      "name": "THERMALFALLBACKPROTECTIONACTIONUNVERIFIED",
+      "owner": "AFW",
+      "codePrefix": "THM",
+      "codeGroup": "THERMAL",
+      "primaryCategory": "THERMAL",
+      "categories": ["THERMAL", "GENERAL"],
+      "subcategories": ["FALLBACK_ACTION", "VERIFICATION"],
+      "title": "Thermal fallback protection action unverified",
+      "message": "Thermal fallback protection action {fallbackAction} for {component} could not be verified after {primaryAction} while handling {condition}.",
+      "defaultSeverity": "Critical",
+      "developerHint": "Verify the primary action result, fallback command delivery, acknowledgement, actuator feedback, telemetry freshness, correlation identifiers, timeout policy, remaining safe options, operator escalation, and evidence required before restart.",
+      "documentationKey": "when-it-fails/errors/thermal/thermal-fallback-protection-action-unverified",
+      "tags": ["THERMAL", "FAIL_SAFE", "VERIFICATION_REQUIRED", "OPERATOR_ACTION_REQUIRED", "USER_VISIBLE"],
+      "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
     }
   ]
 }
