@@ -158,6 +158,65 @@ public sealed class CatalogProviderPipelineTests
         Assert.Equal(["load:catalog.json"], calls);
     }
 
+    [Fact]
+    public async Task LoadNormalizeValidateAsync_ShouldRejectInvalidDocumentAndSkipPayloadCreation()
+    {
+        List<string> calls = new();
+        TestDocument loadedDocument = new("loaded");
+        TestDocument normalizedDocument = new("normalized");
+        ErrorCatalogValidationResult validationResult = new();
+        validationResult.AddError(
+            code: "InvalidEntry",
+            message: "The normalized document contains an invalid entry.");
+
+        Response<TestPayload> response =
+            await CatalogProviderPipeline.LoadNormalizeValidateAsync<TestDocument, TestPayload>(
+                filePath: "catalog.json",
+                cancellationToken: CancellationToken.None,
+                loadAsync: (filePath, cancellationToken) =>
+                {
+                    calls.Add($"load:{filePath}");
+                    Assert.False(cancellationToken.IsCancellationRequested);
+                    return Task.FromResult(Response<TestDocument>.Ok(loadedDocument));
+                },
+                normalize: document =>
+                {
+                    calls.Add("normalize");
+                    Assert.Same(loadedDocument, document);
+                    return normalizedDocument;
+                },
+                validate: document =>
+                {
+                    calls.Add("validate");
+                    Assert.Same(normalizedDocument, document);
+                    return validationResult;
+                },
+                createPayload: (document, validation) =>
+                {
+                    calls.Add("create-payload");
+                    return new TestPayload(document, validation);
+                },
+                loadFailedCode: "LoadFailed",
+                loadFailedMessage: "Load failed.",
+                loadedDocumentIsNullCode: "DocumentNull",
+                loadedDocumentIsNullMessage: "Document is null.",
+                validationFailedCode: "SpecificValidationFailure",
+                validationFailedMessage: "The catalog document failed validation.");
+
+        Assert.False(response.IsSuccess);
+        Assert.Null(response.Data);
+        Assert.NotEmpty(response.Issues);
+        Assert.Equal("SpecificValidationFailure", response.Issues[0].Code);
+        Assert.Equal("The catalog document failed validation.", response.Message);
+        Assert.Equal(
+            [
+                "load:catalog.json",
+                "normalize",
+                "validate"
+            ],
+            calls);
+    }
+
     private sealed record TestDocument(string Value);
 
     private sealed record TestPayload(
