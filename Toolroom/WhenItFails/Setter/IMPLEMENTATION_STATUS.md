@@ -8,11 +8,12 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The thermal catalog now contains twelve definitions through `AFW_THM_0012` / `THERMALFALLBACKPROTECTIONACTIONUNVERIFIED`. This contract represents an approved fallback action that was selected and initiated, but whose required result cannot be established from trustworthy evidence. It is neither confirmed success nor confirmed failure and deliberately does not carry the `FALLBACK_FAILED` tag.
+The `AFW_THM_0012` slice is complete. `THERMALFALLBACKPROTECTIONACTIONUNVERIFIED` represents an approved fallback action that was selected and initiated, but whose required result cannot be established from trustworthy evidence. It is neither confirmed success nor confirmed failure and deliberately does not carry the `FALLBACK_FAILED` tag.
 
-The complete `WhenItFails.Tests` core suite is user-verified green with **704 passed, 0 failed, 0 skipped**.
+The current user-verified regression baseline is fully green:
 
-The latest Setter rerun reported **1,240 passed, 1 failed, 0 skipped, 1,241 total**. The only failure was `ImplementationStatusDocumentationTests.Documentation_ProvidesCurrentContinuationPoint`, because this file no longer contained the required `## Verification status` continuation marker. The implementation and catalog behavior were not implicated.
+- complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 passed, 0 failed, 0 skipped**;
+- complete `WhenItFails.Tests`: **704 passed, 0 failed, 0 skipped**.
 
 ## Verification status
 
@@ -22,25 +23,35 @@ The latest user-verified Setter test run:
 dotnet test Toolroom/WhenItFails/Setter.Tests
 ```
 
-Result before this documentation repair:
+Result:
 
-- **1,240 passed**;
-- **1 failed**;
+- **1,241 passed**;
+- **0 failed**;
 - **0 skipped**;
-- **1,241 total**;
-- failure: required implementation-status marker `## Verification status` was missing.
+- **1,241 total**.
 
-Other current user-verified gates:
+The complete core test run:
 
-- complete `WhenItFails.Tests`: **704 passed, 0 failed, 0 skipped**;
+```bash
+dotnet test WhenItFails.Tests
+```
+
+Result:
+
+- **704 passed**;
+- **0 failed**;
+- **0 skipped**.
+
+Other verified gates for this slice:
+
 - focused `ThermalFallbackProtectionActionUnverifiedCatalogTests`: **1 passed, 0 failed, 0 skipped**;
 - expected TDD red checkpoint before adding `AFW_THM_0012`: **0 passed, 1 failed**, catalog item not found;
 - catalog validation after `AFW_THM_0012`: user-verified green;
-- documentation-key validation: user-verified green before the latest documentation synchronization;
-- Markdown-link validation: user-verified green before the latest documentation synchronization;
-- `git diff --check`: user-verified clean before the latest documentation synchronization.
+- documentation-key validation: user-verified green;
+- Markdown-link validation: user-verified green;
+- `git diff --check`: user-verified clean.
 
-The bundled reference catalog contains **17 categories**, **10 code groups**, **5 profiles**, and **37 bundled reference errors**. The project-local authoritative catalog additionally contains the twelve thermal definitions through `AFW_THM_0012`.
+The bundled reference catalog contains **17 categories**, **10 code groups**, **5 profiles**, and **37 bundled reference errors**. The project-local authoritative catalog additionally contains twelve thermal definitions through `AFW_THM_0012`.
 
 ## Thermal catalog state
 
@@ -80,7 +91,7 @@ The English documentation is maintained in the project root and localized topic 
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-`WhenItFails/Docs/Thermal Errors/en.md` now documents `AFW_THM_0001` through `AFW_THM_0012`, including the distinction between confirmed fallback failure and an unverified fallback outcome, required runtime evidence, retry hazards, escalation boundaries, and restart requirements.
+`WhenItFails/Docs/Thermal Errors/en.md` documents `AFW_THM_0001` through `AFW_THM_0012`, including the distinction between confirmed fallback failure and an unverified fallback outcome, required runtime evidence, retry hazards, escalation boundaries, and restart requirements.
 
 ## Current intentional boundaries
 
@@ -102,16 +113,10 @@ Thermal easter eggs are explicitly deferred. Alternative wording must never alte
 
 ## Recommended next step
 
-Pull this documentation-contract repair and rerun the complete Setter suite:
+Resume the runtime/public-API audit rather than adding another thermal definition automatically.
 
-```bash
-dotnet test Toolroom/WhenItFails/Setter.Tests
-```
-
-If the suite is green, rerun `check-doc-keys .`, `check-doc-links .`, `git diff --check`, and the complete core suite. Record the exact totals as the final `AFW_THM_0012` checkpoint.
-
-After that clean checkpoint, continue the runtime/public-API audit rather than adding another thermal definition automatically. The next implementation slice should come from a demonstrated missing runtime contract, not from increasing the catalog count.
+Select one demonstrated missing runtime contract, add or update its focused test first, implement the narrowest safe correction, run the focused test, then run the complete core and Setter suites. Do not increase the thermal catalog count without a concrete operational state that is not already represented.
 
 ## Last completed change
 
-`AFW_THM_0012` is implemented, documented, catalog-validated, and core-regression verified with **704 passed, 0 failed, 0 skipped**. The subsequent Setter regression exposed only a stale structure problem in this continuation document: the required `## Verification status` section was absent. This change restores the complete documentation contract and records the exact red checkpoint pending user verification.
+`AFW_THM_0012` is implemented, documented, catalog-validated, and fully regression verified. The complete core suite is green with **704 passed, 0 failed, 0 skipped**, and the complete Setter suite is green with **1,241 passed, 0 failed, 0 skipped**.
