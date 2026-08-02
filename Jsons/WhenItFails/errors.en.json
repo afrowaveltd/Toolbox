@@ -863,6 +863,24 @@
       "documentationKey": "when-it-fails/errors/thermal/thermal-protection-action-unverified",
       "tags": ["THERMAL", "FAIL_SAFE", "VERIFICATION_REQUIRED", "OPERATOR_ACTION_REQUIRED", "USER_VISIBLE"],
       "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
+    },
+    {
+      "id": "AFW_THM_0011",
+      "code": 1000011,
+      "name": "THERMALFALLBACKPROTECTIONACTIONFAILED",
+      "owner": "AFW",
+      "codePrefix": "THM",
+      "codeGroup": "THERMAL",
+      "primaryCategory": "THERMAL",
+      "categories": ["THERMAL", "GENERAL"],
+      "subcategories": ["FALLBACK_ACTION", "FAIL_SAFE"],
+      "title": "Thermal fallback protection action failed",
+      "message": "Thermal fallback protection action {fallbackAction} failed for {component} after {primaryAction} while handling {condition}.",
+      "defaultSeverity": "Critical",
+      "developerHint": "Verify the primary action result, fallback selection policy, fallback actuator or control path, command result, hardware state, remaining safe options, operator escalation, and evidence required before restart.",
+      "documentationKey": "when-it-fails/errors/thermal/thermal-fallback-protection-action-failed",
+      "tags": ["THERMAL", "FAIL_SAFE", "FALLBACK_FAILED", "OPERATOR_ACTION_REQUIRED", "USER_VISIBLE"],
+      "metadata": {"Count": 0, "IsEmpty": true, "Items": {}}
     }
   ]
 }
