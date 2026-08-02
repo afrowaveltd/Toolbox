@@ -2,7 +2,7 @@
 
 Thermal errors describe temperature-related states that can apply to computer hardware, batteries, power systems, motors, converters, servers, switchboards, industrial sensors, and general monitoring systems.
 
-The thermal family deliberately separates ordinary and critical upper limits, ordinary and critical lower limits, sensor validity, data freshness, excessive temperature change, redundant-sensor disagreement, confirmed protection-action failure, and an action whose outcome could not be verified. Applications must not infer that every warning requires an emergency stop, downgrade a critical boundary to an ordinary warning, treat invalid or stale data as current, confuse a fast trend with an absolute-limit breach, assume sensor disagreement identifies the faulty input, hide the triggering thermal condition, or treat an unknown protection result as either success or confirmed failure.
+The thermal family deliberately separates ordinary and critical upper limits, ordinary and critical lower limits, sensor validity, data freshness, excessive temperature change, redundant-sensor disagreement, confirmed protection-action failure, an action whose outcome could not be verified, and confirmed failure of an approved fallback response. Applications must not infer that every warning requires an emergency stop, downgrade a critical boundary to an ordinary warning, treat invalid or stale data as current, confuse a fast trend with an absolute-limit breach, assume sensor disagreement identifies the faulty input, hide the triggering thermal condition, treat an unknown protection result as either success or confirmed failure, or report fallback failure merely because a fallback was available or considered.
 
 ## Temperature limit exceeded
 
@@ -282,6 +282,49 @@ Do not automatically reissue the command. The first command may have completed e
 
 Clear this critical state only after the action or approved fallback is verified, the triggering thermal condition is controlled, and restart or return to normal operation is explicitly authorized. A later normal temperature or delayed acknowledgement alone may be insufficient when correlation and freshness cannot be established.
 
+## Thermal fallback protection action failed
+
+| Field | Value |
+|---|---|
+| ID | `AFW_THM_0011` |
+| Code | `1000011` |
+| Name | `THERMALFALLBACKPROTECTIONACTIONFAILED` |
+| Code group | `THERMAL` |
+| Primary category | `THERMAL` |
+| Default severity | `Critical` |
+| Documentation key | `when-it-fails/errors/thermal/thermal-fallback-protection-action-failed` |
+
+Use this definition when the application has already detected a thermal condition, evaluated the result of its primary protective response, selected an approved fallback according to policy, attempted that fallback, and obtained evidence that the fallback failed to reach its required result.
+
+This contract does not mean merely that a fallback was configured, available, recommended, or considered. It requires runtime evidence that the specific fallback was selected and attempted. The triggering thermal condition and the result of the primary action remain separate facts and should normally remain visible.
+
+### Message
+
+```text
+Thermal fallback protection action {fallbackAction} failed for {component} after {primaryAction} while handling {condition}.
+```
+
+Required message parameters:
+
+- `fallbackAction` — the approved fallback response that was selected and attempted;
+- `component` — the affected component, device, process, zone, or safe operational identifier;
+- `primaryAction` — the primary protective action whose failure or unverified result caused fallback evaluation;
+- `condition` — the triggering thermal condition, preferably represented by a stable error ID or name.
+
+Structured runtime data should preserve the triggering error, primary-action ID and result, fallback-selection reason, fallback command and correlation identifiers, target, attempt time, deadline, returned status, observed state, remaining approved options, operator escalation, and evidence required before restart. Sensitive command payloads, credentials, and raw control-channel data must not appear in user-facing text.
+
+### Developer guidance
+
+Verify the primary action result, fallback selection policy, fallback actuator or control path, command result, hardware state, remaining safe options, operator escalation, and evidence required before restart.
+
+Do not emit this definition when the primary action fails unless a distinct fallback was actually selected and attempted. Do not use it for a repeated attempt of the same primary command unless policy explicitly models that attempt as a separate fallback action.
+
+Failure of a fallback does not automatically prove that every possible protective option is exhausted. The application must evaluate only approved remaining actions and must not invent an unsafe third response. Conversely, absence of another automated fallback must not be treated as permission to continue normal operation.
+
+Automatic retries are not implied. A failed fallback may involve an actuator or state transition for which repetition is unsafe, destructive, or non-idempotent. Retry, alternate fallback, manual intervention, isolation, emergency stop, evacuation, and external escalation belong to the consuming application's safety policy.
+
+Clear this critical state only after a policy-approved protective result is independently verified, the triggering thermal condition is controlled, and restart or return to normal operation is explicitly authorized. A normal temperature sample alone does not prove that either the primary or fallback protection path is healthy.
+
 ## Choosing the correct definition
 
 Use `AFW_THM_0001` for an ordinary upper-limit breach and `AFW_THM_0002` for the critical upper boundary.
@@ -292,14 +335,16 @@ Use `AFW_THM_0005` for an excessive validated trend and `AFW_THM_0006` for redun
 
 Use `AFW_THM_0007` for an ordinary lower-limit breach and `AFW_THM_0008` for the critical lower boundary.
 
-Use `AFW_THM_0009` when evidence confirms that the selected protection action failed.
+Use `AFW_THM_0009` when evidence confirms that the selected primary protection action failed.
 
-Use `AFW_THM_0010` when the action was issued or initiated but its required result cannot be verified. Do not collapse an unknown outcome into either success or confirmed failure.
+Use `AFW_THM_0010` when the primary action was issued or initiated but its required result cannot be verified. Do not collapse an unknown outcome into either success or confirmed failure.
 
-More than one definition may legitimately apply at the same time. Measurement, validity, freshness, trend, disagreement, and threshold contracts describe thermal evidence. Protection-action contracts describe what happened after policy selected a response and therefore normally coexist with the triggering thermal error.
+Use `AFW_THM_0011` when policy selected and attempted a distinct fallback action and evidence confirms that this fallback also failed.
 
-Do not select definitions from severity text alone. The validated measurement, timestamp, comparison, configured threshold, selected policy action, command evidence, and verified resulting state are the relevant sources of truth.
+More than one definition may legitimately apply at the same time. Measurement, validity, freshness, trend, disagreement, and threshold contracts describe thermal evidence. Protection-action contracts describe what happened after policy selected a response and therefore normally coexist with the triggering thermal error. `AFW_THM_0011` may also coexist with `AFW_THM_0009` or `AFW_THM_0010` because primary and fallback outcomes are separate facts.
+
+Do not select definitions from severity text alone. The validated measurement, timestamp, comparison, configured threshold, selected policy action, command evidence, fallback-selection evidence, and verified resulting state are the relevant sources of truth.
 
 ## Humorous alternative messages
 
-Extremely unusual but valid values may eventually use restrained alternative wording. Such wording must never change the error ID, code, severity, categories, structured data, control flow, shutdown decision, restart policy, sensor-trust decision, data-freshness decision, thermal-trend decision, redundancy decision, low-temperature decision, critical low-temperature decision, protection-action decision, action-verification decision, or fail-safe policy. It is deliberately outside the current implementation slice.
+Extremely unusual but valid values may eventually use restrained alternative wording. Such wording must never change the error ID, code, severity, categories, structured data, control flow, shutdown decision, restart policy, sensor-trust decision, data-freshness decision, thermal-trend decision, redundancy decision, low-temperature decision, critical low-temperature decision, protection-action decision, action-verification decision, fallback-action decision, or fail-safe policy. It is deliberately outside the current implementation slice.
