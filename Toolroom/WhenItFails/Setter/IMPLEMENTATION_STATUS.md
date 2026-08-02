@@ -10,7 +10,9 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The `AFW_THM_0012` slice is complete. `THERMALFALLBACKPROTECTIONACTIONUNVERIFIED` represents an approved fallback action that was selected and initiated, but whose required result cannot be established from trustworthy evidence. It is neither confirmed success nor confirmed failure and deliberately does not carry the `FALLBACK_FAILED` tag.
 
-The current user-verified regression baseline is fully green:
+The runtime/public-API audit has now started with the bootstrap payload surface. A focused contract test protects the default public behavior of `JsonsBootstrapPayload`, `JsonsBootstrapFileResult`, and `JsonsTemplateFile`.
+
+The latest fully verified regression baseline remains:
 
 - complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 passed, 0 failed, 0 skipped**;
 - complete `WhenItFails.Tests`: **704 passed, 0 failed, 0 skipped**.
@@ -30,7 +32,7 @@ Result:
 - **0 skipped**;
 - **1,241 total**.
 
-The complete core test run:
+The last complete core test run:
 
 ```bash
 dotnet test WhenItFails.Tests
@@ -42,10 +44,28 @@ Result:
 - **0 failed**;
 - **0 skipped**.
 
-Other verified gates for this slice:
+The first runtime/public-API audit slice was verified with:
+
+```bash
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~JsonsBootstrapPayloadContractTests
+```
+
+Result:
+
+- **4 passed**;
+- **0 failed**;
+- **0 skipped**.
+
+The focused bootstrap payload contract verifies:
+
+- new `JsonsBootstrapPayload` instances expose empty string paths and false directory-state flags;
+- `Files` is non-null, initially empty, mutable, and returns the same collection instance;
+- new `JsonsBootstrapFileResult` instances expose safe empty/default values;
+- new `JsonsTemplateFile` instances expose safe empty/default values.
+
+Other verified gates for the completed thermal slice:
 
 - focused `ThermalFallbackProtectionActionUnverifiedCatalogTests`: **1 passed, 0 failed, 0 skipped**;
-- expected TDD red checkpoint before adding `AFW_THM_0012`: **0 passed, 1 failed**, catalog item not found;
 - catalog validation after `AFW_THM_0012`: user-verified green;
 - documentation-key validation: user-verified green;
 - Markdown-link validation: user-verified green;
@@ -113,10 +133,14 @@ Thermal easter eggs are explicitly deferred. Alternative wording must never alte
 
 ## Recommended next step
 
-Resume the runtime/public-API audit rather than adding another thermal definition automatically.
+Run the complete core suite after the new bootstrap payload contract:
 
-Select one demonstrated missing runtime contract, add or update its focused test first, implement the narrowest safe correction, run the focused test, then run the complete core and Setter suites. Do not increase the thermal catalog count without a concrete operational state that is not already represented.
+```bash
+dotnet test WhenItFails.Tests
+```
+
+If it remains green, record the new exact total and continue the runtime/public-API audit with the next demonstrated unprotected public surface. Do not modify the bootstrap implementation unless a focused test exposes an actual contract defect.
 
 ## Last completed change
 
-`AFW_THM_0012` is implemented, documented, catalog-validated, and fully regression verified. The complete core suite is green with **704 passed, 0 failed, 0 skipped**, and the complete Setter suite is green with **1,241 passed, 0 failed, 0 skipped**.
+Added `WhenItFails.Tests/Bootstrap/JsonsBootstrapPayloadContractTests.cs` and verified all **4 focused tests** green. The tests establish the public default-value and collection-stability contracts for the bootstrap payload types without changing runtime implementation.
