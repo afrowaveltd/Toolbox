@@ -8,9 +8,9 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit has started with the bootstrap payload surface. Direct contract tests now protect `JsonsBootstrapPayload`, `JsonsBootstrapFileResult`, and `JsonsTemplateFile`.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit now protects the bootstrap payload DTOs and `ErrorDescriptorRequest`.
 
-The current user-verified regression baseline is fully green:
+The latest fully verified complete regression baseline is:
 
 - complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 passed, 0 failed, 0 skipped**;
 - complete `WhenItFails.Tests`: **708 passed, 0 failed, 0 skipped**.
@@ -33,7 +33,7 @@ dotnet test WhenItFails.Tests
 
 Result: **708 passed, 0 failed, 0 skipped**.
 
-The completed bootstrap public-contract slice was verified with:
+Completed runtime/public-API focused checkpoints:
 
 ```bash
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~JsonsBootstrapPayloadContractTests
@@ -41,7 +41,13 @@ dotnet test WhenItFails.Tests --filter FullyQualifiedName~JsonsBootstrapPayloadC
 
 Result: **4 passed, 0 failed, 0 skipped**.
 
-The contract verifies safe default values for all three bootstrap DTOs and guarantees that `JsonsBootstrapPayload.Files` is non-null, initially empty, mutable, and stable across repeated access.
+```bash
+dotnet test WhenItFails.Tests --filter FullyQualifiedName~ErrorDescriptorRequestContractTests
+```
+
+Result: **2 passed, 0 failed, 0 skipped**.
+
+The `ErrorDescriptorRequest` contract verifies safe null defaults and exact round-trip storage of all eight public properties: `ErrorId`, `ErrorName`, `Code`, `Title`, `Message`, `Severity`, `DeveloperHint`, and `DocumentationKey`.
 
 Other verified gates for the completed thermal slice:
 
@@ -98,12 +104,12 @@ Thermal easter eggs are explicitly deferred. Alternative wording must never alte
 
 ## Recommended next step
 
-Continue the runtime/public-API audit with `ErrorDescriptorRequest`, the public request object used to select an error by ID, name, or numeric code and optionally override selected descriptor fields.
+Continue the runtime/public-API audit with `ErrorCategoryCatalogProviderPayload`.
 
-Add a focused contract test first. Verify safe null defaults and exact round-trip storage of every public property. Do not change runtime implementation unless the focused test exposes an actual defect.
+Add a focused contract test first. Verify that a new payload exposes null defaults for its required reference properties and that assigned `Document` and `ValidationResult` instances are preserved exactly. Do not change provider implementation unless the focused test exposes an actual defect.
 
 After the focused test passes, run the complete core suite and record the exact total.
 
 ## Last completed change
 
-The first runtime/public-API audit slice is complete. `JsonsBootstrapPayloadContractTests` passed all **4 focused tests**, and the complete core suite then passed **708 tests, 0 failed, 0 skipped**.
+`ErrorDescriptorRequestContractTests` passed all **2 focused tests**. The public request DTO now has direct regression coverage for safe defaults and exact property storage. The latest complete core baseline remains **708 passed, 0 failed, 0 skipped** pending the next full regression run.
