@@ -10,7 +10,7 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The latest user-verified Setter test run reported **1,241 passed, 0 failed, 0 skipped**. The complete Setter suite is green.
 
-The complete `WhenItFails.Tests` core suite is user-verified green with **701 passed, 0 failed, 0 skipped** before the new intentionally red action-verification contract.
+The complete `WhenItFails.Tests` core suite is user-verified green with **701 passed, 0 failed, 0 skipped** before the new action-verification catalog test was added.
 
 The runtime/public-API audit has verified defensive handling of provider failures, null tasks, null responses, null payloads, runtime-null issue collections and elements, cross-validation envelopes, successful-provider diagnostic aggregation, status normalization, and required inner members of `ErrorCatalogProviderPayload`.
 
@@ -27,14 +27,15 @@ Recently verified focused contracts include:
 - `TemperatureBelowMinimumLimitCatalogTests`: **1 user-verified green**.
 - `CriticalTemperatureBelowMinimumLimitCatalogTests`: **1 user-verified green**.
 - `ThermalProtectionActionFailedCatalogTests`: **1 user-verified green**.
+- `ThermalProtectionActionUnverifiedCatalogTests`: **1 user-verified expected red**, reporting that `THERMALPROTECTIONACTIONUNVERIFIED` was not found.
 - `DefaultJsonsTemplateProviderTests.GetTemplateFiles_ShouldIncludeThermalCatalogAndRevisedOwnerRanges`: **1 user-verified green**.
 - Complete catalog validation after adding `AFW_THM_0009`: **0 errors, 0 warnings, 0 information issues**.
-- Complete `WhenItFails.Tests`: **701 user-verified green, 0 failed, 0 skipped** before the intentional red test.
+- Complete `WhenItFails.Tests`: **701 user-verified green, 0 failed, 0 skipped** before the latest test addition.
 - Complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 user-verified green, 0 failed, 0 skipped**.
 
 The thermal domain uses category `THERMAL`, code group `THERMAL`, prefix `THM`, and range `1000000–1099999`.
 
-The first nine thermal definitions are complete and verified:
+The first nine thermal definitions remain complete and verified:
 
 - `AFW_THM_0001` / `1000001` / `TEMPERATURELIMITEXCEEDED` / `Warning`;
 - `AFW_THM_0002` / `1000002` / `CRITICALTEMPERATURELIMITEXCEEDED` / `Critical`;
@@ -46,7 +47,7 @@ The first nine thermal definitions are complete and verified:
 - `AFW_THM_0008` / `1000008` / `CRITICALTEMPERATUREBELOWMINIMUMLIMIT` / `Critical`;
 - `AFW_THM_0009` / `1000009` / `THERMALPROTECTIONACTIONFAILED` / `Critical`.
 
-A standalone TDD contract now defines the planned tenth thermal state:
+The tenth thermal definition is now present in the authoritative catalog and requires user verification:
 
 - ID `AFW_THM_0010`;
 - code `1000010`;
@@ -59,11 +60,9 @@ A standalone TDD contract now defines the planned tenth thermal state:
 - tags `THERMAL`, `FAIL_SAFE`, `VERIFICATION_REQUIRED`, `OPERATOR_ACTION_REQUIRED`, and `USER_VISIBLE`;
 - documentation key `when-it-fails/errors/thermal/thermal-protection-action-unverified`.
 
-This contract represents an indeterminate outcome after a protection command was issued or initiated but completion could not be verified. It must remain distinct from `THERMALPROTECTIONACTIONFAILED`, which requires evidence of failure. An unverified outcome must not be silently treated as success, confirmed failure, or authorization to restart.
+This contract represents an indeterminate outcome after a protection command was issued or initiated but completion could not be verified. It remains distinct from `THERMALPROTECTIONACTIONFAILED`, which requires evidence of failure. An unverified outcome must not be silently treated as success, confirmed failure, or authorization to restart.
 
-The production catalog has not yet been changed. The focused test is expected to be red because `THERMALPROTECTIONACTIONUNVERIFIED` does not exist yet.
-
-Because bootstrap templates are generated from embedded authoritative catalogs, completed thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
+Because bootstrap templates are generated from embedded authoritative catalogs, this definition also flows into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
 
 The authoritative owner catalog continues to use non-overlapping ranges:
 
@@ -74,29 +73,23 @@ The authoritative owner catalog continues to use non-overlapping ranges:
 
 ## Focused verification
 
-Run the new action-verification TDD contract:
+Run the action-verification contract:
 
 ```bash
 dotnet test WhenItFails.Tests --filter FullyQualifiedName~ThermalProtectionActionUnverifiedCatalogTests
 ```
 
-Expected result: **1 red test** reporting that catalog item `THERMALPROTECTIONACTIONUNVERIFIED` was not found. Do not add the production definition until this exact red gate is user-verified.
+Expected result: **1 green test**.
 
-The complete core baseline before the intentional red test is:
-
-```bash
-dotnet test WhenItFails.Tests
-```
-
-Latest user-verified result: **701 passed, 0 failed, 0 skipped**.
-
-The complete catalog workspace remains user-verified green:
+Then validate the complete catalog workspace:
 
 ```bash
 dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 ```
 
-Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
+Expected result: **0 errors, 0 warnings, and 0 information issues**.
+
+After both focused gates are green, update the thermal documentation and rerun the complete core project. The next full run should contain **702 tests**.
 
 The complete Setter suite remains available through:
 
@@ -150,18 +143,18 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Run `ThermalProtectionActionUnverifiedCatalogTests` and confirm the exact missing-item failure. Do not change the production catalog until that expected red gate is user-verified.
+Pull the latest commits, rerun `ThermalProtectionActionUnverifiedCatalogTests`, and run `Setter validate .`. Do not update thermal documentation or add another thermal definition until both gates are green.
 
 ## Last completed change
 
-The `AFW_THM_0009` increment remains closed at **701/701 green core tests**. A standalone red contract now distinguishes an unverified protection-action outcome from confirmed action failure; no production catalog data has been changed.
+The expected red action-verification contract was user-verified with the exact missing-item failure. `AFW_THM_0010` is now added to `Jsons/WhenItFails/errors.en.json` as a distinct indeterminate protection-action outcome, without changing the confirmed-failure contract or the underlying detected thermal conditions.
 
 Commits:
 
 ```text
-f9eaeb99e8bd49d512e301456253c06ea6faa9e8
-Record green thermal protection action core gate
-
 7b8c651b64f2ae4fc0547a474b9f4ed892c4b8d0
 Add thermal protection action unverified catalog contract
+
+f3ea9bb6dc0b7312df63f96b3220fd27728f5825
+Add unverified thermal protection action catalog error
 ```
