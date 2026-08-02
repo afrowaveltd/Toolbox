@@ -13,7 +13,7 @@ The `AFW_THM_0012` slice is complete. The runtime/public-API audit now directly 
 The current user-verified complete regression baseline is fully green:
 
 - complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 passed, 0 failed, 0 skipped**;
-- complete `WhenItFails.Tests`: **720 passed, 0 failed, 0 skipped**.
+- complete `WhenItFails.Tests`: **727 passed, 0 failed, 0 skipped**.
 
 ## Verification status
 
@@ -31,7 +31,7 @@ The latest complete core test run:
 dotnet test WhenItFails.Tests
 ```
 
-Result: **720 passed, 0 failed, 0 skipped**.
+Result: **727 passed, 0 failed, 0 skipped**.
 
 Completed runtime/public-API focused checkpoints:
 
@@ -102,14 +102,12 @@ Thermal easter eggs are explicitly deferred. Alternative wording must never alte
 
 ## Recommended next step
 
-Run the complete core suite after the completed `CatalogProviderPipeline` focused block:
+Continue `CatalogProviderPipeline` failure-path coverage with the loader fallback contract.
 
-```bash
-dotnet test WhenItFails.Tests
-```
+Verify that a failed loader response with no issues and no non-whitespace message uses the configured fallback load code and fallback load message, preserves the loader status, and short-circuits all later delegates. Do not change production code unless the focused test exposes an actual defect.
 
-Record the exact new total. If green, continue the runtime/public-API audit with the next demonstrated unprotected surface rather than adding catalog entries automatically.
+After this focused test passes, inspect the next demonstrated unprotected runtime surface and keep the complete **727-test** core baseline as the reference point.
 
 ## Last completed change
 
-`CatalogProviderPipelineTests` passed **5 focused tests**. The shared orchestration now has direct coverage for the successful flow, loader-failure propagation, successful-load/null-document rejection, validation-failure short-circuiting, and cancellation before any delegate runs. The latest complete core baseline remains **720 passed, 0 failed, 0 skipped** pending the new full regression run.
+The completed `CatalogProviderPipeline` focused block passed all **5 tests**, and the subsequent complete core regression passed **727 tests, 0 failed, 0 skipped**.
