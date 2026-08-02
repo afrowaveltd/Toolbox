@@ -2,7 +2,7 @@
 
 Thermal errors describe temperature-related states that can apply to computer hardware, batteries, power systems, motors, converters, servers, switchboards, industrial sensors, and general monitoring systems.
 
-The thermal family deliberately separates ordinary and critical upper limits, ordinary and critical lower limits, sensor validity, data freshness, excessive temperature change, redundant-sensor disagreement, and failure of an application-selected thermal protection action. Applications must not infer that every warning requires an emergency stop, downgrade a critical boundary to an ordinary warning, treat invalid or stale sensor data as a current temperature, confuse a fast trend with an already-crossed absolute limit, assume that disagreement identifies which sensor is wrong, or hide the original thermal condition when its protective response fails.
+The thermal family deliberately separates ordinary and critical upper limits, ordinary and critical lower limits, sensor validity, data freshness, excessive temperature change, redundant-sensor disagreement, confirmed protection-action failure, and an action whose outcome could not be verified. Applications must not infer that every warning requires an emergency stop, downgrade a critical boundary to an ordinary warning, treat invalid or stale data as current, confuse a fast trend with an absolute-limit breach, assume sensor disagreement identifies the faulty input, hide the triggering thermal condition, or treat an unknown protection result as either success or confirmed failure.
 
 ## Temperature limit exceeded
 
@@ -16,7 +16,7 @@ The thermal family deliberately separates ordinary and critical upper limits, or
 | Default severity | `Warning` |
 | Documentation key | `when-it-fails/errors/thermal/temperature-limit-exceeded` |
 
-Use this definition when a reported temperature is syntactically and structurally valid but exceeds the configured safe operating limit.
+Use this definition when a trusted, current temperature exceeds the configured ordinary safe operating limit but has not crossed the critical upper boundary.
 
 ### Message
 
@@ -24,19 +24,11 @@ Use this definition when a reported temperature is syntactically and structurall
 The reported temperature {temperature}{unit} exceeds the configured safe limit of {limit}{unit}.
 ```
 
-Required message parameters:
-
-- `temperature` — the reported numeric temperature;
-- `unit` — the unit suffix used consistently for the reported value and limit;
-- `limit` — the configured safe operating limit.
-
-The application should preserve the numeric values and unit in structured runtime data or metadata when available. Message formatting must not replace structured values as the source of truth.
+Required parameters are `temperature`, `unit`, and `limit`. Preserve their numeric values and unit in structured runtime data.
 
 ### Developer guidance
 
-Verify the sensor reading, unit conversion, cooling path, workload, configured limits, and shutdown policy.
-
-The safe limit is a configured operational boundary, not necessarily the device's critical or shutdown temperature. Crossing it can justify throttling, reduced workload, increased cooling, operator notification, or closer monitoring without necessarily requiring immediate shutdown.
+Verify the sensor reading, unit conversion, cooling path, workload, configured limits, and shutdown policy. The catalog does not itself throttle, cool, stop equipment, or authorize restart.
 
 ## Critical temperature limit exceeded
 
@@ -50,7 +42,7 @@ The safe limit is a configured operational boundary, not necessarily the device'
 | Default severity | `Critical` |
 | Documentation key | `when-it-fails/errors/thermal/critical-temperature-limit-exceeded` |
 
-Use this definition when a reported temperature exceeds the configured critical shutdown limit. It represents a boundary at which continued operation may be unsafe or may cause hardware damage, data loss, fire risk, battery failure, or another system-specific hazardous condition.
+Use this definition when a trusted, current temperature exceeds the configured critical shutdown limit and continued operation may cause damage or create an unsafe condition.
 
 ### Message
 
@@ -58,19 +50,11 @@ Use this definition when a reported temperature exceeds the configured critical 
 The reported temperature {temperature}{unit} exceeds the configured critical shutdown limit of {limit}{unit}.
 ```
 
-Required message parameters:
-
-- `temperature` — the reported numeric temperature;
-- `unit` — the unit suffix used consistently for the reported value and limit;
-- `limit` — the configured critical shutdown limit.
-
-Structured runtime data should preserve the measured value, unit, configured limit, sensor identity, affected component, timestamp, and shutdown-policy result when available and safe to expose.
+Required parameters are `temperature`, `unit`, and `limit`.
 
 ### Developer guidance
 
-Verify the sensor reading and unit conversion, activate the configured thermal shutdown policy, and inspect cooling, workload, and hardware before restart.
-
-The definition describes the critical state; it does not itself stop hardware, terminate a process, disconnect power, or authorize restart. Those actions belong to the consuming application's safety policy and platform-specific control layer.
+Verify the reading and conversion, activate the configured critical-temperature policy, and inspect cooling, workload, and hardware before restart. The definition describes the condition; the consuming application owns shutdown and restart decisions.
 
 ## Temperature sensor reading invalid
 
@@ -84,9 +68,7 @@ The definition describes the critical state; it does not itself stop hardware, t
 | Default severity | `Error` |
 | Documentation key | `when-it-fails/errors/thermal/temperature-sensor-reading-invalid` |
 
-Use this definition when a sensor reports a value that is unavailable, malformed, physically implausible, outside its supported range, equal to a known sentinel value, or otherwise unreliable because of its content or acquisition state.
-
-This contract does not say that the monitored component is hot, cold, safe, or unsafe. It says that the application does not have a trustworthy temperature value from that sensor. A structurally valid but outdated measurement belongs to `TEMPERATUREREADINGSTALE` instead.
+Use this definition when a temperature value is unavailable, malformed, physically implausible, outside the sensor range, a known sentinel, or otherwise untrustworthy.
 
 ### Message
 
@@ -94,17 +76,11 @@ This contract does not say that the monitored component is hot, cold, safe, or u
 Temperature sensor {sensor} reported an invalid or unreliable reading.
 ```
 
-Required message parameter:
-
-- `sensor` — a stable sensor name, channel, identifier, or other safe label identifying the untrusted input.
-
-Structured runtime data should preserve the raw reading, sensor identifier, expected unit, acquisition timestamp, source protocol, validation reason, and fallback availability when safe to expose.
+Required parameter `sensor` identifies the affected input.
 
 ### Developer guidance
 
-Verify sensor availability, wiring or bus communication, raw values, unit conversion, stale-data handling, sentinel values, and the configured fail-safe policy.
-
-Do not silently convert an invalid reading into zero, the last known value, an average, a safe default, or a fabricated temperature unless an explicit policy requires that fallback. Any substituted value must remain distinguishable from a current validated measurement.
+Verify sensor availability, wiring or bus communication, raw values, unit conversion, sentinel handling, and fail-safe policy. Do not silently turn an invalid value into zero, a cached value, an average, or a fabricated safe value.
 
 ## Temperature reading stale
 
@@ -118,9 +94,7 @@ Do not silently convert an invalid reading into zero, the last known value, an a
 | Default severity | `Error` |
 | Documentation key | `when-it-fails/errors/thermal/temperature-reading-stale` |
 
-Use this definition when the temperature value may be structurally valid and plausible, but its age exceeds the maximum allowed by the consuming application's freshness policy.
-
-A stale reading is not automatically an invalid numeric value and does not prove that a thermal limit was crossed. It means that the system no longer has sufficiently recent evidence to treat the value as current.
+Use this definition when the available value may be plausible but its age exceeds the configured freshness limit.
 
 ### Message
 
@@ -128,19 +102,11 @@ A stale reading is not automatically an invalid numeric value and does not prove
 Temperature reading from sensor {sensor} is stale; its age of {age} exceeds the configured maximum age of {maxAge}.
 ```
 
-Required message parameters:
-
-- `sensor` — the sensor or channel whose measurement is stale;
-- `age` — the calculated age of the available reading;
-- `maxAge` — the configured maximum acceptable age.
-
-`age` and `maxAge` must use the same unambiguous representation. Prefer structured durations or a documented invariant duration format over locale-dependent free text.
+Required parameters are `sensor`, `age`, and `maxAge`. The two durations must use the same unambiguous representation.
 
 ### Developer guidance
 
-Verify sensor polling, timestamps, clock synchronization, transport delays, buffering, cache invalidation, and the configured stale-data fail-safe policy.
-
-Do not silently refresh an old timestamp or present a cached value as current merely because its number looks plausible. Reusing the last known reading is an application-policy decision and must preserve the fact that the value is stale.
+Verify polling, timestamps, clock synchronization, transport delays, buffering, and cache invalidation. Do not refresh an old timestamp or present cached data as current.
 
 ## Temperature rate of change exceeded
 
@@ -154,9 +120,7 @@ Do not silently refresh an old timestamp or present a cached value as current me
 | Default severity | `Warning` |
 | Documentation key | `when-it-fails/errors/thermal/temperature-rate-of-change-exceeded` |
 
-Use this definition when trusted, current samples show a rate of change whose magnitude exceeds the maximum allowed by the configured thermal-trend policy.
-
-The current absolute temperature may still be within all configured limits. This contract describes the trend itself, not proof that an absolute threshold has already been crossed.
+Use this definition when trusted, current samples exceed the maximum temperature-change rate selected by policy. The absolute temperature may still be within all configured limits.
 
 ### Message
 
@@ -164,20 +128,11 @@ The current absolute temperature may still be within all configured limits. This
 Temperature from sensor {sensor} changed at {rate}{unitPerTime}, exceeding the configured maximum rate of {maxRate}{unitPerTime}.
 ```
 
-Required message parameters:
-
-- `sensor` — the sensor or channel used for the trend calculation;
-- `rate` — the calculated signed or absolute rate according to policy;
-- `unitPerTime` — the shared temperature-per-time unit, such as `°C/s`;
-- `maxRate` — the configured maximum permitted rate in the same unit.
-
-The application must define whether the policy evaluates heating, cooling, or the absolute magnitude of either direction. Message formatting must not silently change that calculation.
+Required parameters are `sensor`, `rate`, `unitPerTime`, and `maxRate`.
 
 ### Developer guidance
 
-Verify sampling intervals, timestamp order, unit conversion, filtering, workload changes, cooling response, and the configured thermal-trend policy.
-
-A short interval can amplify noise into an unrealistic rate. Validate timestamp order, minimum observation interval, sample quality, smoothing rules, and whether the calculation spans a sensor reset or unit change.
+Verify sampling intervals, timestamp order, unit conversion, filtering, workload changes, cooling response, and whether the policy evaluates heating, cooling, or absolute magnitude.
 
 ## Temperature sensor disagreement
 
@@ -191,9 +146,7 @@ A short interval can amplify noise into an unrealistic rate. Validate timestamp 
 | Default severity | `Warning` |
 | Documentation key | `when-it-fails/errors/thermal/temperature-sensor-disagreement` |
 
-Use this definition when two sensors expected to agree report trusted, current, unit-compatible values whose difference exceeds the maximum permitted by the configured redundancy policy.
-
-This condition does not prove that either sensor is invalid. A real thermal gradient, different placement, response lag, calibration drift, timestamp skew, or a developing sensor fault can all produce disagreement.
+Use this definition when trusted, current, comparable sensor values differ by more than the configured redundancy tolerance.
 
 ### Message
 
@@ -201,19 +154,11 @@ This condition does not prove that either sensor is invalid. A real thermal grad
 Temperature sensors {sensorA} and {sensorB} disagree by {difference}{unit}, exceeding the configured maximum difference of {maxDifference}{unit}.
 ```
 
-Required message parameters:
-
-- `sensorA` — the first sensor or channel;
-- `sensorB` — the second sensor or channel;
-- `difference` — the calculated difference;
-- `unit` — the common temperature unit;
-- `maxDifference` — the configured maximum permitted difference.
+Required parameters are `sensorA`, `sensorB`, `difference`, `unit`, and `maxDifference`.
 
 ### Developer guidance
 
-Verify placement, calibration, sampling timestamps, unit conversion, thermal gradients, wiring or transport integrity, and the configured redundancy policy.
-
-Do not automatically mark one sensor as failed merely because two readings disagree. Selecting a preferred sensor, voting, entering degraded mode, or stopping operation belongs to the application's redundancy and fail-safe policy.
+Verify placement, calibration, timestamps, units, thermal gradients, wiring, and transport. Disagreement alone does not identify which sensor is wrong; source selection and voting belong to application policy.
 
 ## Temperature below minimum limit
 
@@ -227,9 +172,7 @@ Do not automatically mark one sensor as failed merely because two readings disag
 | Default severity | `Warning` |
 | Documentation key | `when-it-fails/errors/thermal/temperature-below-minimum-limit` |
 
-Use this definition when a trusted, current temperature is below the configured minimum operating limit for the monitored component, material, battery, fluid, process, or environment.
-
-This condition is the lower-bound counterpart to the ordinary upper safe-limit warning. It does not mean that the sensor is invalid and does not automatically imply emergency shutdown.
+Use this definition when a trusted, current temperature is below the ordinary minimum operating limit but has not crossed the critical lower boundary.
 
 ### Message
 
@@ -237,17 +180,11 @@ This condition is the lower-bound counterpart to the ordinary upper safe-limit w
 The reported temperature {temperature}{unit} is below the configured minimum operating limit of {limit}{unit}.
 ```
 
-Required message parameters:
-
-- `temperature` — the reported numeric temperature;
-- `unit` — the unit suffix used for the reading and limit;
-- `limit` — the configured minimum operating limit.
+Required parameters are `temperature`, `unit`, and `limit`.
 
 ### Developer guidance
 
-Verify the sensor reading, unit conversion, ambient conditions, heating path, warm-up requirements, configured limits, and low-temperature operating policy.
-
-A low-temperature condition can justify delayed startup, reduced load, inhibited charging, preheating, viscosity checks, condensation precautions, notification, or degraded operation. The catalog does not prescribe the action and does not itself start a heater, stop a process, or authorize restart.
+Verify the reading, units, ambient conditions, heating path, warm-up requirements, and low-temperature policy. Delayed startup, reduced load, inhibited charging, preheating, or degraded operation remain application decisions.
 
 ## Critical temperature below minimum limit
 
@@ -261,9 +198,7 @@ A low-temperature condition can justify delayed startup, reduced load, inhibited
 | Default severity | `Critical` |
 | Documentation key | `when-it-fails/errors/thermal/critical-temperature-below-minimum-limit` |
 
-Use this definition when a trusted, current temperature falls below the configured critical minimum operating limit. Continued operation, charging, fluid circulation, movement, startup, or another activity may cause damage or create an unsafe condition.
-
-The critical state does not mean that the sensor is invalid. It means that a trusted value crossed the application's critical lower threshold.
+Use this definition when a trusted, current temperature crosses the configured critical lower boundary and continued operation or another activity may cause damage or create an unsafe condition.
 
 ### Message
 
@@ -271,17 +206,11 @@ The critical state does not mean that the sensor is invalid. It means that a tru
 The reported temperature {temperature}{unit} is below the configured critical minimum operating limit of {limit}{unit}.
 ```
 
-Required message parameters:
-
-- `temperature` — the reported numeric temperature;
-- `unit` — the unit suffix used for the reading and critical minimum;
-- `limit` — the configured critical minimum operating limit.
+Required parameters are `temperature`, `unit`, and `limit`.
 
 ### Developer guidance
 
-Verify the sensor reading and unit conversion, activate the configured critical low-temperature policy, and inspect ambient conditions, heating, fluids, batteries, and hardware before restart.
-
-The definition describes the critical condition; it does not itself stop equipment, isolate a battery, inhibit charging, start a heater, manipulate fluid, terminate a process, or authorize restart.
+Verify the reading and conversion, activate the configured critical low-temperature policy, and inspect ambient conditions, heating, fluids, batteries, and hardware before restart. The catalog does not itself stop equipment, isolate a battery, start a heater, or authorize restart.
 
 ## Thermal protection action failed
 
@@ -295,9 +224,9 @@ The definition describes the critical condition; it does not itself stop equipme
 | Default severity | `Critical` |
 | Documentation key | `when-it-fails/errors/thermal/thermal-protection-action-failed` |
 
-Use this definition when an application has already detected a thermal condition, selected a protective response according to its policy, attempted that response, and could not complete or verify it.
+Use this definition when a thermal condition was detected, a concrete protective action was selected and attempted, and evidence shows that the action failed, was rejected, timed out as defined by policy, or did not reach its required result.
 
-The original thermal condition remains valid and should normally be reported alongside this failure. For example, a critical high-temperature condition does not disappear merely because the shutdown command failed. This contract records the second fact: the selected response did not reach its required result.
+The triggering thermal condition remains valid and should normally be reported alongside this failure.
 
 ### Message
 
@@ -305,52 +234,72 @@ The original thermal condition remains valid and should normally be reported alo
 Thermal protection action {action} failed for {component} while handling {condition}.
 ```
 
-Required message parameters:
-
-- `action` — the concrete protection action selected by the application, such as shutdown, workload reduction, charging inhibition, battery isolation, heater activation, valve movement, or operator escalation;
-- `component` — the affected component, device, process, zone, or other safe operational identifier;
-- `condition` — the triggering thermal condition, preferably represented by a stable error ID or name rather than free-form text alone.
-
-Structured runtime data should preserve the triggering error ID and code, selected action, command or actuator target, request timestamp, completion deadline, returned status, exception or provider code, observed hardware state, retry count, fallback result, operator escalation state, and evidence required before restart. Sensitive command payloads, credentials, network details, and raw hardware responses must not be copied into user-facing text.
+Required parameters are `action`, `component`, and `condition`.
 
 ### Developer guidance
 
-Verify the selected protection policy, actuator or control path, permissions, command result, hardware state, fallback action, operator escalation, and evidence required before restart.
+Verify the selected policy, actuator or control path, permissions, command result, hardware state, fallback action, operator escalation, and evidence required before restart. Do not emit this contract merely because a threshold was crossed, and do not replace the triggering thermal error with it.
 
-Do not emit this definition merely because a thermal threshold was crossed. It applies only after a specific protection action was selected and then failed, timed out, was rejected, or could not be verified. A policy decision not to shut down is not a shutdown failure.
+Automatic retries are not implied. Repeating an actuator command can be unsafe or non-idempotent. Retry timing, fallback, independent state verification, and escalation belong to application policy.
 
-Do not replace the triggering thermal error with this definition. Preserve both contracts so diagnostics can answer two separate questions: what thermal condition occurred, and why the intended response did not protect the system.
+## Thermal protection action unverified
 
-The catalog does not prescribe automatic retries. Repeating an actuator command can itself be unsafe, destructive, or misleading. Retry count, timing, idempotency, fallback actions, independent state verification, and escalation belong to the consuming application's safety policy.
+| Field | Value |
+|---|---|
+| ID | `AFW_THM_0010` |
+| Code | `1000010` |
+| Name | `THERMALPROTECTIONACTIONUNVERIFIED` |
+| Code group | `THERMAL` |
+| Primary category | `THERMAL` |
+| Default severity | `Critical` |
+| Documentation key | `when-it-fails/errors/thermal/thermal-protection-action-unverified` |
 
-A successful command acknowledgement is not always proof that the physical action completed. Safety-sensitive consumers should verify the resulting state through an independent signal when available. Until completion is verified, the system should not infer that shutdown, isolation, cooling, heating, throttling, or another protection is active.
+Use this definition when a thermal protection command was issued or initiated, but the application cannot obtain trustworthy evidence that the required physical or logical result completed. Examples include a missing acknowledgement, expired verification deadline, stale actuator telemetry, lost correlation, contradictory feedback, or an unavailable independent state signal.
 
-Clearing this critical error normally requires evidence that the selected action or approved fallback completed, the triggering thermal condition is controlled, and restart or return to normal operation has been explicitly authorized by policy. A later normal temperature alone does not prove that the protection path is healthy.
+This is an indeterminate outcome, not confirmed success and not confirmed failure. Use `THERMALPROTECTIONACTIONFAILED` only when evidence establishes failure. The triggering thermal condition remains visible in either case.
+
+### Message
+
+```text
+Thermal protection action {action} for {component} could not be verified while handling {condition}.
+```
+
+Required message parameters:
+
+- `action` — the concrete protection action whose result is unknown;
+- `component` — the affected component, device, process, zone, or safe operational identifier;
+- `condition` — the triggering thermal condition, preferably represented by a stable error ID or name.
+
+Structured runtime data should preserve the triggering error, command and correlation identifiers, target, request time, acknowledgement state, verification deadline, last trustworthy telemetry, feedback source, retry count, fallback result, operator escalation, and the evidence required before restart. Sensitive command payloads and credentials must not appear in user-facing text.
+
+### Developer guidance
+
+Verify command delivery, acknowledgement, actuator feedback, telemetry freshness, correlation identifiers, timeout policy, fallback action, operator escalation, and evidence required before restart.
+
+Do not mark the action successful merely because the command was accepted or transmitted. Command acceptance proves only that a request entered some part of the control path. Where safety matters, completion should be verified from the resulting state or another policy-approved independent signal.
+
+Do not automatically reissue the command. The first command may have completed even though its acknowledgement was lost, so an uncontrolled retry can repeat a destructive or non-idempotent action. Retry, reconciliation, fallback, and manual intervention belong to application policy.
+
+Clear this critical state only after the action or approved fallback is verified, the triggering thermal condition is controlled, and restart or return to normal operation is explicitly authorized. A later normal temperature or delayed acknowledgement alone may be insufficient when correlation and freshness cannot be established.
 
 ## Choosing the correct definition
 
-Use `AFW_THM_0001` when a trusted current temperature crosses the ordinary upper limit but not the critical upper limit.
+Use `AFW_THM_0001` for an ordinary upper-limit breach and `AFW_THM_0002` for the critical upper boundary.
 
-Use `AFW_THM_0002` when a trusted current temperature crosses the critical upper boundary and emergency policy must be evaluated.
+Use `AFW_THM_0003` when the value itself is untrustworthy and `AFW_THM_0004` when a plausible value is too old.
 
-Use `AFW_THM_0003` when the sensor value itself cannot be trusted.
+Use `AFW_THM_0005` for an excessive validated trend and `AFW_THM_0006` for redundant-sensor disagreement.
 
-Use `AFW_THM_0004` when an otherwise plausible value is too old to be treated as current.
+Use `AFW_THM_0007` for an ordinary lower-limit breach and `AFW_THM_0008` for the critical lower boundary.
 
-Use `AFW_THM_0005` when trusted current samples exceed the configured temperature-change rate.
+Use `AFW_THM_0009` when evidence confirms that the selected protection action failed.
 
-Use `AFW_THM_0006` when trusted comparable sensors disagree beyond the redundancy tolerance and the disagreement alone cannot identify the faulty input.
+Use `AFW_THM_0010` when the action was issued or initiated but its required result cannot be verified. Do not collapse an unknown outcome into either success or confirmed failure.
 
-Use `AFW_THM_0007` when a trusted current temperature crosses the ordinary lower operating limit but not the critical lower limit.
+More than one definition may legitimately apply at the same time. Measurement, validity, freshness, trend, disagreement, and threshold contracts describe thermal evidence. Protection-action contracts describe what happened after policy selected a response and therefore normally coexist with the triggering thermal error.
 
-Use `AFW_THM_0008` when a trusted current temperature crosses the critical lower boundary and critical low-temperature policy must be evaluated.
-
-Use `AFW_THM_0009` when a thermal condition has already been detected, a specific protective response was selected and attempted, and that response failed or could not be verified.
-
-More than one definition may legitimately apply at the same time. Threshold, validity, freshness, trend, and disagreement errors describe thermal evidence. `AFW_THM_0009` describes failure of the selected response and therefore normally coexists with the triggering thermal error rather than replacing it.
-
-Do not select definitions from severity text alone. The validated measurement, timestamp, comparison, configured threshold, selected policy action, and verified action result are the relevant sources of truth.
+Do not select definitions from severity text alone. The validated measurement, timestamp, comparison, configured threshold, selected policy action, command evidence, and verified resulting state are the relevant sources of truth.
 
 ## Humorous alternative messages
 
-Extremely unusual but still valid values may eventually use restrained alternative wording. Such wording must never change the error ID, code, severity, categories, structured data, control flow, shutdown decision, restart policy, sensor-trust decision, data-freshness decision, thermal-trend decision, redundancy decision, low-temperature decision, critical low-temperature decision, protection-action decision, or fail-safe policy. It is deliberately outside the current implementation slice.
+Extremely unusual but valid values may eventually use restrained alternative wording. Such wording must never change the error ID, code, severity, categories, structured data, control flow, shutdown decision, restart policy, sensor-trust decision, data-freshness decision, thermal-trend decision, redundancy decision, low-temperature decision, critical low-temperature decision, protection-action decision, action-verification decision, or fail-safe policy. It is deliberately outside the current implementation slice.
