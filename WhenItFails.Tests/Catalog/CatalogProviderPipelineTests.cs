@@ -63,6 +63,56 @@ public sealed class CatalogProviderPipelineTests
             calls);
     }
 
+    [Fact]
+    public async Task LoadNormalizeValidateAsync_ShouldPreserveLoaderFailureAndShortCircuit()
+    {
+        List<string> calls = new();
+        Response<TestDocument> loadResponse =
+            Response<TestDocument>.Invalid(
+                code: "SpecificLoadFailure",
+                message: "The catalog source could not be read.");
+
+        Response<TestPayload> response =
+            await CatalogProviderPipeline.LoadNormalizeValidateAsync<TestDocument, TestPayload>(
+                filePath: "catalog.json",
+                cancellationToken: CancellationToken.None,
+                loadAsync: (filePath, cancellationToken) =>
+                {
+                    calls.Add($"load:{filePath}");
+                    Assert.False(cancellationToken.IsCancellationRequested);
+                    return Task.FromResult(loadResponse);
+                },
+                normalize: document =>
+                {
+                    calls.Add("normalize");
+                    return document;
+                },
+                validate: document =>
+                {
+                    calls.Add("validate");
+                    return new ErrorCatalogValidationResult();
+                },
+                createPayload: (document, validation) =>
+                {
+                    calls.Add("create-payload");
+                    return new TestPayload(document, validation);
+                },
+                loadFailedCode: "FallbackLoadFailure",
+                loadFailedMessage: "Fallback load failure.",
+                loadedDocumentIsNullCode: "DocumentNull",
+                loadedDocumentIsNullMessage: "Document is null.",
+                validationFailedCode: "ValidationFailed",
+                validationFailedMessage: "Validation failed.");
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal(loadResponse.Status, response.Status);
+        Assert.Null(response.Data);
+        Assert.NotEmpty(response.Issues);
+        Assert.Equal("SpecificLoadFailure", response.Issues[0].Code);
+        Assert.Equal("The catalog source could not be read.", response.Message);
+        Assert.Equal(["load:catalog.json"], calls);
+    }
+
     private sealed record TestDocument(string Value);
 
     private sealed record TestPayload(
