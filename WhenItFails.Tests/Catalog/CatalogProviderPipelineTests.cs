@@ -1,3 +1,4 @@
+using Afrowave.Toolbox.Essentials.Enums;
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Validation;
@@ -110,6 +111,57 @@ public sealed class CatalogProviderPipelineTests
         Assert.NotEmpty(response.Issues);
         Assert.Equal("SpecificLoadFailure", response.Issues[0].Code);
         Assert.Equal("The catalog source could not be read.", response.Message);
+        Assert.Equal(["load:catalog.json"], calls);
+    }
+
+    [Fact]
+    public async Task LoadNormalizeValidateAsync_ShouldUseConfiguredFallbacks_WhenLoaderFailureHasNoDetails()
+    {
+        List<string> calls = new();
+        Response<TestDocument> loadResponse = new()
+        {
+            Status = ResultStatus.NotFound,
+            Message = "   "
+        };
+
+        Response<TestPayload> response =
+            await CatalogProviderPipeline.LoadNormalizeValidateAsync<TestDocument, TestPayload>(
+                filePath: "catalog.json",
+                cancellationToken: CancellationToken.None,
+                loadAsync: (filePath, cancellationToken) =>
+                {
+                    calls.Add($"load:{filePath}");
+                    Assert.False(cancellationToken.IsCancellationRequested);
+                    return Task.FromResult(loadResponse);
+                },
+                normalize: document =>
+                {
+                    calls.Add("normalize");
+                    return document;
+                },
+                validate: document =>
+                {
+                    calls.Add("validate");
+                    return new ErrorCatalogValidationResult();
+                },
+                createPayload: (document, validation) =>
+                {
+                    calls.Add("create-payload");
+                    return new TestPayload(document, validation);
+                },
+                loadFailedCode: "ConfiguredLoadFailure",
+                loadFailedMessage: "The configured catalog could not be loaded.",
+                loadedDocumentIsNullCode: "DocumentNull",
+                loadedDocumentIsNullMessage: "Document is null.",
+                validationFailedCode: "ValidationFailed",
+                validationFailedMessage: "Validation failed.");
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.NotFound, response.Status);
+        Assert.Null(response.Data);
+        Assert.Single(response.Issues);
+        Assert.Equal("ConfiguredLoadFailure", response.Issues[0].Code);
+        Assert.Equal("The configured catalog could not be loaded.", response.Message);
         Assert.Equal(["load:catalog.json"], calls);
     }
 
