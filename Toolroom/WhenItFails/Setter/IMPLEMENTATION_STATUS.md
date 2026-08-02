@@ -48,7 +48,7 @@ The first nine thermal definitions are present and focused-validation verified:
 
 `THERMALPROTECTIONACTIONFAILED` uses message `Thermal protection action {action} failed for {component} while handling {condition}.`, categories `THERMAL` and `GENERAL`, subcategories `PROTECTION_ACTION` and `FAIL_SAFE`, tags `THERMAL`, `FAIL_SAFE`, `SHUTDOWN`, `OPERATOR_ACTION_REQUIRED`, and `USER_VISIBLE`, and documentation key `when-it-fails/errors/thermal/thermal-protection-action-failed`.
 
-This contract represents failure to execute an application-selected protective response after a thermal condition has already been detected. It does not replace the original threshold, sensor, freshness, trend, or redundancy condition, and it must not claim that a specific shutdown or actuator was selected unless runtime metadata says so.
+This contract represents failure to execute or verify an application-selected protective response after a thermal condition has already been detected. It does not replace the original threshold, sensor, freshness, trend, or redundancy condition. Both the triggering condition and the protection-action failure should normally remain visible.
 
 Because bootstrap templates are generated from embedded authoritative catalogs, all nine thermal definitions flow into newly initialized workspaces after rebuild. Existing project-local catalogs remain untouched by bootstrap.
 
@@ -77,7 +77,7 @@ dotnet run --project Toolroom/WhenItFails/Setter -- validate .
 
 Latest user-verified result: **0 errors, 0 warnings, and 0 information issues**.
 
-After the thermal documentation update, run the complete core project:
+The final gate for this increment is the complete core project:
 
 ```bash
 dotnet test WhenItFails.Tests
@@ -115,7 +115,7 @@ Maintained English documentation includes:
 - `WhenItFails/Docs/Bootstrap/en.md`;
 - `WhenItFails/Docs/Thermal Errors/en.md`.
 
-`WhenItFails/Docs/Thermal Errors/en.md` documents the first eight completed thermal contracts. The next documentation slice adds the protection-action failure while preserving the boundary between detecting a thermal condition and failing to execute the selected protective response.
+`WhenItFails/Docs/Thermal Errors/en.md` now documents all nine thermal contracts. The protection-action section preserves the triggering thermal error, distinguishes policy selection from execution failure, requires structured actuator and verification evidence, warns against unsafe automatic retries, and leaves fallback and restart authorization to application policy.
 
 ## Current intentional boundaries
 
@@ -137,11 +137,11 @@ Thermal easter eggs are explicitly deferred. Any future alternative wording must
 
 ## Recommended next step
 
-Document `THERMALPROTECTIONACTIONFAILED`, then run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **701-test** core gate is user-verified green.
+Run the complete `WhenItFails.Tests` project. Do not add another thermal definition until the expected **701-test** core gate is user-verified green.
 
 ## Last completed change
 
-`AFW_THM_0009` is now focused-test and workspace-validation verified. The remaining work for this increment is English thermal documentation followed by the complete core regression gate.
+The English thermal documentation now includes `THERMALPROTECTIONACTIONFAILED` and preserves the boundary between detecting a thermal condition and failing to execute or verify the selected protective response. The remaining gate is the complete core regression suite.
 
 Commits:
 
@@ -151,4 +151,7 @@ Add thermal protection action failed catalog contract
 
 c1cb7238956508bd905dbbac68328c20ebd87606
 Add thermal protection action failure catalog error
+
+f3dd4952e565e016d35280f6e8e3e4565ff58338
+Document thermal protection action failure
 ```
