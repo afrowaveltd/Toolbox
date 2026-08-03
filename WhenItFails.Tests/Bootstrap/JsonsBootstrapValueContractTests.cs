@@ -39,4 +39,21 @@ public sealed class JsonsBootstrapValueContractTests
         Assert.True(result.Skipped);
         Assert.Equal("Preserved result", result.Message);
     }
+
+    [Fact]
+    public void Payload_ShouldPreserveAssignedDirectoryValues()
+    {
+        JsonsBootstrapPayload payload = new()
+        {
+            RootDirectory = "Jsons",
+            PackageDirectoryPath = "Jsons/WhenItFails",
+            PackageDirectoryAlreadyExisted = true,
+            PackageDirectoryCreated = true
+        };
+
+        Assert.Equal("Jsons", payload.RootDirectory);
+        Assert.Equal("Jsons/WhenItFails", payload.PackageDirectoryPath);
+        Assert.True(payload.PackageDirectoryAlreadyExisted);
+        Assert.True(payload.PackageDirectoryCreated);
+    }
 }
