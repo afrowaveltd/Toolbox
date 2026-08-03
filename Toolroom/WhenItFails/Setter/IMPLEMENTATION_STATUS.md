@@ -36,7 +36,7 @@ Result: **762 passed, 0 failed, 0 skipped**.
 Completed runtime/public-API focused checkpoints:
 
 - `JsonsBootstrapPayloadContractTests`: **4 passed, 0 failed, 0 skipped**;
-- `JsonsBootstrapValueContractTests`: **2 passed, 0 failed, 0 skipped**;
+- `JsonsBootstrapValueContractTests`: **3 passed, 0 failed, 0 skipped**;
 - `ErrorDescriptorRequestContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorDescriptorContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorDescriptorOfTContractTests`: **3 passed, 0 failed, 0 skipped**;
@@ -59,7 +59,7 @@ Completed runtime/public-API focused checkpoints:
 - `CatalogProviderPipelineTests`: **10 passed, 0 failed, 0 skipped**;
 - `ErrorCatalogInitializationPayloadContractTests`: **5 passed, 0 failed, 0 skipped**.
 
-The bootstrap default contracts verify safe empty defaults and a live file-result collection. The bootstrap value contracts verify exact preservation of assigned template-file and file-result values. The focused definition contracts verify safe scalar defaults and independently allocated mutable containers. The catalog-document contracts verify the `1.0` schema and `en` language defaults plus independent tag, metadata, and contained-definition collections. The provider payload contracts verify null defaults for required reference properties and exact preservation of assigned instances. The context contract verifies all seven required references of the atomically published runtime snapshot. The initialization payload contract verifies project-catalog defaults, exact reference preservation, and the complete `IsDegraded` truth table. The pipeline tests cover successful execution, all current failure and short-circuit paths, cancellation, configured loader fallbacks, and required delegate null guards.
+The bootstrap default contracts verify safe empty defaults and a live file-result collection. The bootstrap value contracts verify exact preservation of assigned template-file, file-result, and payload path/state values. The focused definition contracts verify safe scalar defaults and independently allocated mutable containers. The catalog-document contracts verify the `1.0` schema and `en` language defaults plus independent tag, metadata, and contained-definition collections. The provider payload contracts verify null defaults for required reference properties and exact preservation of assigned instances. The context contract verifies all seven required references of the atomically published runtime snapshot. The initialization payload contract verifies project-catalog defaults, exact reference preservation, and the complete `IsDegraded` truth table. The pipeline tests cover successful execution, all current failure and short-circuit paths, cancellation, configured loader fallbacks, and required delegate null guards.
 
 Other verified gates for the completed thermal slice:
 
@@ -116,10 +116,10 @@ Thermal easter eggs are explicitly deferred. Alternative wording must never alte
 
 ## Recommended next step
 
-Extend `JsonsBootstrapValueContractTests` with one focused test for `JsonsBootstrapPayload` assigned paths and directory-state flags.
+Continue the runtime/public-API audit with `ErrorCatalogValidationIssue`.
 
-Do not duplicate the already verified safe defaults or live `Files` collection behavior. Preserve the complete **762-test** core baseline until the next full regression run.
+Add focused coverage for its safe defaults and exact preservation of assigned severity, code, message, error identity, and path values. Preserve the complete **762-test** core baseline until the next full regression run.
 
 ## Last completed change
 
-`JsonsBootstrapValueContractTests` passed all **2 focused tests**. `JsonsTemplateFile` and `JsonsBootstrapFileResult` now have direct assigned-value preservation coverage.
+`JsonsBootstrapValueContractTests` passed all **3 focused tests**. `JsonsBootstrapPayload` now has direct assigned-value preservation coverage for paths and directory-state flags in addition to the previously verified template-file and file-result values.
