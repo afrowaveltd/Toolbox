@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit directly protects bootstrap DTO defaults and assigned values, validation issue/result collection contracts, stable public enum numeric values, descriptor models, definition and catalog-document models, provider payloads, `ErrorCatalogContext`, `ErrorCatalogInitializationPayload`, `CatalogProviderPipeline`, and the `ErrorCatalog` snapshot and empty-lookup contracts.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit directly protects bootstrap DTO defaults and assigned values, validation issue/result collection contracts, stable public enum numeric values, descriptor models, definition and catalog-document models, provider payloads, `ErrorCatalogContext`, `ErrorCatalogInitializationPayload`, `CatalogProviderPipeline`, and the `ErrorCatalog` snapshot, empty-lookup, and read-only collection contracts.
 
 The current user-verified complete regression baselines are fully green:
 
@@ -58,10 +58,10 @@ Completed runtime/public-API focused checkpoints include:
 - `ErrorCatalogContextContractTests`: **2 passed**;
 - `CatalogProviderPipelineTests`: **10 passed**;
 - `ErrorCatalogInitializationPayloadContractTests`: **5 passed**;
-- `ErrorCatalogSnapshotContractTests`: **2 passed**;
+- `ErrorCatalogSnapshotContractTests`: **4 passed**;
 - `ErrorCatalogEmptyLookupContractTests`: **2 passed**.
 
-The `ErrorCatalog` snapshot contract confirms that construction snapshots the supplied sequence and that `GetAll()` preserves definition order and exact object identity. The empty-lookup contract confirms that unusable owner, prefix, group, category, subcategory, and tag keys return non-null empty results. Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`, so no duplicate contract was added.
+The `ErrorCatalog` snapshot contract confirms source-sequence isolation, preserved ordering, exact object identity, and genuinely read-only public collections for both `GetAll()` and successful multi-value lookups. The empty-lookup contract confirms that unusable owner, prefix, group, category, subcategory, and tag keys return non-null empty results. Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`, so no duplicate contract was added.
 
 Other verified gates for the completed thermal slice:
 
@@ -115,10 +115,10 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Harden `ErrorCatalog` collection exposure so `GetAll()` and successful multi-value lookups cannot be mutated through a concrete collection cast.
+Add focused `ErrorCatalog` coverage for non-positive numeric codes.
 
-Add focused coverage for genuinely read-only public collections while preserving definition order and exact object identity. Preserve the complete **780-test** core baseline until the next full regression run.
+Verify that definitions with `Code = 0` or a negative code remain present in `GetAll()` but are intentionally excluded from `FindByCode` indexing. Preserve the complete **780-test** core baseline until the next full regression run.
 
 ## Last completed change
 
-`ErrorCatalogEmptyLookupContractTests` passed all **2 focused tests**. Empty and whitespace multi-value lookup keys now have direct safe-empty-result coverage across all six public lookup families.
+`ErrorCatalogSnapshotContractTests` passed all **4 focused tests**. Both `GetAll()` and successful multi-value lookup results are now directly protected against mutation through concrete collection casts.
