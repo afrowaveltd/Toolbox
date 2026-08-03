@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit directly protects bootstrap DTO defaults and assigned values, validation issue/result collection contracts, stable public enum numeric values, descriptor models, definition and catalog-document models, provider payloads, `ErrorCatalogContext`, `ErrorCatalogInitializationPayload`, and `CatalogProviderPipeline`.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit directly protects bootstrap DTO defaults and assigned values, validation issue/result collection contracts, stable public enum numeric values, descriptor models, definition and catalog-document models, provider payloads, `ErrorCatalogContext`, `ErrorCatalogInitializationPayload`, `CatalogProviderPipeline`, and the `ErrorCatalog` construction snapshot contract.
 
 The current user-verified complete regression baselines are fully green:
 
@@ -57,9 +57,10 @@ Completed runtime/public-API focused checkpoints include:
 - provider-payload contract family: **10 passed**;
 - `ErrorCatalogContextContractTests`: **2 passed**;
 - `CatalogProviderPipelineTests`: **10 passed**;
-- `ErrorCatalogInitializationPayloadContractTests`: **5 passed**.
+- `ErrorCatalogInitializationPayloadContractTests`: **5 passed**;
+- `ErrorCatalogSnapshotContractTests`: **2 passed**.
 
-Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`, so no duplicate contract was added.
+The `ErrorCatalog` snapshot contract confirms that construction snapshots the supplied sequence and that `GetAll()` preserves definition order and exact object identity. Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`, so no duplicate contract was added.
 
 Other verified gates for the completed thermal slice:
 
@@ -113,10 +114,10 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Continue the runtime/public-API audit with the `ErrorCatalog` snapshot contract.
+Extend `ErrorCatalog` public-contract coverage for empty and whitespace multi-value lookup keys.
 
-Verify that construction snapshots the supplied sequence and that `GetAll()` preserves definition order and exact object identity. Preserve the complete **780-test** core baseline until the next full regression run.
+Verify that owner, code-prefix, code-group, category, subcategory, and tag lookups return non-null empty lists for unusable keys. Preserve the complete **780-test** core baseline until the next full regression run.
 
 ## Last completed change
 
-The complete `WhenItFails.Tests` suite passed **780 tests, 0 failed, 0 skipped**. This replaces the previous 762-test core baseline and confirms all recently added focused contracts integrate cleanly.
+`ErrorCatalogSnapshotContractTests` passed all **2 focused tests**. Construction now has direct protection for source-sequence isolation, preserved ordering, and exact definition identity.
