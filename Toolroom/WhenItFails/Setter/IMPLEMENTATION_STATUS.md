@@ -13,7 +13,7 @@ The `AFW_THM_0012` slice is complete. The runtime/public-API audit now directly 
 The current user-verified complete regression baseline is fully green:
 
 - complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 passed, 0 failed, 0 skipped**;
-- complete `WhenItFails.Tests`: **732 passed, 0 failed, 0 skipped**.
+- complete `WhenItFails.Tests`: **762 passed, 0 failed, 0 skipped**.
 
 ## Verification status
 
@@ -31,7 +31,7 @@ The latest complete core test run:
 dotnet test WhenItFails.Tests
 ```
 
-Result: **732 passed, 0 failed, 0 skipped**.
+Result: **762 passed, 0 failed, 0 skipped**.
 
 Completed runtime/public-API focused checkpoints:
 
@@ -115,10 +115,10 @@ Thermal easter eggs are explicitly deferred. Alternative wording must never alte
 
 ## Recommended next step
 
-Run the complete `WhenItFails.Tests` regression suite before adding another runtime/public-API contract.
+Continue the runtime/public-API audit by inspecting the remaining uncovered public surfaces before selecting the next narrow contract slice.
 
-The focused contract series has grown substantially since the last complete **732-test** core baseline. Record the exact user-verified total from this run before continuing the audit.
+Preserve the complete **762-test** core baseline and avoid duplicating behavior already protected by existing unit, integration, normalization, validation, or runtime tests.
 
 ## Last completed change
 
-`ErrorOwnerCatalogDocumentContractTests` passed all **2 focused tests**. Owner catalog documents now have direct coverage for schema/language defaults and independently allocated tags, metadata, and owner collections. The latest complete core baseline remains **732 passed, 0 failed, 0 skipped** until the full regression run is repeated.
+The complete `WhenItFails.Tests` regression suite passed **762 tests, 0 failed, 0 skipped**. This replaces the previous 732-test baseline and confirms the full focused runtime/public-API contract series is integrated cleanly.
