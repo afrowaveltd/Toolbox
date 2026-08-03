@@ -15,7 +15,7 @@ The current user-verified complete regression baseline is fully green:
 - complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 passed, 0 failed, 0 skipped**;
 - complete `WhenItFails.Tests`: **762 passed, 0 failed, 0 skipped**.
 
-A later repository-wide run reached **5,219 tests** but failed one documentation assertion because this file temporarily omitted required synchronized-document references. That documentation-only regression has now been corrected; the 762-test core baseline remains the latest fully verified core result until the core suite is rerun successfully.
+A later repository-wide run reached **5,219 tests** but failed one documentation assertion because this file temporarily omitted required synchronized-document references. The focused repaired documentation test has since passed **1 test, 0 failed, 0 skipped**. The 762-test core baseline remains the latest fully verified core result until the core suite is rerun successfully.
 
 ## Verification status
 
@@ -26,6 +26,14 @@ dotnet test Toolroom/WhenItFails/Setter.Tests
 ```
 
 Result: **1,241 passed, 0 failed, 0 skipped**.
+
+The repaired implementation-status documentation checkpoint:
+
+```powershell
+dotnet test Toolroom/WhenItFails/Setter.Tests --filter "FullyQualifiedName~ImplementationStatusDocumentationTests"
+```
+
+Result: **1 passed, 0 failed, 0 skipped**.
 
 The latest complete core test run:
 
@@ -47,16 +55,7 @@ Completed runtime/public-API focused checkpoints:
 - `ErrorDescriptorRequestContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorDescriptorContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorDescriptorOfTContractTests`: **3 passed, 0 failed, 0 skipped**;
-- `ErrorDefinitionContractTests`: **2 passed, 0 failed, 0 skipped**;
-- `ErrorCatalogDocumentContractTests`: **2 passed, 0 failed, 0 skipped**;
-- `ErrorProfileDefinitionContractTests`: **2 passed, 0 failed, 0 skipped**;
-- `ErrorProfileCatalogDocumentContractTests`: **2 passed, 0 failed, 0 skipped**;
-- `ErrorCategoryDefinitionContractTests`: **2 passed, 0 failed, 0 skipped**;
-- `ErrorCategoryCatalogDocumentContractTests`: **2 passed, 0 failed, 0 skipped**;
-- `ErrorCodeGroupDefinitionContractTests`: **2 passed, 0 failed, 0 skipped**;
-- `ErrorCodeGroupCatalogDocumentContractTests`: **2 passed, 0 failed, 0 skipped**;
-- `ErrorOwnerDefinitionContractTests`: **2 passed, 0 failed, 0 skipped**;
-- `ErrorOwnerCatalogDocumentContractTests`: **2 passed, 0 failed, 0 skipped**;
+- definition and catalog-document contract family: **16 passed, 0 failed, 0 skipped**;
 - provider-payload contract family: **10 passed, 0 failed, 0 skipped**;
 - `ErrorCatalogContextContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `CatalogProviderPipelineTests`: **10 passed, 0 failed, 0 skipped**;
@@ -116,10 +115,10 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Verify the repaired implementation-status documentation test, then run the complete `WhenItFails.Tests` suite and record the exact new baseline before continuing the runtime/public-API audit.
+Run the complete `WhenItFails.Tests` suite and record the exact new baseline before continuing the runtime/public-API audit.
 
 Several focused contracts have been added since the confirmed **762-test** baseline. Do not infer the new total; record only the user-verified result.
 
 ## Last completed change
 
-The implementation-status document again lists all required synchronized documentation references, including `Docs/Commands/en.md` and the other documentation paths enforced by `ImplementationStatusDocumentationTests`.
+`ImplementationStatusDocumentationTests` passed its repaired focused checkpoint: **1 passed, 0 failed, 0 skipped**. All documentation references required by the continuation-point contract are present again.
