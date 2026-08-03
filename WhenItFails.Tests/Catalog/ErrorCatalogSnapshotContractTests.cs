@@ -52,4 +52,47 @@ public sealed class ErrorCatalogSnapshotContractTests
         Assert.Same(first, errors[0]);
         Assert.Same(second, errors[1]);
     }
+
+    [Fact]
+    public void GetAll_ShouldExposeReadOnlyCollection()
+    {
+        ErrorDefinition error = new()
+        {
+            Id = "AFW-TST-0001",
+            Name = "TestError"
+        };
+
+        ErrorCatalog catalog = new([error]);
+
+        ICollection<ErrorDefinition> errors =
+            Assert.IsAssignableFrom<ICollection<ErrorDefinition>>(
+                catalog.GetAll());
+
+        Assert.True(errors.IsReadOnly);
+        Assert.Throws<NotSupportedException>(
+            () => errors.Add(new ErrorDefinition()));
+        Assert.Same(error, Assert.Single(catalog.GetAll()));
+    }
+
+    [Fact]
+    public void MultiValueLookup_ShouldExposeReadOnlyCollection()
+    {
+        ErrorDefinition error = new()
+        {
+            Id = "AFW-TST-0001",
+            Name = "TestError",
+            Tags = ["contract"]
+        };
+
+        ErrorCatalog catalog = new([error]);
+
+        ICollection<ErrorDefinition> errors =
+            Assert.IsAssignableFrom<ICollection<ErrorDefinition>>(
+                catalog.FindByTag("contract"));
+
+        Assert.True(errors.IsReadOnly);
+        Assert.Throws<NotSupportedException>(
+            () => errors.Clear());
+        Assert.Same(error, Assert.Single(catalog.FindByTag("contract")));
+    }
 }
