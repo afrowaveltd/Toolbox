@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit directly protects bootstrap DTO defaults and assigned values, validation issue/result collection contracts, stable validation-severity numeric values, descriptor request and descriptor models, definition and catalog-document models, provider payloads, `ErrorCatalogContext`, `ErrorCatalogInitializationPayload`, and `CatalogProviderPipeline`.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit directly protects bootstrap DTO defaults and assigned values, validation issue/result collection contracts, stable validation-severity and catalog-context-source numeric values, descriptor request and descriptor models, definition and catalog-document models, provider payloads, `ErrorCatalogContext`, `ErrorCatalogInitializationPayload`, and `CatalogProviderPipeline`.
 
 The current user-verified complete regression baseline is fully green:
 
@@ -40,6 +40,7 @@ Completed runtime/public-API focused checkpoints:
 - `ErrorCatalogValidationIssueContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorCatalogValidationResultTests`: **10 passed, 0 failed, 0 skipped**;
 - `ErrorCatalogValidationSeverityContractTests`: **3 passed, 0 failed, 0 skipped**;
+- `ErrorCatalogContextSourceContractTests`: **3 passed, 0 failed, 0 skipped**;
 - `ErrorDescriptorRequestContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorDescriptorContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorDescriptorOfTContractTests`: **3 passed, 0 failed, 0 skipped**;
@@ -58,7 +59,7 @@ Completed runtime/public-API focused checkpoints:
 - `CatalogProviderPipelineTests`: **10 passed, 0 failed, 0 skipped**;
 - `ErrorCatalogInitializationPayloadContractTests`: **5 passed, 0 failed, 0 skipped**.
 
-The validation-result collection contract confirms that `AddIssue` preserves the exact supplied instance and that `Issues` is a live read-only view rather than a detached copy. The validation-severity contract protects `Information = 0`, `Warning = 1`, and `Error = 2` from accidental renumbering.
+The validation-result collection contract confirms that `AddIssue` preserves the exact supplied instance and that `Issues` is a live read-only view rather than a detached copy. The validation-severity contract protects `Information = 0`, `Warning = 1`, and `Error = 2`. The catalog-context-source contract protects `ProjectCatalog = 0`, `PreviousContext = 1`, and `BuiltInDefaults = 2` from accidental renumbering.
 
 Other verified gates for the completed thermal slice:
 
@@ -97,10 +98,10 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Add a focused public-contract test for the stable numeric values of `ErrorCatalogContextSource`: `ProjectCatalog = 0`, `PreviousContext = 1`, and `BuiltInDefaults = 2`.
+Add a focused public-contract test for the stable numeric values of `ErrorCatalogRuntimeState`: `Unknown = 0`, `ProjectCatalog = 1`, `PreviousContextRecovery = 2`, `BuiltInFallback = 3`, and `BuiltInDefaults = 4`.
 
 Preserve the complete **762-test** core baseline until the next full regression run.
 
 ## Last completed change
 
-`ErrorCatalogValidationSeverityContractTests` passed all **3 focused tests**. The public severity enum now has direct protection against accidental numeric renumbering.
+`ErrorCatalogContextSourceContractTests` passed all **3 focused tests**. The public context-source enum now has direct protection against accidental numeric renumbering.
