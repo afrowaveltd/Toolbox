@@ -8,14 +8,14 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit directly protects bootstrap DTO defaults and assigned values, validation issue/result collection contracts, stable public enum numeric values, descriptor request and descriptor models, definition and catalog-document models, provider payloads, `ErrorCatalogContext`, `ErrorCatalogInitializationPayload`, and `CatalogProviderPipeline`.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit directly protects bootstrap DTO defaults and assigned values, validation issue/result collection contracts, stable public enum numeric values, descriptor models, definition and catalog-document models, provider payloads, `ErrorCatalogContext`, `ErrorCatalogInitializationPayload`, and `CatalogProviderPipeline`.
 
-The current user-verified complete regression baseline is fully green:
+The current user-verified complete regression baselines are fully green:
 
 - complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 passed, 0 failed, 0 skipped**;
-- complete `WhenItFails.Tests`: **762 passed, 0 failed, 0 skipped**.
+- complete `WhenItFails.Tests`: **780 passed, 0 failed, 0 skipped**.
 
-A later repository-wide run reached **5,219 tests** but failed one documentation assertion because this file temporarily omitted required synchronized-document references. The focused repaired documentation test has since passed **1 test, 0 failed, 0 skipped**. The 762-test core baseline remains the latest fully verified core result until the core suite is rerun successfully.
+A repository-wide run previously reached **5,219 tests** with one documentation-only failure. The missing synchronized-document references were restored, and the focused documentation test subsequently passed.
 
 ## Verification status
 
@@ -41,31 +41,29 @@ The latest complete core test run:
 dotnet test WhenItFails.Tests
 ```
 
-Result: **762 passed, 0 failed, 0 skipped**.
+Result: **780 passed, 0 failed, 0 skipped**.
 
-Completed runtime/public-API focused checkpoints:
+Completed runtime/public-API focused checkpoints include:
 
-- `JsonsBootstrapPayloadContractTests`: **4 passed, 0 failed, 0 skipped**;
-- `JsonsBootstrapValueContractTests`: **3 passed, 0 failed, 0 skipped**;
-- `ErrorCatalogValidationIssueContractTests`: **2 passed, 0 failed, 0 skipped**;
-- `ErrorCatalogValidationResultTests`: **10 passed, 0 failed, 0 skipped**;
-- `ErrorCatalogValidationSeverityContractTests`: **3 passed, 0 failed, 0 skipped**;
-- `ErrorCatalogContextSourceContractTests`: **3 passed, 0 failed, 0 skipped**;
-- `ErrorCatalogRuntimeStateContractTests`: **5 passed, 0 failed, 0 skipped**;
-- `ErrorDescriptorRequestContractTests`: **2 passed, 0 failed, 0 skipped**;
-- `ErrorDescriptorContractTests`: **2 passed, 0 failed, 0 skipped**;
-- `ErrorDescriptorOfTContractTests`: **3 passed, 0 failed, 0 skipped**;
-- definition and catalog-document contract family: **16 passed, 0 failed, 0 skipped**;
-- provider-payload contract family: **10 passed, 0 failed, 0 skipped**;
-- `ErrorCatalogContextContractTests`: **2 passed, 0 failed, 0 skipped**;
-- `CatalogProviderPipelineTests`: **10 passed, 0 failed, 0 skipped**;
-- `ErrorCatalogInitializationPayloadContractTests`: **5 passed, 0 failed, 0 skipped**.
+- `JsonsBootstrapPayloadContractTests`: **4 passed**;
+- `JsonsBootstrapValueContractTests`: **3 passed**;
+- `ErrorCatalogValidationIssueContractTests`: **2 passed**;
+- `ErrorCatalogValidationResultTests`: **10 passed**;
+- `ErrorCatalogValidationSeverityContractTests`: **3 passed**;
+- `ErrorCatalogContextSourceContractTests`: **3 passed**;
+- `ErrorCatalogRuntimeStateContractTests`: **5 passed**;
+- descriptor contract family: **7 passed**;
+- definition and catalog-document contract family: **16 passed**;
+- provider-payload contract family: **10 passed**;
+- `ErrorCatalogContextContractTests`: **2 passed**;
+- `CatalogProviderPipelineTests`: **10 passed**;
+- `ErrorCatalogInitializationPayloadContractTests`: **5 passed**.
 
-The validation-result collection contract confirms that `AddIssue` preserves the exact supplied instance and that `Issues` is a live read-only view rather than a detached copy. Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`, so no duplicate contract was added.
+Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`, so no duplicate contract was added.
 
 Other verified gates for the completed thermal slice:
 
-- focused `ThermalFallbackProtectionActionUnverifiedCatalogTests`: **1 passed, 0 failed, 0 skipped**;
+- focused `ThermalFallbackProtectionActionUnverifiedCatalogTests`: **1 passed**;
 - catalog validation after `AFW_THM_0012`: user-verified green;
 - documentation-key validation: user-verified green;
 - Markdown-link validation: user-verified green;
@@ -115,10 +113,10 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Run the complete `WhenItFails.Tests` suite and record the exact new baseline before continuing the runtime/public-API audit.
+Continue the runtime/public-API audit with the `ErrorCatalog` snapshot contract.
 
-Several focused contracts have been added since the confirmed **762-test** baseline. Do not infer the new total; record only the user-verified result.
+Verify that construction snapshots the supplied sequence and that `GetAll()` preserves definition order and exact object identity. Preserve the complete **780-test** core baseline until the next full regression run.
 
 ## Last completed change
 
-`ImplementationStatusDocumentationTests` passed its repaired focused checkpoint: **1 passed, 0 failed, 0 skipped**. All documentation references required by the continuation-point contract are present again.
+The complete `WhenItFails.Tests` suite passed **780 tests, 0 failed, 0 skipped**. This replaces the previous 762-test core baseline and confirms all recently added focused contracts integrate cleanly.
