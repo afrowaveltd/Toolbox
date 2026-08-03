@@ -59,6 +59,37 @@ public sealed class ErrorCatalogValidationResultTests
    }
 
    [Fact]
+   public void AddIssue_ShouldPreserveTheExactIssueInstance()
+   {
+      ErrorCatalogValidationResult result = new();
+      ErrorCatalogValidationIssue issue = new()
+      {
+         Severity = ErrorCatalogValidationSeverity.Warning,
+         Code = "PreservedIssue",
+         Message = "The exact issue instance should be retained."
+      };
+
+      result.AddIssue(issue);
+
+      Assert.Same(issue, Assert.Single(result.Issues));
+   }
+
+   [Fact]
+   public void Issues_ShouldRemainALiveReadOnlyView()
+   {
+      ErrorCatalogValidationResult result = new();
+      IReadOnlyList<ErrorCatalogValidationIssue> issues = result.Issues;
+
+      result.AddInformation(
+          code: "CatalogChecked",
+          message: "Catalog was checked.");
+
+      Assert.Same(issues, result.Issues);
+      Assert.Single(issues);
+      Assert.Equal("CatalogChecked", issues[0].Code);
+   }
+
+   [Fact]
    public void AddError_ShouldStoreIssueWithErrorSeverity()
    {
       ErrorCatalogValidationResult result = new();
