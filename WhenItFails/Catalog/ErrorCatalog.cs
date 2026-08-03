@@ -37,7 +37,7 @@ public sealed class ErrorCatalog : IErrorCatalog
    {
       ArgumentNullException.ThrowIfNull(errors);
 
-      _errors = errors.ToArray();
+      _errors = Array.AsReadOnly(errors.ToArray());
 
       _errorsById = new Dictionary<string, ErrorDefinition>(StringComparer.OrdinalIgnoreCase);
       _errorsByCode = new Dictionary<int, ErrorDefinition>();
@@ -178,7 +178,7 @@ public sealed class ErrorCatalog : IErrorCatalog
       string normalizedKey = TextKeyNormalizer.NormalizeKey(key);
 
       return index.TryGetValue(normalizedKey, out List<ErrorDefinition>? errors)
-          ? errors
+          ? errors.AsReadOnly()
           : Array.Empty<ErrorDefinition>();
    }
 
