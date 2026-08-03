@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit directly protects bootstrap DTO defaults and assigned values, validation issue/result collection contracts, stable public enum numeric values, descriptor models, definition and catalog-document models, provider payloads, `ErrorCatalogContext`, `ErrorCatalogInitializationPayload`, `CatalogProviderPipeline`, and the `ErrorCatalog` snapshot, empty-lookup, read-only collection, and non-positive-code contracts.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit directly protects bootstrap DTO defaults and assigned values, validation issue/result collection contracts, stable public enum numeric values, descriptor models, definition and catalog-document models, provider payloads, `ErrorCatalogContext`, `ErrorCatalogInitializationPayload`, `CatalogProviderPipeline`, and the `ErrorCatalog` snapshot, empty-lookup, read-only collection, non-positive-code, and duplicate single-value-key contracts.
 
 The current user-verified complete regression baselines are fully green:
 
@@ -60,9 +60,10 @@ Completed runtime/public-API focused checkpoints include:
 - `ErrorCatalogInitializationPayloadContractTests`: **5 passed**;
 - `ErrorCatalogSnapshotContractTests`: **4 passed**;
 - `ErrorCatalogEmptyLookupContractTests`: **2 passed**;
-- `ErrorCatalogNonPositiveCodeContractTests`: **2 passed**.
+- `ErrorCatalogNonPositiveCodeContractTests`: **2 passed**;
+- `ErrorCatalogDuplicateSingleValueKeyContractTests`: **3 passed**.
 
-The `ErrorCatalog` snapshot contract confirms source-sequence isolation, preserved ordering, exact object identity, and genuinely read-only public collections for both `GetAll()` and successful multi-value lookups. The empty-lookup contract confirms that unusable owner, prefix, group, category, subcategory, and tag keys return non-null empty results. The non-positive-code contract confirms that zero and negative codes remain in the catalog snapshot but are excluded from numeric lookup indexing. Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`, so no duplicate contract was added.
+The `ErrorCatalog` snapshot contract confirms source-sequence isolation, preserved ordering, exact object identity, and genuinely read-only public collections for both `GetAll()` and successful multi-value lookups. The empty-lookup contract confirms that unusable owner, prefix, group, category, subcategory, and tag keys return non-null empty results. The non-positive-code contract confirms that zero and negative codes remain in the catalog snapshot but are excluded from numeric lookup indexing. Duplicate normalized IDs, names, and positive codes deterministically retain the first supplied definition. Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`, so no duplicate contract was added.
 
 Other verified gates for the completed thermal slice:
 
@@ -116,10 +117,10 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Add focused `ErrorCatalog` coverage for duplicate single-value keys.
+Add focused `ErrorCatalog` coverage for multi-value index determinism.
 
-Verify deterministic first-definition-wins behavior for duplicate normalized IDs, names, and positive numeric codes. Preserve the complete **780-test** core baseline until the next full regression run.
+Verify that shared-key results preserve source-definition order and that repeated normalized values within one definition do not duplicate that definition in lookup results. Preserve the complete **780-test** core baseline until the next full regression run.
 
 ## Last completed change
 
-`ErrorCatalogNonPositiveCodeContractTests` passed all **2 focused tests**. Definitions with zero or negative numeric codes remain visible through `GetAll()` but are intentionally excluded from `FindByCode` indexing.
+`ErrorCatalogDuplicateSingleValueKeyContractTests` passed all **3 focused tests**. Duplicate normalized IDs, names, and positive numeric codes now have direct deterministic first-definition-wins coverage.
