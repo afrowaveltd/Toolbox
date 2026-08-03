@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit now directly protects the bootstrap payload DTOs, `ErrorDescriptorRequest`, base `ErrorDescriptor`, generic `ErrorDescriptor<TAttachment>`, base `ErrorDefinition`, `ErrorCatalogDocument`, `ErrorProfileDefinition`, `ErrorProfileCatalogDocument`, `ErrorCategoryDefinition`, `ErrorCategoryCatalogDocument`, `ErrorCodeGroupDefinition`, `ErrorCodeGroupCatalogDocument`, the full provider-payload DTO family, the complete `ErrorCatalogContext` runtime snapshot, `ErrorCatalogInitializationPayload`, and the complete current contract of `CatalogProviderPipeline`.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit now directly protects the bootstrap payload DTOs, `ErrorDescriptorRequest`, base `ErrorDescriptor`, generic `ErrorDescriptor<TAttachment>`, base `ErrorDefinition`, `ErrorCatalogDocument`, `ErrorProfileDefinition`, `ErrorProfileCatalogDocument`, `ErrorCategoryDefinition`, `ErrorCategoryCatalogDocument`, `ErrorCodeGroupDefinition`, `ErrorCodeGroupCatalogDocument`, `ErrorOwnerDefinition`, the full provider-payload DTO family, the complete `ErrorCatalogContext` runtime snapshot, `ErrorCatalogInitializationPayload`, and the complete current contract of `CatalogProviderPipeline`.
 
 The current user-verified complete regression baseline is fully green:
 
@@ -47,6 +47,7 @@ Completed runtime/public-API focused checkpoints:
 - `ErrorCategoryCatalogDocumentContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorCodeGroupDefinitionContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorCodeGroupCatalogDocumentContractTests`: **2 passed, 0 failed, 0 skipped**;
+- `ErrorOwnerDefinitionContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorCategoryCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorCodeGroupCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorOwnerCatalogProviderPayloadContractTests`: **2 passed, 0 failed, 0 skipped**;
@@ -56,7 +57,7 @@ Completed runtime/public-API focused checkpoints:
 - `CatalogProviderPipelineTests`: **10 passed, 0 failed, 0 skipped**;
 - `ErrorCatalogInitializationPayloadContractTests`: **5 passed, 0 failed, 0 skipped**.
 
-The base descriptor contract verifies safe scalar defaults and confirms that categories, subcategories, tags, and metadata are independently allocated for each descriptor instance. The generic descriptor contract verifies the null attachment default and exact preservation of both reference-type and value-type attachments. The base definition contract verifies safe scalar defaults and independently allocated category, subcategory, tag, and metadata containers. The catalog-document contract verifies the `1.0` schema and `en` language defaults plus independent tag, metadata, and error-definition containers. The profile-definition contract verifies the `Project` source default and independently allocated include/exclude lists, default mappings, and metadata. The profile-catalog-document contract verifies the `1.0` schema and `en` language defaults plus independent tag, metadata, and profile-definition containers. The category-definition contract verifies safe scalar defaults and independently allocated aliases, parent categories, default tags, default mappings, and metadata. The category-catalog-document contract verifies the `1.0` schema and `en` language defaults plus independent tag, metadata, and category-definition containers. The code-group-definition contract verifies safe scalar defaults and independently allocated default categories, default tags, default mappings, and metadata. The code-group-catalog-document contract verifies the `1.0` schema and `en` language defaults plus independent tag, metadata, and code-group-definition containers. The provider payload contracts verify null defaults for required reference properties and exact preservation of assigned instances. The main payload additionally verifies the `Catalog` reference by using a real empty `ErrorCatalog` instance. The context contract verifies all seven required references of the atomically published runtime snapshot. The initialization payload contract verifies project-catalog defaults, exact reference preservation, and the complete `IsDegraded` truth table for retained-context and fallback recovery flags. The pipeline tests cover successful execution, all current failure and short-circuit paths, cancellation, configured loader fallbacks, and required delegate null guards.
+The focused definition contracts verify safe scalar defaults and independently allocated mutable containers. The catalog-document contracts verify the `1.0` schema and `en` language defaults plus independent tag, metadata, and contained-definition collections. The owner-definition contract specifically protects aliases, default mappings, and metadata. The provider payload contracts verify null defaults for required reference properties and exact preservation of assigned instances. The context contract verifies all seven required references of the atomically published runtime snapshot. The initialization payload contract verifies project-catalog defaults, exact reference preservation, and the complete `IsDegraded` truth table. The pipeline tests cover successful execution, all current failure and short-circuit paths, cancellation, configured loader fallbacks, and required delegate null guards.
 
 Other verified gates for the completed thermal slice:
 
@@ -113,12 +114,12 @@ Thermal easter eggs are explicitly deferred. Alternative wording must never alte
 
 ## Recommended next step
 
-Continue the runtime/public-API audit with `ErrorOwnerDefinition`.
+Continue the runtime/public-API audit with `ErrorOwnerCatalogDocument`.
 
-Add focused coverage for safe scalar defaults and verify that aliases, default mappings, and metadata are independently allocated between owner instances. Keep the test namespace under `DefinitionContracts` to avoid shadowing the production `Definitions` namespace.
+Add focused coverage for its schema/language defaults and verify that tags, metadata, and owner-definition collections are independently allocated between document instances. Keep the test namespace under `DefinitionContracts` to avoid shadowing the production `Definitions` namespace.
 
 After the focused test passes, continue incrementally and retain the complete **732-test** core baseline until the next full regression run.
 
 ## Last completed change
 
-`ErrorCodeGroupCatalogDocumentContractTests` passed all **2 focused tests**. Code-group catalog documents now have direct coverage for schema/language defaults and independently allocated mutable containers.
+`ErrorOwnerDefinitionContractTests` passed all **2 focused tests**. Owner definitions now have direct coverage for safe scalar defaults and independently allocated aliases, default mappings, and metadata.
