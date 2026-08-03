@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit now directly protects the bootstrap payload DTOs, bootstrap DTO assigned-value behavior, `ErrorDescriptorRequest`, base `ErrorDescriptor`, generic `ErrorDescriptor<TAttachment>`, the definition and catalog-document model families, the full provider-payload DTO family, the complete `ErrorCatalogContext` runtime snapshot, `ErrorCatalogInitializationPayload`, and the complete current contract of `CatalogProviderPipeline`.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit now directly protects the bootstrap payload DTOs, bootstrap DTO assigned-value behavior, `ErrorCatalogValidationIssue`, `ErrorDescriptorRequest`, base `ErrorDescriptor`, generic `ErrorDescriptor<TAttachment>`, the definition and catalog-document model families, the full provider-payload DTO family, the complete `ErrorCatalogContext` runtime snapshot, `ErrorCatalogInitializationPayload`, and the complete current contract of `CatalogProviderPipeline`.
 
 The current user-verified complete regression baseline is fully green:
 
@@ -37,6 +37,7 @@ Completed runtime/public-API focused checkpoints:
 
 - `JsonsBootstrapPayloadContractTests`: **4 passed, 0 failed, 0 skipped**;
 - `JsonsBootstrapValueContractTests`: **3 passed, 0 failed, 0 skipped**;
+- `ErrorCatalogValidationIssueContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorDescriptorRequestContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorDescriptorContractTests`: **2 passed, 0 failed, 0 skipped**;
 - `ErrorDescriptorOfTContractTests`: **3 passed, 0 failed, 0 skipped**;
@@ -59,7 +60,7 @@ Completed runtime/public-API focused checkpoints:
 - `CatalogProviderPipelineTests`: **10 passed, 0 failed, 0 skipped**;
 - `ErrorCatalogInitializationPayloadContractTests`: **5 passed, 0 failed, 0 skipped**.
 
-The bootstrap default contracts verify safe empty defaults and a live file-result collection. The bootstrap value contracts verify exact preservation of assigned template-file, file-result, and payload path/state values. The focused definition contracts verify safe scalar defaults and independently allocated mutable containers. The catalog-document contracts verify the `1.0` schema and `en` language defaults plus independent tag, metadata, and contained-definition collections. The provider payload contracts verify null defaults for required reference properties and exact preservation of assigned instances. The context contract verifies all seven required references of the atomically published runtime snapshot. The initialization payload contract verifies project-catalog defaults, exact reference preservation, and the complete `IsDegraded` truth table. The pipeline tests cover successful execution, all current failure and short-circuit paths, cancellation, configured loader fallbacks, and required delegate null guards.
+The bootstrap default contracts verify safe empty defaults and a live file-result collection. The bootstrap value contracts verify exact preservation of assigned template-file, file-result, and payload path/state values. The validation-issue contract verifies safe defaults and exact preservation of severity, code, message, related error identity, and property path. The focused definition contracts verify safe scalar defaults and independently allocated mutable containers. The catalog-document contracts verify the `1.0` schema and `en` language defaults plus independent tag, metadata, and contained-definition collections. The provider payload contracts verify null defaults for required reference properties and exact preservation of assigned instances. The context contract verifies all seven required references of the atomically published runtime snapshot. The initialization payload contract verifies project-catalog defaults, exact reference preservation, and the complete `IsDegraded` truth table. The pipeline tests cover successful execution, all current failure and short-circuit paths, cancellation, configured loader fallbacks, and required delegate null guards.
 
 Other verified gates for the completed thermal slice:
 
@@ -116,10 +117,10 @@ Thermal easter eggs are explicitly deferred. Alternative wording must never alte
 
 ## Recommended next step
 
-Continue the runtime/public-API audit with `ErrorCatalogValidationIssue`.
+Extend `ErrorCatalogValidationResultTests` with focused contract coverage for exact issue-instance preservation and the live read-only `Issues` view.
 
-Add focused coverage for its safe defaults and exact preservation of assigned severity, code, message, error identity, and path values. Preserve the complete **762-test** core baseline until the next full regression run.
+Do not duplicate the already verified severity, validity, or null-guard behavior. Preserve the complete **762-test** core baseline until the next full regression run.
 
 ## Last completed change
 
-`JsonsBootstrapValueContractTests` passed all **3 focused tests**. `JsonsBootstrapPayload` now has direct assigned-value preservation coverage for paths and directory-state flags in addition to the previously verified template-file and file-result values.
+`ErrorCatalogValidationIssueContractTests` passed all **2 focused tests**. Validation issues now have direct coverage for safe defaults and exact preservation of all assigned public values.
