@@ -15,6 +15,8 @@ The current user-verified complete regression baseline is fully green:
 - complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 passed, 0 failed, 0 skipped**;
 - complete `WhenItFails.Tests`: **762 passed, 0 failed, 0 skipped**.
 
+A later repository-wide run reached **5,219 tests** but failed one documentation assertion because this file temporarily omitted required synchronized-document references. That documentation-only regression has now been corrected; the 762-test core baseline remains the latest fully verified core result until the core suite is rerun successfully.
+
 ## Verification status
 
 The latest user-verified Setter test run:
@@ -82,6 +84,21 @@ The current thermal contracts run from `AFW_THM_0001` through `AFW_THM_0012`. `A
 
 The English documentation remains synchronized in the project root and topic-based `Docs` folders. Only `en.md` localized documents are maintained manually at this stage.
 
+Current synchronized documentation includes:
+
+- `README.md` and `Readme/en.md`;
+- `Docs/Overview/en.md`;
+- `Docs/Commands/en.md`;
+- `Docs/Known Limitations/en.md`;
+- `Docs/Roadmap and Future Work/en.md`;
+- `Docs/Getting-Started/en.md`;
+- `Docs/FAQ/en.md`;
+- `Docs/Testing and CI/en.md`;
+- `Docs/Reviewing Catalog Changes/en.md`;
+- `Docs/Catalog Author Checklist/en.md`;
+- `WhenItFails/Docs/Bootstrap/en.md`;
+- `WhenItFails/Docs/Thermal Errors/en.md`.
+
 ## Current intentional boundaries
 
 Setter currently does not provide automatic schema migration, multi-file atomic transactions, multi-process locking, automatic translation generation, remote catalog synchronization, package publishing, a GUI, complete source-code dependency discovery, or automatic runtime behavior for humorous message variants.
@@ -99,10 +116,10 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Run the complete `WhenItFails.Tests` suite and record the exact new baseline before continuing the public-surface audit.
+Verify the repaired implementation-status documentation test, then run the complete `WhenItFails.Tests` suite and record the exact new baseline before continuing the runtime/public-API audit.
 
 Several focused contracts have been added since the confirmed **762-test** baseline. Do not infer the new total; record only the user-verified result.
 
 ## Last completed change
 
-`ErrorCatalogRuntimeStateContractTests` passed all **5 focused tests**. The public runtime-state enum now protects `Unknown = 0`, `ProjectCatalog = 1`, `PreviousContextRecovery = 2`, `BuiltInFallback = 3`, and `BuiltInDefaults = 4` against accidental renumbering.
+The implementation-status document again lists all required synchronized documentation references, including `Docs/Commands/en.md` and the other documentation paths enforced by `ImplementationStatusDocumentationTests`.
