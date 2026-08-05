@@ -27,9 +27,10 @@ public sealed class ErrorDescriptorService : IErrorDescriptorService
         ErrorCatalogContext? context,
         string errorId)
     {
-        return _descriptorResolver.CreateById(
-            context,
-            errorId);
+        return EnsureResponse(
+            _descriptorResolver.CreateById(
+                context,
+                errorId));
     }
 
     /// <inheritdoc />
@@ -37,9 +38,10 @@ public sealed class ErrorDescriptorService : IErrorDescriptorService
         ErrorCatalogContext? context,
         string errorName)
     {
-        return _descriptorResolver.CreateByName(
-            context,
-            errorName);
+        return EnsureResponse(
+            _descriptorResolver.CreateByName(
+                context,
+                errorName));
     }
 
     /// <inheritdoc />
@@ -47,8 +49,18 @@ public sealed class ErrorDescriptorService : IErrorDescriptorService
         ErrorCatalogContext? context,
         int code)
     {
-        return _descriptorResolver.CreateByCode(
-            context,
-            code);
+        return EnsureResponse(
+            _descriptorResolver.CreateByCode(
+                context,
+                code));
+    }
+
+    private static Response<ErrorDescriptor> EnsureResponse(
+        Response<ErrorDescriptor>? response)
+    {
+        return response
+            ?? Response<ErrorDescriptor>.Invalid(
+                code: "ErrorDescriptorResolverReturnedNull",
+                message: "Error descriptor resolver returned a null response.");
     }
 }
