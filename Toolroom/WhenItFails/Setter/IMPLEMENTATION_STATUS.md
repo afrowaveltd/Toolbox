@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit now protects bootstrap DTOs, validation contracts, stable enum values, descriptor and definition models, provider payloads, catalog context and initialization payloads, `CatalogProviderPipeline`, `ErrorCatalog`, `ErrorCatalogFactory`, `ErrorDefinitionResolver`, and `ErrorDescriptorFactory`, including runtime-null collection and metadata boundaries.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit now protects bootstrap DTOs, validation contracts, stable enum values, descriptor and definition models, provider payloads, catalog context and initialization payloads, `CatalogProviderPipeline`, `ErrorCatalog`, `ErrorCatalogFactory`, `ErrorDefinitionResolver`, `ErrorDescriptorFactory`, and `ErrorDescriptorResolver`, including malformed dependency-response fallbacks.
 
 The current user-verified complete regression baselines are fully green:
 
@@ -55,9 +55,10 @@ Completed runtime/public-API focused checkpoints include:
 - `ErrorDefinitionResolverInputBoundaryContractTests`: **5 passed**;
 - `ErrorDefinitionResolverResponseShapeContractTests`: **3 passed**;
 - `ErrorDescriptorFactoryContractTests`: **3 passed**;
-- `ErrorDescriptorFactoryNullBoundaryContractTests`: **2 passed**.
+- `ErrorDescriptorFactoryNullBoundaryContractTests`: **2 passed**;
+- `ErrorDescriptorResolverFallbackContractTests`: **2 passed**.
 
-The catalog contracts protect source-sequence snapshots, ordering, exact object identity, read-only collection exposure, safe empty and unusable lookups, non-positive numeric indexing, deterministic duplicate-key handling, multi-value ordering and de-duplication, and consistent normalization. The factory creates a usable empty catalog and snapshots `document.Errors` at creation time. The definition resolver returns stable responses for invalid, not-found, and successful paths. The descriptor factory maps values exactly, snapshots lists, intentionally shares valid metadata, and safely replaces runtime-null lists and metadata with usable empty values.
+The catalog contracts protect source-sequence snapshots, ordering, exact object identity, read-only collection exposure, safe empty and unusable lookups, non-positive numeric indexing, deterministic duplicate-key handling, multi-value ordering and de-duplication, and consistent normalization. The factory creates a usable empty catalog and snapshots `document.Errors` at creation time. The definition resolver returns stable responses for invalid, not-found, and successful paths. The descriptor factory safely maps and owns runtime values. The descriptor resolver preserves source failure status and uses stable fallback codes and messages when a dependency returns malformed failure data.
 
 Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`.
 
@@ -113,10 +114,10 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Add focused `ErrorDescriptorResolver` fallback-response coverage.
+Harden `ErrorDescriptorService` against a custom descriptor resolver returning runtime `null` despite its non-nullable return contract.
 
-Verify malformed dependency failures with missing issues and/or messages produce stable fallback codes and messages while preserving the original failure status. Preserve the complete **780-test** core baseline until the next full regression run.
+Verify all three service entry points return a stable `Invalid` response instead of propagating `null`. Preserve the complete **780-test** core baseline until the next full regression run.
 
 ## Last completed change
 
-`ErrorDescriptorFactoryNullBoundaryContractTests` passed all **2 focused tests**. Runtime-null category, subcategory, and tag lists now become empty descriptor collections, while runtime-null metadata becomes a usable non-null `MetadataBag`.
+`ErrorDescriptorResolverFallbackContractTests` passed all **2 focused tests**. Malformed dependency failures now have direct fallback-code and fallback-message coverage while preserving the source failure status and first available issue code.
