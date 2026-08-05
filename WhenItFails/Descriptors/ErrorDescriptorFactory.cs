@@ -1,3 +1,4 @@
+using Afrowave.Toolbox.Essentials.Metadata;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
 
@@ -24,8 +25,12 @@ public sealed class ErrorDescriptorFactory : IErrorDescriptorFactory
             CodeGroup = definition.CodeGroup,
 
             PrimaryCategory = definition.PrimaryCategory,
-            Categories = [.. definition.Categories],
-            Subcategories = [.. definition.Subcategories],
+            Categories = definition.Categories is null
+                ? []
+                : [.. definition.Categories],
+            Subcategories = definition.Subcategories is null
+                ? []
+                : [.. definition.Subcategories],
 
             Title = definition.Title,
             Message = definition.Message,
@@ -34,8 +39,10 @@ public sealed class ErrorDescriptorFactory : IErrorDescriptorFactory
             DeveloperHint = definition.DeveloperHint,
             DocumentationKey = definition.DocumentationKey,
 
-            Tags = [.. definition.Tags],
-            Metadata = definition.Metadata
+            Tags = definition.Tags is null
+                ? []
+                : [.. definition.Tags],
+            Metadata = definition.Metadata ?? new MetadataBag()
         };
     }
 }
