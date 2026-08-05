@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit now protects bootstrap DTOs, validation contracts, stable enum values, descriptor and definition models, provider payloads, catalog context and initialization payloads, `CatalogProviderPipeline`, `ErrorCatalog`, `ErrorCatalogFactory`, and `ErrorDefinitionResolver` input and response contracts.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit now protects bootstrap DTOs, validation contracts, stable enum values, descriptor and definition models, provider payloads, catalog context and initialization payloads, `CatalogProviderPipeline`, `ErrorCatalog`, `ErrorCatalogFactory`, `ErrorDefinitionResolver`, and `ErrorDescriptorFactory` mapping and ownership behavior.
 
 The current user-verified complete regression baselines are fully green:
 
@@ -53,9 +53,10 @@ Completed runtime/public-API focused checkpoints include:
 - `ErrorCatalogUnusableSingleValueLookupContractTests`: **6 passed**;
 - `ErrorCatalogFactoryContractTests`: **2 passed**;
 - `ErrorDefinitionResolverInputBoundaryContractTests`: **5 passed**;
-- `ErrorDefinitionResolverResponseShapeContractTests`: **3 passed**.
+- `ErrorDefinitionResolverResponseShapeContractTests`: **3 passed**;
+- `ErrorDescriptorFactoryContractTests`: **3 passed**.
 
-The catalog contracts protect source-sequence snapshots, ordering, exact object identity, read-only collection exposure, safe empty and unusable lookups, non-positive numeric indexing, deterministic duplicate-key handling, multi-value ordering and de-duplication, and consistent normalization. The factory creates a usable empty catalog and snapshots `document.Errors` at creation time. The resolver returns stable responses for invalid, not-found, and successful resolution paths, including exact data and issue shapes.
+The catalog contracts protect source-sequence snapshots, ordering, exact object identity, read-only collection exposure, safe empty and unusable lookups, non-positive numeric indexing, deterministic duplicate-key handling, multi-value ordering and de-duplication, and consistent normalization. The factory creates a usable empty catalog and snapshots `document.Errors` at creation time. The resolver returns stable responses for invalid, not-found, and successful resolution paths. The descriptor factory maps scalar values exactly, copies list values into independent collections, and intentionally preserves the metadata instance.
 
 Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`.
 
@@ -111,10 +112,10 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Add focused `ErrorDescriptorFactory` mapping and ownership contract coverage.
+Harden `ErrorDescriptorFactory` against runtime-null collection and metadata values that bypass nullable annotations.
 
-Verify scalar values map exactly, list values are copied into independent collections, and metadata retains its intentional shared-instance behavior. Preserve the complete **780-test** core baseline until the next full regression run.
+Verify null categories, subcategories, and tags produce empty descriptor lists, while null metadata produces a usable non-null `MetadataBag`. Preserve the complete **780-test** core baseline until the next full regression run.
 
 ## Last completed change
 
-`ErrorDefinitionResolverResponseShapeContractTests` passed all **3 focused tests**. Invalid and not-found paths return null data with one stable issue, while successful resolution returns the exact catalog definition instance without issues.
+`ErrorDescriptorFactoryContractTests` passed all **3 focused tests**. Scalar mapping, independent list snapshots, and intentional shared metadata ownership are now directly protected.
