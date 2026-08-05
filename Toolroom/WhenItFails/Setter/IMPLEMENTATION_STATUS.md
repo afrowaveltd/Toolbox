@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit directly protects bootstrap DTO defaults and assigned values, validation issue/result collection contracts, stable public enum numeric values, descriptor models, definition and catalog-document models, provider payloads, `ErrorCatalogContext`, `ErrorCatalogInitializationPayload`, `CatalogProviderPipeline`, and the `ErrorCatalog` snapshot, empty-lookup, read-only collection, non-positive-code, duplicate single-value-key, and multi-value-index contracts.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit directly protects bootstrap DTO defaults and assigned values, validation issue/result collection contracts, stable public enum numeric values, descriptor models, definition and catalog-document models, provider payloads, `ErrorCatalogContext`, `ErrorCatalogInitializationPayload`, `CatalogProviderPipeline`, and the `ErrorCatalog` snapshot, empty-lookup, read-only collection, non-positive-code, duplicate single-value-key, multi-value-index, and multi-value-normalization contracts.
 
 The current user-verified complete regression baselines are fully green:
 
@@ -62,9 +62,10 @@ Completed runtime/public-API focused checkpoints include:
 - `ErrorCatalogEmptyLookupContractTests`: **2 passed**;
 - `ErrorCatalogNonPositiveCodeContractTests`: **2 passed**;
 - `ErrorCatalogDuplicateSingleValueKeyContractTests`: **3 passed**;
-- `ErrorCatalogMultiValueIndexContractTests`: **2 passed**.
+- `ErrorCatalogMultiValueIndexContractTests`: **2 passed**;
+- `ErrorCatalogMultiValueNormalizationContractTests`: **6 passed**.
 
-The `ErrorCatalog` snapshot contract confirms source-sequence isolation, preserved ordering, exact object identity, and genuinely read-only public collections for both `GetAll()` and successful multi-value lookups. Empty lookups return safe non-null results. Non-positive codes remain in the snapshot but are excluded from numeric indexing. Duplicate normalized single-value keys deterministically retain the first definition. Multi-value results preserve source-definition order and do not duplicate one definition when equivalent normalized values repeat inside it. Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`, so no duplicate contract was added.
+The `ErrorCatalog` snapshot contract confirms source-sequence isolation, preserved ordering, exact object identity, and genuinely read-only public collections for both `GetAll()` and successful multi-value lookups. Empty lookups return safe non-null results. Non-positive codes remain in the snapshot but are excluded from numeric indexing. Duplicate normalized single-value keys deterministically retain the first definition. Multi-value results preserve source-definition order, avoid duplicates inside one definition, and normalize owner, code prefix, code group, category, subcategory, and tag keys consistently across casing, whitespace, and separator differences. Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`, so no duplicate contract was added.
 
 Other verified gates for the completed thermal slice:
 
@@ -118,10 +119,10 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Add focused `ErrorCatalog` coverage for consistent normalization across all multi-value lookup families.
+Add focused `ErrorCatalog` coverage for unusable single-value text lookup keys.
 
-Verify owner, code-prefix, code-group, category, subcategory, and tag lookups against equivalent keys that differ in casing, whitespace, and separators. Preserve the complete **780-test** core baseline until the next full regression run.
+Verify that `FindById` and `FindByName` safely return `null` for runtime `null`, empty, and whitespace input rather than throwing. Preserve the complete **780-test** core baseline until the next full regression run.
 
 ## Last completed change
 
-`ErrorCatalogMultiValueIndexContractTests` passed all **2 focused tests**. Shared-key results preserve source order, and repeated normalized values inside one definition do not produce duplicate lookup results.
+`ErrorCatalogMultiValueNormalizationContractTests` passed all **6 focused tests**. Owner, code-prefix, code-group, category, subcategory, and tag lookup families now have direct consistent-normalization coverage.
