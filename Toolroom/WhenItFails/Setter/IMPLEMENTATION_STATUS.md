@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit now protects bootstrap DTOs, validation contracts, stable enum values, descriptor and definition models, provider payloads, catalog context and initialization payloads, `CatalogProviderPipeline`, `ErrorCatalog`, `ErrorCatalogFactory`, and `ErrorDefinitionResolver` input boundaries.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit now protects bootstrap DTOs, validation contracts, stable enum values, descriptor and definition models, provider payloads, catalog context and initialization payloads, `CatalogProviderPipeline`, `ErrorCatalog`, `ErrorCatalogFactory`, and `ErrorDefinitionResolver` input and response contracts.
 
 The current user-verified complete regression baselines are fully green:
 
@@ -52,9 +52,10 @@ Completed runtime/public-API focused checkpoints include:
 - `ErrorCatalogMultiValueNormalizationContractTests`: **6 passed**;
 - `ErrorCatalogUnusableSingleValueLookupContractTests`: **6 passed**;
 - `ErrorCatalogFactoryContractTests`: **2 passed**;
-- `ErrorDefinitionResolverInputBoundaryContractTests`: **5 passed**.
+- `ErrorDefinitionResolverInputBoundaryContractTests`: **5 passed**;
+- `ErrorDefinitionResolverResponseShapeContractTests`: **3 passed**.
 
-The catalog contracts protect source-sequence snapshots, ordering, exact object identity, read-only collection exposure, safe empty and unusable lookups, non-positive numeric indexing, deterministic duplicate-key handling, multi-value ordering and de-duplication, and consistent normalization. The factory creates a usable empty catalog and snapshots `document.Errors` at creation time. The resolver returns stable `Invalid` responses for runtime null and whitespace ID/name values and negative numeric codes.
+The catalog contracts protect source-sequence snapshots, ordering, exact object identity, read-only collection exposure, safe empty and unusable lookups, non-positive numeric indexing, deterministic duplicate-key handling, multi-value ordering and de-duplication, and consistent normalization. The factory creates a usable empty catalog and snapshots `document.Errors` at creation time. The resolver returns stable responses for invalid, not-found, and successful resolution paths, including exact data and issue shapes.
 
 Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`.
 
@@ -110,10 +111,10 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Add focused `ErrorDefinitionResolver` response-shape coverage.
+Add focused `ErrorDescriptorFactory` mapping and ownership contract coverage.
 
-Verify invalid and not-found responses have null data and one stable issue, while successful resolution returns the exact catalog definition instance without issues. Preserve the complete **780-test** core baseline until the next full regression run.
+Verify scalar values map exactly, list values are copied into independent collections, and metadata retains its intentional shared-instance behavior. Preserve the complete **780-test** core baseline until the next full regression run.
 
 ## Last completed change
 
-`ErrorDefinitionResolverInputBoundaryContractTests` passed all **5 focused tests**. Runtime null and whitespace ID/name inputs and negative numeric codes now have direct stable `Invalid` response coverage.
+`ErrorDefinitionResolverResponseShapeContractTests` passed all **3 focused tests**. Invalid and not-found paths return null data with one stable issue, while successful resolution returns the exact catalog definition instance without issues.
