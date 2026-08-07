@@ -95,9 +95,18 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         ResetToDefaultsAsync(
             CancellationToken cancellationToken = default)
     {
-        Response<ErrorCatalogContext> builtInResponse =
+        Response<ErrorCatalogContext>? builtInResponse =
             await _builtInContextProvider.LoadAsync(
                 cancellationToken);
+
+        if (builtInResponse is null)
+        {
+            return Response<ErrorCatalogInitializationPayload>.Invalid(
+                code: "WIF_BUILT_IN_CONTEXT_RESPONSE_NULL",
+                message:
+                    "The bundled default catalog provider returned "
+                    + "a null response.");
+        }
 
         if (!builtInResponse.IsSuccess
             || builtInResponse.Data is null)
@@ -330,11 +339,19 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
             JsonsOptions options,
             CancellationToken cancellationToken)
     {
-        Response<ErrorCatalogInitializationPayload>
+        Response<ErrorCatalogInitializationPayload>?
             initializationResponse =
                 await _initializer.InitializeAsync(
                     options,
                     cancellationToken);
+
+        if (initializationResponse is null)
+        {
+            return Response<ErrorCatalogInitializationPayload>.Invalid(
+                code: "WIF_INITIALIZER_RESPONSE_NULL",
+                message:
+                    "The error catalog initializer returned a null response.");
+        }
 
         if (initializationResponse.IsSuccess)
         {
