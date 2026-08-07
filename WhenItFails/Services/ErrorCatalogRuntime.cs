@@ -169,14 +169,15 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         Response<ErrorCatalogContext> contextResponse =
             _contextStore.GetCurrent();
 
-        if (!contextResponse.IsSuccess)
+        if (!contextResponse.IsSuccess
+            || contextResponse.Data is null)
         {
             return ForwardContextFailure<ErrorDescriptor>(
                 contextResponse);
         }
 
         return _descriptorService.FromId(
-            contextResponse.Data!,
+            contextResponse.Data,
             errorId);
     }
 
@@ -187,14 +188,15 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         Response<ErrorCatalogContext> contextResponse =
             _contextStore.GetCurrent();
 
-        if (!contextResponse.IsSuccess)
+        if (!contextResponse.IsSuccess
+            || contextResponse.Data is null)
         {
             return ForwardContextFailure<ErrorDescriptor>(
                 contextResponse);
         }
 
         return _descriptorService.FromName(
-            contextResponse.Data!,
+            contextResponse.Data,
             errorName);
     }
 
@@ -205,14 +207,15 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         Response<ErrorCatalogContext> contextResponse =
             _contextStore.GetCurrent();
 
-        if (!contextResponse.IsSuccess)
+        if (!contextResponse.IsSuccess
+            || contextResponse.Data is null)
         {
             return ForwardContextFailure<ErrorDescriptor>(
                 contextResponse);
         }
 
         return _descriptorService.FromCode(
-            contextResponse.Data!,
+            contextResponse.Data,
             code);
     }
 
@@ -224,7 +227,8 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         Response<ErrorCatalogContext> contextResponse =
             _contextStore.GetCurrent();
 
-        if (!contextResponse.IsSuccess)
+        if (!contextResponse.IsSuccess
+            || contextResponse.Data is null)
         {
             return ForwardContextFailure<
                 IReadOnlyList<ErrorDefinition>>(
@@ -232,7 +236,7 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         }
 
         return _profileSelectionService.ResolveByProfileName(
-            contextResponse.Data!,
+            contextResponse.Data,
             profileName);
     }
 
@@ -699,6 +703,15 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         ForwardContextFailure<TTarget>(
             Response<ErrorCatalogContext> sourceResponse)
     {
+        if (sourceResponse.IsSuccess
+            && sourceResponse.Data is null)
+        {
+            return Response<TTarget>.Invalid(
+                code: "WIF_CURRENT_CONTEXT_PAYLOAD_NULL",
+                message:
+                    "The current error catalog context payload is null.");
+        }
+
         string issueCode =
             sourceResponse.Issues.Count > 0
                 ? sourceResponse.Issues[0].Code
@@ -785,4 +798,3 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
     }
 
 }
-
