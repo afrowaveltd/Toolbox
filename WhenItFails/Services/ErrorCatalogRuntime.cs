@@ -160,8 +160,6 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                 currentStatus);
     }
 
-
-
     /// <inheritdoc />
     public Response<ErrorDescriptor> FromId(
         string errorId)
@@ -176,9 +174,13 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                 contextResponse);
         }
 
-        return _descriptorService.FromId(
-            contextResponse.Data,
-            errorId);
+        Response<ErrorDescriptor>? response =
+            _descriptorService.FromId(
+                contextResponse.Data,
+                errorId);
+
+        return response
+            ?? CreateNullDescriptorServiceResponse();
     }
 
     /// <inheritdoc />
@@ -195,9 +197,13 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                 contextResponse);
         }
 
-        return _descriptorService.FromName(
-            contextResponse.Data,
-            errorName);
+        Response<ErrorDescriptor>? response =
+            _descriptorService.FromName(
+                contextResponse.Data,
+                errorName);
+
+        return response
+            ?? CreateNullDescriptorServiceResponse();
     }
 
     /// <inheritdoc />
@@ -214,9 +220,13 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                 contextResponse);
         }
 
-        return _descriptorService.FromCode(
-            contextResponse.Data,
-            code);
+        Response<ErrorDescriptor>? response =
+            _descriptorService.FromCode(
+                contextResponse.Data,
+                code);
+
+        return response
+            ?? CreateNullDescriptorServiceResponse();
     }
 
     /// <inheritdoc />
@@ -235,9 +245,26 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                     contextResponse);
         }
 
-        return _profileSelectionService.ResolveByProfileName(
-            contextResponse.Data,
-            profileName);
+        Response<IReadOnlyList<ErrorDefinition>>? response =
+            _profileSelectionService.ResolveByProfileName(
+                contextResponse.Data,
+                profileName);
+
+        return response
+            ?? Response<IReadOnlyList<ErrorDefinition>>.Invalid(
+                code: "WIF_PROFILE_SELECTION_RESPONSE_NULL",
+                message:
+                    "The error profile selection service returned "
+                    + "a null response.");
+    }
+
+    private static Response<ErrorDescriptor>
+        CreateNullDescriptorServiceResponse()
+    {
+        return Response<ErrorDescriptor>.Invalid(
+            code: "WIF_DESCRIPTOR_SERVICE_RESPONSE_NULL",
+            message:
+                "The error descriptor service returned a null response.");
     }
 
     private static Response<ErrorCatalogInitializationPayload>
