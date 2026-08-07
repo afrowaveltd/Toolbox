@@ -149,7 +149,7 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
     /// <inheritdoc />
     public Response<ErrorCatalogContext> GetCurrentContext()
     {
-        return _contextStore.GetCurrent();
+        return GetCurrentContextResponse();
     }
 
     /// <inheritdoc />
@@ -174,7 +174,7 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         string errorId)
     {
         Response<ErrorCatalogContext> contextResponse =
-            _contextStore.GetCurrent();
+            GetCurrentContextResponse();
 
         if (!contextResponse.IsSuccess
             || contextResponse.Data is null)
@@ -197,7 +197,7 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         string errorName)
     {
         Response<ErrorCatalogContext> contextResponse =
-            _contextStore.GetCurrent();
+            GetCurrentContextResponse();
 
         if (!contextResponse.IsSuccess
             || contextResponse.Data is null)
@@ -220,7 +220,7 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         int code)
     {
         Response<ErrorCatalogContext> contextResponse =
-            _contextStore.GetCurrent();
+            GetCurrentContextResponse();
 
         if (!contextResponse.IsSuccess
             || contextResponse.Data is null)
@@ -244,7 +244,7 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
             string profileName)
     {
         Response<ErrorCatalogContext> contextResponse =
-            _contextStore.GetCurrent();
+            GetCurrentContextResponse();
 
         if (!contextResponse.IsSuccess
             || contextResponse.Data is null)
@@ -264,6 +264,20 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                 code: "WIF_PROFILE_SELECTION_RESPONSE_NULL",
                 message:
                     "The error profile selection service returned "
+                    + "a null response.");
+    }
+
+    private Response<ErrorCatalogContext>
+        GetCurrentContextResponse()
+    {
+        Response<ErrorCatalogContext>? response =
+            _contextStore.GetCurrent();
+
+        return response
+            ?? Response<ErrorCatalogContext>.Invalid(
+                code: "WIF_CONTEXT_STORE_RESPONSE_NULL",
+                message:
+                    "The error catalog context store returned "
                     + "a null response.");
     }
 
@@ -371,7 +385,7 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         }
 
         Response<ErrorCatalogContext> previousContextResponse =
-            _contextStore.GetCurrent();
+            GetCurrentContextResponse();
 
         if (previousContextResponse.IsSuccess
             && previousContextResponse.Data is not null)
