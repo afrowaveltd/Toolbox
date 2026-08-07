@@ -369,11 +369,17 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
 
         if (initializationResponse.IsSuccess)
         {
-            if (initializationResponse.Data is not null)
+            if (initializationResponse.Data is null)
             {
-                RecordStatus(
-                    initializationResponse.Data);
+                return Response<ErrorCatalogInitializationPayload>.Invalid(
+                    code: "WIF_INITIALIZATION_PAYLOAD_NULL",
+                    message:
+                        "The error catalog initializer returned success "
+                        + "with a null payload.");
             }
+
+            RecordStatus(
+                initializationResponse.Data);
 
             return initializationResponse;
         }
