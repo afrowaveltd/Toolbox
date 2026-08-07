@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit now protects bootstrap DTOs, validation contracts, stable enum values, descriptor and definition models, provider payloads, catalog context and initialization payloads, `CatalogProviderPipeline`, `ErrorCatalog`, `ErrorCatalogFactory`, `ErrorDefinitionResolver`, `ErrorDescriptorFactory`, `ErrorDescriptorResolver`, `ErrorDescriptorService`, and `ErrorCatalogRuntime` current-context, downstream-response, and initialization-dependency null boundaries.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit now protects bootstrap DTOs, validation contracts, stable enum values, descriptor and definition models, provider payloads, catalog context and initialization payloads, `CatalogProviderPipeline`, `ErrorCatalog`, `ErrorCatalogFactory`, `ErrorDefinitionResolver`, `ErrorDescriptorFactory`, `ErrorDescriptorResolver`, `ErrorDescriptorService`, and `ErrorCatalogRuntime` current-context, context-store response, downstream-response, and initialization-dependency null boundaries.
 
 The current user-verified complete regression baselines are fully green:
 
@@ -60,9 +60,10 @@ Completed runtime/public-API focused checkpoints include:
 - `ErrorDescriptorServiceNullResponseContractTests`: **3 passed**;
 - `ErrorCatalogRuntimeNullContextPayloadContractTests`: **4 passed**;
 - `ErrorCatalogRuntimeNullDownstreamResponseContractTests`: **4 passed**;
-- `ErrorCatalogRuntimeNullInitializationDependencyResponseContractTests`: **2 passed**.
+- `ErrorCatalogRuntimeNullInitializationDependencyResponseContractTests`: **2 passed**;
+- `ErrorCatalogRuntimeNullContextStoreResponseContractTests`: **5 passed**.
 
-The catalog contracts protect source-sequence snapshots, ordering, exact object identity, read-only collection exposure, safe empty and unusable lookups, non-positive numeric indexing, deterministic duplicate-key handling, multi-value ordering and de-duplication, and consistent normalization. The factory creates a usable empty catalog and snapshots `document.Errors` at creation time. The definition resolver returns stable responses for invalid, not-found, and successful paths. The descriptor factory safely maps and owns runtime values. The descriptor resolver preserves source failure status and uses stable fallbacks for malformed failures. The descriptor service converts runtime-null resolver responses into stable `Invalid` responses. The runtime rejects context-store `Success` responses with null context data, converts runtime-null descriptor/profile responses into stable `Invalid` responses, and now also converts runtime-null initializer or built-in provider responses into `WIF_INITIALIZER_RESPONSE_NULL` and `WIF_BUILT_IN_CONTEXT_RESPONSE_NULL` rather than throwing.
+The catalog contracts protect source-sequence snapshots, ordering, exact object identity, read-only collection exposure, safe empty and unusable lookups, non-positive numeric indexing, deterministic duplicate-key handling, multi-value ordering and de-duplication, and consistent normalization. The factory creates a usable empty catalog and snapshots `document.Errors` at creation time. The definition resolver returns stable responses for invalid, not-found, and successful paths. The descriptor factory safely maps and owns runtime values. The descriptor resolver preserves source failure status and uses stable fallbacks for malformed failures. The descriptor service converts runtime-null resolver responses into stable `Invalid` responses. The runtime rejects context-store `Success` responses with null context data, normalizes a runtime-null context-store response to `WIF_CONTEXT_STORE_RESPONSE_NULL`, converts runtime-null descriptor/profile responses into stable `Invalid` responses, and converts runtime-null initializer or built-in provider responses into `WIF_INITIALIZER_RESPONSE_NULL` and `WIF_BUILT_IN_CONTEXT_RESPONSE_NULL` rather than throwing.
 
 Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`.
 
@@ -118,10 +119,10 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Add focused `ErrorCatalogRuntime` coverage for a custom context store whose `GetCurrent()` method returns runtime `null` despite the non-nullable contract.
+Add focused `ErrorCatalogRuntime` coverage for the automatic flexible fallback path when the built-in context provider returns runtime `null` after configured initialization has already failed and no previous context is available.
 
-Verify `GetCurrentContext`, `FromId`, `FromName`, `FromCode`, and `ResolveProfile` return stable non-null `Invalid` responses instead of propagating null or throwing. Preserve the complete **780-test** core baseline until the next full regression run.
+Verify that branch returns a stable non-null failure response instead of throwing. Preserve the complete **780-test** core baseline until the next full regression run.
 
 ## Last completed change
 
-`ErrorCatalogRuntimeNullInitializationDependencyResponseContractTests` passed all **2 focused tests** after runtime hardening. Runtime-null initializer and built-in provider responses now become stable `Invalid` responses instead of `NullReferenceException`.
+`ErrorCatalogRuntimeNullContextStoreResponseContractTests` passed all **5 focused tests** after runtime hardening. A runtime-null context-store response now becomes `WIF_CONTEXT_STORE_RESPONSE_NULL` for `GetCurrentContext`, descriptor lookups, and profile resolution; the same normalization is also used when flexible initialization probes the previous context.
