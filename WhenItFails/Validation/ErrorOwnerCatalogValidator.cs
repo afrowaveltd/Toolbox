@@ -47,6 +47,16 @@ public sealed class ErrorOwnerCatalogValidator : IErrorOwnerCatalogValidator
        ErrorOwnerCatalogDocument document,
        ErrorCatalogValidationResult result)
    {
+      if(document.Owners is null)
+      {
+         result.AddError(
+             code: "OwnerCatalogOwnersCollectionIsNull",
+             message: "Owner catalog owners collection is null.",
+             path: "owners");
+
+         return;
+      }
+
       if(document.Owners.Count == 0)
       {
          result.AddWarning(
