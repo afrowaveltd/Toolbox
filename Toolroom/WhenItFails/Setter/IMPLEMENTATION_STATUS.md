@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit protects bootstrap DTOs, validation contracts, stable enum values, descriptor and definition models, provider payloads, catalog context and initialization payloads, `CatalogProviderPipeline`, `ErrorCatalog`, factories, resolvers, runtime services, provider composition, bootstrap initialization, read-only profile-resolution results, and malformed dependency-result boundaries. `ErrorCatalogCrossValidator` now converts runtime-null entries in all five document collections it consumes directly — `Errors`, `Owners`, `CodeGroups`, `Categories`, and `Profiles` — into stable validation errors instead of throwing `NullReferenceException`. Its public `Validate(...)` API documentation is restored and the focused verification builds without the prior CS1591 warning. The standalone `ErrorProfileCatalogValidator` and `ErrorOwnerCatalogValidator` now likewise convert runtime-null definitions into stable validation issues instead of dereferencing them.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit protects bootstrap DTOs, validation contracts, stable enum values, descriptor and definition models, provider payloads, catalog context and initialization payloads, `CatalogProviderPipeline`, `ErrorCatalog`, factories, resolvers, runtime services, provider composition, bootstrap initialization, read-only profile-resolution results, and malformed dependency-result boundaries. `ErrorCatalogCrossValidator` now converts runtime-null entries in all five document collections it consumes directly — `Errors`, `Owners`, `CodeGroups`, `Categories`, and `Profiles` — into stable validation errors instead of throwing `NullReferenceException`. Its public `Validate(...)` API documentation is restored and the focused verification builds without the prior CS1591 warning. The standalone `ErrorProfileCatalogValidator`, `ErrorOwnerCatalogValidator`, and `ErrorCodeGroupCatalogValidator` now likewise convert runtime-null definitions into stable validation issues instead of dereferencing them.
 
 The current user-verified complete regression baselines are fully green:
 
@@ -42,11 +42,12 @@ Focused runtime/public-API checkpoints added after that complete core baseline i
 - `ErrorCatalogCrossValidatorNullProfileDefinitionContractTests`: **1 passed**;
 - all five cross-validator null-definition contracts re-verified together: **5 passed**, warning-free;
 - `ErrorProfileCatalogValidatorNullProfileDefinitionContractTests`: **1 passed**;
-- `ErrorOwnerCatalogValidatorNullOwnerDefinitionContractTests`: **1 passed**.
+- `ErrorOwnerCatalogValidatorNullOwnerDefinitionContractTests`: **1 passed**;
+- `ErrorCodeGroupCatalogValidatorNullCodeGroupDefinitionContractTests`: **1 passed**.
 
 Earlier verified runtime/public-API checkpoints cover bootstrap DTOs, validation result/severity contracts, context/runtime enums, descriptor and definition models, provider payloads, `CatalogProviderPipeline`, `ErrorCatalog` snapshots/lookups/indexes, factories, resolvers, runtime dependency-null boundaries, provider composition, bootstrap initialization, profile normalization, and read-only profile-resolution results.
 
-`ErrorCatalogCrossValidator` records `ErrorDefinitionIsNull` at `errors[index]`, `OwnerDefinitionIsNull` at `ownerCatalog.owners[index]`, `CodeGroupDefinitionIsNull` at `codeGroupCatalog.codeGroups[index]`, `CategoryDefinitionIsNull` at `categoryCatalog.categories[index]`, and `ProfileDefinitionIsNull` at `profileCatalog.profiles[index]`. `ErrorProfileCatalogValidator` uses `ProfileDefinitionIsNull` at `profiles[index]`. `ErrorOwnerCatalogValidator` uses `OwnerDefinitionIsNull` at `owners[index]` and safely skips null owners in normalized-name and range-overlap processing.
+`ErrorCatalogCrossValidator` records `ErrorDefinitionIsNull` at `errors[index]`, `OwnerDefinitionIsNull` at `ownerCatalog.owners[index]`, `CodeGroupDefinitionIsNull` at `codeGroupCatalog.codeGroups[index]`, `CategoryDefinitionIsNull` at `categoryCatalog.categories[index]`, and `ProfileDefinitionIsNull` at `profileCatalog.profiles[index]`. `ErrorProfileCatalogValidator` uses `ProfileDefinitionIsNull` at `profiles[index]`. `ErrorOwnerCatalogValidator` uses `OwnerDefinitionIsNull` at `owners[index]` and safely skips null owners in normalized-name and range-overlap processing. `ErrorCodeGroupCatalogValidator` uses `CodeGroupDefinitionIsNull` at `codeGroups[index]` and safely skips null code groups in range-overlap processing.
 
 Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`.
 
@@ -102,10 +103,10 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Continue the runtime/public-API audit from the **872-test** green baseline by inspecting the remaining standalone catalog validators for malformed collection-item boundaries. Next inspect `ErrorCodeGroupCatalogValidator`; add a red-first contract only if a runtime-null item can still escape as an exception.
+Continue the runtime/public-API audit from the **872-test** green baseline by inspecting the remaining standalone catalog validators for malformed collection-item boundaries. Next inspect `ErrorCategoryCatalogValidator`; add a red-first contract only if a runtime-null item can still escape as an exception.
 
 Prefer one narrow contract with a clear public response shape.
 
 ## Last completed change
 
-`ErrorOwnerCatalogValidatorNullOwnerDefinitionContractTests` is user-verified green: **1 passed**. A runtime-null item in `ErrorOwnerCatalogDocument.Owners` now becomes `OwnerDefinitionIsNull` at `owners[index]` instead of throwing `NullReferenceException`, including safe handling in normalized-name and range-overlap processing.
+`ErrorCodeGroupCatalogValidatorNullCodeGroupDefinitionContractTests` is user-verified green: **1 passed**. A runtime-null item in `ErrorCodeGroupCatalogDocument.CodeGroups` now becomes `CodeGroupDefinitionIsNull` at `codeGroups[index]` instead of throwing `NullReferenceException`, including safe handling in range-overlap processing.
