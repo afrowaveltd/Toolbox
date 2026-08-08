@@ -378,6 +378,24 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                         + "with a null payload.");
             }
 
+            if (initializationResponse.Data.Bootstrap is null)
+            {
+                return Response<ErrorCatalogInitializationPayload>.Invalid(
+                    code: "WIF_INITIALIZATION_BOOTSTRAP_NULL",
+                    message:
+                        "The successful error catalog initialization payload "
+                        + "has a null bootstrap value.");
+            }
+
+            if (initializationResponse.Data.Context is null)
+            {
+                return Response<ErrorCatalogInitializationPayload>.Invalid(
+                    code: "WIF_INITIALIZATION_CONTEXT_NULL",
+                    message:
+                        "The successful error catalog initialization payload "
+                        + "has a null context value.");
+            }
+
             RecordStatus(
                 initializationResponse.Data);
 
