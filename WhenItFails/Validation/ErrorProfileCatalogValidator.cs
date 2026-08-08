@@ -47,6 +47,16 @@ public sealed class ErrorProfileCatalogValidator : IErrorProfileCatalogValidator
         ErrorProfileCatalogDocument document,
         ErrorCatalogValidationResult result)
     {
+        if (document.Profiles is null)
+        {
+            result.AddError(
+                code: "ProfileCatalogProfilesCollectionIsNull",
+                message: "Profile catalog profiles collection is null.",
+                path: "profiles");
+
+            return;
+        }
+
         if (document.Profiles.Count == 0)
         {
             result.AddWarning(
