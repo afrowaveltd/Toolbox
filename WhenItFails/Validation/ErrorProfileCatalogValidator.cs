@@ -146,14 +146,26 @@ public sealed class ErrorProfileCatalogValidator : IErrorProfileCatalogValidator
                     result);
             }
 
-            CatalogValidationHelper.ValidateStringCollection(
-                profile.ExcludeErrors,
-                profile.Name,
-                profilePath + ".excludeErrors",
-                "ExcludeError",
-                result);
+            if (profile.ExcludeErrors is null)
+            {
+                result.AddError(
+                    code: "ProfileExcludeErrorsCollectionIsNull",
+                    message: "Profile exclude errors collection is null.",
+                    errorId: profile.Name,
+                    errorName: profile.DisplayName,
+                    path: profilePath + ".excludeErrors");
+            }
+            else
+            {
+                CatalogValidationHelper.ValidateStringCollection(
+                    profile.ExcludeErrors,
+                    profile.Name,
+                    profilePath + ".excludeErrors",
+                    "ExcludeError",
+                    result);
+            }
 
-            if (profile.IncludeErrors is not null)
+            if (profile.IncludeErrors is not null && profile.ExcludeErrors is not null)
             {
                 ValidateIncludeExcludeErrorConflicts(
                     profile,
