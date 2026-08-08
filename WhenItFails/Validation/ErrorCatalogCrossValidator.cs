@@ -15,6 +15,15 @@ namespace Afrowave.Toolbox.WhenItFails.Validation;
 /// </remarks>
 public sealed class ErrorCatalogCrossValidator
 {
+    /// <summary>
+    /// Validates the error catalog against owner, code group, category and profile catalogs.
+    /// </summary>
+    /// <param name="errorCatalog">Main error catalog document.</param>
+    /// <param name="ownerCatalog">Owner catalog document.</param>
+    /// <param name="codeGroupCatalog">Code group catalog document.</param>
+    /// <param name="categoryCatalog">Category catalog document.</param>
+    /// <param name="profileCatalog">Profile catalog document.</param>
+    /// <returns>Validation result containing all discovered issues.</returns>
     public ErrorCatalogValidationResult Validate(
         ErrorCatalogDocument? errorCatalog,
         ErrorOwnerCatalogDocument? ownerCatalog,
