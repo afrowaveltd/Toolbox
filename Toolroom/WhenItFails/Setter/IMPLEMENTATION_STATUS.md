@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit protects bootstrap DTOs, validation contracts, stable enum values, descriptor and definition models, provider payloads, catalog context and initialization payloads, `CatalogProviderPipeline`, `ErrorCatalog`, factories, resolvers, runtime services, provider composition, bootstrap initialization, read-only profile-resolution results, and malformed dependency-result boundaries. `ErrorCatalogCrossValidator` now converts runtime-null entries in both the main `Errors` collection and supporting `Owners` collection into stable validation errors instead of throwing `NullReferenceException`.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit protects bootstrap DTOs, validation contracts, stable enum values, descriptor and definition models, provider payloads, catalog context and initialization payloads, `CatalogProviderPipeline`, `ErrorCatalog`, factories, resolvers, runtime services, provider composition, bootstrap initialization, read-only profile-resolution results, and malformed dependency-result boundaries. `ErrorCatalogCrossValidator` now converts runtime-null entries in the main `Errors` collection and supporting `Owners` and `CodeGroups` collections into stable validation errors instead of throwing `NullReferenceException`.
 
 The current user-verified complete regression baselines are fully green:
 
@@ -76,9 +76,10 @@ Completed runtime/public-API focused checkpoints include:
 - `ErrorProfileResolverReadOnlyResultContractTests`: **1 passed**;
 - `ErrorCatalogContextProviderNullResponseTaskResultTests`: **5 passed**;
 - `ErrorCatalogCrossValidatorNullErrorDefinitionContractTests`: **1 passed**;
-- `ErrorCatalogCrossValidatorNullOwnerDefinitionContractTests`: **1 passed**, with the previous null-error-definition contract re-verified in the same focused run.
+- `ErrorCatalogCrossValidatorNullOwnerDefinitionContractTests`: **1 passed**;
+- `ErrorCatalogCrossValidatorNullCodeGroupDefinitionContractTests`: **1 passed**, with all three null-definition contracts re-verified together: **3 passed**.
 
-The catalog contracts protect source-sequence snapshots, ordering, exact object identity, read-only collection exposure, safe empty and unusable lookups, non-positive numeric indexing, deterministic duplicate-key handling, multi-value ordering and de-duplication, and consistent normalization. Provider and runtime boundaries convert malformed dependency responses into stable `Invalid` responses rather than dereferencing null. `ErrorProfileResolver` returns a genuinely read-only collection while preserving source order and exact `ErrorDefinition` identities. `ErrorCatalogCrossValidator` records `ErrorDefinitionIsNull` at `errors[index]` and `OwnerDefinitionIsNull` at `ownerCatalog.owners[index]`, skipping those malformed entries during indexing and cross-validation.
+The catalog contracts protect source-sequence snapshots, ordering, exact object identity, read-only collection exposure, safe empty and unusable lookups, non-positive numeric indexing, deterministic duplicate-key handling, multi-value ordering and de-duplication, and consistent normalization. Provider and runtime boundaries convert malformed dependency responses into stable `Invalid` responses rather than dereferencing null. `ErrorProfileResolver` returns a genuinely read-only collection while preserving source order and exact `ErrorDefinition` identities. `ErrorCatalogCrossValidator` records `ErrorDefinitionIsNull` at `errors[index]`, `OwnerDefinitionIsNull` at `ownerCatalog.owners[index]`, and `CodeGroupDefinitionIsNull` at `codeGroupCatalog.codeGroups[index]`, skipping those malformed entries during indexing and cross-validation.
 
 Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`.
 
@@ -134,10 +135,10 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Continue the runtime/public-API audit from the **872-test** green baseline. Inspect the remaining supporting catalog collections consumed by `ErrorCatalogCrossValidator` one at a time, next `CodeGroups`, then categories/profiles only if they expose the same runtime-null exception boundary.
+Continue the runtime/public-API audit from the **872-test** green baseline. Inspect the remaining supporting catalog collections consumed by `ErrorCatalogCrossValidator` one at a time, next categories and then profiles only if they expose the same runtime-null exception boundary.
 
 Prefer one narrow contract with a clear public response shape.
 
 ## Last completed change
 
-`ErrorCatalogCrossValidatorNullOwnerDefinitionContractTests` passed its **1 focused test**, and `ErrorCatalogCrossValidatorNullErrorDefinitionContractTests` was re-verified green in the same run. A runtime-null item in `ownerCatalog.Owners` now becomes `OwnerDefinitionIsNull` at `ownerCatalog.owners[index]` instead of throwing `NullReferenceException`.
+`ErrorCatalogCrossValidatorNullCodeGroupDefinitionContractTests`, `ErrorCatalogCrossValidatorNullOwnerDefinitionContractTests`, and `ErrorCatalogCrossValidatorNullErrorDefinitionContractTests` are user-verified green together: **3 passed**. A runtime-null item in `codeGroupCatalog.CodeGroups` now becomes `CodeGroupDefinitionIsNull` at `codeGroupCatalog.codeGroups[index]` instead of throwing `NullReferenceException`.
