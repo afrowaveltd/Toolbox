@@ -90,19 +90,31 @@ public sealed class ErrorCategoryCatalogValidator : IErrorCategoryCatalogValidat
              categoryPath + ".name",
              result);
 
-         CatalogValidationHelper.ValidateStringCollection(
-             category.Aliases,
-             category.Name,
-             categoryPath + ".aliases",
-             "CategoryAlias",
-             result);
+         if(category.Aliases is null)
+         {
+            result.AddError(
+                code: "CategoryAliasesCollectionIsNull",
+                message: "Category aliases collection is null.",
+                errorId: category.Name,
+                errorName: category.DisplayName,
+                path: categoryPath + ".aliases");
+         }
+         else
+         {
+            CatalogValidationHelper.ValidateStringCollection(
+                category.Aliases,
+                category.Name,
+                categoryPath + ".aliases",
+                "CategoryAlias",
+                result);
 
-         ValidateCategoryAliases(
-             category,
-             categoryPath,
-             allCategoryNames,
-             usedAliases,
-             result);
+            ValidateCategoryAliases(
+                category,
+                categoryPath,
+                allCategoryNames,
+                usedAliases,
+                result);
+         }
 
          CatalogValidationHelper.ValidateStringCollection(
              category.ParentCategories,
