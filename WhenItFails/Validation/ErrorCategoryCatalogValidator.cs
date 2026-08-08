@@ -63,8 +63,18 @@ public sealed class ErrorCategoryCatalogValidator : IErrorCategoryCatalogValidat
 
       for(int categoryIndex = 0; categoryIndex < document.Categories.Count; categoryIndex++)
       {
-         ErrorCategoryDefinition category = document.Categories[categoryIndex];
+         ErrorCategoryDefinition? category = document.Categories[categoryIndex];
          string categoryPath = $"categories[{categoryIndex}]";
+
+         if(category is null)
+         {
+            result.AddError(
+                code: "CategoryDefinitionIsNull",
+                message: "Category catalog contains a null category definition.",
+                path: categoryPath);
+
+            continue;
+         }
 
          ValidateSingleCategory(
              category,
@@ -115,8 +125,13 @@ public sealed class ErrorCategoryCatalogValidator : IErrorCategoryCatalogValidat
    {
       HashSet<string> categoryNames = new(StringComparer.OrdinalIgnoreCase);
 
-      foreach(ErrorCategoryDefinition category in categories)
+      foreach(ErrorCategoryDefinition? category in categories)
       {
+         if(category is null)
+         {
+            continue;
+         }
+
          string normalizedName = TextKeyNormalizer.NormalizeKey(category.Name);
 
          if(!string.IsNullOrWhiteSpace(normalizedName))
