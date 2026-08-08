@@ -114,6 +114,20 @@ public sealed class ErrorCatalogCrossValidator
             }
         }
 
+        if (categoryCatalog is not null)
+        {
+            for (int categoryIndex = 0; categoryIndex < categoryCatalog.Categories.Count; categoryIndex++)
+            {
+                if (categoryCatalog.Categories[categoryIndex] is null)
+                {
+                    result.AddError(
+                        code: "CategoryDefinitionIsNull",
+                        message: "Category catalog contains a null category definition.",
+                        path: $"categoryCatalog.categories[{categoryIndex}]");
+                }
+            }
+        }
+
         Dictionary<string, ErrorDefinition> errorsById =
             BuildErrorIndex(errorCatalog);
 
@@ -662,8 +676,13 @@ public sealed class ErrorCatalogCrossValidator
             return categoriesByName;
         }
 
-        foreach (ErrorCategoryDefinition category in categoryCatalog.Categories)
+        foreach (ErrorCategoryDefinition? category in categoryCatalog.Categories)
         {
+            if (category is null)
+            {
+                continue;
+            }
+
             AddCategoryKey(
                 categoriesByName,
                 category.Name,
