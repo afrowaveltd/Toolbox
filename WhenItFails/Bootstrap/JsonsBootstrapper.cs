@@ -51,12 +51,28 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                 PackageDirectoryCreated = !packageDirectoryAlreadyExisted
             };
 
-            IReadOnlyList<JsonsTemplateFile> templateFiles =
+            IReadOnlyList<JsonsTemplateFile>? templateFiles =
                 _templateProvider.GetTemplateFiles(options);
 
-            foreach (JsonsTemplateFile templateFile in templateFiles)
+            if (templateFiles is null)
+            {
+                return Response<JsonsBootstrapPayload>.Invalid(
+                    code: "WIF_JSONS_TEMPLATE_COLLECTION_NULL",
+                    message:
+                        "The JSON template provider returned a null template collection.");
+            }
+
+            foreach (JsonsTemplateFile? templateFile in templateFiles)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
+                if (templateFile is null)
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_TEMPLATE_ITEM_NULL",
+                        message:
+                            "The JSON template provider returned a null template item.");
+                }
 
                 JsonsBootstrapFileResult fileResult =
                     await EnsureTemplateFileAsync(
