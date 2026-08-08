@@ -63,8 +63,18 @@ public sealed class ErrorOwnerCatalogValidator : IErrorOwnerCatalogValidator
 
       for(int ownerIndex = 0; ownerIndex < document.Owners.Count; ownerIndex++)
       {
-         ErrorOwnerDefinition owner = document.Owners[ownerIndex];
+         ErrorOwnerDefinition? owner = document.Owners[ownerIndex];
          string ownerPath = $"owners[{ownerIndex}]";
+
+         if(owner is null)
+         {
+            result.AddError(
+                code: "OwnerDefinitionIsNull",
+                message: "Owner catalog contains a null owner definition.",
+                path: ownerPath);
+
+            continue;
+         }
 
          ValidateSingleOwner(owner, ownerPath, result);
 
@@ -100,8 +110,13 @@ public sealed class ErrorOwnerCatalogValidator : IErrorOwnerCatalogValidator
    {
       HashSet<string> ownerNames = new(StringComparer.OrdinalIgnoreCase);
 
-      foreach(ErrorOwnerDefinition owner in owners)
+      foreach(ErrorOwnerDefinition? owner in owners)
       {
+         if(owner is null)
+         {
+            continue;
+         }
+
          string normalizedOwnerName = TextKeyNormalizer.NormalizeKey(owner.Name);
 
          if(!string.IsNullOrWhiteSpace(normalizedOwnerName))
@@ -209,18 +224,18 @@ public sealed class ErrorOwnerCatalogValidator : IErrorOwnerCatalogValidator
    {
       for(int firstIndex = 0; firstIndex < document.Owners.Count; firstIndex++)
       {
-         ErrorOwnerDefinition first = document.Owners[firstIndex];
+         ErrorOwnerDefinition? first = document.Owners[firstIndex];
 
-         if(!IsValidRange(first))
+         if(first is null || !IsValidRange(first))
          {
             continue;
          }
 
          for(int secondIndex = firstIndex + 1; secondIndex < document.Owners.Count; secondIndex++)
          {
-            ErrorOwnerDefinition second = document.Owners[secondIndex];
+            ErrorOwnerDefinition? second = document.Owners[secondIndex];
 
-            if(!IsValidRange(second))
+            if(second is null || !IsValidRange(second))
             {
                continue;
             }
