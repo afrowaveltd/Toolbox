@@ -1,3 +1,4 @@
+using Afrowave.Toolbox.Essentials.Enums;
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
@@ -10,7 +11,7 @@ namespace Afrowave.Toolbox.WhenItFails.Tests.Catalog;
 public sealed class ErrorCatalogContextProviderNullResponseTaskResultTests
 {
     [Fact]
-    public async Task LoadFromJsonsAsync_ShouldSurfaceNullResponseReturnedByCompletedProviderTask()
+    public async Task LoadFromJsonsAsync_ShouldReturnInvalid_WhenErrorProviderTaskReturnsNullResponse()
     {
         ErrorCatalogContextProvider provider = new(
             new NullResponseErrorCatalogProvider(),
@@ -19,12 +20,17 @@ public sealed class ErrorCatalogContextProviderNullResponseTaskResultTests
             new UnexpectedOwnerCatalogProvider(),
             new UnexpectedProfileCatalogProvider());
 
-        await Assert.ThrowsAsync<NullReferenceException>(
-            () => provider.LoadFromJsonsAsync(CreateOptions()));
+        Response<ErrorCatalogContext> response =
+            await provider.LoadFromJsonsAsync(CreateOptions());
+
+        AssertInvalidResponse(
+            response,
+            "WIF_ERROR_CATALOG_PROVIDER_RESPONSE_NULL",
+            "The error catalog provider returned a null response.");
     }
 
     [Fact]
-    public async Task LoadFromJsonsAsync_ShouldSurfaceNullCategoryResponseAfterErrorProviderSucceeds()
+    public async Task LoadFromJsonsAsync_ShouldReturnInvalid_WhenCategoryProviderTaskReturnsNullResponse()
     {
         ErrorCatalogContextProvider provider = new(
             new SuccessfulErrorCatalogProvider(),
@@ -33,12 +39,17 @@ public sealed class ErrorCatalogContextProviderNullResponseTaskResultTests
             new UnexpectedOwnerCatalogProvider(),
             new UnexpectedProfileCatalogProvider());
 
-        await Assert.ThrowsAsync<NullReferenceException>(
-            () => provider.LoadFromJsonsAsync(CreateOptions()));
+        Response<ErrorCatalogContext> response =
+            await provider.LoadFromJsonsAsync(CreateOptions());
+
+        AssertInvalidResponse(
+            response,
+            "WIF_CATEGORY_CATALOG_PROVIDER_RESPONSE_NULL",
+            "The error category catalog provider returned a null response.");
     }
 
     [Fact]
-    public async Task LoadFromJsonsAsync_ShouldSurfaceNullCodeGroupResponseAfterEarlierProvidersSucceed()
+    public async Task LoadFromJsonsAsync_ShouldReturnInvalid_WhenCodeGroupProviderTaskReturnsNullResponse()
     {
         ErrorCatalogContextProvider provider = new(
             new SuccessfulErrorCatalogProvider(),
@@ -47,12 +58,17 @@ public sealed class ErrorCatalogContextProviderNullResponseTaskResultTests
             new UnexpectedOwnerCatalogProvider(),
             new UnexpectedProfileCatalogProvider());
 
-        await Assert.ThrowsAsync<NullReferenceException>(
-            () => provider.LoadFromJsonsAsync(CreateOptions()));
+        Response<ErrorCatalogContext> response =
+            await provider.LoadFromJsonsAsync(CreateOptions());
+
+        AssertInvalidResponse(
+            response,
+            "WIF_CODE_GROUP_CATALOG_PROVIDER_RESPONSE_NULL",
+            "The error code group catalog provider returned a null response.");
     }
 
     [Fact]
-    public async Task LoadFromJsonsAsync_ShouldSurfaceNullOwnerResponseAfterEarlierProvidersSucceed()
+    public async Task LoadFromJsonsAsync_ShouldReturnInvalid_WhenOwnerProviderTaskReturnsNullResponse()
     {
         ErrorCatalogContextProvider provider = new(
             new SuccessfulErrorCatalogProvider(),
@@ -61,12 +77,17 @@ public sealed class ErrorCatalogContextProviderNullResponseTaskResultTests
             new NullResponseOwnerCatalogProvider(),
             new UnexpectedProfileCatalogProvider());
 
-        await Assert.ThrowsAsync<NullReferenceException>(
-            () => provider.LoadFromJsonsAsync(CreateOptions()));
+        Response<ErrorCatalogContext> response =
+            await provider.LoadFromJsonsAsync(CreateOptions());
+
+        AssertInvalidResponse(
+            response,
+            "WIF_OWNER_CATALOG_PROVIDER_RESPONSE_NULL",
+            "The error owner catalog provider returned a null response.");
     }
 
     [Fact]
-    public async Task LoadFromJsonsAsync_ShouldSurfaceNullProfileResponseBeforeCrossValidation()
+    public async Task LoadFromJsonsAsync_ShouldReturnInvalid_WhenProfileProviderTaskReturnsNullResponse()
     {
         ErrorCatalogContextProvider provider = new(
             new SuccessfulErrorCatalogProvider(),
@@ -75,8 +96,27 @@ public sealed class ErrorCatalogContextProviderNullResponseTaskResultTests
             new SuccessfulOwnerCatalogProvider(),
             new NullResponseProfileCatalogProvider());
 
-        await Assert.ThrowsAsync<NullReferenceException>(
-            () => provider.LoadFromJsonsAsync(CreateOptions()));
+        Response<ErrorCatalogContext> response =
+            await provider.LoadFromJsonsAsync(CreateOptions());
+
+        AssertInvalidResponse(
+            response,
+            "WIF_PROFILE_CATALOG_PROVIDER_RESPONSE_NULL",
+            "The error profile catalog provider returned a null response.");
+    }
+
+    private static void AssertInvalidResponse(
+        Response<ErrorCatalogContext> response,
+        string expectedCode,
+        string expectedMessage)
+    {
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Invalid, response.Status);
+        Assert.Null(response.Data);
+
+        var issue = Assert.Single(response.Issues);
+        Assert.Equal(expectedCode, issue.Code);
+        Assert.Equal(expectedMessage, response.Message);
     }
 
     private static JsonsOptions CreateOptions()
