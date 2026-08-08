@@ -519,7 +519,7 @@ public sealed class ErrorCatalogCrossValidator
     private static void ValidateProfileIncludeCategories(
         ErrorProfileDefinition profile,
         string profilePath,
-        IReadOnlyDictionary<string, ErrorDefinition> errorsById,
+        IReadOnlyDictionary<string, ErrorCategoryDefinition> categoriesByName,
         ErrorCatalogValidationResult result)
     {
         if (categoriesByName.Count == 0)
