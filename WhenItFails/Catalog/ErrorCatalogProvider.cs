@@ -37,8 +37,15 @@ public sealed class ErrorCatalogProvider : IErrorCatalogProvider
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        Response<ErrorCatalogDocument> loadResponse =
+        Response<ErrorCatalogDocument>? loadResponse =
             await _loader.LoadFromFileAsync(filePath, cancellationToken);
+
+        if (loadResponse is null)
+        {
+            return Response<ErrorCatalogProviderPayload>.Invalid(
+                code: "WIF_ERROR_CATALOG_LOADER_RESPONSE_NULL",
+                message: "The error catalog loader returned a null response.");
+        }
 
         if (!loadResponse.IsSuccess)
         {
@@ -56,11 +63,26 @@ public sealed class ErrorCatalogProvider : IErrorCatalogProvider
                 message: "Error catalog loader returned success, but document is null.");
         }
 
-        ErrorCatalogDocument normalizedDocument =
+        ErrorCatalogDocument? normalizedDocument =
             _normalizer.Normalize(loadResponse.Data);
 
-        ErrorCatalogValidationResult validationResult =
+        if (normalizedDocument is null)
+        {
+            return Response<ErrorCatalogProviderPayload>.Invalid(
+                code: "WIF_ERROR_CATALOG_NORMALIZER_RESULT_NULL",
+                message:
+                    "The error catalog document normalizer returned a null result.");
+        }
+
+        ErrorCatalogValidationResult? validationResult =
             _validator.Validate(normalizedDocument);
+
+        if (validationResult is null)
+        {
+            return Response<ErrorCatalogProviderPayload>.Invalid(
+                code: "WIF_ERROR_CATALOG_VALIDATOR_RESULT_NULL",
+                message: "The error catalog validator returned a null result.");
+        }
 
         if (!validationResult.IsValid)
         {
@@ -69,7 +91,14 @@ public sealed class ErrorCatalogProvider : IErrorCatalogProvider
                 message: "Error catalog validation failed.");
         }
 
-        IErrorCatalog catalog = _factory.Create(normalizedDocument);
+        IErrorCatalog? catalog = _factory.Create(normalizedDocument);
+
+        if (catalog is null)
+        {
+            return Response<ErrorCatalogProviderPayload>.Invalid(
+                code: "WIF_ERROR_CATALOG_FACTORY_RESULT_NULL",
+                message: "The error catalog factory returned a null result.");
+        }
 
         ErrorCatalogProviderPayload payload = new()
         {
