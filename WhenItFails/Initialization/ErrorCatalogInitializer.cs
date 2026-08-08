@@ -43,10 +43,18 @@ public sealed class ErrorCatalogInitializer : IErrorCatalogInitializer
       cancellationToken.ThrowIfCancellationRequested();
       ArgumentNullException.ThrowIfNull(options);
 
-      Response<JsonsBootstrapPayload> bootstrapResponse =
+      Response<JsonsBootstrapPayload>? bootstrapResponse =
           await _bootstrapper.EnsureWorkspaceAsync(
               options,
               cancellationToken);
+
+      if(bootstrapResponse is null)
+      {
+         return Response<ErrorCatalogInitializationPayload>.Invalid(
+             code: "WIF_INITIALIZER_BOOTSTRAPPER_RESPONSE_NULL",
+             message:
+                 "The JSON workspace bootstrapper returned a null response.");
+      }
 
       if(!bootstrapResponse.IsSuccess)
       {
@@ -65,10 +73,18 @@ public sealed class ErrorCatalogInitializer : IErrorCatalogInitializer
                  "JSON workspace bootstrap succeeded without payload data.");
       }
 
-      Response<ErrorCatalogContext> contextResponse =
+      Response<ErrorCatalogContext>? contextResponse =
           await _contextProvider.LoadFromJsonsAsync(
               options,
               cancellationToken);
+
+      if(contextResponse is null)
+      {
+         return Response<ErrorCatalogInitializationPayload>.Invalid(
+             code: "WIF_INITIALIZER_CONTEXT_PROVIDER_RESPONSE_NULL",
+             message:
+                 "The error catalog context provider returned a null response during initialization.");
+      }
 
       if(!contextResponse.IsSuccess)
       {
