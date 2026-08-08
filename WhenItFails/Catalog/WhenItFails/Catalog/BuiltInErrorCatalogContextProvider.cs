@@ -92,9 +92,16 @@ public sealed class BuiltInErrorCatalogContextProvider
                     cancellationToken);
             }
 
-            return await _contextProvider.LoadFromJsonsAsync(
-                options,
-                cancellationToken);
+            Response<ErrorCatalogContext>? contextResponse =
+                await _contextProvider.LoadFromJsonsAsync(
+                    options,
+                    cancellationToken);
+
+            return contextResponse
+                ?? Response<ErrorCatalogContext>.Invalid(
+                    code: "WIF_BUILT_IN_CONTEXT_PROVIDER_RESPONSE_NULL",
+                    message:
+                        "The error catalog context provider returned a null response while loading bundled defaults.");
         }
         catch (OperationCanceledException)
         {
