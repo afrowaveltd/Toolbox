@@ -61,8 +61,18 @@ public sealed class ErrorProfileCatalogValidator : IErrorProfileCatalogValidator
 
         for (int profileIndex = 0; profileIndex < document.Profiles.Count; profileIndex++)
         {
-            ErrorProfileDefinition profile = document.Profiles[profileIndex];
+            ErrorProfileDefinition? profile = document.Profiles[profileIndex];
             string profilePath = $"profiles[{profileIndex}]";
+
+            if (profile is null)
+            {
+                result.AddError(
+                    code: "ProfileDefinitionIsNull",
+                    message: "Profile catalog contains a null profile definition.",
+                    path: profilePath);
+
+                continue;
+            }
 
             ValidateSingleProfile(profile, profilePath, result);
 
