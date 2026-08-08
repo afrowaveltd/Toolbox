@@ -46,6 +46,16 @@ public sealed class ErrorCodeGroupCatalogValidator : IErrorCodeGroupCatalogValid
        ErrorCodeGroupCatalogDocument document,
        ErrorCatalogValidationResult result)
    {
+      if(document.CodeGroups is null)
+      {
+         result.AddError(
+             code: "CodeGroupCatalogCodeGroupsCollectionIsNull",
+             message: "Code group catalog code groups collection is null.",
+             path: "codeGroups");
+
+         return;
+      }
+
       if(document.CodeGroups.Count == 0)
       {
          result.AddWarning(
