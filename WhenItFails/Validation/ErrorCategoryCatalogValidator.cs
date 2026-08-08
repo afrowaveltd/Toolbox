@@ -116,12 +116,24 @@ public sealed class ErrorCategoryCatalogValidator : IErrorCategoryCatalogValidat
                 result);
          }
 
-         CatalogValidationHelper.ValidateStringCollection(
-             category.ParentCategories,
-             category.Name,
-             categoryPath + ".parentCategories",
-             "ParentCategory",
-             result);
+         if(category.ParentCategories is null)
+         {
+            result.AddError(
+                code: "CategoryParentCategoriesCollectionIsNull",
+                message: "Category parent categories collection is null.",
+                errorId: category.Name,
+                errorName: category.DisplayName,
+                path: categoryPath + ".parentCategories");
+         }
+         else
+         {
+            CatalogValidationHelper.ValidateStringCollection(
+                category.ParentCategories,
+                category.Name,
+                categoryPath + ".parentCategories",
+                "ParentCategory",
+                result);
+         }
 
          CatalogValidationHelper.ValidateStringCollection(
              category.DefaultTags,
