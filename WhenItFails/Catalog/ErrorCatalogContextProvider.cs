@@ -51,10 +51,17 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
 
         List<IssueInfo> providerIssues = [];
 
-        Response<ErrorCatalogProviderPayload> errorCatalogResponse =
+        Response<ErrorCatalogProviderPayload>? errorCatalogResponse =
             await _errorCatalogProvider.LoadFromFileAsync(
                 options.ErrorCatalogFilePath,
                 cancellationToken);
+
+        if (errorCatalogResponse is null)
+        {
+            return CreateNullProviderResponse(
+                "WIF_ERROR_CATALOG_PROVIDER_RESPONSE_NULL",
+                "The error catalog provider returned a null response.");
+        }
 
         if (!errorCatalogResponse.IsSuccess)
         {
@@ -73,10 +80,17 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
 
         AddProviderIssues(providerIssues, errorCatalogResponse.Issues);
 
-        Response<ErrorCategoryCatalogProviderPayload> categoryCatalogResponse =
+        Response<ErrorCategoryCatalogProviderPayload>? categoryCatalogResponse =
             await _categoryCatalogProvider.LoadFromFileAsync(
                 options.CategoryCatalogFilePath,
                 cancellationToken);
+
+        if (categoryCatalogResponse is null)
+        {
+            return CreateNullProviderResponse(
+                "WIF_CATEGORY_CATALOG_PROVIDER_RESPONSE_NULL",
+                "The error category catalog provider returned a null response.");
+        }
 
         if (!categoryCatalogResponse.IsSuccess)
         {
@@ -93,10 +107,17 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
 
         AddProviderIssues(providerIssues, categoryCatalogResponse.Issues);
 
-        Response<ErrorCodeGroupCatalogProviderPayload> codeGroupCatalogResponse =
+        Response<ErrorCodeGroupCatalogProviderPayload>? codeGroupCatalogResponse =
             await _codeGroupCatalogProvider.LoadFromFileAsync(
                 options.CodeGroupCatalogFilePath,
                 cancellationToken);
+
+        if (codeGroupCatalogResponse is null)
+        {
+            return CreateNullProviderResponse(
+                "WIF_CODE_GROUP_CATALOG_PROVIDER_RESPONSE_NULL",
+                "The error code group catalog provider returned a null response.");
+        }
 
         if (!codeGroupCatalogResponse.IsSuccess)
         {
@@ -113,10 +134,17 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
 
         AddProviderIssues(providerIssues, codeGroupCatalogResponse.Issues);
 
-        Response<ErrorOwnerCatalogProviderPayload> ownerCatalogResponse =
+        Response<ErrorOwnerCatalogProviderPayload>? ownerCatalogResponse =
             await _ownerCatalogProvider.LoadFromFileAsync(
                 options.OwnerCatalogFilePath,
                 cancellationToken);
+
+        if (ownerCatalogResponse is null)
+        {
+            return CreateNullProviderResponse(
+                "WIF_OWNER_CATALOG_PROVIDER_RESPONSE_NULL",
+                "The error owner catalog provider returned a null response.");
+        }
 
         if (!ownerCatalogResponse.IsSuccess)
         {
@@ -133,10 +161,17 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
 
         AddProviderIssues(providerIssues, ownerCatalogResponse.Issues);
 
-        Response<ErrorProfileCatalogProviderPayload> profileCatalogResponse =
+        Response<ErrorProfileCatalogProviderPayload>? profileCatalogResponse =
             await _profileCatalogProvider.LoadFromFileAsync(
                 options.ProfilesFilePath,
                 cancellationToken);
+
+        if (profileCatalogResponse is null)
+        {
+            return CreateNullProviderResponse(
+                "WIF_PROFILE_CATALOG_PROVIDER_RESPONSE_NULL",
+                "The error profile catalog provider returned a null response.");
+        }
 
         if (!profileCatalogResponse.IsSuccess)
         {
@@ -244,6 +279,15 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
                 code: issueCode,
                 message: message),
             sourceResponse.Status);
+    }
+
+    private static Response<ErrorCatalogContext> CreateNullProviderResponse(
+        string code,
+        string message)
+    {
+        return Response<ErrorCatalogContext>.Invalid(
+            code: code,
+            message: message);
     }
 
     private static Response<ErrorCatalogContext> CreateNullPayloadResponse()
