@@ -232,7 +232,20 @@ public sealed class ErrorCatalogValidator : IErrorCatalogValidator
          ValidateStringCollection(error.Categories, error, $"{errorPath}.categories", "Category", result);
       }
 
-      ValidateStringCollection(error.Subcategories, error, $"{errorPath}.subcategories", "Subcategory", result);
+      if(error.Subcategories is null)
+      {
+         result.AddError(
+             code: "ErrorSubcategoriesCollectionIsNull",
+             message: "Error subcategories collection is null.",
+             errorId: error.Id,
+             errorName: error.Name,
+             path: $"{errorPath}.subcategories");
+      }
+      else
+      {
+         ValidateStringCollection(error.Subcategories, error, $"{errorPath}.subcategories", "Subcategory", result);
+      }
+
       ValidateStringCollection(error.Tags, error, $"{errorPath}.tags", "Tag", result);
 
       if(string.IsNullOrWhiteSpace(error.Title))
