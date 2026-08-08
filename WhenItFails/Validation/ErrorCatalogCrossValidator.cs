@@ -86,6 +86,20 @@ public sealed class ErrorCatalogCrossValidator
             }
         }
 
+        if (ownerCatalog is not null)
+        {
+            for (int ownerIndex = 0; ownerIndex < ownerCatalog.Owners.Count; ownerIndex++)
+            {
+                if (ownerCatalog.Owners[ownerIndex] is null)
+                {
+                    result.AddError(
+                        code: "OwnerDefinitionIsNull",
+                        message: "Owner catalog contains a null owner definition.",
+                        path: $"ownerCatalog.owners[{ownerIndex}]");
+                }
+            }
+        }
+
         Dictionary<string, ErrorDefinition> errorsById =
             BuildErrorIndex(errorCatalog);
 
@@ -505,7 +519,7 @@ public sealed class ErrorCatalogCrossValidator
     private static void ValidateProfileIncludeCategories(
         ErrorProfileDefinition profile,
         string profilePath,
-        IReadOnlyDictionary<string, ErrorCategoryDefinition> categoriesByName,
+        IReadOnlyDictionary<string, ErrorDefinition> errorsById,
         ErrorCatalogValidationResult result)
     {
         if (categoriesByName.Count == 0)
@@ -575,8 +589,13 @@ public sealed class ErrorCatalogCrossValidator
             return ownersByName;
         }
 
-        foreach (ErrorOwnerDefinition owner in ownerCatalog.Owners)
+        foreach (ErrorOwnerDefinition? owner in ownerCatalog.Owners)
         {
+            if (owner is null)
+            {
+                continue;
+            }
+
             AddOwnerKey(ownersByName, owner.Name, owner);
 
             foreach (string alias in owner.Aliases)
