@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit protects bootstrap DTOs, validation contracts, stable enum values, descriptor and definition models, provider payloads, catalog context and initialization payloads, `CatalogProviderPipeline`, `ErrorCatalog`, factories, resolvers, runtime services, provider composition, bootstrap initialization, read-only profile-resolution results, and malformed dependency-result boundaries. `ErrorCatalogCrossValidator` now converts runtime-null entries in all five document collections it consumes directly — `Errors`, `Owners`, `CodeGroups`, `Categories`, and `Profiles` — into stable validation errors instead of throwing `NullReferenceException`. Its public `Validate(...)` API documentation is restored and the focused verification builds without the prior CS1591 warning. `ErrorProfileCatalogValidator` likewise converts a runtime-null profile definition into the stable `ProfileDefinitionIsNull` validation issue instead of dereferencing it.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit protects bootstrap DTOs, validation contracts, stable enum values, descriptor and definition models, provider payloads, catalog context and initialization payloads, `CatalogProviderPipeline`, `ErrorCatalog`, factories, resolvers, runtime services, provider composition, bootstrap initialization, read-only profile-resolution results, and malformed dependency-result boundaries. `ErrorCatalogCrossValidator` now converts runtime-null entries in all five document collections it consumes directly — `Errors`, `Owners`, `CodeGroups`, `Categories`, and `Profiles` — into stable validation errors instead of throwing `NullReferenceException`. Its public `Validate(...)` API documentation is restored and the focused verification builds without the prior CS1591 warning. The standalone `ErrorProfileCatalogValidator` and `ErrorOwnerCatalogValidator` now likewise convert runtime-null definitions into stable validation issues instead of dereferencing them.
 
 The current user-verified complete regression baselines are fully green:
 
@@ -33,57 +33,20 @@ dotnet test WhenItFails.Tests
 
 Result: **872 passed, 0 failed, 0 skipped**.
 
-Completed runtime/public-API focused checkpoints include:
+Focused runtime/public-API checkpoints added after that complete core baseline include:
 
-- bootstrap value and payload contracts: **7 passed**;
-- validation issue, result, and severity contracts: **15 passed**;
-- catalog context source and runtime state contracts: **8 passed**;
-- descriptor contract family: **7 passed**;
-- definition and catalog-document contract family: **16 passed**;
-- provider-payload contract family: **10 passed**;
-- `ErrorCatalogContextContractTests`: **2 passed**;
-- `CatalogProviderPipelineTests`: **10 passed**;
-- `CatalogProviderPipelineNullResultContractTests`: **4 passed**;
-- `ErrorCatalogInitializationPayloadContractTests`: **5 passed**;
-- `ErrorCatalogSnapshotContractTests`: **4 passed**;
-- `ErrorCatalogEmptyLookupContractTests`: **2 passed**;
-- `ErrorCatalogNonPositiveCodeContractTests`: **2 passed**;
-- `ErrorCatalogDuplicateSingleValueKeyContractTests`: **3 passed**;
-- `ErrorCatalogMultiValueIndexContractTests`: **2 passed**;
-- `ErrorCatalogMultiValueNormalizationContractTests`: **6 passed**;
-- `ErrorCatalogUnusableSingleValueLookupContractTests`: **6 passed**;
-- `ErrorCatalogFactoryContractTests`: **2 passed**;
-- `ErrorDefinitionResolverInputBoundaryContractTests`: **5 passed**;
-- `ErrorDefinitionResolverResponseShapeContractTests`: **3 passed**;
-- `ErrorDescriptorFactoryContractTests`: **3 passed**;
-- `ErrorDescriptorFactoryNullBoundaryContractTests`: **2 passed**;
-- `ErrorDescriptorResolverFallbackContractTests`: **2 passed**;
-- `ErrorDescriptorServiceNullResponseContractTests`: **3 passed**;
-- `ErrorCatalogRuntimeNullContextPayloadContractTests`: **4 passed**;
-- `ErrorCatalogRuntimeNullDownstreamResponseContractTests`: **4 passed**;
-- `ErrorCatalogRuntimeNullInitializationDependencyResponseContractTests`: **2 passed**;
-- `ErrorCatalogRuntimeNullContextStoreResponseContractTests`: **5 passed**;
-- `ErrorCatalogRuntimeNullFlexibleFallbackResponseContractTests`: **1 passed**;
-- `ErrorCatalogRuntimeNullInitializationPayloadContractTests`: **1 passed**;
-- `ErrorCatalogRuntimeInvalidInitializationPayloadContractTests`: **2 passed**;
-- `ErrorProfileSelectionServiceNullResolverResultContractTests`: **1 passed**;
-- `ErrorCatalogContextProviderNullDependencyResponseContractTests`: **5 passed**;
-- `ErrorCatalogProviderNullDependencyResultContractTests`: **4 passed**;
-- `BuiltInErrorCatalogContextProviderNullContextResponseContractTests`: **1 passed**;
-- `ErrorCatalogInitializerNullDependencyResponseContractTests`: **2 passed**;
-- `JsonsBootstrapperNullTemplateResultContractTests`: **2 passed**;
-- `ErrorProfileResolverNormalizationContractTests`: **8 passed**;
-- `ErrorProfileResolverReadOnlyResultContractTests`: **1 passed**;
-- `ErrorCatalogContextProviderNullResponseTaskResultTests`: **5 passed**;
 - `ErrorCatalogCrossValidatorNullErrorDefinitionContractTests`: **1 passed**;
 - `ErrorCatalogCrossValidatorNullOwnerDefinitionContractTests`: **1 passed**;
 - `ErrorCatalogCrossValidatorNullCodeGroupDefinitionContractTests`: **1 passed**;
 - `ErrorCatalogCrossValidatorNullCategoryDefinitionContractTests`: **1 passed**;
 - `ErrorCatalogCrossValidatorNullProfileDefinitionContractTests`: **1 passed**;
-- all five cross-validator null-definition contracts re-verified together: **5 passed**, with the prior CS1591 warning removed;
-- `ErrorProfileCatalogValidatorNullProfileDefinitionContractTests`: **1 passed**.
+- all five cross-validator null-definition contracts re-verified together: **5 passed**, warning-free;
+- `ErrorProfileCatalogValidatorNullProfileDefinitionContractTests`: **1 passed**;
+- `ErrorOwnerCatalogValidatorNullOwnerDefinitionContractTests`: **1 passed**.
 
-The catalog contracts protect source-sequence snapshots, ordering, exact object identity, read-only collection exposure, safe empty and unusable lookups, non-positive numeric indexing, deterministic duplicate-key handling, multi-value ordering and de-duplication, and consistent normalization. Provider and runtime boundaries convert malformed dependency responses into stable `Invalid` responses rather than dereferencing null. `ErrorProfileResolver` returns a genuinely read-only collection while preserving source order and exact `ErrorDefinition` identities. `ErrorCatalogCrossValidator` records `ErrorDefinitionIsNull` at `errors[index]`, `OwnerDefinitionIsNull` at `ownerCatalog.owners[index]`, `CodeGroupDefinitionIsNull` at `codeGroupCatalog.codeGroups[index]`, `CategoryDefinitionIsNull` at `categoryCatalog.categories[index]`, and `ProfileDefinitionIsNull` at `profileCatalog.profiles[index]`, skipping those malformed entries during indexing or cross-validation. `ErrorProfileCatalogValidator` now applies the same stable null-profile semantics at its own public validation boundary.
+Earlier verified runtime/public-API checkpoints cover bootstrap DTOs, validation result/severity contracts, context/runtime enums, descriptor and definition models, provider payloads, `CatalogProviderPipeline`, `ErrorCatalog` snapshots/lookups/indexes, factories, resolvers, runtime dependency-null boundaries, provider composition, bootstrap initialization, profile normalization, and read-only profile-resolution results.
+
+`ErrorCatalogCrossValidator` records `ErrorDefinitionIsNull` at `errors[index]`, `OwnerDefinitionIsNull` at `ownerCatalog.owners[index]`, `CodeGroupDefinitionIsNull` at `codeGroupCatalog.codeGroups[index]`, `CategoryDefinitionIsNull` at `categoryCatalog.categories[index]`, and `ProfileDefinitionIsNull` at `profileCatalog.profiles[index]`. `ErrorProfileCatalogValidator` uses `ProfileDefinitionIsNull` at `profiles[index]`. `ErrorOwnerCatalogValidator` uses `OwnerDefinitionIsNull` at `owners[index]` and safely skips null owners in normalized-name and range-overlap processing.
 
 Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`.
 
@@ -139,10 +102,10 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Continue the runtime/public-API audit from the **872-test** green baseline by inspecting the remaining standalone catalog validators for malformed collection-item boundaries. Add a contract only where the public validator can still turn malformed runtime data into an exception; avoid duplicating already-safe behavior.
+Continue the runtime/public-API audit from the **872-test** green baseline by inspecting the remaining standalone catalog validators for malformed collection-item boundaries. Next inspect `ErrorCodeGroupCatalogValidator`; add a red-first contract only if a runtime-null item can still escape as an exception.
 
 Prefer one narrow contract with a clear public response shape.
 
 ## Last completed change
 
-`ErrorProfileCatalogValidatorNullProfileDefinitionContractTests` is user-verified green: **1 passed**. A runtime-null item in `ErrorProfileCatalogDocument.Profiles` now becomes `ProfileDefinitionIsNull` at `profiles[index]` instead of throwing `NullReferenceException`.
+`ErrorOwnerCatalogValidatorNullOwnerDefinitionContractTests` is user-verified green: **1 passed**. A runtime-null item in `ErrorOwnerCatalogDocument.Owners` now becomes `OwnerDefinitionIsNull` at `owners[index]` instead of throwing `NullReferenceException`, including safe handling in normalized-name and range-overlap processing.
