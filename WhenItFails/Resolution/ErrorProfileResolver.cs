@@ -76,7 +76,7 @@ public sealed class ErrorProfileResolver : IErrorProfileResolver
             }
         }
 
-        return resolvedErrors;
+        return resolvedErrors.AsReadOnly();
     }
 
     private static bool MatchesAnyIncludeFilter(
@@ -171,4 +171,3 @@ public sealed class ErrorProfileResolver : IErrorProfileResolver
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
     }
 }
-
