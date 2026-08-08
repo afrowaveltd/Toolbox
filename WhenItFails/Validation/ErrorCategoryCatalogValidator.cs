@@ -47,6 +47,16 @@ public sealed class ErrorCategoryCatalogValidator : IErrorCategoryCatalogValidat
        ErrorCategoryCatalogDocument document,
        ErrorCatalogValidationResult result)
    {
+      if(document.Categories is null)
+      {
+         result.AddError(
+             code: "CategoryCatalogCategoriesCollectionIsNull",
+             message: "Category catalog categories collection is null.",
+             path: "categories");
+
+         return;
+      }
+
       if(document.Categories.Count == 0)
       {
          result.AddWarning(
