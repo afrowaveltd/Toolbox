@@ -100,6 +100,20 @@ public sealed class ErrorCatalogCrossValidator
             }
         }
 
+        if (codeGroupCatalog is not null)
+        {
+            for (int codeGroupIndex = 0; codeGroupIndex < codeGroupCatalog.CodeGroups.Count; codeGroupIndex++)
+            {
+                if (codeGroupCatalog.CodeGroups[codeGroupIndex] is null)
+                {
+                    result.AddError(
+                        code: "CodeGroupDefinitionIsNull",
+                        message: "Code group catalog contains a null code group definition.",
+                        path: $"codeGroupCatalog.codeGroups[{codeGroupIndex}]");
+                }
+            }
+        }
+
         Dictionary<string, ErrorDefinition> errorsById =
             BuildErrorIndex(errorCatalog);
 
@@ -618,9 +632,9 @@ public sealed class ErrorCatalogCrossValidator
             return codeGroupsByName;
         }
 
-        foreach (ErrorCodeGroupDefinition codeGroup in codeGroupCatalog.CodeGroups)
+        foreach (ErrorCodeGroupDefinition? codeGroup in codeGroupCatalog.CodeGroups)
         {
-            if (string.IsNullOrWhiteSpace(codeGroup.Name))
+            if (codeGroup is null || string.IsNullOrWhiteSpace(codeGroup.Name))
             {
                 continue;
             }
