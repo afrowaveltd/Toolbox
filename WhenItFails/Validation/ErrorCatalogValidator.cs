@@ -81,6 +81,16 @@ public sealed class ErrorCatalogValidator : IErrorCatalogValidator
        ErrorCatalogDocument document,
        ErrorCatalogValidationResult result)
    {
+      if(document.Errors is null)
+      {
+         result.AddError(
+             code: "CatalogErrorsCollectionIsNull",
+             message: "Error catalog errors collection is null.",
+             path: "errors");
+
+         return;
+      }
+
       if(document.Errors.Count == 0)
       {
          result.AddWarning(
