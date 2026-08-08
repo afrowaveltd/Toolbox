@@ -75,6 +75,17 @@ public sealed class ErrorCatalogCrossValidator
                 path: "profileCatalog");
         }
 
+        for (int errorIndex = 0; errorIndex < errorCatalog.Errors.Count; errorIndex++)
+        {
+            if (errorCatalog.Errors[errorIndex] is null)
+            {
+                result.AddError(
+                    code: "ErrorDefinitionIsNull",
+                    message: "Error catalog contains a null error definition.",
+                    path: $"errors[{errorIndex}]");
+            }
+        }
+
         Dictionary<string, ErrorDefinition> errorsById =
             BuildErrorIndex(errorCatalog);
 
@@ -89,7 +100,12 @@ public sealed class ErrorCatalogCrossValidator
 
         for (int errorIndex = 0; errorIndex < errorCatalog.Errors.Count; errorIndex++)
         {
-            ErrorDefinition error = errorCatalog.Errors[errorIndex];
+            ErrorDefinition? error = errorCatalog.Errors[errorIndex];
+
+            if (error is null)
+            {
+                continue;
+            }
 
             ValidateErrorAgainstSupportingCatalogs(
                 error,
@@ -529,9 +545,9 @@ public sealed class ErrorCatalogCrossValidator
         Dictionary<string, ErrorDefinition> errorsById =
             new(StringComparer.OrdinalIgnoreCase);
 
-        foreach (ErrorDefinition error in errorCatalog.Errors)
+        foreach (ErrorDefinition? error in errorCatalog.Errors)
         {
-            if (string.IsNullOrWhiteSpace(error.Id))
+            if (error is null || string.IsNullOrWhiteSpace(error.Id))
             {
                 continue;
             }
@@ -717,4 +733,3 @@ public sealed class ErrorCatalogCrossValidator
                code <= codeTo;
     }
 }
-
