@@ -30,8 +30,15 @@ internal static class CatalogProviderPipeline
 
       cancellationToken.ThrowIfCancellationRequested();
 
-      Response<TDocument> loadResponse =
+      Response<TDocument>? loadResponse =
           await loadAsync(filePath, cancellationToken);
+
+      if(loadResponse is null)
+      {
+         return Response<TPayload>.Invalid(
+             code: "WIF_CATALOG_PIPELINE_LOADER_RESPONSE_NULL",
+             message: "The catalog provider pipeline loader returned a null response.");
+      }
 
       if(!loadResponse.IsSuccess)
       {
@@ -49,9 +56,23 @@ internal static class CatalogProviderPipeline
              message: loadedDocumentIsNullMessage);
       }
 
-      TDocument normalizedDocument = normalize(loadResponse.Data);
+      TDocument? normalizedDocument = normalize(loadResponse.Data);
 
-      ErrorCatalogValidationResult validationResult = validate(normalizedDocument);
+      if(normalizedDocument is null)
+      {
+         return Response<TPayload>.Invalid(
+             code: "WIF_CATALOG_PIPELINE_NORMALIZER_RESULT_NULL",
+             message: "The catalog provider pipeline normalizer returned a null result.");
+      }
+
+      ErrorCatalogValidationResult? validationResult = validate(normalizedDocument);
+
+      if(validationResult is null)
+      {
+         return Response<TPayload>.Invalid(
+             code: "WIF_CATALOG_PIPELINE_VALIDATOR_RESULT_NULL",
+             message: "The catalog provider pipeline validator returned a null result.");
+      }
 
       if(!validationResult.IsValid)
       {
@@ -60,7 +81,14 @@ internal static class CatalogProviderPipeline
              message: validationFailedMessage);
       }
 
-      TPayload payload = createPayload(normalizedDocument, validationResult);
+      TPayload? payload = createPayload(normalizedDocument, validationResult);
+
+      if(payload is null)
+      {
+         return Response<TPayload>.Invalid(
+             code: "WIF_CATALOG_PIPELINE_PAYLOAD_NULL",
+             message: "The catalog provider pipeline payload factory returned a null result.");
+      }
 
       return Response<TPayload>.Ok(payload);
    }
