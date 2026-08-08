@@ -61,8 +61,17 @@ public sealed class ErrorCodeGroupCatalogValidator : IErrorCodeGroupCatalogValid
 
       for(int codeGroupIndex = 0; codeGroupIndex < document.CodeGroups.Count; codeGroupIndex++)
       {
-         ErrorCodeGroupDefinition codeGroup = document.CodeGroups[codeGroupIndex];
+         ErrorCodeGroupDefinition? codeGroup = document.CodeGroups[codeGroupIndex];
          string codeGroupPath = $"codeGroups[{codeGroupIndex}]";
+
+         if(codeGroup is null)
+         {
+            result.AddError(
+                code: "CodeGroupDefinitionIsNull",
+                message: "Code group catalog contains a null code group definition.",
+                path: codeGroupPath);
+            continue;
+         }
 
          ValidateSingleCodeGroup(codeGroup, codeGroupPath, result);
 
@@ -169,18 +178,18 @@ public sealed class ErrorCodeGroupCatalogValidator : IErrorCodeGroupCatalogValid
    {
       for(int firstIndex = 0; firstIndex < document.CodeGroups.Count; firstIndex++)
       {
-         ErrorCodeGroupDefinition first = document.CodeGroups[firstIndex];
+         ErrorCodeGroupDefinition? first = document.CodeGroups[firstIndex];
 
-         if(!IsValidRange(first))
+         if(first is null || !IsValidRange(first))
          {
             continue;
          }
 
          for(int secondIndex = firstIndex + 1; secondIndex < document.CodeGroups.Count; secondIndex++)
          {
-            ErrorCodeGroupDefinition second = document.CodeGroups[secondIndex];
+            ErrorCodeGroupDefinition? second = document.CodeGroups[secondIndex];
 
-            if(!IsValidRange(second))
+            if(second is null || !IsValidRange(second))
             {
                continue;
             }
