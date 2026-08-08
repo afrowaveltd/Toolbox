@@ -97,19 +97,31 @@ public sealed class ErrorOwnerCatalogValidator : IErrorOwnerCatalogValidator
              ownerPath + ".name",
              result);
 
-         CatalogValidationHelper.ValidateStringCollection(
-             owner.Aliases,
-             owner.Name,
-             ownerPath + ".aliases",
-             "OwnerAlias",
-             result);
+         if(owner.Aliases is null)
+         {
+            result.AddError(
+                code: "OwnerAliasesCollectionIsNull",
+                message: "Owner aliases collection is null.",
+                errorId: owner.Name,
+                errorName: owner.DisplayName,
+                path: ownerPath + ".aliases");
+         }
+         else
+         {
+            CatalogValidationHelper.ValidateStringCollection(
+                owner.Aliases,
+                owner.Name,
+                ownerPath + ".aliases",
+                "OwnerAlias",
+                result);
 
-         ValidateOwnerAliases(
-             owner,
-             ownerPath,
-             allOwnerNames,
-             usedAliases,
-             result);
+            ValidateOwnerAliases(
+                owner,
+                ownerPath,
+                allOwnerNames,
+                usedAliases,
+                result);
+         }
       }
 
       ValidateRangeOverlaps(document, result);
