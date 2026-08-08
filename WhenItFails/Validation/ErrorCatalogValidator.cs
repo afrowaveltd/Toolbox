@@ -97,7 +97,17 @@ public sealed class ErrorCatalogValidator : IErrorCatalogValidator
 
       for(int errorIndex = 0; errorIndex < document.Errors.Count; errorIndex++)
       {
-         ErrorDefinition error = document.Errors[errorIndex];
+         ErrorDefinition? error = document.Errors[errorIndex];
+
+         if(error is null)
+         {
+            result.AddError(
+                code: "ErrorDefinitionIsNull",
+                message: "Error catalog contains a null error definition.",
+                path: $"errors[{errorIndex}]");
+
+            continue;
+         }
 
          ValidateSingleError(error, errorIndex, result);
 
