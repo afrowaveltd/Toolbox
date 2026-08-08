@@ -8,7 +8,7 @@ This file is the continuation point for `Toolroom/WhenItFails/Setter` developmen
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
 
-The `AFW_THM_0012` slice is complete. The runtime/public-API audit protects bootstrap DTOs, validation contracts, stable enum values, descriptor and definition models, provider payloads, catalog context and initialization payloads, `CatalogProviderPipeline`, `ErrorCatalog`, factories, resolvers, runtime services, provider composition, bootstrap initialization, read-only profile-resolution results, and malformed dependency-result boundaries. `ErrorCatalogCrossValidator` now converts runtime-null entries in all five document collections it consumes directly — `Errors`, `Owners`, `CodeGroups`, `Categories`, and `Profiles` — into stable validation errors instead of throwing `NullReferenceException`. Its public `Validate(...)` API documentation is restored and the focused verification builds without the prior CS1591 warning.
+The `AFW_THM_0012` slice is complete. The runtime/public-API audit protects bootstrap DTOs, validation contracts, stable enum values, descriptor and definition models, provider payloads, catalog context and initialization payloads, `CatalogProviderPipeline`, `ErrorCatalog`, factories, resolvers, runtime services, provider composition, bootstrap initialization, read-only profile-resolution results, and malformed dependency-result boundaries. `ErrorCatalogCrossValidator` now converts runtime-null entries in all five document collections it consumes directly — `Errors`, `Owners`, `CodeGroups`, `Categories`, and `Profiles` — into stable validation errors instead of throwing `NullReferenceException`. Its public `Validate(...)` API documentation is restored and the focused verification builds without the prior CS1591 warning. `ErrorProfileCatalogValidator` likewise converts a runtime-null profile definition into the stable `ProfileDefinitionIsNull` validation issue instead of dereferencing it.
 
 The current user-verified complete regression baselines are fully green:
 
@@ -80,9 +80,10 @@ Completed runtime/public-API focused checkpoints include:
 - `ErrorCatalogCrossValidatorNullCodeGroupDefinitionContractTests`: **1 passed**;
 - `ErrorCatalogCrossValidatorNullCategoryDefinitionContractTests`: **1 passed**;
 - `ErrorCatalogCrossValidatorNullProfileDefinitionContractTests`: **1 passed**;
-- all five cross-validator null-definition contracts re-verified together: **5 passed**, with the prior CS1591 warning removed.
+- all five cross-validator null-definition contracts re-verified together: **5 passed**, with the prior CS1591 warning removed;
+- `ErrorProfileCatalogValidatorNullProfileDefinitionContractTests`: **1 passed**.
 
-The catalog contracts protect source-sequence snapshots, ordering, exact object identity, read-only collection exposure, safe empty and unusable lookups, non-positive numeric indexing, deterministic duplicate-key handling, multi-value ordering and de-duplication, and consistent normalization. Provider and runtime boundaries convert malformed dependency responses into stable `Invalid` responses rather than dereferencing null. `ErrorProfileResolver` returns a genuinely read-only collection while preserving source order and exact `ErrorDefinition` identities. `ErrorCatalogCrossValidator` records `ErrorDefinitionIsNull` at `errors[index]`, `OwnerDefinitionIsNull` at `ownerCatalog.owners[index]`, `CodeGroupDefinitionIsNull` at `codeGroupCatalog.codeGroups[index]`, `CategoryDefinitionIsNull` at `categoryCatalog.categories[index]`, and `ProfileDefinitionIsNull` at `profileCatalog.profiles[index]`, skipping those malformed entries during indexing or cross-validation.
+The catalog contracts protect source-sequence snapshots, ordering, exact object identity, read-only collection exposure, safe empty and unusable lookups, non-positive numeric indexing, deterministic duplicate-key handling, multi-value ordering and de-duplication, and consistent normalization. Provider and runtime boundaries convert malformed dependency responses into stable `Invalid` responses rather than dereferencing null. `ErrorProfileResolver` returns a genuinely read-only collection while preserving source order and exact `ErrorDefinition` identities. `ErrorCatalogCrossValidator` records `ErrorDefinitionIsNull` at `errors[index]`, `OwnerDefinitionIsNull` at `ownerCatalog.owners[index]`, `CodeGroupDefinitionIsNull` at `codeGroupCatalog.codeGroups[index]`, `CategoryDefinitionIsNull` at `categoryCatalog.categories[index]`, and `ProfileDefinitionIsNull` at `profileCatalog.profiles[index]`, skipping those malformed entries during indexing or cross-validation. `ErrorProfileCatalogValidator` now applies the same stable null-profile semantics at its own public validation boundary.
 
 Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`.
 
@@ -138,10 +139,10 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Continue the runtime/public-API audit from the **872-test** green baseline, but move on from the completed cross-validator null-definition family. Prefer a genuinely different semantic boundary such as malformed nested collection values, validation status fidelity, or public collection ownership/read-only behavior; avoid multiplying structurally identical null permutations.
+Continue the runtime/public-API audit from the **872-test** green baseline by inspecting the remaining standalone catalog validators for malformed collection-item boundaries. Add a contract only where the public validator can still turn malformed runtime data into an exception; avoid duplicating already-safe behavior.
 
 Prefer one narrow contract with a clear public response shape.
 
 ## Last completed change
 
-All five `ErrorCatalogCrossValidator` null-definition contract tests are user-verified green together: **5 passed**. Runtime-null entries in `Errors`, `Owners`, `CodeGroups`, `Categories`, and `Profiles` now become stable validation issues instead of `NullReferenceException`, and the public `Validate(...)` XML documentation was restored so the focused build is warning-free.
+`ErrorProfileCatalogValidatorNullProfileDefinitionContractTests` is user-verified green: **1 passed**. A runtime-null item in `ErrorProfileCatalogDocument.Profiles` now becomes `ProfileDefinitionIsNull` at `profiles[index]` instead of throwing `NullReferenceException`.
