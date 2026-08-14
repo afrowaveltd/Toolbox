@@ -95,12 +95,24 @@ public sealed class ErrorProfileCatalogValidator : IErrorProfileCatalogValidator
                 profilePath + ".name",
                 result);
 
-            CatalogValidationHelper.ValidateStringCollection(
-                profile.IncludeOwners,
-                profile.Name,
-                profilePath + ".includeOwners",
-                "IncludeOwner",
-                result);
+            if (profile.IncludeOwners is null)
+            {
+                result.AddError(
+                    code: "ProfileIncludeOwnersCollectionIsNull",
+                    message: "Profile include owners collection is null.",
+                    errorId: profile.Name,
+                    errorName: profile.DisplayName,
+                    path: profilePath + ".includeOwners");
+            }
+            else
+            {
+                CatalogValidationHelper.ValidateStringCollection(
+                    profile.IncludeOwners,
+                    profile.Name,
+                    profilePath + ".includeOwners",
+                    "IncludeOwner",
+                    result);
+            }
 
             CatalogValidationHelper.ValidateStringCollection(
                 profile.IncludeCodeGroups,
