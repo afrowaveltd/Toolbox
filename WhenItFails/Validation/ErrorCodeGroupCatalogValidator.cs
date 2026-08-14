@@ -103,12 +103,24 @@ public sealed class ErrorCodeGroupCatalogValidator : IErrorCodeGroupCatalogValid
              codeGroupPath + ".codePrefix",
              result);
 
-         CatalogValidationHelper.ValidateStringCollection(
-             codeGroup.DefaultCategories,
-             codeGroup.Name,
-             codeGroupPath + ".defaultCategories",
-             "DefaultCategory",
-             result);
+         if(codeGroup.DefaultCategories is null)
+         {
+            result.AddError(
+                code: "CodeGroupDefaultCategoriesCollectionIsNull",
+                message: "Code group default categories collection is null.",
+                errorId: codeGroup.Name,
+                errorName: codeGroup.DisplayName,
+                path: codeGroupPath + ".defaultCategories");
+         }
+         else
+         {
+            CatalogValidationHelper.ValidateStringCollection(
+                codeGroup.DefaultCategories,
+                codeGroup.Name,
+                codeGroupPath + ".defaultCategories",
+                "DefaultCategory",
+                result);
+         }
 
          CatalogValidationHelper.ValidateStringCollection(
              codeGroup.DefaultTags,
