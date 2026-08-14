@@ -122,12 +122,24 @@ public sealed class ErrorCodeGroupCatalogValidator : IErrorCodeGroupCatalogValid
                 result);
          }
 
-         CatalogValidationHelper.ValidateStringCollection(
-             codeGroup.DefaultTags,
-             codeGroup.Name,
-             codeGroupPath + ".defaultTags",
-             "DefaultTag",
-             result);
+         if(codeGroup.DefaultTags is null)
+         {
+            result.AddError(
+                code: "CodeGroupDefaultTagsCollectionIsNull",
+                message: "Code group default tags collection is null.",
+                errorId: codeGroup.Name,
+                errorName: codeGroup.DisplayName,
+                path: codeGroupPath + ".defaultTags");
+         }
+         else
+         {
+            CatalogValidationHelper.ValidateStringCollection(
+                codeGroup.DefaultTags,
+                codeGroup.Name,
+                codeGroupPath + ".defaultTags",
+                "DefaultTag",
+                result);
+         }
       }
 
       ValidateRangeOverlaps(document, result);
