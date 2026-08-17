@@ -81,10 +81,17 @@ public sealed class ErrorCatalogCrossValidator
 
         if (codeGroupCatalog is not null)
         {
-            for (int codeGroupIndex = 0; codeGroupIndex < codeGroupCatalog.CodeGroups.Count; codeGroupIndex++)
+            if (codeGroupCatalog.CodeGroups is null)
             {
-                if (codeGroupCatalog.CodeGroups[codeGroupIndex] is null)
-                    result.AddError("CodeGroupDefinitionIsNull", "Code group catalog contains a null code group definition.", path: $"codeGroupCatalog.codeGroups[{codeGroupIndex}]");
+                result.AddError("CodeGroupCatalogCodeGroupsCollectionIsNull", "Code group catalog code groups collection is null.", path: "codeGroupCatalog.codeGroups");
+            }
+            else
+            {
+                for (int codeGroupIndex = 0; codeGroupIndex < codeGroupCatalog.CodeGroups.Count; codeGroupIndex++)
+                {
+                    if (codeGroupCatalog.CodeGroups[codeGroupIndex] is null)
+                        result.AddError("CodeGroupDefinitionIsNull", "Code group catalog contains a null code group definition.", path: $"codeGroupCatalog.codeGroups[{codeGroupIndex}]");
+                }
             }
         }
 
@@ -311,7 +318,7 @@ public sealed class ErrorCatalogCrossValidator
     private static Dictionary<string, ErrorCodeGroupDefinition> BuildCodeGroupIndex(ErrorCodeGroupCatalogDocument? codeGroupCatalog)
     {
         Dictionary<string, ErrorCodeGroupDefinition> codeGroupsByName = new(StringComparer.OrdinalIgnoreCase);
-        if (codeGroupCatalog is null) return codeGroupsByName;
+        if (codeGroupCatalog?.CodeGroups is null) return codeGroupsByName;
         foreach (ErrorCodeGroupDefinition? codeGroup in codeGroupCatalog.CodeGroups)
         {
             if (codeGroup is null || string.IsNullOrWhiteSpace(codeGroup.Name)) continue;
