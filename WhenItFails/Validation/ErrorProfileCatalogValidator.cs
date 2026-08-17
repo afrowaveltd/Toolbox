@@ -133,12 +133,24 @@ public sealed class ErrorProfileCatalogValidator : IErrorProfileCatalogValidator
                     result);
             }
 
-            CatalogValidationHelper.ValidateStringCollection(
-                profile.IncludeCategories,
-                profile.Name,
-                profilePath + ".includeCategories",
-                "IncludeCategory",
-                result);
+            if (profile.IncludeCategories is null)
+            {
+                result.AddError(
+                    code: "ProfileIncludeCategoriesCollectionIsNull",
+                    message: "Profile include categories collection is null.",
+                    errorId: profile.Name,
+                    errorName: profile.DisplayName,
+                    path: profilePath + ".includeCategories");
+            }
+            else
+            {
+                CatalogValidationHelper.ValidateStringCollection(
+                    profile.IncludeCategories,
+                    profile.Name,
+                    profilePath + ".includeCategories",
+                    "IncludeCategory",
+                    result);
+            }
 
             CatalogValidationHelper.ValidateStringCollection(
                 profile.IncludeSubcategories,
