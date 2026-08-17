@@ -114,12 +114,24 @@ public sealed class ErrorProfileCatalogValidator : IErrorProfileCatalogValidator
                     result);
             }
 
-            CatalogValidationHelper.ValidateStringCollection(
-                profile.IncludeCodeGroups,
-                profile.Name,
-                profilePath + ".includeCodeGroups",
-                "IncludeCodeGroup",
-                result);
+            if (profile.IncludeCodeGroups is null)
+            {
+                result.AddError(
+                    code: "ProfileIncludeCodeGroupsCollectionIsNull",
+                    message: "Profile include code groups collection is null.",
+                    errorId: profile.Name,
+                    errorName: profile.DisplayName,
+                    path: profilePath + ".includeCodeGroups");
+            }
+            else
+            {
+                CatalogValidationHelper.ValidateStringCollection(
+                    profile.IncludeCodeGroups,
+                    profile.Name,
+                    profilePath + ".includeCodeGroups",
+                    "IncludeCodeGroup",
+                    result);
+            }
 
             CatalogValidationHelper.ValidateStringCollection(
                 profile.IncludeCategories,
