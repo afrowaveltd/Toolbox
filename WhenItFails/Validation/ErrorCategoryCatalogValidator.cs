@@ -145,12 +145,24 @@ public sealed class ErrorCategoryCatalogValidator : IErrorCategoryCatalogValidat
                 result);
          }
 
-         CatalogValidationHelper.ValidateStringCollection(
-             category.DefaultTags,
-             category.Name,
-             categoryPath + ".defaultTags",
-             "DefaultTag",
-             result);
+         if(category.DefaultTags is null)
+         {
+            result.AddError(
+                code: "CategoryDefaultTagsCollectionIsNull",
+                message: "Category default tags collection is null.",
+                errorId: category.Name,
+                errorName: category.DisplayName,
+                path: categoryPath + ".defaultTags");
+         }
+         else
+         {
+            CatalogValidationHelper.ValidateStringCollection(
+                category.DefaultTags,
+                category.Name,
+                categoryPath + ".defaultTags",
+                "DefaultTag",
+                result);
+         }
       }
    }
 
