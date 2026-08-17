@@ -113,10 +113,17 @@ public sealed class ErrorCatalogCrossValidator
 
         if (profileCatalog is not null)
         {
-            for (int profileIndex = 0; profileIndex < profileCatalog.Profiles.Count; profileIndex++)
+            if (profileCatalog.Profiles is null)
             {
-                if (profileCatalog.Profiles[profileIndex] is null)
-                    result.AddError("ProfileDefinitionIsNull", "Profile catalog contains a null profile definition.", path: $"profileCatalog.profiles[{profileIndex}]");
+                result.AddError("ProfileCatalogProfilesCollectionIsNull", "Profile catalog profiles collection is null.", path: "profileCatalog.profiles");
+            }
+            else
+            {
+                for (int profileIndex = 0; profileIndex < profileCatalog.Profiles.Count; profileIndex++)
+                {
+                    if (profileCatalog.Profiles[profileIndex] is null)
+                        result.AddError("ProfileDefinitionIsNull", "Profile catalog contains a null profile definition.", path: $"profileCatalog.profiles[{profileIndex}]");
+                }
             }
         }
 
@@ -216,7 +223,7 @@ public sealed class ErrorCatalogCrossValidator
         IReadOnlyDictionary<string, ErrorCategoryDefinition> categoriesByName,
         ErrorCatalogValidationResult result)
     {
-        if (profileCatalog is null)
+        if (profileCatalog?.Profiles is null)
             return;
 
         for (int profileIndex = 0; profileIndex < profileCatalog.Profiles.Count; profileIndex++)
