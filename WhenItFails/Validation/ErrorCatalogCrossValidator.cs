@@ -40,16 +40,16 @@ public sealed class ErrorCatalogCrossValidator
         }
 
         if (ownerCatalog is null)
-            result.AddError("OwnerCatalogDocumentIsNull", "Error owner catalog document is null.", path: "ownerCatalog");
+            result.AddError("OwnerCatalogDocumentIsNull", "Owner catalog document is null.", path: "ownerCatalog");
 
         if (codeGroupCatalog is null)
-            result.AddError("CodeGroupCatalogDocumentIsNull", "Error code group catalog document is null.", path: "codeGroupCatalog");
+            result.AddError("CodeGroupCatalogDocumentIsNull", "Code group catalog document is null.", path: "codeGroupCatalog");
 
         if (categoryCatalog is null)
-            result.AddWarning("CategoryCatalogDocumentIsNull", "Error category catalog document is null. Category cross-validation will be skipped.", path: "categoryCatalog");
+            result.AddWarning("CategoryCatalogDocumentIsNull", "Category catalog document is null. Category cross-validation will be skipped.", path: "categoryCatalog");
 
         if (profileCatalog is null)
-            result.AddWarning("ProfileCatalogDocumentIsNull", "Error profile catalog document is null. Profile cross-validation will be skipped.", path: "profileCatalog");
+            result.AddWarning("ProfileCatalogDocumentIsNull", "Profile catalog document is null. Profile cross-validation will be skipped.", path: "profileCatalog");
 
         if (errorCatalog.Errors is null)
         {
