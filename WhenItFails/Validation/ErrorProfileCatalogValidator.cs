@@ -171,12 +171,24 @@ public sealed class ErrorProfileCatalogValidator : IErrorProfileCatalogValidator
                     result);
             }
 
-            CatalogValidationHelper.ValidateStringCollection(
-                profile.IncludeTags,
-                profile.Name,
-                profilePath + ".includeTags",
-                "IncludeTag",
-                result);
+            if (profile.IncludeTags is null)
+            {
+                result.AddError(
+                    code: "ProfileIncludeTagsCollectionIsNull",
+                    message: "Profile include tags collection is null.",
+                    errorId: profile.Name,
+                    errorName: profile.DisplayName,
+                    path: profilePath + ".includeTags");
+            }
+            else
+            {
+                CatalogValidationHelper.ValidateStringCollection(
+                    profile.IncludeTags,
+                    profile.Name,
+                    profilePath + ".includeTags",
+                    "IncludeTag",
+                    result);
+            }
 
             CatalogValidationHelper.ValidateStringCollection(
                 profile.ExcludeTags,
