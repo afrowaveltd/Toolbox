@@ -97,10 +97,17 @@ public sealed class ErrorCatalogCrossValidator
 
         if (categoryCatalog is not null)
         {
-            for (int categoryIndex = 0; categoryIndex < categoryCatalog.Categories.Count; categoryIndex++)
+            if (categoryCatalog.Categories is null)
             {
-                if (categoryCatalog.Categories[categoryIndex] is null)
-                    result.AddError("CategoryDefinitionIsNull", "Category catalog contains a null category definition.", path: $"categoryCatalog.categories[{categoryIndex}]");
+                result.AddError("CategoryCatalogCategoriesCollectionIsNull", "Category catalog categories collection is null.", path: "categoryCatalog.categories");
+            }
+            else
+            {
+                for (int categoryIndex = 0; categoryIndex < categoryCatalog.Categories.Count; categoryIndex++)
+                {
+                    if (categoryCatalog.Categories[categoryIndex] is null)
+                        result.AddError("CategoryDefinitionIsNull", "Category catalog contains a null category definition.", path: $"categoryCatalog.categories[{categoryIndex}]");
+                }
             }
         }
 
@@ -331,7 +338,7 @@ public sealed class ErrorCatalogCrossValidator
     private static Dictionary<string, ErrorCategoryDefinition> BuildCategoryIndex(ErrorCategoryCatalogDocument? categoryCatalog)
     {
         Dictionary<string, ErrorCategoryDefinition> categoriesByName = new(StringComparer.OrdinalIgnoreCase);
-        if (categoryCatalog is null) return categoriesByName;
+        if (categoryCatalog?.Categories is null) return categoriesByName;
         foreach (ErrorCategoryDefinition? category in categoryCatalog.Categories)
         {
             if (category is null) continue;
