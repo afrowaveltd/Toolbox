@@ -40,16 +40,16 @@ public sealed class ErrorCatalogCrossValidator
         }
 
         if (ownerCatalog is null)
-            result.AddError("OwnerCatalogDocumentIsNull", "Owner catalog document is null.", path: "ownerCatalog");
+            result.AddError("OwnerCatalogDocumentIsNull", "Error owner catalog document is null.", path: "ownerCatalog");
 
         if (codeGroupCatalog is null)
-            result.AddError("CodeGroupCatalogDocumentIsNull", "Code group catalog document is null.", path: "codeGroupCatalog");
+            result.AddError("CodeGroupCatalogDocumentIsNull", "Error code group catalog document is null.", path: "codeGroupCatalog");
 
         if (categoryCatalog is null)
-            result.AddWarning("CategoryCatalogDocumentIsNull", "Category catalog document is null. Category cross-validation will be skipped.", path: "categoryCatalog");
+            result.AddWarning("CategoryCatalogDocumentIsNull", "Error category catalog document is null. Category cross-validation will be skipped.", path: "categoryCatalog");
 
         if (profileCatalog is null)
-            result.AddWarning("ProfileCatalogDocumentIsNull", "Profile catalog document is null. Profile cross-validation will be skipped.", path: "profileCatalog");
+            result.AddWarning("ProfileCatalogDocumentIsNull", "Error profile catalog document is null. Profile cross-validation will be skipped.", path: "profileCatalog");
 
         if (errorCatalog.Errors is null)
         {
@@ -65,10 +65,17 @@ public sealed class ErrorCatalogCrossValidator
 
         if (ownerCatalog is not null)
         {
-            for (int ownerIndex = 0; ownerIndex < ownerCatalog.Owners.Count; ownerIndex++)
+            if (ownerCatalog.Owners is null)
             {
-                if (ownerCatalog.Owners[ownerIndex] is null)
-                    result.AddError("OwnerDefinitionIsNull", "Owner catalog contains a null owner definition.", path: $"ownerCatalog.owners[{ownerIndex}]");
+                result.AddError("OwnerCatalogOwnersCollectionIsNull", "Owner catalog owners collection is null.", path: "ownerCatalog.owners");
+            }
+            else
+            {
+                for (int ownerIndex = 0; ownerIndex < ownerCatalog.Owners.Count; ownerIndex++)
+                {
+                    if (ownerCatalog.Owners[ownerIndex] is null)
+                        result.AddError("OwnerDefinitionIsNull", "Owner catalog contains a null owner definition.", path: $"ownerCatalog.owners[{ownerIndex}]");
+                }
             }
         }
 
@@ -291,7 +298,7 @@ public sealed class ErrorCatalogCrossValidator
     private static Dictionary<string, ErrorOwnerDefinition> BuildOwnerIndex(ErrorOwnerCatalogDocument? ownerCatalog)
     {
         Dictionary<string, ErrorOwnerDefinition> ownersByName = new(StringComparer.OrdinalIgnoreCase);
-        if (ownerCatalog is null) return ownersByName;
+        if (ownerCatalog?.Owners is null) return ownersByName;
         foreach (ErrorOwnerDefinition? owner in ownerCatalog.Owners)
         {
             if (owner is null) continue;
