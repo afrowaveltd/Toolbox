@@ -177,6 +177,12 @@ public sealed class ErrorCatalogCrossValidator
                 result.AddError("ErrorCodePrefixDoesNotMatchCodeGroup", $"Error code prefix '{error.CodePrefix}' does not match code group '{codeGroup.Name}' prefix '{codeGroup.CodePrefix}'.", error.Id, error.Name, $"{errorPath}.codePrefix");
         }
 
+        if (error.Categories is null)
+        {
+            result.AddError("ErrorCategoriesCollectionIsNull", "Error categories collection is null.", error.Id, error.Name, $"{errorPath}.categories");
+            return;
+        }
+
         ValidatePrimaryCategory(error, errorPath, categoriesByName, result);
         ValidateAdditionalCategories(error, errorPath, categoriesByName, result);
     }
