@@ -73,8 +73,15 @@ public sealed class ErrorCatalogCrossValidator
             {
                 for (int ownerIndex = 0; ownerIndex < ownerCatalog.Owners.Count; ownerIndex++)
                 {
-                    if (ownerCatalog.Owners[ownerIndex] is null)
+                    ErrorOwnerDefinition? owner = ownerCatalog.Owners[ownerIndex];
+                    if (owner is null)
+                    {
                         result.AddError("OwnerDefinitionIsNull", "Owner catalog contains a null owner definition.", path: $"ownerCatalog.owners[{ownerIndex}]");
+                        continue;
+                    }
+
+                    if (owner.Aliases is null)
+                        result.AddError("OwnerAliasesCollectionIsNull", "Owner aliases collection is null.", path: $"ownerCatalog.owners[{ownerIndex}].aliases");
                 }
             }
         }
@@ -330,6 +337,7 @@ public sealed class ErrorCatalogCrossValidator
         {
             if (owner is null) continue;
             AddOwnerKey(ownersByName, owner.Name, owner);
+            if (owner.Aliases is null) continue;
             foreach (string alias in owner.Aliases) AddOwnerKey(ownersByName, alias, owner);
         }
         return ownersByName;
