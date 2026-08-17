@@ -51,6 +51,12 @@ public sealed class ErrorCatalogCrossValidator
         if (profileCatalog is null)
             result.AddWarning("ProfileCatalogDocumentIsNull", "Profile catalog document is null. Profile cross-validation will be skipped.", path: "profileCatalog");
 
+        if (errorCatalog.Errors is null)
+        {
+            result.AddError("CatalogErrorsCollectionIsNull", "Error catalog errors collection is null.", path: "errors");
+            return result;
+        }
+
         for (int errorIndex = 0; errorIndex < errorCatalog.Errors.Count; errorIndex++)
         {
             if (errorCatalog.Errors[errorIndex] is null)
