@@ -10,7 +10,7 @@ WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance to
 
 The `AFW_THM_0012` slice is complete. The runtime/public-API audit protects bootstrap DTOs, validation contracts, stable enum values, descriptor and definition models, provider payloads, catalog context and initialization payloads, `CatalogProviderPipeline`, `ErrorCatalog`, factories, resolvers, runtime services, provider composition, bootstrap initialization, read-only profile-resolution results, and malformed dependency-result boundaries.
 
-`ErrorCatalogCrossValidator` now converts runtime-null document-level `Errors`, `Owners`, `CodeGroups`, `Categories`, and `Profiles` collections into stable validation issues before direct dereferences. It also converts null entries in those collections into stable null-definition issues. Nested cross-validator protection currently includes `ErrorDefinition.Categories`, `ErrorOwnerDefinition.Aliases`, and `ErrorCategoryDefinition.Aliases`; the owner/category remains indexable by its primary `Name` while malformed aliases are skipped. The standalone validators retain their already verified collection-null contracts for errors, owners, code groups, categories, profiles, and their audited nested mutable collections.
+`ErrorCatalogCrossValidator` now converts runtime-null document-level `Errors`, `Owners`, `CodeGroups`, `Categories`, and `Profiles` collections into stable validation issues before direct dereferences. It also converts null entries in those collections into stable null-definition issues. Nested cross-validator protection currently includes `ErrorDefinition.Categories`, `ErrorOwnerDefinition.Aliases`, `ErrorCategoryDefinition.Aliases`, and `ErrorProfileDefinition.IncludeErrors`. The owner/category remains indexable by its primary `Name` while malformed aliases are skipped, and a malformed profile include-errors collection no longer blocks independent profile checks. The standalone validators retain their already verified collection-null contracts for errors, owners, code groups, categories, profiles, and their audited nested mutable collections.
 
 The current user-verified complete regression baselines are fully green:
 
@@ -45,11 +45,12 @@ Focused runtime/public-API checkpoints added after that complete core baseline i
 - `ErrorCatalogCrossValidatorNullProfilesCollectionContractTests`: **1 passed**;
 - `ErrorCatalogCrossValidatorNullErrorCategoriesCollectionContractTests`: **1 passed**;
 - `ErrorCatalogCrossValidatorNullOwnerAliasesCollectionContractTests`: **1 passed**;
-- `ErrorCatalogCrossValidatorNullCategoryAliasesCollectionContractTests`: **1 passed**.
+- `ErrorCatalogCrossValidatorNullCategoryAliasesCollectionContractTests`: **1 passed**;
+- `ErrorCatalogCrossValidatorNullProfileIncludeErrorsCollectionContractTests`: **1 passed**.
 
 Earlier verified runtime/public-API checkpoints cover bootstrap DTOs, validation result/severity contracts, context/runtime enums, descriptor and definition models, provider payloads, `CatalogProviderPipeline`, `ErrorCatalog` snapshots/lookups/indexes, factories, resolvers, runtime dependency-null boundaries, provider composition, bootstrap initialization, profile normalization, read-only profile-resolution results, standalone top-level null definitions, standalone document-level mutable collections, error `Categories`/`Subcategories`/`Tags`, category `Aliases`/`ParentCategories`/`DefaultTags`, owner `Aliases`, code-group `DefaultCategories`/`DefaultTags`, and profile include/exclude collections.
 
-`ErrorCatalogCrossValidator` uses `CatalogErrorsCollectionIsNull` at `errors`, `OwnerCatalogOwnersCollectionIsNull` at `ownerCatalog.owners`, `CodeGroupCatalogCodeGroupsCollectionIsNull` at `codeGroupCatalog.codeGroups`, `CategoryCatalogCategoriesCollectionIsNull` at `categoryCatalog.categories`, `ProfileCatalogProfilesCollectionIsNull` at `profileCatalog.profiles`, `ErrorCategoriesCollectionIsNull` at `errors[index].categories`, `OwnerAliasesCollectionIsNull` at `ownerCatalog.owners[index].aliases`, and `CategoryAliasesCollectionIsNull` at `categoryCatalog.categories[index].aliases`.
+`ErrorCatalogCrossValidator` uses `CatalogErrorsCollectionIsNull` at `errors`, `OwnerCatalogOwnersCollectionIsNull` at `ownerCatalog.owners`, `CodeGroupCatalogCodeGroupsCollectionIsNull` at `codeGroupCatalog.codeGroups`, `CategoryCatalogCategoriesCollectionIsNull` at `categoryCatalog.categories`, `ProfileCatalogProfilesCollectionIsNull` at `profileCatalog.profiles`, `ErrorCategoriesCollectionIsNull` at `errors[index].categories`, `OwnerAliasesCollectionIsNull` at `ownerCatalog.owners[index].aliases`, `CategoryAliasesCollectionIsNull` at `categoryCatalog.categories[index].aliases`, and `ProfileIncludeErrorsCollectionIsNull` at `profiles[index].includeErrors`.
 
 Numeric compatibility is directly protected for validation severity, catalog context source, and runtime state. `ErrorCatalogInitializationMode` remains protected by the existing numeric-value theory in `WhenItFailsOptionsTests`.
 
@@ -105,10 +106,10 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Continue the runtime/public-API audit from the **872-test** green baseline by proving the next nested mutable collection failure path in `ErrorCatalogCrossValidator`. `ValidateProfileIncludeErrors` currently dereferences `ErrorProfileDefinition.IncludeErrors` through `.Count` without a local collection-null guard, while the standalone profile validator already exposes the stable `ProfileIncludeErrorsCollectionIsNull` contract. Add one red-first cross-validator contract if no equivalent test exists.
+Continue the runtime/public-API audit from the **872-test** green baseline with `ErrorProfileDefinition.ExcludeErrors` in `ErrorCatalogCrossValidator`. `ValidateProfileExcludeErrors` currently dereferences the collection through `.Count` without a local collection-null guard, while the standalone profile validator already exposes the stable `ProfileExcludeErrorsCollectionIsNull` contract. Add one red-first cross-validator contract if no equivalent test exists.
 
 Prefer one narrow contract with a clear public response shape.
 
 ## Last completed change
 
-`ErrorCatalogCrossValidatorNullCategoryAliasesCollectionContractTests` is user-verified green: **1 passed**. A runtime-null `ErrorCategoryDefinition.Aliases` collection now becomes `CategoryAliasesCollectionIsNull` at `categoryCatalog.categories[index].aliases`; alias enumeration is skipped safely while the category itself remains available in the cross-validator index by its primary `Name`.
+`ErrorCatalogCrossValidatorNullProfileIncludeErrorsCollectionContractTests` is user-verified green: **1 passed**. A runtime-null `ErrorProfileDefinition.IncludeErrors` collection now becomes `ProfileIncludeErrorsCollectionIsNull` at `profiles[index].includeErrors`; include-error validation is skipped safely while the remaining independent profile cross-validation continues.
