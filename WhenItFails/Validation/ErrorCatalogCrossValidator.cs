@@ -112,8 +112,15 @@ public sealed class ErrorCatalogCrossValidator
             {
                 for (int categoryIndex = 0; categoryIndex < categoryCatalog.Categories.Count; categoryIndex++)
                 {
-                    if (categoryCatalog.Categories[categoryIndex] is null)
+                    ErrorCategoryDefinition? category = categoryCatalog.Categories[categoryIndex];
+                    if (category is null)
+                    {
                         result.AddError("CategoryDefinitionIsNull", "Category catalog contains a null category definition.", path: $"categoryCatalog.categories[{categoryIndex}]");
+                        continue;
+                    }
+
+                    if (category.Aliases is null)
+                        result.AddError("CategoryAliasesCollectionIsNull", "Category aliases collection is null.", path: $"categoryCatalog.categories[{categoryIndex}].aliases");
                 }
             }
         }
@@ -364,6 +371,7 @@ public sealed class ErrorCatalogCrossValidator
         {
             if (category is null) continue;
             AddCategoryKey(categoriesByName, category.Name, category);
+            if (category.Aliases is null) continue;
             foreach (string alias in category.Aliases) AddCategoryKey(categoriesByName, alias, category);
         }
         return categoriesByName;
