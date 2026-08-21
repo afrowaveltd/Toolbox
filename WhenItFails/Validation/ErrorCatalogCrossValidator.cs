@@ -263,6 +263,12 @@ public sealed class ErrorCatalogCrossValidator
 
     private static void ValidateProfileIncludeErrors(ErrorProfileDefinition profile, string profilePath, IReadOnlyDictionary<string, ErrorDefinition> errorsById, ErrorCatalogValidationResult result)
     {
+        if (profile.IncludeErrors is null)
+        {
+            result.AddError("ProfileIncludeErrorsCollectionIsNull", "Profile include errors collection is null.", errorName: profile.Name, path: $"{profilePath}.includeErrors");
+            return;
+        }
+
         for (int errorIndex = 0; errorIndex < profile.IncludeErrors.Count; errorIndex++)
         {
             string errorId = profile.IncludeErrors[errorIndex];
