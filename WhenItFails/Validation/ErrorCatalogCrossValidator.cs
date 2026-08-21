@@ -299,6 +299,12 @@ public sealed class ErrorCatalogCrossValidator
 
     private static void ValidateProfileIncludeOwners(ErrorProfileDefinition profile, string profilePath, IReadOnlyDictionary<string, ErrorOwnerDefinition> ownersByName, ErrorCatalogValidationResult result)
     {
+        if (profile.IncludeOwners is null)
+        {
+            result.AddError("ProfileIncludeOwnersCollectionIsNull", "Profile include owners collection is null.", errorName: profile.Name, path: $"{profilePath}.includeOwners");
+            return;
+        }
+
         if (ownersByName.Count == 0) return;
         for (int ownerIndex = 0; ownerIndex < profile.IncludeOwners.Count; ownerIndex++)
         {
