@@ -57,6 +57,14 @@ public sealed class ErrorProfileSelectionService
                     "Error catalog context does not contain an error profile catalog.");
         }
 
+        if (context.ProfileCatalog.Profiles is null)
+        {
+            return Response<IReadOnlyList<ErrorDefinition>>.Invalid(
+                code: "ErrorProfileCatalogProfilesCollectionIsNull",
+                message:
+                    "Error profile catalog profiles collection is null.");
+        }
+
         if (string.IsNullOrWhiteSpace(profileName))
         {
             return Response<IReadOnlyList<ErrorDefinition>>.Invalid(
