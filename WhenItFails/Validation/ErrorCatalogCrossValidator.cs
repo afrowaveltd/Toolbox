@@ -337,6 +337,12 @@ public sealed class ErrorCatalogCrossValidator
 
     private static void ValidateProfileIncludeCategories(ErrorProfileDefinition profile, string profilePath, IReadOnlyDictionary<string, ErrorCategoryDefinition> categoriesByName, ErrorCatalogValidationResult result)
     {
+        if (profile.IncludeCategories is null)
+        {
+            result.AddError("ProfileIncludeCategoriesCollectionIsNull", "Profile include categories collection is null.", errorName: profile.Name, path: $"{profilePath}.includeCategories");
+            return;
+        }
+
         if (categoriesByName.Count == 0) return;
         for (int categoryIndex = 0; categoryIndex < profile.IncludeCategories.Count; categoryIndex++)
         {
