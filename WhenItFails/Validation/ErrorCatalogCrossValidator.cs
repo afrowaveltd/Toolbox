@@ -318,6 +318,12 @@ public sealed class ErrorCatalogCrossValidator
 
     private static void ValidateProfileIncludeCodeGroups(ErrorProfileDefinition profile, string profilePath, IReadOnlyDictionary<string, ErrorCodeGroupDefinition> codeGroupsByName, ErrorCatalogValidationResult result)
     {
+        if (profile.IncludeCodeGroups is null)
+        {
+            result.AddError("ProfileIncludeCodeGroupsCollectionIsNull", "Profile include code groups collection is null.", errorName: profile.Name, path: $"{profilePath}.includeCodeGroups");
+            return;
+        }
+
         if (codeGroupsByName.Count == 0) return;
         for (int codeGroupIndex = 0; codeGroupIndex < profile.IncludeCodeGroups.Count; codeGroupIndex++)
         {
