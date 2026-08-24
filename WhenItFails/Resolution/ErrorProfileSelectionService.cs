@@ -65,6 +65,14 @@ public sealed class ErrorProfileSelectionService
                     "Error profile catalog profiles collection is null.");
         }
 
+        if (context.ProfileCatalog.Profiles.Any(candidate => candidate is null))
+        {
+            return Response<IReadOnlyList<ErrorDefinition>>.Invalid(
+                code: "ErrorProfileDefinitionIsNull",
+                message:
+                    "Error profile catalog contains a null profile definition.");
+        }
+
         if (string.IsNullOrWhiteSpace(profileName))
         {
             return Response<IReadOnlyList<ErrorDefinition>>.Invalid(
