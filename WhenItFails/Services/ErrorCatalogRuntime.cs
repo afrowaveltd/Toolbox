@@ -831,9 +831,11 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         ArgumentNullException.ThrowIfNull(payload.Bootstrap);
 
         string? recoveryReasonCode =
-            recoveryReason?.Issues is { Count: > 0 }
-                ? recoveryReason.Issues[0].Code
-                : null;
+            recoveryReason is null
+                ? null
+                : recoveryReason.Issues is { Count: > 0 }
+                    ? recoveryReason.Issues[0].Code
+                    : "WIF_INITIALIZATION_FAILED";
 
         string? recoveryMessage =
             recoveryReason is null
@@ -842,7 +844,8 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                     recoveryReason.Message)
                         ? recoveryReason.Issues is { Count: > 0 }
                             ? recoveryReason.Issues[0].Message
-                            : null
+                            : "The requested error catalog "
+                              + "initialization failed."
                         : recoveryReason.Message;
 
         ErrorCatalogRuntimeStatus status = new()
