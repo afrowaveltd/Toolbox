@@ -613,7 +613,7 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
             Response<ErrorCatalogContext> fallbackResponse)
     {
         string fallbackCode =
-            fallbackResponse.Issues.Count > 0
+            fallbackResponse.Issues is { Count: > 0 }
                 ? fallbackResponse.Issues[0].Code
                 : fallbackResponse.Data is null
                     ? "WIF_BUILT_IN_CONTEXT_PAYLOAD_NULL"
