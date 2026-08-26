@@ -831,8 +831,7 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         ArgumentNullException.ThrowIfNull(payload.Bootstrap);
 
         string? recoveryReasonCode =
-            recoveryReason is not null
-            && recoveryReason.Issues.Count > 0
+            recoveryReason?.Issues is { Count: > 0 }
                 ? recoveryReason.Issues[0].Code
                 : null;
 
@@ -841,7 +840,7 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                 ? null
                 : string.IsNullOrWhiteSpace(
                     recoveryReason.Message)
-                        ? recoveryReason.Issues.Count > 0
+                        ? recoveryReason.Issues is { Count: > 0 }
                             ? recoveryReason.Issues[0].Message
                             : null
                         : recoveryReason.Message;
