@@ -295,7 +295,7 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         Response<ErrorCatalogContext> builtInResponse)
     {
         string failureCode =
-            builtInResponse.Issues.Count > 0
+            builtInResponse.Issues is { Count: > 0 }
                 ? builtInResponse.Issues[0].Code
                 : builtInResponse.Data is null
                     ? "WIF_BUILT_IN_CONTEXT_PAYLOAD_NULL"
