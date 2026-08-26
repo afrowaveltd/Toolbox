@@ -760,7 +760,7 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         Response<ErrorCatalogInitializationPayload>
             initializationResponse)
     {
-        if (initializationResponse.Issues.Count == 0)
+        if (initializationResponse.Issues is not { Count: > 0 })
         {
             return string.IsNullOrWhiteSpace(
                 initializationResponse.Message)
