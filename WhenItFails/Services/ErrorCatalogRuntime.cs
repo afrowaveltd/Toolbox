@@ -804,7 +804,7 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
         }
 
         string issueCode =
-            sourceResponse.Issues.Count > 0
+            sourceResponse.Issues is { Count: > 0 }
                 ? sourceResponse.Issues[0].Code
                 : "ErrorCatalogContextUnavailable";
 
