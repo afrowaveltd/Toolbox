@@ -724,7 +724,7 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
             string prefix)
     {
         string failureCode =
-            failureResponse.Issues.Count > 0
+            failureResponse.Issues is { Count: > 0 }
                 ? failureResponse.Issues[0].Code
                 : "WIF_INITIALIZATION_FAILED";
 
