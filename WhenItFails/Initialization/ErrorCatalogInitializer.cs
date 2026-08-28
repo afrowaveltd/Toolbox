@@ -124,7 +124,7 @@ public sealed class ErrorCatalogInitializer : IErrorCatalogInitializer
            string fallbackCode,
            string fallbackMessage)
    {
-      string issueCode = sourceResponse.Issues.Count > 0
+      string issueCode = sourceResponse.Issues is { Count: > 0 }
           ? sourceResponse.Issues[0].Code
           : fallbackCode;
 
