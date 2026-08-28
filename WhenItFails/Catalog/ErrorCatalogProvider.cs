@@ -114,7 +114,7 @@ public sealed class ErrorCatalogProvider : IErrorCatalogProvider
         Response<ErrorCatalogDocument> response,
         string fallbackCode)
     {
-        return response.Issues.Count > 0
+        return response.Issues is { Count: > 0 }
             ? response.Issues[0].Code
             : fallbackCode;
     }
