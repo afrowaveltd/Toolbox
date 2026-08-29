@@ -74,6 +74,14 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                             "The JSON template provider returned a null template item.");
                 }
 
+                if (templateFile.Content is null)
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_TEMPLATE_CONTENT_NULL",
+                        message:
+                            "The JSON template provider returned a template with null content.");
+                }
+
                 JsonsBootstrapFileResult fileResult =
                     await EnsureTemplateFileAsync(
                         packageDirectoryPath,
