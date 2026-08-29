@@ -56,8 +56,16 @@ public sealed class BuiltInErrorCatalogContextProvider
             Directory.CreateDirectory(
                 options.PackageDirectoryPath);
 
-            IReadOnlyList<JsonsTemplateFile> templates =
+            IReadOnlyList<JsonsTemplateFile>? templates =
                 _templateProvider.GetTemplateFiles(options);
+
+            if (templates is null)
+            {
+                return Response<ErrorCatalogContext>.Invalid(
+                    code: "WIF_BUILT_IN_TEMPLATES_NULL",
+                    message:
+                        "The bundled WhenItFails catalog template provider returned a null collection.");
+            }
 
             if (templates.Count == 0)
             {
