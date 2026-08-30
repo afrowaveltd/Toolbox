@@ -90,6 +90,16 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                             "The JSON template provider returned a template with an empty target file name.");
                 }
 
+                if (!IsPathInsideDirectory(
+                    packageDirectoryPath,
+                    templateFile.TargetFileName))
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_OUTSIDE_PACKAGE",
+                        message:
+                            "The JSON template provider returned a target file name outside the package directory.");
+                }
+
                 if (templateFile.Content is null)
                 {
                     return Response<JsonsBootstrapPayload>.Invalid(
@@ -158,6 +168,34 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
             Skipped = false,
             Message = "File was created from template."
         };
+    }
+
+    private static bool IsPathInsideDirectory(
+        string directoryPath,
+        string targetFileName)
+    {
+        string fullDirectoryPath =
+            Path.GetFullPath(directoryPath);
+
+        string fullTargetPath =
+            Path.GetFullPath(
+                Path.Combine(
+                    fullDirectoryPath,
+                    NormalizePath(targetFileName)));
+
+        string directoryPrefix =
+            Path.EndsInDirectorySeparator(fullDirectoryPath)
+                ? fullDirectoryPath
+                : fullDirectoryPath + Path.DirectorySeparatorChar;
+
+        StringComparison comparison =
+            OperatingSystem.IsWindows()
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
+
+        return fullTargetPath.StartsWith(
+            directoryPrefix,
+            comparison);
     }
 
     private static string NormalizePath(string path)
