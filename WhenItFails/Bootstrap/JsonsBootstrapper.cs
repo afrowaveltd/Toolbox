@@ -74,6 +74,14 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                             "The JSON template provider returned a null template item.");
                 }
 
+                if (templateFile.TargetFileName is null)
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_NULL",
+                        message:
+                            "The JSON template provider returned a template with a null target file name.");
+                }
+
                 if (templateFile.Content is null)
                 {
                     return Response<JsonsBootstrapPayload>.Invalid(
