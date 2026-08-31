@@ -43,7 +43,7 @@ public sealed class JsonsBootstrapperEscapingTemplateTargetFileNameContractTests
                 "WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_OUTSIDE_PACKAGE",
                 issue.Code);
             Assert.Equal(
-                "The JSON template provider returned a target file name that resolves outside the package directory.",
+                "The JSON template provider returned a target file name outside the package directory.",
                 response.Message);
 
             Assert.False(File.Exists(escapedFilePath));
