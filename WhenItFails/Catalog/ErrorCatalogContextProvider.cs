@@ -49,11 +49,12 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(options);
 
-        if (options.ErrorCatalogFileName is null)
+        Response<ErrorCatalogContext>? invalidOptionsResponse =
+            ValidateJsonsOptions(options);
+
+        if (invalidOptionsResponse is not null)
         {
-            return Response<ErrorCatalogContext>.Invalid(
-                code: "WIF_JSONS_ERROR_CATALOG_FILE_NAME_NULL",
-                message: "The error catalog file name cannot be null.");
+            return invalidOptionsResponse;
         }
 
         List<IssueInfo> providerIssues = [];
@@ -244,6 +245,47 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
                 Data = context,
                 Issues = providerIssues
             };
+    }
+
+    private static Response<ErrorCatalogContext>? ValidateJsonsOptions(
+        JsonsOptions options)
+    {
+        if (options.ErrorCatalogFileName is null)
+        {
+            return Response<ErrorCatalogContext>.Invalid(
+                code: "WIF_JSONS_ERROR_CATALOG_FILE_NAME_NULL",
+                message: "The error catalog file name cannot be null.");
+        }
+
+        if (options.CategoryCatalogFileName is null)
+        {
+            return Response<ErrorCatalogContext>.Invalid(
+                code: "WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_NULL",
+                message: "The category catalog file name cannot be null.");
+        }
+
+        if (options.CodeGroupCatalogFileName is null)
+        {
+            return Response<ErrorCatalogContext>.Invalid(
+                code: "WIF_JSONS_CODE_GROUP_CATALOG_FILE_NAME_NULL",
+                message: "The code group catalog file name cannot be null.");
+        }
+
+        if (options.OwnerCatalogFileName is null)
+        {
+            return Response<ErrorCatalogContext>.Invalid(
+                code: "WIF_JSONS_OWNER_CATALOG_FILE_NAME_NULL",
+                message: "The owner catalog file name cannot be null.");
+        }
+
+        if (options.ProfilesFileName is null)
+        {
+            return Response<ErrorCatalogContext>.Invalid(
+                code: "WIF_JSONS_PROFILE_CATALOG_FILE_NAME_NULL",
+                message: "The profile catalog file name cannot be null.");
+        }
+
+        return null;
     }
 
     private static void AddProviderIssues(
