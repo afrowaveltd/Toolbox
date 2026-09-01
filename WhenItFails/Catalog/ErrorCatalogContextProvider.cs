@@ -250,6 +250,20 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
     private static Response<ErrorCatalogContext>? ValidateJsonsOptions(
         JsonsOptions options)
     {
+        if (options.RootDirectory is null)
+        {
+            return Response<ErrorCatalogContext>.Invalid(
+                code: "WIF_JSONS_ROOT_DIRECTORY_NULL",
+                message: "The JSON root directory cannot be null.");
+        }
+
+        if (options.PackageDirectoryName is null)
+        {
+            return Response<ErrorCatalogContext>.Invalid(
+                code: "WIF_JSONS_PACKAGE_DIRECTORY_NAME_NULL",
+                message: "The package directory name cannot be null.");
+        }
+
         Response<ErrorCatalogContext>? response = ValidateFileName(
             options.ErrorCatalogFileName,
             "WIF_JSONS_ERROR_CATALOG_FILE_NAME_NULL",
