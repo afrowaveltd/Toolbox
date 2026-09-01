@@ -49,6 +49,13 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(options);
 
+        if (options.ErrorCatalogFileName is null)
+        {
+            return Response<ErrorCatalogContext>.Invalid(
+                code: "WIF_JSONS_ERROR_CATALOG_FILE_NAME_NULL",
+                message: "The error catalog file name cannot be null.");
+        }
+
         List<IssueInfo> providerIssues = [];
 
         Response<ErrorCatalogProviderPayload>? errorCatalogResponse =
