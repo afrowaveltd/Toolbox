@@ -250,21 +250,31 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
     private static Response<ErrorCatalogContext>? ValidateJsonsOptions(
         JsonsOptions options)
     {
-        if (options.RootDirectory is null)
+        Response<ErrorCatalogContext>? response = ValidatePathSegment(
+            options.RootDirectory,
+            "WIF_JSONS_ROOT_DIRECTORY_NULL",
+            "The JSON root directory cannot be null.",
+            "WIF_JSONS_ROOT_DIRECTORY_EMPTY",
+            "The JSON root directory cannot be empty.");
+
+        if (response is not null)
         {
-            return Response<ErrorCatalogContext>.Invalid(
-                code: "WIF_JSONS_ROOT_DIRECTORY_NULL",
-                message: "The JSON root directory cannot be null.");
+            return response;
         }
 
-        if (options.PackageDirectoryName is null)
+        response = ValidatePathSegment(
+            options.PackageDirectoryName,
+            "WIF_JSONS_PACKAGE_DIRECTORY_NAME_NULL",
+            "The package directory name cannot be null.",
+            "WIF_JSONS_PACKAGE_DIRECTORY_NAME_EMPTY",
+            "The package directory name cannot be empty.");
+
+        if (response is not null)
         {
-            return Response<ErrorCatalogContext>.Invalid(
-                code: "WIF_JSONS_PACKAGE_DIRECTORY_NAME_NULL",
-                message: "The package directory name cannot be null.");
+            return response;
         }
 
-        Response<ErrorCatalogContext>? response = ValidateFileName(
+        response = ValidateFileName(
             options.ErrorCatalogFileName,
             "WIF_JSONS_ERROR_CATALOG_FILE_NAME_NULL",
             "The error catalog file name cannot be null.",
@@ -320,21 +330,21 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
             "The profile catalog file name cannot be empty.");
     }
 
-    private static Response<ErrorCatalogContext>? ValidateFileName(
-        string? fileName,
+    private static Response<ErrorCatalogContext>? ValidatePathSegment(
+        string? value,
         string nullCode,
         string nullMessage,
         string emptyCode,
         string emptyMessage)
     {
-        if (fileName is null)
+        if (value is null)
         {
             return Response<ErrorCatalogContext>.Invalid(
                 code: nullCode,
                 message: nullMessage);
         }
 
-        if (string.IsNullOrWhiteSpace(fileName))
+        if (string.IsNullOrWhiteSpace(value))
         {
             return Response<ErrorCatalogContext>.Invalid(
                 code: emptyCode,
@@ -342,6 +352,21 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
         }
 
         return null;
+    }
+
+    private static Response<ErrorCatalogContext>? ValidateFileName(
+        string? fileName,
+        string nullCode,
+        string nullMessage,
+        string emptyCode,
+        string emptyMessage)
+    {
+        return ValidatePathSegment(
+            fileName,
+            nullCode,
+            nullMessage,
+            emptyCode,
+            emptyMessage);
     }
 
     private static void AddProviderIssues(
