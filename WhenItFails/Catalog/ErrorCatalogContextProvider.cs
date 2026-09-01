@@ -250,39 +250,81 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
     private static Response<ErrorCatalogContext>? ValidateJsonsOptions(
         JsonsOptions options)
     {
-        if (options.ErrorCatalogFileName is null)
+        Response<ErrorCatalogContext>? response = ValidateFileName(
+            options.ErrorCatalogFileName,
+            "WIF_JSONS_ERROR_CATALOG_FILE_NAME_NULL",
+            "The error catalog file name cannot be null.",
+            "WIF_JSONS_ERROR_CATALOG_FILE_NAME_EMPTY",
+            "The error catalog file name cannot be empty.");
+
+        if (response is not null)
         {
-            return Response<ErrorCatalogContext>.Invalid(
-                code: "WIF_JSONS_ERROR_CATALOG_FILE_NAME_NULL",
-                message: "The error catalog file name cannot be null.");
+            return response;
         }
 
-        if (options.CategoryCatalogFileName is null)
+        response = ValidateFileName(
+            options.CategoryCatalogFileName,
+            "WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_NULL",
+            "The category catalog file name cannot be null.",
+            "WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_EMPTY",
+            "The category catalog file name cannot be empty.");
+
+        if (response is not null)
         {
-            return Response<ErrorCatalogContext>.Invalid(
-                code: "WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_NULL",
-                message: "The category catalog file name cannot be null.");
+            return response;
         }
 
-        if (options.CodeGroupCatalogFileName is null)
+        response = ValidateFileName(
+            options.CodeGroupCatalogFileName,
+            "WIF_JSONS_CODE_GROUP_CATALOG_FILE_NAME_NULL",
+            "The code group catalog file name cannot be null.",
+            "WIF_JSONS_CODE_GROUP_CATALOG_FILE_NAME_EMPTY",
+            "The code group catalog file name cannot be empty.");
+
+        if (response is not null)
         {
-            return Response<ErrorCatalogContext>.Invalid(
-                code: "WIF_JSONS_CODE_GROUP_CATALOG_FILE_NAME_NULL",
-                message: "The code group catalog file name cannot be null.");
+            return response;
         }
 
-        if (options.OwnerCatalogFileName is null)
+        response = ValidateFileName(
+            options.OwnerCatalogFileName,
+            "WIF_JSONS_OWNER_CATALOG_FILE_NAME_NULL",
+            "The owner catalog file name cannot be null.",
+            "WIF_JSONS_OWNER_CATALOG_FILE_NAME_EMPTY",
+            "The owner catalog file name cannot be empty.");
+
+        if (response is not null)
         {
-            return Response<ErrorCatalogContext>.Invalid(
-                code: "WIF_JSONS_OWNER_CATALOG_FILE_NAME_NULL",
-                message: "The owner catalog file name cannot be null.");
+            return response;
         }
 
-        if (options.ProfilesFileName is null)
+        return ValidateFileName(
+            options.ProfilesFileName,
+            "WIF_JSONS_PROFILE_CATALOG_FILE_NAME_NULL",
+            "The profile catalog file name cannot be null.",
+            "WIF_JSONS_PROFILE_CATALOG_FILE_NAME_EMPTY",
+            "The profile catalog file name cannot be empty.");
+    }
+
+    private static Response<ErrorCatalogContext>? ValidateFileName(
+        string? fileName,
+        string nullCode,
+        string nullMessage,
+        string emptyCode,
+        string emptyMessage)
+    {
+        if (fileName is null)
         {
             return Response<ErrorCatalogContext>.Invalid(
-                code: "WIF_JSONS_PROFILE_CATALOG_FILE_NAME_NULL",
-                message: "The profile catalog file name cannot be null.");
+                code: nullCode,
+                message: nullMessage);
+        }
+
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            return Response<ErrorCatalogContext>.Invalid(
+                code: emptyCode,
+                message: emptyMessage);
         }
 
         return null;
