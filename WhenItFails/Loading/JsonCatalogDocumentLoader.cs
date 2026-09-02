@@ -39,6 +39,17 @@ public sealed class JsonCatalogDocumentLoader
 
       string normalizedFilePath = filePath.Trim();
 
+      try
+      {
+         _ = Path.GetFullPath(normalizedFilePath);
+      }
+      catch(ArgumentException)
+      {
+         return Response<TDocument>.Invalid(
+             code: "FilePathIsInvalid",
+             message: "JSON catalog file path is invalid.");
+      }
+
       if(!File.Exists(normalizedFilePath))
       {
          return Response<TDocument>.NotFound(
