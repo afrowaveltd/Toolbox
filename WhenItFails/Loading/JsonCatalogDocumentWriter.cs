@@ -87,6 +87,12 @@ public sealed class JsonCatalogDocumentWriter
         {
             throw;
         }
+        catch (ArgumentException)
+        {
+            return Response.Invalid(
+               code: "FilePathIsInvalid",
+               message: "JSON catalog file path is invalid.");
+        }
         catch (UnauthorizedAccessException exception)
         {
             return Response.Fail(
