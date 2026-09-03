@@ -94,9 +94,10 @@ public sealed class ErrorDescriptorResolver : IErrorDescriptorResolver
         Response<ErrorDefinition> response,
         string fallbackCode)
     {
-        return response.Issues is { Count: > 0 }
-            ? response.Issues[0].Code
-            : fallbackCode;
+        return response.Issues?
+            .FirstOrDefault(static issue => issue is not null)?
+            .Code
+            ?? fallbackCode;
     }
 
     private static string GetResponseMessage(
