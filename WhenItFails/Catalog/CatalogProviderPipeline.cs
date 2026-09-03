@@ -97,9 +97,13 @@ internal static class CatalogProviderPipeline
        Response<TDocument> response,
        string fallbackCode)
    {
-      return response.Issues is { Count: > 0 }
-          ? response.Issues[0].Code
-          : fallbackCode;
+      string? issueCode = response.Issues?
+          .FirstOrDefault(issue => issue is not null)?
+          .Code;
+
+      return string.IsNullOrWhiteSpace(issueCode)
+          ? fallbackCode
+          : issueCode;
    }
 
    private static string GetResponseMessage<TDocument>(
