@@ -42,6 +42,43 @@ public sealed class ErrorDescriptorResolverNullFirstIssueContractTests
         Assert.Equal("Error definition resolving failed.", issue.Message);
     }
 
+    [Fact]
+    public void CreateById_ShouldUseFirstNonNullIssueCode_WhenFirstResolverIssueIsNull()
+    {
+        Response<ErrorDefinition> sourceResponse = new()
+        {
+            Status = ResultStatus.Failed,
+            Message = string.Empty,
+            Data = null,
+            Issues = new List<IssueInfo>
+            {
+                null!,
+                new()
+                {
+                    Code = "ResolverIssue",
+                    Message = "Resolver issue."
+                }
+            }
+        };
+
+        ErrorDescriptorResolver resolver = new(
+            new StubErrorDefinitionResolver(sourceResponse),
+            new ThrowingErrorDescriptorFactory());
+
+        Response<ErrorDescriptor> response = resolver.CreateById(
+            new ErrorCatalogContext(),
+            "AFW-CFG-0001");
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal("Error definition resolving failed.", response.Message);
+
+        IssueInfo issue = Assert.Single(response.Issues);
+        Assert.Equal("ResolverIssue", issue.Code);
+        Assert.Equal("Error definition resolving failed.", issue.Message);
+    }
+
     private sealed class StubErrorDefinitionResolver(
         Response<ErrorDefinition> response) : IErrorDefinitionResolver
     {
