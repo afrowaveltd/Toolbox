@@ -12,37 +12,57 @@ Hardening runtime and descriptor contracts against malformed or externally suppl
 
 - `WhenItFails` provides structured error catalogs, runtime error resolution, profiles, diagnostics, initialization/recovery behavior, and project-local catalog handling.
 - `ErrorDescriptorResolver` preserves the status of failed definition responses and produces a descriptor failure without invoking the descriptor factory.
-- `ErrorDescriptorResolver.GetFirstIssueCode(...)` currently selects the first non-null issue and falls back to `ErrorDefinitionResolveFailed` only when no usable issue object exists or its `Code` is `null`.
-- `IssueInfo.Code` is a non-null string whose default value is `string.Empty`, so malformed responses can contain a non-null issue with an empty or whitespace-only code.
-- Contract coverage includes null issue collections, a null first issue, and a null-leading collection followed by a valid issue.
-- A new focused contract now requires a whitespace-only first issue code to use the stable fallback code instead of propagating whitespace.
+- `ErrorDescriptorResolver.GetFirstIssueCode(...)` now selects the first issue whose object is non-null and whose `Code` is not null, empty, or whitespace-only.
+- If no usable issue code exists, the resolver falls back to `ErrorDefinitionResolveFailed`.
+- Contract coverage includes null issue collections, a null first issue, a null-leading collection followed by a valid issue, and a whitespace-only issue code.
+- The whitespace-only issue-code contract was verified RED before the production fix, proving that the previous implementation propagated whitespace into `Response<T>.Fail(...)` and triggered `ArgumentException` in `IssueInfoFactory`.
 
 ## Latest committed steps
 
-### 2026-09-04 — whitespace resolver issue-code contract
+### 2026-09-04 — whitespace resolver issue-code fix
 
-Commit: `2c1c938f75b701a455bde1c62c989f5c4bbd94d4`
+Production fix commit: `bd0c48242f9c4ac1d03c63bcaf946ee9dbd7482a`
 
-Added:
+Changed:
+
+`WhenItFails/Descriptors/ErrorDescriptorResolver.cs`
+
+`GetFirstIssueCode(...)` now ignores issue entries whose `Code` is null, empty, or whitespace-only and returns the first usable code instead. If none exists, it uses the stable fallback code.
+
+The change is intentionally narrow and does not alter descriptor creation, response status preservation, or message fallback behavior.
+
+### 2026-09-04 — verified RED whitespace resolver issue-code contract
+
+Contract commit: `2c1c938f75b701a455bde1c62c989f5c4bbd94d4`
+
+Focused test:
 
 `WhenItFails.Tests/Descriptors/ErrorDescriptorResolverFallbackContractTests.CreateById_ShouldUseFallbackCode_WhenFirstIssueCodeIsWhitespace`
 
-Contract:
+Observed locally on Windows against `master` before the fix:
 
 ```text
-first issue exists
-first issue.Code = whitespace
-              ↓
-use ErrorDefinitionResolveFailed
+Failed: 1
+Passed: 0
+Skipped: 0
+Total: 1
 ```
 
-No production code was changed in this step. Based on the current implementation, this focused contract is expected to expose the next malformed-response boundary and should be verified locally before changing production code.
+Failure:
+
+```text
+System.ArgumentException:
+The value cannot be an empty string or composed entirely of whitespace.
+Parameter 'code'
+```
+
+The exception originated in `Essentials/Issues/IssueInfoFactory.Create(...)` after `ErrorDescriptorResolver` passed the whitespace code to `Response<ErrorDescriptor>.Fail(...)`.
 
 ### 2026-09-04 — verified null-leading resolver issue contract
 
 Commit containing the contract: `c2aac2daa4a20220de1bf36ead5cbe1826e8b772`
 
-Verified locally on Windows against `master`:
+Verified locally on Windows:
 
 ```text
 WhenItFails.Tests
@@ -52,25 +72,23 @@ Skipped:  0
 Total:  954
 ```
 
-The run targeted `net10.0` and completed successfully. The installed .NET 11 preview SDK emitted only the expected `NETSDK1057` preview-SDK informational message; it did not affect the test result.
+The installed .NET 11 preview SDK emitted only the expected `NETSDK1057` preview-SDK informational message; it did not affect the test result.
 
 ## Verification state
 
-- Baseline before the new whitespace-code contract: complete `WhenItFails.Tests` suite GREEN, 954/954 passed.
-- New whitespace-code contract committed and awaiting focused local verification.
-- Do not modify production code until the focused test result is known.
+- Baseline before the whitespace-code contract: complete `WhenItFails.Tests` suite GREEN, 954/954 passed.
+- Whitespace-code contract: verified RED before the production fix.
+- Production fix is committed and awaits local focused verification and then the complete `WhenItFails.Tests` suite.
 
 ## Recommended verification
 
-Run only the new contract first:
+Pull current `master` and run the focused contract:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~CreateById_ShouldUseFallbackCode_WhenFirstIssueCodeIsWhitespace"
 ```
 
-If RED as expected, preserve the failure output and make the smallest production change in `ErrorDescriptorResolver.GetFirstIssueCode(...)` necessary to treat null/empty/whitespace issue codes as unusable.
-
-After the fix, rerun the focused test, then:
+If green, run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ErrorDescriptorResolverFallbackContractTests"
@@ -79,8 +97,6 @@ dotnet test WhenItFails.Tests
 
 ## Next recommended step
 
-Resolve only the whitespace-code contract if it fails. Avoid broader refactoring.
+Once the whitespace-code fix is verified GREEN, add the next narrow contract for a malformed collection where an unusable issue code is followed by a later valid issue code. That contract should confirm that the resolver skips unusable codes and preserves the first later usable code.
 
-Once the focused test and full suite are GREEN again, inspect the next malformed-response boundary and repeat the same narrow test-first sequence.
-
-Keep each step small, tested, documented here, and committed directly to `master`.
+Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
