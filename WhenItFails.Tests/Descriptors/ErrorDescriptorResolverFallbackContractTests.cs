@@ -1,4 +1,5 @@
 using Afrowave.Toolbox.Essentials.Enums;
+using Afrowave.Toolbox.Essentials.Issues;
 using Afrowave.Toolbox.Essentials.Results;
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Definitions;
@@ -64,6 +65,39 @@ public sealed class ErrorDescriptorResolverFallbackContractTests
         var issue = Assert.Single(response.Issues);
         Assert.Equal("CustomResolverFailure", issue.Code);
         Assert.Equal("Error definition resolving failed.", issue.Message);
+    }
+
+    [Fact]
+    public void CreateById_ShouldUseFallbackCode_WhenFirstIssueCodeIsWhitespace()
+    {
+        Response<ErrorDefinition> sourceResponse = new()
+        {
+            Status = ResultStatus.Failed,
+            Message = "Resolver failed.",
+            Issues = new List<IssueInfo>
+            {
+                new()
+                {
+                    Code = "   ",
+                    Message = "Malformed resolver issue."
+                }
+            }
+        };
+
+        ErrorDescriptorResolver resolver = CreateResolver(sourceResponse);
+
+        Response<ErrorDescriptor> response = resolver.CreateById(
+            new ErrorCatalogContext(),
+            "AFW-CFG-0001");
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal("Resolver failed.", response.Message);
+
+        var issue = Assert.Single(response.Issues);
+        Assert.Equal("ErrorDefinitionResolveFailed", issue.Code);
+        Assert.Equal("Resolver failed.", issue.Message);
     }
 
     private static ErrorDescriptorResolver CreateResolver(
