@@ -95,7 +95,9 @@ public sealed class ErrorDescriptorResolver : IErrorDescriptorResolver
         string fallbackCode)
     {
         return response.Issues?
-            .FirstOrDefault(static issue => issue is not null)?
+            .FirstOrDefault(
+                static issue => issue is not null
+                    && !string.IsNullOrWhiteSpace(issue.Code))?
             .Code
             ?? fallbackCode;
     }
