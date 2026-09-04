@@ -13,9 +13,9 @@ Hardening runtime and descriptor contracts against malformed or externally suppl
 - `WhenItFails` provides structured error catalogs, runtime error resolution, profiles, diagnostics, initialization/recovery behavior, and project-local catalog handling.
 - `ErrorDescriptorResolver` preserves the status of failed definition responses and produces a descriptor failure without invoking the descriptor factory.
 - `ErrorDescriptorResolver.GetFirstIssueCode(...)` selects the first non-null issue and falls back to `ErrorDefinitionResolveFailed` when no usable issue exists.
-- Contract coverage now includes a failed resolver response whose first and only issue is `null`.
-- Contract coverage now also includes a failed resolver response whose first issue is `null` and whose later issue is valid; the valid issue code must be used.
-- The latest contract-only change does not require a production-code modification.
+- Contract coverage includes a failed resolver response whose first and only issue is `null`.
+- Contract coverage also includes a failed resolver response whose first issue is `null` and whose later issue is valid; the valid issue code must be used.
+- The latest contract-only change did not require a production-code modification.
 
 ## Latest committed steps
 
@@ -39,25 +39,27 @@ The current resolver implementation already follows this contract by selecting t
 
 ## Verification state
 
-- The previously added `CreateById_ShouldUseFallbackCode_WhenFirstResolverIssueIsNull` contract was reported green locally before this update.
-- The new `CreateById_ShouldUseFirstNonNullIssueCode_WhenFirstResolverIssueIsNull` contract is committed and awaits local verification against the current `master` branch.
-- Do not mark the new step verified until the focused test and then the relevant `WhenItFails.Tests` suite are green locally.
+Verified locally on Windows against `master` on 2026-09-04:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 954
+Skipped:  0
+Total:  954
+```
+
+The run targeted `net10.0` and completed successfully. The installed .NET 11 preview SDK emitted only the expected `NETSDK1057` preview-SDK informational message; it did not affect the test result.
+
+The null-leading resolver issue contract is therefore fully verified GREEN together with the complete `WhenItFails.Tests` suite.
 
 ## Recommended verification
 
-Run the new focused contract first:
+For every new narrow contract step:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~CreateById_ShouldUseFirstNonNullIssueCode_WhenFirstResolverIssueIsNull"
-```
-
-If green, run the descriptor contract class:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ErrorDescriptorResolverNullFirstIssueContractTests"
-```
-
-Then run the complete package test project:
+1. run the focused new test first;
+2. if green or after the minimal production fix, run the affected test class;
+3. then run the complete package suite:
 
 ```powershell
 dotnet test WhenItFails.Tests
@@ -65,7 +67,7 @@ dotnet test WhenItFails.Tests
 
 ## Next recommended step
 
-After the new contract is verified green, continue the same narrow hardening sequence around `ErrorDescriptorResolver` rather than broad refactoring.
+Continue the same narrow hardening sequence around `ErrorDescriptorResolver` rather than broad refactoring.
 
 Inspect the next malformed-response boundary not yet explicitly covered, add one focused contract test, observe RED/GREEN, and change production code only if the contract exposes a real failure.
 
