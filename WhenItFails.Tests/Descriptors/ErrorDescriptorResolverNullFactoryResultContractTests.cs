@@ -37,8 +37,8 @@ public sealed class ErrorDescriptorResolverNullFactoryResultContractTests
 
     private sealed class SuccessfulDefinitionResolver : IErrorDefinitionResolver
     {
-        private static readonly Response<ErrorDefinition> Response =
-            Essentials.Results.Response<ErrorDefinition>.Ok(
+        private static readonly Response<ErrorDefinition> SuccessfulResponse =
+            Response<ErrorDefinition>.Ok(
                 new ErrorDefinition
                 {
                     Id = "AFW_CFG_0001",
@@ -48,15 +48,15 @@ public sealed class ErrorDescriptorResolverNullFactoryResultContractTests
 
         public Response<ErrorDefinition> FindById(
             ErrorCatalogContext? context,
-            string errorId) => Response;
+            string errorId) => SuccessfulResponse;
 
         public Response<ErrorDefinition> FindByName(
             ErrorCatalogContext? context,
-            string errorName) => Response;
+            string errorName) => SuccessfulResponse;
 
         public Response<ErrorDefinition> FindByCode(
             ErrorCatalogContext? context,
-            int code) => Response;
+            int code) => SuccessfulResponse;
     }
 
     private sealed class NullResultDescriptorFactory : IErrorDescriptorFactory
