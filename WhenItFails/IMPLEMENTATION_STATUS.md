@@ -6,7 +6,7 @@ This file is the continuation point for `WhenItFails` development. Update it aft
 
 ## Current focus
 
-Hardening runtime and descriptor contracts against malformed or externally supplied `Response<T>` values, especially nullable or internally inconsistent issue collections.
+Hardening runtime and descriptor contracts against malformed or externally supplied `Response<T>` values, especially null responses and internally inconsistent issue collections.
 
 ## Current state
 
@@ -14,30 +14,49 @@ Hardening runtime and descriptor contracts against malformed or externally suppl
 - `ErrorDescriptorResolver` preserves the status of failed definition responses and produces a descriptor failure without invoking the descriptor factory.
 - `ErrorDescriptorResolver.GetFirstIssueCode(...)` selects the first issue whose object is non-null and whose `Code` is not null, empty, or whitespace-only.
 - If no usable issue code exists, the resolver falls back to `ErrorDefinitionResolveFailed`.
-- Contract coverage includes null issue collections, a null first issue, a null-leading collection followed by a valid issue, a whitespace-only issue code, and now a whitespace-code issue followed by a later valid issue.
-- The whitespace-only issue-code production fix is verified by the complete `WhenItFails.Tests` suite: 955/955 tests GREEN.
+- Contract coverage includes null issue collections, a null first issue, a null-leading collection followed by a valid issue, a whitespace-only issue code, and a whitespace-code issue followed by a later valid issue.
+- The later-valid-issue contract is verified by the complete `WhenItFails.Tests` suite: 956/956 tests GREEN.
+- The next distinct boundary under test is a broken `IErrorDefinitionResolver` implementation that returns `null` instead of `Response<ErrorDefinition>`.
 
 ## Latest committed steps
 
-### 2026-09-05 — later valid issue-code contract
+### 2026-09-05 — null definition-resolver response contract
 
-Contract commit: `711c227a1704874a0b9a86547cbd55729c4a323b`
+Contract commit: `248daa2ba288ebb3e921169906a961dc20887c45`
 
 Added:
 
-`WhenItFails.Tests/Descriptors/ErrorDescriptorResolverFallbackContractTests.CreateById_ShouldUseFirstLaterValidIssueCode_WhenEarlierIssueCodeIsWhitespace`
+`WhenItFails.Tests/Descriptors/ErrorDescriptorResolverNullResponseContractTests.CreateById_ShouldReturnStableInvalidResponse_WhenDefinitionResolverReturnsNull`
 
 Contract:
 
 ```text
-Issues = [whitespaceCodeIssue, validIssue]
+IErrorDefinitionResolver.FindById(...) => null
                          ↓
-use validIssue.Code
+return stable Invalid Response<ErrorDescriptor>
+code: ErrorDefinitionResolverReturnedNull
+message: Error definition resolver returned a null response.
 ```
 
-The current production implementation is expected to satisfy this contract without modification because `GetFirstIssueCode(...)` searches for the first non-null issue with a non-empty, non-whitespace `Code`.
-
 No production code was changed in this step.
+
+The current `ErrorDescriptorResolver` dereferences the resolver response in `CreateDescriptorResponse(...)`, so this focused contract is expected to be RED with `NullReferenceException`. Preserve that failure before applying the smallest production fix.
+
+### 2026-09-05 — verified later valid issue-code contract
+
+Contract commit: `711c227a1704874a0b9a86547cbd55729c4a323b`
+
+Verified locally on Windows:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 956
+Skipped:  0
+Total:  956
+```
+
+This confirms that an earlier malformed whitespace-only issue code is skipped and the first later valid issue code is preserved without additional production changes.
 
 ### 2026-09-05 — verified whitespace resolver issue-code fix
 
@@ -53,7 +72,7 @@ Skipped:  0
 Total:  955
 ```
 
-This confirms that malformed whitespace-only issue codes now use the stable fallback without regressing the existing suite.
+This confirms that malformed whitespace-only issue codes use the stable fallback without regressing the existing suite.
 
 ### 2026-09-04 — verified RED whitespace resolver issue-code contract
 
@@ -82,50 +101,30 @@ Parameter 'code'
 
 The exception originated in `Essentials/Issues/IssueInfoFactory.Create(...)` after `ErrorDescriptorResolver` passed the whitespace code to `Response<ErrorDescriptor>.Fail(...)`.
 
-### 2026-09-04 — verified null-leading resolver issue contract
-
-Commit containing the contract: `c2aac2daa4a20220de1bf36ead5cbe1826e8b772`
-
-Verified locally on Windows:
-
-```text
-WhenItFails.Tests
-Failed:   0
-Passed: 954
-Skipped:  0
-Total:  954
-```
-
-The installed .NET 11 preview SDK emitted only the expected `NETSDK1057` preview-SDK informational message; it did not affect the test result.
-
 ## Verification state
 
-- Verified continuation baseline before the new contract: complete `WhenItFails.Tests` suite GREEN, 955/955 passed.
-- New later-valid-issue contract is committed and awaits focused local verification.
-- Production code remains unchanged for this contract.
+- Verified continuation baseline before the new contract: complete `WhenItFails.Tests` suite GREEN, 956/956 passed.
+- New null-definition-resolver-response contract is committed and awaits focused local verification.
+- Production code remains unchanged until the focused RED/GREEN state is observed.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Pull current `master` and run only the new contract:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~CreateById_ShouldUseFirstLaterValidIssueCode_WhenEarlierIssueCodeIsWhitespace"
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~CreateById_ShouldReturnStableInvalidResponse_WhenDefinitionResolverReturnsNull"
 ```
 
-If green, run the complete package suite:
+Expected current result: RED with `NullReferenceException` from `ErrorDescriptorResolver.CreateDescriptorResponse(...)`.
 
-```powershell
-dotnet test WhenItFails.Tests
-```
+After preserving the failure output, make the smallest production change necessary to convert a null definition-resolver response into the stable invalid response required by the contract.
 
-Expected complete-suite count after adding this contract: 956 tests.
+Then rerun the focused test and the complete package suite.
 
 ## Next recommended step
 
-After the later-valid-issue contract is verified GREEN, inspect the next distinct malformed-response boundary rather than duplicating equivalent permutations.
+Resolve only the null definition-resolver response boundary if the focused contract fails as expected. Do not broaden the change into unrelated validation or refactoring.
 
-A useful next candidate is message handling: confirm that a valid response-level failure message remains authoritative even when individual issue messages are malformed, because `ErrorDescriptorResolver` intentionally builds the outward failure from the response-level message and selected issue code.
+Once GREEN, consider whether the same centralized guard automatically covers `CreateByName(...)` and `CreateByCode(...)`; add focused symmetry contracts only if they provide meaningful regression protection.
 
-Add only one focused contract at a time and change production code only if it exposes a real failure.
-
-Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
+Keep each step small, tested, documented here, and committed directly to `master`.
