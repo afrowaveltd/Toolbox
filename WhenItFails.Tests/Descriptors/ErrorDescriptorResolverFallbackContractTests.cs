@@ -100,6 +100,44 @@ public sealed class ErrorDescriptorResolverFallbackContractTests
         Assert.Equal("Resolver failed.", issue.Message);
     }
 
+    [Fact]
+    public void CreateById_ShouldUseFirstLaterValidIssueCode_WhenEarlierIssueCodeIsWhitespace()
+    {
+        Response<ErrorDefinition> sourceResponse = new()
+        {
+            Status = ResultStatus.Failed,
+            Message = "Resolver failed.",
+            Issues = new List<IssueInfo>
+            {
+                new()
+                {
+                    Code = "   ",
+                    Message = "Malformed resolver issue."
+                },
+                new()
+                {
+                    Code = "LaterResolverFailure",
+                    Message = "Usable resolver issue."
+                }
+            }
+        };
+
+        ErrorDescriptorResolver resolver = CreateResolver(sourceResponse);
+
+        Response<ErrorDescriptor> response = resolver.CreateById(
+            new ErrorCatalogContext(),
+            "AFW-CFG-0001");
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal("Resolver failed.", response.Message);
+
+        var issue = Assert.Single(response.Issues);
+        Assert.Equal("LaterResolverFailure", issue.Code);
+        Assert.Equal("Resolver failed.", issue.Message);
+    }
+
     private static ErrorDescriptorResolver CreateResolver(
         Response<ErrorDefinition> response)
     {
