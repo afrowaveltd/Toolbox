@@ -62,8 +62,15 @@ public sealed class ErrorDescriptorResolver : IErrorDescriptorResolver
     }
 
     private Response<ErrorDescriptor> CreateDescriptorResponse(
-        Response<ErrorDefinition> definitionResponse)
+        Response<ErrorDefinition>? definitionResponse)
     {
+        if (definitionResponse is null)
+        {
+            return Response<ErrorDescriptor>.Invalid(
+                code: "ErrorDefinitionResolverReturnedNull",
+                message: "Error definition resolver returned a null response.");
+        }
+
         if (!definitionResponse.IsSuccess)
         {
             return Response<ErrorDescriptor>.WithStatus(
