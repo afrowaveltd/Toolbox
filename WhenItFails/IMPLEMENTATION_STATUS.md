@@ -17,35 +17,59 @@ Hardening runtime and descriptor contracts against malformed dependency behavior
 - Null `Response<ErrorDefinition>` values returned by `IErrorDefinitionResolver` are converted into a stable invalid descriptor response.
 - Null-response symmetry is covered for `CreateById(...)`, `CreateByName(...)`, and `CreateByCode(...)`.
 - The complete `WhenItFails.Tests` suite is verified GREEN at 959/959 tests after the symmetry contracts.
-- The next distinct boundary under test is a broken `IErrorDescriptorFactory` implementation that returns `null` despite its non-nullable contract.
+- A broken `IErrorDescriptorFactory` implementation returning `null` is now guarded so the resolver cannot emit `Success` with a null descriptor payload.
 
 ## Latest committed steps
 
-### 2026-09-05 — null descriptor-factory result contract
+### 2026-09-05 — null descriptor-factory result fix
+
+Production fix commit: `a784f6c0e0b11273c65b400cdb2a827b7721673e`
+
+Changed:
+
+`WhenItFails/Descriptors/ErrorDescriptorResolver.cs`
+
+After a successful definition resolution, the descriptor returned by `IErrorDescriptorFactory.Create(...)` is now checked before constructing the outward response.
+
+A null factory result now becomes:
+
+```text
+Status: Invalid
+Code: ErrorDescriptorFactoryReturnedNull
+Message: Error descriptor factory returned a null descriptor.
+```
+
+The change is intentionally narrow and preserves all existing definition-failure, null-definition, and issue-code behavior.
+
+### 2026-09-05 — verified RED null descriptor-factory result contract
 
 Contract commits:
 
 - `a9b4f8852cb713a6a2a5a8f39c7de3eb56986bce`
 - fixture correction: `f7cd0127d68362d94d8b7ee78d5b2eb65720d0f5`
 
-Added:
+Focused test:
 
 `WhenItFails.Tests/Descriptors/ErrorDescriptorResolverNullFactoryResultContractTests.CreateById_ShouldReturnStableInvalidResponse_WhenDescriptorFactoryReturnsNull`
 
-Contract:
+Observed locally on Linux before the production fix:
 
 ```text
-IErrorDefinitionResolver => successful non-null ErrorDefinition
-IErrorDescriptorFactory.Create(...) => null
-                         ↓
-return stable Invalid Response<ErrorDescriptor>
-code: ErrorDescriptorFactoryReturnedNull
-message: Error descriptor factory returned a null descriptor.
+Failed: 1
+Passed: 0
+Skipped: 0
+Total: 1
 ```
 
-No production code was changed in this step.
+Failure:
 
-`Response<T>.Ok(T? data)` in Essentials accepts nullable data and creates a successful response even when `data` is `null`. Therefore the current resolver is expected to produce a malformed `Success + null Data` response when the factory violates its contract. The new focused test should expose that behavior.
+```text
+Assert.False() Failure
+Expected: False
+Actual:   True
+```
+
+This confirmed that the previous resolver passed the null descriptor into `Response<ErrorDescriptor>.Ok(...)`, producing an invalid `Success + null Data` response instead of rejecting the broken factory result.
 
 ### 2026-09-05 — verified null-response symmetry contracts
 
@@ -63,42 +87,32 @@ Total:  959
 
 This confirms that the centralized null definition-resolver guard behaves consistently for `CreateById(...)`, `CreateByName(...)`, and `CreateByCode(...)` without further production changes.
 
-### 2026-09-05 — null definition-resolver response fix
-
-Production fix commit: `7e89e6abe0a92e60383f91faacb54f721b484f29`
-
-`CreateDescriptorResponse(...)` accepts `Response<ErrorDefinition>?` and converts a null resolver response into:
-
-```text
-Status: Invalid
-Code: ErrorDefinitionResolverReturnedNull
-Message: Error definition resolver returned a null response.
-```
-
 ## Verification state
 
 - Verified continuation baseline: complete `WhenItFails.Tests` suite GREEN, 959/959 passed.
-- New null descriptor-factory result contract is committed and awaits focused local verification.
-- Production code remains unchanged until the focused RED/GREEN state is observed.
+- Null descriptor-factory result contract: verified RED before the production fix.
+- Production null-factory-result guard is committed and awaits focused local verification and then the complete `WhenItFails.Tests` suite.
 
 ## Recommended verification
 
-Pull current `master` and run only the new contract:
+Pull current `master` and run only the focused contract:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~CreateById_ShouldReturnStableInvalidResponse_WhenDescriptorFactoryReturnsNull"
 ```
 
-Expected current result: RED because the resolver currently passes the null descriptor into `Response<ErrorDescriptor>.Ok(...)`, which accepts null data and returns a successful response.
+If green, run the complete package suite:
 
-Preserve the focused failure output before changing production code.
+```powershell
+dotnet test WhenItFails.Tests
+```
 
-After the smallest production fix is committed, rerun the focused test and then the complete `WhenItFails.Tests` suite.
+Expected complete-suite count: 960 tests.
 
 ## Next recommended step
 
-Resolve only the null descriptor-factory result boundary if the focused contract fails as expected.
+Once the null descriptor-factory result guard is verified GREEN, move to the next distinct dependency-contract failure rather than adding more null permutations.
 
-Once GREEN, inspect the next distinct dependency-contract failure. Prefer meaningful boundaries such as exceptions or malformed successful results rather than additional permutations of already centralized null guards.
+A useful next candidate is exception behavior: define whether an exception thrown by `IErrorDescriptorFactory.Create(...)` should intentionally propagate or be converted into a stable failure response. Inspect existing project conventions first and add one focused contract only after the intended boundary is clear.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
