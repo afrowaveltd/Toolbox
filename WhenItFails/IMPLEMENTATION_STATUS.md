@@ -14,11 +14,30 @@ Hardening runtime and descriptor contracts against malformed or externally suppl
 - `ErrorDescriptorResolver` preserves the status of failed definition responses and produces a descriptor failure without invoking the descriptor factory.
 - `ErrorDescriptorResolver.GetFirstIssueCode(...)` selects the first issue whose object is non-null and whose `Code` is not null, empty, or whitespace-only.
 - If no usable issue code exists, the resolver falls back to `ErrorDefinitionResolveFailed`.
-- Contract coverage includes null issue collections, a null first issue, a null-leading collection followed by a valid issue, and a whitespace-only issue code.
-- The whitespace-only issue-code contract was verified RED before the production fix, proving that the previous implementation propagated whitespace into `Response<T>.Fail(...)` and triggered `ArgumentException` in `IssueInfoFactory`.
-- The production fix is now verified by the complete `WhenItFails.Tests` suite: 955/955 tests GREEN.
+- Contract coverage includes null issue collections, a null first issue, a null-leading collection followed by a valid issue, a whitespace-only issue code, and now a whitespace-code issue followed by a later valid issue.
+- The whitespace-only issue-code production fix is verified by the complete `WhenItFails.Tests` suite: 955/955 tests GREEN.
 
 ## Latest committed steps
+
+### 2026-09-05 — later valid issue-code contract
+
+Contract commit: `711c227a1704874a0b9a86547cbd55729c4a323b`
+
+Added:
+
+`WhenItFails.Tests/Descriptors/ErrorDescriptorResolverFallbackContractTests.CreateById_ShouldUseFirstLaterValidIssueCode_WhenEarlierIssueCodeIsWhitespace`
+
+Contract:
+
+```text
+Issues = [whitespaceCodeIssue, validIssue]
+                         ↓
+use validIssue.Code
+```
+
+The current production implementation is expected to satisfy this contract without modification because `GetFirstIssueCode(...)` searches for the first non-null issue with a non-empty, non-whitespace `Code`.
+
+No production code was changed in this step.
 
 ### 2026-09-05 — verified whitespace resolver issue-code fix
 
@@ -35,16 +54,6 @@ Total:  955
 ```
 
 This confirms that malformed whitespace-only issue codes now use the stable fallback without regressing the existing suite.
-
-### 2026-09-04 — whitespace resolver issue-code fix
-
-Changed:
-
-`WhenItFails/Descriptors/ErrorDescriptorResolver.cs`
-
-`GetFirstIssueCode(...)` now ignores issue entries whose `Code` is null, empty, or whitespace-only and returns the first usable code instead. If none exists, it uses the stable fallback code.
-
-The change is intentionally narrow and does not alter descriptor creation, response status preservation, or message fallback behavior.
 
 ### 2026-09-04 — verified RED whitespace resolver issue-code contract
 
@@ -91,22 +100,32 @@ The installed .NET 11 preview SDK emitted only the expected `NETSDK1057` preview
 
 ## Verification state
 
-- Complete `WhenItFails.Tests` suite GREEN: 955/955 passed.
-- Whitespace-code contract: verified RED before the production fix and GREEN after the fix as part of the complete suite.
-- Current production implementation is the verified continuation baseline.
+- Verified continuation baseline before the new contract: complete `WhenItFails.Tests` suite GREEN, 955/955 passed.
+- New later-valid-issue contract is committed and awaits focused local verification.
+- Production code remains unchanged for this contract.
+
+## Recommended verification
+
+Pull current `master` and run:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~CreateById_ShouldUseFirstLaterValidIssueCode_WhenEarlierIssueCodeIsWhitespace"
+```
+
+If green, run the complete package suite:
+
+```powershell
+dotnet test WhenItFails.Tests
+```
+
+Expected complete-suite count after adding this contract: 956 tests.
 
 ## Next recommended step
 
-Add the next narrow contract for a malformed collection where an unusable issue code is followed by a later valid issue code. The contract should confirm that the resolver skips the unusable code and preserves the first later usable code.
+After the later-valid-issue contract is verified GREEN, inspect the next distinct malformed-response boundary rather than duplicating equivalent permutations.
 
-Expected behavior:
+A useful next candidate is message handling: confirm that a valid response-level failure message remains authoritative even when individual issue messages are malformed, because `ErrorDescriptorResolver` intentionally builds the outward failure from the response-level message and selected issue code.
 
-```text
-Issues = [whitespaceCodeIssue, validIssue]
-                         ↓
-use validIssue.Code
-```
-
-Production code should remain unchanged unless the focused contract exposes a real failure.
+Add only one focused contract at a time and change production code only if it exposes a real failure.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
