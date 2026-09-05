@@ -17,9 +17,35 @@ Hardening runtime and descriptor contracts against malformed dependency behavior
 - Null `Response<ErrorDefinition>` values returned by `IErrorDefinitionResolver` are converted into a stable invalid descriptor response.
 - Null-response symmetry is covered for `CreateById(...)`, `CreateByName(...)`, and `CreateByCode(...)`.
 - A broken `IErrorDescriptorFactory` implementation returning `null` is guarded so the resolver cannot emit `Success` with a null descriptor payload.
-- The null descriptor-factory result guard is now verified by the complete `WhenItFails.Tests` suite: 960/960 tests GREEN.
+- The null descriptor-factory result guard is verified by the complete `WhenItFails.Tests` suite: 960/960 tests GREEN.
+- A new focused contract now defines behavior for an exception thrown by `IErrorDescriptorFactory.Create(...)`.
 
 ## Latest committed steps
+
+### 2026-09-05 — descriptor-factory exception contract
+
+Contract commit: `c4836bf8e7bef89a8059a112b94dfd3e9f16288c`
+
+Added:
+
+`WhenItFails.Tests/Descriptors/ErrorDescriptorResolverFactoryExceptionContractTests.CreateById_ShouldReturnStableFailure_WhenDescriptorFactoryThrows`
+
+Contract:
+
+```text
+IErrorDefinitionResolver => successful non-null ErrorDefinition
+IErrorDescriptorFactory.Create(...) => throws
+                         ↓
+Status: Failed
+Code: ErrorDescriptorFactoryFailed
+Message: Error descriptor factory failed.
+```
+
+The factory stub throws an exception whose message contains sensitive diagnostic text. The outward contract deliberately requires a stable public message instead of propagating that raw exception text.
+
+No production code was changed in this step.
+
+The current resolver invokes `_descriptorFactory.Create(...)` without an exception boundary, so this focused contract is expected to be RED with the original `InvalidOperationException` escaping.
 
 ### 2026-09-05 — verified null descriptor-factory result guard
 
@@ -73,35 +99,26 @@ Expected: False
 Actual:   True
 ```
 
-This confirmed that the previous resolver passed the null descriptor into `Response<ErrorDescriptor>.Ok(...)`, producing an invalid `Success + null Data` response instead of rejecting the broken factory result.
-
-### 2026-09-05 — verified null-response symmetry contracts
-
-Symmetry contract commit: `8a2df4bef092fff2f98c93f327579c4b5dc9ba20`
-
-Verified locally:
-
-```text
-WhenItFails.Tests
-Failed:   0
-Passed: 959
-Skipped:  0
-Total:  959
-```
-
 ## Verification state
 
 - Verified continuation baseline: complete `WhenItFails.Tests` suite GREEN, 960/960 passed.
-- Null definition-resolver response behavior is verified.
-- Malformed/null issue-code behavior is verified.
-- Null descriptor-factory result behavior is verified.
+- Descriptor-factory exception contract is committed and awaits focused local verification.
+- Production code remains unchanged until the focused RED/GREEN state is observed.
 
-## Recommended next step
+## Recommended verification
 
-Inspect the next distinct dependency-contract failure: an exception thrown by `IErrorDescriptorFactory.Create(...)`.
+Pull current `master` and run only the new contract:
 
-Project conventions favor structured `Response` failures for runtime/dependency failures and explicitly warn against exposing raw exception text to users. Cancellation is the documented exception to that rule, but descriptor creation is synchronous and has no cancellation contract.
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~CreateById_ShouldReturnStableFailure_WhenDescriptorFactoryThrows"
+```
 
-Add one focused contract requiring a thrown descriptor-factory exception to become a stable failed response without leaking `exception.Message`.
+Expected current result: RED with the `InvalidOperationException` from the test factory escaping `ErrorDescriptorResolver.CreateDescriptorResponse(...)`.
+
+Preserve that focused failure output before changing production code.
+
+## Next recommended step
+
+If the focused contract fails as expected, add the smallest exception boundary around descriptor-factory invocation and return the stable `Failed` response required by the contract. Do not broaden the catch to definition resolution or unrelated code paths in the same step.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
