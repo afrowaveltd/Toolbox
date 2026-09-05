@@ -12,14 +12,49 @@ public sealed class ErrorDescriptorResolverNullResponseContractTests
     [Fact]
     public void CreateById_ShouldReturnStableInvalidResponse_WhenDefinitionResolverReturnsNull()
     {
-        ErrorDescriptorResolver resolver = new(
-            new NullResponseDefinitionResolver(),
-            new ThrowingErrorDescriptorFactory());
+        ErrorDescriptorResolver resolver = CreateResolver();
 
         Response<ErrorDescriptor> response = resolver.CreateById(
             new ErrorCatalogContext(),
             "AFW-CFG-0001");
 
+        AssertStableInvalidNullResolverResponse(response);
+    }
+
+    [Fact]
+    public void CreateByName_ShouldReturnStableInvalidResponse_WhenDefinitionResolverReturnsNull()
+    {
+        ErrorDescriptorResolver resolver = CreateResolver();
+
+        Response<ErrorDescriptor> response = resolver.CreateByName(
+            new ErrorCatalogContext(),
+            "MissingConfigurationValue");
+
+        AssertStableInvalidNullResolverResponse(response);
+    }
+
+    [Fact]
+    public void CreateByCode_ShouldReturnStableInvalidResponse_WhenDefinitionResolverReturnsNull()
+    {
+        ErrorDescriptorResolver resolver = CreateResolver();
+
+        Response<ErrorDescriptor> response = resolver.CreateByCode(
+            new ErrorCatalogContext(),
+            200001);
+
+        AssertStableInvalidNullResolverResponse(response);
+    }
+
+    private static ErrorDescriptorResolver CreateResolver()
+    {
+        return new ErrorDescriptorResolver(
+            new NullResponseDefinitionResolver(),
+            new ThrowingErrorDescriptorFactory());
+    }
+
+    private static void AssertStableInvalidNullResolverResponse(
+        Response<ErrorDescriptor> response)
+    {
         Assert.NotNull(response);
         Assert.False(response.IsSuccess);
         Assert.Equal(ResultStatus.Invalid, response.Status);
@@ -48,14 +83,14 @@ public sealed class ErrorDescriptorResolverNullResponseContractTests
             ErrorCatalogContext? context,
             string errorName)
         {
-            throw new InvalidOperationException("Unexpected FindByName call.");
+            return null!;
         }
 
         public Response<ErrorDefinition> FindByCode(
             ErrorCatalogContext? context,
             int code)
         {
-            throw new InvalidOperationException("Unexpected FindByCode call.");
+            return null!;
         }
     }
 
