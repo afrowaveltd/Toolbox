@@ -15,31 +15,47 @@ Hardening runtime and descriptor contracts against malformed or externally suppl
 - `ErrorDescriptorResolver.GetFirstIssueCode(...)` selects the first issue whose object is non-null and whose `Code` is not null, empty, or whitespace-only.
 - If no usable issue code exists, the resolver falls back to `ErrorDefinitionResolveFailed`.
 - Contract coverage includes null issue collections, null issue entries, malformed issue codes, and a resolver implementation that returns a null `Response<ErrorDefinition>`.
-- The later-valid-issue contract is verified by the complete `WhenItFails.Tests` suite: 956/956 tests GREEN.
-- The null definition-resolver response contract was verified RED with `NullReferenceException` before the production fix.
-- `CreateDescriptorResponse(...)` now accepts a nullable definition response and converts `null` into a stable invalid descriptor response.
+- The centralized null definition-resolver response guard is verified by the complete `WhenItFails.Tests` suite: 957/957 tests GREEN.
+- Null-response symmetry contracts now cover `CreateById(...)`, `CreateByName(...)`, and `CreateByCode(...)`.
 
 ## Latest committed steps
 
-### 2026-09-05 — null definition-resolver response fix
+### 2026-09-05 — null definition-resolver response symmetry contracts
 
-Production fix commit: `7e89e6abe0a92e60383f91faacb54f721b484f29`
+Contract commit: `8a2df4bef092fff2f98c93f327579c4b5dc9ba20`
 
-Changed:
+Added focused symmetry coverage:
 
-`WhenItFails/Descriptors/ErrorDescriptorResolver.cs`
+- `CreateByName_ShouldReturnStableInvalidResponse_WhenDefinitionResolverReturnsNull`
+- `CreateByCode_ShouldReturnStableInvalidResponse_WhenDefinitionResolverReturnsNull`
 
-`CreateDescriptorResponse(...)` now accepts `Response<ErrorDefinition>?` and guards `null` before any dereference.
-
-A null resolver response now becomes:
+Together with the existing `CreateById(...)` contract, all three public resolver entry points now require the same stable behavior:
 
 ```text
+IErrorDefinitionResolver => null
+             ↓
 Status: Invalid
 Code: ErrorDefinitionResolverReturnedNull
 Message: Error definition resolver returned a null response.
 ```
 
-The guard is centralized, so the same production behavior applies to `CreateById(...)`, `CreateByName(...)`, and `CreateByCode(...)` without duplicated checks.
+The tests share one assertion helper and one null-returning resolver stub. No production code was changed because the guard is centralized in `CreateDescriptorResponse(...)`.
+
+### 2026-09-05 — verified null definition-resolver response fix
+
+Production fix commit: `7e89e6abe0a92e60383f91faacb54f721b484f29`
+
+Verified locally after pulling the fix:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 957
+Skipped:  0
+Total:  957
+```
+
+This confirms that a null `Response<ErrorDefinition>` is converted into the stable invalid descriptor response without regressing the existing suite.
 
 ### 2026-09-05 — verified RED null definition-resolver response contract
 
@@ -83,34 +99,19 @@ Total:  956
 
 This confirms that an earlier malformed whitespace-only issue code is skipped and the first later valid issue code is preserved without additional production changes.
 
-### 2026-09-05 — verified whitespace resolver issue-code fix
-
-Production fix commit: `bd0c48242f9c4ac1d03c63bcaf946ee9dbd7482a`
-
-Verified locally after pulling the fix:
-
-```text
-WhenItFails.Tests
-Failed:   0
-Passed: 955
-Skipped:  0
-Total:  955
-```
-
-This confirms that malformed whitespace-only issue codes use the stable fallback without regressing the existing suite.
-
 ## Verification state
 
-- Verified continuation baseline before the null-response contract: complete `WhenItFails.Tests` suite GREEN, 956/956 passed.
-- Null definition-resolver response contract: verified RED before the production fix.
-- Production null-response guard is committed and awaits focused local verification and then the complete `WhenItFails.Tests` suite.
+- Verified continuation baseline before symmetry coverage: complete `WhenItFails.Tests` suite GREEN, 957/957 passed.
+- `CreateById(...)` null-response contract is verified GREEN after the production fix.
+- New `CreateByName(...)` and `CreateByCode(...)` symmetry contracts are committed and await local verification.
+- Production code remains unchanged for the symmetry step.
 
 ## Recommended verification
 
-Pull current `master` and run the focused contract:
+Pull current `master` and run the complete null-response contract class:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~CreateById_ShouldReturnStableInvalidResponse_WhenDefinitionResolverReturnsNull"
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ErrorDescriptorResolverNullResponseContractTests"
 ```
 
 If green, run the complete package suite:
@@ -119,12 +120,12 @@ If green, run the complete package suite:
 dotnet test WhenItFails.Tests
 ```
 
-Expected complete-suite count: 957 tests.
+Expected complete-suite count after the two new symmetry contracts: 959 tests.
 
 ## Next recommended step
 
-Once the centralized null-response guard is verified GREEN, add focused symmetry contracts for `CreateByName(...)` and `CreateByCode(...)` only if they meaningfully protect the centralized behavior from future refactoring.
+Once the symmetry contracts are verified GREEN, move away from null-response permutations and inspect a genuinely different malformed-response boundary.
 
-After symmetry is locked, move to a genuinely different malformed-response boundary rather than continuing equivalent permutations.
+A strong next candidate is the successful-definition path where `IErrorDescriptorFactory.Create(...)` itself returns `null` despite its non-nullable contract. The current resolver immediately passes that value into `Response<ErrorDescriptor>.Ok(...)`; verify whether Essentials rejects or accidentally accepts that malformed success payload, then define the stable WhenItFails behavior with one focused contract.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
