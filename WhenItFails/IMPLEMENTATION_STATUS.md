@@ -17,10 +17,35 @@ Hardening runtime and descriptor contracts against malformed dependency behavior
 - Null `Response<ErrorDefinition>` values returned by `IErrorDefinitionResolver` are converted into a stable invalid descriptor response.
 - Null-response symmetry is covered for `CreateById(...)`, `CreateByName(...)`, and `CreateByCode(...)`.
 - A broken `IErrorDescriptorFactory` implementation returning `null` is guarded so the resolver cannot emit `Success` with a null descriptor payload.
-- The null descriptor-factory result guard is verified by the complete `WhenItFails.Tests` suite: 960/960 tests GREEN.
-- Descriptor-factory exceptions now have a narrow exception boundary: ordinary exceptions become a stable failed response, while `OperationCanceledException` is rethrown.
+- Descriptor-factory ordinary exceptions become a stable failed response without exposing the original exception message.
+- `OperationCanceledException` is explicitly rethrown by the descriptor-factory exception boundary.
+- The complete `WhenItFails.Tests` suite is verified GREEN at 961/961 tests after the descriptor-factory exception fix.
 
 ## Latest committed steps
+
+### 2026-09-06 — verified descriptor-factory exception fix
+
+Production fix commit: `717cc33e26534aa30f1634505f5248b38ea4658c`
+
+Verified locally on Linux after pulling the fix:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 961
+Skipped:  0
+Total:  961
+```
+
+This confirms that an ordinary exception thrown by `IErrorDescriptorFactory.Create(...)` is converted into:
+
+```text
+Status: Failed
+Code: ErrorDescriptorFactoryFailed
+Message: Error descriptor factory failed.
+```
+
+The original exception message is not exposed by the resolver.
 
 ### 2026-09-06 — descriptor-factory exception fix
 
@@ -30,19 +55,9 @@ Changed:
 
 `WhenItFails/Descriptors/ErrorDescriptorResolver.cs`
 
-The call to `IErrorDescriptorFactory.Create(...)` is now wrapped by the smallest possible exception boundary.
+The call to `IErrorDescriptorFactory.Create(...)` is wrapped by a narrow exception boundary.
 
-Ordinary factory exceptions become:
-
-```text
-Status: Failed
-Code: ErrorDescriptorFactoryFailed
-Message: Error descriptor factory failed.
-```
-
-The original exception message is deliberately not copied into the public response.
-
-`OperationCanceledException` is explicitly rethrown so cancellation is not converted into an ordinary failure response.
+Ordinary factory exceptions become the stable `ErrorDescriptorFactoryFailed` response. `OperationCanceledException` is explicitly rethrown so cancellation is not converted into an ordinary failure response.
 
 ### 2026-09-06 — verified RED descriptor-factory exception contract
 
@@ -68,13 +83,11 @@ System.InvalidOperationException:
 Sensitive descriptor factory detail must not escape.
 ```
 
-The exception escaped from `IErrorDescriptorFactory.Create(...)` through `ErrorDescriptorResolver.CreateDescriptorResponse(...)`, confirming the missing exception boundary and demonstrating that raw internal diagnostic text could escape the resolver.
-
 ### 2026-09-05 — verified null descriptor-factory result guard
 
 Production fix commit: `a784f6c0e0b11273c65b400cdb2a827b7721673e`
 
-Verified locally after pulling the fix:
+Verified locally:
 
 ```text
 WhenItFails.Tests
@@ -84,70 +97,22 @@ Skipped:  0
 Total:  960
 ```
 
-This confirms that `IErrorDescriptorFactory.Create(...) => null` is converted into:
-
-```text
-Status: Invalid
-Code: ErrorDescriptorFactoryReturnedNull
-Message: Error descriptor factory returned a null descriptor.
-```
-
-without regressing the existing suite.
-
-### 2026-09-05 — verified RED null descriptor-factory result contract
-
-Contract commits:
-
-- `a9b4f8852cb713a6a2a5a8f39c7de3eb56986bce`
-- fixture correction: `f7cd0127d68362d94d8b7ee78d5b2eb65720d0f5`
-
-Focused test:
-
-`WhenItFails.Tests/Descriptors/ErrorDescriptorResolverNullFactoryResultContractTests.CreateById_ShouldReturnStableInvalidResponse_WhenDescriptorFactoryReturnsNull`
-
-Observed locally before the production fix:
-
-```text
-Failed: 1
-Passed: 0
-Skipped: 0
-Total: 1
-```
-
-Failure:
-
-```text
-Assert.False() Failure
-Expected: False
-Actual:   True
-```
-
 ## Verification state
 
-- Verified continuation baseline before the exception contract: complete `WhenItFails.Tests` suite GREEN, 960/960 passed.
-- Descriptor-factory exception contract: verified RED before the production fix.
-- Production exception boundary is committed and awaits focused local verification and then the complete `WhenItFails.Tests` suite.
+- Complete `WhenItFails.Tests` suite GREEN: 961/961 passed.
+- Descriptor-factory ordinary exception contract is verified GREEN after the production fix.
+- The cancellation branch of the same narrow boundary is implemented but does not yet have a focused regression contract.
 
 ## Recommended verification
 
-Pull current `master` and run only the focused contract:
+Add one focused cancellation contract proving that `OperationCanceledException` from `IErrorDescriptorFactory.Create(...)` escapes unchanged rather than becoming `ErrorDescriptorFactoryFailed`.
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~CreateById_ShouldReturnStableFailure_WhenDescriptorFactoryThrows"
-```
-
-If green, run the complete package suite:
-
-```powershell
-dotnet test WhenItFails.Tests
-```
-
-Expected complete-suite count: 961 tests.
+After committing the contract, run it directly and then run the complete package suite.
 
 ## Next recommended step
 
-After the descriptor-factory exception contract is verified GREEN, add one focused cancellation contract proving that `OperationCanceledException` from the factory is intentionally rethrown rather than converted into `ErrorDescriptorFactoryFailed`.
+Lock the descriptor-factory cancellation behavior with one focused test. No production change is expected because the current implementation already rethrows `OperationCanceledException`.
 
-If that is GREEN without production changes, move to the next distinct dependency boundary instead of adding more factory-exception permutations.
+If the cancellation contract is GREEN, move to a genuinely different dependency boundary rather than adding more descriptor-factory exception permutations.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
