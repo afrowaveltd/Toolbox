@@ -91,8 +91,22 @@ public sealed class ErrorDescriptorResolver : IErrorDescriptorResolver
                 message: "Error definition resolver returned success, but definition is null.");
         }
 
-        ErrorDescriptor? descriptor =
-            _descriptorFactory.Create(definitionResponse.Data);
+        ErrorDescriptor? descriptor;
+
+        try
+        {
+            descriptor = _descriptorFactory.Create(definitionResponse.Data);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            return Response<ErrorDescriptor>.Fail(
+                code: "ErrorDescriptorFactoryFailed",
+                message: "Error descriptor factory failed.");
+        }
 
         if (descriptor is null)
         {
