@@ -37,6 +37,25 @@ public sealed class ErrorDescriptorResolverFactoryExceptionContractTests
             });
     }
 
+    [Fact]
+    public void CreateById_ShouldRethrowOperationCanceledException_WhenDescriptorFactoryCancels()
+    {
+        OperationCanceledException cancellation = new(
+            "Descriptor factory cancellation must propagate.");
+
+        ErrorDescriptorResolver resolver = new(
+            new SuccessfulDefinitionResolver(),
+            new CancelingDescriptorFactory(cancellation));
+
+        OperationCanceledException thrown =
+            Assert.Throws<OperationCanceledException>(
+                () => resolver.CreateById(
+                    new ErrorCatalogContext(),
+                    "AFW-CFG-0001"));
+
+        Assert.Same(cancellation, thrown);
+    }
+
     private sealed class SuccessfulDefinitionResolver : IErrorDefinitionResolver
     {
         private static readonly Response<ErrorDefinition> SuccessfulResponse =
@@ -67,6 +86,15 @@ public sealed class ErrorDescriptorResolverFactoryExceptionContractTests
         {
             throw new InvalidOperationException(
                 "Sensitive descriptor factory detail must not escape.");
+        }
+    }
+
+    private sealed class CancelingDescriptorFactory(
+        OperationCanceledException cancellation) : IErrorDescriptorFactory
+    {
+        public ErrorDescriptor Create(ErrorDefinition definition)
+        {
+            throw cancellation;
         }
     }
 }
