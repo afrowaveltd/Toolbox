@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-09-06
+Last updated: 2026-09-07
 
 This file is the continuation point for `WhenItFails` development. Update it after every implementation, test, catalog, or documentation change that alters the current state or recommended next step.
 
@@ -19,10 +19,27 @@ Hardening runtime and descriptor contracts against malformed dependency behavior
 - A broken `IErrorDescriptorFactory` implementation returning `null` is guarded so the resolver cannot emit `Success` with a null descriptor payload.
 - Descriptor-factory ordinary exceptions become a stable failed response without exposing the original exception message.
 - `OperationCanceledException` is explicitly rethrown by the descriptor-factory exception boundary.
-- The complete `WhenItFails.Tests` suite is verified GREEN at 961/961 tests after the descriptor-factory exception fix.
-- A focused regression contract now requires descriptor-factory cancellation to rethrow the exact original `OperationCanceledException` instance.
+- The descriptor-factory cancellation contract is verified by the complete `WhenItFails.Tests` suite: 962/962 tests GREEN.
 
 ## Latest committed steps
+
+### 2026-09-07 — verified descriptor-factory cancellation contract
+
+Contract commit: `2bf741e404146a8686b483655d95d58ef357a5dd`
+
+Verified locally on Linux:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 962
+Skipped:  0
+Total:  962
+```
+
+This confirms that `OperationCanceledException` thrown by `IErrorDescriptorFactory.Create(...)` is rethrown as the exact original exception instance rather than converted into `ErrorDescriptorFactoryFailed` or wrapped in another exception.
+
+No production change was required for the cancellation contract.
 
 ### 2026-09-06 — descriptor-factory cancellation contract
 
@@ -39,10 +56,6 @@ IErrorDescriptorFactory.Create(...) => OperationCanceledException instance
                          ↓
 rethrow the exact same OperationCanceledException instance
 ```
-
-The test uses `Assert.Same(...)` so future refactoring cannot silently wrap cancellation in another exception or convert it into `ErrorDescriptorFactoryFailed`.
-
-No production code was changed. The current exception boundary already has an explicit `catch (OperationCanceledException) { throw; }`, so this contract is expected to be GREEN.
 
 ### 2026-09-06 — verified descriptor-factory exception fix
 
@@ -104,31 +117,20 @@ Total:  960
 
 ## Verification state
 
-- Complete verified baseline before the new cancellation contract: 961/961 tests GREEN.
-- Descriptor-factory ordinary exception contract is verified GREEN after the production fix.
-- Descriptor-factory cancellation contract is committed and awaits focused local verification.
-- No production change is expected for the cancellation step.
+- Complete verified baseline: 962/962 tests GREEN.
+- Descriptor-factory ordinary exception and cancellation contracts are both verified GREEN.
+- No production changes are pending verification.
 
 ## Recommended verification
 
-Pull current `master` and run the focused cancellation contract:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~CreateById_ShouldRethrowOperationCanceledException_WhenDescriptorFactoryCancels"
-```
-
-If green, run the complete package suite:
-
-```powershell
-dotnet test WhenItFails.Tests
-```
-
-Expected complete-suite count: 962 tests.
+No additional verification is required for the completed descriptor-factory exception boundary.
 
 ## Next recommended step
 
-Once the cancellation contract is verified GREEN, move to a genuinely different dependency boundary rather than adding more descriptor-factory exception permutations.
+Move to a genuinely different dependency boundary: unexpected exceptions thrown by `IErrorDefinitionResolver`.
 
-Inspect exception behavior of `IErrorDefinitionResolver` next: unlike descriptor-factory invocation, `CreateById(...)`, `CreateByName(...)`, and `CreateByCode(...)` currently call the definition resolver before entering `CreateDescriptorResponse(...)`, so an unexpected resolver exception may still escape raw. Establish one focused `CreateById(...)` contract first before considering symmetry.
+Start with one focused `CreateById(...)` contract. The current method calls `_definitionResolver.FindById(...)` before entering `CreateDescriptorResponse(...)`, so an ordinary resolver exception currently escapes raw.
+
+Define a stable outward failure without exposing the dependency exception message. Preserve cancellation behavior for a separate follow-up contract rather than broadening this first step.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
