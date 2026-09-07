@@ -17,8 +17,35 @@ Hardening runtime and service boundaries against malformed dependency behavior, 
 - `ErrorCatalogRuntime` already stabilizes null responses from several injected dependencies.
 - `ErrorCatalogRuntime.FromId(...)` converts ordinary `IErrorDescriptorService.FromId(...)` exceptions into `WIF_DESCRIPTOR_SERVICE_FAILED` without exposing raw exception text.
 - The complete `WhenItFails.Tests` suite is verified GREEN at 971/971 tests after the runtime `FromId(...)` descriptor-service exception fix.
+- New runtime symmetry contracts now require the same descriptor-service ordinary-exception behavior for `FromName(...)` and `FromCode(...)`.
 
 ## Latest committed steps
+
+### 2026-09-07 — ErrorCatalogRuntime descriptor-service exception symmetry contracts
+
+Contract commit: `a2d381dff3caf86efd94853cd804693a87767c59`
+
+Updated:
+
+`WhenItFails.Tests/Services/ErrorCatalogRuntimeDescriptorServiceExceptionContractTests.cs`
+
+Coverage now includes:
+
+- `FromId_WhenDescriptorServiceThrows_ReturnsStableFailure`
+- `FromName_WhenDescriptorServiceThrows_ReturnsStableFailure`
+- `FromCode_WhenDescriptorServiceThrows_ReturnsStableFailure`
+
+All three require:
+
+```text
+Status: Failed
+Code: WIF_DESCRIPTOR_SERVICE_FAILED
+Message: The error descriptor service failed.
+```
+
+Each descriptor-service entry point throws its own sensitive diagnostic text. The runtime facade must never expose that text.
+
+No production code changed in this symmetry step. `FromName(...)` and `FromCode(...)` are therefore expected to be RED until the runtime descriptor-service boundary is centralized.
 
 ### 2026-09-07 — verified ErrorCatalogRuntime FromId descriptor-service exception fix
 
@@ -34,23 +61,7 @@ Skipped:  0
 Total:  971
 ```
 
-This confirms that an ordinary exception from `IErrorDescriptorService.FromId(...)` becomes:
-
-```text
-Status: Failed
-Code: WIF_DESCRIPTOR_SERVICE_FAILED
-Message: The error descriptor service failed.
-```
-
-without exposing the original dependency exception text.
-
-The exception filter excludes `OperationCanceledException`, and the existing null-response guard remains independent.
-
-### 2026-09-07 — verified RED ErrorCatalogRuntime descriptor-service exception contract
-
-Contract commit: `5775f368bac0d4d1bdd87d81c99296021d3ee541`
-
-Before the production fix the focused `FromId(...)` contract failed with the raw `InvalidOperationException` text escaping the runtime facade.
+This confirms that an ordinary exception from `IErrorDescriptorService.FromId(...)` becomes `WIF_DESCRIPTOR_SERVICE_FAILED` without exposing raw dependency exception text.
 
 ### 2026-09-07 — verified ErrorDescriptorService resolver cancellation contract
 
@@ -63,16 +74,31 @@ Verified locally at 970/970 tests GREEN. The exact original `OperationCanceledEx
 - Complete verified continuation baseline: 971/971 tests GREEN.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` ordinary-exception and cancellation behavior are verified for their current dependency boundaries.
 - `ErrorCatalogRuntime.FromId(...)` descriptor-service ordinary-exception behavior is verified GREEN.
-- `FromName(...)` / `FromCode(...)` runtime descriptor-service exception symmetry has not yet been added.
+- New `FromName(...)` and `FromCode(...)` runtime symmetry contracts are committed and await local verification.
+- Production code is unchanged for the symmetry step.
 
 ## Recommended verification
 
-No verification is pending for the 971-test checkpoint.
+Pull current `master` and run the runtime descriptor-service exception contract class:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ErrorCatalogRuntimeDescriptorServiceExceptionContractTests"
+```
+
+Expected current result:
+
+- `FromId(...)`: GREEN
+- `FromName(...)`: RED with the original descriptor-service exception escaping
+- `FromCode(...)`: RED with the original descriptor-service exception escaping
+
+Expected focused total: 1 passed / 2 failed.
+
+Expected complete-suite count after both new symmetry tests, once fixed: 973 tests.
 
 ## Next recommended step
 
-Add focused `FromName(...)` and `FromCode(...)` descriptor-service exception symmetry contracts without changing production code. Expect `FromId(...)` to remain GREEN and the name/code paths to expose the original injected-service exceptions until the runtime facade boundary is centralized.
+If the two new symmetry contracts fail as expected, centralize the runtime descriptor-service exception conversion so all three public entry points share one stable boundary without duplicating catch logic.
 
-After symmetry is verified, centralize the runtime descriptor-service exception boundary carefully and then add one focused cancellation contract proving that `OperationCanceledException` still propagates as the exact original instance.
+After 973/973 GREEN, add one focused cancellation contract proving that `OperationCanceledException` from `IErrorDescriptorService` still propagates as the exact original instance rather than becoming `WIF_DESCRIPTOR_SERVICE_FAILED`.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
