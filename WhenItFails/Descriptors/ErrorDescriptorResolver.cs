@@ -33,20 +33,8 @@ public sealed class ErrorDescriptorResolver : IErrorDescriptorResolver
         ErrorCatalogContext? context,
         string errorId)
     {
-        Response<ErrorDefinition> definitionResponse;
-
-        try
-        {
-            definitionResponse = _definitionResolver.FindById(context, errorId);
-        }
-        catch (Exception exception) when (exception is not OperationCanceledException)
-        {
-            return Response<ErrorDescriptor>.Fail(
-                code: "ErrorDefinitionResolverFailed",
-                message: "Error definition resolver failed.");
-        }
-
-        return CreateDescriptorResponse(definitionResponse);
+        return ResolveAndCreateDescriptor(
+            () => _definitionResolver.FindById(context, errorId));
     }
 
     /// <inheritdoc />
@@ -54,10 +42,8 @@ public sealed class ErrorDescriptorResolver : IErrorDescriptorResolver
         ErrorCatalogContext? context,
         string errorName)
     {
-        Response<ErrorDefinition> definitionResponse =
-            _definitionResolver.FindByName(context, errorName);
-
-        return CreateDescriptorResponse(definitionResponse);
+        return ResolveAndCreateDescriptor(
+            () => _definitionResolver.FindByName(context, errorName));
     }
 
     /// <inheritdoc />
@@ -65,8 +51,25 @@ public sealed class ErrorDescriptorResolver : IErrorDescriptorResolver
         ErrorCatalogContext? context,
         int code)
     {
-        Response<ErrorDefinition> definitionResponse =
-            _definitionResolver.FindByCode(context, code);
+        return ResolveAndCreateDescriptor(
+            () => _definitionResolver.FindByCode(context, code));
+    }
+
+    private Response<ErrorDescriptor> ResolveAndCreateDescriptor(
+        Func<Response<ErrorDefinition>> resolveDefinition)
+    {
+        Response<ErrorDefinition> definitionResponse;
+
+        try
+        {
+            definitionResponse = resolveDefinition();
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<ErrorDescriptor>.Fail(
+                code: "ErrorDefinitionResolverFailed",
+                message: "Error definition resolver failed.");
+        }
 
         return CreateDescriptorResponse(definitionResponse);
     }
