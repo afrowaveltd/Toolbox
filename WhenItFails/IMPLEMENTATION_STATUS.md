@@ -12,17 +12,39 @@ Hardening runtime and service boundaries against malformed dependency behavior, 
 
 - `WhenItFails` provides structured error catalogs, runtime error resolution, profiles, diagnostics, initialization/recovery behavior, and project-local catalog handling.
 - `ErrorDescriptorResolver` has stable contracts for failed/malformed definition responses, null dependency responses, null descriptor-factory results, ordinary dependency exceptions, and cancellation.
-- Ordinary exceptions from `IErrorDefinitionResolver` are converted through one shared boundary into `ErrorDefinitionResolverFailed` without exposing raw exception text.
-- `OperationCanceledException` from the definition resolver propagates as the exact original instance.
-- Ordinary descriptor-factory exceptions become `ErrorDescriptorFactoryFailed`; descriptor-factory cancellation also propagates as the exact original instance.
-- The `ErrorDescriptorResolver` exception/cancellation hardening block is complete for the current scope.
-- `ErrorDescriptorService` stabilizes null responses from `IErrorDescriptorResolver` and converts ordinary resolver exceptions through one shared boundary into `ErrorDescriptorResolverFailed`.
-- `OperationCanceledException` from `IErrorDescriptorResolver` propagates through `ErrorDescriptorService` as the exact original instance.
+- `ErrorDescriptorService` stabilizes null responses from `IErrorDescriptorResolver`, converts ordinary resolver exceptions through one shared boundary into `ErrorDescriptorResolverFailed`, and propagates cancellation unchanged.
+- The `ErrorDescriptorResolver` and `ErrorDescriptorService` exception/cancellation hardening blocks are complete for the current scope.
 - The complete `WhenItFails.Tests` suite is verified GREEN at 970/970 tests.
-- The `ErrorDescriptorService` resolver exception/cancellation hardening block is complete for the current scope.
-- The next distinct boundary under inspection is `ErrorCatalogRuntime` calling injected runtime services.
+- `ErrorCatalogRuntime` already stabilizes null responses from several injected dependencies.
+- A new focused runtime contract now defines behavior when the injected `IErrorDescriptorService.FromId(...)` throws an ordinary exception.
 
 ## Latest committed steps
+
+### 2026-09-07 — ErrorCatalogRuntime descriptor-service exception contract
+
+Contract commit: `5775f368bac0d4d1bdd87d81c99296021d3ee541`
+
+Added:
+
+`WhenItFails.Tests/Services/ErrorCatalogRuntimeDescriptorServiceExceptionContractTests.FromId_WhenDescriptorServiceThrows_ReturnsStableFailure`
+
+Contract:
+
+```text
+IErrorDescriptorService.FromId(...) => throws ordinary exception
+                         ↓
+Status: Failed
+Code: WIF_DESCRIPTOR_SERVICE_FAILED
+Message: The error descriptor service failed.
+```
+
+The injected descriptor service throws an `InvalidOperationException` containing sensitive diagnostic text. The runtime facade must not expose that raw text.
+
+The fixture provides a valid current `ErrorCatalogContext`, so the test isolates only the descriptor-service invocation boundary. Initializer, built-in provider, and profile-selection dependencies are throwing sentinels and must not be invoked.
+
+No production code changed in this step.
+
+Current `ErrorCatalogRuntime.FromId(...)` directly calls `_descriptorService.FromId(...)` after obtaining a valid context, so this focused contract is expected to be RED with the original exception escaping.
 
 ### 2026-09-07 — verified ErrorDescriptorService resolver cancellation contract
 
@@ -38,7 +60,7 @@ Skipped:  0
 Total:  970
 ```
 
-This confirms that `OperationCanceledException` thrown by the injected `IErrorDescriptorResolver` passes through the shared `ErrorDescriptorService.ResolveDescriptor(...)` boundary as the exact original exception instance.
+This confirms that `OperationCanceledException` thrown by the injected `IErrorDescriptorResolver` passes through `ErrorDescriptorService` as the exact original exception instance.
 
 No production change was required.
 
@@ -46,38 +68,31 @@ No production change was required.
 
 Production fix commit: `c41256ca8efdf137bff5a2d7ab5287eb10862990`
 
-`FromId(...)`, `FromName(...)`, and `FromCode(...)` delegate through one shared `ResolveDescriptor(...)` boundary. Ordinary resolver exceptions become `ErrorDescriptorResolverFailed`, while null responses remain handled independently by `EnsureResponse(...)`.
-
-### 2026-09-07 — centralized definition-resolver exception boundary
-
-Production fix commit: `8be4191d089446893a5686b693821a3c6da230f0`
-
-`ErrorDescriptorResolver` uses one shared boundary for ID, name, and code definition resolution. Ordinary exceptions become `ErrorDefinitionResolverFailed`; cancellation propagates.
+`FromId(...)`, `FromName(...)`, and `FromCode(...)` delegate through one shared service boundary. Ordinary resolver exceptions become `ErrorDescriptorResolverFailed`; null responses remain handled independently.
 
 ## Verification state
 
 - Complete verified continuation baseline: 970/970 tests GREEN.
-- `ErrorDescriptorResolver` ordinary-exception and cancellation behavior is verified for both definition resolution and descriptor creation.
-- `ErrorDescriptorService` null-response, ordinary-exception, and cancellation behavior is verified for its resolver dependency.
-- Both resolver/service hardening blocks are complete for the current scope.
-- `ErrorCatalogRuntime` already guards null responses from several injected dependencies, but its ordinary-exception behavior still needs focused review one dependency boundary at a time.
+- `ErrorDescriptorResolver` and `ErrorDescriptorService` ordinary-exception and cancellation behavior are verified for their current dependency boundaries.
+- New `ErrorCatalogRuntime.FromId(...)` descriptor-service exception contract is committed and awaits focused local verification.
+- Production `ErrorCatalogRuntime` remains unchanged until the focused RED state is observed.
 
 ## Recommended verification
 
-No verification is currently pending. The verified continuation baseline is:
+Pull current `master` and run only the new runtime contract:
 
-```text
-WhenItFails.Tests
-Failed:   0
-Passed: 970
-Skipped:  0
-Total:  970
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~FromId_WhenDescriptorServiceThrows_ReturnsStableFailure"
 ```
+
+Expected current result: RED with the original `InvalidOperationException` from the injected `IErrorDescriptorService.FromId(...)` escaping the runtime facade.
+
+Preserve that focused failure output before changing production code.
 
 ## Next recommended step
 
-Inspect `ErrorCatalogRuntime` one injected dependency at a time. Start with the synchronous descriptor-service call used by `FromId(...)`: the runtime already converts a null `IErrorDescriptorService` response into `WIF_DESCRIPTOR_SERVICE_RESPONSE_NULL`, but an ordinary exception from a custom/injected descriptor service currently escapes the runtime facade.
+If the focused runtime contract fails as expected, add the smallest exception boundary around the `ErrorCatalogRuntime.FromId(...)` descriptor-service invocation. Convert ordinary exceptions into `WIF_DESCRIPTOR_SERVICE_FAILED` while allowing `OperationCanceledException` to propagate.
 
-Establish one focused `FromId(...)` contract before making production changes. Keep cancellation separate and do not add name/code symmetry until the first contract is locally verified RED/GREEN.
+Do not add `FromName(...)` / `FromCode(...)` symmetry or cancellation tests in the same production step. Verify the single contract first.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
