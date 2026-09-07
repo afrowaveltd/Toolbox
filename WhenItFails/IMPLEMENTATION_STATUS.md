@@ -17,33 +17,26 @@ Hardening runtime and service boundaries against malformed dependency behavior, 
 - Ordinary descriptor-factory exceptions become `ErrorDescriptorFactoryFailed`; descriptor-factory cancellation also propagates as the exact original instance.
 - The `ErrorDescriptorResolver` exception/cancellation hardening block is considered complete for the current scope.
 - `ErrorDescriptorService` stabilizes null responses from `IErrorDescriptorResolver`.
-- Ordinary exceptions from all three `IErrorDescriptorResolver` entry points are now converted through one shared service boundary into `ErrorDescriptorResolverFailed` without exposing raw exception text.
-- The complete `WhenItFails.Tests` suite is verified GREEN at 967/967 tests before the two service symmetry tests.
-- Before the centralized service fix, the focused resolver-exception contract class produced one GREEN (`FromId`) and two RED (`FromName`, `FromCode`) results.
+- Ordinary exceptions from all three `IErrorDescriptorResolver` entry points are converted through one shared service boundary into `ErrorDescriptorResolverFailed` without exposing raw exception text.
+- The complete `WhenItFails.Tests` suite is verified GREEN at 969/969 tests after centralizing the service-level resolver exception boundary.
 
 ## Latest committed steps
 
-### 2026-09-07 — centralized ErrorDescriptorService resolver exception boundary
+### 2026-09-07 — verified centralized ErrorDescriptorService resolver exception boundary
 
 Production fix commit: `c41256ca8efdf137bff5a2d7ab5287eb10862990`
 
-Changed:
-
-`WhenItFails/Services/ErrorDescriptorService.cs`
-
-`FromId(...)`, `FromName(...)`, and `FromCode(...)` now delegate through one shared helper:
+Verified locally after pulling the centralized fix:
 
 ```text
-FromId / FromName / FromCode
-          ↓
-ResolveDescriptor(...)
-          ↓
-invoke only the selected IErrorDescriptorResolver method inside the exception boundary
-          ↓
-EnsureResponse(...)
+WhenItFails.Tests
+Failed:   0
+Passed: 969
+Skipped:  0
+Total:  969
 ```
 
-Ordinary resolver exceptions become:
+This confirms that `FromId(...)`, `FromName(...)`, and `FromCode(...)` all convert ordinary `IErrorDescriptorResolver` exceptions into:
 
 ```text
 Status: Failed
@@ -51,21 +44,21 @@ Code: ErrorDescriptorResolverFailed
 Message: Error descriptor resolver failed.
 ```
 
-The original exception message is deliberately not copied into the public response.
+without exposing raw resolver exception text.
 
-The exception filter excludes `OperationCanceledException`, so cancellation continues to propagate naturally.
+### 2026-09-07 — centralized ErrorDescriptorService resolver exception boundary
 
-The existing `EnsureResponse(...)` null-response guard remains unchanged and still converts a null resolver response into `ErrorDescriptorResolverReturnedNull`.
+Production fix commit: `c41256ca8efdf137bff5a2d7ab5287eb10862990`
+
+`FromId(...)`, `FromName(...)`, and `FromCode(...)` delegate through one shared `ResolveDescriptor(...)` boundary. Only the selected resolver invocation is inside the exception boundary; `EnsureResponse(...)` remains responsible for null resolver responses.
+
+The exception filter excludes `OperationCanceledException`, so cancellation is intended to propagate naturally.
 
 ### 2026-09-07 — verified RED service symmetry state
 
 Symmetry contract commit: `f69558276a3ae696ac6429b66343a9341acdc985`
 
-Focused class:
-
-`WhenItFails.Tests/Services/ErrorDescriptorServiceResolverExceptionContractTests`
-
-Observed locally on Windows before the centralized production fix:
+Focused class before the centralized production fix:
 
 ```text
 Failed: 2
@@ -79,22 +72,6 @@ Observed behavior:
 - `FromId_WhenResolverThrows_ReturnsStableFailure`: GREEN
 - `FromName_WhenResolverThrows_ReturnsStableFailure`: RED with `Sensitive descriptor resolver name detail must not escape.`
 - `FromCode_WhenResolverThrows_ReturnsStableFailure`: RED with `Sensitive descriptor resolver code detail must not escape.`
-
-This confirmed that only `FromId(...)` had the required service-level exception boundary and that raw resolver diagnostic text still escaped from the name/code paths.
-
-### 2026-09-07 — verified ErrorDescriptorService FromId exception fix
-
-Production fix commit: `5db0ebd6773afd21a50b83824e6d4a533ac5b377`
-
-Verified locally:
-
-```text
-WhenItFails.Tests
-Failed:   0
-Passed: 967
-Skipped:  0
-Total:  967
-```
 
 ### 2026-09-07 — verified definition-resolver cancellation contract
 
@@ -114,33 +91,22 @@ The exact original `OperationCanceledException` instance propagates from the sha
 
 ## Verification state
 
-- Verified continuation baseline before the two service symmetry tests: 967/967 tests GREEN.
-- Service symmetry tests reproduced the expected pre-fix state: 1 GREEN / 2 RED.
-- Centralized `ErrorDescriptorService` resolver-exception boundary is committed and awaits focused local verification.
-- Expected complete-suite count after both new symmetry tests: 969 tests.
+- Complete verified continuation baseline: 969/969 tests GREEN.
+- `ErrorDescriptorResolver` ordinary-exception and cancellation behavior is verified for both definition resolution and descriptor creation.
+- `ErrorDescriptorService` null-response behavior is covered for ID, name, and code paths.
+- `ErrorDescriptorService` ordinary resolver-exception behavior is symmetric and verified for ID, name, and code paths.
+- Service-level resolver cancellation is not yet explicitly covered by a regression contract.
 
 ## Recommended verification
 
-Pull current `master` and run the focused service contract class:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ErrorDescriptorServiceResolverExceptionContractTests"
-```
-
-Expected result after the centralized fix: 3/3 GREEN.
-
-Then run the complete suite:
-
-```powershell
-dotnet test WhenItFails.Tests
-```
-
-Expected complete-suite result: 969/969 GREEN.
+No verification is pending for the current production state. The complete suite is GREEN at 969/969 tests.
 
 ## Next recommended step
 
-After 969/969 GREEN is confirmed, add one focused cancellation contract proving that `OperationCanceledException` from `IErrorDescriptorResolver` still propagates as the exact original instance rather than becoming `ErrorDescriptorResolverFailed`.
+Add one focused `ErrorDescriptorService` cancellation contract proving that an `OperationCanceledException` thrown by the injected `IErrorDescriptorResolver` propagates as the exact original exception instance rather than becoming `ErrorDescriptorResolverFailed`.
 
-If that passes without production changes, move to the next distinct service/runtime dependency boundary rather than adding more resolver-exception permutations.
+The shared `ResolveDescriptor(...)` exception filter already excludes `OperationCanceledException`, so no production change is expected.
+
+If that contract passes, move to the next distinct service/runtime dependency boundary rather than adding more resolver-exception permutations.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
