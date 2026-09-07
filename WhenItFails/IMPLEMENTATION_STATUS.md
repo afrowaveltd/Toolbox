@@ -11,28 +11,31 @@ Hardening runtime and descriptor contracts against malformed dependency behavior
 ## Current state
 
 - `WhenItFails` provides structured error catalogs, runtime error resolution, profiles, diagnostics, initialization/recovery behavior, and project-local catalog handling.
-- `ErrorDescriptorResolver` preserves the status of failed definition responses and produces a descriptor failure without invoking the descriptor factory.
-- `ErrorDescriptorResolver.GetFirstIssueCode(...)` selects the first issue whose object is non-null and whose `Code` is not null, empty, or whitespace-only.
-- If no usable issue code exists, the resolver falls back to `ErrorDefinitionResolveFailed`.
-- Null `Response<ErrorDefinition>` values returned by `IErrorDefinitionResolver` are converted into a stable invalid descriptor response.
-- Null-response symmetry is covered for `CreateById(...)`, `CreateByName(...)`, and `CreateByCode(...)`.
-- A broken `IErrorDescriptorFactory` implementation returning `null` is guarded so the resolver cannot emit `Success` with a null descriptor payload.
-- Descriptor-factory ordinary exceptions become a stable failed response without exposing the original exception message.
-- `OperationCanceledException` is explicitly rethrown by the descriptor-factory exception boundary.
-- The descriptor-factory cancellation contract is verified by the complete `WhenItFails.Tests` suite: 962/962 tests GREEN.
-- `CreateById(...)` now has a narrow exception boundary around `IErrorDefinitionResolver.FindById(...)` for ordinary dependency exceptions.
+- `ErrorDescriptorResolver` preserves failed definition-response status and does not invoke the descriptor factory when definition resolution fails.
+- Null definition-resolver responses, malformed issue collections/codes, null descriptor-factory results, and descriptor-factory exceptions have stable outward contracts.
+- Ordinary descriptor-factory exceptions become `ErrorDescriptorFactoryFailed` without exposing raw exception text.
+- Descriptor-factory `OperationCanceledException` is rethrown as the exact original exception instance.
+- `CreateById(...)` has a narrow ordinary-exception boundary around `IErrorDefinitionResolver.FindById(...)` and returns `ErrorDefinitionResolverFailed` without exposing raw exception text.
+- The complete `WhenItFails.Tests` suite is verified GREEN at 963/963 tests after the `CreateById(...)` definition-resolver exception fix.
+- New symmetry contracts now require the same stable behavior for `CreateByName(...)` and `CreateByCode(...)`.
 
 ## Latest committed steps
 
-### 2026-09-07 — definition-resolver exception fix for CreateById
+### 2026-09-07 — definition-resolver exception symmetry contracts
 
-Production fix commit: `a9db9668d4fc08632277c253e4dff1ed17dcfcf1`
+Contract commit: `f2c9bad3e069a56f75b22f25a9cbcffbdba40a8f`
 
-Changed:
+Updated:
 
-`WhenItFails/Descriptors/ErrorDescriptorResolver.cs`
+`WhenItFails.Tests/Descriptors/ErrorDescriptorResolverDefinitionResolverExceptionContractTests.cs`
 
-`CreateById(...)` now catches ordinary exceptions thrown by `IErrorDefinitionResolver.FindById(...)` and converts them into:
+Coverage now includes:
+
+- `CreateById_ShouldReturnStableFailure_WhenDefinitionResolverThrows`
+- `CreateByName_ShouldReturnStableFailure_WhenDefinitionResolverThrows`
+- `CreateByCode_ShouldReturnStableFailure_WhenDefinitionResolverThrows`
+
+All three require:
 
 ```text
 Status: Failed
@@ -40,37 +43,46 @@ Code: ErrorDefinitionResolverFailed
 Message: Error definition resolver failed.
 ```
 
-The original exception message is deliberately not copied into the public response.
+Each definition-resolver entry point throws its own sensitive diagnostic text. The outward response must never expose that text, and the descriptor factory must not run.
 
-The catch uses an exception filter that excludes `OperationCanceledException`, so cancellation continues to propagate naturally.
+No production code changed in this symmetry step. `CreateByName(...)` and `CreateByCode(...)` are therefore expected to be RED until their exception boundary is implemented or centralized.
 
-This change is intentionally limited to `CreateById(...)`; `CreateByName(...)` and `CreateByCode(...)` remain unchanged until the focused contract is verified GREEN.
+### 2026-09-07 — verified CreateById definition-resolver exception fix
 
-### 2026-09-07 — verified RED definition-resolver exception contract
+Production fix commit: `a9db9668d4fc08632277c253e4dff1ed17dcfcf1`
+
+Verified locally:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 963
+Skipped:  0
+Total:  963
+```
+
+This confirms that an ordinary exception from `IErrorDefinitionResolver.FindById(...)` becomes:
+
+```text
+Status: Failed
+Code: ErrorDefinitionResolverFailed
+Message: Error definition resolver failed.
+```
+
+without exposing the original exception message.
+
+### 2026-09-07 — verified RED CreateById definition-resolver exception contract
 
 Contract commit: `a5516eab9fe5e829be6eabf2ce8f1256c52edabd`
 
-Focused test:
-
-`WhenItFails.Tests/Descriptors/ErrorDescriptorResolverDefinitionResolverExceptionContractTests.CreateById_ShouldReturnStableFailure_WhenDefinitionResolverThrows`
-
-Observed locally on Windows before the production fix:
-
-```text
-Failed: 1
-Passed: 0
-Skipped: 0
-Total: 1
-```
-
-Failure:
+Observed before the production fix:
 
 ```text
 System.InvalidOperationException:
 Sensitive definition resolver detail must not escape.
 ```
 
-The exception escaped directly from `IErrorDefinitionResolver.FindById(...)` through `ErrorDescriptorResolver.CreateById(...)`, confirming the missing dependency boundary and the raw diagnostic-text leak.
+The exception escaped directly from `FindById(...)`, proving the missing boundary.
 
 ### 2026-09-07 — verified descriptor-factory cancellation contract
 
@@ -86,35 +98,37 @@ Skipped:  0
 Total:  962
 ```
 
-This confirms that `OperationCanceledException` thrown by `IErrorDescriptorFactory.Create(...)` is rethrown as the exact original exception instance rather than converted into `ErrorDescriptorFactoryFailed` or wrapped in another exception.
+The exact original `OperationCanceledException` instance propagates.
 
 ## Verification state
 
-- Complete verified baseline before the definition-resolver exception contract: 962/962 tests GREEN.
-- Definition-resolver ordinary exception contract: verified RED before the production fix.
-- Production `CreateById(...)` exception boundary is committed and awaits focused local verification and then the complete `WhenItFails.Tests` suite.
-- `CreateByName(...)` / `CreateByCode(...)` symmetry is not yet implemented.
+- Verified continuation baseline: 963/963 tests GREEN.
+- `CreateById(...)` ordinary definition-resolver exception contract is GREEN.
+- New `CreateByName(...)` and `CreateByCode(...)` symmetry contracts are committed and await local verification.
+- Production code is unchanged for the symmetry step.
 
 ## Recommended verification
 
-Pull current `master` and run the focused contract:
+Pull current `master` and run the definition-resolver exception contract class:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~CreateById_ShouldReturnStableFailure_WhenDefinitionResolverThrows"
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ErrorDescriptorResolverDefinitionResolverExceptionContractTests"
 ```
 
-If green, run the complete package suite:
+Expected current result:
 
-```powershell
-dotnet test WhenItFails.Tests
-```
+- `CreateById(...)`: GREEN
+- `CreateByName(...)`: RED with the original resolver exception escaping
+- `CreateByCode(...)`: RED with the original resolver exception escaping
 
-Expected complete-suite count: 963 tests.
+After the smallest production fix, rerun this focused class and then the complete suite.
+
+Expected complete-suite count after both new symmetry tests: 965 tests.
 
 ## Next recommended step
 
-After 963/963 GREEN is confirmed, add focused symmetry contracts for `CreateByName(...)` and `CreateByCode(...)` before centralizing the definition-resolver exception boundary.
+If the two new symmetry contracts fail as expected, centralize the ordinary definition-resolver exception conversion carefully so all three public entry points share one stable boundary without duplicating catch logic.
 
-After symmetry is verified, add one cancellation contract proving that an `OperationCanceledException` from the definition resolver still propagates rather than becoming `ErrorDefinitionResolverFailed`.
+After 965/965 GREEN, add one focused definition-resolver cancellation contract proving that `OperationCanceledException` still propagates rather than becoming `ErrorDefinitionResolverFailed`.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
