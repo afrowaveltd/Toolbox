@@ -42,6 +42,23 @@ public sealed class ErrorDescriptorServiceResolverExceptionContractTests
         AssertStableFailure(response);
     }
 
+    [Fact]
+    public void FromId_WhenResolverCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "Descriptor resolver cancellation must propagate.");
+
+        ErrorDescriptorService service = new(
+            new CancelingResolver(cancellation));
+
+        OperationCanceledException thrown = Assert.Throws<OperationCanceledException>(
+            () => service.FromId(
+                new ErrorCatalogContext(),
+                "AFW-CFG-0001"));
+
+        Assert.Same(cancellation, thrown);
+    }
+
     private static void AssertStableFailure(Response<ErrorDescriptor> response)
     {
         Assert.NotNull(response);
@@ -85,6 +102,37 @@ public sealed class ErrorDescriptorServiceResolverExceptionContractTests
         {
             throw new InvalidOperationException(
                 "Sensitive descriptor resolver code detail must not escape.");
+        }
+    }
+
+    private sealed class CancelingResolver : IErrorDescriptorResolver
+    {
+        private readonly OperationCanceledException _cancellation;
+
+        public CancelingResolver(OperationCanceledException cancellation)
+        {
+            _cancellation = cancellation;
+        }
+
+        public Response<ErrorDescriptor> CreateById(
+            ErrorCatalogContext? context,
+            string errorId)
+        {
+            throw _cancellation;
+        }
+
+        public Response<ErrorDescriptor> CreateByName(
+            ErrorCatalogContext? context,
+            string errorName)
+        {
+            throw new InvalidOperationException("Unexpected CreateByName call.");
+        }
+
+        public Response<ErrorDescriptor> CreateByCode(
+            ErrorCatalogContext? context,
+            int code)
+        {
+            throw new InvalidOperationException("Unexpected CreateByCode call.");
         }
     }
 }
