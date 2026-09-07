@@ -17,6 +17,33 @@ public sealed class ErrorDescriptorServiceResolverExceptionContractTests
         Response<ErrorDescriptor> response =
             service.FromId(new ErrorCatalogContext(), "AFW-CFG-0001");
 
+        AssertStableFailure(response);
+    }
+
+    [Fact]
+    public void FromName_WhenResolverThrows_ReturnsStableFailure()
+    {
+        ErrorDescriptorService service = new(new ThrowingResolver());
+
+        Response<ErrorDescriptor> response =
+            service.FromName(new ErrorCatalogContext(), "MissingConfigurationValue");
+
+        AssertStableFailure(response);
+    }
+
+    [Fact]
+    public void FromCode_WhenResolverThrows_ReturnsStableFailure()
+    {
+        ErrorDescriptorService service = new(new ThrowingResolver());
+
+        Response<ErrorDescriptor> response =
+            service.FromCode(new ErrorCatalogContext(), 200001);
+
+        AssertStableFailure(response);
+    }
+
+    private static void AssertStableFailure(Response<ErrorDescriptor> response)
+    {
         Assert.NotNull(response);
         Assert.False(response.IsSuccess);
         Assert.Equal(ResultStatus.Failed, response.Status);
@@ -41,21 +68,23 @@ public sealed class ErrorDescriptorServiceResolverExceptionContractTests
             string errorId)
         {
             throw new InvalidOperationException(
-                "Sensitive descriptor resolver detail must not escape.");
+                "Sensitive descriptor resolver ID detail must not escape.");
         }
 
         public Response<ErrorDescriptor> CreateByName(
             ErrorCatalogContext? context,
             string errorName)
         {
-            throw new InvalidOperationException("Unexpected CreateByName call.");
+            throw new InvalidOperationException(
+                "Sensitive descriptor resolver name detail must not escape.");
         }
 
         public Response<ErrorDescriptor> CreateByCode(
             ErrorCatalogContext? context,
             int code)
         {
-            throw new InvalidOperationException("Unexpected CreateByCode call.");
+            throw new InvalidOperationException(
+                "Sensitive descriptor resolver code detail must not escape.");
         }
     }
 }
