@@ -183,10 +183,20 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                 contextResponse);
         }
 
-        Response<ErrorDescriptor>? response =
-            _descriptorService.FromId(
+        Response<ErrorDescriptor>? response;
+
+        try
+        {
+            response = _descriptorService.FromId(
                 contextResponse.Data,
                 errorId);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<ErrorDescriptor>.Fail(
+                code: "WIF_DESCRIPTOR_SERVICE_FAILED",
+                message: "The error descriptor service failed.");
+        }
 
         return response
             ?? CreateNullDescriptorServiceResponse();
