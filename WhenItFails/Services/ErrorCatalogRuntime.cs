@@ -183,23 +183,10 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                 contextResponse);
         }
 
-        Response<ErrorDescriptor>? response;
-
-        try
-        {
-            response = _descriptorService.FromId(
+        return ResolveDescriptor(
+            () => _descriptorService.FromId(
                 contextResponse.Data,
-                errorId);
-        }
-        catch (Exception exception) when (exception is not OperationCanceledException)
-        {
-            return Response<ErrorDescriptor>.Fail(
-                code: "WIF_DESCRIPTOR_SERVICE_FAILED",
-                message: "The error descriptor service failed.");
-        }
-
-        return response
-            ?? CreateNullDescriptorServiceResponse();
+                errorId));
     }
 
     /// <inheritdoc />
@@ -216,13 +203,10 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                 contextResponse);
         }
 
-        Response<ErrorDescriptor>? response =
-            _descriptorService.FromName(
+        return ResolveDescriptor(
+            () => _descriptorService.FromName(
                 contextResponse.Data,
-                errorName);
-
-        return response
-            ?? CreateNullDescriptorServiceResponse();
+                errorName));
     }
 
     /// <inheritdoc />
@@ -239,10 +223,27 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                 contextResponse);
         }
 
-        Response<ErrorDescriptor>? response =
-            _descriptorService.FromCode(
+        return ResolveDescriptor(
+            () => _descriptorService.FromCode(
                 contextResponse.Data,
-                code);
+                code));
+    }
+
+    private static Response<ErrorDescriptor> ResolveDescriptor(
+        Func<Response<ErrorDescriptor>> resolveDescriptor)
+    {
+        Response<ErrorDescriptor>? response;
+
+        try
+        {
+            response = resolveDescriptor();
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<ErrorDescriptor>.Fail(
+                code: "WIF_DESCRIPTOR_SERVICE_FAILED",
+                message: "The error descriptor service failed.");
+        }
 
         return response
             ?? CreateNullDescriptorServiceResponse();
