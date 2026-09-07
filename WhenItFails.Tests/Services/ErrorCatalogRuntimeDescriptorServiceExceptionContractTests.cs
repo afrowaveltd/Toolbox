@@ -15,17 +15,49 @@ public sealed class ErrorCatalogRuntimeDescriptorServiceExceptionContractTests
     [Fact]
     public void FromId_WhenDescriptorServiceThrows_ReturnsStableFailure()
     {
-        ErrorCatalogRuntime runtime = new(
+        ErrorCatalogRuntime runtime = CreateRuntime();
+
+        Response<ErrorDescriptor> response =
+            runtime.FromId("AFW-CFG-0001");
+
+        AssertStableFailure(response);
+    }
+
+    [Fact]
+    public void FromName_WhenDescriptorServiceThrows_ReturnsStableFailure()
+    {
+        ErrorCatalogRuntime runtime = CreateRuntime();
+
+        Response<ErrorDescriptor> response =
+            runtime.FromName("MissingConfigurationValue");
+
+        AssertStableFailure(response);
+    }
+
+    [Fact]
+    public void FromCode_WhenDescriptorServiceThrows_ReturnsStableFailure()
+    {
+        ErrorCatalogRuntime runtime = CreateRuntime();
+
+        Response<ErrorDescriptor> response =
+            runtime.FromCode(200001);
+
+        AssertStableFailure(response);
+    }
+
+    private static ErrorCatalogRuntime CreateRuntime()
+    {
+        return new ErrorCatalogRuntime(
             new UnusedInitializer(),
             new WhenItFailsOptions(),
             new SuccessfulContextStore(),
             new UnusedBuiltInContextProvider(),
             new ThrowingDescriptorService(),
             new UnusedProfileSelectionService());
+    }
 
-        Response<ErrorDescriptor> response =
-            runtime.FromId("AFW-CFG-0001");
-
+    private static void AssertStableFailure(Response<ErrorDescriptor> response)
+    {
         Assert.NotNull(response);
         Assert.False(response.IsSuccess);
         Assert.Equal(ResultStatus.Failed, response.Status);
@@ -71,21 +103,23 @@ public sealed class ErrorCatalogRuntimeDescriptorServiceExceptionContractTests
             string errorId)
         {
             throw new InvalidOperationException(
-                "Sensitive runtime descriptor service detail must not escape.");
+                "Sensitive runtime descriptor service ID detail must not escape.");
         }
 
         public Response<ErrorDescriptor> FromName(
             ErrorCatalogContext? context,
             string errorName)
         {
-            throw new InvalidOperationException("Unexpected FromName call.");
+            throw new InvalidOperationException(
+                "Sensitive runtime descriptor service name detail must not escape.");
         }
 
         public Response<ErrorDescriptor> FromCode(
             ErrorCatalogContext? context,
             int code)
         {
-            throw new InvalidOperationException("Unexpected FromCode call.");
+            throw new InvalidOperationException(
+                "Sensitive runtime descriptor service code detail must not escape.");
         }
     }
 
