@@ -27,22 +27,10 @@ public sealed class ErrorDescriptorService : IErrorDescriptorService
         ErrorCatalogContext? context,
         string errorId)
     {
-        Response<ErrorDescriptor> response;
-
-        try
-        {
-            response = _descriptorResolver.CreateById(
+        return ResolveDescriptor(
+            () => _descriptorResolver.CreateById(
                 context,
-                errorId);
-        }
-        catch (Exception exception) when (exception is not OperationCanceledException)
-        {
-            return Response<ErrorDescriptor>.Fail(
-                code: "ErrorDescriptorResolverFailed",
-                message: "Error descriptor resolver failed.");
-        }
-
-        return EnsureResponse(response);
+                errorId));
     }
 
     /// <inheritdoc />
@@ -50,8 +38,8 @@ public sealed class ErrorDescriptorService : IErrorDescriptorService
         ErrorCatalogContext? context,
         string errorName)
     {
-        return EnsureResponse(
-            _descriptorResolver.CreateByName(
+        return ResolveDescriptor(
+            () => _descriptorResolver.CreateByName(
                 context,
                 errorName));
     }
@@ -61,10 +49,29 @@ public sealed class ErrorDescriptorService : IErrorDescriptorService
         ErrorCatalogContext? context,
         int code)
     {
-        return EnsureResponse(
-            _descriptorResolver.CreateByCode(
+        return ResolveDescriptor(
+            () => _descriptorResolver.CreateByCode(
                 context,
                 code));
+    }
+
+    private static Response<ErrorDescriptor> ResolveDescriptor(
+        Func<Response<ErrorDescriptor>> resolveDescriptor)
+    {
+        Response<ErrorDescriptor> response;
+
+        try
+        {
+            response = resolveDescriptor();
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<ErrorDescriptor>.Fail(
+                code: "ErrorDescriptorResolverFailed",
+                message: "Error descriptor resolver failed.");
+        }
+
+        return EnsureResponse(response);
     }
 
     private static Response<ErrorDescriptor> EnsureResponse(
