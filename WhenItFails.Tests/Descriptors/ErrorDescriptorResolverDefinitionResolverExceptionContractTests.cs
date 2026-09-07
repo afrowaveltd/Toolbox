@@ -45,6 +45,24 @@ public sealed class ErrorDescriptorResolverDefinitionResolverExceptionContractTe
         AssertStableFailure(response);
     }
 
+    [Fact]
+    public void CreateById_ShouldRethrowOperationCanceledException_WhenDefinitionResolverCancels()
+    {
+        OperationCanceledException cancellation = new(
+            "Definition resolver cancellation must propagate.");
+
+        ErrorDescriptorResolver resolver = new(
+            new CancelingDefinitionResolver(cancellation),
+            new ThrowingDescriptorFactory());
+
+        OperationCanceledException actual = Assert.Throws<OperationCanceledException>(
+            () => resolver.CreateById(
+                new ErrorCatalogContext(),
+                "AFW-CFG-0001"));
+
+        Assert.Same(cancellation, actual);
+    }
+
     private static ErrorDescriptorResolver CreateResolver()
     {
         return new ErrorDescriptorResolver(
@@ -95,6 +113,31 @@ public sealed class ErrorDescriptorResolverDefinitionResolverExceptionContractTe
         {
             throw new InvalidOperationException(
                 "Sensitive definition resolver code detail must not escape.");
+        }
+    }
+
+    private sealed class CancelingDefinitionResolver(
+        OperationCanceledException cancellation) : IErrorDefinitionResolver
+    {
+        public Response<ErrorDefinition> FindById(
+            ErrorCatalogContext? context,
+            string errorId)
+        {
+            throw cancellation;
+        }
+
+        public Response<ErrorDefinition> FindByName(
+            ErrorCatalogContext? context,
+            string errorName)
+        {
+            throw new InvalidOperationException("Unexpected FindByName call.");
+        }
+
+        public Response<ErrorDefinition> FindByCode(
+            ErrorCatalogContext? context,
+            int code)
+        {
+            throw new InvalidOperationException("Unexpected FindByCode call.");
         }
     }
 
