@@ -12,14 +12,48 @@ public sealed class ErrorDescriptorResolverDefinitionResolverExceptionContractTe
     [Fact]
     public void CreateById_ShouldReturnStableFailure_WhenDefinitionResolverThrows()
     {
-        ErrorDescriptorResolver resolver = new(
-            new ThrowingDefinitionResolver(),
-            new ThrowingDescriptorFactory());
+        ErrorDescriptorResolver resolver = CreateResolver();
 
         Response<ErrorDescriptor> response = resolver.CreateById(
             new ErrorCatalogContext(),
             "AFW-CFG-0001");
 
+        AssertStableFailure(response);
+    }
+
+    [Fact]
+    public void CreateByName_ShouldReturnStableFailure_WhenDefinitionResolverThrows()
+    {
+        ErrorDescriptorResolver resolver = CreateResolver();
+
+        Response<ErrorDescriptor> response = resolver.CreateByName(
+            new ErrorCatalogContext(),
+            "MISSING_CONFIGURATION_VALUE");
+
+        AssertStableFailure(response);
+    }
+
+    [Fact]
+    public void CreateByCode_ShouldReturnStableFailure_WhenDefinitionResolverThrows()
+    {
+        ErrorDescriptorResolver resolver = CreateResolver();
+
+        Response<ErrorDescriptor> response = resolver.CreateByCode(
+            new ErrorCatalogContext(),
+            200001);
+
+        AssertStableFailure(response);
+    }
+
+    private static ErrorDescriptorResolver CreateResolver()
+    {
+        return new ErrorDescriptorResolver(
+            new ThrowingDefinitionResolver(),
+            new ThrowingDescriptorFactory());
+    }
+
+    private static void AssertStableFailure(Response<ErrorDescriptor> response)
+    {
         Assert.NotNull(response);
         Assert.False(response.IsSuccess);
         Assert.Equal(ResultStatus.Failed, response.Status);
@@ -44,21 +78,23 @@ public sealed class ErrorDescriptorResolverDefinitionResolverExceptionContractTe
             string errorId)
         {
             throw new InvalidOperationException(
-                "Sensitive definition resolver detail must not escape.");
+                "Sensitive definition resolver ID detail must not escape.");
         }
 
         public Response<ErrorDefinition> FindByName(
             ErrorCatalogContext? context,
             string errorName)
         {
-            throw new InvalidOperationException("Unexpected FindByName call.");
+            throw new InvalidOperationException(
+                "Sensitive definition resolver name detail must not escape.");
         }
 
         public Response<ErrorDefinition> FindByCode(
             ErrorCatalogContext? context,
             int code)
         {
-            throw new InvalidOperationException("Unexpected FindByCode call.");
+            throw new InvalidOperationException(
+                "Sensitive definition resolver code detail must not escape.");
         }
     }
 
