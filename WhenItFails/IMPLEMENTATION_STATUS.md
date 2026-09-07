@@ -20,8 +20,35 @@ Hardening runtime and descriptor contracts against malformed dependency behavior
 - Descriptor-factory ordinary exceptions become a stable failed response without exposing the original exception message.
 - `OperationCanceledException` is explicitly rethrown by the descriptor-factory exception boundary.
 - The descriptor-factory cancellation contract is verified by the complete `WhenItFails.Tests` suite: 962/962 tests GREEN.
+- The next distinct boundary under test is an ordinary exception thrown by `IErrorDefinitionResolver.FindById(...)`.
 
 ## Latest committed steps
+
+### 2026-09-07 — definition-resolver exception contract
+
+Contract commit: `a5516eab9fe5e829be6eabf2ce8f1256c52edabd`
+
+Added:
+
+`WhenItFails.Tests/Descriptors/ErrorDescriptorResolverDefinitionResolverExceptionContractTests.CreateById_ShouldReturnStableFailure_WhenDefinitionResolverThrows`
+
+Contract:
+
+```text
+IErrorDefinitionResolver.FindById(...) => throws ordinary exception
+                         ↓
+Status: Failed
+Code: ErrorDefinitionResolverFailed
+Message: Error definition resolver failed.
+```
+
+The resolver stub throws an exception containing sensitive diagnostic text. The outward contract deliberately requires a stable public message and issue rather than exposing the original exception text.
+
+The descriptor factory is a throwing sentinel and must not run when definition resolution itself throws.
+
+No production code was changed in this step.
+
+The current `CreateById(...)` calls `_definitionResolver.FindById(...)` before entering `CreateDescriptorResponse(...)`, so this focused contract is expected to be RED with the original `InvalidOperationException` escaping.
 
 ### 2026-09-07 — verified descriptor-factory cancellation contract
 
@@ -40,22 +67,6 @@ Total:  962
 This confirms that `OperationCanceledException` thrown by `IErrorDescriptorFactory.Create(...)` is rethrown as the exact original exception instance rather than converted into `ErrorDescriptorFactoryFailed` or wrapped in another exception.
 
 No production change was required for the cancellation contract.
-
-### 2026-09-06 — descriptor-factory cancellation contract
-
-Contract commit: `2bf741e404146a8686b483655d95d58ef357a5dd`
-
-Added:
-
-`ErrorDescriptorResolverFactoryExceptionContractTests.CreateById_ShouldRethrowOperationCanceledException_WhenDescriptorFactoryCancels`
-
-Contract:
-
-```text
-IErrorDescriptorFactory.Create(...) => OperationCanceledException instance
-                         ↓
-rethrow the exact same OperationCanceledException instance
-```
 
 ### 2026-09-06 — verified descriptor-factory exception fix
 
@@ -81,26 +92,6 @@ Message: Error descriptor factory failed.
 
 The original exception message is not exposed by the resolver.
 
-### 2026-09-06 — verified RED descriptor-factory exception contract
-
-Contract commit: `c4836bf8e7bef89a8059a112b94dfd3e9f16288c`
-
-Observed locally before the production fix:
-
-```text
-Failed: 1
-Passed: 0
-Skipped: 0
-Total: 1
-```
-
-Failure:
-
-```text
-System.InvalidOperationException:
-Sensitive descriptor factory detail must not escape.
-```
-
 ### 2026-09-05 — verified null descriptor-factory result guard
 
 Production fix commit: `a784f6c0e0b11273c65b400cdb2a827b7721673e`
@@ -117,20 +108,27 @@ Total:  960
 
 ## Verification state
 
-- Complete verified baseline: 962/962 tests GREEN.
+- Complete verified baseline before the new definition-resolver exception contract: 962/962 tests GREEN.
 - Descriptor-factory ordinary exception and cancellation contracts are both verified GREEN.
-- No production changes are pending verification.
+- Definition-resolver ordinary exception contract is committed and awaits focused local verification.
+- Production code remains unchanged until the focused RED/GREEN state is observed.
 
 ## Recommended verification
 
-No additional verification is required for the completed descriptor-factory exception boundary.
+Pull current `master` and run only the new contract:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~CreateById_ShouldReturnStableFailure_WhenDefinitionResolverThrows"
+```
+
+Expected current result: RED with the `InvalidOperationException` from the test definition resolver escaping `ErrorDescriptorResolver.CreateById(...)`.
+
+Preserve that focused failure output before changing production code.
 
 ## Next recommended step
 
-Move to a genuinely different dependency boundary: unexpected exceptions thrown by `IErrorDefinitionResolver`.
+If the focused contract fails as expected, add the smallest exception boundary around definition-resolver invocation for `CreateById(...)` and return the stable `Failed` response required by the contract.
 
-Start with one focused `CreateById(...)` contract. The current method calls `_definitionResolver.FindById(...)` before entering `CreateDescriptorResponse(...)`, so an ordinary resolver exception currently escapes raw.
-
-Define a stable outward failure without exposing the dependency exception message. Preserve cancellation behavior for a separate follow-up contract rather than broadening this first step.
+Do not add `CreateByName(...)` / `CreateByCode(...)` symmetry or cancellation handling in the same production step. Verify the single contract first, then centralize carefully only if the shape remains clear.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
