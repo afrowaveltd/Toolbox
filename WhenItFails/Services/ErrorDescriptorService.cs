@@ -27,10 +27,22 @@ public sealed class ErrorDescriptorService : IErrorDescriptorService
         ErrorCatalogContext? context,
         string errorId)
     {
-        return EnsureResponse(
-            _descriptorResolver.CreateById(
+        Response<ErrorDescriptor> response;
+
+        try
+        {
+            response = _descriptorResolver.CreateById(
                 context,
-                errorId));
+                errorId);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<ErrorDescriptor>.Fail(
+                code: "ErrorDescriptorResolverFailed",
+                message: "Error descriptor resolver failed.");
+        }
+
+        return EnsureResponse(response);
     }
 
     /// <inheritdoc />
