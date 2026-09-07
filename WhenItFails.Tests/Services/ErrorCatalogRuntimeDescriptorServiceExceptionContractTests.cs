@@ -45,14 +45,36 @@ public sealed class ErrorCatalogRuntimeDescriptorServiceExceptionContractTests
         AssertStableFailure(response);
     }
 
+    [Fact]
+    public void FromId_WhenDescriptorServiceCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "Runtime descriptor service cancellation must propagate.");
+
+        ErrorCatalogRuntime runtime = CreateRuntime(
+            new CancelingDescriptorService(cancellation));
+
+        OperationCanceledException thrown =
+            Assert.Throws<OperationCanceledException>(
+                () => runtime.FromId("AFW-CFG-0001"));
+
+        Assert.Same(cancellation, thrown);
+    }
+
     private static ErrorCatalogRuntime CreateRuntime()
+    {
+        return CreateRuntime(new ThrowingDescriptorService());
+    }
+
+    private static ErrorCatalogRuntime CreateRuntime(
+        IErrorDescriptorService descriptorService)
     {
         return new ErrorCatalogRuntime(
             new UnusedInitializer(),
             new WhenItFailsOptions(),
             new SuccessfulContextStore(),
             new UnusedBuiltInContextProvider(),
-            new ThrowingDescriptorService(),
+            descriptorService,
             new UnusedProfileSelectionService());
     }
 
@@ -120,6 +142,31 @@ public sealed class ErrorCatalogRuntimeDescriptorServiceExceptionContractTests
         {
             throw new InvalidOperationException(
                 "Sensitive runtime descriptor service code detail must not escape.");
+        }
+    }
+
+    private sealed class CancelingDescriptorService(
+        OperationCanceledException cancellation) : IErrorDescriptorService
+    {
+        public Response<ErrorDescriptor> FromId(
+            ErrorCatalogContext? context,
+            string errorId)
+        {
+            throw cancellation;
+        }
+
+        public Response<ErrorDescriptor> FromName(
+            ErrorCatalogContext? context,
+            string errorName)
+        {
+            throw new InvalidOperationException("Unexpected FromName call.");
+        }
+
+        public Response<ErrorDescriptor> FromCode(
+            ErrorCatalogContext? context,
+            int code)
+        {
+            throw new InvalidOperationException("Unexpected FromCode call.");
         }
     }
 
