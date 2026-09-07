@@ -33,8 +33,18 @@ public sealed class ErrorDescriptorResolver : IErrorDescriptorResolver
         ErrorCatalogContext? context,
         string errorId)
     {
-        Response<ErrorDefinition> definitionResponse =
-            _definitionResolver.FindById(context, errorId);
+        Response<ErrorDefinition> definitionResponse;
+
+        try
+        {
+            definitionResponse = _definitionResolver.FindById(context, errorId);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<ErrorDescriptor>.Fail(
+                code: "ErrorDefinitionResolverFailed",
+                message: "Error definition resolver failed.");
+        }
 
         return CreateDescriptorResponse(definitionResponse);
     }
