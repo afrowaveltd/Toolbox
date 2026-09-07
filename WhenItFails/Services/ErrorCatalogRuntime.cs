@@ -265,10 +265,20 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                     contextResponse);
         }
 
-        Response<IReadOnlyList<ErrorDefinition>>? response =
-            _profileSelectionService.ResolveByProfileName(
+        Response<IReadOnlyList<ErrorDefinition>>? response;
+
+        try
+        {
+            response = _profileSelectionService.ResolveByProfileName(
                 contextResponse.Data,
                 profileName);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<IReadOnlyList<ErrorDefinition>>.Fail(
+                code: "WIF_PROFILE_SELECTION_FAILED",
+                message: "The error profile selection service failed.");
+        }
 
         return response
             ?? Response<IReadOnlyList<ErrorDefinition>>.Invalid(
