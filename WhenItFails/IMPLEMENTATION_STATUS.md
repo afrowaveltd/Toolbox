@@ -14,28 +14,36 @@ Hardening runtime and service boundaries against malformed dependency behavior, 
 - `ErrorDescriptorResolver` has stable contracts for failed/malformed definition responses, null dependency responses, null descriptor-factory results, ordinary dependency exceptions, and cancellation.
 - `ErrorDescriptorService` stabilizes null responses from `IErrorDescriptorResolver`, converts ordinary resolver exceptions through one shared boundary into `ErrorDescriptorResolverFailed`, and propagates cancellation unchanged.
 - The `ErrorDescriptorResolver` and `ErrorDescriptorService` exception/cancellation hardening blocks are complete for the current scope.
-- `ErrorCatalogRuntime` already stabilizes null responses from several injected dependencies.
-- `ErrorCatalogRuntime.FromId(...)` converts ordinary `IErrorDescriptorService.FromId(...)` exceptions into `WIF_DESCRIPTOR_SERVICE_FAILED` without exposing raw exception text.
-- The complete `WhenItFails.Tests` suite is verified GREEN at 971/971 tests after the runtime `FromId(...)` descriptor-service exception fix.
-- New runtime symmetry contracts now require the same descriptor-service ordinary-exception behavior for `FromName(...)` and `FromCode(...)`.
+- `ErrorCatalogRuntime` stabilizes null descriptor-service responses and now routes `FromId(...)`, `FromName(...)`, and `FromCode(...)` through one shared descriptor-service exception boundary.
+- Ordinary `IErrorDescriptorService` exceptions now become `WIF_DESCRIPTOR_SERVICE_FAILED` without exposing raw dependency text.
+- The complete `WhenItFails.Tests` suite is verified GREEN at 971/971 tests before the two runtime symmetry tests.
+- Before the centralized runtime fix, the focused descriptor-service exception contract class produced one GREEN (`FromId`) and two RED (`FromName`, `FromCode`) results.
 
 ## Latest committed steps
 
-### 2026-09-07 — ErrorCatalogRuntime descriptor-service exception symmetry contracts
+### 2026-09-07 — centralized ErrorCatalogRuntime descriptor-service exception boundary
 
-Contract commit: `a2d381dff3caf86efd94853cd804693a87767c59`
+Production fix commit: `8da3fef0140c081e9119b5097a7343bf24cfafa5`
 
-Updated:
+Changed:
 
-`WhenItFails.Tests/Services/ErrorCatalogRuntimeDescriptorServiceExceptionContractTests.cs`
+`WhenItFails/Services/ErrorCatalogRuntime.cs`
 
-Coverage now includes:
+`FromId(...)`, `FromName(...)`, and `FromCode(...)` now delegate through one shared helper:
 
-- `FromId_WhenDescriptorServiceThrows_ReturnsStableFailure`
-- `FromName_WhenDescriptorServiceThrows_ReturnsStableFailure`
-- `FromCode_WhenDescriptorServiceThrows_ReturnsStableFailure`
+```text
+FromId / FromName / FromCode
+          ↓
+validate current context
+          ↓
+ResolveDescriptor(...)
+          ↓
+invoke only the selected IErrorDescriptorService method inside the exception boundary
+          ↓
+null-response guard
+```
 
-All three require:
+Ordinary descriptor-service exceptions become:
 
 ```text
 Status: Failed
@@ -43,9 +51,44 @@ Code: WIF_DESCRIPTOR_SERVICE_FAILED
 Message: The error descriptor service failed.
 ```
 
-Each descriptor-service entry point throws its own sensitive diagnostic text. The runtime facade must never expose that text.
+The original exception message is deliberately not copied into the public runtime response.
 
-No production code changed in this symmetry step. `FromName(...)` and `FromCode(...)` are therefore expected to be RED until the runtime descriptor-service boundary is centralized.
+The exception filter excludes `OperationCanceledException`, so cancellation continues to propagate naturally.
+
+The existing null-response behavior remains unchanged and still returns:
+
+```text
+Status: Invalid
+Code: WIF_DESCRIPTOR_SERVICE_RESPONSE_NULL
+Message: The error descriptor service returned a null response.
+```
+
+The production diff was checked after commit and contains only the three descriptor entry points plus the new shared helper.
+
+### 2026-09-07 — verified RED runtime descriptor-service symmetry state
+
+Symmetry contract commit: `a2d381dff3caf86efd94853cd804693a87767c59`
+
+Focused class:
+
+`WhenItFails.Tests/Services/ErrorCatalogRuntimeDescriptorServiceExceptionContractTests`
+
+Observed locally on Windows before the centralized production fix:
+
+```text
+Failed: 2
+Passed: 1
+Skipped: 0
+Total: 3
+```
+
+Observed behavior:
+
+- `FromId_WhenDescriptorServiceThrows_ReturnsStableFailure`: GREEN
+- `FromName_WhenDescriptorServiceThrows_ReturnsStableFailure`: RED with `Sensitive runtime descriptor service name detail must not escape.`
+- `FromCode_WhenDescriptorServiceThrows_ReturnsStableFailure`: RED with `Sensitive runtime descriptor service code detail must not escape.`
+
+This confirmed that only `FromId(...)` had the required runtime-facade exception boundary and that raw descriptor-service diagnostic text still escaped from the name/code paths.
 
 ### 2026-09-07 — verified ErrorCatalogRuntime FromId descriptor-service exception fix
 
@@ -61,8 +104,6 @@ Skipped:  0
 Total:  971
 ```
 
-This confirms that an ordinary exception from `IErrorDescriptorService.FromId(...)` becomes `WIF_DESCRIPTOR_SERVICE_FAILED` without exposing raw dependency exception text.
-
 ### 2026-09-07 — verified ErrorDescriptorService resolver cancellation contract
 
 Contract commit: `0027ba19d27dbe86a10f7dd39f0398f2678051f1`
@@ -71,34 +112,33 @@ Verified locally at 970/970 tests GREEN. The exact original `OperationCanceledEx
 
 ## Verification state
 
-- Complete verified continuation baseline: 971/971 tests GREEN.
-- `ErrorDescriptorResolver` and `ErrorDescriptorService` ordinary-exception and cancellation behavior are verified for their current dependency boundaries.
-- `ErrorCatalogRuntime.FromId(...)` descriptor-service ordinary-exception behavior is verified GREEN.
-- New `FromName(...)` and `FromCode(...)` runtime symmetry contracts are committed and await local verification.
-- Production code is unchanged for the symmetry step.
+- Verified continuation baseline before the two runtime symmetry tests: 971/971 tests GREEN.
+- Runtime symmetry tests reproduced the expected pre-fix state: 1 GREEN / 2 RED.
+- Centralized `ErrorCatalogRuntime` descriptor-service exception boundary is committed and awaits focused local verification.
+- Expected complete-suite count after both new symmetry tests: 973 tests.
 
 ## Recommended verification
 
-Pull current `master` and run the runtime descriptor-service exception contract class:
+Pull current `master` and run the focused runtime descriptor-service exception contract class:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ErrorCatalogRuntimeDescriptorServiceExceptionContractTests"
 ```
 
-Expected current result:
+Expected result after the centralized fix: 3/3 GREEN.
 
-- `FromId(...)`: GREEN
-- `FromName(...)`: RED with the original descriptor-service exception escaping
-- `FromCode(...)`: RED with the original descriptor-service exception escaping
+Then run the complete suite:
 
-Expected focused total: 1 passed / 2 failed.
+```powershell
+dotnet test WhenItFails.Tests
+```
 
-Expected complete-suite count after both new symmetry tests, once fixed: 973 tests.
+Expected complete-suite result: 973/973 GREEN.
 
 ## Next recommended step
 
-If the two new symmetry contracts fail as expected, centralize the runtime descriptor-service exception conversion so all three public entry points share one stable boundary without duplicating catch logic.
+After 973/973 GREEN is confirmed, add one focused cancellation contract proving that `OperationCanceledException` from `IErrorDescriptorService` still propagates as the exact original instance rather than becoming `WIF_DESCRIPTOR_SERVICE_FAILED`.
 
-After 973/973 GREEN, add one focused cancellation contract proving that `OperationCanceledException` from `IErrorDescriptorService` still propagates as the exact original instance rather than becoming `WIF_DESCRIPTOR_SERVICE_FAILED`.
+If that passes without production changes, move to the next distinct `ErrorCatalogRuntime` dependency boundary. A strong next candidate is the profile-selection service or context-store invocation, depending on existing contract coverage.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
