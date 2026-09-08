@@ -15,13 +15,8 @@ public sealed class ErrorCatalogRuntimeContextStoreSetExceptionContractTests
     [Fact]
     public async Task ResetToDefaultsAsync_WhenContextStoreSetThrows_ReturnsStableFailure()
     {
-        ErrorCatalogRuntime runtime = new(
-            new UnusedInitializer(),
-            new WhenItFailsOptions(),
-            new ThrowingSetContextStore(),
-            new SuccessfulBuiltInContextProvider(),
-            new UnusedDescriptorService(),
-            new UnusedProfileSelectionService());
+        ErrorCatalogRuntime runtime = CreateRuntime(
+            new ThrowingSetContextStore());
 
         Response<ErrorCatalogInitializationPayload> response =
             await runtime.ResetToDefaultsAsync();
@@ -43,6 +38,34 @@ public sealed class ErrorCatalogRuntimeContextStoreSetExceptionContractTests
                     "The error catalog context store failed.",
                     issue.Message);
             });
+    }
+
+    [Fact]
+    public async Task ResetToDefaultsAsync_WhenContextStoreSetCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "Runtime context store Set cancellation must propagate.");
+
+        ErrorCatalogRuntime runtime = CreateRuntime(
+            new CancelingSetContextStore(cancellation));
+
+        OperationCanceledException thrown =
+            await Assert.ThrowsAsync<OperationCanceledException>(
+                () => runtime.ResetToDefaultsAsync());
+
+        Assert.Same(cancellation, thrown);
+    }
+
+    private static ErrorCatalogRuntime CreateRuntime(
+        IErrorCatalogContextStore contextStore)
+    {
+        return new ErrorCatalogRuntime(
+            new UnusedInitializer(),
+            new WhenItFailsOptions(),
+            contextStore,
+            new SuccessfulBuiltInContextProvider(),
+            new UnusedDescriptorService(),
+            new UnusedProfileSelectionService());
     }
 
     private sealed class SuccessfulBuiltInContextProvider
@@ -74,6 +97,33 @@ public sealed class ErrorCatalogRuntimeContextStoreSetExceptionContractTests
         {
             throw new InvalidOperationException(
                 "Sensitive runtime context store Set detail must not escape.");
+        }
+    }
+
+    private sealed class CancelingSetContextStore : IErrorCatalogContextStore
+    {
+        private readonly OperationCanceledException _cancellation;
+
+        public CancelingSetContextStore(
+            OperationCanceledException cancellation)
+        {
+            _cancellation = cancellation;
+        }
+
+        public bool IsInitialized =>
+            throw new InvalidOperationException("Unexpected IsInitialized access.");
+
+        public ErrorCatalogContext? Current =>
+            throw new InvalidOperationException("Unexpected Current access.");
+
+        public Response<ErrorCatalogContext> GetCurrent()
+        {
+            throw new InvalidOperationException("Unexpected GetCurrent call.");
+        }
+
+        public void Set(ErrorCatalogContext context)
+        {
+            throw _cancellation;
         }
     }
 
