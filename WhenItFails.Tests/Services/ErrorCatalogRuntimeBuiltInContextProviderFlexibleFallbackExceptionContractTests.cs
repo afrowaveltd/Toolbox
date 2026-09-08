@@ -16,16 +16,8 @@ public sealed class ErrorCatalogRuntimeBuiltInContextProviderFlexibleFallbackExc
     [Fact]
     public async Task InitializeAsync_WhenFlexibleFallbackProviderThrows_ReturnsStableFallbackFailure()
     {
-        ErrorCatalogRuntime runtime = new(
-            new FailingInitializer(),
-            new WhenItFailsOptions
-            {
-                InitializationMode = ErrorCatalogInitializationMode.Flexible
-            },
-            new EmptyContextStore(),
-            new ThrowingBuiltInContextProvider(),
-            new UnusedDescriptorService(),
-            new UnusedProfileSelectionService());
+        ErrorCatalogRuntime runtime = CreateRuntime(
+            new ThrowingBuiltInContextProvider());
 
         Response<ErrorCatalogInitializationPayload> response =
             await runtime.InitializeAsync(new JsonsOptions());
@@ -63,6 +55,37 @@ public sealed class ErrorCatalogRuntimeBuiltInContextProviderFlexibleFallbackExc
         Assert.Equal(
             "The bundled default catalog provider failed.",
             response.Metadata["WhenItFails.FallbackFailure.Message"]);
+    }
+
+    [Fact]
+    public async Task InitializeAsync_WhenFlexibleFallbackProviderCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "Flexible fallback provider cancellation must propagate unchanged.");
+
+        ErrorCatalogRuntime runtime = CreateRuntime(
+            new CancelingBuiltInContextProvider(cancellation));
+
+        OperationCanceledException thrown =
+            await Assert.ThrowsAsync<OperationCanceledException>(
+                () => runtime.InitializeAsync(new JsonsOptions()));
+
+        Assert.Same(cancellation, thrown);
+    }
+
+    private static ErrorCatalogRuntime CreateRuntime(
+        IBuiltInErrorCatalogContextProvider builtInContextProvider)
+    {
+        return new ErrorCatalogRuntime(
+            new FailingInitializer(),
+            new WhenItFailsOptions
+            {
+                InitializationMode = ErrorCatalogInitializationMode.Flexible
+            },
+            new EmptyContextStore(),
+            builtInContextProvider,
+            new UnusedDescriptorService(),
+            new UnusedProfileSelectionService());
     }
 
     private sealed class FailingInitializer : IErrorCatalogInitializer
@@ -106,6 +129,25 @@ public sealed class ErrorCatalogRuntimeBuiltInContextProviderFlexibleFallbackExc
             return Task.FromException<Response<ErrorCatalogContext>>(
                 new InvalidOperationException(
                     "Sensitive flexible fallback provider detail must not escape."));
+        }
+    }
+
+    private sealed class CancelingBuiltInContextProvider
+        : IBuiltInErrorCatalogContextProvider
+    {
+        private readonly OperationCanceledException _cancellation;
+
+        public CancelingBuiltInContextProvider(
+            OperationCanceledException cancellation)
+        {
+            _cancellation = cancellation;
+        }
+
+        public Task<Response<ErrorCatalogContext>> LoadAsync(
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromException<Response<ErrorCatalogContext>>(
+                _cancellation);
         }
     }
 
