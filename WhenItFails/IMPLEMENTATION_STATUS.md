@@ -15,12 +15,39 @@ Hardening runtime and service boundaries against malformed dependency behavior, 
 - `ErrorCatalogRuntime` descriptor-service ordinary-exception and cancellation behavior is complete for the current scope.
 - `ErrorCatalogRuntime` profile-selection ordinary-exception and cancellation behavior is complete for the current scope.
 - `ErrorCatalogRuntime` context-store `GetCurrent()` null-response, ordinary-exception, and cancellation behavior is complete for the current scope.
-- Initializer null-response behavior is covered by `WIF_INITIALIZER_RESPONSE_NULL`.
+- Initializer null-response and ordinary-exception behavior are covered and verified.
 - `InitializeCoreAsync(...)` converts ordinary `IErrorCatalogInitializer.InitializeAsync(...)` exceptions into `WIF_INITIALIZER_FAILED` without exposing raw dependency exception text.
 - The complete `WhenItFails.Tests` suite is verified GREEN at 979/979 tests.
-- `OperationCanceledException` remains intentionally excluded from the initializer exception conversion and is the next contract to verify explicitly.
+- A focused initializer cancellation contract now requires the exact original `OperationCanceledException` instance to propagate unchanged.
 
 ## Latest committed steps
+
+### 2026-09-08 — ErrorCatalogRuntime initializer cancellation contract
+
+Contract commit: `ba3a1137bfcb25f64787b54bff7fada037285b7a`
+
+Updated:
+
+`WhenItFails.Tests/Services/ErrorCatalogRuntimeInitializerExceptionContractTests.cs`
+
+Added:
+
+`InitializeAsync_WhenInitializerCancels_RethrowsSameOperationCanceledException`
+
+Contract:
+
+```text
+IErrorCatalogInitializer.InitializeAsync(...)
+    => faulted task carrying an OperationCanceledException instance
+                         ↓
+rethrow the exact same OperationCanceledException instance
+```
+
+The test uses `Assert.Same(...)`, so future refactoring cannot wrap cancellation, replace it with another cancellation exception, or convert it into `WIF_INITIALIZER_FAILED`.
+
+The test fixture was lightly refactored through a shared `CreateRuntime(...)` helper. All unrelated dependencies remain throwing sentinels, so the contract isolates only the initializer invocation/await boundary.
+
+No production code changed in this step. The current initializer catch filter excludes `OperationCanceledException`, so this focused contract is expected to be GREEN.
 
 ### 2026-09-08 — verified ErrorCatalogRuntime initializer exception fix
 
@@ -38,7 +65,7 @@ Skipped:  0
 Total:  979
 ```
 
-This confirms that a faulted initializer task carrying an ordinary exception becomes:
+This confirms that ordinary initializer exceptions become:
 
 ```text
 Status: Failed
@@ -46,16 +73,9 @@ Code: WIF_INITIALIZER_FAILED
 Message: The error catalog initializer failed.
 ```
 
-without exposing the original dependency exception text.
+without exposing raw dependency exception text.
 
-Only the `_initializer.InitializeAsync(...)` invocation/await is inside the exception boundary. Existing response validation remains independent and preserves the distinct contracts for:
-
-```text
-WIF_INITIALIZER_RESPONSE_NULL
-WIF_INITIALIZATION_PAYLOAD_NULL
-WIF_INITIALIZATION_BOOTSTRAP_NULL
-WIF_INITIALIZATION_CONTEXT_NULL
-```
+Existing response validation remains outside the exception boundary and preserves distinct null/malformed-response contracts.
 
 ### 2026-09-08 — verified ErrorCatalogRuntime context-store cancellation contract
 
@@ -68,18 +88,29 @@ Verified locally at 978/978 tests GREEN. The exact original `OperationCanceledEx
 - Complete verified continuation baseline: 979/979 tests GREEN.
 - Runtime descriptor-service, profile-selection, and context-store `GetCurrent()` exception/cancellation boundaries are complete for the current scope.
 - Initializer null-response and ordinary-exception behavior are verified GREEN.
-- Initializer cancellation behavior is not yet locked by a focused exact-instance contract.
+- Initializer cancellation contract is committed and awaits focused local verification.
+- No production change is expected for the cancellation contract.
 
 ## Recommended verification
 
-The next step is to add one focused initializer cancellation contract proving that an `OperationCanceledException` from `IErrorCatalogInitializer.InitializeAsync(...)` propagates as the exact original instance rather than becoming `WIF_INITIALIZER_FAILED`.
+Pull current `master` and run the focused initializer cancellation contract:
 
-No production change is expected because the current catch filter explicitly excludes `OperationCanceledException`.
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~InitializeAsync_WhenInitializerCancels_RethrowsSameOperationCanceledException"
+```
+
+If green, run the complete suite:
+
+```powershell
+dotnet test WhenItFails.Tests
+```
+
+Expected complete-suite count: 980 tests.
 
 ## Next recommended step
 
-Add the initializer cancellation contract, verify it GREEN, and then run the complete suite. Expected complete-suite count after adding that one test: 980 tests.
+After 980/980 GREEN is confirmed, consider the runtime initializer boundary complete for the current scope.
 
-If the cancellation contract passes without production changes, consider the runtime initializer boundary complete for the current scope and inspect the next distinct initialization dependency boundary, especially `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` and `_contextStore.Set(...)`.
+Then inspect the next distinct initialization dependency boundary. The strongest candidates are `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` and `_contextStore.Set(...)`; choose the next contract only after confirming existing null/malformed coverage and keep the same exception/cancellation separation.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
