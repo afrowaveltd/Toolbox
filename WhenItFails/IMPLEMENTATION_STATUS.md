@@ -15,29 +15,66 @@ Hardening runtime and service boundaries against malformed dependency behavior, 
 - `IErrorCatalogContextStore.GetCurrent()` null-response, ordinary-exception, and exact-instance cancellation behavior are complete.
 - `IErrorCatalogInitializer.InitializeAsync(...)` null-response, ordinary-exception, and exact-instance cancellation behavior are complete.
 - `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` is hardened for both explicit `ResetToDefaultsAsync()` and flexible initialization fallback paths, including null response, ordinary exception, and exact-instance cancellation contracts.
-- The complete `WhenItFails.Tests` suite is locally verified GREEN at **984/984 tests**.
-- The 984-test run still reports one compiler warning: `CS8767` in `WhenItFails.Tests/Catalog/ErrorCatalogProviderNullFirstIssueContractTests.cs` because `UnexpectedValidator.Validate(ErrorCatalogDocument document)` does not match the nullable interface contract `IErrorCatalogValidator.Validate(ErrorCatalogDocument? document)`.
+- The complete `WhenItFails.Tests` suite is locally verified GREEN at **984/984 tests** before the warning cleanup.
+- The prior `CS8767` warning in `ErrorCatalogProviderNullFirstIssueContractTests.cs` was caused by a nullable-interface mismatch in the `UnexpectedValidator` test sentinel.
 
-## Latest verified checkpoint
+## Latest committed steps
 
-### 2026-09-08 — 984/984 GREEN
+### 2026-09-08 — nullability warning cleanup
 
-The flexible-fallback built-in-provider cancellation contract is locally verified GREEN. The exact original `OperationCanceledException` instance propagates unchanged through the flexible initialization fallback path.
+Commit: `431f9132ed8bfc19b6eb8f050413f6cba65c4395`
 
-This completes the built-in provider boundary for both invocation sites in the current scope.
+Changed only:
 
-## Immediate cleanup
+```csharp
+public ErrorCatalogValidationResult Validate(ErrorCatalogDocument document)
+```
 
-Remove the `CS8767` warning by changing only the test sentinel signature:
+to:
 
 ```csharp
 public ErrorCatalogValidationResult Validate(ErrorCatalogDocument? document)
 ```
 
-No production code or test behavior should change. The expected suite count remains **984**.
+This aligns the test sentinel with `IErrorCatalogValidator.Validate(ErrorCatalogDocument? document)` and should remove compiler warning `CS8767` without changing runtime behavior or test count.
+
+The commit diff was checked and contains exactly this one nullability annotation change.
+
+### 2026-09-08 — 984/984 GREEN checkpoint
+
+Checkpoint commit: `2496b0c993704ad5c8734496b441c15c490fdf77`
+
+The flexible-fallback built-in-provider cancellation contract is locally verified GREEN. The exact original `OperationCanceledException` instance propagates unchanged through the flexible initialization fallback path.
+
+This completes the built-in provider boundary for both invocation sites in the current scope.
+
+## Verification state
+
+- Last locally verified suite result: **984/984 GREEN**.
+- Warning cleanup is committed but has not yet been locally re-run after the change.
+- Expected next result: **984/984 GREEN with zero compiler warnings**.
+
+## Recommended verification
+
+Pull current `master` and run:
+
+```powershell
+dotnet test WhenItFails.Tests
+```
+
+Expected:
+
+```text
+Failed:   0
+Passed: 984
+Skipped:  0
+Total:  984
+```
+
+and no `CS8767` warning.
 
 ## Next recommended step
 
-After the suite is verified at **984/984 GREEN with zero compiler warnings**, inspect `_contextStore.Set(...)` as the next distinct runtime dependency boundary. Keep ordinary-exception and cancellation behavior separate and test-first.
+After **984/984 GREEN with zero compiler warnings** is confirmed, inspect `_contextStore.Set(...)` as the next distinct runtime dependency boundary. Keep ordinary-exception and cancellation behavior separate and test-first.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
