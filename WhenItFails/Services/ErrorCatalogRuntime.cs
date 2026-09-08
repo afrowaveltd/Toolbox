@@ -385,10 +385,21 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
             CancellationToken cancellationToken)
     {
         Response<ErrorCatalogInitializationPayload>?
+            initializationResponse;
+
+        try
+        {
             initializationResponse =
                 await _initializer.InitializeAsync(
                     options,
                     cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<ErrorCatalogInitializationPayload>.Fail(
+                code: "WIF_INITIALIZER_FAILED",
+                message: "The error catalog initializer failed.");
+        }
 
         if (initializationResponse is null)
         {
