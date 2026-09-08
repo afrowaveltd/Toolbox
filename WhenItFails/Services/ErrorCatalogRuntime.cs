@@ -126,8 +126,17 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                 builtInResponse);
         }
 
-        _contextStore.Set(
-            builtInResponse.Data);
+        try
+        {
+            _contextStore.Set(
+                builtInResponse.Data);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<ErrorCatalogInitializationPayload>.Fail(
+                code: "WIF_CONTEXT_STORE_FAILED",
+                message: "The error catalog context store failed.");
+        }
 
         JsonsOptions jsonsOptions =
             _options.Jsons ?? new JsonsOptions();
