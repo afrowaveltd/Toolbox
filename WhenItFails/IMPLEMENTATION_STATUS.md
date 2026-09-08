@@ -15,34 +15,62 @@ Hardening runtime and service boundaries against malformed dependency behavior, 
 - `IErrorCatalogContextStore.GetCurrent()` null-response, ordinary-exception, and exact-instance cancellation behavior are complete.
 - `IErrorCatalogInitializer.InitializeAsync(...)` null-response, ordinary-exception, and exact-instance cancellation behavior are complete.
 - `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` is hardened for both explicit `ResetToDefaultsAsync()` and flexible initialization fallback paths, including null response, ordinary exception, and exact-instance cancellation contracts.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 984/984 tests with zero compiler warnings**.
-- `_contextStore.Set(...)` remains a distinct unguarded dependency boundary at three invocation sites: `ResetToDefaultsAsync()`, flexible fallback in `ErrorCatalogRuntime`, and `ErrorCatalogInitializer`.
-- A focused ordinary-exception contract now covers the explicit `ResetToDefaultsAsync()` store-write path and awaits local RED verification.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 984/984 tests with zero compiler warnings** before the new store-write contract.
+- `_contextStore.Set(...)` remains a distinct dependency boundary at three invocation sites: `ResetToDefaultsAsync()`, flexible fallback in `ErrorCatalogRuntime`, and `ErrorCatalogInitializer`.
+- The explicit `ResetToDefaultsAsync()` store-write ordinary-exception contract is verified RED before the production fix.
+- `ResetToDefaultsAsync()` now converts ordinary context-store `Set(...)` exceptions into `WIF_CONTEXT_STORE_FAILED` without exposing raw dependency text.
 
 ## Latest committed steps
 
-### 2026-09-08 — ResetToDefaults context-store Set exception contract
+### 2026-09-08 — ResetToDefaults context-store Set exception fix
 
-Contract commit: `7f5b53a578e7b20ea613e474f9bb463387551373`
+Production fix commit: `dc5eb34f862df31736eff5f0726d090598ff55f9`
 
-Added:
+Changed only the `_contextStore.Set(...)` invocation inside `ResetToDefaultsAsync()`.
 
-`WhenItFails.Tests/Services/ErrorCatalogRuntimeContextStoreSetExceptionContractTests.ResetToDefaultsAsync_WhenContextStoreSetThrows_ReturnsStableFailure`
-
-The test supplies a successful built-in provider response and a context store whose `Set(...)` throws an ordinary `InvalidOperationException` containing sensitive diagnostic text.
-
-Expected public contract:
+The store write is now wrapped in a narrow exception boundary:
 
 ```text
+IErrorCatalogContextStore.Set(...)
+    => ordinary exception
+             ↓
 Status: Failed
 Data: null
 Code: WIF_CONTEXT_STORE_FAILED
 Message: The error catalog context store failed.
 ```
 
-The raw store exception message must not escape.
+The original store exception text is not copied into the public response.
 
-No production code changed in this step. `ResetToDefaultsAsync()` currently calls `_contextStore.Set(...)` directly, so the focused test is expected to be RED with the original exception escaping.
+The catch filter excludes `OperationCanceledException`, so cancellation is still intended to propagate unchanged.
+
+The production diff was checked and contains only this one reset-path store-write guard. The separate flexible-fallback and initializer `Set(...)` sites remain unchanged.
+
+### 2026-09-08 — verified RED ResetToDefaults context-store Set contract
+
+Contract commit: `7f5b53a578e7b20ea613e474f9bb463387551373`
+
+Focused test:
+
+`WhenItFails.Tests/Services/ErrorCatalogRuntimeContextStoreSetExceptionContractTests.ResetToDefaultsAsync_WhenContextStoreSetThrows_ReturnsStableFailure`
+
+Observed locally on Windows before the production fix:
+
+```text
+Failed: 1
+Passed: 0
+Skipped: 0
+Total: 1
+```
+
+Failure:
+
+```text
+System.InvalidOperationException:
+Sensitive runtime context store Set detail must not escape.
+```
+
+The exception escaped directly from `ThrowingSetContextStore.Set(...)` through `ErrorCatalogRuntime.ResetToDefaultsAsync(...)`, confirming the missing runtime store-write boundary.
 
 ### 2026-09-08 — clean 984/984 checkpoint
 
@@ -59,44 +87,38 @@ Total:  984
 Compiler warnings: 0
 ```
 
-This confirms the `CS8767` cleanup without changing behavior or test count.
-
 ## Verification state
 
-- Clean continuation baseline: **984/984 GREEN, zero compiler warnings**.
+- Clean continuation baseline before the new store-write contract: **984/984 GREEN, zero compiler warnings**.
 - Built-in provider boundary is complete for the current scope.
-- New `ResetToDefaultsAsync()` context-store `Set(...)` ordinary-exception contract is committed and awaits focused local verification.
-- Production code remains unchanged until the RED state is observed.
-- Expected complete-suite count once the new contract eventually passes: 985 tests.
+- Explicit reset store-write ordinary-exception contract is verified RED before the production fix.
+- Production `ResetToDefaultsAsync()` store-write guard is committed and awaits focused local GREEN verification.
+- Expected complete-suite count after the new contract passes: **985 tests**.
 
 ## Recommended verification
 
-Pull current `master` and run only the new contract:
+Pull current `master` and run the focused contract:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResetToDefaultsAsync_WhenContextStoreSetThrows_ReturnsStableFailure"
 ```
 
-Expected current result: RED with the original exception text:
+Expected result after the production fix: GREEN.
 
-```text
-Sensitive runtime context store Set detail must not escape.
+Then run the complete suite:
+
+```powershell
+dotnet test WhenItFails.Tests
 ```
+
+Expected complete-suite result: **985/985 GREEN with zero compiler warnings**.
 
 ## Next recommended step
 
-If RED is confirmed, add the smallest exception boundary around only the `_contextStore.Set(...)` call in `ResetToDefaultsAsync()`.
+After 985/985 GREEN is confirmed, add one focused exact-instance cancellation contract for the same `ResetToDefaultsAsync()` `_contextStore.Set(...)` invocation.
 
-Convert ordinary exceptions into:
+If that passes without production changes, consider the explicit reset store-write boundary complete for the current scope. Then move to the separate flexible-fallback `_contextStore.Set(...)` invocation, again ordinary exception first and cancellation second.
 
-```text
-Status: Failed
-Code: WIF_CONTEXT_STORE_FAILED
-Message: The error catalog context store failed.
-```
-
-while allowing `OperationCanceledException` to propagate unchanged.
-
-Do not modify the separate flexible-fallback or initializer `Set(...)` sites in the same production step.
+Do not modify `ErrorCatalogInitializer` in the same step.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
