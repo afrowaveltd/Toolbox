@@ -15,37 +15,71 @@ Hardening runtime and service boundaries against malformed dependency behavior, 
 - `ErrorCatalogRuntime` descriptor-service ordinary-exception and cancellation behavior is complete for the current scope.
 - `ErrorCatalogRuntime` profile-selection ordinary-exception and cancellation behavior is complete for the current scope.
 - `ErrorCatalogRuntime` context-store `GetCurrent()` null-response, ordinary-exception, and cancellation behavior is complete for the current scope.
-- The complete `WhenItFails.Tests` suite is verified GREEN at 978/978 tests.
-- Initialization dependency null-response behavior already covers a null `IErrorCatalogInitializer.InitializeAsync(...)` response and a null built-in-provider response.
-- A new focused contract now defines ordinary-exception behavior for `IErrorCatalogInitializer.InitializeAsync(...)`.
+- The complete `WhenItFails.Tests` suite is verified GREEN at 978/978 tests before the initializer exception contract.
+- Initializer null-response behavior is already covered by `WIF_INITIALIZER_RESPONSE_NULL`.
+- `InitializeCoreAsync(...)` now converts ordinary `IErrorCatalogInitializer.InitializeAsync(...)` exceptions into `WIF_INITIALIZER_FAILED` without exposing raw dependency exception text.
+- `OperationCanceledException` is deliberately excluded from that conversion and is intended to propagate unchanged.
 
 ## Latest committed steps
 
-### 2026-09-08 — ErrorCatalogRuntime initializer exception contract
+### 2026-09-08 — ErrorCatalogRuntime initializer exception fix
 
-Contract commit: `e184100471e2ee8c5946ec2b3ad0f8c30b7c91c3`
+Production fix commit: `5413dd81365008113dafe4f0e052613578a51978`
 
-Added:
+Changed:
 
-`WhenItFails.Tests/Services/ErrorCatalogRuntimeInitializerExceptionContractTests.InitializeAsync_WhenInitializerThrows_ReturnsStableFailure`
+`WhenItFails/Services/ErrorCatalogRuntime.cs`
 
-Contract:
+Only the `_initializer.InitializeAsync(...)` invocation/await is wrapped in a narrow exception boundary.
+
+Ordinary initializer exceptions now become:
 
 ```text
-IErrorCatalogInitializer.InitializeAsync(...) => faulted task with ordinary exception
-                         ↓
 Status: Failed
 Code: WIF_INITIALIZER_FAILED
 Message: The error catalog initializer failed.
 ```
 
-The injected initializer returns a faulted task containing an `InvalidOperationException` with sensitive diagnostic text. The runtime facade must not expose that raw text.
+The original exception message is not copied into the public runtime response.
 
-All unrelated dependencies are throwing sentinels, so this test isolates only the initializer invocation/await boundary.
+The catch filter excludes `OperationCanceledException`, so cancellation continues to propagate naturally.
 
-No production code changed in this step.
+Existing response validation remains outside the exception boundary, preserving the distinct contracts for:
 
-Current `ErrorCatalogRuntime.InitializeCoreAsync(...)` directly awaits `_initializer.InitializeAsync(...)`, so this focused contract is expected to be RED with the original exception escaping.
+```text
+WIF_INITIALIZER_RESPONSE_NULL
+WIF_INITIALIZATION_PAYLOAD_NULL
+WIF_INITIALIZATION_BOOTSTRAP_NULL
+WIF_INITIALIZATION_CONTEXT_NULL
+```
+
+The production diff was checked after commit and contains only the intended initializer invocation/await boundary.
+
+### 2026-09-08 — verified RED initializer exception contract
+
+Contract commit: `e184100471e2ee8c5946ec2b3ad0f8c30b7c91c3`
+
+Focused test:
+
+`WhenItFails.Tests/Services/ErrorCatalogRuntimeInitializerExceptionContractTests.InitializeAsync_WhenInitializerThrows_ReturnsStableFailure`
+
+Observed locally on Windows before the production fix:
+
+```text
+Failed: 1
+Passed: 0
+Skipped: 0
+Total: 1
+```
+
+Failure:
+
+```text
+System.InvalidOperationException:
+Sensitive runtime initializer detail must not escape.
+```
+
+The faulted task exception escaped directly through `ErrorCatalogRuntime.InitializeCoreAsync(...)`, confirming the missing runtime-facade initializer boundary.
 
 ### 2026-09-08 — verified ErrorCatalogRuntime context-store cancellation contract
 
@@ -61,52 +95,39 @@ Skipped:  0
 Total:  978
 ```
 
-This confirms that an `OperationCanceledException` thrown by `IErrorCatalogContextStore.GetCurrent()` propagates as the exact original exception instance.
-
-### 2026-09-08 — ErrorCatalogRuntime context-store exception fix
-
-Production fix commit: `e83d2e60e5a4ac049ff3a92003b705f8a8f41872`
-
-Ordinary context-store exceptions become `WIF_CONTEXT_STORE_FAILED` without exposing raw dependency exception text.
+The exact original `OperationCanceledException` instance propagates through the runtime context-store `GetCurrent()` boundary.
 
 ## Verification state
 
-- Complete verified continuation baseline: 978/978 tests GREEN.
+- Verified continuation baseline before the initializer exception contract: 978/978 tests GREEN.
 - Runtime descriptor-service, profile-selection, and context-store `GetCurrent()` exception/cancellation boundaries are complete for the current scope.
 - Initializer null-response behavior is already covered.
-- New initializer ordinary-exception contract is committed and awaits focused local verification.
-- Production `InitializeCoreAsync(...)` remains unchanged until the RED state is observed.
+- Initializer ordinary-exception contract is verified RED before the production fix.
+- Production initializer exception boundary is committed and awaits focused local verification.
+- Expected complete-suite count after the new contract passes: 979 tests.
 
 ## Recommended verification
 
-Pull current `master` and run only the new initializer contract:
+Pull current `master` and run the focused initializer contract:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~InitializeAsync_WhenInitializerThrows_ReturnsStableFailure"
 ```
 
-Expected current result: RED with the original exception text:
+Expected result after the production fix: GREEN.
 
-```text
-Sensitive runtime initializer detail must not escape.
+Then run the complete suite:
+
+```powershell
+dotnet test WhenItFails.Tests
 ```
 
-Expected complete-suite count once the new contract eventually passes: 979 tests.
+Expected complete-suite result: 979/979 GREEN.
 
 ## Next recommended step
 
-If the focused initializer contract fails as expected, add the smallest exception boundary around the `_initializer.InitializeAsync(...)` invocation/await in `InitializeCoreAsync(...)`.
+After 979/979 GREEN is confirmed, add one focused cancellation contract proving that an `OperationCanceledException` from `IErrorCatalogInitializer.InitializeAsync(...)` propagates as the exact original instance rather than becoming `WIF_INITIALIZER_FAILED`.
 
-Convert ordinary exceptions into:
-
-```text
-Status: Failed
-Code: WIF_INITIALIZER_FAILED
-Message: The error catalog initializer failed.
-```
-
-while allowing `OperationCanceledException` to propagate unchanged.
-
-Do not add cancellation or built-in-provider exception contracts in the same production step. Verify the single initializer contract first.
+If that passes without production changes, consider the runtime initializer boundary complete for the current scope and inspect the next distinct initialization dependency boundary, especially `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` and `_contextStore.Set(...)`.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
