@@ -61,7 +61,7 @@ public sealed class ErrorCatalogProviderNullFirstIssueContractTests
 
     private sealed class UnexpectedValidator : IErrorCatalogValidator
     {
-        public ErrorCatalogValidationResult Validate(ErrorCatalogDocument document)
+        public ErrorCatalogValidationResult Validate(ErrorCatalogDocument? document)
         {
             throw new InvalidOperationException(
                 "The validator must not be called after a failed loader response.");
