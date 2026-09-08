@@ -15,13 +15,8 @@ public sealed class ErrorCatalogRuntimeInitializerExceptionContractTests
     [Fact]
     public async Task InitializeAsync_WhenInitializerThrows_ReturnsStableFailure()
     {
-        ErrorCatalogRuntime runtime = new(
-            new ThrowingInitializer(),
-            new WhenItFailsOptions(),
-            new UnusedContextStore(),
-            new UnusedBuiltInContextProvider(),
-            new UnusedDescriptorService(),
-            new UnusedProfileSelectionService());
+        ErrorCatalogRuntime runtime = CreateRuntime(
+            new ThrowingInitializer());
 
         Response<ErrorCatalogInitializationPayload> response =
             await runtime.InitializeAsync();
@@ -45,6 +40,34 @@ public sealed class ErrorCatalogRuntimeInitializerExceptionContractTests
             });
     }
 
+    [Fact]
+    public async Task InitializeAsync_WhenInitializerCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "Initializer cancellation must propagate.");
+
+        ErrorCatalogRuntime runtime = CreateRuntime(
+            new CancelingInitializer(cancellation));
+
+        OperationCanceledException thrown =
+            await Assert.ThrowsAsync<OperationCanceledException>(
+                () => runtime.InitializeAsync());
+
+        Assert.Same(cancellation, thrown);
+    }
+
+    private static ErrorCatalogRuntime CreateRuntime(
+        IErrorCatalogInitializer initializer)
+    {
+        return new ErrorCatalogRuntime(
+            initializer,
+            new WhenItFailsOptions(),
+            new UnusedContextStore(),
+            new UnusedBuiltInContextProvider(),
+            new UnusedDescriptorService(),
+            new UnusedProfileSelectionService());
+    }
+
     private sealed class ThrowingInitializer : IErrorCatalogInitializer
     {
         public Task<Response<ErrorCatalogInitializationPayload>> InitializeAsync(
@@ -54,6 +77,25 @@ public sealed class ErrorCatalogRuntimeInitializerExceptionContractTests
             return Task.FromException<Response<ErrorCatalogInitializationPayload>>(
                 new InvalidOperationException(
                     "Sensitive runtime initializer detail must not escape."));
+        }
+    }
+
+    private sealed class CancelingInitializer : IErrorCatalogInitializer
+    {
+        private readonly OperationCanceledException _cancellation;
+
+        public CancelingInitializer(
+            OperationCanceledException cancellation)
+        {
+            _cancellation = cancellation;
+        }
+
+        public Task<Response<ErrorCatalogInitializationPayload>> InitializeAsync(
+            JsonsOptions options,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromException<Response<ErrorCatalogInitializationPayload>>(
+                _cancellation);
         }
     }
 
