@@ -15,13 +15,8 @@ public sealed class ErrorCatalogRuntimeBuiltInContextProviderExceptionContractTe
     [Fact]
     public async Task ResetToDefaultsAsync_WhenBuiltInProviderThrows_ReturnsStableFailure()
     {
-        ErrorCatalogRuntime runtime = new(
-            new UnusedInitializer(),
-            new WhenItFailsOptions(),
-            new UnusedContextStore(),
-            new ThrowingBuiltInContextProvider(),
-            new UnusedDescriptorService(),
-            new UnusedProfileSelectionService());
+        ErrorCatalogRuntime runtime = CreateRuntime(
+            new ThrowingBuiltInContextProvider());
 
         Response<ErrorCatalogInitializationPayload> response =
             await runtime.ResetToDefaultsAsync();
@@ -47,6 +42,34 @@ public sealed class ErrorCatalogRuntimeBuiltInContextProviderExceptionContractTe
             });
     }
 
+    [Fact]
+    public async Task ResetToDefaultsAsync_WhenBuiltInProviderCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "Runtime built-in provider cancellation must propagate.");
+
+        ErrorCatalogRuntime runtime = CreateRuntime(
+            new CancelingBuiltInContextProvider(cancellation));
+
+        OperationCanceledException thrown =
+            await Assert.ThrowsAsync<OperationCanceledException>(
+                () => runtime.ResetToDefaultsAsync());
+
+        Assert.Same(cancellation, thrown);
+    }
+
+    private static ErrorCatalogRuntime CreateRuntime(
+        IBuiltInErrorCatalogContextProvider builtInContextProvider)
+    {
+        return new ErrorCatalogRuntime(
+            new UnusedInitializer(),
+            new WhenItFailsOptions(),
+            new UnusedContextStore(),
+            builtInContextProvider,
+            new UnusedDescriptorService(),
+            new UnusedProfileSelectionService());
+    }
+
     private sealed class ThrowingBuiltInContextProvider
         : IBuiltInErrorCatalogContextProvider
     {
@@ -56,6 +79,25 @@ public sealed class ErrorCatalogRuntimeBuiltInContextProviderExceptionContractTe
             return Task.FromException<Response<ErrorCatalogContext>>(
                 new InvalidOperationException(
                     "Sensitive runtime built-in provider detail must not escape."));
+        }
+    }
+
+    private sealed class CancelingBuiltInContextProvider
+        : IBuiltInErrorCatalogContextProvider
+    {
+        private readonly OperationCanceledException _cancellation;
+
+        public CancelingBuiltInContextProvider(
+            OperationCanceledException cancellation)
+        {
+            _cancellation = cancellation;
+        }
+
+        public Task<Response<ErrorCatalogContext>> LoadAsync(
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromException<Response<ErrorCatalogContext>>(
+                _cancellation);
         }
     }
 
