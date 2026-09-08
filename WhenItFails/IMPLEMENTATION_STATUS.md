@@ -15,57 +15,33 @@ Hardening runtime and service boundaries against malformed dependency behavior, 
 - `ErrorCatalogRuntime` descriptor-service ordinary-exception and cancellation behavior is complete for the current scope.
 - `ErrorCatalogRuntime` profile-selection ordinary-exception and cancellation behavior is complete for the current scope.
 - `ErrorCatalogRuntime` context-store `GetCurrent()` null-response, ordinary-exception, and cancellation behavior is complete for the current scope.
-- Initializer null-response and ordinary-exception behavior are covered and verified.
-- `InitializeCoreAsync(...)` converts ordinary `IErrorCatalogInitializer.InitializeAsync(...)` exceptions into `WIF_INITIALIZER_FAILED` without exposing raw dependency exception text.
-- The complete `WhenItFails.Tests` suite is verified GREEN at 979/979 tests.
-- A focused initializer cancellation contract now requires the exact original `OperationCanceledException` instance to propagate unchanged.
+- `ErrorCatalogRuntime` initializer null-response, ordinary-exception, and cancellation behavior is complete for the current scope.
+- The complete `WhenItFails.Tests` suite is verified GREEN at 980/980 tests.
+- Built-in catalog-provider null-response behavior is already covered for `ResetToDefaultsAsync()` and flexible initialization fallback.
 
 ## Latest committed steps
 
-### 2026-09-08 — ErrorCatalogRuntime initializer cancellation contract
+### 2026-09-08 — verified ErrorCatalogRuntime initializer cancellation contract
 
 Contract commit: `ba3a1137bfcb25f64787b54bff7fada037285b7a`
-
-Updated:
-
-`WhenItFails.Tests/Services/ErrorCatalogRuntimeInitializerExceptionContractTests.cs`
-
-Added:
-
-`InitializeAsync_WhenInitializerCancels_RethrowsSameOperationCanceledException`
-
-Contract:
-
-```text
-IErrorCatalogInitializer.InitializeAsync(...)
-    => faulted task carrying an OperationCanceledException instance
-                         ↓
-rethrow the exact same OperationCanceledException instance
-```
-
-The test uses `Assert.Same(...)`, so future refactoring cannot wrap cancellation, replace it with another cancellation exception, or convert it into `WIF_INITIALIZER_FAILED`.
-
-The test fixture was lightly refactored through a shared `CreateRuntime(...)` helper. All unrelated dependencies remain throwing sentinels, so the contract isolates only the initializer invocation/await boundary.
-
-No production code changed in this step. The current initializer catch filter excludes `OperationCanceledException`, so this focused contract is expected to be GREEN.
-
-### 2026-09-08 — verified ErrorCatalogRuntime initializer exception fix
-
-Production fix commit: `5413dd81365008113dafe4f0e052613578a51978`
-
-Contract commit: `e184100471e2ee8c5946ec2b3ad0f8c30b7c91c3`
 
 Verified locally:
 
 ```text
 WhenItFails.Tests
 Failed:   0
-Passed: 979
+Passed: 980
 Skipped:  0
-Total:  979
+Total:  980
 ```
 
-This confirms that ordinary initializer exceptions become:
+The exact original `OperationCanceledException` instance from `IErrorCatalogInitializer.InitializeAsync(...)` propagates unchanged through the runtime initializer boundary. No production change was required.
+
+### 2026-09-08 — ErrorCatalogRuntime initializer exception fix
+
+Production fix commit: `5413dd81365008113dafe4f0e052613578a51978`
+
+Ordinary initializer exceptions become:
 
 ```text
 Status: Failed
@@ -75,42 +51,27 @@ Message: The error catalog initializer failed.
 
 without exposing raw dependency exception text.
 
-Existing response validation remains outside the exception boundary and preserves distinct null/malformed-response contracts.
-
-### 2026-09-08 — verified ErrorCatalogRuntime context-store cancellation contract
-
-Contract commit: `bde451cb05a9484b193b347f042c728cbbe0340f`
-
-Verified locally at 978/978 tests GREEN. The exact original `OperationCanceledException` instance propagates through the runtime context-store `GetCurrent()` boundary.
-
 ## Verification state
 
-- Complete verified continuation baseline: 979/979 tests GREEN.
-- Runtime descriptor-service, profile-selection, and context-store `GetCurrent()` exception/cancellation boundaries are complete for the current scope.
-- Initializer null-response and ordinary-exception behavior are verified GREEN.
-- Initializer cancellation contract is committed and awaits focused local verification.
-- No production change is expected for the cancellation contract.
+- Complete verified continuation baseline: 980/980 tests GREEN.
+- Runtime descriptor-service, profile-selection, context-store `GetCurrent()`, and initializer exception/cancellation boundaries are complete for the current scope.
+- Built-in catalog-provider null-response behavior is already covered.
+- No ordinary-exception contract currently exists for `IBuiltInErrorCatalogContextProvider.LoadAsync(...)`.
 
-## Recommended verification
+## Recommended next step
 
-Pull current `master` and run the focused initializer cancellation contract:
+Add one focused `ResetToDefaultsAsync()` contract for an ordinary exception from `IBuiltInErrorCatalogContextProvider.LoadAsync(...)`.
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~InitializeAsync_WhenInitializerCancels_RethrowsSameOperationCanceledException"
+Proposed stable runtime contract:
+
+```text
+Status: Failed
+Code: WIF_BUILT_IN_CONTEXT_PROVIDER_FAILED
+Message: The bundled default catalog provider failed.
 ```
 
-If green, run the complete suite:
+The injected provider should expose sensitive text in the thrown exception so the test proves the runtime facade does not leak it.
 
-```powershell
-dotnet test WhenItFails.Tests
-```
-
-Expected complete-suite count: 980 tests.
-
-## Next recommended step
-
-After 980/980 GREEN is confirmed, consider the runtime initializer boundary complete for the current scope.
-
-Then inspect the next distinct initialization dependency boundary. The strongest candidates are `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` and `_contextStore.Set(...)`; choose the next contract only after confirming existing null/malformed coverage and keep the same exception/cancellation separation.
+Do not change production code until the focused RED state is observed. After that, add the smallest exception boundary around the built-in provider invocation/await while preserving `OperationCanceledException` propagation and the existing null-response contract.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
