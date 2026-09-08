@@ -17,22 +17,31 @@ Hardening runtime and service boundaries against malformed dependency behavior, 
 - `ErrorCatalogRuntime` context-store `GetCurrent()` null-response, ordinary-exception, and cancellation behavior is complete for the current scope.
 - `ErrorCatalogRuntime` initializer null-response, ordinary-exception, and cancellation behavior is complete for the current scope.
 - The explicit `ResetToDefaultsAsync()` built-in-provider null-response, ordinary-exception, and cancellation boundary is complete for the current scope.
-- The complete `WhenItFails.Tests` suite is verified GREEN at 982/982 tests.
-- Flexible initialization fallback has a separate direct `_builtInContextProvider.LoadAsync(...)` invocation and now has a focused ordinary-exception contract awaiting RED verification.
+- The complete `WhenItFails.Tests` suite is verified GREEN at 982/982 tests before the flexible-fallback exception contract.
+- Flexible initialization fallback has its own provider-load boundary. Ordinary provider exceptions are now normalized to `WIF_BUILT_IN_CONTEXT_PROVIDER_FAILED` before the existing fallback wrapper processes them.
+- The flexible-fallback ordinary-exception contract is verified RED before the production fix and now awaits focused GREEN verification.
 
 ## Latest committed steps
 
-### 2026-09-08 — flexible fallback built-in-provider exception contract
+### 2026-09-08 — flexible fallback built-in-provider exception fix
 
-Contract commit: `76de742808ee09d05fedda1ef9089b67e3a1ab90`
+Production fix commit: `3a4abe0052d04b4112d9150a7a7e8d3cc749568b`
 
-Added:
+Changed:
 
-`WhenItFails.Tests/Services/ErrorCatalogRuntimeBuiltInContextProviderFlexibleFallbackExceptionContractTests.InitializeAsync_WhenFlexibleFallbackProviderThrows_ReturnsStableFallbackFailure`
+`WhenItFails/Services/ErrorCatalogRuntime.cs`
 
-The test forces configured initialization to fail, provides no previous context, and makes `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` return a faulted task with sensitive raw exception text.
+Only the `_builtInContextProvider.LoadAsync(...)` invocation/await inside `CreateBuiltInFallbackResponseAsync(...)` is wrapped in a narrow exception boundary.
 
-The public flexible-fallback wrapper must remain:
+Ordinary provider exceptions are converted into an internal context response:
+
+```text
+Status: Failed
+Code: WIF_BUILT_IN_CONTEXT_PROVIDER_FAILED
+Message: The bundled default catalog provider failed.
+```
+
+That internal response is then handled by the existing `CreateBuiltInFallbackFailureResponse(...)`, preserving the established public wrapper:
 
 ```text
 Status: Failed
@@ -40,7 +49,7 @@ Code: WIF_DEFAULT_FALLBACK_FAILED
 Message: The configured error catalog failed and the bundled default catalog could not be activated.
 ```
 
-The normalized provider failure must be preserved in metadata:
+and metadata:
 
 ```text
 WhenItFails.FallbackFailure.Code = WIF_BUILT_IN_CONTEXT_PROVIDER_FAILED
@@ -48,68 +57,73 @@ WhenItFails.FallbackFailure.Status = Failed
 WhenItFails.FallbackFailure.Message = The bundled default catalog provider failed.
 ```
 
-The original provider exception text must not escape.
+The catch filter excludes `OperationCanceledException`, so cancellation is still intended to propagate unchanged.
 
-`EmptyContextStore.Set(...)` is a throwing sentinel, proving the test cannot pass by accidentally advancing beyond provider loading.
+The production diff was checked after commit and contains only the intended flexible-fallback provider-load boundary.
 
-No production code changed in this step. `CreateBuiltInFallbackResponseAsync(...)` still directly awaits `_builtInContextProvider.LoadAsync(...)`, so this contract is expected to be RED with the raw exception escaping.
+### 2026-09-08 — verified RED flexible fallback provider exception contract
+
+Contract commit: `76de742808ee09d05fedda1ef9089b67e3a1ab90`
+
+Focused test:
+
+`WhenItFails.Tests/Services/ErrorCatalogRuntimeBuiltInContextProviderFlexibleFallbackExceptionContractTests.InitializeAsync_WhenFlexibleFallbackProviderThrows_ReturnsStableFallbackFailure`
+
+Observed locally on Windows before the production fix:
+
+```text
+Failed: 1
+Passed: 0
+Skipped: 0
+Total: 1
+```
+
+Failure:
+
+```text
+System.InvalidOperationException:
+Sensitive flexible fallback provider detail must not escape.
+```
+
+The exception escaped directly through `CreateBuiltInFallbackResponseAsync(...)`, confirming that the flexible fallback path was a distinct unguarded provider invocation site.
 
 ### 2026-09-08 — verified ErrorCatalogRuntime built-in provider cancellation contract
 
 Contract commit: `7f7ef67223cc67614282f2a43bd0284bad4a55e1`
 
-Verified locally:
-
-```text
-WhenItFails.Tests
-Failed:   0
-Passed: 982
-Skipped:  0
-Total:  982
-```
-
-The exact original `OperationCanceledException` instance from `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` propagates unchanged through `ResetToDefaultsAsync()`.
-
-Together with the ordinary-exception and null-response contracts, this completes the explicit reset provider boundary for the current scope.
+Verified locally at 982/982 tests GREEN. The exact original `OperationCanceledException` instance from `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` propagates unchanged through `ResetToDefaultsAsync()`.
 
 ## Verification state
 
-- Complete verified continuation baseline: 982/982 tests GREEN.
+- Verified continuation baseline before the flexible-fallback exception contract: 982/982 tests GREEN.
 - Runtime descriptor-service, profile-selection, context-store `GetCurrent()`, initializer, and explicit reset built-in-provider exception/cancellation boundaries are complete for the current scope.
 - Flexible fallback null-response behavior is already verified and uses `WIF_DEFAULT_FALLBACK_FAILED` with `WhenItFails.FallbackFailure.*` metadata.
-- Flexible fallback ordinary-exception contract is committed and awaits focused local verification.
-- Production `CreateBuiltInFallbackResponseAsync(...)` remains unchanged until the RED state is observed.
-- Expected complete-suite count once the new contract eventually passes: 983 tests.
+- Flexible fallback ordinary-exception contract is verified RED before the production fix.
+- Production flexible-fallback provider exception boundary is committed and awaits focused local verification.
+- Expected complete-suite count after the new contract passes: 983 tests.
 
 ## Recommended verification
 
-Pull current `master` and run only the new flexible-fallback provider contract:
+Pull current `master` and run the focused flexible-fallback provider contract:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~InitializeAsync_WhenFlexibleFallbackProviderThrows_ReturnsStableFallbackFailure"
 ```
 
-Expected current result: RED with the original exception text:
+Expected result after the production fix: GREEN.
 
-```text
-Sensitive flexible fallback provider detail must not escape.
+Then run the complete suite:
+
+```powershell
+dotnet test WhenItFails.Tests
 ```
+
+Expected complete-suite result: 983/983 GREEN.
 
 ## Next recommended step
 
-If the focused contract fails as expected, add the smallest exception boundary around the `_builtInContextProvider.LoadAsync(...)` invocation/await in `CreateBuiltInFallbackResponseAsync(...)`.
+After 983/983 GREEN is confirmed, add one focused cancellation contract proving that an `OperationCanceledException` from the flexible fallback provider invocation propagates as the exact original exception instance rather than becoming `WIF_BUILT_IN_CONTEXT_PROVIDER_FAILED` or `WIF_DEFAULT_FALLBACK_FAILED`.
 
-Convert ordinary provider exceptions into an internal `Response<ErrorCatalogContext>.Fail(...)` using:
-
-```text
-WIF_BUILT_IN_CONTEXT_PROVIDER_FAILED
-The bundled default catalog provider failed.
-```
-
-and then let the existing `CreateBuiltInFallbackFailureResponse(...)` preserve the established `WIF_DEFAULT_FALLBACK_FAILED` wrapper and metadata contract.
-
-Allow `OperationCanceledException` to propagate unchanged.
-
-Do not harden `_contextStore.Set(...)` or add cancellation in the same production step. First verify the single ordinary-exception contract.
+If that passes without production changes, consider the built-in provider boundary complete for both explicit reset and flexible fallback paths, then inspect `_contextStore.Set(...)` as the next distinct runtime dependency boundary.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
