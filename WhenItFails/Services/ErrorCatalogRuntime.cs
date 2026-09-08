@@ -529,9 +529,20 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                 initializationResponse,
             CancellationToken cancellationToken)
     {
-        Response<ErrorCatalogContext>? fallbackResponse =
-            await _builtInContextProvider.LoadAsync(
-                cancellationToken);
+        Response<ErrorCatalogContext>? fallbackResponse;
+
+        try
+        {
+            fallbackResponse =
+                await _builtInContextProvider.LoadAsync(
+                    cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            fallbackResponse = Response<ErrorCatalogContext>.Fail(
+                code: "WIF_BUILT_IN_CONTEXT_PROVIDER_FAILED",
+                message: "The bundled default catalog provider failed.");
+        }
 
         if (fallbackResponse is null)
         {
