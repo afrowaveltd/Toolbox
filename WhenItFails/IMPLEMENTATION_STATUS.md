@@ -16,11 +16,38 @@ Hardening runtime and service boundaries against malformed dependency behavior, 
 - `IErrorCatalogInitializer.InitializeAsync(...)` null-response, ordinary-exception, and exact-instance cancellation behavior are complete.
 - `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` is hardened for both explicit `ResetToDefaultsAsync()` and flexible initialization fallback paths, including null response, ordinary exception, and exact-instance cancellation contracts.
 - The complete `WhenItFails.Tests` suite is locally verified **GREEN at 985/985 tests with zero compiler warnings**.
-- `_contextStore.Set(...)` remains a distinct dependency boundary at three invocation sites: `ResetToDefaultsAsync()`, flexible fallback in `ErrorCatalogRuntime`, and `ErrorCatalogInitializer`.
-- The explicit `ResetToDefaultsAsync()` store-write ordinary-exception contract is verified GREEN after the production fix.
-- `ResetToDefaultsAsync()` converts ordinary context-store `Set(...)` exceptions into `WIF_CONTEXT_STORE_FAILED` without exposing raw dependency text.
+- `_contextStore.Set(...)` is a distinct dependency boundary at three invocation sites: `ResetToDefaultsAsync()`, flexible fallback in `ErrorCatalogRuntime`, and `ErrorCatalogInitializer`.
+- The explicit `ResetToDefaultsAsync()` store-write ordinary-exception behavior is verified GREEN.
+- A focused exact-instance cancellation contract is now committed for the same reset store-write invocation and awaits local verification.
 
 ## Latest committed steps
+
+### 2026-09-08 — ResetToDefaults context-store Set cancellation contract
+
+Contract commit: `a0d49219265cad2aa0d093a76264c456109d097b`
+
+Updated:
+
+`WhenItFails.Tests/Services/ErrorCatalogRuntimeContextStoreSetExceptionContractTests.cs`
+
+Added:
+
+`ResetToDefaultsAsync_WhenContextStoreSetCancels_RethrowsSameOperationCanceledException`
+
+Contract:
+
+```text
+IErrorCatalogContextStore.Set(...)
+    => throws a specific OperationCanceledException instance
+                         ↓
+rethrow the exact same OperationCanceledException instance
+```
+
+The test uses `Assert.Same(...)`, so cancellation cannot be wrapped, replaced, or normalized into `WIF_CONTEXT_STORE_FAILED`.
+
+The fixture now uses a shared `CreateRuntime(...)` helper. The built-in provider returns a successful non-null context so the test reaches exactly the store-write boundary.
+
+No production code changed in this step. The current `ResetToDefaultsAsync()` catch filter around `Set(...)` excludes `OperationCanceledException`, so the focused contract is expected to be GREEN.
 
 ### 2026-09-08 — verified ResetToDefaults context-store Set exception fix
 
@@ -39,7 +66,7 @@ Total:  985
 Compiler warnings: 0
 ```
 
-The explicit reset store-write boundary now converts ordinary `IErrorCatalogContextStore.Set(...)` exceptions into:
+The explicit reset store-write boundary converts ordinary `IErrorCatalogContextStore.Set(...)` exceptions into:
 
 ```text
 Status: Failed
@@ -50,39 +77,39 @@ Message: The error catalog context store failed.
 
 without exposing the original dependency exception text.
 
-The catch filter excludes `OperationCanceledException`, so cancellation is still intended to propagate unchanged.
-
-### 2026-09-08 — verified RED ResetToDefaults context-store Set contract
-
-The focused contract was observed RED before the production fix with the raw message:
-
-```text
-Sensitive runtime context store Set detail must not escape.
-```
-
-This confirmed the missing boundary at the exact `_contextStore.Set(...)` invocation in `ResetToDefaultsAsync()`.
-
 ## Verification state
 
 - Clean continuation baseline: **985/985 GREEN, zero compiler warnings**.
 - Built-in provider boundary is complete for the current scope.
 - Explicit reset store-write ordinary-exception behavior is verified GREEN.
-- Cancellation behavior for the same `Set(...)` invocation is not yet locked by a focused exact-instance contract.
+- Exact-instance cancellation contract for the same `Set(...)` invocation is committed and awaits focused local verification.
+- No production change is expected for this cancellation contract.
+- Expected complete-suite count after the new contract passes: **986 tests**.
 
 ## Recommended verification
 
-No additional verification is required for the ordinary-exception contract; 985/985 GREEN is the current verified baseline.
+Pull current `master` and run the focused cancellation contract:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResetToDefaultsAsync_WhenContextStoreSetCancels_RethrowsSameOperationCanceledException"
+```
+
+Expected result: GREEN.
+
+Then run the complete suite:
+
+```powershell
+dotnet test WhenItFails.Tests
+```
+
+Expected complete-suite result: **986/986 GREEN with zero compiler warnings**.
 
 ## Next recommended step
 
-Add one focused exact-instance cancellation contract for the same `ResetToDefaultsAsync()` `_contextStore.Set(...)` invocation.
+After 986/986 GREEN is confirmed, consider the explicit `ResetToDefaultsAsync()` store-write boundary complete for the current scope.
 
-Require the exact original `OperationCanceledException` instance to propagate unchanged. Do not convert cancellation into `WIF_CONTEXT_STORE_FAILED`.
+Then add one focused ordinary-exception contract for the separate flexible-fallback `_contextStore.Set(...)` invocation in `CreateBuiltInFallbackResponseAsync(...)`. Keep the established flexible-fallback wrapper semantics intact and do not modify `ErrorCatalogInitializer` in the same step.
 
-No production change is expected because the current catch filter excludes `OperationCanceledException`.
-
-After that contract is GREEN, consider the explicit reset store-write boundary complete for the current scope. Then move to the separate flexible-fallback `_contextStore.Set(...)` invocation, again ordinary exception first and cancellation second.
-
-Do not modify `ErrorCatalogInitializer` in the same step.
+After that ordinary-exception behavior is verified/fixed, add the corresponding exact-instance cancellation contract.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
