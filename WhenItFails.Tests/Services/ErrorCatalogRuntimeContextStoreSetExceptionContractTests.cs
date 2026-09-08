@@ -4,6 +4,7 @@ using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Descriptors;
+using Afrowave.Toolbox.WhenItFails.Enums;
 using Afrowave.Toolbox.WhenItFails.Initialization;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
 using Afrowave.Toolbox.WhenItFails.Services;
@@ -56,12 +57,71 @@ public sealed class ErrorCatalogRuntimeContextStoreSetExceptionContractTests
         Assert.Same(cancellation, thrown);
     }
 
+    [Fact]
+    public async Task InitializeAsync_WhenFlexibleFallbackContextStoreSetThrows_ReturnsStableFallbackFailure()
+    {
+        ErrorCatalogRuntime runtime = CreateFlexibleRuntime(
+            new EmptyThrowingSetContextStore());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.InitializeAsync(new JsonsOptions());
+
+        Assert.NotNull(response);
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal(
+            "The configured error catalog failed and the bundled default catalog could not be activated.",
+            response.Message);
+
+        Assert.Collection(
+            response.Issues,
+            issue =>
+            {
+                Assert.Equal("WIF_DEFAULT_FALLBACK_FAILED", issue.Code);
+                Assert.Equal(
+                    "The configured error catalog failed and the bundled default catalog could not be activated.",
+                    issue.Message);
+            });
+
+        Assert.Equal(
+            "CatalogDocumentsInvalid",
+            response.Metadata["WhenItFails.ProjectFailure.Code"]);
+
+        Assert.Equal(
+            "WIF_CONTEXT_STORE_FAILED",
+            response.Metadata["WhenItFails.FallbackFailure.Code"]);
+
+        Assert.Equal(
+            ResultStatus.Failed.ToString(),
+            response.Metadata["WhenItFails.FallbackFailure.Status"]);
+
+        Assert.Equal(
+            "The error catalog context store failed.",
+            response.Metadata["WhenItFails.FallbackFailure.Message"]);
+    }
+
     private static ErrorCatalogRuntime CreateRuntime(
         IErrorCatalogContextStore contextStore)
     {
         return new ErrorCatalogRuntime(
             new UnusedInitializer(),
             new WhenItFailsOptions(),
+            contextStore,
+            new SuccessfulBuiltInContextProvider(),
+            new UnusedDescriptorService(),
+            new UnusedProfileSelectionService());
+    }
+
+    private static ErrorCatalogRuntime CreateFlexibleRuntime(
+        IErrorCatalogContextStore contextStore)
+    {
+        return new ErrorCatalogRuntime(
+            new FailingInitializer(),
+            new WhenItFailsOptions
+            {
+                InitializationMode = ErrorCatalogInitializationMode.Flexible
+            },
             contextStore,
             new SuccessfulBuiltInContextProvider(),
             new UnusedDescriptorService(),
@@ -100,6 +160,26 @@ public sealed class ErrorCatalogRuntimeContextStoreSetExceptionContractTests
         }
     }
 
+    private sealed class EmptyThrowingSetContextStore : IErrorCatalogContextStore
+    {
+        public bool IsInitialized => false;
+
+        public ErrorCatalogContext? Current => null;
+
+        public Response<ErrorCatalogContext> GetCurrent()
+        {
+            return Response<ErrorCatalogContext>.Invalid(
+                code: "ErrorCatalogContextNotInitialized",
+                message: "The error catalog context has not been initialized.");
+        }
+
+        public void Set(ErrorCatalogContext context)
+        {
+            throw new InvalidOperationException(
+                "Sensitive flexible fallback context store Set detail must not escape.");
+        }
+    }
+
     private sealed class CancelingSetContextStore : IErrorCatalogContextStore
     {
         private readonly OperationCanceledException _cancellation;
@@ -124,6 +204,19 @@ public sealed class ErrorCatalogRuntimeContextStoreSetExceptionContractTests
         public void Set(ErrorCatalogContext context)
         {
             throw _cancellation;
+        }
+    }
+
+    private sealed class FailingInitializer : IErrorCatalogInitializer
+    {
+        public Task<Response<ErrorCatalogInitializationPayload>> InitializeAsync(
+            JsonsOptions options,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(
+                Response<ErrorCatalogInitializationPayload>.Invalid(
+                    code: "CatalogDocumentsInvalid",
+                    message: "Catalog documents are invalid."));
         }
     }
 
