@@ -15,13 +15,8 @@ public sealed class ErrorCatalogRuntimeProfileSelectionServiceExceptionContractT
     [Fact]
     public void ResolveProfile_WhenProfileSelectionServiceThrows_ReturnsStableFailure()
     {
-        ErrorCatalogRuntime runtime = new(
-            new UnusedInitializer(),
-            new WhenItFailsOptions(),
-            new SuccessfulContextStore(),
-            new UnusedBuiltInContextProvider(),
-            new UnusedDescriptorService(),
-            new ThrowingProfileSelectionService());
+        ErrorCatalogRuntime runtime =
+            CreateRuntime(new ThrowingProfileSelectionService());
 
         Response<IReadOnlyList<ErrorDefinition>> response =
             runtime.ResolveProfile("DEFAULT");
@@ -43,6 +38,35 @@ public sealed class ErrorCatalogRuntimeProfileSelectionServiceExceptionContractT
                     "The error profile selection service failed.",
                     issue.Message);
             });
+    }
+
+    [Fact]
+    public void ResolveProfile_WhenProfileSelectionServiceCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "Profile selection cancellation must propagate unchanged.");
+
+        ErrorCatalogRuntime runtime =
+            CreateRuntime(
+                new CancellingProfileSelectionService(cancellation));
+
+        OperationCanceledException thrown =
+            Assert.Throws<OperationCanceledException>(
+                () => runtime.ResolveProfile("DEFAULT"));
+
+        Assert.Same(cancellation, thrown);
+    }
+
+    private static ErrorCatalogRuntime CreateRuntime(
+        IErrorProfileSelectionService profileSelectionService)
+    {
+        return new ErrorCatalogRuntime(
+            new UnusedInitializer(),
+            new WhenItFailsOptions(),
+            new SuccessfulContextStore(),
+            new UnusedBuiltInContextProvider(),
+            new UnusedDescriptorService(),
+            profileSelectionService);
     }
 
     private sealed class SuccessfulContextStore : IErrorCatalogContextStore
@@ -73,6 +97,25 @@ public sealed class ErrorCatalogRuntimeProfileSelectionServiceExceptionContractT
         {
             throw new InvalidOperationException(
                 "Sensitive runtime profile selection detail must not escape.");
+        }
+    }
+
+    private sealed class CancellingProfileSelectionService
+        : IErrorProfileSelectionService
+    {
+        private readonly OperationCanceledException _cancellation;
+
+        public CancellingProfileSelectionService(
+            OperationCanceledException cancellation)
+        {
+            _cancellation = cancellation;
+        }
+
+        public Response<IReadOnlyList<ErrorDefinition>> ResolveByProfileName(
+            ErrorCatalogContext? context,
+            string profileName)
+        {
+            throw _cancellation;
         }
     }
 
