@@ -291,8 +291,18 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
     private Response<ErrorCatalogContext>
         GetCurrentContextResponse()
     {
-        Response<ErrorCatalogContext>? response =
-            _contextStore.GetCurrent();
+        Response<ErrorCatalogContext>? response;
+
+        try
+        {
+            response = _contextStore.GetCurrent();
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<ErrorCatalogContext>.Fail(
+                code: "WIF_CONTEXT_STORE_FAILED",
+                message: "The error catalog context store failed.");
+        }
 
         return response
             ?? Response<ErrorCatalogContext>.Invalid(
