@@ -266,7 +266,7 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
             options.PackageDirectoryName,
             "WIF_JSONS_PACKAGE_DIRECTORY_NAME_NULL",
             "The package directory name cannot be null.",
-            "WIF_JSONS_PACKAGE_DIRECTORY_EMPTY",
+            "WIF_JSONS_PACKAGE_DIRECTORY_NAME_EMPTY",
             "The package directory name cannot be empty.");
 
         if (response is not null)
