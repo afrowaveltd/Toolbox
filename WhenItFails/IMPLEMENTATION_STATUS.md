@@ -17,29 +17,16 @@ Hardening dependency boundaries while preserving established public exception co
 - `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` as consumed by `ErrorCatalogInitializer` is complete for the current scope.
 - The recovery baseline is locally verified **GREEN at 994/994 tests with zero compiler warnings**.
 - `ErrorCatalogContextProvider` is intentionally a transparent orchestration boundary for exceptions thrown by its five internal catalog providers; do not normalize them there.
-- Reconnaissance has moved one layer down to `ErrorCatalogProvider`, whose malformed/null dependency outputs are already normalized into stable responses.
-- A focused ordinary-exception contract is now committed for `IErrorCatalogLoader.LoadFromFileAsync(...)` and awaits local RED verification.
+- `ErrorCatalogProvider` is the current normalization boundary under audit.
+- The focused loader ordinary-exception contract is verified RED and the smallest production guard is now committed.
 
-## 2026-09-09 — error catalog loader ordinary-exception contract
+## 2026-09-09 — error catalog loader ordinary-exception fix
 
-Contract commit: `67a0650343d0af60f975e98aa6fcf3b5d387dd27`
+Production fix commit: `49ab1d418217d3745f256b347efee379fe374934`
 
-Added:
+Changed only the `_loader.LoadFromFileAsync(...)` invocation inside `ErrorCatalogProvider.LoadFromFileAsync(...)`.
 
-`WhenItFails.Tests/Catalog/ErrorCatalogProviderLoaderExceptionContractTests.cs`
-
-Test:
-
-`LoadFromFileAsync_WhenLoaderThrows_ReturnsStableFailure`
-
-The loader returns a faulted task containing:
-
-```text
-System.InvalidOperationException:
-Sensitive error catalog loader detail must not escape.
-```
-
-Required stable `ErrorCatalogProvider` contract:
+Ordinary exceptions are now converted to:
 
 ```text
 Status: Failed
@@ -48,11 +35,37 @@ Code: WIF_ERROR_CATALOG_LOADER_FAILED
 Message: The error catalog loader failed.
 ```
 
-The raw loader exception text must not be exposed through the response.
+The catch filter excludes `OperationCanceledException`, so cancellation continues to propagate unchanged.
 
-The normalizer, validator, and factory fixtures throw if called, so the test also locks short-circuit behavior after loader failure.
+The production commit diff was checked and contains only the intended loader exception guard. Existing null-response, failed-response, null-document, normalizer, validator, factory, and payload behavior remain unchanged.
 
-No production code changed. `ErrorCatalogProvider.LoadFromFileAsync(...)` currently awaits `_loader.LoadFromFileAsync(...)` directly, so the focused contract is expected to be RED with the raw loader exception escaping.
+## 2026-09-09 — verified RED error catalog loader contract
+
+Contract commit: `67a0650343d0af60f975e98aa6fcf3b5d387dd27`
+
+Focused test:
+
+`WhenItFails.Tests.Catalog.ErrorCatalogProviderLoaderExceptionContractTests.LoadFromFileAsync_WhenLoaderThrows_ReturnsStableFailure`
+
+Observed locally before the production fix:
+
+```text
+Failed: 1
+Passed: 0
+Skipped: 0
+Total: 1
+```
+
+Failure:
+
+```text
+System.InvalidOperationException:
+Sensitive error catalog loader detail must not escape.
+```
+
+The exception escaped directly from `_loader.LoadFromFileAsync(...)` through `ErrorCatalogProvider.LoadFromFileAsync(...)`, confirming the missing loader exception boundary.
+
+The normalizer, validator, and factory fixtures are configured to throw if reached, so the contract also requires short-circuit behavior after loader failure.
 
 ## 2026-09-09 — 994/994 GREEN recovery checkpoint
 
@@ -104,30 +117,32 @@ Repository searches found no existing `ErrorCatalogProvider` contract requiring 
 ## Verification state
 
 - Clean baseline before the new contract: **994/994 GREEN, zero compiler warnings**.
-- Loader ordinary-exception contract is committed and awaits focused RED verification.
-- Production `ErrorCatalogProvider` remains unchanged until RED is observed.
-- Expected complete-suite count after this contract eventually passes: **995 tests**.
+- Loader ordinary-exception contract is verified RED before the production fix.
+- Production loader guard is committed and awaits focused local GREEN verification.
+- Expected complete-suite count after the new contract passes: **995 tests**.
 
 ## Recommended verification
 
-Pull current `master` and run only the new loader contract:
+Pull current `master` and run only the loader contract:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadFromFileAsync_WhenLoaderThrows_ReturnsStableFailure"
 ```
 
-Expected current result: RED with the original exception text:
+Expected result after the production fix: GREEN.
 
-```text
-Sensitive error catalog loader detail must not escape.
+Then run the complete suite:
+
+```powershell
+dotnet test WhenItFails.Tests
 ```
+
+Expected complete-suite result: **995/995 GREEN with zero compiler warnings**.
 
 ## Next recommended step
 
-If RED is confirmed, add the smallest exception boundary around only `_loader.LoadFromFileAsync(...)` inside `ErrorCatalogProvider.LoadFromFileAsync(...)`.
+After **995/995 GREEN** is confirmed, add a separate exact-instance cancellation contract for `IErrorCatalogLoader.LoadFromFileAsync(...)`.
 
-Convert ordinary exceptions into `WIF_ERROR_CATALOG_LOADER_FAILED` / `The error catalog loader failed.` while allowing `OperationCanceledException` to propagate unchanged.
-
-After focused and full GREEN, add exact-instance cancellation as a separate loader contract before considering normalizer exception behavior.
+If that passes without production changes, consider the loader boundary complete for the current scope and then inspect the normalizer exception boundary separately, again checking existing propagation/shape contracts before adding a RED test.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
