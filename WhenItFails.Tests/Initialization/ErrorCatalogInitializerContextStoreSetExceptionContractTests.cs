@@ -40,6 +40,24 @@ public sealed class ErrorCatalogInitializerContextStoreSetExceptionContractTests
             });
     }
 
+    [Fact]
+    public async Task InitializeAsync_WhenContextStoreSetCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "Initializer context store Set cancellation must propagate unchanged.");
+
+        ErrorCatalogInitializer initializer = new(
+            new SuccessfulBootstrapper(),
+            new SuccessfulContextProvider(),
+            new CancelingSetContextStore(cancellation));
+
+        OperationCanceledException thrown =
+            await Assert.ThrowsAsync<OperationCanceledException>(
+                () => initializer.InitializeAsync(new JsonsOptions()));
+
+        Assert.Same(cancellation, thrown);
+    }
+
     private sealed class SuccessfulBootstrapper : IJsonsBootstrapper
     {
         public Task<Response<JsonsBootstrapPayload>> EnsureWorkspaceAsync(
@@ -82,6 +100,33 @@ public sealed class ErrorCatalogInitializerContextStoreSetExceptionContractTests
         {
             throw new InvalidOperationException(
                 "Sensitive initializer context store Set detail must not escape.");
+        }
+    }
+
+    private sealed class CancelingSetContextStore : IErrorCatalogContextStore
+    {
+        private readonly OperationCanceledException _cancellation;
+
+        public CancelingSetContextStore(
+            OperationCanceledException cancellation)
+        {
+            _cancellation = cancellation;
+        }
+
+        public bool IsInitialized =>
+            throw new InvalidOperationException("Unexpected IsInitialized access.");
+
+        public ErrorCatalogContext? Current =>
+            throw new InvalidOperationException("Unexpected Current access.");
+
+        public Response<ErrorCatalogContext> GetCurrent()
+        {
+            throw new InvalidOperationException("Unexpected GetCurrent call.");
+        }
+
+        public void Set(ErrorCatalogContext context)
+        {
+            throw _cancellation;
         }
     }
 }
