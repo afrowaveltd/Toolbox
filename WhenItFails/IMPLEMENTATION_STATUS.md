@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-09-08
+Last updated: 2026-09-09
 
 This file is the continuation point for `WhenItFails` development. Update it after every implementation, test, catalog, or documentation change that alters the current state or recommended next step.
 
@@ -15,28 +15,30 @@ Hardening runtime and service boundaries against malformed dependency behavior, 
 - `IErrorCatalogContextStore.GetCurrent()` null-response, ordinary-exception, and exact-instance cancellation behavior are complete.
 - `IErrorCatalogInitializer.InitializeAsync(...)` null-response, ordinary-exception, and exact-instance cancellation behavior are complete.
 - `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` is hardened for both explicit `ResetToDefaultsAsync()` and flexible initialization fallback paths.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 986/986 tests with zero compiler warnings**.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 986/986 tests with zero compiler warnings** before the flexible-fallback store-write contract.
 - The explicit `ResetToDefaultsAsync()` `_contextStore.Set(...)` boundary is complete for the current scope.
-- A focused ordinary-exception contract is now committed for the separate flexible-fallback `_contextStore.Set(...)` invocation and awaits local RED verification.
+- The flexible-fallback `_contextStore.Set(...)` ordinary-exception contract is verified RED before the production fix.
+- `CreateBuiltInFallbackResponseAsync(...)` now normalizes ordinary context-store write exceptions to `WIF_CONTEXT_STORE_FAILED` and preserves the established `WIF_DEFAULT_FALLBACK_FAILED` wrapper.
 - `ErrorCatalogInitializer` store-write behavior remains intentionally untouched.
 
 ## Latest committed steps
 
-### 2026-09-08 — flexible fallback context-store Set exception contract
+### 2026-09-09 — flexible fallback context-store Set exception fix
 
-Contract commit: `c0d2f39998cd8f316d75bce18dbf4e8079ff2475`
+Production fix commit: `30d67bfb5b7e2dffdbed950ae39558dd6eeed330`
 
-Updated:
+Changed only the `_contextStore.Set(fallbackResponse.Data)` invocation inside `CreateBuiltInFallbackResponseAsync(...)`.
 
-`WhenItFails.Tests/Services/ErrorCatalogRuntimeContextStoreSetExceptionContractTests.cs`
+The store write is now guarded narrowly. Ordinary exceptions are converted to an internal context failure:
 
-Added:
+```text
+Status: Failed
+Data: null
+Code: WIF_CONTEXT_STORE_FAILED
+Message: The error catalog context store failed.
+```
 
-`InitializeAsync_WhenFlexibleFallbackContextStoreSetThrows_ReturnsStableFallbackFailure`
-
-The fixture forces the flexible recovery path by returning a failed configured initialization and no previous valid context. The built-in provider then returns a successful context, and the context store throws from `Set(...)`.
-
-Established public wrapper required by the contract:
+That internal failure is passed through the existing `CreateBuiltInFallbackFailureResponse(...)`, preserving the public wrapper:
 
 ```text
 Status: Failed
@@ -45,7 +47,7 @@ Code: WIF_DEFAULT_FALLBACK_FAILED
 Message: The configured error catalog failed and the bundled default catalog could not be activated.
 ```
 
-The normalized store-write dependency failure must be retained in fallback metadata:
+and fallback metadata:
 
 ```text
 WhenItFails.FallbackFailure.Code = WIF_CONTEXT_STORE_FAILED
@@ -53,19 +55,37 @@ WhenItFails.FallbackFailure.Status = Failed
 WhenItFails.FallbackFailure.Message = The error catalog context store failed.
 ```
 
-The configured initialization failure remains available as:
+The configured initialization failure remains available in `WhenItFails.ProjectFailure.*` metadata.
+
+The catch filter excludes `OperationCanceledException`, so cancellation is still intended to propagate unchanged.
+
+The production diff was checked and contains only the intended flexible-fallback store-write guard.
+
+### 2026-09-09 — verified RED flexible fallback context-store Set contract
+
+Contract commit: `c0d2f39998cd8f316d75bce18dbf4e8079ff2475`
+
+Focused test:
+
+`WhenItFails.Tests/Services/ErrorCatalogRuntimeContextStoreSetExceptionContractTests.InitializeAsync_WhenFlexibleFallbackContextStoreSetThrows_ReturnsStableFallbackFailure`
+
+Observed locally on Windows before the production fix:
 
 ```text
-WhenItFails.ProjectFailure.Code = CatalogDocumentsInvalid
+Failed: 1
+Passed: 0
+Skipped: 0
+Total: 1
 ```
 
-The raw store exception text must not escape:
+Failure:
 
 ```text
+System.InvalidOperationException:
 Sensitive flexible fallback context store Set detail must not escape.
 ```
 
-No production code changed in this step. `_contextStore.Set(fallbackResponse.Data)` inside `CreateBuiltInFallbackResponseAsync(...)` is still a direct unguarded call, so the focused contract is expected to be RED.
+The exception escaped directly from `EmptyThrowingSetContextStore.Set(...)` through `CreateBuiltInFallbackResponseAsync(...)`, confirming the distinct unguarded store-write boundary.
 
 ### 2026-09-08 — 986/986 GREEN reset store-write checkpoint
 
@@ -86,39 +106,34 @@ The exact original `OperationCanceledException` instance from the explicit reset
 
 ## Verification state
 
-- Clean continuation baseline: **986/986 GREEN, zero compiler warnings**.
+- Clean continuation baseline before the new flexible-fallback contract: **986/986 GREEN, zero compiler warnings**.
 - Explicit reset store-write boundary is complete.
-- Flexible-fallback store-write ordinary-exception contract is committed and awaits focused local RED verification.
-- Production flexible-fallback store-write code remains unchanged until RED is observed.
-- Expected complete-suite count once the new contract eventually passes: **987 tests**.
+- Flexible-fallback store-write ordinary-exception contract is verified RED before the production fix.
+- Production flexible-fallback store-write guard is committed and awaits focused local GREEN verification.
+- Expected complete-suite count after the new contract passes: **987 tests**.
 
 ## Recommended verification
 
-Pull current `master` and run only the new contract:
+Pull current `master` and run the focused contract:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~InitializeAsync_WhenFlexibleFallbackContextStoreSetThrows_ReturnsStableFallbackFailure"
 ```
 
-Expected current result: RED with the original exception text:
+Expected result after the production fix: GREEN.
 
-```text
-Sensitive flexible fallback context store Set detail must not escape.
+Then run the complete suite:
+
+```powershell
+dotnet test WhenItFails.Tests
 ```
+
+Expected complete-suite result: **987/987 GREEN with zero compiler warnings**.
 
 ## Next recommended step
 
-If the focused RED is confirmed, add the smallest exception boundary around only `_contextStore.Set(fallbackResponse.Data)` in `CreateBuiltInFallbackResponseAsync(...)`.
+After 987/987 GREEN is confirmed, add one focused exact-instance cancellation contract for the same flexible-fallback `_contextStore.Set(...)` invocation.
 
-Convert ordinary store exceptions into an internal `Response<ErrorCatalogContext>.Fail(...)` using:
-
-```text
-WIF_CONTEXT_STORE_FAILED
-The error catalog context store failed.
-```
-
-and pass that internal failure through the existing `CreateBuiltInFallbackFailureResponse(...)` so the established `WIF_DEFAULT_FALLBACK_FAILED` wrapper and metadata contract are preserved.
-
-Allow `OperationCanceledException` to propagate unchanged. Do not modify `ErrorCatalogInitializer` in the same production step.
+If that passes without production changes, consider both runtime store-write invocation sites complete for the current scope. Then inspect the separate `_contextStore.Set(...)` inside `ErrorCatalogInitializer`, again ordinary exception first and cancellation second.
 
 Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
