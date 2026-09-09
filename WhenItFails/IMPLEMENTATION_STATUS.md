@@ -17,19 +17,46 @@ Hardening initialization dependency boundaries against malformed behavior, raw e
 - `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` is hardened for both explicit `ResetToDefaultsAsync()` and flexible initialization fallback paths.
 - All currently known `IErrorCatalogContextStore.Set(...)` invocation sites are complete for the current scope: explicit reset, flexible fallback, and `ErrorCatalogInitializer` each have ordinary-exception and exact-instance cancellation contracts.
 - The complete `WhenItFails.Tests` suite is locally verified **GREEN at 990/990 tests with zero compiler warnings**.
-- The next distinct unguarded initializer dependency boundary is `IJsonsBootstrapper.EnsureWorkspaceAsync(...)` ordinary-exception behavior.
+- A focused ordinary-exception contract is now committed for `IJsonsBootstrapper.EnsureWorkspaceAsync(...)` as invoked by `ErrorCatalogInitializer.InitializeAsync(...)` and awaits local RED verification.
 
 ## Latest committed steps
 
-### 2026-09-09 — 990/990 GREEN initializer store-write checkpoint
+### 2026-09-09 — initializer bootstrapper ordinary-exception contract
 
-Checkpoint commit: pending current commit.
+Contract commit: `cfe6fc4caf24bcb3a4eda476f135b29f868043d6`
 
-Cancellation contract commit: `68fc86b6c5ef6201c18f555825d33af3c5eeed6e`
+Added:
 
-Production fix commit: `6e18b9ed39a327d241e007dbda69bc81a508e3f5`
+`WhenItFails.Tests/Initialization/ErrorCatalogInitializerBootstrapperExceptionContractTests.cs`
 
-Ordinary-exception contract commit: `71ee95f3621f13eed1cd01f0bdcc0767b98d1754`
+Test:
+
+`InitializeAsync_WhenBootstrapperThrows_ReturnsStableFailure`
+
+The fixture supplies a bootstrapper that throws an ordinary `InvalidOperationException` containing sensitive diagnostic text. A tracking context provider and a store containing a previous context verify that the initializer stops immediately at the bootstrapper boundary.
+
+Required stable initializer contract:
+
+```text
+Status: Failed
+Data: null
+Code: WIF_INITIALIZER_BOOTSTRAPPER_FAILED
+Message: The JSON workspace bootstrapper failed.
+```
+
+The raw exception text must not escape:
+
+```text
+Sensitive initializer bootstrapper detail must not escape.
+```
+
+The context provider must not be called, and the previous store context must remain unchanged.
+
+No production code changed in this step. `ErrorCatalogInitializer.InitializeAsync(...)` currently awaits `_bootstrapper.EnsureWorkspaceAsync(...)` directly, so the focused contract is expected to be RED with the original exception escaping.
+
+### 2026-09-09 — 990/990 GREEN store-boundary checkpoint
+
+Checkpoint commit: `1c2a04bb1757d0f64098a55fa802993b1e80b84e`
 
 Verified locally:
 
@@ -42,19 +69,36 @@ Total:  990
 Compiler warnings: 0
 ```
 
-The exact original `OperationCanceledException` instance thrown by the initializer context-store `Set(...)` invocation propagates unchanged. Together with the verified ordinary-exception behavior, this completes the initializer store-write boundary and all currently known context-store write invocation sites for the current scope.
+The exact original `OperationCanceledException` instance thrown by the initializer context-store `Set(...)` invocation propagates unchanged. This completes all currently known context-store write boundaries for the current scope.
 
 ## Verification state
 
 - Clean continuation baseline: **990/990 GREEN, zero compiler warnings**.
-- All currently known context-store read/write dependency boundaries in the active runtime/initializer scope are complete.
-- `IJsonsBootstrapper.EnsureWorkspaceAsync(...)` already has a null-response contract (`WIF_INITIALIZER_BOOTSTRAPPER_RESPONSE_NULL`) but does not yet have a focused ordinary-exception boundary contract at the initializer call site.
+- All currently known context-store read/write boundaries in the active runtime/initializer scope are complete.
+- `IJsonsBootstrapper.EnsureWorkspaceAsync(...)` null-response behavior is already covered by `WIF_INITIALIZER_BOOTSTRAPPER_RESPONSE_NULL`.
+- The new bootstrapper ordinary-exception contract is committed and awaits focused local RED verification.
+- Production bootstrapper invocation remains unchanged until RED is observed.
+- Expected complete-suite count once the new contract eventually passes: **991 tests**.
 
-## Recommended next step
+## Recommended verification
 
-Add one focused contract for `ErrorCatalogInitializer.InitializeAsync(...)` when `IJsonsBootstrapper.EnsureWorkspaceAsync(...)` throws an ordinary exception.
+Pull current `master` and run only the new contract:
 
-Expected stable initializer contract:
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~InitializeAsync_WhenBootstrapperThrows_ReturnsStableFailure"
+```
+
+Expected current result: RED with the original exception text:
+
+```text
+Sensitive initializer bootstrapper detail must not escape.
+```
+
+## Next recommended step
+
+If RED is confirmed, add the smallest exception boundary around only `_bootstrapper.EnsureWorkspaceAsync(...)` inside `ErrorCatalogInitializer.InitializeAsync(...)`.
+
+Convert ordinary exceptions into:
 
 ```text
 Status: Failed
@@ -63,10 +107,8 @@ Code: WIF_INITIALIZER_BOOTSTRAPPER_FAILED
 Message: The JSON workspace bootstrapper failed.
 ```
 
-The raw bootstrapper exception text must not escape. The context provider must not be called, and any existing context-store state must remain unchanged.
+while allowing `OperationCanceledException` to propagate unchanged.
 
-Observe RED before changing production code. Then add only the smallest exception boundary around the bootstrapper invocation while allowing `OperationCanceledException` to propagate unchanged.
-
-After ordinary-exception behavior is GREEN, add exact-instance bootstrapper cancellation as a separate contract. Do not combine this with `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` hardening.
+After ordinary-exception behavior is GREEN, add a separate exact-instance cancellation contract for the same bootstrapper invocation. Do not modify `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` in the same production step.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
