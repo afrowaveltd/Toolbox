@@ -46,6 +46,25 @@ public sealed class ErrorCatalogProviderLoaderExceptionContractTests
             });
     }
 
+    [Fact]
+    public async Task LoadFromFileAsync_WhenLoaderCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "Error catalog loader cancellation must propagate unchanged.");
+
+        ErrorCatalogProvider provider = new(
+            new CancelingLoader(cancellation),
+            new UnexpectedNormalizer(),
+            new UnexpectedValidator(),
+            new UnexpectedFactory());
+
+        OperationCanceledException thrown =
+            await Assert.ThrowsAsync<OperationCanceledException>(
+                () => provider.LoadFromFileAsync("catalog.json"));
+
+        Assert.Same(cancellation, thrown);
+    }
+
     private sealed class ThrowingLoader : IErrorCatalogLoader
     {
         public Task<Response<ErrorCatalogDocument>> LoadFromFileAsync(
@@ -55,6 +74,24 @@ public sealed class ErrorCatalogProviderLoaderExceptionContractTests
             return Task.FromException<Response<ErrorCatalogDocument>>(
                 new InvalidOperationException(
                     "Sensitive error catalog loader detail must not escape."));
+        }
+    }
+
+    private sealed class CancelingLoader : IErrorCatalogLoader
+    {
+        private readonly OperationCanceledException _cancellation;
+
+        public CancelingLoader(OperationCanceledException cancellation)
+        {
+            _cancellation = cancellation;
+        }
+
+        public Task<Response<ErrorCatalogDocument>> LoadFromFileAsync(
+            string filePath,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromException<Response<ErrorCatalogDocument>>(
+                _cancellation);
         }
     }
 
