@@ -43,10 +43,21 @@ public sealed class ErrorCatalogInitializer : IErrorCatalogInitializer
       cancellationToken.ThrowIfCancellationRequested();
       ArgumentNullException.ThrowIfNull(options);
 
-      Response<JsonsBootstrapPayload>? bootstrapResponse =
-          await _bootstrapper.EnsureWorkspaceAsync(
-              options,
-              cancellationToken);
+      Response<JsonsBootstrapPayload>? bootstrapResponse;
+
+      try
+      {
+         bootstrapResponse =
+             await _bootstrapper.EnsureWorkspaceAsync(
+                 options,
+                 cancellationToken);
+      }
+      catch(Exception exception) when(exception is not OperationCanceledException)
+      {
+         return Response<ErrorCatalogInitializationPayload>.Fail(
+             code: "WIF_INITIALIZER_BOOTSTRAPPER_FAILED",
+             message: "The JSON workspace bootstrapper failed.");
+      }
 
       if(bootstrapResponse is null)
       {
