@@ -15,30 +15,15 @@ Hardening dependency boundaries while preserving established public exception co
 - All currently known `IErrorCatalogContextStore` read/write boundaries in the active runtime/initializer scope are complete.
 - `IJsonsBootstrapper.EnsureWorkspaceAsync(...)` is complete for the current scope.
 - `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` as consumed by `ErrorCatalogInitializer` is complete for the current scope.
-- Last clean locally verified baseline before the internal-provider experiment: **994/994 GREEN, zero compiler warnings**.
+- Last clean locally verified baseline: **994/994 GREEN, zero compiler warnings**.
 - `ErrorCatalogContextProvider` is intentionally a transparent orchestration boundary for exceptions thrown by its five internal catalog providers.
 - Existing contract tests require provider exceptions to propagate unchanged rather than be normalized into `Response<T>` failures.
 
 ## Important regression finding
 
-A new experimental contract attempted to normalize an exception from `IErrorCatalogProvider.LoadFromFileAsync(...)` into `WIF_ERROR_CATALOG_PROVIDER_FAILED`.
+A temporary experiment attempted to normalize an exception from `IErrorCatalogProvider.LoadFromFileAsync(...)` into `WIF_ERROR_CATALOG_PROVIDER_FAILED`.
 
-That production change caused seven existing tests to fail in the full suite. The failures proved that the established behavior is intentional and broad:
-
-- direct synchronous provider exceptions propagate unchanged;
-- faulted provider tasks propagate the original exception instance;
-- different exception types such as `FormatException` are preserved;
-- outer/inner exception references are preserved;
-- `Exception.Data` entries are preserved;
-- custom exception properties are preserved;
-- later providers are not invoked after an earlier provider throws.
-
-Relevant existing suites:
-
-- `WhenItFails.Tests/Catalog/ErrorCatalogContextProviderProviderExceptionPropagationTests.cs`
-- `WhenItFails.Tests/Catalog/ErrorCatalogContextProviderExceptionShapeTests.cs`
-
-The full regression run after the attempted normalization reported:
+The full suite immediately exposed the conflict:
 
 ```text
 Total: 995
@@ -47,33 +32,66 @@ Failed: 7
 Skipped: 0
 ```
 
-## Restoration
+The failing pre-existing tests prove that exception transparency is deliberate and broad. They require preservation of:
 
-The temporary first-provider exception guard has been removed from:
+- direct synchronous provider exceptions;
+- faulted provider task exception identity;
+- concrete exception type;
+- outer/inner exception references;
+- `Exception.Data` entries;
+- custom exception properties;
+- short-circuiting so later providers are not invoked.
 
-`WhenItFails/Catalog/ErrorCatalogContextProvider.cs`
+Relevant established suites:
 
-Restoration commits:
+- `WhenItFails.Tests/Catalog/ErrorCatalogContextProviderProviderExceptionPropagationTests.cs`
+- `WhenItFails.Tests/Catalog/ErrorCatalogContextProviderExceptionShapeTests.cs`
 
-- `b211eda61ec9dc538b499fd9b67b4f9a412b1bab` — restore provider exception propagation;
-- `f0912a656743c3bf8af272cdc186e96eb454f9ec` — restore the original `WIF_JSONS_PACKAGE_DIRECTORY_NAME_EMPTY` validation code after a mechanical full-file replacement typo.
+These tests also cover all five provider positions for ordinary exception propagation and cancellation behavior for the first provider.
 
-The resulting production file blob is back to the exact pre-experiment SHA:
+## Recovery completed
+
+The experimental production guard was removed and `ErrorCatalogContextProvider.cs` is back to the exact pre-experiment blob:
 
 `79e298aafcdb07bd521ef7eff9d04d0f2e7e88af`
 
-## Pending cleanup
+Recovery commits:
 
-The temporary contradictory test file still needs to be removed:
+- `b211eda61ec9dc538b499fd9b67b4f9a412b1bab` — restore provider exception propagation;
+- `f0912a656743c3bf8af272cdc186e96eb454f9ec` — restore the original package-directory validation code after a mechanical full-file replacement typo;
+- `9d316fdaa1759459e218191552382c7951d2980d` — remove the contradictory temporary normalization test.
 
-`WhenItFails.Tests/Catalog/ErrorCatalogContextProviderErrorCatalogProviderExceptionContractTests.cs`
+The temporary test count increase is gone, so the expected complete-suite count is again **994 tests**.
 
-After that removal, run the complete suite again. Expected count returns to **994 tests**.
+## Verification state
+
+- Production behavior is restored to the established provider pass-through contract.
+- Contradictory experimental test has been removed.
+- No intended earlier initializer/runtime hardening was reverted.
+- Local full-suite recovery verification is now required.
+
+## Recommended verification
+
+Pull current `master` and run:
+
+```powershell
+dotnet test WhenItFails.Tests
+```
+
+Expected result:
+
+```text
+Failed:   0
+Passed: 994
+Skipped:  0
+Total:  994
+Compiler warnings: 0
+```
 
 ## Next recommended step
 
-Do not add normalization guards around the five internal provider calls in `ErrorCatalogContextProvider`; their exception pass-through behavior is an established contract.
+After **994/994 GREEN** is reconfirmed, treat all five internal provider exception calls in `ErrorCatalogContextProvider` as an already-defined transparent boundary and do not add normalization guards there.
 
-After restoring **994/994 GREEN**, continue reconnaissance outside this transparent orchestration boundary for the next dependency call whose existing contracts actually permit normalization/hardening.
+Continue reconnaissance outside this boundary for the next dependency call whose existing contracts permit normalization/hardening. Before adding any new exception contract, first search for existing propagation/shape tests to avoid changing an established semantic contract.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
