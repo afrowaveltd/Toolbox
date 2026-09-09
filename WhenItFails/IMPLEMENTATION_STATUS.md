@@ -16,19 +16,29 @@ Hardening initialization and runtime dependency boundaries against malformed beh
 - `IErrorCatalogInitializer.InitializeAsync(...)` as consumed by `ErrorCatalogRuntime` has null-response, ordinary-exception, and exact-instance cancellation contracts.
 - `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` is hardened for both explicit `ResetToDefaultsAsync()` and flexible initialization fallback paths.
 - Both `ErrorCatalogRuntime` `_contextStore.Set(...)` invocation sites are complete for the current scope: explicit reset and flexible fallback each have ordinary-exception and exact-instance cancellation contracts.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 988/988 tests with zero compiler warnings** before the initializer store-write contract.
-- The initializer `_contextStore.Set(...)` ordinary-exception contract is verified RED before the production fix.
 - `ErrorCatalogInitializer.InitializeAsync(...)` now converts ordinary context-store write exceptions into `WIF_CONTEXT_STORE_FAILED` without exposing raw dependency text.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 989/989 tests with zero compiler warnings**.
 
 ## Latest committed steps
 
-### 2026-09-09 — initializer context-store Set exception fix
+### 2026-09-09 — 989/989 GREEN initializer store-write checkpoint
 
 Production fix commit: `6e18b9ed39a327d241e007dbda69bc81a508e3f5`
 
-Changed only `_contextStore.Set(contextResponse.Data)` inside `ErrorCatalogInitializer.InitializeAsync(...)`.
+Ordinary-exception contract commit: `71ee95f3621f13eed1cd01f0bdcc0767b98d1754`
 
-Ordinary exceptions are now converted to:
+Verified locally:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 989
+Skipped:  0
+Total:  989
+Compiler warnings: 0
+```
+
+The initializer store-write ordinary exception is converted to:
 
 ```text
 Status: Failed
@@ -37,83 +47,34 @@ Code: WIF_CONTEXT_STORE_FAILED
 Message: The error catalog context store failed.
 ```
 
-The catch filter excludes `OperationCanceledException`, so cancellation is still intended to propagate unchanged.
-
-The production diff was checked and contains only the intended initializer store-write guard.
+without exposing the original `IErrorCatalogContextStore.Set(...)` exception text.
 
 ### 2026-09-09 — verified RED initializer context-store Set contract
 
-Contract commit: `71ee95f3621f13eed1cd01f0bdcc0767b98d1754`
-
-Focused test:
-
-`WhenItFails.Tests/Initialization/ErrorCatalogInitializerContextStoreSetExceptionContractTests.InitializeAsync_WhenContextStoreSetThrows_ReturnsStableFailure`
-
-Observed locally before the production fix:
-
-```text
-Failed: 1
-Passed: 0
-Skipped: 0
-Total: 1
-```
-
-Failure:
+Before the production fix, the focused contract failed with the original dependency exception:
 
 ```text
 System.InvalidOperationException:
 Sensitive initializer context store Set detail must not escape.
 ```
 
-The exception escaped directly from `ThrowingSetContextStore.Set(...)` through `ErrorCatalogInitializer.InitializeAsync(...)`, confirming the missing initializer store-write boundary.
-
-### 2026-09-09 — 988/988 GREEN runtime store-write checkpoint
-
-Checkpoint commit: `522d9b54326f51c7eb11ca1c8bc34bc17b948395`
-
-Verified locally:
-
-```text
-WhenItFails.Tests
-Failed:   0
-Passed: 988
-Skipped:  0
-Total:  988
-Compiler warnings: 0
-```
-
-Both runtime store-write invocation sites are complete for the current scope.
+This confirmed the initializer store-write boundary independently from the two runtime store-write boundaries.
 
 ## Verification state
 
-- Clean continuation baseline before the initializer store-write contract: **988/988 GREEN, zero compiler warnings**.
+- Clean continuation baseline: **989/989 GREEN, zero compiler warnings**.
 - Both `ErrorCatalogRuntime` store-write boundaries are complete.
-- Initializer store-write ordinary-exception contract is verified RED before the production fix.
-- Production initializer store-write guard is committed and awaits focused local GREEN verification.
-- Expected complete-suite count after the new contract passes: **989 tests**.
-
-## Recommended verification
-
-Pull current `master` and run the focused contract:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~InitializeAsync_WhenContextStoreSetThrows_ReturnsStableFailure"
-```
-
-Expected result after the production fix: GREEN.
-
-Then run the complete suite:
-
-```powershell
-dotnet test WhenItFails.Tests
-```
-
-Expected complete-suite result: **989/989 GREEN with zero compiler warnings**.
+- `ErrorCatalogInitializer` store-write ordinary-exception behavior is verified GREEN.
+- The initializer store-write catch filter excludes `OperationCanceledException`; exact-instance cancellation behavior is the next contract.
 
 ## Next recommended step
 
-After 989/989 GREEN is confirmed, add one focused exact-instance cancellation contract for the same initializer `_contextStore.Set(...)` invocation.
+Add one focused exact-instance cancellation contract for `_contextStore.Set(contextResponse.Data)` inside `ErrorCatalogInitializer.InitializeAsync(...)`.
 
-If that passes without production changes, consider all currently known context-store write boundaries complete for the current scope. Then inspect the next unguarded initializer dependency boundary separately; likely candidates are bootstrapper and context-provider ordinary exception behavior. Do not combine those in one step.
+The contract must verify that a specific `OperationCanceledException` thrown by `Set(...)` propagates unchanged using `Assert.Same(...)`.
+
+No production change is expected. After that contract is GREEN, consider all currently known context-store write boundaries complete for the current scope and inspect the next unguarded initializer dependency boundary separately.
+
+Likely next candidate: `IJsonsBootstrapper.EnsureWorkspaceAsync(...)` ordinary exception behavior, followed separately by cancellation. Do not combine it with `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)`.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
