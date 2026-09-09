@@ -59,21 +59,10 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
 
         List<IssueInfo> providerIssues = [];
 
-        Response<ErrorCatalogProviderPayload>? errorCatalogResponse;
-
-        try
-        {
-            errorCatalogResponse =
-                await _errorCatalogProvider.LoadFromFileAsync(
-                    options.ErrorCatalogFilePath,
-                    cancellationToken);
-        }
-        catch (Exception exception) when (exception is not OperationCanceledException)
-        {
-            return Response<ErrorCatalogContext>.Fail(
-                code: "WIF_ERROR_CATALOG_PROVIDER_FAILED",
-                message: "The error catalog provider failed.");
-        }
+        Response<ErrorCatalogProviderPayload>? errorCatalogResponse =
+            await _errorCatalogProvider.LoadFromFileAsync(
+                options.ErrorCatalogFilePath,
+                cancellationToken);
 
         if (errorCatalogResponse is null)
         {
@@ -277,7 +266,7 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
             options.PackageDirectoryName,
             "WIF_JSONS_PACKAGE_DIRECTORY_NAME_NULL",
             "The package directory name cannot be null.",
-            "WIF_JSONS_PACKAGE_DIRECTORY_NAME_EMPTY",
+            "WIF_JSONS_PACKAGE_DIRECTORY_EMPTY",
             "The package directory name cannot be empty.");
 
         if (response is not null)
