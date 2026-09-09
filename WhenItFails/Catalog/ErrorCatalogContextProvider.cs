@@ -59,10 +59,21 @@ public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
 
         List<IssueInfo> providerIssues = [];
 
-        Response<ErrorCatalogProviderPayload>? errorCatalogResponse =
-            await _errorCatalogProvider.LoadFromFileAsync(
-                options.ErrorCatalogFilePath,
-                cancellationToken);
+        Response<ErrorCatalogProviderPayload>? errorCatalogResponse;
+
+        try
+        {
+            errorCatalogResponse =
+                await _errorCatalogProvider.LoadFromFileAsync(
+                    options.ErrorCatalogFilePath,
+                    cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<ErrorCatalogContext>.Fail(
+                code: "WIF_ERROR_CATALOG_PROVIDER_FAILED",
+                message: "The error catalog provider failed.");
+        }
 
         if (errorCatalogResponse is null)
         {
