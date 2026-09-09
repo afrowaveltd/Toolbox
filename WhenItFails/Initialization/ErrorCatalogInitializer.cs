@@ -103,7 +103,16 @@ public sealed class ErrorCatalogInitializer : IErrorCatalogInitializer
                  "Catalog context loading succeeded without payload data.");
       }
 
-      _contextStore.Set(contextResponse.Data);
+      try
+      {
+         _contextStore.Set(contextResponse.Data);
+      }
+      catch(Exception exception) when(exception is not OperationCanceledException)
+      {
+         return Response<ErrorCatalogInitializationPayload>.Fail(
+             code: "WIF_CONTEXT_STORE_FAILED",
+             message: "The error catalog context store failed.");
+      }
 
         ErrorCatalogInitializationPayload payload = new()
         {
