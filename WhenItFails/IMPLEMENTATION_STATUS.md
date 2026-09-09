@@ -6,7 +6,7 @@ This file is the continuation point for `WhenItFails` development. Update it aft
 
 ## Current focus
 
-Hardening initialization dependency boundaries against malformed behavior, raw exception leakage, and cancellation corruption.
+Hardening initialization and catalog dependency boundaries against malformed behavior, raw exception leakage, and cancellation corruption.
 
 ## Current state
 
@@ -14,91 +14,67 @@ Hardening initialization dependency boundaries against malformed behavior, raw e
 - `ErrorCatalogRuntime` descriptor-service and profile-selection exception/cancellation boundaries are complete.
 - All currently known `IErrorCatalogContextStore` read/write boundaries in the active runtime/initializer scope are complete.
 - `IJsonsBootstrapper.EnsureWorkspaceAsync(...)` is complete for the current scope: null-response, ordinary-exception, and exact-instance cancellation behavior are covered.
-- `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` null-response and ordinary-exception behavior are verified.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 993/993 tests with zero compiler warnings** before the new context-provider cancellation contract.
-- A focused exact-instance cancellation contract is now committed for the initializer context-provider invocation and awaits local verification.
+- `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` as consumed by `ErrorCatalogInitializer` is complete for the current scope: null-response, ordinary-exception, and exact-instance cancellation behavior are covered.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 994/994 tests with zero compiler warnings**.
+- Reconnaissance of `ErrorCatalogContextProvider` found five sequential internal provider calls whose null-response behavior is already covered but whose ordinary exception/cancellation boundaries are not yet hardened individually.
 
 ## Latest committed steps
 
-### 2026-09-09 — initializer context-provider cancellation contract
+### 2026-09-09 — 994/994 GREEN initializer context-provider checkpoint
 
-Contract commit: `94bf93da613fccd2204eb266055613f8dabfc763`
+Checkpoint commit: this commit.
 
-Updated:
+Cancellation contract commit: `94bf93da613fccd2204eb266055613f8dabfc763`
 
-`WhenItFails.Tests/Initialization/ErrorCatalogInitializerContextProviderExceptionContractTests.cs`
-
-Added:
-
-`InitializeAsync_WhenContextProviderCancels_RethrowsSameOperationCanceledException`
-
-Contract:
-
-```text
-IErrorCatalogContextProvider.LoadFromJsonsAsync(...)
-    => throws a specific OperationCanceledException instance
-                         ↓
-rethrow the exact same OperationCanceledException instance
-```
-
-The test uses `Assert.Same(...)`, so cancellation cannot be wrapped, replaced, or normalized into `WIF_INITIALIZER_CONTEXT_PROVIDER_FAILED`.
-
-A previous context is preloaded into the store. The test verifies that it remains unchanged, and the store fixture throws `Unexpected Set call.` if the initializer attempts to write after cancellation.
-
-No production code changed. The current context-provider catch filter excludes `OperationCanceledException`, so the focused contract is expected to be GREEN.
-
-### 2026-09-09 — 993/993 GREEN context-provider exception checkpoint
-
-Checkpoint commit: `720f378d1ce91b71056ae1207b761845ef94cb76`
-
-Production fix commit: `f5485fd244b860514c0f683bee855e6cc6e7a69c`
-
-Ordinary-exception contract commit: `98a14a04feb702345eade7b1217b347e72910dda`
+Production exception guard commit: `f5485fd244b860514c0f683bee855e6cc6e7a69c`
 
 Verified locally:
 
 ```text
 WhenItFails.Tests
 Failed:   0
-Passed: 993
+Passed: 994
 Skipped:  0
-Total:  993
+Total:  994
 Compiler warnings: 0
 ```
 
-The initializer context-provider ordinary exception is converted to `WIF_INITIALIZER_CONTEXT_PROVIDER_FAILED` without leaking raw dependency text.
+The exact original `OperationCanceledException` instance from `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` propagates unchanged through `ErrorCatalogInitializer.InitializeAsync(...)`. Together with the existing null-response and ordinary-exception contracts, this completes the initializer context-provider boundary for the current scope.
+
+## Reconnaissance
+
+`ErrorCatalogContextProvider.LoadFromJsonsAsync(...)` currently invokes these dependencies in order:
+
+1. `IErrorCatalogProvider.LoadFromFileAsync(...)`
+2. `IErrorCategoryCatalogProvider.LoadFromFileAsync(...)`
+3. `IErrorCodeGroupCatalogProvider.LoadFromFileAsync(...)`
+4. `IErrorOwnerCatalogProvider.LoadFromFileAsync(...)`
+5. `IErrorProfileCatalogProvider.LoadFromFileAsync(...)`
+
+All five calls already have stable null-response handling (`WIF_*_PROVIDER_RESPONSE_NULL`), but the awaits themselves are currently unguarded against ordinary dependency exceptions.
 
 ## Verification state
 
-- Clean continuation baseline: **993/993 GREEN, zero compiler warnings**.
-- Bootstrapper boundary is complete for the current scope.
-- Context-provider null-response and ordinary-exception behavior are verified.
-- Exact-instance cancellation contract for the same context-provider invocation is committed and awaits focused local verification.
-- No production change is expected for this cancellation contract.
-- Expected complete-suite count after the contract passes: **994 tests**.
-
-## Recommended verification
-
-Pull current `master` and run the focused cancellation contract:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~InitializeAsync_WhenContextProviderCancels_RethrowsSameOperationCanceledException"
-```
-
-Expected result: GREEN.
-
-Then run the complete suite:
-
-```powershell
-dotnet test WhenItFails.Tests
-```
-
-Expected complete-suite result: **994/994 GREEN with zero compiler warnings**.
+- Clean continuation baseline: **994/994 GREEN, zero compiler warnings**.
+- Initializer bootstrapper boundary is complete for the current scope.
+- Initializer context-provider boundary is complete for the current scope.
+- The next target is the first internal dependency in `ErrorCatalogContextProvider`: `IErrorCatalogProvider.LoadFromFileAsync(...)`.
 
 ## Next recommended step
 
-After 994/994 GREEN is confirmed, consider the initializer context-provider boundary complete for the current scope.
+Add one focused ordinary-exception contract for `_errorCatalogProvider.LoadFromFileAsync(...)` inside `ErrorCatalogContextProvider.LoadFromJsonsAsync(...)`.
 
-Then continue reconnaissance for the next unguarded external dependency call in the initialization/catalog pipeline. Keep the same sequence: focused ordinary-exception contract first, smallest production fix second, exact-instance cancellation contract third.
+Use the stable dependency contract:
+
+```text
+Status: Failed
+Data: null
+Code: WIF_ERROR_CATALOG_PROVIDER_FAILED
+Message: The error catalog provider failed.
+```
+
+The raw provider exception text must not escape. Do not change production code until the focused RED is observed.
+
+After that contract is fixed and GREEN, add exact-instance cancellation for the same first provider before moving to category/code-group/owner/profile providers.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
