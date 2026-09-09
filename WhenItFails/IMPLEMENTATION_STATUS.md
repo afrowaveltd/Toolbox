@@ -16,26 +16,20 @@ Hardening initialization dependency boundaries against malformed behavior, raw e
 - `IErrorCatalogInitializer.InitializeAsync(...)` as consumed by `ErrorCatalogRuntime` has null-response, ordinary-exception, and exact-instance cancellation contracts.
 - `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` is hardened for both explicit `ResetToDefaultsAsync()` and flexible initialization fallback paths.
 - All currently known `IErrorCatalogContextStore.Set(...)` invocation sites are complete for the current scope: explicit reset, flexible fallback, and `ErrorCatalogInitializer` each have ordinary-exception and exact-instance cancellation contracts.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 990/990 tests with zero compiler warnings**.
-- A focused ordinary-exception contract is now committed for `IJsonsBootstrapper.EnsureWorkspaceAsync(...)` as invoked by `ErrorCatalogInitializer.InitializeAsync(...)` and awaits local RED verification.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 990/990 tests with zero compiler warnings** before the bootstrapper exception contract.
+- `IJsonsBootstrapper.EnsureWorkspaceAsync(...)` null-response behavior is covered by `WIF_INITIALIZER_BOOTSTRAPPER_RESPONSE_NULL`.
+- The initializer bootstrapper ordinary-exception contract is verified RED before the production fix.
+- `ErrorCatalogInitializer.InitializeAsync(...)` now converts ordinary bootstrapper exceptions into `WIF_INITIALIZER_BOOTSTRAPPER_FAILED` without exposing raw dependency text.
 
 ## Latest committed steps
 
-### 2026-09-09 — initializer bootstrapper ordinary-exception contract
+### 2026-09-09 — initializer bootstrapper ordinary-exception fix
 
-Contract commit: `cfe6fc4caf24bcb3a4eda476f135b29f868043d6`
+Production fix commit: `c4951648527c5fa123f64714e2f87e1c0352e125`
 
-Added:
+Changed only the `_bootstrapper.EnsureWorkspaceAsync(...)` invocation inside `ErrorCatalogInitializer.InitializeAsync(...)`.
 
-`WhenItFails.Tests/Initialization/ErrorCatalogInitializerBootstrapperExceptionContractTests.cs`
-
-Test:
-
-`InitializeAsync_WhenBootstrapperThrows_ReturnsStableFailure`
-
-The fixture supplies a bootstrapper that throws an ordinary `InvalidOperationException` containing sensitive diagnostic text. A tracking context provider and a store containing a previous context verify that the initializer stops immediately at the bootstrapper boundary.
-
-Required stable initializer contract:
+Ordinary exceptions are now converted to:
 
 ```text
 Status: Failed
@@ -44,15 +38,37 @@ Code: WIF_INITIALIZER_BOOTSTRAPPER_FAILED
 Message: The JSON workspace bootstrapper failed.
 ```
 
-The raw exception text must not escape:
+The catch filter excludes `OperationCanceledException`, so cancellation is still intended to propagate unchanged.
+
+The production diff was checked and contains only the intended bootstrapper exception guard. Existing null-response, failed-response, payload-null, context-provider, and store-write logic remain unchanged.
+
+### 2026-09-09 — verified RED initializer bootstrapper exception contract
+
+Contract commit: `cfe6fc4caf24bcb3a4eda476f135b29f868043d6`
+
+Focused test:
+
+`WhenItFails.Tests/Initialization/ErrorCatalogInitializerBootstrapperExceptionContractTests.InitializeAsync_WhenBootstrapperThrows_ReturnsStableFailure`
+
+Observed locally before the production fix:
 
 ```text
+Failed: 1
+Passed: 0
+Skipped: 0
+Total: 1
+```
+
+Failure:
+
+```text
+System.InvalidOperationException:
 Sensitive initializer bootstrapper detail must not escape.
 ```
 
-The context provider must not be called, and the previous store context must remain unchanged.
+The exception escaped directly from `IJsonsBootstrapper.EnsureWorkspaceAsync(...)` through `ErrorCatalogInitializer.InitializeAsync(...)`, confirming the missing initializer bootstrapper boundary.
 
-No production code changed in this step. `ErrorCatalogInitializer.InitializeAsync(...)` currently awaits `_bootstrapper.EnsureWorkspaceAsync(...)` directly, so the focused contract is expected to be RED with the original exception escaping.
+The context-provider path was not reached.
 
 ### 2026-09-09 — 990/990 GREEN store-boundary checkpoint
 
@@ -69,46 +85,41 @@ Total:  990
 Compiler warnings: 0
 ```
 
-The exact original `OperationCanceledException` instance thrown by the initializer context-store `Set(...)` invocation propagates unchanged. This completes all currently known context-store write boundaries for the current scope.
+All currently known context-store read/write boundaries in the active runtime/initializer scope are complete.
 
 ## Verification state
 
-- Clean continuation baseline: **990/990 GREEN, zero compiler warnings**.
+- Clean continuation baseline before the bootstrapper exception contract: **990/990 GREEN, zero compiler warnings**.
 - All currently known context-store read/write boundaries in the active runtime/initializer scope are complete.
-- `IJsonsBootstrapper.EnsureWorkspaceAsync(...)` null-response behavior is already covered by `WIF_INITIALIZER_BOOTSTRAPPER_RESPONSE_NULL`.
-- The new bootstrapper ordinary-exception contract is committed and awaits focused local RED verification.
-- Production bootstrapper invocation remains unchanged until RED is observed.
-- Expected complete-suite count once the new contract eventually passes: **991 tests**.
+- Bootstrapper null-response behavior is already covered.
+- Bootstrapper ordinary-exception contract is verified RED before the production fix.
+- Production bootstrapper guard is committed and awaits focused local GREEN verification.
+- Expected complete-suite count after the new contract passes: **991 tests**.
 
 ## Recommended verification
 
-Pull current `master` and run only the new contract:
+Pull current `master` and run only the bootstrapper exception contract:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~InitializeAsync_WhenBootstrapperThrows_ReturnsStableFailure"
 ```
 
-Expected current result: RED with the original exception text:
+Expected result after the production fix: GREEN.
 
-```text
-Sensitive initializer bootstrapper detail must not escape.
+Then run the complete suite:
+
+```powershell
+dotnet test WhenItFails.Tests
 ```
+
+Expected complete-suite result: **991/991 GREEN with zero compiler warnings**.
 
 ## Next recommended step
 
-If RED is confirmed, add the smallest exception boundary around only `_bootstrapper.EnsureWorkspaceAsync(...)` inside `ErrorCatalogInitializer.InitializeAsync(...)`.
+After 991/991 GREEN is confirmed, add one focused exact-instance cancellation contract for the same `IJsonsBootstrapper.EnsureWorkspaceAsync(...)` invocation.
 
-Convert ordinary exceptions into:
+If that passes without production changes, consider the initializer bootstrapper boundary complete for the current scope. Then move separately to `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)`: ordinary exception first, cancellation second.
 
-```text
-Status: Failed
-Data: null
-Code: WIF_INITIALIZER_BOOTSTRAPPER_FAILED
-Message: The JSON workspace bootstrapper failed.
-```
-
-while allowing `OperationCanceledException` to propagate unchanged.
-
-After ordinary-exception behavior is GREEN, add a separate exact-instance cancellation contract for the same bootstrapper invocation. Do not modify `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` in the same production step.
+Do not combine bootstrapper and context-provider hardening in one production step.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
