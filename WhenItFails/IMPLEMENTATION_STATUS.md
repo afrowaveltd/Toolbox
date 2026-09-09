@@ -13,20 +13,49 @@ Hardening initialization and catalog dependency boundaries against malformed beh
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` exception/cancellation hardening are complete for the current scope.
 - `ErrorCatalogRuntime` descriptor-service and profile-selection exception/cancellation boundaries are complete.
 - All currently known `IErrorCatalogContextStore` read/write boundaries in the active runtime/initializer scope are complete.
-- `IJsonsBootstrapper.EnsureWorkspaceAsync(...)` is complete for the current scope: null-response, ordinary-exception, and exact-instance cancellation behavior are covered.
-- `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` as consumed by `ErrorCatalogInitializer` is complete for the current scope: null-response, ordinary-exception, and exact-instance cancellation behavior are covered.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 994/994 tests with zero compiler warnings**.
-- Reconnaissance of `ErrorCatalogContextProvider` found five sequential internal provider calls whose null-response behavior is already covered but whose ordinary exception/cancellation boundaries are not yet hardened individually.
+- `IJsonsBootstrapper.EnsureWorkspaceAsync(...)` is complete for the current scope.
+- `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` as consumed by `ErrorCatalogInitializer` is complete for the current scope.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 994/994 tests with zero compiler warnings** before the new internal provider exception contract.
+- `ErrorCatalogContextProvider` has five sequential internal provider dependencies whose null-response behavior is already covered.
+- A focused ordinary-exception contract is now committed for the first dependency, `IErrorCatalogProvider.LoadFromFileAsync(...)`, and awaits local RED verification.
 
 ## Latest committed steps
 
+### 2026-09-09 — error catalog provider ordinary-exception contract
+
+Contract commit: `6139e450047bafd828803bd7c154613beaf1f5c4`
+
+Added:
+
+`WhenItFails.Tests/Catalog/ErrorCatalogContextProviderErrorCatalogProviderExceptionContractTests.cs`
+
+Test:
+
+`LoadFromJsonsAsync_WhenErrorCatalogProviderThrows_ReturnsStableFailure`
+
+The first dependency throws:
+
+```text
+System.InvalidOperationException:
+Sensitive error catalog provider detail must not escape.
+```
+
+Required stable contract:
+
+```text
+Status: Failed
+Data: null
+Code: WIF_ERROR_CATALOG_PROVIDER_FAILED
+Message: The error catalog provider failed.
+```
+
+The remaining category/code-group/owner/profile provider fixtures throw `Unexpected ... call.` if reached, so the test also locks short-circuit behavior after the first dependency failure.
+
+No production code changed. `_errorCatalogProvider.LoadFromFileAsync(...)` is currently awaited directly inside `ErrorCatalogContextProvider.LoadFromJsonsAsync(...)`, so the focused test is expected to be RED with the raw first-provider exception escaping.
+
 ### 2026-09-09 — 994/994 GREEN initializer context-provider checkpoint
 
-Checkpoint commit: this commit.
-
-Cancellation contract commit: `94bf93da613fccd2204eb266055613f8dabfc763`
-
-Production exception guard commit: `f5485fd244b860514c0f683bee855e6cc6e7a69c`
+Checkpoint commit: `5cc1d1378f8818973eb01104a91b1256c97e5349`
 
 Verified locally:
 
@@ -39,11 +68,11 @@ Total:  994
 Compiler warnings: 0
 ```
 
-The exact original `OperationCanceledException` instance from `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` propagates unchanged through `ErrorCatalogInitializer.InitializeAsync(...)`. Together with the existing null-response and ordinary-exception contracts, this completes the initializer context-provider boundary for the current scope.
+The initializer bootstrapper and initializer context-provider boundaries are complete for the current scope.
 
 ## Reconnaissance
 
-`ErrorCatalogContextProvider.LoadFromJsonsAsync(...)` currently invokes these dependencies in order:
+`ErrorCatalogContextProvider.LoadFromJsonsAsync(...)` invokes these dependencies in order:
 
 1. `IErrorCatalogProvider.LoadFromFileAsync(...)`
 2. `IErrorCategoryCatalogProvider.LoadFromFileAsync(...)`
@@ -51,30 +80,35 @@ The exact original `OperationCanceledException` instance from `IErrorCatalogCont
 4. `IErrorOwnerCatalogProvider.LoadFromFileAsync(...)`
 5. `IErrorProfileCatalogProvider.LoadFromFileAsync(...)`
 
-All five calls already have stable null-response handling (`WIF_*_PROVIDER_RESPONSE_NULL`), but the awaits themselves are currently unguarded against ordinary dependency exceptions.
+All five already have stable null-response handling (`WIF_*_PROVIDER_RESPONSE_NULL`). Ordinary exception/cancellation hardening is proceeding one provider at a time.
 
 ## Verification state
 
 - Clean continuation baseline: **994/994 GREEN, zero compiler warnings**.
-- Initializer bootstrapper boundary is complete for the current scope.
-- Initializer context-provider boundary is complete for the current scope.
-- The next target is the first internal dependency in `ErrorCatalogContextProvider`: `IErrorCatalogProvider.LoadFromFileAsync(...)`.
+- New first-provider ordinary-exception contract is committed and awaits focused RED verification.
+- Production code remains unchanged until RED is observed.
+- Expected complete-suite count once the new contract eventually passes: **995 tests**.
+
+## Recommended verification
+
+Pull current `master` and run only the new contract:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadFromJsonsAsync_WhenErrorCatalogProviderThrows_ReturnsStableFailure"
+```
+
+Expected current result: RED with the raw exception text:
+
+```text
+Sensitive error catalog provider detail must not escape.
+```
 
 ## Next recommended step
 
-Add one focused ordinary-exception contract for `_errorCatalogProvider.LoadFromFileAsync(...)` inside `ErrorCatalogContextProvider.LoadFromJsonsAsync(...)`.
+If RED is confirmed, add the smallest exception boundary around only `_errorCatalogProvider.LoadFromFileAsync(...)` inside `ErrorCatalogContextProvider.LoadFromJsonsAsync(...)`.
 
-Use the stable dependency contract:
+Convert ordinary exceptions into `WIF_ERROR_CATALOG_PROVIDER_FAILED` while allowing `OperationCanceledException` to propagate unchanged.
 
-```text
-Status: Failed
-Data: null
-Code: WIF_ERROR_CATALOG_PROVIDER_FAILED
-Message: The error catalog provider failed.
-```
-
-The raw provider exception text must not escape. Do not change production code until the focused RED is observed.
-
-After that contract is fixed and GREEN, add exact-instance cancellation for the same first provider before moving to category/code-group/owner/profile providers.
+After focused and full GREEN, add a separate exact-instance cancellation contract for the same first provider before moving to the category provider.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
