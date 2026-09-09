@@ -15,72 +15,18 @@ Hardening dependency boundaries while preserving established public exception co
 - All currently known `IErrorCatalogContextStore` read/write boundaries in the active runtime/initializer scope are complete.
 - `IJsonsBootstrapper.EnsureWorkspaceAsync(...)` is complete for the current scope.
 - `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` as consumed by `ErrorCatalogInitializer` is complete for the current scope.
-- Last clean locally verified baseline: **994/994 GREEN, zero compiler warnings**.
-- `ErrorCatalogContextProvider` is intentionally a transparent orchestration boundary for exceptions thrown by its five internal catalog providers.
-- Existing contract tests require provider exceptions to propagate unchanged rather than be normalized into `Response<T>` failures.
+- The recovery baseline is locally verified **GREEN at 994/994 tests with zero compiler warnings**.
+- `ErrorCatalogContextProvider` is intentionally a transparent orchestration boundary for exceptions thrown by its five internal catalog providers. Existing propagation/shape tests require those exceptions to remain unchanged.
+- Reconnaissance has moved one layer down to `ErrorCatalogProvider`, which already normalizes null/malformed dependency outputs but currently has unguarded loader/normalizer/validator/factory calls.
 
-## Important regression finding
+## 2026-09-09 — 994/994 GREEN recovery checkpoint
 
-A temporary experiment attempted to normalize an exception from `IErrorCatalogProvider.LoadFromFileAsync(...)` into `WIF_ERROR_CATALOG_PROVIDER_FAILED`.
+Checkpoint commit records successful local verification after restoring the established `ErrorCatalogContextProvider` exception-transparency contract.
 
-The full suite immediately exposed the conflict:
-
-```text
-Total: 995
-Passed: 988
-Failed: 7
-Skipped: 0
-```
-
-The failing pre-existing tests prove that exception transparency is deliberate and broad. They require preservation of:
-
-- direct synchronous provider exceptions;
-- faulted provider task exception identity;
-- concrete exception type;
-- outer/inner exception references;
-- `Exception.Data` entries;
-- custom exception properties;
-- short-circuiting so later providers are not invoked.
-
-Relevant established suites:
-
-- `WhenItFails.Tests/Catalog/ErrorCatalogContextProviderProviderExceptionPropagationTests.cs`
-- `WhenItFails.Tests/Catalog/ErrorCatalogContextProviderExceptionShapeTests.cs`
-
-These tests also cover all five provider positions for ordinary exception propagation and cancellation behavior for the first provider.
-
-## Recovery completed
-
-The experimental production guard was removed and `ErrorCatalogContextProvider.cs` is back to the exact pre-experiment blob:
-
-`79e298aafcdb07bd521ef7eff9d04d0f2e7e88af`
-
-Recovery commits:
-
-- `b211eda61ec9dc538b499fd9b67b4f9a412b1bab` — restore provider exception propagation;
-- `f0912a656743c3bf8af272cdc186e96eb454f9ec` — restore the original package-directory validation code after a mechanical full-file replacement typo;
-- `9d316fdaa1759459e218191552382c7951d2980d` — remove the contradictory temporary normalization test.
-
-The temporary test count increase is gone, so the expected complete-suite count is again **994 tests**.
-
-## Verification state
-
-- Production behavior is restored to the established provider pass-through contract.
-- Contradictory experimental test has been removed.
-- No intended earlier initializer/runtime hardening was reverted.
-- Local full-suite recovery verification is now required.
-
-## Recommended verification
-
-Pull current `master` and run:
-
-```powershell
-dotnet test WhenItFails.Tests
-```
-
-Expected result:
+Verified locally:
 
 ```text
+WhenItFails.Tests
 Failed:   0
 Passed: 994
 Skipped:  0
@@ -88,10 +34,48 @@ Total:  994
 Compiler warnings: 0
 ```
 
+Recovery remains complete:
+
+- `ErrorCatalogContextProvider.cs` is back to the exact pre-experiment blob `79e298aafcdb07bd521ef7eff9d04d0f2e7e88af`.
+- The contradictory temporary normalization test is removed.
+- No earlier initializer/runtime hardening was reverted.
+
+## Established transparent boundary — do not normalize
+
+`ErrorCatalogContextProvider.LoadFromJsonsAsync(...)` must preserve exceptions from its five provider dependencies.
+
+Pre-existing tests require preservation of synchronous and faulted-task exception identity, exception type, inner exception references, `Exception.Data`, custom properties, cancellation information, and short-circuit behavior.
+
+Relevant suites:
+
+- `WhenItFails.Tests/Catalog/ErrorCatalogContextProviderProviderExceptionPropagationTests.cs`
+- `WhenItFails.Tests/Catalog/ErrorCatalogContextProviderExceptionShapeTests.cs`
+- `WhenItFails.Tests/Catalog/ErrorCatalogContextProviderCancellationPropagationTests.cs`
+
+## Reconnaissance — next candidate
+
+`ErrorCatalogProvider.LoadFromFileAsync(...)` composes:
+
+1. `IErrorCatalogLoader.LoadFromFileAsync(...)`
+2. `IErrorCatalogDocumentNormalizer.Normalize(...)`
+3. `IErrorCatalogValidator.Validate(...)`
+4. `IErrorCatalogFactory.Create(...)`
+
+It already converts these malformed dependency outputs into stable responses:
+
+- null loader response → `WIF_ERROR_CATALOG_LOADER_RESPONSE_NULL`;
+- null normalizer result → `WIF_ERROR_CATALOG_NORMALIZER_RESULT_NULL`;
+- null validator result → `WIF_ERROR_CATALOG_VALIDATOR_RESULT_NULL`;
+- null factory result → `WIF_ERROR_CATALOG_FACTORY_RESULT_NULL`.
+
+Repository searches found no existing `ErrorCatalogProvider` contract requiring ordinary dependency exceptions to propagate unchanged. Existing provider tests cover normal flow, failed responses, malformed/null outputs, constructor guards, and cancellation.
+
 ## Next recommended step
 
-After **994/994 GREEN** is reconfirmed, treat all five internal provider exception calls in `ErrorCatalogContextProvider` as an already-defined transparent boundary and do not add normalization guards there.
+Add one focused RED-first contract for an ordinary exception from `IErrorCatalogLoader.LoadFromFileAsync(...)` inside `ErrorCatalogProvider`.
 
-Continue reconnaissance outside this boundary for the next dependency call whose existing contracts permit normalization/hardening. Before adding any new exception contract, first search for existing propagation/shape tests to avoid changing an established semantic contract.
+Do not touch normalizer/validator/factory exception behavior in the same step.
+
+If RED confirms raw loader exception leakage, add only the smallest loader exception boundary while allowing `OperationCanceledException` to propagate unchanged. Then verify focused + full GREEN before adding exact-instance cancellation for the loader boundary.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
