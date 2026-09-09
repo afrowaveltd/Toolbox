@@ -101,6 +101,22 @@ public sealed class ErrorCatalogRuntimeContextStoreSetExceptionContractTests
             response.Metadata["WhenItFails.FallbackFailure.Message"]);
     }
 
+    [Fact]
+    public async Task InitializeAsync_WhenFlexibleFallbackContextStoreSetCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "Flexible fallback context store Set cancellation must propagate.");
+
+        ErrorCatalogRuntime runtime = CreateFlexibleRuntime(
+            new EmptyCancelingSetContextStore(cancellation));
+
+        OperationCanceledException thrown =
+            await Assert.ThrowsAsync<OperationCanceledException>(
+                () => runtime.InitializeAsync(new JsonsOptions()));
+
+        Assert.Same(cancellation, thrown);
+    }
+
     private static ErrorCatalogRuntime CreateRuntime(
         IErrorCatalogContextStore contextStore)
     {
@@ -177,6 +193,33 @@ public sealed class ErrorCatalogRuntimeContextStoreSetExceptionContractTests
         {
             throw new InvalidOperationException(
                 "Sensitive flexible fallback context store Set detail must not escape.");
+        }
+    }
+
+    private sealed class EmptyCancelingSetContextStore : IErrorCatalogContextStore
+    {
+        private readonly OperationCanceledException _cancellation;
+
+        public EmptyCancelingSetContextStore(
+            OperationCanceledException cancellation)
+        {
+            _cancellation = cancellation;
+        }
+
+        public bool IsInitialized => false;
+
+        public ErrorCatalogContext? Current => null;
+
+        public Response<ErrorCatalogContext> GetCurrent()
+        {
+            return Response<ErrorCatalogContext>.Invalid(
+                code: "ErrorCatalogContextNotInitialized",
+                message: "The error catalog context has not been initialized.");
+        }
+
+        public void Set(ErrorCatalogContext context)
+        {
+            throw _cancellation;
         }
     }
 
