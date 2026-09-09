@@ -37,8 +37,19 @@ public sealed class ErrorCatalogProvider : IErrorCatalogProvider
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        Response<ErrorCatalogDocument>? loadResponse =
-            await _loader.LoadFromFileAsync(filePath, cancellationToken);
+        Response<ErrorCatalogDocument>? loadResponse;
+
+        try
+        {
+            loadResponse =
+                await _loader.LoadFromFileAsync(filePath, cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<ErrorCatalogProviderPayload>.Fail(
+                code: "WIF_ERROR_CATALOG_LOADER_FAILED",
+                message: "The error catalog loader failed.");
+        }
 
         if (loadResponse is null)
         {
