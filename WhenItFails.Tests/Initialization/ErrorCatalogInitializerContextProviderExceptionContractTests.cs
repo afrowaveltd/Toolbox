@@ -47,6 +47,28 @@ public sealed class ErrorCatalogInitializerContextProviderExceptionContractTests
         Assert.Same(previousContext, contextStore.StoredContext);
     }
 
+    [Fact]
+    public async Task InitializeAsync_WhenContextProviderCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "Initializer context provider cancellation must propagate unchanged.");
+
+        ErrorCatalogContext previousContext = new();
+        TrackingContextStore contextStore = new(previousContext);
+
+        ErrorCatalogInitializer initializer = new(
+            new SuccessfulBootstrapper(),
+            new CancelingContextProvider(cancellation),
+            contextStore);
+
+        OperationCanceledException thrown =
+            await Assert.ThrowsAsync<OperationCanceledException>(
+                () => initializer.InitializeAsync(new JsonsOptions()));
+
+        Assert.Same(cancellation, thrown);
+        Assert.Same(previousContext, contextStore.StoredContext);
+    }
+
     private sealed class SuccessfulBootstrapper : IJsonsBootstrapper
     {
         public Task<Response<JsonsBootstrapPayload>> EnsureWorkspaceAsync(
@@ -69,6 +91,26 @@ public sealed class ErrorCatalogInitializerContextProviderExceptionContractTests
             return Task.FromException<Response<ErrorCatalogContext>>(
                 new InvalidOperationException(
                     "Sensitive initializer context provider detail must not escape."));
+        }
+    }
+
+    private sealed class CancelingContextProvider
+        : IErrorCatalogContextProvider
+    {
+        private readonly OperationCanceledException _cancellation;
+
+        public CancelingContextProvider(
+            OperationCanceledException cancellation)
+        {
+            _cancellation = cancellation;
+        }
+
+        public Task<Response<ErrorCatalogContext>> LoadFromJsonsAsync(
+            JsonsOptions options,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromException<Response<ErrorCatalogContext>>(
+                _cancellation);
         }
     }
 
