@@ -570,8 +570,22 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
                 fallbackResponse);
         }
 
-        _contextStore.Set(
-            fallbackResponse.Data);
+        try
+        {
+            _contextStore.Set(
+                fallbackResponse.Data);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            Response<ErrorCatalogContext> storeFailure =
+                Response<ErrorCatalogContext>.Fail(
+                    code: "WIF_CONTEXT_STORE_FAILED",
+                    message: "The error catalog context store failed.");
+
+            return CreateBuiltInFallbackFailureResponse(
+                initializationResponse,
+                storeFailure);
+        }
 
         ErrorCatalogInitializationPayload fallbackPayload = new()
         {
