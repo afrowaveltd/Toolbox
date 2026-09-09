@@ -6,104 +6,60 @@ This file is the continuation point for `WhenItFails` development. Update it aft
 
 ## Current focus
 
-Hardening runtime and service boundaries against malformed dependency behavior, raw exception leakage, and cancellation corruption.
+Hardening initialization and runtime dependency boundaries against malformed behavior, raw exception leakage, and cancellation corruption.
 
 ## Current state
 
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` exception/cancellation hardening are complete for the current scope.
 - `ErrorCatalogRuntime` descriptor-service and profile-selection exception/cancellation boundaries are complete.
 - `IErrorCatalogContextStore.GetCurrent()` null-response, ordinary-exception, and exact-instance cancellation behavior are complete.
-- `IErrorCatalogInitializer.InitializeAsync(...)` null-response, ordinary-exception, and exact-instance cancellation behavior are complete.
+- `IErrorCatalogInitializer.InitializeAsync(...)` as consumed by `ErrorCatalogRuntime` has null-response, ordinary-exception, and exact-instance cancellation contracts.
 - `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` is hardened for both explicit `ResetToDefaultsAsync()` and flexible initialization fallback paths.
-- The explicit `ResetToDefaultsAsync()` `_contextStore.Set(...)` ordinary-exception and exact-instance cancellation boundary is complete for the current scope.
-- The flexible-fallback `_contextStore.Set(...)` ordinary-exception behavior is locally verified GREEN.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 987/987 tests with zero compiler warnings**.
-- A focused exact-instance cancellation contract is now committed for the flexible-fallback store-write boundary and awaits local verification.
-- `ErrorCatalogInitializer` store-write behavior remains intentionally untouched.
+- Both `ErrorCatalogRuntime` `_contextStore.Set(...)` invocation sites are complete for the current scope: explicit reset and flexible fallback each have ordinary-exception and exact-instance cancellation contracts.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 988/988 tests with zero compiler warnings**.
+- The remaining distinct store-write boundary is `_contextStore.Set(...)` inside `ErrorCatalogInitializer.InitializeAsync(...)`.
 
-## Latest committed steps
+## Latest verified checkpoint
 
-### 2026-09-09 — flexible fallback context-store Set cancellation contract
+### 2026-09-09 — 988/988 GREEN runtime store-write checkpoint
 
-Contract commit: `7dc40fbc83a7bc3d2eb9791ca76e96d85e57e954`
-
-Updated:
-
-`WhenItFails.Tests/Services/ErrorCatalogRuntimeContextStoreSetExceptionContractTests.cs`
-
-Added:
-
-`InitializeAsync_WhenFlexibleFallbackContextStoreSetCancels_RethrowsSameOperationCanceledException`
-
-Contract:
-
-```text
-IErrorCatalogContextStore.Set(...)
-    => throws a specific OperationCanceledException instance
-                         ↓
-rethrow the exact same OperationCanceledException instance
-```
-
-The fixture reports no previous context from `GetCurrent()`, allowing the failed configured initialization to enter the built-in flexible fallback path. The built-in provider returns a successful context, then `Set(...)` throws the specific cancellation instance.
-
-The test uses `Assert.Same(...)`, so cancellation cannot be wrapped, replaced, normalized to `WIF_CONTEXT_STORE_FAILED`, or converted to `WIF_DEFAULT_FALLBACK_FAILED`.
-
-The commit diff was checked and contains only the new cancellation contract and its `EmptyCancelingSetContextStore` fixture.
-
-No production code changed. The current flexible-fallback store-write catch filter excludes `OperationCanceledException`, so the focused contract is expected to be GREEN.
-
-### 2026-09-09 — 987/987 GREEN flexible fallback store-write checkpoint
-
-Checkpoint commit: `e178daa9d5a9026ea422b501b9308ad8fe1fd6c0`
-
-Production fix commit: `30d67bfb5b7e2dffdbed950ae39558dd6eeed330`
-
-Ordinary-exception contract commit: `c0d2f39998cd8f316d75bce18dbf4e8079ff2475`
+Checkpoint commit records local verification after the flexible-fallback store-write cancellation contract.
 
 Verified locally:
 
 ```text
 WhenItFails.Tests
 Failed:   0
-Passed: 987
+Passed: 988
 Skipped:  0
-Total:  987
+Total:  988
 Compiler warnings: 0
 ```
 
-The flexible-fallback store-write ordinary exception is normalized to `WIF_CONTEXT_STORE_FAILED` inside the established `WIF_DEFAULT_FALLBACK_FAILED` wrapper and does not leak raw dependency text.
+The exact original `OperationCanceledException` instance thrown by `_contextStore.Set(...)` in the flexible fallback path propagates unchanged through `ErrorCatalogRuntime.InitializeAsync(...)`.
 
-## Verification state
+Together with the previously verified ordinary-exception behavior, both runtime store-write invocation sites are now complete for the current scope.
 
-- Clean continuation baseline: **987/987 GREEN, zero compiler warnings**.
-- Explicit reset store-write boundary is complete for the current scope.
-- Flexible-fallback store-write ordinary-exception behavior is verified GREEN.
-- Flexible-fallback exact-instance cancellation contract is committed and awaits focused local verification.
-- No production change is expected for this cancellation contract.
-- Expected complete-suite count after the contract passes: **988 tests**.
+Relevant commits immediately preceding this checkpoint:
 
-## Recommended verification
-
-Pull current `master` and run the focused cancellation contract:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~InitializeAsync_WhenFlexibleFallbackContextStoreSetCancels_RethrowsSameOperationCanceledException"
-```
-
-Expected result: GREEN.
-
-Then run the complete suite:
-
-```powershell
-dotnet test WhenItFails.Tests
-```
-
-Expected complete-suite result: **988/988 GREEN with zero compiler warnings**.
+- flexible-fallback ordinary-exception fix: `30d67bfb5b7e2dffdbed950ae39558dd6eeed330`
+- flexible-fallback cancellation contract: `7dc40fbc83a7bc3d2eb9791ca76e96d85e57e954`
 
 ## Next recommended step
 
-After 988/988 GREEN is confirmed, consider both `ErrorCatalogRuntime` `_contextStore.Set(...)` invocation sites complete for the current scope.
+Inspect and harden the separate `_contextStore.Set(...)` call inside `ErrorCatalogInitializer.InitializeAsync(...)`.
 
-Then inspect the separate `_contextStore.Set(...)` inside `ErrorCatalogInitializer`. Start with one focused ordinary-exception contract, observe RED, and only then add the smallest production boundary. Follow with exact-instance cancellation as a separate contract.
+Start test-first with one focused ordinary-exception contract. After successful bootstrap and context loading, make the context store throw an ordinary exception from `Set(...)` and require the initializer to return:
 
-Avoid broader refactoring. Keep each step small, tested, documented here, and committed directly to `master`.
+```text
+Status: Failed
+Data: null
+Code: WIF_CONTEXT_STORE_FAILED
+Message: The error catalog context store failed.
+```
+
+The raw store exception text must not escape.
+
+Observe RED before changing production code. Then add only the smallest guard around this initializer store-write call. Follow with a separate exact-instance `OperationCanceledException` contract.
+
+Avoid broader refactoring or touching bootstrapper/context-provider exception behavior in the same step.
