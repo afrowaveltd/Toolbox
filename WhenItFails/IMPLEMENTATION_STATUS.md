@@ -16,27 +16,19 @@ Hardening initialization and runtime dependency boundaries against malformed beh
 - `IErrorCatalogInitializer.InitializeAsync(...)` as consumed by `ErrorCatalogRuntime` has null-response, ordinary-exception, and exact-instance cancellation contracts.
 - `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` is hardened for both explicit `ResetToDefaultsAsync()` and flexible initialization fallback paths.
 - Both `ErrorCatalogRuntime` `_contextStore.Set(...)` invocation sites are complete for the current scope: explicit reset and flexible fallback each have ordinary-exception and exact-instance cancellation contracts.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 988/988 tests with zero compiler warnings**.
-- The remaining distinct store-write boundary is `_contextStore.Set(...)` inside `ErrorCatalogInitializer.InitializeAsync(...)`.
-- A focused ordinary-exception contract is now committed for that initializer store-write boundary and awaits local RED verification.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 988/988 tests with zero compiler warnings** before the initializer store-write contract.
+- The initializer `_contextStore.Set(...)` ordinary-exception contract is verified RED before the production fix.
+- `ErrorCatalogInitializer.InitializeAsync(...)` now converts ordinary context-store write exceptions into `WIF_CONTEXT_STORE_FAILED` without exposing raw dependency text.
 
 ## Latest committed steps
 
-### 2026-09-09 — initializer context-store Set exception contract
+### 2026-09-09 — initializer context-store Set exception fix
 
-Contract commit: `71ee95f3621f13eed1cd01f0bdcc0767b98d1754`
+Production fix commit: `6e18b9ed39a327d241e007dbda69bc81a508e3f5`
 
-Added:
+Changed only `_contextStore.Set(contextResponse.Data)` inside `ErrorCatalogInitializer.InitializeAsync(...)`.
 
-`WhenItFails.Tests/Initialization/ErrorCatalogInitializerContextStoreSetExceptionContractTests.cs`
-
-Test:
-
-`InitializeAsync_WhenContextStoreSetThrows_ReturnsStableFailure`
-
-The fixture supplies a successful bootstrapper and a successful context provider, then throws an ordinary `InvalidOperationException` from `IErrorCatalogContextStore.Set(...)` containing sensitive diagnostic text.
-
-Required public initializer contract:
+Ordinary exceptions are now converted to:
 
 ```text
 Status: Failed
@@ -45,13 +37,35 @@ Code: WIF_CONTEXT_STORE_FAILED
 Message: The error catalog context store failed.
 ```
 
-The raw dependency exception text must not escape:
+The catch filter excludes `OperationCanceledException`, so cancellation is still intended to propagate unchanged.
+
+The production diff was checked and contains only the intended initializer store-write guard.
+
+### 2026-09-09 — verified RED initializer context-store Set contract
+
+Contract commit: `71ee95f3621f13eed1cd01f0bdcc0767b98d1754`
+
+Focused test:
+
+`WhenItFails.Tests/Initialization/ErrorCatalogInitializerContextStoreSetExceptionContractTests.InitializeAsync_WhenContextStoreSetThrows_ReturnsStableFailure`
+
+Observed locally before the production fix:
 
 ```text
+Failed: 1
+Passed: 0
+Skipped: 0
+Total: 1
+```
+
+Failure:
+
+```text
+System.InvalidOperationException:
 Sensitive initializer context store Set detail must not escape.
 ```
 
-No production code changed in this step. `ErrorCatalogInitializer.InitializeAsync(...)` still invokes `_contextStore.Set(contextResponse.Data)` directly, so the focused contract is expected to be RED with the original exception escaping.
+The exception escaped directly from `ThrowingSetContextStore.Set(...)` through `ErrorCatalogInitializer.InitializeAsync(...)`, confirming the missing initializer store-write boundary.
 
 ### 2026-09-09 — 988/988 GREEN runtime store-write checkpoint
 
@@ -72,41 +86,34 @@ Both runtime store-write invocation sites are complete for the current scope.
 
 ## Verification state
 
-- Clean continuation baseline: **988/988 GREEN, zero compiler warnings**.
+- Clean continuation baseline before the initializer store-write contract: **988/988 GREEN, zero compiler warnings**.
 - Both `ErrorCatalogRuntime` store-write boundaries are complete.
-- New `ErrorCatalogInitializer` store-write ordinary-exception contract is committed and awaits focused local RED verification.
-- Production initializer code remains unchanged until RED is observed.
-- Expected complete-suite count once the new contract eventually passes: **989 tests**.
+- Initializer store-write ordinary-exception contract is verified RED before the production fix.
+- Production initializer store-write guard is committed and awaits focused local GREEN verification.
+- Expected complete-suite count after the new contract passes: **989 tests**.
 
 ## Recommended verification
 
-Pull current `master` and run only the new contract:
+Pull current `master` and run the focused contract:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~InitializeAsync_WhenContextStoreSetThrows_ReturnsStableFailure"
 ```
 
-Expected current result: RED with the original exception text:
+Expected result after the production fix: GREEN.
 
-```text
-Sensitive initializer context store Set detail must not escape.
+Then run the complete suite:
+
+```powershell
+dotnet test WhenItFails.Tests
 ```
+
+Expected complete-suite result: **989/989 GREEN with zero compiler warnings**.
 
 ## Next recommended step
 
-If RED is confirmed, add the smallest exception boundary around only `_contextStore.Set(contextResponse.Data)` inside `ErrorCatalogInitializer.InitializeAsync(...)`.
+After 989/989 GREEN is confirmed, add one focused exact-instance cancellation contract for the same initializer `_contextStore.Set(...)` invocation.
 
-Convert ordinary exceptions into:
+If that passes without production changes, consider all currently known context-store write boundaries complete for the current scope. Then inspect the next unguarded initializer dependency boundary separately; likely candidates are bootstrapper and context-provider ordinary exception behavior. Do not combine those in one step.
 
-```text
-Status: Failed
-Data: null
-Code: WIF_CONTEXT_STORE_FAILED
-Message: The error catalog context store failed.
-```
-
-while allowing `OperationCanceledException` to propagate unchanged.
-
-After the ordinary-exception behavior is GREEN, add a separate exact-instance cancellation contract for the same initializer store-write invocation.
-
-Do not broaden this step to bootstrapper or context-provider exception behavior. Keep changes small, tested, documented here, and committed directly to `master`.
+Keep changes small, tested, documented here, and committed directly to `master`.
