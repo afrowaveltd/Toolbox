@@ -84,10 +84,22 @@ public sealed class ErrorCatalogInitializer : IErrorCatalogInitializer
                  "JSON workspace bootstrap succeeded without payload data.");
       }
 
-      Response<ErrorCatalogContext>? contextResponse =
-          await _contextProvider.LoadFromJsonsAsync(
-              options,
-              cancellationToken);
+      Response<ErrorCatalogContext>? contextResponse;
+
+      try
+      {
+         contextResponse =
+             await _contextProvider.LoadFromJsonsAsync(
+                 options,
+                 cancellationToken);
+      }
+      catch(Exception exception) when(exception is not OperationCanceledException)
+      {
+         return Response<ErrorCatalogInitializationPayload>.Fail(
+             code: "WIF_INITIALIZER_CONTEXT_PROVIDER_FAILED",
+             message:
+                 "The error catalog context provider failed during initialization.");
+      }
 
       if(contextResponse is null)
       {
