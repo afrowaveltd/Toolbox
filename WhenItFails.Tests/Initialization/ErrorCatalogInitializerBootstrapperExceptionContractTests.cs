@@ -49,6 +49,30 @@ public sealed class ErrorCatalogInitializerBootstrapperExceptionContractTests
         Assert.Same(previousContext, contextStore.StoredContext);
     }
 
+    [Fact]
+    public async Task InitializeAsync_WhenBootstrapperCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "Initializer bootstrapper cancellation must propagate unchanged.");
+
+        ErrorCatalogContext previousContext = new();
+        TrackingContextProvider contextProvider = new();
+        TrackingContextStore contextStore = new(previousContext);
+
+        ErrorCatalogInitializer initializer = new(
+            new CancelingBootstrapper(cancellation),
+            contextProvider,
+            contextStore);
+
+        OperationCanceledException thrown =
+            await Assert.ThrowsAsync<OperationCanceledException>(
+                () => initializer.InitializeAsync(new JsonsOptions()));
+
+        Assert.Same(cancellation, thrown);
+        Assert.False(contextProvider.WasCalled);
+        Assert.Same(previousContext, contextStore.StoredContext);
+    }
+
     private sealed class ThrowingBootstrapper : IJsonsBootstrapper
     {
         public Task<Response<JsonsBootstrapPayload>> EnsureWorkspaceAsync(
@@ -58,6 +82,25 @@ public sealed class ErrorCatalogInitializerBootstrapperExceptionContractTests
             return Task.FromException<Response<JsonsBootstrapPayload>>(
                 new InvalidOperationException(
                     "Sensitive initializer bootstrapper detail must not escape."));
+        }
+    }
+
+    private sealed class CancelingBootstrapper : IJsonsBootstrapper
+    {
+        private readonly OperationCanceledException _cancellation;
+
+        public CancelingBootstrapper(
+            OperationCanceledException cancellation)
+        {
+            _cancellation = cancellation;
+        }
+
+        public Task<Response<JsonsBootstrapPayload>> EnsureWorkspaceAsync(
+            JsonsOptions options,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromException<Response<JsonsBootstrapPayload>>(
+                _cancellation);
         }
     }
 
