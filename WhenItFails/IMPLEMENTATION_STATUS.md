@@ -17,40 +17,14 @@ Hardening dependency boundaries while preserving established public exception co
 - `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` as consumed by `ErrorCatalogInitializer` is complete for the current scope.
 - `ErrorCatalogContextProvider` is intentionally a transparent orchestration boundary for exceptions thrown by its five internal catalog providers; do not normalize them there.
 - `ErrorCatalogProvider` dependency-boundary audit is complete for the current scope.
-- The shared internal `CatalogProviderPipeline` is the current normalization boundary under audit.
-- Pipeline loader, normalizer and validator boundaries are complete for the current scope.
-- Pipeline payload-factory null-result and ordinary-exception behavior are locally verified GREEN.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1009/1009 tests with zero compiler warnings** before the new payload-factory cancellation contract.
-- A focused exact-instance cancellation contract is now committed for the payload-factory delegate and awaits local verification.
+- `CatalogProviderPipeline` dependency-boundary audit is complete for the current scope.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1010/1010 tests with zero compiler warnings**.
+- Fresh reconnaissance identifies `BuiltInErrorCatalogContextProvider` as the next focused hardening target because its generic ordinary-exception response currently exposes `exception.Message` publicly.
 
-## 2026-09-10 — pipeline payload-factory cancellation contract
+## 2026-09-10 — 1010/1010 GREEN CatalogProviderPipeline checkpoint
 
-Contract commit: `8290c3be0eecb9d38a7a511ae9e8e3407ef9a4ea`.
-
-Updated:
-
-`WhenItFails.Tests/Catalog/CatalogProviderPipelinePayloadFactoryExceptionContractTests.cs`
-
-Added:
-
-`LoadNormalizeValidateAsync_WhenPayloadFactoryCancels_RethrowsSameOperationCanceledException`
-
-Contract:
-
-```text
-payload-factory delegate
-    => throws a specific OperationCanceledException instance
-                         ↓
-rethrow the exact same OperationCanceledException instance
-```
-
-The test uses `Assert.Same(...)`.
-
-No production code changed. The payload-factory exception guard excludes `OperationCanceledException`, so this focused contract is expected to be GREEN.
-
-## 2026-09-10 — 1009/1009 GREEN pipeline payload-factory exception checkpoint
-
-Checkpoint commit: `80aea0106589e58b5fd27c928e0ce6714c44492d`.
+Checkpoint commit: this commit.
+Payload-factory cancellation contract commit: `8290c3be0eecb9d38a7a511ae9e8e3407ef9a4ea`.
 Payload-factory production fix commit: `fe49871c054523932063935c7aeab62521a18a7c`.
 Payload-factory ordinary-exception contract commit: `676dc55d19ceb04f5155445ceb929ea4acee16f3`.
 
@@ -59,51 +33,25 @@ Verified locally:
 ```text
 WhenItFails.Tests
 Failed:   0
-Passed: 1009
+Passed: 1010
 Skipped:  0
-Total:  1009
+Total:  1010
 Compiler warnings: 0
 ```
 
-Pipeline payload-factory ordinary exceptions normalize to:
+`CatalogProviderPipeline` boundary is complete for the current scope:
 
-```text
-Status: Failed
-Data: null
-Code: WIF_CATALOG_PIPELINE_PAYLOAD_FACTORY_FAILED
-Message: The catalog provider pipeline payload factory failed.
-```
+- loader delegate — null response, ordinary exception normalization, exact cancellation propagation;
+- normalizer delegate — null result, ordinary exception normalization, exact cancellation propagation;
+- validator delegate — null result, ordinary exception normalization, exact cancellation propagation;
+- payload-factory delegate — null result, ordinary exception normalization, exact cancellation propagation.
 
-Existing null-payload behavior remains:
+Stable pipeline ordinary-exception codes:
 
-```text
-Code: WIF_CATALOG_PIPELINE_PAYLOAD_NULL
-Message: The catalog provider pipeline payload factory returned a null result.
-```
-
-## 2026-09-10 — 1008/1008 GREEN pipeline validator boundary checkpoint
-
-Checkpoint commit: `a8daffefc2b8ffb04ce639c859f951b639d1f9b6`.
-Validator cancellation contract commit: `0af207af6fc957e55f498e8e669dc371b3313541`.
-Validator production fix commit: `c99bc586ff6f8f6e82e4a0b119ec3137ee92d792`.
-Validator ordinary-exception contract commit: `25f0e8fe345d89e2e226aecbaaf4f3767a4a8010`.
-
-Verified locally:
-
-```text
-WhenItFails.Tests
-Failed:   0
-Passed: 1008
-Skipped:  0
-Total:  1008
-Compiler warnings: 0
-```
-
-Pipeline validator boundary is complete for the current scope:
-
-- null result → `WIF_CATALOG_PIPELINE_VALIDATOR_RESULT_NULL`;
-- ordinary exception → `WIF_CATALOG_PIPELINE_VALIDATOR_FAILED`;
-- exact `OperationCanceledException` instance propagates unchanged.
+- `WIF_CATALOG_PIPELINE_LOADER_FAILED`
+- `WIF_CATALOG_PIPELINE_NORMALIZER_FAILED`
+- `WIF_CATALOG_PIPELINE_VALIDATOR_FAILED`
+- `WIF_CATALOG_PIPELINE_PAYLOAD_FACTORY_FAILED`
 
 ## Completed `ErrorCatalogProvider` dependency boundaries
 
@@ -122,67 +70,55 @@ Relevant suites:
 - `WhenItFails.Tests/Catalog/ErrorCatalogContextProviderExceptionShapeTests.cs`
 - `WhenItFails.Tests/Catalog/ErrorCatalogContextProviderCancellationPropagationTests.cs`
 
-## `CatalogProviderPipeline` boundary map
+## Next boundary reconnaissance — `BuiltInErrorCatalogContextProvider`
 
-`CatalogProviderPipeline.LoadNormalizeValidateAsync(...)` is used by:
+Production file:
 
-1. `ErrorCategoryCatalogProvider`
-2. `ErrorCodeGroupCatalogProvider`
-3. `ErrorOwnerCatalogProvider`
-4. `ErrorProfileCatalogProvider`
+`WhenItFails/Catalog/WhenItFails/Catalog/BuiltInErrorCatalogContextProvider.cs`
 
-Current phases:
+Dependencies:
 
-1. loader delegate — complete for current scope.
-2. normalizer delegate — complete for current scope.
-3. validator delegate — complete for current scope.
-4. payload-factory delegate — null result and ordinary exception complete; exact cancellation awaiting GREEN.
+1. `IJsonsTemplateProvider`
+2. `IErrorCatalogContextProvider`
 
-Stable malformed-result codes include:
+Existing behavior already covers:
 
-- `WIF_CATALOG_PIPELINE_LOADER_RESPONSE_NULL`
-- `WIF_CATALOG_PIPELINE_NORMALIZER_RESULT_NULL`
-- `WIF_CATALOG_PIPELINE_VALIDATOR_RESULT_NULL`
-- `WIF_CATALOG_PIPELINE_PAYLOAD_NULL`
+- null template collection → `WIF_BUILT_IN_TEMPLATES_NULL`;
+- empty template collection → `WIF_BUILT_IN_TEMPLATES_EMPTY`;
+- malformed template entries → stable Invalid responses;
+- null context-provider response → `WIF_BUILT_IN_CONTEXT_PROVIDER_RESPONSE_NULL`;
+- cancellation → rethrown;
+- ordinary exceptions → `WIF_BUILT_IN_CONTEXT_LOAD_FAILED`.
 
-Stable ordinary-exception codes implemented include:
+The ordinary-exception path currently builds the public message as:
 
-- `WIF_CATALOG_PIPELINE_LOADER_FAILED`
-- `WIF_CATALOG_PIPELINE_NORMALIZER_FAILED`
-- `WIF_CATALOG_PIPELINE_VALIDATOR_FAILED`
-- `WIF_CATALOG_PIPELINE_PAYLOAD_FACTORY_FAILED`
+```text
+The bundled WhenItFails catalog context could not be loaded: {exception.Message}
+```
+
+This exposes dependency/internal exception text through the public response. Repository searches found no existing test contract requiring that exception detail to be preserved in the response message.
 
 ## Verification state
 
-- Clean continuation baseline: **1009/1009 GREEN, zero compiler warnings**.
-- Pipeline loader, normalizer and validator boundaries are complete for the current scope.
-- Pipeline payload-factory null-result and ordinary-exception behavior are locally verified.
-- Exact-instance payload-factory cancellation contract is committed and awaits focused local verification.
-- No production change is expected for this cancellation contract.
-- Expected complete-suite count after it passes: **1010 tests**.
-
-## Recommended verification
-
-Pull current `master` and run:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadNormalizeValidateAsync_WhenPayloadFactoryCancels_RethrowsSameOperationCanceledException"
-```
-
-Expected result: GREEN.
-
-Then run:
-
-```powershell
-dotnet test WhenItFails.Tests
-```
-
-Expected complete-suite result: **1010/1010 GREEN with zero compiler warnings**.
+- Clean continuation baseline: **1010/1010 GREEN, zero compiler warnings**.
+- `CatalogProviderPipeline` audit is closed for the current scope.
+- No production change has yet been made to `BuiltInErrorCatalogContextProvider`.
 
 ## Next recommended step
 
-After **1010/1010 GREEN** is confirmed, consider the entire `CatalogProviderPipeline` dependency-boundary audit complete for the current scope.
+Add one focused ordinary-exception contract for `IJsonsTemplateProvider.GetTemplateFiles(...)` as consumed by `BuiltInErrorCatalogContextProvider`.
 
-Record the final checkpoint, then perform fresh repository reconnaissance before selecting the next normalization or transparent boundary. Search existing propagation, exception-shape, cancellation, null-task and malformed-result contracts before introducing any new behavior.
+Expected stable response:
+
+```text
+Status: Failed
+Data: null
+Code: WIF_BUILT_IN_CONTEXT_LOAD_FAILED
+Message: The bundled WhenItFails catalog context could not be loaded.
+```
+
+The test should assert that a sensitive raw dependency exception message is not present in `Response.Message`.
+
+If the focused test is RED as expected, make the smallest production change: keep the existing code and catch structure, but remove `exception.Message` from the public message. Preserve `OperationCanceledException` propagation unchanged.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
