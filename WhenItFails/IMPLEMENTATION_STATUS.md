@@ -18,11 +18,47 @@ Hardening dependency boundaries while preserving established public exception co
 - `ErrorCatalogContextProvider` is intentionally a transparent orchestration boundary for exceptions thrown by its five internal catalog providers; do not normalize them there.
 - `ErrorCatalogProvider` is the current normalization boundary under audit.
 - `IErrorCatalogLoader.LoadFromFileAsync(...)` is complete for the current scope: null response, ordinary exception normalization, and exact-instance cancellation are covered.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 996/996 tests with zero compiler warnings**.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 996/996 tests with zero compiler warnings** before the new normalizer exception contract.
+- A focused ordinary-exception contract is now committed for `IErrorCatalogDocumentNormalizer.Normalize(...)` and awaits local RED verification.
+
+## 2026-09-10 — normalizer ordinary-exception contract
+
+Contract commit: `7c019211b48edc611f293ac49624a3ad4cfdd0b4`
+
+Added:
+
+`WhenItFails.Tests/Catalog/ErrorCatalogProviderNormalizerExceptionContractTests.cs`
+
+Test:
+
+`LoadFromFileAsync_WhenNormalizerThrows_ReturnsStableFailure`
+
+The normalizer throws:
+
+```text
+System.InvalidOperationException:
+Sensitive error catalog normalizer detail must not escape.
+```
+
+Required stable `ErrorCatalogProvider` contract:
+
+```text
+Status: Failed
+Data: null
+Code: WIF_ERROR_CATALOG_NORMALIZER_FAILED
+Message: The error catalog document normalizer failed.
+```
+
+The validator and factory fixtures throw if reached, so the contract also locks short-circuit behavior after normalizer failure.
+
+No production code changed. `_normalizer.Normalize(...)` is currently invoked directly, so the focused test is expected to be RED with the raw normalizer exception escaping.
 
 ## 2026-09-10 — 996/996 GREEN loader boundary checkpoint
 
-Checkpoint follows loader cancellation contract commit `6586cf4e41de535421faed2bcfab68faad16c946` and production fix `49ab1d418217d3745f256b347efee379fe374934`.
+Checkpoint commit: `2d923b51a70105e02240333f9b8ee956c1a6006b`
+
+Loader cancellation contract commit: `6586cf4e41de535421faed2bcfab68faad16c946`.
+Loader production fix commit: `49ab1d418217d3745f256b347efee379fe374934`.
 
 Verified locally:
 
@@ -35,16 +71,7 @@ Total:  996
 Compiler warnings: 0
 ```
 
-Loader ordinary exceptions are normalized to:
-
-```text
-Status: Failed
-Data: null
-Code: WIF_ERROR_CATALOG_LOADER_FAILED
-Message: The error catalog loader failed.
-```
-
-Loader `OperationCanceledException` instances propagate unchanged.
+`IErrorCatalogLoader` boundary is complete for the current scope. Ordinary exceptions normalize to `WIF_ERROR_CATALOG_LOADER_FAILED`; exact loader cancellation propagates unchanged.
 
 ## Established transparent boundary — do not normalize
 
@@ -63,7 +90,7 @@ Relevant suites:
 `ErrorCatalogProvider.LoadFromFileAsync(...)` composes:
 
 1. `IErrorCatalogLoader.LoadFromFileAsync(...)` — complete for current scope.
-2. `IErrorCatalogDocumentNormalizer.Normalize(...)` — next boundary under audit.
+2. `IErrorCatalogDocumentNormalizer.Normalize(...)` — ordinary-exception contract awaiting RED.
 3. `IErrorCatalogValidator.Validate(...)`.
 4. `IErrorCatalogFactory.Create(...)`.
 
@@ -78,24 +105,27 @@ Repository reconnaissance found no existing `ErrorCatalogProvider` propagation/s
 
 ## Verification state
 
-- Clean continuation baseline: **996/996 GREEN, zero compiler warnings**.
-- Loader boundary complete for current scope.
-- Normalizer null-result contract already exists.
-- No normalizer ordinary-exception normalization has been implemented yet.
+- Clean continuation baseline before the new test: **996/996 GREEN, zero compiler warnings**.
+- New normalizer ordinary-exception contract is committed and awaits focused RED verification.
+- Production normalizer call remains unchanged until RED is observed.
+- Expected complete-suite count once the new contract eventually passes: **997 tests**.
+
+## Recommended verification
+
+Pull current `master` and run only the new contract:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadFromFileAsync_WhenNormalizerThrows_ReturnsStableFailure"
+```
+
+Expected current result: RED with the raw exception text:
+
+```text
+Sensitive error catalog normalizer detail must not escape.
+```
 
 ## Next recommended step
 
-Add one focused RED contract for an ordinary exception thrown by `IErrorCatalogDocumentNormalizer.Normalize(...)`.
-
-Expected stable target if RED confirms the gap:
-
-```text
-Status: Failed
-Data: null
-Code: WIF_ERROR_CATALOG_NORMALIZER_FAILED
-Message: The error catalog document normalizer failed.
-```
-
-The validator and factory must not be called after the normalizer fails. Keep production code unchanged until RED is observed.
+If RED is confirmed, add the smallest ordinary-exception guard around only `_normalizer.Normalize(...)`, excluding `OperationCanceledException` so cancellation can be tested separately afterward.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
