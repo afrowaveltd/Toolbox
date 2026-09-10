@@ -20,11 +20,37 @@ Hardening dependency boundaries while preserving established public exception co
 - `CatalogProviderPipeline` dependency-boundary audit is complete for the current scope.
 - `BuiltInErrorCatalogContextProvider` is the current focused hardening target.
 - Template-provider ordinary-exception sanitization is locally verified GREEN.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1011/1011 tests with zero compiler warnings**.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1011/1011 tests with zero compiler warnings** before the new template-provider cancellation contract.
+- A focused exact-instance cancellation contract for `IJsonsTemplateProvider.GetTemplateFiles(...)` is committed and awaits local verification.
+
+## 2026-09-10 — built-in template-provider cancellation contract
+
+Contract commit: `5344b2a111a005e3b53cb3d8ba7e4c8986648de1`.
+
+Updated:
+
+`WhenItFails.Tests/Catalog/BuiltInErrorCatalogContextProviderTemplateProviderExceptionContractTests.cs`
+
+Added:
+
+`LoadAsync_WhenTemplateProviderCancels_RethrowsSameOperationCanceledException`
+
+Contract:
+
+```text
+template provider
+    => throws a specific OperationCanceledException instance
+                         ↓
+rethrow the exact same OperationCanceledException instance
+```
+
+The test uses `Assert.Same(...)`. The context provider throws if reached, so cancellation must short-circuit before downstream loading.
+
+No production code changed. `BuiltInErrorCatalogContextProvider.LoadAsync(...)` already has a dedicated `catch (OperationCanceledException) { throw; }`, so this focused contract is expected to be GREEN.
 
 ## 2026-09-10 — 1011/1011 GREEN built-in template-provider checkpoint
 
-Checkpoint commit: this commit.
+Checkpoint commit: `c4c4f0b82d53aed8ca7208a58fce473be5787062`.
 Template-provider sanitization fix commit: `13429fd33d6c467409007d084b63711cd2e9c472`.
 Template-provider ordinary-exception contract commit: `5910b04e8942384c5f0c7cdd0f1dadff6aff2aa6`.
 
@@ -49,8 +75,6 @@ Message: The bundled WhenItFails catalog context could not be loaded.
 ```
 
 The raw dependency `exception.Message` no longer escapes through the public response.
-
-`OperationCanceledException` remains explicitly rethrown by `BuiltInErrorCatalogContextProvider.LoadAsync(...)`, so the next focused contract should verify exact-instance cancellation from `IJsonsTemplateProvider.GetTemplateFiles(...)`.
 
 ## 2026-09-10 — 1010/1010 GREEN CatalogProviderPipeline checkpoint
 
@@ -122,14 +146,32 @@ Current exception behavior:
 
 - Clean continuation baseline: **1011/1011 GREEN, zero compiler warnings**.
 - Template-provider ordinary-exception sanitization is locally verified.
-- No exact-instance template-provider cancellation contract has been committed yet at this checkpoint.
+- Exact-instance template-provider cancellation contract is committed and awaits focused verification.
+- No production change is expected for this cancellation contract.
+- Expected complete-suite count after it passes: **1012 tests**.
+
+## Recommended verification
+
+Pull current `master` and run:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadAsync_WhenTemplateProviderCancels_RethrowsSameOperationCanceledException"
+```
+
+Expected result: GREEN.
+
+Then run:
+
+```powershell
+dotnet test WhenItFails.Tests
+```
+
+Expected complete-suite result: **1012/1012 GREEN with zero compiler warnings**.
 
 ## Next recommended step
 
-Add a focused exact-instance cancellation contract for `IJsonsTemplateProvider.GetTemplateFiles(...)`. The fake template provider should throw a specific `OperationCanceledException` instance, the test should use `Assert.Same(...)`, and the context provider must not run.
+After **1012/1012 GREEN** is confirmed, consider the `IJsonsTemplateProvider` dependency boundary complete for the current scope.
 
-No production change is expected.
-
-After that contract is GREEN, inspect the `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` dependency inside `BuiltInErrorCatalogContextProvider` separately, including ordinary exception sanitization and exact cancellation behavior.
+Then inspect the `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` dependency inside `BuiltInErrorCatalogContextProvider` separately, searching existing propagation/shape/cancellation contracts before adding an ordinary-exception sanitization contract.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
