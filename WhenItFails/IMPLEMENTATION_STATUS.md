@@ -16,36 +16,61 @@ Hardening dependency boundaries while preserving established public exception co
 - `BuiltInErrorCatalogContextProvider` dependency-boundary audit is complete for the current scope, including injected context-provider null `Task` normalization.
 - `ErrorCatalogInitializer` bootstrapper/context-provider ordinary-exception, cancellation, null-response and null-task behavior is complete for the current scope.
 - `ErrorCatalogRuntime` initializer ordinary-exception, cancellation, null-response and null-task behavior is complete for the current scope.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1018/1018 tests with zero compiler warnings** before the new reset null-task contract.
-- A focused null-task contract for `ResetToDefaultsAsync(...)`'s `IBuiltInErrorCatalogContextProvider` dependency is committed and awaits local verification.
+- Explicit `ResetToDefaultsAsync(...)` built-in-provider null-task behavior is locally verified.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1019/1019 tests with zero compiler warnings**.
+- Flexible-fallback built-in-provider null-task behavior is the next focused runtime boundary.
 
-## 2026-09-10 — reset built-in provider null-task contract
+## 2026-09-10 — 1019/1019 GREEN reset built-in-provider checkpoint
 
-Contract commit: `533058b97684f411a40a5b7ea86ef68b3cdcfa6e`.
-Baseline checkpoint commit: `bcbc9c6696fcf2a058c83c376fa83da2ce36f7bc`.
+Checkpoint commit: this status commit.
+Reset null-task contract commit: `533058b97684f411a40a5b7ea86ef68b3cdcfa6e`.
+Previous baseline checkpoint commit: `bcbc9c6696fcf2a058c83c376fa83da2ce36f7bc`.
+
+Verified locally:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1019
+Skipped:  0
+Total:  1019
+Compiler warnings: 0
+```
+
+`ResetToDefaultsAsync(...)` now explicitly covers its `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` boundary:
+
+- null `Response` → `WIF_BUILT_IN_CONTEXT_RESPONSE_NULL`;
+- ordinary exception → `WIF_BUILT_IN_CONTEXT_PROVIDER_FAILED`;
+- null `Task` → `WIF_BUILT_IN_CONTEXT_PROVIDER_FAILED`;
+- exact `OperationCanceledException` instance propagates unchanged.
+
+No production change was required for the null-`Task` case because the provider await is already inside the ordinary-exception normalization guard.
+
+## 2026-09-10 — runtime initializer null-task contract
+
+Contract commit: `a8a9cb118e43eca67f4cea9d3d0291c4baa1e2a0`.
+Baseline checkpoint commit: `c35fd30a260d82d32239ddf04851c6cd25ea5769`.
 
 Updated:
 
-`WhenItFails.Tests/Services/ErrorCatalogRuntimeBuiltInContextProviderExceptionContractTests.cs`
+`WhenItFails.Tests/Services/ErrorCatalogRuntimeInitializerExceptionContractTests.cs`
 
 Added:
 
-`ResetToDefaultsAsync_WhenBuiltInProviderReturnsNullTask_ReturnsStableFailure`
+`InitializeAsync_WhenInitializerReturnsNullTask_ReturnsStableFailure`
 
-The fake `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` returns `null!` instead of a `Task<Response<ErrorCatalogContext>>`.
+The fake `IErrorCatalogInitializer.InitializeAsync(...)` returns `null!` instead of a `Task<Response<ErrorCatalogInitializationPayload>>`.
 
 Required contract:
 
 ```text
 Status: Failed
 Data: null
-Code: WIF_BUILT_IN_CONTEXT_PROVIDER_FAILED
-Message: The bundled default catalog provider failed.
+Code: WIF_INITIALIZER_FAILED
+Message: The error catalog initializer failed.
 ```
 
-This is intentionally distinct from a completed task whose `Response` value is null, which remains `WIF_BUILT_IN_CONTEXT_RESPONSE_NULL`.
-
-No production code changed. The provider await in `ResetToDefaultsAsync(...)` is already inside the ordinary-exception normalization guard, so the null-task `NullReferenceException` is expected to normalize to the established provider failure. `OperationCanceledException` remains excluded and propagates unchanged.
+No production code changed. `ErrorCatalogRuntime.InitializeCoreAsync(...)` awaits the initializer inside its existing ordinary-exception normalization guard, so the null-task `NullReferenceException` normalizes to the established runtime initializer failure.
 
 ## 2026-09-10 — 1018/1018 GREEN runtime initializer checkpoint
 
@@ -64,14 +89,12 @@ Total:  1018
 Compiler warnings: 0
 ```
 
-`ErrorCatalogRuntime.InitializeCoreAsync(...)` now explicitly covers its injected `IErrorCatalogInitializer` boundary:
+`ErrorCatalogRuntime.InitializeCoreAsync(...)` explicitly covers its injected `IErrorCatalogInitializer` boundary:
 
 - null `Response` → `WIF_INITIALIZER_RESPONSE_NULL`;
 - ordinary exception → `WIF_INITIALIZER_FAILED`;
 - null `Task` → `WIF_INITIALIZER_FAILED`;
 - exact `OperationCanceledException` instance propagates unchanged.
-
-No production change was required for the null-`Task` case because the initializer await is already inside the runtime ordinary-exception normalization guard.
 
 ## 2026-09-10 — 1017/1017 GREEN initializer checkpoint
 
@@ -128,40 +151,24 @@ Do not replace those transparent contracts with normalization at that layer.
 
 `JsonCatalogDocumentLoader.InvalidJson` deliberately includes the parser message; `Docs/Loading-and-Normalization/en.md` documents that behavior. Do not sanitize it as an incidental hardening change.
 
-Fresh runtime reconnaissance found two `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` await sites worth explicit null-task contracts:
+Runtime reconnaissance identified two `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` await sites for explicit null-task coverage:
 
-1. explicit reset via `ResetToDefaultsAsync(...)` — contract now committed and awaiting GREEN;
-2. flexible fallback via `CreateBuiltInFallbackResponseAsync(...)` — handle separately after reset is verified.
+1. explicit reset via `ResetToDefaultsAsync(...)` — **verified GREEN at 1019/1019**;
+2. flexible fallback via `CreateBuiltInFallbackResponseAsync(...)` — next focused contract.
 
-Both sites already have ordinary-exception normalization and exact cancellation contracts. No prior runtime null-`Task` contract for the built-in provider was found.
+The flexible fallback path already has ordinary-exception normalization, exact cancellation propagation and null-response coverage. No dedicated null-`Task` contract exists yet.
 
 ## Verification state
 
-- Clean continuation baseline: **1018/1018 GREEN, zero compiler warnings**.
+- Clean continuation baseline: **1019/1019 GREEN, zero compiler warnings**.
 - Runtime initializer async dependency boundary is complete for the current scope.
-- Explicit-reset built-in-provider null-task contract is committed and awaiting focused local verification.
-- No production change is expected.
-- Expected complete-suite count after it passes: **1019/1019 GREEN with zero compiler warnings**.
-
-## Recommended verification
-
-Pull current `master` and run:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResetToDefaultsAsync_WhenBuiltInProviderReturnsNullTask_ReturnsStableFailure"
-dotnet test WhenItFails.Tests
-```
-
-Expected results:
-
-```text
-Focused contract: GREEN
-Complete suite: 1019/1019 GREEN
-Compiler warnings: 0
-```
+- Explicit-reset built-in-provider async boundary is complete for the current scope.
+- Flexible fallback built-in-provider null-task contract is the remaining runtime built-in-provider gap.
+- No production change is expected because the fallback provider await is already inside its ordinary-exception normalization guard.
+- Expected complete-suite count after the next contract passes: **1020/1020 GREEN with zero compiler warnings**.
 
 ## Next recommended step
 
-After **1019/1019 GREEN** is confirmed, record the checkpoint and add a separate focused null-task contract for the flexible fallback path using `IBuiltInErrorCatalogContextProvider.LoadAsync(...)`.
+Add one focused null-task contract to `ErrorCatalogRuntimeBuiltInContextProviderFlexibleFallbackExceptionContractTests.cs` requiring the same stable fallback shape as an ordinary provider exception, then run the focused test and complete suite.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
