@@ -16,52 +16,39 @@ Hardening dependency boundaries while preserving established public exception co
 - `BuiltInErrorCatalogContextProvider` dependency-boundary audit is complete for the current scope, including injected context-provider null `Task` normalization.
 - `ErrorCatalogInitializer` bootstrapper/context-provider ordinary-exception, cancellation, null-response and null-task behavior is complete for the current scope.
 - `ErrorCatalogRuntime` initializer ordinary-exception, cancellation, null-response and null-task behavior is complete for the current scope.
-- Explicit `ResetToDefaultsAsync(...)` built-in-provider async boundary is locally verified complete.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1019/1019 tests with zero compiler warnings** before the new flexible-fallback null-task contract.
-- A focused null-task contract for the flexible fallback `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` dependency is committed and awaits local verification.
+- Both runtime `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` boundaries — explicit reset and flexible fallback — are complete for null response, ordinary exception, null task and exact cancellation behavior in the current scope.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1020/1020 tests with zero compiler warnings**.
 
-## 2026-09-10 — flexible fallback built-in-provider null-task contract
+## 2026-09-10 — 1020/1020 GREEN flexible-fallback checkpoint
 
-Contract commit: `27e37855c4ac6e12a5323810c67e47e2d4ebba0a`.
-Baseline checkpoint commit: `2bf35596529be9f27795ddc462f055b3a3ea883c`.
+Checkpoint commit: recorded by this status update.
+Flexible-fallback null-task contract commit: `27e37855c4ac6e12a5323810c67e47e2d4ebba0a`.
+Previous status commit: `302847070ba712fe89fced815eeeb6a6da128c23`.
 
-Updated:
-
-`WhenItFails.Tests/Services/ErrorCatalogRuntimeBuiltInContextProviderFlexibleFallbackExceptionContractTests.cs`
-
-Added:
-
-`InitializeAsync_WhenFlexibleFallbackProviderReturnsNullTask_ReturnsStableFallbackFailure`
-
-The fake `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` returns `null!` while `ErrorCatalogRuntime` is in `Flexible` initialization mode and the configured project initializer has already failed.
-
-Required public fallback shape:
+Verified locally:
 
 ```text
-Status: Failed
-Data: null
-Code: WIF_DEFAULT_FALLBACK_FAILED
-Message: The configured error catalog failed and the bundled default catalog could not be activated.
+WhenItFails.Tests
+Failed:   0
+Passed: 1020
+Skipped:  0
+Total:  1020
+Compiler warnings: 0
 ```
 
-Required fallback metadata:
+The flexible fallback path through `CreateBuiltInFallbackResponseAsync(...)` now explicitly covers its `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` boundary:
 
-```text
-WhenItFails.ProjectFailure.Code = CatalogDocumentsInvalid
-WhenItFails.FallbackFailure.Code = WIF_BUILT_IN_CONTEXT_PROVIDER_FAILED
-WhenItFails.FallbackFailure.Status = Failed
-WhenItFails.FallbackFailure.Message = The bundled default catalog provider failed.
-```
+- null `Response` → fallback metadata `WIF_BUILT_IN_CONTEXT_RESPONSE_NULL` / `Invalid`;
+- ordinary exception → fallback metadata `WIF_BUILT_IN_CONTEXT_PROVIDER_FAILED` / `Failed`;
+- null `Task` → fallback metadata `WIF_BUILT_IN_CONTEXT_PROVIDER_FAILED` / `Failed`;
+- exact `OperationCanceledException` instance propagates unchanged.
 
-This is intentionally distinct from a completed task whose `Response` value is null; that case remains represented inside fallback metadata as `WIF_BUILT_IN_CONTEXT_RESPONSE_NULL` with `Invalid` status.
-
-No production code changed. The fallback provider await is already inside the ordinary-exception normalization guard, so a null-task `NullReferenceException` is expected to normalize to the established built-in provider failure and then be wrapped in the stable default-fallback response. `OperationCanceledException` remains excluded and propagates unchanged.
+Together with the explicit reset coverage, both runtime uses of the built-in provider are complete for the current dependency-boundary scope.
 
 ## 2026-09-10 — 1019/1019 GREEN reset built-in-provider checkpoint
 
 Checkpoint commit: `2bf35596529be9f27795ddc462f055b3a3ea883c`.
 Reset null-task contract commit: `533058b97684f411a40a5b7ea86ef68b3cdcfa6e`.
-Previous baseline checkpoint commit: `bcbc9c6696fcf2a058c83c376fa83da2ce36f7bc`.
 
 Verified locally:
 
@@ -81,13 +68,10 @@ Compiler warnings: 0
 - null `Task` → `WIF_BUILT_IN_CONTEXT_PROVIDER_FAILED`;
 - exact `OperationCanceledException` instance propagates unchanged.
 
-No production change was required for the null-`Task` case because the provider await is already inside the ordinary-exception normalization guard.
-
 ## 2026-09-10 — 1018/1018 GREEN runtime initializer checkpoint
 
 Checkpoint commit: `bcbc9c6696fcf2a058c83c376fa83da2ce36f7bc`.
 Runtime initializer null-task contract commit: `a8a9cb118e43eca67f4cea9d3d0291c4baa1e2a0`.
-Previous status commit: `3f65365ce84601557ce78710ca28b64921db6af0`.
 
 Verified locally:
 
@@ -162,42 +146,16 @@ Do not replace those transparent contracts with normalization at that layer.
 
 `JsonCatalogDocumentLoader.InvalidJson` deliberately includes the parser message; `Docs/Loading-and-Normalization/en.md` documents that behavior. Do not sanitize it as an incidental hardening change.
 
-Runtime reconnaissance identified two `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` await sites for explicit null-task coverage:
-
-1. explicit reset via `ResetToDefaultsAsync(...)` — **verified GREEN at 1019/1019**;
-2. flexible fallback via `CreateBuiltInFallbackResponseAsync(...)` — contract committed and awaiting GREEN.
-
-The flexible fallback path already had ordinary-exception normalization, exact cancellation propagation and null-response coverage before the new null-task contract.
+Fresh reconnaissance after the 1020 checkpoint moved outside the completed runtime/initializer/built-in-provider boundaries. `JsonsBootstrapper` is the next candidate because it consumes `IJsonsTemplateProvider.GetTemplateFiles(...)` directly. Existing contracts already normalize malformed provider results such as null collections/items, while no established provider-exception propagation contract or documentation was found. The current production catches filesystem `UnauthorizedAccessException` and `IOException` only, so an ordinary exception thrown by the template provider currently escapes.
 
 ## Verification state
 
-- Clean continuation baseline: **1019/1019 GREEN, zero compiler warnings**.
-- Runtime initializer async dependency boundary is complete for the current scope.
-- Explicit-reset built-in-provider async boundary is complete for the current scope.
-- Flexible-fallback built-in-provider null-task contract is committed and awaiting focused local verification.
-- No production change is expected.
-- Expected complete-suite count after it passes: **1020/1020 GREEN with zero compiler warnings**.
-- After GREEN, both runtime `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` await sites are complete for null response, ordinary exception, null task and exact cancellation behavior in the current scope.
-
-## Recommended verification
-
-Pull current `master` and run:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~InitializeAsync_WhenFlexibleFallbackProviderReturnsNullTask_ReturnsStableFallbackFailure"
-dotnet test WhenItFails.Tests
-```
-
-Expected results:
-
-```text
-Focused contract: GREEN
-Complete suite: 1020/1020 GREEN
-Compiler warnings: 0
-```
+- Clean continuation baseline: **1020/1020 GREEN, zero compiler warnings**.
+- Runtime initializer and built-in-provider async dependency boundaries are complete for the current scope.
+- Next candidate: direct `JsonsBootstrapper` → `IJsonsTemplateProvider` ordinary-exception behavior.
 
 ## Next recommended step
 
-After **1020/1020 GREEN** is confirmed, record the checkpoint and perform fresh repository reconnaissance before selecting the next smallest uncovered dependency boundary. Search existing propagation/shape/cancellation/null-task contracts first and do not change an established transparent boundary.
+Add one focused test-first contract for an ordinary exception thrown by `IJsonsTemplateProvider.GetTemplateFiles(...)`. Require a stable `Failed` response and no raw exception detail. Preserve `OperationCanceledException` propagation as a separate follow-up contract.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
