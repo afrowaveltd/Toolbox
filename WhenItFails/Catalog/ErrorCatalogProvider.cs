@@ -74,8 +74,19 @@ public sealed class ErrorCatalogProvider : IErrorCatalogProvider
                 message: "Error catalog loader returned success, but document is null.");
         }
 
-        ErrorCatalogDocument? normalizedDocument =
-            _normalizer.Normalize(loadResponse.Data);
+        ErrorCatalogDocument? normalizedDocument;
+
+        try
+        {
+            normalizedDocument =
+                _normalizer.Normalize(loadResponse.Data);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<ErrorCatalogProviderPayload>.Fail(
+                code: "WIF_ERROR_CATALOG_NORMALIZER_FAILED",
+                message: "The error catalog document normalizer failed.");
+        }
 
         if (normalizedDocument is null)
         {
