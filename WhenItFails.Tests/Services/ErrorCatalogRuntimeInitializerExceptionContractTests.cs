@@ -56,6 +56,34 @@ public sealed class ErrorCatalogRuntimeInitializerExceptionContractTests
         Assert.Same(cancellation, thrown);
     }
 
+    [Fact]
+    public async Task InitializeAsync_WhenInitializerReturnsNullTask_ReturnsStableFailure()
+    {
+        ErrorCatalogRuntime runtime = CreateRuntime(
+            new NullTaskInitializer());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.InitializeAsync();
+
+        Assert.NotNull(response);
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal(
+            "The error catalog initializer failed.",
+            response.Message);
+
+        Assert.Collection(
+            response.Issues,
+            issue =>
+            {
+                Assert.Equal("WIF_INITIALIZER_FAILED", issue.Code);
+                Assert.Equal(
+                    "The error catalog initializer failed.",
+                    issue.Message);
+            });
+    }
+
     private static ErrorCatalogRuntime CreateRuntime(
         IErrorCatalogInitializer initializer)
     {
@@ -96,6 +124,16 @@ public sealed class ErrorCatalogRuntimeInitializerExceptionContractTests
         {
             return Task.FromException<Response<ErrorCatalogInitializationPayload>>(
                 _cancellation);
+        }
+    }
+
+    private sealed class NullTaskInitializer : IErrorCatalogInitializer
+    {
+        public Task<Response<ErrorCatalogInitializationPayload>> InitializeAsync(
+            JsonsOptions options,
+            CancellationToken cancellationToken = default)
+        {
+            return null!;
         }
     }
 
