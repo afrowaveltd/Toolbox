@@ -18,42 +18,43 @@ Hardening dependency boundaries while preserving established public exception co
 - `ErrorCatalogContextProvider` is intentionally a transparent orchestration boundary for exceptions thrown by its five internal catalog providers; do not normalize them there.
 - `ErrorCatalogProvider` dependency-boundary audit is complete for the current scope.
 - The shared internal `CatalogProviderPipeline` is the current normalization boundary under audit.
-- Pipeline loader boundary is complete for the current scope.
-- Pipeline normalizer boundary is complete for the current scope.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1006/1006 tests with zero compiler warnings** before the new validator exception contract.
-- A focused ordinary-exception contract is now committed for the pipeline validator delegate and awaits local RED verification.
+- Pipeline loader and normalizer boundaries are complete for the current scope.
+- Clean locally verified baseline before the new validator contract: **1006/1006 GREEN, zero compiler warnings**.
+- Pipeline validator ordinary-exception RED is confirmed locally and the minimal production guard is now committed; local GREEN verification is next.
 
-## 2026-09-10 — pipeline validator ordinary-exception contract
+## 2026-09-10 — pipeline validator ordinary-exception fix
 
 Contract commit: `25f0e8fe345d89e2e226aecbaaf4f3767a4a8010`.
-
-Added:
-
-`WhenItFails.Tests/Catalog/CatalogProviderPipelineValidatorExceptionContractTests.cs`
+Production fix commit: `c99bc586ff6f8f6e82e4a0b119ec3137ee92d792`.
 
 Test:
 
+`WhenItFails.Tests/Catalog/CatalogProviderPipelineValidatorExceptionContractTests.cs`
+
 `LoadNormalizeValidateAsync_WhenValidatorThrows_ReturnsStableFailure`
 
-The validator delegate throws:
+Observed focused RED before the production fix:
 
 ```text
 System.InvalidOperationException:
 Sensitive catalog provider pipeline validator detail must not escape.
 ```
 
-Required stable pipeline contract:
+The exception escaped through `CatalogProviderPipeline.LoadNormalizeValidateAsync(...)` from the direct `validate(normalizedDocument)` invocation, confirming the missing validator exception boundary.
+
+Production now guards only the validator delegate:
 
 ```text
-Status: Failed
-Data: null
-Code: WIF_CATALOG_PIPELINE_VALIDATOR_FAILED
-Message: The catalog provider pipeline validator failed.
+ordinary validator exception
+    => Status: Failed
+       Data: null
+       Code: WIF_CATALOG_PIPELINE_VALIDATOR_FAILED
+       Message: The catalog provider pipeline validator failed.
 ```
 
-The payload-factory delegate throws if reached, so the contract also locks short-circuit behavior after validator failure.
+`OperationCanceledException` is explicitly excluded from the catch so cancellation can continue to propagate unchanged. Payload-factory behavior was not changed.
 
-No production code changed. `CatalogProviderPipeline.LoadNormalizeValidateAsync(...)` currently invokes `validate(normalizedDocument)` directly, so the focused test is expected to be RED with the raw validator exception escaping.
+Expected next result: the focused validator exception contract GREEN, followed by full suite **1007/1007 GREEN with zero compiler warnings**.
 
 ## 2026-09-10 — 1006/1006 GREEN pipeline normalizer boundary checkpoint
 
@@ -109,49 +110,59 @@ Current phases:
 
 1. loader delegate — complete for current scope.
 2. normalizer delegate — complete for current scope.
-3. validator delegate — null result covered; ordinary-exception contract awaiting RED.
+3. validator delegate — null result covered; ordinary-exception production guard committed and awaiting GREEN; exact cancellation next.
 4. payload-factory delegate — null result covered; exception semantics not yet hardened.
 
-Stable malformed-result codes already include:
+Stable malformed-result codes include:
 
 - `WIF_CATALOG_PIPELINE_LOADER_RESPONSE_NULL`
 - `WIF_CATALOG_PIPELINE_NORMALIZER_RESULT_NULL`
 - `WIF_CATALOG_PIPELINE_VALIDATOR_RESULT_NULL`
 - `WIF_CATALOG_PIPELINE_PAYLOAD_NULL`
 
+Stable ordinary-exception codes currently include:
+
+- `WIF_CATALOG_PIPELINE_LOADER_FAILED`
+- `WIF_CATALOG_PIPELINE_NORMALIZER_FAILED`
+- `WIF_CATALOG_PIPELINE_VALIDATOR_FAILED`
+
 ## Validator reconnaissance
 
 Repository searches found no `CatalogProviderPipeline` validator exception-shape/pass-through contract and no concrete category/code-group/owner/profile provider contract requiring validator exceptions to propagate unchanged.
 
-No existing `WIF_CATALOG_PIPELINE_VALIDATOR_FAILED` code was found before this focused contract was introduced.
+No existing `WIF_CATALOG_PIPELINE_VALIDATOR_FAILED` code was found before the focused validator contract was introduced.
 
 ## Verification state
 
 - Clean continuation baseline before the validator test: **1006/1006 GREEN, zero compiler warnings**.
-- Pipeline loader and normalizer boundaries are complete for the current scope.
-- Pipeline validator null-result behavior is already covered by `CatalogProviderPipelineNullResultContractTests`.
-- New validator ordinary-exception contract is committed and awaits focused RED verification.
-- Production validator invocation remains unchanged until RED is observed.
-- Expected complete-suite count once the new contract eventually passes: **1007 tests**.
+- Focused validator ordinary-exception RED is confirmed.
+- Minimal production fix is committed.
+- Expected complete-suite count after GREEN verification: **1007 tests**.
 
 ## Recommended verification
 
-Pull current `master` and run only the new validator contract:
+Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadNormalizeValidateAsync_WhenValidatorThrows_ReturnsStableFailure"
 ```
 
-Expected current result: RED with the raw exception text:
+Expected result: GREEN.
 
-```text
-Sensitive catalog provider pipeline validator detail must not escape.
+Then run:
+
+```powershell
+dotnet test WhenItFails.Tests
 ```
+
+Expected complete-suite result: **1007/1007 GREEN with zero compiler warnings**.
 
 ## Next recommended step
 
-If RED is confirmed, add the smallest ordinary-exception guard around only `validate(normalizedDocument)`, excluding `OperationCanceledException` so exact-instance cancellation can be tested separately afterward.
+After **1007/1007 GREEN** is confirmed, add a focused exact-instance cancellation contract for the pipeline validator delegate. It should use a specific `OperationCanceledException` instance and `Assert.Same(...)` and ensure the payload factory is not reached.
 
-Do not change payload-factory exception behavior in the same production commit.
+No production change is expected for that cancellation contract because the validator guard explicitly excludes `OperationCanceledException`.
+
+Do not change payload-factory exception behavior until the validator boundary is complete.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
