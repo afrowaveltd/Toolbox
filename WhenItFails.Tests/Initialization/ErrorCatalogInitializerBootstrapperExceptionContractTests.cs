@@ -73,6 +73,45 @@ public sealed class ErrorCatalogInitializerBootstrapperExceptionContractTests
         Assert.Same(previousContext, contextStore.StoredContext);
     }
 
+    [Fact]
+    public async Task InitializeAsync_WhenBootstrapperReturnsNullTask_ReturnsStableFailure()
+    {
+        ErrorCatalogContext previousContext = new();
+        TrackingContextProvider contextProvider = new();
+        TrackingContextStore contextStore = new(previousContext);
+
+        ErrorCatalogInitializer initializer = new(
+            new NullTaskBootstrapper(),
+            contextProvider,
+            contextStore);
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await initializer.InitializeAsync(new JsonsOptions());
+
+        Assert.NotNull(response);
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal(
+            "The JSON workspace bootstrapper failed.",
+            response.Message);
+
+        Assert.Collection(
+            response.Issues,
+            issue =>
+            {
+                Assert.Equal(
+                    "WIF_INITIALIZER_BOOTSTRAPPER_FAILED",
+                    issue.Code);
+                Assert.Equal(
+                    "The JSON workspace bootstrapper failed.",
+                    issue.Message);
+            });
+
+        Assert.False(contextProvider.WasCalled);
+        Assert.Same(previousContext, contextStore.StoredContext);
+    }
+
     private sealed class ThrowingBootstrapper : IJsonsBootstrapper
     {
         public Task<Response<JsonsBootstrapPayload>> EnsureWorkspaceAsync(
@@ -101,6 +140,16 @@ public sealed class ErrorCatalogInitializerBootstrapperExceptionContractTests
         {
             return Task.FromException<Response<JsonsBootstrapPayload>>(
                 _cancellation);
+        }
+    }
+
+    private sealed class NullTaskBootstrapper : IJsonsBootstrapper
+    {
+        public Task<Response<JsonsBootstrapPayload>> EnsureWorkspaceAsync(
+            JsonsOptions options,
+            CancellationToken cancellationToken = default)
+        {
+            return null!;
         }
     }
 
