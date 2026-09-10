@@ -58,6 +58,36 @@ public sealed class ErrorCatalogRuntimeBuiltInContextProviderExceptionContractTe
         Assert.Same(cancellation, thrown);
     }
 
+    [Fact]
+    public async Task ResetToDefaultsAsync_WhenBuiltInProviderReturnsNullTask_ReturnsStableFailure()
+    {
+        ErrorCatalogRuntime runtime = CreateRuntime(
+            new NullTaskBuiltInContextProvider());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.ResetToDefaultsAsync();
+
+        Assert.NotNull(response);
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal(
+            "The bundled default catalog provider failed.",
+            response.Message);
+
+        Assert.Collection(
+            response.Issues,
+            issue =>
+            {
+                Assert.Equal(
+                    "WIF_BUILT_IN_CONTEXT_PROVIDER_FAILED",
+                    issue.Code);
+                Assert.Equal(
+                    "The bundled default catalog provider failed.",
+                    issue.Message);
+            });
+    }
+
     private static ErrorCatalogRuntime CreateRuntime(
         IBuiltInErrorCatalogContextProvider builtInContextProvider)
     {
@@ -98,6 +128,16 @@ public sealed class ErrorCatalogRuntimeBuiltInContextProviderExceptionContractTe
         {
             return Task.FromException<Response<ErrorCatalogContext>>(
                 _cancellation);
+        }
+    }
+
+    private sealed class NullTaskBuiltInContextProvider
+        : IBuiltInErrorCatalogContextProvider
+    {
+        public Task<Response<ErrorCatalogContext>> LoadAsync(
+            CancellationToken cancellationToken = default)
+        {
+            return null!;
         }
     }
 
