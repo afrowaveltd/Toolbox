@@ -51,8 +51,19 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                 PackageDirectoryCreated = !packageDirectoryAlreadyExisted
             };
 
-            IReadOnlyList<JsonsTemplateFile>? templateFiles =
-                _templateProvider.GetTemplateFiles(options);
+            IReadOnlyList<JsonsTemplateFile>? templateFiles;
+
+            try
+            {
+                templateFiles = _templateProvider.GetTemplateFiles(options);
+            }
+            catch (Exception exception)
+                when (exception is not OperationCanceledException)
+            {
+                return Response<JsonsBootstrapPayload>.Fail(
+                    code: "WIF_JSONS_TEMPLATE_PROVIDER_FAILED",
+                    message: "The JSON template provider failed.");
+            }
 
             if (templateFiles is null)
             {
