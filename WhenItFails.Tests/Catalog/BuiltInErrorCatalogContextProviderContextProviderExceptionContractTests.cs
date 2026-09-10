@@ -44,6 +44,23 @@ public sealed class BuiltInErrorCatalogContextProviderContextProviderExceptionCo
             });
     }
 
+    [Fact]
+    public async Task LoadAsync_WhenContextProviderCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "Built-in context provider cancellation must propagate unchanged.");
+
+        BuiltInErrorCatalogContextProvider provider = new(
+            new ValidTemplateProvider(),
+            new CancellingContextProvider(cancellation));
+
+        OperationCanceledException thrown =
+            await Assert.ThrowsAsync<OperationCanceledException>(
+                () => provider.LoadAsync());
+
+        Assert.Same(cancellation, thrown);
+    }
+
     private sealed class ValidTemplateProvider : IJsonsTemplateProvider
     {
         public IReadOnlyList<JsonsTemplateFile> GetTemplateFiles(
@@ -69,6 +86,25 @@ public sealed class BuiltInErrorCatalogContextProviderContextProviderExceptionCo
             return Task.FromException<Response<ErrorCatalogContext>>(
                 new InvalidOperationException(
                     "Sensitive built-in context provider detail must not escape."));
+        }
+    }
+
+    private sealed class CancellingContextProvider : IErrorCatalogContextProvider
+    {
+        private readonly OperationCanceledException _cancellation;
+
+        public CancellingContextProvider(
+            OperationCanceledException cancellation)
+        {
+            _cancellation = cancellation;
+        }
+
+        public Task<Response<ErrorCatalogContext>> LoadFromJsonsAsync(
+            JsonsOptions options,
+            CancellationToken cancellationToken = default)
+        {
+            return Task.FromException<Response<ErrorCatalogContext>>(
+                _cancellation);
         }
     }
 }
