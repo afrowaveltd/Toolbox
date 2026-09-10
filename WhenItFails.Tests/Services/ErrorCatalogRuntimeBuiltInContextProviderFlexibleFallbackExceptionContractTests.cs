@@ -73,6 +73,50 @@ public sealed class ErrorCatalogRuntimeBuiltInContextProviderFlexibleFallbackExc
         Assert.Same(cancellation, thrown);
     }
 
+    [Fact]
+    public async Task InitializeAsync_WhenFlexibleFallbackProviderReturnsNullTask_ReturnsStableFallbackFailure()
+    {
+        ErrorCatalogRuntime runtime = CreateRuntime(
+            new NullTaskBuiltInContextProvider());
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await runtime.InitializeAsync(new JsonsOptions());
+
+        Assert.NotNull(response);
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal(
+            "The configured error catalog failed and the bundled default catalog could not be activated.",
+            response.Message);
+
+        Assert.Collection(
+            response.Issues,
+            issue =>
+            {
+                Assert.Equal("WIF_DEFAULT_FALLBACK_FAILED", issue.Code);
+                Assert.Equal(
+                    "The configured error catalog failed and the bundled default catalog could not be activated.",
+                    issue.Message);
+            });
+
+        Assert.Equal(
+            "CatalogDocumentsInvalid",
+            response.Metadata["WhenItFails.ProjectFailure.Code"]);
+
+        Assert.Equal(
+            "WIF_BUILT_IN_CONTEXT_PROVIDER_FAILED",
+            response.Metadata["WhenItFails.FallbackFailure.Code"]);
+
+        Assert.Equal(
+            ResultStatus.Failed.ToString(),
+            response.Metadata["WhenItFails.FallbackFailure.Status"]);
+
+        Assert.Equal(
+            "The bundled default catalog provider failed.",
+            response.Metadata["WhenItFails.FallbackFailure.Message"]);
+    }
+
     private static ErrorCatalogRuntime CreateRuntime(
         IBuiltInErrorCatalogContextProvider builtInContextProvider)
     {
@@ -148,6 +192,16 @@ public sealed class ErrorCatalogRuntimeBuiltInContextProviderFlexibleFallbackExc
         {
             return Task.FromException<Response<ErrorCatalogContext>>(
                 _cancellation);
+        }
+    }
+
+    private sealed class NullTaskBuiltInContextProvider
+        : IBuiltInErrorCatalogContextProvider
+    {
+        public Task<Response<ErrorCatalogContext>> LoadAsync(
+            CancellationToken cancellationToken = default)
+        {
+            return null!;
         }
     }
 
