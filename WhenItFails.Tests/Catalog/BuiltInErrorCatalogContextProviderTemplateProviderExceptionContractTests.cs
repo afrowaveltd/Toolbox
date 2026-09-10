@@ -44,6 +44,23 @@ public sealed class BuiltInErrorCatalogContextProviderTemplateProviderExceptionC
             });
     }
 
+    [Fact]
+    public async Task LoadAsync_WhenTemplateProviderCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "Built-in template provider cancellation must propagate unchanged.");
+
+        BuiltInErrorCatalogContextProvider provider = new(
+            new CancellingTemplateProvider(cancellation),
+            new UnusedContextProvider());
+
+        OperationCanceledException thrown =
+            await Assert.ThrowsAsync<OperationCanceledException>(
+                () => provider.LoadAsync());
+
+        Assert.Same(cancellation, thrown);
+    }
+
     private sealed class ThrowingTemplateProvider : IJsonsTemplateProvider
     {
         public IReadOnlyList<JsonsTemplateFile> GetTemplateFiles(
@@ -54,6 +71,23 @@ public sealed class BuiltInErrorCatalogContextProviderTemplateProviderExceptionC
         }
     }
 
+    private sealed class CancellingTemplateProvider : IJsonsTemplateProvider
+    {
+        private readonly OperationCanceledException _cancellation;
+
+        public CancellingTemplateProvider(
+            OperationCanceledException cancellation)
+        {
+            _cancellation = cancellation;
+        }
+
+        public IReadOnlyList<JsonsTemplateFile> GetTemplateFiles(
+            JsonsOptions options)
+        {
+            throw _cancellation;
+        }
+    }
+
     private sealed class UnusedContextProvider : IErrorCatalogContextProvider
     {
         public Task<Response<ErrorCatalogContext>> LoadFromJsonsAsync(
@@ -61,7 +95,7 @@ public sealed class BuiltInErrorCatalogContextProviderTemplateProviderExceptionC
             CancellationToken cancellationToken = default)
         {
             throw new InvalidOperationException(
-                "The context provider must not run after the template provider throws.");
+                "The context provider must not run after the template provider throws or cancels.");
         }
     }
 }
