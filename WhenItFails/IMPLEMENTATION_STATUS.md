@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-09-09
+Last updated: 2026-09-10
 
 This file is the continuation point for `WhenItFails` development. Update it after every implementation, test, catalog, or documentation change that alters the current state or recommended next step.
 
@@ -17,57 +17,25 @@ Hardening dependency boundaries while preserving established public exception co
 - `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` as consumed by `ErrorCatalogInitializer` is complete for the current scope.
 - `ErrorCatalogContextProvider` is intentionally a transparent orchestration boundary for exceptions thrown by its five internal catalog providers; do not normalize them there.
 - `ErrorCatalogProvider` is the current normalization boundary under audit.
-- The loader ordinary-exception contract and production guard are locally verified GREEN.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 995/995 tests with zero compiler warnings** before the new loader cancellation contract.
-- A focused exact-instance cancellation contract is now committed for `IErrorCatalogLoader.LoadFromFileAsync(...)` and awaits local verification.
+- `IErrorCatalogLoader.LoadFromFileAsync(...)` is complete for the current scope: null response, ordinary exception normalization, and exact-instance cancellation are covered.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 996/996 tests with zero compiler warnings**.
 
-## 2026-09-09 — error catalog loader cancellation contract
+## 2026-09-10 — 996/996 GREEN loader boundary checkpoint
 
-Contract commit: `6586cf4e41de535421faed2bcfab68faad16c946`
-
-Updated:
-
-`WhenItFails.Tests/Catalog/ErrorCatalogProviderLoaderExceptionContractTests.cs`
-
-Added:
-
-`LoadFromFileAsync_WhenLoaderCancels_RethrowsSameOperationCanceledException`
-
-Contract:
-
-```text
-IErrorCatalogLoader.LoadFromFileAsync(...)
-    => faults with a specific OperationCanceledException instance
-                         ↓
-rethrow the exact same OperationCanceledException instance
-```
-
-The test uses `Assert.Same(...)`, so loader cancellation cannot be wrapped, replaced, or converted into `WIF_ERROR_CATALOG_LOADER_FAILED`.
-
-The normalizer, validator, and factory fixtures still throw if reached, so the test also requires short-circuit behavior after loader cancellation.
-
-No production code changed. The loader exception guard excludes `OperationCanceledException`, so the focused contract is expected to be GREEN.
-
-## 2026-09-09 — 995/995 GREEN loader exception checkpoint
-
-Checkpoint commit: `32428ba38b491d419088af2e545608e39ab31554`
-
-Production fix commit: `49ab1d418217d3745f256b347efee379fe374934`
-
-Ordinary-exception contract commit: `67a0650343d0af60f975e98aa6fcf3b5d387dd27`
+Checkpoint follows loader cancellation contract commit `6586cf4e41de535421faed2bcfab68faad16c946` and production fix `49ab1d418217d3745f256b347efee379fe374934`.
 
 Verified locally:
 
 ```text
 WhenItFails.Tests
 Failed:   0
-Passed: 995
+Passed: 996
 Skipped:  0
-Total:  995
+Total:  996
 Compiler warnings: 0
 ```
 
-`IErrorCatalogLoader.LoadFromFileAsync(...)` ordinary exceptions are converted to:
+Loader ordinary exceptions are normalized to:
 
 ```text
 Status: Failed
@@ -76,7 +44,7 @@ Code: WIF_ERROR_CATALOG_LOADER_FAILED
 Message: The error catalog loader failed.
 ```
 
-The loader failure short-circuits the normalizer, validator, and factory.
+Loader `OperationCanceledException` instances propagate unchanged.
 
 ## Established transparent boundary — do not normalize
 
@@ -90,54 +58,44 @@ Relevant suites:
 - `WhenItFails.Tests/Catalog/ErrorCatalogContextProviderExceptionShapeTests.cs`
 - `WhenItFails.Tests/Catalog/ErrorCatalogContextProviderCancellationPropagationTests.cs`
 
-## `ErrorCatalogProvider` boundary reconnaissance
+## `ErrorCatalogProvider` boundary map
 
 `ErrorCatalogProvider.LoadFromFileAsync(...)` composes:
 
-1. `IErrorCatalogLoader.LoadFromFileAsync(...)`
-2. `IErrorCatalogDocumentNormalizer.Normalize(...)`
-3. `IErrorCatalogValidator.Validate(...)`
-4. `IErrorCatalogFactory.Create(...)`
+1. `IErrorCatalogLoader.LoadFromFileAsync(...)` — complete for current scope.
+2. `IErrorCatalogDocumentNormalizer.Normalize(...)` — next boundary under audit.
+3. `IErrorCatalogValidator.Validate(...)`.
+4. `IErrorCatalogFactory.Create(...)`.
 
-It converts malformed dependency outputs into stable responses:
+Existing malformed-result handling:
 
 - null loader response → `WIF_ERROR_CATALOG_LOADER_RESPONSE_NULL`;
 - null normalizer result → `WIF_ERROR_CATALOG_NORMALIZER_RESULT_NULL`;
 - null validator result → `WIF_ERROR_CATALOG_VALIDATOR_RESULT_NULL`;
 - null factory result → `WIF_ERROR_CATALOG_FACTORY_RESULT_NULL`.
 
-The loader now also has stable ordinary-exception normalization. Its catch filter excludes `OperationCanceledException`.
+Repository reconnaissance found no existing `ErrorCatalogProvider` propagation/shape contract requiring normalizer exceptions to escape unchanged.
 
 ## Verification state
 
-- Clean continuation baseline: **995/995 GREEN, zero compiler warnings**.
-- Loader null-response and ordinary-exception behavior are covered and locally verified.
-- Exact-instance cancellation originating from the loader dependency is committed and awaits focused local verification.
-- No production change is expected for the cancellation contract.
-- Expected complete-suite count after the contract passes: **996 tests**.
-
-## Recommended verification
-
-Pull current `master` and run the focused loader cancellation contract:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadFromFileAsync_WhenLoaderCancels_RethrowsSameOperationCanceledException"
-```
-
-Expected result: GREEN.
-
-Then run the complete suite:
-
-```powershell
-dotnet test WhenItFails.Tests
-```
-
-Expected complete-suite result: **996/996 GREEN with zero compiler warnings**.
+- Clean continuation baseline: **996/996 GREEN, zero compiler warnings**.
+- Loader boundary complete for current scope.
+- Normalizer null-result contract already exists.
+- No normalizer ordinary-exception normalization has been implemented yet.
 
 ## Next recommended step
 
-After **996/996 GREEN** is confirmed, consider the `IErrorCatalogLoader` boundary complete for the current scope.
+Add one focused RED contract for an ordinary exception thrown by `IErrorCatalogDocumentNormalizer.Normalize(...)`.
 
-Then inspect the `IErrorCatalogDocumentNormalizer.Normalize(...)` exception boundary separately. Before adding a RED test, search existing `ErrorCatalogProvider` propagation/shape contracts for normalizer exceptions; only add normalization behavior if no established pass-through contract exists.
+Expected stable target if RED confirms the gap:
+
+```text
+Status: Failed
+Data: null
+Code: WIF_ERROR_CATALOG_NORMALIZER_FAILED
+Message: The error catalog document normalizer failed.
+```
+
+The validator and factory must not be called after the normalizer fails. Keep production code unchanged until RED is observed.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
