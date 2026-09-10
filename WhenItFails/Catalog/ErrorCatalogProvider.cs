@@ -124,7 +124,18 @@ public sealed class ErrorCatalogProvider : IErrorCatalogProvider
                 message: "Error catalog validation failed.");
         }
 
-        IErrorCatalog? catalog = _factory.Create(normalizedDocument);
+        IErrorCatalog? catalog;
+
+        try
+        {
+            catalog = _factory.Create(normalizedDocument);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<ErrorCatalogProviderPayload>.Fail(
+                code: "WIF_ERROR_CATALOG_FACTORY_FAILED",
+                message: "The error catalog factory failed.");
+        }
 
         if (catalog is null)
         {
