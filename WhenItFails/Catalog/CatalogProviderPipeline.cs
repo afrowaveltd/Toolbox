@@ -87,7 +87,18 @@ internal static class CatalogProviderPipeline
              message: "The catalog provider pipeline normalizer returned a null result.");
       }
 
-      ErrorCatalogValidationResult? validationResult = validate(normalizedDocument);
+      ErrorCatalogValidationResult? validationResult;
+
+      try
+      {
+         validationResult = validate(normalizedDocument);
+      }
+      catch(Exception exception) when(exception is not OperationCanceledException)
+      {
+         return Response<TPayload>.Fail(
+             code: "WIF_CATALOG_PIPELINE_VALIDATOR_FAILED",
+             message: "The catalog provider pipeline validator failed.");
+      }
 
       if(validationResult is null)
       {
