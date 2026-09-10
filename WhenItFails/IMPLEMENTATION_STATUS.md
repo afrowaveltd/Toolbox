@@ -15,8 +15,35 @@ Hardening dependency boundaries while preserving established public exception co
 - `ErrorCatalogContextProvider` is intentionally transparent for exceptions and null tasks from its internal providers; do not normalize those lower-layer contracts.
 - `BuiltInErrorCatalogContextProvider` dependency-boundary audit is complete for the current scope, including injected context-provider null `Task` normalization.
 - `ErrorCatalogInitializer` bootstrapper/context-provider ordinary-exception, cancellation, null-response and null-task behavior is complete for the current scope.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1017/1017 tests with zero compiler warnings** before the new runtime initializer null-task contract.
-- A focused null-task contract for `ErrorCatalogRuntime`'s injected `IErrorCatalogInitializer` is committed and awaits local verification.
+- `ErrorCatalogRuntime` initializer ordinary-exception, cancellation, null-response and null-task behavior is complete for the current scope.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1018/1018 tests with zero compiler warnings**.
+- The next focused target is null-`Task` behavior from `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` during explicit `ResetToDefaultsAsync(...)`.
+
+## 2026-09-10 — 1018/1018 GREEN runtime initializer checkpoint
+
+Checkpoint commit: this documentation commit.
+Runtime initializer null-task contract commit: `a8a9cb118e43eca67f4cea9d3d0291c4baa1e2a0`.
+Previous status commit: `3f65365ce84601557ce78710ca28b64921db6af0`.
+
+Verified locally:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1018
+Skipped:  0
+Total:  1018
+Compiler warnings: 0
+```
+
+`ErrorCatalogRuntime.InitializeCoreAsync(...)` now explicitly covers its injected `IErrorCatalogInitializer` boundary:
+
+- null `Response` → `WIF_INITIALIZER_RESPONSE_NULL`;
+- ordinary exception → `WIF_INITIALIZER_FAILED`;
+- null `Task` → `WIF_INITIALIZER_FAILED`;
+- exact `OperationCanceledException` instance propagates unchanged.
+
+No production change was required for the null-`Task` case because the initializer await is already inside the runtime ordinary-exception normalization guard.
 
 ## 2026-09-10 — runtime initializer null-task contract
 
@@ -31,8 +58,6 @@ Added:
 
 `InitializeAsync_WhenInitializerReturnsNullTask_ReturnsStableFailure`
 
-The fake `IErrorCatalogInitializer.InitializeAsync(...)` returns `null!` instead of a `Task<Response<ErrorCatalogInitializationPayload>>`.
-
 Required contract:
 
 ```text
@@ -41,8 +66,6 @@ Data: null
 Code: WIF_INITIALIZER_FAILED
 Message: The error catalog initializer failed.
 ```
-
-No production code changed. `ErrorCatalogRuntime.InitializeCoreAsync(...)` awaits the initializer inside its existing ordinary-exception normalization guard, so the null-task `NullReferenceException` is expected to normalize to the established runtime initializer failure.
 
 ## 2026-09-10 — 1017/1017 GREEN initializer checkpoint
 
@@ -99,36 +122,32 @@ Do not replace those transparent contracts with normalization at that layer.
 
 `JsonCatalogDocumentLoader.InvalidJson` deliberately includes the parser message; `Docs/Loading-and-Normalization/en.md` documents that behavior. Do not sanitize it as an incidental hardening change.
 
-Fresh reconnaissance outside initializer/built-in boundaries identified `ErrorCatalogRuntime.InitializeCoreAsync(...)` as the next smallest async dependency gap. Existing runtime initializer tests already covered ordinary exceptions and exact cancellation, while null `Response` behavior was covered separately. No dedicated null-`Task` contract was found before `a8a9cb118e43eca67f4cea9d3d0291c4baa1e2a0`.
+Fresh runtime reconnaissance found two remaining `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` await sites worth explicit null-task contracts:
+
+1. `ErrorCatalogRuntime.ResetToDefaultsAsync(...)`;
+2. flexible fallback via `CreateBuiltInFallbackResponseAsync(...)`.
+
+Both sites already have ordinary-exception normalization and exact cancellation contracts. No existing runtime null-`Task` contract for the built-in provider was found. Keep these two paths separate and verify explicit reset first.
 
 ## Verification state
 
-- Clean continuation baseline: **1017/1017 GREEN, zero compiler warnings**.
-- `ErrorCatalogInitializer` async dependency null-task audit is complete for the current scope.
-- `BuiltInErrorCatalogContextProvider` async dependency null-task audit is complete for the current scope.
-- Runtime initializer null-task contract is committed and awaiting focused local verification.
-- No production change is expected.
-- Expected complete-suite count after it passes: **1018/1018 GREEN with zero compiler warnings**.
-
-## Recommended verification
-
-Pull current `master` and run:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~InitializeAsync_WhenInitializerReturnsNullTask_ReturnsStableFailure"
-dotnet test WhenItFails.Tests
-```
-
-Expected results:
-
-```text
-Focused contract: GREEN
-Complete suite: 1018/1018 GREEN
-Compiler warnings: 0
-```
+- Clean continuation baseline: **1018/1018 GREEN, zero compiler warnings**.
+- Runtime initializer async dependency boundary is complete for the current scope.
+- Next contract: explicit reset + built-in provider null `Task`.
+- No production change is expected because `ResetToDefaultsAsync(...)` already awaits the provider inside an ordinary-exception normalization guard.
+- Expected complete-suite count after the next contract passes: **1019/1019 GREEN with zero compiler warnings**.
 
 ## Next recommended step
 
-After **1018/1018 GREEN** is confirmed, record the checkpoint and continue the runtime async dependency audit. The next candidates are the two `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` awaits used by explicit reset and flexible fallback; search existing exception/cancellation/null-response/null-task contracts before adding a new one.
+Add one focused contract for `ResetToDefaultsAsync(...)` when `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` returns `null!` instead of a task. Require the established stable failure:
+
+```text
+Status: Failed
+Data: null
+Code: WIF_BUILT_IN_CONTEXT_PROVIDER_FAILED
+Message: The bundled default catalog provider failed.
+```
+
+After that contract is locally GREEN and the full suite reaches **1019/1019**, record the checkpoint and handle the flexible-fallback null-task path separately.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
