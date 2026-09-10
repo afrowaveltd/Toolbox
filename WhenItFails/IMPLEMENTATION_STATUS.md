@@ -18,41 +18,15 @@ Hardening dependency boundaries while preserving established public exception co
 - `ErrorCatalogContextProvider` is intentionally a transparent orchestration boundary for exceptions thrown by its five internal catalog providers; do not normalize them there.
 - `ErrorCatalogProvider` is the current normalization boundary under audit.
 - `IErrorCatalogLoader.LoadFromFileAsync(...)` is complete for the current scope: null response, ordinary exception normalization, and exact-instance cancellation are covered.
-- `IErrorCatalogDocumentNormalizer.Normalize(...)` ordinary-exception normalization is locally verified GREEN.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 997/997 tests with zero compiler warnings** before the new normalizer cancellation contract.
-- A focused exact-instance cancellation contract is now committed for `IErrorCatalogDocumentNormalizer.Normalize(...)` and awaits local verification.
+- `IErrorCatalogDocumentNormalizer.Normalize(...)` is complete for the current scope: null result, ordinary exception normalization, and exact-instance cancellation are covered.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 998/998 tests with zero compiler warnings**.
+- The next boundary under inspection is `IErrorCatalogValidator.Validate(...)`.
 
-## 2026-09-10 — normalizer cancellation contract
+## 2026-09-10 — 998/998 GREEN normalizer boundary checkpoint
 
-Contract commit: `35e92a49afdee0f98c7685387ca88e66715cc165`
+Checkpoint commit: this commit.
 
-Updated:
-
-`WhenItFails.Tests/Catalog/ErrorCatalogProviderNormalizerExceptionContractTests.cs`
-
-Added:
-
-`LoadFromFileAsync_WhenNormalizerCancels_RethrowsSameOperationCanceledException`
-
-Contract:
-
-```text
-IErrorCatalogDocumentNormalizer.Normalize(...)
-    => throws a specific OperationCanceledException instance
-                         ↓
-rethrow the exact same OperationCanceledException instance
-```
-
-The test uses `Assert.Same(...)`, so normalizer cancellation cannot be wrapped, replaced, or converted into `WIF_ERROR_CATALOG_NORMALIZER_FAILED`.
-
-The validator and factory fixtures still throw if reached, so the test also locks short-circuit behavior after normalizer cancellation.
-
-No production code changed. The normalizer exception guard excludes `OperationCanceledException`, so this focused contract is expected to be GREEN.
-
-## 2026-09-10 — 997/997 GREEN normalizer exception checkpoint
-
-Checkpoint commit: `496bf5dbd9905b7ff6342ae0fc5a57246f410179`
-
+Normalizer cancellation contract commit: `35e92a49afdee0f98c7685387ca88e66715cc165`.
 Normalizer production fix commit: `ee06db4fa33b1e8f8c4cacef45448bb40be5d221`.
 Normalizer ordinary-exception contract commit: `7c019211b48edc611f293ac49624a3ad4cfdd0b4`.
 
@@ -61,9 +35,9 @@ Verified locally:
 ```text
 WhenItFails.Tests
 Failed:   0
-Passed: 997
+Passed: 998
 Skipped:  0
-Total:  997
+Total:  998
 Compiler warnings: 0
 ```
 
@@ -75,6 +49,8 @@ Data: null
 Code: WIF_ERROR_CATALOG_NORMALIZER_FAILED
 Message: The error catalog document normalizer failed.
 ```
+
+A specific `OperationCanceledException` instance thrown by the normalizer propagates unchanged and is verified with `Assert.Same(...)`.
 
 ## 2026-09-10 — 996/996 GREEN loader boundary checkpoint
 
@@ -102,8 +78,8 @@ Relevant suites:
 `ErrorCatalogProvider.LoadFromFileAsync(...)` composes:
 
 1. `IErrorCatalogLoader.LoadFromFileAsync(...)` — complete for current scope.
-2. `IErrorCatalogDocumentNormalizer.Normalize(...)` — ordinary exception verified; exact-instance cancellation awaiting GREEN.
-3. `IErrorCatalogValidator.Validate(...)`.
+2. `IErrorCatalogDocumentNormalizer.Normalize(...)` — complete for current scope.
+3. `IErrorCatalogValidator.Validate(...)` — next boundary under inspection.
 4. `IErrorCatalogFactory.Create(...)`.
 
 Existing malformed-result handling:
@@ -113,38 +89,19 @@ Existing malformed-result handling:
 - null validator result → `WIF_ERROR_CATALOG_VALIDATOR_RESULT_NULL`;
 - null factory result → `WIF_ERROR_CATALOG_FACTORY_RESULT_NULL`.
 
-Repository reconnaissance found no existing `ErrorCatalogProvider` propagation/shape contract requiring normalizer exceptions to escape unchanged.
+Repository reconnaissance found no existing `ErrorCatalogProvider` propagation/shape contract requiring validator exceptions to escape unchanged. No existing `WIF_ERROR_CATALOG_VALIDATOR_FAILED` code was found.
 
 ## Verification state
 
-- Clean continuation baseline: **997/997 GREEN, zero compiler warnings**.
-- Normalizer null-result and ordinary-exception behavior are covered and locally verified.
-- Exact-instance cancellation originating from the normalizer dependency is committed and awaits focused local verification.
-- No production change is expected for the cancellation contract.
-- Expected complete-suite count after the contract passes: **998 tests**.
-
-## Recommended verification
-
-Pull current `master` and run the focused normalizer cancellation contract:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadFromFileAsync_WhenNormalizerCancels_RethrowsSameOperationCanceledException"
-```
-
-Expected result: GREEN.
-
-Then run the complete suite:
-
-```powershell
-dotnet test WhenItFails.Tests
-```
-
-Expected complete-suite result: **998/998 GREEN with zero compiler warnings**.
+- Clean continuation baseline: **998/998 GREEN, zero compiler warnings**.
+- Loader and normalizer boundaries are complete for the current scope.
+- Validator null-result behavior is already covered.
+- No validator ordinary-exception contract has been added yet at this checkpoint.
 
 ## Next recommended step
 
-After **998/998 GREEN** is confirmed, consider `IErrorCatalogDocumentNormalizer.Normalize(...)` complete for the current scope.
+Add one focused ordinary-exception contract for `IErrorCatalogValidator.Validate(...)` before changing production code.
 
-Then inspect `IErrorCatalogValidator.Validate(...)` separately, checking existing propagation/shape contracts before adding any new RED test.
+If RED confirms raw validator exception leakage, add the smallest guard around only `_validator.Validate(...)`, excluding `OperationCanceledException` so exact-instance cancellation can be tested separately afterward.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
