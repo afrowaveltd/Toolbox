@@ -16,11 +16,40 @@ Hardening dependency boundaries while preserving established public exception co
 - `ErrorCatalogContextProvider` is intentionally transparent for exceptions and null tasks from its internal providers; do not normalize those lower-layer contracts.
 - `BuiltInErrorCatalogContextProvider` dependency-boundary audit is complete for the current scope, including injected context-provider null `Task` normalization.
 - `ErrorCatalogInitializer` bootstrapper ordinary-exception, cancellation, null-response and null-task behavior is complete for the current scope.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1016/1016 tests with zero compiler warnings**.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1016/1016 tests with zero compiler warnings** before the new initializer context-provider null-task contract.
+- A focused null-task contract for `ErrorCatalogInitializer`'s injected `IErrorCatalogContextProvider` is committed and awaits local verification.
+
+## 2026-09-10 — initializer context-provider null-task contract
+
+Contract commit: `40404b8e07fef0bb24e2f3fb5251cda03c99cd8b`.
+Baseline checkpoint commit: `2e650171ed1aac8cb57b5586b57b9d041c220cd1`.
+
+Updated:
+
+`WhenItFails.Tests/Initialization/ErrorCatalogInitializerContextProviderExceptionContractTests.cs`
+
+Added:
+
+`InitializeAsync_WhenContextProviderReturnsNullTask_ReturnsStableFailure`
+
+The fake `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` returns `null!` instead of a `Task<Response<ErrorCatalogContext>>`.
+
+Required contract:
+
+```text
+Status: Failed
+Data: null
+Code: WIF_INITIALIZER_CONTEXT_PROVIDER_FAILED
+Message: The error catalog context provider failed during initialization.
+```
+
+The previously stored context must remain the exact same instance. `TrackingContextStore.Set(...)` throws if reached, so the test also guarantees no replacement attempt occurs after the malformed dependency result.
+
+No production code changed. The context-provider `await` is already inside the initializer's ordinary-exception normalization guard, so the null-task `NullReferenceException` is expected to normalize to the established context-provider failure.
 
 ## 2026-09-10 — 1016/1016 GREEN initializer bootstrapper null-task checkpoint
 
-Checkpoint commit: this status commit.
+Checkpoint commit: `2e650171ed1aac8cb57b5586b57b9d041c220cd1`.
 Bootstrapper null-task contract commit: `84f3fe36469882aedfed03507d857b267f89d1c1`.
 Previous 1015 checkpoint commit: `08719f81d1cf1487fce2dcebf0b6bbcd208ba0c1`.
 
@@ -35,7 +64,7 @@ Total:  1016
 Compiler warnings: 0
 ```
 
-The initializer bootstrapper dependency now explicitly covers:
+The initializer bootstrapper dependency explicitly covers:
 
 - null `Response` → `WIF_INITIALIZER_BOOTSTRAPPER_RESPONSE_NULL`;
 - ordinary exception → `WIF_INITIALIZER_BOOTSTRAPPER_FAILED`;
@@ -80,29 +109,37 @@ Do not replace those transparent contracts with normalization at that layer.
 
 `JsonCatalogDocumentLoader.InvalidJson` deliberately includes the parser message; `Docs/Loading-and-Normalization/en.md` documents that behavior. Do not sanitize it as an incidental hardening change.
 
-Fresh null-task reconnaissance found no previous dedicated initializer null-task contract for `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)`.
+Fresh null-task reconnaissance found no prior dedicated initializer null-task contract for `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)`.
 
-The context-provider await in `ErrorCatalogInitializer.InitializeAsync(...)` is already inside the established ordinary-exception normalization guard, so a null `Task` should normalize to:
-
-```text
-Status: Failed
-Data: null
-Code: WIF_INITIALIZER_CONTEXT_PROVIDER_FAILED
-Message: The error catalog context provider failed during initialization.
-```
-
-The existing context must remain untouched.
+Both async initializer dependency awaits now have explicit malformed-null-task contracts in tests.
 
 ## Verification state
 
 - Clean continuation baseline: **1016/1016 GREEN, zero compiler warnings**.
 - Initializer bootstrapper null-task behavior is locally verified.
-- No new context-provider null-task test has been locally run yet.
+- Initializer context-provider null-task contract is committed and awaits local verification.
+- No production change is expected.
+- Expected complete-suite count after it passes: **1017/1017 GREEN with zero compiler warnings**.
+
+## Recommended verification
+
+Pull current `master` and run:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~InitializeAsync_WhenContextProviderReturnsNullTask_ReturnsStableFailure"
+dotnet test WhenItFails.Tests
+```
+
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1017/1017 GREEN
+Compiler warnings: 0
+```
 
 ## Next recommended step
 
-Add one focused null-task contract for `ErrorCatalogInitializer`'s injected `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` dependency.
-
-The contract should require stable `WIF_INITIALIZER_CONTEXT_PROVIDER_FAILED`, null payload, preservation of the existing context-store instance, and no production change if current guarded-await behavior is preserved.
+After **1017/1017 GREEN** is confirmed, record that checkpoint and perform fresh reconnaissance for the next smallest async dependency null-task or malformed-result gap outside the already completed initializer and built-in context-provider boundaries.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
