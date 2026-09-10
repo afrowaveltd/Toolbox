@@ -20,28 +20,29 @@ Hardening dependency boundaries while preserving established public exception co
 - The shared internal `CatalogProviderPipeline` is the current normalization boundary under audit.
 - Pipeline loader, normalizer and validator boundaries are complete for the current scope.
 - The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1008/1008 tests with zero compiler warnings** before the new payload-factory exception contract.
-- A focused ordinary-exception contract is now committed for the pipeline payload-factory delegate and awaits local RED verification.
+- The payload-factory ordinary-exception contract produced the expected focused RED with the raw dependency exception escaping.
+- A minimal production guard is now committed and awaits focused + full-suite verification.
 
-## 2026-09-10 — pipeline payload-factory ordinary-exception contract
+## 2026-09-10 — pipeline payload-factory ordinary-exception fix
 
 Contract commit: `676dc55d19ceb04f5155445ceb929ea4acee16f3`.
-
-Added:
-
-`WhenItFails.Tests/Catalog/CatalogProviderPipelinePayloadFactoryExceptionContractTests.cs`
+Production fix commit: `fe49871c054523932063935c7aeab62521a18a7c`.
 
 Test:
 
 `LoadNormalizeValidateAsync_WhenPayloadFactoryThrows_ReturnsStableFailure`
 
-The payload-factory delegate throws:
+Observed locally before the production fix:
 
 ```text
+RED
 System.InvalidOperationException:
 Sensitive catalog provider pipeline payload factory detail must not escape.
 ```
 
-Required stable pipeline contract:
+The stack trace reached the direct `createPayload(...)` invocation in `CatalogProviderPipeline.LoadNormalizeValidateAsync(...)`, confirming the missing normalization boundary.
+
+Production behavior now normalizes ordinary payload-factory exceptions to:
 
 ```text
 Status: Failed
@@ -50,9 +51,12 @@ Code: WIF_CATALOG_PIPELINE_PAYLOAD_FACTORY_FAILED
 Message: The catalog provider pipeline payload factory failed.
 ```
 
-The raw sensitive exception text must not escape through `Response.Message`.
+The guard excludes `OperationCanceledException`. Existing null-payload handling remains unchanged:
 
-No production code changed. `CatalogProviderPipeline.LoadNormalizeValidateAsync(...)` currently invokes `createPayload(normalizedDocument, validationResult)` directly, so the focused test is expected to be RED with the raw payload-factory exception escaping.
+```text
+Code: WIF_CATALOG_PIPELINE_PAYLOAD_NULL
+Message: The catalog provider pipeline payload factory returned a null result.
+```
 
 ## 2026-09-10 — 1008/1008 GREEN pipeline validator boundary checkpoint
 
@@ -109,7 +113,7 @@ Current phases:
 1. loader delegate — complete for current scope.
 2. normalizer delegate — complete for current scope.
 3. validator delegate — complete for current scope.
-4. payload-factory delegate — null result covered; ordinary-exception contract awaiting RED; exact cancellation later.
+4. payload-factory delegate — null result covered; ordinary-exception production fix awaiting GREEN; exact cancellation next.
 
 Stable malformed-result codes include:
 
@@ -118,11 +122,12 @@ Stable malformed-result codes include:
 - `WIF_CATALOG_PIPELINE_VALIDATOR_RESULT_NULL`
 - `WIF_CATALOG_PIPELINE_PAYLOAD_NULL`
 
-Stable ordinary-exception codes currently implemented include:
+Stable ordinary-exception codes now implemented include:
 
 - `WIF_CATALOG_PIPELINE_LOADER_FAILED`
 - `WIF_CATALOG_PIPELINE_NORMALIZER_FAILED`
 - `WIF_CATALOG_PIPELINE_VALIDATOR_FAILED`
+- `WIF_CATALOG_PIPELINE_PAYLOAD_FACTORY_FAILED`
 
 ## Payload-factory reconnaissance
 
@@ -139,31 +144,35 @@ No existing `WIF_CATALOG_PIPELINE_PAYLOAD_FACTORY_FAILED` code was found before 
 
 ## Verification state
 
-- Clean continuation baseline before the new test: **1008/1008 GREEN, zero compiler warnings**.
-- Pipeline loader, normalizer and validator boundaries are complete for the current scope.
-- Pipeline payload-factory null-result behavior is already covered.
-- New payload-factory ordinary-exception contract is committed and awaits focused RED verification.
-- Production payload-factory invocation remains unchanged until RED is observed.
-- Expected complete-suite count once the new contract eventually passes: **1009 tests**.
+- Clean continuation baseline before the payload-factory ordinary-exception contract: **1008/1008 GREEN, zero compiler warnings**.
+- Focused payload-factory ordinary-exception contract produced the expected RED with the raw `InvalidOperationException` escaping.
+- Production guard commit `fe49871c054523932063935c7aeab62521a18a7c` is committed and awaiting local verification.
+- Existing payload-factory null-result behavior is unchanged.
+- Expected complete-suite count after the fix passes: **1009/1009 GREEN with zero compiler warnings**.
 
 ## Recommended verification
 
-Pull current `master` and run only the new payload-factory contract:
+Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadNormalizeValidateAsync_WhenPayloadFactoryThrows_ReturnsStableFailure"
+dotnet test WhenItFails.Tests
 ```
 
-Expected current result: RED with the raw exception text:
+Expected results:
 
 ```text
-Sensitive catalog provider pipeline payload factory detail must not escape.
+Focused contract: GREEN
+Complete suite: 1009/1009 GREEN
+Compiler warnings: 0
 ```
 
 ## Next recommended step
 
-If RED is confirmed, add the smallest ordinary-exception guard around only `createPayload(normalizedDocument, validationResult)`, excluding `OperationCanceledException` so exact-instance cancellation can be tested separately afterward.
+After **1009/1009 GREEN** is confirmed, record that checkpoint and add a focused exact-instance cancellation contract for the payload-factory delegate using `Assert.Same(...)`.
 
-Keep the existing `WIF_CATALOG_PIPELINE_PAYLOAD_NULL` null-result branch unchanged.
+No production change should be needed for cancellation because the new ordinary-exception guard excludes `OperationCanceledException`.
+
+After cancellation is verified, the entire `CatalogProviderPipeline` dependency-boundary audit can be considered complete for the current scope.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
