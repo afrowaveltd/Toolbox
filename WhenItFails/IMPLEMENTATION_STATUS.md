@@ -20,13 +20,39 @@ Hardening dependency boundaries while preserving established public exception co
 - `IErrorCatalogLoader.LoadFromFileAsync(...)` is complete for the current scope.
 - `IErrorCatalogDocumentNormalizer.Normalize(...)` is complete for the current scope.
 - `IErrorCatalogValidator.Validate(...)` ordinary-exception normalization is locally verified GREEN.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 999/999 tests with zero compiler warnings**.
-- The next focused step is exact-instance cancellation from `IErrorCatalogValidator.Validate(...)`.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 999/999 tests with zero compiler warnings** before the new validator cancellation contract.
+- A focused exact-instance cancellation contract is now committed for `IErrorCatalogValidator.Validate(...)` and awaits local verification.
+
+## 2026-09-10 — validator cancellation contract
+
+Contract commit: `0ab95ed05c70d563289742dc9c474490aa3018ea`
+
+Updated:
+
+`WhenItFails.Tests/Catalog/ErrorCatalogProviderValidatorExceptionContractTests.cs`
+
+Added:
+
+`LoadFromFileAsync_WhenValidatorCancels_RethrowsSameOperationCanceledException`
+
+Contract:
+
+```text
+IErrorCatalogValidator.Validate(...)
+    => throws a specific OperationCanceledException instance
+                         ↓
+rethrow the exact same OperationCanceledException instance
+```
+
+The test uses `Assert.Same(...)`, so validator cancellation cannot be wrapped, replaced, or converted into `WIF_ERROR_CATALOG_VALIDATOR_FAILED`.
+
+The factory fixture throws if reached, so the test also locks short-circuit behavior after validator cancellation.
+
+No production code changed. The validator exception guard excludes `OperationCanceledException`, so this focused contract is expected to be GREEN.
 
 ## 2026-09-10 — 999/999 GREEN validator exception checkpoint
 
-Checkpoint commit: this commit.
-
+Checkpoint commit: `fbd92f310ec454fa1dd4140c94a524b3c56df588`.
 Validator production fix commit: `994d0a5e1ec417648f7be1b21fff5e98c2101ac9`.
 Validator ordinary-exception contract commit: `69fdba1625808a96e00fe823d57a49878a0ec36c`.
 
@@ -49,8 +75,6 @@ Data: null
 Code: WIF_ERROR_CATALOG_VALIDATOR_FAILED
 Message: The error catalog validator failed.
 ```
-
-The factory is not reached after validator failure.
 
 ## 2026-09-10 — 998/998 GREEN normalizer boundary checkpoint
 
@@ -87,7 +111,7 @@ Relevant suites:
 
 1. `IErrorCatalogLoader.LoadFromFileAsync(...)` — complete for current scope.
 2. `IErrorCatalogDocumentNormalizer.Normalize(...)` — complete for current scope.
-3. `IErrorCatalogValidator.Validate(...)` — ordinary exception verified; exact-instance cancellation next.
+3. `IErrorCatalogValidator.Validate(...)` — ordinary exception verified; exact-instance cancellation awaiting GREEN.
 4. `IErrorCatalogFactory.Create(...)`.
 
 Existing malformed-result handling:
@@ -103,14 +127,32 @@ Repository reconnaissance found no existing `ErrorCatalogProvider` propagation/s
 
 - Clean continuation baseline: **999/999 GREEN, zero compiler warnings**.
 - Validator null-result and ordinary-exception behavior are covered and locally verified.
-- Exact-instance cancellation from the validator has not yet been added at this checkpoint.
+- Exact-instance cancellation originating from the validator dependency is committed and awaits focused local verification.
+- No production change is expected for the cancellation contract.
+- Expected complete-suite count after the contract passes: **1000 tests**.
+
+## Recommended verification
+
+Pull current `master` and run the focused validator cancellation contract:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadFromFileAsync_WhenValidatorCancels_RethrowsSameOperationCanceledException"
+```
+
+Expected result: GREEN.
+
+Then run the complete suite:
+
+```powershell
+dotnet test WhenItFails.Tests
+```
+
+Expected complete-suite result: **1000/1000 GREEN with zero compiler warnings**.
 
 ## Next recommended step
 
-Add a separate exact-instance cancellation contract for `IErrorCatalogValidator.Validate(...)`.
+After **1000/1000 GREEN** is confirmed, consider `IErrorCatalogValidator.Validate(...)` complete for the current scope.
 
-The validator guard excludes `OperationCanceledException`, so no production change is expected if the contract passes.
-
-After GREEN verification, consider the validator boundary complete for the current scope and inspect `IErrorCatalogFactory.Create(...)` separately, again checking existing propagation/shape contracts before adding any new RED test.
+Then inspect `IErrorCatalogFactory.Create(...)` separately. Before adding a RED test, search existing `ErrorCatalogProvider` propagation/shape contracts for factory exceptions; only add normalization behavior if no established pass-through contract exists.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
