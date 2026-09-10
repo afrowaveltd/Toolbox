@@ -46,6 +46,25 @@ public sealed class ErrorCatalogProviderValidatorExceptionContractTests
             });
     }
 
+    [Fact]
+    public async Task LoadFromFileAsync_WhenValidatorCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "Error catalog validator cancellation must propagate unchanged.");
+
+        ErrorCatalogProvider provider = new(
+            new ValidLoader(),
+            new PassthroughNormalizer(),
+            new CancelingValidator(cancellation),
+            new UnexpectedFactory());
+
+        OperationCanceledException thrown =
+            await Assert.ThrowsAsync<OperationCanceledException>(
+                () => provider.LoadFromFileAsync("catalog.json"));
+
+        Assert.Same(cancellation, thrown);
+    }
+
     private static ErrorCatalogDocument CreateDocument()
     {
         return new ErrorCatalogDocument
@@ -102,12 +121,27 @@ public sealed class ErrorCatalogProviderValidatorExceptionContractTests
         }
     }
 
+    private sealed class CancelingValidator : IErrorCatalogValidator
+    {
+        private readonly OperationCanceledException _cancellation;
+
+        public CancelingValidator(OperationCanceledException cancellation)
+        {
+            _cancellation = cancellation;
+        }
+
+        public ErrorCatalogValidationResult Validate(ErrorCatalogDocument? document)
+        {
+            throw _cancellation;
+        }
+    }
+
     private sealed class UnexpectedFactory : IErrorCatalogFactory
     {
         public IErrorCatalog Create(ErrorCatalogDocument document)
         {
             throw new InvalidOperationException(
-                "The factory must not run after the validator throws.");
+                "The factory must not run after the validator throws or cancels.");
         }
     }
 }
