@@ -17,11 +17,42 @@ Hardening dependency boundaries while preserving established public exception co
 - `ErrorCatalogInitializer` bootstrapper/context-provider ordinary-exception, cancellation, null-response and null-task behavior is complete for the current scope.
 - `ErrorCatalogRuntime` initializer ordinary-exception, cancellation, null-response and null-task behavior is complete for the current scope.
 - Both runtime `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` boundaries — explicit reset and flexible fallback — are complete for null response, ordinary exception, null task and exact cancellation behavior in the current scope.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1020/1020 tests with zero compiler warnings**.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1020/1020 tests with zero compiler warnings** before the new bootstrap template-provider exception contract.
+- A focused ordinary-exception contract for direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` is committed and awaits local RED verification.
+
+## 2026-09-10 — bootstrap template-provider ordinary-exception contract
+
+Contract commit: `1da0988b5419d6af649c16c820bb92d63ab4dc8a`.
+Baseline checkpoint commit: `383014695d776bbbbb45db31de5f050c8a09cde8`.
+
+Added:
+
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperTemplateProviderExceptionContractTests.cs`
+
+Contract:
+
+`EnsureWorkspaceAsync_WhenTemplateProviderThrows_ReturnsStableFailureWithoutExceptionDetail`
+
+The fake `IJsonsTemplateProvider.GetTemplateFiles(...)` throws an `InvalidOperationException` containing sensitive implementation detail.
+
+Required response:
+
+```text
+Status: Failed
+Data: null
+Code: WIF_JSONS_TEMPLATE_PROVIDER_FAILED
+Message: The JSON template provider failed.
+```
+
+The raw dependency exception detail must not appear in the public response.
+
+Production is intentionally unchanged before the RED run. Current `JsonsBootstrapper` catches filesystem `UnauthorizedAccessException` and `IOException`, but does not currently normalize an ordinary exception thrown by the injected template provider, so the focused test is expected to fail by propagating the `InvalidOperationException`.
+
+If the expected RED is confirmed, make the smallest production change around `IJsonsTemplateProvider.GetTemplateFiles(...)`: normalize ordinary exceptions to `WIF_JSONS_TEMPLATE_PROVIDER_FAILED`, while preserving `OperationCanceledException` propagation unchanged. Add exact-instance cancellation as a separate follow-up contract after the ordinary-exception fix is verified.
 
 ## 2026-09-10 — 1020/1020 GREEN flexible-fallback checkpoint
 
-Checkpoint commit: recorded by this status update.
+Checkpoint commit: `383014695d776bbbbb45db31de5f050c8a09cde8`.
 Flexible-fallback null-task contract commit: `27e37855c4ac6e12a5323810c67e47e2d4ebba0a`.
 Previous status commit: `302847070ba712fe89fced815eeeb6a6da128c23`.
 
@@ -36,7 +67,7 @@ Total:  1020
 Compiler warnings: 0
 ```
 
-The flexible fallback path through `CreateBuiltInFallbackResponseAsync(...)` now explicitly covers its `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` boundary:
+The flexible fallback path through `CreateBuiltInFallbackResponseAsync(...)` explicitly covers its `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` boundary:
 
 - null `Response` → fallback metadata `WIF_BUILT_IN_CONTEXT_RESPONSE_NULL` / `Invalid`;
 - ordinary exception → fallback metadata `WIF_BUILT_IN_CONTEXT_PROVIDER_FAILED` / `Failed`;
@@ -146,16 +177,28 @@ Do not replace those transparent contracts with normalization at that layer.
 
 `JsonCatalogDocumentLoader.InvalidJson` deliberately includes the parser message; `Docs/Loading-and-Normalization/en.md` documents that behavior. Do not sanitize it as an incidental hardening change.
 
-Fresh reconnaissance after the 1020 checkpoint moved outside the completed runtime/initializer/built-in-provider boundaries. `JsonsBootstrapper` is the next candidate because it consumes `IJsonsTemplateProvider.GetTemplateFiles(...)` directly. Existing contracts already normalize malformed provider results such as null collections/items, while no established provider-exception propagation contract or documentation was found. The current production catches filesystem `UnauthorizedAccessException` and `IOException` only, so an ordinary exception thrown by the template provider currently escapes.
+Fresh reconnaissance after the 1020 checkpoint moved outside the completed runtime/initializer/built-in-provider boundaries. `JsonsBootstrapper` consumes `IJsonsTemplateProvider.GetTemplateFiles(...)` directly. Existing contracts already normalize malformed provider results such as null collections/items. Searches found no established provider-exception propagation contract and no documentation requiring such propagation.
 
 ## Verification state
 
 - Clean continuation baseline: **1020/1020 GREEN, zero compiler warnings**.
 - Runtime initializer and built-in-provider async dependency boundaries are complete for the current scope.
-- Next candidate: direct `JsonsBootstrapper` → `IJsonsTemplateProvider` ordinary-exception behavior.
+- Bootstrap template-provider ordinary-exception contract is committed and awaiting expected RED.
+- Production is unchanged.
+- Expected complete-suite count after the new test eventually passes: **1021/1021 GREEN with zero compiler warnings**.
+
+## Recommended verification
+
+Pull current `master` and run:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateProviderThrows_ReturnsStableFailureWithoutExceptionDetail"
+```
+
+Expected current result: RED because the provider's `InvalidOperationException` propagates instead of being converted to a `Response`.
 
 ## Next recommended step
 
-Add one focused test-first contract for an ordinary exception thrown by `IJsonsTemplateProvider.GetTemplateFiles(...)`. Require a stable `Failed` response and no raw exception detail. Preserve `OperationCanceledException` propagation as a separate follow-up contract.
+If the focused test fails by propagating the injected provider exception, add the smallest production normalization for ordinary provider exceptions only. Preserve cancellation propagation. Then rerun the focused test and the complete suite before adding the separate exact-instance cancellation contract.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
