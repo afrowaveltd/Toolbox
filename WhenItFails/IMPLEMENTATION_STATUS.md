@@ -20,11 +20,37 @@ Hardening dependency boundaries while preserving established public exception co
 - The shared internal `CatalogProviderPipeline` is the current normalization boundary under audit.
 - Pipeline loader, normalizer and validator boundaries are complete for the current scope.
 - Pipeline payload-factory null-result and ordinary-exception behavior are locally verified GREEN.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1009/1009 tests with zero compiler warnings**.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1009/1009 tests with zero compiler warnings** before the new payload-factory cancellation contract.
+- A focused exact-instance cancellation contract is now committed for the payload-factory delegate and awaits local verification.
+
+## 2026-09-10 — pipeline payload-factory cancellation contract
+
+Contract commit: `8290c3be0eecb9d38a7a511ae9e8e3407ef9a4ea`.
+
+Updated:
+
+`WhenItFails.Tests/Catalog/CatalogProviderPipelinePayloadFactoryExceptionContractTests.cs`
+
+Added:
+
+`LoadNormalizeValidateAsync_WhenPayloadFactoryCancels_RethrowsSameOperationCanceledException`
+
+Contract:
+
+```text
+payload-factory delegate
+    => throws a specific OperationCanceledException instance
+                         ↓
+rethrow the exact same OperationCanceledException instance
+```
+
+The test uses `Assert.Same(...)`.
+
+No production code changed. The payload-factory exception guard excludes `OperationCanceledException`, so this focused contract is expected to be GREEN.
 
 ## 2026-09-10 — 1009/1009 GREEN pipeline payload-factory exception checkpoint
 
-Checkpoint commit: this commit.
+Checkpoint commit: `80aea0106589e58b5fd27c928e0ce6714c44492d`.
 Payload-factory production fix commit: `fe49871c054523932063935c7aeab62521a18a7c`.
 Payload-factory ordinary-exception contract commit: `676dc55d19ceb04f5155445ceb929ea4acee16f3`.
 
@@ -47,8 +73,6 @@ Data: null
 Code: WIF_CATALOG_PIPELINE_PAYLOAD_FACTORY_FAILED
 Message: The catalog provider pipeline payload factory failed.
 ```
-
-The production guard excludes `OperationCanceledException`, so exact cancellation should continue to propagate unchanged.
 
 Existing null-payload behavior remains:
 
@@ -112,7 +136,7 @@ Current phases:
 1. loader delegate — complete for current scope.
 2. normalizer delegate — complete for current scope.
 3. validator delegate — complete for current scope.
-4. payload-factory delegate — null result and ordinary exception complete; exact cancellation next.
+4. payload-factory delegate — null result and ordinary exception complete; exact cancellation awaiting GREEN.
 
 Stable malformed-result codes include:
 
@@ -121,39 +145,44 @@ Stable malformed-result codes include:
 - `WIF_CATALOG_PIPELINE_VALIDATOR_RESULT_NULL`
 - `WIF_CATALOG_PIPELINE_PAYLOAD_NULL`
 
-Stable ordinary-exception codes now implemented include:
+Stable ordinary-exception codes implemented include:
 
 - `WIF_CATALOG_PIPELINE_LOADER_FAILED`
 - `WIF_CATALOG_PIPELINE_NORMALIZER_FAILED`
 - `WIF_CATALOG_PIPELINE_VALIDATOR_FAILED`
 - `WIF_CATALOG_PIPELINE_PAYLOAD_FACTORY_FAILED`
 
-## Payload-factory reconnaissance
-
-Repository searches found no `CatalogProviderPipeline` payload-factory exception-shape/pass-through contract and no concrete category/code-group/owner/profile provider contract requiring payload-factory exceptions to propagate unchanged.
-
-The existing null-result contract uses payload-factory terminology:
-
-```text
-Code: WIF_CATALOG_PIPELINE_PAYLOAD_NULL
-Message: The catalog provider pipeline payload factory returned a null result.
-```
-
-No existing `WIF_CATALOG_PIPELINE_PAYLOAD_FACTORY_FAILED` code was found before the focused ordinary-exception contract was introduced.
-
 ## Verification state
 
 - Clean continuation baseline: **1009/1009 GREEN, zero compiler warnings**.
 - Pipeline loader, normalizer and validator boundaries are complete for the current scope.
 - Pipeline payload-factory null-result and ordinary-exception behavior are locally verified.
-- No exact-instance payload-factory cancellation contract has been added yet at this checkpoint.
+- Exact-instance payload-factory cancellation contract is committed and awaits focused local verification.
+- No production change is expected for this cancellation contract.
+- Expected complete-suite count after it passes: **1010 tests**.
+
+## Recommended verification
+
+Pull current `master` and run:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadNormalizeValidateAsync_WhenPayloadFactoryCancels_RethrowsSameOperationCanceledException"
+```
+
+Expected result: GREEN.
+
+Then run:
+
+```powershell
+dotnet test WhenItFails.Tests
+```
+
+Expected complete-suite result: **1010/1010 GREEN with zero compiler warnings**.
 
 ## Next recommended step
 
-Add a focused exact-instance cancellation contract for the `CatalogProviderPipeline` payload-factory delegate. It should throw a specific `OperationCanceledException` instance from `createPayload(...)` and use `Assert.Same(...)`.
+After **1010/1010 GREEN** is confirmed, consider the entire `CatalogProviderPipeline` dependency-boundary audit complete for the current scope.
 
-No production change is expected because the payload-factory guard explicitly excludes `OperationCanceledException`.
-
-After that contract is GREEN, consider the entire `CatalogProviderPipeline` dependency-boundary audit complete for the current scope and perform fresh repository reconnaissance before selecting the next boundary.
+Record the final checkpoint, then perform fresh repository reconnaissance before selecting the next normalization or transparent boundary. Search existing propagation, exception-shape, cancellation, null-task and malformed-result contracts before introducing any new behavior.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
