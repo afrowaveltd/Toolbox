@@ -114,7 +114,18 @@ internal static class CatalogProviderPipeline
              message: validationFailedMessage);
       }
 
-      TPayload? payload = createPayload(normalizedDocument, validationResult);
+      TPayload? payload;
+
+      try
+      {
+         payload = createPayload(normalizedDocument, validationResult);
+      }
+      catch(Exception exception) when(exception is not OperationCanceledException)
+      {
+         return Response<TPayload>.Fail(
+             code: "WIF_CATALOG_PIPELINE_PAYLOAD_FACTORY_FAILED",
+             message: "The catalog provider pipeline payload factory failed.");
+      }
 
       if(payload is null)
       {
