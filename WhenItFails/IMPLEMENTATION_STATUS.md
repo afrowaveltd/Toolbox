@@ -20,28 +20,15 @@ Hardening dependency boundaries while preserving established public exception co
 - The shared internal `CatalogProviderPipeline` is the current normalization boundary under audit.
 - Pipeline loader boundary is complete for the current scope.
 - The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1004/1004 tests with zero compiler warnings** before the new normalizer exception contract.
-- A focused ordinary-exception contract is now committed for the pipeline normalizer delegate and awaits local RED verification.
+- The pipeline normalizer ordinary-exception contract is verified RED and the smallest production guard is committed; local GREEN verification is pending.
 
-## 2026-09-10 — pipeline normalizer ordinary-exception contract
+## 2026-09-10 — pipeline normalizer ordinary-exception fix
 
-Contract commit: `81db615ca52e878f2583b6167df14a7d85124be2`.
+Production fix commit: `2f25dd58a3644ee2e87685aaf2c5f909cea9adb4`.
 
-Added:
+Changed only the `normalize(loadResponse.Data)` invocation inside `CatalogProviderPipeline.LoadNormalizeValidateAsync(...)`.
 
-`WhenItFails.Tests/Catalog/CatalogProviderPipelineNormalizerExceptionContractTests.cs`
-
-Test:
-
-`LoadNormalizeValidateAsync_WhenNormalizerThrows_ReturnsStableFailure`
-
-The normalizer delegate throws:
-
-```text
-System.InvalidOperationException:
-Sensitive catalog provider pipeline normalizer detail must not escape.
-```
-
-Required stable pipeline contract:
+Ordinary normalizer exceptions are now converted to:
 
 ```text
 Status: Failed
@@ -50,9 +37,37 @@ Code: WIF_CATALOG_PIPELINE_NORMALIZER_FAILED
 Message: The catalog provider pipeline normalizer failed.
 ```
 
-The validator and payload-factory delegates throw if reached, so the contract also locks short-circuit behavior after normalizer failure.
+The catch filter excludes `OperationCanceledException`, so cancellation originating from the normalizer delegate continues to propagate unchanged.
 
-No production code changed. The normalizer delegate is currently invoked directly, so the focused test is expected to be RED with the raw normalizer exception escaping.
+The production commit diff was checked and contains only the intended normalizer exception guard. Existing null-result handling and the validator and payload-factory phases remain unchanged.
+
+## 2026-09-10 — verified RED pipeline normalizer contract
+
+Contract commit: `81db615ca52e878f2583b6167df14a7d85124be2`.
+
+Focused test:
+
+`WhenItFails.Tests.Catalog.CatalogProviderPipelineNormalizerExceptionContractTests.LoadNormalizeValidateAsync_WhenNormalizerThrows_ReturnsStableFailure`
+
+Observed locally before the production fix:
+
+```text
+Failed: 1
+Passed: 0
+Skipped: 0
+Total: 1
+```
+
+Failure:
+
+```text
+System.InvalidOperationException:
+Sensitive catalog provider pipeline normalizer detail must not escape.
+```
+
+The exception escaped directly from the normalizer delegate through `CatalogProviderPipeline.LoadNormalizeValidateAsync(...)`, confirming the missing normalizer exception boundary.
+
+The validator and payload-factory delegates in the test throw if reached, so the contract also locks short-circuit behavior after normalizer failure.
 
 ## 2026-09-10 — 1004/1004 GREEN pipeline loader boundary checkpoint
 
@@ -103,7 +118,7 @@ Relevant suites:
 Current phases:
 
 1. loader delegate — complete for current scope.
-2. normalizer delegate — null result covered; ordinary-exception contract awaiting RED.
+2. normalizer delegate — null result covered; ordinary-exception guard committed and awaiting GREEN verification.
 3. validator delegate — null result covered; exception semantics not yet hardened.
 4. payload-factory delegate — null result covered; exception semantics not yet hardened.
 
@@ -114,34 +129,40 @@ Stable malformed-result codes already include:
 - `WIF_CATALOG_PIPELINE_VALIDATOR_RESULT_NULL`
 - `WIF_CATALOG_PIPELINE_PAYLOAD_NULL`
 
-Repository reconnaissance found no `CatalogProviderPipeline` exception-shape/pass-through contract and no concrete category/code-group/owner/profile provider contract requiring normalizer exceptions to propagate unchanged. No existing `WIF_CATALOG_PIPELINE_NORMALIZER_FAILED` code was found before this contract was introduced.
+Repository reconnaissance found no `CatalogProviderPipeline` exception-shape/pass-through contract and no concrete category/code-group/owner/profile provider contract requiring normalizer exceptions to propagate unchanged.
 
 ## Verification state
 
 - Clean continuation baseline before the normalizer test: **1004/1004 GREEN, zero compiler warnings**.
 - Pipeline loader boundary is complete for the current scope.
 - Pipeline normalizer null-result behavior is already covered.
-- New normalizer ordinary-exception contract is committed and awaits focused RED verification.
-- Production normalizer call remains unchanged until RED is observed.
-- Expected complete-suite count once the new contract eventually passes: **1005 tests**.
+- Pipeline normalizer ordinary-exception contract is verified RED before the production fix.
+- Production normalizer guard is committed and awaits focused local GREEN verification.
+- Expected complete-suite count after the contract passes: **1005 tests**.
 
 ## Recommended verification
 
-Pull current `master` and run only the new contract:
+Pull current `master` and run only the normalizer exception contract:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadNormalizeValidateAsync_WhenNormalizerThrows_ReturnsStableFailure"
 ```
 
-Expected current result: RED with the raw exception text:
+Expected result after the production fix: GREEN.
 
-```text
-Sensitive catalog provider pipeline normalizer detail must not escape.
+Then run the complete suite:
+
+```powershell
+dotnet test WhenItFails.Tests
 ```
+
+Expected complete-suite result: **1005/1005 GREEN with zero compiler warnings**.
 
 ## Next recommended step
 
-If RED is confirmed, add the smallest ordinary-exception guard around only `normalize(loadResponse.Data)`, excluding `OperationCanceledException` so exact-instance cancellation can be tested separately afterward.
+After **1005/1005 GREEN** is confirmed, add a separate exact-instance cancellation contract for the `CatalogProviderPipeline` normalizer delegate.
+
+If that passes without production changes, consider the pipeline normalizer boundary complete for the current scope and inspect the validator delegate separately before adding any new contract.
 
 Do not change validator or payload-factory exception behavior in the same production commit.
 
