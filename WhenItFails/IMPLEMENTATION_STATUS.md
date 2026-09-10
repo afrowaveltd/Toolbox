@@ -18,29 +18,16 @@ Hardening dependency boundaries while preserving established public exception co
 - `ErrorCatalogContextProvider` is intentionally a transparent orchestration boundary for exceptions thrown by its five internal catalog providers; do not normalize them there.
 - `ErrorCatalogProvider` is the current normalization boundary under audit.
 - `IErrorCatalogLoader.LoadFromFileAsync(...)` is complete for the current scope: null response, ordinary exception normalization, and exact-instance cancellation are covered.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 996/996 tests with zero compiler warnings** before the new normalizer exception contract.
-- A focused ordinary-exception contract is now committed for `IErrorCatalogDocumentNormalizer.Normalize(...)` and awaits local RED verification.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 996/996 tests with zero compiler warnings** before the normalizer exception contract.
+- The normalizer ordinary-exception contract is now verified RED and the smallest production guard is committed.
 
-## 2026-09-10 — normalizer ordinary-exception contract
+## 2026-09-10 — normalizer ordinary-exception fix
 
-Contract commit: `7c019211b48edc611f293ac49624a3ad4cfdd0b4`
+Production fix commit: `ee06db4fa33b1e8f8c4cacef45448bb40be5d221`
 
-Added:
+Changed only the `_normalizer.Normalize(...)` invocation inside `ErrorCatalogProvider.LoadFromFileAsync(...)`.
 
-`WhenItFails.Tests/Catalog/ErrorCatalogProviderNormalizerExceptionContractTests.cs`
-
-Test:
-
-`LoadFromFileAsync_WhenNormalizerThrows_ReturnsStableFailure`
-
-The normalizer throws:
-
-```text
-System.InvalidOperationException:
-Sensitive error catalog normalizer detail must not escape.
-```
-
-Required stable `ErrorCatalogProvider` contract:
+Ordinary exceptions are now converted to:
 
 ```text
 Status: Failed
@@ -49,9 +36,37 @@ Code: WIF_ERROR_CATALOG_NORMALIZER_FAILED
 Message: The error catalog document normalizer failed.
 ```
 
-The validator and factory fixtures throw if reached, so the contract also locks short-circuit behavior after normalizer failure.
+The catch filter excludes `OperationCanceledException`, so cancellation originating from the normalizer continues to propagate unchanged.
 
-No production code changed. `_normalizer.Normalize(...)` is currently invoked directly, so the focused test is expected to be RED with the raw normalizer exception escaping.
+The production commit diff was checked and contains only the intended normalizer exception guard. Existing null-result handling and validator/factory behavior remain unchanged.
+
+## 2026-09-10 — verified RED normalizer contract
+
+Contract commit: `7c019211b48edc611f293ac49624a3ad4cfdd0b4`
+
+Focused test:
+
+`WhenItFails.Tests.Catalog.ErrorCatalogProviderNormalizerExceptionContractTests.LoadFromFileAsync_WhenNormalizerThrows_ReturnsStableFailure`
+
+Observed locally before the production fix:
+
+```text
+Failed: 1
+Passed: 0
+Skipped: 0
+Total: 1
+```
+
+Failure:
+
+```text
+System.InvalidOperationException:
+Sensitive error catalog normalizer detail must not escape.
+```
+
+The exception escaped directly from `_normalizer.Normalize(...)` through `ErrorCatalogProvider.LoadFromFileAsync(...)`, confirming the missing normalizer exception boundary.
+
+The validator and factory fixtures are configured to throw if reached, so the contract also requires short-circuit behavior after normalizer failure.
 
 ## 2026-09-10 — 996/996 GREEN loader boundary checkpoint
 
@@ -90,7 +105,7 @@ Relevant suites:
 `ErrorCatalogProvider.LoadFromFileAsync(...)` composes:
 
 1. `IErrorCatalogLoader.LoadFromFileAsync(...)` — complete for current scope.
-2. `IErrorCatalogDocumentNormalizer.Normalize(...)` — ordinary-exception contract awaiting RED.
+2. `IErrorCatalogDocumentNormalizer.Normalize(...)` — ordinary-exception guard committed; awaiting GREEN verification.
 3. `IErrorCatalogValidator.Validate(...)`.
 4. `IErrorCatalogFactory.Create(...)`.
 
@@ -105,27 +120,33 @@ Repository reconnaissance found no existing `ErrorCatalogProvider` propagation/s
 
 ## Verification state
 
-- Clean continuation baseline before the new test: **996/996 GREEN, zero compiler warnings**.
-- New normalizer ordinary-exception contract is committed and awaits focused RED verification.
-- Production normalizer call remains unchanged until RED is observed.
-- Expected complete-suite count once the new contract eventually passes: **997 tests**.
+- Clean continuation baseline before the normalizer test: **996/996 GREEN, zero compiler warnings**.
+- Normalizer ordinary-exception contract is verified RED before the production fix.
+- Production normalizer guard is committed and awaits focused local GREEN verification.
+- Expected complete-suite count after the contract passes: **997 tests**.
 
 ## Recommended verification
 
-Pull current `master` and run only the new contract:
+Pull current `master` and run only the normalizer exception contract:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadFromFileAsync_WhenNormalizerThrows_ReturnsStableFailure"
 ```
 
-Expected current result: RED with the raw exception text:
+Expected result after the production fix: GREEN.
 
-```text
-Sensitive error catalog normalizer detail must not escape.
+Then run the complete suite:
+
+```powershell
+dotnet test WhenItFails.Tests
 ```
+
+Expected complete-suite result: **997/997 GREEN with zero compiler warnings**.
 
 ## Next recommended step
 
-If RED is confirmed, add the smallest ordinary-exception guard around only `_normalizer.Normalize(...)`, excluding `OperationCanceledException` so cancellation can be tested separately afterward.
+After **997/997 GREEN** is confirmed, add a separate exact-instance cancellation contract for `IErrorCatalogDocumentNormalizer.Normalize(...)`.
+
+If that passes without production changes, consider the normalizer boundary complete for the current scope and inspect `IErrorCatalogValidator.Validate(...)` separately, again checking existing propagation/shape contracts before adding a RED test.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
