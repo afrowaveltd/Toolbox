@@ -61,6 +61,37 @@ public sealed class BuiltInErrorCatalogContextProviderContextProviderExceptionCo
         Assert.Same(cancellation, thrown);
     }
 
+    [Fact]
+    public async Task LoadAsync_WhenContextProviderReturnsNullTask_ReturnsStableFailure()
+    {
+        BuiltInErrorCatalogContextProvider provider = new(
+            new ValidTemplateProvider(),
+            new NullTaskContextProvider());
+
+        Response<ErrorCatalogContext> response =
+            await provider.LoadAsync();
+
+        Assert.NotNull(response);
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal(
+            "The bundled WhenItFails catalog context could not be loaded.",
+            response.Message);
+
+        Assert.Collection(
+            response.Issues,
+            issue =>
+            {
+                Assert.Equal(
+                    "WIF_BUILT_IN_CONTEXT_LOAD_FAILED",
+                    issue.Code);
+                Assert.Equal(
+                    "The bundled WhenItFails catalog context could not be loaded.",
+                    issue.Message);
+            });
+    }
+
     private sealed class ValidTemplateProvider : IJsonsTemplateProvider
     {
         public IReadOnlyList<JsonsTemplateFile> GetTemplateFiles(
@@ -105,6 +136,16 @@ public sealed class BuiltInErrorCatalogContextProviderContextProviderExceptionCo
         {
             return Task.FromException<Response<ErrorCatalogContext>>(
                 _cancellation);
+        }
+    }
+
+    private sealed class NullTaskContextProvider : IErrorCatalogContextProvider
+    {
+        public Task<Response<ErrorCatalogContext>> LoadFromJsonsAsync(
+            JsonsOptions options,
+            CancellationToken cancellationToken = default)
+        {
+            return null!;
         }
     }
 }
