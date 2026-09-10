@@ -18,12 +18,47 @@ Hardening dependency boundaries while preserving established public exception co
 - `ErrorCatalogContextProvider` is intentionally a transparent orchestration boundary for exceptions thrown by its five internal catalog providers; do not normalize them there.
 - `ErrorCatalogProvider` dependency-boundary audit is complete for the current scope.
 - `CatalogProviderPipeline` dependency-boundary audit is complete for the current scope.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1010/1010 tests with zero compiler warnings**.
-- Fresh reconnaissance identifies `BuiltInErrorCatalogContextProvider` as the next focused hardening target because its generic ordinary-exception response currently exposes `exception.Message` publicly.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1010/1010 tests with zero compiler warnings** before the new built-in template-provider exception contract.
+- `BuiltInErrorCatalogContextProvider` is the current focused hardening target.
+- A focused ordinary-exception sanitization contract for `IJsonsTemplateProvider.GetTemplateFiles(...)` is committed and awaits RED verification.
+
+## 2026-09-10 — built-in template-provider exception-message contract
+
+Contract commit: `5910b04e8942384c5f0c7cdd0f1dadff6aff2aa6`.
+
+Added:
+
+`WhenItFails.Tests/Catalog/BuiltInErrorCatalogContextProviderTemplateProviderExceptionContractTests.cs`
+
+Test:
+
+`LoadAsync_WhenTemplateProviderThrows_ReturnsStableFailureWithoutExceptionDetail`
+
+The template provider throws:
+
+```text
+System.InvalidOperationException:
+Sensitive built-in template provider detail must not escape.
+```
+
+Required stable public contract:
+
+```text
+Status: Failed
+Data: null
+Code: WIF_BUILT_IN_CONTEXT_LOAD_FAILED
+Message: The bundled WhenItFails catalog context could not be loaded.
+```
+
+The sensitive raw dependency exception text must not appear in `Response.Message`.
+
+Current production catch still appends `exception.Message`, so the focused test is expected to be RED on the public message while preserving the existing failure code/status.
+
+No production code changed in this step.
 
 ## 2026-09-10 — 1010/1010 GREEN CatalogProviderPipeline checkpoint
 
-Checkpoint commit: this commit.
+Checkpoint commit: `1198abf789e7ac715aa36b5c77c764c7256bed1f`.
 Payload-factory cancellation contract commit: `8290c3be0eecb9d38a7a511ae9e8e3407ef9a4ea`.
 Payload-factory production fix commit: `fe49871c054523932063935c7aeab62521a18a7c`.
 Payload-factory ordinary-exception contract commit: `676dc55d19ceb04f5155445ceb929ea4acee16f3`.
@@ -70,7 +105,7 @@ Relevant suites:
 - `WhenItFails.Tests/Catalog/ErrorCatalogContextProviderExceptionShapeTests.cs`
 - `WhenItFails.Tests/Catalog/ErrorCatalogContextProviderCancellationPropagationTests.cs`
 
-## Next boundary reconnaissance — `BuiltInErrorCatalogContextProvider`
+## `BuiltInErrorCatalogContextProvider` boundary map
 
 Production file:
 
@@ -81,44 +116,51 @@ Dependencies:
 1. `IJsonsTemplateProvider`
 2. `IErrorCatalogContextProvider`
 
-Existing behavior already covers:
+Established malformed-result behavior:
 
 - null template collection → `WIF_BUILT_IN_TEMPLATES_NULL`;
 - empty template collection → `WIF_BUILT_IN_TEMPLATES_EMPTY`;
 - malformed template entries → stable Invalid responses;
-- null context-provider response → `WIF_BUILT_IN_CONTEXT_PROVIDER_RESPONSE_NULL`;
-- cancellation → rethrown;
-- ordinary exceptions → `WIF_BUILT_IN_CONTEXT_LOAD_FAILED`.
+- null context-provider response → `WIF_BUILT_IN_CONTEXT_PROVIDER_RESPONSE_NULL`.
 
-The ordinary-exception path currently builds the public message as:
+Current exception behavior:
 
-```text
-The bundled WhenItFails catalog context could not be loaded: {exception.Message}
-```
+- `OperationCanceledException` is rethrown;
+- ordinary exceptions map to `WIF_BUILT_IN_CONTEXT_LOAD_FAILED`;
+- public ordinary-exception message currently includes the raw `exception.Message` and is the current hardening target.
 
-This exposes dependency/internal exception text through the public response. Repository searches found no existing test contract requiring that exception detail to be preserved in the response message.
+Repository reconnaissance found no existing contract requiring the raw ordinary-exception detail to remain public.
 
 ## Verification state
 
 - Clean continuation baseline: **1010/1010 GREEN, zero compiler warnings**.
-- `CatalogProviderPipeline` audit is closed for the current scope.
-- No production change has yet been made to `BuiltInErrorCatalogContextProvider`.
+- `CatalogProviderPipeline` audit is complete for the current scope.
+- New built-in template-provider ordinary-exception contract is committed and awaits focused RED verification.
+- Production `BuiltInErrorCatalogContextProvider` is unchanged at this checkpoint.
+- Expected eventual full-suite count once this new contract passes: **1011 tests**.
+
+## Recommended verification
+
+Pull current `master` and run:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadAsync_WhenTemplateProviderThrows_ReturnsStableFailureWithoutExceptionDetail"
+```
+
+Expected current result: RED because the actual response message contains:
+
+```text
+The bundled WhenItFails catalog context could not be loaded: Sensitive built-in template provider detail must not escape.
+```
 
 ## Next recommended step
 
-Add one focused ordinary-exception contract for `IJsonsTemplateProvider.GetTemplateFiles(...)` as consumed by `BuiltInErrorCatalogContextProvider`.
-
-Expected stable response:
+If RED is confirmed, make the smallest production change in `BuiltInErrorCatalogContextProvider`: keep `WIF_BUILT_IN_CONTEXT_LOAD_FAILED` and the existing catch structure, but replace the public message with the stable sanitized text:
 
 ```text
-Status: Failed
-Data: null
-Code: WIF_BUILT_IN_CONTEXT_LOAD_FAILED
-Message: The bundled WhenItFails catalog context could not be loaded.
+The bundled WhenItFails catalog context could not be loaded.
 ```
 
-The test should assert that a sensitive raw dependency exception message is not present in `Response.Message`.
-
-If the focused test is RED as expected, make the smallest production change: keep the existing code and catch structure, but remove `exception.Message` from the public message. Preserve `OperationCanceledException` propagation unchanged.
+Do not change cancellation behavior or the null/malformed-result paths.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
