@@ -67,7 +67,18 @@ internal static class CatalogProviderPipeline
              message: loadedDocumentIsNullMessage);
       }
 
-      TDocument? normalizedDocument = normalize(loadResponse.Data);
+      TDocument? normalizedDocument;
+
+      try
+      {
+         normalizedDocument = normalize(loadResponse.Data);
+      }
+      catch(Exception exception) when(exception is not OperationCanceledException)
+      {
+         return Response<TPayload>.Fail(
+             code: "WIF_CATALOG_PIPELINE_NORMALIZER_FAILED",
+             message: "The catalog provider pipeline normalizer failed.");
+      }
 
       if(normalizedDocument is null)
       {
