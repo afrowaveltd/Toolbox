@@ -46,6 +46,25 @@ public sealed class ErrorCatalogProviderNormalizerExceptionContractTests
             });
     }
 
+    [Fact]
+    public async Task LoadFromFileAsync_WhenNormalizerCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "Error catalog normalizer cancellation must propagate unchanged.");
+
+        ErrorCatalogProvider provider = new(
+            new ValidLoader(),
+            new CancelingNormalizer(cancellation),
+            new UnexpectedValidator(),
+            new UnexpectedFactory());
+
+        OperationCanceledException thrown =
+            await Assert.ThrowsAsync<OperationCanceledException>(
+                () => provider.LoadFromFileAsync("catalog.json"));
+
+        Assert.Same(cancellation, thrown);
+    }
+
     private static ErrorCatalogDocument CreateDocument()
     {
         return new ErrorCatalogDocument
@@ -91,6 +110,21 @@ public sealed class ErrorCatalogProviderNormalizerExceptionContractTests
         {
             throw new InvalidOperationException(
                 "Sensitive error catalog normalizer detail must not escape.");
+        }
+    }
+
+    private sealed class CancelingNormalizer : IErrorCatalogDocumentNormalizer
+    {
+        private readonly OperationCanceledException _cancellation;
+
+        public CancelingNormalizer(OperationCanceledException cancellation)
+        {
+            _cancellation = cancellation;
+        }
+
+        public ErrorCatalogDocument Normalize(ErrorCatalogDocument document)
+        {
+            throw _cancellation;
         }
     }
 
