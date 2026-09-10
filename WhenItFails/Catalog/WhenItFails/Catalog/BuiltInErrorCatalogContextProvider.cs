@@ -115,13 +115,12 @@ public sealed class BuiltInErrorCatalogContextProvider
         {
             throw;
         }
-        catch (Exception exception)
+        catch (Exception)
         {
             return Response<ErrorCatalogContext>.Fail(
                 code: "WIF_BUILT_IN_CONTEXT_LOAD_FAILED",
                 message:
-                    $"The bundled WhenItFails catalog context could not "
-                    + $"be loaded: {exception.Message}");
+                    "The bundled WhenItFails catalog context could not be loaded.");
         }
         finally
         {
