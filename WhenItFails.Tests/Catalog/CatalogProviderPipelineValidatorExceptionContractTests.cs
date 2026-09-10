@@ -53,6 +53,33 @@ public sealed class CatalogProviderPipelineValidatorExceptionContractTests
             });
     }
 
+    [Fact]
+    public async Task LoadNormalizeValidateAsync_WhenValidatorCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "Catalog provider pipeline validator cancellation must propagate unchanged.");
+
+        OperationCanceledException thrown =
+            await Assert.ThrowsAsync<OperationCanceledException>(
+                () => CatalogProviderPipeline.LoadNormalizeValidateAsync<TestDocument, TestPayload>(
+                    filePath: "catalog.json",
+                    cancellationToken: default,
+                    loadAsync: (_, _) => Task.FromResult(
+                        Response<TestDocument>.Ok(new TestDocument("loaded"))),
+                    normalize: document => document,
+                    validate: _ => throw cancellation,
+                    createPayload: (_, _) => throw new InvalidOperationException(
+                        "The payload factory must not run after the pipeline validator cancels."),
+                    loadFailedCode: "ConfiguredLoadFailure",
+                    loadFailedMessage: "Configured load failure.",
+                    loadedDocumentIsNullCode: "DocumentNull",
+                    loadedDocumentIsNullMessage: "Document is null.",
+                    validationFailedCode: "ValidationFailed",
+                    validationFailedMessage: "Validation failed."));
+
+        Assert.Same(cancellation, thrown);
+    }
+
     private sealed record TestDocument(string Value);
 
     private sealed record TestPayload(
