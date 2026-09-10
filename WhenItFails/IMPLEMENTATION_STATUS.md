@@ -19,42 +19,36 @@ Hardening dependency boundaries while preserving established public exception co
 - `ErrorCatalogProvider` dependency-boundary audit is complete for the current scope.
 - The shared internal `CatalogProviderPipeline` is the current normalization boundary under audit.
 - Pipeline loader and normalizer boundaries are complete for the current scope.
-- Clean locally verified baseline before the new validator contract: **1006/1006 GREEN, zero compiler warnings**.
-- Pipeline validator ordinary-exception RED is confirmed locally and the minimal production guard is now committed; local GREEN verification is next.
+- Pipeline validator null-result and ordinary-exception behavior are locally verified GREEN.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1007/1007 tests with zero compiler warnings**.
 
-## 2026-09-10 — pipeline validator ordinary-exception fix
+## 2026-09-10 — 1007/1007 GREEN pipeline validator exception checkpoint
 
-Contract commit: `25f0e8fe345d89e2e226aecbaaf4f3767a4a8010`.
-Production fix commit: `c99bc586ff6f8f6e82e4a0b119ec3137ee92d792`.
+Checkpoint commit: this commit.
+Validator production fix commit: `c99bc586ff6f8f6e82e4a0b119ec3137ee92d792`.
+Validator ordinary-exception contract commit: `25f0e8fe345d89e2e226aecbaaf4f3767a4a8010`.
 
-Test:
-
-`WhenItFails.Tests/Catalog/CatalogProviderPipelineValidatorExceptionContractTests.cs`
-
-`LoadNormalizeValidateAsync_WhenValidatorThrows_ReturnsStableFailure`
-
-Observed focused RED before the production fix:
+Verified locally:
 
 ```text
-System.InvalidOperationException:
-Sensitive catalog provider pipeline validator detail must not escape.
+WhenItFails.Tests
+Failed:   0
+Passed: 1007
+Skipped:  0
+Total:  1007
+Compiler warnings: 0
 ```
 
-The exception escaped through `CatalogProviderPipeline.LoadNormalizeValidateAsync(...)` from the direct `validate(normalizedDocument)` invocation, confirming the missing validator exception boundary.
-
-Production now guards only the validator delegate:
+Pipeline validator ordinary exceptions normalize to:
 
 ```text
-ordinary validator exception
-    => Status: Failed
-       Data: null
-       Code: WIF_CATALOG_PIPELINE_VALIDATOR_FAILED
-       Message: The catalog provider pipeline validator failed.
+Status: Failed
+Data: null
+Code: WIF_CATALOG_PIPELINE_VALIDATOR_FAILED
+Message: The catalog provider pipeline validator failed.
 ```
 
-`OperationCanceledException` is explicitly excluded from the catch so cancellation can continue to propagate unchanged. Payload-factory behavior was not changed.
-
-Expected next result: the focused validator exception contract GREEN, followed by full suite **1007/1007 GREEN with zero compiler warnings**.
+The production guard excludes `OperationCanceledException`, so exact cancellation should continue to propagate unchanged.
 
 ## 2026-09-10 — 1006/1006 GREEN pipeline normalizer boundary checkpoint
 
@@ -110,7 +104,7 @@ Current phases:
 
 1. loader delegate — complete for current scope.
 2. normalizer delegate — complete for current scope.
-3. validator delegate — null result covered; ordinary-exception production guard committed and awaiting GREEN; exact cancellation next.
+3. validator delegate — null result and ordinary exception covered; exact cancellation next.
 4. payload-factory delegate — null result covered; exception semantics not yet hardened.
 
 Stable malformed-result codes include:
@@ -134,35 +128,17 @@ No existing `WIF_CATALOG_PIPELINE_VALIDATOR_FAILED` code was found before the fo
 
 ## Verification state
 
-- Clean continuation baseline before the validator test: **1006/1006 GREEN, zero compiler warnings**.
-- Focused validator ordinary-exception RED is confirmed.
-- Minimal production fix is committed.
-- Expected complete-suite count after GREEN verification: **1007 tests**.
-
-## Recommended verification
-
-Pull current `master` and run:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadNormalizeValidateAsync_WhenValidatorThrows_ReturnsStableFailure"
-```
-
-Expected result: GREEN.
-
-Then run:
-
-```powershell
-dotnet test WhenItFails.Tests
-```
-
-Expected complete-suite result: **1007/1007 GREEN with zero compiler warnings**.
+- Clean continuation baseline: **1007/1007 GREEN, zero compiler warnings**.
+- Pipeline loader and normalizer boundaries are complete for the current scope.
+- Pipeline validator null-result and ordinary-exception behavior are locally verified.
+- No exact-instance validator cancellation contract has been added yet at this checkpoint.
 
 ## Next recommended step
 
-After **1007/1007 GREEN** is confirmed, add a focused exact-instance cancellation contract for the pipeline validator delegate. It should use a specific `OperationCanceledException` instance and `Assert.Same(...)` and ensure the payload factory is not reached.
+Add a focused exact-instance cancellation contract for the `CatalogProviderPipeline` validator delegate. It should throw a specific `OperationCanceledException` instance from `validate(...)`, use `Assert.Same(...)`, and ensure the payload factory is not reached.
 
-No production change is expected for that cancellation contract because the validator guard explicitly excludes `OperationCanceledException`.
+No production change is expected because the validator guard explicitly excludes `OperationCanceledException`.
 
-Do not change payload-factory exception behavior until the validator boundary is complete.
+After that contract is GREEN, consider the pipeline validator boundary complete and inspect the payload-factory delegate separately.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
