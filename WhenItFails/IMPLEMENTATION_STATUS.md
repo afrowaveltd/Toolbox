@@ -19,12 +19,44 @@ Hardening dependency boundaries while preserving established public exception co
 - `ErrorCatalogProvider` dependency-boundary audit is complete for the current scope.
 - The shared internal `CatalogProviderPipeline` is the current normalization boundary under audit.
 - Pipeline loader, normalizer and validator boundaries are complete for the current scope.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1008/1008 tests with zero compiler warnings**.
-- Pipeline payload-factory null-result behavior is already covered; ordinary-exception and exact-cancellation semantics are next.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1008/1008 tests with zero compiler warnings** before the new payload-factory exception contract.
+- A focused ordinary-exception contract is now committed for the pipeline payload-factory delegate and awaits local RED verification.
+
+## 2026-09-10 — pipeline payload-factory ordinary-exception contract
+
+Contract commit: `676dc55d19ceb04f5155445ceb929ea4acee16f3`.
+
+Added:
+
+`WhenItFails.Tests/Catalog/CatalogProviderPipelinePayloadFactoryExceptionContractTests.cs`
+
+Test:
+
+`LoadNormalizeValidateAsync_WhenPayloadFactoryThrows_ReturnsStableFailure`
+
+The payload-factory delegate throws:
+
+```text
+System.InvalidOperationException:
+Sensitive catalog provider pipeline payload factory detail must not escape.
+```
+
+Required stable pipeline contract:
+
+```text
+Status: Failed
+Data: null
+Code: WIF_CATALOG_PIPELINE_PAYLOAD_FACTORY_FAILED
+Message: The catalog provider pipeline payload factory failed.
+```
+
+The raw sensitive exception text must not escape through `Response.Message`.
+
+No production code changed. `CatalogProviderPipeline.LoadNormalizeValidateAsync(...)` currently invokes `createPayload(normalizedDocument, validationResult)` directly, so the focused test is expected to be RED with the raw payload-factory exception escaping.
 
 ## 2026-09-10 — 1008/1008 GREEN pipeline validator boundary checkpoint
 
-Checkpoint commit: this commit.
+Checkpoint commit: `a8daffefc2b8ffb04ce639c859f951b639d1f9b6`.
 Validator cancellation contract commit: `0af207af6fc957e55f498e8e669dc371b3313541`.
 Validator production fix commit: `c99bc586ff6f8f6e82e4a0b119ec3137ee92d792`.
 Validator ordinary-exception contract commit: `25f0e8fe345d89e2e226aecbaaf4f3767a4a8010`.
@@ -77,7 +109,7 @@ Current phases:
 1. loader delegate — complete for current scope.
 2. normalizer delegate — complete for current scope.
 3. validator delegate — complete for current scope.
-4. payload-factory delegate — null result covered; ordinary-exception and cancellation semantics not yet hardened.
+4. payload-factory delegate — null result covered; ordinary-exception contract awaiting RED; exact cancellation later.
 
 Stable malformed-result codes include:
 
@@ -86,7 +118,7 @@ Stable malformed-result codes include:
 - `WIF_CATALOG_PIPELINE_VALIDATOR_RESULT_NULL`
 - `WIF_CATALOG_PIPELINE_PAYLOAD_NULL`
 
-Stable ordinary-exception codes currently include:
+Stable ordinary-exception codes currently implemented include:
 
 - `WIF_CATALOG_PIPELINE_LOADER_FAILED`
 - `WIF_CATALOG_PIPELINE_NORMALIZER_FAILED`
@@ -103,28 +135,35 @@ Code: WIF_CATALOG_PIPELINE_PAYLOAD_NULL
 Message: The catalog provider pipeline payload factory returned a null result.
 ```
 
-No existing `WIF_CATALOG_PIPELINE_PAYLOAD_FACTORY_FAILED` code was found.
+No existing `WIF_CATALOG_PIPELINE_PAYLOAD_FACTORY_FAILED` code was found before the focused contract was introduced.
 
 ## Verification state
 
-- Clean continuation baseline: **1008/1008 GREEN, zero compiler warnings**.
+- Clean continuation baseline before the new test: **1008/1008 GREEN, zero compiler warnings**.
 - Pipeline loader, normalizer and validator boundaries are complete for the current scope.
-- Pipeline payload-factory null-result behavior is covered.
-- Production currently invokes `createPayload(normalizedDocument, validationResult)` directly.
+- Pipeline payload-factory null-result behavior is already covered.
+- New payload-factory ordinary-exception contract is committed and awaits focused RED verification.
+- Production payload-factory invocation remains unchanged until RED is observed.
+- Expected complete-suite count once the new contract eventually passes: **1009 tests**.
+
+## Recommended verification
+
+Pull current `master` and run only the new payload-factory contract:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadNormalizeValidateAsync_WhenPayloadFactoryThrows_ReturnsStableFailure"
+```
+
+Expected current result: RED with the raw exception text:
+
+```text
+Sensitive catalog provider pipeline payload factory detail must not escape.
+```
 
 ## Next recommended step
 
-Add a focused ordinary-exception contract for the `CatalogProviderPipeline` payload-factory delegate before changing production behavior.
+If RED is confirmed, add the smallest ordinary-exception guard around only `createPayload(normalizedDocument, validationResult)`, excluding `OperationCanceledException` so exact-instance cancellation can be tested separately afterward.
 
-Expected stable contract if RED confirms the missing boundary:
-
-```text
-Status: Failed
-Data: null
-Code: WIF_CATALOG_PIPELINE_PAYLOAD_FACTORY_FAILED
-Message: The catalog provider pipeline payload factory failed.
-```
-
-After ordinary-exception behavior is fixed and GREEN, add an exact-instance cancellation contract separately.
+Keep the existing `WIF_CATALOG_PIPELINE_PAYLOAD_NULL` null-result branch unchanged.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
