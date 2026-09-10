@@ -30,8 +30,19 @@ internal static class CatalogProviderPipeline
 
       cancellationToken.ThrowIfCancellationRequested();
 
-      Response<TDocument>? loadResponse =
-          await loadAsync(filePath, cancellationToken);
+      Response<TDocument>? loadResponse;
+
+      try
+      {
+         loadResponse =
+             await loadAsync(filePath, cancellationToken);
+      }
+      catch(Exception exception) when(exception is not OperationCanceledException)
+      {
+         return Response<TPayload>.Fail(
+             code: "WIF_CATALOG_PIPELINE_LOADER_FAILED",
+             message: "The catalog provider pipeline loader failed.");
+      }
 
       if(loadResponse is null)
       {
