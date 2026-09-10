@@ -19,28 +19,15 @@ Hardening dependency boundaries while preserving established public exception co
 - `ErrorCatalogProvider` dependency-boundary audit is complete for the current scope.
 - The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1002/1002 tests with zero compiler warnings** before the new pipeline loader exception contract.
 - The shared internal `CatalogProviderPipeline` is the current normalization boundary under audit.
-- A focused ordinary-exception contract is now committed for the pipeline loader delegate and awaits local RED verification.
+- The pipeline loader ordinary-exception contract is verified RED and the smallest production guard is committed; local GREEN verification is pending.
 
-## 2026-09-10 — catalog pipeline loader ordinary-exception contract
+## 2026-09-10 — catalog pipeline loader ordinary-exception fix
 
-Contract commit: `2a5232c4c15b242be0cc1dfae40653d57964223e`
+Production fix commit: `42e2e74cbf43adbc62fbaa9616c33b9db9bcb835`
 
-Added:
+Changed only the `await loadAsync(filePath, cancellationToken)` invocation inside `CatalogProviderPipeline.LoadNormalizeValidateAsync(...)`.
 
-`WhenItFails.Tests/Catalog/CatalogProviderPipelineLoaderExceptionContractTests.cs`
-
-Test:
-
-`LoadNormalizeValidateAsync_WhenLoaderThrows_ReturnsStableFailure`
-
-The loader delegate faults with:
-
-```text
-System.InvalidOperationException:
-Sensitive catalog provider pipeline loader detail must not escape.
-```
-
-Required stable pipeline contract:
+Ordinary loader exceptions are now converted to:
 
 ```text
 Status: Failed
@@ -49,9 +36,37 @@ Code: WIF_CATALOG_PIPELINE_LOADER_FAILED
 Message: The catalog provider pipeline loader failed.
 ```
 
-The normalizer, validator, and payload-factory delegates all throw if reached, so the contract also locks short-circuit behavior after loader failure.
+The catch filter excludes `OperationCanceledException`, so cancellation originating from the loader delegate continues to propagate unchanged.
 
-No production code changed. `CatalogProviderPipeline.LoadNormalizeValidateAsync(...)` currently awaits the loader delegate directly, so this focused test is expected to be RED with the raw loader exception escaping.
+The production commit diff was checked and contains only the intended loader exception guard. Existing null-response handling and the normalizer, validator, and payload-factory phases remain unchanged.
+
+## 2026-09-10 — verified RED catalog pipeline loader contract
+
+Contract commit: `2a5232c4c15b242be0cc1dfae40653d57964223e`
+
+Focused test:
+
+`WhenItFails.Tests.Catalog.CatalogProviderPipelineLoaderExceptionContractTests.LoadNormalizeValidateAsync_WhenLoaderThrows_ReturnsStableFailure`
+
+Observed locally before the production fix:
+
+```text
+Failed: 1
+Passed: 0
+Skipped: 0
+Total: 1
+```
+
+Failure:
+
+```text
+System.InvalidOperationException:
+Sensitive catalog provider pipeline loader detail must not escape.
+```
+
+The exception escaped directly from the loader delegate through `CatalogProviderPipeline.LoadNormalizeValidateAsync(...)`, confirming the missing loader exception boundary.
+
+The normalizer, validator, and payload-factory delegates in the test all throw if reached, so the contract also locks short-circuit behavior after loader failure.
 
 ## 2026-09-10 — 1002/1002 GREEN `ErrorCatalogProvider` checkpoint
 
@@ -125,29 +140,35 @@ Repository searches found no `CatalogProviderPipeline` exception-shape/pass-thro
 
 ## Verification state
 
-- Clean continuation baseline before the new test: **1002/1002 GREEN, zero compiler warnings**.
+- Clean continuation baseline before the new pipeline test: **1002/1002 GREEN, zero compiler warnings**.
 - `ErrorCatalogProvider` dependency-boundary audit is closed for the current scope.
-- New pipeline loader ordinary-exception contract is committed and awaits focused RED verification.
-- Production `CatalogProviderPipeline` remains unchanged until RED is observed.
-- Expected complete-suite count once the new contract eventually passes: **1003 tests**.
+- Pipeline loader ordinary-exception contract is verified RED before the production fix.
+- Production loader guard is committed and awaits focused local GREEN verification.
+- Expected complete-suite count after the contract passes: **1003 tests**.
 
 ## Recommended verification
 
-Pull current `master` and run only the new contract:
+Pull current `master` and run only the pipeline loader exception contract:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadNormalizeValidateAsync_WhenLoaderThrows_ReturnsStableFailure"
 ```
 
-Expected current result: RED with the raw exception text:
+Expected result after the production fix: GREEN.
 
-```text
-Sensitive catalog provider pipeline loader detail must not escape.
+Then run the complete suite:
+
+```powershell
+dotnet test WhenItFails.Tests
 ```
+
+Expected complete-suite result: **1003/1003 GREEN with zero compiler warnings**.
 
 ## Next recommended step
 
-If RED is confirmed, add the smallest ordinary-exception guard around only the pipeline loader delegate await, excluding `OperationCanceledException` so exact-instance cancellation can be tested separately afterward.
+After **1003/1003 GREEN** is confirmed, add a separate exact-instance cancellation contract for the `CatalogProviderPipeline` loader delegate.
+
+If that passes without production changes, consider the pipeline loader boundary complete for the current scope and inspect the pipeline normalizer delegate separately, again checking existing propagation/shape contracts before adding any new RED test.
 
 Do not change normalizer, validator, or payload-factory exception behavior in the same production commit.
 
