@@ -20,29 +20,26 @@ Hardening dependency boundaries while preserving established public exception co
 - `CatalogProviderPipeline` dependency-boundary audit is complete for the current scope.
 - `BuiltInErrorCatalogContextProvider` is the current focused hardening target.
 - The `IJsonsTemplateProvider` dependency boundary is complete for the current scope.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1012/1012 tests with zero compiler warnings** before the new built-in context-provider exception contract.
-- A focused ordinary-exception contract for the injected `IErrorCatalogContextProvider` is committed and awaits local verification.
+- The injected `IErrorCatalogContextProvider` ordinary-exception contract is locally verified GREEN.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1013/1013 tests with zero compiler warnings**.
 
-## 2026-09-10 — built-in context-provider ordinary-exception contract
+## 2026-09-10 — 1013/1013 GREEN built-in context-provider checkpoint
 
-Contract commit: `6913cd4d02769f42958128fc5471dba8fe72f3e8`.
+Checkpoint commit: this commit.
+Context-provider ordinary-exception contract commit: `6913cd4d02769f42958128fc5471dba8fe72f3e8`.
 
-Added:
-
-`WhenItFails.Tests/Catalog/BuiltInErrorCatalogContextProviderContextProviderExceptionContractTests.cs`
-
-Test:
-
-`LoadAsync_WhenContextProviderThrows_ReturnsStableFailureWithoutExceptionDetail`
-
-The test supplies a valid built-in template so execution reaches `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)`. The injected dependency returns a faulted task containing:
+Verified locally:
 
 ```text
-System.InvalidOperationException:
-Sensitive built-in context provider detail must not escape.
+WhenItFails.Tests
+Failed:   0
+Passed: 1013
+Skipped:  0
+Total:  1013
+Compiler warnings: 0
 ```
 
-Required public contract:
+The injected `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` ordinary-exception contract is verified:
 
 ```text
 Status: Failed
@@ -51,9 +48,9 @@ Code: WIF_BUILT_IN_CONTEXT_LOAD_FAILED
 Message: The bundled WhenItFails catalog context could not be loaded.
 ```
 
-The raw dependency exception detail must not appear in the public response.
+The raw dependency exception detail does not escape through the public response.
 
-No production code changed. The existing sanitized outer catch in `BuiltInErrorCatalogContextProvider.LoadAsync(...)` should already satisfy this contract, so focused verification is expected to be GREEN.
+`OperationCanceledException` is explicitly rethrown by `BuiltInErrorCatalogContextProvider.LoadAsync(...)`, so the next focused contract is exact-instance cancellation from the injected context provider.
 
 ## 2026-09-10 — 1012/1012 GREEN built-in template-provider boundary checkpoint
 
@@ -131,52 +128,30 @@ Production file:
 Dependencies:
 
 1. `IJsonsTemplateProvider` — complete for current scope.
-2. `IErrorCatalogContextProvider` — ordinary-exception contract awaiting GREEN; exact cancellation next.
+2. `IErrorCatalogContextProvider` — null response and ordinary exception covered; exact cancellation next.
 
 Established context-provider behavior:
 
 - null response → `WIF_BUILT_IN_CONTEXT_PROVIDER_RESPONSE_NULL`;
-- ordinary exceptions fall under the sanitized built-in load guard → `WIF_BUILT_IN_CONTEXT_LOAD_FAILED`;
+- ordinary exception → stable sanitized `WIF_BUILT_IN_CONTEXT_LOAD_FAILED`;
 - `OperationCanceledException` is explicitly rethrown;
 - temporary-directory cleanup remains in `finally`.
 
-## Context-provider dependency reconnaissance
-
-Fresh repository searches found no `BuiltInErrorCatalogContextProvider` contract requiring exceptions from its injected `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` dependency to propagate unchanged.
-
-The pass-through contracts on `ErrorCatalogContextProvider` itself apply one layer lower, to its own five internal provider dependencies, and do not conflict with normalization at `BuiltInErrorCatalogContextProvider`.
-
 ## Verification state
 
-- Clean continuation baseline: **1012/1012 GREEN, zero compiler warnings**.
-- `IJsonsTemplateProvider` boundary is complete for the current scope.
-- New context-provider ordinary-exception contract is committed and awaits local verification.
-- No production change is expected for this contract.
-- Expected complete-suite count after it passes: **1013/1013 GREEN with zero compiler warnings**.
-
-## Recommended verification
-
-Pull current `master` and run:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadAsync_WhenContextProviderThrows_ReturnsStableFailureWithoutExceptionDetail"
-dotnet test WhenItFails.Tests
-```
-
-Expected results:
-
-```text
-Focused contract: GREEN
-Complete suite: 1013/1013 GREEN
-Compiler warnings: 0
-```
+- Clean continuation baseline: **1013/1013 GREEN, zero compiler warnings**.
+- Template-provider boundary is complete for the current scope.
+- Context-provider ordinary-exception behavior is locally verified.
+- No exact-instance context-provider cancellation contract has been committed yet at this checkpoint.
 
 ## Next recommended step
 
-After **1013/1013 GREEN** is confirmed, record that checkpoint and add an exact-instance cancellation contract for `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` as consumed by `BuiltInErrorCatalogContextProvider`.
+Add a focused exact-instance cancellation contract for `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` as consumed by `BuiltInErrorCatalogContextProvider`.
 
-No production change should be needed because `BuiltInErrorCatalogContextProvider.LoadAsync(...)` already rethrows `OperationCanceledException`.
+The fake dependency should return a faulted task containing a specific `OperationCanceledException` instance and the test should use `Assert.Same(...)`.
 
-After cancellation is verified, consider both injected dependency boundaries of `BuiltInErrorCatalogContextProvider` complete and perform fresh reconnaissance for the next target.
+No production change is expected.
+
+After that contract is GREEN, consider both injected dependency boundaries of `BuiltInErrorCatalogContextProvider` complete and perform fresh repository reconnaissance for the next target.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
