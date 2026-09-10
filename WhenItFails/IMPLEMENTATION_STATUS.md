@@ -19,14 +19,43 @@ Hardening dependency boundaries while preserving established public exception co
 - `ErrorCatalogProvider` is the current normalization boundary under audit.
 - `IErrorCatalogLoader.LoadFromFileAsync(...)` is complete for the current scope.
 - `IErrorCatalogDocumentNormalizer.Normalize(...)` is complete for the current scope.
-- `IErrorCatalogValidator.Validate(...)` is complete for the current scope: null result, ordinary exception normalization, and exact-instance cancellation are covered.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1000/1000 tests with zero compiler warnings**.
-- The next boundary under inspection is `IErrorCatalogFactory.Create(...)`.
+- `IErrorCatalogValidator.Validate(...)` is complete for the current scope.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1000/1000 tests with zero compiler warnings** before the new factory exception contract.
+- A focused ordinary-exception contract is now committed for `IErrorCatalogFactory.Create(...)` and awaits local RED verification.
+
+## 2026-09-10 — factory ordinary-exception contract
+
+Contract commit: `da315a5d826177cdca2c3e773a42bd2f7b84db4a`
+
+Added:
+
+`WhenItFails.Tests/Catalog/ErrorCatalogProviderFactoryExceptionContractTests.cs`
+
+Test:
+
+`LoadFromFileAsync_WhenFactoryThrows_ReturnsStableFailure`
+
+The factory throws:
+
+```text
+System.InvalidOperationException:
+Sensitive error catalog factory detail must not escape.
+```
+
+Required stable `ErrorCatalogProvider` contract:
+
+```text
+Status: Failed
+Data: null
+Code: WIF_ERROR_CATALOG_FACTORY_FAILED
+Message: The error catalog factory failed.
+```
+
+No production code changed. `_factory.Create(...)` is currently invoked directly, so the focused test is expected to be RED with the raw factory exception escaping.
 
 ## 2026-09-10 — 1000/1000 GREEN validator boundary checkpoint
 
-Checkpoint commit: this commit.
-
+Checkpoint commit: `7051166407792897fcd80166257bb83267e28d25`.
 Validator cancellation contract commit: `0ab95ed05c70d563289742dc9c474490aa3018ea`.
 Validator production fix commit: `994d0a5e1ec417648f7be1b21fff5e98c2101ac9`.
 Validator ordinary-exception contract commit: `69fdba1625808a96e00fe823d57a49878a0ec36c`.
@@ -42,16 +71,7 @@ Total:  1000
 Compiler warnings: 0
 ```
 
-`IErrorCatalogValidator.Validate(...)` ordinary exceptions normalize to:
-
-```text
-Status: Failed
-Data: null
-Code: WIF_ERROR_CATALOG_VALIDATOR_FAILED
-Message: The error catalog validator failed.
-```
-
-A specific `OperationCanceledException` instance thrown by the validator propagates unchanged and is verified with `Assert.Same(...)`.
+`IErrorCatalogValidator.Validate(...)` is complete for the current scope. Ordinary exceptions normalize to `WIF_ERROR_CATALOG_VALIDATOR_FAILED`; exact-instance cancellation propagates unchanged.
 
 ## Previous completed boundaries
 
@@ -77,7 +97,7 @@ Relevant suites:
 1. `IErrorCatalogLoader.LoadFromFileAsync(...)` — complete for current scope.
 2. `IErrorCatalogDocumentNormalizer.Normalize(...)` — complete for current scope.
 3. `IErrorCatalogValidator.Validate(...)` — complete for current scope.
-4. `IErrorCatalogFactory.Create(...)` — next boundary under inspection.
+4. `IErrorCatalogFactory.Create(...)` — ordinary-exception contract awaiting RED.
 
 Existing malformed-result handling:
 
@@ -86,19 +106,32 @@ Existing malformed-result handling:
 - null validator result → `WIF_ERROR_CATALOG_VALIDATOR_RESULT_NULL`;
 - null factory result → `WIF_ERROR_CATALOG_FACTORY_RESULT_NULL`.
 
-Repository reconnaissance found no existing `ErrorCatalogProvider` propagation/shape contract requiring factory exceptions to escape unchanged. No existing `WIF_ERROR_CATALOG_FACTORY_FAILED` code was found before the factory contract is introduced.
+Repository reconnaissance found no existing `ErrorCatalogProvider` propagation/shape contract requiring factory exceptions to escape unchanged. No existing `WIF_ERROR_CATALOG_FACTORY_FAILED` code was found before this contract was introduced.
 
 ## Verification state
 
-- Clean continuation baseline: **1000/1000 GREEN, zero compiler warnings**.
-- Loader, normalizer, and validator boundaries are complete for the current scope.
+- Clean continuation baseline before the factory test: **1000/1000 GREEN, zero compiler warnings**.
 - Factory null-result behavior is already covered.
-- No factory ordinary-exception contract has been added yet at this checkpoint.
+- New factory ordinary-exception contract is committed and awaits focused RED verification.
+- Production factory call remains unchanged until RED is observed.
+- Expected complete-suite count once the new contract eventually passes: **1001 tests**.
+
+## Recommended verification
+
+Pull current `master` and run only the new contract:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadFromFileAsync_WhenFactoryThrows_ReturnsStableFailure"
+```
+
+Expected current result: RED with the raw exception text:
+
+```text
+Sensitive error catalog factory detail must not escape.
+```
 
 ## Next recommended step
 
-Add one focused ordinary-exception contract for `IErrorCatalogFactory.Create(...)` before changing production code.
-
-If RED confirms raw factory exception leakage, add the smallest guard around only `_factory.Create(...)`, excluding `OperationCanceledException` so exact-instance cancellation can be tested separately afterward.
+If RED is confirmed, add the smallest ordinary-exception guard around only `_factory.Create(...)`, excluding `OperationCanceledException` so exact-instance cancellation can be tested separately afterward.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
