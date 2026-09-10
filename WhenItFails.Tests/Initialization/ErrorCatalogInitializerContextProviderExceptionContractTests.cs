@@ -69,6 +69,43 @@ public sealed class ErrorCatalogInitializerContextProviderExceptionContractTests
         Assert.Same(previousContext, contextStore.StoredContext);
     }
 
+    [Fact]
+    public async Task InitializeAsync_WhenContextProviderReturnsNullTask_ReturnsStableFailure()
+    {
+        ErrorCatalogContext previousContext = new();
+        TrackingContextStore contextStore = new(previousContext);
+
+        ErrorCatalogInitializer initializer = new(
+            new SuccessfulBootstrapper(),
+            new NullTaskContextProvider(),
+            contextStore);
+
+        Response<ErrorCatalogInitializationPayload> response =
+            await initializer.InitializeAsync(new JsonsOptions());
+
+        Assert.NotNull(response);
+        Assert.False(response.IsSuccess);
+        Assert.Equal(ResultStatus.Failed, response.Status);
+        Assert.Null(response.Data);
+        Assert.Equal(
+            "The error catalog context provider failed during initialization.",
+            response.Message);
+
+        Assert.Collection(
+            response.Issues,
+            issue =>
+            {
+                Assert.Equal(
+                    "WIF_INITIALIZER_CONTEXT_PROVIDER_FAILED",
+                    issue.Code);
+                Assert.Equal(
+                    "The error catalog context provider failed during initialization.",
+                    issue.Message);
+            });
+
+        Assert.Same(previousContext, contextStore.StoredContext);
+    }
+
     private sealed class SuccessfulBootstrapper : IJsonsBootstrapper
     {
         public Task<Response<JsonsBootstrapPayload>> EnsureWorkspaceAsync(
@@ -111,6 +148,17 @@ public sealed class ErrorCatalogInitializerContextProviderExceptionContractTests
         {
             return Task.FromException<Response<ErrorCatalogContext>>(
                 _cancellation);
+        }
+    }
+
+    private sealed class NullTaskContextProvider
+        : IErrorCatalogContextProvider
+    {
+        public Task<Response<ErrorCatalogContext>> LoadFromJsonsAsync(
+            JsonsOptions options,
+            CancellationToken cancellationToken = default)
+        {
+            return null!;
         }
     }
 
