@@ -46,6 +46,25 @@ public sealed class ErrorCatalogProviderFactoryExceptionContractTests
             });
     }
 
+    [Fact]
+    public async Task LoadFromFileAsync_WhenFactoryCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "Error catalog factory cancellation must propagate unchanged.");
+
+        ErrorCatalogProvider provider = new(
+            new ValidLoader(),
+            new PassthroughNormalizer(),
+            new ValidValidator(),
+            new CancelingFactory(cancellation));
+
+        OperationCanceledException thrown =
+            await Assert.ThrowsAsync<OperationCanceledException>(
+                () => provider.LoadFromFileAsync("catalog.json"));
+
+        Assert.Same(cancellation, thrown);
+    }
+
     private static ErrorCatalogDocument CreateDocument()
     {
         return new ErrorCatalogDocument
@@ -107,6 +126,21 @@ public sealed class ErrorCatalogProviderFactoryExceptionContractTests
         {
             throw new InvalidOperationException(
                 "Sensitive error catalog factory detail must not escape.");
+        }
+    }
+
+    private sealed class CancelingFactory : IErrorCatalogFactory
+    {
+        private readonly OperationCanceledException _cancellation;
+
+        public CancelingFactory(OperationCanceledException cancellation)
+        {
+            _cancellation = cancellation;
+        }
+
+        public IErrorCatalog Create(ErrorCatalogDocument document)
+        {
+            throw _cancellation;
         }
     }
 }
