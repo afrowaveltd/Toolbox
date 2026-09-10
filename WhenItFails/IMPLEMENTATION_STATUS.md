@@ -19,29 +19,16 @@ Hardening dependency boundaries while preserving established public exception co
 - `ErrorCatalogProvider` is the current normalization boundary under audit.
 - `IErrorCatalogLoader.LoadFromFileAsync(...)` is complete for the current scope.
 - `IErrorCatalogDocumentNormalizer.Normalize(...)` is complete for the current scope.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 998/998 tests with zero compiler warnings** before the new validator exception contract.
-- A focused ordinary-exception contract is now committed for `IErrorCatalogValidator.Validate(...)` and awaits local RED verification.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 998/998 tests with zero compiler warnings** before the validator exception contract.
+- The validator ordinary-exception contract is verified RED and the smallest production guard is committed.
 
-## 2026-09-10 — validator ordinary-exception contract
+## 2026-09-10 — validator ordinary-exception fix
 
-Contract commit: `69fdba1625808a96e00fe823d57a49878a0ec36c`
+Production fix commit: `994d0a5e1ec417648f7be1b21fff5e98c2101ac9`
 
-Added:
+Changed only the `_validator.Validate(...)` invocation inside `ErrorCatalogProvider.LoadFromFileAsync(...)`.
 
-`WhenItFails.Tests/Catalog/ErrorCatalogProviderValidatorExceptionContractTests.cs`
-
-Test:
-
-`LoadFromFileAsync_WhenValidatorThrows_ReturnsStableFailure`
-
-The validator throws:
-
-```text
-System.InvalidOperationException:
-Sensitive error catalog validator detail must not escape.
-```
-
-Required stable `ErrorCatalogProvider` contract:
+Ordinary exceptions are now converted to:
 
 ```text
 Status: Failed
@@ -50,9 +37,37 @@ Code: WIF_ERROR_CATALOG_VALIDATOR_FAILED
 Message: The error catalog validator failed.
 ```
 
-The factory fixture throws if reached, so the contract also locks short-circuit behavior after validator failure.
+The catch filter excludes `OperationCanceledException`, so cancellation originating from the validator continues to propagate unchanged.
 
-No production code changed. `_validator.Validate(...)` is currently invoked directly, so the focused test is expected to be RED with the raw validator exception escaping.
+The production commit diff was checked and contains only the intended validator exception guard. Existing null-result handling, invalid-validation handling, and factory behavior remain unchanged.
+
+## 2026-09-10 — verified RED validator contract
+
+Contract commit: `69fdba1625808a96e00fe823d57a49878a0ec36c`
+
+Focused test:
+
+`WhenItFails.Tests.Catalog.ErrorCatalogProviderValidatorExceptionContractTests.LoadFromFileAsync_WhenValidatorThrows_ReturnsStableFailure`
+
+Observed locally before the production fix:
+
+```text
+Failed: 1
+Passed: 0
+Skipped: 0
+Total: 1
+```
+
+Failure:
+
+```text
+System.InvalidOperationException:
+Sensitive error catalog validator detail must not escape.
+```
+
+The exception escaped directly from `_validator.Validate(...)` through `ErrorCatalogProvider.LoadFromFileAsync(...)`, confirming the missing validator exception boundary.
+
+The factory fixture is configured to throw if reached, so the contract also requires short-circuit behavior after validator failure.
 
 ## 2026-09-10 — 998/998 GREEN normalizer boundary checkpoint
 
@@ -72,7 +87,7 @@ Total:  998
 Compiler warnings: 0
 ```
 
-`IErrorCatalogDocumentNormalizer.Normalize(...)` ordinary exceptions normalize to `WIF_ERROR_CATALOG_NORMALIZER_FAILED`; exact-instance cancellation propagates unchanged.
+`IErrorCatalogDocumentNormalizer.Normalize(...)` is complete for the current scope. Ordinary exceptions normalize to `WIF_ERROR_CATALOG_NORMALIZER_FAILED`; exact-instance cancellation propagates unchanged.
 
 ## 2026-09-10 — 996/996 GREEN loader boundary checkpoint
 
@@ -100,7 +115,7 @@ Relevant suites:
 
 1. `IErrorCatalogLoader.LoadFromFileAsync(...)` — complete for current scope.
 2. `IErrorCatalogDocumentNormalizer.Normalize(...)` — complete for current scope.
-3. `IErrorCatalogValidator.Validate(...)` — ordinary-exception contract awaiting RED.
+3. `IErrorCatalogValidator.Validate(...)` — ordinary-exception guard committed; awaiting GREEN verification.
 4. `IErrorCatalogFactory.Create(...)`.
 
 Existing malformed-result handling:
@@ -110,32 +125,38 @@ Existing malformed-result handling:
 - null validator result → `WIF_ERROR_CATALOG_VALIDATOR_RESULT_NULL`;
 - null factory result → `WIF_ERROR_CATALOG_FACTORY_RESULT_NULL`.
 
-Repository reconnaissance found no existing `ErrorCatalogProvider` propagation/shape contract requiring validator exceptions to escape unchanged. No existing `WIF_ERROR_CATALOG_VALIDATOR_FAILED` code was found before this contract was introduced.
+Repository reconnaissance found no existing `ErrorCatalogProvider` propagation/shape contract requiring validator exceptions to escape unchanged.
 
 ## Verification state
 
 - Clean continuation baseline before the validator test: **998/998 GREEN, zero compiler warnings**.
 - Validator null-result behavior is already covered.
-- New validator ordinary-exception contract is committed and awaits focused RED verification.
-- Production validator call remains unchanged until RED is observed.
-- Expected complete-suite count once the new contract eventually passes: **999 tests**.
+- Validator ordinary-exception contract is verified RED before the production fix.
+- Production validator guard is committed and awaits focused local GREEN verification.
+- Expected complete-suite count after the contract passes: **999 tests**.
 
 ## Recommended verification
 
-Pull current `master` and run only the new contract:
+Pull current `master` and run only the validator exception contract:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadFromFileAsync_WhenValidatorThrows_ReturnsStableFailure"
 ```
 
-Expected current result: RED with the raw exception text:
+Expected result after the production fix: GREEN.
 
-```text
-Sensitive error catalog validator detail must not escape.
+Then run the complete suite:
+
+```powershell
+dotnet test WhenItFails.Tests
 ```
+
+Expected complete-suite result: **999/999 GREEN with zero compiler warnings**.
 
 ## Next recommended step
 
-If RED is confirmed, add the smallest ordinary-exception guard around only `_validator.Validate(...)`, excluding `OperationCanceledException` so exact-instance cancellation can be tested separately afterward.
+After **999/999 GREEN** is confirmed, add a separate exact-instance cancellation contract for `IErrorCatalogValidator.Validate(...)`.
+
+If that passes without production changes, consider the validator boundary complete for the current scope and inspect `IErrorCatalogFactory.Create(...)` separately, again checking existing propagation/shape contracts before adding a RED test.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
