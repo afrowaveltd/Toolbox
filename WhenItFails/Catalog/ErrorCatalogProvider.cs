@@ -96,8 +96,19 @@ public sealed class ErrorCatalogProvider : IErrorCatalogProvider
                     "The error catalog document normalizer returned a null result.");
         }
 
-        ErrorCatalogValidationResult? validationResult =
-            _validator.Validate(normalizedDocument);
+        ErrorCatalogValidationResult? validationResult;
+
+        try
+        {
+            validationResult =
+                _validator.Validate(normalizedDocument);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<ErrorCatalogProviderPayload>.Fail(
+                code: "WIF_ERROR_CATALOG_VALIDATOR_FAILED",
+                message: "The error catalog validator failed.");
+        }
 
         if (validationResult is null)
         {
