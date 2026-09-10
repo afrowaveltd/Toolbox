@@ -21,11 +21,37 @@ Hardening dependency boundaries while preserving established public exception co
 - `BuiltInErrorCatalogContextProvider` is the current focused hardening target.
 - The `IJsonsTemplateProvider` dependency boundary is complete for the current scope.
 - The injected `IErrorCatalogContextProvider` ordinary-exception contract is locally verified GREEN.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1013/1013 tests with zero compiler warnings**.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1013/1013 tests with zero compiler warnings** before the new context-provider cancellation contract.
+- A focused exact-instance cancellation contract for the injected context provider is committed and awaits local verification.
+
+## 2026-09-10 — built-in context-provider cancellation contract
+
+Contract commit: `59da25c7489c2d131d10a1285ed5715c240f0ca6`.
+
+Updated:
+
+`WhenItFails.Tests/Catalog/BuiltInErrorCatalogContextProviderContextProviderExceptionContractTests.cs`
+
+Added:
+
+`LoadAsync_WhenContextProviderCancels_RethrowsSameOperationCanceledException`
+
+Contract:
+
+```text
+injected IErrorCatalogContextProvider
+    => returns a faulted task with a specific OperationCanceledException instance
+                         ↓
+rethrow the exact same OperationCanceledException instance
+```
+
+The test uses `Assert.Same(...)`.
+
+No production code changed. `BuiltInErrorCatalogContextProvider.LoadAsync(...)` already has a dedicated `catch (OperationCanceledException) { throw; }`, so this focused contract is expected to be GREEN.
 
 ## 2026-09-10 — 1013/1013 GREEN built-in context-provider checkpoint
 
-Checkpoint commit: this commit.
+Checkpoint commit: `d0a747c5ceeb43eb93b2c8ce82e24bd4a4473cd3`.
 Context-provider ordinary-exception contract commit: `6913cd4d02769f42958128fc5471dba8fe72f3e8`.
 
 Verified locally:
@@ -49,8 +75,6 @@ Message: The bundled WhenItFails catalog context could not be loaded.
 ```
 
 The raw dependency exception detail does not escape through the public response.
-
-`OperationCanceledException` is explicitly rethrown by `BuiltInErrorCatalogContextProvider.LoadAsync(...)`, so the next focused contract is exact-instance cancellation from the injected context provider.
 
 ## 2026-09-10 — 1012/1012 GREEN built-in template-provider boundary checkpoint
 
@@ -128,7 +152,7 @@ Production file:
 Dependencies:
 
 1. `IJsonsTemplateProvider` — complete for current scope.
-2. `IErrorCatalogContextProvider` — null response and ordinary exception covered; exact cancellation next.
+2. `IErrorCatalogContextProvider` — null response and ordinary exception covered; exact cancellation awaiting GREEN.
 
 Established context-provider behavior:
 
@@ -142,16 +166,31 @@ Established context-provider behavior:
 - Clean continuation baseline: **1013/1013 GREEN, zero compiler warnings**.
 - Template-provider boundary is complete for the current scope.
 - Context-provider ordinary-exception behavior is locally verified.
-- No exact-instance context-provider cancellation contract has been committed yet at this checkpoint.
+- Exact-instance context-provider cancellation contract is committed and awaits focused local verification.
+- No production change is expected.
+- Expected complete-suite count after it passes: **1014/1014 GREEN with zero compiler warnings**.
+
+## Recommended verification
+
+Pull current `master` and run:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadAsync_WhenContextProviderCancels_RethrowsSameOperationCanceledException"
+dotnet test WhenItFails.Tests
+```
+
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1014/1014 GREEN
+Compiler warnings: 0
+```
 
 ## Next recommended step
 
-Add a focused exact-instance cancellation contract for `IErrorCatalogContextProvider.LoadFromJsonsAsync(...)` as consumed by `BuiltInErrorCatalogContextProvider`.
+After **1014/1014 GREEN** is confirmed, consider both injected dependency boundaries of `BuiltInErrorCatalogContextProvider` complete for the current scope.
 
-The fake dependency should return a faulted task containing a specific `OperationCanceledException` instance and the test should use `Assert.Same(...)`.
-
-No production change is expected.
-
-After that contract is GREEN, consider both injected dependency boundaries of `BuiltInErrorCatalogContextProvider` complete and perform fresh repository reconnaissance for the next target.
+Record the final checkpoint, then perform fresh repository reconnaissance for the next smallest unverified boundary. Search existing propagation, exception-shape, cancellation, null-task and malformed-result contracts before introducing new behavior.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
