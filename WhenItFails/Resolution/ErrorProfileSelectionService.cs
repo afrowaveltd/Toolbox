@@ -159,6 +159,13 @@ public sealed class ErrorProfileSelectionService
                 message: "Profile include errors collection is null.");
         }
 
+        if (profile.ExcludeErrors is null)
+        {
+            return Response<IReadOnlyList<ErrorDefinition>>.Invalid(
+                code: "ProfileExcludeErrorsCollectionIsNull",
+                message: "Profile exclude errors collection is null.");
+        }
+
         IReadOnlyList<ErrorDefinition>? resolvedErrors;
 
         try
