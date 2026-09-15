@@ -110,6 +110,13 @@ public sealed class ErrorProfileSelectionService
                     $"Error profile with name or display name '{profileName}' was not found.");
         }
 
+        if (profile.IncludeOwners is null)
+        {
+            return Response<IReadOnlyList<ErrorDefinition>>.Invalid(
+                code: "ProfileIncludeOwnersCollectionIsNull",
+                message: "Profile include owners collection is null.");
+        }
+
         IReadOnlyList<ErrorDefinition>? resolvedErrors;
 
         try
