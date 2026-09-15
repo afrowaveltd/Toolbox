@@ -19,8 +19,42 @@ Hardening dependency boundaries and failure cleanup while preserving established
 - Both runtime `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` boundaries — explicit reset and flexible fallback — are complete for null response, ordinary exception, null task and exact cancellation behavior in the current scope.
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` boundary is complete for malformed results, ordinary exception normalization and exact-instance cancellation propagation.
 - `JsonCatalogDocumentWriter` performs verified best-effort cleanup of its generated temporary file when serialization fails and honors pre-cancellation before filesystem side effects.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1024/1024 tests with zero compiler warnings**.
-- A focused ordinary-exception contract for `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` is committed and awaits local RED verification.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1024/1024 tests with zero compiler warnings** before the new profile resolver contract.
+- `ErrorProfileSelectionService` ordinary resolver-exception RED is locally confirmed and production normalization is committed; focused/full GREEN verification is pending.
+
+## 2026-09-15 — profile selection resolver ordinary-exception fix
+
+Contract commit: `3a3a81a7c816fd72d63c5f1450d07c675bb12288`.
+Production fix commit: `7d739c3d9499951304da0d3463308668b7b67e19`.
+Baseline checkpoint commit: `46b0953f2b2e479be39a2a1098c668dcfd7d0575`.
+
+Focused RED was locally confirmed:
+
+```text
+ErrorProfileSelectionServiceResolverExceptionContractTests
+Failed: 1
+Passed: 0
+
+System.InvalidOperationException:
+Sensitive profile resolver detail must not escape.
+```
+
+The exception propagated directly from `IErrorProfileResolver.Resolve(...)`, confirming the missing normalization boundary.
+
+Production change in `WhenItFails/Resolution/ErrorProfileSelectionService.cs` is intentionally narrow: only the injected resolver call is wrapped.
+
+Ordinary resolver exceptions now return:
+
+```text
+Status: Failed
+Data: null
+Code: WIF_PROFILE_RESOLVER_FAILED
+Message: The error profile resolver failed.
+```
+
+Raw dependency exception detail is not exposed. `OperationCanceledException` is explicitly excluded from normalization and should continue to propagate unchanged. Existing malformed-input and `WIF_PROFILE_RESOLVER_RESULT_NULL` behavior remains unchanged.
+
+Expected complete-suite count after verification: **1025/1025 GREEN with zero compiler warnings**.
 
 ## 2026-09-15 — profile selection resolver ordinary-exception contract
 
@@ -35,7 +69,7 @@ Contract:
 
 `ResolveByProfileName_WhenResolverThrows_ReturnsStableFailureWithoutExceptionDetail`
 
-`ErrorProfileSelectionService` is already a normalizing public boundary: it validates malformed context/profile inputs and converts a null resolver result to `WIF_PROFILE_RESOLVER_RESULT_NULL`. The injected resolver ordinary-exception path should therefore also return a stable response rather than leak dependency details.
+`ErrorProfileSelectionService` is already a normalizing public boundary: it validates malformed context/profile inputs and converts a null resolver result to `WIF_PROFILE_RESOLVER_RESULT_NULL`. The injected resolver ordinary-exception path therefore also returns a stable response rather than leaking dependency details.
 
 Expected contract:
 
@@ -46,8 +80,6 @@ Code: WIF_PROFILE_RESOLVER_FAILED
 Message: The error profile resolver failed.
 Raw dependency exception detail: absent
 ```
-
-Production is intentionally unchanged before the RED run. Current code calls `_profileResolver.Resolve(...)` directly, so the focused test is expected to fail by propagating the resolver's `InvalidOperationException`.
 
 ## 2026-09-15 — 1024/1024 GREEN writer pre-cancellation checkpoint
 
@@ -66,7 +98,7 @@ Total:  1024
 Compiler warnings: 0
 ```
 
-`JsonCatalogDocumentWriter.SaveToFileAsync(...)` now has an explicit deterministic cancellation contract: a token cancelled before entry propagates `OperationCanceledException` before validation or filesystem work, leaving both the target directory and target file absent.
+`JsonCatalogDocumentWriter.SaveToFileAsync(...)` has an explicit deterministic cancellation contract: a token cancelled before entry propagates `OperationCanceledException` before validation or filesystem work, leaving both the target directory and target file absent.
 
 No production change was required. The writer area is closed for the current hardening scope; avoid timing-sensitive mid-write cancellation tests unless a concrete defect or requirement appears.
 
@@ -222,8 +254,10 @@ Fresh reconnaissance after the 1024 checkpoint moved out of writer/loader/store 
 - Clean continuation baseline: **1024/1024 GREEN, zero compiler warnings**.
 - Writer hardening is complete for the current scope.
 - Profile resolver ordinary-exception contract commit: `3a3a81a7c816fd72d63c5f1450d07c675bb12288`.
-- Focused RED verification is pending.
-- Expected eventual complete-suite count after this contract passes: **1025/1025 GREEN with zero compiler warnings**.
+- Focused RED locally confirmed: the supplied `InvalidOperationException` escaped directly from `IErrorProfileResolver.Resolve(...)`.
+- Production normalization fix commit: `7d739c3d9499951304da0d3463308668b7b67e19`.
+- Focused and complete-suite GREEN verification are pending.
+- Expected complete-suite count: **1025/1025 GREEN with zero compiler warnings**.
 
 ## Recommended verification
 
@@ -231,12 +265,19 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenResolverThrows_ReturnsStableFailureWithoutExceptionDetail"
+dotnet test WhenItFails.Tests
 ```
 
-Expected current result: RED with the supplied `InvalidOperationException` propagating directly from the fake `IErrorProfileResolver`.
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1025/1025 GREEN
+Compiler warnings: 0
+```
 
 ## Next recommended step
 
-If the focused RED confirms ordinary resolver exceptions escape, add the smallest production normalization in `ErrorProfileSelectionService.ResolveByProfileName(...)`: ordinary exception → `Failed / WIF_PROFILE_RESOLVER_FAILED` with stable message and no raw exception detail. Exclude `OperationCanceledException` from normalization; add its exact-instance contract separately after the ordinary branch is verified.
+After **1025/1025 GREEN** is confirmed, record the checkpoint and add one exact-instance cancellation contract for `IErrorProfileResolver.Resolve(...)`. No production change is expected because the new exception filter explicitly excludes `OperationCanceledException`. After that boundary is complete, resume fresh reconnaissance outside the already hardened areas.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
