@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1027/1027 GREEN, zero compiler warnings**.
+- Complete `WhenItFails.Tests` suite baseline: **1027/1027 GREEN, zero compiler warnings**.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
 - `BuiltInErrorCatalogContextProvider` dependency-boundary audit is complete for the current scope.
@@ -19,7 +19,38 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` boundary is complete for malformed results, ordinary-exception normalization and exact-instance cancellation propagation.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
-- `ErrorProfileSelectionService` now classifies null `ErrorCatalogDocument.Errors` as malformed input rather than resolver failure.
+- `ErrorProfileSelectionService` classifies null `ErrorCatalogDocument.Errors` as malformed input rather than resolver failure.
+- A focused malformed-profile contract for null `ErrorProfileDefinition.IncludeOwners` is committed and awaits local RED verification.
+
+## 2026-09-15 — profile selection null include-owners contract
+
+Contract commit:
+`22c8e33b28edc0501cf4f9202e57fed6eea7d8ac`
+
+Baseline checkpoint commit:
+`1ad1743b1aebec4ca5d19bc036b1e1046a5895be`
+
+Added:
+
+`WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceNullIncludeOwnersCollectionContractTests.cs`
+
+Contract:
+
+`ResolveByProfileName_WhenProfileIncludeOwnersCollectionIsNull_ReturnsInvalidResponse`
+
+`ErrorProfileCatalogValidator` already defines the stable malformed-profile contract:
+
+```text
+Status: Invalid
+Code: ProfileIncludeOwnersCollectionIsNull
+Message: Profile include owners collection is null.
+```
+
+The selection service should classify the same malformed profile shape before invoking `IErrorProfileResolver.Resolve(...)` rather than misclassifying the resulting resolver exception as a dependency failure.
+
+Production is intentionally unchanged before the focused run. Current `ErrorProfileResolver.Resolve(...)` calls `CreateNormalizedSet(profile.IncludeOwners)`, so a null collection is expected to throw and then be normalized by `ErrorProfileSelectionService` as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
+
+Expected eventual complete-suite count after this contract passes: **1028/1028 GREEN with zero compiler warnings**.
 
 ## 2026-09-15 — 1027/1027 GREEN null error collection checkpoint
 
@@ -29,8 +60,8 @@ Malformed-context contract commit:
 Production guard commit:
 `9395b64ab28fadf1a499bc26db14e94eb6936ba6`
 
-Previous checkpoint commit:
-`e8d0ca536f11d6a7ba16fddb55722abe6315a3ac`
+Checkpoint commit:
+`1ad1743b1aebec4ca5d19bc036b1e1046a5895be`
 
 Locally verified:
 
@@ -43,7 +74,7 @@ Total:  1027
 Compiler warnings: 0
 ```
 
-`ErrorProfileSelectionService.ResolveByProfileName(...)` now rejects a null `ErrorCatalogDocument.Errors` collection before invoking the resolver and reuses the established validator/cross-validator contract:
+`ErrorProfileSelectionService.ResolveByProfileName(...)` rejects a null `ErrorCatalogDocument.Errors` collection before invoking the resolver and reuses the established validator/cross-validator contract:
 
 ```text
 Status: Invalid
@@ -51,8 +82,6 @@ Data: null
 Code: CatalogErrorsCollectionIsNull
 Message: Error catalog errors collection is null.
 ```
-
-This prevents malformed context from being misclassified as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
 
 ## Established transparent lower boundary — do not normalize
 
@@ -74,22 +103,28 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recent verified checkpoints
 
-- 1023/1023 — writer serialization-failure temporary-file cleanup complete.
 - 1024/1024 — writer pre-cancellation side-effect contract complete.
 - 1025/1025 — profile resolver ordinary-exception normalization complete.
 - 1026/1026 — profile resolver exact-cancellation propagation complete.
 - 1027/1027 — profile selection null error collection classification complete.
 
+## Recommended verification
+
+Pull current `master` and run only the focused contract:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenProfileIncludeOwnersCollectionIsNull_ReturnsInvalidResponse"
+```
+
+Expected current result: **RED** with `Actual: Failed` rather than the expected `Invalid`, because the null collection reaches `ErrorProfileResolver` and is normalized as `WIF_PROFILE_RESOLVER_FAILED`.
+
 ## Next recommended step
 
-Perform fresh reconnaissance for the next smallest real malformed-input or injected-dependency asymmetry outside already hardened areas. Search existing propagation, exception-shape, cancellation and malformed-collection contracts before adding a test.
+If RED confirms the response-shape mismatch, add the smallest guard for `profile.IncludeOwners is null` after the matching profile is found and before the resolver call. Reuse exactly:
 
-Work test-first and one boundary at a time:
+```text
+ProfileIncludeOwnersCollectionIsNull
+Profile include owners collection is null.
+```
 
-1. add one focused contract;
-2. commit test;
-3. update this file;
-4. run focused test locally;
-5. make the smallest production change only if RED confirms a real gap;
-6. run the complete suite;
-7. record the new GREEN checkpoint.
+Then run focused and complete suites. Record **1028/1028 GREEN** before deciding whether the same malformed-profile pattern warrants one-by-one coverage for the remaining resolver-consumed profile collections.
