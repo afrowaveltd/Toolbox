@@ -6,7 +6,7 @@ This file is the continuation point for `WhenItFails` development. Update it aft
 
 ## Current focus
 
-Hardening dependency boundaries while preserving established public exception contracts, including malformed async dependency results such as null `Task` values.
+Hardening dependency boundaries and failure cleanup while preserving established public exception contracts.
 
 ## Current state
 
@@ -17,9 +17,35 @@ Hardening dependency boundaries while preserving established public exception co
 - `ErrorCatalogInitializer` bootstrapper/context-provider ordinary-exception, cancellation, null-response and null-task behavior is complete for the current scope.
 - `ErrorCatalogRuntime` initializer ordinary-exception, cancellation, null-response and null-task behavior is complete for the current scope.
 - Both runtime `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` boundaries — explicit reset and flexible fallback — are complete for null response, ordinary exception, null task and exact cancellation behavior in the current scope.
-- Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` ordinary-exception normalization is locally verified.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1021/1021 tests with zero compiler warnings**.
-- A focused exact-instance cancellation contract for `IJsonsTemplateProvider.GetTemplateFiles(...)` is committed and awaits local verification.
+- Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` boundary is complete for malformed results, ordinary exception normalization and exact-instance cancellation propagation.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1022/1022 tests with zero compiler warnings**.
+
+## 2026-09-15 — 1022/1022 GREEN bootstrap template-provider cancellation checkpoint
+
+Checkpoint commit: this commit.
+Cancellation contract commit: `21b03f20dbea7428f9568a5025ad7ebb183a12fe`.
+Ordinary-exception production fix commit: `32816f57873266fbccbd90917bd00a86f5818db9`.
+Previous checkpoint commit: `4ada29c6bbc2f73509fdf0238cc24a245951051c`.
+
+Verified locally:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1022
+Skipped:  0
+Total:  1022
+Compiler warnings: 0
+```
+
+The direct `JsonsBootstrapper` template-provider boundary now explicitly covers:
+
+- null template collection → existing `WIF_JSONS_TEMPLATE_COLLECTION_NULL` invalid response;
+- null template item → existing `WIF_JSONS_TEMPLATE_ITEM_NULL` invalid response;
+- ordinary provider exception → `Failed` / `WIF_JSONS_TEMPLATE_PROVIDER_FAILED` with stable sanitized message;
+- exact supplied `OperationCanceledException` instance propagates unchanged.
+
+No production change was required for cancellation because the provider exception filter already excludes `OperationCanceledException`.
 
 ## 2026-09-15 — bootstrap template-provider cancellation contract
 
@@ -40,9 +66,7 @@ The fake `IJsonsTemplateProvider.GetTemplateFiles(...)` throws a supplied `Opera
 Assert.Same(cancellation, thrown)
 ```
 
-No production code changed. The current `JsonsBootstrapper` provider catch explicitly excludes `OperationCanceledException`, so this contract is expected to pass immediately.
-
-Expected complete-suite count after verification: **1022/1022 GREEN with zero compiler warnings**.
+No production code changed. The current `JsonsBootstrapper` provider catch explicitly excludes `OperationCanceledException`.
 
 ## 2026-09-15 — 1021/1021 GREEN bootstrap template-provider checkpoint
 
@@ -62,13 +86,12 @@ Total:  1021
 Compiler warnings: 0
 ```
 
-The direct `JsonsBootstrapper` template-provider boundary now has verified ordinary-exception behavior:
+The direct `JsonsBootstrapper` template-provider boundary has verified ordinary-exception behavior:
 
 - ordinary provider exception → `Failed` / `WIF_JSONS_TEMPLATE_PROVIDER_FAILED`;
 - public message is stable: `The JSON template provider failed.`;
 - raw dependency exception detail does not escape;
-- malformed null collection/item results remain represented by their existing `WIF_JSONS_TEMPLATE_*` invalid responses;
-- `OperationCanceledException` is explicitly excluded from the new normalization catch and should propagate unchanged.
+- malformed null collection/item results remain represented by their existing `WIF_JSONS_TEMPLATE_*` invalid responses.
 
 ## 2026-09-10 — bootstrap template-provider ordinary-exception fix
 
@@ -229,35 +252,27 @@ Do not replace those transparent contracts with normalization at that layer.
 
 `JsonCatalogDocumentLoader.InvalidJson` deliberately includes the parser message; `Docs/Loading-and-Normalization/en.md` documents that behavior. Do not sanitize it as an incidental hardening change.
 
-Fresh reconnaissance after the 1020 checkpoint moved outside the completed runtime/initializer/built-in-provider boundaries. `JsonsBootstrapper` consumes `IJsonsTemplateProvider.GetTemplateFiles(...)` directly. Existing contracts already normalize malformed provider results such as null collections/items. Searches found no established provider-exception propagation contract and no documentation requiring such propagation.
+Fresh reconnaissance after the 1022 checkpoint:
+
+- `JsonCatalogDocumentWriter` invalid-file-path behavior is already explicitly covered by `JsonCatalogDocumentWriterInvalidFilePathContractTests`; do not duplicate that contract.
+- `JsonCatalogDocumentWriter` describes a conservative safe-write workflow using a generated temporary file, but current tests do not cover temporary-file cleanup when JSON serialization fails after the temporary file has been created.
+- Current production catches `JsonException` and returns `JsonSerializationFailed`, but does not explicitly remove the generated temporary file in the failure path.
+
+The next focused contract should preserve the existing public `JsonSerializationFailed` response while requiring that no generated `.<target>.<guid>.tmp` file remains after serialization failure.
 
 ## Verification state
 
-- Clean continuation baseline: **1021/1021 GREEN, zero compiler warnings**.
-- Bootstrap template-provider ordinary-exception contract and production normalization are verified.
-- Exact-instance template-provider cancellation contract is committed and awaiting local verification.
-- No production change is expected.
-- Expected complete-suite count after it passes: **1022/1022 GREEN with zero compiler warnings**.
+- Clean continuation baseline: **1022/1022 GREEN, zero compiler warnings**.
+- Runtime/initializer/built-in/bootstrap-template-provider boundaries are complete for the current scope.
+- Next candidate: `JsonCatalogDocumentWriter` temporary-file cleanup on serialization failure.
+- Expected suite count after adding the focused contract: **1023 tests**.
 
 ## Recommended verification
 
-Pull current `master` and run:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateProviderCancels_RethrowsSameOperationCanceledException"
-dotnet test WhenItFails.Tests
-```
-
-Expected results:
-
-```text
-Focused contract: GREEN
-Complete suite: 1022/1022 GREEN
-Compiler warnings: 0
-```
+No pending verification at this checkpoint.
 
 ## Next recommended step
 
-After **1022/1022 GREEN** is confirmed, record the checkpoint and continue fresh reconnaissance outside the completed runtime/initializer/built-in/bootstrap-template-provider boundaries. Search existing propagation/shape/cancellation/null-task contracts first before selecting the next dependency boundary.
+Add one focused test for `JsonCatalogDocumentWriter.SaveToFileAsync(...)`: force a `JsonException` during serialization, verify the established `JsonSerializationFailed` response, and verify that no generated temporary file is left in the target directory. Run focused first; current production is expected to return the correct response but fail the cleanup assertion. Make only the smallest cleanup change if that RED is confirmed.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
