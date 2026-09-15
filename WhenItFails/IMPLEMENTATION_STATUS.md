@@ -19,36 +19,29 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` boundary is complete for malformed results, ordinary-exception normalization and exact-instance cancellation propagation.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary exception normalization and exact-instance cancellation propagation.
-- A new malformed-context contract for null `ErrorCatalogDocument.Errors` is committed and awaits focused RED verification.
+- The malformed-context RED for null `ErrorCatalogDocument.Errors` is locally confirmed and the smallest production guard is committed; focused/full GREEN verification is pending.
 
-## 2026-09-15 — profile selection null errors collection contract
+## 2026-09-15 — profile selection null errors collection fix
 
 Contract commit:
 `d64257e3525057192981f755a9948b4d28123467`
 
+Production fix commit:
+`9395b64ab28fadf1a499bc26db14e94eb6936ba6`
+
 Baseline checkpoint commit:
 `e8d0ca536f11d6a7ba16fddb55722abe6315a3ac`
 
-Added:
-
-`WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceNullErrorsCollectionContractTests.cs`
-
-Contract:
-
-`ResolveByProfileName_WhenErrorCatalogErrorsCollectionIsNull_ReturnsInvalidResponse`
-
-Rationale:
-
-`ErrorProfileSelectionService` already validates malformed context structure before invoking the injected resolver: null context, null error catalog document, null profile catalog, null profile collection and null profile definitions all return `Invalid` responses. A null `ErrorCatalogDocument.Errors` collection is likewise malformed input and should not be misclassified as an injected resolver failure.
-
-The repository already uses one stable code/message for this condition in both `ErrorCatalogValidator` and `ErrorCatalogCrossValidator`:
+Focused RED was locally confirmed:
 
 ```text
-Code: CatalogErrorsCollectionIsNull
-Message: Error catalog errors collection is null.
+Expected: Invalid
+Actual:   Failed
 ```
 
-Expected selection-service response:
+The null `ErrorCatalogDocument.Errors` collection reached `ErrorProfileResolver.Resolve(...)` and was therefore misclassified by the dependency exception boundary as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
+
+Production change in `WhenItFails/Resolution/ErrorProfileSelectionService.cs` is intentionally minimal: immediately after the null document guard, the service now validates `context.ErrorCatalogDocument.Errors` and returns the same stable malformed-input response already used by `ErrorCatalogValidator` and `ErrorCatalogCrossValidator`:
 
 ```text
 Status: Invalid
@@ -57,9 +50,9 @@ Code: CatalogErrorsCollectionIsNull
 Message: Error catalog errors collection is null.
 ```
 
-Production is intentionally unchanged before the focused RED run. With the current implementation, the null collection reaches `ErrorProfileResolver.Resolve(...)`, throws internally, and is expected to be normalized by the recently added resolver boundary as `Failed / WIF_PROFILE_RESOLVER_FAILED`. The focused contract should therefore RED on response shape, not by leaking an exception.
+No resolver, cancellation, profile lookup, or other response behavior was changed.
 
-Expected eventual complete-suite count after the contract passes: **1027/1027 GREEN with zero compiler warnings**.
+Expected complete-suite count after verification: **1027/1027 GREEN with zero compiler warnings**.
 
 ## 2026-09-15 — 1026/1026 GREEN profile resolver cancellation checkpoint
 
@@ -122,21 +115,21 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run only the focused contract first:
+Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenErrorCatalogErrorsCollectionIsNull_ReturnsInvalidResponse"
+dotnet test WhenItFails.Tests
 ```
 
-Expected current result: **RED** because the service currently returns `Failed / WIF_PROFILE_RESOLVER_FAILED` instead of the expected malformed-input `Invalid / CatalogErrorsCollectionIsNull` response.
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1027/1027 GREEN
+Compiler warnings: 0
+```
 
 ## Next recommended step
 
-If RED confirms that response-shape mismatch, add the smallest production guard in `ErrorProfileSelectionService.ResolveByProfileName(...)` immediately after the null document check. Reuse exactly:
-
-```text
-CatalogErrorsCollectionIsNull
-Error catalog errors collection is null.
-```
-
-Then run the focused contract and the complete suite. Record **1027/1027 GREEN** before moving on.
+After **1027/1027 GREEN** is confirmed, record the checkpoint and resume fresh reconnaissance for the next smallest real malformed-input or injected-dependency asymmetry outside already hardened areas.
