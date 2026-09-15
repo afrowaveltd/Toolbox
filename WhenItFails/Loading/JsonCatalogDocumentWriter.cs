@@ -50,11 +50,13 @@ public sealed class JsonCatalogDocumentWriter
                message: $"JSON catalog directory path could not be resolved from: {normalizedFilePath}");
         }
 
+        string? temporaryFilePath = null;
+
         try
         {
             Directory.CreateDirectory(directoryPath);
 
-            string temporaryFilePath = CreateTemporaryFilePath(normalizedFilePath);
+            temporaryFilePath = CreateTemporaryFilePath(normalizedFilePath);
             string? backupFilePath = null;
 
             await WriteDocumentToTemporaryFileAsync(
@@ -111,6 +113,10 @@ public sealed class JsonCatalogDocumentWriter
                code: "JsonSerializationFailed",
                message: $"JSON catalog document serialization failed. {exception.Message}");
         }
+        finally
+        {
+            DeleteFileIfExistsBestEffort(temporaryFilePath);
+        }
     }
 
     private static async Task WriteDocumentToTemporaryFileAsync<TDocument>(
@@ -132,6 +138,26 @@ public sealed class JsonCatalogDocumentWriter
            cancellationToken);
 
         await fileStream.FlushAsync(cancellationToken);
+    }
+
+    private static void DeleteFileIfExistsBestEffort(string? filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return;
+        }
+
+        try
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+        catch
+        {
+            // Cleanup must never replace the original operation result or exception.
+        }
     }
 
     private static JsonSerializerOptions CreateJsonSerializerOptions()
