@@ -19,8 +19,34 @@ Hardening dependency boundaries and failure cleanup while preserving established
 - Both runtime `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` boundaries — explicit reset and flexible fallback — are complete for null response, ordinary exception, null task and exact cancellation behavior in the current scope.
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` boundary is complete for malformed results, ordinary exception normalization and exact-instance cancellation propagation.
 - `JsonCatalogDocumentWriter` performs verified best-effort cleanup of its generated temporary file when serialization fails and honors pre-cancellation before filesystem side effects.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1024/1024 tests with zero compiler warnings** before the new profile resolver contract.
-- `ErrorProfileSelectionService` ordinary resolver-exception RED is locally confirmed and production normalization is committed; focused/full GREEN verification is pending.
+- `ErrorProfileSelectionService` ordinary resolver-exception normalization is locally verified.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1025/1025 tests with zero compiler warnings**.
+
+## 2026-09-15 — 1025/1025 GREEN profile resolver exception checkpoint
+
+Checkpoint commit: this commit.
+Contract commit: `3a3a81a7c816fd72d63c5f1450d07c675bb12288`.
+Production fix commit: `7d739c3d9499951304da0d3463308668b7b67e19`.
+Previous checkpoint commit: `46b0953f2b2e479be39a2a1098c668dcfd7d0575`.
+
+Verified locally:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1025
+Skipped:  0
+Total:  1025
+Compiler warnings: 0
+```
+
+`ErrorProfileSelectionService.ResolveByProfileName(...)` now explicitly normalizes ordinary exceptions from its injected `IErrorProfileResolver.Resolve(...)` boundary:
+
+- ordinary resolver exception → `Failed` / `WIF_PROFILE_RESOLVER_FAILED`;
+- message is stable: `The error profile resolver failed.`;
+- raw dependency exception detail does not escape;
+- existing null-result behavior remains `Invalid` / `WIF_PROFILE_RESOLVER_RESULT_NULL`;
+- `OperationCanceledException` is excluded from normalization and still needs an explicit exact-instance contract.
 
 ## 2026-09-15 — profile selection resolver ordinary-exception fix
 
@@ -52,9 +78,7 @@ Code: WIF_PROFILE_RESOLVER_FAILED
 Message: The error profile resolver failed.
 ```
 
-Raw dependency exception detail is not exposed. `OperationCanceledException` is explicitly excluded from normalization and should continue to propagate unchanged. Existing malformed-input and `WIF_PROFILE_RESOLVER_RESULT_NULL` behavior remains unchanged.
-
-Expected complete-suite count after verification: **1025/1025 GREEN with zero compiler warnings**.
+Raw dependency exception detail is not exposed. `OperationCanceledException` is explicitly excluded from normalization and continues to propagate unchanged. Existing malformed-input and `WIF_PROFILE_RESOLVER_RESULT_NULL` behavior remains unchanged.
 
 ## 2026-09-15 — profile selection resolver ordinary-exception contract
 
@@ -247,37 +271,22 @@ Do not replace those transparent contracts with normalization at that layer.
 
 `JsonCatalogDocumentLoader.InvalidJson` deliberately includes the parser message; `Docs/Loading-and-Normalization/en.md` documents that behavior. Do not sanitize it as an incidental hardening change.
 
-Fresh reconnaissance after the 1024 checkpoint moved out of writer/loader/store areas. `ErrorProfileSelectionService` was selected because it already normalizes malformed inputs and a null result from its injected `IErrorProfileResolver`, but no existing exception/propagation/cancellation contract was found for that dependency.
+Fresh reconnaissance after the 1024 checkpoint moved out of writer/loader/store areas. `ErrorProfileSelectionService` was selected because it already normalizes malformed inputs and a null result from its injected `IErrorProfileResolver`; ordinary exceptions are now normalized as well.
 
 ## Verification state
 
-- Clean continuation baseline: **1024/1024 GREEN, zero compiler warnings**.
+- Clean continuation baseline: **1025/1025 GREEN, zero compiler warnings**.
 - Writer hardening is complete for the current scope.
-- Profile resolver ordinary-exception contract commit: `3a3a81a7c816fd72d63c5f1450d07c675bb12288`.
-- Focused RED locally confirmed: the supplied `InvalidOperationException` escaped directly from `IErrorProfileResolver.Resolve(...)`.
-- Production normalization fix commit: `7d739c3d9499951304da0d3463308668b7b67e19`.
-- Focused and complete-suite GREEN verification are pending.
-- Expected complete-suite count: **1025/1025 GREEN with zero compiler warnings**.
+- Profile resolver ordinary-exception boundary is locally verified.
+- Next focused contract: exact supplied `OperationCanceledException` from `IErrorProfileResolver.Resolve(...)` must propagate unchanged.
+- Expected suite count after adding that contract: **1026 tests**.
 
 ## Recommended verification
 
-Pull current `master` and run:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenResolverThrows_ReturnsStableFailureWithoutExceptionDetail"
-dotnet test WhenItFails.Tests
-```
-
-Expected results:
-
-```text
-Focused contract: GREEN
-Complete suite: 1025/1025 GREEN
-Compiler warnings: 0
-```
+No pending verification at this checkpoint.
 
 ## Next recommended step
 
-After **1025/1025 GREEN** is confirmed, record the checkpoint and add one exact-instance cancellation contract for `IErrorProfileResolver.Resolve(...)`. No production change is expected because the new exception filter explicitly excludes `OperationCanceledException`. After that boundary is complete, resume fresh reconnaissance outside the already hardened areas.
+Add one exact-instance cancellation contract for `IErrorProfileResolver.Resolve(...)`. No production change is expected because the exception filter explicitly excludes `OperationCanceledException`. Run focused first, then the complete suite. If GREEN, record **1026/1026 GREEN** and resume fresh reconnaissance outside already hardened areas.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
