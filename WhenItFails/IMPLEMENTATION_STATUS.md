@@ -20,11 +20,35 @@ Hardening dependency boundaries and failure cleanup while preserving established
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` boundary is complete for malformed results, ordinary exception normalization and exact-instance cancellation propagation.
 - `JsonCatalogDocumentWriter` performs verified best-effort cleanup of its generated temporary file when serialization fails and honors pre-cancellation before filesystem side effects.
 - `ErrorProfileSelectionService` ordinary resolver-exception normalization is locally verified.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1025/1025 tests with zero compiler warnings**.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1025/1025 tests with zero compiler warnings** before the new cancellation contract.
+- An exact-instance cancellation contract for `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` is committed and awaits local verification.
+
+## 2026-09-15 — profile selection resolver exact-cancellation contract
+
+Contract commit: `5a3ed3ea2091c919f11bfb843b1964a9588181cc`.
+Baseline checkpoint commit: `05acce74af16be90cdaa967d0239a474c777025a`.
+
+Updated:
+
+`WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceResolverExceptionContractTests.cs`
+
+Added:
+
+`ResolveByProfileName_WhenResolverCancels_RethrowsSameOperationCanceledException`
+
+The fake `IErrorProfileResolver.Resolve(...)` throws a supplied `OperationCanceledException`. The contract requires the exact same exception instance to propagate unchanged:
+
+```text
+Assert.Same(cancellation, thrown)
+```
+
+No production change is expected because `ErrorProfileSelectionService` already filters ordinary exceptions with `exception is not OperationCanceledException`.
+
+Expected complete-suite count after verification: **1026/1026 GREEN with zero compiler warnings**.
 
 ## 2026-09-15 — 1025/1025 GREEN profile resolver exception checkpoint
 
-Checkpoint commit: this commit.
+Checkpoint commit: `05acce74af16be90cdaa967d0239a474c777025a`.
 Contract commit: `3a3a81a7c816fd72d63c5f1450d07c675bb12288`.
 Production fix commit: `7d739c3d9499951304da0d3463308668b7b67e19`.
 Previous checkpoint commit: `46b0953f2b2e479be39a2a1098c668dcfd7d0575`.
@@ -46,7 +70,7 @@ Compiler warnings: 0
 - message is stable: `The error profile resolver failed.`;
 - raw dependency exception detail does not escape;
 - existing null-result behavior remains `Invalid` / `WIF_PROFILE_RESOLVER_RESULT_NULL`;
-- `OperationCanceledException` is excluded from normalization and still needs an explicit exact-instance contract.
+- `OperationCanceledException` is excluded from normalization and is now covered by a pending exact-instance contract.
 
 ## 2026-09-15 — profile selection resolver ordinary-exception fix
 
@@ -278,15 +302,29 @@ Fresh reconnaissance after the 1024 checkpoint moved out of writer/loader/store 
 - Clean continuation baseline: **1025/1025 GREEN, zero compiler warnings**.
 - Writer hardening is complete for the current scope.
 - Profile resolver ordinary-exception boundary is locally verified.
-- Next focused contract: exact supplied `OperationCanceledException` from `IErrorProfileResolver.Resolve(...)` must propagate unchanged.
-- Expected suite count after adding that contract: **1026 tests**.
+- Profile resolver exact-cancellation contract commit: `5a3ed3ea2091c919f11bfb843b1964a9588181cc`.
+- No production change is expected.
+- Expected complete-suite count after verification: **1026/1026 GREEN with zero compiler warnings**.
 
 ## Recommended verification
 
-No pending verification at this checkpoint.
+Pull current `master` and run:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenResolverCancels_RethrowsSameOperationCanceledException"
+dotnet test WhenItFails.Tests
+```
+
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1026/1026 GREEN
+Compiler warnings: 0
+```
 
 ## Next recommended step
 
-Add one exact-instance cancellation contract for `IErrorProfileResolver.Resolve(...)`. No production change is expected because the exception filter explicitly excludes `OperationCanceledException`. Run focused first, then the complete suite. If GREEN, record **1026/1026 GREEN** and resume fresh reconnaissance outside already hardened areas.
+After **1026/1026 GREEN** is confirmed, record the checkpoint and consider the `ErrorProfileSelectionService` → `IErrorProfileResolver` boundary complete for null result, ordinary exception and exact cancellation behavior. Resume fresh reconnaissance outside the already hardened areas.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
