@@ -49,6 +49,13 @@ public sealed class ErrorProfileSelectionService
                     "Error catalog context does not contain an error catalog document.");
         }
 
+        if (context.ErrorCatalogDocument.Errors is null)
+        {
+            return Response<IReadOnlyList<ErrorDefinition>>.Invalid(
+                code: "CatalogErrorsCollectionIsNull",
+                message: "Error catalog errors collection is null.");
+        }
+
         if (context.ProfileCatalog is null)
         {
             return Response<IReadOnlyList<ErrorDefinition>>.Invalid(
