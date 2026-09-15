@@ -20,35 +20,40 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies null `ErrorCatalogDocument.Errors`, `IncludeOwners`, `IncludeCodeGroups`, `IncludeCategories`, `IncludeSubcategories`, `IncludeTags`, and `ExcludeTags` as malformed input rather than resolver failure.
-- A focused malformed-profile contract for null `ErrorProfileDefinition.IncludeErrors` is committed and awaits local RED verification.
+- The null `ErrorProfileDefinition.IncludeErrors` RED is locally confirmed and the smallest production guard is committed; focused/full GREEN verification is pending.
 
-## 2026-09-15 — profile selection null include-errors contract
+## 2026-09-15 — profile selection null include-errors fix
 
 Contract commit:
 `e21f859aab8154769d088d434fb28ae932529b73`
 
+Production guard commit:
+`375a3b2a495c989a9157f12a906decfe45f34746`
+
 Baseline checkpoint commit:
 `9e876a9f4edb5d51a1bb3157b9597802da43f87c`
 
-Added:
+Focused RED was locally confirmed:
 
-`WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceNullIncludeErrorsCollectionContractTests.cs`
+```text
+Expected: Invalid
+Actual:   Failed
+```
 
-Contract:
+The null `ErrorProfileDefinition.IncludeErrors` collection reached `ErrorProfileResolver.Resolve(...)` and was therefore misclassified by the dependency exception boundary as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
 
-`ResolveByProfileName_WhenProfileIncludeErrorsCollectionIsNull_ReturnsInvalidResponse`
-
-`ErrorProfileCatalogValidator` and `ErrorCatalogCrossValidator` already define the stable malformed-profile contract:
+Production change in `WhenItFails/Resolution/ErrorProfileSelectionService.cs` is intentionally minimal: after the existing profile collection guards, the service now validates `profile.IncludeErrors` and reuses the established validator/cross-validator contract:
 
 ```text
 Status: Invalid
+Data: null
 Code: ProfileIncludeErrorsCollectionIsNull
 Message: Profile include errors collection is null.
 ```
 
-Production is intentionally unchanged before the focused run. Current `ErrorProfileResolver.Resolve(...)` consumes `profile.IncludeErrors`, so a null collection is expected to throw and then be normalized by `ErrorProfileSelectionService` as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
+No resolver exception, cancellation, profile lookup, or other response behavior was changed.
 
-Expected eventual complete-suite count after this contract passes: **1034/1034 GREEN with zero compiler warnings**.
+Expected complete-suite count after verification: **1034/1034 GREEN with zero compiler warnings**.
 
 ## 2026-09-15 — 1033/1033 GREEN null exclude-tags checkpoint
 
@@ -108,7 +113,7 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Reconnaissance notes
 
-After the current contract, the only remaining resolver-consumed profile collection still without `ErrorProfileSelectionService` malformed-profile coverage is:
+After the current fix, the only remaining resolver-consumed profile collection still without `ErrorProfileSelectionService` malformed-profile coverage is:
 
 - `ExcludeErrors`
 
@@ -116,21 +121,21 @@ After the current contract, the only remaining resolver-consumed profile collect
 
 ## Recommended verification
 
-Pull current `master` and run only the focused contract:
+Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenProfileIncludeErrorsCollectionIsNull_ReturnsInvalidResponse"
+dotnet test WhenItFails.Tests
 ```
 
-Expected current result: **RED** with `Actual: Failed` rather than the expected `Invalid`, because the null collection reaches `ErrorProfileResolver` and is normalized as `WIF_PROFILE_RESOLVER_FAILED`.
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1034/1034 GREEN
+Compiler warnings: 0
+```
 
 ## Next recommended step
 
-If RED confirms the response-shape mismatch, add the smallest guard for `profile.IncludeErrors is null` after the existing profile collection guards and before the resolver call. Reuse exactly:
-
-```text
-ProfileIncludeErrorsCollectionIsNull
-Profile include errors collection is null.
-```
-
-Then run focused and complete suites. Record **1034/1034 GREEN** before moving to the final `ExcludeErrors = null` collection.
+After **1034/1034 GREEN** is confirmed, record the checkpoint and continue with the final resolver-consumed malformed profile collection: `ExcludeErrors = null`, reusing the stable `ProfileExcludeErrorsCollectionIsNull` contract.
