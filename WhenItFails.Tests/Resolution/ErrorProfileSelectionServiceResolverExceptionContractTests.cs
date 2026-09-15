@@ -50,6 +50,24 @@ public sealed class ErrorProfileSelectionServiceResolverExceptionContractTests
             });
     }
 
+    [Fact]
+    public void ResolveByProfileName_WhenResolverCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation =
+            new("Expected profile resolver cancellation.");
+
+        ErrorProfileSelectionService service = new(
+            new CancellingProfileResolver(cancellation));
+
+        OperationCanceledException thrown =
+            Assert.Throws<OperationCanceledException>(
+                () => service.ResolveByProfileName(
+                    CreateContext(),
+                    "WEB_API"));
+
+        Assert.Same(cancellation, thrown);
+    }
+
     private static ErrorCatalogContext CreateContext()
     {
         ErrorCatalogDocument errorCatalogDocument = new()
@@ -97,6 +115,18 @@ public sealed class ErrorProfileSelectionServiceResolverExceptionContractTests
         {
             throw new InvalidOperationException(
                 "Sensitive profile resolver detail must not escape.");
+        }
+    }
+
+    private sealed class CancellingProfileResolver(
+        OperationCanceledException cancellation)
+        : IErrorProfileResolver
+    {
+        public IReadOnlyList<ErrorDefinition> Resolve(
+            ErrorCatalogDocument errorCatalog,
+            ErrorProfileDefinition profile)
+        {
+            throw cancellation;
         }
     }
 }
