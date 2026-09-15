@@ -131,6 +131,13 @@ public sealed class ErrorProfileSelectionService
                 message: "Profile include categories collection is null.");
         }
 
+        if (profile.IncludeSubcategories is null)
+        {
+            return Response<IReadOnlyList<ErrorDefinition>>.Invalid(
+                code: "ProfileIncludeSubcategoriesCollectionIsNull",
+                message: "Profile include subcategories collection is null.");
+        }
+
         IReadOnlyList<ErrorDefinition>? resolvedErrors;
 
         try
