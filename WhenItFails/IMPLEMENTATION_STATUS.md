@@ -20,37 +20,40 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies null `ErrorCatalogDocument.Errors` as malformed input rather than resolver failure.
-- A focused malformed-profile contract for null `ErrorProfileDefinition.IncludeOwners` is committed and awaits local RED verification.
+- The null `ErrorProfileDefinition.IncludeOwners` RED is locally confirmed and the smallest production guard is committed; focused/full GREEN verification is pending.
 
-## 2026-09-15 — profile selection null include-owners contract
+## 2026-09-15 — profile selection null include-owners fix
 
 Contract commit:
 `22c8e33b28edc0501cf4f9202e57fed6eea7d8ac`
 
+Production fix commit:
+`19ff6c4c97fe967ba9ee6e7159ac436581e08505`
+
 Baseline checkpoint commit:
 `1ad1743b1aebec4ca5d19bc036b1e1046a5895be`
 
-Added:
+Focused RED was locally confirmed:
 
-`WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceNullIncludeOwnersCollectionContractTests.cs`
+```text
+Expected: Invalid
+Actual:   Failed
+```
 
-Contract:
+The null `ErrorProfileDefinition.IncludeOwners` collection reached `ErrorProfileResolver.Resolve(...)` and was therefore misclassified by the dependency exception boundary as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
 
-`ResolveByProfileName_WhenProfileIncludeOwnersCollectionIsNull_ReturnsInvalidResponse`
-
-`ErrorProfileCatalogValidator` already defines the stable malformed-profile contract:
+Production change in `WhenItFails/Resolution/ErrorProfileSelectionService.cs` is intentionally minimal: after the matching profile is found and before invoking the resolver, the service now validates `profile.IncludeOwners` and reuses the existing validator contract:
 
 ```text
 Status: Invalid
+Data: null
 Code: ProfileIncludeOwnersCollectionIsNull
 Message: Profile include owners collection is null.
 ```
 
-The selection service should classify the same malformed profile shape before invoking `IErrorProfileResolver.Resolve(...)` rather than misclassifying the resulting resolver exception as a dependency failure.
+No resolver exception, cancellation, profile lookup, or other response behavior was changed.
 
-Production is intentionally unchanged before the focused run. Current `ErrorProfileResolver.Resolve(...)` calls `CreateNormalizedSet(profile.IncludeOwners)`, so a null collection is expected to throw and then be normalized by `ErrorProfileSelectionService` as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
-
-Expected eventual complete-suite count after this contract passes: **1028/1028 GREEN with zero compiler warnings**.
+Expected complete-suite count after verification: **1028/1028 GREEN with zero compiler warnings**.
 
 ## 2026-09-15 — 1027/1027 GREEN null error collection checkpoint
 
@@ -110,21 +113,21 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run only the focused contract:
+Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenProfileIncludeOwnersCollectionIsNull_ReturnsInvalidResponse"
+dotnet test WhenItFails.Tests
 ```
 
-Expected current result: **RED** with `Actual: Failed` rather than the expected `Invalid`, because the null collection reaches `ErrorProfileResolver` and is normalized as `WIF_PROFILE_RESOLVER_FAILED`.
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1028/1028 GREEN
+Compiler warnings: 0
+```
 
 ## Next recommended step
 
-If RED confirms the response-shape mismatch, add the smallest guard for `profile.IncludeOwners is null` after the matching profile is found and before the resolver call. Reuse exactly:
-
-```text
-ProfileIncludeOwnersCollectionIsNull
-Profile include owners collection is null.
-```
-
-Then run focused and complete suites. Record **1028/1028 GREEN** before deciding whether the same malformed-profile pattern warrants one-by-one coverage for the remaining resolver-consumed profile collections.
+After **1028/1028 GREEN** is confirmed, record the checkpoint. Then decide whether to continue the same malformed-profile pattern one collection at a time for the remaining resolver-consumed profile collections (`IncludeCodeGroups`, `IncludeCategories`, `IncludeSubcategories`, `IncludeTags`, `ExcludeTags`, `IncludeErrors`, `ExcludeErrors`) or move to another core boundary if reconnaissance finds a higher-value gap.
