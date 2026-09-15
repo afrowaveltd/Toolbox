@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1031/1031 GREEN, zero compiler warnings**.
+- Complete `WhenItFails.Tests` suite baseline: **1031/1031 GREEN, zero compiler warnings**.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
 - `BuiltInErrorCatalogContextProvider` dependency-boundary audit is complete for the current scope.
@@ -20,6 +20,35 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies null `ErrorCatalogDocument.Errors`, `IncludeOwners`, `IncludeCodeGroups`, `IncludeCategories`, and `IncludeSubcategories` as malformed input rather than resolver failure.
+- A focused malformed-profile contract for null `ErrorProfileDefinition.IncludeTags` is committed and awaits local RED verification.
+
+## 2026-09-15 — profile selection null include-tags contract
+
+Contract commit:
+`9641ffc496aef1864c0f62b08c85a381cf043cc8`
+
+Baseline checkpoint commit:
+`94c501d06e832f1aefc2b48020a0a6220c104957`
+
+Added:
+
+`WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceNullIncludeTagsCollectionContractTests.cs`
+
+Contract:
+
+`ResolveByProfileName_WhenProfileIncludeTagsCollectionIsNull_ReturnsInvalidResponse`
+
+`ErrorProfileCatalogValidator` already defines the stable malformed-profile contract:
+
+```text
+Status: Invalid
+Code: ProfileIncludeTagsCollectionIsNull
+Message: Profile include tags collection is null.
+```
+
+Production is intentionally unchanged before the focused run. Current `ErrorProfileResolver.Resolve(...)` passes `profile.IncludeTags` to `CreateNormalizedSet(...)`, so a null collection is expected to throw and then be normalized by `ErrorProfileSelectionService` as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
+
+Expected eventual complete-suite count after this contract passes: **1032/1032 GREEN with zero compiler warnings**.
 
 ## 2026-09-15 — 1031/1031 GREEN null include-subcategories checkpoint
 
@@ -29,8 +58,8 @@ Malformed-profile contract commit:
 Production guard commit:
 `5005b7f243335bc0819078a6690870d469e25276`
 
-Previous checkpoint commit:
-`0ec11bb829dcb0a6b5eab2460a46e9c6de1f2a4c`
+Checkpoint commit:
+`94c501d06e832f1aefc2b48020a0a6220c104957`
 
 Locally verified:
 
@@ -43,7 +72,7 @@ Total:  1031
 Compiler warnings: 0
 ```
 
-`ErrorProfileSelectionService.ResolveByProfileName(...)` now rejects a null `ErrorProfileDefinition.IncludeSubcategories` collection before invoking the resolver and reuses the established validator contract:
+`ErrorProfileSelectionService.ResolveByProfileName(...)` rejects a null `ErrorProfileDefinition.IncludeSubcategories` collection before invoking the resolver and reuses the established validator contract:
 
 ```text
 Status: Invalid
@@ -79,23 +108,31 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Reconnaissance notes
 
-Remaining resolver-consumed profile collections still without `ErrorProfileSelectionService` malformed-profile coverage:
+Remaining resolver-consumed profile collections still without `ErrorProfileSelectionService` malformed-profile coverage after the current contract:
 
-- `IncludeTags`
 - `ExcludeTags`
 - `IncludeErrors`
 - `ExcludeErrors`
 
 `ErrorProfileCatalogValidator` already defines stable codes/messages for each null collection. Continue one collection at a time so each RED/GREEN step stays explicit and reviewable.
 
-## Next recommended step
+## Recommended verification
 
-Add one focused contract for `ErrorProfileDefinition.IncludeTags = null` in `ErrorProfileSelectionService`. Expected stable malformed-profile response:
+Pull current `master` and run only the focused contract:
 
-```text
-Status: Invalid
-Code: ProfileIncludeTagsCollectionIsNull
-Message: Profile include tags collection is null.
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenProfileIncludeTagsCollectionIsNull_ReturnsInvalidResponse"
 ```
 
-Production should remain unchanged until the focused RED run confirms the current misclassification as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
+Expected current result: **RED** with `Actual: Failed` rather than the expected `Invalid`, because the null collection reaches `ErrorProfileResolver` and is normalized as `WIF_PROFILE_RESOLVER_FAILED`.
+
+## Next recommended step
+
+If RED confirms the response-shape mismatch, add the smallest guard for `profile.IncludeTags is null` after the existing profile collection guards and before the resolver call. Reuse exactly:
+
+```text
+ProfileIncludeTagsCollectionIsNull
+Profile include tags collection is null.
+```
+
+Then run focused and complete suites. Record **1032/1032 GREEN** before moving to the next collection.
