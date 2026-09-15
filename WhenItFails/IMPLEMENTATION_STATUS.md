@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1028/1028 GREEN, zero compiler warnings**.
+- Complete `WhenItFails.Tests` suite baseline: **1028/1028 GREEN, zero compiler warnings**.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
 - `BuiltInErrorCatalogContextProvider` dependency-boundary audit is complete for the current scope.
@@ -20,35 +20,40 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies null `ErrorCatalogDocument.Errors` and null `ErrorProfileDefinition.IncludeOwners` as malformed input rather than resolver failure.
-- A focused malformed-profile contract for null `ErrorProfileDefinition.IncludeCodeGroups` is committed and awaits local RED verification.
+- The null `ErrorProfileDefinition.IncludeCodeGroups` RED is locally confirmed and the smallest production guard is committed; focused/full GREEN verification is pending.
 
-## 2026-09-15 — profile selection null include-code-groups contract
+## 2026-09-15 — profile selection null include-code-groups fix
 
 Contract commit:
 `806580ada38916c069b8eb11161999356be6f73c`
 
+Production guard commit:
+`e55b359cb4232e383e2087ea9238b237a9175cc5`
+
 Baseline checkpoint commit:
 `1edf5adaad77775d4e9b0e068e60fbd2b2204c47`
 
-Added:
+Focused RED was locally confirmed:
 
-`WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceNullIncludeCodeGroupsCollectionContractTests.cs`
+```text
+Expected: Invalid
+Actual:   Failed
+```
 
-Contract:
+The null `ErrorProfileDefinition.IncludeCodeGroups` collection reached `ErrorProfileResolver.Resolve(...)` and was therefore misclassified by the dependency exception boundary as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
 
-`ResolveByProfileName_WhenProfileIncludeCodeGroupsCollectionIsNull_ReturnsInvalidResponse`
-
-`ErrorProfileCatalogValidator` already defines the stable malformed-profile contract:
+Production change in `WhenItFails/Resolution/ErrorProfileSelectionService.cs` is intentionally minimal: after the matching profile is found and after the existing `IncludeOwners` guard, the service now validates `profile.IncludeCodeGroups` and reuses the established validator contract:
 
 ```text
 Status: Invalid
+Data: null
 Code: ProfileIncludeCodeGroupsCollectionIsNull
 Message: Profile include code groups collection is null.
 ```
 
-Production is intentionally unchanged before the focused run. Current `ErrorProfileResolver.Resolve(...)` passes `profile.IncludeCodeGroups` to `CreateNormalizedSet(...)`, so a null collection is expected to throw and then be normalized by `ErrorProfileSelectionService` as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
+No resolver exception, cancellation, profile lookup, or other response behavior was changed.
 
-Expected eventual complete-suite count after this contract passes: **1029/1029 GREEN with zero compiler warnings**.
+Expected complete-suite count after verification: **1029/1029 GREEN with zero compiler warnings**.
 
 ## 2026-09-15 — 1028/1028 GREEN null include-owners checkpoint
 
@@ -122,21 +127,21 @@ No existing `ErrorProfileSelectionService` malformed-profile contracts were foun
 
 ## Recommended verification
 
-Pull current `master` and run only the focused contract:
+Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenProfileIncludeCodeGroupsCollectionIsNull_ReturnsInvalidResponse"
+dotnet test WhenItFails.Tests
 ```
 
-Expected current result: **RED** with `Actual: Failed` rather than the expected `Invalid`, because the null collection reaches `ErrorProfileResolver` and is normalized as `WIF_PROFILE_RESOLVER_FAILED`.
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1029/1029 GREEN
+Compiler warnings: 0
+```
 
 ## Next recommended step
 
-If RED confirms the response-shape mismatch, add the smallest guard for `profile.IncludeCodeGroups is null` after the matching profile is found and before the resolver call. Reuse exactly:
-
-```text
-ProfileIncludeCodeGroupsCollectionIsNull
-Profile include code groups collection is null.
-```
-
-Then run focused and complete suites. Record **1029/1029 GREEN** before moving to the next collection.
+After **1029/1029 GREEN** is confirmed, record the checkpoint and continue one collection at a time with the next resolver-consumed malformed profile shape, most naturally `IncludeCategories = null`, reusing the validator's stable `ProfileIncludeCategoriesCollectionIsNull` contract.
