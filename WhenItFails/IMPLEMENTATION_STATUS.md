@@ -18,9 +18,30 @@ Hardening dependency boundaries and failure cleanup while preserving established
 - `ErrorCatalogRuntime` initializer ordinary-exception, cancellation, null-response and null-task behavior is complete for the current scope.
 - Both runtime `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` boundaries — explicit reset and flexible fallback — are complete for null response, ordinary exception, null task and exact cancellation behavior in the current scope.
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` boundary is complete for malformed results, ordinary exception normalization and exact-instance cancellation propagation.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1022/1022 tests with zero compiler warnings** before the new writer cleanup contract.
-- The focused `JsonCatalogDocumentWriter` temporary-file cleanup contract produced the expected RED: the public response remained correct, but a generated `.tmp` file was left behind.
-- Production now performs best-effort cleanup of the generated temporary file in `finally`; local GREEN verification is pending.
+- `JsonCatalogDocumentWriter` now performs verified best-effort cleanup of its generated temporary file when serialization fails.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1023/1023 tests with zero compiler warnings**.
+
+## 2026-09-15 — 1023/1023 GREEN writer temporary-file cleanup checkpoint
+
+Checkpoint commit: this commit.
+Cleanup contract commit: `9a638c467dd435dcceb43f1c4e16887b71a8e828`.
+Production cleanup fix commit: `424a6ea94df0a871b5c50fcaa8193142828fdfbc`.
+Previous checkpoint commit: `e6008acd13a1b31e18847208d7ebd61d129f60de`.
+
+Verified locally:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1023
+Skipped:  0
+Total:  1023
+Compiler warnings: 0
+```
+
+The focused writer contract now verifies that a `JsonException` raised after the generated temporary file is created preserves the established `Invalid` / `JsonSerializationFailed` public response and leaves no generated `.<target>.<guid>.tmp` file behind.
+
+The production cleanup is best-effort and runs from `finally`, so cleanup failures cannot replace the original response or exception. Successful writes remain unchanged because the temporary path no longer exists after `File.Move(...)` succeeds.
 
 ## 2026-09-15 — writer temporary-file cleanup fix
 
@@ -47,8 +68,6 @@ Production change in `WhenItFails/Loading/JsonCatalogDocumentWriter.cs` is inten
 - cleanup failures are suppressed so they can never replace the original operation result or exception;
 - successful writes are unaffected because `File.Move(...)` removes the temporary path before `finally` runs;
 - cancellation and existing response codes/messages are unchanged.
-
-Expected complete-suite count after verification: **1023/1023 GREEN with zero compiler warnings**.
 
 ## 2026-09-15 — writer temporary-file cleanup contract
 
@@ -319,32 +338,16 @@ Fresh reconnaissance after the 1022 checkpoint:
 
 ## Verification state
 
-- Clean continuation baseline: **1022/1022 GREEN, zero compiler warnings**.
-- Writer cleanup contract commit: `9a638c467dd435dcceb43f1c4e16887b71a8e828`.
-- Focused RED locally confirmed: correct `JsonSerializationFailed` response, stale `.tmp` file remained.
-- Production cleanup fix commit: `424a6ea94df0a871b5c50fcaa8193142828fdfbc`.
-- Focused and complete-suite GREEN verification are pending.
-- Expected complete-suite count: **1023/1023 GREEN with zero compiler warnings**.
+- Clean continuation baseline: **1023/1023 GREEN, zero compiler warnings**.
+- Writer serialization-failure cleanup contract and production fix are locally verified.
+- Fresh reconnaissance should now inspect writer cancellation/I/O cleanup and other uncovered failure boundaries before adding another contract.
 
 ## Recommended verification
 
-Pull current `master` and run:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~SaveToFileAsync_WhenSerializationFails_DoesNotLeaveTemporaryFile"
-dotnet test WhenItFails.Tests
-```
-
-Expected results:
-
-```text
-Focused contract: GREEN
-Complete suite: 1023/1023 GREEN
-Compiler warnings: 0
-```
+No pending verification at this checkpoint.
 
 ## Next recommended step
 
-After **1023/1023 GREEN** is confirmed, record the checkpoint and perform fresh reconnaissance for the next smallest uncovered failure-cleanup or dependency boundary. Do not broaden the writer change until the full suite verifies the new `finally` cleanup behavior.
+Perform fresh reconnaissance for the next smallest uncovered failure-cleanup or dependency boundary. For `JsonCatalogDocumentWriter`, search existing cancellation and I/O contracts before adding anything; preserve the public response and exact cancellation behavior. If writer coverage is already sufficient, move to the next core component rather than duplicating tests.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
