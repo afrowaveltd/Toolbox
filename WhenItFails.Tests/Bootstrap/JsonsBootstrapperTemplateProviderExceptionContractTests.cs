@@ -64,6 +64,44 @@ public sealed class JsonsBootstrapperTemplateProviderExceptionContractTests
         }
     }
 
+    [Fact]
+    public async Task EnsureWorkspaceAsync_WhenTemplateProviderCancels_RethrowsSameOperationCanceledException()
+    {
+        OperationCanceledException cancellation = new(
+            "JSON template provider cancellation must propagate unchanged.");
+
+        string rootDirectory = Path.Combine(
+            Path.GetTempPath(),
+            "Afrowave",
+            "WhenItFails.Tests",
+            Guid.NewGuid().ToString("N"));
+
+        try
+        {
+            JsonsBootstrapper bootstrapper = new(
+                new CancelingTemplateProvider(cancellation));
+
+            JsonsOptions options = new()
+            {
+                RootDirectory = rootDirectory,
+                PackageDirectoryName = "WhenItFails"
+            };
+
+            OperationCanceledException thrown =
+                await Assert.ThrowsAsync<OperationCanceledException>(
+                    () => bootstrapper.EnsureWorkspaceAsync(options));
+
+            Assert.Same(cancellation, thrown);
+        }
+        finally
+        {
+            if (Directory.Exists(rootDirectory))
+            {
+                Directory.Delete(rootDirectory, recursive: true);
+            }
+        }
+    }
+
     private sealed class ThrowingTemplateProvider : IJsonsTemplateProvider
     {
         private readonly string _detail;
@@ -77,6 +115,23 @@ public sealed class JsonsBootstrapperTemplateProviderExceptionContractTests
             JsonsOptions options)
         {
             throw new InvalidOperationException(_detail);
+        }
+    }
+
+    private sealed class CancelingTemplateProvider : IJsonsTemplateProvider
+    {
+        private readonly OperationCanceledException _cancellation;
+
+        public CancelingTemplateProvider(
+            OperationCanceledException cancellation)
+        {
+            _cancellation = cancellation;
+        }
+
+        public IReadOnlyList<JsonsTemplateFile> GetTemplateFiles(
+            JsonsOptions options)
+        {
+            throw _cancellation;
         }
     }
 }
