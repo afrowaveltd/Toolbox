@@ -19,10 +19,34 @@ Hardening dependency boundaries while preserving established public exception co
 - Both runtime `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` boundaries — explicit reset and flexible fallback — are complete for null response, ordinary exception, null task and exact cancellation behavior in the current scope.
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` ordinary-exception normalization is locally verified.
 - The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1021/1021 tests with zero compiler warnings**.
+- A focused exact-instance cancellation contract for `IJsonsTemplateProvider.GetTemplateFiles(...)` is committed and awaits local verification.
+
+## 2026-09-15 — bootstrap template-provider cancellation contract
+
+Contract commit: `21b03f20dbea7428f9568a5025ad7ebb183a12fe`.
+Baseline checkpoint commit: `4ada29c6bbc2f73509fdf0238cc24a245951051c`.
+
+Updated:
+
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperTemplateProviderExceptionContractTests.cs`
+
+Added:
+
+`EnsureWorkspaceAsync_WhenTemplateProviderCancels_RethrowsSameOperationCanceledException`
+
+The fake `IJsonsTemplateProvider.GetTemplateFiles(...)` throws a supplied `OperationCanceledException`. The contract requires the same exception instance to propagate unchanged:
+
+```text
+Assert.Same(cancellation, thrown)
+```
+
+No production code changed. The current `JsonsBootstrapper` provider catch explicitly excludes `OperationCanceledException`, so this contract is expected to pass immediately.
+
+Expected complete-suite count after verification: **1022/1022 GREEN with zero compiler warnings**.
 
 ## 2026-09-15 — 1021/1021 GREEN bootstrap template-provider checkpoint
 
-Checkpoint commit: this commit.
+Checkpoint commit: `4ada29c6bbc2f73509fdf0238cc24a245951051c`.
 Contract commit: `1da0988b5419d6af649c16c820bb92d63ab4dc8a`.
 Production fix commit: `32816f57873266fbccbd90917bd00a86f5818db9`.
 Previous baseline checkpoint commit: `383014695d776bbbbb45db31de5f050c8a09cde8`.
@@ -45,8 +69,6 @@ The direct `JsonsBootstrapper` template-provider boundary now has verified ordin
 - raw dependency exception detail does not escape;
 - malformed null collection/item results remain represented by their existing `WIF_JSONS_TEMPLATE_*` invalid responses;
 - `OperationCanceledException` is explicitly excluded from the new normalization catch and should propagate unchanged.
-
-Next step is a separate exact-instance cancellation contract for `IJsonsTemplateProvider.GetTemplateFiles(...)`. No production change is expected.
 
 ## 2026-09-10 — bootstrap template-provider ordinary-exception fix
 
@@ -213,16 +235,29 @@ Fresh reconnaissance after the 1020 checkpoint moved outside the completed runti
 
 - Clean continuation baseline: **1021/1021 GREEN, zero compiler warnings**.
 - Bootstrap template-provider ordinary-exception contract and production normalization are verified.
-- Exact-instance template-provider cancellation contract is the next step.
-- No production change is expected for cancellation.
-- Expected complete-suite count after that test passes: **1022/1022 GREEN with zero compiler warnings**.
+- Exact-instance template-provider cancellation contract is committed and awaiting local verification.
+- No production change is expected.
+- Expected complete-suite count after it passes: **1022/1022 GREEN with zero compiler warnings**.
 
 ## Recommended verification
 
-No pending verification at this checkpoint.
+Pull current `master` and run:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateProviderCancels_RethrowsSameOperationCanceledException"
+dotnet test WhenItFails.Tests
+```
+
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1022/1022 GREEN
+Compiler warnings: 0
+```
 
 ## Next recommended step
 
-Add a focused exact-instance cancellation contract for `IJsonsTemplateProvider.GetTemplateFiles(...)`. The current production catch filter excludes `OperationCanceledException`, so the same cancellation instance should propagate unchanged.
+After **1022/1022 GREEN** is confirmed, record the checkpoint and continue fresh reconnaissance outside the completed runtime/initializer/built-in/bootstrap-template-provider boundaries. Search existing propagation/shape/cancellation/null-task contracts first before selecting the next dependency boundary.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
