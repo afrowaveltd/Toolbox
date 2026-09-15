@@ -20,35 +20,40 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies null `ErrorCatalogDocument.Errors`, `IncludeOwners`, `IncludeCodeGroups`, `IncludeCategories`, and `IncludeSubcategories` as malformed input rather than resolver failure.
-- A focused malformed-profile contract for null `ErrorProfileDefinition.IncludeTags` is committed and awaits local RED verification.
+- The null `ErrorProfileDefinition.IncludeTags` RED is locally confirmed and the smallest production guard is committed; focused/full GREEN verification is pending.
 
-## 2026-09-15 — profile selection null include-tags contract
+## 2026-09-15 — profile selection null include-tags fix
 
 Contract commit:
 `9641ffc496aef1864c0f62b08c85a381cf043cc8`
 
+Production guard commit:
+`c793f3bc7eb9722985057d44d4c29bf89220738d`
+
 Baseline checkpoint commit:
 `94c501d06e832f1aefc2b48020a0a6220c104957`
 
-Added:
+Focused RED was locally confirmed:
 
-`WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceNullIncludeTagsCollectionContractTests.cs`
+```text
+Expected: Invalid
+Actual:   Failed
+```
 
-Contract:
+The null `ErrorProfileDefinition.IncludeTags` collection reached `ErrorProfileResolver.Resolve(...)` and was therefore misclassified by the dependency exception boundary as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
 
-`ResolveByProfileName_WhenProfileIncludeTagsCollectionIsNull_ReturnsInvalidResponse`
-
-`ErrorProfileCatalogValidator` already defines the stable malformed-profile contract:
+Production change in `WhenItFails/Resolution/ErrorProfileSelectionService.cs` is intentionally minimal: after the existing profile collection guards, the service now validates `profile.IncludeTags` and reuses the established validator contract:
 
 ```text
 Status: Invalid
+Data: null
 Code: ProfileIncludeTagsCollectionIsNull
 Message: Profile include tags collection is null.
 ```
 
-Production is intentionally unchanged before the focused run. Current `ErrorProfileResolver.Resolve(...)` passes `profile.IncludeTags` to `CreateNormalizedSet(...)`, so a null collection is expected to throw and then be normalized by `ErrorProfileSelectionService` as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
+No resolver exception, cancellation, profile lookup, or other response behavior was changed.
 
-Expected eventual complete-suite count after this contract passes: **1032/1032 GREEN with zero compiler warnings**.
+Expected complete-suite count after verification: **1032/1032 GREEN with zero compiler warnings**.
 
 ## 2026-09-15 — 1031/1031 GREEN null include-subcategories checkpoint
 
@@ -118,21 +123,21 @@ Remaining resolver-consumed profile collections still without `ErrorProfileSelec
 
 ## Recommended verification
 
-Pull current `master` and run only the focused contract:
+Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenProfileIncludeTagsCollectionIsNull_ReturnsInvalidResponse"
+dotnet test WhenItFails.Tests
 ```
 
-Expected current result: **RED** with `Actual: Failed` rather than the expected `Invalid`, because the null collection reaches `ErrorProfileResolver` and is normalized as `WIF_PROFILE_RESOLVER_FAILED`.
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1032/1032 GREEN
+Compiler warnings: 0
+```
 
 ## Next recommended step
 
-If RED confirms the response-shape mismatch, add the smallest guard for `profile.IncludeTags is null` after the existing profile collection guards and before the resolver call. Reuse exactly:
-
-```text
-ProfileIncludeTagsCollectionIsNull
-Profile include tags collection is null.
-```
-
-Then run focused and complete suites. Record **1032/1032 GREEN** before moving to the next collection.
+After **1032/1032 GREEN** is confirmed, record the checkpoint and continue one collection at a time with `ExcludeTags = null`, reusing the validator's stable `ProfileExcludeTagsCollectionIsNull` contract.
