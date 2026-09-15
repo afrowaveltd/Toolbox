@@ -19,7 +19,36 @@ Hardening dependency boundaries and failure cleanup while preserving established
 - Both runtime `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` boundaries — explicit reset and flexible fallback — are complete for null response, ordinary exception, null task and exact cancellation behavior in the current scope.
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` boundary is complete for malformed results, ordinary exception normalization and exact-instance cancellation propagation.
 - The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1022/1022 tests with zero compiler warnings** before the new writer cleanup contract.
-- A focused `JsonCatalogDocumentWriter` temporary-file cleanup contract is committed and awaits local RED verification.
+- The focused `JsonCatalogDocumentWriter` temporary-file cleanup contract produced the expected RED: the public response remained correct, but a generated `.tmp` file was left behind.
+- Production now performs best-effort cleanup of the generated temporary file in `finally`; local GREEN verification is pending.
+
+## 2026-09-15 — writer temporary-file cleanup fix
+
+Contract commit: `9a638c467dd435dcceb43f1c4e16887b71a8e828`.
+Production fix commit: `424a6ea94df0a871b5c50fcaa8193142828fdfbc`.
+Baseline checkpoint commit: `e6008acd13a1b31e18847208d7ebd61d129f60de`.
+
+Focused RED was locally confirmed:
+
+```text
+JsonCatalogDocumentWriterTemporaryFileCleanupContractTests
+Failed: 1
+Passed: 0
+
+Assert.Empty() Failure: Collection was not empty
+```
+
+The established public response already remained `Invalid` / `JsonSerializationFailed`; the failure was exclusively the generated temporary file remaining in the target directory.
+
+Production change in `WhenItFails/Loading/JsonCatalogDocumentWriter.cs` is intentionally narrow:
+
+- the generated temporary path is retained outside the `try` block;
+- `finally` calls best-effort cleanup for that exact path;
+- cleanup failures are suppressed so they can never replace the original operation result or exception;
+- successful writes are unaffected because `File.Move(...)` removes the temporary path before `finally` runs;
+- cancellation and existing response codes/messages are unchanged.
+
+Expected complete-suite count after verification: **1023/1023 GREEN with zero compiler warnings**.
 
 ## 2026-09-15 — writer temporary-file cleanup contract
 
@@ -49,8 +78,6 @@ Additional safe-write requirement:
 ```text
 No .errors.en.json.<guid>.tmp file remains in the target directory.
 ```
-
-Production is intentionally unchanged before the RED run. Current `JsonCatalogDocumentWriter` catches `JsonException` and returns `JsonSerializationFailed`, but it does not explicitly delete the generated temporary file. The focused test is therefore expected to fail only on the cleanup assertion.
 
 ## 2026-09-15 — 1022/1022 GREEN bootstrap template-provider cancellation checkpoint
 
@@ -288,14 +315,16 @@ Fresh reconnaissance after the 1022 checkpoint:
 
 - `JsonCatalogDocumentWriter` invalid-file-path behavior is already explicitly covered by `JsonCatalogDocumentWriterInvalidFilePathContractTests`; do not duplicate that contract.
 - `JsonCatalogDocumentWriter` describes a conservative safe-write workflow using a generated temporary file.
-- The new focused test now covers cleanup when JSON serialization fails after that temporary file has been created.
+- The focused cleanup contract confirmed that serialization failure left the generated temporary file behind before the production fix.
 
 ## Verification state
 
 - Clean continuation baseline: **1022/1022 GREEN, zero compiler warnings**.
 - Writer cleanup contract commit: `9a638c467dd435dcceb43f1c4e16887b71a8e828`.
-- Production is unchanged and the focused test awaits local RED verification.
-- Expected eventual complete-suite count after the contract passes: **1023/1023 GREEN with zero compiler warnings**.
+- Focused RED locally confirmed: correct `JsonSerializationFailed` response, stale `.tmp` file remained.
+- Production cleanup fix commit: `424a6ea94df0a871b5c50fcaa8193142828fdfbc`.
+- Focused and complete-suite GREEN verification are pending.
+- Expected complete-suite count: **1023/1023 GREEN with zero compiler warnings**.
 
 ## Recommended verification
 
@@ -303,12 +332,19 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~SaveToFileAsync_WhenSerializationFails_DoesNotLeaveTemporaryFile"
+dotnet test WhenItFails.Tests
 ```
 
-Expected current result: RED on `Assert.Empty(temporaryFiles)` while the response remains `Invalid` / `JsonSerializationFailed`.
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1023/1023 GREEN
+Compiler warnings: 0
+```
 
 ## Next recommended step
 
-If the focused test confirms that the generated `.tmp` file remains after serialization failure, add the smallest production cleanup that deletes only the generated temporary file on unsuccessful write paths. Preserve the existing public response and cancellation behavior. Then rerun the focused test and the complete suite.
+After **1023/1023 GREEN** is confirmed, record the checkpoint and perform fresh reconnaissance for the next smallest uncovered failure-cleanup or dependency boundary. Do not broaden the writer change until the full suite verifies the new `finally` cleanup behavior.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
