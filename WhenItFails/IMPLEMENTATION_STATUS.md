@@ -20,10 +20,38 @@ Hardening dependency boundaries and failure cleanup while preserving established
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` boundary is complete for malformed results, ordinary exception normalization and exact-instance cancellation propagation.
 - `JsonCatalogDocumentWriter` performs verified best-effort cleanup of its generated temporary file when serialization fails and honors pre-cancellation before filesystem side effects.
 - The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1024/1024 tests with zero compiler warnings**.
+- A focused ordinary-exception contract for `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` is committed and awaits local RED verification.
+
+## 2026-09-15 — profile selection resolver ordinary-exception contract
+
+Contract commit: `3a3a81a7c816fd72d63c5f1450d07c675bb12288`.
+Baseline checkpoint commit: `46b0953f2b2e479be39a2a1098c668dcfd7d0575`.
+
+Added:
+
+`WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceResolverExceptionContractTests.cs`
+
+Contract:
+
+`ResolveByProfileName_WhenResolverThrows_ReturnsStableFailureWithoutExceptionDetail`
+
+`ErrorProfileSelectionService` is already a normalizing public boundary: it validates malformed context/profile inputs and converts a null resolver result to `WIF_PROFILE_RESOLVER_RESULT_NULL`. The injected resolver ordinary-exception path should therefore also return a stable response rather than leak dependency details.
+
+Expected contract:
+
+```text
+Status: Failed
+Data: null
+Code: WIF_PROFILE_RESOLVER_FAILED
+Message: The error profile resolver failed.
+Raw dependency exception detail: absent
+```
+
+Production is intentionally unchanged before the RED run. Current code calls `_profileResolver.Resolve(...)` directly, so the focused test is expected to fail by propagating the resolver's `InvalidOperationException`.
 
 ## 2026-09-15 — 1024/1024 GREEN writer pre-cancellation checkpoint
 
-Checkpoint commit: this commit.
+Checkpoint commit: `46b0953f2b2e479be39a2a1098c668dcfd7d0575`.
 Cancellation contract commit: `2d861fdcf52b9bafb2e146bcf558bc55b2cae798`.
 Previous checkpoint commit: `7dc4bdebbfc363c9075dde53eda80712f0509bb4`.
 
@@ -187,20 +215,28 @@ Do not replace those transparent contracts with normalization at that layer.
 
 `JsonCatalogDocumentLoader.InvalidJson` deliberately includes the parser message; `Docs/Loading-and-Normalization/en.md` documents that behavior. Do not sanitize it as an incidental hardening change.
 
-Fresh reconnaissance after the 1024 checkpoint moves out of `JsonCatalogDocumentWriter`. `JsonCatalogDocumentLoader` already has an explicit cancellation contract, and `ErrorCatalogContextStore` already covers uninitialized/null/set/replace semantics with thread-safe `Volatile.Read` / `Interlocked.Exchange`; avoid duplicate or placebo stress tests there.
+Fresh reconnaissance after the 1024 checkpoint moved out of writer/loader/store areas. `ErrorProfileSelectionService` was selected because it already normalizes malformed inputs and a null result from its injected `IErrorProfileResolver`, but no existing exception/propagation/cancellation contract was found for that dependency.
 
 ## Verification state
 
 - Clean continuation baseline: **1024/1024 GREEN, zero compiler warnings**.
 - Writer hardening is complete for the current scope.
-- No pending local verification.
+- Profile resolver ordinary-exception contract commit: `3a3a81a7c816fd72d63c5f1450d07c675bb12288`.
+- Focused RED verification is pending.
+- Expected eventual complete-suite count after this contract passes: **1025/1025 GREEN with zero compiler warnings**.
 
 ## Recommended verification
 
-No pending verification at this checkpoint.
+Pull current `master` and run:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenResolverThrows_ReturnsStableFailureWithoutExceptionDetail"
+```
+
+Expected current result: RED with the supplied `InvalidOperationException` propagating directly from the fake `IErrorProfileResolver`.
 
 ## Next recommended step
 
-Continue fresh reconnaissance outside writer/loader/store areas. Prefer a public core component with a real uncovered dependency or failure-shape boundary; search existing response-shape, propagation, cancellation and malformed-result contracts before adding a test.
+If the focused RED confirms ordinary resolver exceptions escape, add the smallest production normalization in `ErrorProfileSelectionService.ResolveByProfileName(...)`: ordinary exception → `Failed / WIF_PROFILE_RESOLVER_FAILED` with stable message and no raw exception detail. Exclude `OperationCanceledException` from normalization; add its exact-instance contract separately after the ordinary branch is verified.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
