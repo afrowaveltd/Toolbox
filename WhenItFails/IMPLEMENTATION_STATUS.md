@@ -20,35 +20,40 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies null `ErrorCatalogDocument.Errors`, `IncludeOwners`, `IncludeCodeGroups`, and `IncludeCategories` as malformed input rather than resolver failure.
-- A focused malformed-profile contract for null `ErrorProfileDefinition.IncludeSubcategories` is committed and awaits local RED verification.
+- The null `ErrorProfileDefinition.IncludeSubcategories` RED is locally confirmed and the smallest production guard is committed; focused/full GREEN verification is pending.
 
-## 2026-09-15 — profile selection null include-subcategories contract
+## 2026-09-15 — profile selection null include-subcategories fix
 
 Contract commit:
 `f796cfda94f8cf357cf91fa3e7491010a232df54`
 
+Production guard commit:
+`5005b7f243335bc0819078a6690870d469e25276`
+
 Baseline checkpoint commit:
 `0ec11bb829dcb0a6b5eab2460a46e9c6de1f2a4c`
 
-Added:
+Focused RED was locally confirmed:
 
-`WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceNullIncludeSubcategoriesCollectionContractTests.cs`
+```text
+Expected: Invalid
+Actual:   Failed
+```
 
-Contract:
+The null `ErrorProfileDefinition.IncludeSubcategories` collection reached `ErrorProfileResolver.Resolve(...)` and was therefore misclassified by the dependency exception boundary as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
 
-`ResolveByProfileName_WhenProfileIncludeSubcategoriesCollectionIsNull_ReturnsInvalidResponse`
-
-`ErrorProfileCatalogValidator` already defines the stable malformed-profile contract:
+Production change in `WhenItFails/Resolution/ErrorProfileSelectionService.cs` is intentionally minimal: after the existing profile collection guards, the service now validates `profile.IncludeSubcategories` and reuses the established validator contract:
 
 ```text
 Status: Invalid
+Data: null
 Code: ProfileIncludeSubcategoriesCollectionIsNull
 Message: Profile include subcategories collection is null.
 ```
 
-Production is intentionally unchanged before the focused run. Current `ErrorProfileResolver.Resolve(...)` passes `profile.IncludeSubcategories` to `CreateNormalizedSet(...)`, so a null collection is expected to throw and then be normalized by `ErrorProfileSelectionService` as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
+No resolver exception, cancellation, profile lookup, or other response behavior was changed.
 
-Expected eventual complete-suite count after this contract passes: **1031/1031 GREEN with zero compiler warnings**.
+Expected complete-suite count after verification: **1031/1031 GREEN with zero compiler warnings**.
 
 ## 2026-09-15 — 1030/1030 GREEN null include-categories checkpoint
 
@@ -119,21 +124,21 @@ Remaining resolver-consumed profile collections still without `ErrorProfileSelec
 
 ## Recommended verification
 
-Pull current `master` and run only the focused contract:
+Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenProfileIncludeSubcategoriesCollectionIsNull_ReturnsInvalidResponse"
+dotnet test WhenItFails.Tests
 ```
 
-Expected current result: **RED** with `Actual: Failed` rather than the expected `Invalid`, because the null collection reaches `ErrorProfileResolver` and is normalized as `WIF_PROFILE_RESOLVER_FAILED`.
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1031/1031 GREEN
+Compiler warnings: 0
+```
 
 ## Next recommended step
 
-If RED confirms the response-shape mismatch, add the smallest guard for `profile.IncludeSubcategories is null` after the existing profile collection guards and before the resolver call. Reuse exactly:
-
-```text
-ProfileIncludeSubcategoriesCollectionIsNull
-Profile include subcategories collection is null.
-```
-
-Then run focused and complete suites. Record **1031/1031 GREEN** before moving to the next collection.
+After **1031/1031 GREEN** is confirmed, record the checkpoint and continue one collection at a time with `IncludeTags = null`, reusing the validator's stable `ProfileIncludeTagsCollectionIsNull` contract.
