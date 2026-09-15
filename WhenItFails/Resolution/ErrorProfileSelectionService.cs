@@ -124,6 +124,13 @@ public sealed class ErrorProfileSelectionService
                 message: "Profile include code groups collection is null.");
         }
 
+        if (profile.IncludeCategories is null)
+        {
+            return Response<IReadOnlyList<ErrorDefinition>>.Invalid(
+                code: "ProfileIncludeCategoriesCollectionIsNull",
+                message: "Profile include categories collection is null.");
+        }
+
         IReadOnlyList<ErrorDefinition>? resolvedErrors;
 
         try
