@@ -117,6 +117,13 @@ public sealed class ErrorProfileSelectionService
                 message: "Profile include owners collection is null.");
         }
 
+        if (profile.IncludeCodeGroups is null)
+        {
+            return Response<IReadOnlyList<ErrorDefinition>>.Invalid(
+                code: "ProfileIncludeCodeGroupsCollectionIsNull",
+                message: "Profile include code groups collection is null.");
+        }
+
         IReadOnlyList<ErrorDefinition>? resolvedErrors;
 
         try
