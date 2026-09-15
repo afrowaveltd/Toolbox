@@ -18,9 +18,29 @@ Hardening dependency boundaries and failure cleanup while preserving established
 - `ErrorCatalogRuntime` initializer ordinary-exception, cancellation, null-response and null-task behavior is complete for the current scope.
 - Both runtime `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` boundaries — explicit reset and flexible fallback — are complete for null response, ordinary exception, null task and exact cancellation behavior in the current scope.
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` boundary is complete for malformed results, ordinary exception normalization and exact-instance cancellation propagation.
-- `JsonCatalogDocumentWriter` performs verified best-effort cleanup of its generated temporary file when serialization fails.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1023/1023 tests with zero compiler warnings** before the new writer cancellation contract.
-- A focused pre-cancellation side-effect contract for `JsonCatalogDocumentWriter.SaveToFileAsync(...)` is committed and awaits local verification.
+- `JsonCatalogDocumentWriter` performs verified best-effort cleanup of its generated temporary file when serialization fails and honors pre-cancellation before filesystem side effects.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1024/1024 tests with zero compiler warnings**.
+
+## 2026-09-15 — 1024/1024 GREEN writer pre-cancellation checkpoint
+
+Checkpoint commit: this commit.
+Cancellation contract commit: `2d861fdcf52b9bafb2e146bcf558bc55b2cae798`.
+Previous checkpoint commit: `7dc4bdebbfc363c9075dde53eda80712f0509bb4`.
+
+Verified locally:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1024
+Skipped:  0
+Total:  1024
+Compiler warnings: 0
+```
+
+`JsonCatalogDocumentWriter.SaveToFileAsync(...)` now has an explicit deterministic cancellation contract: a token cancelled before entry propagates `OperationCanceledException` before validation or filesystem work, leaving both the target directory and target file absent.
+
+No production change was required. The writer area is closed for the current hardening scope; avoid timing-sensitive mid-write cancellation tests unless a concrete defect or requirement appears.
 
 ## 2026-09-15 — writer pre-cancellation side-effect contract
 
@@ -43,9 +63,7 @@ Target directory does not exist
 Target file does not exist
 ```
 
-No production change is expected because `SaveToFileAsync(...)` calls `cancellationToken.ThrowIfCancellationRequested()` before validation or filesystem operations.
-
-Expected complete-suite count after verification: **1024/1024 GREEN with zero compiler warnings**.
+No production change was required because `SaveToFileAsync(...)` calls `cancellationToken.ThrowIfCancellationRequested()` before validation or filesystem operations.
 
 ## 2026-09-15 — 1023/1023 GREEN writer temporary-file cleanup checkpoint
 
@@ -169,35 +187,20 @@ Do not replace those transparent contracts with normalization at that layer.
 
 `JsonCatalogDocumentLoader.InvalidJson` deliberately includes the parser message; `Docs/Loading-and-Normalization/en.md` documents that behavior. Do not sanitize it as an incidental hardening change.
 
-Fresh reconnaissance after the 1023 checkpoint found no existing writer cancellation contract. The new pre-cancellation contract intentionally avoids timing-sensitive mid-write cancellation and is cross-platform: it verifies that cancellation is honored before any directory or temporary-file side effect.
+Fresh reconnaissance after the 1024 checkpoint moves out of `JsonCatalogDocumentWriter`. `JsonCatalogDocumentLoader` already has an explicit cancellation contract, and `ErrorCatalogContextStore` already covers uninitialized/null/set/replace semantics with thread-safe `Volatile.Read` / `Interlocked.Exchange`; avoid duplicate or placebo stress tests there.
 
 ## Verification state
 
-- Clean continuation baseline: **1023/1023 GREEN, zero compiler warnings**.
-- Writer serialization-failure cleanup contract and production fix are locally verified.
-- Writer pre-cancellation contract commit: `2d861fdcf52b9bafb2e146bcf558bc55b2cae798`.
-- No production change is expected.
-- Expected complete-suite count after verification: **1024/1024 GREEN with zero compiler warnings**.
+- Clean continuation baseline: **1024/1024 GREEN, zero compiler warnings**.
+- Writer hardening is complete for the current scope.
+- No pending local verification.
 
 ## Recommended verification
 
-Pull current `master` and run:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~SaveToFileAsync_WhenTokenAlreadyCancelled_ThrowsWithoutFilesystemSideEffects"
-dotnet test WhenItFails.Tests
-```
-
-Expected results:
-
-```text
-Focused contract: GREEN
-Complete suite: 1024/1024 GREEN
-Compiler warnings: 0
-```
+No pending verification at this checkpoint.
 
 ## Next recommended step
 
-After **1024/1024 GREEN** is confirmed, record the checkpoint and move out of the writer unless fresh evidence reveals another deterministic cross-platform gap. Continue reconnaissance for the next smallest uncovered core failure boundary rather than adding timing-sensitive cancellation tests.
+Continue fresh reconnaissance outside writer/loader/store areas. Prefer a public core component with a real uncovered dependency or failure-shape boundary; search existing response-shape, propagation, cancellation and malformed-result contracts before adding a test.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
