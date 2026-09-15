@@ -103,10 +103,22 @@ public sealed class ErrorProfileSelectionService
                     $"Error profile with name or display name '{profileName}' was not found.");
         }
 
-        IReadOnlyList<ErrorDefinition>? resolvedErrors =
-            _profileResolver.Resolve(
-                context.ErrorCatalogDocument,
-                profile);
+        IReadOnlyList<ErrorDefinition>? resolvedErrors;
+
+        try
+        {
+            resolvedErrors =
+                _profileResolver.Resolve(
+                    context.ErrorCatalogDocument,
+                    profile);
+        }
+        catch (Exception exception)
+            when (exception is not OperationCanceledException)
+        {
+            return Response<IReadOnlyList<ErrorDefinition>>.Fail(
+                code: "WIF_PROFILE_RESOLVER_FAILED",
+                message: "The error profile resolver failed.");
+        }
 
         if (resolvedErrors is null)
         {
