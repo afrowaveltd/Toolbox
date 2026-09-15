@@ -6,11 +6,11 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Hardening dependency boundaries and failure cleanup while preserving established public exception contracts.
+Hardening dependency boundaries and malformed-context handling while preserving established public exception contracts.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1026/1026 GREEN, zero compiler warnings**.
+- Complete `WhenItFails.Tests` suite baseline: **1026/1026 GREEN, zero compiler warnings**.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
 - `BuiltInErrorCatalogContextProvider` dependency-boundary audit is complete for the current scope.
@@ -19,6 +19,47 @@ Hardening dependency boundaries and failure cleanup while preserving established
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` boundary is complete for malformed results, ordinary-exception normalization and exact-instance cancellation propagation.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary exception normalization and exact-instance cancellation propagation.
+- A new malformed-context contract for null `ErrorCatalogDocument.Errors` is committed and awaits focused RED verification.
+
+## 2026-09-15 — profile selection null errors collection contract
+
+Contract commit:
+`d64257e3525057192981f755a9948b4d28123467`
+
+Baseline checkpoint commit:
+`e8d0ca536f11d6a7ba16fddb55722abe6315a3ac`
+
+Added:
+
+`WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceNullErrorsCollectionContractTests.cs`
+
+Contract:
+
+`ResolveByProfileName_WhenErrorCatalogErrorsCollectionIsNull_ReturnsInvalidResponse`
+
+Rationale:
+
+`ErrorProfileSelectionService` already validates malformed context structure before invoking the injected resolver: null context, null error catalog document, null profile catalog, null profile collection and null profile definitions all return `Invalid` responses. A null `ErrorCatalogDocument.Errors` collection is likewise malformed input and should not be misclassified as an injected resolver failure.
+
+The repository already uses one stable code/message for this condition in both `ErrorCatalogValidator` and `ErrorCatalogCrossValidator`:
+
+```text
+Code: CatalogErrorsCollectionIsNull
+Message: Error catalog errors collection is null.
+```
+
+Expected selection-service response:
+
+```text
+Status: Invalid
+Data: null
+Code: CatalogErrorsCollectionIsNull
+Message: Error catalog errors collection is null.
+```
+
+Production is intentionally unchanged before the focused RED run. With the current implementation, the null collection reaches `ErrorProfileResolver.Resolve(...)`, throws internally, and is expected to be normalized by the recently added resolver boundary as `Failed / WIF_PROFILE_RESOLVER_FAILED`. The focused contract should therefore RED on response shape, not by leaking an exception.
+
+Expected eventual complete-suite count after the contract passes: **1027/1027 GREEN with zero compiler warnings**.
 
 ## 2026-09-15 — 1026/1026 GREEN profile resolver cancellation checkpoint
 
@@ -31,8 +72,8 @@ Production normalization fix commit:
 Exact-cancellation contract commit:
 `5a3ed3ea2091c919f11bfb843b1964a9588181cc`
 
-Previous checkpoint commit:
-`05acce74af16be90cdaa967d0239a474c777025a`
+Checkpoint commit:
+`e8d0ca536f11d6a7ba16fddb55722abe6315a3ac`
 
 Locally verified:
 
@@ -45,15 +86,13 @@ Total:  1026
 Compiler warnings: 0
 ```
 
-`ErrorProfileSelectionService.ResolveByProfileName(...)` now explicitly guarantees:
+`ErrorProfileSelectionService.ResolveByProfileName(...)` explicitly guarantees:
 
 - null resolver result → `Invalid / WIF_PROFILE_RESOLVER_RESULT_NULL`;
 - ordinary resolver exception → `Failed / WIF_PROFILE_RESOLVER_FAILED`;
 - public message: `The error profile resolver failed.`;
 - raw dependency exception detail does not escape;
 - exact supplied `OperationCanceledException` instance propagates unchanged.
-
-No production change was required for the cancellation contract because the ordinary-exception filter already excludes `OperationCanceledException`.
 
 ## Established transparent lower boundary — do not normalize
 
@@ -81,16 +120,23 @@ Do not replace those transparent contracts with normalization at that layer.
 - 1025/1025 — profile resolver ordinary-exception normalization complete.
 - 1026/1026 — profile resolver exact-cancellation propagation complete.
 
+## Recommended verification
+
+Pull current `master` and run only the focused contract first:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenErrorCatalogErrorsCollectionIsNull_ReturnsInvalidResponse"
+```
+
+Expected current result: **RED** because the service currently returns `Failed / WIF_PROFILE_RESOLVER_FAILED` instead of the expected malformed-input `Invalid / CatalogErrorsCollectionIsNull` response.
+
 ## Next recommended step
 
-Perform fresh reconnaissance outside the already hardened areas. Prefer a real public/injected dependency boundary where behavior is asymmetric (for example null result is normalized but exceptions are not), and search existing propagation/exception-shape/cancellation contracts before adding a test.
+If RED confirms that response-shape mismatch, add the smallest production guard in `ErrorProfileSelectionService.ResolveByProfileName(...)` immediately after the null document check. Reuse exactly:
 
-Work test-first and one boundary at a time:
+```text
+CatalogErrorsCollectionIsNull
+Error catalog errors collection is null.
+```
 
-1. add one focused contract;
-2. commit test;
-3. update this file;
-4. run focused test locally;
-5. make the smallest production change only if RED confirms a real gap;
-6. run the complete suite;
-7. record the new GREEN checkpoint.
+Then run the focused contract and the complete suite. Record **1027/1027 GREEN** before moving on.
