@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite baseline: **1026/1026 GREEN, zero compiler warnings**.
+- Complete `WhenItFails.Tests` suite: **1027/1027 GREEN, zero compiler warnings**.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
 - `BuiltInErrorCatalogContextProvider` dependency-boundary audit is complete for the current scope.
@@ -18,30 +18,32 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 - `ErrorCatalogRuntime` initializer and both built-in-provider runtime paths are complete for null response, ordinary exception, null task and exact cancellation behavior.
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` boundary is complete for malformed results, ordinary-exception normalization and exact-instance cancellation propagation.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
-- `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary exception normalization and exact-instance cancellation propagation.
-- The malformed-context RED for null `ErrorCatalogDocument.Errors` is locally confirmed and the smallest production guard is committed; focused/full GREEN verification is pending.
+- `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
+- `ErrorProfileSelectionService` now classifies null `ErrorCatalogDocument.Errors` as malformed input rather than resolver failure.
 
-## 2026-09-15 — profile selection null errors collection fix
+## 2026-09-15 — 1027/1027 GREEN null error collection checkpoint
 
-Contract commit:
+Malformed-context contract commit:
 `d64257e3525057192981f755a9948b4d28123467`
 
-Production fix commit:
+Production guard commit:
 `9395b64ab28fadf1a499bc26db14e94eb6936ba6`
 
-Baseline checkpoint commit:
+Previous checkpoint commit:
 `e8d0ca536f11d6a7ba16fddb55722abe6315a3ac`
 
-Focused RED was locally confirmed:
+Locally verified:
 
 ```text
-Expected: Invalid
-Actual:   Failed
+WhenItFails.Tests
+Failed:   0
+Passed: 1027
+Skipped:  0
+Total:  1027
+Compiler warnings: 0
 ```
 
-The null `ErrorCatalogDocument.Errors` collection reached `ErrorProfileResolver.Resolve(...)` and was therefore misclassified by the dependency exception boundary as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
-
-Production change in `WhenItFails/Resolution/ErrorProfileSelectionService.cs` is intentionally minimal: immediately after the null document guard, the service now validates `context.ErrorCatalogDocument.Errors` and returns the same stable malformed-input response already used by `ErrorCatalogValidator` and `ErrorCatalogCrossValidator`:
+`ErrorProfileSelectionService.ResolveByProfileName(...)` now rejects a null `ErrorCatalogDocument.Errors` collection before invoking the resolver and reuses the established validator/cross-validator contract:
 
 ```text
 Status: Invalid
@@ -50,42 +52,7 @@ Code: CatalogErrorsCollectionIsNull
 Message: Error catalog errors collection is null.
 ```
 
-No resolver, cancellation, profile lookup, or other response behavior was changed.
-
-Expected complete-suite count after verification: **1027/1027 GREEN with zero compiler warnings**.
-
-## 2026-09-15 — 1026/1026 GREEN profile resolver cancellation checkpoint
-
-Profile resolver ordinary-exception contract commit:
-`3a3a81a7c816fd72d63c5f1450d07c675bb12288`
-
-Production normalization fix commit:
-`7d739c3d9499951304da0d3463308668b7b67e19`
-
-Exact-cancellation contract commit:
-`5a3ed3ea2091c919f11bfb843b1964a9588181cc`
-
-Checkpoint commit:
-`e8d0ca536f11d6a7ba16fddb55722abe6315a3ac`
-
-Locally verified:
-
-```text
-WhenItFails.Tests
-Failed:   0
-Passed: 1026
-Skipped:  0
-Total:  1026
-Compiler warnings: 0
-```
-
-`ErrorProfileSelectionService.ResolveByProfileName(...)` explicitly guarantees:
-
-- null resolver result → `Invalid / WIF_PROFILE_RESOLVER_RESULT_NULL`;
-- ordinary resolver exception → `Failed / WIF_PROFILE_RESOLVER_FAILED`;
-- public message: `The error profile resolver failed.`;
-- raw dependency exception detail does not escape;
-- exact supplied `OperationCanceledException` instance propagates unchanged.
+This prevents malformed context from being misclassified as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
 
 ## Established transparent lower boundary — do not normalize
 
@@ -107,29 +74,22 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recent verified checkpoints
 
-- 1022/1022 — `JsonsBootstrapper` template-provider cancellation complete.
 - 1023/1023 — writer serialization-failure temporary-file cleanup complete.
 - 1024/1024 — writer pre-cancellation side-effect contract complete.
 - 1025/1025 — profile resolver ordinary-exception normalization complete.
 - 1026/1026 — profile resolver exact-cancellation propagation complete.
-
-## Recommended verification
-
-Pull current `master` and run:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenErrorCatalogErrorsCollectionIsNull_ReturnsInvalidResponse"
-dotnet test WhenItFails.Tests
-```
-
-Expected results:
-
-```text
-Focused contract: GREEN
-Complete suite: 1027/1027 GREEN
-Compiler warnings: 0
-```
+- 1027/1027 — profile selection null error collection classification complete.
 
 ## Next recommended step
 
-After **1027/1027 GREEN** is confirmed, record the checkpoint and resume fresh reconnaissance for the next smallest real malformed-input or injected-dependency asymmetry outside already hardened areas.
+Perform fresh reconnaissance for the next smallest real malformed-input or injected-dependency asymmetry outside already hardened areas. Search existing propagation, exception-shape, cancellation and malformed-collection contracts before adding a test.
+
+Work test-first and one boundary at a time:
+
+1. add one focused contract;
+2. commit test;
+3. update this file;
+4. run focused test locally;
+5. make the smallest production change only if RED confirms a real gap;
+6. run the complete suite;
+7. record the new GREEN checkpoint.
