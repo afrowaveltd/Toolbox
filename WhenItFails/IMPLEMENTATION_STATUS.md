@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-09-10
+Last updated: 2026-09-15
 
 This file is the continuation point for `WhenItFails` development. Update it after every implementation, test, catalog, or documentation change that alters the current state or recommended next step.
 
@@ -17,9 +17,36 @@ Hardening dependency boundaries while preserving established public exception co
 - `ErrorCatalogInitializer` bootstrapper/context-provider ordinary-exception, cancellation, null-response and null-task behavior is complete for the current scope.
 - `ErrorCatalogRuntime` initializer ordinary-exception, cancellation, null-response and null-task behavior is complete for the current scope.
 - Both runtime `IBuiltInErrorCatalogContextProvider.LoadAsync(...)` boundaries — explicit reset and flexible fallback — are complete for null response, ordinary exception, null task and exact cancellation behavior in the current scope.
-- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1020/1020 tests with zero compiler warnings** before the new bootstrap template-provider exception contract.
-- The focused `JsonsBootstrapper` template-provider ordinary-exception contract produced the expected RED by propagating the injected `InvalidOperationException`.
-- Production now normalizes ordinary `IJsonsTemplateProvider.GetTemplateFiles(...)` exceptions to `WIF_JSONS_TEMPLATE_PROVIDER_FAILED`; local GREEN verification is pending.
+- Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` ordinary-exception normalization is locally verified.
+- The complete `WhenItFails.Tests` suite is locally verified **GREEN at 1021/1021 tests with zero compiler warnings**.
+
+## 2026-09-15 — 1021/1021 GREEN bootstrap template-provider checkpoint
+
+Checkpoint commit: this commit.
+Contract commit: `1da0988b5419d6af649c16c820bb92d63ab4dc8a`.
+Production fix commit: `32816f57873266fbccbd90917bd00a86f5818db9`.
+Previous baseline checkpoint commit: `383014695d776bbbbb45db31de5f050c8a09cde8`.
+
+Verified locally:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1021
+Skipped:  0
+Total:  1021
+Compiler warnings: 0
+```
+
+The direct `JsonsBootstrapper` template-provider boundary now has verified ordinary-exception behavior:
+
+- ordinary provider exception → `Failed` / `WIF_JSONS_TEMPLATE_PROVIDER_FAILED`;
+- public message is stable: `The JSON template provider failed.`;
+- raw dependency exception detail does not escape;
+- malformed null collection/item results remain represented by their existing `WIF_JSONS_TEMPLATE_*` invalid responses;
+- `OperationCanceledException` is explicitly excluded from the new normalization catch and should propagate unchanged.
+
+Next step is a separate exact-instance cancellation contract for `IJsonsTemplateProvider.GetTemplateFiles(...)`. No production change is expected.
 
 ## 2026-09-10 — bootstrap template-provider ordinary-exception fix
 
@@ -52,10 +79,6 @@ Message: The JSON template provider failed.
 ```
 
 Raw exception detail is not exposed. `OperationCanceledException` is explicitly excluded from normalization and continues to propagate unchanged. Existing filesystem `UnauthorizedAccessException` and `IOException` handling outside the provider call remains unchanged.
-
-Expected complete-suite count after verification: **1021/1021 GREEN with zero compiler warnings**.
-
-After GREEN, add a separate exact-instance cancellation contract for `IJsonsTemplateProvider.GetTemplateFiles(...)`; no production change is expected for that follow-up.
 
 ## 2026-09-10 — 1020/1020 GREEN flexible-fallback checkpoint
 
@@ -188,30 +211,18 @@ Fresh reconnaissance after the 1020 checkpoint moved outside the completed runti
 
 ## Verification state
 
-- Clean continuation baseline: **1020/1020 GREEN, zero compiler warnings**.
-- Bootstrap template-provider ordinary-exception RED is confirmed.
-- Production normalization fix is committed and awaits focused/full local verification.
-- Expected complete-suite count after the new test passes: **1021/1021 GREEN with zero compiler warnings**.
+- Clean continuation baseline: **1021/1021 GREEN, zero compiler warnings**.
+- Bootstrap template-provider ordinary-exception contract and production normalization are verified.
+- Exact-instance template-provider cancellation contract is the next step.
+- No production change is expected for cancellation.
+- Expected complete-suite count after that test passes: **1022/1022 GREEN with zero compiler warnings**.
 
 ## Recommended verification
 
-Pull current `master` and run:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateProviderThrows_ReturnsStableFailureWithoutExceptionDetail"
-dotnet test WhenItFails.Tests
-```
-
-Expected results:
-
-```text
-Focused contract: GREEN
-Complete suite: 1021/1021 GREEN
-Compiler warnings: 0
-```
+No pending verification at this checkpoint.
 
 ## Next recommended step
 
-After **1021/1021 GREEN** is confirmed, record the checkpoint and add a separate exact-instance cancellation contract for `IJsonsTemplateProvider.GetTemplateFiles(...)`. The current production filter already excludes `OperationCanceledException`, so no production change is expected.
+Add a focused exact-instance cancellation contract for `IJsonsTemplateProvider.GetTemplateFiles(...)`. The current production catch filter excludes `OperationCanceledException`, so the same cancellation instance should propagate unchanged.
 
 Keep changes small, tested, documented here, and committed directly to `master`.
