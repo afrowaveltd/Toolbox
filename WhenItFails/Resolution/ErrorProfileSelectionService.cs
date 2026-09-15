@@ -152,6 +152,13 @@ public sealed class ErrorProfileSelectionService
                 message: "Profile exclude tags collection is null.");
         }
 
+        if (profile.IncludeErrors is null)
+        {
+            return Response<IReadOnlyList<ErrorDefinition>>.Invalid(
+                code: "ProfileIncludeErrorsCollectionIsNull",
+                message: "Profile include errors collection is null.");
+        }
+
         IReadOnlyList<ErrorDefinition>? resolvedErrors;
 
         try
