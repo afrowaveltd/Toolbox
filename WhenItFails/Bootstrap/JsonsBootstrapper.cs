@@ -36,15 +36,16 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                 message: "The JSON root directory cannot be null.");
         }
 
-        if (options.PackageDirectoryName is null)
+        string? packageDirectoryName = options.PackageDirectoryName;
+
+        if (packageDirectoryName is null)
         {
             return Response<JsonsBootstrapPayload>.Invalid(
                 code: "WIF_JSONS_PACKAGE_DIRECTORY_NAME_NULL",
                 message: "The package directory name cannot be null.");
         }
 
-        if (options.PackageDirectoryName is not null
-            && string.IsNullOrWhiteSpace(options.PackageDirectoryName))
+        if (string.IsNullOrWhiteSpace(packageDirectoryName))
         {
             return Response<JsonsBootstrapPayload>.Invalid(
                 code: "WIF_JSONS_PACKAGE_DIRECTORY_NAME_EMPTY",
@@ -54,8 +55,8 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
         try
         {
             string rootDirectory = NormalizePath(options.RootDirectory);
-            string packageDirectoryName = NormalizePath(options.PackageDirectoryName);
-            string packageDirectoryPath = Path.Combine(rootDirectory, packageDirectoryName);
+            string normalizedPackageDirectoryName = NormalizePath(packageDirectoryName);
+            string packageDirectoryPath = Path.Combine(rootDirectory, normalizedPackageDirectoryName);
 
             bool packageDirectoryAlreadyExisted =
                 Directory.Exists(packageDirectoryPath);
