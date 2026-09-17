@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-09-15
+Last updated: 2026-09-17
 
 This file is the continuation point for `WhenItFails` development. Git history contains the detailed chronological checkpoints; keep this file focused on the current verified state, established contracts, and next step.
 
@@ -22,17 +22,16 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 - `ErrorProfileSelectionService` now classifies null `ErrorCatalogDocument.Errors` and all resolver-consumed profile collections (`IncludeOwners`, `IncludeCodeGroups`, `IncludeCategories`, `IncludeSubcategories`, `IncludeTags`, `ExcludeTags`, `IncludeErrors`, `ExcludeErrors`) as malformed input rather than resolver failure.
 - Fresh reconnaissance found the next malformed-context boundary: a null `ErrorDefinition` inside `ErrorCatalogDocument.Errors` is rejected by `ErrorCatalogValidator` but is not yet classified explicitly by `ErrorProfileSelectionService`.
 
-## 2026-09-15 — profile selection null error-definition contract
+## 2026-09-17 — isolated profile selection null error-definition contract
 
-Contract commit:
+Original contract commit:
 `ce50bfcd9dfd6fc09b9be32ca16b28eb06323cd7`
+
+Fixture-isolation commit:
+`e678281dfac0c83232de700f2dec431a8f01bcde`
 
 Baseline checkpoint commit:
 `471f7366b55e927ec73afb436f6fbe3c10773fbf`
-
-Added:
-
-`WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceNullErrorDefinitionContractTests.cs`
 
 Contract:
 
@@ -46,7 +45,15 @@ Code: ErrorDefinitionIsNull
 Message: Error catalog contains a null error definition.
 ```
 
-Production is intentionally unchanged before the focused run. `ErrorProfileResolver.Resolve(...)` iterates every error definition and dereferences `error.Id` immediately through exclusion matching, so a null definition is expected to throw and then be normalized by `ErrorProfileSelectionService` as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
+The first local run did not reach `ErrorProfileSelectionService`: the test constructed the runtime `ErrorCatalog` from the malformed document, and `ErrorCatalog.BuildIndexes()` threw `NullReferenceException` while indexing the null definition. `ErrorCatalog` is documented as being built from already loaded and preferably validated definitions, so that failure was a test-fixture boundary rather than the selection-service contract under test.
+
+The fixture now isolates the malformed state correctly:
+
+- `ErrorCatalogDocument.Errors` still contains `null!`.
+- `context.ErrorCatalog` is an independent empty valid `ErrorCatalog`.
+- production code remains unchanged.
+
+The next focused run is therefore the first meaningful RED/GREEN observation for `ErrorProfileSelectionService`. Based on the current resolver path, a RED with `Actual: Failed` is expected, but must be confirmed locally before any production guard is added.
 
 Expected eventual complete-suite count after this contract passes: **1036/1036 GREEN with zero compiler warnings**.
 
@@ -105,17 +112,17 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run only the focused contract:
+Pull current `master` and rerun only the isolated focused contract:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenErrorCatalogContainsNullDefinition_ReturnsInvalidResponse"
 ```
 
-Expected current result: **RED** with `Actual: Failed` rather than the expected `Invalid`.
+Do not change production until this isolated run confirms the actual selection-service behavior.
 
 ## Next recommended step
 
-If RED confirms the response-shape mismatch, add the smallest `ErrorProfileSelectionService` guard that detects any null error definition before invoking `IErrorProfileResolver`, reusing exactly:
+If the isolated focused run confirms `Expected: Invalid / Actual: Failed`, add the smallest `ErrorProfileSelectionService` guard that detects any null error definition before invoking `IErrorProfileResolver`, reusing exactly:
 
 ```text
 ErrorDefinitionIsNull
