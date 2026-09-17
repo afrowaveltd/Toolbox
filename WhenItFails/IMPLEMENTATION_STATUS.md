@@ -20,6 +20,41 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies null `ErrorCatalogDocument.Errors`, null error definitions, null `ErrorDefinition.Subcategories`, and all resolver-consumed profile collections (`IncludeOwners`, `IncludeCodeGroups`, `IncludeCategories`, `IncludeSubcategories`, `IncludeTags`, `ExcludeTags`, `IncludeErrors`, `ExcludeErrors`) as malformed input rather than resolver failure.
+- A focused contract for null `ErrorDefinition.Tags` is committed and awaits local RED verification.
+
+## 2026-09-17 — profile selection null error-tags contract
+
+Contract commit:
+`8275c809bb21a9c9a7d9c46e5c66c01bf8507bc8`
+
+Baseline checkpoint commit:
+`2823891cec007edbc331370ce7f3cef97bd8420c`
+
+Added:
+
+`WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceNullErrorTagsCollectionContractTests.cs`
+
+Contract:
+
+`ResolveByProfileName_WhenErrorTagsCollectionIsNull_ReturnsInvalidResponse`
+
+`ErrorCatalogValidator` already defines the stable malformed-error contract:
+
+```text
+Status: Invalid
+Code: ErrorTagsCollectionIsNull
+Message: Error tags collection is null.
+```
+
+The fixture is deliberately isolated:
+
+- malformed state exists only in `ErrorCatalogDocument` (`ErrorDefinition.Tags = null!`),
+- runtime `context.ErrorCatalog` is an independent valid empty catalog,
+- the profile uses `IncludeTags = ["NETWORK"]` so resolver short-circuiting cannot bypass the malformed collection.
+
+Production is intentionally unchanged before the focused run. Current `ErrorProfileResolver` should enumerate the null `Tags` collection when applying the non-empty tag filter, causing an ordinary exception that `ErrorProfileSelectionService` normalizes as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
+
+Expected eventual complete-suite count after this contract passes: **1038/1038 GREEN**.
 
 ## 2026-09-17 — 1037/1037 GREEN null error-subcategories checkpoint
 
@@ -29,8 +64,8 @@ Contract commit:
 Production guard commit:
 `986743006a72549ea7c8be7cc15066682da11d86`
 
-Previous checkpoint commit:
-`bb833a5382315b88b054c90dca6316d24dd0ddda`
+Checkpoint commit:
+`2823891cec007edbc331370ce7f3cef97bd8420c`
 
 Locally verified:
 
@@ -75,17 +110,23 @@ Do not replace those transparent contracts with normalization at that layer.
 - 1036/1036 — profile selection null error-definition classification complete.
 - 1037/1037 — profile selection null error-subcategories classification complete.
 
-## Reconnaissance notes
+## Recommended verification
 
-The remaining directly resolver-consumed nested error collection is `ErrorDefinition.Tags`. `ErrorCatalogValidator` defines the stable malformed contract:
+Pull current `master` and run only the focused contract:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenErrorTagsCollectionIsNull_ReturnsInvalidResponse"
+```
+
+Expected current result: **RED** with `Actual: Failed` rather than the expected `Invalid`.
+
+## Next recommended step
+
+If RED confirms the response-shape mismatch, add the smallest `ErrorProfileSelectionService` guard for null `ErrorDefinition.Tags`, reusing exactly:
 
 ```text
 ErrorTagsCollectionIsNull
 Error tags collection is null.
 ```
 
-Keep malformed `ErrorCatalogDocument` state isolated from runtime `ErrorCatalog` construction. To force the resolver to consume a null `Tags` collection, use a non-empty profile `IncludeTags` filter.
-
-## Next recommended step
-
-Add one focused `ErrorProfileSelectionService` contract for `ErrorDefinition.Tags = null`. Production must remain unchanged until the focused run confirms the current behavior.
+Then run focused and complete suites. After GREEN, perform fresh reconnaissance rather than assuming another guard is needed.
