@@ -10,8 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1042/1042 GREEN**.
-- The latest complete build reported **1 compiler warning**, `CS8604`, in `JsonsBootstrapper.cs` for repeated access to nullable `PackageDirectoryName` after validation.
+- Complete `WhenItFails.Tests` suite: **1042/1042 GREEN, zero compiler warnings**.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -23,9 +22,9 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies all resolver-consumed nullable collections currently audited as malformed input rather than resolver failure.
 - `JsonsBootstrapper` rejects null/whitespace `PackageDirectoryName` and null `RootDirectory` before filesystem mutation.
-- The `RootDirectory = null` contract is locally GREEN; a nullable-flow-only production cleanup for the remaining `PackageDirectoryName` CS8604 warning is committed and awaits local verification.
+- The nullable-flow cleanup for `PackageDirectoryName` is locally verified: the previous CS8604 warning is gone without changing public behavior.
 
-## 2026-09-17 — 1042/1042 GREEN null root-directory checkpoint with nullable cleanup pending
+## 2026-09-17 — 1042/1042 GREEN clean bootstrap null root-directory checkpoint
 
 Root-directory contract commit:
 `157118d9ec08a879da8fc364c03b3e4f3b260ec6`
@@ -36,10 +35,7 @@ Root-directory production guard commit:
 Nullable-flow cleanup commit:
 `8f27377ff6a156eee0f3930fd6ec7ec715ac4ef7`
 
-Previous verified checkpoint commit:
-`86e8018eab7e7be03eaebd6dd8edb4d970d7fe3c`
-
-Locally verified after the root-directory guard:
+Locally verified after nullable-flow cleanup:
 
 ```text
 WhenItFails.Tests
@@ -47,9 +43,12 @@ Failed:   0
 Passed: 1042
 Skipped:  0
 Total:  1042
+Compiler warnings: 0
 ```
 
-The root-null contract now returns:
+`NETSDK1057` may still appear and remains informational rather than a Toolbox compiler warning.
+
+The root-null contract returns:
 
 ```text
 Status: Invalid
@@ -58,26 +57,7 @@ Code: WIF_JSONS_ROOT_DIRECTORY_NULL
 Message: The JSON root directory cannot be null.
 ```
 
-The same build still reported one production compiler warning:
-
-```text
-WhenItFails/Bootstrap/JsonsBootstrapper.cs(57,57): warning CS8604:
-Possible null reference argument for parameter 'path' in
-'string JsonsBootstrapper.NormalizePath(string path)'.
-```
-
-This warning is on `PackageDirectoryName`, not `RootDirectory`. The existing null/whitespace contracts are already GREEN; the compiler warning occurs because repeated reads from the mutable `JsonsOptions.PackageDirectoryName` property do not preserve a stable non-null flow state through the method.
-
-The cleanup commit does not change public behavior. It snapshots `options.PackageDirectoryName` into a local nullable variable, performs the established null and whitespace guards against that local, and then passes the proven non-null local to `NormalizePath(...)`.
-
-Expected verification after the cleanup:
-
-```text
-Complete suite: 1042/1042 GREEN
-Compiler warnings: 0
-```
-
-`NETSDK1057` may still appear and remains informational rather than a Toolbox compiler warning.
+The earlier `PackageDirectoryName` CS8604 warning was resolved by snapshotting the mutable option property into a local nullable variable, validating that local, and passing its proven non-null value to `NormalizePath(...)`. No response contract or filesystem behavior changed.
 
 ## 2026-09-17 — 1041/1041 GREEN bootstrap null package-directory checkpoint
 
@@ -86,9 +66,6 @@ Contract commit:
 
 Production guard commit:
 `de85b3c460448d0dbe255dd3663e79cc05e4db4f`
-
-Checkpoint commit:
-`86e8018eab7e7be03eaebd6dd8edb4d970d7fe3c`
 
 Locally verified:
 
@@ -132,25 +109,15 @@ Do not replace those transparent contracts with normalization at that layer.
 
 - 1040/1040 — bootstrap whitespace package directory name rejected before filesystem mutation.
 - 1041/1041 — bootstrap null package directory name rejected before filesystem mutation.
-- 1042/1042 — bootstrap null root directory rejected before filesystem mutation; behavior GREEN, nullable-flow warning cleanup pending verification.
-
-## Recommended verification
-
-Pull current `master` and run the complete suite:
-
-```powershell
-dotnet test WhenItFails.Tests
-```
-
-Expected result:
-
-```text
-Complete suite: 1042/1042 GREEN
-Compiler warnings: 0
-```
-
-Ignore `NETSDK1057` when counting compiler warnings; it is an SDK informational support-policy message.
+- 1042/1042 — bootstrap null root directory rejected before filesystem mutation; nullable-flow cleanup verified with zero compiler warnings.
 
 ## Next recommended step
 
-After **1042/1042 GREEN, zero compiler warnings** is confirmed, record the clean checkpoint and continue the bootstrap `JsonsOptions` audit with the adjacent whitespace `RootDirectory` contract. Keep production unchanged until that focused test establishes the current response and filesystem side-effect shape.
+Continue the bootstrap `JsonsOptions` audit with one focused contract for `RootDirectory = whitespace`, reusing the existing `ErrorCatalogContextProvider` contract:
+
+```text
+WIF_JSONS_ROOT_DIRECTORY_EMPTY
+The JSON root directory cannot be empty.
+```
+
+Use an isolated absolute temporary `PackageDirectoryName` so the current erroneous behavior can be observed safely outside the repository. Require rejection before any filesystem side effect. Keep production unchanged until the focused run establishes the current response and side-effect shape.
