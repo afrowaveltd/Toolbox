@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite baseline: **1039/1039 GREEN**.
+- Complete `WhenItFails.Tests` suite: **1040/1040 GREEN, zero compiler warnings**.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
 - `BuiltInErrorCatalogContextProvider` dependency-boundary audit is complete for the current scope.
@@ -19,11 +19,11 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` boundary is complete for malformed results, ordinary-exception normalization and exact-instance cancellation propagation.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
-- `ErrorProfileSelectionService` now classifies null `ErrorCatalogDocument.Errors`, null error definitions, all three resolver-consumed `ErrorDefinition` collections (`Categories`, `Subcategories`, `Tags`), and all resolver-consumed profile collections as malformed input rather than resolver failure.
-- Scalar `ErrorDefinition` reconnaissance did not reveal an exception boundary: `ErrorProfileResolver` treats missing scalar filter values as non-matches. Duplicating the full validator inside selection service is therefore intentionally deferred.
-- `JsonsBootstrapper` whitespace `PackageDirectoryName` RED is locally confirmed and the smallest pre-filesystem production guard is committed; focused/full GREEN verification is pending.
+- `ErrorProfileSelectionService` classifies all resolver-consumed nullable collections currently audited as malformed input rather than resolver failure.
+- Scalar `ErrorDefinition` reconnaissance did not reveal an exception boundary; duplicating the full validator inside selection service remains intentionally deferred.
+- `JsonsBootstrapper` now rejects a whitespace `PackageDirectoryName` before any filesystem operation, reusing the stable `ErrorCatalogContextProvider` contract.
 
-## 2026-09-17 — bootstrap whitespace package-directory-name fix
+## 2026-09-17 — 1040/1040 GREEN bootstrap whitespace package-directory checkpoint
 
 Contract commit:
 `e3ddf3e94be3e562382a1fcd7b27719fa29fd90d`
@@ -31,14 +31,21 @@ Contract commit:
 Production guard commit:
 `c1ca5693f37bc129edde761b2452f4548edc2a0b`
 
-Baseline checkpoint commit:
+Previous checkpoint commit:
 `715659225484ff68d50a4c9d92185ba960587eda`
 
-Contract:
+Locally verified:
 
-`EnsureWorkspaceAsync_WhenPackageDirectoryNameIsWhitespace_ReturnsInvalidWithoutCreatingWorkspace`
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1040
+Skipped:  0
+Total:  1040
+Compiler warnings: 0
+```
 
-`ErrorCatalogContextProvider.ValidateJsonsOptions(...)` already defines the stable contract for the same `JsonsOptions` field:
+`JsonsBootstrapper.EnsureWorkspaceAsync(...)` rejects a whitespace `PackageDirectoryName` before entering the filesystem block and returns:
 
 ```text
 Status: Invalid
@@ -47,20 +54,9 @@ Code: WIF_JSONS_PACKAGE_DIRECTORY_NAME_EMPTY
 Message: The package directory name cannot be empty.
 ```
 
-The focused run confirmed the expected RED:
+The focused contract also verifies that the invalid configuration creates no root workspace directory.
 
-```text
-Expected: Invalid
-Actual:   Success
-```
-
-Before the fix, `JsonsBootstrapper` trimmed whitespace to an empty package name, combined it with `RootDirectory`, treated the root itself as the package directory, and could create/use that directory before returning success.
-
-Production change in `WhenItFails/Bootstrap/JsonsBootstrapper.cs` is intentionally narrow: a non-null whitespace `PackageDirectoryName` is now rejected with the established contract above immediately after cancellation/options checks and before entering the filesystem block.
-
-The null `PackageDirectoryName` case is intentionally unchanged until it has its own focused contract, because the established provider contract distinguishes null from empty configuration.
-
-Expected complete-suite count after verification: **1040/1040 GREEN**.
+The null `PackageDirectoryName` case remains intentionally unchanged and is the next concrete bootstrap-boundary contract.
 
 ## 2026-09-17 — 1039/1039 GREEN null error-categories checkpoint
 
@@ -83,16 +79,7 @@ Skipped:  0
 Total:  1039
 ```
 
-`ErrorProfileSelectionService.ResolveByProfileName(...)` rejects an `ErrorDefinition` whose `Categories` collection is null before invoking the resolver and reuses the established validator/cross-validator contract:
-
-```text
-Status: Invalid
-Data: null
-Code: ErrorCategoriesCollectionIsNull
-Message: Error categories collection is null.
-```
-
-This completes the current resolver-consumed collection-shape audit for `ErrorProfileSelectionService`.
+This completed the current resolver-consumed collection-shape audit for `ErrorProfileSelectionService`.
 
 ## Established transparent lower boundary — do not normalize
 
@@ -117,23 +104,15 @@ Do not replace those transparent contracts with normalization at that layer.
 - 1037/1037 — profile selection null error-subcategories classification complete.
 - 1038/1038 — profile selection null error-tags classification complete.
 - 1039/1039 — profile selection null error-categories classification complete; resolver-consumed collection-shape audit closed.
-
-## Recommended verification
-
-Pull current `master` and run:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenPackageDirectoryNameIsWhitespace_ReturnsInvalidWithoutCreatingWorkspace"
-dotnet test WhenItFails.Tests
-```
-
-Expected results:
-
-```text
-Focused contract: GREEN
-Complete suite: 1040/1040 GREEN
-```
+- 1040/1040 — bootstrap whitespace package directory name rejected before filesystem mutation.
 
 ## Next recommended step
 
-After **1040/1040 GREEN** is confirmed, record the checkpoint and continue the `JsonsOptions` bootstrap-boundary audit one concrete contract at a time. The adjacent null `PackageDirectoryName` and malformed/empty `RootDirectory` cases already have stable contracts in `ErrorCatalogContextProvider`; add no production behavior until each focused test establishes the current bootstrap response/side-effect shape.
+Add one focused `JsonsBootstrapper` contract for `PackageDirectoryName = null`, reusing the existing `ErrorCatalogContextProvider` contract:
+
+```text
+WIF_JSONS_PACKAGE_DIRECTORY_NAME_NULL
+The package directory name cannot be null.
+```
+
+Require rejection before any filesystem side effect. Keep production unchanged until the focused run establishes the current behavior.
