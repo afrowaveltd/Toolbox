@@ -29,6 +29,14 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(options);
 
+        if (options.PackageDirectoryName is not null
+            && string.IsNullOrWhiteSpace(options.PackageDirectoryName))
+        {
+            return Response<JsonsBootstrapPayload>.Invalid(
+                code: "WIF_JSONS_PACKAGE_DIRECTORY_NAME_EMPTY",
+                message: "The package directory name cannot be empty.");
+        }
+
         try
         {
             string rootDirectory = NormalizePath(options.RootDirectory);
