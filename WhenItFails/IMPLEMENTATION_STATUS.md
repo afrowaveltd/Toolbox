@@ -10,8 +10,8 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1041/1041 GREEN, zero compiler warnings**.
-- The SDK emitted `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from the Toolbox code.
+- Complete `WhenItFails.Tests` suite baseline: **1041/1041 GREEN, zero compiler warnings**.
+- The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
 - `BuiltInErrorCatalogContextProvider` dependency-boundary audit is complete for the current scope.
@@ -21,21 +21,19 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies all resolver-consumed nullable collections currently audited as malformed input rather than resolver failure.
-- Scalar `ErrorDefinition` reconnaissance did not reveal an exception boundary; duplicating the full validator inside selection service remains intentionally deferred.
-- `JsonsBootstrapper` now rejects both whitespace and null `PackageDirectoryName` before any filesystem operation, reusing the stable `ErrorCatalogContextProvider` contracts.
-- A focused contract for `RootDirectory = null` is committed and awaits local RED verification; production is intentionally unchanged for this case.
+- `JsonsBootstrapper` rejects null/whitespace `PackageDirectoryName` before filesystem mutation.
+- The focused `RootDirectory = null` contract is locally confirmed RED and the smallest pre-filesystem production guard is committed; focused/full GREEN verification is pending.
 
-## 2026-09-17 — bootstrap null root-directory contract
+## 2026-09-17 — bootstrap null root-directory fix
 
 Contract commit:
 `157118d9ec08a879da8fc364c03b3e4f3b260ec6`
 
+Production guard commit:
+`f30cd7cea9ff3e9f1a5e7b4ac2ff29b26fe3fe5d`
+
 Baseline checkpoint commit:
 `86e8018eab7e7be03eaebd6dd8edb4d970d7fe3c`
-
-Added:
-
-`WhenItFails.Tests/Bootstrap/JsonsBootstrapperNullRootDirectoryContractTests.cs`
 
 Contract:
 
@@ -50,20 +48,30 @@ Code: WIF_JSONS_ROOT_DIRECTORY_NULL
 Message: The JSON root directory cannot be null.
 ```
 
-The fixture uses an isolated absolute temporary path as `PackageDirectoryName`. This is deliberate: with current production behavior, `NormalizePath(null)` collapses the root to an empty string and `Path.Combine("", absolutePackagePath)` resolves to that isolated temporary path. The focused test can therefore observe any filesystem mutation safely without creating a relative directory inside the repository.
-
-The focused test requires that the absolute temporary package path remain absent.
-
-Production is intentionally unchanged before the focused run. With an empty template provider, current behavior is expected to create/use the isolated temporary package directory and return `Success`.
-
-Expected current focused result:
+The focused run confirmed the expected RED:
 
 ```text
 Expected: Invalid
 Actual:   Success
 ```
 
-Expected eventual complete-suite count after this contract passes: **1042/1042 GREEN, zero compiler warnings**.
+It also exposed a real nullable-flow compiler warning in production:
+
+```text
+WhenItFails/Bootstrap/JsonsBootstrapper.cs(50,57): warning CS8604:
+Possible null reference argument for parameter 'path' in
+'string JsonsBootstrapper.NormalizePath(string path)'.
+```
+
+`NETSDK1057` remains informational and is not counted as a compiler warning.
+
+The fixture uses an isolated absolute temporary `PackageDirectoryName`, so the pre-fix filesystem side effect remains confined to the temporary directory and cannot create a relative directory in the repository.
+
+Production change is intentionally minimal: `JsonsBootstrapper.EnsureWorkspaceAsync(...)` now rejects `options.RootDirectory is null` immediately after cancellation/options checks and before package-directory validation or any filesystem operation, using exactly the stable contract above.
+
+This guard is expected to resolve both the response-shape mismatch and the CS8604 nullable warning. That must be verified locally rather than assumed.
+
+Expected complete-suite result after verification: **1042/1042 GREEN, zero compiler warnings**.
 
 ## 2026-09-17 — 1041/1041 GREEN bootstrap null package-directory checkpoint
 
@@ -87,8 +95,6 @@ Total:  1041
 Compiler warnings: 0
 ```
 
-The local SDK emitted `NETSDK1057` messages for `.NET 11.0.100-rc.1`; they are informational SDK support-policy messages and do not change the zero-warning code checkpoint.
-
 `JsonsBootstrapper.EnsureWorkspaceAsync(...)` rejects `PackageDirectoryName = null` before entering the filesystem block and returns:
 
 ```text
@@ -97,41 +103,6 @@ Data: null
 Code: WIF_JSONS_PACKAGE_DIRECTORY_NAME_NULL
 Message: The package directory name cannot be null.
 ```
-
-The focused contract also verifies that invalid configuration creates no root workspace directory.
-
-## 2026-09-17 — 1040/1040 GREEN bootstrap whitespace package-directory checkpoint
-
-Contract commit:
-`e3ddf3e94be3e562382a1fcd7b27719fa29fd90d`
-
-Production guard commit:
-`c1ca5693f37bc129edde761b2452f4548edc2a0b`
-
-Checkpoint commit:
-`b8e2b7161584936d4b7c570db7c07d4a746397e4`
-
-Locally verified:
-
-```text
-WhenItFails.Tests
-Failed:   0
-Passed: 1040
-Skipped:  0
-Total:  1040
-Compiler warnings: 0
-```
-
-`JsonsBootstrapper.EnsureWorkspaceAsync(...)` rejects a whitespace `PackageDirectoryName` before entering the filesystem block and returns:
-
-```text
-Status: Invalid
-Data: null
-Code: WIF_JSONS_PACKAGE_DIRECTORY_NAME_EMPTY
-Message: The package directory name cannot be empty.
-```
-
-The focused contract also verifies that invalid configuration creates no root workspace directory.
 
 ## Established transparent lower boundary — do not normalize
 
@@ -159,21 +130,23 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run only the focused null-root contract:
+Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenRootDirectoryIsNull_ReturnsInvalidWithoutCreatingWorkspace"
+dotnet test WhenItFails.Tests
 ```
 
-Expected current result: **RED** with `Actual: Success` rather than the expected `Invalid`.
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1042/1042 GREEN
+Compiler warnings: 0
+```
+
+Ignore `NETSDK1057` when counting compiler warnings; it is an SDK informational support-policy message.
 
 ## Next recommended step
 
-If RED confirms the response-shape mismatch, add the smallest `JsonsBootstrapper` precondition for null `RootDirectory`, reusing exactly:
-
-```text
-WIF_JSONS_ROOT_DIRECTORY_NULL
-The JSON root directory cannot be null.
-```
-
-The guard must execute before any filesystem operation. Then run focused and complete suites before moving to the whitespace `RootDirectory` contract.
+After **1042/1042 GREEN, zero compiler warnings** is confirmed, record the checkpoint and continue the bootstrap `JsonsOptions` audit with the adjacent whitespace `RootDirectory` contract. Keep production unchanged until that focused test establishes the current response and filesystem side-effect shape.
