@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1037/1037 GREEN**.
+- Complete `WhenItFails.Tests` suite baseline: **1037/1037 GREEN**.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
 - `BuiltInErrorCatalogContextProvider` dependency-boundary audit is complete for the current scope.
@@ -20,41 +20,48 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies null `ErrorCatalogDocument.Errors`, null error definitions, null `ErrorDefinition.Subcategories`, and all resolver-consumed profile collections (`IncludeOwners`, `IncludeCodeGroups`, `IncludeCategories`, `IncludeSubcategories`, `IncludeTags`, `ExcludeTags`, `IncludeErrors`, `ExcludeErrors`) as malformed input rather than resolver failure.
-- A focused contract for null `ErrorDefinition.Tags` is committed and awaits local RED verification.
+- The null `ErrorDefinition.Tags` RED is locally confirmed and the smallest production guard is committed; focused/full GREEN verification is pending.
 
-## 2026-09-17 — profile selection null error-tags contract
+## 2026-09-17 — profile selection null error-tags fix
 
 Contract commit:
 `8275c809bb21a9c9a7d9c46e5c66c01bf8507bc8`
 
+Production guard commit:
+`5e2ab50603ea623ff71a7dbef4d64336702c6981`
+
 Baseline checkpoint commit:
 `2823891cec007edbc331370ce7f3cef97bd8420c`
-
-Added:
-
-`WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceNullErrorTagsCollectionContractTests.cs`
 
 Contract:
 
 `ResolveByProfileName_WhenErrorTagsCollectionIsNull_ReturnsInvalidResponse`
 
-`ErrorCatalogValidator` already defines the stable malformed-error contract:
+`ErrorCatalogValidator` defines the stable malformed-error contract:
 
 ```text
 Status: Invalid
+Data: null
 Code: ErrorTagsCollectionIsNull
 Message: Error tags collection is null.
 ```
 
-The fixture is deliberately isolated:
+The isolated focused run confirmed the expected selection-service RED:
 
-- malformed state exists only in `ErrorCatalogDocument` (`ErrorDefinition.Tags = null!`),
-- runtime `context.ErrorCatalog` is an independent valid empty catalog,
-- the profile uses `IncludeTags = ["NETWORK"]` so resolver short-circuiting cannot bypass the malformed collection.
+```text
+Expected: Invalid
+Actual:   Failed
+```
 
-Production is intentionally unchanged before the focused run. Current `ErrorProfileResolver` should enumerate the null `Tags` collection when applying the non-empty tag filter, causing an ordinary exception that `ErrorProfileSelectionService` normalizes as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
+The malformed state exists only in `ErrorCatalogDocument`; runtime `context.ErrorCatalog` is an independent valid empty catalog, and the profile uses a non-empty `IncludeTags` filter so the resolver necessarily consumes the null collection.
 
-Expected eventual complete-suite count after this contract passes: **1038/1038 GREEN**.
+The null `ErrorDefinition.Tags` collection reached `ErrorProfileResolver.Resolve(...)` and was normalized by the dependency exception boundary as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
+
+Production change in `WhenItFails/Resolution/ErrorProfileSelectionService.cs` is intentionally minimal: after the existing null-definition and null-subcategories guards, the service now rejects any error definition whose `Tags` collection is null and reuses the established validator contract above.
+
+No resolver exception, cancellation, profile lookup, profile collection, or unrelated response behavior was changed.
+
+Expected complete-suite count after verification: **1038/1038 GREEN**.
 
 ## 2026-09-17 — 1037/1037 GREEN null error-subcategories checkpoint
 
@@ -112,21 +119,20 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run only the focused contract:
+Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenErrorTagsCollectionIsNull_ReturnsInvalidResponse"
+dotnet test WhenItFails.Tests
 ```
 
-Expected current result: **RED** with `Actual: Failed` rather than the expected `Invalid`.
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1038/1038 GREEN
+```
 
 ## Next recommended step
 
-If RED confirms the response-shape mismatch, add the smallest `ErrorProfileSelectionService` guard for null `ErrorDefinition.Tags`, reusing exactly:
-
-```text
-ErrorTagsCollectionIsNull
-Error tags collection is null.
-```
-
-Then run focused and complete suites. After GREEN, perform fresh reconnaissance rather than assuming another guard is needed.
+After **1038/1038 GREEN** is confirmed, record the checkpoint and perform fresh reconnaissance across the remaining resolver-consumed `ErrorDefinition` shape and existing validator contracts rather than adding further guards speculatively.
