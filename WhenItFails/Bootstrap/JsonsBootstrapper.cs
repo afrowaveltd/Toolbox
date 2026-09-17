@@ -36,6 +36,13 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                 message: "The JSON root directory cannot be null.");
         }
 
+        if (string.IsNullOrWhiteSpace(options.RootDirectory))
+        {
+            return Response<JsonsBootstrapPayload>.Invalid(
+                code: "WIF_JSONS_ROOT_DIRECTORY_EMPTY",
+                message: "The JSON root directory cannot be empty.");
+        }
+
         string? packageDirectoryName = options.PackageDirectoryName;
 
         if (packageDirectoryName is null)
