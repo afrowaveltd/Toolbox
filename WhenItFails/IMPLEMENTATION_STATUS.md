@@ -20,41 +20,48 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies null `ErrorCatalogDocument.Errors`, null error definitions, and all resolver-consumed profile collections (`IncludeOwners`, `IncludeCodeGroups`, `IncludeCategories`, `IncludeSubcategories`, `IncludeTags`, `ExcludeTags`, `IncludeErrors`, `ExcludeErrors`) as malformed input rather than resolver failure.
-- A focused contract for null `ErrorDefinition.Subcategories` is committed and awaits local RED verification.
+- The null `ErrorDefinition.Subcategories` RED is locally confirmed and the smallest production guard is committed; focused/full GREEN verification is pending.
 
-## 2026-09-17 — profile selection null error-subcategories contract
+## 2026-09-17 — profile selection null error-subcategories fix
 
 Contract commit:
 `d994cf77ab602afbef1daa3645230202be8863c3`
 
+Production guard commit:
+`986743006a72549ea7c8be7cc15066682da11d86`
+
 Baseline checkpoint commit:
 `bb833a5382315b88b054c90dca6316d24dd0ddda`
-
-Added:
-
-`WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceNullErrorSubcategoriesCollectionContractTests.cs`
 
 Contract:
 
 `ResolveByProfileName_WhenErrorSubcategoriesCollectionIsNull_ReturnsInvalidResponse`
 
-`ErrorCatalogValidator` already defines the stable malformed-error contract:
+`ErrorCatalogValidator` defines the stable malformed-error contract:
 
 ```text
 Status: Invalid
+Data: null
 Code: ErrorSubcategoriesCollectionIsNull
 Message: Error subcategories collection is null.
 ```
 
-The fixture is deliberately isolated:
+The isolated focused run confirmed the expected selection-service RED:
 
-- malformed state exists only in `ErrorCatalogDocument` (`ErrorDefinition.Subcategories = null!`),
-- runtime `context.ErrorCatalog` is an independent valid empty catalog,
-- the profile uses `IncludeSubcategories = ["NETWORK"]` so resolver short-circuiting cannot bypass the malformed collection.
+```text
+Expected: Invalid
+Actual:   Failed
+```
 
-Production is intentionally unchanged before the focused run. Current `ErrorProfileResolver` should enumerate the null `Subcategories` collection when applying the non-empty subcategory filter, causing an ordinary exception that `ErrorProfileSelectionService` normalizes as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
+The malformed state exists only in `ErrorCatalogDocument`; runtime `context.ErrorCatalog` is an independent valid empty catalog, and the profile uses a non-empty `IncludeSubcategories` filter so the resolver necessarily consumes the null collection.
 
-Expected eventual complete-suite count after this contract passes: **1037/1037 GREEN with zero compiler warnings**.
+The null `ErrorDefinition.Subcategories` collection reached `ErrorProfileResolver.Resolve(...)` and was normalized by the dependency exception boundary as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
+
+Production change in `WhenItFails/Resolution/ErrorProfileSelectionService.cs` is intentionally minimal: after rejecting null error definitions, the service now rejects any error definition whose `Subcategories` collection is null and reuses the established validator contract above.
+
+No resolver exception, cancellation, profile lookup, profile collection, or unrelated response behavior was changed.
+
+Expected complete-suite count after verification: **1037/1037 GREEN with zero compiler warnings**.
 
 ## 2026-09-17 — 1036/1036 GREEN null error-definition checkpoint
 
@@ -127,21 +134,21 @@ Continue one concrete contract at a time and keep malformed documents isolated f
 
 ## Recommended verification
 
-Pull current `master` and run only the focused contract:
+Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenErrorSubcategoriesCollectionIsNull_ReturnsInvalidResponse"
+dotnet test WhenItFails.Tests
 ```
 
-Expected current result: **RED** with `Actual: Failed` rather than the expected `Invalid`.
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1037/1037 GREEN
+Compiler warnings: 0
+```
 
 ## Next recommended step
 
-If RED confirms the response-shape mismatch, add the smallest `ErrorProfileSelectionService` guard for null `ErrorDefinition.Subcategories`, reusing exactly:
-
-```text
-ErrorSubcategoriesCollectionIsNull
-Error subcategories collection is null.
-```
-
-Then run focused and complete suites before proceeding to `ErrorDefinition.Tags = null`.
+After **1037/1037 GREEN** is confirmed, record the checkpoint and continue with `ErrorDefinition.Tags = null`, reusing the stable validator contract `ErrorTagsCollectionIsNull / Error tags collection is null.`.
