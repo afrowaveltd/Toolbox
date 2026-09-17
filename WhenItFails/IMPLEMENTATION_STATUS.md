@@ -20,6 +20,41 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies null `ErrorCatalogDocument.Errors`, null error definitions, and all resolver-consumed profile collections (`IncludeOwners`, `IncludeCodeGroups`, `IncludeCategories`, `IncludeSubcategories`, `IncludeTags`, `ExcludeTags`, `IncludeErrors`, `ExcludeErrors`) as malformed input rather than resolver failure.
+- A focused contract for null `ErrorDefinition.Subcategories` is committed and awaits local RED verification.
+
+## 2026-09-17 — profile selection null error-subcategories contract
+
+Contract commit:
+`d994cf77ab602afbef1daa3645230202be8863c3`
+
+Baseline checkpoint commit:
+`bb833a5382315b88b054c90dca6316d24dd0ddda`
+
+Added:
+
+`WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceNullErrorSubcategoriesCollectionContractTests.cs`
+
+Contract:
+
+`ResolveByProfileName_WhenErrorSubcategoriesCollectionIsNull_ReturnsInvalidResponse`
+
+`ErrorCatalogValidator` already defines the stable malformed-error contract:
+
+```text
+Status: Invalid
+Code: ErrorSubcategoriesCollectionIsNull
+Message: Error subcategories collection is null.
+```
+
+The fixture is deliberately isolated:
+
+- malformed state exists only in `ErrorCatalogDocument` (`ErrorDefinition.Subcategories = null!`),
+- runtime `context.ErrorCatalog` is an independent valid empty catalog,
+- the profile uses `IncludeSubcategories = ["NETWORK"]` so resolver short-circuiting cannot bypass the malformed collection.
+
+Production is intentionally unchanged before the focused run. Current `ErrorProfileResolver` should enumerate the null `Subcategories` collection when applying the non-empty subcategory filter, causing an ordinary exception that `ErrorProfileSelectionService` normalizes as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
+
+Expected eventual complete-suite count after this contract passes: **1037/1037 GREEN with zero compiler warnings**.
 
 ## 2026-09-17 — 1036/1036 GREEN null error-definition checkpoint
 
@@ -32,8 +67,8 @@ Fixture-isolation commit:
 Production guard commit:
 `295c49c7f2bd39132f864f6f5d3eb77d07a333d9`
 
-Previous checkpoint commit:
-`471f7366b55e927ec73afb436f6fbe3c10773fbf`
+Checkpoint commit:
+`bb833a5382315b88b054c90dca6316d24dd0ddda`
 
 Locally verified:
 
@@ -46,7 +81,7 @@ Total:  1036
 Compiler warnings: 0
 ```
 
-`ErrorProfileSelectionService.ResolveByProfileName(...)` rejects a null `ErrorDefinition` before invoking the resolver and reuses the established `ErrorCatalogValidator` contract:
+`ErrorProfileSelectionService.ResolveByProfileName(...)` rejects a null `ErrorDefinition` before invoking the resolver and reuses the established validator contract:
 
 ```text
 Status: Invalid
@@ -54,21 +89,6 @@ Data: null
 Code: ErrorDefinitionIsNull
 Message: Error catalog contains a null error definition.
 ```
-
-The initial focused test fixture accidentally constructed the runtime `ErrorCatalog` from malformed data and therefore failed in `ErrorCatalog.BuildIndexes()` before reaching the selection service. The isolated fixture keeps malformed data only in `ErrorCatalogDocument` and uses an independent valid runtime catalog; that focused RED then correctly demonstrated `Failed` vs `Invalid` before the production fix.
-
-## 2026-09-15 — 1035/1035 GREEN malformed profile collection series complete
-
-Final malformed-profile contract commit:
-`66662fea33e04940e197b2f5550921cfe333b6a1`
-
-Final production guard commit:
-`40bf621b8925cc923460890dd0652a1070e2909f`
-
-Checkpoint commit:
-`471f7366b55e927ec73afb436f6fbe3c10773fbf`
-
-This closes the malformed resolver-consumed profile collection series.
 
 ## Established transparent lower boundary — do not normalize
 
@@ -90,25 +110,38 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recent verified checkpoints
 
-- 1033/1033 — profile selection null exclude-tags classification complete.
 - 1034/1034 — profile selection null include-errors classification complete.
 - 1035/1035 — profile selection null exclude-errors classification complete; malformed resolver-consumed profile collection series closed.
 - 1036/1036 — profile selection null error-definition classification complete.
 
 ## Reconnaissance notes
 
-`ErrorProfileResolver` consumes each non-null `ErrorDefinition`'s `Subcategories` and `Tags` collections. `ErrorCatalogValidator` already defines stable malformed contracts:
+After `Subcategories`, `ErrorProfileResolver` also consumes each `ErrorDefinition.Tags` collection. `ErrorCatalogValidator` defines the stable malformed tag contract:
 
 ```text
-ErrorSubcategoriesCollectionIsNull
-Error subcategories collection is null.
-
 ErrorTagsCollectionIsNull
 Error tags collection is null.
 ```
 
-For a meaningful null-`Subcategories` resolver test, the profile must contain a non-empty `IncludeSubcategories` filter; otherwise resolver short-circuiting does not enumerate the malformed collection. Keep the malformed `ErrorCatalogDocument` isolated from the runtime `ErrorCatalog`, which is intended to contain already validated definitions.
+Continue one concrete contract at a time and keep malformed documents isolated from runtime `ErrorCatalog` construction.
+
+## Recommended verification
+
+Pull current `master` and run only the focused contract:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenErrorSubcategoriesCollectionIsNull_ReturnsInvalidResponse"
+```
+
+Expected current result: **RED** with `Actual: Failed` rather than the expected `Invalid`.
 
 ## Next recommended step
 
-Add one focused `ErrorProfileSelectionService` contract for `ErrorDefinition.Subcategories = null`, with a non-empty `IncludeSubcategories` filter and an independent valid runtime `ErrorCatalog`. Production should remain unchanged until the focused run establishes the current behavior.
+If RED confirms the response-shape mismatch, add the smallest `ErrorProfileSelectionService` guard for null `ErrorDefinition.Subcategories`, reusing exactly:
+
+```text
+ErrorSubcategoriesCollectionIsNull
+Error subcategories collection is null.
+```
+
+Then run focused and complete suites before proceeding to `ErrorDefinition.Tags = null`.
