@@ -23,19 +23,18 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorProfileSelectionService` classifies all resolver-consumed nullable collections currently audited as malformed input rather than resolver failure.
 - `JsonsBootstrapper` rejects null/whitespace `PackageDirectoryName` and null `RootDirectory` before filesystem mutation.
 - `PackageDirectoryName` nullable-flow cleanup is locally verified with zero compiler warnings.
-- A focused contract for whitespace `RootDirectory` is committed and awaits local RED verification; production is intentionally unchanged for this case.
+- The focused whitespace `RootDirectory` RED is locally confirmed and the smallest pre-filesystem production guard is committed; focused/full GREEN verification is pending.
 
-## 2026-09-17 — bootstrap whitespace root-directory contract
+## 2026-09-17 — bootstrap whitespace root-directory fix
 
 Contract commit:
 `b35339be52737211d29516a66db57a43b359e7f5`
 
+Production guard commit:
+`3f5fcceafac6c7662822c49c3810d4dadd1a77c6`
+
 Baseline checkpoint commit:
 `a203fdf8f601b51a9448241f10a838f21af7c299`
-
-Added:
-
-`WhenItFails.Tests/Bootstrap/JsonsBootstrapperWhitespaceRootDirectoryContractTests.cs`
 
 Contract:
 
@@ -50,20 +49,18 @@ Code: WIF_JSONS_ROOT_DIRECTORY_EMPTY
 Message: The JSON root directory cannot be empty.
 ```
 
-The fixture uses an isolated absolute temporary path as `PackageDirectoryName`. With current production behavior, whitespace `RootDirectory` is normalized to an empty string and `Path.Combine("", absolutePackagePath)` resolves to that isolated temporary path. The focused test can therefore observe any filesystem mutation safely outside the repository.
-
-The contract requires the absolute temporary package path to remain absent.
-
-Production is intentionally unchanged before the focused run. With an empty template provider, current behavior is expected to create/use the isolated temporary package directory and return `Success`.
-
-Expected current focused result:
+The focused run confirmed the expected RED:
 
 ```text
 Expected: Invalid
 Actual:   Success
 ```
 
-Expected eventual complete-suite count after this contract passes: **1043/1043 GREEN, zero compiler warnings**.
+Before the fix, whitespace `RootDirectory` was normalized to an empty string. With the isolated absolute temporary `PackageDirectoryName` used by the test, bootstrap could therefore create/use that temporary directory and return `Success`.
+
+Production change in `WhenItFails/Bootstrap/JsonsBootstrapper.cs` is intentionally narrow: a whitespace `RootDirectory` is now rejected immediately after the existing null-root guard and before package-directory validation or any filesystem operation.
+
+Expected complete-suite result after verification: **1043/1043 GREEN, zero compiler warnings**.
 
 ## 2026-09-17 — 1042/1042 GREEN clean bootstrap null root-directory checkpoint
 
@@ -127,21 +124,23 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run only the focused whitespace-root contract:
+Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenRootDirectoryIsWhitespace_ReturnsInvalidWithoutCreatingWorkspace"
+dotnet test WhenItFails.Tests
 ```
 
-Expected current result: **RED** with `Actual: Success` rather than the expected `Invalid`.
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1043/1043 GREEN
+Compiler warnings: 0
+```
+
+Ignore `NETSDK1057` when counting compiler warnings; it is an SDK informational support-policy message.
 
 ## Next recommended step
 
-If RED confirms the response-shape mismatch, add the smallest `JsonsBootstrapper` precondition for whitespace `RootDirectory`, reusing exactly:
-
-```text
-WIF_JSONS_ROOT_DIRECTORY_EMPTY
-The JSON root directory cannot be empty.
-```
-
-The guard must execute before any filesystem operation. Then run focused and complete suites before expanding the `JsonsOptions` bootstrap audit further.
+After **1043/1043 GREEN, zero compiler warnings** is confirmed, record the checkpoint and continue the bootstrap `JsonsOptions` audit from the remaining filename/path contracts rather than adding broader validation without focused evidence.
