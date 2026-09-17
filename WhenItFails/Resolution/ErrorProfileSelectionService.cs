@@ -63,6 +63,13 @@ public sealed class ErrorProfileSelectionService
                 message: "Error catalog contains a null error definition.");
         }
 
+        if (context.ErrorCatalogDocument.Errors.Any(error => error.Categories is null))
+        {
+            return Response<IReadOnlyList<ErrorDefinition>>.Invalid(
+                code: "ErrorCategoriesCollectionIsNull",
+                message: "Error categories collection is null.");
+        }
+
         if (context.ErrorCatalogDocument.Errors.Any(error => error.Subcategories is null))
         {
             return Response<IReadOnlyList<ErrorDefinition>>.Invalid(
