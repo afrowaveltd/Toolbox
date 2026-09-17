@@ -10,7 +10,8 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1040/1040 GREEN, zero compiler warnings**.
+- Complete `WhenItFails.Tests` suite: **1041/1041 GREEN, zero compiler warnings**.
+- The SDK emitted `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from the Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
 - `BuiltInErrorCatalogContextProvider` dependency-boundary audit is complete for the current scope.
@@ -21,10 +22,9 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies all resolver-consumed nullable collections currently audited as malformed input rather than resolver failure.
 - Scalar `ErrorDefinition` reconnaissance did not reveal an exception boundary; duplicating the full validator inside selection service remains intentionally deferred.
-- `JsonsBootstrapper` rejects a whitespace `PackageDirectoryName` before any filesystem operation.
-- The focused `PackageDirectoryName = null` RED is locally confirmed and the smallest pre-filesystem production guard is committed; focused/full GREEN verification is pending.
+- `JsonsBootstrapper` now rejects both whitespace and null `PackageDirectoryName` before any filesystem operation, reusing the stable `ErrorCatalogContextProvider` contracts.
 
-## 2026-09-17 — bootstrap null package-directory-name fix
+## 2026-09-17 — 1041/1041 GREEN bootstrap null package-directory checkpoint
 
 Contract commit:
 `d4d4cea2e00f3ba5a7968afa8eedeb99c8a4c99a`
@@ -32,14 +32,23 @@ Contract commit:
 Production guard commit:
 `de85b3c460448d0dbe255dd3663e79cc05e4db4f`
 
-Baseline checkpoint commit:
+Previous checkpoint commit:
 `b8e2b7161584936d4b7c570db7c07d4a746397e4`
 
-Contract:
+Locally verified:
 
-`EnsureWorkspaceAsync_WhenPackageDirectoryNameIsNull_ReturnsInvalidWithoutCreatingWorkspace`
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1041
+Skipped:  0
+Total:  1041
+Compiler warnings: 0
+```
 
-`ErrorCatalogContextProvider.ValidateJsonsOptions(...)` defines the stable contract:
+The local SDK emitted `NETSDK1057` messages for `.NET 11.0.100-rc.1`; they are informational SDK support-policy messages and do not change the zero-warning code checkpoint.
+
+`JsonsBootstrapper.EnsureWorkspaceAsync(...)` rejects `PackageDirectoryName = null` before entering the filesystem block and returns:
 
 ```text
 Status: Invalid
@@ -48,20 +57,7 @@ Code: WIF_JSONS_PACKAGE_DIRECTORY_NAME_NULL
 Message: The package directory name cannot be null.
 ```
 
-The focused run confirmed the expected RED:
-
-```text
-Expected: Invalid
-Actual:   Success
-```
-
-Before the fix, `NormalizePath(null)` collapsed the null package directory name to an empty string, allowing the bootstrapper to use/create the root directory itself and return `Success` with an empty template provider.
-
-Production change in `WhenItFails/Bootstrap/JsonsBootstrapper.cs` is intentionally narrow: a null `PackageDirectoryName` is now rejected immediately after cancellation/options checks and before the existing whitespace guard or any filesystem operation.
-
-The focused RED build reported **1 compiler warning**. The warning text was not included in the reported excerpt, so its source is not yet classified. The last verified complete-suite checkpoint remains **1040/1040 GREEN with zero warnings**; warning status must be checked again on the post-fix focused/full run rather than assumed.
-
-Expected complete-suite count after verification: **1041/1041 GREEN**.
+The focused contract also verifies that invalid configuration creates no root workspace directory.
 
 ## 2026-09-17 — 1040/1040 GREEN bootstrap whitespace package-directory checkpoint
 
@@ -96,29 +92,6 @@ Message: The package directory name cannot be empty.
 
 The focused contract also verifies that invalid configuration creates no root workspace directory.
 
-## 2026-09-17 — 1039/1039 GREEN null error-categories checkpoint
-
-Contract commit:
-`f34a2c0a3c90920771db962a7140ab881af53b2a`
-
-Production guard commit:
-`2872fce9108a85ebb76d0836c426df523ae1dbd9`
-
-Checkpoint commit:
-`715659225484ff68d50a4c9d92185ba960587eda`
-
-Locally verified:
-
-```text
-WhenItFails.Tests
-Failed:   0
-Passed: 1039
-Skipped:  0
-Total:  1039
-```
-
-This completed the current resolver-consumed collection-shape audit for `ErrorProfileSelectionService`.
-
 ## Established transparent lower boundary — do not normalize
 
 `ErrorCatalogContextProvider.LoadFromJsonsAsync(...)` intentionally preserves exceptions and null-task behavior from its five internal catalog providers.
@@ -139,28 +112,17 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recent verified checkpoints
 
-- 1038/1038 — profile selection null error-tags classification complete.
 - 1039/1039 — profile selection null error-categories classification complete; resolver-consumed collection-shape audit closed.
 - 1040/1040 — bootstrap whitespace package directory name rejected before filesystem mutation.
-
-## Recommended verification
-
-Pull current `master` and run:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenPackageDirectoryNameIsNull_ReturnsInvalidWithoutCreatingWorkspace"
-dotnet test WhenItFails.Tests
-```
-
-Expected results:
-
-```text
-Focused contract: GREEN
-Complete suite: 1041/1041 GREEN
-```
-
-Also check the compiler-warning count. If a warning is still present, capture its warning code/file/line before continuing so it can be classified rather than silently accepted.
+- 1041/1041 — bootstrap null package directory name rejected before filesystem mutation.
 
 ## Next recommended step
 
-After **1041/1041 GREEN** is confirmed, record the checkpoint and continue the `JsonsOptions` bootstrap-boundary audit one contract at a time. The next adjacent cases are null/whitespace `RootDirectory`, which already have stable contracts in `ErrorCatalogContextProvider`; add no production behavior until focused tests establish the current bootstrap response and side-effect shape.
+Continue the `JsonsOptions` bootstrap-boundary audit one contract at a time. The next concrete case is `RootDirectory = null`, for which `ErrorCatalogContextProvider` already defines the stable contract:
+
+```text
+WIF_JSONS_ROOT_DIRECTORY_NULL
+The JSON root directory cannot be null.
+```
+
+Use an isolated absolute temporary package path in the focused test so current erroneous behavior can be observed safely without creating a relative directory in the repository. Keep production unchanged until the focused run establishes the current response and side-effect shape.
