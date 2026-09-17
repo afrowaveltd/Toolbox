@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1038/1038 GREEN**.
+- Complete `WhenItFails.Tests` suite baseline: **1038/1038 GREEN**.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
 - `BuiltInErrorCatalogContextProvider` dependency-boundary audit is complete for the current scope.
@@ -20,42 +20,48 @@ Hardening dependency boundaries and malformed-context handling while preserving 
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies null `ErrorCatalogDocument.Errors`, null error definitions, null `ErrorDefinition.Subcategories`, null `ErrorDefinition.Tags`, and all resolver-consumed profile collections (`IncludeOwners`, `IncludeCodeGroups`, `IncludeCategories`, `IncludeSubcategories`, `IncludeTags`, `ExcludeTags`, `IncludeErrors`, `ExcludeErrors`) as malformed input rather than resolver failure.
-- A focused contract for null `ErrorDefinition.Categories` is committed and awaits local RED verification.
+- The isolated null `ErrorDefinition.Categories` contract is locally confirmed RED and the smallest production guard is committed; focused/full GREEN verification is pending.
 
-## 2026-09-17 — profile selection null error-categories contract
+## 2026-09-17 — profile selection null error-categories fix
 
 Contract commit:
 `f34a2c0a3c90920771db962a7140ab881af53b2a`
 
+Production guard commit:
+`2872fce9108a85ebb76d0836c426df523ae1dbd9`
+
 Baseline checkpoint commit:
 `acccd3a341460dbfc7be98206fdec586709510aa`
-
-Added:
-
-`WhenItFails.Tests/Resolution/ErrorProfileSelectionServiceNullErrorCategoriesCollectionContractTests.cs`
 
 Contract:
 
 `ResolveByProfileName_WhenErrorCategoriesCollectionIsNull_ReturnsInvalidResponse`
 
-`ErrorCatalogValidator` and `ErrorCatalogCrossValidator` already define the stable malformed-error contract:
+`ErrorCatalogValidator` and `ErrorCatalogCrossValidator` define the stable malformed-error contract:
 
 ```text
 Status: Invalid
+Data: null
 Code: ErrorCategoriesCollectionIsNull
 Message: Error categories collection is null.
 ```
 
-The fixture is deliberately isolated:
+The isolated focused run confirmed the expected selection-service RED:
 
-- malformed state exists only in `ErrorCatalogDocument` (`ErrorDefinition.Categories = null!`),
-- runtime `context.ErrorCatalog` is an independent valid empty catalog,
-- profile uses `IncludeCategories = ["NETWORK"]`,
-- `PrimaryCategory = "OTHER"`, so the primary-category short-circuit cannot bypass the malformed `Categories` collection.
+```text
+Expected: Invalid
+Actual:   Failed
+```
 
-Production is intentionally unchanged before the focused run. Current `ErrorProfileResolver.MatchesCategory(...)` should attempt to enumerate the null `Categories` collection, causing an ordinary exception that `ErrorProfileSelectionService` normalizes as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
+The malformed state exists only in `ErrorCatalogDocument`; runtime `context.ErrorCatalog` is an independent valid empty catalog. The profile uses `IncludeCategories = ["NETWORK"]` while `PrimaryCategory = "OTHER"`, so `ErrorProfileResolver.MatchesCategory(...)` necessarily consumes the null `Categories` collection.
 
-Expected eventual complete-suite count after this contract passes: **1039/1039 GREEN**.
+The null `ErrorDefinition.Categories` collection therefore reached `ErrorProfileResolver.Resolve(...)` and was normalized by the dependency exception boundary as `Failed / WIF_PROFILE_RESOLVER_FAILED`.
+
+Production change in `WhenItFails/Resolution/ErrorProfileSelectionService.cs` is intentionally minimal: after rejecting null error definitions, the service now rejects any error definition whose `Categories` collection is null and reuses the established validator contract above.
+
+No resolver exception, cancellation, profile lookup, profile collection, or unrelated response behavior was changed.
+
+Expected complete-suite count after verification: **1039/1039 GREEN**.
 
 ## 2026-09-17 — 1038/1038 GREEN null error-tags checkpoint
 
@@ -111,27 +117,22 @@ Do not replace those transparent contracts with normalization at that layer.
 - 1037/1037 — profile selection null error-subcategories classification complete.
 - 1038/1038 — profile selection null error-tags classification complete.
 
-## Reconnaissance notes
-
-`ErrorDefinition.Categories` is the remaining collection directly consumed by `ErrorProfileResolver` that is not yet explicitly preclassified by `ErrorProfileSelectionService`. After this contract is resolved, perform fresh reconnaissance across scalar fields and other boundaries instead of assuming another collection guard is needed.
-
 ## Recommended verification
 
-Pull current `master` and run only the focused contract:
+Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~ResolveByProfileName_WhenErrorCategoriesCollectionIsNull_ReturnsInvalidResponse"
+dotnet test WhenItFails.Tests
 ```
 
-Expected current result: **RED** with `Actual: Failed` rather than the expected `Invalid`.
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1039/1039 GREEN
+```
 
 ## Next recommended step
 
-If RED confirms the response-shape mismatch, add the smallest `ErrorProfileSelectionService` guard for null `ErrorDefinition.Categories`, reusing exactly:
-
-```text
-ErrorCategoriesCollectionIsNull
-Error categories collection is null.
-```
-
-Then run focused and complete suites. Record **1039/1039 GREEN** before fresh reconnaissance.
+After **1039/1039 GREEN** is confirmed, record the checkpoint and perform fresh reconnaissance across remaining scalar-field and dependency boundaries rather than adding further collection guards speculatively.
