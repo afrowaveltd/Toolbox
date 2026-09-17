@@ -29,6 +29,13 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(options);
 
+        if (options.RootDirectory is null)
+        {
+            return Response<JsonsBootstrapPayload>.Invalid(
+                code: "WIF_JSONS_ROOT_DIRECTORY_NULL",
+                message: "The JSON root directory cannot be null.");
+        }
+
         if (options.PackageDirectoryName is null)
         {
             return Response<JsonsBootstrapPayload>.Invalid(
