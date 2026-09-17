@@ -23,6 +23,47 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorProfileSelectionService` classifies all resolver-consumed nullable collections currently audited as malformed input rather than resolver failure.
 - Scalar `ErrorDefinition` reconnaissance did not reveal an exception boundary; duplicating the full validator inside selection service remains intentionally deferred.
 - `JsonsBootstrapper` now rejects both whitespace and null `PackageDirectoryName` before any filesystem operation, reusing the stable `ErrorCatalogContextProvider` contracts.
+- A focused contract for `RootDirectory = null` is committed and awaits local RED verification; production is intentionally unchanged for this case.
+
+## 2026-09-17 — bootstrap null root-directory contract
+
+Contract commit:
+`157118d9ec08a879da8fc364c03b3e4f3b260ec6`
+
+Baseline checkpoint commit:
+`86e8018eab7e7be03eaebd6dd8edb4d970d7fe3c`
+
+Added:
+
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperNullRootDirectoryContractTests.cs`
+
+Contract:
+
+`EnsureWorkspaceAsync_WhenRootDirectoryIsNull_ReturnsInvalidWithoutCreatingWorkspace`
+
+`ErrorCatalogContextProvider.ValidateJsonsOptions(...)` already defines the stable contract:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_ROOT_DIRECTORY_NULL
+Message: The JSON root directory cannot be null.
+```
+
+The fixture uses an isolated absolute temporary path as `PackageDirectoryName`. This is deliberate: with current production behavior, `NormalizePath(null)` collapses the root to an empty string and `Path.Combine("", absolutePackagePath)` resolves to that isolated temporary path. The focused test can therefore observe any filesystem mutation safely without creating a relative directory inside the repository.
+
+The focused test requires that the absolute temporary package path remain absent.
+
+Production is intentionally unchanged before the focused run. With an empty template provider, current behavior is expected to create/use the isolated temporary package directory and return `Success`.
+
+Expected current focused result:
+
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+Expected eventual complete-suite count after this contract passes: **1042/1042 GREEN, zero compiler warnings**.
 
 ## 2026-09-17 — 1041/1041 GREEN bootstrap null package-directory checkpoint
 
@@ -32,8 +73,8 @@ Contract commit:
 Production guard commit:
 `de85b3c460448d0dbe255dd3663e79cc05e4db4f`
 
-Previous checkpoint commit:
-`b8e2b7161584936d4b7c570db7c07d4a746397e4`
+Checkpoint commit:
+`86e8018eab7e7be03eaebd6dd8edb4d970d7fe3c`
 
 Locally verified:
 
@@ -116,13 +157,23 @@ Do not replace those transparent contracts with normalization at that layer.
 - 1040/1040 — bootstrap whitespace package directory name rejected before filesystem mutation.
 - 1041/1041 — bootstrap null package directory name rejected before filesystem mutation.
 
+## Recommended verification
+
+Pull current `master` and run only the focused null-root contract:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenRootDirectoryIsNull_ReturnsInvalidWithoutCreatingWorkspace"
+```
+
+Expected current result: **RED** with `Actual: Success` rather than the expected `Invalid`.
+
 ## Next recommended step
 
-Continue the `JsonsOptions` bootstrap-boundary audit one contract at a time. The next concrete case is `RootDirectory = null`, for which `ErrorCatalogContextProvider` already defines the stable contract:
+If RED confirms the response-shape mismatch, add the smallest `JsonsBootstrapper` precondition for null `RootDirectory`, reusing exactly:
 
 ```text
 WIF_JSONS_ROOT_DIRECTORY_NULL
 The JSON root directory cannot be null.
 ```
 
-Use an isolated absolute temporary package path in the focused test so current erroneous behavior can be observed safely without creating a relative directory in the repository. Keep production unchanged until the focused run establishes the current response and side-effect shape.
+The guard must execute before any filesystem operation. Then run focused and complete suites before moving to the whitespace `RootDirectory` contract.
