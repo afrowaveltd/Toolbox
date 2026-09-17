@@ -59,6 +59,13 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                 message: "The package directory name cannot be empty.");
         }
 
+        if (options.ErrorCatalogFileName is null)
+        {
+            return Response<JsonsBootstrapPayload>.Invalid(
+                code: "WIF_JSONS_ERROR_CATALOG_FILE_NAME_NULL",
+                message: "The error catalog file name cannot be null.");
+        }
+
         try
         {
             string rootDirectory = NormalizePath(options.RootDirectory);
