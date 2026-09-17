@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1043/1043 GREEN, zero compiler warnings**.
+- Complete `WhenItFails.Tests` suite baseline: **1043/1043 GREEN, zero compiler warnings**.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -22,25 +22,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies all resolver-consumed nullable collections currently audited as malformed input rather than resolver failure.
 - `JsonsBootstrapper` rejects null/whitespace `RootDirectory` and `PackageDirectoryName` before filesystem mutation.
-- A focused bootstrap contract for `ErrorCatalogFileName = null` is committed and awaits local RED verification; production is intentionally unchanged for this case.
+- The focused `ErrorCatalogFileName = null` RED is locally confirmed and the smallest pre-provider/pre-filesystem production guard is committed; focused/full GREEN verification is pending.
 
-## 2026-09-17 — bootstrap null error-catalog-file-name contract
+## 2026-09-17 — bootstrap null error-catalog-file-name fix
 
 Contract commit:
 `91bba6f1c1cc11c2f7e6b12c5814a2afbb0ef64d`
 
+Production guard commit:
+`e3502565d5139132ce16947e7b0fbcb63e235e29`
+
 Baseline checkpoint commit:
 `7eaf2eda992ce59632dc086319e2a8c246858b8c`
-
-Added:
-
-`WhenItFails.Tests/Bootstrap/JsonsBootstrapperNullErrorCatalogFileNameContractTests.cs`
 
 Contract:
 
 `EnsureWorkspaceAsync_WhenErrorCatalogFileNameIsNull_ReturnsInvalidBeforeProviderOrFilesystem`
 
-`ErrorCatalogContextProvider.ValidateJsonsOptions(...)` already defines the stable option-level contract:
+`ErrorCatalogContextProvider.ValidateJsonsOptions(...)` defines the stable option-level contract:
 
 ```text
 Status: Invalid
@@ -49,25 +48,25 @@ Code: WIF_JSONS_ERROR_CATALOG_FILE_NAME_NULL
 Message: The error catalog file name cannot be null.
 ```
 
-The focused bootstrap contract additionally requires both boundary guarantees:
-
-```text
-template provider invoked: false
-workspace root created: false
-```
-
-The test uses an isolated temporary root and a tracking template provider that returns an empty template collection. Current `JsonsBootstrapper` creates the package workspace before invoking the provider and does not validate `ErrorCatalogFileName` itself. Therefore current behavior is expected to call the provider, create the workspace, and return `Success`.
-
-Expected focused RED:
+The focused run confirmed the expected RED:
 
 ```text
 Expected: Invalid
 Actual:   Success
 ```
 
-Production remains unchanged until this RED is locally confirmed.
+Before the fix, `JsonsBootstrapper` did not validate `ErrorCatalogFileName` before preparing the workspace. With the focused tracking provider, the malformed option therefore allowed workspace creation, provider invocation and a final `Success` response.
 
-Expected eventual complete-suite count after the contract passes: **1044/1044 GREEN, zero compiler warnings**.
+The production change is intentionally narrow: `options.ErrorCatalogFileName is null` is rejected after the already-established root/package option guards and before entering the filesystem block or invoking `IJsonsTemplateProvider.GetTemplateFiles(...)`.
+
+The focused contract also protects both ordering guarantees:
+
+```text
+template provider invoked: false
+workspace root created: false
+```
+
+Expected complete-suite result after verification: **1044/1044 GREEN, zero compiler warnings**.
 
 ## 2026-09-17 — 1043/1043 GREEN bootstrap whitespace root-directory checkpoint
 
@@ -95,7 +94,7 @@ Compiler warnings: 0
 
 ## Remaining `JsonsOptions` filename boundary
 
-The remaining configurable catalog file names are:
+The configurable catalog file names are:
 
 - `ErrorCatalogFileName`
 - `CategoryCatalogFileName`
@@ -103,7 +102,7 @@ The remaining configurable catalog file names are:
 - `OwnerCatalogFileName`
 - `ProfilesFileName`
 
-`ErrorCatalogContextProvider` already defines distinct stable null/empty contracts for each. `JsonsBootstrapper` currently validates only template output after workspace creation and provider invocation, so this audit proceeds one focused caller-configuration contract at a time.
+`ErrorCatalogContextProvider` already defines distinct stable null/empty contracts for each. `JsonsBootstrapper` is being aligned one focused caller-configuration contract at a time, always before provider invocation and filesystem mutation.
 
 ## Established transparent lower boundary — do not normalize
 
@@ -131,14 +130,23 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run only the focused null-error-catalog-file-name contract:
+Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenErrorCatalogFileNameIsNull_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected current result: **RED** with `Actual: Success` rather than the expected `Invalid`.
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1044/1044 GREEN
+Compiler warnings: 0
+```
+
+Ignore `NETSDK1057` when counting compiler warnings; it remains an SDK informational support-policy message.
 
 ## Next recommended step
 
-If RED confirms the mismatch, add the smallest pre-provider/pre-filesystem `ErrorCatalogFileName is null` guard using exactly `WIF_JSONS_ERROR_CATALOG_FILE_NAME_NULL`. Then run focused and complete suites before testing the adjacent whitespace form.
+After **1044/1044 GREEN, zero compiler warnings** is confirmed, record the checkpoint and test the adjacent whitespace `ErrorCatalogFileName` option contract before moving to the remaining four catalog filename options.
