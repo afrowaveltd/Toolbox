@@ -22,25 +22,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorProfileSelectionService` classifies all resolver-consumed nullable collections currently audited as malformed input rather than resolver failure.
 - Scalar `ErrorDefinition` reconnaissance did not reveal an exception boundary; duplicating the full validator inside selection service remains intentionally deferred.
 - `JsonsBootstrapper` rejects a whitespace `PackageDirectoryName` before any filesystem operation.
-- A focused contract for `PackageDirectoryName = null` is committed and awaits local RED verification; production is intentionally unchanged for this case.
+- The focused `PackageDirectoryName = null` RED is locally confirmed and the smallest pre-filesystem production guard is committed; focused/full GREEN verification is pending.
 
-## 2026-09-17 — bootstrap null package-directory-name contract
+## 2026-09-17 — bootstrap null package-directory-name fix
 
 Contract commit:
 `d4d4cea2e00f3ba5a7968afa8eedeb99c8a4c99a`
 
+Production guard commit:
+`de85b3c460448d0dbe255dd3663e79cc05e4db4f`
+
 Baseline checkpoint commit:
 `b8e2b7161584936d4b7c570db7c07d4a746397e4`
-
-Added:
-
-`WhenItFails.Tests/Bootstrap/JsonsBootstrapperNullPackageDirectoryNameContractTests.cs`
 
 Contract:
 
 `EnsureWorkspaceAsync_WhenPackageDirectoryNameIsNull_ReturnsInvalidWithoutCreatingWorkspace`
 
-`ErrorCatalogContextProvider.ValidateJsonsOptions(...)` already defines the stable contract:
+`ErrorCatalogContextProvider.ValidateJsonsOptions(...)` defines the stable contract:
 
 ```text
 Status: Invalid
@@ -49,18 +48,20 @@ Code: WIF_JSONS_PACKAGE_DIRECTORY_NAME_NULL
 Message: The package directory name cannot be null.
 ```
 
-The focused test also requires no filesystem side effect: the temporary root must remain absent.
-
-Current `JsonsBootstrapper` behavior is expected to be RED because the whitespace guard explicitly skips null, `NormalizePath(null)` collapses it to an empty string, and the bootstrapper can therefore use/create the root directory itself and return `Success` with an empty template provider.
-
-Expected current focused result:
+The focused run confirmed the expected RED:
 
 ```text
 Expected: Invalid
 Actual:   Success
 ```
 
-Expected eventual complete-suite count after this contract passes: **1041/1041 GREEN, zero compiler warnings**.
+Before the fix, `NormalizePath(null)` collapsed the null package directory name to an empty string, allowing the bootstrapper to use/create the root directory itself and return `Success` with an empty template provider.
+
+Production change in `WhenItFails/Bootstrap/JsonsBootstrapper.cs` is intentionally narrow: a null `PackageDirectoryName` is now rejected immediately after cancellation/options checks and before the existing whitespace guard or any filesystem operation.
+
+The focused RED build reported **1 compiler warning**. The warning text was not included in the reported excerpt, so its source is not yet classified. The last verified complete-suite checkpoint remains **1040/1040 GREEN with zero warnings**; warning status must be checked again on the post-fix focused/full run rather than assumed.
+
+Expected complete-suite count after verification: **1041/1041 GREEN**.
 
 ## 2026-09-17 — 1040/1040 GREEN bootstrap whitespace package-directory checkpoint
 
@@ -144,21 +145,22 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run only the focused null-package contract:
+Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenPackageDirectoryNameIsNull_ReturnsInvalidWithoutCreatingWorkspace"
+dotnet test WhenItFails.Tests
 ```
 
-Production must remain unchanged until the local run confirms the current response/side-effect shape.
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1041/1041 GREEN
+```
+
+Also check the compiler-warning count. If a warning is still present, capture its warning code/file/line before continuing so it can be classified rather than silently accepted.
 
 ## Next recommended step
 
-If RED confirms `Expected: Invalid / Actual: Success`, add the smallest null `PackageDirectoryName` precondition before any filesystem operation, reusing exactly:
-
-```text
-WIF_JSONS_PACKAGE_DIRECTORY_NAME_NULL
-The package directory name cannot be null.
-```
-
-Then run focused and complete suites before moving to `RootDirectory` contracts.
+After **1041/1041 GREEN** is confirmed, record the checkpoint and continue the `JsonsOptions` bootstrap-boundary audit one contract at a time. The next adjacent cases are null/whitespace `RootDirectory`, which already have stable contracts in `ErrorCatalogContextProvider`; add no production behavior until focused tests establish the current bootstrap response and side-effect shape.
