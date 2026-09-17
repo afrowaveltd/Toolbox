@@ -70,6 +70,13 @@ public sealed class ErrorProfileSelectionService
                 message: "Error subcategories collection is null.");
         }
 
+        if (context.ErrorCatalogDocument.Errors.Any(error => error.Tags is null))
+        {
+            return Response<IReadOnlyList<ErrorDefinition>>.Invalid(
+                code: "ErrorTagsCollectionIsNull",
+                message: "Error tags collection is null.");
+        }
+
         if (context.ProfileCatalog is null)
         {
             return Response<IReadOnlyList<ErrorDefinition>>.Invalid(
