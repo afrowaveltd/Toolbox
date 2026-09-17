@@ -34,7 +34,7 @@ public sealed class ErrorProfileSelectionServiceNullErrorDefinitionContractTests
 
         ErrorCatalogContext context = new()
         {
-            ErrorCatalog = new ErrorCatalog(errorCatalogDocument.Errors),
+            ErrorCatalog = new ErrorCatalog([]),
             ErrorCatalogDocument = errorCatalogDocument,
             CategoryCatalog = new ErrorCategoryCatalogDocument(),
             CodeGroupCatalog = new ErrorCodeGroupCatalogDocument(),
