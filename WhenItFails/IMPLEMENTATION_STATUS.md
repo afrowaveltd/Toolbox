@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite baseline: **1043/1043 GREEN, zero compiler warnings**.
+- Complete `WhenItFails.Tests` suite: **1044/1044 GREEN**. The latest confirmation did not separately report the compiler-warning count, so no zero-warning claim is recorded for this checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -22,7 +22,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies all resolver-consumed nullable collections currently audited as malformed input rather than resolver failure.
 - `JsonsBootstrapper` rejects null/whitespace `RootDirectory` and `PackageDirectoryName` before filesystem mutation.
-- The focused `ErrorCatalogFileName = null` RED is locally confirmed and the smallest pre-provider/pre-filesystem production guard is committed; focused/full GREEN verification is pending.
+- `ErrorCatalogFileName = null` is now locally verified GREEN and is rejected before template-provider invocation or filesystem mutation.
 
 ## 2026-09-17 — bootstrap null error-catalog-file-name fix
 
@@ -67,6 +67,38 @@ workspace root created: false
 ```
 
 Expected complete-suite result after verification: **1044/1044 GREEN, zero compiler warnings**.
+
+## 2026-09-19 — 1044/1044 GREEN bootstrap null error-catalog-file-name checkpoint
+
+Contract commit:
+`91bba6f1c1cc11c2f7e6b12c5814a2afbb0ef64d`
+
+Production guard commit:
+`e3502565d5139132ce16947e7b0fbcb63e235e29`
+
+Previous checkpoint commit:
+`7eaf2eda992ce59632dc086319e2a8c246858b8c`
+
+Locally verified:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1044
+Skipped:  0
+Total:  1044
+```
+
+The warning count was not separately included in the latest confirmation, so this checkpoint records the test result only.
+
+`JsonsBootstrapper.EnsureWorkspaceAsync(...)` now rejects `ErrorCatalogFileName = null` before any filesystem mutation or template-provider invocation and returns:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_ERROR_CATALOG_FILE_NAME_NULL
+Message: The error catalog file name cannot be null.
+```
 
 ## 2026-09-17 — 1043/1043 GREEN bootstrap whitespace root-directory checkpoint
 
@@ -128,25 +160,6 @@ Do not replace those transparent contracts with normalization at that layer.
 - 1042/1042 — bootstrap null root directory rejected before filesystem mutation; nullable-flow cleanup verified with zero compiler warnings.
 - 1043/1043 — bootstrap whitespace root directory rejected before filesystem mutation.
 
-## Recommended verification
-
-Pull current `master` and run:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenErrorCatalogFileNameIsNull_ReturnsInvalidBeforeProviderOrFilesystem"
-dotnet test WhenItFails.Tests
-```
-
-Expected results:
-
-```text
-Focused contract: GREEN
-Complete suite: 1044/1044 GREEN
-Compiler warnings: 0
-```
-
-Ignore `NETSDK1057` when counting compiler warnings; it remains an SDK informational support-policy message.
-
 ## Next recommended step
 
-After **1044/1044 GREEN, zero compiler warnings** is confirmed, record the checkpoint and test the adjacent whitespace `ErrorCatalogFileName` option contract before moving to the remaining four catalog filename options.
+Add one focused `JsonsBootstrapper` contract for whitespace `ErrorCatalogFileName`, reusing the stable option-level `WIF_JSONS_ERROR_CATALOG_FILE_NAME_EMPTY` contract. Require rejection before template-provider invocation and filesystem mutation. Keep production unchanged until the focused run establishes the current behavior.
