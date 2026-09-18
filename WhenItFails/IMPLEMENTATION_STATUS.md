@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-09-17
+Last updated: 2026-09-19
 
 This file is the continuation point for `WhenItFails` development. Git history contains the detailed chronological checkpoints; keep this file focused on the current verified state, established contracts, and next step.
 
@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1044/1044 GREEN**. The latest confirmation did not separately report the compiler-warning count, so no zero-warning claim is recorded for this checkpoint.
+- Complete `WhenItFails.Tests` suite: **1045/1045 GREEN**. The latest confirmation did not separately report the compiler-warning count, so no zero-warning claim is recorded for this checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -23,7 +23,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorProfileSelectionService` classifies all resolver-consumed nullable collections currently audited as malformed input rather than resolver failure.
 - `JsonsBootstrapper` rejects null/whitespace `RootDirectory` and `PackageDirectoryName` before filesystem mutation.
 - `ErrorCatalogFileName = null` is locally verified GREEN and is rejected before template-provider invocation or filesystem mutation.
-- The focused whitespace `ErrorCatalogFileName` RED is locally confirmed and the smallest pre-provider/pre-filesystem production guard is committed; focused/full GREEN verification is pending.
+- `ErrorCatalogFileName` null/whitespace contracts are locally verified GREEN and reject malformed caller configuration before provider invocation or filesystem mutation.
 
 ## 2026-09-17 — bootstrap null error-catalog-file-name fix
 
@@ -119,6 +119,40 @@ The production change is intentionally narrow: whitespace `ErrorCatalogFileName`
 
 Expected complete-suite result after verification: **1045/1045 GREEN**.
 
+## 2026-09-19 — 1045/1045 GREEN bootstrap whitespace error-catalog-file-name checkpoint
+
+Contract commit:
+`e58599d05993dac8af142a27325fa283b9a37e89`
+
+Production guard commit:
+`6d60d321ea2e746e41b3ec0fe6dcb4c821727ab1`
+
+Previous checkpoint commit:
+`b90d3c4563acae874f50c5b7aafad66ec216ade0`
+
+Locally verified:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1045
+Skipped:  0
+Total:  1045
+```
+
+The warning count was not separately included in the latest confirmation, so this checkpoint records the test result only.
+
+`JsonsBootstrapper.EnsureWorkspaceAsync(...)` now rejects whitespace `ErrorCatalogFileName` before any filesystem mutation or template-provider invocation and returns:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_ERROR_CATALOG_FILE_NAME_EMPTY
+Message: The error catalog file name cannot be empty.
+```
+
+Together with the prior null contract, `ErrorCatalogFileName` option handling is complete for the current null/empty scope.
+
 ## 2026-09-19 — 1044/1044 GREEN bootstrap null error-catalog-file-name checkpoint
 
 Contract commit:
@@ -211,22 +245,6 @@ Do not replace those transparent contracts with normalization at that layer.
 - 1042/1042 — bootstrap null root directory rejected before filesystem mutation; nullable-flow cleanup verified with zero compiler warnings.
 - 1043/1043 — bootstrap whitespace root directory rejected before filesystem mutation.
 
-## Recommended verification
-
-Pull current `master` and run:
-
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenErrorCatalogFileNameIsWhitespace_ReturnsInvalidBeforeProviderOrFilesystem"
-dotnet test WhenItFails.Tests
-```
-
-Expected results:
-
-```text
-Focused contract: GREEN
-Complete suite: 1045/1045 GREEN
-```
-
 ## Next recommended step
 
-After **1045/1045 GREEN** is confirmed, record the checkpoint and continue with `CategoryCatalogFileName`, one null/empty contract at a time.
+Continue with `CategoryCatalogFileName = null`, reusing the stable `WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_NULL` contract. Require rejection before template-provider invocation and filesystem mutation. Keep production unchanged until the focused run establishes current bootstrap behavior.
