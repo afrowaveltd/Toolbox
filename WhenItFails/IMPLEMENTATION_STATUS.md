@@ -22,7 +22,8 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies all resolver-consumed nullable collections currently audited as malformed input rather than resolver failure.
 - `JsonsBootstrapper` rejects null/whitespace `RootDirectory` and `PackageDirectoryName` before filesystem mutation.
-- `ErrorCatalogFileName = null` is now locally verified GREEN and is rejected before template-provider invocation or filesystem mutation.
+- `ErrorCatalogFileName = null` is locally verified GREEN and is rejected before template-provider invocation or filesystem mutation.
+- A focused bootstrap contract for whitespace `ErrorCatalogFileName` is committed and awaits local RED verification; production is intentionally unchanged for this case.
 
 ## 2026-09-17 — bootstrap null error-catalog-file-name fix
 
@@ -67,6 +68,51 @@ workspace root created: false
 ```
 
 Expected complete-suite result after verification: **1044/1044 GREEN, zero compiler warnings**.
+
+## 2026-09-19 — bootstrap whitespace error-catalog-file-name contract
+
+Contract commit:
+`e58599d05993dac8af142a27325fa283b9a37e89`
+
+Baseline checkpoint commit:
+`b90d3c4563acae874f50c5b7aafad66ec216ade0`
+
+Added:
+
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperWhitespaceErrorCatalogFileNameContractTests.cs`
+
+Contract:
+
+`EnsureWorkspaceAsync_WhenErrorCatalogFileNameIsWhitespace_ReturnsInvalidBeforeProviderOrFilesystem`
+
+Stable option-level response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_ERROR_CATALOG_FILE_NAME_EMPTY
+Message: The error catalog file name cannot be empty.
+```
+
+The focused contract also requires:
+
+```text
+template provider invoked: false
+workspace root created: false
+```
+
+Current production validates only the null form. A whitespace value is therefore expected to pass into the filesystem/provider path and, with the tracking provider returning an empty collection, end as `Success`.
+
+Expected focused RED:
+
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+Production remains unchanged until this RED is locally confirmed.
+
+Expected eventual complete-suite count after the contract passes: **1045/1045 GREEN**.
 
 ## 2026-09-19 — 1044/1044 GREEN bootstrap null error-catalog-file-name checkpoint
 
@@ -160,6 +206,16 @@ Do not replace those transparent contracts with normalization at that layer.
 - 1042/1042 — bootstrap null root directory rejected before filesystem mutation; nullable-flow cleanup verified with zero compiler warnings.
 - 1043/1043 — bootstrap whitespace root directory rejected before filesystem mutation.
 
+## Recommended verification
+
+Pull current `master` and run only the focused whitespace error-catalog-file-name contract:
+
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenErrorCatalogFileNameIsWhitespace_ReturnsInvalidBeforeProviderOrFilesystem"
+```
+
+Expected current result: **RED** with `Actual: Success` rather than the expected `Invalid`.
+
 ## Next recommended step
 
-Add one focused `JsonsBootstrapper` contract for whitespace `ErrorCatalogFileName`, reusing the stable option-level `WIF_JSONS_ERROR_CATALOG_FILE_NAME_EMPTY` contract. Require rejection before template-provider invocation and filesystem mutation. Keep production unchanged until the focused run establishes the current behavior.
+If RED confirms the mismatch, add the smallest pre-provider/pre-filesystem whitespace `ErrorCatalogFileName` guard using exactly `WIF_JSONS_ERROR_CATALOG_FILE_NAME_EMPTY`. Then run focused and complete suites before moving to `CategoryCatalogFileName`.
