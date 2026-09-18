@@ -24,7 +24,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonsBootstrapper` rejects null/whitespace `RootDirectory` and `PackageDirectoryName` before filesystem mutation.
 - `ErrorCatalogFileName = null` is locally verified GREEN and is rejected before template-provider invocation or filesystem mutation.
 - `ErrorCatalogFileName` null/whitespace contracts are locally verified GREEN and reject malformed caller configuration before provider invocation or filesystem mutation.
-- A focused bootstrap contract for `CategoryCatalogFileName = null` is committed and awaits local RED verification; production is intentionally unchanged for this case.
+- The focused `CategoryCatalogFileName = null` RED is locally confirmed and the smallest pre-provider/pre-filesystem production guard is committed; focused/full GREEN verification is pending.
 
 ## 2026-09-17 — bootstrap null error-catalog-file-name fix
 
@@ -154,16 +154,21 @@ workspace root created: false
 
 Current production does not validate `CategoryCatalogFileName` before entering the filesystem/provider path. With the tracking provider returning an empty collection, current behavior is expected to create the workspace, invoke the provider and return `Success`.
 
-Expected focused RED:
+The focused run confirmed the expected RED:
 
 ```text
 Expected: Invalid
 Actual:   Success
 ```
 
-Production remains unchanged until this RED is locally confirmed.
+Before the fix, `CategoryCatalogFileName = null` passed through the option boundary, allowing workspace creation and template-provider invocation before returning `Success` with the tracking provider.
 
-Expected eventual complete-suite count after the contract passes: **1046/1046 GREEN**.
+Production guard commit:
+`75b2579c499002f1b073b7abf9cbf2f377cec196`
+
+The production change is intentionally narrow: null `CategoryCatalogFileName` is rejected immediately after the established `ErrorCatalogFileName` guards and before entering the filesystem block or invoking the template provider.
+
+Expected complete-suite result after verification: **1046/1046 GREEN**.
 
 ## 2026-09-19 — 1045/1045 GREEN bootstrap whitespace error-catalog-file-name checkpoint
 
@@ -293,14 +298,20 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run only the focused null category-catalog-file-name contract:
+Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCategoryCatalogFileNameIsNull_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected current result: **RED** with `Actual: Success` rather than the expected `Invalid`.
+Expected results:
+
+```text
+Focused contract: GREEN
+Complete suite: 1046/1046 GREEN
+```
 
 ## Next recommended step
 
-If RED confirms the mismatch, add the smallest pre-provider/pre-filesystem `CategoryCatalogFileName is null` guard using exactly `WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_NULL`. Then run focused and complete suites before testing the adjacent whitespace form.
+After **1046/1046 GREEN** is confirmed, record the checkpoint and test the adjacent whitespace `CategoryCatalogFileName` contract.
