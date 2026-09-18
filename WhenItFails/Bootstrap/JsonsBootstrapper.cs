@@ -66,6 +66,13 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                 message: "The error catalog file name cannot be null.");
         }
 
+        if (string.IsNullOrWhiteSpace(options.ErrorCatalogFileName))
+        {
+            return Response<JsonsBootstrapPayload>.Invalid(
+                code: "WIF_JSONS_ERROR_CATALOG_FILE_NAME_EMPTY",
+                message: "The error catalog file name cannot be empty.");
+        }
+
         try
         {
             string rootDirectory = NormalizePath(options.RootDirectory);
