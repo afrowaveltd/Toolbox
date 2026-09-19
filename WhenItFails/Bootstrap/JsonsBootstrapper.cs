@@ -122,6 +122,13 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                 message: "The profile catalog file name cannot be null.");
         }
 
+        if (string.IsNullOrWhiteSpace(options.ProfilesFileName))
+        {
+            return Response<JsonsBootstrapPayload>.Invalid(
+                code: "WIF_JSONS_PROFILE_CATALOG_FILE_NAME_EMPTY",
+                message: "The profile catalog file name cannot be empty.");
+        }
+
         try
         {
             string rootDirectory = NormalizePath(options.RootDirectory);
