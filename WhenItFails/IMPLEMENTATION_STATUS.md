@@ -28,6 +28,33 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `CategoryCatalogFileName` null/whitespace contracts are locally verified GREEN and reject malformed caller configuration before provider invocation or filesystem mutation.
 - `CodeGroupCatalogFileName = null` is locally verified GREEN and is rejected before template-provider invocation or filesystem mutation.
 - `CodeGroupCatalogFileName` null/whitespace contracts are locally verified GREEN; invalid values are rejected before provider invocation or filesystem mutation.
+- A null `OwnerCatalogFileName` contract is committed, awaiting focused RED verification.
+
+## 2026-09-20 — bootstrap null owner-catalog-file-name contract
+
+Contract commit:
+`d72f135ea9e122e9be94e06545ce24e806cdde0b`
+
+Baseline: **1049/1049 GREEN**, confirmed locally by the maintainer before this test was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperNullOwnerCatalogFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenOwnerCatalogFileNameIsNull_ReturnsInvalidBeforeProviderOrFilesystem`
+
+Expected stable response, matching the established `ErrorCatalogContextProvider` option contract:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_OWNER_CATALOG_FILE_NAME_NULL
+Message: The owner catalog file name cannot be null.
+```
+
+The contract additionally requires no template-provider invocation and no workspace-root creation.
+
+Production currently does not guard `OwnerCatalogFileName = null`. Focused RED verification is pending; no production change has been made for this new contract.
 
 ## 2026-09-20 — 1049/1049 GREEN bootstrap whitespace code-group-catalog checkpoint
 
@@ -462,12 +489,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCodeGroupCatalogFileNameIsWhitespace_ReturnsInvalidBeforeProviderOrFilesystem"
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenOwnerCatalogFileNameIsNull_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Expected results after the committed guard: **focused GREEN** and **1049/1049 GREEN** for the complete suite.
+Expected result at this stage: **one focused RED** (`Expected: Invalid`, `Actual: Success`). Do not change production until this contract has been run.
 
 ## Next recommended step
 
-After **1049/1049 GREEN** is confirmed locally, record the checkpoint and test the adjacent null `OwnerCatalogFileName` contract.
+After the focused RED is confirmed, add the narrow pre-provider/pre-filesystem null `OwnerCatalogFileName` guard, then rerun the focused test and complete suite (expected total: 1050).
