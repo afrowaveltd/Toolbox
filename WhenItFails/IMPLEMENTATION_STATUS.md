@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1049/1049 GREEN**, confirmed locally by the maintainer after the whitespace `CodeGroupCatalogFileName` production guard. The compiler-warning count was not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1050/1050 GREEN**, confirmed locally by the maintainer after the null `OwnerCatalogFileName` production guard. The compiler-warning count was not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -28,7 +28,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `CategoryCatalogFileName` null/whitespace contracts are locally verified GREEN and reject malformed caller configuration before provider invocation or filesystem mutation.
 - `CodeGroupCatalogFileName = null` is locally verified GREEN and is rejected before template-provider invocation or filesystem mutation.
 - `CodeGroupCatalogFileName` null/whitespace contracts are locally verified GREEN; invalid values are rejected before provider invocation or filesystem mutation.
-- The null `OwnerCatalogFileName` focused contract is locally confirmed RED; the narrow production guard is committed, awaiting focused/full GREEN verification.
+- `OwnerCatalogFileName = null` is locally verified GREEN and is rejected before template-provider invocation or filesystem mutation.
+
+## 2026-09-20 — 1050/1050 GREEN bootstrap null owner-catalog checkpoint
+
+Contract commit: `d72f135ea9e122e9be94e06545ce24e806cdde0b`
+
+Production guard commit: `d0993d4c6cea0589a145986e87f27e5bea29ffdc`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1050
+Total:  1050
+```
+
+The compiler-warning count was not reported separately. Null `OwnerCatalogFileName` is rejected before workspace creation and template-provider invocation. Next: whitespace `OwnerCatalogFileName`.
 
 ## 2026-09-20 — bootstrap null owner-catalog-file-name contract
 
@@ -68,7 +85,7 @@ Production guard commit:
 
 The guard rejects null `OwnerCatalogFileName` before workspace creation or template-provider invocation.
 
-**Focused GREEN and full-suite 1050/1050 GREEN are pending local verification.**
+**Focused and full-suite 1050/1050 GREEN were subsequently confirmed locally by the maintainer.**
 
 ## 2026-09-20 — 1049/1049 GREEN bootstrap whitespace code-group-catalog checkpoint
 
