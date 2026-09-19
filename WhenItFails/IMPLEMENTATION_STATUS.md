@@ -27,6 +27,33 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `CategoryCatalogFileName = null` is locally verified GREEN as part of the 1046-test suite.
 - `CategoryCatalogFileName` null/whitespace contracts are locally verified GREEN and reject malformed caller configuration before provider invocation or filesystem mutation.
 - `CodeGroupCatalogFileName = null` is locally verified GREEN and is rejected before template-provider invocation or filesystem mutation.
+- The new whitespace `CodeGroupCatalogFileName` contract has been committed, with focused RED verification pending.
+
+## 2026-09-20 — bootstrap whitespace code-group-catalog-file-name contract
+
+Contract commit:
+`2cc5ad94aae216c221456a4710bcca1c9472b16f`
+
+Baseline: **1048/1048 GREEN**, locally confirmed by the maintainer before this test was added.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperWhitespaceCodeGroupCatalogFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenCodeGroupCatalogFileNameIsWhitespace_ReturnsInvalidBeforeProviderOrFilesystem`
+
+Expected stable response, matching the established `ErrorCatalogContextProvider` option-level contract:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_CODE_GROUP_CATALOG_FILE_NAME_EMPTY
+Message: The code group catalog file name cannot be empty.
+```
+
+The test additionally checks that the template provider was not called and the workspace root was not created.
+
+At this checkpoint production only rejects null `CodeGroupCatalogFileName`; whitespace remains unchecked. Focused RED verification is pending, and no production code has been changed for this new contract.
 
 ## 2026-09-20 — 1048/1048 GREEN bootstrap null code-group-catalog checkpoint
 
@@ -404,17 +431,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCodeGroupCatalogFileNameIsNull_ReturnsInvalidBeforeProviderOrFilesystem"
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCodeGroupCatalogFileNameIsWhitespace_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Expected results after the committed guard:
-
-```text
-Focused contract: GREEN
-Complete suite: 1048/1048 GREEN
-```
+Expected result at this stage: **one focused RED** (`Expected: Invalid`, `Actual: Success`). Do not add a production guard until the focused contract has been run.
 
 ## Next recommended step
 
-After **1048/1048 GREEN** is confirmed locally, record the checkpoint and test the adjacent whitespace `CodeGroupCatalogFileName` contract.
+After the focused RED is confirmed, add the smallest pre-provider/pre-filesystem whitespace `CodeGroupCatalogFileName` guard, then rerun the focused test and complete suite (expected total: 1049).
