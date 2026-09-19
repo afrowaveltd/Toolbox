@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1046/1046 GREEN**, confirmed locally by the maintainer after the null `CategoryCatalogFileName` production guard. The compiler-warning count was not separately reported for that full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1047/1047 GREEN**, confirmed locally by the maintainer after the whitespace `CategoryCatalogFileName` production guard. The compiler-warning count was not separately reported for that full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -25,7 +25,26 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCatalogFileName = null` is locally verified GREEN and is rejected before template-provider invocation or filesystem mutation.
 - `ErrorCatalogFileName` null/whitespace contracts are locally verified GREEN and reject malformed caller configuration before provider invocation or filesystem mutation.
 - `CategoryCatalogFileName = null` is locally verified GREEN as part of the 1046-test suite.
-- The focused whitespace `CategoryCatalogFileName` contract is locally confirmed RED (`Expected: Invalid`, `Actual: Success`). The smallest pre-provider/pre-filesystem production guard is now committed; focused/full GREEN verification is pending.
+- `CategoryCatalogFileName` null/whitespace contracts are locally verified GREEN and reject malformed caller configuration before provider invocation or filesystem mutation.
+
+## 2026-09-20 — 1047/1047 GREEN bootstrap whitespace category-catalog checkpoint
+
+Contract commit:
+`9cac09bc34ec17ea4b5b969e3c08528e64651f1d`
+
+Production guard commit:
+`a7d60a23a485433361e92af14745c0b6fdb8c19d`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1047
+Total:  1047
+```
+
+The compiler-warning count was not reported separately. Both null and whitespace `CategoryCatalogFileName` inputs are rejected before workspace creation and template-provider invocation. Next contract: null `CodeGroupCatalogFileName`.
 
 ## 2026-09-20 — bootstrap whitespace category-catalog-file-name contract
 
