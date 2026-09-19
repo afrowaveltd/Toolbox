@@ -30,6 +30,33 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `CodeGroupCatalogFileName` null/whitespace contracts are locally verified GREEN; invalid values are rejected before provider invocation or filesystem mutation.
 - `OwnerCatalogFileName = null` is locally verified GREEN and is rejected before template-provider invocation or filesystem mutation.
 - `OwnerCatalogFileName` null/whitespace contracts are locally verified GREEN; invalid values are rejected before provider invocation or filesystem mutation.
+- The null `ProfilesFileName` contract is committed, awaiting focused RED verification.
+
+## 2026-09-20 — bootstrap null profiles-file-name contract
+
+Contract commit:
+`c7cf48d775df9c8136184481ff6e50cb7cfbcc98`
+
+Baseline: **1051/1051 GREEN**, confirmed locally by the maintainer before this test was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperNullProfilesFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenProfilesFileNameIsNull_ReturnsInvalidBeforeProviderOrFilesystem`
+
+Expected stable response, matching the established `ErrorCatalogContextProvider` options contract:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_PROFILE_CATALOG_FILE_NAME_NULL
+Message: The profile catalog file name cannot be null.
+```
+
+The test also requires no template-provider invocation and no workspace-root creation.
+
+Production currently does not guard `ProfilesFileName = null`. Focused RED verification is pending; no production code has been changed for this contract.
 
 ## 2026-09-20 — 1051/1051 GREEN bootstrap whitespace owner-catalog checkpoint
 
@@ -578,12 +605,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenOwnerCatalogFileNameIsWhitespace_ReturnsInvalidBeforeProviderOrFilesystem"
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameIsNull_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Expected results after the committed guard: **focused GREEN** and **1051/1051 GREEN** for the complete suite.
+Expected result at this stage: **one focused RED** (`Expected: Invalid`, `Actual: Success`). Confirm this before changing production code.
 
 ## Next recommended step
 
-After **1051/1051 GREEN** is confirmed locally, record the checkpoint and test the adjacent null `ProfilesFileName` contract.
+After focused RED is confirmed, add the narrow pre-provider/pre-filesystem null `ProfilesFileName` guard, then rerun the focused test and complete suite (expected total: 1052).
