@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1051/1051 GREEN**, confirmed locally by the maintainer after the whitespace `OwnerCatalogFileName` production guard. The compiler-warning count was not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1052/1052 GREEN**, confirmed locally by the maintainer after the null `ProfilesFileName` production guard. The compiler-warning count was not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -30,7 +30,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `CodeGroupCatalogFileName` null/whitespace contracts are locally verified GREEN; invalid values are rejected before provider invocation or filesystem mutation.
 - `OwnerCatalogFileName = null` is locally verified GREEN and is rejected before template-provider invocation or filesystem mutation.
 - `OwnerCatalogFileName` null/whitespace contracts are locally verified GREEN; invalid values are rejected before provider invocation or filesystem mutation.
-- The null `ProfilesFileName` focused RED is locally confirmed; the narrow production guard is committed, awaiting focused/full GREEN verification.
+- `ProfilesFileName = null` is locally verified GREEN; invalid configuration is rejected before provider invocation or filesystem mutation.
+
+## 2026-09-20 — 1052/1052 GREEN bootstrap null profiles-file-name checkpoint
+
+Contract commit: `c7cf48d775df9c8136184481ff6e50cb7cfbcc98`
+
+Production guard commit: `738b3677a5c9fbfbc46f64463f02fc13506ddcb5`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1052
+Total:  1052
+```
+
+The compiler-warning count was not reported separately. Null `ProfilesFileName` is rejected before workspace creation and template-provider invocation. Next contract: whitespace `ProfilesFileName`.
 
 ## 2026-09-20 — bootstrap null profiles-file-name contract
 
@@ -70,7 +87,7 @@ Production guard commit:
 
 The narrow null guard runs before filesystem mutation and template-provider invocation, after the established owner-catalog guards.
 
-**Focused GREEN and full-suite 1052/1052 GREEN are pending local verification.**
+**Focused and full-suite 1052/1052 GREEN were subsequently confirmed locally by the maintainer.**
 
 ## 2026-09-20 — 1051/1051 GREEN bootstrap whitespace owner-catalog checkpoint
 
