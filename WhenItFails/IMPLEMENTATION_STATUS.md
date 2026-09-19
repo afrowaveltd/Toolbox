@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1047/1047 GREEN**, confirmed locally by the maintainer after the whitespace `CategoryCatalogFileName` production guard. The compiler-warning count was not separately reported for that full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1048/1048 GREEN**, confirmed locally by the maintainer after the null `CodeGroupCatalogFileName` production guard. The compiler-warning count was not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -26,7 +26,26 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCatalogFileName` null/whitespace contracts are locally verified GREEN and reject malformed caller configuration before provider invocation or filesystem mutation.
 - `CategoryCatalogFileName = null` is locally verified GREEN as part of the 1046-test suite.
 - `CategoryCatalogFileName` null/whitespace contracts are locally verified GREEN and reject malformed caller configuration before provider invocation or filesystem mutation.
-- The focused null `CodeGroupCatalogFileName` RED is locally confirmed and the narrow production guard is committed; focused/full GREEN verification is pending.
+- `CodeGroupCatalogFileName = null` is locally verified GREEN and is rejected before template-provider invocation or filesystem mutation.
+
+## 2026-09-20 — 1048/1048 GREEN bootstrap null code-group-catalog checkpoint
+
+Contract commit:
+`01f9d68fd9fb975d59f6f1f0032408f0e6bf6b4e`
+
+Production guard commit:
+`50c39e1e4ec5349afe58005738b8dd30ed65402e`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1048
+Total:  1048
+```
+
+The compiler-warning count was not separately reported. Null `CodeGroupCatalogFileName` is rejected before workspace creation or template-provider invocation. Next contract: whitespace `CodeGroupCatalogFileName`.
 
 ## 2026-09-20 — bootstrap null code-group-catalog-file-name contract
 
