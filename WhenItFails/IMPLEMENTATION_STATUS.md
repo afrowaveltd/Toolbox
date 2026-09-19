@@ -26,6 +26,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCatalogFileName` null/whitespace contracts are locally verified GREEN and reject malformed caller configuration before provider invocation or filesystem mutation.
 - `CategoryCatalogFileName = null` is locally verified GREEN as part of the 1046-test suite.
 - `CategoryCatalogFileName` null/whitespace contracts are locally verified GREEN and reject malformed caller configuration before provider invocation or filesystem mutation.
+- The focused null `CodeGroupCatalogFileName` RED is locally confirmed and the narrow production guard is committed; focused/full GREEN verification is pending.
 
 ## 2026-09-20 — bootstrap null code-group-catalog-file-name contract
 
@@ -48,7 +49,14 @@ Message: The code group catalog file name cannot be null.
 
 The contract additionally requires that the template provider is not invoked and the workspace root is not created.
 
-The current `JsonsBootstrapper` implementation does not yet guard `CodeGroupCatalogFileName = null`. Focused RED verification is pending; no production change has been made for this case.
+The focused run confirmed the expected RED: `Expected: Invalid`, `Actual: Success`. Before the guard, malformed configuration could reach workspace creation and the tracking template provider.
+
+Production guard commit:
+`50c39e1e4ec5349afe58005738b8dd30ed65402e`
+
+The guard rejects null `CodeGroupCatalogFileName` immediately after the category-file-name guards and before filesystem mutation or template-provider invocation.
+
+**Focused GREEN and complete-suite 1048/1048 GREEN are pending maintainer verification.**
 
 ## 2026-09-20 — 1047/1047 GREEN bootstrap whitespace category-catalog checkpoint
 
@@ -378,10 +386,16 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCodeGroupCatalogFileNameIsNull_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected result at this stage: **one focused RED**, with `Expected: Invalid` and `Actual: Success`. Confirm this before adding the production guard.
+Expected results after the committed guard:
+
+```text
+Focused contract: GREEN
+Complete suite: 1048/1048 GREEN
+```
 
 ## Next recommended step
 
-After the focused RED is confirmed, add the smallest pre-provider/pre-filesystem null `CodeGroupCatalogFileName` guard, then run the focused test and complete suite (expected total: 1048 tests).
+After **1048/1048 GREEN** is confirmed locally, record the checkpoint and test the adjacent whitespace `CodeGroupCatalogFileName` contract.
