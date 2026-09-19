@@ -101,6 +101,13 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                 message: "The code group catalog file name cannot be empty.");
         }
 
+        if (options.OwnerCatalogFileName is null)
+        {
+            return Response<JsonsBootstrapPayload>.Invalid(
+                code: "WIF_JSONS_OWNER_CATALOG_FILE_NAME_NULL",
+                message: "The owner catalog file name cannot be null.");
+        }
+
         try
         {
             string rootDirectory = NormalizePath(options.RootDirectory);
