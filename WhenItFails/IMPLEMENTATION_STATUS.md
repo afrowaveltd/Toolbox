@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-09-19
+Last updated: 2026-09-20
 
 This file is the continuation point for `WhenItFails` development. Git history contains the detailed chronological checkpoints; keep this file focused on the current verified state, established contracts, and next step.
 
@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1045/1045 GREEN**. The latest confirmation did not separately report the compiler-warning count, so no zero-warning claim is recorded for this checkpoint.
+- Complete `WhenItFails.Tests` suite: **1046/1046 GREEN**, confirmed locally by the maintainer after the null `CategoryCatalogFileName` production guard. The compiler-warning count was not separately reported for that full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -24,7 +24,41 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonsBootstrapper` rejects null/whitespace `RootDirectory` and `PackageDirectoryName` before filesystem mutation.
 - `ErrorCatalogFileName = null` is locally verified GREEN and is rejected before template-provider invocation or filesystem mutation.
 - `ErrorCatalogFileName` null/whitespace contracts are locally verified GREEN and reject malformed caller configuration before provider invocation or filesystem mutation.
-- The focused `CategoryCatalogFileName = null` RED is locally confirmed and the smallest pre-provider/pre-filesystem production guard is committed; focused/full GREEN verification is pending.
+- `CategoryCatalogFileName = null` is locally verified GREEN as part of the 1046-test suite.
+- The focused whitespace `CategoryCatalogFileName` contract is locally confirmed RED (`Expected: Invalid`, `Actual: Success`). The smallest pre-provider/pre-filesystem production guard is now committed; focused/full GREEN verification is pending.
+
+## 2026-09-20 — bootstrap whitespace category-catalog-file-name contract
+
+Contract commit:
+`9cac09bc34ec17ea4b5b969e3c08528e64651f1d`
+
+Production guard commit:
+`a7d60a23a485433361e92af14745c0b6fdb8c19d`
+
+Previous locally confirmed checkpoint: **1046/1046 GREEN**.
+
+Added contract:
+`EnsureWorkspaceAsync_WhenCategoryCatalogFileNameIsWhitespace_ReturnsInvalidBeforeProviderOrFilesystem`
+
+The focused run confirmed RED before the production fix:
+
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+The narrow guard rejects whitespace `CategoryCatalogFileName` after the existing null check and before filesystem mutation or template-provider invocation. Expected stable response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_EMPTY
+Message: The category catalog file name cannot be empty.
+```
+
+The contract also verifies that the template provider is not called and the workspace root is not created.
+
+**Focused GREEN and complete-suite 1047/1047 GREEN are pending maintainer verification.**
 
 ## 2026-09-17 — bootstrap null error-catalog-file-name fix
 
@@ -301,7 +335,7 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCategoryCatalogFileNameIsNull_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCategoryCatalogFileNameIsWhitespace_ReturnsInvalidBeforeProviderOrFilesystem"
 dotnet test WhenItFails.Tests
 ```
 
@@ -309,9 +343,9 @@ Expected results:
 
 ```text
 Focused contract: GREEN
-Complete suite: 1046/1046 GREEN
+Complete suite: 1047/1047 GREEN
 ```
 
 ## Next recommended step
 
-After **1046/1046 GREEN** is confirmed, record the checkpoint and test the adjacent whitespace `CategoryCatalogFileName` contract.
+After **1047/1047 GREEN** is confirmed, record the checkpoint and test the adjacent null `CodeGroupCatalogFileName` contract.
