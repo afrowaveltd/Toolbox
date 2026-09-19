@@ -28,7 +28,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `CategoryCatalogFileName` null/whitespace contracts are locally verified GREEN and reject malformed caller configuration before provider invocation or filesystem mutation.
 - `CodeGroupCatalogFileName = null` is locally verified GREEN and is rejected before template-provider invocation or filesystem mutation.
 - `CodeGroupCatalogFileName` null/whitespace contracts are locally verified GREEN; invalid values are rejected before provider invocation or filesystem mutation.
-- A null `OwnerCatalogFileName` contract is committed, awaiting focused RED verification.
+- The null `OwnerCatalogFileName` focused contract is locally confirmed RED; the narrow production guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-20 — bootstrap null owner-catalog-file-name contract
 
@@ -54,7 +54,21 @@ Message: The owner catalog file name cannot be null.
 
 The contract additionally requires no template-provider invocation and no workspace-root creation.
 
-Production currently does not guard `OwnerCatalogFileName = null`. Focused RED verification is pending; no production change has been made for this new contract.
+The focused test confirmed the expected RED:
+
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+Before the fix, the invalid option passed into workspace creation and template-provider invocation.
+
+Production guard commit:
+`d0993d4c6cea0589a145986e87f27e5bea29ffdc`
+
+The guard rejects null `OwnerCatalogFileName` before workspace creation or template-provider invocation.
+
+**Focused GREEN and full-suite 1050/1050 GREEN are pending local verification.**
 
 ## 2026-09-20 — 1049/1049 GREEN bootstrap whitespace code-group-catalog checkpoint
 
@@ -490,10 +504,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenOwnerCatalogFileNameIsNull_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected result at this stage: **one focused RED** (`Expected: Invalid`, `Actual: Success`). Do not change production until this contract has been run.
+Expected results after the guard: **focused GREEN** and **1050/1050 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After the focused RED is confirmed, add the narrow pre-provider/pre-filesystem null `OwnerCatalogFileName` guard, then rerun the focused test and complete suite (expected total: 1050).
+After **1050/1050 GREEN** is confirmed locally, record the checkpoint and test the adjacent whitespace `OwnerCatalogFileName` contract.
