@@ -31,6 +31,33 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `OwnerCatalogFileName = null` is locally verified GREEN and is rejected before template-provider invocation or filesystem mutation.
 - `OwnerCatalogFileName` null/whitespace contracts are locally verified GREEN; invalid values are rejected before provider invocation or filesystem mutation.
 - `ProfilesFileName = null` is locally verified GREEN; invalid configuration is rejected before provider invocation or filesystem mutation.
+- The whitespace `ProfilesFileName` contract is committed, awaiting focused RED verification.
+
+## 2026-09-20 — bootstrap whitespace profiles-file-name contract
+
+Contract commit:
+`aae834ba2fbac7b8729a64a108f08940ab07b452`
+
+Baseline: **1052/1052 GREEN**, confirmed locally by the maintainer before this test was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperWhitespaceProfilesFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenProfilesFileNameIsWhitespace_ReturnsInvalidBeforeProviderOrFilesystem`
+
+Expected stable response, matching the established `ErrorCatalogContextProvider` options contract:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_PROFILE_CATALOG_FILE_NAME_EMPTY
+Message: The profile catalog file name cannot be empty.
+```
+
+The test also requires no template-provider invocation and no workspace-root creation.
+
+Production currently rejects null `ProfilesFileName` but does not explicitly guard whitespace. Focused RED verification is pending; no production code has been changed for this contract.
 
 ## 2026-09-20 — 1052/1052 GREEN bootstrap null profiles-file-name checkpoint
 
@@ -636,12 +663,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameIsNull_ReturnsInvalidBeforeProviderOrFilesystem"
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameIsWhitespace_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Expected results after the committed guard: **focused GREEN** and **1052/1052 GREEN** for the complete suite.
+Expected result at this stage: **one focused RED** (`Expected: Invalid`, `Actual: Success`). Confirm this before changing production code.
 
 ## Next recommended step
 
-After **1052/1052 GREEN** is confirmed locally, record the checkpoint and test the adjacent whitespace `ProfilesFileName` contract.
+After focused RED is confirmed, add the narrow pre-provider/pre-filesystem whitespace `ProfilesFileName` guard, then rerun the focused test and complete suite (expected total: 1053).
