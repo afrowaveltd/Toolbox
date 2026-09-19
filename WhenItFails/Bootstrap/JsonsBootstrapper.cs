@@ -108,6 +108,13 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                 message: "The owner catalog file name cannot be null.");
         }
 
+        if (string.IsNullOrWhiteSpace(options.OwnerCatalogFileName))
+        {
+            return Response<JsonsBootstrapPayload>.Invalid(
+                code: "WIF_JSONS_OWNER_CATALOG_FILE_NAME_EMPTY",
+                message: "The owner catalog file name cannot be empty.");
+        }
+
         try
         {
             string rootDirectory = NormalizePath(options.RootDirectory);
