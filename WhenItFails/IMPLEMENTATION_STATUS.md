@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1084/1084 GREEN**, confirmed locally by the maintainer after existing-directory `CodeGroupCatalogFileName` caller validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1085/1085 GREEN**, confirmed locally by the maintainer after existing-directory `OwnerCatalogFileName` caller validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -64,7 +64,28 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-directory `ErrorCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
-- Existing-directory `OwnerCatalogFileName` caller-configuration contract confirmed RED on Windows; an early caller-validation guard is committed, awaiting focused/full GREEN verification.
+- Existing-directory `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
+
+## 2026-09-21 — 1085/1085 GREEN existing-directory owner filename checkpoint
+
+Contract commit: `40ac5516b7c4c0f6d1c8d711f64f99ff55a23d35`
+
+Production fix commit: `ce3748f1c843ba42051fee82585bbbefa3528411`
+
+Documentation commit: `ae8324f8dd80a32d2cef9f14f59425ef5215cd9c`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1085
+Total:  1085
+```
+
+`OwnerCatalogFileName` values resolving to existing directories are now rejected as caller configuration before provider invocation. Existing directory contents remain unchanged.
+
+Final caller-configured field in this series: `ProfilesFileName`.
 
 ## 2026-09-21 — existing-directory owner catalog filename contract
 
@@ -125,7 +146,7 @@ Message: The owner catalog file name is invalid.
 
 The guard runs before template-provider invocation. Existing directory contents remain untouched, and the existing null, whitespace, malformed-path, trailing-separator, and outside-package contracts remain separate.
 
-**Focused GREEN and complete-suite 1085/1085 GREEN are pending local verification.**
+**Complete-suite 1085/1085 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1084/1084 GREEN existing-directory code group filename checkpoint
 
@@ -2934,12 +2955,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenOwnerCatalogFileNameResolvesToExistingDirectory_ReturnsInvalidBeforeProvider"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed fix: **focused GREEN** and **1085/1085 GREEN** for the complete suite.
+Locally confirmed: **1085/1085 GREEN**.
 
 ## Next recommended step
 
-After **1085/1085 GREEN** is confirmed locally, record the checkpoint. Then continue with the final caller-configured field, `ProfilesFileName`, for the same existing-directory boundary.
+Add one focused caller-configuration contract for `ProfilesFileName` resolving to an existing directory. Require the profile-specific invalid response before template-provider invocation while preserving the pre-existing directory and its contents.
