@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1072/1072 GREEN**, confirmed locally by the maintainer after template collection enumeration-failure normalization. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1073/1073 GREEN**, confirmed locally by the maintainer after the template collection enumeration-cancellation regression contract. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -52,7 +52,26 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Null template-name provider-output contract is locally verified GREEN; null logical template names are rejected before target validation and file creation.
 - Whitespace template-name provider-output contract is locally verified GREEN; whitespace-only logical names are rejected before target validation and file creation.
 - Template collection enumeration-exception contract is locally verified GREEN; ordinary deferred collection failures are normalized to the stable provider-failure response without leaking provider detail.
-- Template collection enumeration-cancellation regression contract committed; focused GREEN verification expected.
+- Template collection enumeration-cancellation regression contract is locally verified GREEN; exact-instance `OperationCanceledException` propagation is preserved during returned-collection enumeration.
+
+## 2026-09-21 — 1073/1073 GREEN template enumeration-cancellation checkpoint
+
+Contract commit: `62c0ece1813790bfcb586e1a046bf7bff89b444c`
+
+No production change was required.
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1073
+Total:  1073
+```
+
+The exact `OperationCanceledException` instance thrown while enumerating the returned template collection propagates unchanged, and no template file is written.
+
+Next provider-output hardening target: validate the entire materialized template snapshot before any template file write so a malformed later item cannot leave an earlier valid item partially written.
 
 ## 2026-09-21 — template collection enumeration cancellation contract
 
@@ -77,7 +96,7 @@ Require:
 
 The current collection-materialization catch filter already excludes `OperationCanceledException`, so this is expected to be a focused **GREEN regression contract** with no production change.
 
-**Focused verification is pending.**
+**Focused and complete-suite GREEN were subsequently confirmed locally by the maintainer; total suite: 1073/1073.**
 
 ## 2026-09-21 — 1072/1072 GREEN template enumeration-failure checkpoint
 
@@ -1957,11 +1976,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateCollectionEnumerationCancels_RethrowsSameOperationCanceledException"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **focused GREEN**. The existing catch filter excludes `OperationCanceledException`, so the exact cancellation instance should propagate unchanged and no production change should be necessary.
+Locally confirmed: **1073/1073 GREEN**.
 
 ## Next recommended step
 
-After the focused GREEN is confirmed, run the complete suite (expected total: 1073), record the checkpoint, and continue auditing the remaining bootstrap/provider-output boundaries.
+Add a focused contract where the materialized provider collection contains a valid first template followed by a malformed null item. Require the existing `WIF_JSONS_TEMPLATE_ITEM_NULL` response and no template file writes, proving that provider output is fully validated before filesystem mutation.
