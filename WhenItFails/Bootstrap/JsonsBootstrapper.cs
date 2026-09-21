@@ -323,7 +323,21 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                         "The JSON template provider returned a null template collection.");
             }
 
-            foreach (JsonsTemplateFile? templateFile in templateFiles)
+            JsonsTemplateFile[] templateFileSnapshot;
+
+            try
+            {
+                templateFileSnapshot = templateFiles.ToArray();
+            }
+            catch (Exception exception)
+                when (exception is not OperationCanceledException)
+            {
+                return Response<JsonsBootstrapPayload>.Fail(
+                    code: "WIF_JSONS_TEMPLATE_PROVIDER_FAILED",
+                    message: "The JSON template provider failed.");
+            }
+
+            foreach (JsonsTemplateFile? templateFile in templateFileSnapshot)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
