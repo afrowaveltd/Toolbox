@@ -61,6 +61,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Directory-only `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only owner catalog filenames are rejected before provider invocation and filesystem mutation.
 - Directory-only `ProfilesFileName` caller-configuration contract is locally verified GREEN; all five caller-configured catalog filenames reject directory-only targets before provider invocation or filesystem mutation.
 - Existing-directory provider-target contract is locally verified GREEN; provider targets resolving to existing directories are rejected during full-snapshot validation before any template write.
+- Existing-directory `ErrorCatalogFileName` caller-configuration contract committed; focused RED verification pending.
+
+## 2026-09-21 — existing-directory error catalog filename contract
+
+Contract commit:
+`39e90ff34020818a7f1c7bccb3ee27249f18619a`
+
+Baseline: **1081/1081 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperExistingDirectoryErrorCatalogFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenErrorCatalogFileNameResolvesToExistingDirectory_ReturnsInvalidBeforeProvider`
+
+The package workspace already contains a `Nested` directory with `preserve.txt`, while caller configuration uses:
+
+```csharp
+ErrorCatalogFileName = "Nested"
+```
+
+The value is lexically valid, contained in the package, and does not end with a directory separator, but it resolves to a directory rather than a file.
+
+Require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_ERROR_CATALOG_FILE_NAME_INVALID
+Message: The error catalog file name is invalid.
+```
+
+The template provider must not be invoked, and the existing directory and its contents must remain unchanged.
+
+Current production validates lexical containment but does not check whether the caller-configured target already resolves to a directory. With the tracking provider returning no templates, current behavior is expected to complete successfully.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1081/1081 GREEN existing-directory provider-target checkpoint
 
@@ -2623,11 +2660,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenErrorCatalogFileNameResolvesToExistingDirectory_ReturnsInvalidBeforeProvider"
 ```
 
-Locally confirmed: **1081/1081 GREEN**.
+Expected at this stage: **one focused RED**. Current caller validation is expected to accept the lexically valid contained path, invoke the tracking provider, and return success instead of the caller-specific invalid contract.
 
 ## Next recommended step
 
-Add one focused caller-configuration contract for `ErrorCatalogFileName` that resolves to an already existing directory. Require the caller-specific invalid response before template-provider invocation while preserving the pre-existing directory and its contents.
+After focused RED is confirmed, add only the early existing-directory guard for `ErrorCatalogFileName`. Preserve its existing null, whitespace, malformed-path, directory-separator, and outside-package contracts separately.
