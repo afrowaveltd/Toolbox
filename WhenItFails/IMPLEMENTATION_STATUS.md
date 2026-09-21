@@ -60,7 +60,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Directory-only `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only code-group catalog filenames are rejected before provider invocation and filesystem mutation.
 - Directory-only `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only owner catalog filenames are rejected before provider invocation and filesystem mutation.
 - Directory-only `ProfilesFileName` caller-configuration contract is locally verified GREEN; all five caller-configured catalog filenames reject directory-only targets before provider invocation or filesystem mutation.
-- Existing-directory provider-target contract committed; focused RED verification pending.
+- Existing-directory provider-target contract confirmed RED on Windows; a narrow full-snapshot validation guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — existing-directory template target contract
 
@@ -90,7 +90,32 @@ Require that `first.json` is not written and the pre-existing directory and its 
 
 Current production rejects directory-only names with trailing separators but does not check whether a separator-free target already resolves to a directory. The second write is expected to fail as a filesystem error, after the first template was created.
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+Expected: Invalid
+Actual:   Failed
+```
+
+The later provider target named an existing directory. Current production classified it only at the write phase, after the first valid template could already be written.
+
+Production fix commit:
+`3567953e5d83613b41f667251f83bad154cfe615`
+
+Documentation commit:
+`afc99aab299391255953217fd48a298aef46a847`
+
+During full-snapshot validation, `JsonsBootstrapper` now checks whether each contained, normalized provider target resolves to an existing directory and rejects it before any template files are written:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID
+Message: The JSON template provider returned a template with an invalid target file name.
+```
+
+Existing directories and their files remain untouched, and valid nested file targets remain supported. This is a validation-time safeguard, not a transactional guarantee against unrelated I/O failures or concurrent filesystem changes.
+
+**Focused GREEN and complete-suite 1081/1081 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1080/1080 GREEN five-field directory-only checkpoint
 
@@ -2578,10 +2603,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateTargetIsExistingDirectory_ReturnsInvalidWithoutPartialWrites"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**. The existing-directory target is expected to fail only in the write phase, instead of being rejected as malformed provider output during full-snapshot validation. A zero-test filter match is not a valid checkpoint.
+Expected results after the committed fix: **focused GREEN** and **1081/1081 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, add a narrow provider-target validation for paths that resolve to an existing directory, preserving the existing directory and the no-partial-write guarantee. Then run focused and complete suite (expected total: 1081).
+After **1081/1081 GREEN** is confirmed locally, record the checkpoint and audit the next distinct bootstrap boundary.
