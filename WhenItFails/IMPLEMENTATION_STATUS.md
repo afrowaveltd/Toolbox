@@ -43,6 +43,33 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Malformed `RootDirectory` caller-configuration contract is locally verified GREEN; syntactically invalid root paths are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `PackageDirectoryName` caller-configuration contract is locally verified GREEN; syntactically invalid package directory names are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `ErrorCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid error catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
+- Malformed `CategoryCatalogFileName` caller-configuration contract committed; focused RED verification pending.
+
+## 2026-09-21 — malformed category-catalog filename path contract
+
+Contract commit:
+`f061fddb3aff140ecf40e41fe28ec538efef0c45`
+
+Baseline: **1063/1063 GREEN**, confirmed locally by the maintainer before this test was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperInvalidCategoryCatalogFileNamePathContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenCategoryCatalogFileNameContainsNullCharacter_ReturnsInvalidBeforeProviderOrFilesystem`
+
+With `CategoryCatalogFileName = "categories\0.en.json"`, require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_INVALID
+Message: The category catalog file name is invalid.
+```
+
+The contract also requires no template-provider invocation and no workspace-root creation.
+
+Current production still passes `CategoryCatalogFileName` directly into package-containment evaluation after null/whitespace validation. A null character can therefore trigger `ArgumentException` inside `Path.GetFullPath(...)`. **Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1063/1063 GREEN malformed error-catalog filename checkpoint
 
@@ -1266,11 +1293,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCategoryCatalogFileNameContainsNullCharacter_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Locally confirmed: **1063/1063 GREEN**.
+Expected at this stage: **one focused RED**, most likely an escaping `ArgumentException` from `Path.GetFullPath(...)`. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Add one focused caller-configuration contract for syntactically malformed `CategoryCatalogFileName` containing a null character. Require stable `Invalid` before filesystem mutation or template-provider invocation, and confirm RED before changing production.
+After focused RED is confirmed, add the narrow category-catalog filename syntax normalization, then rerun the focused test and complete suite (expected total: 1064).
