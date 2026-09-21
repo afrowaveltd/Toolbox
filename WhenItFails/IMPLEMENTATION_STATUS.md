@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1075/1075 GREEN**, confirmed locally by the maintainer after directory-only provider-target rejection. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1076/1076 GREEN**, confirmed locally by the maintainer after directory-only `ErrorCatalogFileName` caller validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -55,7 +55,28 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Template collection enumeration-cancellation regression contract is locally verified GREEN; exact-instance `OperationCanceledException` propagation is preserved during returned-collection enumeration.
 - Later-null-template-item no-partial-write contract is locally verified GREEN; the full materialized template snapshot is validated before any template file write.
 - Directory-only template-target contract is locally verified GREEN; directory-only provider targets are rejected during provider-output validation before filesystem mutation.
-- Directory-only `ErrorCatalogFileName` caller-configuration contract confirmed RED on Windows; directory-only error catalog filenames are now rejected before provider invocation and filesystem mutation, awaiting focused/full GREEN verification.
+- Directory-only `ErrorCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only error catalog filenames are rejected before provider invocation and filesystem mutation.
+
+## 2026-09-21 — 1076/1076 GREEN directory-only error filename checkpoint
+
+Contract commit: `10e5ade814b41bd78ac5cdd15235386e836f1a00`
+
+Production fix commit: `65fdd4baf0579b4fda6822c1b456c1ec438a9111`
+
+Documentation commit: `a5c4aea3d66ef31c1858e9095fc652c2679e4c2d`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1076
+Total:  1076
+```
+
+Directory-only `ErrorCatalogFileName` values are now rejected as caller configuration before provider invocation or filesystem mutation.
+
+Next caller-configured field: `CategoryCatalogFileName`.
 
 ## 2026-09-21 — directory-only error catalog filename contract
 
@@ -115,7 +136,7 @@ Message: The error catalog file name is invalid.
 
 The existing outside-package and malformed-path contracts remain separate.
 
-**Focused GREEN and complete-suite 1076/1076 GREEN are pending local verification.**
+**Complete-suite 1076/1076 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1075/1075 GREEN directory-only provider-target checkpoint
 
@@ -2197,12 +2218,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenErrorCatalogFileNameEndsWithDirectorySeparator_ReturnsInvalidBeforeProviderOrFilesystem"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed fix: **focused GREEN** and **1076/1076 GREEN** for the complete suite.
+Locally confirmed: **1076/1076 GREEN**.
 
 ## Next recommended step
 
-After **1076/1076 GREEN** is confirmed locally, record the checkpoint. Then audit the remaining caller-configured catalog filename fields for the same directory-only semantic gap one contract at a time.
+Add one focused caller-configuration contract for `CategoryCatalogFileName` ending with a directory separator. Require `WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_INVALID` before provider invocation or filesystem mutation.
