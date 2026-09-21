@@ -37,6 +37,33 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - The escaping `ErrorCatalogFileName` caller-configuration contract is locally verified GREEN; the bootstrapper rejects that invalid filename before filesystem mutation and template-provider invocation.
 - The escaping `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
 - The escaping `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
+- The escaping `OwnerCatalogFileName` caller-configuration contract has been committed; focused RED verification is pending.
+
+## 2026-09-21 — escaping owner-catalog filename caller-configuration contract
+
+Contract commit:
+`ea94faccdab5ff65ae410c62d662cb37662fc8e6`
+
+Baseline: **1058/1058 GREEN**, confirmed locally by the maintainer before this test was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperEscapingOwnerCatalogFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenOwnerCatalogFileNameEscapesPackage_ReturnsInvalidBeforeProviderOrFilesystem`
+
+With `OwnerCatalogFileName = "../escaped.json"` and a tracking template provider returning no files, require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_OWNER_CATALOG_FILE_NAME_OUTSIDE_PACKAGE
+Message: The owner catalog file name must stay inside the package directory.
+```
+
+The contract also asserts no provider invocation, no workspace-root creation, and no escaped file. This is a proposed caller-configuration error code distinct from the established provider-target error contract.
+
+Production currently checks owner filename null/whitespace but not its path containment before workspace creation. **Focused RED verification is pending; no production change has been made for this contract.**
 
 ## 2026-09-21 — 1058/1058 GREEN escaping code-group-catalog filename checkpoint
 
@@ -950,11 +977,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenOwnerCatalogFileNameEscapesPackage_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Locally confirmed: **1058/1058 GREEN**.
+Expected at this stage: **one focused RED** (`Expected: Invalid`, `Actual: Success`). A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Add a focused caller-configuration containment contract for `OwnerCatalogFileName = "../escaped.json"`, requiring an invalid response before filesystem mutation or template-provider invocation. Confirm RED before changing production; preserve the established provider-target containment contract.
+After focused RED is confirmed, add the narrow pre-provider/pre-filesystem containment check for caller-configured `OwnerCatalogFileName`, then rerun the focused test and complete suite (expected total: 1059). Keep the provider-target containment contract unchanged.
