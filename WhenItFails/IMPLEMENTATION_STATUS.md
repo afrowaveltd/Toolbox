@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1071/1071 GREEN**, confirmed locally by the maintainer after whitespace template-name validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1072/1072 GREEN**, confirmed locally by the maintainer after template collection enumeration-failure normalization. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -51,7 +51,30 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Valid nested template-target creation contract is locally verified GREEN; validated nested targets create missing parent directories while preserving existing files.
 - Null template-name provider-output contract is locally verified GREEN; null logical template names are rejected before target validation and file creation.
 - Whitespace template-name provider-output contract is locally verified GREEN; whitespace-only logical names are rejected before target validation and file creation.
-- Template collection enumeration-exception contract confirmed RED on Windows; ordinary deferred collection failures are now normalized to the stable provider-failure response, awaiting focused/full GREEN verification.
+- Template collection enumeration-exception contract is locally verified GREEN; ordinary deferred collection failures are normalized to the stable provider-failure response without leaking provider detail.
+
+## 2026-09-21 — 1072/1072 GREEN template enumeration-failure checkpoint
+
+Contract commit: `6abb4d38ecae08d2cf4d495907671855304b08fd`
+
+Production fix commit: `f26676980a5654efb31f5e7ac0012942f9daa613`
+
+Documentation commit: `8f8ef9583dfc9e713381fcbddbf0d8febfd9be6a`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1072
+Total:  1072
+```
+
+The latest confirmation did not separately report focused test output, compiler-warning count, or operating system.
+
+Ordinary exceptions thrown while consuming the returned template collection now normalize to `WIF_JSONS_TEMPLATE_PROVIDER_FAILED` without exposing provider detail. Collection materialization also prevents partial template writes caused by a later enumeration failure.
+
+Next regression contract: exact-instance `OperationCanceledException` propagation when cancellation is thrown during returned-collection enumeration.
 
 ## 2026-09-21 — template collection enumeration exception contract
 
@@ -108,7 +131,7 @@ Message: The JSON template provider failed.
 
 `OperationCanceledException` remains excluded from normalization and continues to propagate unchanged. Template items are processed only after successful collection materialization, so an enumeration failure cannot cause partial template writes.
 
-**Focused GREEN and complete-suite 1072/1072 GREEN are pending local verification.**
+**Complete-suite 1072/1072 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1071/1071 GREEN whitespace template-name checkpoint
 
@@ -1908,12 +1931,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateCollectionEnumerationThrows_ReturnsStableProviderFailureWithoutExceptionDetail"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed fix: **focused GREEN** and **1072/1072 GREEN** for the complete suite.
+Locally confirmed: **1072/1072 GREEN**.
 
 ## Next recommended step
 
-After **1072/1072 GREEN** is confirmed locally, record the checkpoint. Then add a focused cancellation contract for `OperationCanceledException` thrown during returned-collection enumeration, preserving exact-instance propagation.
+Add a focused regression contract for `OperationCanceledException` thrown while materializing the returned template collection. Require exact-instance propagation. The current catch filter should already satisfy this contract, so a focused GREEN result is expected and should require no production change.
