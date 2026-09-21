@@ -35,6 +35,33 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - The package-directory escape contract is locally verified GREEN; `JsonsBootstrapper` rejects a package path outside the configured root before filesystem mutation and template-provider invocation.
 - A positive regression for valid nested `PackageDirectoryName` values is locally verified GREEN; legitimate nested package directories remain supported.
 - The escaping `ErrorCatalogFileName` caller-configuration contract is locally verified GREEN; the bootstrapper rejects that invalid filename before filesystem mutation and template-provider invocation.
+- Escaping `CategoryCatalogFileName` caller-configuration contract committed; focused RED verification pending.
+
+## 2026-09-21 — escaping category-catalog filename caller-configuration contract
+
+Contract commit:
+`0bee29d224d3edd467cc88e6746d4bb80dbde66c`
+
+Baseline: **1056/1056 GREEN**, confirmed locally by the maintainer before this test was added.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperEscapingCategoryCatalogFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenCategoryCatalogFileNameEscapesPackage_ReturnsInvalidBeforeProviderOrFilesystem`
+
+With `CategoryCatalogFileName = "../escaped.json"` and a tracking template provider returning no template files, require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_OUTSIDE_PACKAGE
+Message: The category catalog file name must stay inside the package directory.
+```
+
+The test also requires no provider invocation, no workspace-root creation, and no escaped file. This is a proposed caller-configuration code distinct from the existing provider-target error contract.
+
+Current production checks category filename null/whitespace but does not check category filename containment before creating the workspace. **Focused RED verification is pending; no production change has been made for this contract.**
 
 ## 2026-09-21 — 1056/1056 GREEN escaping error-catalog filename checkpoint
 
@@ -838,11 +865,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCategoryCatalogFileNameEscapesPackage_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Locally confirmed: **1056/1056 GREEN**.
+Expected at this stage: **one focused RED** (`Expected: Invalid`, `Actual: Success`). Zero matching tests is not a valid checkpoint.
 
 ## Next recommended step
 
-Add a focused caller-configuration containment contract for `CategoryCatalogFileName = "../escaped.json"`, requiring an invalid response before any filesystem mutation or template-provider invocation. Confirm RED before changing production, and preserve the existing provider-target containment contract.
+After focused RED is confirmed, add the narrow pre-provider/pre-filesystem containment check for caller-configured `CategoryCatalogFileName`, then rerun the focused test and complete suite (expected total: 1057). Keep the provider-target containment contract unchanged.
