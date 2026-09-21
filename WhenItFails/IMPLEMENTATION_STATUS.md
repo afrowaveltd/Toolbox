@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1054/1054 GREEN**, confirmed locally by the maintainer after the package-directory escape guard. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1055/1055 GREEN**, confirmed locally by the maintainer after the valid nested package-directory regression. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -33,7 +33,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ProfilesFileName = null` is locally verified GREEN; invalid configuration is rejected before provider invocation or filesystem mutation.
 - All five `JsonsOptions` catalog filename fields have locally verified null/whitespace GREEN contracts in `JsonsBootstrapper`, rejecting malformed input before filesystem mutation and template-provider invocation.
 - The package-directory escape contract is locally verified GREEN; `JsonsBootstrapper` rejects a package path outside the configured root before filesystem mutation and template-provider invocation.
-- A positive regression for valid nested `PackageDirectoryName` values has been committed; verification is pending.
+- A positive regression for valid nested `PackageDirectoryName` values is locally verified GREEN; legitimate nested package directories remain supported.
+
+## 2026-09-21 — 1055/1055 GREEN nested package-directory checkpoint
+
+Contract commit: `8fa2d9409256756e38e690225a1bcec05a1b023f`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1055
+Total:  1055
+```
+
+The latest confirmation did not separately report the focused result, compiler-warning count, or operating system. Legitimate nested package-directory configuration remains accepted with the root-containment guard. No production changes were needed.
+
+Next: reject an escaping catalog filename supplied directly through caller options, before filesystem mutation or template-provider invocation.
 
 ## 2026-09-21 — valid nested package-directory regression contract
 
@@ -50,7 +67,7 @@ Contract:
 
 With `PackageDirectoryName = Path.Combine("Packages", "WhenItFails")` under a unique temporary `RootDirectory`, the bootstrapper must return `Success`, report the nested package directory as newly created, invoke the tracking template provider, and create that directory inside the root. The tracking provider returns an empty template list so the contract stays focused on directory containment and creation.
 
-**Expected focused result: GREEN. Focused/full-suite 1055/1055 GREEN are pending local verification.** No production change was made for this regression.
+**Full-suite 1055/1055 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result. No production change was made for this regression.
 
 ## 2026-09-21 — 1054/1054 GREEN package-directory escape checkpoint
 
@@ -732,7 +749,9 @@ The five configurable catalog filename options (`ErrorCatalogFileName`, `Categor
 
 ## Next configuration boundary
 
-`PackageDirectoryName` is documented as a package directory **under** `RootDirectory`. The bootstrapper currently rejects null/whitespace package-directory names but does not prevent `../` path traversal outside the configured root. Its template target path check protects file destinations relative to the already-computed package directory and does not cover this parent-directory escape. Add a focused no-side-effects contract before introducing a production guard.
+The package-directory containment guard and positive nested-directory regression are verified. For template outputs, `JsonsBootstrapper` already rejects a provider-supplied target escaping its package directory, but does so only after workspace creation and the provider call.
+
+The five catalog filename options are validated early for null/whitespace but not yet for an escaping relative path. A tracking template provider returning no files can therefore allow an invalid caller-configured filename such as `ErrorCatalogFileName = "../escaped.json"` to produce a successful bootstrap. Test this caller-configuration boundary before making a narrow production change. Preserve the existing separate provider-target error contract.
 
 ## Established transparent lower boundary — do not normalize
 
@@ -763,12 +782,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenPackageDirectoryNameIsNestedInsideRoot_CreatesWorkspace"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results: **one focused GREEN** and **1055/1055 GREEN** for the full suite. A zero-test filter match is not a valid checkpoint.
+Locally confirmed: **1055/1055 GREEN**.
 
 ## Next recommended step
 
-After **1055/1055 GREEN** is confirmed locally, record the checkpoint. Continue auditing JSON workspace path handling one focused contract at a time; leave production unchanged unless a new regression demonstrates a gap.
+Add one focused RED contract for `ErrorCatalogFileName = "../escaped.json"`, requiring an invalid caller-configuration response before filesystem mutation or template-provider invocation. Keep the existing provider-target path contract unchanged.
