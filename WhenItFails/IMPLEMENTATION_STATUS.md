@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1059/1059 GREEN**, confirmed locally by the maintainer after the escaping `OwnerCatalogFileName` guard. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1060/1060 GREEN**, confirmed locally by the maintainer after the escaping `ProfilesFileName` guard. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -38,7 +38,27 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - The escaping `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
 - The escaping `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
 - The escaping `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
-- The escaping `ProfilesFileName` caller-configuration contract is confirmed RED on Windows; the narrow production guard is committed, awaiting focused/full GREEN verification.
+- The escaping `ProfilesFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
+- All five caller-configured catalog filename containment guards are locally verified GREEN.
+
+## 2026-09-21 — 1060/1060 GREEN complete catalog-filename containment checkpoint
+
+Contract commit: `f20a7041a37b9e0af2761d5817392076cd3fc242`
+
+Production guard commit: `8182490e51f5d7e393e5efbcebed0d1014c4f439`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1060
+Total:  1060
+```
+
+The latest confirmation did not separately report focused test output, compiler-warning count, or operating system. All five caller-configured catalog filename fields now have locally verified null, whitespace, and package-containment guards before filesystem mutation and template-provider invocation.
+
+Next audit target: syntactically malformed caller paths. `JsonCatalogDocumentLoader` and `JsonCatalogDocumentWriter` already normalize malformed paths to `Invalid`, while `JsonsBootstrapper` can currently allow `Path.GetFullPath(...)` argument failures to escape.
 
 ## 2026-09-21 — escaping profiles filename caller-configuration contract
 
@@ -76,7 +96,7 @@ Production guard commit:
 
 The bootstrapper now calls the existing `IsPathInsideDirectory` helper for caller-configured `ProfilesFileName` immediately after the owner-catalog filename check, before filesystem mutation or template-provider invocation. The established provider-target containment contract remains unchanged.
 
-**Focused GREEN and complete-suite 1060/1060 GREEN are pending local verification.**
+**Complete-suite 1060/1060 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1059/1059 GREEN escaping owner-catalog filename checkpoint
 
@@ -1045,12 +1065,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameEscapesPackage_ReturnsInvalidBeforeProviderOrFilesystem"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed guard: **focused GREEN** and **1060/1060 GREEN** for the complete suite.
+Locally confirmed: **1060/1060 GREEN**.
 
 ## Next recommended step
 
-After **1060/1060 GREEN** is confirmed locally, record the checkpoint and review the remaining JSON workspace path contracts before selecting the next focused case. The five caller-configured catalog filename containment guards will then be complete.
+Add one focused caller-configuration contract for a syntactically malformed `RootDirectory` containing a null character. Require a stable `Invalid` response before filesystem mutation or template-provider invocation, then confirm RED before changing production.
