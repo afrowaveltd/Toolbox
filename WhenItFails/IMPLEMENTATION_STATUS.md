@@ -66,7 +66,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-directory `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `ProfilesFileName` caller-configuration contract is locally verified GREEN; all five caller-configured catalog filenames now reject paths resolving to existing directories before provider invocation.
-- Provider `TargetFileName = "."` semantic-directory contract committed; focused RED verification pending.
+- Provider `TargetFileName = "."` semantic-directory contract confirmed RED on Windows; a provider-only classification fix is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — provider current-directory target contract
 
@@ -102,7 +102,32 @@ Because the full provider snapshot is validated before template writes, `first.j
 
 Current containment logic compares the resolved target against a package-directory prefix. A target resolving exactly to the package directory does not start with that prefix and is therefore currently expected to be classified as `WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_OUTSIDE_PACKAGE` instead of the required invalid-target contract.
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+Expected: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID
+Actual:   WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_OUTSIDE_PACKAGE
+```
+
+The response status was already `Invalid`; the defect was classification. `TargetFileName = "."` resolves exactly to the package directory, so it is a directory target rather than an escaping path.
+
+Production fix commit:
+`cc01f3aa25d640bcc1fdc5e0ca3b35ae3e6eb7b2`
+
+Documentation commit:
+`4d4a0461f4ef716210897a59d0710ed4e71dedb4`
+
+The provider-target path now gets a narrow equality check only when the shared containment helper reports false. If the canonical target path equals the canonical package directory path, the bootstrapper returns:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID
+Message: The JSON template provider returned a template with an invalid target file name.
+```
+
+True escapes such as parent-directory targets remain `WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_OUTSIDE_PACKAGE`. The shared `IsPathInsideDirectory` helper and `PackageDirectoryName` semantics were not changed.
+
+**Focused GREEN and complete-suite 1087/1087 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1086/1086 GREEN five-field existing-directory checkpoint
 
@@ -3078,10 +3103,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateTargetResolvesToPackageDirectory_ReturnsInvalidWithoutPartialWrites"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**. The response should already be `Invalid`, but the current implementation is expected to return `WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_OUTSIDE_PACKAGE` instead of `WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID`.
+Expected results after the committed fix: **focused GREEN** and **1087/1087 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, make the smallest provider-target classification change only. Do not change the shared containment helper or package-directory semantics as part of this contract.
+After **1087/1087 GREEN** is confirmed locally, record the checkpoint and continue auditing semantic path forms without changing the shared containment helper unless a separate contract requires it.
