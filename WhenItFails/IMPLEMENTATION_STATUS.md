@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1055/1055 GREEN**, confirmed locally by the maintainer after the valid nested package-directory regression. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1056/1056 GREEN**, confirmed locally by the maintainer after the escaping `ErrorCatalogFileName` guard. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -34,7 +34,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - All five `JsonsOptions` catalog filename fields have locally verified null/whitespace GREEN contracts in `JsonsBootstrapper`, rejecting malformed input before filesystem mutation and template-provider invocation.
 - The package-directory escape contract is locally verified GREEN; `JsonsBootstrapper` rejects a package path outside the configured root before filesystem mutation and template-provider invocation.
 - A positive regression for valid nested `PackageDirectoryName` values is locally verified GREEN; legitimate nested package directories remain supported.
-- The escaping `ErrorCatalogFileName` caller-configuration contract is confirmed RED on Windows; the narrow production guard is committed, awaiting focused/full GREEN verification.
+- The escaping `ErrorCatalogFileName` caller-configuration contract is locally verified GREEN; the bootstrapper rejects that invalid filename before filesystem mutation and template-provider invocation.
+
+## 2026-09-21 — 1056/1056 GREEN escaping error-catalog filename checkpoint
+
+Contract commit: `0ce2dd1e5f8b00a3b12be8f281b9b6a1e54987b8`
+
+Production guard commit: `92a4f351641cba172bf66e3121f5065c1a27f151`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1056
+Total:  1056
+```
+
+The latest confirmation did not separately report the focused result, compiler-warning count, or operating system. Caller-configured `ErrorCatalogFileName = "../escaped.json"` now returns `Invalid` before workspace creation and provider invocation. Next focused boundary: caller-configured `CategoryCatalogFileName` escaping its package directory.
 
 ## 2026-09-21 — escaping error-catalog filename caller-configuration contract
 
@@ -72,7 +89,7 @@ Production guard commit:
 
 After validating package-directory containment and computing its path, the bootstrapper calls the existing `IsPathInsideDirectory` helper on caller-configured `ErrorCatalogFileName` before any `Directory.Exists`, `Directory.CreateDirectory`, or template-provider call. The existing provider-target error contract remains unchanged.
 
-**Focused GREEN and full-suite 1056/1056 GREEN are pending local verification.**
+**Full-suite 1056/1056 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report focused test output, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1055/1055 GREEN nested package-directory checkpoint
 
@@ -821,12 +838,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenErrorCatalogFileNameEscapesPackage_ReturnsInvalidBeforeProviderOrFilesystem"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed guard: **focused GREEN** and **1056/1056 GREEN** for the complete suite.
+Locally confirmed: **1056/1056 GREEN**.
 
 ## Next recommended step
 
-After **1056/1056 GREEN** is confirmed locally, record the checkpoint and continue the caller-configured filename containment audit, one focused contract at a time. Do not alter the existing provider-target containment contract.
+Add a focused caller-configuration containment contract for `CategoryCatalogFileName = "../escaped.json"`, requiring an invalid response before any filesystem mutation or template-provider invocation. Confirm RED before changing production, and preserve the existing provider-target containment contract.
