@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1073/1073 GREEN**, confirmed locally by the maintainer after the template collection enumeration-cancellation regression contract. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1074/1074 GREEN**, confirmed locally by the maintainer after full template-snapshot validation before file writes. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -53,7 +53,30 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Whitespace template-name provider-output contract is locally verified GREEN; whitespace-only logical names are rejected before target validation and file creation.
 - Template collection enumeration-exception contract is locally verified GREEN; ordinary deferred collection failures are normalized to the stable provider-failure response without leaking provider detail.
 - Template collection enumeration-cancellation regression contract is locally verified GREEN; exact-instance `OperationCanceledException` propagation is preserved during returned-collection enumeration.
-- Later-null-template-item no-partial-write contract confirmed RED on Windows; the full materialized template snapshot is now validated before any template file write, awaiting focused/full GREEN verification.
+- Later-null-template-item no-partial-write contract is locally verified GREEN; the full materialized template snapshot is validated before any template file write.
+
+## 2026-09-21 — 1074/1074 GREEN full template-snapshot validation checkpoint
+
+Contract commit: `22afb9d9aba703f015adadc22495a8a839b67d5c`
+
+Production fix commit: `2f7759369ca0aab51e9c46205628195cbf36b244`
+
+Documentation commit: `c6ed1c36b1e092a3df3c2fff8f966cd048fb69ec`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1074
+Total:  1074
+```
+
+The latest confirmation did not separately report focused test output, compiler-warning count, or operating system.
+
+The complete materialized provider snapshot is now validated before the first template file write, preventing malformed later items from leaving earlier provider files partially created.
+
+Next provider-target audit: distinguish a valid nested file target from a directory-only target that ends with a directory separator.
 
 ## 2026-09-21 — later null template item no-partial-write contract
 
@@ -106,7 +129,7 @@ materialize provider collection
 
 All existing provider-item error codes and messages remain unchanged. Cancellation checks remain present during validation and again before each file write.
 
-**Focused GREEN and complete-suite 1074/1074 GREEN are pending local verification.**
+**Complete-suite 1074/1074 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1073/1073 GREEN template enumeration-cancellation checkpoint
 
@@ -2030,12 +2053,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateItemIsNull_ReturnsInvalidBeforeWritingAnyTemplateFiles"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed fix: **focused GREEN** and **1074/1074 GREEN** for the complete suite.
+Locally confirmed: **1074/1074 GREEN**.
 
 ## Next recommended step
 
-After **1074/1074 GREEN** is confirmed locally, record the checkpoint and continue with the next uncovered bootstrap/provider-output boundary.
+Add a focused provider-output contract for a target that ends with the platform directory separator, for example `Nested/`. It resolves inside the package but is a directory path rather than a file target. Require stable `WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID` and no nested-directory creation.
