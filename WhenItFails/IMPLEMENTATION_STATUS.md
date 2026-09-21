@@ -37,7 +37,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - The escaping `ErrorCatalogFileName` caller-configuration contract is locally verified GREEN; the bootstrapper rejects that invalid filename before filesystem mutation and template-provider invocation.
 - The escaping `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
 - The escaping `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
-- The escaping `OwnerCatalogFileName` caller-configuration contract has been committed; focused RED verification is pending.
+- The escaping `OwnerCatalogFileName` caller-configuration contract is confirmed RED on Windows; the narrow production guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — escaping owner-catalog filename caller-configuration contract
 
@@ -63,7 +63,19 @@ Message: The owner catalog file name must stay inside the package directory.
 
 The contract also asserts no provider invocation, no workspace-root creation, and no escaped file. This is a proposed caller-configuration error code distinct from the established provider-target error contract.
 
-Production currently checks owner filename null/whitespace but not its path containment before workspace creation. **Focused RED verification is pending; no production change has been made for this contract.**
+The focused test confirmed the expected RED on Windows:
+
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+Production guard commit:
+`cbef653c0be0e1d4fa368d7bbe1f1f0fe04f344f`
+
+The bootstrapper now calls the existing `IsPathInsideDirectory` helper for caller-configured `OwnerCatalogFileName` immediately after the code-group catalog filename check, before filesystem mutation or template-provider invocation. The existing provider-target contract remains unchanged.
+
+**Focused GREEN and complete-suite 1059/1059 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1058/1058 GREEN escaping code-group-catalog filename checkpoint
 
@@ -978,10 +990,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenOwnerCatalogFileNameEscapesPackage_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED** (`Expected: Invalid`, `Actual: Success`). A zero-test filter match is not a valid checkpoint.
+Expected results after the committed guard: **focused GREEN** and **1059/1059 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, add the narrow pre-provider/pre-filesystem containment check for caller-configured `OwnerCatalogFileName`, then rerun the focused test and complete suite (expected total: 1059). Keep the provider-target containment contract unchanged.
+After **1059/1059 GREEN** is confirmed locally, record the checkpoint and continue the filename containment audit with `ProfilesFileName`, one focused contract at a time. Keep the provider-target containment contract unchanged.
