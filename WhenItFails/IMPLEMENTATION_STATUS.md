@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1064/1064 GREEN**, confirmed locally by the maintainer after malformed `CategoryCatalogFileName` normalization. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1065/1065 GREEN**, confirmed locally by the maintainer after malformed `CodeGroupCatalogFileName` normalization. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -44,7 +44,26 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Malformed `PackageDirectoryName` caller-configuration contract is locally verified GREEN; syntactically invalid package directory names are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `ErrorCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid error catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid category catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
-- Malformed `CodeGroupCatalogFileName` caller-configuration contract is confirmed RED on Windows via escaping `ArgumentException`; the narrow production normalization is committed, awaiting focused/full GREEN verification.
+- Malformed `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid code-group catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
+
+## 2026-09-21 — 1065/1065 GREEN malformed code-group filename checkpoint
+
+Contract commit: `7efc266266f15437f6c533814e8648d29d51e48d`
+
+Production fix commit: `d1013def0656dde8493e907ec9bd6545b0cabbcd`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1065
+Total:  1065
+```
+
+The latest confirmation did not separately report focused test output, compiler-warning count, or operating system. A syntactically malformed `CodeGroupCatalogFileName` now returns stable `Invalid` instead of leaking `ArgumentException`.
+
+Next malformed-path boundary: `OwnerCatalogFileName`.
 
 ## 2026-09-21 — malformed code-group-catalog filename path contract
 
@@ -91,7 +110,7 @@ Message: The code group catalog file name is invalid.
 
 A syntactically valid filename outside the package continues to use the separate `WIF_JSONS_CODE_GROUP_CATALOG_FILE_NAME_OUTSIDE_PACKAGE` contract.
 
-**Focused GREEN and complete-suite 1065/1065 GREEN are pending local verification.**
+**Complete-suite 1065/1065 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1064/1064 GREEN malformed category-catalog filename checkpoint
 
@@ -1381,12 +1400,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCodeGroupCatalogFileNameContainsNullCharacter_ReturnsInvalidBeforeProviderOrFilesystem"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed fix: **focused GREEN** and **1065/1065 GREEN** for the complete suite.
+Locally confirmed: **1065/1065 GREEN**.
 
 ## Next recommended step
 
-After **1065/1065 GREEN** is confirmed locally, record the checkpoint and continue malformed filename syntax auditing with `OwnerCatalogFileName`.
+Add one focused caller-configuration contract for syntactically malformed `OwnerCatalogFileName` containing a null character. Require stable `Invalid` before filesystem mutation or template-provider invocation, and confirm RED before changing production.
