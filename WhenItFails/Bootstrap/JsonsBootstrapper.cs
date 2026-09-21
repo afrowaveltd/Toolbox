@@ -143,6 +143,13 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
 
             string packageDirectoryPath = Path.Combine(rootDirectory, normalizedPackageDirectoryName);
 
+            if (!IsPathInsideDirectory(packageDirectoryPath, options.ErrorCatalogFileName))
+            {
+                return Response<JsonsBootstrapPayload>.Invalid(
+                    code: "WIF_JSONS_ERROR_CATALOG_FILE_NAME_OUTSIDE_PACKAGE",
+                    message: "The error catalog file name must stay inside the package directory.");
+            }
+
             bool packageDirectoryAlreadyExisted =
                 Directory.Exists(packageDirectoryPath);
 
