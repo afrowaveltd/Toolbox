@@ -47,7 +47,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Malformed `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid code-group catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid owner catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `ProfilesFileName` caller-configuration contract is locally verified GREEN; syntactically invalid profile catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
-- Malformed template-provider `TargetFileName` contract committed; focused RED verification pending.
+- Malformed template-provider `TargetFileName` contract is confirmed RED on Windows via escaping `ArgumentException`; the narrow provider-output normalization is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — malformed template target filename path contract
 
@@ -81,7 +81,28 @@ The contract also requires that the later sentinel template file is not written.
 
 This remains distinct from the existing `WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_OUTSIDE_PACKAGE` containment contract.
 
-Current production passes non-null/non-whitespace template target names directly into `IsPathInsideDirectory(...)`; a null character can therefore escape as `ArgumentException`. **Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+System.ArgumentException: Null character in path.
+```
+
+The exception escaped from `Path.GetFullPath(...)` inside `IsPathInsideDirectory(...)` after workspace creation but before any template file was written.
+
+Production fix commit:
+`11409034e05e891863f7f17bc4d517ff2a79edfc`
+
+Template-target containment evaluation is now isolated in a narrow `try/catch (ArgumentException)`. Malformed provider target syntax maps to:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID
+Message: The JSON template provider returned a template with an invalid target file name.
+```
+
+The existing null, whitespace, and outside-package target contracts remain unchanged.
+
+**Focused GREEN and complete-suite 1068/1068 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1067/1067 GREEN malformed caller-path checkpoint
 
@@ -1580,10 +1601,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateTargetFileNameContainsNullCharacter_ReturnsInvalidBeforeWritingTemplateFiles"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, most likely an escaping `ArgumentException` from `Path.GetFullPath(...)`. A zero-test filter match is not a valid checkpoint.
+Expected results after the committed fix: **focused GREEN** and **1068/1068 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, add a narrow provider-target syntax normalization while preserving the existing null, whitespace, and outside-package target contracts. Then rerun the focused test and complete suite (expected total: 1068).
+After **1068/1068 GREEN** is confirmed locally, record the checkpoint and audit the next uncontained path/IO boundary rather than extending this provider-target contract further.
