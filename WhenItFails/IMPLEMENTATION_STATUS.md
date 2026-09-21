@@ -59,7 +59,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Directory-only `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only category catalog filenames are rejected before provider invocation and filesystem mutation.
 - Directory-only `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only code-group catalog filenames are rejected before provider invocation and filesystem mutation.
 - Directory-only `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only owner catalog filenames are rejected before provider invocation and filesystem mutation.
-- Directory-only `ProfilesFileName` caller-configuration contract committed; focused RED verification pending.
+- Directory-only `ProfilesFileName` caller-configuration contract confirmed RED on Windows; the final directory-only caller filename guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — directory-only profiles filename contract
 
@@ -94,7 +94,32 @@ The template provider must not be invoked and the workspace root must not be cre
 
 Current caller validation checks containment but does not yet reject a directory-only profile catalog target, so focused RED is expected.
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+The caller-configured directory-only profile filename passed early validation and allowed bootstrap to complete successfully.
+
+Production fix commit:
+`e74fff6c9624e93e857fba49769694b3c9b14622`
+
+Documentation commit:
+`85969b3a56ea1336c432e95da84c312404a99076`
+
+`JsonsBootstrapper` now normalizes `ProfilesFileName` and rejects values ending with a directory separator before containment, provider invocation, or filesystem mutation:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID
+Message: The profile catalog file name is invalid.
+```
+
+Its existing malformed-path and outside-package contracts remain separate. All five caller-configured filename fields now contain the directory-only guard in production, but full-suite verification of the last guard is still pending.
+
+**Focused GREEN and complete-suite 1080/1080 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1079/1079 GREEN directory-only owner filename checkpoint
 
@@ -2501,10 +2526,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameEndsWithDirectorySeparator_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**. Current caller validation is expected to accept the in-package directory-only profile filename and continue instead of returning the caller-specific invalid contract.
+Expected results after the committed fix: **focused GREEN** and **1080/1080 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only the early directory-only guard for `ProfilesFileName`. Preserve its existing malformed-path and outside-package contracts separately.
+After **1080/1080 GREEN** is confirmed locally, record the full five-field directory-only checkpoint and audit the next uncovered bootstrap boundary.
