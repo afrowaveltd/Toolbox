@@ -45,6 +45,33 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Malformed `ErrorCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid error catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid category catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid code-group catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
+- Malformed `OwnerCatalogFileName` caller-configuration contract committed; focused RED verification pending.
+
+## 2026-09-21 — malformed owner-catalog filename path contract
+
+Contract commit:
+`b0084b060adb8234848c567f9018b004f0af1939`
+
+Baseline: **1065/1065 GREEN**, confirmed locally by the maintainer before this test was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperInvalidOwnerCatalogFileNamePathContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenOwnerCatalogFileNameContainsNullCharacter_ReturnsInvalidBeforeProviderOrFilesystem`
+
+With `OwnerCatalogFileName = "owners\0.en.json"`, require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_OWNER_CATALOG_FILE_NAME_INVALID
+Message: The owner catalog file name is invalid.
+```
+
+The contract also requires no template-provider invocation and no workspace-root creation.
+
+Current production still passes `OwnerCatalogFileName` directly into package-containment evaluation after null/whitespace validation. A null character can therefore trigger `ArgumentException` inside `Path.GetFullPath(...)`. **Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1065/1065 GREEN malformed code-group filename checkpoint
 
@@ -1400,11 +1427,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenOwnerCatalogFileNameContainsNullCharacter_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Locally confirmed: **1065/1065 GREEN**.
+Expected at this stage: **one focused RED**, most likely an escaping `ArgumentException` from `Path.GetFullPath(...)`. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Add one focused caller-configuration contract for syntactically malformed `OwnerCatalogFileName` containing a null character. Require stable `Invalid` before filesystem mutation or template-provider invocation, and confirm RED before changing production.
+After focused RED is confirmed, add the narrow owner-catalog filename syntax normalization, then rerun the focused test and complete suite (expected total: 1066).
