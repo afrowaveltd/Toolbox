@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1066/1066 GREEN**, confirmed locally by the maintainer after malformed `OwnerCatalogFileName` normalization. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1067/1067 GREEN**, confirmed locally by the maintainer after malformed `ProfilesFileName` normalization. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -46,7 +46,36 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Malformed `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid category catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid code-group catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid owner catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
-- Malformed `ProfilesFileName` caller-configuration contract is confirmed RED on Windows via escaping `ArgumentException`; the narrow production normalization is committed, awaiting focused/full GREEN verification.
+- Malformed `ProfilesFileName` caller-configuration contract is locally verified GREEN; syntactically invalid profile catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
+
+## 2026-09-21 — 1067/1067 GREEN malformed caller-path checkpoint
+
+Contract commit: `514339b43269b7d25584a851acfc7138fe15d48a`
+
+Production fix commit: `32357c6033b8be4c6ba8247baf39d73f5c21b385`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1067
+Total:  1067
+```
+
+The latest confirmation did not separately report focused test output, compiler-warning count, or operating system.
+
+Malformed-path syntax handling is now locally verified GREEN for:
+
+- `RootDirectory`
+- `PackageDirectoryName`
+- `ErrorCatalogFileName`
+- `CategoryCatalogFileName`
+- `CodeGroupCatalogFileName`
+- `OwnerCatalogFileName`
+- `ProfilesFileName`
+
+The next distinct boundary is malformed `TargetFileName` returned by `IJsonsTemplateProvider`; preserve the existing provider-target containment contract separately.
 
 ## 2026-09-21 — malformed profile-catalog filename path contract
 
@@ -93,7 +122,7 @@ Message: The profile catalog file name is invalid.
 
 A syntactically valid filename outside the package continues to use the separate `WIF_JSONS_PROFILE_CATALOG_FILE_NAME_OUTSIDE_PACKAGE` contract.
 
-**Focused GREEN and complete-suite 1067/1067 GREEN are pending local verification.**
+**Complete-suite 1067/1067 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1066/1066 GREEN malformed owner-catalog filename checkpoint
 
@@ -1515,12 +1544,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameContainsNullCharacter_ReturnsInvalidBeforeProviderOrFilesystem"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed fix: **focused GREEN** and **1067/1067 GREEN** for the complete suite.
+Locally confirmed: **1067/1067 GREEN**.
 
 ## Next recommended step
 
-After **1067/1067 GREEN** is confirmed locally, record the checkpoint. At that point malformed-path syntax handling is complete for `RootDirectory`, `PackageDirectoryName`, and all five caller-configured catalog filename fields. The next boundary to audit is malformed template-provider `TargetFileName` syntax, kept separate from the existing provider-target containment contract.
+Audit malformed template-provider `TargetFileName` syntax as a separate provider-output contract. Keep null, whitespace, and outside-package target contracts unchanged.
