@@ -55,6 +55,42 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Template collection enumeration-cancellation regression contract is locally verified GREEN; exact-instance `OperationCanceledException` propagation is preserved during returned-collection enumeration.
 - Later-null-template-item no-partial-write contract is locally verified GREEN; the full materialized template snapshot is validated before any template file write.
 - Directory-only template-target contract is locally verified GREEN; directory-only provider targets are rejected during provider-output validation before filesystem mutation.
+- Directory-only `ErrorCatalogFileName` caller-configuration contract committed; focused RED verification pending.
+
+## 2026-09-21 — directory-only error catalog filename contract
+
+Contract commit:
+`10e5ade814b41bd78ac5cdd15235386e836f1a00`
+
+Baseline: **1075/1075 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperDirectoryErrorCatalogFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenErrorCatalogFileNameEndsWithDirectorySeparator_ReturnsInvalidBeforeProviderOrFilesystem`
+
+Caller configuration uses:
+
+```csharp
+ErrorCatalogFileName =
+    "Nested" + Path.DirectorySeparatorChar
+```
+
+Require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_ERROR_CATALOG_FILE_NAME_INVALID
+Message: The error catalog file name is invalid.
+```
+
+The template provider must not be invoked and the workspace root must not be created.
+
+This keeps malformed caller configuration distinct from malformed provider output. Current caller validation checks containment but not whether the configured catalog target denotes a file, so this value is expected to pass early validation.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1075/1075 GREEN directory-only provider-target checkpoint
 
@@ -2136,11 +2172,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenErrorCatalogFileNameEndsWithDirectorySeparator_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Locally confirmed: **1075/1075 GREEN**.
+Expected at this stage: **one focused RED**. Current caller validation is expected to accept the in-package directory-only value and continue far enough to invoke/create later bootstrap state instead of returning the caller-specific invalid contract.
 
 ## Next recommended step
 
-Add a focused caller-configuration contract for `ErrorCatalogFileName` ending with a directory separator. Require `WIF_JSONS_ERROR_CATALOG_FILE_NAME_INVALID` before template-provider invocation or filesystem mutation.
+After focused RED is confirmed, add only the early directory-only guard for `ErrorCatalogFileName`. Preserve the existing outside-package and malformed-path contracts separately.
