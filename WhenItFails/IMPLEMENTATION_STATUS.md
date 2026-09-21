@@ -10,14 +10,14 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1070/1070 GREEN**, confirmed locally by the maintainer after null template-name validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1071/1071 GREEN**, confirmed locally by the maintainer after whitespace template-name validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
 - `BuiltInErrorCatalogContextProvider` dependency-boundary audit is complete for the current scope.
 - `ErrorCatalogInitializer` bootstrapper/context-provider ordinary-exception, cancellation, null-response and null-task behavior is complete for the current scope.
 - `ErrorCatalogRuntime` initializer and both built-in-provider runtime paths are complete for null response, ordinary exception, null task and exact cancellation behavior.
-- Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` boundary is complete for malformed provider results, ordinary-exception normalization and exact-instance cancellation propagation.
+- Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` invocation boundary is complete for malformed direct results, ordinary-exception normalization and exact-instance cancellation propagation; deferred failures while consuming the returned collection are under audit.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies all resolver-consumed nullable collections currently audited as malformed input rather than resolver failure.
@@ -50,7 +50,30 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Malformed template-provider `TargetFileName` contract is locally verified GREEN; syntactically invalid provider target filenames are normalized to stable `Invalid` while preserving null, whitespace, and outside-package contracts.
 - Valid nested template-target creation contract is locally verified GREEN; validated nested targets create missing parent directories while preserving existing files.
 - Null template-name provider-output contract is locally verified GREEN; null logical template names are rejected before target validation and file creation.
-- Whitespace template-name provider-output contract confirmed RED on Windows; whitespace-only logical names are now rejected before target validation and file creation, awaiting focused/full GREEN verification.
+- Whitespace template-name provider-output contract is locally verified GREEN; whitespace-only logical names are rejected before target validation and file creation.
+
+## 2026-09-21 — 1071/1071 GREEN whitespace template-name checkpoint
+
+Contract commit: `b82283c81eef5af862194f5b5dde8547d8d542a7`
+
+Production fix commit: `ded57fb513b614a5f0b3c5a0d3675400e86a2327`
+
+Documentation commit: `e058dae8d0afce8fbf70e81f37a66864b08fe218`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1071
+Total:  1071
+```
+
+The latest confirmation did not separately report focused test output, compiler-warning count, or operating system.
+
+Null and whitespace-only logical template names are now rejected before target validation and before any template file write.
+
+Next provider boundary audit: failures that occur while enumerating the collection returned by `IJsonsTemplateProvider.GetTemplateFiles(...)`, after the provider call itself has already succeeded.
 
 ## 2026-09-21 — whitespace template name provider-output contract
 
@@ -109,7 +132,7 @@ Message: The JSON template provider returned a template with an empty name.
 
 `WhenItFails/Docs/Bootstrap/en.md` now documents both null and whitespace-only logical template names as invalid provider output.
 
-**Focused GREEN and complete-suite 1071/1071 GREEN are pending local verification.**
+**Complete-suite 1071/1071 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1070/1070 GREEN null template-name checkpoint
 
@@ -1827,12 +1850,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateNameIsWhitespace_ReturnsInvalidBeforeWritingTemplateFile"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed fix: **focused GREEN** and **1071/1071 GREEN** for the complete suite.
+Locally confirmed: **1071/1071 GREEN**.
 
 ## Next recommended step
 
-After **1071/1071 GREEN** is confirmed locally, record the checkpoint and continue auditing the next uncovered provider-output/bootstrap contract.
+Add one focused contract for an ordinary exception thrown while enumerating the template collection returned by `IJsonsTemplateProvider`. Normalize it to the established stable `WIF_JSONS_TEMPLATE_PROVIDER_FAILED` response without leaking provider detail; preserve cancellation separately.
