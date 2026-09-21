@@ -53,7 +53,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Whitespace template-name provider-output contract is locally verified GREEN; whitespace-only logical names are rejected before target validation and file creation.
 - Template collection enumeration-exception contract is locally verified GREEN; ordinary deferred collection failures are normalized to the stable provider-failure response without leaking provider detail.
 - Template collection enumeration-cancellation regression contract is locally verified GREEN; exact-instance `OperationCanceledException` propagation is preserved during returned-collection enumeration.
-- Later-null-template-item no-partial-write contract committed; focused RED verification pending.
+- Later-null-template-item no-partial-write contract confirmed RED on Windows; the full materialized template snapshot is now validated before any template file write, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — later null template item no-partial-write contract
 
@@ -86,7 +86,22 @@ and require that `first.json` is not written.
 
 This verifies that a malformed provider snapshot is validated as a whole before any template file mutation. Current production validates and writes in the same loop, so the first valid template is expected to be created before the later null item is discovered.
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows: the bootstrap correctly returned the existing `WIF_JSONS_TEMPLATE_ITEM_NULL` response, but `first.json` had already been created before the later null item was discovered.
+
+Production fix commit:
+`2f7759369ca0aab51e9c46205628195cbf36b244`
+
+Template processing now uses two phases:
+
+```text
+materialize provider collection
+→ validate every template item
+→ only then write template files
+```
+
+All existing provider-item error codes and messages remain unchanged. Cancellation checks remain present during validation and again before each file write.
+
+**Focused GREEN and complete-suite 1074/1074 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1073/1073 GREEN template enumeration-cancellation checkpoint
 
@@ -2011,10 +2026,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateItemIsNull_ReturnsInvalidBeforeWritingAnyTemplateFiles"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**. Current production is expected to create `first.json` before discovering the later null item, so the no-partial-write assertion should fail.
+Expected results after the committed fix: **focused GREEN** and **1074/1074 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, separate provider-output validation from template file mutation so the full materialized snapshot is validated before any template file is written. Preserve all existing provider-item error codes and messages.
+After **1074/1074 GREEN** is confirmed locally, record the checkpoint and continue with the next uncovered bootstrap/provider-output boundary.
