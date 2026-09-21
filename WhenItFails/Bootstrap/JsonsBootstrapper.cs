@@ -272,6 +272,17 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                     message: "The code group catalog file name must stay inside the package directory.");
             }
 
+            string normalizedOwnerCatalogFileName =
+                NormalizePath(options.OwnerCatalogFileName);
+
+            if (Path.EndsInDirectorySeparator(
+                normalizedOwnerCatalogFileName))
+            {
+                return Response<JsonsBootstrapPayload>.Invalid(
+                    code: "WIF_JSONS_OWNER_CATALOG_FILE_NAME_INVALID",
+                    message: "The owner catalog file name is invalid.");
+            }
+
             bool ownerCatalogFileInsidePackage;
 
             try
@@ -279,7 +290,7 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                 ownerCatalogFileInsidePackage =
                     IsPathInsideDirectory(
                         packageDirectoryPath,
-                        options.OwnerCatalogFileName);
+                        normalizedOwnerCatalogFileName);
             }
             catch (ArgumentException)
             {
