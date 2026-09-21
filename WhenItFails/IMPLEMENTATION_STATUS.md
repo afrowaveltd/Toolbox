@@ -41,6 +41,33 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - The escaping `ProfilesFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
 - All five caller-configured catalog filename containment guards are locally verified GREEN.
 - Malformed `RootDirectory` caller-configuration contract is locally verified GREEN; syntactically invalid root paths are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
+- Malformed `PackageDirectoryName` caller-configuration contract committed; focused RED verification pending.
+
+## 2026-09-21 — malformed package-directory-name path contract
+
+Contract commit:
+`8c63d3aee47df25d809d72c559efab16f4a32b87`
+
+Baseline: **1061/1061 GREEN**, confirmed locally by the maintainer before this test was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperInvalidPackageDirectoryNamePathContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenPackageDirectoryNameContainsNullCharacter_ReturnsInvalidBeforeProviderOrFilesystem`
+
+With `PackageDirectoryName = "When\0ItFails"`, require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_PACKAGE_DIRECTORY_NAME_INVALID
+Message: The package directory name is invalid.
+```
+
+The contract also requires no template-provider invocation and no workspace-root creation.
+
+Current production validates root-path syntax explicitly but passes the normalized package directory name directly into containment evaluation. A null character can therefore still trigger `ArgumentException` inside `Path.GetFullPath(...)`. **Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1061/1061 GREEN malformed root-directory checkpoint
 
@@ -1132,11 +1159,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenPackageDirectoryNameContainsNullCharacter_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Locally confirmed: **1061/1061 GREEN**.
+Expected at this stage: **one focused RED**, most likely an escaping `ArgumentException` from `Path.GetFullPath(...)`. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Add one focused caller-configuration contract for a syntactically malformed `PackageDirectoryName` containing a null character. Require stable `Invalid` before filesystem mutation or template-provider invocation, and confirm RED before changing production.
+After focused RED is confirmed, add the narrow package-directory syntax normalization, then rerun the focused test and complete suite (expected total: 1062).
