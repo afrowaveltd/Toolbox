@@ -150,6 +150,13 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                     message: "The error catalog file name must stay inside the package directory.");
             }
 
+            if (!IsPathInsideDirectory(packageDirectoryPath, options.CategoryCatalogFileName))
+            {
+                return Response<JsonsBootstrapPayload>.Invalid(
+                    code: "WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_OUTSIDE_PACKAGE",
+                    message: "The category catalog file name must stay inside the package directory.");
+            }
+
             bool packageDirectoryAlreadyExisted =
                 Directory.Exists(packageDirectoryPath);
 
