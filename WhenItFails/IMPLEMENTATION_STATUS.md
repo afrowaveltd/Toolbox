@@ -54,7 +54,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Template collection enumeration-exception contract is locally verified GREEN; ordinary deferred collection failures are normalized to the stable provider-failure response without leaking provider detail.
 - Template collection enumeration-cancellation regression contract is locally verified GREEN; exact-instance `OperationCanceledException` propagation is preserved during returned-collection enumeration.
 - Later-null-template-item no-partial-write contract is locally verified GREEN; the full materialized template snapshot is validated before any template file write.
-- Directory-only template-target contract committed; focused RED verification pending.
+- Directory-only template-target contract confirmed RED on Windows; directory-only targets are now rejected during provider-output validation, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — directory-only template target contract
 
@@ -88,9 +88,29 @@ Message: The JSON template provider returned a template with an invalid target f
 
 The nested directory must not be created.
 
-Current production is expected to pass containment, create the nested directory during the write phase, and then fail through a filesystem error when attempting to write text to the directory path.
+The focused contract confirmed the expected RED on Windows:
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+```text
+Expected: Invalid
+Actual:   Failed
+```
+
+The directory-only target passed containment and was classified only after the filesystem write path failed.
+
+Production fix commit:
+`481c91eab264de58a55599dbd542db309e077b77`
+
+`JsonsBootstrapper` now normalizes the provider target during the full-snapshot validation phase and rejects values ending with a directory separator before containment/write processing:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID
+Message: The JSON template provider returned a template with an invalid target file name.
+```
+
+Valid nested file targets such as `Nested/errors.en.json` remain supported.
+
+**Focused GREEN and complete-suite 1075/1075 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1074/1074 GREEN full template-snapshot validation checkpoint
 
@@ -2091,10 +2111,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateTargetEndsWithDirectorySeparator_ReturnsInvalidBeforeCreatingNestedDirectory"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**. The current implementation is expected to accept containment, create the nested directory, and fail later through the filesystem path rather than returning the stable provider-output `Invalid` contract.
+Expected results after the committed fix: **focused GREEN** and **1075/1075 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, reject directory-only provider targets during the full-snapshot validation phase, before any nested directory or template file is created. Preserve valid nested file targets such as `Nested/errors.en.json`.
+After **1075/1075 GREEN** is confirmed locally, record the checkpoint and continue with the next uncovered provider-target/bootstrap boundary.
