@@ -133,6 +133,14 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
         {
             string rootDirectory = NormalizePath(options.RootDirectory);
             string normalizedPackageDirectoryName = NormalizePath(packageDirectoryName);
+
+            if (!IsPathInsideDirectory(rootDirectory, normalizedPackageDirectoryName))
+            {
+                return Response<JsonsBootstrapPayload>.Invalid(
+                    code: "WIF_JSONS_PACKAGE_DIRECTORY_NAME_OUTSIDE_ROOT",
+                    message: "The package directory name must stay inside the JSON root directory.");
+            }
+
             string packageDirectoryPath = Path.Combine(rootDirectory, normalizedPackageDirectoryName);
 
             bool packageDirectoryAlreadyExisted =
