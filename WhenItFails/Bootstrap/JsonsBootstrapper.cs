@@ -134,6 +134,17 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
             string rootDirectory = NormalizePath(options.RootDirectory);
             string normalizedPackageDirectoryName = NormalizePath(packageDirectoryName);
 
+            try
+            {
+                _ = Path.GetFullPath(rootDirectory);
+            }
+            catch (ArgumentException)
+            {
+                return Response<JsonsBootstrapPayload>.Invalid(
+                    code: "WIF_JSONS_ROOT_DIRECTORY_INVALID",
+                    message: "The JSON root directory path is invalid.");
+            }
+
             if (!IsPathInsideDirectory(rootDirectory, normalizedPackageDirectoryName))
             {
                 return Response<JsonsBootstrapPayload>.Invalid(
