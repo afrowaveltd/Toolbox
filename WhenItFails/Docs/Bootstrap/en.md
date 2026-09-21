@@ -181,7 +181,7 @@ Nested/errors.en.json
 
 is valid when it resolves inside the configured package directory. When the target file is missing, bootstrap creates any missing parent directories before writing the template.
 
-Targets that resolve outside the package directory are rejected. Existing target files are still preserved and are never overwritten automatically.
+Targets that resolve outside the package directory are rejected. A target ending with a directory separator is also rejected because template targets must identify files, not directories. Existing target files are still preserved and are never overwritten automatically.
 
 ## Resource-backed default templates
 
