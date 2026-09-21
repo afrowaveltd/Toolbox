@@ -473,6 +473,18 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                             "The JSON template provider returned a target file name outside the package directory.");
                 }
 
+                string templateTargetFilePath = Path.Combine(
+                    packageDirectoryPath,
+                    normalizedTemplateTargetFileName);
+
+                if (Directory.Exists(templateTargetFilePath))
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID",
+                        message:
+                            "The JSON template provider returned a template with an invalid target file name.");
+                }
+
                 if (templateFile.Content is null)
                 {
                     return Response<JsonsBootstrapPayload>.Invalid(
