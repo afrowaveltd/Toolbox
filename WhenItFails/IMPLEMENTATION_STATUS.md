@@ -40,7 +40,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - The escaping `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
 - The escaping `ProfilesFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
 - All five caller-configured catalog filename containment guards are locally verified GREEN.
-- Malformed `RootDirectory` caller-configuration contract committed; focused RED verification pending.
+- Malformed `RootDirectory` caller-configuration contract is confirmed RED on Windows via escaping `ArgumentException`; the narrow production normalization is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — malformed root-directory path contract
 
@@ -66,7 +66,28 @@ Message: The JSON root directory path is invalid.
 
 The contract also requires no template-provider invocation and no creation of the safe temporary parent directory. This aligns the bootstrap caller-configuration boundary with the existing loader/writer malformed-path behavior, while keeping bootstrap-specific error codes.
 
-Current production calls `Path.GetFullPath(...)` through its containment helper and only catches `UnauthorizedAccessException` and `IOException`; an `ArgumentException` from a syntactically malformed path can therefore escape. **Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+System.ArgumentException: Null character in path.
+```
+
+The exception escaped from `Path.GetFullPath(...)` inside `IsPathInsideDirectory(...)` before any filesystem mutation or template-provider invocation.
+
+Production fix commit:
+`bbdbfe3ad7479593153ebda6ebab060c0793a7bb`
+
+`JsonsBootstrapper` now validates the normalized `RootDirectory` with `Path.GetFullPath(...)` before containment evaluation and maps `ArgumentException` to:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_ROOT_DIRECTORY_INVALID
+Message: The JSON root directory path is invalid.
+```
+
+No broader exception normalization was introduced.
+
+**Focused GREEN and complete-suite 1061/1061 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1060/1060 GREEN complete catalog-filename containment checkpoint
 
@@ -1093,10 +1114,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenRootDirectoryContainsNullCharacter_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED** caused by the malformed path escaping as an `ArgumentException`. A zero-test filter match is not a valid checkpoint.
+Expected results after the committed fix: **focused GREEN** and **1061/1061 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, add the narrow bootstrap normalization for malformed root-directory syntax, then rerun the focused test and complete suite (expected total: 1061).
+After **1061/1061 GREEN** is confirmed locally, record the checkpoint and audit malformed syntax for `PackageDirectoryName` as the next caller-controlled path boundary.
