@@ -91,6 +91,11 @@ The focused contract confirmed the expected RED on Windows: the bootstrap correc
 Production fix commit:
 `2f7759369ca0aab51e9c46205628195cbf36b244`
 
+Documentation commit:
+`c6ed1c36b1e092a3df3c2fff8f966cd048fb69ec`
+
+`WhenItFails/Docs/Bootstrap/en.md` now documents full-snapshot validation before the first template file write and the resulting no-partial-write guarantee for malformed provider output.
+
 Template processing now uses two phases:
 
 ```text
