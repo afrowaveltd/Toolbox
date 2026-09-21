@@ -65,7 +65,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-directory `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
-- Existing-directory `ProfilesFileName` caller-configuration contract committed; focused RED verification pending.
+- Existing-directory `ProfilesFileName` caller-configuration contract confirmed RED on Windows; the final early caller-validation guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — existing-directory profiles filename contract
 
@@ -101,7 +101,34 @@ The template provider must not be invoked, and the existing directory and its co
 
 Current production has existing-directory guards for the other four caller-configured catalog filenames; `ProfilesFileName` still stops after lexical containment, so focused RED is expected.
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+The lexically valid contained profile filename resolved to an existing directory, the tracking provider was reachable, and bootstrap returned success instead of rejecting caller configuration.
+
+Production fix commit:
+`d8c1cb78c7eaf362fd7693c972e645bc30571177`
+
+Documentation commit:
+`bd09568f490a88c5bd1a230223c5d55b67d1e8f5`
+
+After the existing containment check, `JsonsBootstrapper` now resolves `ProfilesFileName` inside the package workspace and rejects it when that path already exists as a directory:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID
+Message: The profile catalog file name is invalid.
+```
+
+The guard runs before template-provider invocation. Existing directory contents remain untouched, and the existing null, whitespace, malformed-path, trailing-separator, and outside-package contracts remain separate.
+
+All five caller-configured catalog filename fields now contain the existing-directory guard in production.
+
+**Focused GREEN and complete-suite 1086/1086 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1085/1085 GREEN existing-directory owner filename checkpoint
 
@@ -2993,10 +3020,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameResolvesToExistingDirectory_ReturnsInvalidBeforeProvider"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**. Current profile caller validation is expected to accept the lexically valid contained path, invoke the tracking provider, and return success instead of the profile-specific invalid contract.
+Expected results after the committed fix: **focused GREEN** and **1086/1086 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only the early existing-directory guard for `ProfilesFileName`. Preserve its existing null, whitespace, malformed-path, trailing-separator, and outside-package contracts separately.
+After **1086/1086 GREEN** is confirmed locally, record the full five-field existing-directory checkpoint and move to the next distinct bootstrap boundary.
