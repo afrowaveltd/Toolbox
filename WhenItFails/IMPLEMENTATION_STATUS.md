@@ -59,6 +59,42 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Directory-only `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only category catalog filenames are rejected before provider invocation and filesystem mutation.
 - Directory-only `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only code-group catalog filenames are rejected before provider invocation and filesystem mutation.
 - Directory-only `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only owner catalog filenames are rejected before provider invocation and filesystem mutation.
+- Directory-only `ProfilesFileName` caller-configuration contract committed; focused RED verification pending.
+
+## 2026-09-21 — directory-only profiles filename contract
+
+Contract commit:
+`306b7be4148dc73a268376dd5c36fdc36fb5d1b2`
+
+Baseline: **1079/1079 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperDirectoryProfilesFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenProfilesFileNameEndsWithDirectorySeparator_ReturnsInvalidBeforeProviderOrFilesystem`
+
+Caller configuration uses:
+
+```csharp
+ProfilesFileName =
+    "Nested" + Path.DirectorySeparatorChar
+```
+
+Require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID
+Message: The profile catalog file name is invalid.
+```
+
+The template provider must not be invoked and the workspace root must not be created.
+
+Current caller validation checks containment but does not yet reject a directory-only profile catalog target, so focused RED is expected.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1079/1079 GREEN directory-only owner filename checkpoint
 
@@ -2464,11 +2500,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameEndsWithDirectorySeparator_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Locally confirmed: **1079/1079 GREEN**.
+Expected at this stage: **one focused RED**. Current caller validation is expected to accept the in-package directory-only profile filename and continue instead of returning the caller-specific invalid contract.
 
 ## Next recommended step
 
-Add one focused caller-configuration contract for `ProfilesFileName` ending with a directory separator. Require `WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID` before provider invocation or filesystem mutation.
+After focused RED is confirmed, add only the early directory-only guard for `ProfilesFileName`. Preserve its existing malformed-path and outside-package contracts separately.
