@@ -49,7 +49,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Malformed `ProfilesFileName` caller-configuration contract is locally verified GREEN; syntactically invalid profile catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed template-provider `TargetFileName` contract is locally verified GREEN; syntactically invalid provider target filenames are normalized to stable `Invalid` while preserving null, whitespace, and outside-package contracts.
 - Valid nested template-target creation contract is locally verified GREEN; validated nested targets create missing parent directories while preserving existing files.
-- Null template-name provider-output contract committed; focused RED verification pending.
+- Null template-name provider-output contract confirmed RED on Windows; null template names are now rejected before target validation and file creation, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — null template name provider-output contract
 
@@ -85,7 +85,32 @@ The target file must not be written.
 
 This closes a distinct provider-output gap: `JsonsTemplateFile.Name` and `JsonsBootstrapFileResult.Name` are public non-nullable strings, but current bootstrap code does not validate the logical name before creating the file and copying the value into the result.
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+Current production created the template file and returned `Success` despite `Name = null`.
+
+Production fix commit:
+`25942620071fcbb28de37739096b167b46c93bf8`
+
+Documentation commit:
+`1b5479baf216d1cc6a9f2892ae4a10aed7a57bd2`
+
+`JsonsBootstrapper` now rejects a null logical template name before target validation and before writing the target file:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_TEMPLATE_NAME_NULL
+Message: The JSON template provider returned a template with a null name.
+```
+
+`WhenItFails/Docs/Bootstrap/en.md` now documents logical template names as provider output and records that null names are rejected before template writes.
+
+**Focused GREEN and complete-suite 1070/1070 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1069/1069 GREEN nested template-target checkpoint
 
@@ -1720,10 +1745,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateNameIsNull_ReturnsInvalidBeforeWritingTemplateFile"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**. Current production is expected to create the file and return `Success`, causing the new contract to fail before any production change.
+Expected results after the committed fix: **focused GREEN** and **1070/1070 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only null-name normalization at the provider-output boundary, then rerun the focused test and complete suite (expected total: 1070).
+After **1070/1070 GREEN** is confirmed locally, record the checkpoint and audit whitespace logical template names as the next distinct provider-output contract.
