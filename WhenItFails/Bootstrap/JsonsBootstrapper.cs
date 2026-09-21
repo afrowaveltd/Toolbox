@@ -238,6 +238,17 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                     message: "The category catalog file name must stay inside the package directory.");
             }
 
+            string normalizedCodeGroupCatalogFileName =
+                NormalizePath(options.CodeGroupCatalogFileName);
+
+            if (Path.EndsInDirectorySeparator(
+                normalizedCodeGroupCatalogFileName))
+            {
+                return Response<JsonsBootstrapPayload>.Invalid(
+                    code: "WIF_JSONS_CODE_GROUP_CATALOG_FILE_NAME_INVALID",
+                    message: "The code group catalog file name is invalid.");
+            }
+
             bool codeGroupCatalogFileInsidePackage;
 
             try
@@ -245,7 +256,7 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                 codeGroupCatalogFileInsidePackage =
                     IsPathInsideDirectory(
                         packageDirectoryPath,
-                        options.CodeGroupCatalogFileName);
+                        normalizedCodeGroupCatalogFileName);
             }
             catch (ArgumentException)
             {
