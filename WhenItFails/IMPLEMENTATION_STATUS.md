@@ -63,6 +63,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-directory provider-target contract is locally verified GREEN; provider targets resolving to existing directories are rejected during full-snapshot validation before any template write.
 - Existing-directory `ErrorCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
+- Existing-directory `CodeGroupCatalogFileName` caller-configuration contract committed; focused RED verification pending.
+
+## 2026-09-21 — existing-directory code group catalog filename contract
+
+Contract commit:
+`541630e28b68109f5f9ad2bb4b216f794ace985d`
+
+Baseline: **1083/1083 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperExistingDirectoryCodeGroupCatalogFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenCodeGroupCatalogFileNameResolvesToExistingDirectory_ReturnsInvalidBeforeProvider`
+
+The package workspace already contains a `Nested` directory with `preserve.txt`, while caller configuration uses:
+
+```csharp
+CodeGroupCatalogFileName = "Nested"
+```
+
+The value is lexically valid, contained in the package, and does not end with a directory separator, but resolves to a directory rather than a file.
+
+Require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_CODE_GROUP_CATALOG_FILE_NAME_INVALID
+Message: The code group catalog file name is invalid.
+```
+
+The template provider must not be invoked, and the existing directory and its contents must remain unchanged.
+
+Current production has existing-directory guards for the error and category fields only; the code-group field still stops after lexical containment, so focused RED is expected.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1083/1083 GREEN existing-directory category filename checkpoint
 
@@ -2789,11 +2826,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCodeGroupCatalogFileNameResolvesToExistingDirectory_ReturnsInvalidBeforeProvider"
 ```
 
-Locally confirmed: **1083/1083 GREEN**.
+Expected at this stage: **one focused RED**. Current code-group caller validation is expected to accept the lexically valid contained path, invoke the tracking provider, and return success instead of the code-group-specific invalid contract.
 
 ## Next recommended step
 
-Add one focused caller-configuration contract for `CodeGroupCatalogFileName` resolving to an existing directory. Require the code-group-specific invalid response before template-provider invocation while preserving the pre-existing directory and its contents.
+After focused RED is confirmed, add only the early existing-directory guard for `CodeGroupCatalogFileName`. Preserve its existing null, whitespace, malformed-path, trailing-separator, and outside-package contracts separately.
