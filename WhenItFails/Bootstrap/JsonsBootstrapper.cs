@@ -381,6 +381,18 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                             "The JSON template provider returned a template with an empty target file name.");
                 }
 
+                string normalizedTemplateTargetFileName =
+                    NormalizePath(templateFile.TargetFileName);
+
+                if (Path.EndsInDirectorySeparator(
+                    normalizedTemplateTargetFileName))
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID",
+                        message:
+                            "The JSON template provider returned a template with an invalid target file name.");
+                }
+
                 bool templateTargetFileInsidePackage;
 
                 try
