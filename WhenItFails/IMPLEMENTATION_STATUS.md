@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1085/1085 GREEN**, confirmed locally by the maintainer after existing-directory `OwnerCatalogFileName` caller validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1086/1086 GREEN**, confirmed locally by the maintainer after existing-directory `ProfilesFileName` caller validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -65,7 +65,28 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-directory `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
-- Existing-directory `ProfilesFileName` caller-configuration contract confirmed RED on Windows; the final early caller-validation guard is committed, awaiting focused/full GREEN verification.
+- Existing-directory `ProfilesFileName` caller-configuration contract is locally verified GREEN; all five caller-configured catalog filenames now reject paths resolving to existing directories before provider invocation.
+
+## 2026-09-21 — 1086/1086 GREEN five-field existing-directory checkpoint
+
+Final contract commit: `eeb55feb66f53e4be9fb5bed739ef7c14f44d4c0`
+
+Final production fix commit: `d8c1cb78c7eaf362fd7693c972e645bc30571177`
+
+Final documentation commit: `bd09568f490a88c5bd1a230223c5d55b67d1e8f5`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1086
+Total:  1086
+```
+
+All five caller-configured catalog filename fields now reject values whose resolved paths already exist as directories before template-provider invocation, with their field-specific stable invalid codes and messages. The earlier provider-target existing-directory contract remains separate and GREEN.
+
+Next distinct audit: semantic directory targets such as `TargetFileName = "."`, which currently resolve to the package directory itself and are classified by containment before the existing-directory guard can run.
 
 ## 2026-09-21 — existing-directory profiles filename contract
 
@@ -128,7 +149,7 @@ The guard runs before template-provider invocation. Existing directory contents 
 
 All five caller-configured catalog filename fields now contain the existing-directory guard in production.
 
-**Focused GREEN and complete-suite 1086/1086 GREEN are pending local verification.**
+**Complete-suite 1086/1086 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1085/1085 GREEN existing-directory owner filename checkpoint
 
@@ -3019,12 +3040,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameResolvesToExistingDirectory_ReturnsInvalidBeforeProvider"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed fix: **focused GREEN** and **1086/1086 GREEN** for the complete suite.
+Locally confirmed: **1086/1086 GREEN**.
 
 ## Next recommended step
 
-After **1086/1086 GREEN** is confirmed locally, record the full five-field existing-directory checkpoint and move to the next distinct bootstrap boundary.
+Audit semantic directory targets independently from lexical trailing-separator checks. Start with provider `TargetFileName = "."`: it resolves to the package directory itself and should be classified as an invalid target file name rather than as an outside-package path.
