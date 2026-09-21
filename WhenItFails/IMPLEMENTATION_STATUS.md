@@ -66,6 +66,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-directory `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `ProfilesFileName` caller-configuration contract is locally verified GREEN; all five caller-configured catalog filenames now reject paths resolving to existing directories before provider invocation.
+- Provider `TargetFileName = "."` semantic-directory contract committed; focused RED verification pending.
+
+## 2026-09-21 — provider current-directory target contract
+
+Contract commit:
+`c4367fd76d4d1f8e28314e72b5e6f337e53e090b`
+
+Baseline: **1086/1086 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperCurrentDirectoryTemplateTargetContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenLaterTemplateTargetResolvesToPackageDirectory_ReturnsInvalidWithoutPartialWrites`
+
+The provider returns a valid `first.json` followed by:
+
+```csharp
+TargetFileName = "."
+```
+
+The target does not escape the package; it resolves exactly to the package directory and therefore does not identify a file.
+
+Require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID
+Message: The JSON template provider returned a template with an invalid target file name.
+```
+
+Because the full provider snapshot is validated before template writes, `first.json` must not be created.
+
+Current containment logic compares the resolved target against a package-directory prefix. A target resolving exactly to the package directory does not start with that prefix and is therefore currently expected to be classified as `WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_OUTSIDE_PACKAGE` instead of the required invalid-target contract.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1086/1086 GREEN five-field existing-directory checkpoint
 
@@ -3040,11 +3077,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateTargetResolvesToPackageDirectory_ReturnsInvalidWithoutPartialWrites"
 ```
 
-Locally confirmed: **1086/1086 GREEN**.
+Expected at this stage: **one focused RED**. The response should already be `Invalid`, but the current implementation is expected to return `WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_OUTSIDE_PACKAGE` instead of `WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID`.
 
 ## Next recommended step
 
-Audit semantic directory targets independently from lexical trailing-separator checks. Start with provider `TargetFileName = "."`: it resolves to the package directory itself and should be classified as an invalid target file name rather than as an outside-package path.
+After focused RED is confirmed, make the smallest provider-target classification change only. Do not change the shared containment helper or package-directory semantics as part of this contract.
