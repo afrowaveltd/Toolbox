@@ -51,7 +51,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Valid nested template-target creation contract is locally verified GREEN; validated nested targets create missing parent directories while preserving existing files.
 - Null template-name provider-output contract is locally verified GREEN; null logical template names are rejected before target validation and file creation.
 - Whitespace template-name provider-output contract is locally verified GREEN; whitespace-only logical names are rejected before target validation and file creation.
-- Template collection enumeration-exception contract committed; focused RED verification pending.
+- Template collection enumeration-exception contract confirmed RED on Windows; ordinary deferred collection failures are now normalized to the stable provider-failure response, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — template collection enumeration exception contract
 
@@ -81,7 +81,29 @@ The provider/collection exception detail must not escape into either the respons
 
 This is distinct from the already verified direct `GetTemplateFiles(...)` exception contract: the current `try/catch` ends before the returned collection is enumerated, so deferred provider-output failures can currently escape.
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+System.InvalidOperationException:
+Sensitive template collection enumeration detail must not escape.
+```
+
+The exception escaped from the provider collection's `GetEnumerator()` after `GetTemplateFiles(...)` itself had already returned successfully.
+
+Production fix commit:
+`f26676980a5654efb31f5e7ac0012942f9daa613`
+
+The returned template collection is now materialized into a snapshot inside a narrow provider-boundary `try/catch`. Ordinary exceptions raised while consuming the collection map to:
+
+```text
+Status: Failed
+Code: WIF_JSONS_TEMPLATE_PROVIDER_FAILED
+Message: The JSON template provider failed.
+```
+
+`OperationCanceledException` remains excluded from normalization and continues to propagate unchanged. Template items are processed only after successful collection materialization, so an enumeration failure cannot cause partial template writes.
+
+**Focused GREEN and complete-suite 1072/1072 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1071/1071 GREEN whitespace template-name checkpoint
 
@@ -1882,10 +1904,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateCollectionEnumerationThrows_ReturnsStableProviderFailureWithoutExceptionDetail"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED** with the collection's `InvalidOperationException` escaping from enumeration. A zero-test filter match is not a valid checkpoint.
+Expected results after the committed fix: **focused GREEN** and **1072/1072 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, normalize only ordinary exceptions raised while consuming the provider collection to the established `WIF_JSONS_TEMPLATE_PROVIDER_FAILED` response. Keep `OperationCanceledException` propagation separate and unchanged.
+After **1072/1072 GREEN** is confirmed locally, record the checkpoint. Then add a focused cancellation contract for `OperationCanceledException` thrown during returned-collection enumeration, preserving exact-instance propagation.
