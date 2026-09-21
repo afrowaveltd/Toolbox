@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1067/1067 GREEN**, confirmed locally by the maintainer after malformed `ProfilesFileName` normalization. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1068/1068 GREEN**, confirmed locally by the maintainer after malformed template-provider `TargetFileName` normalization. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -47,7 +47,28 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Malformed `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid code-group catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid owner catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `ProfilesFileName` caller-configuration contract is locally verified GREEN; syntactically invalid profile catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
-- Malformed template-provider `TargetFileName` contract is confirmed RED on Windows via escaping `ArgumentException`; the narrow provider-output normalization is committed, awaiting focused/full GREEN verification.
+- Malformed template-provider `TargetFileName` contract is locally verified GREEN; syntactically invalid provider target filenames are normalized to stable `Invalid` while preserving null, whitespace, and outside-package contracts.
+
+## 2026-09-21 — 1068/1068 GREEN malformed provider-target checkpoint
+
+Contract commit: `aea40cc601b04f13fc9f69355e3d4a85cc52bbfb`
+
+Production fix commit: `11409034e05e891863f7f17bc4d517ff2a79edfc`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1068
+Total:  1068
+```
+
+The latest confirmation did not separately report focused test output, compiler-warning count, or operating system.
+
+Malformed provider target syntax now returns stable `Invalid` without changing the established null, whitespace, or outside-package target contracts.
+
+Next audit target: valid nested template targets inside the package workspace. Containment permits them, but `EnsureTemplateFileAsync` currently writes directly to the nested target without creating its parent directory.
 
 ## 2026-09-21 — malformed template target filename path contract
 
@@ -102,7 +123,7 @@ Message: The JSON template provider returned a template with an invalid target f
 
 The existing null, whitespace, and outside-package target contracts remain unchanged.
 
-**Focused GREEN and complete-suite 1068/1068 GREEN are pending local verification.**
+**Complete-suite 1068/1068 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1067/1067 GREEN malformed caller-path checkpoint
 
@@ -1600,12 +1621,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateTargetFileNameContainsNullCharacter_ReturnsInvalidBeforeWritingTemplateFiles"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed fix: **focused GREEN** and **1068/1068 GREEN** for the complete suite.
+Locally confirmed: **1068/1068 GREEN**.
 
 ## Next recommended step
 
-After **1068/1068 GREEN** is confirmed locally, record the checkpoint and audit the next uncontained path/IO boundary rather than extending this provider-target contract further.
+Add one positive contract for a valid nested template target inside the package workspace. The target should be created successfully with its missing parent directory rather than degrading into a generic workspace I/O failure. Confirm RED before changing production.
