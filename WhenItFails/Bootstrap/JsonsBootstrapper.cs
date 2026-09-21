@@ -262,7 +262,23 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                     message: "The owner catalog file name must stay inside the package directory.");
             }
 
-            if (!IsPathInsideDirectory(packageDirectoryPath, options.ProfilesFileName))
+            bool profileCatalogFileInsidePackage;
+
+            try
+            {
+                profileCatalogFileInsidePackage =
+                    IsPathInsideDirectory(
+                        packageDirectoryPath,
+                        options.ProfilesFileName);
+            }
+            catch (ArgumentException)
+            {
+                return Response<JsonsBootstrapPayload>.Invalid(
+                    code: "WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID",
+                    message: "The profile catalog file name is invalid.");
+            }
+
+            if (!profileCatalogFileInsidePackage)
             {
                 return Response<JsonsBootstrapPayload>.Invalid(
                     code: "WIF_JSONS_PROFILE_CATALOG_FILE_NAME_OUTSIDE_PACKAGE",
