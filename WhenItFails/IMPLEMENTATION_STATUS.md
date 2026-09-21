@@ -65,6 +65,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-directory `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
+- Existing-directory `ProfilesFileName` caller-configuration contract committed; focused RED verification pending.
+
+## 2026-09-21 — existing-directory profiles filename contract
+
+Contract commit:
+`eeb55feb66f53e4be9fb5bed739ef7c14f44d4c0`
+
+Baseline: **1085/1085 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperExistingDirectoryProfilesFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenProfilesFileNameResolvesToExistingDirectory_ReturnsInvalidBeforeProvider`
+
+The package workspace already contains a `Nested` directory with `preserve.txt`, while caller configuration uses:
+
+```csharp
+ProfilesFileName = "Nested"
+```
+
+The value is lexically valid, contained in the package, and does not end with a directory separator, but resolves to a directory rather than a file.
+
+Require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID
+Message: The profile catalog file name is invalid.
+```
+
+The template provider must not be invoked, and the existing directory and its contents must remain unchanged.
+
+Current production has existing-directory guards for the other four caller-configured catalog filenames; `ProfilesFileName` still stops after lexical containment, so focused RED is expected.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1085/1085 GREEN existing-directory owner filename checkpoint
 
@@ -2955,11 +2992,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameResolvesToExistingDirectory_ReturnsInvalidBeforeProvider"
 ```
 
-Locally confirmed: **1085/1085 GREEN**.
+Expected at this stage: **one focused RED**. Current profile caller validation is expected to accept the lexically valid contained path, invoke the tracking provider, and return success instead of the profile-specific invalid contract.
 
 ## Next recommended step
 
-Add one focused caller-configuration contract for `ProfilesFileName` resolving to an existing directory. Require the profile-specific invalid response before template-provider invocation while preserving the pre-existing directory and its contents.
+After focused RED is confirmed, add only the early existing-directory guard for `ProfilesFileName`. Preserve its existing null, whitespace, malformed-path, trailing-separator, and outside-package contracts separately.
