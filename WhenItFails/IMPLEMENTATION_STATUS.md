@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1080/1080 GREEN**, confirmed locally by the maintainer after directory-only `ProfilesFileName` caller validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1081/1081 GREEN**, confirmed locally by the maintainer after existing-directory provider-target validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -60,7 +60,28 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Directory-only `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only code-group catalog filenames are rejected before provider invocation and filesystem mutation.
 - Directory-only `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only owner catalog filenames are rejected before provider invocation and filesystem mutation.
 - Directory-only `ProfilesFileName` caller-configuration contract is locally verified GREEN; all five caller-configured catalog filenames reject directory-only targets before provider invocation or filesystem mutation.
-- Existing-directory provider-target contract confirmed RED on Windows; a narrow full-snapshot validation guard is committed, awaiting focused/full GREEN verification.
+- Existing-directory provider-target contract is locally verified GREEN; provider targets resolving to existing directories are rejected during full-snapshot validation before any template write.
+
+## 2026-09-21 — 1081/1081 GREEN existing-directory provider-target checkpoint
+
+Contract commit: `fe1c1ab2b8886f0c3cf2af3584eaa7c5885ace33`
+
+Production fix commit: `3567953e5d83613b41f667251f83bad154cfe615`
+
+Documentation commit: `afc99aab299391255953217fd48a298aef46a847`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1081
+Total:  1081
+```
+
+Provider targets resolving to existing directories are rejected during full-snapshot validation before any template write. Existing directory contents remain untouched and valid nested file targets remain supported.
+
+Next caller-configuration audit: distinguish a file-name option that lexically looks valid but resolves to an already existing directory before invoking the provider.
 
 ## 2026-09-21 — existing-directory template target contract
 
@@ -115,7 +136,7 @@ Message: The JSON template provider returned a template with an invalid target f
 
 Existing directories and their files remain untouched, and valid nested file targets remain supported. This is a validation-time safeguard, not a transactional guarantee against unrelated I/O failures or concurrent filesystem changes.
 
-**Focused GREEN and complete-suite 1081/1081 GREEN are pending local verification.**
+**Complete-suite 1081/1081 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1080/1080 GREEN five-field directory-only checkpoint
 
@@ -2602,12 +2623,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateTargetIsExistingDirectory_ReturnsInvalidWithoutPartialWrites"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed fix: **focused GREEN** and **1081/1081 GREEN** for the complete suite.
+Locally confirmed: **1081/1081 GREEN**.
 
 ## Next recommended step
 
-After **1081/1081 GREEN** is confirmed locally, record the checkpoint and audit the next distinct bootstrap boundary.
+Add one focused caller-configuration contract for `ErrorCatalogFileName` that resolves to an already existing directory. Require the caller-specific invalid response before template-provider invocation while preserving the pre-existing directory and its contents.
