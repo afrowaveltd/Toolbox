@@ -42,7 +42,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - All five caller-configured catalog filename containment guards are locally verified GREEN.
 - Malformed `RootDirectory` caller-configuration contract is locally verified GREEN; syntactically invalid root paths are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `PackageDirectoryName` caller-configuration contract is locally verified GREEN; syntactically invalid package directory names are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
-- Malformed `ErrorCatalogFileName` caller-configuration contract committed; focused RED verification pending.
+- Malformed `ErrorCatalogFileName` caller-configuration contract is confirmed RED on Windows via escaping `ArgumentException`; the narrow production normalization is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — malformed error-catalog filename path contract
 
@@ -68,7 +68,28 @@ Message: The error catalog file name is invalid.
 
 The contract also requires no template-provider invocation and no workspace-root creation.
 
-Current production passes `ErrorCatalogFileName` directly into package-containment evaluation after null/whitespace validation. A null character can therefore still trigger `ArgumentException` inside `Path.GetFullPath(...)`. **Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+System.ArgumentException: Null character in path.
+```
+
+The exception escaped from `Path.GetFullPath(...)` inside `IsPathInsideDirectory(...)` before any filesystem mutation or template-provider invocation.
+
+Production fix commit:
+`e3ea09bcfa07a4e6bfed38d84025abec121dbf7f`
+
+The error-catalog containment evaluation is now isolated in a narrow `try/catch (ArgumentException)`. Malformed error-catalog filename syntax maps to:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_ERROR_CATALOG_FILE_NAME_INVALID
+Message: The error catalog file name is invalid.
+```
+
+A syntactically valid filename outside the package continues to use the separate `WIF_JSONS_ERROR_CATALOG_FILE_NAME_OUTSIDE_PACKAGE` contract.
+
+**Focused GREEN and complete-suite 1063/1063 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1062/1062 GREEN malformed package-directory checkpoint
 
@@ -1227,10 +1248,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenErrorCatalogFileNameContainsNullCharacter_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, most likely an escaping `ArgumentException` from `Path.GetFullPath(...)`. A zero-test filter match is not a valid checkpoint.
+Expected results after the committed fix: **focused GREEN** and **1063/1063 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, add the narrow error-catalog filename syntax normalization, then rerun the focused test and complete suite (expected total: 1063).
+After **1063/1063 GREEN** is confirmed locally, record the checkpoint and continue malformed filename syntax auditing with `CategoryCatalogFileName`.
