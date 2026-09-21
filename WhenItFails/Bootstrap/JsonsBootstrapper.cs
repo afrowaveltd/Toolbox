@@ -145,7 +145,23 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                     message: "The JSON root directory path is invalid.");
             }
 
-            if (!IsPathInsideDirectory(rootDirectory, normalizedPackageDirectoryName))
+            bool packageDirectoryInsideRoot;
+
+            try
+            {
+                packageDirectoryInsideRoot =
+                    IsPathInsideDirectory(
+                        rootDirectory,
+                        normalizedPackageDirectoryName);
+            }
+            catch (ArgumentException)
+            {
+                return Response<JsonsBootstrapPayload>.Invalid(
+                    code: "WIF_JSONS_PACKAGE_DIRECTORY_NAME_INVALID",
+                    message: "The package directory name is invalid.");
+            }
+
+            if (!packageDirectoryInsideRoot)
             {
                 return Response<JsonsBootstrapPayload>.Invalid(
                     code: "WIF_JSONS_PACKAGE_DIRECTORY_NAME_OUTSIDE_ROOT",
