@@ -93,6 +93,11 @@ The exception escaped from the provider collection's `GetEnumerator()` after `Ge
 Production fix commit:
 `f26676980a5654efb31f5e7ac0012942f9daa613`
 
+Documentation commit:
+`8f8ef9583dfc9e713381fcbddbf0d8febfd9be6a`
+
+`WhenItFails/Docs/Bootstrap/en.md` now documents collection-consumption failure normalization and preservation of cancellation semantics.
+
 The returned template collection is now materialized into a snapshot inside a narrow provider-boundary `try/catch`. Ordinary exceptions raised while consuming the collection map to:
 
 ```text
