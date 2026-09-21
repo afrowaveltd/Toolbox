@@ -60,6 +60,37 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Directory-only `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only code-group catalog filenames are rejected before provider invocation and filesystem mutation.
 - Directory-only `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only owner catalog filenames are rejected before provider invocation and filesystem mutation.
 - Directory-only `ProfilesFileName` caller-configuration contract is locally verified GREEN; all five caller-configured catalog filenames reject directory-only targets before provider invocation or filesystem mutation.
+- Existing-directory provider-target contract committed; focused RED verification pending.
+
+## 2026-09-21 — existing-directory template target contract
+
+Contract commit:
+`fe1c1ab2b8886f0c3cf2af3584eaa7c5885ace33`
+
+Baseline: **1080/1080 GREEN**, locally confirmed by the maintainer before this new test.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperExistingDirectoryTemplateTargetContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenLaterTemplateTargetIsExistingDirectory_ReturnsInvalidWithoutPartialWrites`
+
+The workspace contains an existing `Nested` directory with `preserve.txt`. The provider returns two templates: a valid `first.json` followed by `TargetFileName = "Nested"` (no trailing separator). The latter is syntactically acceptable and inside the package lexically, but names a directory rather than a file.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID
+Message: The JSON template provider returned a template with an invalid target file name.
+```
+
+Require that `first.json` is not written and the pre-existing directory and its contents remain unchanged. This checks validation of the entire provider snapshot before file writes.
+
+Current production rejects directory-only names with trailing separators but does not check whether a separator-free target already resolves to a directory. The second write is expected to fail as a filesystem error, after the first template was created.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1080/1080 GREEN five-field directory-only checkpoint
 
@@ -2546,11 +2577,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateTargetIsExistingDirectory_ReturnsInvalidWithoutPartialWrites"
 ```
 
-Locally confirmed: **1080/1080 GREEN**.
+Expected at this stage: **one focused RED**. The existing-directory target is expected to fail only in the write phase, instead of being rejected as malformed provider output during full-snapshot validation. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Audit provider-target paths that resolve to an existing workspace directory despite not ending with a directory separator. Add one focused contract for stable invalid provider output before attempting a file write, without modifying existing directory contents.
+After focused RED is confirmed, add a narrow provider-target validation for paths that resolve to an existing directory, preserving the existing directory and the no-partial-write guarantee. Then run focused and complete suite (expected total: 1081).
