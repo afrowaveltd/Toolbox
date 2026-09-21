@@ -56,7 +56,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Later-null-template-item no-partial-write contract is locally verified GREEN; the full materialized template snapshot is validated before any template file write.
 - Directory-only template-target contract is locally verified GREEN; directory-only provider targets are rejected during provider-output validation before filesystem mutation.
 - Directory-only `ErrorCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only error catalog filenames are rejected before provider invocation and filesystem mutation.
-- Directory-only `CategoryCatalogFileName` caller-configuration contract committed; focused RED verification pending.
+- Directory-only `CategoryCatalogFileName` caller-configuration contract confirmed RED on Windows; directory-only category catalog filenames are now rejected before provider invocation and filesystem mutation, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — directory-only category catalog filename contract
 
@@ -91,7 +91,32 @@ The template provider must not be invoked and the workspace root must not be cre
 
 Current caller validation checks containment but does not yet reject a directory-only category catalog target, so focused RED is expected.
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+The caller-configured directory-only category catalog filename passed early validation and allowed bootstrap to complete successfully.
+
+Production fix commit:
+`cb605b2628ed9dd55e16bd3a89e9bf580f87afda`
+
+Documentation commit:
+`eb126168b4e5c7a794c0a3bbc07158723c21e1a8`
+
+`JsonsBootstrapper` now normalizes `CategoryCatalogFileName` and rejects values ending with a directory separator before containment, provider invocation, or filesystem mutation:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_INVALID
+Message: The category catalog file name is invalid.
+```
+
+Its existing malformed-path and outside-package contracts remain separate.
+
+**Focused GREEN and complete-suite 1077/1077 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1076/1076 GREEN directory-only error filename checkpoint
 
@@ -2255,10 +2280,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCategoryCatalogFileNameEndsWithDirectorySeparator_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**. Current caller validation is expected to accept the in-package directory-only category filename and continue instead of returning the caller-specific invalid contract.
+Expected results after the committed fix: **focused GREEN** and **1077/1077 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only the early directory-only guard for `CategoryCatalogFileName`. Preserve its existing malformed-path and outside-package contracts separately.
+After **1077/1077 GREEN** is confirmed locally, record the checkpoint. Then continue with `CodeGroupCatalogFileName` as the next caller-configured directory-only contract.
