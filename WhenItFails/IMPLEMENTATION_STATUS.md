@@ -48,6 +48,32 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Malformed `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid owner catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `ProfilesFileName` caller-configuration contract is locally verified GREEN; syntactically invalid profile catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed template-provider `TargetFileName` contract is locally verified GREEN; syntactically invalid provider target filenames are normalized to stable `Invalid` while preserving null, whitespace, and outside-package contracts.
+- Valid nested template-target creation contract committed; focused RED verification pending.
+
+## 2026-09-21 — valid nested template target contract
+
+Contract commit:
+`60b790fa37b57e23d77b865e766a7d64b4fa8043`
+
+Baseline: **1068/1068 GREEN**, confirmed locally by the maintainer before this test was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperNestedTemplateTargetFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenTemplateTargetIsNestedInsidePackage_CreatesParentDirectoryAndFile`
+
+The provider returns a valid target inside the package workspace:
+
+```text
+Nested/errors.en.json
+```
+
+The contract requires successful bootstrap, creation of the missing `Nested` parent directory, creation of the target file with the provider content, and a successful `JsonsBootstrapFileResult`.
+
+This is a positive path contract, not malformed-input normalization. The existing containment guard already classifies this target as inside the package. Current `EnsureTemplateFileAsync` writes directly to the nested target but does not create its parent directory, so the current implementation is expected to return `JsonsWorkspaceInputOutputError` through the outer `IOException` normalization.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1068/1068 GREEN malformed provider-target checkpoint
 
@@ -1621,11 +1647,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateTargetIsNestedInsidePackage_CreatesParentDirectoryAndFile"
 ```
 
-Locally confirmed: **1068/1068 GREEN**.
+Expected at this stage: **one focused RED**. The current implementation is expected to return `JsonsWorkspaceInputOutputError` because the nested parent directory does not yet exist.
 
 ## Next recommended step
 
-Add one positive contract for a valid nested template target inside the package workspace. The target should be created successfully with its missing parent directory rather than degrading into a generic workspace I/O failure. Confirm RED before changing production.
+After focused RED is confirmed, create only the missing parent directory for a validated target inside the package workspace, then rerun the focused test and complete suite (expected total: 1069).
