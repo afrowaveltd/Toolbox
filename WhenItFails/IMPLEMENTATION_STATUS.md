@@ -33,6 +33,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ProfilesFileName = null` is locally verified GREEN; invalid configuration is rejected before provider invocation or filesystem mutation.
 - All five `JsonsOptions` catalog filename fields have locally verified null/whitespace GREEN contracts in `JsonsBootstrapper`, rejecting malformed input before filesystem mutation and template-provider invocation.
 - The package-directory escape contract is locally verified GREEN; `JsonsBootstrapper` rejects a package path outside the configured root before filesystem mutation and template-provider invocation.
+- A positive regression for valid nested `PackageDirectoryName` values has been committed; verification is pending.
+
+## 2026-09-21 — valid nested package-directory regression contract
+
+Contract commit:
+`8fa2d9409256756e38e690225a1bcec05a1b023f`
+
+Baseline: **1054/1054 GREEN**, confirmed locally by the maintainer before adding the regression.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperNestedPackageDirectoryNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenPackageDirectoryNameIsNestedInsideRoot_CreatesWorkspace`
+
+With `PackageDirectoryName = Path.Combine("Packages", "WhenItFails")` under a unique temporary `RootDirectory`, the bootstrapper must return `Success`, report the nested package directory as newly created, invoke the tracking template provider, and create that directory inside the root. The tracking provider returns an empty template list so the contract stays focused on directory containment and creation.
+
+**Expected focused result: GREEN. Focused/full-suite 1055/1055 GREEN are pending local verification.** No production change was made for this regression.
 
 ## 2026-09-21 — 1054/1054 GREEN package-directory escape checkpoint
 
@@ -745,11 +763,12 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenPackageDirectoryNameIsNestedInsideRoot_CreatesWorkspace"
 dotnet test WhenItFails.Tests
 ```
 
-Locally confirmed at this checkpoint: **1054/1054 GREEN**.
+Expected results: **one focused GREEN** and **1055/1055 GREEN** for the full suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Add one positive regression contract requiring that a legitimate nested package directory (`Packages/WhenItFails`) remains accepted under the configured root, creates the intended workspace, and invokes the template provider. Verify the focused test and complete suite (expected total: 1055). No production change is planned for this regression.
+After **1055/1055 GREEN** is confirmed locally, record the checkpoint. Continue auditing JSON workspace path handling one focused contract at a time; leave production unchanged unless a new regression demonstrates a gap.
