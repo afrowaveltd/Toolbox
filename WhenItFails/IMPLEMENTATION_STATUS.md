@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1053/1053 GREEN**, confirmed locally by the maintainer after the whitespace `ProfilesFileName` production guard. The compiler-warning count was not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1054/1054 GREEN**, confirmed locally by the maintainer after the package-directory escape guard. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -32,7 +32,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `OwnerCatalogFileName` null/whitespace contracts are locally verified GREEN; invalid values are rejected before provider invocation or filesystem mutation.
 - `ProfilesFileName = null` is locally verified GREEN; invalid configuration is rejected before provider invocation or filesystem mutation.
 - All five `JsonsOptions` catalog filename fields have locally verified null/whitespace GREEN contracts in `JsonsBootstrapper`, rejecting malformed input before filesystem mutation and template-provider invocation.
-- The package-directory escape contract is confirmed RED on Windows (`Expected: Invalid`, `Actual: Success`); the narrowly scoped containment guard is committed, awaiting focused/full GREEN verification.
+- The package-directory escape contract is locally verified GREEN; `JsonsBootstrapper` rejects a package path outside the configured root before filesystem mutation and template-provider invocation.
+
+## 2026-09-21 — 1054/1054 GREEN package-directory escape checkpoint
+
+Contract commit: `ccd5cdf9dbede67f95b0817f266d4445e17597c5`
+
+Production guard commit: `0379b4ccb314264dab6069c3322a2188c28cfbbc`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1054
+Total:  1054
+```
+
+The latest confirmation did not specify operating system or compiler-warning count. The containment guard now rejects `PackageDirectoryName = "../escaped"` before filesystem mutation or template-provider invocation. Next: protect the legitimate nested-package case from regressions.
 
 ## 2026-09-21 — bootstrap package-directory escape contract
 
@@ -69,7 +86,7 @@ Production guard commit:
 
 The guard calls the existing `IsPathInsideDirectory` helper on the normalized JSON root and package-directory name, inside the existing filesystem `try` block but before `Directory.Exists`, `Directory.CreateDirectory`, or template-provider invocation. It rejects a path resolving outside the root without changing the existing template target containment logic.
 
-**Focused GREEN and full-suite 1054/1054 GREEN are pending local verification on Windows and Linux.**
+**Full-suite 1054/1054 GREEN was subsequently confirmed locally by the maintainer; the latest confirmation did not specify operating system or separate focused test output.**
 
 ## 2026-09-21 — 1053/1053 GREEN bootstrap whitespace profiles-file-name checkpoint
 
@@ -728,12 +745,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenPackageDirectoryNameEscapesRoot_ReturnsInvalidBeforeProviderOrFilesystem"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed guard: **focused GREEN** and **1054/1054 GREEN** for the complete suite.
+Locally confirmed at this checkpoint: **1054/1054 GREEN**.
 
 ## Next recommended step
 
-After **1054/1054 GREEN** is confirmed locally, record the checkpoint and consider a focused regression for legitimate nested package-directory names to ensure the containment guard does not reject valid subdirectories.
+Add one positive regression contract requiring that a legitimate nested package directory (`Packages/WhenItFails`) remains accepted under the configured root, creates the intended workspace, and invokes the template provider. Verify the focused test and complete suite (expected total: 1055). No production change is planned for this regression.
