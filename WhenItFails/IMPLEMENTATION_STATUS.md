@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-09-20
+Last updated: 2026-09-21
 
 This file is the continuation point for `WhenItFails` development. Git history contains the detailed chronological checkpoints; keep this file focused on the current verified state, established contracts, and next step.
 
@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1052/1052 GREEN**, confirmed locally by the maintainer after the null `ProfilesFileName` production guard. The compiler-warning count was not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1053/1053 GREEN**, confirmed locally by the maintainer after the whitespace `ProfilesFileName` production guard. The compiler-warning count was not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -31,7 +31,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `OwnerCatalogFileName = null` is locally verified GREEN and is rejected before template-provider invocation or filesystem mutation.
 - `OwnerCatalogFileName` null/whitespace contracts are locally verified GREEN; invalid values are rejected before provider invocation or filesystem mutation.
 - `ProfilesFileName = null` is locally verified GREEN; invalid configuration is rejected before provider invocation or filesystem mutation.
-- The whitespace `ProfilesFileName` focused RED is locally confirmed; the narrow production guard is committed, awaiting focused/full GREEN verification.
+- All five `JsonsOptions` catalog filename fields have locally verified null/whitespace GREEN contracts in `JsonsBootstrapper`, rejecting malformed input before filesystem mutation and template-provider invocation.
+
+## 2026-09-21 — 1053/1053 GREEN bootstrap whitespace profiles-file-name checkpoint
+
+Contract commit: `aae834ba2fbac7b8729a64a108f08940ab07b452`
+
+Production guard commit: `4318b3a9337f8b9cf40ab08e5cc733023a1d34ce`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1053
+Total:  1053
+```
+
+The compiler-warning count was not reported separately. All five catalog filename options now reject null and whitespace before workspace creation and template-provider invocation. Next focus: a package-directory path that escapes the configured JSON root.
 
 ## 2026-09-20 — bootstrap whitespace profiles-file-name contract
 
@@ -71,7 +88,7 @@ Production guard commit:
 
 The narrow whitespace guard runs immediately after the existing null guard, before filesystem mutation and template-provider invocation.
 
-**Focused GREEN and full-suite 1053/1053 GREEN are pending local verification.**
+**Focused and full-suite 1053/1053 GREEN were subsequently confirmed locally by the maintainer.**
 
 ## 2026-09-20 — 1052/1052 GREEN bootstrap null profiles-file-name checkpoint
 
@@ -636,17 +653,13 @@ Compiler warnings: 0
 
 `JsonsBootstrapper.EnsureWorkspaceAsync(...)` rejects null/whitespace `RootDirectory` and `PackageDirectoryName` before filesystem mutation, aligning the directory-option shape with `ErrorCatalogContextProvider` for the current scope.
 
-## Remaining `JsonsOptions` filename boundary
+## Completed `JsonsOptions` filename boundary
 
-The configurable catalog file names are:
+The five configurable catalog filename options (`ErrorCatalogFileName`, `CategoryCatalogFileName`, `CodeGroupCatalogFileName`, `OwnerCatalogFileName`, `ProfilesFileName`) now have locally verified null/whitespace contracts in `JsonsBootstrapper`, aligned with `ErrorCatalogContextProvider` and enforced before provider invocation and filesystem mutation.
 
-- `ErrorCatalogFileName`
-- `CategoryCatalogFileName`
-- `CodeGroupCatalogFileName`
-- `OwnerCatalogFileName`
-- `ProfilesFileName`
+## Next configuration boundary
 
-`ErrorCatalogContextProvider` already defines distinct stable null/empty contracts for each. `JsonsBootstrapper` is being aligned one focused caller-configuration contract at a time, always before provider invocation and filesystem mutation.
+`PackageDirectoryName` is documented as a package directory **under** `RootDirectory`. The bootstrapper currently rejects null/whitespace package-directory names but does not prevent `../` path traversal outside the configured root. Its template target path check protects file destinations relative to the already-computed package directory and does not cover this parent-directory escape. Add a focused no-side-effects contract before introducing a production guard.
 
 ## Established transparent lower boundary — do not normalize
 
@@ -677,12 +690,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameIsWhitespace_ReturnsInvalidBeforeProviderOrFilesystem"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed guard: **focused GREEN** and **1053/1053 GREEN** for the complete suite.
+Locally confirmed at this checkpoint: **1053/1053 GREEN**.
 
 ## Next recommended step
 
-After **1053/1053 GREEN** is confirmed locally, record the checkpoint and review the remaining JSON workspace configuration boundary before selecting the next focused contract.
+Introduce a focused test for `PackageDirectoryName = "../escaped"` that requires an invalid response before template-provider invocation or any filesystem mutation. Confirm RED before making the production change.
