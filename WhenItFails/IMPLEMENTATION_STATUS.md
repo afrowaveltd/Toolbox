@@ -46,6 +46,33 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Malformed `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid category catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid code-group catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid owner catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
+- Malformed `ProfilesFileName` caller-configuration contract committed; focused RED verification pending.
+
+## 2026-09-21 — malformed profile-catalog filename path contract
+
+Contract commit:
+`514339b43269b7d25584a851acfc7138fe15d48a`
+
+Baseline: **1066/1066 GREEN**, confirmed locally by the maintainer before this test was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperInvalidProfilesFileNamePathContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenProfilesFileNameContainsNullCharacter_ReturnsInvalidBeforeProviderOrFilesystem`
+
+With `ProfilesFileName = "profiles\0.en.json"`, require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID
+Message: The profile catalog file name is invalid.
+```
+
+The contract also requires no template-provider invocation and no workspace-root creation.
+
+Current production still passes `ProfilesFileName` directly into package-containment evaluation after null/whitespace validation. A null character can therefore trigger `ArgumentException` inside `Path.GetFullPath(...)`. **Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1066/1066 GREEN malformed owner-catalog filename checkpoint
 
@@ -1467,11 +1494,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameContainsNullCharacter_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Locally confirmed: **1066/1066 GREEN**.
+Expected at this stage: **one focused RED**, most likely an escaping `ArgumentException` from `Path.GetFullPath(...)`. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Add one focused caller-configuration contract for syntactically malformed `ProfilesFileName` containing a null character. Require stable `Invalid` before filesystem mutation or template-provider invocation, and confirm RED before changing production.
+After focused RED is confirmed, add the narrow profile-catalog filename syntax normalization, then rerun the focused test and complete suite (expected total: 1067).
