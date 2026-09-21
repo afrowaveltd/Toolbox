@@ -35,7 +35,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - The package-directory escape contract is locally verified GREEN; `JsonsBootstrapper` rejects a package path outside the configured root before filesystem mutation and template-provider invocation.
 - A positive regression for valid nested `PackageDirectoryName` values is locally verified GREEN; legitimate nested package directories remain supported.
 - The escaping `ErrorCatalogFileName` caller-configuration contract is locally verified GREEN; the bootstrapper rejects that invalid filename before filesystem mutation and template-provider invocation.
-- Escaping `CategoryCatalogFileName` caller-configuration contract committed; focused RED verification pending.
+- Escaping `CategoryCatalogFileName` caller-configuration contract is confirmed RED on Windows; the narrow production guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — escaping category-catalog filename caller-configuration contract
 
@@ -61,7 +61,19 @@ Message: The category catalog file name must stay inside the package directory.
 
 The test also requires no provider invocation, no workspace-root creation, and no escaped file. This is a proposed caller-configuration code distinct from the existing provider-target error contract.
 
-Current production checks category filename null/whitespace but does not check category filename containment before creating the workspace. **Focused RED verification is pending; no production change has been made for this contract.**
+The focused test confirmed the expected RED on Windows:
+
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+Production guard commit:
+`80645d303b55529df54a6d41ed06130b3783acd6`
+
+The bootstrapper now calls the existing `IsPathInsideDirectory` helper for caller-configured `CategoryCatalogFileName` immediately after the existing error-catalog filename check, before any filesystem mutation or template-provider invocation. The existing provider-target error contract remains unchanged.
+
+**Focused GREEN and complete-suite 1057/1057 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1056/1056 GREEN escaping error-catalog filename checkpoint
 
@@ -866,10 +878,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCategoryCatalogFileNameEscapesPackage_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED** (`Expected: Invalid`, `Actual: Success`). Zero matching tests is not a valid checkpoint.
+Expected results after the committed guard: **focused GREEN** and **1057/1057 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, add the narrow pre-provider/pre-filesystem containment check for caller-configured `CategoryCatalogFileName`, then rerun the focused test and complete suite (expected total: 1057). Keep the provider-target containment contract unchanged.
+After **1057/1057 GREEN** is confirmed locally, record the checkpoint and continue the caller-configured filename containment audit one focused contract at a time, starting with `CodeGroupCatalogFileName`. Keep the provider-target containment contract unchanged.
