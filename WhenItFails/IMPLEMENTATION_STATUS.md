@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1074/1074 GREEN**, confirmed locally by the maintainer after full template-snapshot validation before file writes. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1075/1075 GREEN**, confirmed locally by the maintainer after directory-only provider-target rejection. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -54,7 +54,28 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Template collection enumeration-exception contract is locally verified GREEN; ordinary deferred collection failures are normalized to the stable provider-failure response without leaking provider detail.
 - Template collection enumeration-cancellation regression contract is locally verified GREEN; exact-instance `OperationCanceledException` propagation is preserved during returned-collection enumeration.
 - Later-null-template-item no-partial-write contract is locally verified GREEN; the full materialized template snapshot is validated before any template file write.
-- Directory-only template-target contract confirmed RED on Windows; directory-only targets are now rejected during provider-output validation, awaiting focused/full GREEN verification.
+- Directory-only template-target contract is locally verified GREEN; directory-only provider targets are rejected during provider-output validation before filesystem mutation.
+
+## 2026-09-21 — 1075/1075 GREEN directory-only provider-target checkpoint
+
+Contract commit: `521e6390293d464dd7cda6fe2d2f2834099e112c`
+
+Production fix commit: `481c91eab264de58a55599dbd542db309e077b77`
+
+Documentation commit: `fede769c4fd70a621f91565aa04edb0e3dc537b5`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1075
+Total:  1075
+```
+
+Directory-only provider targets are rejected as stable invalid provider output before nested-directory creation or file writes. Valid nested file targets remain supported.
+
+Next caller-configuration audit: apply the same file-target requirement to caller-configured catalog filenames before provider invocation and filesystem mutation.
 
 ## 2026-09-21 — directory-only template target contract
 
@@ -115,7 +136,7 @@ Message: The JSON template provider returned a template with an invalid target f
 
 Valid nested file targets such as `Nested/errors.en.json` remain supported.
 
-**Focused GREEN and complete-suite 1075/1075 GREEN are pending local verification.**
+**Complete-suite 1075/1075 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1074/1074 GREEN full template-snapshot validation checkpoint
 
@@ -2115,12 +2136,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateTargetEndsWithDirectorySeparator_ReturnsInvalidBeforeCreatingNestedDirectory"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed fix: **focused GREEN** and **1075/1075 GREEN** for the complete suite.
+Locally confirmed: **1075/1075 GREEN**.
 
 ## Next recommended step
 
-After **1075/1075 GREEN** is confirmed locally, record the checkpoint and continue with the next uncovered provider-target/bootstrap boundary.
+Add a focused caller-configuration contract for `ErrorCatalogFileName` ending with a directory separator. Require `WIF_JSONS_ERROR_CATALOG_FILE_NAME_INVALID` before template-provider invocation or filesystem mutation.
