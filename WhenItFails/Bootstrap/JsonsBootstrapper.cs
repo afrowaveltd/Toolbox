@@ -430,6 +430,15 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
             };
         }
 
+        string? targetDirectoryPath =
+            Path.GetDirectoryName(targetFilePath);
+
+        if (!string.IsNullOrEmpty(targetDirectoryPath)
+            && !Directory.Exists(targetDirectoryPath))
+        {
+            Directory.CreateDirectory(targetDirectoryPath);
+        }
+
         await File.WriteAllTextAsync(
             targetFilePath,
             templateFile.Content,
