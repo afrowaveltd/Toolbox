@@ -40,6 +40,33 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - The escaping `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
 - The escaping `ProfilesFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
 - All five caller-configured catalog filename containment guards are locally verified GREEN.
+- Malformed `RootDirectory` caller-configuration contract committed; focused RED verification pending.
+
+## 2026-09-21 — malformed root-directory path contract
+
+Contract commit:
+`3cff3ca67386f04afbc8ea65d9a5c8380086518c`
+
+Baseline: **1060/1060 GREEN**, confirmed locally by the maintainer before this test was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperInvalidRootDirectoryPathContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenRootDirectoryContainsNullCharacter_ReturnsInvalidBeforeProviderOrFilesystem`
+
+With a `RootDirectory` containing a null character, require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_ROOT_DIRECTORY_INVALID
+Message: The JSON root directory path is invalid.
+```
+
+The contract also requires no template-provider invocation and no creation of the safe temporary parent directory. This aligns the bootstrap caller-configuration boundary with the existing loader/writer malformed-path behavior, while keeping bootstrap-specific error codes.
+
+Current production calls `Path.GetFullPath(...)` through its containment helper and only catches `UnauthorizedAccessException` and `IOException`; an `ArgumentException` from a syntactically malformed path can therefore escape. **Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1060/1060 GREEN complete catalog-filename containment checkpoint
 
@@ -1065,11 +1092,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenRootDirectoryContainsNullCharacter_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Locally confirmed: **1060/1060 GREEN**.
+Expected at this stage: **one focused RED** caused by the malformed path escaping as an `ArgumentException`. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Add one focused caller-configuration contract for a syntactically malformed `RootDirectory` containing a null character. Require a stable `Invalid` response before filesystem mutation or template-provider invocation, then confirm RED before changing production.
+After focused RED is confirmed, add the narrow bootstrap normalization for malformed root-directory syntax, then rerun the focused test and complete suite (expected total: 1061).
