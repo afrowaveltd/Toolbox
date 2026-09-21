@@ -62,7 +62,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Directory-only `ProfilesFileName` caller-configuration contract is locally verified GREEN; all five caller-configured catalog filenames reject directory-only targets before provider invocation or filesystem mutation.
 - Existing-directory provider-target contract is locally verified GREEN; provider targets resolving to existing directories are rejected during full-snapshot validation before any template write.
 - Existing-directory `ErrorCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
-- Existing-directory `CategoryCatalogFileName` caller-configuration contract committed; focused RED verification pending.
+- Existing-directory `CategoryCatalogFileName` caller-configuration contract confirmed RED on Windows; an early caller-validation guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — existing-directory category catalog filename contract
 
@@ -98,7 +98,32 @@ The template provider must not be invoked, and the existing directory and its co
 
 Current production has the existing-directory guard only for `ErrorCatalogFileName`; the category field still stops after lexical containment, so focused RED is expected.
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+The lexically valid contained category filename resolved to an existing directory, the tracking provider was reachable, and bootstrap returned success instead of rejecting caller configuration.
+
+Production fix commit:
+`dacff0d269f327600906262ce25d206521db2393`
+
+Documentation commit:
+`1c9852d025a18a3f4a4297af43a06445ebe82453`
+
+After the existing containment check, `JsonsBootstrapper` now resolves `CategoryCatalogFileName` inside the package workspace and rejects it when that path already exists as a directory:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_INVALID
+Message: The category catalog file name is invalid.
+```
+
+The guard runs before template-provider invocation. Existing directory contents remain untouched, and the existing null, whitespace, malformed-path, trailing-separator, and outside-package contracts remain separate.
+
+**Focused GREEN and complete-suite 1083/1083 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1082/1082 GREEN existing-directory error filename checkpoint
 
@@ -2744,10 +2769,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCategoryCatalogFileNameResolvesToExistingDirectory_ReturnsInvalidBeforeProvider"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**. Current category caller validation is expected to accept the lexically valid contained path, invoke the tracking provider, and return success instead of the category-specific invalid contract.
+Expected results after the committed fix: **focused GREEN** and **1083/1083 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only the early existing-directory guard for `CategoryCatalogFileName`. Preserve its existing null, whitespace, malformed-path, trailing-separator, and outside-package contracts separately.
+After **1083/1083 GREEN** is confirmed locally, record the checkpoint. Then continue one field at a time with `CodeGroupCatalogFileName` for the same existing-directory caller boundary.
