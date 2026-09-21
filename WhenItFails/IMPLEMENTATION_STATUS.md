@@ -32,6 +32,32 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `OwnerCatalogFileName` null/whitespace contracts are locally verified GREEN; invalid values are rejected before provider invocation or filesystem mutation.
 - `ProfilesFileName = null` is locally verified GREEN; invalid configuration is rejected before provider invocation or filesystem mutation.
 - All five `JsonsOptions` catalog filename fields have locally verified null/whitespace GREEN contracts in `JsonsBootstrapper`, rejecting malformed input before filesystem mutation and template-provider invocation.
+- The package-directory escape contract has been committed, with focused RED verification pending.
+
+## 2026-09-21 — bootstrap package-directory escape contract
+
+Contract commit: `ccd5cdf9dbede67f95b0817f266d4445e17597c5`
+
+Baseline: **1053/1053 GREEN**, confirmed locally by the maintainer before this test.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperEscapingPackageDirectoryNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenPackageDirectoryNameEscapesRoot_ReturnsInvalidBeforeProviderOrFilesystem`
+
+Configured input: `PackageDirectoryName = "../escaped"` with a unique temporary `RootDirectory = <temp>/Jsons`. The test requires an invalid response with:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_PACKAGE_DIRECTORY_NAME_OUTSIDE_ROOT
+Message: The package directory name must stay inside the JSON root directory.
+```
+
+It also requires the template provider not to run and no root, escaped sibling directory, or unique temporary parent to be created. This is a new proposed bootstrap-specific contract, not a pre-existing error code of `ErrorCatalogContextProvider`.
+
+Current production joins the package directory without containment validation; the focused RED is expected but has **not** yet been verified locally. Do not change production before RED confirmation.
 
 ## 2026-09-21 — 1053/1053 GREEN bootstrap whitespace profiles-file-name checkpoint
 
@@ -690,11 +716,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenPackageDirectoryNameEscapesRoot_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Locally confirmed at this checkpoint: **1053/1053 GREEN**.
+Expected result at this stage: **one focused RED** (`Expected: Invalid`, `Actual: Success`). The test must be discovered and run; zero matching tests is not a valid checkpoint.
 
 ## Next recommended step
 
-Introduce a focused test for `PackageDirectoryName = "../escaped"` that requires an invalid response before template-provider invocation or any filesystem mutation. Confirm RED before making the production change.
+After the focused RED is confirmed, add the narrow pre-provider/pre-filesystem package-directory containment guard and then verify the focused test and full suite (expected total: 1054).
