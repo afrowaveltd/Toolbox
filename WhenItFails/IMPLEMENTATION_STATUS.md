@@ -52,6 +52,32 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Null template-name provider-output contract is locally verified GREEN; null logical template names are rejected before target validation and file creation.
 - Whitespace template-name provider-output contract is locally verified GREEN; whitespace-only logical names are rejected before target validation and file creation.
 - Template collection enumeration-exception contract is locally verified GREEN; ordinary deferred collection failures are normalized to the stable provider-failure response without leaking provider detail.
+- Template collection enumeration-cancellation regression contract committed; focused GREEN verification expected.
+
+## 2026-09-21 — template collection enumeration cancellation contract
+
+Contract commit:
+`62c0ece1813790bfcb586e1a046bf7bff89b444c`
+
+Baseline: **1072/1072 GREEN**, confirmed locally by the maintainer before this regression contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperTemplateCollectionEnumerationCancellationContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenTemplateCollectionEnumerationCancels_RethrowsSameOperationCanceledException`
+
+The provider call succeeds and returns an `IReadOnlyList<JsonsTemplateFile>`, but the returned collection throws a specific `OperationCanceledException` instance from `GetEnumerator()`.
+
+Require:
+
+- the same exception instance to propagate unchanged,
+- no conversion into `WIF_JSONS_TEMPLATE_PROVIDER_FAILED`,
+- no template file write.
+
+The current collection-materialization catch filter already excludes `OperationCanceledException`, so this is expected to be a focused **GREEN regression contract** with no production change.
+
+**Focused verification is pending.**
 
 ## 2026-09-21 — 1072/1072 GREEN template enumeration-failure checkpoint
 
@@ -1931,11 +1957,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateCollectionEnumerationCancels_RethrowsSameOperationCanceledException"
 ```
 
-Locally confirmed: **1072/1072 GREEN**.
+Expected at this stage: **focused GREEN**. The existing catch filter excludes `OperationCanceledException`, so the exact cancellation instance should propagate unchanged and no production change should be necessary.
 
 ## Next recommended step
 
-Add a focused regression contract for `OperationCanceledException` thrown while materializing the returned template collection. Require exact-instance propagation. The current catch filter should already satisfy this contract, so a focused GREEN result is expected and should require no production change.
+After the focused GREEN is confirmed, run the complete suite (expected total: 1073), record the checkpoint, and continue auditing the remaining bootstrap/provider-output boundaries.
