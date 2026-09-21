@@ -64,6 +64,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-directory `ErrorCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
+- Existing-directory `OwnerCatalogFileName` caller-configuration contract committed; focused RED verification pending.
+
+## 2026-09-21 — existing-directory owner catalog filename contract
+
+Contract commit:
+`40ac5516b7c4c0f6d1c8d711f64f99ff55a23d35`
+
+Baseline: **1084/1084 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperExistingDirectoryOwnerCatalogFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenOwnerCatalogFileNameResolvesToExistingDirectory_ReturnsInvalidBeforeProvider`
+
+The package workspace already contains a `Nested` directory with `preserve.txt`, while caller configuration uses:
+
+```csharp
+OwnerCatalogFileName = "Nested"
+```
+
+The value is lexically valid, contained in the package, and does not end with a directory separator, but resolves to a directory rather than a file.
+
+Require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_OWNER_CATALOG_FILE_NAME_INVALID
+Message: The owner catalog file name is invalid.
+```
+
+The template provider must not be invoked, and the existing directory and its contents must remain unchanged.
+
+Current production has existing-directory guards for the error, category, and code-group fields only; the owner field still stops after lexical containment, so focused RED is expected.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1084/1084 GREEN existing-directory code group filename checkpoint
 
@@ -2872,11 +2909,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenOwnerCatalogFileNameResolvesToExistingDirectory_ReturnsInvalidBeforeProvider"
 ```
 
-Locally confirmed: **1084/1084 GREEN**.
+Expected at this stage: **one focused RED**. Current owner caller validation is expected to accept the lexically valid contained path, invoke the tracking provider, and return success instead of the owner-specific invalid contract.
 
 ## Next recommended step
 
-Add one focused caller-configuration contract for `OwnerCatalogFileName` resolving to an existing directory. Require the owner-specific invalid response before template-provider invocation while preserving the pre-existing directory and its contents.
+After focused RED is confirmed, add only the early existing-directory guard for `OwnerCatalogFileName`. Preserve its existing null, whitespace, malformed-path, trailing-separator, and outside-package contracts separately.
