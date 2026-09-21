@@ -53,6 +53,40 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Whitespace template-name provider-output contract is locally verified GREEN; whitespace-only logical names are rejected before target validation and file creation.
 - Template collection enumeration-exception contract is locally verified GREEN; ordinary deferred collection failures are normalized to the stable provider-failure response without leaking provider detail.
 - Template collection enumeration-cancellation regression contract is locally verified GREEN; exact-instance `OperationCanceledException` propagation is preserved during returned-collection enumeration.
+- Later-null-template-item no-partial-write contract committed; focused RED verification pending.
+
+## 2026-09-21 — later null template item no-partial-write contract
+
+Contract commit:
+`22afb9d9aba703f015adadc22495a8a839b67d5c`
+
+Baseline: **1073/1073 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperLaterNullTemplateItemContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenLaterTemplateItemIsNull_ReturnsInvalidBeforeWritingAnyTemplateFiles`
+
+The provider returns a materialized collection containing:
+
+1. a valid first template targeting `first.json`,
+2. a later `null` template item.
+
+Require the existing malformed-item response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_TEMPLATE_ITEM_NULL
+Message: The JSON template provider returned a null template item.
+```
+
+and require that `first.json` is not written.
+
+This verifies that a malformed provider snapshot is validated as a whole before any template file mutation. Current production validates and writes in the same loop, so the first valid template is expected to be created before the later null item is discovered.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1073/1073 GREEN template enumeration-cancellation checkpoint
 
@@ -1976,11 +2010,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateItemIsNull_ReturnsInvalidBeforeWritingAnyTemplateFiles"
 ```
 
-Locally confirmed: **1073/1073 GREEN**.
+Expected at this stage: **one focused RED**. Current production is expected to create `first.json` before discovering the later null item, so the no-partial-write assertion should fail.
 
 ## Next recommended step
 
-Add a focused contract where the materialized provider collection contains a valid first template followed by a malformed null item. Require the existing `WIF_JSONS_TEMPLATE_ITEM_NULL` response and no template file writes, proving that provider output is fully validated before filesystem mutation.
+After focused RED is confirmed, separate provider-output validation from template file mutation so the full materialized snapshot is validated before any template file is written. Preserve all existing provider-item error codes and messages.
