@@ -46,7 +46,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Malformed `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid category catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid code-group catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid owner catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
-- Malformed `ProfilesFileName` caller-configuration contract committed; focused RED verification pending.
+- Malformed `ProfilesFileName` caller-configuration contract is confirmed RED on Windows via escaping `ArgumentException`; the narrow production normalization is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — malformed profile-catalog filename path contract
 
@@ -72,7 +72,28 @@ Message: The profile catalog file name is invalid.
 
 The contract also requires no template-provider invocation and no workspace-root creation.
 
-Current production still passes `ProfilesFileName` directly into package-containment evaluation after null/whitespace validation. A null character can therefore trigger `ArgumentException` inside `Path.GetFullPath(...)`. **Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+System.ArgumentException: Null character in path.
+```
+
+The exception escaped from `Path.GetFullPath(...)` inside `IsPathInsideDirectory(...)` before filesystem mutation or template-provider invocation.
+
+Production fix commit:
+`32357c6033b8be4c6ba8247baf39d73f5c21b385`
+
+The profile-catalog containment evaluation is now isolated in a narrow `try/catch (ArgumentException)`. Malformed profile-catalog filename syntax maps to:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID
+Message: The profile catalog file name is invalid.
+```
+
+A syntactically valid filename outside the package continues to use the separate `WIF_JSONS_PROFILE_CATALOG_FILE_NAME_OUTSIDE_PACKAGE` contract.
+
+**Focused GREEN and complete-suite 1067/1067 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1066/1066 GREEN malformed owner-catalog filename checkpoint
 
@@ -1495,10 +1516,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameContainsNullCharacter_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, most likely an escaping `ArgumentException` from `Path.GetFullPath(...)`. A zero-test filter match is not a valid checkpoint.
+Expected results after the committed fix: **focused GREEN** and **1067/1067 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, add the narrow profile-catalog filename syntax normalization, then rerun the focused test and complete suite (expected total: 1067).
+After **1067/1067 GREEN** is confirmed locally, record the checkpoint. At that point malformed-path syntax handling is complete for `RootDirectory`, `PackageDirectoryName`, and all five caller-configured catalog filename fields. The next boundary to audit is malformed template-provider `TargetFileName` syntax, kept separate from the existing provider-target containment contract.
