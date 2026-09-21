@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1078/1078 GREEN**, confirmed locally by the maintainer after directory-only `CodeGroupCatalogFileName` caller validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1079/1079 GREEN**, confirmed locally by the maintainer after directory-only `OwnerCatalogFileName` caller validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -58,7 +58,28 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Directory-only `ErrorCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only error catalog filenames are rejected before provider invocation and filesystem mutation.
 - Directory-only `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only category catalog filenames are rejected before provider invocation and filesystem mutation.
 - Directory-only `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only code-group catalog filenames are rejected before provider invocation and filesystem mutation.
-- Directory-only `OwnerCatalogFileName` caller-configuration contract confirmed RED on Windows; directory-only owner catalog filenames are now rejected before provider invocation and filesystem mutation, awaiting focused/full GREEN verification.
+- Directory-only `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only owner catalog filenames are rejected before provider invocation and filesystem mutation.
+
+## 2026-09-21 — 1079/1079 GREEN directory-only owner filename checkpoint
+
+Contract commit: `2c7abb14f8d442a51bf377ef2e51d6e4dabf4f8d`
+
+Production fix commit: `90b10457c57abe87af8465037f6fa9409ba8af3e`
+
+Documentation commit: `82f54c23d63287a6928c8c48f3d204314f5a59c8`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1079
+Total:  1079
+```
+
+Directory-only `OwnerCatalogFileName` values are now rejected as caller configuration before provider invocation or filesystem mutation.
+
+Final caller-configured field in this group: `ProfilesFileName`.
 
 ## 2026-09-21 — directory-only owner catalog filename contract
 
@@ -118,7 +139,7 @@ Message: The owner catalog file name is invalid.
 
 Its existing malformed-path and outside-package contracts remain separate.
 
-**Focused GREEN and complete-suite 1079/1079 GREEN are pending local verification.**
+**Complete-suite 1079/1079 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1078/1078 GREEN directory-only code group filename checkpoint
 
@@ -2443,12 +2464,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenOwnerCatalogFileNameEndsWithDirectorySeparator_ReturnsInvalidBeforeProviderOrFilesystem"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed fix: **focused GREEN** and **1079/1079 GREEN** for the complete suite.
+Locally confirmed: **1079/1079 GREEN**.
 
 ## Next recommended step
 
-After **1079/1079 GREEN** is confirmed locally, record the checkpoint. Then continue with `ProfilesFileName` as the final caller-configured directory-only contract in this five-field group.
+Add one focused caller-configuration contract for `ProfilesFileName` ending with a directory separator. Require `WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID` before provider invocation or filesystem mutation.
