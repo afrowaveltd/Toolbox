@@ -159,7 +159,9 @@ DefaultJsonsTemplateProvider
 
 The provider supplies the logical template name, contents, and target file name for each template.
 
-Provider output is validated before a template file is written. Null and whitespace-only logical template names are rejected as invalid provider output instead of being copied into a successful bootstrap result.
+Provider output is validated before a template file is written. The complete materialized template snapshot is validated first, and file creation begins only when every template item passes validation. This prevents a malformed later item from leaving earlier template files partially created.
+
+Null and whitespace-only logical template names are rejected as invalid provider output instead of being copied into a successful bootstrap result.
 
 The returned template collection is consumed before template files are processed. If consuming that collection raises an ordinary exception, bootstrap returns the stable `WIF_JSONS_TEMPLATE_PROVIDER_FAILED` failure without exposing provider exception detail. Cancellation remains cancellation and is not converted into an ordinary failure.
 
