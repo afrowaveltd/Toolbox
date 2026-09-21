@@ -157,7 +157,9 @@ The default provider is:
 DefaultJsonsTemplateProvider
 ```
 
-The provider supplies the contents and target file names for the standard catalogs.
+The provider supplies the logical template name, contents, and target file name for each template.
+
+Provider output is validated before a template file is written. A null logical template name is rejected as invalid provider output instead of being copied into a successful bootstrap result.
 
 Bundled templates are package-owned read-only resources.
 
