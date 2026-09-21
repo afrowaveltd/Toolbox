@@ -64,7 +64,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-directory `ErrorCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
-- Existing-directory `OwnerCatalogFileName` caller-configuration contract committed; focused RED verification pending.
+- Existing-directory `OwnerCatalogFileName` caller-configuration contract confirmed RED on Windows; an early caller-validation guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — existing-directory owner catalog filename contract
 
@@ -100,7 +100,32 @@ The template provider must not be invoked, and the existing directory and its co
 
 Current production has existing-directory guards for the error, category, and code-group fields only; the owner field still stops after lexical containment, so focused RED is expected.
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+The lexically valid contained owner filename resolved to an existing directory, the tracking provider was reachable, and bootstrap returned success instead of rejecting caller configuration.
+
+Production fix commit:
+`ce3748f1c843ba42051fee82585bbbefa3528411`
+
+Documentation commit:
+`ae8324f8dd80a32d2cef9f14f59425ef5215cd9c`
+
+After the existing containment check, `JsonsBootstrapper` now resolves `OwnerCatalogFileName` inside the package workspace and rejects it when that path already exists as a directory:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_OWNER_CATALOG_FILE_NAME_INVALID
+Message: The owner catalog file name is invalid.
+```
+
+The guard runs before template-provider invocation. Existing directory contents remain untouched, and the existing null, whitespace, malformed-path, trailing-separator, and outside-package contracts remain separate.
+
+**Focused GREEN and complete-suite 1085/1085 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1084/1084 GREEN existing-directory code group filename checkpoint
 
@@ -2910,10 +2935,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenOwnerCatalogFileNameResolvesToExistingDirectory_ReturnsInvalidBeforeProvider"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**. Current owner caller validation is expected to accept the lexically valid contained path, invoke the tracking provider, and return success instead of the owner-specific invalid contract.
+Expected results after the committed fix: **focused GREEN** and **1085/1085 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only the early existing-directory guard for `OwnerCatalogFileName`. Preserve its existing null, whitespace, malformed-path, trailing-separator, and outside-package contracts separately.
+After **1085/1085 GREEN** is confirmed locally, record the checkpoint. Then continue with the final caller-configured field, `ProfilesFileName`, for the same existing-directory boundary.
