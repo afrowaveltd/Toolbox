@@ -413,6 +413,11 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                         message:
                             "The JSON template provider returned a template with null content.");
                 }
+            }
+
+            foreach (JsonsTemplateFile templateFile in templateFileSnapshot)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
 
                 JsonsBootstrapFileResult fileResult =
                     await EnsureTemplateFileAsync(
