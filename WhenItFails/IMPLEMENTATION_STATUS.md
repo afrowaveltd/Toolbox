@@ -32,7 +32,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `OwnerCatalogFileName` null/whitespace contracts are locally verified GREEN; invalid values are rejected before provider invocation or filesystem mutation.
 - `ProfilesFileName = null` is locally verified GREEN; invalid configuration is rejected before provider invocation or filesystem mutation.
 - All five `JsonsOptions` catalog filename fields have locally verified null/whitespace GREEN contracts in `JsonsBootstrapper`, rejecting malformed input before filesystem mutation and template-provider invocation.
-- The package-directory escape contract has been committed, with focused RED verification pending.
+- The package-directory escape contract is confirmed RED on Windows (`Expected: Invalid`, `Actual: Success`); the narrowly scoped containment guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — bootstrap package-directory escape contract
 
@@ -57,7 +57,19 @@ Message: The package directory name must stay inside the JSON root directory.
 
 It also requires the template provider not to run and no root, escaped sibling directory, or unique temporary parent to be created. This is a new proposed bootstrap-specific contract, not a pre-existing error code of `ErrorCatalogContextProvider`.
 
-Current production joins the package directory without containment validation; the focused RED is expected but has **not** yet been verified locally. Do not change production before RED confirmation.
+The focused contract confirmed the expected RED on Windows:
+
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+Production guard commit:
+`0379b4ccb314264dab6069c3322a2188c28cfbbc`
+
+The guard calls the existing `IsPathInsideDirectory` helper on the normalized JSON root and package-directory name, inside the existing filesystem `try` block but before `Directory.Exists`, `Directory.CreateDirectory`, or template-provider invocation. It rejects a path resolving outside the root without changing the existing template target containment logic.
+
+**Focused GREEN and full-suite 1054/1054 GREEN are pending local verification on Windows and Linux.**
 
 ## 2026-09-21 — 1053/1053 GREEN bootstrap whitespace profiles-file-name checkpoint
 
@@ -717,10 +729,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenPackageDirectoryNameEscapesRoot_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected result at this stage: **one focused RED** (`Expected: Invalid`, `Actual: Success`). The test must be discovered and run; zero matching tests is not a valid checkpoint.
+Expected results after the committed guard: **focused GREEN** and **1054/1054 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After the focused RED is confirmed, add the narrow pre-provider/pre-filesystem package-directory containment guard and then verify the focused test and full suite (expected total: 1054).
+After **1054/1054 GREEN** is confirmed locally, record the checkpoint and consider a focused regression for legitimate nested package-directory names to ensure the containment guard does not reject valid subdirectories.
