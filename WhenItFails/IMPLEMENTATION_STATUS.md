@@ -38,6 +38,33 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - The escaping `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
 - The escaping `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
 - The escaping `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
+- The escaping `ProfilesFileName` caller-configuration contract has been committed; focused RED verification is pending.
+
+## 2026-09-21 — escaping profiles filename caller-configuration contract
+
+Contract commit:
+`f20a7041a37b9e0af2761d5817392076cd3fc242`
+
+Baseline: **1059/1059 GREEN**, confirmed locally by the maintainer before this test was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperEscapingProfilesFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenProfilesFileNameEscapesPackage_ReturnsInvalidBeforeProviderOrFilesystem`
+
+With `ProfilesFileName = "../escaped.json"` and a tracking template provider returning no files, require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_PROFILE_CATALOG_FILE_NAME_OUTSIDE_PACKAGE
+Message: The profile catalog file name must stay inside the package directory.
+```
+
+The contract also asserts no provider invocation, no workspace-root creation, and no escaped file. This is a proposed caller-configuration error code distinct from the established provider-target containment contract.
+
+Current production checks the profile filename for null/whitespace but not containment before workspace creation. **Focused RED verification is pending; no production change has been made for this contract.**
 
 ## 2026-09-21 — 1059/1059 GREEN escaping owner-catalog filename checkpoint
 
@@ -1006,11 +1033,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameEscapesPackage_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Locally confirmed: **1059/1059 GREEN**.
+Expected at this stage: **one focused RED** (`Expected: Invalid`, `Actual: Success`). A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Add one focused caller-configuration containment contract for `ProfilesFileName = "../escaped.json"`, requiring an invalid response before filesystem mutation or template-provider invocation. Confirm RED before changing production; preserve the established provider-target containment contract.
+After focused RED is confirmed, add the narrow pre-provider/pre-filesystem containment check for caller-configured `ProfilesFileName`, then rerun the focused test and complete suite (expected total: 1060). Keep the provider-target containment contract unchanged.
