@@ -50,7 +50,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Malformed template-provider `TargetFileName` contract is locally verified GREEN; syntactically invalid provider target filenames are normalized to stable `Invalid` while preserving null, whitespace, and outside-package contracts.
 - Valid nested template-target creation contract is locally verified GREEN; validated nested targets create missing parent directories while preserving existing files.
 - Null template-name provider-output contract is locally verified GREEN; null logical template names are rejected before target validation and file creation.
-- Whitespace template-name provider-output contract committed; focused RED verification pending.
+- Whitespace template-name provider-output contract confirmed RED on Windows; whitespace-only logical names are now rejected before target validation and file creation, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — whitespace template name provider-output contract
 
@@ -84,9 +84,32 @@ Message: The JSON template provider returned a template with an empty name.
 
 The target file must not be written.
 
-Current production validates only `Name is null`; whitespace-only names therefore still pass through into a successful `JsonsBootstrapFileResult.Name`.
+The focused contract confirmed the expected RED on Windows:
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+Current production created the template file and returned `Success` despite `Name = "   "`.
+
+Production fix commit:
+`ded57fb513b614a5f0b3c5a0d3675400e86a2327`
+
+Documentation commit:
+`e058dae8d0afce8fbf70e81f37a66864b08fe218`
+
+`JsonsBootstrapper` now rejects whitespace-only logical names before target validation and before writing the target file:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_TEMPLATE_NAME_EMPTY
+Message: The JSON template provider returned a template with an empty name.
+```
+
+`WhenItFails/Docs/Bootstrap/en.md` now documents both null and whitespace-only logical template names as invalid provider output.
+
+**Focused GREEN and complete-suite 1071/1071 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1070/1070 GREEN null template-name checkpoint
 
@@ -1805,10 +1828,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateNameIsWhitespace_ReturnsInvalidBeforeWritingTemplateFile"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**. Current production is expected to create the file and return `Success` because only null logical names are rejected.
+Expected results after the committed fix: **focused GREEN** and **1071/1071 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only whitespace-name normalization at the provider-output boundary, then rerun the focused test and complete suite (expected total: 1071).
+After **1071/1071 GREEN** is confirmed locally, record the checkpoint and continue auditing the next uncovered provider-output/bootstrap contract.
