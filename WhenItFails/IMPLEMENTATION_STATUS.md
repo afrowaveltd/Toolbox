@@ -78,6 +78,11 @@ The focused contract confirmed RED on Windows: the bootstrap response was not su
 Production fix commit:
 `eab18d989552581caeb24e1ad5cc7177747101a3`
 
+Documentation commit:
+`cbba2875f8c0afac217ce891d739055fbc8b06be`
+
+`WhenItFails/Docs/Bootstrap/en.md` now documents valid nested template targets, automatic creation of missing parent directories, containment inside the package workspace, and preservation of existing files.
+
 `EnsureTemplateFileAsync` now creates the missing parent directory for a validated target only when the target file itself does not already exist. Existing files still return immediately as `Skipped` and are never overwritten.
 
 **Focused GREEN and complete-suite 1069/1069 GREEN are pending local verification.**
