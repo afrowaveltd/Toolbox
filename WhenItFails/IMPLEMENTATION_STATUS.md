@@ -41,7 +41,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - The escaping `ProfilesFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
 - All five caller-configured catalog filename containment guards are locally verified GREEN.
 - Malformed `RootDirectory` caller-configuration contract is locally verified GREEN; syntactically invalid root paths are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
-- Malformed `PackageDirectoryName` caller-configuration contract committed; focused RED verification pending.
+- Malformed `PackageDirectoryName` caller-configuration contract is confirmed RED on Windows via escaping `ArgumentException`; the narrow production normalization is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-21 — malformed package-directory-name path contract
 
@@ -67,7 +67,28 @@ Message: The package directory name is invalid.
 
 The contract also requires no template-provider invocation and no workspace-root creation.
 
-Current production validates root-path syntax explicitly but passes the normalized package directory name directly into containment evaluation. A null character can therefore still trigger `ArgumentException` inside `Path.GetFullPath(...)`. **Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+System.ArgumentException: Null character in path.
+```
+
+The exception escaped from `Path.GetFullPath(...)` inside `IsPathInsideDirectory(...)` before any filesystem mutation or template-provider invocation.
+
+Production fix commit:
+`0200ee5b600ccce8f9fa16551fd2b29a04f3658a`
+
+The package containment evaluation is now isolated in a narrow `try/catch (ArgumentException)`. Malformed package-directory syntax maps to:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_PACKAGE_DIRECTORY_NAME_INVALID
+Message: The package directory name is invalid.
+```
+
+A syntactically valid package path outside the root continues to use the separate `WIF_JSONS_PACKAGE_DIRECTORY_NAME_OUTSIDE_ROOT` contract.
+
+**Focused GREEN and complete-suite 1062/1062 GREEN are pending local verification.**
 
 ## 2026-09-21 — 1061/1061 GREEN malformed root-directory checkpoint
 
@@ -1160,10 +1181,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenPackageDirectoryNameContainsNullCharacter_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, most likely an escaping `ArgumentException` from `Path.GetFullPath(...)`. A zero-test filter match is not a valid checkpoint.
+Expected results after the committed fix: **focused GREEN** and **1062/1062 GREEN** for the complete suite.
 
 ## Next recommended step
 
-After focused RED is confirmed, add the narrow package-directory syntax normalization, then rerun the focused test and complete suite (expected total: 1062).
+After **1062/1062 GREEN** is confirmed locally, record the checkpoint and audit malformed syntax for the five caller-configured catalog filename fields, starting with `ErrorCatalogFileName`.
