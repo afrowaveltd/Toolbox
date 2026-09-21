@@ -522,6 +522,31 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
 
                 if (!templateTargetFileInsidePackage)
                 {
+                    string fullPackageDirectoryPath =
+                        Path.GetFullPath(packageDirectoryPath);
+
+                    string fullTemplateTargetFilePath =
+                        Path.GetFullPath(
+                            Path.Combine(
+                                packageDirectoryPath,
+                                normalizedTemplateTargetFileName));
+
+                    StringComparison pathComparison =
+                        OperatingSystem.IsWindows()
+                            ? StringComparison.OrdinalIgnoreCase
+                            : StringComparison.Ordinal;
+
+                    if (string.Equals(
+                        fullTemplateTargetFilePath,
+                        fullPackageDirectoryPath,
+                        pathComparison))
+                    {
+                        return Response<JsonsBootstrapPayload>.Invalid(
+                            code: "WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID",
+                            message:
+                                "The JSON template provider returned a template with an invalid target file name.");
+                    }
+
                     return Response<JsonsBootstrapPayload>.Invalid(
                         code: "WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_OUTSIDE_PACKAGE",
                         message:
