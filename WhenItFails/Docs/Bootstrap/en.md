@@ -163,6 +163,20 @@ Bundled templates are package-owned read-only resources.
 
 The project copies created from them become project-owned files.
 
+### Nested template targets
+
+A template provider may place a target in a nested directory under the package workspace.
+
+For example:
+
+```text
+Nested/errors.en.json
+```
+
+is valid when it resolves inside the configured package directory. When the target file is missing, bootstrap creates any missing parent directories before writing the template.
+
+Targets that resolve outside the package directory are rejected. Existing target files are still preserved and are never overwritten automatically.
+
 ## Resource-backed default templates
 
 The default provider does not maintain a second hand-written copy of all catalog JSON inside C# source code.
