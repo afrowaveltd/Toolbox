@@ -100,6 +100,11 @@ The directory-only target passed containment and was classified only after the f
 Production fix commit:
 `481c91eab264de58a55599dbd542db309e077b77`
 
+Documentation commit:
+`fede769c4fd70a621f91565aa04edb0e3dc537b5`
+
+`WhenItFails/Docs/Bootstrap/en.md` now documents that template targets must identify files, not directory-only paths ending with a directory separator.
+
 `JsonsBootstrapper` now normalizes the provider target during the full-snapshot validation phase and rejects values ending with a directory separator before containment/write processing:
 
 ```text
