@@ -54,6 +54,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Template collection enumeration-exception contract is locally verified GREEN; ordinary deferred collection failures are normalized to the stable provider-failure response without leaking provider detail.
 - Template collection enumeration-cancellation regression contract is locally verified GREEN; exact-instance `OperationCanceledException` propagation is preserved during returned-collection enumeration.
 - Later-null-template-item no-partial-write contract is locally verified GREEN; the full materialized template snapshot is validated before any template file write.
+- Directory-only template-target contract committed; focused RED verification pending.
+
+## 2026-09-21 — directory-only template target contract
+
+Contract commit:
+`521e6390293d464dd7cda6fe2d2f2834099e112c`
+
+Baseline: **1074/1074 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperDirectoryTemplateTargetFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenTemplateTargetEndsWithDirectorySeparator_ReturnsInvalidBeforeCreatingNestedDirectory`
+
+The provider returns a target constructed as:
+
+```csharp
+"Nested" + Path.DirectorySeparatorChar
+```
+
+This path resolves inside the package workspace, so containment alone accepts it, but it denotes a directory path rather than a file target.
+
+Require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID
+Message: The JSON template provider returned a template with an invalid target file name.
+```
+
+The nested directory must not be created.
+
+Current production is expected to pass containment, create the nested directory during the write phase, and then fail through a filesystem error when attempting to write text to the directory path.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1074/1074 GREEN full template-snapshot validation checkpoint
 
@@ -2053,11 +2090,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateTargetEndsWithDirectorySeparator_ReturnsInvalidBeforeCreatingNestedDirectory"
 ```
 
-Locally confirmed: **1074/1074 GREEN**.
+Expected at this stage: **one focused RED**. The current implementation is expected to accept containment, create the nested directory, and fail later through the filesystem path rather than returning the stable provider-output `Invalid` contract.
 
 ## Next recommended step
 
-Add a focused provider-output contract for a target that ends with the platform directory separator, for example `Nested/`. It resolves inside the package but is a directory path rather than a file target. Require stable `WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID` and no nested-directory creation.
+After focused RED is confirmed, reject directory-only provider targets during the full-snapshot validation phase, before any nested directory or template file is created. Preserve valid nested file targets such as `Nested/errors.en.json`.
