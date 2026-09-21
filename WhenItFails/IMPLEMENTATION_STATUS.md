@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1062/1062 GREEN**, confirmed locally by the maintainer after malformed `PackageDirectoryName` normalization. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1063/1063 GREEN**, confirmed locally by the maintainer after malformed `ErrorCatalogFileName` normalization. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -42,7 +42,26 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - All five caller-configured catalog filename containment guards are locally verified GREEN.
 - Malformed `RootDirectory` caller-configuration contract is locally verified GREEN; syntactically invalid root paths are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `PackageDirectoryName` caller-configuration contract is locally verified GREEN; syntactically invalid package directory names are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
-- Malformed `ErrorCatalogFileName` caller-configuration contract is confirmed RED on Windows via escaping `ArgumentException`; the narrow production normalization is committed, awaiting focused/full GREEN verification.
+- Malformed `ErrorCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid error catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
+
+## 2026-09-21 — 1063/1063 GREEN malformed error-catalog filename checkpoint
+
+Contract commit: `bfdfefdb9e84b0574ff4fe233c104df481191996`
+
+Production fix commit: `e3ea09bcfa07a4e6bfed38d84025abec121dbf7f`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1063
+Total:  1063
+```
+
+The latest confirmation did not separately report focused test output, compiler-warning count, or operating system. A syntactically malformed `ErrorCatalogFileName` now returns stable `Invalid` instead of leaking `ArgumentException`.
+
+Next malformed-path boundary: `CategoryCatalogFileName`.
 
 ## 2026-09-21 — malformed error-catalog filename path contract
 
@@ -89,7 +108,7 @@ Message: The error catalog file name is invalid.
 
 A syntactically valid filename outside the package continues to use the separate `WIF_JSONS_ERROR_CATALOG_FILE_NAME_OUTSIDE_PACKAGE` contract.
 
-**Focused GREEN and complete-suite 1063/1063 GREEN are pending local verification.**
+**Complete-suite 1063/1063 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1062/1062 GREEN malformed package-directory checkpoint
 
@@ -1247,12 +1266,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenErrorCatalogFileNameContainsNullCharacter_ReturnsInvalidBeforeProviderOrFilesystem"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed fix: **focused GREEN** and **1063/1063 GREEN** for the complete suite.
+Locally confirmed: **1063/1063 GREEN**.
 
 ## Next recommended step
 
-After **1063/1063 GREEN** is confirmed locally, record the checkpoint and continue malformed filename syntax auditing with `CategoryCatalogFileName`.
+Add one focused caller-configuration contract for syntactically malformed `CategoryCatalogFileName` containing a null character. Require stable `Invalid` before filesystem mutation or template-provider invocation, and confirm RED before changing production.
