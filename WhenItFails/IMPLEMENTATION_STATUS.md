@@ -56,6 +56,42 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Later-null-template-item no-partial-write contract is locally verified GREEN; the full materialized template snapshot is validated before any template file write.
 - Directory-only template-target contract is locally verified GREEN; directory-only provider targets are rejected during provider-output validation before filesystem mutation.
 - Directory-only `ErrorCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only error catalog filenames are rejected before provider invocation and filesystem mutation.
+- Directory-only `CategoryCatalogFileName` caller-configuration contract committed; focused RED verification pending.
+
+## 2026-09-21 — directory-only category catalog filename contract
+
+Contract commit:
+`73fd638f4f4d7c9906e0ed4b7f13d41ba81bc418`
+
+Baseline: **1076/1076 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperDirectoryCategoryCatalogFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenCategoryCatalogFileNameEndsWithDirectorySeparator_ReturnsInvalidBeforeProviderOrFilesystem`
+
+Caller configuration uses:
+
+```csharp
+CategoryCatalogFileName =
+    "Nested" + Path.DirectorySeparatorChar
+```
+
+Require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_INVALID
+Message: The category catalog file name is invalid.
+```
+
+The template provider must not be invoked and the workspace root must not be created.
+
+Current caller validation checks containment but does not yet reject a directory-only category catalog target, so focused RED is expected.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1076/1076 GREEN directory-only error filename checkpoint
 
@@ -2218,11 +2254,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCategoryCatalogFileNameEndsWithDirectorySeparator_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Locally confirmed: **1076/1076 GREEN**.
+Expected at this stage: **one focused RED**. Current caller validation is expected to accept the in-package directory-only category filename and continue instead of returning the caller-specific invalid contract.
 
 ## Next recommended step
 
-Add one focused caller-configuration contract for `CategoryCatalogFileName` ending with a directory separator. Require `WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_INVALID` before provider invocation or filesystem mutation.
+After focused RED is confirmed, add only the early directory-only guard for `CategoryCatalogFileName`. Preserve its existing malformed-path and outside-package contracts separately.
