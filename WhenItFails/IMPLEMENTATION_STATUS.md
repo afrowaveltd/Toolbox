@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1069/1069 GREEN**, confirmed locally by the maintainer after valid nested template-target support. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1070/1070 GREEN**, confirmed locally by the maintainer after null template-name validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -49,7 +49,30 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Malformed `ProfilesFileName` caller-configuration contract is locally verified GREEN; syntactically invalid profile catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed template-provider `TargetFileName` contract is locally verified GREEN; syntactically invalid provider target filenames are normalized to stable `Invalid` while preserving null, whitespace, and outside-package contracts.
 - Valid nested template-target creation contract is locally verified GREEN; validated nested targets create missing parent directories while preserving existing files.
-- Null template-name provider-output contract confirmed RED on Windows; null template names are now rejected before target validation and file creation, awaiting focused/full GREEN verification.
+- Null template-name provider-output contract is locally verified GREEN; null logical template names are rejected before target validation and file creation.
+
+## 2026-09-21 — 1070/1070 GREEN null template-name checkpoint
+
+Contract commit: `d2ca307b856d0fb973f9f3f738a667617fb0c760`
+
+Production fix commit: `25942620071fcbb28de37739096b167b46c93bf8`
+
+Documentation commit: `1b5479baf216d1cc6a9f2892ae4a10aed7a57bd2`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1070
+Total:  1070
+```
+
+The latest confirmation did not separately report focused test output, compiler-warning count, or operating system.
+
+Null logical template names are now rejected before target validation and before any template file write.
+
+Next provider-output boundary: whitespace-only logical template names.
 
 ## 2026-09-21 — null template name provider-output contract
 
@@ -110,7 +133,7 @@ Message: The JSON template provider returned a template with a null name.
 
 `WhenItFails/Docs/Bootstrap/en.md` now documents logical template names as provider output and records that null names are rejected before template writes.
 
-**Focused GREEN and complete-suite 1070/1070 GREEN are pending local verification.**
+**Complete-suite 1070/1070 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1069/1069 GREEN nested template-target checkpoint
 
@@ -1744,12 +1767,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateNameIsNull_ReturnsInvalidBeforeWritingTemplateFile"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed fix: **focused GREEN** and **1070/1070 GREEN** for the complete suite.
+Locally confirmed: **1070/1070 GREEN**.
 
 ## Next recommended step
 
-After **1070/1070 GREEN** is confirmed locally, record the checkpoint and audit whitespace logical template names as the next distinct provider-output contract.
+Add one focused provider-output contract for a whitespace-only logical template name. Require stable `Invalid` before target validation and before writing the template file.
