@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1060/1060 GREEN**, confirmed locally by the maintainer after the escaping `ProfilesFileName` guard. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1061/1061 GREEN**, confirmed locally by the maintainer after malformed `RootDirectory` normalization. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -40,7 +40,26 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - The escaping `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
 - The escaping `ProfilesFileName` caller-configuration contract is locally verified GREEN; invalid filename paths are rejected before filesystem mutation and template-provider invocation.
 - All five caller-configured catalog filename containment guards are locally verified GREEN.
-- Malformed `RootDirectory` caller-configuration contract is confirmed RED on Windows via escaping `ArgumentException`; the narrow production normalization is committed, awaiting focused/full GREEN verification.
+- Malformed `RootDirectory` caller-configuration contract is locally verified GREEN; syntactically invalid root paths are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
+
+## 2026-09-21 — 1061/1061 GREEN malformed root-directory checkpoint
+
+Contract commit: `3cff3ca67386f04afbc8ea65d9a5c8380086518c`
+
+Production fix commit: `bbdbfe3ad7479593153ebda6ebab060c0793a7bb`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1061
+Total:  1061
+```
+
+The latest confirmation did not separately report focused test output, compiler-warning count, or operating system. A syntactically malformed `RootDirectory` now returns stable `Invalid` instead of leaking `ArgumentException`.
+
+Next caller-controlled malformed-path boundary: `PackageDirectoryName`.
 
 ## 2026-09-21 — malformed root-directory path contract
 
@@ -87,7 +106,7 @@ Message: The JSON root directory path is invalid.
 
 No broader exception normalization was introduced.
 
-**Focused GREEN and complete-suite 1061/1061 GREEN are pending local verification.**
+**Complete-suite 1061/1061 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1060/1060 GREEN complete catalog-filename containment checkpoint
 
@@ -1113,12 +1132,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenRootDirectoryContainsNullCharacter_ReturnsInvalidBeforeProviderOrFilesystem"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed fix: **focused GREEN** and **1061/1061 GREEN** for the complete suite.
+Locally confirmed: **1061/1061 GREEN**.
 
 ## Next recommended step
 
-After **1061/1061 GREEN** is confirmed locally, record the checkpoint and audit malformed syntax for `PackageDirectoryName` as the next caller-controlled path boundary.
+Add one focused caller-configuration contract for a syntactically malformed `PackageDirectoryName` containing a null character. Require stable `Invalid` before filesystem mutation or template-provider invocation, and confirm RED before changing production.
