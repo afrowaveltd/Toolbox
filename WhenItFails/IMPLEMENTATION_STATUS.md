@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1079/1079 GREEN**, confirmed locally by the maintainer after directory-only `OwnerCatalogFileName` caller validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1080/1080 GREEN**, confirmed locally by the maintainer after directory-only `ProfilesFileName` caller validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -59,7 +59,28 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Directory-only `CategoryCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only category catalog filenames are rejected before provider invocation and filesystem mutation.
 - Directory-only `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only code-group catalog filenames are rejected before provider invocation and filesystem mutation.
 - Directory-only `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; directory-only owner catalog filenames are rejected before provider invocation and filesystem mutation.
-- Directory-only `ProfilesFileName` caller-configuration contract confirmed RED on Windows; the final directory-only caller filename guard is committed, awaiting focused/full GREEN verification.
+- Directory-only `ProfilesFileName` caller-configuration contract is locally verified GREEN; all five caller-configured catalog filenames reject directory-only targets before provider invocation or filesystem mutation.
+
+## 2026-09-21 — 1080/1080 GREEN five-field directory-only checkpoint
+
+Contract commit: `306b7be4148dc73a268376dd5c36fdc36fb5d1b2`
+
+Production fix commit: `e74fff6c9624e93e857fba49769694b3c9b14622`
+
+Documentation commit: `85969b3a56ea1336c432e95da84c312404a99076`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1080
+Total:  1080
+```
+
+Directory-only caller filenames are now rejected for all five catalog fields before invoking the provider or mutating the workspace. Previously verified null, whitespace, malformed-syntax, containment, and valid nested-target contracts remain covered by the complete suite.
+
+Next boundary to audit: a provider target that syntactically looks like a file, but resolves to an existing directory in the workspace.
 
 ## 2026-09-21 — directory-only profiles filename contract
 
@@ -119,7 +140,7 @@ Message: The profile catalog file name is invalid.
 
 Its existing malformed-path and outside-package contracts remain separate. All five caller-configured filename fields now contain the directory-only guard in production, but full-suite verification of the last guard is still pending.
 
-**Focused GREEN and complete-suite 1080/1080 GREEN are pending local verification.**
+**Complete-suite 1080/1080 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1079/1079 GREEN directory-only owner filename checkpoint
 
@@ -2525,12 +2546,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameEndsWithDirectorySeparator_ReturnsInvalidBeforeProviderOrFilesystem"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed fix: **focused GREEN** and **1080/1080 GREEN** for the complete suite.
+Locally confirmed: **1080/1080 GREEN**.
 
 ## Next recommended step
 
-After **1080/1080 GREEN** is confirmed locally, record the full five-field directory-only checkpoint and audit the next uncovered bootstrap boundary.
+Audit provider-target paths that resolve to an existing workspace directory despite not ending with a directory separator. Add one focused contract for stable invalid provider output before attempting a file write, without modifying existing directory contents.
