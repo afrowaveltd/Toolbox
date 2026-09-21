@@ -49,6 +49,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Malformed `ProfilesFileName` caller-configuration contract is locally verified GREEN; syntactically invalid profile catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed template-provider `TargetFileName` contract is locally verified GREEN; syntactically invalid provider target filenames are normalized to stable `Invalid` while preserving null, whitespace, and outside-package contracts.
 - Valid nested template-target creation contract is locally verified GREEN; validated nested targets create missing parent directories while preserving existing files.
+- Null template-name provider-output contract committed; focused RED verification pending.
+
+## 2026-09-21 — null template name provider-output contract
+
+Contract commit:
+`d2ca307b856d0fb973f9f3f738a667617fb0c760`
+
+Baseline: **1069/1069 GREEN**, confirmed locally by the maintainer before this test was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperNullTemplateNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenTemplateNameIsNull_ReturnsInvalidBeforeWritingTemplateFile`
+
+A malformed provider returns:
+
+```csharp
+Name = null
+TargetFileName = "errors.en.json"
+Content = "{}"
+```
+
+Require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_TEMPLATE_NAME_NULL
+Message: The JSON template provider returned a template with a null name.
+```
+
+The target file must not be written.
+
+This closes a distinct provider-output gap: `JsonsTemplateFile.Name` and `JsonsBootstrapFileResult.Name` are public non-nullable strings, but current bootstrap code does not validate the logical name before creating the file and copying the value into the result.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1069/1069 GREEN nested template-target checkpoint
 
@@ -1682,11 +1719,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateNameIsNull_ReturnsInvalidBeforeWritingTemplateFile"
 ```
 
-Locally confirmed: **1069/1069 GREEN**.
+Expected at this stage: **one focused RED**. Current production is expected to create the file and return `Success`, causing the new contract to fail before any production change.
 
 ## Next recommended step
 
-Add one focused malformed-provider contract for `JsonsTemplateFile.Name = null`. Require stable `Invalid` before writing the template file so a successful bootstrap cannot expose a null logical name through `JsonsBootstrapFileResult.Name`.
+After focused RED is confirmed, add only null-name normalization at the provider-output boundary, then rerun the focused test and complete suite (expected total: 1070).
