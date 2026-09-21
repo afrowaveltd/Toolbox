@@ -51,6 +51,37 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Valid nested template-target creation contract is locally verified GREEN; validated nested targets create missing parent directories while preserving existing files.
 - Null template-name provider-output contract is locally verified GREEN; null logical template names are rejected before target validation and file creation.
 - Whitespace template-name provider-output contract is locally verified GREEN; whitespace-only logical names are rejected before target validation and file creation.
+- Template collection enumeration-exception contract committed; focused RED verification pending.
+
+## 2026-09-21 — template collection enumeration exception contract
+
+Contract commit:
+`6abb4d38ecae08d2cf4d495907671855304b08fd`
+
+Baseline: **1071/1071 GREEN**, confirmed locally by the maintainer before this test was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperTemplateCollectionEnumerationExceptionContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenTemplateCollectionEnumerationThrows_ReturnsStableProviderFailureWithoutExceptionDetail`
+
+The provider call itself succeeds and returns an `IReadOnlyList<JsonsTemplateFile>`, but the returned collection throws `InvalidOperationException` from `GetEnumerator()`.
+
+Require:
+
+```text
+Status: Failed
+Data: null
+Code: WIF_JSONS_TEMPLATE_PROVIDER_FAILED
+Message: The JSON template provider failed.
+```
+
+The provider/collection exception detail must not escape into either the response message or issue message.
+
+This is distinct from the already verified direct `GetTemplateFiles(...)` exception contract: the current `try/catch` ends before the returned collection is enumerated, so deferred provider-output failures can currently escape.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-21 — 1071/1071 GREEN whitespace template-name checkpoint
 
@@ -1850,11 +1881,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateCollectionEnumerationThrows_ReturnsStableProviderFailureWithoutExceptionDetail"
 ```
 
-Locally confirmed: **1071/1071 GREEN**.
+Expected at this stage: **one focused RED** with the collection's `InvalidOperationException` escaping from enumeration. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Add one focused contract for an ordinary exception thrown while enumerating the template collection returned by `IJsonsTemplateProvider`. Normalize it to the established stable `WIF_JSONS_TEMPLATE_PROVIDER_FAILED` response without leaking provider detail; preserve cancellation separately.
+After focused RED is confirmed, normalize only ordinary exceptions raised while consuming the provider collection to the established `WIF_JSONS_TEMPLATE_PROVIDER_FAILED` response. Keep `OperationCanceledException` propagation separate and unchanged.
