@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1068/1068 GREEN**, confirmed locally by the maintainer after malformed template-provider `TargetFileName` normalization. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1069/1069 GREEN**, confirmed locally by the maintainer after valid nested template-target support. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -48,7 +48,30 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Malformed `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; syntactically invalid owner catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed `ProfilesFileName` caller-configuration contract is locally verified GREEN; syntactically invalid profile catalog filenames are normalized to a stable `Invalid` response before filesystem mutation or template-provider invocation.
 - Malformed template-provider `TargetFileName` contract is locally verified GREEN; syntactically invalid provider target filenames are normalized to stable `Invalid` while preserving null, whitespace, and outside-package contracts.
-- Valid nested template-target creation contract confirmed RED on Windows; production now creates missing parent directories for validated nested targets, awaiting focused/full GREEN verification.
+- Valid nested template-target creation contract is locally verified GREEN; validated nested targets create missing parent directories while preserving existing files.
+
+## 2026-09-21 — 1069/1069 GREEN nested template-target checkpoint
+
+Contract commit: `60b790fa37b57e23d77b865e766a7d64b4fa8043`
+
+Production fix commit: `eab18d989552581caeb24e1ad5cc7177747101a3`
+
+Documentation commit: `cbba2875f8c0afac217ce891d739055fbc8b06be`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1069
+Total:  1069
+```
+
+The latest confirmation did not separately report focused test output, compiler-warning count, or operating system.
+
+Valid nested provider targets are now supported: missing parent directories are created only for missing validated targets, while existing files remain preserved and skipped.
+
+Next provider-output audit target: null logical template `Name`, which is copied into the public non-nullable `JsonsBootstrapFileResult.Name`.
 
 ## 2026-09-21 — valid nested template target contract
 
@@ -85,7 +108,7 @@ Documentation commit:
 
 `EnsureTemplateFileAsync` now creates the missing parent directory for a validated target only when the target file itself does not already exist. Existing files still return immediately as `Skipped` and are never overwritten.
 
-**Focused GREEN and complete-suite 1069/1069 GREEN are pending local verification.**
+**Complete-suite 1069/1069 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1068/1068 GREEN malformed provider-target checkpoint
 
@@ -1659,12 +1682,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateTargetIsNestedInsidePackage_CreatesParentDirectoryAndFile"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed fix: **focused GREEN** and **1069/1069 GREEN** for the complete suite.
+Locally confirmed: **1069/1069 GREEN**.
 
 ## Next recommended step
 
-After **1069/1069 GREEN** is confirmed locally, record the checkpoint and continue with the next uncovered bootstrap contract.
+Add one focused malformed-provider contract for `JsonsTemplateFile.Name = null`. Require stable `Invalid` before writing the template file so a successful bootstrap cannot expose a null logical name through `JsonsBootstrapFileResult.Name`.
