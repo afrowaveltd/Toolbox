@@ -143,7 +143,7 @@ Applications should still supply valid explicit paths.
 
 Path normalization is convenience, not configuration repair.
 
-All five caller-configured catalog file names must identify files rather than directory-only paths. `ErrorCatalogFileName`, `CategoryCatalogFileName`, `CodeGroupCatalogFileName`, `OwnerCatalogFileName`, and `ProfilesFileName` values ending with a directory separator are rejected as invalid configuration before the template provider is invoked or the workspace is created. `ErrorCatalogFileName` is also rejected when its resolved path already exists as a directory; this is treated as invalid caller configuration before the template provider is invoked.
+All five caller-configured catalog file names must identify files rather than directory-only paths. `ErrorCatalogFileName`, `CategoryCatalogFileName`, `CodeGroupCatalogFileName`, `OwnerCatalogFileName`, and `ProfilesFileName` values ending with a directory separator are rejected as invalid configuration before the template provider is invoked or the workspace is created. `ErrorCatalogFileName` and `CategoryCatalogFileName` are also rejected when their resolved paths already exist as directories; this is treated as invalid caller configuration before the template provider is invoked.
 
 ## Template provider
 
