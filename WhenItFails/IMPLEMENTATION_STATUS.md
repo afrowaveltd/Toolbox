@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1108/1108 GREEN**, confirmed locally by the maintainer after nested current-directory `OwnerCatalogFileName` validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1109/1109 GREEN**, confirmed locally by the maintainer after nested current-directory `ProfilesFileName` validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -88,7 +88,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Nested current-directory `CategoryCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
 - Nested current-directory `CodeGroupCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
 - Nested current-directory `OwnerCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
-- Nested current-directory `ProfilesFileName` contract confirmed RED on Windows; terminal current-directory-segment guard is committed, awaiting focused/full GREEN verification.
+- Nested current-directory `ProfilesFileName` contract is locally verified GREEN; all five caller-configured catalog filename fields now reject terminal current-directory segments before workspace creation or template-provider invocation.
+
+## 2026-09-22 — 1109/1109 GREEN completed nested current-directory filename checkpoint
+
+Contract commit: `08e1399ca69652f39a57aa54fe357b20645b818c`
+
+Production fix commit: `2adf8c71ca48c38e5db2d220b46ed7270b532e49`
+
+Documentation commit: `260cdc212e0a16342188dae68fae61cfd02fff74`
+
+Locally confirmed by the maintainer:
+
+```text
+Focused contract: 1/1 GREEN
+WhenItFails.Tests: 1109/1109 GREEN
+```
+
+The provider target plus all five caller-configured catalog filename fields now reject terminal current-directory segments such as `Nested/.` before write/provider boundaries appropriate to each contract.
 
 ## 2026-09-22 — nested current-directory profiles filename contract
 
@@ -4854,15 +4871,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameEndsWithCurrentDirectorySegment_ReturnsInvalidBeforeProviderOrFilesystem"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1109/1109 GREEN
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1109/1109 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Run the focused contract introduced by the next bootstrap hardening step before changing production code.
 
 ## Next recommended step
 
-After **1109/1109 GREEN** is confirmed locally, record the completed five-field nested current-directory checkpoint and continue with the next uncovered bootstrap/provider-output boundary rather than adding another duplicate catalog-field variant.
+Probe a contained terminal parent-directory provider target such as `Path.Combine("Nested", "Sub", "..")`. Canonical resolution stays inside the package but identifies the `Nested` directory itself rather than a file. It should be rejected during full-snapshot validation before any earlier template is written. Preserve true outside-package classification and valid nested file targets.
