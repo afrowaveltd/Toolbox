@@ -666,7 +666,11 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                 NormalizePath(options.ProfilesFileName);
 
             if (Path.EndsInDirectorySeparator(
-                normalizedProfilesFileName))
+                normalizedProfilesFileName)
+                || string.Equals(
+                    Path.GetFileName(normalizedProfilesFileName),
+                    ".",
+                    StringComparison.Ordinal))
             {
                 return Response<JsonsBootstrapPayload>.Invalid(
                     code: "WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID",
