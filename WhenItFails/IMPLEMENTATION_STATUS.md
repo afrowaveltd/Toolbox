@@ -94,7 +94,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Contained terminal parent-directory `CategoryCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `CodeGroupCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `OwnerCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
-- Contained terminal parent-directory `ProfilesFileName` contract committed; focused RED verification pending.
+- Contained terminal parent-directory `ProfilesFileName` contract confirmed RED on Windows; containment-aware terminal-parent guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — contained terminal parent-directory profiles filename contract
 
@@ -131,9 +131,34 @@ Message: The profile catalog file name is invalid.
 
 The template provider must not be invoked and the root/package workspace must remain uncreated.
 
-Current profiles caller validation rejects true outside-package paths and terminal current-directory segments, but does not yet reject a contained terminal parent-directory segment. This configuration is therefore expected to pass validation and return success.
+The focused contract confirmed the expected RED on Windows:
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+The contained semantic-directory profiles filename passed caller validation and reached successful bootstrap completion.
+
+Production fix commit:
+`44a0679f0df8e850b6063ae479d9e00a0fb8d77a`
+
+Documentation commit:
+`6283075f4859aeb678108f6fc342a5766330352c`
+
+After successful containment, `ProfilesFileName` now rejects a normalized terminal parent-directory segment:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID
+Message: The profile catalog file name is invalid.
+```
+
+The guard deliberately runs only after containment succeeds. True parent-directory escapes therefore retain the profile-specific outside-package classification, while contained semantic-directory filenames are rejected before workspace creation or template-provider invocation.
+
+With this change, provider targets plus all five caller-configured catalog filename fields now cover contained terminal parent-directory semantics.
+
+**Focused GREEN and complete-suite 1115/1115 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1114/1114 GREEN contained parent-directory owner-catalog checkpoint
 
@@ -5312,10 +5337,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameEndsWithParentDirectorySegment_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Success`. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1115/1115 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only the containment-aware terminal-parent-directory guard for `ProfilesFileName`. Preserve true outside-package classification, valid nested filenames, terminal-current-directory handling, existing-directory detection, and file-parent guards.
+After **1115/1115 GREEN** is confirmed locally, record the completed five-field contained parent-directory checkpoint and audit the next genuinely uncovered bootstrap/provider-output boundary rather than adding another duplicate filename variant.
