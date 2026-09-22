@@ -67,6 +67,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-directory `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `ProfilesFileName` caller-configuration contract is locally verified GREEN; all five caller-configured catalog filenames now reject paths resolving to existing directories before provider invocation.
 - Provider `TargetFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns the invalid-target code without changing the shared containment helper.
+- Caller `ErrorCatalogFileName = "."` semantic-directory contract committed; focused RED verification pending.
+
+## 2026-09-22 — caller current-directory error filename contract
+
+Contract commit:
+`bf1e0e9fb853359d95f9f030882ea368847d0d70`
+
+Baseline: **1087/1087 GREEN**, confirmed locally by the maintainer before the contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperCurrentDirectoryErrorCatalogFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenErrorCatalogFileNameResolvesToPackageDirectory_ReturnsInvalidBeforeProviderOrFilesystem`
+
+Caller configuration:
+
+```csharp
+ErrorCatalogFileName = "."
+```
+
+The value resolves exactly to the package directory itself. It does not escape the package but cannot identify a catalog file.
+
+Required result:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_ERROR_CATALOG_FILE_NAME_INVALID
+Message: The error catalog file name is invalid.
+```
+
+The tracking provider must not be invoked and the initially nonexistent workspace root must remain absent.
+
+The existing shared containment helper reports false when a path resolves to the directory itself; current caller validation is therefore expected to return `WIF_JSONS_ERROR_CATALOG_FILE_NAME_OUTSIDE_PACKAGE`, which has the wrong classification for this input.
+
+**Focused RED verification is pending. Production has not been changed for this contract.**
 
 ## 2026-09-22 — 1087/1087 GREEN provider current-directory checkpoint
 
@@ -3123,11 +3160,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenErrorCatalogFileNameResolvesToPackageDirectory_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Locally confirmed: **1087/1087 GREEN**.
+Expected at this stage: **one focused RED** caused by `WIF_JSONS_ERROR_CATALOG_FILE_NAME_OUTSIDE_PACKAGE` rather than the caller-specific `WIF_JSONS_ERROR_CATALOG_FILE_NAME_INVALID`. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Add one focused caller-configuration contract for `ErrorCatalogFileName = "."`. It resolves to the package directory itself, which is a directory-only target rather than a path outside the package. Require the caller-specific invalid filename response before provider invocation or filesystem mutation.
+After focused RED is confirmed, apply the smallest caller-specific semantic-directory classification fix for `ErrorCatalogFileName`. Preserve outside-package behavior and leave the shared containment helper and other caller fields unchanged.
