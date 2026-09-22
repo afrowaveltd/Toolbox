@@ -435,6 +435,35 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                     message: "The code group catalog file name is invalid.");
             }
 
+            string fullCodeGroupCatalogPackagePath =
+                Path.GetFullPath(packageDirectoryPath);
+
+            string? codeGroupCatalogParentPath =
+                Path.GetDirectoryName(
+                    Path.GetFullPath(codeGroupCatalogFilePath));
+
+            StringComparison codeGroupCatalogParentPathComparison =
+                OperatingSystem.IsWindows()
+                    ? StringComparison.OrdinalIgnoreCase
+                    : StringComparison.Ordinal;
+
+            while (codeGroupCatalogParentPath is not null
+                && !string.Equals(
+                    codeGroupCatalogParentPath,
+                    fullCodeGroupCatalogPackagePath,
+                    codeGroupCatalogParentPathComparison))
+            {
+                if (File.Exists(codeGroupCatalogParentPath))
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_CODE_GROUP_CATALOG_FILE_NAME_INVALID",
+                        message: "The code group catalog file name is invalid.");
+                }
+
+                codeGroupCatalogParentPath =
+                    Path.GetDirectoryName(codeGroupCatalogParentPath);
+            }
+
             string normalizedOwnerCatalogFileName =
                 NormalizePath(options.OwnerCatalogFileName);
 
