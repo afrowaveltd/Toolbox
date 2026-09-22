@@ -874,6 +874,9 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
             HashSet<string> templateTargetPaths =
                 new(templateTargetPathComparer);
 
+            HashSet<string> templateTargetDirectoryPaths =
+                new(templateTargetPathComparer);
+
             foreach (JsonsTemplateFile? templateFile in templateFileSnapshot)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -1010,6 +1013,15 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                             "The JSON template provider returned multiple templates for the same target file.");
                 }
 
+                if (templateTargetDirectoryPaths.Contains(
+                    canonicalTemplateTargetFilePath))
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_CONFLICT",
+                        message:
+                            "The JSON template provider returned conflicting target file paths.");
+                }
+
                 if (Directory.Exists(templateTargetFilePath))
                 {
                     return Response<JsonsBootstrapPayload>.Invalid(
@@ -1036,6 +1048,14 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                         fullPackageDirectoryPathForParents,
                         parentPathComparison))
                 {
+                    if (templateTargetPaths.Contains(templateTargetParentPath))
+                    {
+                        return Response<JsonsBootstrapPayload>.Invalid(
+                            code: "WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_CONFLICT",
+                            message:
+                                "The JSON template provider returned conflicting target file paths.");
+                    }
+
                     if (File.Exists(templateTargetParentPath))
                     {
                         return Response<JsonsBootstrapPayload>.Invalid(
@@ -1043,6 +1063,9 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                             message:
                                 "The JSON template provider returned a template with an invalid target file name.");
                     }
+
+                    templateTargetDirectoryPaths.Add(
+                        templateTargetParentPath);
 
                     templateTargetParentPath =
                         Path.GetDirectoryName(templateTargetParentPath);
