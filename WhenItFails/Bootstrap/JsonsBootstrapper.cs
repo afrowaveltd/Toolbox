@@ -201,6 +201,35 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                     message: "The package directory name is invalid.");
             }
 
+            string fullPackageRootPath =
+                Path.GetFullPath(rootDirectory);
+
+            string? packageParentPath =
+                Path.GetDirectoryName(
+                    Path.GetFullPath(packageDirectoryPath));
+
+            StringComparison packageParentPathComparison =
+                OperatingSystem.IsWindows()
+                    ? StringComparison.OrdinalIgnoreCase
+                    : StringComparison.Ordinal;
+
+            while (packageParentPath is not null
+                && !string.Equals(
+                    packageParentPath,
+                    fullPackageRootPath,
+                    packageParentPathComparison))
+            {
+                if (File.Exists(packageParentPath))
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_PACKAGE_DIRECTORY_NAME_INVALID",
+                        message: "The package directory name is invalid.");
+                }
+
+                packageParentPath =
+                    Path.GetDirectoryName(packageParentPath);
+            }
+
             string normalizedErrorCatalogFileName =
                 NormalizePath(options.ErrorCatalogFileName);
 
