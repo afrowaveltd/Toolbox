@@ -123,7 +123,7 @@ When it already exists, bootstrap keeps it unchanged.
 
 If the configured root-directory path is already occupied by a regular file, or any existing parent path of that root is a regular file, bootstrap rejects the configuration before package containment or template-provider invocation. The response uses `WIF_JSONS_ROOT_DIRECTORY_INVALID`; the existing file is left unchanged.
 
-If the resolved package-directory path is already occupied by a regular file, or any existing parent path between that package directory and the configured root is a regular file, bootstrap rejects the configuration before invoking the template provider. The response uses `WIF_JSONS_PACKAGE_DIRECTORY_NAME_INVALID`; the existing file is left unchanged.
+If the resolved package-directory path is already occupied by a regular file, any existing parent path between that package directory and the configured root is a regular file, or the package-directory path resolves exactly to the configured root itself (for example, `PackageDirectoryName = "."`), bootstrap rejects the configuration before invoking the template provider. These cases use `WIF_JSONS_PACKAGE_DIRECTORY_NAME_INVALID`; true paths outside the root retain `WIF_JSONS_PACKAGE_DIRECTORY_NAME_OUTSIDE_ROOT`. Existing files are left unchanged.
 
 ## Path normalization
 
