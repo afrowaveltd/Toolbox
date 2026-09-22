@@ -72,7 +72,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller `CodeGroupCatalogFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns a code-group-specific invalid filename code.
 - Caller `OwnerCatalogFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns the owner-specific invalid filename code.
 - Caller `ProfilesFileName = "."` semantic-directory contract is locally verified GREEN; all five caller catalog filename fields classify package-directory targets as invalid filenames.
-- Provider-target existing-file parent contract committed; focused RED verification pending.
+- Provider-target existing-file parent contract confirmed RED on Windows; pre-write ancestor validation is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — provider target with existing file parent contract
 
@@ -102,7 +102,32 @@ The full provider snapshot must be validated before any template write: `first.j
 
 Current production checks whether a provider target is itself an existing directory, but does not reject parent paths that are existing regular files. The later target is expected to fail during filesystem writes after the first template has been created.
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+Expected: Invalid
+Actual:   Failed
+```
+
+The first template was eligible for writing, but the later nested target used `Nested` as a directory even though that path was an existing regular file. It was only rejected during filesystem I/O.
+
+Production fix commit:
+`8578aa7ef35bbd12d6f5dadf9358dc7c18261606`
+
+Documentation commit:
+`1d0d339e87b86efa7492d0913cd14468a38c27d0`
+
+During validation of the complete materialized provider snapshot, `JsonsBootstrapper` now traverses the canonical parent paths for each contained template target up to the package directory. If any parent inside the package is an existing regular file, the bootstrapper returns:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID
+Message: The JSON template provider returned a template with an invalid target file name.
+```
+
+The guard executes before writing template files, protecting earlier template targets and the existing regular-file parent for this deterministic invalid configuration. It does not add a transaction or prevent unrelated concurrent filesystem changes.
+
+**Focused GREEN and complete-suite 1093/1093 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1092/1092 GREEN five-field current-directory checkpoint
 
@@ -3570,10 +3595,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateTargetParentIsExistingFile_ReturnsInvalidWithoutPartialWrites"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**. The later template target is expected to fail in the write phase rather than returning the stable invalid provider-target contract during full-snapshot validation. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1093/1093 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add a narrow pre-write validation of existing regular-file ancestors for provider targets. Preserve existing valid nested-target creation, cancellation, and outside-package contracts.
+After **1093/1093 GREEN** is confirmed locally, record the checkpoint and audit the next distinct bootstrap boundary while preserving valid nested-target creation, cancellation, and outside-package contracts.
