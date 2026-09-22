@@ -239,6 +239,35 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                     message: "The error catalog file name is invalid.");
             }
 
+            string fullErrorCatalogPackagePath =
+                Path.GetFullPath(packageDirectoryPath);
+
+            string? errorCatalogParentPath =
+                Path.GetDirectoryName(
+                    Path.GetFullPath(errorCatalogFilePath));
+
+            StringComparison errorCatalogParentPathComparison =
+                OperatingSystem.IsWindows()
+                    ? StringComparison.OrdinalIgnoreCase
+                    : StringComparison.Ordinal;
+
+            while (errorCatalogParentPath is not null
+                && !string.Equals(
+                    errorCatalogParentPath,
+                    fullErrorCatalogPackagePath,
+                    errorCatalogParentPathComparison))
+            {
+                if (File.Exists(errorCatalogParentPath))
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_ERROR_CATALOG_FILE_NAME_INVALID",
+                        message: "The error catalog file name is invalid.");
+                }
+
+                errorCatalogParentPath =
+                    Path.GetDirectoryName(errorCatalogParentPath);
+            }
+
             string normalizedCategoryCatalogFileName =
                 NormalizePath(options.CategoryCatalogFileName);
 
