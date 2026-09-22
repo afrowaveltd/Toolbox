@@ -117,6 +117,24 @@ Trimming is convenience only.
 
 It does not make an otherwise invalid path valid.
 
+## Directory paths
+
+When the supplied path exists but points to a directory rather than a file, loading returns an invalid response.
+
+Failure code:
+
+```text
+FilePathIsDirectory
+```
+
+Message:
+
+```text
+JSON catalog file path points to a directory.
+```
+
+This is distinct from a missing file: the path exists, but it does not identify a catalog file.
+
 ## Missing files
 
 When the configured file does not exist, loading returns a not-found response.
