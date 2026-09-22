@@ -89,6 +89,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Nested current-directory `CodeGroupCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
 - Nested current-directory `OwnerCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
 - Nested current-directory `ProfilesFileName` contract is locally verified GREEN; all five caller-configured catalog filename fields now reject terminal current-directory segments before workspace creation or template-provider invocation.
+- Contained terminal parent-directory provider-target contract committed; focused RED verification pending.
+
+## 2026-09-22 — contained terminal parent-directory provider-target contract
+
+Contract commit:
+`db0b391f21eac8ee5768e666915b4cbbd573e754`
+
+Baseline: **1109/1109 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperNestedParentDirectoryTemplateTargetContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenLaterTemplateTargetEndsWithParentDirectorySegment_ReturnsInvalidWithoutPartialWrites`
+
+The provider returns two templates. The first target is valid `first.json`. The later target is:
+
+```csharp
+TargetFileName = Path.Combine("Nested", "Sub", "..")
+```
+
+Canonical resolution stays inside the package and resolves to the `Nested` directory itself. This is not an outside-package escape, but it cannot represent a template file.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID
+Message: The JSON template provider returned a template with an invalid target file name.
+```
+
+The complete provider snapshot must be rejected before writes begin: `first.json` must remain absent and `Nested` must not be created.
+
+Current production rejects terminal `.` segments but does not yet reject a terminal `..` segment when canonical resolution remains inside the package. This target is therefore expected to pass snapshot validation and fail only during filesystem creation, potentially after `first.json` has already been written.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1109/1109 GREEN completed nested current-directory filename checkpoint
 
@@ -4871,14 +4908,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1109/1109 GREEN
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateTargetEndsWithParentDirectorySegment_ReturnsInvalidWithoutPartialWrites"
 ```
 
-Run the focused contract introduced by the next bootstrap hardening step before changing production code.
+Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Failed`. The contract also protects against a partial write of `first.json`. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Probe a contained terminal parent-directory provider target such as `Path.Combine("Nested", "Sub", "..")`. Canonical resolution stays inside the package but identifies the `Nested` directory itself rather than a file. It should be rejected during full-snapshot validation before any earlier template is written. Preserve true outside-package classification and valid nested file targets.
+After focused RED is confirmed, add only the terminal-parent-directory-segment guard during provider snapshot validation. Preserve true outside-package classification, valid nested file targets, terminal-current-directory handling, and the no-partial-write guarantee.
