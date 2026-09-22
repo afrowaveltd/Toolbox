@@ -74,6 +74,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller `ProfilesFileName = "."` semantic-directory contract is locally verified GREEN; all five caller catalog filename fields classify package-directory targets as invalid filenames.
 - Provider-target existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected during full-snapshot validation before template writes.
 - Caller error-catalog existing-file parent contract is locally verified GREEN; its existing regular-file ancestor is rejected before template-provider invocation.
+- Caller category-catalog existing-file parent contract committed; focused RED verification pending.
+
+## 2026-09-22 — caller category catalog existing-file parent contract
+
+Contract commit:
+`389e5487c03a9e498b8f0bd106358167d55c1b08`
+
+Baseline: **1094/1094 GREEN**, confirmed locally by the maintainer before the new contract.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperFileParentCategoryCatalogFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenCategoryCatalogFileNameParentIsExistingFile_ReturnsInvalidBeforeProvider`
+
+The package workspace contains an existing regular file `Nested` with contents `Keep me.`. Caller configuration sets:
+
+```csharp
+CategoryCatalogFileName = Path.Combine("Nested", "categories.json")
+```
+
+The target is lexically inside the package and does not itself resolve to an existing directory. Its parent `Nested`, however, is a regular file and cannot be used as a directory.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_INVALID
+Message: The category catalog file name is invalid.
+```
+
+The tracking template provider must not be called, the nested target must remain absent, and `Nested` must remain an unchanged regular file.
+
+Current production checks the category filename for containment and an existing-directory terminal target, but does not validate existing-file ancestors. A tracking provider returning no templates can therefore allow bootstrap to return `Success`.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1094/1094 GREEN caller error catalog file-parent checkpoint
 
@@ -3698,11 +3735,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCategoryCatalogFileNameParentIsExistingFile_ReturnsInvalidBeforeProvider"
 ```
 
-Locally confirmed: **1094/1094 GREEN**.
+Expected at this stage: **one focused RED**, likely `Actual: Success` instead of the caller-specific `Invalid` response. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Add one focused caller-configuration contract for `CategoryCatalogFileName = Path.Combine("Nested", "categories.json")` when `Nested` is an existing regular file inside the package. Require the category-specific invalid response before provider invocation, preserving the original file.
+After focused RED is confirmed, add only the caller category-catalog ancestor guard before provider invocation. Preserve valid nested filenames, provider-target validation, and established category error classifications.
