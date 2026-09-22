@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1111/1111 GREEN**, confirmed locally by the maintainer after contained terminal parent-directory `ErrorCatalogFileName` validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1112/1112 GREEN**, confirmed locally by the maintainer after contained terminal parent-directory `CategoryCatalogFileName` validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -91,7 +91,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Nested current-directory `ProfilesFileName` contract is locally verified GREEN; all five caller-configured catalog filename fields now reject terminal current-directory segments before workspace creation or template-provider invocation.
 - Contained terminal parent-directory provider-target contract is locally verified GREEN; contained terminal `..` targets are rejected during full-snapshot validation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `ErrorCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
-- Contained terminal parent-directory `CategoryCatalogFileName` contract confirmed RED on Windows; containment-aware terminal-parent guard is committed, awaiting focused/full GREEN verification.
+- Contained terminal parent-directory `CategoryCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
+
+## 2026-09-22 — 1112/1112 GREEN contained parent-directory category-catalog checkpoint
+
+Contract commit: `98a84ce3adfb9160bb79dd13713ba4d6a558e199`
+
+Production fix commit: `f986fd77a019b8f31caf3c58b0a9b4918c14bf4f`
+
+Documentation commit: `9c46e4c150a70f6a28d1eda7b7c82cdb4910b830`
+
+Locally confirmed by the maintainer:
+
+```text
+Focused contract: 1/1 GREEN
+WhenItFails.Tests: 1112/1112 GREEN
+```
+
+Contained terminal parent-directory category-catalog filenames such as `Nested/Sub/..` are rejected before workspace creation or template-provider invocation, while true parent-directory escapes retain the outside-package contract.
 
 ## 2026-09-22 — contained terminal parent-directory category-catalog filename contract
 
@@ -5091,15 +5108,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCategoryCatalogFileNameEndsWithParentDirectorySegment_ReturnsInvalidBeforeProviderOrFilesystem"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1112/1112 GREEN
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1112/1112 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Run the focused contract introduced by the next bootstrap hardening step before changing production code.
 
 ## Next recommended step
 
-After **1112/1112 GREEN** is confirmed locally, record the checkpoint and continue with `CodeGroupCatalogFileName` for the same contained terminal-parent-directory behavior, one field at a time.
+Probe `CodeGroupCatalogFileName = Path.Combine("Nested", "Sub", "..")` for the same contained terminal-parent-directory behavior. Preserve true outside-package classification and valid nested code-group filenames.
