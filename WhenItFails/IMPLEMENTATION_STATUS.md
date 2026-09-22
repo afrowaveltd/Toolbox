@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1102/1102 GREEN**, confirmed locally by the maintainer after package-directory existing-file-parent validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1103/1103 GREEN**, confirmed locally by the maintainer after package-directory root-equality classification. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -82,7 +82,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-file root-directory-path contract is locally verified GREEN; a regular file occupying the configured root path is rejected before package containment or provider invocation.
 - Root-directory existing-file-parent contract is locally verified GREEN; existing regular-file ancestors of the configured root are rejected before package containment or provider invocation.
 - Package-directory existing-file-parent contract is locally verified GREEN; existing regular-file ancestors between the package directory and configured root are rejected before workspace creation or provider invocation.
-- Package-directory current-directory semantic contract confirmed RED on Windows; root-equality classification fix is committed, awaiting focused/full GREEN verification.
+- Package-directory current-directory semantic contract is locally verified GREEN; package paths resolving exactly to the configured root are classified as invalid names rather than outside-root escapes.
+
+## 2026-09-22 — 1103/1103 GREEN package root-target checkpoint
+
+Contract commit: `1a6368ee9b3580806e76dbbd4d0fa298015cf9b4`
+
+Production fix commit: `ff45147b74495140f1a1aa0ad7d8061ff3ab427b`
+
+Documentation commit: `f3c667fb07f57ac2d0ef43eab6618b0adad69854`
+
+Locally confirmed by the maintainer:
+
+```text
+Focused contract: 1/1 GREEN
+WhenItFails.Tests: 1103/1103 GREEN
+```
+
+Package-directory equality with `RootDirectory` now has stable invalid-name classification while true outside-root paths retain the escape-specific contract.
 
 ## 2026-09-22 — package-directory current-directory semantic contract
 
@@ -4392,15 +4409,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenPackageDirectoryNameResolvesToRoot_ReturnsInvalidBeforeProviderOrFilesystem"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1103/1103 GREEN
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1103/1103 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Run the focused contract introduced by the next bootstrap hardening step before changing production code.
 
 ## Next recommended step
 
-After **1103/1103 GREEN** is confirmed locally, record the checkpoint and continue auditing the remaining bootstrap semantic-path boundaries. Preserve true escape classification, root/package filesystem guards, and all established caller filename contracts.
+Probe a nested semantic-directory provider target: `TargetFileName = Path.Combine("Nested", ".")`. Even when `Nested` does not yet exist, that target cannot represent a file. It should be rejected during full-snapshot validation before any earlier template is written. Preserve valid nested target creation, current-directory target classification, existing-directory detection, and the no-partial-write guarantee.
