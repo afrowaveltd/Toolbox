@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1092/1092 GREEN**, confirmed locally by the maintainer after caller `ProfilesFileName = "."` classification. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1093/1093 GREEN**, confirmed locally by the maintainer after provider-template target existing-file parent validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -72,7 +72,28 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller `CodeGroupCatalogFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns a code-group-specific invalid filename code.
 - Caller `OwnerCatalogFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns the owner-specific invalid filename code.
 - Caller `ProfilesFileName = "."` semantic-directory contract is locally verified GREEN; all five caller catalog filename fields classify package-directory targets as invalid filenames.
-- Provider-target existing-file parent contract confirmed RED on Windows; pre-write ancestor validation is committed, awaiting focused/full GREEN verification.
+- Provider-target existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected during full-snapshot validation before template writes.
+
+## 2026-09-22 — 1093/1093 GREEN provider file-parent checkpoint
+
+Contract commit: `a6dd14f6a497bda3c1cf8d4308b4fcd9c0d8e4ca`
+
+Production fix commit: `8578aa7ef35bbd12d6f5dadf9358dc7c18261606`
+
+Documentation commit: `1d0d339e87b86efa7492d0913cd14468a38c27d0`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1093
+Total:  1093
+```
+
+Provider targets with existing regular-file parent paths inside the package are now rejected during full-snapshot validation before template writes. Existing files are preserved, and the separate valid nested-target creation contract remains covered.
+
+Next distinct boundary: a caller-configured nested catalog filename with an existing regular file at one of its parent paths should be rejected before template-provider invocation.
 
 ## 2026-09-22 — provider target with existing file parent contract
 
@@ -127,7 +148,7 @@ Message: The JSON template provider returned a template with an invalid target f
 
 The guard executes before writing template files, protecting earlier template targets and the existing regular-file parent for this deterministic invalid configuration. It does not add a transaction or prevent unrelated concurrent filesystem changes.
 
-**Focused GREEN and complete-suite 1093/1093 GREEN are pending local verification.**
+**Complete-suite 1093/1093 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-22 — 1092/1092 GREEN five-field current-directory checkpoint
 
@@ -3594,12 +3615,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateTargetParentIsExistingFile_ReturnsInvalidWithoutPartialWrites"
 dotnet test WhenItFails.Tests
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1093/1093 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Locally confirmed: **1093/1093 GREEN**.
 
 ## Next recommended step
 
-After **1093/1093 GREEN** is confirmed locally, record the checkpoint and audit the next distinct bootstrap boundary while preserving valid nested-target creation, cancellation, and outside-package contracts.
+Add one focused caller-configuration contract for `ErrorCatalogFileName = Path.Combine("Nested", "errors.json")` when `Nested` is an existing regular file inside the package. Require the error-catalog-specific invalid response before provider invocation, preserving the existing file.
