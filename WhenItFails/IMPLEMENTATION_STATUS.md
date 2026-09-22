@@ -68,7 +68,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-directory `ProfilesFileName` caller-configuration contract is locally verified GREEN; all five caller-configured catalog filenames now reject paths resolving to existing directories before provider invocation.
 - Provider `TargetFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns the invalid-target code without changing the shared containment helper.
 - Caller `ErrorCatalogFileName = "."` semantic-directory contract is locally verified GREEN; a package-directory target is now classified as an invalid caller filename without changing the shared containment helper.
-- Caller `CategoryCatalogFileName = "."` semantic-directory contract committed; focused RED verification pending.
+- Caller `CategoryCatalogFileName = "."` semantic-directory contract confirmed RED on Windows; the field-specific classification fix is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — caller current-directory category catalog filename contract
 
@@ -104,7 +104,32 @@ The tracking template provider must not be invoked; the initially nonexistent wo
 
 Existing caller category containment is expected to report false when the target resolves to the package directory itself. Unlike the already fixed error catalog field, the category field does not yet distinguish this semantic-directory value from an actual escape. Focused RED is expected due to the `WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_OUTSIDE_PACKAGE` code.
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+Expected: WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_INVALID
+Actual:   WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_OUTSIDE_PACKAGE
+```
+
+The response status was already `Invalid`; only the caller-specific error classification was wrong. The target `"." ` resolves exactly to the package directory rather than escaping it.
+
+Production fix commit:
+`9a76620d14f92e3b62f4186a21800efddb864464`
+
+Documentation commit:
+`323f44cf69d09196c920d3c350446b1027cb33bd`
+
+If the category filename fails containment but its canonical path equals the canonical package directory path, bootstrap now returns:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_INVALID
+Message: The category catalog file name is invalid.
+```
+
+True escapes still return `WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_OUTSIDE_PACKAGE`. Shared containment logic, package-directory semantics, and the other caller fields were not changed.
+
+**Focused GREEN and complete-suite 1089/1089 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1088/1088 GREEN caller current-directory error filename checkpoint
 
@@ -3244,10 +3269,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCategoryCatalogFileNameResolvesToPackageDirectory_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected: **one focused RED** due to a field-specific classification mismatch (`OUTSIDE_PACKAGE` instead of `INVALID`). A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1089/1089 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, apply only the narrow package-directory equality/classification fix for `CategoryCatalogFileName`. Preserve true outside-package paths, other caller fields, and the shared containment helper.
+After **1089/1089 GREEN** is confirmed locally, record the checkpoint. Then audit `CodeGroupCatalogFileName` for the same package-directory classification boundary, one contract at a time.
