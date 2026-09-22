@@ -89,7 +89,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Nested current-directory `CodeGroupCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
 - Nested current-directory `OwnerCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
 - Nested current-directory `ProfilesFileName` contract is locally verified GREEN; all five caller-configured catalog filename fields now reject terminal current-directory segments before workspace creation or template-provider invocation.
-- Contained terminal parent-directory provider-target contract committed; focused RED verification pending.
+- Contained terminal parent-directory provider-target contract confirmed RED on Windows; containment-aware terminal-parent guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — contained terminal parent-directory provider-target contract
 
@@ -123,9 +123,32 @@ Message: The JSON template provider returned a template with an invalid target f
 
 The complete provider snapshot must be rejected before writes begin: `first.json` must remain absent and `Nested` must not be created.
 
-Current production rejects terminal `.` segments but does not yet reject a terminal `..` segment when canonical resolution remains inside the package. This target is therefore expected to pass snapshot validation and fail only during filesystem creation, potentially after `first.json` has already been written.
+The focused contract confirmed the expected RED on Windows:
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+```text
+Expected: Invalid
+Actual:   Failed
+```
+
+The contained semantic-directory target passed full-snapshot validation and reached filesystem creation, where it was normalized as a generic failure.
+
+Production fix commit:
+`b232973c77ff56870ff28f2a21155a0e21a583df`
+
+Documentation commit:
+`13b33905fa0b952fef459f7315aee24d7552e7c2`
+
+After containment succeeds, provider snapshot validation now rejects a normalized target whose final segment is `..`:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID
+Message: The JSON template provider returned a template with an invalid target file name.
+```
+
+The guard deliberately runs only after successful containment. A true parent-directory escape outside the package therefore retains `WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_OUTSIDE_PACKAGE`, while contained semantic-directory targets are rejected before any template write begins.
+
+**Focused GREEN and complete-suite 1110/1110 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1109/1109 GREEN completed nested current-directory filename checkpoint
 
@@ -4912,10 +4935,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateTargetEndsWithParentDirectorySegment_ReturnsInvalidWithoutPartialWrites"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Failed`. The contract also protects against a partial write of `first.json`. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1110/1110 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only the terminal-parent-directory-segment guard during provider snapshot validation. Preserve true outside-package classification, valid nested file targets, terminal-current-directory handling, and the no-partial-write guarantee.
+After **1110/1110 GREEN** is confirmed locally, record the checkpoint and continue auditing contained semantic-directory paths. The next candidate should be chosen by searching for an uncovered behavior rather than mechanically duplicating existing catalog-field coverage.
