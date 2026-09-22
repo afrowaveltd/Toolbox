@@ -337,6 +337,35 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                     message: "The category catalog file name is invalid.");
             }
 
+            string fullCategoryCatalogPackagePath =
+                Path.GetFullPath(packageDirectoryPath);
+
+            string? categoryCatalogParentPath =
+                Path.GetDirectoryName(
+                    Path.GetFullPath(categoryCatalogFilePath));
+
+            StringComparison categoryCatalogParentPathComparison =
+                OperatingSystem.IsWindows()
+                    ? StringComparison.OrdinalIgnoreCase
+                    : StringComparison.Ordinal;
+
+            while (categoryCatalogParentPath is not null
+                && !string.Equals(
+                    categoryCatalogParentPath,
+                    fullCategoryCatalogPackagePath,
+                    categoryCatalogParentPathComparison))
+            {
+                if (File.Exists(categoryCatalogParentPath))
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_INVALID",
+                        message: "The category catalog file name is invalid.");
+                }
+
+                categoryCatalogParentPath =
+                    Path.GetDirectoryName(categoryCatalogParentPath);
+            }
+
             string normalizedCodeGroupCatalogFileName =
                 NormalizePath(options.CodeGroupCatalogFileName);
 
