@@ -78,7 +78,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller code-group existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
 - Caller owner-catalog existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
 - Caller profiles existing-file parent contract is locally verified GREEN; all five caller-configured catalog filename fields now reject existing regular-file ancestors before provider invocation.
-- Existing-file package-directory-path contract confirmed RED on Windows; the package-directory existing-file guard is committed, awaiting focused/full GREEN verification.
+- Existing-file package-directory-path contract is locally verified GREEN; a regular file occupying the resolved package path is rejected before workspace creation or provider invocation.
+
+## 2026-09-22 — 1099/1099 GREEN existing-file package-directory checkpoint
+
+Contract commit: `1471d0a940390a06070a69b99b52c9e879739ac8`
+
+Production fix commit: `3b75438d332ad03e7aa6bface3e0fd6554d94c2c`
+
+Documentation commit: `49b935b6cfc483909c19f7d36ae23a4cbc254374`
+
+Locally confirmed by the maintainer:
+
+```text
+Focused contract: 1/1 GREEN
+WhenItFails.Tests: 1099/1099 GREEN
+```
+
+The resolved package-directory path now distinguishes an existing regular file from an existing directory before filesystem mutation or template-provider invocation.
 
 ## 2026-09-22 — existing-file package-directory-path contract
 
@@ -4082,15 +4099,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenPackageDirectoryPathIsExistingFile_ReturnsInvalidBeforeProvider"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1099/1099 GREEN
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1099/1099 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Run the focused contract introduced by the next bootstrap hardening step before changing production code.
 
 ## Next recommended step
 
-After **1099/1099 GREEN** is confirmed locally, record the checkpoint and continue with the next narrow bootstrap filesystem-boundary contract. Preserve the completed package path and caller filename classifications while avoiding broad refactoring.
+Probe the root-directory filesystem boundary next: an existing regular file supplied as `RootDirectory` should be classified as invalid caller configuration before package creation or template-provider invocation. Preserve the established malformed-path and package-directory contracts.
