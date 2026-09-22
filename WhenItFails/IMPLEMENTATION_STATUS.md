@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1103/1103 GREEN**, confirmed locally by the maintainer after package-directory root-equality classification. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1104/1104 GREEN**, confirmed locally by the maintainer after nested current-directory template-target validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -83,7 +83,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Root-directory existing-file-parent contract is locally verified GREEN; existing regular-file ancestors of the configured root are rejected before package containment or provider invocation.
 - Package-directory existing-file-parent contract is locally verified GREEN; existing regular-file ancestors between the package directory and configured root are rejected before workspace creation or provider invocation.
 - Package-directory current-directory semantic contract is locally verified GREEN; package paths resolving exactly to the configured root are classified as invalid names rather than outside-root escapes.
-- Nested current-directory template-target contract confirmed RED on Windows; terminal current-directory-segment guard is committed, awaiting focused/full GREEN verification.
+- Nested current-directory template-target contract is locally verified GREEN; terminal current-directory segments are rejected during full-snapshot validation before template writes.
+
+## 2026-09-22 — 1104/1104 GREEN nested current-directory template-target checkpoint
+
+Contract commit: `2cbcb2772ee61af450ba4b6d995bb242692a05ca`
+
+Production fix commit: `4e885a5334b78503e77bbe1dce910bc628a9964a`
+
+Documentation commit: `0f3ac729e99f26080e609a6f3f82071e539563ea`
+
+Locally confirmed by the maintainer:
+
+```text
+Focused contract: 1/1 GREEN
+WhenItFails.Tests: 1104/1104 GREEN
+```
+
+Nested semantic-directory provider targets such as `Nested/.` are now rejected during full-snapshot validation before any template write begins.
 
 ## 2026-09-22 — nested current-directory template-target contract
 
@@ -4469,15 +4486,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateTargetEndsWithCurrentDirectorySegment_ReturnsInvalidWithoutPartialWrites"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1104/1104 GREEN
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1104/1104 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Run the focused contract introduced by the next bootstrap hardening step before changing production code.
 
 ## Next recommended step
 
-After **1104/1104 GREEN** is confirmed locally, record the checkpoint and continue auditing remaining provider-output semantic-path boundaries. Preserve full-snapshot validation, no-partial-write behavior, valid nested target creation, and established containment classifications.
+Probe the same nested semantic-directory boundary on caller configuration, beginning with `ErrorCatalogFileName = Path.Combine("Nested", ".")`. The value resolves to a directory path even when `Nested` does not yet exist, so it should be rejected before workspace creation or template-provider invocation. Preserve valid nested filenames, package-equality classification, existing-directory detection, and file-parent guards.
