@@ -533,6 +533,35 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                     message: "The owner catalog file name is invalid.");
             }
 
+            string fullOwnerCatalogPackagePath =
+                Path.GetFullPath(packageDirectoryPath);
+
+            string? ownerCatalogParentPath =
+                Path.GetDirectoryName(
+                    Path.GetFullPath(ownerCatalogFilePath));
+
+            StringComparison ownerCatalogParentPathComparison =
+                OperatingSystem.IsWindows()
+                    ? StringComparison.OrdinalIgnoreCase
+                    : StringComparison.Ordinal;
+
+            while (ownerCatalogParentPath is not null
+                && !string.Equals(
+                    ownerCatalogParentPath,
+                    fullOwnerCatalogPackagePath,
+                    ownerCatalogParentPathComparison))
+            {
+                if (File.Exists(ownerCatalogParentPath))
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_OWNER_CATALOG_FILE_NAME_INVALID",
+                        message: "The owner catalog file name is invalid.");
+                }
+
+                ownerCatalogParentPath =
+                    Path.GetDirectoryName(ownerCatalogParentPath);
+            }
+
             string normalizedProfilesFileName =
                 NormalizePath(options.ProfilesFileName);
 
