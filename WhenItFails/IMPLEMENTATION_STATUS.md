@@ -83,6 +83,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Root-directory existing-file-parent contract is locally verified GREEN; existing regular-file ancestors of the configured root are rejected before package containment or provider invocation.
 - Package-directory existing-file-parent contract is locally verified GREEN; existing regular-file ancestors between the package directory and configured root are rejected before workspace creation or provider invocation.
 - Package-directory current-directory semantic contract is locally verified GREEN; package paths resolving exactly to the configured root are classified as invalid names rather than outside-root escapes.
+- Nested current-directory template-target contract committed; focused RED verification pending.
+
+## 2026-09-22 — nested current-directory template-target contract
+
+Contract commit:
+`2cbcb2772ee61af450ba4b6d995bb242692a05ca`
+
+Baseline: **1103/1103 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperNestedCurrentDirectoryTemplateTargetContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenLaterTemplateTargetEndsWithCurrentDirectorySegment_ReturnsInvalidWithoutPartialWrites`
+
+The provider returns two templates. The first target is a valid `first.json`. The second target is:
+
+```csharp
+TargetFileName = Path.Combine("Nested", ".")
+```
+
+The second path is lexically contained inside the package and `Nested` does not yet exist. Canonical resolution, however, identifies the target as the `Nested` directory itself rather than a file beneath it.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID
+Message: The JSON template provider returned a template with an invalid target file name.
+```
+
+The complete provider snapshot must be rejected before writes begin: `first.json` must remain absent and the `Nested` directory must not be created.
+
+Current production rejects `TargetFileName = "."`, explicit directory-only values ending in a separator, and targets resolving to already existing directories. It does not yet identify a terminal current-directory segment beneath a missing directory, so this target can pass snapshot validation and fail only during file creation, potentially after an earlier template has already been written.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1103/1103 GREEN package root-target checkpoint
 
@@ -4409,14 +4446,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1103/1103 GREEN
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateTargetEndsWithCurrentDirectorySegment_ReturnsInvalidWithoutPartialWrites"
 ```
 
-Run the focused contract introduced by the next bootstrap hardening step before changing production code.
+Expected at this stage: **one focused RED**. The likely current behavior is a generic filesystem `Failed` response after snapshot validation has already accepted the nested semantic-directory target; the contract also protects against an earlier template write. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Probe a nested semantic-directory provider target: `TargetFileName = Path.Combine("Nested", ".")`. Even when `Nested` does not yet exist, that target cannot represent a file. It should be rejected during full-snapshot validation before any earlier template is written. Preserve valid nested target creation, current-directory target classification, existing-directory detection, and the no-partial-write guarantee.
+After focused RED is confirmed, add the narrow terminal-current-directory-segment guard during provider snapshot validation. Preserve valid nested file targets, the existing package-directory equality contract, existing-directory detection, and the full-snapshot no-partial-write guarantee.
