@@ -75,6 +75,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Provider-target existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected during full-snapshot validation before template writes.
 - Caller error-catalog existing-file parent contract is locally verified GREEN; its existing regular-file ancestor is rejected before template-provider invocation.
 - Caller category-catalog existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
+- Caller code-group existing-file parent contract committed; focused RED verification pending.
+
+## 2026-09-22 — caller code group catalog existing-file parent contract
+
+Contract commit:
+`bd8ca8b8683a4a2d28a5a3e6036dbad416b484f3`
+
+Baseline: **1095/1095 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperFileParentCodeGroupCatalogFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenCodeGroupCatalogFileNameParentIsExistingFile_ReturnsInvalidBeforeProvider`
+
+The package workspace already contains a regular file `Nested` with contents `Keep me.`. Caller configuration uses:
+
+```csharp
+CodeGroupCatalogFileName = Path.Combine("Nested", "code-groups.json")
+```
+
+The target is lexically inside the package, but its parent `Nested` is a regular file rather than a directory. The target itself does not resolve to an existing directory.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_CODE_GROUP_CATALOG_FILE_NAME_INVALID
+Message: The code group catalog file name is invalid.
+```
+
+The tracking template provider must not be invoked. The nested target must remain absent, and `Nested` must remain a regular file with unchanged contents.
+
+Current production checks code-group filename containment and whether its terminal target is an existing directory, but does not yet validate existing regular-file ancestors. With an empty tracking provider, bootstrap can return `Success`.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1095/1095 GREEN caller category catalog file-parent checkpoint
 
@@ -3781,11 +3818,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCodeGroupCatalogFileNameParentIsExistingFile_ReturnsInvalidBeforeProvider"
 ```
 
-Locally confirmed: **1095/1095 GREEN**.
+Expected: **one focused RED**, most likely `Actual: Success` instead of the code-group-specific `Invalid` response. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Add a focused contract for `CodeGroupCatalogFileName = Path.Combine("Nested", "code-groups.json")` when `Nested` already exists as a regular file inside the package. The code-group-specific invalid response must occur before provider invocation and leave the original file unchanged.
+After focused RED is confirmed, add only the early existing-file ancestor guard for `CodeGroupCatalogFileName`, preserving the other caller fields, valid nested filenames, and established outside-package contracts.
