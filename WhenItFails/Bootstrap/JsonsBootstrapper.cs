@@ -685,6 +685,36 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                             "The JSON template provider returned a template with an invalid target file name.");
                 }
 
+                string fullPackageDirectoryPathForParents =
+                    Path.GetFullPath(packageDirectoryPath);
+
+                string? templateTargetParentPath =
+                    Path.GetDirectoryName(
+                        Path.GetFullPath(templateTargetFilePath));
+
+                StringComparison parentPathComparison =
+                    OperatingSystem.IsWindows()
+                        ? StringComparison.OrdinalIgnoreCase
+                        : StringComparison.Ordinal;
+
+                while (templateTargetParentPath is not null
+                    && !string.Equals(
+                        templateTargetParentPath,
+                        fullPackageDirectoryPathForParents,
+                        parentPathComparison))
+                {
+                    if (File.Exists(templateTargetParentPath))
+                    {
+                        return Response<JsonsBootstrapPayload>.Invalid(
+                            code: "WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID",
+                            message:
+                                "The JSON template provider returned a template with an invalid target file name.");
+                    }
+
+                    templateTargetParentPath =
+                        Path.GetDirectoryName(templateTargetParentPath);
+                }
+
                 if (templateFile.Content is null)
                 {
                     return Response<JsonsBootstrapPayload>.Invalid(
