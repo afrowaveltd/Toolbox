@@ -79,7 +79,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller owner-catalog existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
 - Caller profiles existing-file parent contract is locally verified GREEN; all five caller-configured catalog filename fields now reject existing regular-file ancestors before provider invocation.
 - Existing-file package-directory-path contract is locally verified GREEN; a regular file occupying the resolved package path is rejected before workspace creation or provider invocation.
-- Existing-file root-directory-path contract confirmed RED on Windows; the root-directory existing-file guard is committed, awaiting focused/full GREEN verification.
+- Existing-file root-directory-path contract is locally verified GREEN; a regular file occupying the configured root path is rejected before package containment or provider invocation.
+
+## 2026-09-22 — 1100/1100 GREEN existing-file root-directory checkpoint
+
+Contract commit: `e691a6405e116dc5eca951d915041866c00f5376`
+
+Production fix commit: `40ec16aed6b63e9580dd32f593a98e454770a38d`
+
+Documentation commit: `595cedd3195531d6134dd86870ce4befc5c578cc`
+
+Locally confirmed by the maintainer:
+
+```text
+Focused contract: 1/1 GREEN
+WhenItFails.Tests: 1100/1100 GREEN
+```
+
+The configured root path now distinguishes an existing regular file from a valid or missing directory before package containment, filesystem mutation, or template-provider invocation.
 
 ## 2026-09-22 — existing-file root-directory-path contract
 
@@ -4160,15 +4177,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenRootDirectoryPathIsExistingFile_ReturnsInvalidBeforeProvider"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1100/1100 GREEN
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1100/1100 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Run the focused contract introduced by the next bootstrap hardening step before changing production code.
 
 ## Next recommended step
 
-After **1100/1100 GREEN** is confirmed locally, record the checkpoint and continue with the next narrow bootstrap filesystem-boundary contract. Preserve root/package path classification and the completed caller filename validations while avoiding broad refactoring.
+Probe an existing regular-file ancestor of `RootDirectory`. A syntactically valid nested root whose parent path is already a file should be classified as invalid root configuration before package creation or template-provider invocation. Preserve exact-root-file handling, package-path classification, and the completed caller filename validations.
