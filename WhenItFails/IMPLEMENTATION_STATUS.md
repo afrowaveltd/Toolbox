@@ -75,7 +75,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Provider-target existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected during full-snapshot validation before template writes.
 - Caller error-catalog existing-file parent contract is locally verified GREEN; its existing regular-file ancestor is rejected before template-provider invocation.
 - Caller category-catalog existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
-- Caller code-group existing-file parent contract committed; focused RED verification pending.
+- Caller code-group existing-file parent contract confirmed RED on Windows; the narrow caller-side ancestor guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — caller code group catalog existing-file parent contract
 
@@ -111,7 +111,32 @@ The tracking template provider must not be invoked. The nested target must remai
 
 Current production checks code-group filename containment and whether its terminal target is an existing directory, but does not yet validate existing regular-file ancestors. With an empty tracking provider, bootstrap can return `Success`.
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+The code-group catalog filename passed lexical containment despite its `Nested` parent being an existing regular file; the tracking provider returned no templates and bootstrap reported success.
+
+Production fix commit:
+`680d6140cb7fab2c238f2e7ae61f49c50bd25045`
+
+Documentation commit:
+`c4e13a06b4192de531ab72f5f9312558d7be7916`
+
+After containment and existing-directory validation of `CodeGroupCatalogFileName`, `JsonsBootstrapper` now checks canonical parent paths inside the package up to (but excluding) the package directory. Any existing regular-file ancestor returns:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_CODE_GROUP_CATALOG_FILE_NAME_INVALID
+Message: The code group catalog file name is invalid.
+```
+
+The check runs before workspace creation or template-provider invocation and does not modify the existing parent file. Actual escape paths retain the outside-package response; other caller fields are unchanged.
+
+**Focused GREEN and complete-suite 1096/1096 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1095/1095 GREEN caller category catalog file-parent checkpoint
 
@@ -3819,10 +3844,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCodeGroupCatalogFileNameParentIsExistingFile_ReturnsInvalidBeforeProvider"
+dotnet test WhenItFails.Tests
 ```
 
-Expected: **one focused RED**, most likely `Actual: Success` instead of the code-group-specific `Invalid` response. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1096/1096 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only the early existing-file ancestor guard for `CodeGroupCatalogFileName`, preserving the other caller fields, valid nested filenames, and established outside-package contracts.
+After **1096/1096 GREEN** is confirmed locally, record the checkpoint and continue with `OwnerCatalogFileName` for the same existing-file parent boundary.
