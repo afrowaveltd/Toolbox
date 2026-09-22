@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1113/1113 GREEN**, confirmed locally by the maintainer after contained terminal parent-directory `CodeGroupCatalogFileName` validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1114/1114 GREEN**, confirmed locally by the maintainer after contained terminal parent-directory `OwnerCatalogFileName` validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -93,7 +93,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Contained terminal parent-directory `ErrorCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `CategoryCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `CodeGroupCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
-- Contained terminal parent-directory `OwnerCatalogFileName` contract confirmed RED on Windows; containment-aware terminal-parent guard is committed, awaiting focused/full GREEN verification.
+- Contained terminal parent-directory `OwnerCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
+
+## 2026-09-22 — 1114/1114 GREEN contained parent-directory owner-catalog checkpoint
+
+Contract commit: `2116a75b36c7ad5296c5e0c6112ed9e8153eae49`
+
+Production fix commit: `27b345c7001ec05476f58b85ae0c15aae278f10e`
+
+Documentation commit: `074b95ce7ee0c7c7ccd0fd0dfee7220a6bba2b99`
+
+Locally confirmed by the maintainer:
+
+```text
+Focused contract: 1/1 GREEN
+WhenItFails.Tests: 1114/1114 GREEN
+```
+
+Contained terminal parent-directory owner-catalog filenames such as `Nested/Sub/..` are rejected before workspace creation or template-provider invocation, while true parent-directory escapes retain the outside-package contract.
 
 ## 2026-09-22 — contained terminal parent-directory owner-catalog filename contract
 
@@ -5251,15 +5268,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenOwnerCatalogFileNameEndsWithParentDirectorySegment_ReturnsInvalidBeforeProviderOrFilesystem"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1114/1114 GREEN
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1114/1114 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Run the focused contract introduced by the next bootstrap hardening step before changing production code.
 
 ## Next recommended step
 
-After **1114/1114 GREEN** is confirmed locally, record the checkpoint and continue with `ProfilesFileName`, the final caller-configured catalog filename field for the contained terminal-parent-directory behavior.
+Probe `ProfilesFileName = Path.Combine("Nested", "Sub", "..")` for the final caller-configured catalog filename field in the contained terminal-parent-directory matrix. Preserve true outside-package classification and valid nested profile filenames.
