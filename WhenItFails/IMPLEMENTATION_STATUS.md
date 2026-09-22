@@ -92,7 +92,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Contained terminal parent-directory provider-target contract is locally verified GREEN; contained terminal `..` targets are rejected during full-snapshot validation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `ErrorCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `CategoryCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
-- Contained terminal parent-directory `CodeGroupCatalogFileName` contract committed; focused RED verification pending.
+- Contained terminal parent-directory `CodeGroupCatalogFileName` contract confirmed RED on Windows; containment-aware terminal-parent guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — contained terminal parent-directory code-group catalog filename contract
 
@@ -129,9 +129,32 @@ Message: The code group catalog file name is invalid.
 
 The template provider must not be invoked and the root/package workspace must remain uncreated.
 
-Current code-group caller validation rejects true outside-package paths and terminal current-directory segments, but does not yet reject a contained terminal parent-directory segment. This configuration is therefore expected to pass validation and return success.
+The focused contract confirmed the expected RED on Windows:
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+The contained semantic-directory code-group filename passed caller validation and reached successful bootstrap completion.
+
+Production fix commit:
+`e1d9211eb6a2950d1fe6dad59b73c65d5cdeedf8`
+
+Documentation commit:
+`c1573b9efc2f2011ae4ca775152fa8a5d7c5f9ef`
+
+After successful containment, `CodeGroupCatalogFileName` now rejects a normalized terminal parent-directory segment:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_CODE_GROUP_CATALOG_FILE_NAME_INVALID
+Message: The code group catalog file name is invalid.
+```
+
+The guard deliberately runs only after containment succeeds. True parent-directory escapes therefore retain the code-group-specific outside-package classification, while contained semantic-directory filenames are rejected before workspace creation or template-provider invocation.
+
+**Focused GREEN and complete-suite 1113/1113 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1112/1112 GREEN contained parent-directory category-catalog checkpoint
 
@@ -5152,10 +5175,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCodeGroupCatalogFileNameEndsWithParentDirectorySegment_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Success`. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1113/1113 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only the containment-aware terminal-parent-directory guard for `CodeGroupCatalogFileName`. Preserve true outside-package classification, valid nested filenames, terminal-current-directory handling, existing-directory detection, and file-parent guards.
+After **1113/1113 GREEN** is confirmed locally, record the checkpoint and continue with `OwnerCatalogFileName` for the same contained terminal-parent-directory behavior, one field at a time.
