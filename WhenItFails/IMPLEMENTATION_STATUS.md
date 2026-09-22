@@ -93,7 +93,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Contained terminal parent-directory `ErrorCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `CategoryCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `CodeGroupCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
-- Contained terminal parent-directory `OwnerCatalogFileName` contract committed; focused RED verification pending.
+- Contained terminal parent-directory `OwnerCatalogFileName` contract confirmed RED on Windows; containment-aware terminal-parent guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — contained terminal parent-directory owner-catalog filename contract
 
@@ -130,9 +130,32 @@ Message: The owner catalog file name is invalid.
 
 The template provider must not be invoked and the root/package workspace must remain uncreated.
 
-Current owner caller validation rejects true outside-package paths and terminal current-directory segments, but does not yet reject a contained terminal parent-directory segment. This configuration is therefore expected to pass validation and return success.
+The focused contract confirmed the expected RED on Windows:
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+The contained semantic-directory owner filename passed caller validation and reached successful bootstrap completion.
+
+Production fix commit:
+`27b345c7001ec05476f58b85ae0c15aae278f10e`
+
+Documentation commit:
+`074b95ce7ee0c7c7ccd0fd0dfee7220a6bba2b99`
+
+After successful containment, `OwnerCatalogFileName` now rejects a normalized terminal parent-directory segment:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_OWNER_CATALOG_FILE_NAME_INVALID
+Message: The owner catalog file name is invalid.
+```
+
+The guard deliberately runs only after containment succeeds. True parent-directory escapes therefore retain the owner-specific outside-package classification, while contained semantic-directory filenames are rejected before workspace creation or template-provider invocation.
+
+**Focused GREEN and complete-suite 1114/1114 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1113/1113 GREEN contained parent-directory code-group checkpoint
 
@@ -5232,10 +5255,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenOwnerCatalogFileNameEndsWithParentDirectorySegment_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Success`. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1114/1114 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only the containment-aware terminal-parent-directory guard for `OwnerCatalogFileName`. Preserve true outside-package classification, valid nested filenames, terminal-current-directory handling, existing-directory detection, and file-parent guards.
+After **1114/1114 GREEN** is confirmed locally, record the checkpoint and continue with `ProfilesFileName`, the final caller-configured catalog filename field for the contained terminal-parent-directory behavior.
