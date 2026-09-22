@@ -170,6 +170,13 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
 
             string packageDirectoryPath = Path.Combine(rootDirectory, normalizedPackageDirectoryName);
 
+            if (File.Exists(packageDirectoryPath))
+            {
+                return Response<JsonsBootstrapPayload>.Invalid(
+                    code: "WIF_JSONS_PACKAGE_DIRECTORY_NAME_INVALID",
+                    message: "The package directory name is invalid.");
+            }
+
             string normalizedErrorCatalogFileName =
                 NormalizePath(options.ErrorCatalogFileName);
 
