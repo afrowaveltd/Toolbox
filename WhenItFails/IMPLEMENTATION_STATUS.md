@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1114/1114 GREEN**, confirmed locally by the maintainer after contained terminal parent-directory `OwnerCatalogFileName` validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1115/1115 GREEN**, confirmed locally by the maintainer after contained terminal parent-directory `ProfilesFileName` validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -94,7 +94,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Contained terminal parent-directory `CategoryCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `CodeGroupCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `OwnerCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
-- Contained terminal parent-directory `ProfilesFileName` contract confirmed RED on Windows; containment-aware terminal-parent guard is committed, awaiting focused/full GREEN verification.
+- Contained terminal parent-directory `ProfilesFileName` contract is locally verified GREEN; all five caller-configured catalog filename fields now reject contained terminal `..` values before workspace creation or template-provider invocation while true escapes retain outside-package classification.
+
+## 2026-09-22 — 1115/1115 GREEN completed contained parent-directory filename checkpoint
+
+Contract commit: `34f6375cb44573899379b59bfdc4f9c94eea1bb5`
+
+Production fix commit: `44a0679f0df8e850b6063ae479d9e00a0fb8d77a`
+
+Documentation commit: `6283075f4859aeb678108f6fc342a5766330352c`
+
+Locally confirmed by the maintainer:
+
+```text
+Focused contract: 1/1 GREEN
+WhenItFails.Tests: 1115/1115 GREEN
+```
+
+Provider targets plus all five caller-configured catalog filename fields now reject contained terminal parent-directory semantics such as `Nested/Sub/..`, while genuine escapes retain their outside-package classification.
 
 ## 2026-09-22 — contained terminal parent-directory profiles filename contract
 
@@ -5333,15 +5350,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameEndsWithParentDirectorySegment_ReturnsInvalidBeforeProviderOrFilesystem"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1115/1115 GREEN
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1115/1115 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Run the focused contract introduced by the next bootstrap/provider-output hardening step before changing production code.
 
 ## Next recommended step
 
-After **1115/1115 GREEN** is confirmed locally, record the completed five-field contained parent-directory checkpoint and audit the next genuinely uncovered bootstrap/provider-output boundary rather than adding another duplicate filename variant.
+Probe canonical provider-target collisions: two individually valid target names such as `Nested/item.json` and `Nested/./item.json` can resolve to the same target file. The full provider snapshot should reject that ambiguity before any template file is written.
