@@ -258,7 +258,11 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                 NormalizePath(options.ErrorCatalogFileName);
 
             if (Path.EndsInDirectorySeparator(
-                normalizedErrorCatalogFileName))
+                normalizedErrorCatalogFileName)
+                || string.Equals(
+                    Path.GetFileName(normalizedErrorCatalogFileName),
+                    ".",
+                    StringComparison.Ordinal))
             {
                 return Response<JsonsBootstrapPayload>.Invalid(
                     code: "WIF_JSONS_ERROR_CATALOG_FILE_NAME_INVALID",
