@@ -73,7 +73,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller `OwnerCatalogFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns the owner-specific invalid filename code.
 - Caller `ProfilesFileName = "."` semantic-directory contract is locally verified GREEN; all five caller catalog filename fields classify package-directory targets as invalid filenames.
 - Provider-target existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected during full-snapshot validation before template writes.
-- Caller error-catalog existing-file parent contract committed; focused RED verification pending.
+- Caller error-catalog existing-file parent contract confirmed RED on Windows; narrow caller-side ancestor validation is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — caller error catalog existing-file parent contract
 
@@ -109,7 +109,32 @@ The tracking template provider must not be called, the target must remain absent
 
 Current production validates caller error-catalog containment and the target's existing-directory state, but not whether its parent paths are existing files. A tracking provider returning no templates can therefore allow bootstrap to report `Success`.
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+The caller's nested error catalog filename passed lexical containment, and the tracking provider could return success despite its parent being an existing regular file.
+
+Production fix commit:
+`55f2f2cc3dd7ea4216fd13fd309e9b1fc80893ac`
+
+Documentation commit:
+`48d8e237f2a327d4db132b25ada833031d189cd5`
+
+After containment and existing-directory validation of `ErrorCatalogFileName`, `JsonsBootstrapper` now checks each canonical parent path inside the package up to (but excluding) the package directory. Any existing regular-file ancestor returns:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_ERROR_CATALOG_FILE_NAME_INVALID
+Message: The error catalog file name is invalid.
+```
+
+This guard executes before workspace creation and template-provider invocation; it leaves the original file untouched. Actual escape paths keep the outside-package response, and the other caller filename fields are unchanged.
+
+**Focused GREEN and complete-suite 1094/1094 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1093/1093 GREEN provider file-parent checkpoint
 
@@ -3653,10 +3678,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenErrorCatalogFileNameParentIsExistingFile_ReturnsInvalidBeforeProvider"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED** due to `Actual: Success` instead of the caller-specific `Invalid` result. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1094/1094 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add a narrow caller error-catalog ancestor guard before provider invocation. Preserve valid nested filenames, provider-target validation, and the existing error classification contracts.
+After **1094/1094 GREEN** is confirmed locally, record the checkpoint and audit the same existing-file parent boundary for `CategoryCatalogFileName` separately.
