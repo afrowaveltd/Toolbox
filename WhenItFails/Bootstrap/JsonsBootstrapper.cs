@@ -145,6 +145,13 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                     message: "The JSON root directory path is invalid.");
             }
 
+            if (File.Exists(rootDirectory))
+            {
+                return Response<JsonsBootstrapPayload>.Invalid(
+                    code: "WIF_JSONS_ROOT_DIRECTORY_INVALID",
+                    message: "The JSON root directory path is invalid.");
+            }
+
             bool packageDirectoryInsideRoot;
 
             try
