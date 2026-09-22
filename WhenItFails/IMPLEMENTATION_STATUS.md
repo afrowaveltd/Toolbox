@@ -80,7 +80,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller profiles existing-file parent contract is locally verified GREEN; all five caller-configured catalog filename fields now reject existing regular-file ancestors before provider invocation.
 - Existing-file package-directory-path contract is locally verified GREEN; a regular file occupying the resolved package path is rejected before workspace creation or provider invocation.
 - Existing-file root-directory-path contract is locally verified GREEN; a regular file occupying the configured root path is rejected before package containment or provider invocation.
-- Root-directory existing-file-parent contract committed; focused RED verification pending.
+- Root-directory existing-file-parent contract confirmed RED on Windows; the root ancestor-file guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — root-directory existing-file-parent contract
 
@@ -115,9 +115,32 @@ Message: The JSON root directory path is invalid.
 
 The template provider must not be invoked. The existing parent file must remain a regular file with unchanged contents, and neither the root directory nor package directory may be created.
 
-Current production validates root syntax and checks only whether the exact root path is an existing file. It does not yet inspect existing parent paths of the configured root, so this structurally impossible root is expected to reach directory creation and be normalized by the outer I/O catch as a generic failure.
+The focused contract confirmed the expected RED on Windows:
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+```text
+Expected: Invalid
+Actual:   Failed
+```
+
+The configured root itself did not exist, but its parent `Blocked` was a regular file. Root syntax and lexical containment therefore succeeded, and the collision reached directory creation where the outer I/O catch normalized it as a generic failure.
+
+Production fix commit:
+`aa7a7d666eb15b2a81d16a81116286e09db75466`
+
+Documentation commit:
+`579d5fa922488f6069958658ad494ec9f8cc7c75`
+
+After root syntax validation and the exact-root-file guard, bootstrap now walks the canonical parent chain of `RootDirectory`. Any existing regular-file ancestor returns:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_ROOT_DIRECTORY_INVALID
+Message: The JSON root directory path is invalid.
+```
+
+The validation runs before package containment, workspace creation, or template-provider invocation. Valid missing-root paths and valid existing directories remain unchanged, and the original parent file is preserved.
+
+**Focused GREEN and complete-suite 1101/1101 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1100/1100 GREEN existing-file root-directory checkpoint
 
@@ -4219,10 +4242,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenRootDirectoryParentIsExistingFile_ReturnsInvalidBeforeProvider"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Failed`. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1101/1101 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only the root ancestor-file guard before package containment/workspace creation. Preserve valid missing-root paths, valid existing directories, exact-root-file handling, package-directory classification, and template-provider semantics.
+After **1101/1101 GREEN** is confirmed locally, record the checkpoint and continue with the next narrow bootstrap filesystem-boundary contract. Preserve root/package path classification and the completed caller filename validations while avoiding broad refactoring.
