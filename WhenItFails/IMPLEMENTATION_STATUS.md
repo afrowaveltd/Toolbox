@@ -71,6 +71,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller `CategoryCatalogFileName = "."` semantic-directory contract is locally verified GREEN; package-directory targets are classified as invalid caller filenames without changing the shared containment helper.
 - Caller `CodeGroupCatalogFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns a code-group-specific invalid filename code.
 - Caller `OwnerCatalogFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns the owner-specific invalid filename code.
+- Caller `ProfilesFileName = "."` semantic-directory contract committed; focused RED verification pending.
+
+## 2026-09-22 — caller current-directory profiles filename contract
+
+Contract commit:
+`51f428cfa517c754c539e6b9b33c0b2c0beb2376`
+
+Baseline: **1091/1091 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperCurrentDirectoryProfilesFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenProfilesFileNameResolvesToPackageDirectory_ReturnsInvalidBeforeProviderOrFilesystem`
+
+Caller configuration:
+
+```csharp
+ProfilesFileName = "."
+```
+
+The value resolves exactly to the package directory, so it does not identify a catalog file and is not a path escaping the package.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID
+Message: The profile catalog file name is invalid.
+```
+
+The tracking template provider must not be invoked, and the initially nonexistent workspace root must remain absent.
+
+Current profile filename containment reports false when its target resolves to the package directory itself and classifies that input as `WIF_JSONS_PROFILE_CATALOG_FILE_NAME_OUTSIDE_PACKAGE`. The other four caller filename fields have already received their separate classification fixes.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1091/1091 GREEN caller current-directory owner checkpoint
 
@@ -3455,11 +3492,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameResolvesToPackageDirectory_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Locally confirmed: **1091/1091 GREEN**.
+Expected: **one focused RED** due to the profile-specific error classification mismatch (`OUTSIDE_PACKAGE` instead of `INVALID`). A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Add one focused caller-configuration contract for `ProfilesFileName = "."`: classify the package-directory target as a profile-specific invalid filename before provider invocation or filesystem mutation while preserving actual outside-package classification.
+After focused RED is confirmed, apply only the narrow package-directory equality/classification fix for `ProfilesFileName`. Preserve actual escape paths, other caller fields, and the shared containment helper.
