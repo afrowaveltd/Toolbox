@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1097/1097 GREEN**, confirmed locally by the maintainer after caller `OwnerCatalogFileName` existing-file parent validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1102/1102 GREEN**, confirmed locally by the maintainer after package-directory existing-file-parent validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -81,7 +81,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-file package-directory-path contract is locally verified GREEN; a regular file occupying the resolved package path is rejected before workspace creation or provider invocation.
 - Existing-file root-directory-path contract is locally verified GREEN; a regular file occupying the configured root path is rejected before package containment or provider invocation.
 - Root-directory existing-file-parent contract is locally verified GREEN; existing regular-file ancestors of the configured root are rejected before package containment or provider invocation.
-- Package-directory existing-file-parent contract confirmed RED on Windows; the package ancestor-file guard is committed, awaiting focused/full GREEN verification.
+- Package-directory existing-file-parent contract is locally verified GREEN; existing regular-file ancestors between the package directory and configured root are rejected before workspace creation or provider invocation.
+
+## 2026-09-22 — 1102/1102 GREEN package file-parent checkpoint
+
+Contract commit: `6d7e970bb612328d8d91cc27650bfead2a0a6c45`
+
+Production fix commit: `3634b11b63a69446d118ace6c68e213321c99526`
+
+Documentation commit: `09897c076ed538a95e51e102ab52bce5c29b8df5`
+
+Locally confirmed by the maintainer:
+
+```text
+Focused contract: 1/1 GREEN
+WhenItFails.Tests: 1102/1102 GREEN
+```
+
+Nested package-directory paths now reject regular-file ancestors inside the configured root before workspace creation or template-provider invocation.
 
 ## 2026-09-22 — 1101/1101 GREEN root file-parent checkpoint
 
@@ -4315,15 +4332,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenPackageDirectoryParentIsExistingFile_ReturnsInvalidBeforeProvider"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1102/1102 GREEN
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1102/1102 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Run the focused contract introduced by the next bootstrap hardening step before changing production code.
 
 ## Next recommended step
 
-After **1102/1102 GREEN** is confirmed locally, record the checkpoint and continue with the next narrow bootstrap filesystem-boundary contract. Preserve root/package path classification and the completed caller filename validations while avoiding broad refactoring.
+Probe the package-directory semantic current-directory boundary. `PackageDirectoryName = "."` resolves exactly to `RootDirectory`; this is not an escape and should be classified as an invalid package directory name rather than an outside-root path. Preserve true escape classification and valid nested package-directory behavior.
