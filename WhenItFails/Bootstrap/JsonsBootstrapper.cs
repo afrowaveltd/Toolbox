@@ -406,6 +406,30 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
 
             if (!ownerCatalogFileInsidePackage)
             {
+                string fullPackageDirectoryPath =
+                    Path.GetFullPath(packageDirectoryPath);
+
+                string fullOwnerCatalogFilePath =
+                    Path.GetFullPath(
+                        Path.Combine(
+                            packageDirectoryPath,
+                            normalizedOwnerCatalogFileName));
+
+                StringComparison pathComparison =
+                    OperatingSystem.IsWindows()
+                        ? StringComparison.OrdinalIgnoreCase
+                        : StringComparison.Ordinal;
+
+                if (string.Equals(
+                    fullOwnerCatalogFilePath,
+                    fullPackageDirectoryPath,
+                    pathComparison))
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_OWNER_CATALOG_FILE_NAME_INVALID",
+                        message: "The owner catalog file name is invalid.");
+                }
+
                 return Response<JsonsBootstrapPayload>.Invalid(
                     code: "WIF_JSONS_OWNER_CATALOG_FILE_NAME_OUTSIDE_PACKAGE",
                     message: "The owner catalog file name must stay inside the package directory.");
