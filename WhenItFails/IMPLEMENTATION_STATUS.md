@@ -85,7 +85,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Package-directory current-directory semantic contract is locally verified GREEN; package paths resolving exactly to the configured root are classified as invalid names rather than outside-root escapes.
 - Nested current-directory template-target contract is locally verified GREEN; terminal current-directory segments are rejected during full-snapshot validation before template writes.
 - Nested current-directory `ErrorCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
-- Nested current-directory `CategoryCatalogFileName` contract committed; focused RED verification pending.
+- Nested current-directory `CategoryCatalogFileName` contract confirmed RED on Windows; terminal current-directory-segment guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — nested current-directory category-catalog filename contract
 
@@ -119,9 +119,32 @@ Message: The category catalog file name is invalid.
 
 The template provider must not be invoked and the root/package workspace must remain uncreated.
 
-Current production has the terminal-current-directory-segment guard for `ErrorCatalogFileName`, but not yet for `CategoryCatalogFileName`. This category configuration is therefore expected to pass caller validation and return success.
+The focused contract confirmed the expected RED on Windows:
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+The nested semantic-directory category filename passed caller validation and reached successful bootstrap completion.
+
+Production fix commit:
+`513e53c4c6f0a63281e31505349d87c154f777ea`
+
+Documentation commit:
+`1cebfcad76060e0d4ca68ab580272726abd985c2`
+
+After normalization and before containment/provider invocation, `CategoryCatalogFileName` now rejects a final current-directory segment such as `Nested/.`:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_INVALID
+Message: The category catalog file name is invalid.
+```
+
+Valid nested category filenames, package-directory equality classification, outside-package handling, existing-directory detection, and file-parent guards remain unchanged.
+
+**Focused GREEN and complete-suite 1106/1106 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1105/1105 GREEN nested error-catalog current-directory checkpoint
 
@@ -4604,10 +4627,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCategoryCatalogFileNameEndsWithCurrentDirectorySegment_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Success`. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1106/1106 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only the terminal-current-directory-segment guard for `CategoryCatalogFileName`. Preserve valid nested category filenames, package-directory equality classification, outside-package behavior, existing-directory detection, file-parent guards, and the one-field-at-a-time workflow.
+After **1106/1106 GREEN** is confirmed locally, record the checkpoint and continue the same semantic-directory audit with `CodeGroupCatalogFileName`. Preserve the incremental one-field-at-a-time workflow.
