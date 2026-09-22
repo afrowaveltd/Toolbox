@@ -80,6 +80,44 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller profiles existing-file parent contract is locally verified GREEN; all five caller-configured catalog filename fields now reject existing regular-file ancestors before provider invocation.
 - Existing-file package-directory-path contract is locally verified GREEN; a regular file occupying the resolved package path is rejected before workspace creation or provider invocation.
 - Existing-file root-directory-path contract is locally verified GREEN; a regular file occupying the configured root path is rejected before package containment or provider invocation.
+- Root-directory existing-file-parent contract committed; focused RED verification pending.
+
+## 2026-09-22 — root-directory existing-file-parent contract
+
+Contract commit:
+`53206e6f2745897df1160bc1db38beeef7d8f773`
+
+Baseline: **1100/1100 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperFileParentRootDirectoryContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenRootDirectoryParentIsExistingFile_ReturnsInvalidBeforeProvider`
+
+A unique temporary test directory contains an existing regular file `Blocked` with contents `Keep me.`. Caller configuration sets:
+
+```csharp
+RootDirectory = Path.Combine(existingParentFilePath, "Jsons"),
+PackageDirectoryName = "WhenItFails"
+```
+
+The configured root is syntactically valid and does not itself exist as a file or directory. Its parent `Blocked`, however, is a regular file and therefore cannot contain the requested root directory.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_ROOT_DIRECTORY_INVALID
+Message: The JSON root directory path is invalid.
+```
+
+The template provider must not be invoked. The existing parent file must remain a regular file with unchanged contents, and neither the root directory nor package directory may be created.
+
+Current production validates root syntax and checks only whether the exact root path is an existing file. It does not yet inspect existing parent paths of the configured root, so this structurally impossible root is expected to reach directory creation and be normalized by the outer I/O catch as a generic failure.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1100/1100 GREEN existing-file root-directory checkpoint
 
@@ -4177,14 +4215,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1100/1100 GREEN
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenRootDirectoryParentIsExistingFile_ReturnsInvalidBeforeProvider"
 ```
 
-Run the focused contract introduced by the next bootstrap hardening step before changing production code.
+Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Failed`. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Probe an existing regular-file ancestor of `RootDirectory`. A syntactically valid nested root whose parent path is already a file should be classified as invalid root configuration before package creation or template-provider invocation. Preserve exact-root-file handling, package-path classification, and the completed caller filename validations.
+After focused RED is confirmed, add only the root ancestor-file guard before package containment/workspace creation. Preserve valid missing-root paths, valid existing directories, exact-root-file handling, package-directory classification, and template-provider semantics.
