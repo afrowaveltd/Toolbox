@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1094/1094 GREEN**, confirmed locally by the maintainer after caller `ErrorCatalogFileName` existing-file parent validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1095/1095 GREEN**, confirmed locally by the maintainer after caller `CategoryCatalogFileName` existing-file parent validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -74,7 +74,28 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller `ProfilesFileName = "."` semantic-directory contract is locally verified GREEN; all five caller catalog filename fields classify package-directory targets as invalid filenames.
 - Provider-target existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected during full-snapshot validation before template writes.
 - Caller error-catalog existing-file parent contract is locally verified GREEN; its existing regular-file ancestor is rejected before template-provider invocation.
-- Caller category-catalog existing-file parent contract confirmed RED on Windows; the narrow caller-side ancestor guard is committed, awaiting focused/full GREEN verification.
+- Caller category-catalog existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
+
+## 2026-09-22 — 1095/1095 GREEN caller category catalog file-parent checkpoint
+
+Contract commit: `389e5487c03a9e498b8f0bd106358167d55c1b08`
+
+Production fix commit: `f83293b1acebc1dc613995cdd5545c1b81b3e0b2`
+
+Documentation commit: `3feac61a6a071bc6e0a0e4c1b6ea34f1200efe7a`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1095
+Total:  1095
+```
+
+Caller `CategoryCatalogFileName` paths with existing regular-file ancestors inside the package now return the category-specific invalid response before template-provider invocation. The original ancestor file remains untouched.
+
+Next caller-configured field: `CodeGroupCatalogFileName`.
 
 ## 2026-09-22 — caller category catalog existing-file parent contract
 
@@ -135,7 +156,7 @@ Message: The category catalog file name is invalid.
 
 The check runs before workspace creation or template-provider invocation and does not modify the existing parent file. Actual escape paths retain the outside-package response; other caller fields are unchanged.
 
-**Focused GREEN and complete-suite 1095/1095 GREEN are pending local verification.**
+**Complete-suite 1095/1095 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-22 — 1094/1094 GREEN caller error catalog file-parent checkpoint
 
@@ -3760,12 +3781,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCategoryCatalogFileNameParentIsExistingFile_ReturnsInvalidBeforeProvider"
 dotnet test WhenItFails.Tests
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1095/1095 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Locally confirmed: **1095/1095 GREEN**.
 
 ## Next recommended step
 
-After **1095/1095 GREEN** is confirmed locally, record the checkpoint and continue with `CodeGroupCatalogFileName` for the same existing-file parent boundary.
+Add a focused contract for `CodeGroupCatalogFileName = Path.Combine("Nested", "code-groups.json")` when `Nested` already exists as a regular file inside the package. The code-group-specific invalid response must occur before provider invocation and leave the original file unchanged.
