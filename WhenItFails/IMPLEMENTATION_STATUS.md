@@ -70,6 +70,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller `ErrorCatalogFileName = "."` semantic-directory contract is locally verified GREEN; a package-directory target is now classified as an invalid caller filename without changing the shared containment helper.
 - Caller `CategoryCatalogFileName = "."` semantic-directory contract is locally verified GREEN; package-directory targets are classified as invalid caller filenames without changing the shared containment helper.
 - Caller `CodeGroupCatalogFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns a code-group-specific invalid filename code.
+- Caller `OwnerCatalogFileName = "."` semantic-directory contract committed; focused RED verification pending.
+
+## 2026-09-22 — caller current-directory owner catalog filename contract
+
+Contract commit:
+`96e2ee67c829b5dfb290bffc2c96529bf32d72e1`
+
+Baseline: **1090/1090 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperCurrentDirectoryOwnerCatalogFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenOwnerCatalogFileNameResolvesToPackageDirectory_ReturnsInvalidBeforeProviderOrFilesystem`
+
+Caller configuration:
+
+```csharp
+OwnerCatalogFileName = "."
+```
+
+The value resolves exactly to the package directory and does not identify a catalog file. It does not escape the package.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_OWNER_CATALOG_FILE_NAME_INVALID
+Message: The owner catalog file name is invalid.
+```
+
+The tracking template provider must not be invoked; the initially nonexistent workspace root must remain absent.
+
+Current owner containment returns false for the package-directory target and classifies it as `WIF_JSONS_OWNER_CATALOG_FILE_NAME_OUTSIDE_PACKAGE` instead of an invalid filename.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1090/1090 GREEN caller current-directory code group checkpoint
 
@@ -3372,11 +3409,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenOwnerCatalogFileNameResolvesToPackageDirectory_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Locally confirmed: **1090/1090 GREEN**.
+Expected: **one focused RED** due to an owner-specific classification mismatch (`OUTSIDE_PACKAGE` instead of `INVALID`). A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Add one focused caller-configuration contract for `OwnerCatalogFileName = "."`: classify the package-directory target as an owner-specific invalid filename before provider invocation or filesystem mutation, while preserving actual outside-package classification.
+After focused RED is confirmed, apply only the narrow package-directory equality/classification fix for `OwnerCatalogFileName`. Preserve actual escape paths, the other caller fields, and the shared containment helper.
