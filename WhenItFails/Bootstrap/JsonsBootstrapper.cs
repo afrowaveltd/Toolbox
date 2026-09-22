@@ -462,7 +462,11 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                 NormalizePath(options.CodeGroupCatalogFileName);
 
             if (Path.EndsInDirectorySeparator(
-                normalizedCodeGroupCatalogFileName))
+                normalizedCodeGroupCatalogFileName)
+                || string.Equals(
+                    Path.GetFileName(normalizedCodeGroupCatalogFileName),
+                    ".",
+                    StringComparison.Ordinal))
             {
                 return Response<JsonsBootstrapPayload>.Invalid(
                     code: "WIF_JSONS_CODE_GROUP_CATALOG_FILE_NAME_INVALID",
