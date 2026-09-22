@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1104/1104 GREEN**, confirmed locally by the maintainer after nested current-directory template-target validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1105/1105 GREEN**, confirmed locally by the maintainer after nested current-directory `ErrorCatalogFileName` validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -84,7 +84,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Package-directory existing-file-parent contract is locally verified GREEN; existing regular-file ancestors between the package directory and configured root are rejected before workspace creation or provider invocation.
 - Package-directory current-directory semantic contract is locally verified GREEN; package paths resolving exactly to the configured root are classified as invalid names rather than outside-root escapes.
 - Nested current-directory template-target contract is locally verified GREEN; terminal current-directory segments are rejected during full-snapshot validation before template writes.
-- Nested current-directory `ErrorCatalogFileName` contract confirmed RED on Windows; terminal current-directory-segment guard is committed, awaiting focused/full GREEN verification.
+- Nested current-directory `ErrorCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
+
+## 2026-09-22 — 1105/1105 GREEN nested error-catalog current-directory checkpoint
+
+Contract commit: `022a094b8c69b4cdadcb4650e0a11819eeca250e`
+
+Production fix commit: `e33f61441d5f16c6cccd2b95a67f01fb304e5eb6`
+
+Documentation commit: `3bd6bce684d4e6d962c820b02681c61d92fbfd1b`
+
+Locally confirmed by the maintainer:
+
+```text
+Focused contract: 1/1 GREEN
+WhenItFails.Tests: 1105/1105 GREEN
+```
+
+Nested semantic-directory error-catalog filenames such as `Nested/.` are now rejected before workspace creation or template-provider invocation.
 
 ## 2026-09-22 — nested current-directory error-catalog filename contract
 
@@ -4546,15 +4563,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenErrorCatalogFileNameEndsWithCurrentDirectorySegment_ReturnsInvalidBeforeProviderOrFilesystem"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1105/1105 GREEN
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1105/1105 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Run the focused contract introduced by the next bootstrap hardening step before changing production code.
 
 ## Next recommended step
 
-After **1105/1105 GREEN** is confirmed locally, record the checkpoint and continue the same semantic-directory audit with `CategoryCatalogFileName` before moving to the remaining catalog filename fields. Preserve the incremental one-field-at-a-time workflow.
+Continue the semantic-directory audit with `CategoryCatalogFileName = Path.Combine("Nested", ".")`. Preserve the one-field-at-a-time workflow and all existing category filename contracts.
