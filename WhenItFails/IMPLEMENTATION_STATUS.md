@@ -76,6 +76,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller error-catalog existing-file parent contract is locally verified GREEN; its existing regular-file ancestor is rejected before template-provider invocation.
 - Caller category-catalog existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
 - Caller code-group existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
+- Caller owner-catalog existing-file parent contract committed; focused RED verification pending.
+
+## 2026-09-22 — caller owner catalog existing-file parent contract
+
+Contract commit:
+`20f3f4f343a84386db0c73e99229031cfffae78e`
+
+Baseline: **1096/1096 GREEN**, confirmed locally by the maintainer before the new contract.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperFileParentOwnerCatalogFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenOwnerCatalogFileNameParentIsExistingFile_ReturnsInvalidBeforeProvider`
+
+The package workspace contains an existing regular file `Nested` with contents `Keep me.`. Caller configuration sets:
+
+```csharp
+OwnerCatalogFileName = Path.Combine("Nested", "owners.json")
+```
+
+The target is inside the package and does not itself resolve to an existing directory. However, its parent `Nested` is a regular file, not a usable directory.
+
+Require:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_OWNER_CATALOG_FILE_NAME_INVALID
+Message: The owner catalog file name is invalid.
+```
+
+The tracking template provider must not be called; the nested target must remain absent; and `Nested` must remain an unchanged regular file.
+
+Current production checks the owner filename for containment and a terminal existing-directory target, but does not yet validate existing-file ancestors. An empty tracking provider can therefore allow bootstrap to return `Success`.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1096/1096 GREEN caller code group file-parent checkpoint
 
@@ -3864,11 +3901,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenOwnerCatalogFileNameParentIsExistingFile_ReturnsInvalidBeforeProvider"
 ```
 
-Locally confirmed: **1096/1096 GREEN**.
+Expected at this stage: **one focused RED**, likely `Actual: Success` instead of the owner-specific `Invalid` response. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Add one focused caller-configuration contract for `OwnerCatalogFileName = Path.Combine("Nested", "owners.json")` when `Nested` already exists as a regular file inside the package. Require the owner-specific invalid response before provider invocation and preserve the original file.
+After focused RED is confirmed, add only the owner-catalog existing-file ancestor guard before template-provider invocation. Preserve valid nested filenames, the provider-target validation, and established owner error classifications.
