@@ -80,7 +80,61 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller profiles existing-file parent contract is locally verified GREEN; all five caller-configured catalog filename fields now reject existing regular-file ancestors before provider invocation.
 - Existing-file package-directory-path contract is locally verified GREEN; a regular file occupying the resolved package path is rejected before workspace creation or provider invocation.
 - Existing-file root-directory-path contract is locally verified GREEN; a regular file occupying the configured root path is rejected before package containment or provider invocation.
-- Root-directory existing-file-parent contract confirmed RED on Windows; the root ancestor-file guard is committed, awaiting focused/full GREEN verification.
+- Root-directory existing-file-parent contract is locally verified GREEN; existing regular-file ancestors of the configured root are rejected before package containment or provider invocation.
+- Package-directory existing-file-parent contract committed; focused RED verification pending.
+
+## 2026-09-22 — 1101/1101 GREEN root file-parent checkpoint
+
+Contract commit: `53206e6f2745897df1160bc1db38beeef7d8f773`
+
+Production fix commit: `aa7a7d666eb15b2a81d16a81116286e09db75466`
+
+Documentation commit: `579d5fa922488f6069958658ad494ec9f8cc7c75`
+
+Locally confirmed by the maintainer:
+
+```text
+Focused contract: 1/1 GREEN
+WhenItFails.Tests: 1101/1101 GREEN
+```
+
+The configured root and its existing parent chain now reject regular-file collisions before package containment, workspace creation, or template-provider invocation.
+
+## 2026-09-22 — package-directory existing-file-parent contract
+
+Contract commit:
+`6d7e970bb612328d8d91cc27650bfead2a0a6c45`
+
+Baseline: **1101/1101 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperFileParentPackageDirectoryContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenPackageDirectoryParentIsExistingFile_ReturnsInvalidBeforeProvider`
+
+The configured root already exists and contains a regular file `Packages` with contents `Keep me.`. Caller configuration sets:
+
+```csharp
+PackageDirectoryName = Path.Combine("Packages", "WhenItFails")
+```
+
+The nested package path is syntactically valid and remains inside the root, but its parent `Packages` is a regular file and cannot contain the requested package directory.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_PACKAGE_DIRECTORY_NAME_INVALID
+Message: The package directory name is invalid.
+```
+
+The template provider must not be invoked. The existing parent file must remain unchanged and no package directory may be created.
+
+Current production checks only whether the exact resolved package-directory path is already a file. It does not yet inspect existing parent paths between the package directory and configured root, so this structurally impossible nested package is expected to reach directory creation and be normalized as a generic I/O failure.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — root-directory existing-file-parent contract
 
@@ -4241,12 +4295,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenRootDirectoryParentIsExistingFile_ReturnsInvalidBeforeProvider"
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenPackageDirectoryParentIsExistingFile_ReturnsInvalidBeforeProvider"
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1101/1101 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Failed`. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After **1101/1101 GREEN** is confirmed locally, record the checkpoint and continue with the next narrow bootstrap filesystem-boundary contract. Preserve root/package path classification and the completed caller filename validations while avoiding broad refactoring.
+After focused RED is confirmed, add only the package-directory ancestor-file guard between containment and workspace creation. Preserve valid nested package-directory creation, valid existing package directories, exact package-file handling, root-path classification, and template-provider semantics.
