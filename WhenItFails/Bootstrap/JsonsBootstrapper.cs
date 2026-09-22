@@ -631,6 +631,35 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                     message: "The profile catalog file name is invalid.");
             }
 
+            string fullProfilesPackagePath =
+                Path.GetFullPath(packageDirectoryPath);
+
+            string? profilesParentPath =
+                Path.GetDirectoryName(
+                    Path.GetFullPath(profilesFilePath));
+
+            StringComparison profilesParentPathComparison =
+                OperatingSystem.IsWindows()
+                    ? StringComparison.OrdinalIgnoreCase
+                    : StringComparison.Ordinal;
+
+            while (profilesParentPath is not null
+                && !string.Equals(
+                    profilesParentPath,
+                    fullProfilesPackagePath,
+                    profilesParentPathComparison))
+            {
+                if (File.Exists(profilesParentPath))
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID",
+                        message: "The profile catalog file name is invalid.");
+                }
+
+                profilesParentPath =
+                    Path.GetDirectoryName(profilesParentPath);
+            }
+
             bool packageDirectoryAlreadyExisted =
                 Directory.Exists(packageDirectoryPath);
 
