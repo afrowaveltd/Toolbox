@@ -90,6 +90,46 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Nested current-directory `OwnerCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
 - Nested current-directory `ProfilesFileName` contract is locally verified GREEN; all five caller-configured catalog filename fields now reject terminal current-directory segments before workspace creation or template-provider invocation.
 - Contained terminal parent-directory provider-target contract is locally verified GREEN; contained terminal `..` targets are rejected during full-snapshot validation while true escapes retain outside-package classification.
+- Contained terminal parent-directory `ErrorCatalogFileName` contract committed; focused RED verification pending.
+
+## 2026-09-22 — contained terminal parent-directory error-catalog filename contract
+
+Contract commit:
+`6e1ab5d8c6fe2e50d79ea0892fa52c5f40bf8092`
+
+Baseline: **1110/1110 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperNestedParentDirectoryErrorCatalogFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenErrorCatalogFileNameEndsWithParentDirectorySegment_ReturnsInvalidBeforeProviderOrFilesystem`
+
+Caller configuration sets:
+
+```csharp
+ErrorCatalogFileName = Path.Combine(
+    "Nested",
+    "Sub",
+    "..")
+```
+
+Canonical resolution stays inside the package and resolves to the `Nested` directory itself. This is not an outside-package escape, but it cannot represent an error-catalog file.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_ERROR_CATALOG_FILE_NAME_INVALID
+Message: The error catalog file name is invalid.
+```
+
+The template provider must not be invoked and the root/package workspace must remain uncreated.
+
+Current caller validation distinguishes true outside-package paths and terminal current-directory segments, but does not yet reject a contained terminal parent-directory segment. This configuration is therefore expected to pass validation and return success.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1110/1110 GREEN contained parent-directory provider-target checkpoint
 
@@ -4948,14 +4988,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1110/1110 GREEN
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenErrorCatalogFileNameEndsWithParentDirectorySegment_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Run the focused contract introduced by the next bootstrap hardening step before changing production code.
+Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Success`. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Probe the caller-side equivalent with `ErrorCatalogFileName = Path.Combine("Nested", "Sub", "..")`. Canonical resolution remains inside the package but identifies a directory rather than a file. Preserve true outside-package classification and valid nested error-catalog filenames.
+After focused RED is confirmed, add only the containment-aware terminal-parent-directory guard for `ErrorCatalogFileName`. Preserve true outside-package classification, valid nested filenames, terminal-current-directory handling, existing-directory detection, and file-parent guards.
