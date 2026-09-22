@@ -82,7 +82,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-file root-directory-path contract is locally verified GREEN; a regular file occupying the configured root path is rejected before package containment or provider invocation.
 - Root-directory existing-file-parent contract is locally verified GREEN; existing regular-file ancestors of the configured root are rejected before package containment or provider invocation.
 - Package-directory existing-file-parent contract is locally verified GREEN; existing regular-file ancestors between the package directory and configured root are rejected before workspace creation or provider invocation.
-- Package-directory current-directory semantic contract committed; focused RED verification pending.
+- Package-directory current-directory semantic contract confirmed RED on Windows; root-equality classification fix is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — package-directory current-directory semantic contract
 
@@ -116,9 +116,32 @@ Message: The package directory name is invalid.
 
 The template provider must not be invoked and the root directory must remain uncreated.
 
-Current production uses the shared strict containment helper, which intentionally requires a child path. A target equal to the containing root therefore returns `false` and is currently classified as `WIF_JSONS_PACKAGE_DIRECTORY_NAME_OUTSIDE_ROOT`. The new contract distinguishes this equality case from a true escape without changing the helper.
+The focused contract confirmed the expected RED on Windows:
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+```text
+Expected: WIF_JSONS_PACKAGE_DIRECTORY_NAME_INVALID
+Actual:   WIF_JSONS_PACKAGE_DIRECTORY_NAME_OUTSIDE_ROOT
+```
+
+The response status was already `Invalid`; only the issue classification was wrong. The shared containment helper correctly rejects equality because it requires a child path, but equality with `RootDirectory` is semantically different from a true escape.
+
+Production fix commit:
+`ff45147b74495140f1a1aa0ad7d8061ff3ab427b`
+
+Documentation commit:
+`f3c667fb07f57ac2d0ef43eab6618b0adad69854`
+
+When package containment returns false, bootstrap now compares canonical root and package paths. Exact equality returns:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_PACKAGE_DIRECTORY_NAME_INVALID
+Message: The package directory name is invalid.
+```
+
+Only a non-equal path outside the root returns `WIF_JSONS_PACKAGE_DIRECTORY_NAME_OUTSIDE_ROOT`. The shared strict containment helper, true escape behavior, nested package paths, and filesystem guards remain unchanged.
+
+**Focused GREEN and complete-suite 1103/1103 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1102/1102 GREEN package file-parent checkpoint
 
@@ -4373,10 +4396,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenPackageDirectoryNameResolvesToRoot_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED** on the issue code/message classification. The response status should already be `Invalid`, but the current implementation is expected to report `WIF_JSONS_PACKAGE_DIRECTORY_NAME_OUTSIDE_ROOT` instead of `WIF_JSONS_PACKAGE_DIRECTORY_NAME_INVALID`. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1103/1103 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, special-case only the package-path-equals-root condition before returning the outside-root classification. Preserve the shared strict containment helper, true escape behavior, valid nested package paths, and all existing filesystem guards.
+After **1103/1103 GREEN** is confirmed locally, record the checkpoint and continue auditing the remaining bootstrap semantic-path boundaries. Preserve true escape classification, root/package filesystem guards, and all established caller filename contracts.
