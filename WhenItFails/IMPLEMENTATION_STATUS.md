@@ -98,6 +98,37 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Duplicate canonical provider-target contract is locally verified GREEN; canonical aliases are rejected before writes with platform-appropriate path comparison.
 - Provider snapshot file/directory target-conflict contract is locally verified GREEN; prospective file-vs-directory conflicts are rejected before the write loop.
 - Reverse-order provider target-conflict regression is locally verified GREEN; snapshot file/directory conflict detection is order-independent.
+- Later-null-template-content no-partial-write regression committed; focused GREEN verification pending.
+
+## 2026-09-22 — later null template-content no-partial-write regression
+
+Regression commit:
+`d605eaf9e3503271c7b3e37a9caac988f95b774d`
+
+Baseline: **1118/1118 GREEN**, confirmed locally by the maintainer before this regression was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperLaterNullTemplateContentContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenLaterTemplateContentIsNull_ReturnsInvalidWithoutPartialWrites`
+
+The provider returns a valid first template followed by a second template whose name and target are valid but whose `Content` is null.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_TEMPLATE_CONTENT_NULL
+Message: The JSON template provider returned a template with null content.
+```
+
+The package workspace may already exist, but `first.json` must not be written. This verifies that full-snapshot validation extends through the final validated field of every item before the write loop begins.
+
+No production change was made. Current two-phase snapshot validation is expected to satisfy this regression.
+
+**Focused GREEN and complete-suite 1119/1119 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1118/1118 GREEN order-independent target-conflict checkpoint
 
@@ -5570,14 +5601,15 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1118/1118 GREEN
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateContentIsNull_ReturnsInvalidWithoutPartialWrites"
+dotnet test WhenItFails.Tests
 ```
 
-Run the next focused snapshot-validation regression before changing production code.
+Expected: **one focused GREEN** and **1119/1119 GREEN** for the complete suite. No production change is expected for this regression. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Verify the full-snapshot no-partial-write guarantee for a later template whose `Content` is null. An earlier valid template must not be written even though the invalid field is discovered only after that later item's name and target path have passed validation.
+After **1119/1119 GREEN** is confirmed locally, record the no-partial-write content-validation checkpoint and continue the provider snapshot audit with another distinct boundary rather than another duplicate path-order case.
