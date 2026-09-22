@@ -475,6 +475,30 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
 
             if (!profileCatalogFileInsidePackage)
             {
+                string fullPackageDirectoryPath =
+                    Path.GetFullPath(packageDirectoryPath);
+
+                string fullProfilesFilePath =
+                    Path.GetFullPath(
+                        Path.Combine(
+                            packageDirectoryPath,
+                            normalizedProfilesFileName));
+
+                StringComparison pathComparison =
+                    OperatingSystem.IsWindows()
+                        ? StringComparison.OrdinalIgnoreCase
+                        : StringComparison.Ordinal;
+
+                if (string.Equals(
+                    fullProfilesFilePath,
+                    fullPackageDirectoryPath,
+                    pathComparison))
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID",
+                        message: "The profile catalog file name is invalid.");
+                }
+
                 return Response<JsonsBootstrapPayload>.Invalid(
                     code: "WIF_JSONS_PROFILE_CATALOG_FILE_NAME_OUTSIDE_PACKAGE",
                     message: "The profile catalog file name must stay inside the package directory.");
