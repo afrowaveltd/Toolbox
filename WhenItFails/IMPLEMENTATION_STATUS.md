@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1090/1090 GREEN**, confirmed locally by the maintainer after caller `CodeGroupCatalogFileName = "."` classification. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1091/1091 GREEN**, confirmed locally by the maintainer after caller `OwnerCatalogFileName = "."` classification. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -70,7 +70,28 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller `ErrorCatalogFileName = "."` semantic-directory contract is locally verified GREEN; a package-directory target is now classified as an invalid caller filename without changing the shared containment helper.
 - Caller `CategoryCatalogFileName = "."` semantic-directory contract is locally verified GREEN; package-directory targets are classified as invalid caller filenames without changing the shared containment helper.
 - Caller `CodeGroupCatalogFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns a code-group-specific invalid filename code.
-- Caller `OwnerCatalogFileName = "."` semantic-directory contract confirmed RED on Windows; the field-specific classification fix is committed, awaiting focused/full GREEN verification.
+- Caller `OwnerCatalogFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns the owner-specific invalid filename code.
+
+## 2026-09-22 — 1091/1091 GREEN caller current-directory owner checkpoint
+
+Contract commit: `96e2ee67c829b5dfb290bffc2c96529bf32d72e1`
+
+Production fix commit: `d24e62b0fd3404a3ea17acaea450643226e9125e`
+
+Documentation commit: `8b2e4b994e47d8627cf544eaa89b1979508a4687`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1091
+Total:  1091
+```
+
+`OwnerCatalogFileName = "."` now returns the owner-specific invalid filename code before provider invocation or workspace mutation. Actual escapes still return `WIF_JSONS_OWNER_CATALOG_FILE_NAME_OUTSIDE_PACKAGE`.
+
+Final caller-configured field for this boundary: `ProfilesFileName`.
 
 ## 2026-09-22 — caller current-directory owner catalog filename contract
 
@@ -131,7 +152,7 @@ Message: The owner catalog file name is invalid.
 
 True escapes still return `WIF_JSONS_OWNER_CATALOG_FILE_NAME_OUTSIDE_PACKAGE`. Other caller fields and the shared containment helper remain unchanged.
 
-**Focused GREEN and complete-suite 1091/1091 GREEN are pending local verification.**
+**Complete-suite 1091/1091 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-22 — 1090/1090 GREEN caller current-directory code group checkpoint
 
@@ -3434,12 +3455,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenOwnerCatalogFileNameResolvesToPackageDirectory_ReturnsInvalidBeforeProviderOrFilesystem"
 dotnet test WhenItFails.Tests
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1091/1091 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Locally confirmed: **1091/1091 GREEN**.
 
 ## Next recommended step
 
-After **1091/1091 GREEN** is confirmed locally, record the checkpoint. Then continue with the final caller-configured field, `ProfilesFileName`, for the same package-directory classification boundary.
+Add one focused caller-configuration contract for `ProfilesFileName = "."`: classify the package-directory target as a profile-specific invalid filename before provider invocation or filesystem mutation while preserving actual outside-package classification.
