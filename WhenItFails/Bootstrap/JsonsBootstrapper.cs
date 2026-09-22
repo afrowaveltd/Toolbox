@@ -199,6 +199,30 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
 
             if (!errorCatalogFileInsidePackage)
             {
+                string fullPackageDirectoryPath =
+                    Path.GetFullPath(packageDirectoryPath);
+
+                string fullErrorCatalogFilePath =
+                    Path.GetFullPath(
+                        Path.Combine(
+                            packageDirectoryPath,
+                            normalizedErrorCatalogFileName));
+
+                StringComparison pathComparison =
+                    OperatingSystem.IsWindows()
+                        ? StringComparison.OrdinalIgnoreCase
+                        : StringComparison.Ordinal;
+
+                if (string.Equals(
+                    fullErrorCatalogFilePath,
+                    fullPackageDirectoryPath,
+                    pathComparison))
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_ERROR_CATALOG_FILE_NAME_INVALID",
+                        message: "The error catalog file name is invalid.");
+                }
+
                 return Response<JsonsBootstrapPayload>.Invalid(
                     code: "WIF_JSONS_ERROR_CATALOG_FILE_NAME_OUTSIDE_PACKAGE",
                     message: "The error catalog file name must stay inside the package directory.");
