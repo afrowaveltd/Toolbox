@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1115/1115 GREEN**, confirmed locally by the maintainer after contained terminal parent-directory `ProfilesFileName` validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1116/1116 GREEN**, confirmed locally by the maintainer after canonical template-target uniqueness validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -95,7 +95,26 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Contained terminal parent-directory `CodeGroupCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `OwnerCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `ProfilesFileName` contract is locally verified GREEN; all five caller-configured catalog filename fields now reject contained terminal `..` values before workspace creation or template-provider invocation while true escapes retain outside-package classification.
-- Duplicate canonical provider-target contract confirmed RED on Windows; canonical-path uniqueness validation is committed, awaiting focused/full GREEN verification.
+- Duplicate canonical provider-target contract is locally verified GREEN; canonical aliases are rejected before writes with platform-appropriate path comparison.
+
+## 2026-09-22 — 1116/1116 GREEN canonical provider-target uniqueness checkpoint
+
+Contract commit: `e0c1703cf23fb6a971e8961f3776d1f1c59ce6e0`
+
+Production fix commit: `60b583e513853349e43ddf4cbb731f9845a459e1`
+
+Compile-fix commit: `09e980651c45c10d3e9688b4aa111e8fc56897bb`
+
+Documentation commit: `f823c6bc451952412dfe382b5c340602637fbd83`
+
+Locally confirmed by the maintainer:
+
+```text
+Focused contract: 1/1 GREEN
+WhenItFails.Tests: 1116/1116 GREEN
+```
+
+Canonical aliases in the provider snapshot are now rejected before the write loop. Path uniqueness is case-insensitive on Windows and ordinal on non-Windows systems.
 
 ## 2026-09-22 — duplicate canonical provider-target contract
 
@@ -5422,15 +5441,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateTargetsResolveToSameFile_ReturnsInvalidWithoutPartialWrites"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1116/1116 GREEN
 ```
 
-The previous verification did not reach xUnit because of the now-fixed CS0136 local-name collision. Expected after `09e98065`: **one focused GREEN** and **1116/1116 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Run the focused contract introduced by the next provider-output relationship hardening step before changing production code.
 
 ## Next recommended step
 
-After **1116/1116 GREEN** is confirmed locally, record the canonical-target uniqueness checkpoint and continue auditing provider-output collisions or malformed snapshot relationships rather than another path-syntax duplicate.
+Probe file/directory target conflicts inside one provider snapshot. A target such as `Nested` can be a valid file path by itself while another valid target `Nested/item.json` requires the same path to be a directory. The complete snapshot should reject that relationship before either target is written.
