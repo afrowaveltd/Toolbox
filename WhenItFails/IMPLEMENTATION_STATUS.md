@@ -72,6 +72,37 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller `CodeGroupCatalogFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns a code-group-specific invalid filename code.
 - Caller `OwnerCatalogFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns the owner-specific invalid filename code.
 - Caller `ProfilesFileName = "."` semantic-directory contract is locally verified GREEN; all five caller catalog filename fields classify package-directory targets as invalid filenames.
+- Provider-target existing-file parent contract committed; focused RED verification pending.
+
+## 2026-09-22 — provider target with existing file parent contract
+
+Contract commit:
+`a6dd14f6a497bda3c1cf8d4308b4fcd9c0d8e4ca`
+
+Baseline: **1092/1092 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperFileParentTemplateTargetContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenLaterTemplateTargetParentIsExistingFile_ReturnsInvalidWithoutPartialWrites`
+
+The existing package workspace contains a regular file `Nested` with the contents `Keep me.`. The provider returns two templates: a valid `first.json` followed by a nested target `Nested/child.json`. The second target remains lexically inside the package and does not itself exist as a directory, but its parent cannot be used as a directory.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID
+Message: The JSON template provider returned a template with an invalid target file name.
+```
+
+The full provider snapshot must be validated before any template write: `first.json` and `Nested/child.json` must not exist afterward, and `Nested` must remain a regular file with unchanged contents.
+
+Current production checks whether a provider target is itself an existing directory, but does not reject parent paths that are existing regular files. The later target is expected to fail during filesystem writes after the first template has been created.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1092/1092 GREEN five-field current-directory checkpoint
 
@@ -3538,11 +3569,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateTargetParentIsExistingFile_ReturnsInvalidWithoutPartialWrites"
 ```
 
-Locally confirmed: **1092/1092 GREEN**.
+Expected at this stage: **one focused RED**. The later template target is expected to fail in the write phase rather than returning the stable invalid provider-target contract during full-snapshot validation. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Add one focused contract for a provider target such as `Nested/child.json` when `Nested` is an existing regular file. The provider snapshot must be rejected with `WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID` before writing any template files, and the existing file must remain unchanged.
+After focused RED is confirmed, add a narrow pre-write validation of existing regular-file ancestors for provider targets. Preserve existing valid nested-target creation, cancellation, and outside-package contracts.
