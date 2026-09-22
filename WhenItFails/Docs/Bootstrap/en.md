@@ -151,7 +151,7 @@ All five caller-configured catalog file names must identify files rather than di
 
 All five caller-configured catalog filename fields — `ErrorCatalogFileName`, `CategoryCatalogFileName`, `CodeGroupCatalogFileName`, `OwnerCatalogFileName`, and `ProfilesFileName` — are also rejected when their normalized final path segment is the current-directory marker, for example `Path.Combine("Nested", ".")`. These semantic-directory targets are invalid even when `Nested` does not yet exist, and they are rejected before workspace creation or template-provider invocation.
 
-`ErrorCatalogFileName` is additionally rejected when its normalized final segment is the parent-directory marker while canonical resolution still remains inside the package, for example `Path.Combine("Nested", "Sub", "..")`. Such a value resolves to a directory rather than a catalog file and is classified as invalid configuration before workspace creation or template-provider invocation. A true parent-directory escape outside the package retains `WIF_JSONS_ERROR_CATALOG_FILE_NAME_OUTSIDE_PACKAGE`.
+`ErrorCatalogFileName` and `CategoryCatalogFileName` are additionally rejected when their normalized final segment is the parent-directory marker while canonical resolution still remains inside the package, for example `Path.Combine("Nested", "Sub", "..")`. Such values resolve to a directory rather than a catalog file and are classified as invalid configuration before workspace creation or template-provider invocation. A true parent-directory escape outside the package retains the corresponding field-specific outside-package classification.
 
 ## Template provider
 
