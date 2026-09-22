@@ -50,6 +50,13 @@ public sealed class JsonCatalogDocumentLoader
              message: "JSON catalog file path is invalid.");
       }
 
+      if(Directory.Exists(normalizedFilePath))
+      {
+         return Response<TDocument>.Invalid(
+             code: "FilePathIsDirectory",
+             message: "JSON catalog file path points to a directory.");
+      }
+
       if(!File.Exists(normalizedFilePath))
       {
          return Response<TDocument>.NotFound(
