@@ -155,6 +155,17 @@ Message: The JSON template provider returned multiple templates for the same tar
 
 Path uniqueness follows platform semantics: `StringComparer.OrdinalIgnoreCase` on Windows and `StringComparer.Ordinal` elsewhere. Existing per-target invalid/outside-package contracts remain unchanged, and duplicate aliases are rejected before any nested directory or template file is created.
 
+Local verification after the first production fix was blocked before test execution by compiler error:
+
+```text
+CS0136: fullTemplateTargetFilePath cannot be declared in this scope because the name is already used in an enclosing local scope.
+```
+
+Compile-fix commit:
+`09e980651c45c10d3e9688b4aa111e8fc56897bb`
+
+The new canonical-path local is now named `canonicalTemplateTargetFilePath`; behavior is unchanged.
+
 **Focused GREEN and complete-suite 1116/1116 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1115/1115 GREEN completed contained parent-directory filename checkpoint
@@ -5418,7 +5429,7 @@ dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_
 dotnet test WhenItFails.Tests
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1116/1116 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+The previous verification did not reach xUnit because of the now-fixed CS0136 local-name collision. Expected after `09e98065`: **one focused GREEN** and **1116/1116 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
