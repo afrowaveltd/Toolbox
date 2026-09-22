@@ -97,6 +97,37 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Contained terminal parent-directory `ProfilesFileName` contract is locally verified GREEN; all five caller-configured catalog filename fields now reject contained terminal `..` values before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Duplicate canonical provider-target contract is locally verified GREEN; canonical aliases are rejected before writes with platform-appropriate path comparison.
 - Provider snapshot file/directory target-conflict contract is locally verified GREEN; prospective file-vs-directory conflicts are rejected before the write loop.
+- Reverse-order provider target-conflict regression committed; focused GREEN verification pending.
+
+## 2026-09-22 — reverse-order provider target-conflict regression
+
+Regression commit:
+`0fe83d28d95703be905ed27201ae6a8d52901747`
+
+Baseline: **1117/1117 GREEN**, confirmed locally by the maintainer before this regression was introduced.
+
+Added contract:
+`EnsureWorkspaceAsync_WhenChildTemplatePrecedesParentFileTarget_ReturnsInvalidWithoutPartialWrites`
+
+Provider order:
+
+```text
+Nested/item.json
+Nested
+```
+
+Expected response remains:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_CONFLICT
+Message: The JSON template provider returned conflicting target file paths.
+```
+
+Neither target may be written. No production change was made; this regression verifies that snapshot conflict detection is order-independent.
+
+**Focused GREEN and complete-suite 1118/1118 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1117/1117 GREEN provider target-relationship checkpoint
 
@@ -5526,14 +5557,15 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1117/1117 GREEN
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenChildTemplatePrecedesParentFileTarget_ReturnsInvalidWithoutPartialWrites"
+dotnet test WhenItFails.Tests
 ```
 
-Add and run the reverse-order target-relationship regression before changing production code.
+Expected: **one focused GREEN** and **1118/1118 GREEN** for the complete suite. No production change is expected for this regression. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Verify order independence with `Nested/item.json` first and `Nested` second. This should already return the same conflict response without production changes.
+After **1118/1118 GREEN** is confirmed locally, record the order-independent target-conflict checkpoint and continue auditing snapshot relationships beyond file/directory ancestry.
