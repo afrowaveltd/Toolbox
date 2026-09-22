@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1095/1095 GREEN**, confirmed locally by the maintainer after caller `CategoryCatalogFileName` existing-file parent validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1096/1096 GREEN**, confirmed locally by the maintainer after caller `CodeGroupCatalogFileName` existing-file parent validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -75,7 +75,28 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Provider-target existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected during full-snapshot validation before template writes.
 - Caller error-catalog existing-file parent contract is locally verified GREEN; its existing regular-file ancestor is rejected before template-provider invocation.
 - Caller category-catalog existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
-- Caller code-group existing-file parent contract confirmed RED on Windows; the narrow caller-side ancestor guard is committed, awaiting focused/full GREEN verification.
+- Caller code-group existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
+
+## 2026-09-22 — 1096/1096 GREEN caller code group file-parent checkpoint
+
+Contract commit: `bd8ca8b8683a4a2d28a5a3e6036dbad416b484f3`
+
+Production fix commit: `680d6140cb7fab2c238f2e7ae61f49c50bd25045`
+
+Documentation commit: `c4e13a06b4192de531ab72f5f9312558d7be7916`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1096
+Total:  1096
+```
+
+Caller `CodeGroupCatalogFileName` paths with existing regular-file ancestors inside the package now return the code-group-specific invalid response before template-provider invocation, leaving the ancestor file untouched.
+
+Next caller-configured field: `OwnerCatalogFileName`.
 
 ## 2026-09-22 — caller code group catalog existing-file parent contract
 
@@ -136,7 +157,7 @@ Message: The code group catalog file name is invalid.
 
 The check runs before workspace creation or template-provider invocation and does not modify the existing parent file. Actual escape paths retain the outside-package response; other caller fields are unchanged.
 
-**Focused GREEN and complete-suite 1096/1096 GREEN are pending local verification.**
+**Complete-suite 1096/1096 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-22 — 1095/1095 GREEN caller category catalog file-parent checkpoint
 
@@ -3843,12 +3864,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCodeGroupCatalogFileNameParentIsExistingFile_ReturnsInvalidBeforeProvider"
 dotnet test WhenItFails.Tests
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1096/1096 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Locally confirmed: **1096/1096 GREEN**.
 
 ## Next recommended step
 
-After **1096/1096 GREEN** is confirmed locally, record the checkpoint and continue with `OwnerCatalogFileName` for the same existing-file parent boundary.
+Add one focused caller-configuration contract for `OwnerCatalogFileName = Path.Combine("Nested", "owners.json")` when `Nested` already exists as a regular file inside the package. Require the owner-specific invalid response before provider invocation and preserve the original file.
