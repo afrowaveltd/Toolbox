@@ -540,6 +540,16 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                     message: "The code group catalog file name must stay inside the package directory.");
             }
 
+            if (string.Equals(
+                Path.GetFileName(normalizedCodeGroupCatalogFileName),
+                "..",
+                StringComparison.Ordinal))
+            {
+                return Response<JsonsBootstrapPayload>.Invalid(
+                    code: "WIF_JSONS_CODE_GROUP_CATALOG_FILE_NAME_INVALID",
+                    message: "The code group catalog file name is invalid.");
+            }
+
             string codeGroupCatalogFilePath = Path.Combine(
                 packageDirectoryPath,
                 normalizedCodeGroupCatalogFileName);
