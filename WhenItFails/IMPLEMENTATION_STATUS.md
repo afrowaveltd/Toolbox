@@ -87,7 +87,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Nested current-directory `ErrorCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
 - Nested current-directory `CategoryCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
 - Nested current-directory `CodeGroupCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
-- Nested current-directory `OwnerCatalogFileName` contract committed; focused RED verification pending.
+- Nested current-directory `OwnerCatalogFileName` contract confirmed RED on Windows; terminal current-directory-segment guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — nested current-directory owner-catalog filename contract
 
@@ -121,9 +121,32 @@ Message: The owner catalog file name is invalid.
 
 The template provider must not be invoked and the root/package workspace must remain uncreated.
 
-Current production has terminal-current-directory guards for `ErrorCatalogFileName`, `CategoryCatalogFileName`, and `CodeGroupCatalogFileName`, but not yet for `OwnerCatalogFileName`. This owner configuration is therefore expected to pass caller validation and return success.
+The focused contract confirmed the expected RED on Windows:
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+The nested semantic-directory owner filename passed caller validation and reached successful bootstrap completion.
+
+Production fix commit:
+`29ad1525aeb33de2d6b2e6c14246c55c1429c6e0`
+
+Documentation commit:
+`717243ce858ae72ca56bde491ebee9b223b21567`
+
+After normalization and before containment/provider invocation, `OwnerCatalogFileName` now rejects a final current-directory segment such as `Nested/.`:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_OWNER_CATALOG_FILE_NAME_INVALID
+Message: The owner catalog file name is invalid.
+```
+
+Valid nested owner filenames, package-directory equality classification, outside-package handling, existing-directory detection, and file-parent guards remain unchanged.
+
+**Focused GREEN and complete-suite 1108/1108 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1107/1107 GREEN nested code-group current-directory checkpoint
 
@@ -4758,10 +4781,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenOwnerCatalogFileNameEndsWithCurrentDirectorySegment_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Success`. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1108/1108 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only the terminal-current-directory-segment guard for `OwnerCatalogFileName`. Preserve valid nested owner filenames, package-directory equality classification, outside-package behavior, existing-directory detection, file-parent guards, and the one-field-at-a-time workflow.
+After **1108/1108 GREEN** is confirmed locally, record the checkpoint and continue the same semantic-directory audit with `ProfilesFileName`, the final caller-configured catalog filename field. Preserve the incremental one-field-at-a-time workflow.
