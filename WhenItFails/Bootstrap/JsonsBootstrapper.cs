@@ -844,7 +844,11 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                     NormalizePath(templateFile.TargetFileName);
 
                 if (Path.EndsInDirectorySeparator(
-                    normalizedTemplateTargetFileName))
+                    normalizedTemplateTargetFileName)
+                    || string.Equals(
+                        Path.GetFileName(normalizedTemplateTargetFileName),
+                        ".",
+                        StringComparison.Ordinal))
                 {
                     return Response<JsonsBootstrapPayload>.Invalid(
                         code: "WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID",
