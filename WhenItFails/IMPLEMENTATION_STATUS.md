@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-09-21
+Last updated: 2026-09-22
 
 This file is the continuation point for `WhenItFails` development. Git history contains the detailed chronological checkpoints; keep this file focused on the current verified state, established contracts, and next step.
 
@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1086/1086 GREEN**, confirmed locally by the maintainer after existing-directory `ProfilesFileName` caller validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1087/1087 GREEN**, confirmed locally by the maintainer after provider package-directory target classification. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -66,7 +66,28 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-directory `CodeGroupCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `OwnerCatalogFileName` caller-configuration contract is locally verified GREEN; caller configuration resolving to an existing directory is rejected before provider invocation.
 - Existing-directory `ProfilesFileName` caller-configuration contract is locally verified GREEN; all five caller-configured catalog filenames now reject paths resolving to existing directories before provider invocation.
-- Provider `TargetFileName = "."` semantic-directory contract confirmed RED on Windows; a provider-only classification fix is committed, awaiting focused/full GREEN verification.
+- Provider `TargetFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns the invalid-target code without changing the shared containment helper.
+
+## 2026-09-22 — 1087/1087 GREEN provider current-directory checkpoint
+
+Contract commit: `c4367fd76d4d1f8e28314e72b5e6f337e53e090b`
+
+Production fix commit: `cc01f3aa25d640bcc1fdc5e0ca3b35ae3e6eb7b2`
+
+Documentation commit: `4d4a0461f4ef716210897a59d0710ed4e71dedb4`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1087
+Total:  1087
+```
+
+Provider `TargetFileName = "."` now returns the invalid-target code rather than outside-package. This fixes error classification without modifying shared containment behavior or the distinct escape-path contract.
+
+Next audit: caller-configured `ErrorCatalogFileName = "."` resolves to the package directory and should receive the caller-specific invalid filename code before any provider invocation or workspace creation.
 
 ## 2026-09-21 — provider current-directory target contract
 
@@ -127,7 +148,7 @@ Message: The JSON template provider returned a template with an invalid target f
 
 True escapes such as parent-directory targets remain `WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_OUTSIDE_PACKAGE`. The shared `IsPathInsideDirectory` helper and `PackageDirectoryName` semantics were not changed.
 
-**Focused GREEN and complete-suite 1087/1087 GREEN are pending local verification.**
+**Complete-suite 1087/1087 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-21 — 1086/1086 GREEN five-field existing-directory checkpoint
 
@@ -3102,12 +3123,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateTargetResolvesToPackageDirectory_ReturnsInvalidWithoutPartialWrites"
 dotnet test WhenItFails.Tests
 ```
 
-Expected results after the committed fix: **focused GREEN** and **1087/1087 GREEN** for the complete suite.
+Locally confirmed: **1087/1087 GREEN**.
 
 ## Next recommended step
 
-After **1087/1087 GREEN** is confirmed locally, record the checkpoint and continue auditing semantic path forms without changing the shared containment helper unless a separate contract requires it.
+Add one focused caller-configuration contract for `ErrorCatalogFileName = "."`. It resolves to the package directory itself, which is a directory-only target rather than a path outside the package. Require the caller-specific invalid filename response before provider invocation or filesystem mutation.
