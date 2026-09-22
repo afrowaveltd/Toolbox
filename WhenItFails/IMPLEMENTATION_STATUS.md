@@ -78,6 +78,44 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller code-group existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
 - Caller owner-catalog existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
 - Caller profiles existing-file parent contract is locally verified GREEN; all five caller-configured catalog filename fields now reject existing regular-file ancestors before provider invocation.
+- Existing-file package-directory-path contract committed; focused RED verification pending.
+
+## 2026-09-22 — existing-file package-directory-path contract
+
+Contract commit:
+`1471d0a940390a06070a69b99b52c9e879739ac8`
+
+Baseline: **1098/1098 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperExistingFilePackageDirectoryContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenPackageDirectoryPathIsExistingFile_ReturnsInvalidBeforeProvider`
+
+The JSON root directory already exists and contains a regular file named `WhenItFails` with contents `Keep me.`. Caller configuration sets:
+
+```csharp
+RootDirectory = rootDirectory,
+PackageDirectoryName = "WhenItFails"
+```
+
+The resolved package-directory path is lexically valid and remains inside the configured root, but it cannot represent a directory because that path is already occupied by a regular file.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_PACKAGE_DIRECTORY_NAME_INVALID
+Message: The package directory name is invalid.
+```
+
+The tracking template provider must not be invoked. The existing file must remain a file, retain its original contents, and must not be replaced or mutated.
+
+Current production treats the path as a missing directory because `Directory.Exists(packageDirectoryPath)` is false for a regular file, then reaches `Directory.CreateDirectory(packageDirectoryPath)`. That filesystem failure is currently normalized by the outer I/O catch rather than classified as invalid caller configuration.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1098/1098 GREEN caller profiles file-parent checkpoint
 
@@ -4021,14 +4059,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1098/1098 GREEN
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenPackageDirectoryPathIsExistingFile_ReturnsInvalidBeforeProvider"
 ```
 
-Run the focused contract introduced by the next bootstrap hardening step first, then the complete suite after its production fix.
+Expected at this stage: **one focused RED**. The current implementation is expected to return a generic I/O `Fail` rather than the package-directory-specific `Invalid` response. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Continue bootstrap hardening with one focused contract at a time. Preserve the now-complete caller filename ancestor checks and avoid broad refactoring while probing the next malformed filesystem boundary.
+After focused RED is confirmed, add only the package-directory existing-file guard before workspace creation. Preserve valid existing directories, missing-directory creation, containment behavior, the completed caller filename checks, and provider invocation semantics.
