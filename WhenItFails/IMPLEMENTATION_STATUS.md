@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1091/1091 GREEN**, confirmed locally by the maintainer after caller `OwnerCatalogFileName = "."` classification. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1092/1092 GREEN**, confirmed locally by the maintainer after caller `ProfilesFileName = "."` classification. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -71,7 +71,28 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller `CategoryCatalogFileName = "."` semantic-directory contract is locally verified GREEN; package-directory targets are classified as invalid caller filenames without changing the shared containment helper.
 - Caller `CodeGroupCatalogFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns a code-group-specific invalid filename code.
 - Caller `OwnerCatalogFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns the owner-specific invalid filename code.
-- Caller `ProfilesFileName = "."` semantic-directory contract confirmed RED on Windows; the final field-specific classification fix is committed, awaiting focused/full GREEN verification.
+- Caller `ProfilesFileName = "."` semantic-directory contract is locally verified GREEN; all five caller catalog filename fields classify package-directory targets as invalid filenames.
+
+## 2026-09-22 — 1092/1092 GREEN five-field current-directory checkpoint
+
+Final contract commit: `51f428cfa517c754c539e6b9b33c0b2c0beb2376`
+
+Final production fix commit: `a39fcb881f5b6f0cabbf642a1dc794d067a6e7b3`
+
+Final documentation commit: `4310b612e029250096a3ccdd0c5e2d8117339329`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests
+Failed:   0
+Passed: 1092
+Total:  1092
+```
+
+The provider target and all five caller-configured catalog filename fields now classify paths that resolve exactly to the package directory as invalid filename targets, rather than escape paths. True paths outside the package keep their separate outside-package errors; the shared containment helper remains unchanged.
+
+Next distinct boundary: provider target whose parent path already exists as a regular file. A later nested template could otherwise fail only during file creation, after earlier templates have been written.
 
 ## 2026-09-22 — caller current-directory profiles filename contract
 
@@ -132,7 +153,7 @@ Message: The profile catalog file name is invalid.
 
 True escapes still return `WIF_JSONS_PROFILE_CATALOG_FILE_NAME_OUTSIDE_PACKAGE`. The shared containment helper and the other caller fields remain unchanged. All five caller-configured filename fields now include this classification in production.
 
-**Focused GREEN and complete-suite 1092/1092 GREEN are pending local verification.**
+**Complete-suite 1092/1092 GREEN was subsequently confirmed locally by the maintainer.** The latest confirmation did not separately report the focused result, compiler-warning count, or operating system.
 
 ## 2026-09-22 — 1091/1091 GREEN caller current-directory owner checkpoint
 
@@ -3517,12 +3538,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameResolvesToPackageDirectory_ReturnsInvalidBeforeProviderOrFilesystem"
 dotnet test WhenItFails.Tests
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1092/1092 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Locally confirmed: **1092/1092 GREEN**.
 
 ## Next recommended step
 
-After **1092/1092 GREEN** is confirmed locally, record the full five-field current-directory checkpoint and audit the next distinct bootstrap boundary.
+Add one focused contract for a provider target such as `Nested/child.json` when `Nested` is an existing regular file. The provider snapshot must be rejected with `WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID` before writing any template files, and the existing file must remain unchanged.
