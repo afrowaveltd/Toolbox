@@ -96,6 +96,44 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Contained terminal parent-directory `OwnerCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `ProfilesFileName` contract is locally verified GREEN; all five caller-configured catalog filename fields now reject contained terminal `..` values before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Duplicate canonical provider-target contract is locally verified GREEN; canonical aliases are rejected before writes with platform-appropriate path comparison.
+- Provider snapshot file/directory target-conflict contract committed; focused RED verification pending.
+
+## 2026-09-22 — provider snapshot file/directory target-conflict contract
+
+Contract commit:
+`5fca0f000da3b6687889b43976c7c2ae5ab4f368`
+
+Baseline: **1116/1116 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperConflictingTemplateTargetRelationshipContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenTemplateTargetIsParentFileOfAnotherTarget_ReturnsInvalidWithoutPartialWrites`
+
+The provider returns two individually valid targets:
+
+```text
+Nested
+Nested/item.json
+```
+
+The first identifies a file. The second requires that same path to be a directory. Neither target is invalid in isolation; the conflict exists only at the snapshot relationship level.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_CONFLICT
+Message: The JSON template provider returned conflicting target file paths.
+```
+
+The package workspace may already exist because provider validation happens after workspace creation, but neither `Nested` nor `Nested/item.json` may be created. This protects the full-snapshot no-partial-write guarantee.
+
+Current validation checks canonical equality and existing filesystem parents but does not compare one prospective target against another prospective target's parent chain. It is therefore expected to write `Nested` first and fail later when `Nested/item.json` attempts to create `Nested` as a directory.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1116/1116 GREEN canonical provider-target uniqueness checkpoint
 
@@ -5441,14 +5479,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1116/1116 GREEN
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateTargetIsParentFileOfAnotherTarget_ReturnsInvalidWithoutPartialWrites"
 ```
 
-Run the focused contract introduced by the next provider-output relationship hardening step before changing production code.
+Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Failed`, because the first target can be written before the second target discovers that its required parent path is already a file. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Probe file/directory target conflicts inside one provider snapshot. A target such as `Nested` can be a valid file path by itself while another valid target `Nested/item.json` requires the same path to be a directory. The complete snapshot should reject that relationship before either target is written.
+After focused RED is confirmed, add snapshot-level ancestor/descendant target conflict detection before the write loop. Preserve canonical-duplicate handling, platform path-comparison semantics, and all established per-target invalid/outside-package contracts.
