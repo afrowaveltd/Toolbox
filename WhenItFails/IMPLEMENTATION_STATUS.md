@@ -6,7 +6,7 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Hardening dependency boundaries and malformed-context/configuration handling while preserving established public exception contracts.
+Hardening dependency boundaries and malformed-context/configuration handling while preserving established public exception contracts. The current step has moved from the completed `JsonsBootstrapper` provider-snapshot audit to `JsonCatalogDocumentLoader` file-path classification.
 
 ## Current verified state
 
@@ -99,6 +99,35 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Provider snapshot file/directory target-conflict contract is locally verified GREEN; prospective file-vs-directory conflicts are rejected before the write loop.
 - Reverse-order provider target-conflict regression is locally verified GREEN; snapshot file/directory conflict detection is order-independent.
 - Later-null-template-content no-partial-write regression is locally verified GREEN; complete provider snapshot validation reaches every item's content before the write loop.
+- `JsonCatalogDocumentLoader` existing-directory path contract committed; focused RED verification pending.
+
+## 2026-09-22 — catalog document loader directory-path contract
+
+Contract commit:
+`848d8356cd37b79eae1f359760aae84ad38868c6`
+
+Baseline: **1119/1119 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Loading/JsonCatalogDocumentLoaderDirectoryPathContractTests.cs`
+
+Contract:
+`LoadFromFileAsync_WhenFilePathPointsToDirectory_ReturnsInvalidDirectoryPath`
+
+The supplied path exists as a directory. This is not a missing resource and should not be classified as `NotFound`.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: FilePathIsDirectory
+Message: JSON catalog file path points to a directory.
+```
+
+Current production validates path syntax and then uses `File.Exists(...)`. For a directory that call returns false, so the loader is expected to classify the existing directory as `FileNotFound`.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1119/1119 GREEN full-snapshot content-validation checkpoint
 
@@ -5614,14 +5643,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1119/1119 GREEN
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadFromFileAsync_WhenFilePathPointsToDirectory_ReturnsInvalidDirectoryPath"
 ```
 
-Move to the next loading boundary with a focused contract before changing production code.
+Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: NotFound`. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Probe `JsonCatalogDocumentLoader` with an existing directory supplied as `filePath`. The path exists but is not a file, so it should be classified as invalid input rather than as a missing file.
+After focused RED is confirmed, add only an existing-directory guard to `JsonCatalogDocumentLoader` before the missing-file check, then document the classification and verify the complete suite.
