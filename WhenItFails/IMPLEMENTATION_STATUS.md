@@ -93,6 +93,46 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Contained terminal parent-directory `ErrorCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `CategoryCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `CodeGroupCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
+- Contained terminal parent-directory `OwnerCatalogFileName` contract committed; focused RED verification pending.
+
+## 2026-09-22 — contained terminal parent-directory owner-catalog filename contract
+
+Contract commit:
+`2116a75b36c7ad5296c5e0c6112ed9e8153eae49`
+
+Baseline: **1113/1113 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperNestedParentDirectoryOwnerCatalogFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenOwnerCatalogFileNameEndsWithParentDirectorySegment_ReturnsInvalidBeforeProviderOrFilesystem`
+
+Caller configuration sets:
+
+```csharp
+OwnerCatalogFileName = Path.Combine(
+    "Nested",
+    "Sub",
+    "..")
+```
+
+Canonical resolution stays inside the package and resolves to the `Nested` directory itself. This is not an outside-package escape, but it cannot represent an owner-catalog file.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_OWNER_CATALOG_FILE_NAME_INVALID
+Message: The owner catalog file name is invalid.
+```
+
+The template provider must not be invoked and the root/package workspace must remain uncreated.
+
+Current owner caller validation rejects true outside-package paths and terminal current-directory segments, but does not yet reject a contained terminal parent-directory segment. This configuration is therefore expected to pass validation and return success.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1113/1113 GREEN contained parent-directory code-group checkpoint
 
@@ -5188,14 +5228,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1113/1113 GREEN
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenOwnerCatalogFileNameEndsWithParentDirectorySegment_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Run the focused contract introduced by the next bootstrap hardening step before changing production code.
+Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Success`. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Probe `OwnerCatalogFileName = Path.Combine("Nested", "Sub", "..")` for the same contained terminal-parent-directory behavior. Preserve true outside-package classification and valid nested owner filenames.
+After focused RED is confirmed, add only the containment-aware terminal-parent-directory guard for `OwnerCatalogFileName`. Preserve true outside-package classification, valid nested filenames, terminal-current-directory handling, existing-directory detection, and file-parent guards.
