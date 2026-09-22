@@ -77,7 +77,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller category-catalog existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
 - Caller code-group existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
 - Caller owner-catalog existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
-- Caller profiles existing-file parent contract committed; focused RED verification pending.
+- Caller profiles existing-file parent contract confirmed RED on Windows; the profile-specific ancestor guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — caller profiles existing-file parent contract
 
@@ -111,9 +111,32 @@ Message: The profile catalog file name is invalid.
 
 The tracking template provider must not be invoked; the nested target must remain absent; and `Nested` must remain an unchanged regular file.
 
-Current production contains existing-file ancestor guards for Error, Category, CodeGroup, and Owner caller filenames, but not yet for `ProfilesFileName`. An empty tracking provider can therefore still allow this malformed profile path to return `Success`.
+The focused contract confirmed the expected RED on Windows:
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+The profile filename passed lexical containment despite its parent `Nested` being an existing regular file. An empty tracking provider allowed bootstrap to return success.
+
+Production fix commit:
+`7f9f6f4e2d424c49274460832460386890039e6f`
+
+Documentation commit:
+`fe34b6c5e6bd3070eceebd098a3a96cb41e1f0ef`
+
+After containment and existing-directory validation of `ProfilesFileName`, the bootstrapper now checks canonical parent paths inside the package up to (but excluding) the package directory. An existing regular-file ancestor returns:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID
+Message: The profile catalog file name is invalid.
+```
+
+The validation runs before provider invocation and leaves the original file untouched. Valid nested filenames, true outside-package paths, provider-target validation, and the established profile error classifications remain unchanged.
+
+**Focused GREEN and complete-suite 1098/1098 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1097/1097 GREEN caller owner catalog file-parent checkpoint
 
@@ -3985,10 +4008,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameParentIsExistingFile_ReturnsInvalidBeforeProvider"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, likely `Actual: Success` instead of the profile-specific `Invalid` response. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1098/1098 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only the `ProfilesFileName` existing-file ancestor guard before provider invocation. Preserve valid nested filenames, true outside-package behavior, provider-target validation, and the existing profile error contracts.
+After **1098/1098 GREEN** is confirmed locally, record the checkpoint. The existing-file ancestor boundary will then be covered for all five caller-configured catalog filename fields before moving to the next bootstrap hardening contract.
