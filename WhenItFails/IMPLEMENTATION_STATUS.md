@@ -95,6 +95,44 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Contained terminal parent-directory `CodeGroupCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `OwnerCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `ProfilesFileName` contract is locally verified GREEN; all five caller-configured catalog filename fields now reject contained terminal `..` values before workspace creation or template-provider invocation while true escapes retain outside-package classification.
+- Duplicate canonical provider-target contract committed; focused RED verification pending.
+
+## 2026-09-22 — duplicate canonical provider-target contract
+
+Contract commit:
+`e0c1703cf23fb6a971e8961f3776d1f1c59ce6e0`
+
+Baseline: **1115/1115 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperDuplicateCanonicalTemplateTargetContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenTemplateTargetsResolveToSameFile_ReturnsInvalidWithoutPartialWrites`
+
+The provider returns two individually valid target names:
+
+```text
+Nested/item.json
+Nested/./item.json
+```
+
+Their lexical forms differ, but canonical resolution identifies the same target file. Provider output must be unambiguous before writes begin.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_DUPLICATE
+Message: The JSON template provider returned multiple templates for the same target file.
+```
+
+The package workspace may already exist because provider validation occurs after workspace creation, but `Nested` and `item.json` must not be created. This preserves the full-snapshot no-partial-write contract.
+
+Current snapshot validation checks each target independently but does not track canonical target uniqueness. It is therefore expected to accept both items, write the first target, treat the second alias as the same existing file, and return success.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1115/1115 GREEN completed contained parent-directory filename checkpoint
 
@@ -5350,14 +5388,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1115/1115 GREEN
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateTargetsResolveToSameFile_ReturnsInvalidWithoutPartialWrites"
 ```
 
-Run the focused contract introduced by the next bootstrap/provider-output hardening step before changing production code.
+Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Success`. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Probe canonical provider-target collisions: two individually valid target names such as `Nested/item.json` and `Nested/./item.json` can resolve to the same target file. The full provider snapshot should reject that ambiguity before any template file is written.
+After focused RED is confirmed, add canonical target-path uniqueness validation to the materialized provider snapshot before the write loop. Use Windows case-insensitive path comparison and non-Windows ordinal comparison, and preserve all established per-target validation/error contracts.
