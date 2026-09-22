@@ -764,6 +764,16 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                     message: "The profile catalog file name must stay inside the package directory.");
             }
 
+            if (string.Equals(
+                Path.GetFileName(normalizedProfilesFileName),
+                "..",
+                StringComparison.Ordinal))
+            {
+                return Response<JsonsBootstrapPayload>.Invalid(
+                    code: "WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID",
+                    message: "The profile catalog file name is invalid.");
+            }
+
             string profilesFilePath = Path.Combine(
                 packageDirectoryPath,
                 normalizedProfilesFileName);
