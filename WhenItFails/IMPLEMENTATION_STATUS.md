@@ -86,6 +86,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Nested current-directory template-target contract is locally verified GREEN; terminal current-directory segments are rejected during full-snapshot validation before template writes.
 - Nested current-directory `ErrorCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
 - Nested current-directory `CategoryCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
+- Nested current-directory `CodeGroupCatalogFileName` contract committed; focused RED verification pending.
+
+## 2026-09-22 — nested current-directory code-group catalog filename contract
+
+Contract commit:
+`79ef20b37308f01f275f35db308e665fc30ef207`
+
+Baseline: **1106/1106 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperNestedCurrentDirectoryCodeGroupCatalogFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenCodeGroupCatalogFileNameEndsWithCurrentDirectorySegment_ReturnsInvalidBeforeProviderOrFilesystem`
+
+Caller configuration sets:
+
+```csharp
+CodeGroupCatalogFileName = Path.Combine("Nested", ".")
+```
+
+The value is lexically contained inside the package but semantically resolves to the `Nested` directory itself rather than a file beneath it. Because `Nested` does not yet exist, the existing-directory guard cannot identify the problem.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_CODE_GROUP_CATALOG_FILE_NAME_INVALID
+Message: The code group catalog file name is invalid.
+```
+
+The template provider must not be invoked and the root/package workspace must remain uncreated.
+
+Current production has terminal-current-directory guards for `ErrorCatalogFileName` and `CategoryCatalogFileName`, but not yet for `CodeGroupCatalogFileName`. This code-group configuration is therefore expected to pass caller validation and return success.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1106/1106 GREEN nested category-catalog current-directory checkpoint
 
@@ -4640,14 +4677,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1106/1106 GREEN
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCodeGroupCatalogFileNameEndsWithCurrentDirectorySegment_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Run the focused contract introduced by the next bootstrap hardening step before changing production code.
+Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Success`. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Continue the semantic-directory audit with `CodeGroupCatalogFileName = Path.Combine("Nested", ".")`. Preserve the one-field-at-a-time workflow and all existing code-group filename contracts.
+After focused RED is confirmed, add only the terminal-current-directory-segment guard for `CodeGroupCatalogFileName`. Preserve valid nested code-group filenames, package-directory equality classification, outside-package behavior, existing-directory detection, file-parent guards, and the one-field-at-a-time workflow.
