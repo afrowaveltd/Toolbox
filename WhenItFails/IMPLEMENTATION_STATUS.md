@@ -83,7 +83,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Root-directory existing-file-parent contract is locally verified GREEN; existing regular-file ancestors of the configured root are rejected before package containment or provider invocation.
 - Package-directory existing-file-parent contract is locally verified GREEN; existing regular-file ancestors between the package directory and configured root are rejected before workspace creation or provider invocation.
 - Package-directory current-directory semantic contract is locally verified GREEN; package paths resolving exactly to the configured root are classified as invalid names rather than outside-root escapes.
-- Nested current-directory template-target contract committed; focused RED verification pending.
+- Nested current-directory template-target contract confirmed RED on Windows; terminal current-directory-segment guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — nested current-directory template-target contract
 
@@ -117,9 +117,32 @@ Message: The JSON template provider returned a template with an invalid target f
 
 The complete provider snapshot must be rejected before writes begin: `first.json` must remain absent and the `Nested` directory must not be created.
 
-Current production rejects `TargetFileName = "."`, explicit directory-only values ending in a separator, and targets resolving to already existing directories. It does not yet identify a terminal current-directory segment beneath a missing directory, so this target can pass snapshot validation and fail only during file creation, potentially after an earlier template has already been written.
+The focused contract confirmed the expected RED on Windows:
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+```text
+Expected: Invalid
+Actual:   Failed
+```
+
+The nested semantic-directory target passed full-snapshot validation and reached filesystem creation, where it was normalized as a generic failure. This also meant the invalid target was being detected too late to uphold the intended no-partial-write validation boundary.
+
+Production fix commit:
+`4e885a5334b78503e77bbe1dce910bc628a9964a`
+
+Documentation commit:
+`0f3ac729e99f26080e609a6f3f82071e539563ea`
+
+During provider snapshot validation, bootstrap now rejects a normalized target whose final path segment is `.` before containment/write processing:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_INVALID
+Message: The JSON template provider returned a template with an invalid target file name.
+```
+
+Valid nested file targets remain supported. The later invalid target is rejected before any template write begins, preserving the no-partial-write guarantee.
+
+**Focused GREEN and complete-suite 1104/1104 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1103/1103 GREEN package root-target checkpoint
 
@@ -4450,10 +4473,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateTargetEndsWithCurrentDirectorySegment_ReturnsInvalidWithoutPartialWrites"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**. The likely current behavior is a generic filesystem `Failed` response after snapshot validation has already accepted the nested semantic-directory target; the contract also protects against an earlier template write. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1104/1104 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add the narrow terminal-current-directory-segment guard during provider snapshot validation. Preserve valid nested file targets, the existing package-directory equality contract, existing-directory detection, and the full-snapshot no-partial-write guarantee.
+After **1104/1104 GREEN** is confirmed locally, record the checkpoint and continue auditing remaining provider-output semantic-path boundaries. Preserve full-snapshot validation, no-partial-write behavior, valid nested target creation, and established containment classifications.
