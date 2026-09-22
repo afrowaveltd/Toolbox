@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1116/1116 GREEN**, confirmed locally by the maintainer after canonical template-target uniqueness validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1117/1117 GREEN**, confirmed locally by the maintainer after provider snapshot file/directory target-conflict validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -96,7 +96,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Contained terminal parent-directory `OwnerCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `ProfilesFileName` contract is locally verified GREEN; all five caller-configured catalog filename fields now reject contained terminal `..` values before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Duplicate canonical provider-target contract is locally verified GREEN; canonical aliases are rejected before writes with platform-appropriate path comparison.
-- Provider snapshot file/directory target-conflict contract confirmed RED on Windows; snapshot relationship validation is committed, awaiting focused/full GREEN verification.
+- Provider snapshot file/directory target-conflict contract is locally verified GREEN; prospective file-vs-directory conflicts are rejected before the write loop.
+
+## 2026-09-22 — 1117/1117 GREEN provider target-relationship checkpoint
+
+Contract commit: `5fca0f000da3b6687889b43976c7c2ae5ab4f368`
+
+Production fix commit: `c6be6abaedb729958339814d6ae2e9798a286ed8`
+
+Documentation commit: `c02f4e1766fb20ce771e8405cf67fbc5cba995cb`
+
+Locally confirmed by the maintainer:
+
+```text
+Focused contract: 1/1 GREEN
+WhenItFails.Tests: 1117/1117 GREEN
+```
+
+A provider snapshot can no longer contain a target file whose path another target requires as a directory. The conflict is detected before any template write.
 
 ## 2026-09-22 — provider snapshot file/directory target-conflict contract
 
@@ -5509,15 +5526,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateTargetIsParentFileOfAnotherTarget_ReturnsInvalidWithoutPartialWrites"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1117/1117 GREEN
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1117/1117 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Add and run the reverse-order target-relationship regression before changing production code.
 
 ## Next recommended step
 
-After **1117/1117 GREEN** is confirmed locally, record the target-relationship checkpoint and add the reverse-order regression (`Nested/item.json` before `Nested`) to prove the snapshot conflict detection is order-independent before moving to the next provider-output boundary.
+Verify order independence with `Nested/item.json` first and `Nested` second. This should already return the same conflict response without production changes.
