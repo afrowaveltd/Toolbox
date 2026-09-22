@@ -77,6 +77,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller category-catalog existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
 - Caller code-group existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
 - Caller owner-catalog existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
+- Caller profiles existing-file parent contract committed; focused RED verification pending.
+
+## 2026-09-22 — caller profiles existing-file parent contract
+
+Contract commit:
+`3185dc5b222d8c71e6352df5984660ba86af788e`
+
+Baseline: **1097/1097 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperFileParentProfilesFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenProfilesFileNameParentIsExistingFile_ReturnsInvalidBeforeProvider`
+
+The package workspace contains an existing regular file `Nested` with contents `Keep me.`. Caller configuration sets:
+
+```csharp
+ProfilesFileName = Path.Combine("Nested", "profiles.json")
+```
+
+The target remains lexically inside the package and does not itself resolve to an existing directory. Its parent `Nested`, however, is a regular file and cannot serve as a directory.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID
+Message: The profile catalog file name is invalid.
+```
+
+The tracking template provider must not be invoked; the nested target must remain absent; and `Nested` must remain an unchanged regular file.
+
+Current production contains existing-file ancestor guards for Error, Category, CodeGroup, and Owner caller filenames, but not yet for `ProfilesFileName`. An empty tracking provider can therefore still allow this malformed profile path to return `Success`.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1097/1097 GREEN caller owner catalog file-parent checkpoint
 
@@ -3947,11 +3984,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameParentIsExistingFile_ReturnsInvalidBeforeProvider"
 ```
 
-Locally confirmed: **1097/1097 GREEN**.
+Expected at this stage: **one focused RED**, likely `Actual: Success` instead of the profile-specific `Invalid` response. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Add one focused caller-configuration contract for `ProfilesFileName = Path.Combine("Nested", "profiles.json")` when `Nested` is an existing regular file inside the package. Require the profile-specific invalid response before provider invocation while preserving the original file.
+After focused RED is confirmed, add only the `ProfilesFileName` existing-file ancestor guard before provider invocation. Preserve valid nested filenames, true outside-package behavior, provider-target validation, and the existing profile error contracts.
