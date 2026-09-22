@@ -316,6 +316,16 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                     message: "The error catalog file name must stay inside the package directory.");
             }
 
+            if (string.Equals(
+                Path.GetFileName(normalizedErrorCatalogFileName),
+                "..",
+                StringComparison.Ordinal))
+            {
+                return Response<JsonsBootstrapPayload>.Invalid(
+                    code: "WIF_JSONS_ERROR_CATALOG_FILE_NAME_INVALID",
+                    message: "The error catalog file name is invalid.");
+            }
+
             string errorCatalogFilePath = Path.Combine(
                 packageDirectoryPath,
                 normalizedErrorCatalogFileName);
