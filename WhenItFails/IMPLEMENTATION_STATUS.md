@@ -81,7 +81,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-file package-directory-path contract is locally verified GREEN; a regular file occupying the resolved package path is rejected before workspace creation or provider invocation.
 - Existing-file root-directory-path contract is locally verified GREEN; a regular file occupying the configured root path is rejected before package containment or provider invocation.
 - Root-directory existing-file-parent contract is locally verified GREEN; existing regular-file ancestors of the configured root are rejected before package containment or provider invocation.
-- Package-directory existing-file-parent contract committed; focused RED verification pending.
+- Package-directory existing-file-parent contract confirmed RED on Windows; the package ancestor-file guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — 1101/1101 GREEN root file-parent checkpoint
 
@@ -132,9 +132,32 @@ Message: The package directory name is invalid.
 
 The template provider must not be invoked. The existing parent file must remain unchanged and no package directory may be created.
 
-Current production checks only whether the exact resolved package-directory path is already a file. It does not yet inspect existing parent paths between the package directory and configured root, so this structurally impossible nested package is expected to reach directory creation and be normalized as a generic I/O failure.
+The focused contract confirmed the expected RED on Windows:
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+```text
+Expected: Invalid
+Actual:   Failed
+```
+
+The exact package-directory path did not exist, but its parent `Packages` was a regular file. Package containment therefore succeeded and the collision reached directory creation, where the outer I/O catch normalized it as a generic failure.
+
+Production fix commit:
+`3634b11b63a69446d118ace6c68e213321c99526`
+
+Documentation commit:
+`09897c076ed538a95e51e102ab52bce5c29b8df5`
+
+After package containment and the exact package-file guard, bootstrap now walks the canonical package parent chain up to (but excluding) the configured root. Any existing regular-file ancestor returns:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_PACKAGE_DIRECTORY_NAME_INVALID
+Message: The package directory name is invalid.
+```
+
+The validation runs before workspace creation or template-provider invocation. Valid nested package paths, valid existing package directories, exact package-file handling, and root-path classification remain unchanged.
+
+**Focused GREEN and complete-suite 1102/1102 GREEN are pending local verification.**
 
 ## 2026-09-22 — root-directory existing-file-parent contract
 
@@ -4296,10 +4319,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenPackageDirectoryParentIsExistingFile_ReturnsInvalidBeforeProvider"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Failed`. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1102/1102 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only the package-directory ancestor-file guard between containment and workspace creation. Preserve valid nested package-directory creation, valid existing package directories, exact package-file handling, root-path classification, and template-provider semantics.
+After **1102/1102 GREEN** is confirmed locally, record the checkpoint and continue with the next narrow bootstrap filesystem-boundary contract. Preserve root/package path classification and the completed caller filename validations while avoiding broad refactoring.
