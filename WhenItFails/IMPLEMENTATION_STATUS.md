@@ -88,7 +88,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Nested current-directory `CategoryCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
 - Nested current-directory `CodeGroupCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
 - Nested current-directory `OwnerCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
-- Nested current-directory `ProfilesFileName` contract committed; focused RED verification pending.
+- Nested current-directory `ProfilesFileName` contract confirmed RED on Windows; terminal current-directory-segment guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — nested current-directory profiles filename contract
 
@@ -122,9 +122,32 @@ Message: The profile catalog file name is invalid.
 
 The tracking template provider must not be invoked, and no root/package workspace directory may be created.
 
-The provider target and the other four caller-configured catalog filename fields already reject terminal current-directory segments. `ProfilesFileName` is the remaining field without that check; its current validation is expected to accept `Nested/.` and return success.
+The focused contract confirmed the expected RED on Windows:
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+The nested semantic-directory profiles filename passed caller validation and reached successful bootstrap completion.
+
+Production fix commit:
+`2adf8c71ca48c38e5db2d220b46ed7270b532e49`
+
+Documentation commit:
+`260cdc212e0a16342188dae68fae61cfd02fff74`
+
+After normalization and before containment/provider invocation, `ProfilesFileName` now rejects a final current-directory segment such as `Nested/.`:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID
+Message: The profile catalog file name is invalid.
+```
+
+All five caller-configured catalog filename fields now enforce the same terminal-current-directory semantic-directory rule. Valid nested filenames, package-directory equality classification, outside-package handling, existing-directory detection, and file-parent guards remain unchanged.
+
+**Focused GREEN and complete-suite 1109/1109 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1108/1108 GREEN nested owner current-directory checkpoint
 
@@ -4835,10 +4858,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameEndsWithCurrentDirectorySegment_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Success`. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1109/1109 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only the terminal-current-directory-segment guard for `ProfilesFileName`. Preserve valid nested profile filenames, package-directory equality classification, outside-package behavior, existing-directory detection, file-parent guards, and the one-field-at-a-time workflow.
+After **1109/1109 GREEN** is confirmed locally, record the completed five-field nested current-directory checkpoint and continue with the next uncovered bootstrap/provider-output boundary rather than adding another duplicate catalog-field variant.
