@@ -71,7 +71,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller `CategoryCatalogFileName = "."` semantic-directory contract is locally verified GREEN; package-directory targets are classified as invalid caller filenames without changing the shared containment helper.
 - Caller `CodeGroupCatalogFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns a code-group-specific invalid filename code.
 - Caller `OwnerCatalogFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns the owner-specific invalid filename code.
-- Caller `ProfilesFileName = "."` semantic-directory contract committed; focused RED verification pending.
+- Caller `ProfilesFileName = "."` semantic-directory contract confirmed RED on Windows; the final field-specific classification fix is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — caller current-directory profiles filename contract
 
@@ -107,7 +107,32 @@ The tracking template provider must not be invoked, and the initially nonexisten
 
 Current profile filename containment reports false when its target resolves to the package directory itself and classifies that input as `WIF_JSONS_PROFILE_CATALOG_FILE_NAME_OUTSIDE_PACKAGE`. The other four caller filename fields have already received their separate classification fixes.
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+Expected: WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID
+Actual:   WIF_JSONS_PROFILE_CATALOG_FILE_NAME_OUTSIDE_PACKAGE
+```
+
+The response status was already `Invalid`; only the error classification was wrong. `ProfilesFileName = "."` resolves exactly to the package directory, not outside it.
+
+Production fix commit:
+`a39fcb881f5b6f0cabbf642a1dc794d067a6e7b3`
+
+Documentation commit:
+`4310b612e029250096a3ccdd0c5e2d8117339329`
+
+When profile filename containment fails but its canonical target equals the canonical package directory, the bootstrapper now returns:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_PROFILE_CATALOG_FILE_NAME_INVALID
+Message: The profile catalog file name is invalid.
+```
+
+True escapes still return `WIF_JSONS_PROFILE_CATALOG_FILE_NAME_OUTSIDE_PACKAGE`. The shared containment helper and the other caller fields remain unchanged. All five caller-configured filename fields now include this classification in production.
+
+**Focused GREEN and complete-suite 1092/1092 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1091/1091 GREEN caller current-directory owner checkpoint
 
@@ -3493,10 +3518,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameResolvesToPackageDirectory_ReturnsInvalidBeforeProviderOrFilesystem"
+dotnet test WhenItFails.Tests
 ```
 
-Expected: **one focused RED** due to the profile-specific error classification mismatch (`OUTSIDE_PACKAGE` instead of `INVALID`). A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1092/1092 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, apply only the narrow package-directory equality/classification fix for `ProfilesFileName`. Preserve actual escape paths, other caller fields, and the shared containment helper.
+After **1092/1092 GREEN** is confirmed locally, record the full five-field current-directory checkpoint and audit the next distinct bootstrap boundary.
