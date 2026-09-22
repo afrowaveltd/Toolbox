@@ -564,7 +564,11 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                 NormalizePath(options.OwnerCatalogFileName);
 
             if (Path.EndsInDirectorySeparator(
-                normalizedOwnerCatalogFileName))
+                normalizedOwnerCatalogFileName)
+                || string.Equals(
+                    Path.GetFileName(normalizedOwnerCatalogFileName),
+                    ".",
+                    StringComparison.Ordinal))
             {
                 return Response<JsonsBootstrapPayload>.Invalid(
                     code: "WIF_JSONS_OWNER_CATALOG_FILE_NAME_INVALID",
