@@ -77,7 +77,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller category-catalog existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
 - Caller code-group existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
 - Caller owner-catalog existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
-- Caller profiles existing-file parent contract confirmed RED on Windows; the profile-specific ancestor guard is committed, awaiting focused/full GREEN verification.
+- Caller profiles existing-file parent contract is locally verified GREEN; all five caller-configured catalog filename fields now reject existing regular-file ancestors before provider invocation.
+
+## 2026-09-22 — 1098/1098 GREEN caller profiles file-parent checkpoint
+
+Contract commit: `3185dc5b222d8c71e6352df5984660ba86af788e`
+
+Production fix commit: `7f9f6f4e2d424c49274460832460386890039e6f`
+
+Documentation commit: `fe34b6c5e6bd3070eceebd098a3a96cb41e1f0ef`
+
+Locally confirmed by the maintainer:
+
+```text
+Focused contract: 1/1 GREEN
+WhenItFails.Tests: 1098/1098 GREEN
+```
+
+The existing-file ancestor boundary is now covered consistently for `ErrorCatalogFileName`, `CategoryCatalogFileName`, `CodeGroupCatalogFileName`, `OwnerCatalogFileName`, and `ProfilesFileName`.
 
 ## 2026-09-22 — caller profiles existing-file parent contract
 
@@ -4004,15 +4021,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenProfilesFileNameParentIsExistingFile_ReturnsInvalidBeforeProvider"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1098/1098 GREEN
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1098/1098 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Run the focused contract introduced by the next bootstrap hardening step first, then the complete suite after its production fix.
 
 ## Next recommended step
 
-After **1098/1098 GREEN** is confirmed locally, record the checkpoint. The existing-file ancestor boundary will then be covered for all five caller-configured catalog filename fields before moving to the next bootstrap hardening contract.
+Continue bootstrap hardening with one focused contract at a time. Preserve the now-complete caller filename ancestor checks and avoid broad refactoring while probing the next malformed filesystem boundary.
