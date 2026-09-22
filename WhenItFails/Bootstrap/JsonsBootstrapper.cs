@@ -999,10 +999,10 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                     packageDirectoryPath,
                     normalizedTemplateTargetFileName);
 
-                string fullTemplateTargetFilePath =
+                string canonicalTemplateTargetFilePath =
                     Path.GetFullPath(templateTargetFilePath);
 
-                if (!templateTargetPaths.Add(fullTemplateTargetFilePath))
+                if (!templateTargetPaths.Add(canonicalTemplateTargetFilePath))
                 {
                     return Response<JsonsBootstrapPayload>.Invalid(
                         code: "WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_DUPLICATE",
