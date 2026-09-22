@@ -82,6 +82,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-file root-directory-path contract is locally verified GREEN; a regular file occupying the configured root path is rejected before package containment or provider invocation.
 - Root-directory existing-file-parent contract is locally verified GREEN; existing regular-file ancestors of the configured root are rejected before package containment or provider invocation.
 - Package-directory existing-file-parent contract is locally verified GREEN; existing regular-file ancestors between the package directory and configured root are rejected before workspace creation or provider invocation.
+- Package-directory current-directory semantic contract committed; focused RED verification pending.
+
+## 2026-09-22 — package-directory current-directory semantic contract
+
+Contract commit:
+`1a6368ee9b3580806e76dbbd4d0fa298015cf9b4`
+
+Baseline: **1102/1102 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperCurrentDirectoryPackageDirectoryNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenPackageDirectoryNameResolvesToRoot_ReturnsInvalidBeforeProviderOrFilesystem`
+
+Caller configuration sets:
+
+```csharp
+PackageDirectoryName = "."
+```
+
+After normalization and canonical path resolution, the package directory resolves exactly to `RootDirectory`. This is not a path escape outside the configured root; it is semantically invalid package-directory configuration because the package directory name does not identify a child directory.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_PACKAGE_DIRECTORY_NAME_INVALID
+Message: The package directory name is invalid.
+```
+
+The template provider must not be invoked and the root directory must remain uncreated.
+
+Current production uses the shared strict containment helper, which intentionally requires a child path. A target equal to the containing root therefore returns `false` and is currently classified as `WIF_JSONS_PACKAGE_DIRECTORY_NAME_OUTSIDE_ROOT`. The new contract distinguishes this equality case from a true escape without changing the helper.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1102/1102 GREEN package file-parent checkpoint
 
@@ -4332,14 +4369,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1102/1102 GREEN
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenPackageDirectoryNameResolvesToRoot_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Run the focused contract introduced by the next bootstrap hardening step before changing production code.
+Expected at this stage: **one focused RED** on the issue code/message classification. The response status should already be `Invalid`, but the current implementation is expected to report `WIF_JSONS_PACKAGE_DIRECTORY_NAME_OUTSIDE_ROOT` instead of `WIF_JSONS_PACKAGE_DIRECTORY_NAME_INVALID`. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Probe the package-directory semantic current-directory boundary. `PackageDirectoryName = "."` resolves exactly to `RootDirectory`; this is not an escape and should be classified as an invalid package directory name rather than an outside-root path. Preserve true escape classification and valid nested package-directory behavior.
+After focused RED is confirmed, special-case only the package-path-equals-root condition before returning the outside-root classification. Preserve the shared strict containment helper, true escape behavior, valid nested package paths, and all existing filesystem guards.
