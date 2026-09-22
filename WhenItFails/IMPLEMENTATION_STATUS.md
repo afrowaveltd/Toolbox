@@ -96,7 +96,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Contained terminal parent-directory `OwnerCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `ProfilesFileName` contract is locally verified GREEN; all five caller-configured catalog filename fields now reject contained terminal `..` values before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Duplicate canonical provider-target contract is locally verified GREEN; canonical aliases are rejected before writes with platform-appropriate path comparison.
-- Provider snapshot file/directory target-conflict contract committed; focused RED verification pending.
+- Provider snapshot file/directory target-conflict contract confirmed RED on Windows; snapshot relationship validation is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — provider snapshot file/directory target-conflict contract
 
@@ -131,9 +131,39 @@ Message: The JSON template provider returned conflicting target file paths.
 
 The package workspace may already exist because provider validation happens after workspace creation, but neither `Nested` nor `Nested/item.json` may be created. This protects the full-snapshot no-partial-write guarantee.
 
-Current validation checks canonical equality and existing filesystem parents but does not compare one prospective target against another prospective target's parent chain. It is therefore expected to write `Nested` first and fail later when `Nested/item.json` attempts to create `Nested` as a directory.
+The focused contract confirmed the expected RED on Windows:
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+```text
+Expected: Invalid
+Actual:   Failed
+```
+
+The first target was written as file `Nested`; the later child target then failed when bootstrap attempted to use that same path as a directory.
+
+Production fix commit:
+`c6be6abaedb729958339814d6ae2e9798a286ed8`
+
+Documentation commit:
+`c02f4e1766fb20ce771e8405cf67fbc5cba995cb`
+
+Snapshot validation now tracks both canonical target-file paths and directory paths required by prospective targets. It rejects either relationship:
+
+```text
+Nested
+Nested/item.json
+```
+
+or the reverse encounter order before the write loop with:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_CONFLICT
+Message: The JSON template provider returned conflicting target file paths.
+```
+
+The relationship sets use the same platform-aware comparer as canonical duplicate detection.
+
+**Focused GREEN and complete-suite 1117/1117 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1116/1116 GREEN canonical provider-target uniqueness checkpoint
 
@@ -5483,10 +5513,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateTargetIsParentFileOfAnotherTarget_ReturnsInvalidWithoutPartialWrites"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Failed`, because the first target can be written before the second target discovers that its required parent path is already a file. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1117/1117 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add snapshot-level ancestor/descendant target conflict detection before the write loop. Preserve canonical-duplicate handling, platform path-comparison semantics, and all established per-target invalid/outside-package contracts.
+After **1117/1117 GREEN** is confirmed locally, record the target-relationship checkpoint and add the reverse-order regression (`Nested/item.json` before `Nested`) to prove the snapshot conflict detection is order-independent before moving to the next provider-output boundary.
