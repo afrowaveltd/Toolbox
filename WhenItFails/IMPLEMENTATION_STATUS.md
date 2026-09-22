@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1109/1109 GREEN**, confirmed locally by the maintainer after nested current-directory `ProfilesFileName` validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1110/1110 GREEN**, confirmed locally by the maintainer after contained terminal parent-directory provider-target validation. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -89,7 +89,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Nested current-directory `CodeGroupCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
 - Nested current-directory `OwnerCatalogFileName` contract is locally verified GREEN; terminal current-directory segments are rejected before workspace creation or template-provider invocation.
 - Nested current-directory `ProfilesFileName` contract is locally verified GREEN; all five caller-configured catalog filename fields now reject terminal current-directory segments before workspace creation or template-provider invocation.
-- Contained terminal parent-directory provider-target contract confirmed RED on Windows; containment-aware terminal-parent guard is committed, awaiting focused/full GREEN verification.
+- Contained terminal parent-directory provider-target contract is locally verified GREEN; contained terminal `..` targets are rejected during full-snapshot validation while true escapes retain outside-package classification.
+
+## 2026-09-22 — 1110/1110 GREEN contained parent-directory provider-target checkpoint
+
+Contract commit: `db0b391f21eac8ee5768e666915b4cbbd573e754`
+
+Production fix commit: `b232973c77ff56870ff28f2a21155a0e21a583df`
+
+Documentation commit: `13b33905fa0b952fef459f7315aee24d7552e7c2`
+
+Locally confirmed by the maintainer:
+
+```text
+Focused contract: 1/1 GREEN
+WhenItFails.Tests: 1110/1110 GREEN
+```
+
+Contained terminal parent-directory provider targets such as `Nested/Sub/..` are rejected before template writes, while true parent-directory escapes retain the outside-package contract.
 
 ## 2026-09-22 — contained terminal parent-directory provider-target contract
 
@@ -4931,15 +4948,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateTargetEndsWithParentDirectorySegment_ReturnsInvalidWithoutPartialWrites"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1110/1110 GREEN
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1110/1110 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Run the focused contract introduced by the next bootstrap hardening step before changing production code.
 
 ## Next recommended step
 
-After **1110/1110 GREEN** is confirmed locally, record the checkpoint and continue auditing contained semantic-directory paths. The next candidate should be chosen by searching for an uncovered behavior rather than mechanically duplicating existing catalog-field coverage.
+Probe the caller-side equivalent with `ErrorCatalogFileName = Path.Combine("Nested", "Sub", "..")`. Canonical resolution remains inside the package but identifies a directory rather than a file. Preserve true outside-package classification and valid nested error-catalog filenames.
