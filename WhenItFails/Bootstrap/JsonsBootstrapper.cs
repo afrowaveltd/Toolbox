@@ -187,6 +187,30 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
 
             if (!packageDirectoryInsideRoot)
             {
+                string fullRootDirectoryPath =
+                    Path.GetFullPath(rootDirectory);
+
+                string fullPackageDirectoryPath =
+                    Path.GetFullPath(
+                        Path.Combine(
+                            rootDirectory,
+                            normalizedPackageDirectoryName));
+
+                StringComparison pathComparison =
+                    OperatingSystem.IsWindows()
+                        ? StringComparison.OrdinalIgnoreCase
+                        : StringComparison.Ordinal;
+
+                if (string.Equals(
+                    fullPackageDirectoryPath,
+                    fullRootDirectoryPath,
+                    pathComparison))
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_PACKAGE_DIRECTORY_NAME_INVALID",
+                        message: "The package directory name is invalid.");
+                }
+
                 return Response<JsonsBootstrapPayload>.Invalid(
                     code: "WIF_JSONS_PACKAGE_DIRECTORY_NAME_OUTSIDE_ROOT",
                     message: "The package directory name must stay inside the JSON root directory.");
