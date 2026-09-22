@@ -69,6 +69,43 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Provider `TargetFileName = "."` semantic-directory contract is locally verified GREEN; the package-directory target returns the invalid-target code without changing the shared containment helper.
 - Caller `ErrorCatalogFileName = "."` semantic-directory contract is locally verified GREEN; a package-directory target is now classified as an invalid caller filename without changing the shared containment helper.
 - Caller `CategoryCatalogFileName = "."` semantic-directory contract is locally verified GREEN; package-directory targets are classified as invalid caller filenames without changing the shared containment helper.
+- Caller `CodeGroupCatalogFileName = "."` semantic-directory contract committed; focused RED verification pending.
+
+## 2026-09-22 — caller current-directory code group catalog filename contract
+
+Contract commit:
+`81c6375a4f8e1cc6898fe9aaabaefb720b894800`
+
+Baseline: **1089/1089 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Bootstrap/JsonsBootstrapperCurrentDirectoryCodeGroupCatalogFileNameContractTests.cs`
+
+Contract:
+`EnsureWorkspaceAsync_WhenCodeGroupCatalogFileNameResolvesToPackageDirectory_ReturnsInvalidBeforeProviderOrFilesystem`
+
+Caller configuration:
+
+```csharp
+CodeGroupCatalogFileName = "."
+```
+
+The target resolves exactly to the package directory and does not identify a catalog file. This is not a path escaping the package.
+
+Required response:
+
+```text
+Status: Invalid
+Data: null
+Code: WIF_JSONS_CODE_GROUP_CATALOG_FILE_NAME_INVALID
+Message: The code group catalog file name is invalid.
+```
+
+The tracking template provider must not be invoked and the initially nonexistent workspace root must remain absent.
+
+Current code-group containment rejects the package-directory target as `WIF_JSONS_CODE_GROUP_CATALOG_FILE_NAME_OUTSIDE_PACKAGE`. The other already fixed caller fields are not being changed by this test.
+
+**Focused RED verification is pending; production has not been changed for this contract.**
 
 ## 2026-09-22 — 1089/1089 GREEN caller current-directory category checkpoint
 
@@ -3289,11 +3326,11 @@ Do not replace those transparent contracts with normalization at that layer.
 Pull current `master` and run:
 
 ```powershell
-dotnet test WhenItFails.Tests
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenCodeGroupCatalogFileNameResolvesToPackageDirectory_ReturnsInvalidBeforeProviderOrFilesystem"
 ```
 
-Locally confirmed: **1089/1089 GREEN**.
+Expected: **one focused RED** due to a code-group-specific classification mismatch (`OUTSIDE_PACKAGE` instead of `INVALID`). A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Add one focused caller-configuration contract for `CodeGroupCatalogFileName = "."`: classify the package-directory target as a code-group-specific invalid filename before provider invocation or filesystem mutation, while preserving actual outside-package classification.
+After focused RED is confirmed, apply only the narrow package-directory equality/classification fix for `CodeGroupCatalogFileName`. Preserve actual escape paths, the other caller fields, and the shared containment helper.
