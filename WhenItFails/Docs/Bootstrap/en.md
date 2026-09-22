@@ -121,6 +121,8 @@ When the directory does not exist, bootstrap creates it.
 
 When it already exists, bootstrap keeps it unchanged.
 
+If the resolved package-directory path is already occupied by a regular file, bootstrap rejects the configuration before invoking the template provider. The response uses `WIF_JSONS_PACKAGE_DIRECTORY_NAME_INVALID`; the existing file is left unchanged.
+
 ## Path normalization
 
 Configured path values are trimmed before use.
