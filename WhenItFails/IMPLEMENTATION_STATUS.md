@@ -95,7 +95,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Contained terminal parent-directory `CodeGroupCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `OwnerCatalogFileName` contract is locally verified GREEN; contained terminal `..` values are rejected before workspace creation or template-provider invocation while true escapes retain outside-package classification.
 - Contained terminal parent-directory `ProfilesFileName` contract is locally verified GREEN; all five caller-configured catalog filename fields now reject contained terminal `..` values before workspace creation or template-provider invocation while true escapes retain outside-package classification.
-- Duplicate canonical provider-target contract committed; focused RED verification pending.
+- Duplicate canonical provider-target contract confirmed RED on Windows; canonical-path uniqueness validation is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — duplicate canonical provider-target contract
 
@@ -130,9 +130,32 @@ Message: The JSON template provider returned multiple templates for the same tar
 
 The package workspace may already exist because provider validation occurs after workspace creation, but `Nested` and `item.json` must not be created. This preserves the full-snapshot no-partial-write contract.
 
-Current snapshot validation checks each target independently but does not track canonical target uniqueness. It is therefore expected to accept both items, write the first target, treat the second alias as the same existing file, and return success.
+The focused contract confirmed the expected RED on Windows:
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+The provider snapshot accepted both aliases, wrote the first target, treated the second as the same already-existing file, and returned success.
+
+Production fix commit:
+`60b583e513853349e43ddf4cbb731f9845a459e1`
+
+Documentation commit:
+`f823c6bc451952412dfe382b5c340602637fbd83`
+
+Snapshot validation now tracks full canonical target paths before the write loop. Duplicate canonical targets return:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_DUPLICATE
+Message: The JSON template provider returned multiple templates for the same target file.
+```
+
+Path uniqueness follows platform semantics: `StringComparer.OrdinalIgnoreCase` on Windows and `StringComparer.Ordinal` elsewhere. Existing per-target invalid/outside-package contracts remain unchanged, and duplicate aliases are rejected before any nested directory or template file is created.
+
+**Focused GREEN and complete-suite 1116/1116 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1115/1115 GREEN completed contained parent-directory filename checkpoint
 
@@ -5392,10 +5415,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenTemplateTargetsResolveToSameFile_ReturnsInvalidWithoutPartialWrites"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Success`. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1116/1116 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add canonical target-path uniqueness validation to the materialized provider snapshot before the write loop. Use Windows case-insensitive path comparison and non-Windows ordinal comparison, and preserve all established per-target validation/error contracts.
+After **1116/1116 GREEN** is confirmed locally, record the canonical-target uniqueness checkpoint and continue auditing provider-output collisions or malformed snapshot relationships rather than another path-syntax duplicate.
