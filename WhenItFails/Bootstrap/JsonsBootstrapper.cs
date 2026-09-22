@@ -866,6 +866,14 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                     message: "The JSON template provider failed.");
             }
 
+            StringComparer templateTargetPathComparer =
+                OperatingSystem.IsWindows()
+                    ? StringComparer.OrdinalIgnoreCase
+                    : StringComparer.Ordinal;
+
+            HashSet<string> templateTargetPaths =
+                new(templateTargetPathComparer);
+
             foreach (JsonsTemplateFile? templateFile in templateFileSnapshot)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -990,6 +998,17 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
                 string templateTargetFilePath = Path.Combine(
                     packageDirectoryPath,
                     normalizedTemplateTargetFileName);
+
+                string fullTemplateTargetFilePath =
+                    Path.GetFullPath(templateTargetFilePath);
+
+                if (!templateTargetPaths.Add(fullTemplateTargetFilePath))
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_TEMPLATE_TARGET_FILE_NAME_DUPLICATE",
+                        message:
+                            "The JSON template provider returned multiple templates for the same target file.");
+                }
 
                 if (Directory.Exists(templateTargetFilePath))
                 {
