@@ -268,6 +268,30 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
 
             if (!categoryCatalogFileInsidePackage)
             {
+                string fullPackageDirectoryPath =
+                    Path.GetFullPath(packageDirectoryPath);
+
+                string fullCategoryCatalogFilePath =
+                    Path.GetFullPath(
+                        Path.Combine(
+                            packageDirectoryPath,
+                            normalizedCategoryCatalogFileName));
+
+                StringComparison pathComparison =
+                    OperatingSystem.IsWindows()
+                        ? StringComparison.OrdinalIgnoreCase
+                        : StringComparison.Ordinal;
+
+                if (string.Equals(
+                    fullCategoryCatalogFilePath,
+                    fullPackageDirectoryPath,
+                    pathComparison))
+                {
+                    return Response<JsonsBootstrapPayload>.Invalid(
+                        code: "WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_INVALID",
+                        message: "The category catalog file name is invalid.");
+                }
+
                 return Response<JsonsBootstrapPayload>.Invalid(
                     code: "WIF_JSONS_CATEGORY_CATALOG_FILE_NAME_OUTSIDE_PACKAGE",
                     message: "The category catalog file name must stay inside the package directory.");
