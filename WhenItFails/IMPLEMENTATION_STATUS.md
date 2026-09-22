@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1118/1118 GREEN**, confirmed locally by the maintainer after reverse-order provider target-conflict regression. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1119/1119 GREEN**, confirmed locally by the maintainer after later-null-template-content no-partial-write regression. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -98,7 +98,20 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Duplicate canonical provider-target contract is locally verified GREEN; canonical aliases are rejected before writes with platform-appropriate path comparison.
 - Provider snapshot file/directory target-conflict contract is locally verified GREEN; prospective file-vs-directory conflicts are rejected before the write loop.
 - Reverse-order provider target-conflict regression is locally verified GREEN; snapshot file/directory conflict detection is order-independent.
-- Later-null-template-content no-partial-write regression committed; focused GREEN verification pending.
+- Later-null-template-content no-partial-write regression is locally verified GREEN; complete provider snapshot validation reaches every item's content before the write loop.
+
+## 2026-09-22 — 1119/1119 GREEN full-snapshot content-validation checkpoint
+
+Regression commit: `d605eaf9e3503271c7b3e37a9caac988f95b774d`
+
+Locally confirmed by the maintainer:
+
+```text
+Focused regression: 1/1 GREEN
+WhenItFails.Tests: 1119/1119 GREEN
+```
+
+The provider snapshot is fully validated through each item's content before any template file is written. The current bootstrap provider-snapshot audit is complete for materialization failures/cancellation, malformed items, per-item fields, canonical duplicate targets, structural file/directory conflicts, and no-partial-write validation failures.
 
 ## 2026-09-22 — later null template-content no-partial-write regression
 
@@ -5601,15 +5614,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenLaterTemplateContentIsNull_ReturnsInvalidWithoutPartialWrites"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1119/1119 GREEN
 ```
 
-Expected: **one focused GREEN** and **1119/1119 GREEN** for the complete suite. No production change is expected for this regression. A zero-test filter match is not a valid checkpoint.
+Move to the next loading boundary with a focused contract before changing production code.
 
 ## Next recommended step
 
-After **1119/1119 GREEN** is confirmed locally, record the no-partial-write content-validation checkpoint and continue the provider snapshot audit with another distinct boundary rather than another duplicate path-order case.
+Probe `JsonCatalogDocumentLoader` with an existing directory supplied as `filePath`. The path exists but is not a file, so it should be classified as invalid input rather than as a missing file.
