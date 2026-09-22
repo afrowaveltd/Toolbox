@@ -76,7 +76,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Caller error-catalog existing-file parent contract is locally verified GREEN; its existing regular-file ancestor is rejected before template-provider invocation.
 - Caller category-catalog existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
 - Caller code-group existing-file parent contract is locally verified GREEN; an existing regular-file ancestor is rejected before template-provider invocation.
-- Caller owner-catalog existing-file parent contract committed; focused RED verification pending.
+- Caller owner-catalog existing-file parent contract confirmed RED on Windows; the owner-specific ancestor guard is committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-22 — caller owner catalog existing-file parent contract
 
@@ -112,7 +112,32 @@ The tracking template provider must not be called; the nested target must remain
 
 Current production checks the owner filename for containment and a terminal existing-directory target, but does not yet validate existing-file ancestors. An empty tracking provider can therefore allow bootstrap to return `Success`.
 
-**Focused RED verification is pending; production has not been changed for this contract.**
+The focused contract confirmed the expected RED on Windows:
+
+```text
+Expected: Invalid
+Actual:   Success
+```
+
+The owner catalog filename passed lexical containment despite its parent `Nested` being an existing regular file. An empty tracking provider allowed bootstrap to return success.
+
+Production fix commit:
+`2e5e498fabf67f1150b985d7a1507aa68747ba8a`
+
+Documentation commit:
+`f9500de7c202fc036838bacebf4d7cda5bb6a5f0`
+
+After containment and existing-directory validation of `OwnerCatalogFileName`, the bootstrapper now checks canonical parent paths inside the package up to (but excluding) the package directory. An existing regular-file ancestor returns:
+
+```text
+Status: Invalid
+Code: WIF_JSONS_OWNER_CATALOG_FILE_NAME_INVALID
+Message: The owner catalog file name is invalid.
+```
+
+The validation runs before provider invocation and leaves the original file untouched. The other caller fields, actual outside-package paths, and the shared containment helper remain unchanged.
+
+**Focused GREEN and complete-suite 1097/1097 GREEN are pending local verification.**
 
 ## 2026-09-22 — 1096/1096 GREEN caller code group file-parent checkpoint
 
@@ -3902,10 +3927,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~EnsureWorkspaceAsync_WhenOwnerCatalogFileNameParentIsExistingFile_ReturnsInvalidBeforeProvider"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, likely `Actual: Success` instead of the owner-specific `Invalid` response. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1097/1097 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add only the owner-catalog existing-file ancestor guard before template-provider invocation. Preserve valid nested filenames, the provider-target validation, and established owner error classifications.
+After **1097/1097 GREEN** is confirmed locally, record the checkpoint. Then continue with the final caller-configured field, `ProfilesFileName`, for the same existing-file parent boundary.
