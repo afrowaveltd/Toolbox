@@ -105,6 +105,37 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonCatalogDocumentWriter` existing-directory target contract is verified GREEN in the complete 1123-test suite. The separate focused result was not reported.
 - `JsonCatalogDocumentWriter` existing-file parent target contract is locally verified GREEN in the full 1124-test suite; its ancestor-path guard rejects file parents before directory or temporary-file creation.
 - Existing-catalog serialization-failure preservation regression is locally verified GREEN in the complete suite; the original file remains unchanged with no extra backup or temporary file.
+- Writer unsupported-type serialization exception contract committed; focused RED verification pending.
+
+## 2026-09-23 — writer unsupported-type serialization exception contract
+
+Contract commit: `88aaf76be4567731bef7f78939043d92cec38371`
+
+Baseline: **1125/1125 GREEN**, locally confirmed by the maintainer before adding this contract.
+
+Added:
+`WhenItFails.Tests/Loading/JsonCatalogDocumentWriterUnsupportedTypeContractTests.cs`
+
+Contract:
+`SaveToFileAsync_WhenDocumentContainsUnsupportedType_ReturnsSerializationFailureWithoutTemporaryFile`
+
+The test passes a document with a `System.Type` property. `System.Text.Json` does not support serializing `System.Type` values and can throw `NotSupportedException`, distinct from the cyclic-reference `JsonException` previously tested.
+
+Required response:
+
+```text
+Status: Invalid
+Code: JsonSerializationFailed
+Message prefix: JSON catalog document serialization failed.
+Target file: absent
+Temporary and backup files: absent
+```
+
+The writer should preserve its stable public serialization-error contract and cleanup guarantee rather than allow a serializer `NotSupportedException` to escape.
+
+Current writer catches `JsonException` but not `NotSupportedException`. The focused test is expected to fail with an escaped exception; production and documentation are unchanged for this contract.
+
+**Focused RED verification pending.**
 
 ## 2026-09-23 — 1125/1125 GREEN existing-catalog preservation checkpoint
 
@@ -5935,14 +5966,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1125/1125 GREEN
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~SaveToFileAsync_WhenDocumentContainsUnsupportedType_ReturnsSerializationFailureWithoutTemporaryFile"
 ```
 
-Run the next focused serialization-exception contract before any production change.
+Expected: **one focused RED**, likely an uncaught `NotSupportedException`, not a status assertion mismatch. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Probe `JsonCatalogDocumentWriter` with a document containing a `System.Type` value that `System.Text.Json` cannot serialize. Unlike cyclic data, unsupported type serialization can raise `NotSupportedException`; it should return the established `Invalid` / `JsonSerializationFailed` result and clean up temporary files.
+After focused RED is confirmed, add a narrow `NotSupportedException` serializer-failure handler to the writer while preserving existing `JsonException`, cancellation, and genuine filesystem failure contracts. Document the distinction and run the complete 1126-test suite.
