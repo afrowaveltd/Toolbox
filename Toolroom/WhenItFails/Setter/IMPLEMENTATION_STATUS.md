@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-09-03
+Last updated: 2026-09-23
 
 This file is the continuation point for `Toolroom/WhenItFails/Setter` development. Update it after every implementation, test, catalog, or documentation change that alters the current state or recommended next step.
 
@@ -20,17 +20,13 @@ Build:   successful in 22.3 s
 
 This replaces the prior historical-only interpretation of the 1241 baseline: it is now freshly verified again against current master.
 
-## 2026-09-23 — core baseline synchronization note
+## 2026-09-23 — core and Setter gate synchronization
 
-The main `WhenItFails.Tests` suite has advanced substantially since this Setter status file was last synchronized.
+Current maintainer-confirmed full suites: core **1157/1157 GREEN**, Setter **1241/1241 GREEN** (freshly rerun).
 
-Current user-verified core baseline:
-`1151 passed, 0 failed, 0 skipped`.
+Setter CLI catalog validation: 0 errors, 0 warnings, 0 information. Markdown links: 45 files / 424 links, none broken. Documentation keys: all 49 errors have unique, non-empty, canonical keys.
 
-The Setter-specific complete-suite baseline recorded below remains the last explicitly documented Setter run:
-`1241 passed, 0 failed, 0 skipped`.
-
-The Setter suite has not been re-run as part of this 2026-09-23 core project audit, so do not reinterpret the older 1241 checkpoint as a fresh verification.
+Whole-solution build was requested but its independent output was not reported; do not mark it verified yet.
 
 ## Current state
 
