@@ -30,7 +30,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCodeGroupDefinitionNormalizer` null-input contract is locally verified GREEN in the complete **1150/1150** suite.
 - `ErrorCodeGroupDefinitionNormalizer` basic-field normalization contract is locally verified GREEN in the complete **1151/1151** suite.
 - `ErrorCodeGroupDefinitionNormalizer` mutable collection/mapping isolation contract is locally verified GREEN in the complete **1152/1152** suite.
-- `ErrorCodeGroupDefinitionNormalizer` metadata isolation contract committed; expected to expose current shared-reference behavior before a narrow production fix.
+- `ErrorCodeGroupDefinitionNormalizer` metadata isolation contract confirmed RED due to shared `MetadataBag` state; narrow production copy fix committed, GREEN verification pending.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -209,6 +209,28 @@ Repository audit summary:
 - package version remains `0.1.0`, and README explicitly states that the public API/catalog structure may still evolve before the first stable release.
 
 For a practical first stable runtime release, remaining work should prioritize completing direct normalizer audits, synchronizing status/docs, running full cross-platform/release gates, and making an explicit decision about which placeholder areas belong to 1.0 versus later releases.
+
+## 2026-09-23 — code-group definition normalizer metadata isolation fix
+
+Focused RED confirmed locally by the maintainer:
+
+```text
+Normalize_ShouldCopyMetadataWithoutSharingMutableState
+Assert.NotSame() Failure: Values are the same instance
+Focused suite: 4 total, 3 passed, 1 failed
+```
+
+Production fix commit:
+`8c50d6b49155dfcde87c55d035a98e026ece6097`
+
+Updated:
+`WhenItFails/Normalization/ErrorCodeGroupDefinitionNormalizer.cs`
+
+The normalizer now creates an independent `MetadataBag` copy using the same established pattern as the category and profile normalizers.
+
+No other normalization behavior changed.
+
+**Focused GREEN and complete-suite 1153/1153 GREEN are pending local verification.**
 
 ## 2026-09-23 — code-group definition normalizer metadata isolation contract
 
