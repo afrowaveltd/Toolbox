@@ -30,6 +30,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCodeGroupDefinitionNormalizer` null-input contract is locally verified GREEN in the complete **1150/1150** suite.
 - `ErrorCodeGroupDefinitionNormalizer` basic-field normalization contract is locally verified GREEN in the complete **1151/1151** suite.
 - `ErrorCodeGroupDefinitionNormalizer` mutable collection/mapping isolation contract is locally verified GREEN in the complete **1152/1152** suite.
+- `ErrorCodeGroupDefinitionNormalizer` metadata isolation contract committed; expected to expose current shared-reference behavior before a narrow production fix.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -208,6 +209,22 @@ Repository audit summary:
 - package version remains `0.1.0`, and README explicitly states that the public API/catalog structure may still evolve before the first stable release.
 
 For a practical first stable runtime release, remaining work should prioritize completing direct normalizer audits, synchronizing status/docs, running full cross-platform/release gates, and making an explicit decision about which placeholder areas belong to 1.0 versus later releases.
+
+## 2026-09-23 — code-group definition normalizer metadata isolation contract
+
+Test commit: `594423a0d766e4111e83082086eab56fa1be6b6b`
+
+Baseline: **1152/1152 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Updated:
+`WhenItFails.Tests/Normalization/ErrorCodeGroupDefinitionNormalizerTests.cs`
+
+Contract:
+`Normalize_ShouldCopyMetadataWithoutSharingMutableState`
+
+The contract requires an independent `MetadataBag` copy for the normalized code-group definition. Mutating normalized metadata must not change the source definition.
+
+Current production assigns `Metadata = definition.Metadata`, so this focused contract is expected to be RED before a narrow implementation fix.
 
 ## 2026-09-23 — code-group definition normalizer mutable isolation contract
 
