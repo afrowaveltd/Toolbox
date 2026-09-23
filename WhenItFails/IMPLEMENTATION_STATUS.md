@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1146/1146 GREEN**, confirmed locally by the maintainer after adding the `ErrorCategoryDefinitionNormalizer` null-input contract.
+- Complete `WhenItFails.Tests` suite: **1147/1147 GREEN**, confirmed locally by the maintainer after adding the `ErrorCategoryDefinitionNormalizer` basic-field normalization contract.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -24,7 +24,8 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonErrorOwnerCatalogLoader` concrete coverage is locally verified GREEN in the complete **1145/1145** suite.
 - Specialized JSON catalog loader baseline coverage is complete for the current scope; generic invalid-path, malformed-JSON and cancellation behavior remains centralized in `JsonCatalogDocumentLoader` tests rather than duplicated per wrapper.
 - `ErrorCategoryDefinitionNormalizer` null-input contract is locally verified GREEN in the complete **1146/1146** suite.
-- `ErrorCategoryDefinitionNormalizer` basic-field normalization contract committed; local focused/full GREEN verification pending.
+- `ErrorCategoryDefinitionNormalizer` basic-field normalization contract is locally verified GREEN in the complete **1147/1147** suite.
+- `ErrorCategoryDefinitionNormalizer` mutable collection/mapping isolation contract committed; local focused/full GREEN verification pending.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -138,6 +139,26 @@ The missing using directive is now added.
 
 No production code changed. Focused/full verification remains pending.
 
+## 2026-09-23 — category definition normalizer mutable isolation contract
+
+Test commit: `b51f47931405aee86b6fdb4d8f054a7c7b657269`
+
+Baseline: **1147/1147 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Updated:
+`WhenItFails.Tests/Normalization/ErrorCategoryDefinitionNormalizerTests.cs`
+
+Contract:
+`Normalize_ShouldCopyCollectionsAndMappingsWithoutSharingMutableState`
+
+The contract verifies that normalized aliases, parent categories, default tags and default mappings are independent mutable objects. Mutating the normalized result must not change the original definition.
+
+Metadata is intentionally excluded from this contract and will be audited separately because the current implementation assigns it directly.
+
+No production change was made.
+
+**Focused 3/3 GREEN and complete-suite 1148/1148 GREEN are pending local verification.**
+
 ## 2026-09-23 — category definition normalizer basic-field contract
 
 Test commit: `b54f0a1977542309e5f0256c0340a99039add10c`
@@ -162,7 +183,7 @@ The contract verifies normalization of:
 
 No production change was made.
 
-**Focused 2/2 GREEN and complete-suite 1147/1147 GREEN are pending local verification.**
+**Focused/full local verification completed; the complete suite is 1147/1147 GREEN.**
 
 ## 2026-09-23 — category definition normalizer null-input contract
 
