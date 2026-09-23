@@ -4,6 +4,22 @@ Last updated: 2026-09-03
 
 This file is the continuation point for `Toolroom/WhenItFails/Setter` development. Update it after every implementation, test, catalog, or documentation change that alters the current state or recommended next step.
 
+## 2026-09-23 — fresh complete-suite regression checkpoint
+
+Locally confirmed on current master:
+
+```text
+Toolroom/WhenItFails/Setter.Tests
+Passed:  1241
+Failed:  0
+Skipped: 0
+Total:   1241
+Duration: 15.7 s
+Build:   successful in 22.3 s
+```
+
+This replaces the prior historical-only interpretation of the 1241 baseline: it is now freshly verified again against current master.
+
 ## 2026-09-23 — core baseline synchronization note
 
 The main `WhenItFails.Tests` suite has advanced substantially since this Setter status file was last synchronized.
