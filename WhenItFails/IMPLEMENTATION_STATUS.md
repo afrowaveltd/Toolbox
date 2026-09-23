@@ -119,6 +119,14 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Writer unsupported-type serialization exception contract is locally verified GREEN in the complete 1126-test suite; `NotSupportedException` from serializer becomes `Invalid` / `JsonSerializationFailed` with temporary-file cleanup.
 - Writer mid-serialization cancellation preservation regression is locally verified GREEN in the clean **1127/1127** suite after duplicate coverage removal.
 
+## 2026-09-23 — writer existing-target I/O failure compile fix
+
+Compile fix commit: `be897b94f3594717be37e4a1396881d1ca78e81d`
+
+The initial contract used the non-existent enum member `ResultStatus.Failure`. The actual Essentials enum member is `ResultStatus.Failed`.
+
+No production code changed. Focused/full verification remains pending.
+
 ## 2026-09-23 — writer existing-target I/O failure contract
 
 Test commit: `336a9159c52ed3911acdcead3a1d8c7a83e879d7`
