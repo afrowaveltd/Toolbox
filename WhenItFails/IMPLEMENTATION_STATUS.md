@@ -21,6 +21,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `JsonCatalogDocumentWriter` current safe-write scope is complete; `AccessDenied` remains intentionally unforced because a deterministic cross-platform permission failure would require a filesystem seam or OS-specific test setup.
 - `JsonErrorCodeGroupCatalogLoader` concrete coverage is locally verified GREEN in the complete **1143/1143** suite.
+- `JsonErrorOwnerCatalogLoader` concrete coverage committed; local focused/full GREEN verification pending.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -123,6 +124,28 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-catalog serialization-failure preservation regression is locally verified GREEN in the complete suite; the original file remains unchanged with no extra backup or temporary file.
 - Writer unsupported-type serialization exception contract is locally verified GREEN in the complete 1126-test suite; `NotSupportedException` from serializer becomes `Invalid` / `JsonSerializationFailed` with temporary-file cleanup.
 - Writer mid-serialization cancellation preservation regression is locally verified GREEN in the clean **1127/1127** suite after duplicate coverage removal.
+
+## 2026-09-23 — JSON owner catalog loader baseline coverage
+
+Test commit: `b7346eeacace4d96bfc3ed52f4de93214877dd22`
+
+Baseline: **1143/1143 GREEN**, confirmed locally by the maintainer before this coverage was introduced.
+
+Updated:
+`WhenItFails.Tests/Loading/JsonErrorOwnerCatalogLoaderTests.cs`
+
+The previous file was only an empty placeholder in the wrong namespace.
+
+Added contracts:
+
+- `Constructor_ShouldThrowArgumentNullException_WhenDocumentLoaderIsNull`
+- `LoadFromFileAsync_ShouldLoadOwnerCatalogDocument`
+
+The load contract verifies a real JSON owner catalog including identity, numeric range, built-in flag, aliases and default mappings.
+
+No production change was made.
+
+**Focused 2/2 GREEN and complete-suite 1145/1145 GREEN are pending local verification.**
 
 ## 2026-09-23 — JSON code-group catalog loader baseline coverage
 
