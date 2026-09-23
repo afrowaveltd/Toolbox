@@ -29,30 +29,33 @@ public sealed class JsonCatalogDocumentWriterInputOutputErrorContractTests
 
         try
         {
-            await using FileStream lockStream = new(
+            Response response;
+
+            await using (FileStream lockStream = new(
                 targetFilePath,
                 FileMode.Open,
                 FileAccess.Read,
-                FileShare.None);
+                FileShare.None))
+            {
+                JsonCatalogDocumentWriter writer = new();
 
-            JsonCatalogDocumentWriter writer = new();
+                response = await writer.SaveToFileAsync(
+                    new ErrorCatalogDocument
+                    {
+                        SchemaVersion = "1.0",
+                        CatalogId = "test.catalog",
+                        CatalogName = "Replacement catalog",
+                        Language = "en",
+                        Errors = []
+                    },
+                    targetFilePath);
 
-            Response response = await writer.SaveToFileAsync(
-                new ErrorCatalogDocument
-                {
-                    SchemaVersion = "1.0",
-                    CatalogId = "test.catalog",
-                    CatalogName = "Replacement catalog",
-                    Language = "en",
-                    Errors = []
-                },
-                targetFilePath);
+                Assert.False(response.IsSuccess);
+                Assert.Equal(ResultStatus.Failed, response.Status);
 
-            Assert.False(response.IsSuccess);
-            Assert.Equal(ResultStatus.Failed, response.Status);
-
-            var issue = Assert.Single(response.Issues);
-            Assert.Equal("InputOutputError", issue.Code);
+                var issue = Assert.Single(response.Issues);
+                Assert.Equal("InputOutputError", issue.Code);
+            }
 
             Assert.Equal(
                 originalBytes,
