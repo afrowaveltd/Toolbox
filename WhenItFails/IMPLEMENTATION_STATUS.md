@@ -27,6 +27,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCategoryDefinitionNormalizer` basic-field normalization contract is locally verified GREEN in the complete **1147/1147** suite.
 - `ErrorCategoryDefinitionNormalizer` mutable collection/mapping isolation contract is locally verified GREEN in the complete **1148/1148** suite.
 - `ErrorCategoryDefinitionNormalizer` metadata isolation fix is locally verified GREEN in the complete **1149/1149** suite.
+- `ErrorCodeGroupDefinitionNormalizer` null-input contract committed; local focused/full GREEN verification pending.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -139,6 +140,31 @@ The new basic-field test referenced `ErrorCategoryDefinition` without importing 
 The missing using directive is now added.
 
 No production code changed. Focused/full verification remains pending.
+
+## 2026-09-23 — code-group definition normalizer null-input contract
+
+Test commit: `db1da183e6885ca14fbc2217ebcebdc8ca8cbdf3`
+
+Baseline: **1149/1149 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Normalization/ErrorCodeGroupDefinitionNormalizerTests.cs`
+
+Contract:
+`Normalize_ShouldThrowArgumentNullException_WhenDefinitionIsNull`
+
+Required behavior:
+
+```text
+Input definition: null
+Result: throws ArgumentNullException
+```
+
+This starts direct coverage of `ErrorCodeGroupDefinitionNormalizer`, which previously had no tests referencing the class.
+
+No production change was made.
+
+**Focused 1/1 GREEN and complete-suite 1150/1150 GREEN are pending local verification.**
 
 ## 2026-09-23 — category definition normalizer metadata isolation fix
 
