@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1145/1145 GREEN**, confirmed locally by the maintainer after adding concrete `JsonErrorOwnerCatalogLoader` coverage.
+- Complete `WhenItFails.Tests` suite: **1146/1146 GREEN**, confirmed locally by the maintainer after adding the `ErrorCategoryDefinitionNormalizer` null-input contract.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -23,7 +23,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonErrorCodeGroupCatalogLoader` concrete coverage is locally verified GREEN in the complete **1143/1143** suite.
 - `JsonErrorOwnerCatalogLoader` concrete coverage is locally verified GREEN in the complete **1145/1145** suite.
 - Specialized JSON catalog loader baseline coverage is complete for the current scope; generic invalid-path, malformed-JSON and cancellation behavior remains centralized in `JsonCatalogDocumentLoader` tests rather than duplicated per wrapper.
-- `ErrorCategoryDefinitionNormalizer` null-input contract committed; local focused/full GREEN verification pending.
+- `ErrorCategoryDefinitionNormalizer` null-input contract is locally verified GREEN in the complete **1146/1146** suite.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -150,7 +150,7 @@ This begins direct coverage of `ErrorCategoryDefinitionNormalizer`, which previo
 
 No production change was made.
 
-**Focused 1/1 GREEN and complete-suite 1146/1146 GREEN are pending local verification.**
+**Focused/full local verification completed; the complete suite is 1146/1146 GREEN.**
 
 ## 2026-09-23 — JSON owner catalog loader baseline coverage
 
