@@ -175,6 +175,17 @@ Message: JSON catalog file path has an existing file as a parent.
 
 The existing parent file is left unchanged. Actual disk I/O and access failures retain their separate failure contracts.
 
+## JSON catalog writer: unsupported serialization types
+
+The JSON writer returns an invalid response with code `JsonSerializationFailed` when serialization fails, including when `System.Text.Json` raises `NotSupportedException` for an unsupported value type (for example, a document property containing a `System.Type` instance).
+
+```text
+Code: JsonSerializationFailed
+Message prefix: JSON catalog document serialization failed.
+```
+
+The writer handles `NotSupportedException` specifically at the document-to-temporary-file serialization boundary. It does not reinterpret unrelated file-system errors as serialization failures. The temporary file is cleaned up, the target is not replaced, and no backup is made if serialization did not finish.
+
 ## Missing files
 
 When the configured file does not exist, loading returns a not-found response.
