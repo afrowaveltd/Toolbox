@@ -6,11 +6,11 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Hardening dependency boundaries and malformed-context/configuration handling while preserving established public exception contracts. The current step has moved from the completed `JsonsBootstrapper` provider-snapshot audit to `JsonCatalogDocumentLoader` file-path classification.
+Hardening dependency boundaries and malformed-context/configuration handling while preserving established public exception contracts. The current step has moved from `JsonCatalogDocumentLoader` file-path classification to `JsonCatalogDocumentWriter` safe-write and backup-preservation contracts.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1123/1123 GREEN**, confirmed locally by the maintainer after the writer existing-directory target fix. The focused result, compiler-warning count, and other-platform coverage were not separately reported.
+- Complete `WhenItFails.Tests` suite: **1124/1124 GREEN**, confirmed locally by the maintainer after the writer existing-file parent target fix. The focused result, compiler-warning count and other-platform coverage were not separately reported.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -103,7 +103,23 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonCatalogDocumentLoader` existing-file-parent path guard is verified GREEN in the complete 1121-test suite; the separate focused-filter result was not reported.
 - `JsonCatalogDocumentLoader` JSON-null-document classification regression is locally verified GREEN in the full suite; a syntactically valid JSON `null` returns `EmptyCatalogDocument` rather than `InvalidJson`.
 - `JsonCatalogDocumentWriter` existing-directory target contract is verified GREEN in the complete 1123-test suite. The separate focused result was not reported.
-- `JsonCatalogDocumentWriter` existing-file parent target contract confirmed RED on Windows; ancestor-path guard committed, awaiting focused/full GREEN verification.
+- `JsonCatalogDocumentWriter` existing-file parent target contract is locally verified GREEN in the full 1124-test suite; its ancestor-path guard rejects file parents before directory or temporary-file creation.
+
+## 2026-09-23 — 1124/1124 GREEN writer existing-file parent checkpoint
+
+Contract commit: `0f494ad52a8c48bb7f809024594038ccda5bb576`
+
+Production fix commit: `fdb7d045599974c3772cc16d4a67ec79cb931fc8`
+
+Documentation commit: `f516f126a81cc284eee278f557f5ebc169ab333e`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests: 1124/1124 GREEN
+```
+
+The focused test result was not separately reported; the full suite includes the existing-file-parent contract. Invalid writer parent paths now fail before filesystem mutation.
 
 ## 2026-09-23 — writer existing-file parent target contract
 
@@ -144,7 +160,7 @@ Documentation commit: `f516f126a81cc284eee278f557f5ebc169ab333e`
 
 After the existing-directory destination guard, the writer now checks each canonical parent component for a regular file before `Directory.CreateDirectory(...)` or any temporary-file or backup write. A file ancestor yields the stable `Invalid` / `FilePathParentIsFile` contract while real disk I/O errors keep their existing response path.
 
-**Focused GREEN (1/1) and complete-suite 1124/1124 GREEN are pending local verification.**
+**Complete-suite 1124/1124 GREEN is confirmed locally; the focused result was not separately reported.**
 
 ## 2026-09-23 — 1123/1123 GREEN writer existing-directory checkpoint
 
@@ -5873,15 +5889,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~SaveToFileAsync_WhenTargetParentIsExistingFile_ReturnsInvalidWithoutFilesystemMutation"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1124/1124 GREEN
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1124/1124 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Run the next focused JSON writer backup-preservation regression before changing production code.
 
 ## Next recommended step
 
-After **1124/1124 GREEN** is confirmed locally, record the writer file-parent checkpoint and audit another distinct writer boundary while preserving cancellation, backup safety, temporary-file cleanup, and established response contracts.
+Verify that if serialization fails while saving over an existing catalog file, its exact original bytes remain unchanged, no backup is created, and no temporary file remains. The writer must return its existing `JsonSerializationFailed` contract without touching the original catalog.
