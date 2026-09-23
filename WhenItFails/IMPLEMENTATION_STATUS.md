@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1125/1125 GREEN**, confirmed locally by the maintainer after the writer existing-target serialization-failure preservation regression. The focused-filter result, compiler-warning count and cross-platform coverage were not separately reported.
+- Complete `WhenItFails.Tests` suite: **1126/1126 GREEN**, confirmed locally by the maintainer after scoped unsupported-serialization handling in the JSON writer. The focused-filter result, compiler-warning count and cross-platform coverage were not separately reported.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -105,7 +105,23 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonCatalogDocumentWriter` existing-directory target contract is verified GREEN in the complete 1123-test suite. The separate focused result was not reported.
 - `JsonCatalogDocumentWriter` existing-file parent target contract is locally verified GREEN in the full 1124-test suite; its ancestor-path guard rejects file parents before directory or temporary-file creation.
 - Existing-catalog serialization-failure preservation regression is locally verified GREEN in the complete suite; the original file remains unchanged with no extra backup or temporary file.
-- Writer unsupported-type serialization exception contract confirmed RED on Windows; scoped serializer-failure handling committed, awaiting focused/full GREEN verification.
+- Writer unsupported-type serialization exception contract is locally verified GREEN in the complete 1126-test suite; `NotSupportedException` from serializer becomes `Invalid` / `JsonSerializationFailed` with temporary-file cleanup.
+
+## 2026-09-23 — 1126/1126 GREEN unsupported-type JSON writer checkpoint
+
+Contract commit: `88aaf76be4567731bef7f78939043d92cec38371`
+
+Production fix commit: `335f036b33d121648f416b761dd80ead3c60beb2`
+
+Documentation commit: `3692ef551d2573605d6d6b3cef13d99cbd51b7d5`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests: 1126/1126 GREEN
+```
+
+Unsupported-type serialization now returns the stable error response, and its temporary-file cleanup is covered. The focused-filter result was not separately reported.
 
 ## 2026-09-23 — writer unsupported-type serialization exception contract
 
@@ -141,7 +157,7 @@ Documentation commit: `3692ef551d2573605d6d6b3cef13d99cbd51b7d5`
 
 The writer now catches `NotSupportedException` only around the document-to-temporary-file serialization operation and returns `Invalid` / `JsonSerializationFailed` with the established message prefix. The existing outer `finally` still deletes any temporary file. Cancellation, `JsonException`, genuine I/O and access failures retain their separate handling.
 
-**Focused 1/1 GREEN and complete-suite 1126/1126 GREEN are pending local verification.**
+**Complete-suite 1126/1126 GREEN is locally confirmed; the focused result was not separately reported.**
 
 ## 2026-09-23 — 1125/1125 GREEN existing-catalog preservation checkpoint
 
@@ -5972,15 +5988,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~SaveToFileAsync_WhenDocumentContainsUnsupportedType_ReturnsSerializationFailureWithoutTemporaryFile"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1126/1126 GREEN
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1126/1126 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Run the next focused JSON writer cancellation-preservation regression before changing production code.
 
 ## Next recommended step
 
-After **1126/1126 GREEN** is confirmed locally, record the unsupported-serialization checkpoint and audit another distinct writer boundary. Preserve error classification, cancellation and temporary-file cleanup, and do not create duplicative variants of this serializer contract.
+Verify a cancellation raised during JSON serialization, after the writer has entered its temporary-file workflow, preserves an existing catalog byte-for-byte, creates no backup, removes the temporary file and propagates `OperationCanceledException` rather than returning a failure response.
