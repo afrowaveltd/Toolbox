@@ -19,6 +19,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCatalogRuntime` initializer and both built-in-provider runtime paths are complete for null response, ordinary exception, null task and exact cancellation behavior.
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` invocation boundary is complete for malformed direct results, ordinary-exception normalization and exact-instance cancellation propagation; deferred failures while consuming the returned collection are under audit.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
+- Writer backup file-name shape contract committed; local focused/full GREEN verification pending.
 - Writer existing-target I/O failure contract is locally verified GREEN in the complete **1138/1138** suite.
 - Writer first-save success-message contract is locally verified GREEN in the complete **1137/1137** suite.
 - Writer backup success-message contract is locally verified GREEN in the complete **1136/1136** suite.
@@ -118,6 +119,32 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-catalog serialization-failure preservation regression is locally verified GREEN in the complete suite; the original file remains unchanged with no extra backup or temporary file.
 - Writer unsupported-type serialization exception contract is locally verified GREEN in the complete 1126-test suite; `NotSupportedException` from serializer becomes `Invalid` / `JsonSerializationFailed` with temporary-file cleanup.
 - Writer mid-serialization cancellation preservation regression is locally verified GREEN in the clean **1127/1127** suite after duplicate coverage removal.
+
+## 2026-09-23 — writer backup file-name shape contract
+
+Test commit: `6e4f37ad3797c0b07c1106f1f7d95566ec77c298`
+
+Baseline: **1138/1138 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Updated:
+`WhenItFails.Tests/Loading/JsonCatalogDocumentWriterTests.cs`
+
+Contract:
+`SaveToFileAsync_WhenTargetAlreadyExists_BackupFileNameHasStableShape`
+
+The writer replaces `errors.en.json` and creates one backup.
+
+Required backup file-name shape:
+
+```text
+errors.en.yyyyMMdd-HHmmss-fff-<32 lowercase hex chars>.bak.json
+```
+
+The timestamp and GUID remain variable, but the externally visible naming convention is fixed. This is relevant because the backup path is returned to callers in the success response.
+
+No production change was made.
+
+**Focused 1/1 GREEN and complete-suite 1139/1139 GREEN are pending local verification.**
 
 ## 2026-09-23 — writer existing-target I/O failure assertion-order fix
 
