@@ -155,6 +155,25 @@ public sealed class JsonCatalogDocumentWriterTests
         Assert.Equal("FilePathIsEmpty", response.Issues[0].Code);
     }
 
+    [Fact]
+    public async Task SaveToFileAsync_WhenFilePathIsWhitespace_ReturnsInvalid()
+    {
+        ErrorCatalogDocument document = CreateDocument("Test catalog");
+
+        JsonCatalogDocumentWriter writer = new();
+
+        Essentials.Results.Response response =
+            await writer.SaveToFileAsync(
+                document,
+                " 	 ");
+
+        Assert.False(response.IsSuccess);
+        Assert.Equal("FilePathIsEmpty", response.Issues[0].Code);
+        Assert.Equal(
+            "JSON catalog file path is empty.",
+            response.Message);
+    }
+
     private static ErrorCatalogDocument CreateDocument(string catalogName)
     {
         return new ErrorCatalogDocument
