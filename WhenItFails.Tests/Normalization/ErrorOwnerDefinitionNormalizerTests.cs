@@ -49,4 +49,34 @@ public sealed class ErrorOwnerDefinitionNormalizerTests
         Assert.Equal("platform", normalizedDefinition.DefaultMappings["SUPPORT_OWNER"]);
     }
 
+
+    [Fact]
+    public void Normalize_ShouldCopyAliasesAndMappingsWithoutSharingMutableState()
+    {
+        ErrorOwnerDefinitionNormalizer normalizer = new();
+
+        ErrorOwnerDefinition definition = new()
+        {
+            Aliases = ["afrowave"],
+            DefaultMappings =
+            {
+                ["web.httpStatusCode"] = " 500 "
+            }
+        };
+
+        ErrorOwnerDefinition normalizedDefinition =
+            normalizer.Normalize(definition);
+
+        Assert.NotSame(definition.Aliases, normalizedDefinition.Aliases);
+        Assert.NotSame(definition.DefaultMappings, normalizedDefinition.DefaultMappings);
+
+        normalizedDefinition.Aliases.Add("RUNTIME_ONLY");
+        normalizedDefinition.DefaultMappings["WEB_HTTPSTATUSCODE"] = "503";
+        normalizedDefinition.DefaultMappings["RUNTIME_ONLY"] = "true";
+
+        Assert.Equal(["afrowave"], definition.Aliases);
+        Assert.Equal(" 500 ", definition.DefaultMappings["web.httpStatusCode"]);
+        Assert.False(definition.DefaultMappings.ContainsKey("RUNTIME_ONLY"));
+    }
+
 }
