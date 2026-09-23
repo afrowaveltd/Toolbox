@@ -6,7 +6,7 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Core hardening and concrete class-level coverage audits are complete for the current scope. NuGet archive, dependency restore and embedded-template consumption in an external .NET 10 project are verified. Next: public API and stable 1.0 scope audit; full external runtime integration and stable API review remain pending.
+Core hardening and concrete class-level coverage audits are complete for the current scope. NuGet archive, dependency restore, embedded-template consumption and full external runtime initialization/resolution in a separate .NET 10 consumer are verified. Next: complete the public API stability review and define the exact stable 1.0 scope.
 
 ## Current verified state
 
@@ -195,6 +195,45 @@ Decision:
 - evaluate `ValidationProblemDetails` only after defining a proper structured field-validation contract.
 
 This is considered a strong candidate for the first stable WhenItFails release because the existing WEB/API profile mappings already anticipate web-specific presentation behavior.
+
+## 2026-09-23 — external NuGet runtime end-to-end smoke test GREEN
+
+Maintainer confirmed the isolated external `net10.0` consumer project with:
+
+- `Afrowave.Toolbox.WhenItFails 0.1.0`,
+- explicit `Microsoft.Extensions.DependencyInjection 10.0.9`,
+- transitive `Afrowave.Toolbox.Essentials 0.2.0`,
+- Microsoft.Extensions dependencies at `10.0.9`.
+
+Observed runtime output:
+
+```text
+Initialization: Success
+Runtime status: Success
+Error resolution: Success
+Resolved: AFW_GEN_0001 - Unknown error
+SUCCESS: External WhenItFails runtime smoke test.
+```
+
+This verifies the packaged public path outside the Toolbox repository:
+
+```text
+NuGet restore
+→ consumer build
+→ AddWhenItFails registration
+→ ServiceProvider creation
+→ IErrorCatalogRuntime resolution
+→ InitializeAsync
+→ GetStatus
+→ FromId
+→ ErrorDescriptor
+```
+
+The earlier consumer compile failure was caused by the test application lacking the full `Microsoft.Extensions.DependencyInjection` implementation package and by an incorrect sample reference to `Response<T>.Value`; both were consumer-test issues, not package defects.
+
+Packaging, embedded resources, external restore, external build and external runtime execution are now verified for the current `0.1.0` package.
+
+Next: complete the 1.0 public API stability review, classify intended extension interfaces versus implementation exposure, capture a reproducible API baseline, and define the exact stable 1.0 scope before changing package version or publishing.
 
 ## 2026-09-23 — external runtime consumer smoke test compile corrections
 
