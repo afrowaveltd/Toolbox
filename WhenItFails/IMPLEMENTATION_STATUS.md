@@ -24,6 +24,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonErrorOwnerCatalogLoader` concrete coverage is locally verified GREEN in the complete **1145/1145** suite.
 - Specialized JSON catalog loader baseline coverage is complete for the current scope; generic invalid-path, malformed-JSON and cancellation behavior remains centralized in `JsonCatalogDocumentLoader` tests rather than duplicated per wrapper.
 - `ErrorCategoryDefinitionNormalizer` null-input contract is locally verified GREEN in the complete **1146/1146** suite.
+- `ErrorCategoryDefinitionNormalizer` basic-field normalization contract committed; local focused/full GREEN verification pending.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -126,6 +127,32 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-catalog serialization-failure preservation regression is locally verified GREEN in the complete suite; the original file remains unchanged with no extra backup or temporary file.
 - Writer unsupported-type serialization exception contract is locally verified GREEN in the complete 1126-test suite; `NotSupportedException` from serializer becomes `Invalid` / `JsonSerializationFailed` with temporary-file cleanup.
 - Writer mid-serialization cancellation preservation regression is locally verified GREEN in the clean **1127/1127** suite after duplicate coverage removal.
+
+## 2026-09-23 — category definition normalizer basic-field contract
+
+Test commit: `b54f0a1977542309e5f0256c0340a99039add10c`
+
+Baseline: **1146/1146 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Updated:
+`WhenItFails.Tests/Normalization/ErrorCategoryDefinitionNormalizerTests.cs`
+
+Contract:
+`Normalize_ShouldNormalizeBasicFields`
+
+The contract verifies normalization of:
+
+- category key and display text,
+- nullable description text,
+- aliases,
+- parent categories,
+- default tags,
+- default mapping keys and values,
+- duplicate normalized list values.
+
+No production change was made.
+
+**Focused 2/2 GREEN and complete-suite 1147/1147 GREEN are pending local verification.**
 
 ## 2026-09-23 — category definition normalizer null-input contract
 
