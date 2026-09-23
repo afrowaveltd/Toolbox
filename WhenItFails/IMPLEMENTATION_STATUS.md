@@ -26,7 +26,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCategoryDefinitionNormalizer` null-input contract is locally verified GREEN in the complete **1146/1146** suite.
 - `ErrorCategoryDefinitionNormalizer` basic-field normalization contract is locally verified GREEN in the complete **1147/1147** suite.
 - `ErrorCategoryDefinitionNormalizer` mutable collection/mapping isolation contract is locally verified GREEN in the complete **1148/1148** suite.
-- `ErrorCategoryDefinitionNormalizer` metadata isolation contract committed; expected to expose current shared-reference behavior before a narrow production fix.
+- `ErrorCategoryDefinitionNormalizer` metadata isolation contract confirmed RED due to shared `MetadataBag` state; narrow production copy fix committed, GREEN verification pending.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -139,6 +139,28 @@ The new basic-field test referenced `ErrorCategoryDefinition` without importing 
 The missing using directive is now added.
 
 No production code changed. Focused/full verification remains pending.
+
+## 2026-09-23 — category definition normalizer metadata isolation fix
+
+Focused RED confirmed locally by the maintainer:
+
+```text
+Normalize_ShouldCopyMetadataWithoutSharingMutableState
+Assert.NotSame() Failure: Values are the same instance
+Complete suite: 1149 total, 1148 passed, 1 failed
+```
+
+Production fix commit:
+`2d75aee252b13310afdf2a411fba757f7ef80adb`
+
+Updated:
+`WhenItFails/Normalization/ErrorCategoryDefinitionNormalizer.cs`
+
+The normalizer now creates an independent `MetadataBag` copy using the same established pattern as `ErrorProfileDefinitionNormalizer`.
+
+No other normalization behavior changed.
+
+**Focused GREEN and complete-suite 1149/1149 GREEN are pending local verification.**
 
 ## 2026-09-23 — category definition normalizer metadata isolation contract
 
