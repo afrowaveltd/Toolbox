@@ -39,9 +39,11 @@ public sealed class JsonCatalogDocumentLoader
 
       string normalizedFilePath = filePath.Trim();
 
+      string fullFilePath;
+
       try
       {
-         _ = Path.GetFullPath(normalizedFilePath);
+         fullFilePath = Path.GetFullPath(normalizedFilePath);
       }
       catch(ArgumentException)
       {
@@ -55,6 +57,20 @@ public sealed class JsonCatalogDocumentLoader
          return Response<TDocument>.Invalid(
              code: "FilePathIsDirectory",
              message: "JSON catalog file path points to a directory.");
+      }
+
+      string? parentPath = Path.GetDirectoryName(fullFilePath);
+
+      while(parentPath is not null)
+      {
+         if(File.Exists(parentPath))
+         {
+            return Response<TDocument>.Invalid(
+                code: "FilePathParentIsFile",
+                message: "JSON catalog file path has an existing file as a parent.");
+         }
+
+         parentPath = Path.GetDirectoryName(parentPath);
       }
 
       if(!File.Exists(normalizedFilePath))
