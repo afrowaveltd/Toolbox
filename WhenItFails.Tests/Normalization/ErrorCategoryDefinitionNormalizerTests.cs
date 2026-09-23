@@ -1,3 +1,4 @@
+using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Normalization;
 
 namespace Afrowave.Toolbox.WhenItFails.Tests.Normalization;
