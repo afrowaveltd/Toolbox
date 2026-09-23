@@ -8,6 +8,39 @@ namespace Afrowave.Toolbox.WhenItFails.Tests.Loading;
 public sealed class JsonCatalogDocumentWriterDirectoryPathContractTests
 {
     [Fact]
+    public async Task SaveToFileAsync_WhenFilePathHasNoDirectory_ReturnsInvalidWithoutFilesystemSideEffects()
+    {
+        string fileName = $"errors-{Guid.NewGuid():N}.json";
+
+        JsonCatalogDocumentWriter writer = new();
+
+        Response response = await writer.SaveToFileAsync(
+            new ErrorCatalogDocument
+            {
+                SchemaVersion = "1.0",
+                CatalogId = "test.catalog",
+                CatalogName = "Test catalog",
+                Language = "en",
+                Errors = []
+            },
+            fileName);
+
+        Assert.Equal(ResultStatus.Invalid, response.Status);
+        Assert.False(response.IsSuccess);
+
+        var issue = Assert.Single(response.Issues);
+        Assert.Equal("DirectoryPathIsEmpty", issue.Code);
+        Assert.Equal(
+            $"JSON catalog directory path could not be resolved from: {fileName}",
+            response.Message);
+        Assert.Equal(
+            $"JSON catalog directory path could not be resolved from: {fileName}",
+            issue.Message);
+
+        Assert.False(File.Exists(fileName));
+    }
+
+    [Fact]
     public async Task SaveToFileAsync_WhenTargetPathIsExistingDirectory_ReturnsInvalidWithoutTemporaryFiles()
     {
         string rootDirectory = Path.Combine(
