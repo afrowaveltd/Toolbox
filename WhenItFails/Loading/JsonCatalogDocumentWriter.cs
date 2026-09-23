@@ -54,6 +54,13 @@ public sealed class JsonCatalogDocumentWriter
 
         try
         {
+            if (Directory.Exists(normalizedFilePath))
+            {
+                return Response.Invalid(
+                   code: "FilePathIsDirectory",
+                   message: "JSON catalog file path points to a directory.");
+            }
+
             Directory.CreateDirectory(directoryPath);
 
             temporaryFilePath = CreateTemporaryFilePath(normalizedFilePath);
