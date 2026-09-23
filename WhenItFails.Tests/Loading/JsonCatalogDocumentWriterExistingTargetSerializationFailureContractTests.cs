@@ -47,9 +47,9 @@ public sealed class JsonCatalogDocumentWriterExistingTargetSerializationFailureC
                 originalContent,
                 await File.ReadAllBytesAsync(targetFilePath));
 
-            Assert.Equal(
-                [targetFilePath],
-                Directory.GetFiles(directoryPath));
+            string[] remainingFiles = Directory.GetFiles(directoryPath);
+            Assert.Single(remainingFiles);
+            Assert.Equal(targetFilePath, remainingFiles[0]);
 
             Assert.Empty(Directory.GetFiles(
                 directoryPath,
