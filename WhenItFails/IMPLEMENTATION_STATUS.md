@@ -196,6 +196,14 @@ Decision:
 
 This is considered a strong candidate for the first stable WhenItFails release because the existing WEB/API profile mappings already anticipate web-specific presentation behavior.
 
+## 2026-09-23 — external NuGet consumer restore verified
+
+Maintainer confirmed an isolated `net10.0` console project outside Toolbox successfully restored `Afrowave.Toolbox.WhenItFails 0.1.0` from the temporary local package feed. Resolved transitively: `Afrowave.Toolbox.Essentials 0.2.0` and Microsoft.Extensions packages `10.0.9` (Configuration, Configuration.Abstractions, Configuration.Binder, DependencyInjection.Abstractions and Primitives).
+
+The first restore command was malformed by specifying `--source` twice; the corrected single-source-list invocation succeeded. This is a command-line issue, not a package defect.
+
+Clean consumer build output has not been separately confirmed. Next: run an actual isolated consumer smoke test invoking `DefaultJsonsTemplateProvider.GetTemplateFiles(new JsonsOptions())` and parse its five embedded JSON templates, then verify consumer build and execution.
+
 ## 2026-09-23 — NuGet manifest and embedded resource verification
 
 Maintainer inspected `Afrowave.Toolbox.WhenItFails.0.1.0.nupkg`:
