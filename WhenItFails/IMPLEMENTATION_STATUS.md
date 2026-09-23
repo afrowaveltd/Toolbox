@@ -105,7 +105,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonCatalogDocumentWriter` existing-directory target contract is verified GREEN in the complete 1123-test suite. The separate focused result was not reported.
 - `JsonCatalogDocumentWriter` existing-file parent target contract is locally verified GREEN in the full 1124-test suite; its ancestor-path guard rejects file parents before directory or temporary-file creation.
 - Existing-catalog serialization-failure preservation regression is locally verified GREEN in the complete suite; the original file remains unchanged with no extra backup or temporary file.
-- Writer unsupported-type serialization exception contract committed; focused RED verification pending.
+- Writer unsupported-type serialization exception contract confirmed RED on Windows; scoped serializer-failure handling committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-23 — writer unsupported-type serialization exception contract
 
@@ -133,9 +133,15 @@ Temporary and backup files: absent
 
 The writer should preserve its stable public serialization-error contract and cleanup guarantee rather than allow a serializer `NotSupportedException` to escape.
 
-Current writer catches `JsonException` but not `NotSupportedException`. The focused test is expected to fail with an escaped exception; production and documentation are unchanged for this contract.
+The focused test confirmed the expected RED on Windows: `System.Text.Json` raised an uncaught `System.NotSupportedException` for `System.Type` at `$.Unsupported`. The exception propagated out of `SaveToFileAsync` rather than producing a `Response`.
 
-**Focused RED verification pending.**
+Production fix commit: `335f036b33d121648f416b761dd80ead3c60beb2`
+
+Documentation commit: `3692ef551d2573605d6d6b3cef13d99cbd51b7d5`
+
+The writer now catches `NotSupportedException` only around the document-to-temporary-file serialization operation and returns `Invalid` / `JsonSerializationFailed` with the established message prefix. The existing outer `finally` still deletes any temporary file. Cancellation, `JsonException`, genuine I/O and access failures retain their separate handling.
+
+**Focused 1/1 GREEN and complete-suite 1126/1126 GREEN are pending local verification.**
 
 ## 2026-09-23 — 1125/1125 GREEN existing-catalog preservation checkpoint
 
@@ -5970,10 +5976,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~SaveToFileAsync_WhenDocumentContainsUnsupportedType_ReturnsSerializationFailureWithoutTemporaryFile"
+dotnet test WhenItFails.Tests
 ```
 
-Expected: **one focused RED**, likely an uncaught `NotSupportedException`, not a status assertion mismatch. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1126/1126 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add a narrow `NotSupportedException` serializer-failure handler to the writer while preserving existing `JsonException`, cancellation, and genuine filesystem failure contracts. Document the distinction and run the complete 1126-test suite.
+After **1126/1126 GREEN** is confirmed locally, record the unsupported-serialization checkpoint and audit another distinct writer boundary. Preserve error classification, cancellation and temporary-file cleanup, and do not create duplicative variants of this serializer contract.
