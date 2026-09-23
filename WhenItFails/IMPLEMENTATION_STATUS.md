@@ -19,6 +19,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCatalogRuntime` initializer and both built-in-provider runtime paths are complete for null response, ordinary exception, null task and exact cancellation behavior.
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` invocation boundary is complete for malformed direct results, ordinary-exception normalization and exact-instance cancellation propagation; deferred failures while consuming the returned collection are under audit.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
+- Writer null file-path contract committed; local focused/full GREEN verification pending.
 - Writer whitespace-only file-path contract is locally verified GREEN in the complete **1130/1130** suite.
 - Writer no-directory-path classification contract is locally verified GREEN in the complete **1129/1129** suite.
 - Writer null-document entry contract is locally verified GREEN in the complete **1128/1128** suite.
@@ -110,6 +111,32 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-catalog serialization-failure preservation regression is locally verified GREEN in the complete suite; the original file remains unchanged with no extra backup or temporary file.
 - Writer unsupported-type serialization exception contract is locally verified GREEN in the complete 1126-test suite; `NotSupportedException` from serializer becomes `Invalid` / `JsonSerializationFailed` with temporary-file cleanup.
 - Writer mid-serialization cancellation preservation regression is locally verified GREEN in the clean **1127/1127** suite after duplicate coverage removal.
+
+## 2026-09-23 — writer null file-path contract
+
+Test commit: `1ddaf745a50b9b021b69da7c235fc65a164bb8cf`
+
+Baseline: **1130/1130 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Updated:
+`WhenItFails.Tests/Loading/JsonCatalogDocumentWriterTests.cs`
+
+Contract:
+`SaveToFileAsync_WhenFilePathIsNull_ReturnsInvalid`
+
+The writer receives a valid document and a null file path.
+
+Required behavior:
+
+```text
+Status: Invalid
+Code: FilePathIsEmpty
+Message: JSON catalog file path is empty.
+```
+
+No production change was made. The existing `string.IsNullOrWhiteSpace(filePath)` guard is expected to classify null consistently with empty and whitespace-only paths.
+
+**Focused 1/1 GREEN and complete-suite 1131/1131 GREEN are pending local verification.**
 
 ## 2026-09-23 — writer whitespace-only file-path contract
 
