@@ -119,6 +119,16 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Writer unsupported-type serialization exception contract is locally verified GREEN in the complete 1126-test suite; `NotSupportedException` from serializer becomes `Invalid` / `JsonSerializationFailed` with temporary-file cleanup.
 - Writer mid-serialization cancellation preservation regression is locally verified GREEN in the clean **1127/1127** suite after duplicate coverage removal.
 
+## 2026-09-23 — writer existing-target I/O failure assertion-order fix
+
+Test fix commit: `08d8de034652aafeeb28538f89b2790be14440c0`
+
+The focused run reached the intended writer failure path, but the test attempted to read the target while its own `FileShare.None` lock was still active, causing the test assertion phase itself to throw `IOException`.
+
+The lock scope now covers only the writer invocation and response assertions. Target-byte preservation and temporary/backup cleanup assertions run after the lock is released.
+
+No production code changed. Focused/full verification remains pending.
+
 ## 2026-09-23 — writer existing-target I/O failure compile fix
 
 Compile fix commit: `be897b94f3594717be37e4a1396881d1ca78e81d`
