@@ -28,6 +28,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCategoryDefinitionNormalizer` mutable collection/mapping isolation contract is locally verified GREEN in the complete **1148/1148** suite.
 - `ErrorCategoryDefinitionNormalizer` metadata isolation fix is locally verified GREEN in the complete **1149/1149** suite.
 - `ErrorCodeGroupDefinitionNormalizer` null-input contract is locally verified GREEN in the complete **1150/1150** suite.
+- `ErrorCodeGroupDefinitionNormalizer` basic-field normalization contract committed; local focused/full GREEN verification pending.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -140,6 +141,32 @@ The new basic-field test referenced `ErrorCategoryDefinition` without importing 
 The missing using directive is now added.
 
 No production code changed. Focused/full verification remains pending.
+
+## 2026-09-23 — code-group definition normalizer basic-field contract
+
+Test commit: `1ff7d9904b1e18381d63a16663516cc88af3920f`
+
+Baseline: **1150/1150 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Updated:
+`WhenItFails.Tests/Normalization/ErrorCodeGroupDefinitionNormalizerTests.cs`
+
+Contract:
+`Normalize_ShouldNormalizeBasicFields`
+
+The contract verifies normalization of:
+
+- code-group key,
+- display name and description,
+- code prefix,
+- numeric range preservation,
+- default categories and tags,
+- default mapping keys and values,
+- duplicate normalized list values.
+
+No production change was made.
+
+**Focused 2/2 GREEN and complete-suite 1151/1151 GREEN are pending local verification.**
 
 ## 2026-09-23 — code-group definition normalizer null-input contract
 
