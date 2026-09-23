@@ -19,6 +19,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCatalogRuntime` initializer and both built-in-provider runtime paths are complete for null response, ordinary exception, null task and exact cancellation behavior.
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` invocation boundary is complete for malformed direct results, ordinary-exception normalization and exact-instance cancellation propagation; deferred failures while consuming the returned collection are under audit.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
+- Writer null-document entry contract committed; local focused/full GREEN verification pending.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies all resolver-consumed nullable collections currently audited as malformed input rather than resolver failure.
 - `JsonsBootstrapper` rejects null/whitespace `RootDirectory` and `PackageDirectoryName` before filesystem mutation.
@@ -107,6 +108,34 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-catalog serialization-failure preservation regression is locally verified GREEN in the complete suite; the original file remains unchanged with no extra backup or temporary file.
 - Writer unsupported-type serialization exception contract is locally verified GREEN in the complete 1126-test suite; `NotSupportedException` from serializer becomes `Invalid` / `JsonSerializationFailed` with temporary-file cleanup.
 - Writer mid-serialization cancellation preservation regression is locally verified GREEN in the clean **1127/1127** suite after duplicate coverage removal.
+
+## 2026-09-23 — writer null-document entry contract
+
+Test commit: `fdd0cb801999656340e0052b8b0d68c2e1d7bf1f`
+
+Baseline: **1127/1127 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Loading/JsonCatalogDocumentWriterNullDocumentContractTests.cs`
+
+Contract:
+`SaveToFileAsync_WhenDocumentIsNull_ThrowsBeforeFilesystemSideEffects`
+
+The writer receives a null catalog document and a target path whose parent directory does not yet exist.
+
+Required behavior:
+
+```text
+Outcome: ArgumentNullException
+ParamName: document
+Target file: absent
+Target directory: absent
+Filesystem side effects: none
+```
+
+No production change was made. The current writer performs `ArgumentNullException.ThrowIfNull(document)` before validating or mutating the target path, so the test is expected to pass.
+
+**Focused 1/1 GREEN and complete-suite 1128/1128 GREEN are pending local verification.**
 
 ## 2026-09-23 — writer mid-serialization cancellation preservation regression
 
