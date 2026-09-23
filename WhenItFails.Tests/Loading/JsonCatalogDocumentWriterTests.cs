@@ -39,6 +39,46 @@ public sealed class JsonCatalogDocumentWriterTests
     }
 
     [Fact]
+    public async Task SaveToFileAsync_WhenTargetDoesNotExist_LeavesOnlyTargetWithoutBackupOrTemporaryFile()
+    {
+        string temporaryDirectoryPath = CreateTemporaryDirectoryPath();
+        string targetFilePath = Path.Combine(
+            temporaryDirectoryPath,
+            "errors.en.json");
+
+        try
+        {
+            JsonCatalogDocumentWriter writer = new();
+
+            Essentials.Results.Response response =
+                await writer.SaveToFileAsync(
+                    CreateDocument("First catalog"),
+                    targetFilePath);
+
+            Assert.True(response.IsSuccess);
+            Assert.True(File.Exists(targetFilePath));
+
+            Assert.Empty(
+                Directory.GetFiles(
+                    temporaryDirectoryPath,
+                    ".errors.en.json.*.tmp"));
+
+            Assert.Empty(
+                Directory.GetFiles(
+                    temporaryDirectoryPath,
+                    "*.bak.json"));
+
+            string[] files = Directory.GetFiles(temporaryDirectoryPath);
+            Assert.Single(files);
+            Assert.Equal(targetFilePath, files[0]);
+        }
+        finally
+        {
+            DeleteDirectoryIfExists(temporaryDirectoryPath);
+        }
+    }
+
+    [Fact]
     public async Task SaveToFileAsync_ShouldCreateBackup_WhenTargetAlreadyExists()
     {
         string temporaryDirectoryPath = CreateTemporaryDirectoryPath();
