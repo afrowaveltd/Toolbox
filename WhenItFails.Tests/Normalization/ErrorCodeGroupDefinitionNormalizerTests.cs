@@ -51,4 +51,38 @@ public sealed class ErrorCodeGroupDefinitionNormalizerTests
         Assert.Equal("false", normalizedDefinition.DefaultMappings["RETRY_ENABLED"]);
     }
 
+
+    [Fact]
+    public void Normalize_ShouldCopyCollectionsAndMappingsWithoutSharingMutableState()
+    {
+        ErrorCodeGroupDefinitionNormalizer normalizer = new();
+
+        ErrorCodeGroupDefinition definition = new()
+        {
+            DefaultCategories = ["configuration"],
+            DefaultTags = ["system"],
+            DefaultMappings =
+            {
+                ["web.httpStatusCode"] = " 500 "
+            }
+        };
+
+        ErrorCodeGroupDefinition normalizedDefinition =
+            normalizer.Normalize(definition);
+
+        Assert.NotSame(definition.DefaultCategories, normalizedDefinition.DefaultCategories);
+        Assert.NotSame(definition.DefaultTags, normalizedDefinition.DefaultTags);
+        Assert.NotSame(definition.DefaultMappings, normalizedDefinition.DefaultMappings);
+
+        normalizedDefinition.DefaultCategories.Add("VALIDATION");
+        normalizedDefinition.DefaultTags[0] = "RUNTIME_ONLY";
+        normalizedDefinition.DefaultMappings["WEB_HTTPSTATUSCODE"] = "503";
+        normalizedDefinition.DefaultMappings["RUNTIME_ONLY"] = "true";
+
+        Assert.Equal(["configuration"], definition.DefaultCategories);
+        Assert.Equal(["system"], definition.DefaultTags);
+        Assert.Equal(" 500 ", definition.DefaultMappings["web.httpStatusCode"]);
+        Assert.False(definition.DefaultMappings.ContainsKey("RUNTIME_ONLY"));
+    }
+
 }
