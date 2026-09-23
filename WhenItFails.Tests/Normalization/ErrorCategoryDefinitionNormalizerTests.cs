@@ -47,4 +47,42 @@ public sealed class ErrorCategoryDefinitionNormalizerTests
         Assert.Equal("true", normalizedDefinition.DefaultMappings["RETRY_ENABLED"]);
     }
 
+
+    [Fact]
+    public void Normalize_ShouldCopyCollectionsAndMappingsWithoutSharingMutableState()
+    {
+        ErrorCategoryDefinitionNormalizer normalizer = new();
+
+        ErrorCategoryDefinition definition = new()
+        {
+            Aliases = ["external service"],
+            ParentCategories = ["integration"],
+            DefaultTags = ["user visible"],
+            DefaultMappings =
+            {
+                ["web.httpStatusCode"] = " 503 "
+            }
+        };
+
+        ErrorCategoryDefinition normalizedDefinition =
+            normalizer.Normalize(definition);
+
+        Assert.NotSame(definition.Aliases, normalizedDefinition.Aliases);
+        Assert.NotSame(definition.ParentCategories, normalizedDefinition.ParentCategories);
+        Assert.NotSame(definition.DefaultTags, normalizedDefinition.DefaultTags);
+        Assert.NotSame(definition.DefaultMappings, normalizedDefinition.DefaultMappings);
+
+        normalizedDefinition.Aliases.Add("SECONDARY");
+        normalizedDefinition.ParentCategories.Clear();
+        normalizedDefinition.DefaultTags[0] = "RUNTIME_ONLY";
+        normalizedDefinition.DefaultMappings["WEB_HTTPSTATUSCODE"] = "500";
+        normalizedDefinition.DefaultMappings["RUNTIME_ONLY"] = "true";
+
+        Assert.Equal(["external service"], definition.Aliases);
+        Assert.Equal(["integration"], definition.ParentCategories);
+        Assert.Equal(["user visible"], definition.DefaultTags);
+        Assert.Equal(" 503 ", definition.DefaultMappings["web.httpStatusCode"]);
+        Assert.False(definition.DefaultMappings.ContainsKey("RUNTIME_ONLY"));
+    }
+
 }
