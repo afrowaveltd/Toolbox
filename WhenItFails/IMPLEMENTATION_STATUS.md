@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1121/1121 GREEN**, confirmed locally by the maintainer on Windows after the `JsonCatalogDocumentLoader` existing-file-parent fix (0 failed, 0 skipped). The focused filter was not reported separately; compiler-warning count and other platform coverage were not separately reported.
+- Complete `WhenItFails.Tests` suite: **1122/1122 GREEN**, confirmed locally by the maintainer after the loader JSON-null-document regression. The focused result, compiler-warning count and cross-platform coverage were not separately reported.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -101,7 +101,19 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Later-null-template-content no-partial-write regression is locally verified GREEN; complete provider snapshot validation reaches every item's content before the write loop.
 - `JsonCatalogDocumentLoader` existing-directory path contract is locally verified GREEN; directory paths return `Invalid` / `FilePathIsDirectory` instead of `NotFound`.
 - `JsonCatalogDocumentLoader` existing-file-parent path guard is verified GREEN in the complete 1121-test suite; the separate focused-filter result was not reported.
-- `JsonCatalogDocumentLoader` JSON-null-document classification regression committed; focused/full GREEN verification pending.
+- `JsonCatalogDocumentLoader` JSON-null-document classification regression is locally verified GREEN in the full suite; a syntactically valid JSON `null` returns `EmptyCatalogDocument` rather than `InvalidJson`.
+
+## 2026-09-23 — 1122/1122 GREEN JSON-null loader checkpoint
+
+Regression commit: `342cc18fc79c2c55ddee085535502a82f63d980a`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests: 1122/1122 GREEN
+```
+
+The existing document-is-null response is preserved. The focused test result was not separately supplied.
 
 ## 2026-09-23 — loader JSON-null document classification regression
 
@@ -127,7 +139,7 @@ Message: JSON catalog file was loaded, but the catalog document is empty.
 
 No production changes were made. The current loader already contains the `document is null` check following deserialization; this regression verifies the documented classification through the public loader API.
 
-**Focused 1/1 GREEN and complete-suite 1122/1122 GREEN are pending local verification.**
+**Complete-suite 1122/1122 GREEN is confirmed locally; the focused result was not reported separately.**
 
 ## 2026-09-23 — 1121/1121 GREEN loader file-parent checkpoint
 
@@ -5761,15 +5773,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadFromFileAsync_WhenJsonDocumentIsNull_ReturnsEmptyCatalogDocumentInsteadOfInvalidJson"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1122/1122 GREEN
 ```
 
-Expected after the test-only commit: **one focused GREEN** and **1122/1122 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+The next step is a focused RED contract for the writer's existing-directory target classification, before any production changes.
 
 ## Next recommended step
 
-After the JSON-null regression is confirmed GREEN, record the checkpoint and continue with a distinct loader boundary. Do not change the established `InvalidJson` parser-message contract or reinterpret syntactically valid JSON `null` as a parser error.
+Probe `JsonCatalogDocumentWriter.SaveToFileAsync(...)` with an existing directory as `filePath`. The writer should classify this as invalid before creating temporary files, while preserving the target directory and established I/O failure behavior for actual I/O errors.
