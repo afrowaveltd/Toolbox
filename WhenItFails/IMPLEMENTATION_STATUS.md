@@ -19,6 +19,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCatalogRuntime` initializer and both built-in-provider runtime paths are complete for null response, ordinary exception, null task and exact cancellation behavior.
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` invocation boundary is complete for malformed direct results, ordinary-exception normalization and exact-instance cancellation propagation; deferred failures while consuming the returned collection are under audit.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
+- Writer no-directory-path classification contract committed; local focused/full GREEN verification pending.
 - Writer null-document entry contract is locally verified GREEN in the complete **1128/1128** suite.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies all resolver-consumed nullable collections currently audited as malformed input rather than resolver failure.
@@ -108,6 +109,34 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-catalog serialization-failure preservation regression is locally verified GREEN in the complete suite; the original file remains unchanged with no extra backup or temporary file.
 - Writer unsupported-type serialization exception contract is locally verified GREEN in the complete 1126-test suite; `NotSupportedException` from serializer becomes `Invalid` / `JsonSerializationFailed` with temporary-file cleanup.
 - Writer mid-serialization cancellation preservation regression is locally verified GREEN in the clean **1127/1127** suite after duplicate coverage removal.
+
+## 2026-09-23 — writer no-directory-path classification contract
+
+Test commit: `940cff3f6c0de0e3dc0aecf11665e019c379bb90`
+
+Baseline: **1128/1128 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Updated:
+`WhenItFails.Tests/Loading/JsonCatalogDocumentWriterDirectoryPathContractTests.cs`
+
+Contract:
+`SaveToFileAsync_WhenFilePathHasNoDirectory_ReturnsInvalidWithoutFilesystemSideEffects`
+
+The writer receives a valid document and a filename-only target such as `errors-<guid>.json`, so `Path.GetDirectoryName(...)` cannot resolve a directory.
+
+Required behavior:
+
+```text
+Status: Invalid
+Code: DirectoryPathIsEmpty
+Message: JSON catalog directory path could not be resolved from: <fileName>
+Target file: absent
+Filesystem side effects: none
+```
+
+No production change was made.
+
+**Focused 1/1 GREEN and complete-suite 1129/1129 GREEN are pending local verification.**
 
 ## 2026-09-23 — writer null-document entry contract
 
