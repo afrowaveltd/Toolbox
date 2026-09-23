@@ -6,7 +6,7 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Core hardening and concrete class-level coverage audits are complete for the current scope. NuGet archive, dependency restore and embedded-template consumption in an external .NET 10 project are verified. Next: public API and stable 1.0 scope audit; standalone Release solution build output and full external runtime integration remain pending.
+Core hardening and concrete class-level coverage audits are complete for the current scope. NuGet archive, dependency restore and embedded-template consumption in an external .NET 10 project are verified. Next: public API and stable 1.0 scope audit; full external runtime integration and stable API review remain pending.
 
 ## Current verified state
 
@@ -195,6 +195,16 @@ Decision:
 - evaluate `ValidationProblemDetails` only after defining a proper structured field-validation contract.
 
 This is considered a strong candidate for the first stable WhenItFails release because the existing WEB/API profile mappings already anticipate web-specific presentation behavior.
+
+## 2026-09-23 — full solution Release build GREEN
+
+The maintainer reran `dotnet build Toolbox.sln -c Release` after closing the PowerShell session that had previously loaded and locked `WhenItFails/bin/Release/net10.0/Afrowave.Toolbox.WhenItFails.dll`.
+
+The complete solution built successfully: 7 projects, 0 warnings, 0 errors, 13.95 s. SDK `NETSDK1057` messages were informational notices from the installed .NET 11 RC SDK; the target framework remains `net10.0`.
+
+The earlier `MSB3026/MSB3027/MSB3021` file-lock failure was environmental, not a source-code regression; no production change was required.
+
+Release build, core/Setter regression suites, catalog/documentation validation, NuGet manifest/resource inspection, and external consumer embedded-template smoke checks are now verified. Next: public API compatibility/scope audit and a final consumer runtime end-to-end check before a stable release.
 
 ## 2026-09-23 — isolated NuGet consumer embedded-catalog smoke test GREEN
 
