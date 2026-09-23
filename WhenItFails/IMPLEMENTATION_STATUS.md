@@ -20,6 +20,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` invocation boundary is complete for malformed direct results, ordinary-exception normalization and exact-instance cancellation propagation; deferred failures while consuming the returned collection are under audit.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `JsonCatalogDocumentWriter` current safe-write scope is complete; `AccessDenied` remains intentionally unforced because a deterministic cross-platform permission failure would require a filesystem seam or OS-specific test setup.
+- `JsonErrorCodeGroupCatalogLoader` concrete coverage committed; local focused/full GREEN verification pending.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -122,6 +123,28 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-catalog serialization-failure preservation regression is locally verified GREEN in the complete suite; the original file remains unchanged with no extra backup or temporary file.
 - Writer unsupported-type serialization exception contract is locally verified GREEN in the complete 1126-test suite; `NotSupportedException` from serializer becomes `Invalid` / `JsonSerializationFailed` with temporary-file cleanup.
 - Writer mid-serialization cancellation preservation regression is locally verified GREEN in the clean **1127/1127** suite after duplicate coverage removal.
+
+## 2026-09-23 — JSON code-group catalog loader baseline coverage
+
+Test commit: `e2235533ae0ae077b2414ef3337ff8bab43d185a`
+
+Baseline: **1141/1141 GREEN**, confirmed locally by the maintainer before this coverage was introduced.
+
+Updated:
+`WhenItFails.Tests/Loading/JsonErrorCodeGroupCatalogLoaderTests.cs`
+
+The previous file was only an empty placeholder in the wrong namespace.
+
+Added contracts:
+
+- `Constructor_ShouldThrowArgumentNullException_WhenDocumentLoaderIsNull`
+- `LoadFromFileAsync_ShouldLoadCodeGroupCatalogDocument`
+
+The load contract verifies a real JSON code-group catalog including identity, numeric range, prefix, default categories/tags and default mappings.
+
+No production change was made.
+
+**Focused 2/2 GREEN and complete-suite 1143/1143 GREEN are pending local verification.**
 
 ## 2026-09-23 — writer nested-directory creation contract
 
