@@ -19,6 +19,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCatalogRuntime` initializer and both built-in-provider runtime paths are complete for null response, ordinary exception, null task and exact cancellation behavior.
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` invocation boundary is complete for malformed direct results, ordinary-exception normalization and exact-instance cancellation propagation; deferred failures while consuming the returned collection are under audit.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
+- Writer exact-byte backup preservation contract committed; local focused/full GREEN verification pending.
 - Writer surrounding-whitespace path normalization contract is locally verified GREEN in the complete **1132/1132** suite.
 - Writer null file-path contract is locally verified GREEN in the complete **1131/1131** suite.
 - Writer whitespace-only file-path contract is locally verified GREEN in the complete **1130/1130** suite.
@@ -112,6 +113,35 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-catalog serialization-failure preservation regression is locally verified GREEN in the complete suite; the original file remains unchanged with no extra backup or temporary file.
 - Writer unsupported-type serialization exception contract is locally verified GREEN in the complete 1126-test suite; `NotSupportedException` from serializer becomes `Invalid` / `JsonSerializationFailed` with temporary-file cleanup.
 - Writer mid-serialization cancellation preservation regression is locally verified GREEN in the clean **1127/1127** suite after duplicate coverage removal.
+
+## 2026-09-23 — writer exact-byte backup preservation contract
+
+Test commit: `9b1ab4c851754e3e06f5ef43afc90c4335a939a9`
+
+Baseline: **1132/1132 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Updated:
+`WhenItFails.Tests/Loading/JsonCatalogDocumentWriterTests.cs`
+
+Contract:
+`SaveToFileAsync_WhenTargetAlreadyExists_BackupPreservesOriginalBytesExactly`
+
+The existing target is written with a deliberately distinctive byte sequence, including a UTF-8 BOM and CRLF bytes, before the writer replaces it with a newly serialized document.
+
+Required behavior:
+
+```text
+Response: Success
+Backup count: exactly one
+Backup bytes: exactly identical to the original target bytes
+Current target bytes: different from the original bytes
+```
+
+This protects the safe-write guarantee at the backup boundary: the backup must be a true byte-for-byte copy of the previous file, not merely semantically equivalent JSON.
+
+No production change was made.
+
+**Focused 1/1 GREEN and complete-suite 1133/1133 GREEN are pending local verification.**
 
 ## 2026-09-23 — writer surrounding-whitespace path normalization contract
 
