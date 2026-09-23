@@ -102,6 +102,35 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonCatalogDocumentLoader` existing-directory path contract is locally verified GREEN; directory paths return `Invalid` / `FilePathIsDirectory` instead of `NotFound`.
 - `JsonCatalogDocumentLoader` existing-file-parent path guard is verified GREEN in the complete 1121-test suite; the separate focused-filter result was not reported.
 - `JsonCatalogDocumentLoader` JSON-null-document classification regression is locally verified GREEN in the full suite; a syntactically valid JSON `null` returns `EmptyCatalogDocument` rather than `InvalidJson`.
+- `JsonCatalogDocumentWriter` existing-directory target RED contract committed; focused RED verification pending.
+
+## 2026-09-23 — writer existing-directory target contract
+
+Contract commit: `b13539eb8d38906e2e697786dd4ce4a8d0a84c9b`
+
+Baseline: **1122/1122 GREEN**, confirmed locally by the maintainer before this new contract.
+
+Added:
+`WhenItFails.Tests/Loading/JsonCatalogDocumentWriterDirectoryPathContractTests.cs`
+
+Contract:
+`SaveToFileAsync_WhenTargetPathIsExistingDirectory_ReturnsInvalidWithoutTemporaryFiles`
+
+The target path already exists as a directory called `catalog.json`. The writer must reject the destination as invalid before generating a temporary file or backup.
+
+Required response:
+
+```text
+Status: Invalid
+Code: FilePathIsDirectory
+Message: JSON catalog file path points to a directory.
+```
+
+The target directory must remain present and empty; no `*.tmp` or `*.bak*` files may remain in the parent directory.
+
+Current writer creates a temporary file and reaches `File.Move(...)` without validating the target's directory type. The expected RED is therefore an incorrect failure classification rather than an incorrectly successful write. This is separate from the loader's directory-path contract and from genuine writer I/O failures.
+
+**Focused RED verification is pending. Writer production and documentation are unchanged.**
 
 ## 2026-09-23 — 1122/1122 GREEN JSON-null loader checkpoint
 
@@ -5773,14 +5802,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1122/1122 GREEN
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~SaveToFileAsync_WhenTargetPathIsExistingDirectory_ReturnsInvalidWithoutTemporaryFiles"
 ```
 
-The next step is a focused RED contract for the writer's existing-directory target classification, before any production changes.
+Expected: **one focused RED**, most likely `Expected: Invalid` / `Actual: Failed` when the attempted move throws an I/O or access exception. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Probe `JsonCatalogDocumentWriter.SaveToFileAsync(...)` with an existing directory as `filePath`. The writer should classify this as invalid before creating temporary files, while preserving the target directory and established I/O failure behavior for actual I/O errors.
+After focused RED is confirmed, add a narrow existing-directory guard to `JsonCatalogDocumentWriter` before temporary-file creation, preserving existing pre-cancellation, backup, temporary-file cleanup, and genuine I/O failure contracts.
