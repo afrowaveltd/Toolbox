@@ -104,6 +104,40 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonCatalogDocumentLoader` JSON-null-document classification regression is locally verified GREEN in the full suite; a syntactically valid JSON `null` returns `EmptyCatalogDocument` rather than `InvalidJson`.
 - `JsonCatalogDocumentWriter` existing-directory target contract is verified GREEN in the complete 1123-test suite. The separate focused result was not reported.
 - `JsonCatalogDocumentWriter` existing-file parent target contract is locally verified GREEN in the full 1124-test suite; its ancestor-path guard rejects file parents before directory or temporary-file creation.
+- Existing-catalog serialization-failure preservation regression committed; focused GREEN verification pending.
+
+## 2026-09-23 — existing-catalog serialization failure preservation regression
+
+Test commit: `157961a99102beefc004cb1e8304c796ac300fe2`
+
+Test assertion cleanup commit: `44b5626703c237f9ea43456e341bc79c57d63d5e`
+
+Baseline: **1124/1124 GREEN**, confirmed locally by the maintainer before this regression was introduced.
+
+Added:
+`WhenItFails.Tests/Loading/JsonCatalogDocumentWriterExistingTargetSerializationFailureContractTests.cs`
+
+Contract:
+`SaveToFileAsync_WhenSerializationFailsForExistingTarget_PreservesOriginalWithoutBackupOrTemporaryFile`
+
+The target `errors.en.json` already exists and contains a known byte sequence. The new document deliberately contains a self-reference so JSON serialization fails.
+
+Expected:
+
+```text
+Status: Invalid
+Code: JsonSerializationFailed
+Existing target: identical original bytes
+Temporary files: none
+Backup files: none
+Remaining files: only the original catalog
+```
+
+This covers safe-write preservation of an existing catalog when new serialization fails before the backup/replacement stage. It is distinct from the existing no-target cleanup contract and from the successful backup contract.
+
+No production changes were made. The existing writer serializes to a temporary file, cleans it up on error, and only then creates backups/replaces the target; this regression is expected to pass.
+
+**Focused 1/1 GREEN and complete-suite 1125/1125 GREEN are pending local verification.**
 
 ## 2026-09-23 — 1124/1124 GREEN writer existing-file parent checkpoint
 
@@ -5889,14 +5923,15 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1124/1124 GREEN
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~SaveToFileAsync_WhenSerializationFailsForExistingTarget_PreservesOriginalWithoutBackupOrTemporaryFile"
+dotnet test WhenItFails.Tests
 ```
 
-Run the next focused JSON writer backup-preservation regression before changing production code.
+Expected after the test-only commits: **one focused GREEN** and **1125/1125 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Verify that if serialization fails while saving over an existing catalog file, its exact original bytes remain unchanged, no backup is created, and no temporary file remains. The writer must return its existing `JsonSerializationFailed` contract without touching the original catalog.
+After **1125/1125 GREEN** is confirmed locally, record the writer existing-target preservation checkpoint and continue with a distinct writer boundary, avoiding duplicating existing safe-write or filename validation contracts.
