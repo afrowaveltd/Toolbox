@@ -4,6 +4,18 @@ Last updated: 2026-09-03
 
 This file is the continuation point for `Toolroom/WhenItFails/Setter` development. Update it after every implementation, test, catalog, or documentation change that alters the current state or recommended next step.
 
+## 2026-09-23 — core baseline synchronization note
+
+The main `WhenItFails.Tests` suite has advanced substantially since this Setter status file was last synchronized.
+
+Current user-verified core baseline:
+`1151 passed, 0 failed, 0 skipped`.
+
+The Setter-specific complete-suite baseline recorded below remains the last explicitly documented Setter run:
+`1241 passed, 0 failed, 0 skipped`.
+
+The Setter suite has not been re-run as part of this 2026-09-23 core project audit, so do not reinterpret the older 1241 checkpoint as a fresh verification.
+
 ## Current state
 
 WhenItFails Setter is a mature .NET 10 command-line authoring and maintenance tool for the project-local catalogs under `Jsons/WhenItFails`.
