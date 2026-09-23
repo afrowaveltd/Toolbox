@@ -196,6 +196,21 @@ Decision:
 
 This is considered a strong candidate for the first stable WhenItFails release because the existing WEB/API profile mappings already anticipate web-specific presentation behavior.
 
+## 2026-09-23 — public API stabilization audit started
+
+The Release solution build is GREEN, and the package/isolated-consumer embedded-template smoke gates have passed.
+
+Initial review of `Interfaces/IErrorCatalogRuntime.cs`, `Docs/Runtime/Public-API.md` and `WhenItFails.csproj`:
+
+- The documented high-level runtime API includes initialization (registered options and per-call workspace override), reset to built-in defaults, active context and runtime status, resolution by ID/name/numeric code, and profile selection.
+- Current package remains `0.1.0`, targets `net10.0`, depends on Essentials `0.2.0`; ASP.NET Core and Blazor dependencies are not part of the core package.
+- Before committing to 1.0 compatibility, inventory all *publicly accessible* types/members, including implementation classes and public return types, rather than assuming the single runtime interface is the whole supported API.
+- Classify the API inventory into explicitly stable consumer contracts, public extension/customization points, and implementation exposure requiring an intentional compatibility decision; avoid blanket visibility changes prior to usage/backward-compatibility review.
+- Compare documented examples against the current public signatures, error identities and runtime behavior; do not infer that docs compile merely from successful solution build.
+- Follow with an isolated external consumer end-to-end runtime initialization and error-resolution smoke test, API baseline capture, and explicit 1.0 scope/release approval. Planned ASP.NET Core ProblemDetails and Blazor adapters remain separate packages and must not introduce web/UI dependencies into core.
+
+Next incremental action: capture an externally observable public type/method baseline from the *built NuGet DLL* in an isolated process (do not load the repository's output DLL into a long-lived PowerShell process, which previously locked the Release build output). Record and review the resulting inventory before making API changes.
+
 ## 2026-09-23 — full solution Release build GREEN
 
 The maintainer reran `dotnet build Toolbox.sln -c Release` after closing the PowerShell session that had previously loaded and locked `WhenItFails/bin/Release/net10.0/Afrowave.Toolbox.WhenItFails.dll`.
