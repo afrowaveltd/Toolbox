@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1150/1150 GREEN**, confirmed locally by the maintainer after adding the `ErrorCodeGroupDefinitionNormalizer` null-input contract.
+- Complete `WhenItFails.Tests` suite: **1151/1151 GREEN**, confirmed locally by the maintainer after adding the `ErrorCodeGroupDefinitionNormalizer` basic-field normalization contract.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -28,7 +28,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCategoryDefinitionNormalizer` mutable collection/mapping isolation contract is locally verified GREEN in the complete **1148/1148** suite.
 - `ErrorCategoryDefinitionNormalizer` metadata isolation fix is locally verified GREEN in the complete **1149/1149** suite.
 - `ErrorCodeGroupDefinitionNormalizer` null-input contract is locally verified GREEN in the complete **1150/1150** suite.
-- `ErrorCodeGroupDefinitionNormalizer` basic-field normalization contract committed; local focused/full GREEN verification pending.
+- `ErrorCodeGroupDefinitionNormalizer` basic-field normalization contract is locally verified GREEN in the complete **1151/1151** suite.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -142,6 +142,26 @@ The missing using directive is now added.
 
 No production code changed. Focused/full verification remains pending.
 
+## 2026-09-23 — project audit checkpoint
+
+Current locally verified core baseline: **1151/1151 GREEN**.
+
+Repository audit summary:
+
+- main `WhenItFails` library: 114 production C# files;
+- `WhenItFails.Tests`: 364 C# test files;
+- main project documentation: 13 Markdown topic documents plus root README/status;
+- current authoritative project catalogs: 49 errors, 11 categories, 10 code groups, 4 owners and 7 profiles;
+- no `TODO`, `FIXME` or `NotImplementedException` markers were found under `WhenItFails`;
+- runtime initialization, strict/flexible recovery, active-context publication, status, resolution by ID/name/code, profiles, bootstrap, loading, validation, descriptors and DI all have implemented production paths and test coverage;
+- JSON writer and specialized JSON loader audits are complete for the current scope;
+- definition-normalizer direct coverage is still being completed: category normalizer is hardened including metadata isolation; code-group normalizer is in progress; owner normalizer remains to be audited directly;
+- several csproj placeholder areas remain intentionally unimplemented or empty: `Codes`, `Customization`, `Mapping`, `Exceptions`, `Exporting`, `Serialization`, `Storage`, and the physical `Profiles` folder. These represent future broader-scope capabilities rather than missing core runtime wiring;
+- `DependencyInjection` is implemented despite the historical folder placeholder entry;
+- package version remains `0.1.0`, and README explicitly states that the public API/catalog structure may still evolve before the first stable release.
+
+For a practical first stable runtime release, remaining work should prioritize completing direct normalizer audits, synchronizing status/docs, running full cross-platform/release gates, and making an explicit decision about which placeholder areas belong to 1.0 versus later releases.
+
 ## 2026-09-23 — code-group definition normalizer basic-field contract
 
 Test commit: `1ff7d9904b1e18381d63a16663516cc88af3920f`
@@ -166,7 +186,7 @@ The contract verifies normalization of:
 
 No production change was made.
 
-**Focused 2/2 GREEN and complete-suite 1151/1151 GREEN are pending local verification.**
+**Focused/full local verification completed; the complete suite is 1151/1151 GREEN.**
 
 ## 2026-09-23 — code-group definition normalizer null-input contract
 
