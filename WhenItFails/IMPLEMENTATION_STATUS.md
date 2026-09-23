@@ -101,6 +101,33 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Later-null-template-content no-partial-write regression is locally verified GREEN; complete provider snapshot validation reaches every item's content before the write loop.
 - `JsonCatalogDocumentLoader` existing-directory path contract is locally verified GREEN; directory paths return `Invalid` / `FilePathIsDirectory` instead of `NotFound`.
 - `JsonCatalogDocumentLoader` existing-file-parent path guard is verified GREEN in the complete 1121-test suite; the separate focused-filter result was not reported.
+- `JsonCatalogDocumentLoader` JSON-null-document classification regression committed; focused/full GREEN verification pending.
+
+## 2026-09-23 — loader JSON-null document classification regression
+
+Regression commit: `342cc18fc79c2c55ddee085535502a82f63d980a`
+
+Baseline: **1121/1121 GREEN**, confirmed locally by the maintainer before this regression was introduced.
+
+Added: `WhenItFails.Tests/Loading/JsonCatalogDocumentLoaderNullJsonDocumentContractTests.cs`
+
+Contract:
+`LoadFromFileAsync_WhenJsonDocumentIsNull_ReturnsEmptyCatalogDocumentInsteadOfInvalidJson`
+
+The file exists and contains the syntactically valid JSON literal `null`. Deserialization produces no catalog document, which is different from invalid JSON syntax.
+
+Expected response:
+
+```text
+Status: Invalid
+Data: null
+Code: EmptyCatalogDocument
+Message: JSON catalog file was loaded, but the catalog document is empty.
+```
+
+No production changes were made. The current loader already contains the `document is null` check following deserialization; this regression verifies the documented classification through the public loader API.
+
+**Focused 1/1 GREEN and complete-suite 1122/1122 GREEN are pending local verification.**
 
 ## 2026-09-23 — 1121/1121 GREEN loader file-parent checkpoint
 
@@ -5734,14 +5761,15 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1121/1121 GREEN (0 failed, 0 skipped)
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadFromFileAsync_WhenJsonDocumentIsNull_ReturnsEmptyCatalogDocumentInsteadOfInvalidJson"
+dotnet test WhenItFails.Tests
 ```
 
-Run the next focused loader content-classification regression before changing production code.
+Expected after the test-only commit: **one focused GREEN** and **1122/1122 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Verify that a valid JSON literal `null` returns `Invalid` / `EmptyCatalogDocument` rather than `InvalidJson`, preserving the existing documented distinction between a syntactically valid null document and malformed JSON.
+After the JSON-null regression is confirmed GREEN, record the checkpoint and continue with a distinct loader boundary. Do not change the established `InvalidJson` parser-message contract or reinterpret syntactically valid JSON `null` as a parser error.
