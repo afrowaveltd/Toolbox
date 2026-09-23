@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1128/1128 GREEN**, confirmed locally by the maintainer after the writer mid-serialization cancellation regression was present together with one temporary duplicate coverage test. That duplicate has since been removed; the clean expected suite count is **1127**, pending local verification.
+- Complete `WhenItFails.Tests` suite: **1127/1127 GREEN**, confirmed locally by the maintainer after removing duplicate writer mid-serialization cancellation coverage.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -106,7 +106,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonCatalogDocumentWriter` existing-file parent target contract is locally verified GREEN in the full 1124-test suite; its ancestor-path guard rejects file parents before directory or temporary-file creation.
 - Existing-catalog serialization-failure preservation regression is locally verified GREEN in the complete suite; the original file remains unchanged with no extra backup or temporary file.
 - Writer unsupported-type serialization exception contract is locally verified GREEN in the complete 1126-test suite; `NotSupportedException` from serializer becomes `Invalid` / `JsonSerializationFailed` with temporary-file cleanup.
-- Writer mid-serialization cancellation preservation regression is locally covered GREEN as part of the maintainer-confirmed 1128-test run. A duplicate test introduced afterward was removed; clean 1127/1127 verification is pending.
+- Writer mid-serialization cancellation preservation regression is locally verified GREEN in the clean **1127/1127** suite after duplicate coverage removal.
 
 ## 2026-09-23 — writer mid-serialization cancellation preservation regression
 
@@ -134,7 +134,7 @@ Remaining files: only the original catalog
 
 No production change was made. The current writer rethrows `OperationCanceledException`, runs the existing temporary-file cleanup in `finally` and creates backups only after successful serialization; this test is expected to pass.
 
-**The contract passed in the maintainer-confirmed 1128/1128 full-suite run. One duplicate test covering the same behavior was then removed in commit `dc16d5c14d55afa2d82e93413b4b0191ce11e9a9`; clean focused 1/1 and complete-suite 1127/1127 verification are pending.**
+**The contract is locally verified GREEN in the clean 1127/1127 suite after duplicate coverage removal in commit `dc16d5c14d55afa2d82e93413b4b0191ce11e9a9`.**
 
 ## 2026-09-23 — 1126/1126 GREEN unsupported-type JSON writer checkpoint
 
