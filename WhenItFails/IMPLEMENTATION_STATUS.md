@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1138/1138 GREEN**, confirmed locally by the maintainer after adding the writer existing-target I/O failure contract.
+- Complete `WhenItFails.Tests` suite: **1139/1139 GREEN**, confirmed locally by the maintainer after adding the writer backup file-name shape contract.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -19,7 +19,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCatalogRuntime` initializer and both built-in-provider runtime paths are complete for null response, ordinary exception, null task and exact cancellation behavior.
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` invocation boundary is complete for malformed direct results, ordinary-exception normalization and exact-instance cancellation propagation; deferred failures while consuming the returned collection are under audit.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
-- Writer backup file-name shape contract committed; local focused/full GREEN verification pending.
+- Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
 - Writer existing-target I/O failure contract is locally verified GREEN in the complete **1138/1138** suite.
 - Writer first-save success-message contract is locally verified GREEN in the complete **1137/1137** suite.
 - Writer backup success-message contract is locally verified GREEN in the complete **1136/1136** suite.
@@ -144,7 +144,7 @@ The timestamp and GUID remain variable, but the externally visible naming conven
 
 No production change was made.
 
-**Focused 1/1 GREEN and complete-suite 1139/1139 GREEN are pending local verification.**
+**Focused/full local verification completed; the complete suite is 1139/1139 GREEN.**
 
 ## 2026-09-23 — writer existing-target I/O failure assertion-order fix
 
