@@ -142,6 +142,29 @@ The missing using directive is now added.
 
 No production code changed. Focused/full verification remains pending.
 
+## 2026-09-23 — Blazor presentation integration candidate
+
+Design direction:
+
+WhenItFails remains a toolbox of composable error-handling capabilities rather than one monolithic framework.
+
+A future Blazor integration should therefore live in a separate package, provisionally:
+
+`Afrowave.Toolbox.WhenItFails.Blazor`
+
+Suggested responsibilities:
+
+- render user-safe error views from `ErrorDescriptor`;
+- render optional developer-oriented diagnostic views;
+- provide reusable components for common states such as validation failure, unavailable service, permission failure and unexpected error;
+- support profile/mapping-driven presentation policy;
+- keep exception details, stack traces and sensitive metadata hidden by default;
+- allow explicit developer-mode diagnostics;
+- avoid introducing Blazor dependencies into the core `Afrowave.Toolbox.WhenItFails` package;
+- compose naturally with the planned ASP.NET Core Problem Details integration, while remaining usable for interactive Blazor UI scenarios where an HTTP Problem Details payload is not the final presentation surface.
+
+This is a future integration package candidate, not a blocker for completing the current core runtime audit.
+
 ## 2026-09-23 — ASP.NET Core Problem Details integration added to implementation plan
 
 Design document commit:
