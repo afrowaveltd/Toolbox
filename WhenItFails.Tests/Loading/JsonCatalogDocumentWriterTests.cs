@@ -140,6 +140,40 @@ public sealed class JsonCatalogDocumentWriterTests
     }
 
     [Fact]
+    public async Task SaveToFileAsync_WhenFilePathHasSurroundingWhitespace_WritesToTrimmedPath()
+    {
+        string temporaryDirectoryPath = CreateTemporaryDirectoryPath();
+        string targetFilePath = Path.Combine(
+            temporaryDirectoryPath,
+            "errors.en.json");
+
+        string paddedTargetFilePath = $"  {targetFilePath}  ";
+
+        try
+        {
+            JsonCatalogDocumentWriter writer = new();
+
+            Essentials.Results.Response response =
+                await writer.SaveToFileAsync(
+                    CreateDocument("Trimmed path catalog"),
+                    paddedTargetFilePath);
+
+            Assert.True(response.IsSuccess);
+            Assert.True(File.Exists(targetFilePath));
+            Assert.False(File.Exists(paddedTargetFilePath));
+
+            string fileText = await File.ReadAllTextAsync(targetFilePath);
+            Assert.Contains(
+                "\"catalogName\": \"Trimmed path catalog\"",
+                fileText);
+        }
+        finally
+        {
+            DeleteDirectoryIfExists(temporaryDirectoryPath);
+        }
+    }
+
+    [Fact]
     public async Task SaveToFileAsync_ShouldReturnInvalid_WhenFilePathIsEmpty()
     {
         ErrorCatalogDocument document = CreateDocument("Test catalog");
