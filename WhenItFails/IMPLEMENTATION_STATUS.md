@@ -100,7 +100,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Reverse-order provider target-conflict regression is locally verified GREEN; snapshot file/directory conflict detection is order-independent.
 - Later-null-template-content no-partial-write regression is locally verified GREEN; complete provider snapshot validation reaches every item's content before the write loop.
 - `JsonCatalogDocumentLoader` existing-directory path contract is locally verified GREEN; directory paths return `Invalid` / `FilePathIsDirectory` instead of `NotFound`.
-- `JsonCatalogDocumentLoader` existing-file-parent path contract committed; focused RED verification pending.
+- `JsonCatalogDocumentLoader` existing-file-parent path guard committed; focused/full GREEN after this fix is pending verification.
 
 ## 2026-09-23 — catalog document loader existing-file parent contract
 
@@ -126,9 +126,15 @@ Message: JSON catalog file path has an existing file as a parent.
 
 The blocking file must remain unchanged and no catalog file may be created. A genuinely missing catalog retains the established `NotFound` / `FileNotFound` contract.
 
-Current loader checks whether the final path identifies an existing directory and then uses `File.Exists(catalogFilePath)`. With a regular file occupying a parent path, both checks return false and the existing-file-parent condition is expected to be misclassified as `NotFound`.
+At the previous checkpoint, the loader only checked whether the final path was a directory and then used `File.Exists(catalogFilePath)`. With a regular file occupying a parent path, both checks returned false and the path was classified as `NotFound`. The maintainer subsequently reported "all green" without a focused result or matched-test count. The available `master` source at that point still lacked the ancestor guard, so that report **cannot establish that this new focused contract passed**; do not mark 1121/1121 verified yet. A focused RED result was not separately supplied.
 
-**Focused RED verification is pending; production and loader documentation have not been changed for this contract.**
+Production fix commit: `dc2cc4184c87975383b7c2cd57709d3e0989e06b`
+
+Documentation commit: `c68ef5aca735f32cb43a9959fe9650603b7f3664`
+
+The loader now checks canonical parent components for an existing regular file before the missing-file branch and returns the `Invalid` / `FilePathParentIsFile` contract. Existing-directory, genuine missing-file and parser-error classifications remain separately handled.
+
+**Focused GREEN (1/1) and complete-suite 1121/1121 GREEN after the committed fix are pending maintainer verification.**
 
 ## 2026-09-23 — 1120/1120 GREEN catalog loader directory-path checkpoint
 
@@ -5716,10 +5722,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadFromFileAsync_WhenFilePathParentIsExistingFile_ReturnsInvalidBeforeFileOpen"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: NotFound`. A zero-test filter match is not a valid checkpoint.
+Expected after `dc2cc418`: **one focused GREEN** and **1121/1121 GREEN** for the complete suite. Confirm that the focused filter actually ran one test; a zero-test match does not establish the contract.
 
 ## Next recommended step
 
-After focused RED is confirmed, add a narrow existing-regular-file ancestor guard to `JsonCatalogDocumentLoader` before the missing-file branch. Preserve directory-path invalid classification, genuine missing-file classification, cancellation behavior, and the established parser-error contract.
+After **1121/1121 GREEN** is confirmed locally, record the checkpoint and continue auditing distinct `JsonCatalogDocumentLoader` path/error boundaries without duplicating existing bootstrap contracts.
