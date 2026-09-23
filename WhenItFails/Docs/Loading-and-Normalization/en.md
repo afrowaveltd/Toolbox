@@ -135,6 +135,24 @@ JSON catalog file path points to a directory.
 
 This is distinct from a missing file: the path exists, but it does not identify a catalog file.
 
+## Existing-file ancestors
+
+If any parent component of a catalog file path exists as a regular file, the loader returns an invalid response before attempting to open the catalog. For example, `blocked/catalog.json` is invalid when `blocked` is a regular file: it cannot serve as the catalog's parent directory.
+
+Failure code:
+
+```text
+FilePathParentIsFile
+```
+
+Message:
+
+```text
+JSON catalog file path has an existing file as a parent.
+```
+
+The existing parent file is left untouched. This condition is different from a genuinely missing catalog, which retains `FileNotFound`.
+
 ## Missing files
 
 When the configured file does not exist, loading returns a not-found response.
