@@ -94,6 +94,59 @@ public sealed class JsonCatalogDocumentWriterTests
     }
 
     [Fact]
+    public async Task SaveToFileAsync_WhenTargetAlreadyExists_BackupPreservesOriginalBytesExactly()
+    {
+        string temporaryDirectoryPath = CreateTemporaryDirectoryPath();
+        string targetFilePath = Path.Combine(
+            temporaryDirectoryPath,
+            "errors.en.json");
+
+        byte[] originalBytes =
+        [
+            0xEF, 0xBB, 0xBF,
+            0x7B, 0x0D, 0x0A,
+            0x20, 0x20, 0x22, 0x63, 0x61, 0x74, 0x61, 0x6C, 0x6F, 0x67, 0x49, 0x64, 0x22, 0x3A, 0x20,
+            0x22, 0x6F, 0x72, 0x69, 0x67, 0x69, 0x6E, 0x61, 0x6C, 0x22,
+            0x0D, 0x0A, 0x7D
+        ];
+
+        try
+        {
+            Directory.CreateDirectory(temporaryDirectoryPath);
+            await File.WriteAllBytesAsync(
+                targetFilePath,
+                originalBytes);
+
+            JsonCatalogDocumentWriter writer = new();
+
+            Essentials.Results.Response response =
+                await writer.SaveToFileAsync(
+                    CreateDocument("Replacement catalog"),
+                    targetFilePath);
+
+            Assert.True(response.IsSuccess);
+
+            string[] backupFilePaths = Directory.GetFiles(
+                temporaryDirectoryPath,
+                "*.bak.json");
+
+            string backupFilePath = Assert.Single(backupFilePaths);
+
+            Assert.Equal(
+                originalBytes,
+                await File.ReadAllBytesAsync(backupFilePath));
+
+            Assert.NotEqual(
+                originalBytes,
+                await File.ReadAllBytesAsync(targetFilePath));
+        }
+        finally
+        {
+            DeleteDirectoryIfExists(temporaryDirectoryPath);
+        }
+    }
+
+    [Fact]
     public async Task SaveToFileAsync_ShouldCreateDistinctBackups_ForRapidConsecutiveWrites()
     {
         string temporaryDirectoryPath = CreateTemporaryDirectoryPath();
