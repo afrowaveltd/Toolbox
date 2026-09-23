@@ -103,6 +103,35 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonCatalogDocumentLoader` existing-file-parent path guard is verified GREEN in the complete 1121-test suite; the separate focused-filter result was not reported.
 - `JsonCatalogDocumentLoader` JSON-null-document classification regression is locally verified GREEN in the full suite; a syntactically valid JSON `null` returns `EmptyCatalogDocument` rather than `InvalidJson`.
 - `JsonCatalogDocumentWriter` existing-directory target contract is verified GREEN in the complete 1123-test suite. The separate focused result was not reported.
+- `JsonCatalogDocumentWriter` existing-file parent target contract committed; focused RED verification pending.
+
+## 2026-09-23 — writer existing-file parent target contract
+
+Contract commit: `0f494ad52a8c48bb7f809024594038ccda5bb576`
+
+Baseline: **1123/1123 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Loading/JsonCatalogDocumentWriterFileParentContractTests.cs`
+
+Contract:
+`SaveToFileAsync_WhenTargetParentIsExistingFile_ReturnsInvalidWithoutFilesystemMutation`
+
+The requested destination is `blocked/catalog.json`, where the `blocked` parent already exists as a regular file. This is an invalid destination path, not a normal disk I/O failure.
+
+Required response:
+
+```text
+Status: Invalid
+Code: FilePathParentIsFile
+Message: JSON catalog file path has an existing file as a parent.
+```
+
+The existing parent file must remain untouched, no target file may appear, and no temporary file or backup may be created. The contract checks that only the original blocking file remains in the test root.
+
+Current writer calls `Directory.CreateDirectory(directoryPath)` without first rejecting an existing regular file occupying a parent component. This is expected to produce `Failed` / an I/O error rather than the field-specific `Invalid` result.
+
+**Focused RED verification is pending. Production and documentation have not been changed for this contract.**
 
 ## 2026-09-23 — 1123/1123 GREEN writer existing-directory checkpoint
 
@@ -5831,14 +5860,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1123/1123 GREEN
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~SaveToFileAsync_WhenTargetParentIsExistingFile_ReturnsInvalidWithoutFilesystemMutation"
 ```
 
-Run a focused RED contract for the writer's existing-regular-file ancestor boundary before changing production code.
+Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Failed`. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Probe `JsonCatalogDocumentWriter.SaveToFileAsync(...)` with `blocked/catalog.json` when `blocked` already exists as a regular file. This path has an invalid parent component and must not be normalized to an ordinary I/O failure; preserve the parent file and avoid creating temporary files.
+After focused RED is confirmed, add the narrow existing-file parent guard before `Directory.CreateDirectory(...)`. Preserve pre-cancellation, existing-directory destination classification, backups, temporary-file cleanup, and the genuine I/O failure contract.
