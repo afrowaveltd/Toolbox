@@ -39,6 +39,45 @@ public sealed class JsonCatalogDocumentWriterTests
     }
 
     [Fact]
+    public async Task SaveToFileAsync_WhenNestedDirectoryDoesNotExist_CreatesDirectoryAndTarget()
+    {
+        string temporaryDirectoryPath = CreateTemporaryDirectoryPath();
+        string nestedDirectoryPath = Path.Combine(
+            temporaryDirectoryPath,
+            "catalogs",
+            "en");
+
+        string targetFilePath = Path.Combine(
+            nestedDirectoryPath,
+            "errors.json");
+
+        try
+        {
+            Assert.False(Directory.Exists(nestedDirectoryPath));
+
+            JsonCatalogDocumentWriter writer = new();
+
+            Essentials.Results.Response response =
+                await writer.SaveToFileAsync(
+                    CreateDocument("Nested catalog"),
+                    targetFilePath);
+
+            Assert.True(response.IsSuccess);
+            Assert.True(Directory.Exists(nestedDirectoryPath));
+            Assert.True(File.Exists(targetFilePath));
+
+            string fileText = await File.ReadAllTextAsync(targetFilePath);
+            Assert.Contains(
+                "\"catalogName\": \"Nested catalog\"",
+                fileText);
+        }
+        finally
+        {
+            DeleteDirectoryIfExists(temporaryDirectoryPath);
+        }
+    }
+
+    [Fact]
     public async Task SaveToFileAsync_WhenTargetDoesNotExist_LeavesOnlyTargetWithoutBackupOrTemporaryFile()
     {
         string temporaryDirectoryPath = CreateTemporaryDirectoryPath();
