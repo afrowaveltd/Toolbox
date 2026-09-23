@@ -196,6 +196,18 @@ Decision:
 
 This is considered a strong candidate for the first stable WhenItFails release because the existing WEB/API profile mappings already anticipate web-specific presentation behavior.
 
+## 2026-09-23 — NuGet manifest and embedded resource verification
+
+Maintainer inspected `Afrowave.Toolbox.WhenItFails.0.1.0.nupkg`:
+
+- `Afrowave.Toolbox.WhenItFails.nuspec` declares `net10.0` and the dependency `Afrowave.Toolbox.Essentials` version `0.2.0`, plus three `Microsoft.Extensions.*` dependencies at `10.0.9`.
+- The archive contains `lib/net10.0/Afrowave.Toolbox.WhenItFails.dll`, the XML API documentation, README and license.
+- The release DLL manifest contains all five expected embedded resources: `errors.en.json`, `categories.en.json`, `code-groups.en.json`, `owners.en.json` and `profiles.json`, with the `Afrowave.Toolbox.WhenItFails.Bootstrap.Templates.` prefix.
+
+Artifact structure, package dependency declaration and manifest-resource *presence* are verified. Runtime resource consumption and installation from a clean external consumer remain unverified. A standalone Release solution build result was not provided.
+
+Next: pack `Essentials/Essentials.csproj` in Release, then install `Afrowave.Toolbox.WhenItFails` from a local folder containing both packages into a separate .NET 10 test console project; verify restore, build and default-template retrieval. Check the test output before marking the consumer gate GREEN.
+
 ## 2026-09-23 — NuGet archive structure inspected
 
 The maintainer listed the contents of `Afrowave.Toolbox.WhenItFails.0.1.0.nupkg`. The archive contains `Afrowave.Toolbox.WhenItFails.nuspec`, `LICENSE.txt`, `README.md`, `lib/net10.0/Afrowave.Toolbox.WhenItFails.dll`, `lib/net10.0/Afrowave.Toolbox.WhenItFails.xml`, plus standard NuGet metadata entries.
