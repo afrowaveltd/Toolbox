@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-09-22
+Last updated: 2026-09-23
 
 This file is the continuation point for `WhenItFails` development. Git history contains the detailed chronological checkpoints; keep this file focused on the current verified state, established contracts, and next step.
 
@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1120/1120 GREEN**, confirmed locally by the maintainer after `JsonCatalogDocumentLoader` existing-directory path classification. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1121/1121 GREEN**, confirmed locally by the maintainer on Windows after the `JsonCatalogDocumentLoader` existing-file-parent fix (0 failed, 0 skipped). The focused filter was not reported separately; compiler-warning count and other platform coverage were not separately reported.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -100,7 +100,23 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Reverse-order provider target-conflict regression is locally verified GREEN; snapshot file/directory conflict detection is order-independent.
 - Later-null-template-content no-partial-write regression is locally verified GREEN; complete provider snapshot validation reaches every item's content before the write loop.
 - `JsonCatalogDocumentLoader` existing-directory path contract is locally verified GREEN; directory paths return `Invalid` / `FilePathIsDirectory` instead of `NotFound`.
-- `JsonCatalogDocumentLoader` existing-file-parent path guard committed; focused/full GREEN after this fix is pending verification.
+- `JsonCatalogDocumentLoader` existing-file-parent path guard is verified GREEN in the complete 1121-test suite; the separate focused-filter result was not reported.
+
+## 2026-09-23 — 1121/1121 GREEN loader file-parent checkpoint
+
+Contract commit: `20189c13a577ea7ff75380c2bbafa9cfe1ad2985`
+
+Production fix commit: `dc2cc4184c87975383b7c2cd57709d3e0989e06b`
+
+Documentation commit: `c68ef5aca735f32cb43a9959fe9650603b7f3664`
+
+Locally confirmed by the maintainer on Windows:
+
+```text
+WhenItFails.Tests: 1121 total, 1121 passed, 0 failed, 0 skipped
+```
+
+The complete suite includes the existing-file-parent contract. The focused filter result was not separately supplied. The existing parent file remains unchanged and a missing catalog retains its own classification.
 
 ## 2026-09-23 — catalog document loader existing-file parent contract
 
@@ -134,7 +150,7 @@ Documentation commit: `c68ef5aca735f32cb43a9959fe9650603b7f3664`
 
 The loader now checks canonical parent components for an existing regular file before the missing-file branch and returns the `Invalid` / `FilePathParentIsFile` contract. Existing-directory, genuine missing-file and parser-error classifications remain separately handled.
 
-**Focused GREEN (1/1) and complete-suite 1121/1121 GREEN after the committed fix are pending maintainer verification.**
+**Complete-suite 1121/1121 GREEN is confirmed locally on Windows. The focused-filter result was not separately reported.**
 
 ## 2026-09-23 — 1120/1120 GREEN catalog loader directory-path checkpoint
 
@@ -5718,15 +5734,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadFromFileAsync_WhenFilePathParentIsExistingFile_ReturnsInvalidBeforeFileOpen"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1121/1121 GREEN (0 failed, 0 skipped)
 ```
 
-Expected after `dc2cc418`: **one focused GREEN** and **1121/1121 GREEN** for the complete suite. Confirm that the focused filter actually ran one test; a zero-test match does not establish the contract.
+Run the next focused loader content-classification regression before changing production code.
 
 ## Next recommended step
 
-After **1121/1121 GREEN** is confirmed locally, record the checkpoint and continue auditing distinct `JsonCatalogDocumentLoader` path/error boundaries without duplicating existing bootstrap contracts.
+Verify that a valid JSON literal `null` returns `Invalid` / `EmptyCatalogDocument` rather than `InvalidJson`, preserving the existing documented distinction between a syntactically valid null document and malformed JSON.
