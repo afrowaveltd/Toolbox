@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1141/1141 GREEN**, confirmed locally by the maintainer after adding the writer nested-directory creation contract.
+- Complete `WhenItFails.Tests` suite: **1143/1143 GREEN**, confirmed locally by the maintainer after adding concrete `JsonErrorCodeGroupCatalogLoader` coverage.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -20,7 +20,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` invocation boundary is complete for malformed direct results, ordinary-exception normalization and exact-instance cancellation propagation; deferred failures while consuming the returned collection are under audit.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
 - `JsonCatalogDocumentWriter` current safe-write scope is complete; `AccessDenied` remains intentionally unforced because a deterministic cross-platform permission failure would require a filesystem seam or OS-specific test setup.
-- `JsonErrorCodeGroupCatalogLoader` concrete coverage committed; local focused/full GREEN verification pending.
+- `JsonErrorCodeGroupCatalogLoader` concrete coverage is locally verified GREEN in the complete **1143/1143** suite.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -144,7 +144,7 @@ The load contract verifies a real JSON code-group catalog including identity, nu
 
 No production change was made.
 
-**Focused 2/2 GREEN and complete-suite 1143/1143 GREEN are pending local verification.**
+**Focused/full local verification completed; the complete suite is 1143/1143 GREEN.**
 
 ## 2026-09-23 — writer nested-directory creation contract
 
