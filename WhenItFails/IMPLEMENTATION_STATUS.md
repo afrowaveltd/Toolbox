@@ -103,7 +103,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonCatalogDocumentLoader` existing-file-parent path guard is verified GREEN in the complete 1121-test suite; the separate focused-filter result was not reported.
 - `JsonCatalogDocumentLoader` JSON-null-document classification regression is locally verified GREEN in the full suite; a syntactically valid JSON `null` returns `EmptyCatalogDocument` rather than `InvalidJson`.
 - `JsonCatalogDocumentWriter` existing-directory target contract is verified GREEN in the complete 1123-test suite. The separate focused result was not reported.
-- `JsonCatalogDocumentWriter` existing-file parent target contract committed; focused RED verification pending.
+- `JsonCatalogDocumentWriter` existing-file parent target contract confirmed RED on Windows; ancestor-path guard committed, awaiting focused/full GREEN verification.
 
 ## 2026-09-23 — writer existing-file parent target contract
 
@@ -129,9 +129,22 @@ Message: JSON catalog file path has an existing file as a parent.
 
 The existing parent file must remain untouched, no target file may appear, and no temporary file or backup may be created. The contract checks that only the original blocking file remains in the test root.
 
-Current writer calls `Directory.CreateDirectory(directoryPath)` without first rejecting an existing regular file occupying a parent component. This is expected to produce `Failed` / an I/O error rather than the field-specific `Invalid` result.
+The focused contract confirmed the expected RED on Windows:
 
-**Focused RED verification is pending. Production and documentation have not been changed for this contract.**
+```text
+Expected: Invalid
+Actual:   Failed
+```
+
+The writer attempted `Directory.CreateDirectory(directoryPath)` while an existing regular file occupied the required parent component, classifying the invalid destination as a general failure.
+
+Production fix commit: `fdb7d045599974c3772cc16d4a67ec79cb931fc8`
+
+Documentation commit: `f516f126a81cc284eee278f557f5ebc169ab333e`
+
+After the existing-directory destination guard, the writer now checks each canonical parent component for a regular file before `Directory.CreateDirectory(...)` or any temporary-file or backup write. A file ancestor yields the stable `Invalid` / `FilePathParentIsFile` contract while real disk I/O errors keep their existing response path.
+
+**Focused GREEN (1/1) and complete-suite 1124/1124 GREEN are pending local verification.**
 
 ## 2026-09-23 — 1123/1123 GREEN writer existing-directory checkpoint
 
@@ -5864,10 +5877,11 @@ Pull current `master` and run:
 
 ```powershell
 dotnet test WhenItFails.Tests --filter "FullyQualifiedName~SaveToFileAsync_WhenTargetParentIsExistingFile_ReturnsInvalidWithoutFilesystemMutation"
+dotnet test WhenItFails.Tests
 ```
 
-Expected at this stage: **one focused RED**, most likely `Expected: Invalid` / `Actual: Failed`. A zero-test filter match is not a valid checkpoint.
+Expected after the committed fix: **one focused GREEN** and **1124/1124 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-After focused RED is confirmed, add the narrow existing-file parent guard before `Directory.CreateDirectory(...)`. Preserve pre-cancellation, existing-directory destination classification, backups, temporary-file cleanup, and the genuine I/O failure contract.
+After **1124/1124 GREEN** is confirmed locally, record the writer file-parent checkpoint and audit another distinct writer boundary while preserving cancellation, backup safety, temporary-file cleanup, and established response contracts.
