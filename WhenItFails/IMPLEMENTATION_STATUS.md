@@ -196,6 +196,20 @@ Decision:
 
 This is considered a strong candidate for the first stable WhenItFails release because the existing WEB/API profile mappings already anticipate web-specific presentation behavior.
 
+## 2026-09-23 — packaged public type inventory collected
+
+The maintainer ran an isolated NuGet consumer against `Afrowave.Toolbox.WhenItFails 0.1.0` and enumerated `typeof(DefaultJsonsTemplateProvider).Assembly.GetExportedTypes()`. The inventory contains **110 exported public types** in the packaged DLL (including the `Microsoft.Extensions.DependencyInjection.WhenItFailsServiceCollectionExtensions` type). The output lists type names and reflection `TypeAttributes`, not public constructors, methods, properties, events, parameter/return types or accessibility of nested members.
+
+Initial categories for the 1.0 review:
+- application surface: `IErrorCatalogRuntime`, `WhenItFailsOptions`, `JsonsOptions`, `ErrorDescriptor`, context/status and other public response/definition DTOs;
+- intended extension contracts: loader, provider, validator, normalizer, resolver, bootstrap and context-store interfaces;
+- concrete implementation types: loaders, normalizers, validators, providers, runtime services and helpers, whose public status must be reviewed individually rather than mechanically changed to `internal`;
+- integration registration: `WhenItFailsServiceCollectionExtensions`.
+
+This is an inventory checkpoint, not an assertion that all 110 types are supported stable contracts. Before a 1.0 compatibility promise, obtain public member signatures for the main application surface and inspect public concrete types used by DI and existing consumers. Capture a reproducible API baseline without loading the repository build-output DLL into a long-lived PowerShell session.
+
+Next small slice: inspect public `IErrorCatalogRuntime` methods and `ErrorDescriptor` / configuration DTO shapes in the packaged DLL, compare them with docs and existing contracts, then record any concrete issues before production changes.
+
 ## 2026-09-23 — public API stabilization audit started
 
 The Release solution build is GREEN, and the package/isolated-consumer embedded-template smoke gates have passed.
