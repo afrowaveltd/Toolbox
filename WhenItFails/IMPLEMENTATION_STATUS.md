@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1128/1128 GREEN**, confirmed locally by the maintainer after adding the writer null-document entry contract.
+- Complete `WhenItFails.Tests` suite: **1129/1129 GREEN**, confirmed locally by the maintainer after adding the writer no-directory-path classification contract.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -19,7 +19,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCatalogRuntime` initializer and both built-in-provider runtime paths are complete for null response, ordinary exception, null task and exact cancellation behavior.
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` invocation boundary is complete for malformed direct results, ordinary-exception normalization and exact-instance cancellation propagation; deferred failures while consuming the returned collection are under audit.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
-- Writer no-directory-path classification contract committed; local focused/full GREEN verification pending.
+- Writer no-directory-path classification contract is locally verified GREEN in the complete **1129/1129** suite.
 - Writer null-document entry contract is locally verified GREEN in the complete **1128/1128** suite.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies all resolver-consumed nullable collections currently audited as malformed input rather than resolver failure.
@@ -136,7 +136,7 @@ Filesystem side effects: none
 
 No production change was made.
 
-**Focused 1/1 GREEN and complete-suite 1129/1129 GREEN are pending local verification.**
+**Focused/full local verification completed; the complete suite is 1129/1129 GREEN.**
 
 ## 2026-09-23 — writer null-document entry contract
 
