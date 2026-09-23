@@ -1,3 +1,4 @@
+using Afrowave.Toolbox.Essentials.Metadata;
 using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Normalization;
 
@@ -77,6 +78,35 @@ public sealed class ErrorOwnerDefinitionNormalizerTests
         Assert.Equal(["afrowave"], definition.Aliases);
         Assert.Equal(" 500 ", definition.DefaultMappings["web.httpStatusCode"]);
         Assert.False(definition.DefaultMappings.ContainsKey("RUNTIME_ONLY"));
+    }
+
+
+    [Fact]
+    public void Normalize_ShouldCopyMetadataWithoutSharingMutableState()
+    {
+        ErrorOwnerDefinitionNormalizer normalizer = new();
+
+        ErrorOwnerDefinition definition = new()
+        {
+            Metadata = new MetadataBag(
+                new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ["consumer"] = "WhenItFails",
+                    ["auditNote"] = "preserve independently"
+                })
+        };
+
+        ErrorOwnerDefinition normalizedDefinition =
+            normalizer.Normalize(definition);
+
+        Assert.NotSame(definition.Metadata, normalizedDefinition.Metadata);
+        Assert.Equal(definition.Metadata.Items, normalizedDefinition.Metadata.Items);
+
+        normalizedDefinition.Metadata.Set("consumer", "Changed");
+        normalizedDefinition.Metadata.Set("newValue", "runtime-only");
+
+        Assert.Equal("WhenItFails", definition.Metadata["consumer"]);
+        Assert.False(definition.Metadata.TryGet("newValue", out _));
     }
 
 }
