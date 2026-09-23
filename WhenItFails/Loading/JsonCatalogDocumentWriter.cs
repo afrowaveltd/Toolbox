@@ -61,6 +61,20 @@ public sealed class JsonCatalogDocumentWriter
                    message: "JSON catalog file path points to a directory.");
             }
 
+            string? parentPath = Path.GetFullPath(directoryPath);
+
+            while (parentPath is not null)
+            {
+                if (File.Exists(parentPath))
+                {
+                    return Response.Invalid(
+                       code: "FilePathParentIsFile",
+                       message: "JSON catalog file path has an existing file as a parent.");
+                }
+
+                parentPath = Path.GetDirectoryName(parentPath);
+            }
+
             Directory.CreateDirectory(directoryPath);
 
             temporaryFilePath = CreateTemporaryFilePath(normalizedFilePath);
