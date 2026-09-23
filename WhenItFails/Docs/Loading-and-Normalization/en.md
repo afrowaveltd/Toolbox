@@ -153,6 +153,17 @@ JSON catalog file path has an existing file as a parent.
 
 The existing parent file is left untouched. This condition is different from a genuinely missing catalog, which retains `FileNotFound`.
 
+## JSON catalog writer: existing-directory destinations
+
+`JsonCatalogDocumentWriter.SaveToFileAsync(...)` rejects an existing directory supplied as the target file path with an invalid response:
+
+```text
+Code: FilePathIsDirectory
+Message: JSON catalog file path points to a directory.
+```
+
+The writer detects this condition before creating a temporary JSON file, backup, or target file and leaves the existing directory unchanged. Genuine I/O and access failures retain their separate failure contracts. This writer behavior is independent of the loader's directory-path check described above.
+
 ## Missing files
 
 When the configured file does not exist, loading returns a not-found response.
