@@ -300,6 +300,47 @@ public sealed class JsonCatalogDocumentWriterTests
     }
 
     [Fact]
+    public async Task SaveToFileAsync_WhenExtensionlessTargetAlreadyExists_BackupFileNameHasStableShape()
+    {
+        string temporaryDirectoryPath = CreateTemporaryDirectoryPath();
+        string targetFilePath = Path.Combine(
+            temporaryDirectoryPath,
+            "errors");
+
+        try
+        {
+            Directory.CreateDirectory(temporaryDirectoryPath);
+            await File.WriteAllTextAsync(
+                targetFilePath,
+                "{\"catalogId\":\"original\"}");
+
+            JsonCatalogDocumentWriter writer = new();
+
+            Essentials.Results.Response response =
+                await writer.SaveToFileAsync(
+                    CreateDocument("Replacement catalog"),
+                    targetFilePath);
+
+            Assert.True(response.IsSuccess);
+
+            string backupFilePath = Assert.Single(
+                Directory.GetFiles(
+                    temporaryDirectoryPath,
+                    "*.bak"));
+
+            string backupFileName = Path.GetFileName(backupFilePath);
+
+            Assert.Matches(
+                @"^errors\.\d{8}-\d{6}-\d{3}-[0-9a-f]{32}\.bak$",
+                backupFileName);
+        }
+        finally
+        {
+            DeleteDirectoryIfExists(temporaryDirectoryPath);
+        }
+    }
+
+    [Fact]
     public async Task SaveToFileAsync_WhenExistingTargetIsReplaced_DoesNotLeaveTemporaryFile()
     {
         string temporaryDirectoryPath = CreateTemporaryDirectoryPath();
