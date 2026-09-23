@@ -34,7 +34,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorOwnerDefinitionNormalizer` null-input contract is locally verified GREEN in the complete **1154/1154** suite.
 - `ErrorOwnerDefinitionNormalizer` basic-field normalization contract is locally verified GREEN in the complete **1155/1155** suite.
 - `ErrorOwnerDefinitionNormalizer` mutable alias/mapping isolation contract is locally verified GREEN in the complete **1156/1156** suite.
-- `ErrorOwnerDefinitionNormalizer` metadata isolation contract committed; expected to expose current shared-reference behavior before a narrow production fix.
+- `ErrorOwnerDefinitionNormalizer` metadata isolation contract confirmed RED due to shared `MetadataBag` state; narrow production copy fix committed, GREEN verification pending.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -213,6 +213,28 @@ Repository audit summary:
 - package version remains `0.1.0`, and README explicitly states that the public API/catalog structure may still evolve before the first stable release.
 
 For a practical first stable runtime release, remaining work should prioritize completing direct normalizer audits, synchronizing status/docs, running full cross-platform/release gates, and making an explicit decision about which placeholder areas belong to 1.0 versus later releases.
+
+## 2026-09-23 — owner definition normalizer metadata isolation fix
+
+Focused RED confirmed locally by the maintainer:
+
+```text
+Normalize_ShouldCopyMetadataWithoutSharingMutableState
+Assert.NotSame() Failure: Values are the same instance
+Focused suite: 4 total, 3 passed, 1 failed
+```
+
+Production fix commit:
+`a8461c5e74e7039ddea34cafc700eb61a9abdb65`
+
+Updated:
+`WhenItFails/Normalization/ErrorOwnerDefinitionNormalizer.cs`
+
+The normalizer now creates an independent `MetadataBag` copy using the same established pattern as the category and code-group normalizers.
+
+No other normalization behavior changed.
+
+**Focused GREEN and complete-suite 1157/1157 GREEN are pending local verification.**
 
 ## 2026-09-23 — owner definition normalizer metadata isolation contract
 
