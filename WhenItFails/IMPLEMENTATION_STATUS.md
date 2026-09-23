@@ -128,6 +128,16 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Writer unsupported-type serialization exception contract is locally verified GREEN in the complete 1126-test suite; `NotSupportedException` from serializer becomes `Invalid` / `JsonSerializationFailed` with temporary-file cleanup.
 - Writer mid-serialization cancellation preservation regression is locally verified GREEN in the clean **1127/1127** suite after duplicate coverage removal.
 
+## 2026-09-23 — category definition normalizer compile fix
+
+Compile fix commit: `e8d918fd464d96746a89a8ca0fcbcc3d6fcf961d`
+
+The new basic-field test referenced `ErrorCategoryDefinition` without importing `Afrowave.Toolbox.WhenItFails.Definitions`.
+
+The missing using directive is now added.
+
+No production code changed. Focused/full verification remains pending.
+
 ## 2026-09-23 — category definition normalizer basic-field contract
 
 Test commit: `b54f0a1977542309e5f0256c0340a99039add10c`
