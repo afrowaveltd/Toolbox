@@ -19,6 +19,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCatalogRuntime` initializer and both built-in-provider runtime paths are complete for null response, ordinary exception, null task and exact cancellation behavior.
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` invocation boundary is complete for malformed direct results, ordinary-exception normalization and exact-instance cancellation propagation; deferred failures while consuming the returned collection are under audit.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
+- Writer backup success-message contract committed; local focused/full GREEN verification pending.
 - Writer first-save no-backup/no-temp success contract is locally verified GREEN in the complete **1135/1135** suite.
 - Writer successful-replace temporary-file cleanup contract is locally verified GREEN in the complete **1134/1134** suite.
 - Writer exact-byte backup preservation contract is locally verified GREEN in the complete **1133/1133** suite.
@@ -115,6 +116,34 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-catalog serialization-failure preservation regression is locally verified GREEN in the complete suite; the original file remains unchanged with no extra backup or temporary file.
 - Writer unsupported-type serialization exception contract is locally verified GREEN in the complete 1126-test suite; `NotSupportedException` from serializer becomes `Invalid` / `JsonSerializationFailed` with temporary-file cleanup.
 - Writer mid-serialization cancellation preservation regression is locally verified GREEN in the clean **1127/1127** suite after duplicate coverage removal.
+
+## 2026-09-23 — writer backup success-message contract
+
+Test commit: `9eb406b3801d623c367234023fcaf70a179f40fb`
+
+Baseline: **1135/1135 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Updated:
+`WhenItFails.Tests/Loading/JsonCatalogDocumentWriterTests.cs`
+
+Contract:
+`SaveToFileAsync_WhenTargetAlreadyExists_ResponseMessageIncludesActualBackupPath`
+
+The writer replaces an existing target and creates exactly one backup.
+
+Required behavior:
+
+```text
+Response: Success
+Message: JSON catalog file was saved: <target>. Backup: <actual backup path>
+Backup path in message: exactly the path of the file created on disk
+```
+
+This fixes the success-message shape at the safe-write boundary and ensures callers receive the real backup location rather than a derived or stale value.
+
+No production change was made.
+
+**Focused 1/1 GREEN and complete-suite 1136/1136 GREEN are pending local verification.**
 
 ## 2026-09-23 — writer first-save no-backup/no-temp success contract
 
