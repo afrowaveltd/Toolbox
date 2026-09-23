@@ -19,6 +19,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCatalogRuntime` initializer and both built-in-provider runtime paths are complete for null response, ordinary exception, null task and exact cancellation behavior.
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` invocation boundary is complete for malformed direct results, ordinary-exception normalization and exact-instance cancellation propagation; deferred failures while consuming the returned collection are under audit.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
+- Writer nested-directory creation contract committed; local focused/full GREEN verification pending.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
 - Writer existing-target I/O failure contract is locally verified GREEN in the complete **1138/1138** suite.
@@ -120,6 +121,35 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-catalog serialization-failure preservation regression is locally verified GREEN in the complete suite; the original file remains unchanged with no extra backup or temporary file.
 - Writer unsupported-type serialization exception contract is locally verified GREEN in the complete 1126-test suite; `NotSupportedException` from serializer becomes `Invalid` / `JsonSerializationFailed` with temporary-file cleanup.
 - Writer mid-serialization cancellation preservation regression is locally verified GREEN in the clean **1127/1127** suite after duplicate coverage removal.
+
+## 2026-09-23 — writer nested-directory creation contract
+
+Test commit: `49a9fd8cdcb12f9ff9c95754622d5f7fff6a1ab7`
+
+Baseline: **1140/1140 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Updated:
+`WhenItFails.Tests/Loading/JsonCatalogDocumentWriterTests.cs`
+
+Contract:
+`SaveToFileAsync_WhenNestedDirectoryDoesNotExist_CreatesDirectoryAndTarget`
+
+The target path points into a missing nested directory tree.
+
+Required behavior:
+
+```text
+Response: Success
+Nested directory: created
+Target file: created
+Serialized catalog content: present
+```
+
+This verifies the positive `Directory.CreateDirectory(...)` path and complements the existing invalid-parent and existing-file-parent guards.
+
+No production change was made.
+
+**Focused 1/1 GREEN and complete-suite 1141/1141 GREEN are pending local verification.**
 
 ## 2026-09-23 — writer extensionless-target backup file-name contract
 
