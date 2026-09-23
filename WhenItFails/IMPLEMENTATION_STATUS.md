@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1127/1127 GREEN**, confirmed locally by the maintainer after removing duplicate writer mid-serialization cancellation coverage.
+- Complete `WhenItFails.Tests` suite: **1128/1128 GREEN**, confirmed locally by the maintainer after adding the writer null-document entry contract.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -19,7 +19,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCatalogRuntime` initializer and both built-in-provider runtime paths are complete for null response, ordinary exception, null task and exact cancellation behavior.
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` invocation boundary is complete for malformed direct results, ordinary-exception normalization and exact-instance cancellation propagation; deferred failures while consuming the returned collection are under audit.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
-- Writer null-document entry contract committed; local focused/full GREEN verification pending.
+- Writer null-document entry contract is locally verified GREEN in the complete **1128/1128** suite.
 - `ErrorProfileSelectionService` → `IErrorProfileResolver.Resolve(...)` boundary is complete for null result, ordinary-exception normalization and exact-instance cancellation propagation.
 - `ErrorProfileSelectionService` classifies all resolver-consumed nullable collections currently audited as malformed input rather than resolver failure.
 - `JsonsBootstrapper` rejects null/whitespace `RootDirectory` and `PackageDirectoryName` before filesystem mutation.
@@ -135,7 +135,7 @@ Filesystem side effects: none
 
 No production change was made. The current writer performs `ArgumentNullException.ThrowIfNull(document)` before validating or mutating the target path, so the test is expected to pass.
 
-**Focused 1/1 GREEN and complete-suite 1128/1128 GREEN are pending local verification.**
+**Focused/full local verification completed; the complete suite is 1128/1128 GREEN.**
 
 ## 2026-09-23 — writer mid-serialization cancellation preservation regression
 
