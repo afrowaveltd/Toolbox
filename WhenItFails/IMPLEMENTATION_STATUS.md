@@ -6,7 +6,7 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Hardening dependency boundaries and malformed-context/configuration handling while preserving established public exception contracts. `JsonCatalogDocumentWriter` and specialized JSON loader coverage are complete for the current scope; the next step is auditing remaining production areas for genuine coverage gaps.
+Core hardening and concrete class-level coverage audits are complete for the current scope. The project is entering 1.0-readiness verification: synchronize the Setter regression baseline, run repository/release gates, review public API stability, and separate must-have 1.0 work from later integration packages.
 
 ## Current verified state
 
@@ -36,6 +36,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorOwnerDefinitionNormalizer` mutable alias/mapping isolation contract is locally verified GREEN in the complete **1156/1156** suite.
 - `ErrorOwnerDefinitionNormalizer` metadata isolation fix is locally verified GREEN in the complete **1157/1157** suite.
 - Normalization layer direct coverage is complete for the current scope: all 12 production normalization files have corresponding focused tests.
+- Concrete core class-level coverage audit is complete for the current scope. Remaining filename-audit mismatches were interfaces, already-covered bootstrap DTO/value contracts, `TextKeyNormalizer` under its historical test filename, `ErrorCatalogInitializationMode` covered by configuration enum-value contracts, and `CatalogValidationHelper` behavior covered through public validator tests.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -194,6 +195,25 @@ Decision:
 - evaluate `ValidationProblemDetails` only after defining a proper structured field-validation contract.
 
 This is considered a strong candidate for the first stable WhenItFails release because the existing WEB/API profile mappings already anticipate web-specific presentation behavior.
+
+## 2026-09-23 — core coverage audit completion
+
+Verified core baseline: **1157/1157 GREEN**.
+
+The post-normalization concrete production audit found no remaining genuine class-level coverage gap requiring a new focused unit test.
+
+Filename mismatches were reviewed rather than treated mechanically:
+
+- `DefaultJsonsTemplateProvider` is directly covered by `DefaultJsonTemplateProviderTests.cs`;
+- `JsonsBootstrapFileResult` and `JsonsTemplateFile` are covered by bootstrap value/payload contracts and integration tests;
+- `ErrorCatalogInitializationMode` is protected by existing configuration numeric-value contracts;
+- `TextKeyNormalizer` is covered by the historically named `TestKeyNormalizerTests.cs`;
+- `CatalogValidationHelper` behavior is exercised through public category/owner/profile/error validator contracts, including normalized duplicate detection and header warning/error semantics;
+- interface-only files do not require artificial implementation tests.
+
+Do not add tests solely to make filenames line up. Future core tests should continue to be added only for a concrete contract, regression, uncovered behavior or proven failure.
+
+Next release-readiness gate: re-run the complete `Toolroom/WhenItFails/Setter.Tests` suite and synchronize its previously recorded **1241/1241** baseline with current master.
 
 ## 2026-09-23 — project audit checkpoint
 
