@@ -196,6 +196,24 @@ Decision:
 
 This is considered a strong candidate for the first stable WhenItFails release because the existing WEB/API profile mappings already anticipate web-specific presentation behavior.
 
+## 2026-09-23 — Setter regression baseline refreshed
+
+Locally confirmed by the maintainer on current master:
+
+```text
+Toolroom/WhenItFails/Setter.Tests
+Total:   1241
+Passed:  1241
+Failed:  0
+Skipped: 0
+Duration: 15.7 s
+Build:   successful in 22.3 s
+```
+
+The Setter regression baseline is therefore current again and matches the previously recorded count.
+
+Next release-readiness gate: project build plus Setter catalog/documentation validation commands.
+
 ## 2026-09-23 — core coverage audit completion
 
 Verified core baseline: **1157/1157 GREEN**.
@@ -213,7 +231,7 @@ Filename mismatches were reviewed rather than treated mechanically:
 
 Do not add tests solely to make filenames line up. Future core tests should continue to be added only for a concrete contract, regression, uncovered behavior or proven failure.
 
-Next release-readiness gate: re-run the complete `Toolroom/WhenItFails/Setter.Tests` suite and synchronize its previously recorded **1241/1241** baseline with current master.
+Setter regression suite is freshly verified on current master: **1241/1241 GREEN**. Next release-readiness gate: build the relevant projects and run Setter validation/documentation checks.
 
 ## 2026-09-23 — project audit checkpoint
 
