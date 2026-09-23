@@ -142,6 +142,29 @@ The missing using directive is now added.
 
 No production code changed. Focused/full verification remains pending.
 
+## 2026-09-23 — ASP.NET Core Problem Details integration added to implementation plan
+
+Design document commit:
+`ddde1f3e916142b18c60a36e4bb71defa7b72e69`
+
+Added:
+`WhenItFails/Docs/ASP.NET Core Integration/en.md`
+
+Decision:
+
+- add first-class ASP.NET Core Problem Details support;
+- keep ASP.NET Core dependencies out of the core `Afrowave.Toolbox.WhenItFails` package;
+- prefer a separate integration assembly/package, provisionally `Afrowave.Toolbox.WhenItFails.AspNetCore`;
+- map `ErrorDescriptor` to ASP.NET Core `ProblemDetails`;
+- preserve explicit HTTP policy through web mappings such as `web.httpStatusCode`;
+- do not infer HTTP status solely from severity;
+- expose stable public identifiers through safe Problem Details extensions;
+- suppress exception, stack trace, developer hints and other internal details by default;
+- integrate with Minimal APIs, controllers and the standard `IProblemDetailsService` pipeline in staged follow-up work;
+- evaluate `ValidationProblemDetails` only after defining a proper structured field-validation contract.
+
+This is considered a strong candidate for the first stable WhenItFails release because the existing WEB/API profile mappings already anticipate web-specific presentation behavior.
+
 ## 2026-09-23 — project audit checkpoint
 
 Current locally verified core baseline: **1151/1151 GREEN**.
