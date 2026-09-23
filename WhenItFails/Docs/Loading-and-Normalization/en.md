@@ -164,6 +164,17 @@ Message: JSON catalog file path points to a directory.
 
 The writer detects this condition before creating a temporary JSON file, backup, or target file and leaves the existing directory unchanged. Genuine I/O and access failures retain their separate failure contracts. This writer behavior is independent of the loader's directory-path check described above.
 
+## JSON catalog writer: existing-file ancestors
+
+If a parent component of a writer's target path already exists as a regular file (for example, `blocked/catalog.json` when `blocked` is a file), the writer rejects the path before creating any parent directories, temporary files, or backups.
+
+```text
+Code: FilePathParentIsFile
+Message: JSON catalog file path has an existing file as a parent.
+```
+
+The existing parent file is left unchanged. Actual disk I/O and access failures retain their separate failure contracts.
+
 ## Missing files
 
 When the configured file does not exist, loading returns a not-found response.
