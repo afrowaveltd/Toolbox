@@ -29,6 +29,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCategoryDefinitionNormalizer` metadata isolation fix is locally verified GREEN in the complete **1149/1149** suite.
 - `ErrorCodeGroupDefinitionNormalizer` null-input contract is locally verified GREEN in the complete **1150/1150** suite.
 - `ErrorCodeGroupDefinitionNormalizer` basic-field normalization contract is locally verified GREEN in the complete **1151/1151** suite.
+- `ErrorCodeGroupDefinitionNormalizer` mutable collection/mapping isolation contract committed; local focused/full GREEN verification pending.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -207,6 +208,26 @@ Repository audit summary:
 - package version remains `0.1.0`, and README explicitly states that the public API/catalog structure may still evolve before the first stable release.
 
 For a practical first stable runtime release, remaining work should prioritize completing direct normalizer audits, synchronizing status/docs, running full cross-platform/release gates, and making an explicit decision about which placeholder areas belong to 1.0 versus later releases.
+
+## 2026-09-23 — code-group definition normalizer mutable isolation contract
+
+Test commit: `ceca60548b2ea5b795a21a350f0a5769e55d76bb`
+
+Baseline: **1151/1151 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Updated:
+`WhenItFails.Tests/Normalization/ErrorCodeGroupDefinitionNormalizerTests.cs`
+
+Contract:
+`Normalize_ShouldCopyCollectionsAndMappingsWithoutSharingMutableState`
+
+The contract verifies that normalized default categories, default tags and default mappings are independent mutable objects. Mutating the normalized result must not change the source definition.
+
+Metadata remains intentionally excluded from this contract and will be audited separately because the current implementation assigns it directly.
+
+No production change was made.
+
+**Focused 3/3 GREEN and complete-suite 1152/1152 GREEN are pending local verification.**
 
 ## 2026-09-23 — code-group definition normalizer basic-field contract
 
