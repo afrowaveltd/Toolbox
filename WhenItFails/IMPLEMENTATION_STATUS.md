@@ -32,6 +32,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCodeGroupDefinitionNormalizer` mutable collection/mapping isolation contract is locally verified GREEN in the complete **1152/1152** suite.
 - `ErrorCodeGroupDefinitionNormalizer` metadata isolation fix is locally verified GREEN in the complete **1153/1153** suite.
 - `ErrorOwnerDefinitionNormalizer` null-input contract is locally verified GREEN in the complete **1154/1154** suite.
+- `ErrorOwnerDefinitionNormalizer` basic-field normalization contract committed; local focused/full GREEN verification pending.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -210,6 +211,34 @@ Repository audit summary:
 - package version remains `0.1.0`, and README explicitly states that the public API/catalog structure may still evolve before the first stable release.
 
 For a practical first stable runtime release, remaining work should prioritize completing direct normalizer audits, synchronizing status/docs, running full cross-platform/release gates, and making an explicit decision about which placeholder areas belong to 1.0 versus later releases.
+
+## 2026-09-23 — owner definition normalizer basic-field contract
+
+Test commit: `3c37367d683466c9df57e37b03adc6cacd560a6d`
+
+Baseline: **1154/1154 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Updated:
+`WhenItFails.Tests/Normalization/ErrorOwnerDefinitionNormalizerTests.cs`
+
+Contract:
+`Normalize_ShouldNormalizeBasicFields`
+
+The contract verifies normalization and preservation of:
+
+- owner key,
+- display name and description,
+- numeric owner range,
+- built-in flag,
+- aliases,
+- default mapping keys and values,
+- duplicate normalized alias values.
+
+Metadata remains intentionally excluded from this contract and will be audited separately.
+
+No production change was made.
+
+**Focused 2/2 GREEN and complete-suite 1155/1155 GREEN are pending local verification.**
 
 ## 2026-09-23 — owner definition normalizer null-input contract
 
