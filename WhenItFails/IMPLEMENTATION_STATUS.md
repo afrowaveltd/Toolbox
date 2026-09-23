@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1122/1122 GREEN**, confirmed locally by the maintainer after the loader JSON-null-document regression. The focused result, compiler-warning count and cross-platform coverage were not separately reported.
+- Complete `WhenItFails.Tests` suite: **1123/1123 GREEN**, confirmed locally by the maintainer after the writer existing-directory target fix. The focused result, compiler-warning count, and other-platform coverage were not separately reported.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -102,7 +102,23 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonCatalogDocumentLoader` existing-directory path contract is locally verified GREEN; directory paths return `Invalid` / `FilePathIsDirectory` instead of `NotFound`.
 - `JsonCatalogDocumentLoader` existing-file-parent path guard is verified GREEN in the complete 1121-test suite; the separate focused-filter result was not reported.
 - `JsonCatalogDocumentLoader` JSON-null-document classification regression is locally verified GREEN in the full suite; a syntactically valid JSON `null` returns `EmptyCatalogDocument` rather than `InvalidJson`.
-- `JsonCatalogDocumentWriter` existing-directory target contract confirmed RED on Windows; pre-write directory guard committed, awaiting focused/full GREEN verification.
+- `JsonCatalogDocumentWriter` existing-directory target contract is verified GREEN in the complete 1123-test suite. The separate focused result was not reported.
+
+## 2026-09-23 — 1123/1123 GREEN writer existing-directory checkpoint
+
+Contract commit: `b13539eb8d38906e2e697786dd4ce4a8d0a84c9b`
+
+Production fix commit: `88111438a9dea5337a04bcf00afff35b8d845091`
+
+Documentation commit: `7cf5d20c015da1508bc90fe89c1e9867647b273a`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests: 1123/1123 GREEN
+```
+
+The writer rejects an existing-directory destination before creating a temporary file or backup. The focused result was not separately supplied.
 
 ## 2026-09-23 — writer existing-directory target contract
 
@@ -143,7 +159,7 @@ Documentation commit: `7cf5d20c015da1508bc90fe89c1e9867647b273a`
 
 The writer now checks `Directory.Exists(normalizedFilePath)` before creating the target parent directory or any temporary file. Existing-directory targets return `Invalid` / `FilePathIsDirectory`, while real writer I/O failures retain their existing classification.
 
-**Focused GREEN (1/1) and complete-suite 1123/1123 GREEN are pending local verification.**
+**Complete-suite 1123/1123 GREEN confirmed locally; the focused result was not separately reported.**
 
 ## 2026-09-23 — 1122/1122 GREEN JSON-null loader checkpoint
 
@@ -5815,15 +5831,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~SaveToFileAsync_WhenTargetPathIsExistingDirectory_ReturnsInvalidWithoutTemporaryFiles"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1123/1123 GREEN
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1123/1123 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Run a focused RED contract for the writer's existing-regular-file ancestor boundary before changing production code.
 
 ## Next recommended step
 
-After 1123/1123 GREEN is confirmed locally, record the writer existing-directory checkpoint and continue auditing a distinct writer boundary, preserving temporary-file cleanup, backup safety, and cancellation contracts.
+Probe `JsonCatalogDocumentWriter.SaveToFileAsync(...)` with `blocked/catalog.json` when `blocked` already exists as a regular file. This path has an invalid parent component and must not be normalized to an ordinary I/O failure; preserve the parent file and avoid creating temporary files.
