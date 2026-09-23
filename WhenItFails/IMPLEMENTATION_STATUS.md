@@ -196,6 +196,14 @@ Decision:
 
 This is considered a strong candidate for the first stable WhenItFails release because the existing WEB/API profile mappings already anticipate web-specific presentation behavior.
 
+## 2026-09-23 — external runtime consumer smoke test compile corrections
+
+External consumer smoke compilation failed before runtime execution because its sample used `ServiceProvider` / `BuildServiceProvider()` without an explicit `Microsoft.Extensions.DependencyInjection` implementation package (the WhenItFails NuGet package declares DI Abstractions, not the implementation) and referenced nonexistent `Response<ErrorDescriptor>.Value`.
+
+Verified source contracts: `Essentials/Results/ResponseOfT.cs` exposes `Data` and `IsSuccess`, and existing `WhenItFails.Tests/Integration/ErrorCatalogRuntimeIntegrationTests.cs` uses `Data`, `IsSuccess` and the full DI implementation. `AFW_GEN_0001` is present in the authoritative catalog.
+
+Corrective consumer-only actions: add `Microsoft.Extensions.DependencyInjection 10.0.9` explicitly to the isolated console project; use `descriptor.Data` and check `initialization.IsSuccess`, `status.IsSuccess` and `descriptor.IsSuccess`. Run the repaired consumer sample before reporting the runtime end-to-end gate as GREEN. No production change is indicated by the current compiler errors.
+
 ## 2026-09-23 — packaged primary API signatures verified
 
 The maintainer used the isolated NuGet consumer to reflect the public constructors, properties and declared methods of `IErrorCatalogRuntime`, `ErrorDescriptor`, `WhenItFailsOptions` and `JsonsOptions` from `Afrowave.Toolbox.WhenItFails 0.1.0`.
