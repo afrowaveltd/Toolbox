@@ -19,6 +19,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCatalogRuntime` initializer and both built-in-provider runtime paths are complete for null response, ordinary exception, null task and exact cancellation behavior.
 - Direct `JsonsBootstrapper` → `IJsonsTemplateProvider.GetTemplateFiles(...)` invocation boundary is complete for malformed direct results, ordinary-exception normalization and exact-instance cancellation propagation; deferred failures while consuming the returned collection are under audit.
 - `JsonCatalogDocumentWriter` serialization-failure temporary-file cleanup and deterministic pre-cancellation behavior are verified.
+- Writer existing-target I/O failure contract committed; local focused/full GREEN verification pending.
 - Writer first-save success-message contract is locally verified GREEN in the complete **1137/1137** suite.
 - Writer backup success-message contract is locally verified GREEN in the complete **1136/1136** suite.
 - Writer first-save no-backup/no-temp success contract is locally verified GREEN in the complete **1135/1135** suite.
@@ -117,6 +118,36 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-catalog serialization-failure preservation regression is locally verified GREEN in the complete suite; the original file remains unchanged with no extra backup or temporary file.
 - Writer unsupported-type serialization exception contract is locally verified GREEN in the complete 1126-test suite; `NotSupportedException` from serializer becomes `Invalid` / `JsonSerializationFailed` with temporary-file cleanup.
 - Writer mid-serialization cancellation preservation regression is locally verified GREEN in the clean **1127/1127** suite after duplicate coverage removal.
+
+## 2026-09-23 — writer existing-target I/O failure contract
+
+Test commit: `336a9159c52ed3911acdcead3a1d8c7a83e879d7`
+
+Baseline: **1137/1137 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Loading/JsonCatalogDocumentWriterInputOutputErrorContractTests.cs`
+
+Contract:
+`SaveToFileAsync_WhenExistingTargetIsLocked_ReturnsInputOutputErrorAndPreservesTarget`
+
+The existing target is opened with `FileShare.None` while the writer attempts a safe replace. Serialization to the temporary file can complete, but backup creation from the locked target should fail with an I/O error.
+
+Required behavior:
+
+```text
+Status: Failure
+Code: InputOutputError
+Original target bytes: unchanged
+Backup files: none
+Temporary files: none after cleanup
+```
+
+This exercises the writer's `IOException` normalization and verifies safe cleanup after a failure that occurs after temporary serialization but before target replacement.
+
+No production change was made.
+
+**Focused 1/1 GREEN and complete-suite 1138/1138 GREEN are pending local verification.**
 
 ## 2026-09-23 — writer first-save success-message contract
 
