@@ -196,6 +196,18 @@ Decision:
 
 This is considered a strong candidate for the first stable WhenItFails release because the existing WEB/API profile mappings already anticipate web-specific presentation behavior.
 
+## 2026-09-23 — catalog and documentation release gates
+
+Confirmed locally by the maintainer after the fresh core **1157/1157** and Setter **1241/1241** regression checkpoints:
+
+- `dotnet run --project Toolroom/WhenItFails/Setter -- validate .`: PASS; source `Jsons/WhenItFails`, 0 errors, 0 warnings, 0 information.
+- `dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-links .`: PASS; 45 Markdown files and 424 local links checked, no broken links.
+- `dotnet run --project Toolroom/WhenItFails/Setter -- check-doc-keys .`: PASS; all 49 errors have unique, non-empty, canonical documentation keys.
+
+A standalone `dotnet build Toolbox.sln` result was not included in this report, so whole-solution build remains unconfirmed.
+
+Next gate: `dotnet pack WhenItFails/WhenItFails.csproj -c Release` and inspect the generated NuGet package for successful packaging, README/license placement, required dependency metadata and embedded default catalogs. Do not mark pack/payload as verified before inspecting the output. Then review public API stability and establish explicit 1.0 versus later-adapter scope.
+
 ## 2026-09-23 — Setter regression baseline refreshed
 
 Locally confirmed by the maintainer on current master:
