@@ -106,6 +106,35 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonCatalogDocumentWriter` existing-file parent target contract is locally verified GREEN in the full 1124-test suite; its ancestor-path guard rejects file parents before directory or temporary-file creation.
 - Existing-catalog serialization-failure preservation regression is locally verified GREEN in the complete suite; the original file remains unchanged with no extra backup or temporary file.
 - Writer unsupported-type serialization exception contract is locally verified GREEN in the complete 1126-test suite; `NotSupportedException` from serializer becomes `Invalid` / `JsonSerializationFailed` with temporary-file cleanup.
+- Writer mid-serialization cancellation preservation regression committed; focused/full GREEN verification pending.
+
+## 2026-09-23 — writer mid-serialization cancellation preservation regression
+
+Test commit: `fe6cee4da834f8e1d5ec3718ce9280d27620790b`
+
+Baseline: **1126/1126 GREEN**, confirmed locally by the maintainer before this regression was introduced.
+
+Added:
+`WhenItFails.Tests/Loading/JsonCatalogDocumentWriterMidSerializationCancellationContractTests.cs`
+
+Contract:
+`SaveToFileAsync_WhenCancelledDuringSerialization_PreservesExistingTargetWithoutBackupOrTemporaryFile`
+
+The writer receives an uncancelled token and an existing catalog containing a known original byte sequence. During JSON serialization a document property getter triggers cancellation and throws `OperationCanceledException` from the same token. This exercises the cancellation path after temporary-file creation rather than the previously covered pre-cancelled entry guard.
+
+Required behavior:
+
+```text
+Outcome: OperationCanceledException propagates
+Existing catalog: identical original bytes
+Temporary files: none
+Backup files: none
+Remaining files: only the original catalog
+```
+
+No production change was made. The current writer rethrows `OperationCanceledException`, runs the existing temporary-file cleanup in `finally` and creates backups only after successful serialization; this test is expected to pass.
+
+**Focused 1/1 GREEN and complete-suite 1127/1127 GREEN are pending local verification.**
 
 ## 2026-09-23 — 1126/1126 GREEN unsupported-type JSON writer checkpoint
 
@@ -5988,14 +6017,15 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Current locally confirmed baseline:
+Pull current `master` and run:
 
-```text
-WhenItFails.Tests: 1126/1126 GREEN
+```powershell
+dotnet test WhenItFails.Tests --filter "FullyQualifiedName~SaveToFileAsync_WhenCancelledDuringSerialization_PreservesExistingTargetWithoutBackupOrTemporaryFile"
+dotnet test WhenItFails.Tests
 ```
 
-Run the next focused JSON writer cancellation-preservation regression before changing production code.
+Expected: **one focused GREEN** and **1127/1127 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
 
 ## Next recommended step
 
-Verify a cancellation raised during JSON serialization, after the writer has entered its temporary-file workflow, preserves an existing catalog byte-for-byte, creates no backup, removes the temporary file and propagates `OperationCanceledException` rather than returning a failure response.
+After **1127/1127 GREEN** is confirmed locally, record the writer cancellation-preservation checkpoint and continue auditing a distinct safe-write boundary. Preserve the established cancellation propagation and backup/no-overwrite guarantees.
