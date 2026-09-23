@@ -196,6 +196,16 @@ Decision:
 
 This is considered a strong candidate for the first stable WhenItFails release because the existing WEB/API profile mappings already anticipate web-specific presentation behavior.
 
+## 2026-09-23 — packaged primary API signatures verified
+
+The maintainer used the isolated NuGet consumer to reflect the public constructors, properties and declared methods of `IErrorCatalogRuntime`, `ErrorDescriptor`, `WhenItFailsOptions` and `JsonsOptions` from `Afrowave.Toolbox.WhenItFails 0.1.0`.
+
+Observed: `IErrorCatalogRuntime` has 9 declared methods (two `InitializeAsync` overloads, `ResetToDefaultsAsync`, `GetCurrentContext`, `GetStatus`, `FromId`, `FromName`, `FromCode`, `ResolveProfile`). `ErrorDescriptor` has a public parameterless constructor and 23 public properties including mutable lists, `MetadataBag` and `Exception`. `WhenItFailsOptions` has 3 public properties; `JsonsOptions` has 13 (7 settable configuration fields plus 6 derived paths).
+
+Source inspection confirms `HideRecoverableFailures` is intentionally `bool?`; null means no explicit override, and the safe default applies. `JsonsOptions` derived paths are get-only and computed from configurable root/package/file names. `ErrorDescriptor.Exception` is marked `[JsonIgnore]`; that alone does NOT make the whole descriptor safe for untrusted JSON/API responses because other diagnostic fields are serialized.
+
+No source or public API changes made in this checkpoint. Next: verify descriptor isolation/mapping and public API usage in an external consumer against the documented runtime methods before declaring stable 1.0 contracts. Retain the API inventory as a baseline rather than immediately hiding concrete types.
+
 ## 2026-09-23 — packaged public type inventory collected
 
 The maintainer ran an isolated NuGet consumer against `Afrowave.Toolbox.WhenItFails 0.1.0` and enumerated `typeof(DefaultJsonsTemplateProvider).Assembly.GetExportedTypes()`. The inventory contains **110 exported public types** in the packaged DLL (including the `Microsoft.Extensions.DependencyInjection.WhenItFailsServiceCollectionExtensions` type). The output lists type names and reflection `TypeAttributes`, not public constructors, methods, properties, events, parameter/return types or accessibility of nested members.
