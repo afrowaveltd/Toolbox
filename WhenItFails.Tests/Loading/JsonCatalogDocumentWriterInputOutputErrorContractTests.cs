@@ -49,7 +49,7 @@ public sealed class JsonCatalogDocumentWriterInputOutputErrorContractTests
                 targetFilePath);
 
             Assert.False(response.IsSuccess);
-            Assert.Equal(ResultStatus.Failure, response.Status);
+            Assert.Equal(ResultStatus.Failed, response.Status);
 
             var issue = Assert.Single(response.Issues);
             Assert.Equal("InputOutputError", issue.Code);
