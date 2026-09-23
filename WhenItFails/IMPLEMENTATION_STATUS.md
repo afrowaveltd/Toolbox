@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1151/1151 GREEN**, confirmed locally by the maintainer after adding the `ErrorCodeGroupDefinitionNormalizer` basic-field normalization contract.
+- Complete `WhenItFails.Tests` suite: **1152/1152 GREEN**, confirmed locally by the maintainer after adding the `ErrorCodeGroupDefinitionNormalizer` mutable collection/mapping isolation contract.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -29,7 +29,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCategoryDefinitionNormalizer` metadata isolation fix is locally verified GREEN in the complete **1149/1149** suite.
 - `ErrorCodeGroupDefinitionNormalizer` null-input contract is locally verified GREEN in the complete **1150/1150** suite.
 - `ErrorCodeGroupDefinitionNormalizer` basic-field normalization contract is locally verified GREEN in the complete **1151/1151** suite.
-- `ErrorCodeGroupDefinitionNormalizer` mutable collection/mapping isolation contract committed; local focused/full GREEN verification pending.
+- `ErrorCodeGroupDefinitionNormalizer` mutable collection/mapping isolation contract is locally verified GREEN in the complete **1152/1152** suite.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -227,7 +227,7 @@ Metadata remains intentionally excluded from this contract and will be audited s
 
 No production change was made.
 
-**Focused 3/3 GREEN and complete-suite 1152/1152 GREEN are pending local verification.**
+**Focused/full local verification completed; the complete suite is 1152/1152 GREEN.**
 
 ## 2026-09-23 — code-group definition normalizer basic-field contract
 
