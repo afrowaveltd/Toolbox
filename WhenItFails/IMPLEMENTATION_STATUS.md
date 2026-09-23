@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1124/1124 GREEN**, confirmed locally by the maintainer after the writer existing-file parent target fix. The focused result, compiler-warning count and other-platform coverage were not separately reported.
+- Complete `WhenItFails.Tests` suite: **1125/1125 GREEN**, confirmed locally by the maintainer after the writer existing-target serialization-failure preservation regression. The focused-filter result, compiler-warning count and cross-platform coverage were not separately reported.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -104,7 +104,19 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonCatalogDocumentLoader` JSON-null-document classification regression is locally verified GREEN in the full suite; a syntactically valid JSON `null` returns `EmptyCatalogDocument` rather than `InvalidJson`.
 - `JsonCatalogDocumentWriter` existing-directory target contract is verified GREEN in the complete 1123-test suite. The separate focused result was not reported.
 - `JsonCatalogDocumentWriter` existing-file parent target contract is locally verified GREEN in the full 1124-test suite; its ancestor-path guard rejects file parents before directory or temporary-file creation.
-- Existing-catalog serialization-failure preservation regression committed; focused GREEN verification pending.
+- Existing-catalog serialization-failure preservation regression is locally verified GREEN in the complete suite; the original file remains unchanged with no extra backup or temporary file.
+
+## 2026-09-23 — 1125/1125 GREEN existing-catalog preservation checkpoint
+
+Regression commits: `157961a99102beefc004cb1e8304c796ac300fe2`, `44b5626703c237f9ea43456e341bc79c57d63d5e`
+
+Locally confirmed by the maintainer:
+
+```text
+WhenItFails.Tests: 1125/1125 GREEN
+```
+
+The original catalog is preserved when new JSON serialization fails; no extra backup or temporary file remains. The focused-filter result was not separately reported.
 
 ## 2026-09-23 — existing-catalog serialization failure preservation regression
 
@@ -137,7 +149,7 @@ This covers safe-write preservation of an existing catalog when new serializatio
 
 No production changes were made. The existing writer serializes to a temporary file, cleans it up on error, and only then creates backups/replaces the target; this regression is expected to pass.
 
-**Focused 1/1 GREEN and complete-suite 1125/1125 GREEN are pending local verification.**
+**Complete-suite 1125/1125 GREEN is locally confirmed; the focused result was not separately reported.**
 
 ## 2026-09-23 — 1124/1124 GREEN writer existing-file parent checkpoint
 
@@ -5923,15 +5935,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~SaveToFileAsync_WhenSerializationFailsForExistingTarget_PreservesOriginalWithoutBackupOrTemporaryFile"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1125/1125 GREEN
 ```
 
-Expected after the test-only commits: **one focused GREEN** and **1125/1125 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Run the next focused serialization-exception contract before any production change.
 
 ## Next recommended step
 
-After **1125/1125 GREEN** is confirmed locally, record the writer existing-target preservation checkpoint and continue with a distinct writer boundary, avoiding duplicating existing safe-write or filename validation contracts.
+Probe `JsonCatalogDocumentWriter` with a document containing a `System.Type` value that `System.Text.Json` cannot serialize. Unlike cyclic data, unsupported type serialization can raise `NotSupportedException`; it should return the established `Invalid` / `JsonSerializationFailed` result and clean up temporary files.
