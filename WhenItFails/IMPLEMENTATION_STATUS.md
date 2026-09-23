@@ -23,6 +23,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `JsonErrorCodeGroupCatalogLoader` concrete coverage is locally verified GREEN in the complete **1143/1143** suite.
 - `JsonErrorOwnerCatalogLoader` concrete coverage is locally verified GREEN in the complete **1145/1145** suite.
 - Specialized JSON catalog loader baseline coverage is complete for the current scope; generic invalid-path, malformed-JSON and cancellation behavior remains centralized in `JsonCatalogDocumentLoader` tests rather than duplicated per wrapper.
+- `ErrorCategoryDefinitionNormalizer` null-input contract committed; local focused/full GREEN verification pending.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -125,6 +126,31 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Existing-catalog serialization-failure preservation regression is locally verified GREEN in the complete suite; the original file remains unchanged with no extra backup or temporary file.
 - Writer unsupported-type serialization exception contract is locally verified GREEN in the complete 1126-test suite; `NotSupportedException` from serializer becomes `Invalid` / `JsonSerializationFailed` with temporary-file cleanup.
 - Writer mid-serialization cancellation preservation regression is locally verified GREEN in the clean **1127/1127** suite after duplicate coverage removal.
+
+## 2026-09-23 — category definition normalizer null-input contract
+
+Test commit: `1ab326e1cc9db72780aadab1dc61a4c3ded59c91`
+
+Baseline: **1145/1145 GREEN**, confirmed locally by the maintainer before this contract was introduced.
+
+Added:
+`WhenItFails.Tests/Normalization/ErrorCategoryDefinitionNormalizerTests.cs`
+
+Contract:
+`Normalize_ShouldThrowArgumentNullException_WhenDefinitionIsNull`
+
+Required behavior:
+
+```text
+Input definition: null
+Result: throws ArgumentNullException
+```
+
+This begins direct coverage of `ErrorCategoryDefinitionNormalizer`, which previously had no tests referencing the class.
+
+No production change was made.
+
+**Focused 1/1 GREEN and complete-suite 1146/1146 GREEN are pending local verification.**
 
 ## 2026-09-23 — JSON owner catalog loader baseline coverage
 
