@@ -80,10 +80,19 @@ public sealed class JsonCatalogDocumentWriter
             temporaryFilePath = CreateTemporaryFilePath(normalizedFilePath);
             string? backupFilePath = null;
 
-            await WriteDocumentToTemporaryFileAsync(
-               document,
-               temporaryFilePath,
-               cancellationToken);
+            try
+            {
+                await WriteDocumentToTemporaryFileAsync(
+                   document,
+                   temporaryFilePath,
+                   cancellationToken);
+            }
+            catch (NotSupportedException exception)
+            {
+                return Response.Invalid(
+                   code: "JsonSerializationFailed",
+                   message: $"JSON catalog document serialization failed. {exception.Message}");
+            }
 
             if (File.Exists(normalizedFilePath))
             {
