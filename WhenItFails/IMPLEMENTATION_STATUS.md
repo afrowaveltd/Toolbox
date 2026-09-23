@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1148/1148 GREEN**, confirmed locally by the maintainer after adding the `ErrorCategoryDefinitionNormalizer` mutable collection/mapping isolation contract.
+- Complete `WhenItFails.Tests` suite: **1149/1149 GREEN**, confirmed locally by the maintainer after fixing `ErrorCategoryDefinitionNormalizer` metadata isolation.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -26,7 +26,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - `ErrorCategoryDefinitionNormalizer` null-input contract is locally verified GREEN in the complete **1146/1146** suite.
 - `ErrorCategoryDefinitionNormalizer` basic-field normalization contract is locally verified GREEN in the complete **1147/1147** suite.
 - `ErrorCategoryDefinitionNormalizer` mutable collection/mapping isolation contract is locally verified GREEN in the complete **1148/1148** suite.
-- `ErrorCategoryDefinitionNormalizer` metadata isolation contract confirmed RED due to shared `MetadataBag` state; narrow production copy fix committed, GREEN verification pending.
+- `ErrorCategoryDefinitionNormalizer` metadata isolation fix is locally verified GREEN in the complete **1149/1149** suite.
 - Writer nested-directory creation contract is locally verified GREEN in the complete **1141/1141** suite.
 - Writer extensionless-target backup file-name contract is locally verified GREEN in the complete **1140/1140** suite.
 - Writer backup file-name shape contract is locally verified GREEN in the complete **1139/1139** suite.
@@ -160,7 +160,7 @@ The normalizer now creates an independent `MetadataBag` copy using the same esta
 
 No other normalization behavior changed.
 
-**Focused GREEN and complete-suite 1149/1149 GREEN are pending local verification.**
+**Focused/full local verification completed; the complete suite is 1149/1149 GREEN.**
 
 ## 2026-09-23 — category definition normalizer metadata isolation contract
 
