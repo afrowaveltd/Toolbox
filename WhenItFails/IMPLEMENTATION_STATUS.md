@@ -196,6 +196,14 @@ Decision:
 
 This is considered a strong candidate for the first stable WhenItFails release because the existing WEB/API profile mappings already anticipate web-specific presentation behavior.
 
+## 2026-09-23 — NuGet archive structure inspected
+
+The maintainer listed the contents of `Afrowave.Toolbox.WhenItFails.0.1.0.nupkg`. The archive contains `Afrowave.Toolbox.WhenItFails.nuspec`, `LICENSE.txt`, `README.md`, `lib/net10.0/Afrowave.Toolbox.WhenItFails.dll`, `lib/net10.0/Afrowave.Toolbox.WhenItFails.xml`, plus standard NuGet metadata entries.
+
+This verifies the expected assembly and accompanying documentation/license files are present. Five default JSON catalogs are compiled as `EmbeddedResource`, so their absence as standalone archive entries is expected; manifest resource names and usability still need verification. The nuspec dependency list and clean consumer restore/build also remain pending.
+
+Next: inspect the nuspec and assembly manifest resources, then run an isolated package-consumer smoke test. Do not claim package readiness merely because the archive was created.
+
 ## 2026-09-23 — Release NuGet artifact creation verified
 
 Maintainer confirmed that `WhenItFails/bin/Release/Afrowave.Toolbox.WhenItFails.0.1.0.nupkg` exists (93,441 bytes, observed 2026-09-23 14:31 local time).
