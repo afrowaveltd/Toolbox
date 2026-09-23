@@ -196,6 +196,14 @@ Decision:
 
 This is considered a strong candidate for the first stable WhenItFails release because the existing WEB/API profile mappings already anticipate web-specific presentation behavior.
 
+## 2026-09-23 — Release NuGet artifact creation verified
+
+Maintainer confirmed that `WhenItFails/bin/Release/Afrowave.Toolbox.WhenItFails.0.1.0.nupkg` exists (93,441 bytes, observed 2026-09-23 14:31 local time).
+
+This verifies artifact creation only. The standalone `dotnet build Toolbox.sln -c Release` result and `dotnet pack` warnings were not included in the reported output. Package archive contents, NuGet dependency metadata, embedded resource names and a clean consumer restore/build remain to be verified before marking the packaging gate complete.
+
+Next: inspect the archive using PowerShell `System.IO.Compression.ZipFile` and inspect the nuspec plus a clean temporary consumer project. Preserve the 0.1.0 version until release readiness is explicitly approved.
+
 ## 2026-09-23 — catalog and documentation release gates
 
 Confirmed locally by the maintainer after the fresh core **1157/1157** and Setter **1241/1241** regression checkpoints:
