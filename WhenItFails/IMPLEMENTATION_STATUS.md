@@ -6,7 +6,7 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Core hardening and concrete class-level coverage audits are complete for the current scope. The project is entering 1.0-readiness verification: synchronize the Setter regression baseline, run repository/release gates, review public API stability, and separate must-have 1.0 work from later integration packages.
+Core hardening and concrete class-level coverage audits are complete for the current scope. NuGet archive, dependency restore and embedded-template consumption in an external .NET 10 project are verified. Next: public API and stable 1.0 scope audit; standalone Release solution build output and full external runtime integration remain pending.
 
 ## Current verified state
 
@@ -195,6 +195,16 @@ Decision:
 - evaluate `ValidationProblemDetails` only after defining a proper structured field-validation contract.
 
 This is considered a strong candidate for the first stable WhenItFails release because the existing WEB/API profile mappings already anticipate web-specific presentation behavior.
+
+## 2026-09-23 — isolated NuGet consumer embedded-catalog smoke test GREEN
+
+Maintainer ran an external `net10.0` console application installed with `Afrowave.Toolbox.WhenItFails 0.1.0` via NuGet (with `Afrowave.Toolbox.Essentials 0.2.0` as a transitive dependency). The application instantiated `DefaultJsonsTemplateProvider`, called `GetTemplateFiles(new JsonsOptions())`, checked for exactly five templates and successfully parsed each template's content with `System.Text.Json.JsonDocument.Parse`.
+
+Observed output: GREEN for error, category, code-group, owner, and profiles catalogs, followed by `SUCCESS: All five embedded catalogs loaded and parsed.`
+
+The NuGet package-creation, manifest/payload, isolated restore and embedded-template smoke gates are verified. Full application-level runtime resolution/recovery in the isolated consumer and the independent `dotnet build Toolbox.sln -c Release` output remain unverified.
+
+Next: audit stable public API/package release scope. Avoid treating the 0.1.0 package as published or assuming the full 1.0 release gate has passed.
 
 ## 2026-09-23 — external NuGet consumer restore verified
 
