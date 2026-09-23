@@ -10,7 +10,7 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1119/1119 GREEN**, confirmed locally by the maintainer after later-null-template-content no-partial-write regression. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
+- Complete `WhenItFails.Tests` suite: **1120/1120 GREEN**, confirmed locally by the maintainer after `JsonCatalogDocumentLoader` existing-directory path classification. The compiler-warning count and platform coverage were not separately reported for this full-suite checkpoint.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
@@ -99,7 +99,24 @@ Hardening dependency boundaries and malformed-context/configuration handling whi
 - Provider snapshot file/directory target-conflict contract is locally verified GREEN; prospective file-vs-directory conflicts are rejected before the write loop.
 - Reverse-order provider target-conflict regression is locally verified GREEN; snapshot file/directory conflict detection is order-independent.
 - Later-null-template-content no-partial-write regression is locally verified GREEN; complete provider snapshot validation reaches every item's content before the write loop.
-- `JsonCatalogDocumentLoader` existing-directory path contract confirmed RED on Windows; explicit directory-path classification is committed, awaiting focused/full GREEN verification.
+- `JsonCatalogDocumentLoader` existing-directory path contract is locally verified GREEN; directory paths return `Invalid` / `FilePathIsDirectory` instead of `NotFound`.
+
+## 2026-09-23 — 1120/1120 GREEN catalog loader directory-path checkpoint
+
+Contract commit: `848d8356cd37b79eae1f359760aae84ad38868c6`
+
+Production fix commit: `b66dea9b5942813a5336524ab922e1342e718e59`
+
+Documentation commit: `d542131e467b9a4c1e08f19f5fa6aef9ca472646`
+
+Locally confirmed by the maintainer:
+
+```text
+Focused contract: 1/1 GREEN
+WhenItFails.Tests: 1120/1120 GREEN
+```
+
+Existing directory paths supplied as catalog-file paths are now classified as invalid, without changing the genuine missing-file contract.
 
 ## 2026-09-22 — catalog document loader directory-path contract
 
@@ -5666,15 +5683,14 @@ Do not replace those transparent contracts with normalization at that layer.
 
 ## Recommended verification
 
-Pull current `master` and run:
+Current locally confirmed baseline:
 
-```powershell
-dotnet test WhenItFails.Tests --filter "FullyQualifiedName~LoadFromFileAsync_WhenFilePathPointsToDirectory_ReturnsInvalidDirectoryPath"
-dotnet test WhenItFails.Tests
+```text
+WhenItFails.Tests: 1120/1120 GREEN
 ```
 
-Expected after the committed fix: **one focused GREEN** and **1120/1120 GREEN** for the complete suite. A zero-test filter match is not a valid checkpoint.
+Run the next focused loader path-classification contract before changing production code.
 
 ## Next recommended step
 
-After **1120/1120 GREEN** is confirmed locally, record the loader directory-path checkpoint and continue auditing `JsonCatalogDocumentLoader` path/error boundaries for another distinct misclassification rather than duplicating bootstrap coverage.
+Probe `JsonCatalogDocumentLoader` when one of the catalog path's ancestors exists as a regular file. This is invalid path structure, not a genuinely missing catalog file.
