@@ -153,6 +153,16 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - Documentation updated in the API inventory and baseline. No production source changed. **Verified locally by maintainer:** all four focused tests and complete **1216/1216 GREEN** suite after commit `a0393dc147511c0be218ae7d9ae55874729da3c0`.
 - Next after verification: `IBuiltInErrorCatalogContextProvider` and the remaining dependent model/JSON versioning inventory.
 
+## 2026-09-24 — built-in catalog context provider public API baseline (verification pending)
+
+- Added `WhenItFails.Tests/PublicApi/BuiltInCatalogContextProviderPublicApiContractTests.cs` with two focused tests for the final individually unreviewed interface, `IBuiltInErrorCatalogContextProvider`.
+- The interface exposes exactly one `LoadAsync(CancellationToken cancellationToken = default)` method returning `Task<Response<ErrorCatalogContext>>`; the token remains optional.
+- Source DI registration uses `TryAddSingleton<IBuiltInErrorCatalogContextProvider, BuiltInErrorCatalogContextProvider>()`. The test verifies that a prior custom registration remains selected and that the remaining WhenItFails service graph validates.
+- The test intentionally does not execute the default built-in provider or create its temporary filesystem workspace; its existing behavioral tests remain responsible for loading, validation, cleanup, exception normalization and cancellation behavior.
+- After this checkpoint, all **31 interface source files** under `WhenItFails/Interfaces/` have at least a first method/property-shape review in the public API contract suite, subject to local verification of these two new tests.
+- No production code changed. **Verification pending:** two focused tests and complete suite; last confirmed **1216/1216 GREEN**. Expected complete total if both pass: **1218/1218 GREEN**.
+- Next: continue transitive data/JSON model review, beginning with the five catalog document types and their definition models.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1216/1216 GREEN**, confirmed locally by the maintainer after initialization/bootstrap payload public API contract tests.

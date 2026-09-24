@@ -32,9 +32,9 @@ These declarations were checked against GitHub source at the inventory checkpoin
 
 ## 3. DI extension points
 
-There are 31 interface source files in `WhenItFails/Interfaces/`. Thirty interfaces have at least an initial method-shape contract test from earlier checkpoints (including application-facing `IErrorCatalogRuntime` and lookup `IErrorCatalog`).
+There are 31 interface source files in `WhenItFails/Interfaces/`. All 31 now have at least a first method/property-shape contract review in `WhenItFails.Tests/PublicApi`, subject to local verification of the newly added built-in-provider tests.
 
-The **remaining interface to review individually** is `IBuiltInErrorCatalogContextProvider`. It publicly exposes `LoadAsync(CancellationToken = default)` returning `Task<Response<ErrorCatalogContext>>`. Its actual registration and replacement semantics must be checked independently before a permanent extension-point guarantee.
+The final interface added to this baseline is `IBuiltInErrorCatalogContextProvider`. It exposes `LoadAsync(CancellationToken = default)` returning `Task<Response<ErrorCatalogContext>>`, and its source DI registration uses `TryAddSingleton`. `BuiltInCatalogContextProviderPublicApiContractTests` verifies the signature and prior-registration precedence without executing the provider's temporary filesystem workflow.
 
 Existing DI override tests prove `TryAddSingleton` precedence for the covered interfaces. They **do not** prove that all third-party implementations preserve full recovery, cancellation, data isolation or validation semantics. Treat the candidate classification as supported replaceability under review, not as permission to change arbitrary dependencies without contract tests.
 
@@ -54,6 +54,6 @@ No concrete public class is being hidden or renamed in this inventory checkpoint
 2. Determine JSON and nullability versioning guarantees for the transitive documents, payloads, profile definitions, errors and status enums. Keep schema evolution separate from C# API compatibility.
 3. For public concrete classes, identify genuine consumer/tooling use before any `public` → `internal` change. Interface signatures alone do not prove concrete constructors are unused.
 4. Perform an assembly-level exported-type/member inventory on the packaged binary and compare it against this source map before freezing the 1.0 surface. This source review is **not** that binary compatibility test.
-5. Focused public API contract tests for `ErrorCatalogInitializationPayload`, `JsonsBootstrapPayload`, and `JsonsBootstrapFileResult` were added in `WhenItFails.Tests/PublicApi/InitializationAndBootstrapPayloadPublicApiContractTests.cs` and are **1216/1216 GREEN** in the complete suite. Next, review `IBuiltInErrorCatalogContextProvider` and continue the dependent document/definition schema audit.
+5. Focused public API contract tests for `ErrorCatalogInitializationPayload`, `JsonsBootstrapPayload`, and `JsonsBootstrapFileResult` were added in `WhenItFails.Tests/PublicApi/InitializationAndBootstrapPayloadPublicApiContractTests.cs` and are **1216/1216 GREEN** in the complete suite. Next, after local verification of the built-in-provider tests, continue the dependent document/definition schema audit.
 
 No production code changes were made as part of this inventory.
