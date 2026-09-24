@@ -53,17 +53,18 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production behavior or visibility changed. **Verified locally by maintainer:** four focused extension-point tests and complete **1173/1173 GREEN** suite after commit `053dc387d926e9be3956dd2c99268fc4681c648f`.
 - Next: audit `IErrorCatalogInitializer`, `IErrorCatalogContextStore`, and `IJsonsBootstrapper` signatures and DI replacement contracts.
 
-## 2026-09-24 — second DI extension-point API contracts (verification pending)
+## 2026-09-24 — second DI extension-point API contracts (1177/1177 GREEN)
 
 - Added `WhenItFails.Tests/PublicApi/SecondExtensionPointPublicApiContractTests.cs` with four focused tests for `IErrorCatalogInitializer`, `IErrorCatalogContextStore` and `IJsonsBootstrapper` signatures and pre-registered DI implementation precedence.
 - The initializer and bootstrapper each expose one async method taking `JsonsOptions` and an optional `CancellationToken`, returning their typed `Response<T>` in a task.
 - The context-store interface exposes getter-only `IsInitialized` and nullable `Current`, and `GetCurrent()` and `Set(ErrorCatalogContext)`. Reflection checks verify CLR shape; nullable reference annotations and error/recovery behavior remain separate audit work.
 - Each default service uses `TryAddSingleton`; a prior custom singleton remains registered and the default runtime service graph can still be constructed with scope/build validation. These are registration-shape tests, not endorsement of arbitrary custom service semantics.
-- **No production code or visibility changed. Verification pending:** four focused tests and complete suite; last confirmed **1173/1173 GREEN**. Expected full count if all four pass: **1177/1177**.
+- **No production code or visibility changed. Verified locally by maintainer:** four focused tests and complete **1177/1177 GREEN** suite after commit `b61b5bd38534e10e4063d6b9ac383591165bd355`.
+- Next: catalog source/loading and factory/provider DI interfaces.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1173/1173 GREEN**, confirmed locally by the maintainer after the first DI extension-point contract tests.
+- Complete `WhenItFails.Tests` suite: **1177/1177 GREEN**, confirmed locally by the maintainer after the second DI extension-point contract tests.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.

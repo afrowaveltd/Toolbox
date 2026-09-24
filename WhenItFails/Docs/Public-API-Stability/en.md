@@ -45,11 +45,11 @@ Three public interfaces are candidates for supported third-party extension point
 
 `WhenItFails.Tests/PublicApi/FirstExtensionPointPublicApiContractTests.cs` snapshots the exact declared method signatures and checks that custom implementations registered before `AddWhenItFails()` remain the resolved services. This tests the **registration and signature** boundaries, not full semantic compatibility or error normalization of custom services. A public interface being replaceable does not itself imply that every implementation class is a supported extension API. The maintainer confirmed all four focused tests and the complete 1173/1173 suite GREEN.
 
-## Second DI extension-point group (verification pending)
+## Second DI extension-point group (1177/1177 GREEN)
 
 `IErrorCatalogInitializer` exposes `InitializeAsync(JsonsOptions, CancellationToken = default)` returning `Task<Response<ErrorCatalogInitializationPayload>>`. `IJsonsBootstrapper` exposes `EnsureWorkspaceAsync(JsonsOptions, CancellationToken = default)` returning `Task<Response<JsonsBootstrapPayload>>`. `IErrorCatalogContextStore` exposes getter-only `IsInitialized` and nullable `Current`, plus `GetCurrent()` and `Set(ErrorCatalogContext)`.
 
-These services are registered using `TryAddSingleton` and can be replaced by a prior registration. `WhenItFails.Tests/PublicApi/SecondExtensionPointPublicApiContractTests.cs` checks signatures, optional token parameters, getter-only store properties, and that a test-only custom implementation of each interface survives DI registration with scope/build validation. It does **not** test a custom implementation's full runtime behavior, cancellation semantics, or deep immutability of a stored context. Those remain separate behavioral/compatibility questions. Local verification is pending.
+These services are registered using `TryAddSingleton` and can be replaced by a prior registration. `WhenItFails.Tests/PublicApi/SecondExtensionPointPublicApiContractTests.cs` checks signatures, optional token parameters, getter-only store properties, and that a test-only custom implementation of each interface survives DI registration with scope/build validation. It does **not** test a custom implementation's full runtime behavior, cancellation semantics, or deep immutability of a stored context. Those remain separate behavioral/compatibility questions. Maintainer confirmed all four focused tests and the complete 1177/1177 suite GREEN.
 
 ## Still under review
 
