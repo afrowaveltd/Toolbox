@@ -108,6 +108,14 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** all five focused tests and complete **1198/1198 GREEN** suite after final test correction commit `51ad75815a8d2ae30efa3daaf0a00d1d33019000`.
 - Next: audit four specialized catalog validator interfaces and DI replacement.
 
+## 2026-09-24 — specialized catalog validator public API baseline (verification pending)
+
+- Added `WhenItFails.Tests/PublicApi/SpecializedCatalogValidatorPublicApiContractTests.cs` with five focused tests: exact signatures and nullable input/non-null output annotations for the category, owner, code-group and profile catalog validators, plus custom DI implementation precedence for all four services.
+- Each specialized validator exposes `ErrorCatalogValidationResult Validate(TCatalogDocument? document)`. The document type differs by catalog family; `null` is permitted by the interface annotation. The test-only validators only verify registration and signature shape, not correctness of validation results.
+- All four defaults use `TryAddSingleton`; pre-registered replacements remain selected when `AddWhenItFails()` is invoked. The test validates DI graph construction without executing a custom pipeline.
+- The four specialized loader, provider, and validator groups have now each received their first public API baseline, subject to local verification for this validator group. Future work: remaining resolver/descriptor interfaces and explicit classification of stable contracts vs implementation details.
+- Production source unchanged. **Verification pending:** five focused tests and complete suite; last confirmed **1198/1198 GREEN**. Expected next complete count if all five pass: **1203/1203 GREEN**.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1198/1198 GREEN**, confirmed locally by the maintainer after specialized catalog provider public API contract tests.
