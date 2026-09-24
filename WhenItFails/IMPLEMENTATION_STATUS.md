@@ -44,17 +44,18 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production code changed. **Verified locally by maintainer:** four focused tests and full suite **1169/1169 GREEN** after commit `8f8870ab6978d3ca2389638e520f328a0fd97ecc`.
 - Next: review DI-replaceable extension interfaces and classify stable contract vs extension point vs implementation detail.
 
-## 2026-09-24 — first DI extension-point API contracts (verification pending)
+## 2026-09-24 — first DI extension-point API contracts (1173/1173 GREEN)
 
 - Added `WhenItFails.Tests/PublicApi/FirstExtensionPointPublicApiContractTests.cs` with four focused tests covering `IJsonsTemplateProvider`, `IErrorCatalogContextProvider`, and `IErrorDescriptorService` (exact declared method shapes and optional catalog-provider cancellation token), plus pre-registered custom implementation preservation via `AddWhenItFails()`.
 - Confirmed in the existing DI implementation that these services are registered using `TryAddSingleton`. Pre-registering a custom implementation is supported by this registration mechanism, but the tests do not claim that arbitrary custom behaviors are automatically validated or safe.
 - First classification: these three public interfaces are **DI extension-point candidates**, while `IErrorCatalogRuntime` remains the application-facing stable-contract candidate. Complete extension-point and implementation-detail inventory is still pending.
 - The local `ErrorCatalogContext` mutability decision remains open; extension tests do not imply immutability.
-- No production behavior or visibility changed. **Verification pending:** four focused tests and complete suite; last confirmed **1169/1169 GREEN**. Expected next count if all four pass: **1173/1173**.
+- No production behavior or visibility changed. **Verified locally by maintainer:** four focused extension-point tests and complete **1173/1173 GREEN** suite after commit `053dc387d926e9be3956dd2c99268fc4681c648f`.
+- Next: audit `IErrorCatalogInitializer`, `IErrorCatalogContextStore`, and `IJsonsBootstrapper` signatures and DI replacement contracts.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1169/1169 GREEN**, confirmed locally by the maintainer after configuration public API contract tests.
+- Complete `WhenItFails.Tests` suite: **1173/1173 GREEN**, confirmed locally by the maintainer after the first DI extension-point contract tests.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.

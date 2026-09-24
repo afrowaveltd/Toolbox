@@ -39,11 +39,11 @@ The explicit `AddWhenItFails(WhenItFailsOptions)` DI overload copies the outer o
 
 The four focused tests in `WhenItFails.Tests/PublicApi/ConfigurationPublicApiContractTests.cs` cover model shape, defaults, path recalculation, and the explicit-options DI snapshot. The maintainer confirmed all four focused tests and the complete 1169/1169 suite GREEN.
 
-## First DI extension-point group (verification pending)
+## First DI extension-point group (1173/1173 GREEN)
 
 Three public interfaces are candidates for supported third-party extension points: `IJsonsTemplateProvider` (`GetTemplateFiles(JsonsOptions)`), `IErrorCatalogContextProvider` (`LoadFromJsonsAsync(JsonsOptions, CancellationToken = default)`), and `IErrorDescriptorService` (`FromId`, `FromName`, `FromCode`, each taking `ErrorCatalogContext?` and an identifier). The DI entry point currently registers default implementations with `TryAddSingleton`, allowing an earlier registration to take precedence.
 
-`WhenItFails.Tests/PublicApi/FirstExtensionPointPublicApiContractTests.cs` snapshots the exact declared method signatures and checks that custom implementations registered before `AddWhenItFails()` remain the resolved services. This tests the **registration and signature** boundaries, not full semantic compatibility or error normalization of custom services. A public interface being replaceable does not itself imply that every implementation class is a supported extension API. The focused and complete suites await local verification.
+`WhenItFails.Tests/PublicApi/FirstExtensionPointPublicApiContractTests.cs` snapshots the exact declared method signatures and checks that custom implementations registered before `AddWhenItFails()` remain the resolved services. This tests the **registration and signature** boundaries, not full semantic compatibility or error normalization of custom services. A public interface being replaceable does not itself imply that every implementation class is a supported extension API. The maintainer confirmed all four focused tests and the complete 1173/1173 suite GREEN.
 
 ## Still under review
 
