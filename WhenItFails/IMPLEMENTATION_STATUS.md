@@ -145,17 +145,17 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **No tests added and no production source changed.** Last maintainer-confirmed complete suite remains **1212/1212 GREEN** after commit `34ef9cf3f16cad2650c4df0ec5e74fb89956ca64`; this documentation checkpoint itself has not been locally test-verified.
 - Next focused test group: `ErrorCatalogInitializationPayload`, `JsonsBootstrapPayload`, `JsonsBootstrapFileResult`, then the remaining built-in provider interface.
 
-## 2026-09-24 — initialization and bootstrap payload API baseline (verification pending)
+## 2026-09-24 — initialization and bootstrap payload API baseline (1216/1216 GREEN)
 
 - Added `WhenItFails.Tests/PublicApi/InitializationAndBootstrapPayloadPublicApiContractTests.cs` with four focused tests of `ErrorCatalogInitializationPayload`, `JsonsBootstrapPayload` and `JsonsBootstrapFileResult`: exact public property types and accessor shape, defaults, nullable annotations, independent mutable `Files` lists and computed degraded state.
 - `ErrorCatalogInitializationPayload.Bootstrap` and `Context` are annotated non-nullable but default to null via `null!` until the producer populates them. `IsDegraded` is a getter-only logical OR of `KeptPreviousContext` and `UsedFallback`.
 - `JsonsBootstrapPayload.Files` is a getter-only reference to a mutable `List<JsonsBootstrapFileResult>`, initialized independently per payload instance; do not mistake it for an immutable snapshot.
-- Documentation updated in the API inventory and baseline. No production source changed. **Verification pending:** four focused tests and full suite; last maintainer-confirmed complete suite **1212/1212 GREEN**. Expected total if all pass: **1216/1216 GREEN**.
+- Documentation updated in the API inventory and baseline. No production source changed. **Verified locally by maintainer:** all four focused tests and complete **1216/1216 GREEN** suite after commit `a0393dc147511c0be218ae7d9ae55874729da3c0`.
 - Next after verification: `IBuiltInErrorCatalogContextProvider` and the remaining dependent model/JSON versioning inventory.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1212/1212 GREEN**, confirmed locally by the maintainer after profile resolution extension-point API contract tests.
+- Complete `WhenItFails.Tests` suite: **1216/1216 GREEN**, confirmed locally by the maintainer after initialization/bootstrap payload public API contract tests.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
