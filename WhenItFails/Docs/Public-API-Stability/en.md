@@ -13,9 +13,17 @@ The separately restored NuGet package version 0.1.0 has been exercised by an ext
 
 The source-level contract tests are in `WhenItFails.Tests/PublicApi/CoreEntryPointPublicApiContractTests.cs`. They check method counts, parameter and return types, optional cancellation-token parameters, and the DI extension-method shape. These tests do not replace the external NuGet consumer check.
 
+## Error data model baseline (verification pending)
+
+The next contract snapshot covers `ErrorDescriptor` (21 declared public properties; unsealed) and `ErrorDefinition` (16 declared public properties; sealed). Both have a public parameterless constructor and mutable model properties. String identity fields are initialized to empty strings, severity defaults to `Error`, and collections plus `MetadataBag` are initialized per instance.
+
+Their JSON property names are explicit and case-sensitive. `ErrorDescriptor.Severity` serializes as `severity`, while `ErrorDefinition.DefaultSeverity` serializes as `defaultSeverity`. `ErrorDescriptor.Exception` is intentionally excluded from JSON; `MetadataBag` serializes as a plain JSON object and is round-trippable through its converter.
+
+The focused review tests are in `WhenItFails.Tests/PublicApi/ErrorModelPublicApiContractTests.cs`. They are awaiting local verification. The shape snapshot is not a blanket assertion that every mutable detail of these models is frozen for 1.0.
+
 ## Still under review
 
-`ErrorDescriptor`, `ErrorDefinition`, `ErrorCatalogContext`, `ErrorCatalogRuntimeStatus`, `WhenItFailsOptions`, and `JsonsOptions` are public data/configuration models. Their current construction, mutability, JSON names, nullability annotations, and relevant behavior require separate review before their full 1.0 guarantees are set. In particular, an exposed mutable `ErrorCatalogContext` must not be mistaken for an immutable runtime snapshot.
+`ErrorCatalogContext`, `ErrorCatalogRuntimeStatus`, `WhenItFailsOptions`, and `JsonsOptions` are public data/configuration models. Their current construction, mutability, JSON names, nullability annotations, and relevant behavior require separate review before their full 1.0 guarantees are set. In particular, an exposed mutable `ErrorCatalogContext` must not be mistaken for an immutable runtime snapshot.
 
 No production visibility, names, signatures, or runtime behavior have been changed by this checkpoint.
 

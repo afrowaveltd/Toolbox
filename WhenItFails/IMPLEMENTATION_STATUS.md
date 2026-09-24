@@ -17,6 +17,13 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** both focused contract tests and the complete **1159/1159 GREEN** suite after commit `f9065aee1322993942b6ae0ac50aecac3dcbb3b2`.
 - Next: audit `ErrorDescriptor` and `ErrorDefinition` public C# shape, JSON property names, defaults, and mutable collection expectations.
 
+## 2026-09-24 — ErrorDescriptor / ErrorDefinition contract baseline (verification pending)
+
+- Added `WhenItFails.Tests/PublicApi/ErrorModelPublicApiContractTests.cs` with four focused tests for the published C# property shapes, JSON field names, runtime-only exception exclusion, default values, per-instance mutable collections and `MetadataBag` JSON round trips.
+- `ErrorDescriptor` is a publicly constructible unsealed runtime occurrence model with 21 declared properties; `ErrorDefinition` is a publicly constructible sealed catalog model with 16 declared properties.
+- These tests snapshot the existing 0.1.0 behavior for pre-1.0 review; they do not change or declare a permanent 1.0 guarantee for every existing property.
+- **Verification pending:** maintainer to run the focused tests and complete suite. Last confirmed complete suite: **1159/1159 GREEN**.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1159/1159 GREEN**, confirmed locally by the maintainer after the core public API entry-point contract tests.
