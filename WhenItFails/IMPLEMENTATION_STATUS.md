@@ -81,17 +81,18 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - Production code unchanged. **Verified locally by maintainer:** three focused tests and complete **1184/1184 GREEN** suite after commit `76161e5cff0e3e1c70e63940cdc7fb3e3f80b850`.
 - Next: audit main catalog normalizer and validator interface contracts and DI replacement.
 
-## 2026-09-24 — catalog normalization and validation public API baseline (verification pending)
+## 2026-09-24 — catalog normalization and validation public API baseline (1188/1188 GREEN)
 
 - Added `WhenItFails.Tests/PublicApi/CatalogNormalizationValidationPublicApiContractTests.cs` with four focused tests for `IErrorCatalogDocumentNormalizer` and `IErrorCatalogValidator` method shapes and nullable annotations, DI registration precedence, and the established differences in default null-input behavior.
 - `Normalize(ErrorCatalogDocument)` returns a non-null `ErrorCatalogDocument`; the default normalizer throws `ArgumentNullException` for null input. `Validate(ErrorCatalogDocument?)` returns a non-null `ErrorCatalogValidationResult`; the default validator reports a `CatalogDocumentIsNull` validation issue for null.
 - The default document normalizer creates a new document but currently keeps the source `MetadataBag` reference, as already asserted by `WhenItFails.Tests/Normalization/ErrorCatalogDocumentNormalizerTests.cs`. **Do not claim deep-copy isolation** of all fields.
 - Both defaults use `TryAddSingleton`; pre-registered custom implementations are expected to remain in DI. These are interface/registration and narrow boundary tests, not a full acceptance suite for third-party implementations.
-- Production source unchanged. **Verification pending:** four focused tests and complete suite; last confirmed **1184/1184 GREEN**. Expected next full count if all pass: **1188/1188 GREEN**.
+- Production source unchanged. **Verified locally by maintainer:** four focused tests and complete **1188/1188 GREEN** suite after commit `dd15485158df460dccd7c5e191063465d46631c7`.
+- Next: review specialist category, owner, code-group and profile catalog loader interfaces and DI replacement.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1184/1184 GREEN**, confirmed locally by the maintainer after the IErrorCatalog lookup public API contract tests.
+- Complete `WhenItFails.Tests` suite: **1188/1188 GREEN**, confirmed locally by the maintainer after catalog normalization/validation public API contract tests.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
