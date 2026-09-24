@@ -99,6 +99,14 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** all five focused tests and complete **1193/1193 GREEN** suite after commit `be7066854c56fb37e33432eeee2ae7b453841621`.
 - Next: audit the four specialized catalog providers and DI replacement.
 
+## 2026-09-24 — specialized catalog provider public API baseline (verification pending)
+
+- Added `WhenItFails.Tests/PublicApi/SpecializedCatalogProviderPublicApiContractTests.cs` with five focused tests: exact signatures of the category, owner, code-group and profile catalog providers, and one combined DI override test for pre-registered custom implementations.
+- Each public provider exposes one `LoadFromFileAsync(string filePath, CancellationToken cancellationToken = default)` method. Its response payload is the corresponding `ErrorCategoryCatalogProviderPayload`, `ErrorOwnerCatalogProviderPayload`, `ErrorCodeGroupCatalogProviderPayload` or `ErrorProfileCatalogProviderPayload`, wrapped in `Task<Response<T>>`.
+- Their default DI registrations use `TryAddSingleton`. The custom implementations in this suite are registration-only test stubs; no filesystem access or end-to-end custom provider behavior is exercised.
+- Specialized validator interfaces remain for the next focused group. No production implementation or public visibility changed.
+- **Verification pending:** five focused tests and complete suite; last confirmed **1193/1193 GREEN**. Expected total if all five pass: **1198/1198 GREEN**.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1193/1193 GREEN**, confirmed locally by the maintainer after specialized catalog loader public API contract tests.
