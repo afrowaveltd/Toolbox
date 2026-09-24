@@ -34,18 +34,19 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** two focused tests and complete **1165/1165 GREEN** suite after commit `efa89777656a99cdd39900d361d9c69b53fa1da7`.
 - Next: audit `WhenItFailsOptions` and `JsonsOptions` property shape, default paths and DI registration snapshots.
 
-## 2026-09-24 — public configuration API baseline (verification pending)
+## 2026-09-24 — public configuration API baseline (1169/1169 GREEN)
 
 - Added `WhenItFails.Tests/PublicApi/ConfigurationPublicApiContractTests.cs` with four focused tests for the existing `WhenItFailsOptions` / `JsonsOptions` property and constructor shape, default values, live computed paths, and deep options snapshot at explicit DI registration.
 - `WhenItFailsOptions` exposes three get/set properties. `JsonsOptions` exposes seven get/set configuration values and six getter-only computed paths.
 - Computed paths use platform-sensitive `Path.Combine` and reflect current option values; **path construction alone is not validation**. Existing bootstrapper guards remain the validation boundary.
 - Explicit `AddWhenItFails(WhenItFailsOptions)` takes an independent snapshot of the supplied option object and nested `JsonsOptions` fields at registration time. The registered singleton itself remains mutable; no guarantee of later immutability is implied.
 - This completes the initial eight-type API shape baseline, but DOES NOT settle the active catalog context mutability decision, full nullability/JSON/versioning policy, or review of extension points and other public implementation types.
-- No production code changed. **Verification pending** for four focused tests and full suite; last confirmed **1165/1165 GREEN**.
+- No production code changed. **Verified locally by maintainer:** four focused tests and full suite **1169/1169 GREEN** after commit `8f8870ab6978d3ca2389638e520f328a0fd97ecc`.
+- Next: review DI-replaceable extension interfaces and classify stable contract vs extension point vs implementation detail.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1165/1165 GREEN**, confirmed locally by the maintainer after runtime context/status public API contract tests.
+- Complete `WhenItFails.Tests` suite: **1169/1169 GREEN**, confirmed locally by the maintainer after configuration public API contract tests.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
