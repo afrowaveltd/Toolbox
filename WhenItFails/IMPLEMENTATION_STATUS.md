@@ -90,6 +90,14 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - Production source unchanged. **Verified locally by maintainer:** four focused tests and complete **1188/1188 GREEN** suite after commit `dd15485158df460dccd7c5e191063465d46631c7`.
 - Next: review specialist category, owner, code-group and profile catalog loader interfaces and DI replacement.
 
+## 2026-09-24 — specialized catalog loader public API baseline (verification pending)
+
+- Added `WhenItFails.Tests/PublicApi/SpecializedCatalogLoaderPublicApiContractTests.cs` with five focused tests: signatures of the category, owner, code-group and profile catalog loaders, and one combined DI override test for their pre-registered custom implementations.
+- Each public loader exposes exactly one `LoadFromFileAsync(string, CancellationToken = default)` method returning a `Task<Response<TCatalogDocument>>` for its own specialized catalog document type.
+- Their default DI registrations use `TryAddSingleton`. The custom implementations in this suite are registration-only test stubs; no file access, full alternate loader behavior, or cancellation-path execution is implied.
+- The specialized provider and validator interfaces remain for separate focused groups. All production APIs and implementations remain unchanged.
+- **Verification pending:** five focused tests and complete suite; last confirmed **1188/1188 GREEN**. Expected total if all five pass: **1193/1193 GREEN**.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1188/1188 GREEN**, confirmed locally by the maintainer after catalog normalization/validation public API contract tests.

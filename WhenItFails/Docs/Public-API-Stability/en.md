@@ -75,6 +75,12 @@ The focused tests in `WhenItFails.Tests/PublicApi/ErrorCatalogLookupPublicApiCon
 
 The four focused tests in `WhenItFails.Tests/PublicApi/CatalogNormalizationValidationPublicApiContractTests.cs` check exact interface methods, nullable-reference annotations, the default null-input distinction and pre-registered custom DI service precedence with service-graph validation. Detailed normalization and document-validation behavior already has dedicated tests. The maintainer confirmed all four focused tests and the complete 1188/1188 suite GREEN; no production code or public visibility has been changed.
 
+## Specialized catalog loaders (verification pending)
+
+The category, owner, code-group and profile catalog loaders implement four separate interfaces: `IErrorCategoryCatalogLoader`, `IErrorOwnerCatalogLoader`, `IErrorCodeGroupCatalogLoader` and `IErrorProfileCatalogLoader`. Each has one declared `LoadFromFileAsync(string, CancellationToken = default)` method returning `Task<Response<TCatalogDocument>>` with the corresponding category, owner, code-group or profile document type.
+
+`WhenItFails.Tests/PublicApi/SpecializedCatalogLoaderPublicApiContractTests.cs` checks these public shapes and that four custom implementations registered before `AddWhenItFails()` remain selected by DI, including service-graph validation. These are registration and shape tests, not a claim of complete behavioral or cancellation equivalence for arbitrary replacement loaders. Specialized provider and validator interfaces remain to be reviewed separately. Local verification is pending; no production code changed.
+
 ## Still under review
 
 The initial eight-type public API baseline is covered. The active-context mutability decision, nullable annotations, and the distinction between documented stable contracts and implementation details remain open before 1.0.
