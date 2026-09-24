@@ -117,6 +117,15 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - Production source unchanged. **Verified locally by maintainer:** all five focused tests and complete **1203/1203 GREEN** suite after commit `a5029ce927c3d6394fd5a975fcdab41315e57188`.
 - Next: audit definition-resolution and descriptor factory/resolver interface contracts and DI replacement.
 
+## 2026-09-24 — definition and descriptor extension-point public API baseline (verification pending)
+
+- Added `WhenItFails.Tests/PublicApi/DefinitionAndDescriptorExtensionPointPublicApiContractTests.cs` with five focused tests: exact method shapes for `IErrorDefinitionResolver` (three methods), `IErrorDescriptorFactory` (one method), and `IErrorDescriptorResolver` (three methods), context/factory nullability annotations, and custom DI implementation precedence.
+- Definition resolution returns `Response<ErrorDefinition>`; descriptor resolution returns `Response<ErrorDescriptor>`; descriptor factory converts `ErrorDefinition` directly to `ErrorDescriptor`. The resolver context input is nullable in all six lookup methods, and factory definition input/output are non-nullable in the public C# annotation contract.
+- Defaults are registered via `TryAddSingleton`; test-only custom implementations must remain resolved after `AddWhenItFails()` while the remaining service graph validates. This does not establish the full behavior of arbitrary replacement implementations.
+- Existing default resolver/factory behavior tests remain responsible for runtime correctness; the present checkpoint changes no production source or public visibility.
+- **Verification pending:** five focused tests and full suite; last confirmed **1203/1203 GREEN**. Expected count after confirmation: **1208/1208 GREEN**.
+- Next after verification: review profile resolver and profile-selection extension interfaces, then inventory implementation details and define the stable 1.0 surface.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1203/1203 GREEN**, confirmed locally by the maintainer after specialized catalog validator public API contract tests.
