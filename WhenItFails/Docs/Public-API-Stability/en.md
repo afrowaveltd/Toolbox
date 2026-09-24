@@ -51,13 +51,13 @@ Three public interfaces are candidates for supported third-party extension point
 
 These services are registered using `TryAddSingleton` and can be replaced by a prior registration. `WhenItFails.Tests/PublicApi/SecondExtensionPointPublicApiContractTests.cs` checks signatures, optional token parameters, getter-only store properties, and that a test-only custom implementation of each interface survives DI registration with scope/build validation. It does **not** test a custom implementation's full runtime behavior, cancellation semantics, or deep immutability of a stored context. Those remain separate behavioral/compatibility questions. Maintainer confirmed all four focused tests and the complete 1177/1177 suite GREEN.
 
-## Main catalog pipeline DI extension points (verification pending)
+## Main catalog pipeline DI extension points (1181/1181 GREEN)
 
 `IErrorCatalogLoader` exposes `LoadFromFileAsync(string, CancellationToken = default)` returning `Task<Response<ErrorCatalogDocument>>`. `IErrorCatalogFactory` exposes `Create(ErrorCatalogDocument)` returning the lookup interface `IErrorCatalog`. `IErrorCatalogProvider` exposes `LoadFromFileAsync(string, CancellationToken = default)` returning `Task<Response<ErrorCatalogProviderPayload>>`.
 
 Each has exactly one declared method. The default DI registrations use `TryAddSingleton`. The four focused tests in `WhenItFails.Tests/PublicApi/CatalogPipelineExtensionPointPublicApiContractTests.cs` check the method signatures, optional cancellation tokens, and pre-registered custom implementation precedence with DI graph validation. They do not exercise a custom catalog pipeline end to end: the test-only factory intentionally throws if called. This baseline is not a promise that every alternative implementation handles filesystem failures or cancellation correctly.
 
-`IErrorCatalog` is the separate indexed lookup contract and will receive its own shape review. No production implementation or public visibility changes were made. Local test verification is pending.
+`IErrorCatalog` is the separate indexed lookup contract and will receive its own shape review. No production implementation or public visibility changes were made. The maintainer confirmed all four focused tests and the complete 1181/1181 suite GREEN.
 
 ## Still under review
 
