@@ -119,11 +119,11 @@ Four focused contract tests in `WhenItFails.Tests/PublicApi/InitializationAndBoo
 
 `WhenItFails.Tests/PublicApi/BuiltInCatalogContextProviderPublicApiContractTests.cs` verifies exact method shape and DI precedence without executing the default provider's temporary-workspace behavior. That behavior remains covered by its dedicated tests. With this addition, every interface source file under `WhenItFails/Interfaces/` has a first public-API shape review. The maintainer confirmed both focused tests and the complete 1218/1218 suite GREEN; production code remains unchanged.
 
-## Catalog document JSON models (verification pending)
+## Catalog document JSON models (1222/1222 GREEN)
 
 The five public catalog document types share a common catalog header and differ only in their typed content collection: `errors`, `categories`, `owners`, `codeGroups` or `profiles`. `WhenItFails.Tests/PublicApi/CatalogDocumentPublicApiContractTests.cs` snapshots their 11-property CLR shape, explicit JSON field names, constructor defaults, nullable annotations and per-instance mutable `Tags`, `Metadata` and content collections.
 
-This baseline treats the existing JSON names and defaults as compatibility-sensitive inputs to the 1.0 decision, but it does not yet define a schema migration policy. In particular, a mutable collection property is not an immutable snapshot merely because a loader/provider returns the containing document. Local verification is pending; production code is unchanged.
+This baseline treats the existing JSON names and defaults as compatibility-sensitive inputs to the 1.0 decision, but it does not yet define a schema migration policy. In particular, a mutable collection property is not an immutable snapshot merely because a loader/provider returns the containing document. The maintainer confirmed all four focused tests and the complete 1222/1222 suite GREEN; production code is unchanged.
 
 ## Still under review
 
