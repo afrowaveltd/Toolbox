@@ -113,11 +113,11 @@ Both default services are registered with `TryAddSingleton`. `WhenItFails.Tests/
 
 Four focused contract tests in `WhenItFails.Tests/PublicApi/InitializationAndBootstrapPayloadPublicApiContractTests.cs` review `ErrorCatalogInitializationPayload`, `JsonsBootstrapPayload`, and `JsonsBootstrapFileResult`: constructor/property shape, defaults, nullable annotations, mutable per-instance file result lists, and derived degraded status. `Bootstrap` and `Context` in the initialization payload have non-nullable annotations but default to null until the producer assigns them; consumers must not interpret a manually constructed empty payload as a completed initialization. The maintainer confirmed all four focused tests and the complete 1216/1216 suite GREEN; production code is unchanged.
 
-## Built-in catalog context provider (verification pending)
+## Built-in catalog context provider (1218/1218 GREEN)
 
 `IBuiltInErrorCatalogContextProvider` is the last interface in the current 31-file interface inventory to receive an individual baseline. It exposes one `LoadAsync(CancellationToken = default)` method returning `Task<Response<ErrorCatalogContext>>`. Its default implementation is registered through `TryAddSingleton`, so a prior application registration can replace it.
 
-`WhenItFails.Tests/PublicApi/BuiltInCatalogContextProviderPublicApiContractTests.cs` verifies exact method shape and DI precedence without executing the default provider's temporary-workspace behavior. That behavior remains covered by its dedicated tests. With this addition, every interface source file under `WhenItFails/Interfaces/` has a first public-API shape review, pending local confirmation of these two tests. Production code remains unchanged.
+`WhenItFails.Tests/PublicApi/BuiltInCatalogContextProviderPublicApiContractTests.cs` verifies exact method shape and DI precedence without executing the default provider's temporary-workspace behavior. That behavior remains covered by its dedicated tests. With this addition, every interface source file under `WhenItFails/Interfaces/` has a first public-API shape review. The maintainer confirmed both focused tests and the complete 1218/1218 suite GREEN; production code remains unchanged.
 
 ## Still under review
 
