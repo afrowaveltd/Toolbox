@@ -72,6 +72,14 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** four focused tests and complete **1181/1181 GREEN** suite after commit `14831c34701a2b7326e859ffbdb35e40e753b8a1`. Production code and visibility unchanged.
 - Next: audit the ten-method `IErrorCatalog` lookup interface and distinguish single-result nullable lookups from collection-returning lookups.
 
+## 2026-09-24 — IErrorCatalog lookup public API baseline (verification pending)
+
+- Added `WhenItFails.Tests/PublicApi/ErrorCatalogLookupPublicApiContractTests.cs` with three focused tests: ten exact lookup interface method signatures; nullability metadata for single-result vs non-null collection returns; and a public `IErrorCatalogFactory` → `IErrorCatalog` smoke test.
+- `GetAll()` and six classification searches return `IReadOnlyList<ErrorDefinition>`; `FindById`, `FindByCode`, `FindByName` return `ErrorDefinition?`. This classification does not imply that returned `ErrorDefinition` instances are immutable.
+- Existing `WhenItFails.Tests/Catalog/ErrorCatalogTests.cs` already covers normalization, positive/negative lookups, and category/tag semantics; the new API tests intentionally avoid duplicating its comprehensive behavior coverage.
+- `IErrorCatalog` is a public consumer lookup contract and a return type of `IErrorCatalogFactory`, not a directly registered DI service. Third-party factory implementations can supply another implementation subject to the contract.
+- Production code unchanged. **Verification pending:** three focused tests and complete suite; last confirmed **1181/1181 GREEN**. Expected complete count if all three pass: **1184/1184 GREEN**.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1181/1181 GREEN**, confirmed locally by the maintainer after the catalog pipeline extension-point contract tests.
