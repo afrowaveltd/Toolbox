@@ -17,16 +17,17 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** both focused contract tests and the complete **1159/1159 GREEN** suite after commit `f9065aee1322993942b6ae0ac50aecac3dcbb3b2`.
 - Next: audit `ErrorDescriptor` and `ErrorDefinition` public C# shape, JSON property names, defaults, and mutable collection expectations.
 
-## 2026-09-24 — ErrorDescriptor / ErrorDefinition contract baseline (verification pending)
+## 2026-09-24 — ErrorDescriptor / ErrorDefinition contract baseline (1163/1163 GREEN)
 
 - Added `WhenItFails.Tests/PublicApi/ErrorModelPublicApiContractTests.cs` with four focused tests for the published C# property shapes, JSON field names, runtime-only exception exclusion, default values, per-instance mutable collections and `MetadataBag` JSON round trips.
 - `ErrorDescriptor` is a publicly constructible unsealed runtime occurrence model with 21 declared properties; `ErrorDefinition` is a publicly constructible sealed catalog model with 16 declared properties.
 - These tests snapshot the existing 0.1.0 behavior for pre-1.0 review; they do not change or declare a permanent 1.0 guarantee for every existing property.
-- **Verification pending:** maintainer to run the focused tests and complete suite. Last confirmed complete suite: **1159/1159 GREEN**.
+- **Verified locally by maintainer:** four focused model contract tests and complete **1163/1163 GREEN** suite after commit `a6eaba33dad832f7a85d7168fbf0ff431979791c`.
+- Next: audit `ErrorCatalogContext` mutable shared references and `ErrorCatalogRuntimeStatus` computed state/consistency contracts.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1159/1159 GREEN**, confirmed locally by the maintainer after the core public API entry-point contract tests.
+- Complete `WhenItFails.Tests` suite: **1163/1163 GREEN**, confirmed locally by the maintainer after the error model public API and JSON contract tests.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
