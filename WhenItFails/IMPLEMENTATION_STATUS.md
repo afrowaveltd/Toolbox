@@ -136,6 +136,15 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production API or behavior changed. **Verified locally by maintainer:** four focused tests and complete **1212/1212 GREEN** suite after commit `34ef9cf3f16cad2650c4df0ec5e74fb89956ca64`.
 - Next: inventory the remaining public concrete types, dependent DTOs and interfaces; classify the stable 1.0 API vs supported extension points vs public implementation details, then decide active context mutability/versioning policy.
 
+## 2026-09-24 — public API inventory and 1.0 decision register (source audit, no new tests)
+
+- Added `Docs/Public-API-Inventory/en.md`, linked from project README and baseline review. GitHub tree at `9f4fab423b898b8f30f584eeedbff54f97f0cadc` contains 114 production C# files under `WhenItFails/`, including 31 interface source files; this is a *source-file* count, not an exported-type count.
+- The initial source audit identifies transitive public payloads, documents, definitions, validation models, bootstrap types and enums referenced by already covered signatures; these must be reviewed before 1.0. Thirty interfaces have first-shape test coverage; `IBuiltInErrorCatalogContextProvider` remains to be reviewed.
+- Distinguish stable consumer candidates, DI extension-point candidates, public concrete implementations/utilities requiring compatibility decisions, and verified internal helpers. Do not hide or rename currently public types without usage/compatibility analysis.
+- Open: active shared-context mutability, JSON/nullability/versioning, concrete-class consumers (including Toolroom), and full exported-assembly inventory.
+- **No tests added and no production source changed.** Last maintainer-confirmed complete suite remains **1212/1212 GREEN** after commit `34ef9cf3f16cad2650c4df0ec5e74fb89956ca64`; this documentation checkpoint itself has not been locally test-verified.
+- Next focused test group: `ErrorCatalogInitializationPayload`, `JsonsBootstrapPayload`, `JsonsBootstrapFileResult`, then the remaining built-in provider interface.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1212/1212 GREEN**, confirmed locally by the maintainer after profile resolution extension-point API contract tests.

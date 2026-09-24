@@ -105,6 +105,10 @@ All three are DI-replaceable via `TryAddSingleton` registrations. `WhenItFails.T
 
 Both default services are registered with `TryAddSingleton`. `WhenItFails.Tests/PublicApi/ProfileResolutionExtensionPointPublicApiContractTests.cs` checks their exact public signatures, relevant nullability annotations and preservation of pre-registered custom implementations with DI graph validation. These registration and shape tests do not establish behavioral equivalence of arbitrary custom profile resolvers. The remaining work for the 1.0 API review is inventory and classification of the other public types, dependent model surfaces and the shared active context mutation boundary. The maintainer confirmed all four focused tests and complete 1212/1212 suite GREEN; production code is unchanged.
 
+## Public API inventory (source-audit checkpoint)
+
+[Public API inventory and 1.0 decision register](../Public-API-Inventory/en.md) identifies transitive public models, the one remaining unreviewed built-in-provider interface, and concrete implementation/utility surfaces that need explicit compatibility decisions. This inventory adds no tests and does not change the existing 1212/1212 maintainer-confirmed suite baseline.
+
 ## Still under review
 
 The initial eight-type public API baseline is covered. The active-context mutability decision, nullable annotations, and the distinction between documented stable contracts and implementation details remain open before 1.0.
