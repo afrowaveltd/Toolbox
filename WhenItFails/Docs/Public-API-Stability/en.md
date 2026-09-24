@@ -81,11 +81,11 @@ The category, owner, code-group and profile catalog loaders implement four separ
 
 `WhenItFails.Tests/PublicApi/SpecializedCatalogLoaderPublicApiContractTests.cs` checks these public shapes and that four custom implementations registered before `AddWhenItFails()` remain selected by DI, including service-graph validation. These are registration and shape tests, not a claim of complete behavioral or cancellation equivalence for arbitrary replacement loaders. Specialized provider and validator interfaces remain to be reviewed separately. The maintainer confirmed all five focused tests and the complete 1193/1193 suite GREEN; no production code changed.
 
-## Specialized catalog providers (verification pending)
+## Specialized catalog providers (1198/1198 GREEN)
 
 The category, owner, code-group and profile catalog providers implement `IErrorCategoryCatalogProvider`, `IErrorOwnerCatalogProvider`, `IErrorCodeGroupCatalogProvider`, and `IErrorProfileCatalogProvider`. Each interface declares one `LoadFromFileAsync(string filePath, CancellationToken cancellationToken = default)` method returning `Task<Response<TPayload>>` for its own specialized `Error...CatalogProviderPayload` type.
 
-`WhenItFails.Tests/PublicApi/SpecializedCatalogProviderPublicApiContractTests.cs` verifies exact CLR method and parameter shape, optional cancellation token and the corresponding payload type. One DI test confirms that four custom implementations registered before `AddWhenItFails()` remain selected with service-graph validation enabled. This is not a full behavioral test of replacement providers; existing provider tests remain responsible for default loading, normalization, validation and failure handling. The specialized validator group is next. Local verification is pending; production code is unchanged.
+`WhenItFails.Tests/PublicApi/SpecializedCatalogProviderPublicApiContractTests.cs` verifies exact CLR method and parameter shape, optional cancellation token and the corresponding payload type. One DI test confirms that four custom implementations registered before `AddWhenItFails()` remain selected with service-graph validation enabled. This is not a full behavioral test of replacement providers; existing provider tests remain responsible for default loading, normalization, validation and failure handling. The specialized validator group is next. The maintainer confirmed all five focused tests and the complete 1198/1198 suite GREEN after commit `51ad75815a8d2ae30efa3daaf0a00d1d33019000`; production code is unchanged.
 
 ## Still under review
 

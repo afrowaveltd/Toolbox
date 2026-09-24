@@ -99,17 +99,18 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** all five focused tests and complete **1193/1193 GREEN** suite after commit `be7066854c56fb37e33432eeee2ae7b453841621`.
 - Next: audit the four specialized catalog providers and DI replacement.
 
-## 2026-09-24 — specialized catalog provider public API baseline (verification pending)
+## 2026-09-24 — specialized catalog provider public API baseline (1198/1198 GREEN)
 
 - Added `WhenItFails.Tests/PublicApi/SpecializedCatalogProviderPublicApiContractTests.cs` with five focused tests: exact signatures of the category, owner, code-group and profile catalog providers, and one combined DI override test for pre-registered custom implementations.
 - Each public provider exposes one `LoadFromFileAsync(string filePath, CancellationToken cancellationToken = default)` method. Its response payload is the corresponding `ErrorCategoryCatalogProviderPayload`, `ErrorOwnerCatalogProviderPayload`, `ErrorCodeGroupCatalogProviderPayload` or `ErrorProfileCatalogProviderPayload`, wrapped in `Task<Response<T>>`.
 - Their default DI registrations use `TryAddSingleton`. The custom implementations in this suite are registration-only test stubs; no filesystem access or end-to-end custom provider behavior is exercised.
 - Specialized validator interfaces remain for the next focused group. No production implementation or public visibility changed.
-- **Verification pending:** five focused tests and complete suite; last confirmed **1193/1193 GREEN**. Expected total if all five pass: **1198/1198 GREEN**.
+- **Verified locally by maintainer:** all five focused tests and complete **1198/1198 GREEN** suite after final test correction commit `51ad75815a8d2ae30efa3daaf0a00d1d33019000`.
+- Next: audit four specialized catalog validator interfaces and DI replacement.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1193/1193 GREEN**, confirmed locally by the maintainer after specialized catalog loader public API contract tests.
+- Complete `WhenItFails.Tests` suite: **1198/1198 GREEN**, confirmed locally by the maintainer after specialized catalog provider public API contract tests.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
