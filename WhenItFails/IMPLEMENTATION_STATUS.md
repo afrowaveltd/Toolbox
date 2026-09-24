@@ -62,6 +62,15 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **No production code or visibility changed. Verified locally by maintainer:** four focused tests and complete **1177/1177 GREEN** suite after commit `b61b5bd38534e10e4063d6b9ac383591165bd355`.
 - Next: catalog source/loading and factory/provider DI interfaces.
 
+## 2026-09-24 — main catalog pipeline extension-point API contracts (verification pending)
+
+- Added `WhenItFails.Tests/PublicApi/CatalogPipelineExtensionPointPublicApiContractTests.cs` with four tests for `IErrorCatalogLoader`, `IErrorCatalogFactory`, and `IErrorCatalogProvider` (one declared method each), including optional file-loading cancellation tokens.
+- Loader returns `Task<Response<ErrorCatalogDocument>>`; factory converts `ErrorCatalogDocument` to `IErrorCatalog` synchronously; provider returns `Task<Response<ErrorCatalogProviderPayload>>`.
+- Verified source DI registrations use `TryAddSingleton`; tests register three test-only implementations first and assert service identity plus validation of the remaining default runtime graph.
+- These interfaces are candidates for supported DI extension points, subject to separate behavior and exception/cancellation contract review. The test-only factory intentionally throws if invoked; this suite checks registration rather than a full custom pipeline run.
+- `IErrorCatalog` itself (ten lookup methods) remains for a separate dedicated interface baseline.
+- **Verification pending:** run four focused tests and the complete suite locally; last confirmed **1177/1177 GREEN**. Expected complete suite if all pass: **1181/1181 GREEN**. Production code and visibility unchanged.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1177/1177 GREEN**, confirmed locally by the maintainer after the second DI extension-point contract tests.
