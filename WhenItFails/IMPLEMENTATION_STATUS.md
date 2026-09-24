@@ -53,6 +53,14 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production behavior or visibility changed. **Verified locally by maintainer:** four focused extension-point tests and complete **1173/1173 GREEN** suite after commit `053dc387d926e9be3956dd2c99268fc4681c648f`.
 - Next: audit `IErrorCatalogInitializer`, `IErrorCatalogContextStore`, and `IJsonsBootstrapper` signatures and DI replacement contracts.
 
+## 2026-09-24 — second DI extension-point API contracts (verification pending)
+
+- Added `WhenItFails.Tests/PublicApi/SecondExtensionPointPublicApiContractTests.cs` with four focused tests for `IErrorCatalogInitializer`, `IErrorCatalogContextStore` and `IJsonsBootstrapper` signatures and pre-registered DI implementation precedence.
+- The initializer and bootstrapper each expose one async method taking `JsonsOptions` and an optional `CancellationToken`, returning their typed `Response<T>` in a task.
+- The context-store interface exposes getter-only `IsInitialized` and nullable `Current`, and `GetCurrent()` and `Set(ErrorCatalogContext)`. Reflection checks verify CLR shape; nullable reference annotations and error/recovery behavior remain separate audit work.
+- Each default service uses `TryAddSingleton`; a prior custom singleton remains registered and the default runtime service graph can still be constructed with scope/build validation. These are registration-shape tests, not endorsement of arbitrary custom service semantics.
+- **No production code or visibility changed. Verification pending:** four focused tests and complete suite; last confirmed **1173/1173 GREEN**. Expected full count if all four pass: **1177/1177**.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1173/1173 GREEN**, confirmed locally by the maintainer after the first DI extension-point contract tests.
