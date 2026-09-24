@@ -29,9 +29,19 @@ The focused review tests are in `WhenItFails.Tests/PublicApi/ErrorModelPublicApi
 
 Neither status nor context is declared to have a frozen JSON wire format by this baseline. The maintainer confirmed both focused tests and the complete 1165/1165 suite GREEN; no production changes have been made.
 
+## Configuration baseline (verification pending)
+
+`WhenItFailsOptions` has three public get/set properties (`Jsons`, `InitializationMode`, `HideRecoverableFailures`). Defaults: a separately created `JsonsOptions` per instance, initialization mode `Flexible`, and nullable recovery-hiding override `null`. `JsonsOptions` has seven public get/set path inputs, defaulting to the `Jsons/WhenItFails` workspace and its five published JSON filenames, plus six getter-only computed paths.
+
+Computed paths call `Path.Combine` on their current inputs, respecting host-platform separators. The property getters construct paths; they do **not** validate their safety or existence. Validation is performed at the relevant workspace/bootstrap boundaries.
+
+The explicit `AddWhenItFails(WhenItFailsOptions)` DI overload copies the outer options and all seven nested JSON path inputs into an independent registration-time snapshot. Subsequent mutations of the *source* options do not change that snapshot. The registered options object itself is still mutable; the snapshot is not a deep-immutable runtime configuration guarantee.
+
+The four focused tests in `WhenItFails.Tests/PublicApi/ConfigurationPublicApiContractTests.cs` cover model shape, defaults, path recalculation, and the explicit-options DI snapshot. The maintainer has not yet confirmed these tests locally.
+
 ## Still under review
 
-`WhenItFailsOptions` and `JsonsOptions` still need a separate configuration contract review. The context mutability decision above remains open before 1.0.
+The initial eight-type public API baseline is covered. The active-context mutability decision, nullable annotations, and the distinction between documented stable contracts and implementation details remain open before 1.0.
 
 No production visibility, names, signatures, or runtime behavior have been changed by this checkpoint.
 
