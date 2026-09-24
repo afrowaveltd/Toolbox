@@ -1,12 +1,20 @@
 # Implementation status
 
-Last updated: 2026-09-23
+Last updated: 2026-09-24
 
 This file is the continuation point for `WhenItFails` development. Git history contains the detailed chronological checkpoints; keep this file focused on the current verified state, established contracts, and next step.
 
 ## Current focus
 
 Core hardening and concrete class-level coverage audits are complete for the current scope. NuGet archive, dependency restore, embedded-template consumption and full external runtime initialization/resolution in a separate .NET 10 consumer are verified. Next: complete the public API stability review and define the exact stable 1.0 scope.
+
+## 2026-09-24 — core public API entry-point contract (verification pending)
+
+- Externally restored NuGet package 0.1.0 was inspected from a separate consumer after the successful runtime smoke test at `5e41e4b3`.
+- The first API stability group covers the nine declared `IErrorCatalogRuntime` methods and four `AddWhenItFails` overloads, including optional cancellation tokens and the DI extension namespace.
+- Added `WhenItFails.Tests/PublicApi/CoreEntryPointPublicApiContractTests.cs` (two focused contract tests) and `Docs/Public-API-Stability/en.md` for the initial 1.0-scope review.
+- The other six public models remain under review; no public API or runtime behavior was changed.
+- **Verification pending:** this environment does not have a .NET SDK. Do not count these tests as GREEN until the maintainer runs the focused and full suites locally. The last confirmed complete suite remains **1157/1157 GREEN**.
 
 ## Current verified state
 

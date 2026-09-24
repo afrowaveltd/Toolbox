@@ -85,6 +85,7 @@ Recovery never overwrites or repairs project JSON files automatically.
 ## Documentation
 
 - [Getting started](Docs/Getting-Started/en.md)
+- [Public API stability review](Docs/Public-API-Stability/en.md)
 - [Design philosophy](Docs/Philosophy/en.md)
 - [Configuration](Docs/Configuration/en.md)
 - [Bootstrap and project workspace](Docs/Bootstrap/en.md)
