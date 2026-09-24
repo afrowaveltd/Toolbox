@@ -21,4 +21,4 @@ No production visibility, names, signatures, or runtime behavior have been chang
 
 ## Verification
 
-Run the two focused contract tests and then the complete `WhenItFails.Tests` suite. Record actual results in `WhenItFails/IMPLEMENTATION_STATUS.md` only after the maintainer confirms them.
+The maintainer confirmed both focused tests GREEN and the complete `WhenItFails.Tests` suite **1159/1159 GREEN** after commit `f9065aee1322993942b6ae0ac50aecac3dcbb3b2`.

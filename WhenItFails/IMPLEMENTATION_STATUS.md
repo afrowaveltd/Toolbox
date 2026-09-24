@@ -8,17 +8,18 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 Core hardening and concrete class-level coverage audits are complete for the current scope. NuGet archive, dependency restore, embedded-template consumption and full external runtime initialization/resolution in a separate .NET 10 consumer are verified. Next: complete the public API stability review and define the exact stable 1.0 scope.
 
-## 2026-09-24 — core public API entry-point contract (verification pending)
+## 2026-09-24 — core public API entry-point contract (1159/1159 GREEN)
 
 - Externally restored NuGet package 0.1.0 was inspected from a separate consumer after the successful runtime smoke test at `5e41e4b3`.
 - The first API stability group covers the nine declared `IErrorCatalogRuntime` methods and four `AddWhenItFails` overloads, including optional cancellation tokens and the DI extension namespace.
 - Added `WhenItFails.Tests/PublicApi/CoreEntryPointPublicApiContractTests.cs` (two focused contract tests) and `Docs/Public-API-Stability/en.md` for the initial 1.0-scope review.
 - The other six public models remain under review; no public API or runtime behavior was changed.
-- **Verification pending:** this environment does not have a .NET SDK. Do not count these tests as GREEN until the maintainer runs the focused and full suites locally. The last confirmed complete suite remains **1157/1157 GREEN**.
+- **Verified locally by maintainer:** both focused contract tests and the complete **1159/1159 GREEN** suite after commit `f9065aee1322993942b6ae0ac50aecac3dcbb3b2`.
+- Next: audit `ErrorDescriptor` and `ErrorDefinition` public C# shape, JSON property names, defaults, and mutable collection expectations.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1157/1157 GREEN**, confirmed locally by the maintainer after fixing `ErrorOwnerDefinitionNormalizer` metadata isolation.
+- Complete `WhenItFails.Tests` suite: **1159/1159 GREEN**, confirmed locally by the maintainer after the core public API entry-point contract tests.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
