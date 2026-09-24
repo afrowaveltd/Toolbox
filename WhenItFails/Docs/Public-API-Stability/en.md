@@ -87,11 +87,11 @@ The category, owner, code-group and profile catalog providers implement `IErrorC
 
 `WhenItFails.Tests/PublicApi/SpecializedCatalogProviderPublicApiContractTests.cs` verifies exact CLR method and parameter shape, optional cancellation token and the corresponding payload type. One DI test confirms that four custom implementations registered before `AddWhenItFails()` remain selected with service-graph validation enabled. This is not a full behavioral test of replacement providers; existing provider tests remain responsible for default loading, normalization, validation and failure handling. The specialized validator group is next. The maintainer confirmed all five focused tests and the complete 1198/1198 suite GREEN after commit `51ad75815a8d2ae30efa3daaf0a00d1d33019000`; production code is unchanged.
 
-## Specialized catalog validators (verification pending)
+## Specialized catalog validators (1203/1203 GREEN)
 
 The category, owner, code-group and profile validators use four public interfaces: `IErrorCategoryCatalogValidator`, `IErrorOwnerCatalogValidator`, `IErrorCodeGroupCatalogValidator` and `IErrorProfileCatalogValidator`. Each declares one synchronous `ErrorCatalogValidationResult Validate(TCatalogDocument? document)` method. The input is annotated nullable and the return value non-nullable; the concrete document type differs for each catalog family.
 
-`WhenItFails.Tests/PublicApi/SpecializedCatalogValidatorPublicApiContractTests.cs` checks all four exact public signatures and their nullable-reference annotations, plus preservation of pre-registered custom validator implementations in `AddWhenItFails()` with DI graph validation enabled. This verifies replaceability and public API shape, not the semantic correctness of third-party validators. The specialized loader, provider and validator groups now each have an API baseline, but full 1.0 stability scope and concrete implementation visibility decisions remain open. Local verification is pending; production code remains unchanged.
+`WhenItFails.Tests/PublicApi/SpecializedCatalogValidatorPublicApiContractTests.cs` checks all four exact public signatures and their nullable-reference annotations, plus preservation of pre-registered custom validator implementations in `AddWhenItFails()` with DI graph validation enabled. This verifies replaceability and public API shape, not the semantic correctness of third-party validators. The specialized loader, provider and validator groups now each have an API baseline, but full 1.0 stability scope and concrete implementation visibility decisions remain open. The maintainer confirmed all five focused tests and the complete 1203/1203 suite GREEN; production code remains unchanged.
 
 ## Still under review
 
