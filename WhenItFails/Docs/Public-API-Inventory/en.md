@@ -54,6 +54,6 @@ No concrete public class is being hidden or renamed in this inventory checkpoint
 2. Determine JSON and nullability versioning guarantees for the transitive documents, payloads, profile definitions, errors and status enums. Keep schema evolution separate from C# API compatibility.
 3. For public concrete classes, identify genuine consumer/tooling use before any `public` → `internal` change. Interface signatures alone do not prove concrete constructors are unused.
 4. Perform an assembly-level exported-type/member inventory on the packaged binary and compare it against this source map before freezing the 1.0 surface. This source review is **not** that binary compatibility test.
-5. Next code checkpoint: focused public API contract tests for `ErrorCatalogInitializationPayload`, `JsonsBootstrapPayload`, and `JsonsBootstrapFileResult`, including default values/collections and nested field semantics, then full suite verification.
+5. Focused public API contract tests for `ErrorCatalogInitializationPayload`, `JsonsBootstrapPayload`, and `JsonsBootstrapFileResult` were added in `WhenItFails.Tests/PublicApi/InitializationAndBootstrapPayloadPublicApiContractTests.cs`; **local verification pending**. Next, review `IBuiltInErrorCatalogContextProvider` and continue the dependent document/definition schema audit.
 
 No production code changes were made as part of this inventory.

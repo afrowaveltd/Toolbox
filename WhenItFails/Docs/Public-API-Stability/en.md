@@ -109,6 +109,10 @@ Both default services are registered with `TryAddSingleton`. `WhenItFails.Tests/
 
 [Public API inventory and 1.0 decision register](../Public-API-Inventory/en.md) identifies transitive public models, the one remaining unreviewed built-in-provider interface, and concrete implementation/utility surfaces that need explicit compatibility decisions. This inventory adds no tests and does not change the existing 1212/1212 maintainer-confirmed suite baseline.
 
+## Initialization and bootstrap payload models (verification pending)
+
+Four focused contract tests in `WhenItFails.Tests/PublicApi/InitializationAndBootstrapPayloadPublicApiContractTests.cs` review `ErrorCatalogInitializationPayload`, `JsonsBootstrapPayload`, and `JsonsBootstrapFileResult`: constructor/property shape, defaults, nullable annotations, mutable per-instance file result lists, and derived degraded status. `Bootstrap` and `Context` in the initialization payload have non-nullable annotations but default to null until the producer assigns them; consumers must not interpret a manually constructed empty payload as a completed initialization. Local test verification is pending; production code unchanged.
+
 ## Still under review
 
 The initial eight-type public API baseline is covered. The active-context mutability decision, nullable annotations, and the distinction between documented stable contracts and implementation details remain open before 1.0.
