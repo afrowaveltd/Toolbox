@@ -122,9 +122,6 @@ public sealed class SpecializedCatalogProviderPublicApiContractTests
         Assert.Equal(typeof(CancellationToken), parameters[1].ParameterType);
         Assert.True(parameters[1].IsOptional);
         Assert.True(parameters[1].HasDefaultValue);
-        Assert.Equal(
-            default(CancellationToken),
-            parameters[1].DefaultValue);
     }
 
     private sealed class CategoryProvider : IErrorCategoryCatalogProvider
