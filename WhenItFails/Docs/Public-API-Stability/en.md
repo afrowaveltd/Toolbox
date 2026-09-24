@@ -93,11 +93,11 @@ The category, owner, code-group and profile validators use four public interface
 
 `WhenItFails.Tests/PublicApi/SpecializedCatalogValidatorPublicApiContractTests.cs` checks all four exact public signatures and their nullable-reference annotations, plus preservation of pre-registered custom validator implementations in `AddWhenItFails()` with DI graph validation enabled. This verifies replaceability and public API shape, not the semantic correctness of third-party validators. The specialized loader, provider and validator groups now each have an API baseline, but full 1.0 stability scope and concrete implementation visibility decisions remain open. The maintainer confirmed all five focused tests and the complete 1203/1203 suite GREEN; production code remains unchanged.
 
-## Definition and descriptor extension points (verification pending)
+## Definition and descriptor extension points (1208/1208 GREEN)
 
 `IErrorDefinitionResolver` exposes `FindById`, `FindByName` and `FindByCode` returning `Response<ErrorDefinition>`. `IErrorDescriptorResolver` exposes `CreateById`, `CreateByName` and `CreateByCode` returning `Response<ErrorDescriptor>`. All six resolution methods accept nullable `ErrorCatalogContext?` and an ID/name string or numeric code. `IErrorDescriptorFactory` exposes `ErrorDescriptor Create(ErrorDefinition definition)` with non-nullable input and output annotations.
 
-All three are DI-replaceable via `TryAddSingleton` registrations. `WhenItFails.Tests/PublicApi/DefinitionAndDescriptorExtensionPointPublicApiContractTests.cs` checks the seven exact public method signatures, relevant nullability annotations, and precedence of three pre-registered test-only implementations with service-graph validation. The test stubs do not exercise a fully working replacement resolution pipeline. The stable 1.0 behavior and concrete class visibility require further review; no production API has changed and local verification is pending.
+All three are DI-replaceable via `TryAddSingleton` registrations. `WhenItFails.Tests/PublicApi/DefinitionAndDescriptorExtensionPointPublicApiContractTests.cs` checks the seven exact public method signatures, relevant nullability annotations, and precedence of three pre-registered test-only implementations with service-graph validation. The test stubs do not exercise a fully working replacement resolution pipeline. The stable 1.0 behavior and concrete class visibility require further review; no production API has changed, and the maintainer confirmed all five focused tests and complete 1208/1208 suite GREEN.
 
 ## Still under review
 
