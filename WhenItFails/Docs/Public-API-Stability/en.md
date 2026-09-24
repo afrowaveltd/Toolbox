@@ -67,6 +67,14 @@ The focused tests in `WhenItFails.Tests/PublicApi/ErrorCatalogLookupPublicApiCon
 
 `IErrorCatalog` is a stable application-facing lookup-contract candidate and the return type of a DI-replaceable factory; it is not directly registered as a service by `AddWhenItFails()`. The maintainer confirmed all three focused tests and the complete 1184/1184 suite GREEN. These tests do not freeze the concrete catalog implementation's constructor or internal indexes.
 
+## Main catalog normalization and validation extension points (verification pending)
+
+`IErrorCatalogDocumentNormalizer` has one method, `Normalize(ErrorCatalogDocument)` returning `ErrorCatalogDocument`. Its input and return annotations are non-nullable. The default implementation rejects a null document with `ArgumentNullException`, builds a new normalized document, and currently retains the original `MetadataBag` reference. **It must not be described as a guaranteed deep copy**.
+
+`IErrorCatalogValidator` has one method, `Validate(ErrorCatalogDocument?)` returning non-null `ErrorCatalogValidationResult`. Null input is a supported validation case: the default implementation returns an invalid result containing an issue with code `CatalogDocumentIsNull`, instead of throwing due solely to the null document.
+
+The four focused tests in `WhenItFails.Tests/PublicApi/CatalogNormalizationValidationPublicApiContractTests.cs` check exact interface methods, nullable-reference annotations, the default null-input distinction and pre-registered custom DI service precedence with service-graph validation. Detailed normalization and document-validation behavior already has dedicated tests. Local verification is pending; no production code or public visibility has been changed.
+
 ## Still under review
 
 The initial eight-type public API baseline is covered. The active-context mutability decision, nullable annotations, and the distinction between documented stable contracts and implementation details remain open before 1.0.
