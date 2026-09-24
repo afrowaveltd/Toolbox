@@ -59,13 +59,13 @@ Each has exactly one declared method. The default DI registrations use `TryAddSi
 
 `IErrorCatalog` is the separate indexed lookup contract and will receive its own shape review. No production implementation or public visibility changes were made. The maintainer confirmed all four focused tests and the complete 1181/1181 suite GREEN.
 
-## Indexed lookup contract: IErrorCatalog (verification pending)
+## Indexed lookup contract: IErrorCatalog (1184/1184 GREEN)
 
 `IErrorCatalog` has ten declared public methods. Three single-item lookups (`FindById(string)`, `FindByCode(int)`, and `FindByName(string)`) return nullable `ErrorDefinition?`. `GetAll()` and the six classification searches (`FindByOwner`, `FindByCodePrefix`, `FindByCodeGroup`, `FindByCategory`, `FindBySubcategory`, `FindByTag`) return non-null `IReadOnlyList<ErrorDefinition>`. The read-only collection interface does not imply that the definitions it contains are deeply immutable.
 
 The focused tests in `WhenItFails.Tests/PublicApi/ErrorCatalogLookupPublicApiContractTests.cs` snapshot the exact interface shape and its nullable-reference return annotations, then smoke-test the public `IErrorCatalogFactory` → `IErrorCatalog` path. Normalization, positive/negative filtering, category overlap, and tag lookup semantics already have detailed coverage in `WhenItFails.Tests/Catalog/ErrorCatalogTests.cs`.
 
-`IErrorCatalog` is a stable application-facing lookup-contract candidate and the return type of a DI-replaceable factory; it is not directly registered as a service by `AddWhenItFails()`. These new tests await maintainer verification and do not freeze the concrete catalog implementation's constructor or internal indexes.
+`IErrorCatalog` is a stable application-facing lookup-contract candidate and the return type of a DI-replaceable factory; it is not directly registered as a service by `AddWhenItFails()`. The maintainer confirmed all three focused tests and the complete 1184/1184 suite GREEN. These tests do not freeze the concrete catalog implementation's constructor or internal indexes.
 
 ## Still under review
 
