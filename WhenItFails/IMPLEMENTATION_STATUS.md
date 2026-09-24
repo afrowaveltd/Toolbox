@@ -25,17 +25,18 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** four focused model contract tests and complete **1163/1163 GREEN** suite after commit `a6eaba33dad832f7a85d7168fbf0ff431979791c`.
 - Next: audit `ErrorCatalogContext` mutable shared references and `ErrorCatalogRuntimeStatus` computed state/consistency contracts.
 
-## 2026-09-24 — runtime context/status public API baseline (verification pending)
+## 2026-09-24 — runtime context/status public API baseline (1165/1165 GREEN)
 
 - Added `WhenItFails.Tests/PublicApi/RuntimeStatePublicApiContractTests.cs` with two focused reflection tests: `ErrorCatalogContext` seven mutable public properties and `ErrorCatalogRuntimeStatus` nine `init` properties plus two computed getter-only properties.
 - Audited `ErrorCatalogContextStore`: it swaps the active context reference atomically but returns the same mutable context instance on reads. An application can mutate a returned catalog context; neither thread-safe reference publication nor a context getter implies a deep immutable snapshot.
 - `ErrorCatalogRuntimeStatus` publishes a separate instance via a volatile reference; its `State` and `IsConsistent` are computed from the init-only fields, whose semantic cases are already tested under `WhenItFails.Tests/Runtime/ErrorCatalogRuntimeStatusTests.cs`.
 - No production behavior, source or API visibility changed. Before 1.0, decide and document whether active context mutation is a supported extension mechanism or a boundary to restrict with a compatibility plan.
-- **Verification pending:** maintainer to run focused tests and complete suite; last confirmed complete suite **1163/1163 GREEN**. Do not claim **1165/1165 GREEN** until independently confirmed.
+- **Verified locally by maintainer:** two focused tests and complete **1165/1165 GREEN** suite after commit `efa89777656a99cdd39900d361d9c69b53fa1da7`.
+- Next: audit `WhenItFailsOptions` and `JsonsOptions` property shape, default paths and DI registration snapshots.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1163/1163 GREEN**, confirmed locally by the maintainer after the error model public API and JSON contract tests.
+- Complete `WhenItFails.Tests` suite: **1165/1165 GREEN**, confirmed locally by the maintainer after runtime context/status public API contract tests.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
