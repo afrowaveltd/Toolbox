@@ -163,6 +163,15 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production code changed. **Verified locally by maintainer:** both focused tests and complete **1218/1218 GREEN** suite after commit `ed0075da64a66657caf2e91d7d298cd92161ea01`.
 - Next: continue transitive data/JSON model review, beginning with the five catalog document types and their definition models.
 
+## 2026-09-24 — catalog document public API/JSON baseline (verification pending)
+
+- Added `WhenItFails.Tests/PublicApi/CatalogDocumentPublicApiContractTests.cs` with four focused tests covering all five public catalog document types: `ErrorCatalogDocument`, `ErrorCategoryCatalogDocument`, `ErrorOwnerCatalogDocument`, `ErrorCodeGroupCatalogDocument` and `ErrorProfileCatalogDocument`.
+- Each document has the same ten catalog-header properties plus one typed content collection. The tests lock the current CLR property/accessor shape, explicit `JsonPropertyName` field names, default values, nullable-reference annotations and independently allocated `Tags`, `Metadata` and typed content collections.
+- Current defaults are `SchemaVersion = "1.0"`, empty catalog id/name, `Language = "en"`, null optional description/source fields, `IsShadowCopy = false`, and empty per-instance collections/metadata.
+- The JSON content fields remain `errors`, `categories`, `owners`, `codeGroups` and `profiles` respectively. These tests snapshot the present pre-1.0 schema; they do not yet define a policy for future schema-version migration.
+- No production code changed. **Verification pending:** four focused tests and complete suite; last confirmed **1218/1218 GREEN**. Expected full total if all pass: **1222/1222 GREEN**.
+- Next: audit the four supporting definition models (`ErrorCategoryDefinition`, `ErrorOwnerDefinition`, `ErrorCodeGroupDefinition`, `ErrorProfileDefinition`) including JSON names/defaults/collection isolation.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1218/1218 GREEN**, confirmed locally by the maintainer after built-in catalog context provider public API contract tests.
