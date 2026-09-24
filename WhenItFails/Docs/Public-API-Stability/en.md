@@ -125,6 +125,12 @@ The five public catalog document types share a common catalog header and differ 
 
 This baseline treats the existing JSON names and defaults as compatibility-sensitive inputs to the 1.0 decision, but it does not yet define a schema migration policy. In particular, a mutable collection property is not an immutable snapshot merely because a loader/provider returns the containing document. The maintainer confirmed all four focused tests and the complete 1222/1222 suite GREEN; production code is unchanged.
 
+## Supporting definition JSON models (verification pending)
+
+`ErrorCategoryDefinition`, `ErrorOwnerDefinition`, `ErrorCodeGroupDefinition` and `ErrorProfileDefinition` are transitive public JSON models used by the catalog documents and profile resolution API. `WhenItFails.Tests/PublicApi/SupportingDefinitionPublicApiContractTests.cs` records each model's exact public property types/accessors, explicit JSON field names and nullable-reference annotations.
+
+Constructor defaults and independent mutable collections/dictionaries/metadata are already covered by the dedicated `WhenItFails.Tests/DefinitionContracts/*DefinitionContractTests.cs` tests, so the public-API suite deliberately does not repeat them. Local verification of the three new API tests is pending; production code remains unchanged.
+
 ## Still under review
 
 The initial eight-type public API baseline is covered. The active-context mutability decision, nullable annotations, and the distinction between documented stable contracts and implementation details remain open before 1.0.
