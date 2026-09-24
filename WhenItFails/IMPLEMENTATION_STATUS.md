@@ -127,18 +127,18 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - Next: audit profile resolver and profile-selection interface contracts and DI replacement.
 - Next after verification: review profile resolver and profile-selection extension interfaces, then inventory implementation details and define the stable 1.0 surface.
 
-## 2026-09-24 — profile resolution extension-point public API baseline (verification pending)
+## 2026-09-24 — profile resolution extension-point public API baseline (1212/1212 GREEN)
 
 - Added `WhenItFails.Tests/PublicApi/ProfileResolutionExtensionPointPublicApiContractTests.cs` with four focused tests for the two remaining profile resolver interfaces: method signatures, nullable-reference annotations, and pre-registered custom DI implementation precedence.
 - `IErrorProfileResolver.Resolve(ErrorCatalogDocument, ErrorProfileDefinition)` returns `IReadOnlyList<ErrorDefinition>` directly; its inputs and returned collection are non-nullable in the public C# contract.
 - `IErrorProfileSelectionService.ResolveByProfileName(ErrorCatalogContext?, string)` returns `Response<IReadOnlyList<ErrorDefinition>>`. Only the context parameter is nullable; this interface operates at the loaded-context layer rather than the document/profile layer.
 - Both defaults use `TryAddSingleton`. The test-only replacements validate registration precedence, not equivalent full profile selection semantics.
-- No production API or behavior changed. **Verification pending:** four focused tests and complete suite; last confirmed **1208/1208 GREEN**. Expected next full count if all four pass: **1212/1212 GREEN**.
+- No production API or behavior changed. **Verified locally by maintainer:** four focused tests and complete **1212/1212 GREEN** suite after commit `34ef9cf3f16cad2650c4df0ec5e74fb89956ca64`.
 - Next: inventory the remaining public concrete types, dependent DTOs and interfaces; classify the stable 1.0 API vs supported extension points vs public implementation details, then decide active context mutability/versioning policy.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1208/1208 GREEN**, confirmed locally by the maintainer after definition/descriptor extension-point API contract tests.
+- Complete `WhenItFails.Tests` suite: **1212/1212 GREEN**, confirmed locally by the maintainer after profile resolution extension-point API contract tests.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.

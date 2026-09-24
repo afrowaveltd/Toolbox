@@ -99,11 +99,11 @@ The category, owner, code-group and profile validators use four public interface
 
 All three are DI-replaceable via `TryAddSingleton` registrations. `WhenItFails.Tests/PublicApi/DefinitionAndDescriptorExtensionPointPublicApiContractTests.cs` checks the seven exact public method signatures, relevant nullability annotations, and precedence of three pre-registered test-only implementations with service-graph validation. The test stubs do not exercise a fully working replacement resolution pipeline. The stable 1.0 behavior and concrete class visibility require further review; no production API has changed, and the maintainer confirmed all five focused tests and complete 1208/1208 suite GREEN.
 
-## Profile resolution extension points (verification pending)
+## Profile resolution extension points (1212/1212 GREEN)
 
 `IErrorProfileResolver.Resolve(ErrorCatalogDocument, ErrorProfileDefinition)` returns a non-null `IReadOnlyList<ErrorDefinition>` from non-null catalog/profile inputs. `IErrorProfileSelectionService.ResolveByProfileName(ErrorCatalogContext?, string)` returns a non-null `Response<IReadOnlyList<ErrorDefinition>>`; the catalog context input is annotated nullable. The two interfaces serve different layers: direct document/profile resolution versus lookup of a profile by name in an already loaded context.
 
-Both default services are registered with `TryAddSingleton`. `WhenItFails.Tests/PublicApi/ProfileResolutionExtensionPointPublicApiContractTests.cs` checks their exact public signatures, relevant nullability annotations and preservation of pre-registered custom implementations with DI graph validation. These registration and shape tests do not establish behavioral equivalence of arbitrary custom profile resolvers. The remaining work for the 1.0 API review is inventory and classification of the other public types, dependent model surfaces and the shared active context mutation boundary. Local verification is pending; production code is unchanged.
+Both default services are registered with `TryAddSingleton`. `WhenItFails.Tests/PublicApi/ProfileResolutionExtensionPointPublicApiContractTests.cs` checks their exact public signatures, relevant nullability annotations and preservation of pre-registered custom implementations with DI graph validation. These registration and shape tests do not establish behavioral equivalence of arbitrary custom profile resolvers. The remaining work for the 1.0 API review is inventory and classification of the other public types, dependent model surfaces and the shared active context mutation boundary. The maintainer confirmed all four focused tests and complete 1212/1212 suite GREEN; production code is unchanged.
 
 ## Still under review
 
