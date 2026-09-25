@@ -245,6 +245,42 @@ Expected completion marker:
 
 **Maintainer-confirmed PASS:** both the original package consumer and unchanged consumer with the source DLL completed the strict reinitialization checks. Seven smoke scenarios now have confirmed PASS. This is not a complete ABI, JSON/wire-format, concurrency or recovery compatibility guarantee.
 
+## Optional pre-cancelled activation after a healthy project context (pending)
+
+`-ExerciseCancelledActivation` is a mutually exclusive opt-in mode.
+The disposable consumer is compiled **once** against requested
+NuGet `[0.1.0]`, runs with the original package DLL, then runs
+**without recompilation** with only WhenItFails.dll swapped for the
+current source build. Each run uses a separate, previously empty
+temporary project workspace outside the repository.
+
+Both runs initialize a healthy project catalog twice and verify that
+five JSON files retain their hashes. The consumer then creates an
+already-cancelled `CancellationTokenSource` and calls the original
+`InitializeAsync(JsonsOptions, CancellationToken)` and
+`ResetToDefaultsAsync(CancellationToken)`. Both must propagate
+`OperationCanceledException` carrying the supplied token. Neither
+cancellation may change the previous context/status object references,
+its non-degraded `ProjectCatalog` state, the stable error descriptor
+or any of the five JSON files. Loaded DLL, executable/DLL hashes and
+result parity are checked as in previous modes.
+
+Run separately in PowerShell from the Toolbox root:
+
+```powershell
+git pull --ff-only origin master
+& .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseCancelledActivation -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-cancelled-activation.md')
+```
+
+Expected completion marker:
+`Binary cancelled activation smoke: PASS (original package consumer and swapped source DLL).`
+
+**Pending local verification.** This deterministic probe covers an
+*already cancelled* token, not cancellation racing with writes,
+partially completed initialization, queued activation, or reset
+provider I/O. The seven previous modes are confirmed PASS; this
+one must be verified independently.
+
 ## Observed maintainer execution
 
 On 2026-09-25, the maintainer ran the PowerShell tool against their updated

@@ -93,3 +93,12 @@ Use `-ExerciseStrictReinitialization` **alone**. It configures the original cons
 ```
 
 See [strict reinitialization smoke](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
+
+
+## Optional pre-cancelled activation against a precompiled 0.1.0 consumer
+
+Use `-ExerciseCancelledActivation` **alone**. The original package-built consumer successfully initializes a project in its own disposable temporary workspace, then invokes both `InitializeAsync(JsonsOptions, CancellationToken)` and `ResetToDefaultsAsync(CancellationToken)` with a token cancelled **before the call**. Both must throw `OperationCanceledException` with the matching token and must preserve the same context/status object references, non-degraded project state, five JSON file hashes and original descriptor. The same unchanged executable is run with package 0.1.0 and the substituted source DLL in separate temp roots. This is not a mid-operation cancellation or transaction guarantee. **Local execution pending; seven prior modes confirmed PASS.**
+
+```powershell
+& .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseCancelledActivation -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-cancelled-activation.md')
+```
