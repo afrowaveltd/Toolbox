@@ -91,9 +91,19 @@ an unknown code group. The remaining bundled files may be completed, but
 cross-catalog validation must reject publication with
 `UnknownErrorCodeGroup` while preserving the caller's existing JSON bytes.
 After explicit caller repair, a second pass must skip and preserve all five
-files and activate a clean project context. The focused test is pending local
-verification (expected complete suite **1464/1464 GREEN**, last confirmed
-**1463/1463 GREEN**).
+files and activate a clean project context. The focused test was
+confirmed locally in the complete **1464/1464 GREEN** suite.
+
+An additional flexible-mode contract now tests the same cross-catalog
+mismatch **after a healthy project context is already active**. While
+bootstrap fills four missing supporting catalogs, it preserves the
+syntactically valid but inconsistent error catalog. The failed project load
+must retain the earlier active context and record
+`PreviousContextRecovery` with `UnknownErrorCodeGroup`. Explicit caller
+repair must then activate a new non-degraded project context, clear all
+recovery metadata, and leave all existing files byte-for-byte unchanged.
+This new case is pending local verification (expected complete suite
+**1465/1465 GREEN**, last confirmed **1464/1464 GREEN**).
 
 ## Strict mode
 
