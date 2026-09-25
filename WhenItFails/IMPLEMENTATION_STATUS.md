@@ -623,6 +623,14 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production code, public API, package version or persisted JSON schema changed in this checkpoint. Detailed bootstrap documentation now describes re-entry into a partial workspace and preservation of user changes made between runs.
 - **Verified locally by maintainer:** both partial-workspace re-entry contracts and the complete **1456/1456 GREEN** suite. Eight binary smoke scenarios remain confirmed PASS. Compiler-warning count was not separately reported for this checkpoint. Next: audit initializer/runtime behavior over a workspace recovered from a prior partial bootstrap run.
 
+## 2026-09-25 — initializer/runtime recovery from a partial project workspace (verification pending)
+
+- Added `WhenItFails.Tests/Initialization/PartialWorkspaceRecoveryIntegrationContractTests.cs` with **two** higher-level integration cases using the real `DefaultJsonsTemplateProvider` and default DI service graph rather than fake catalog providers.
+- The initializer case first forces a deterministic second-template `IOException`, leaving exactly one safely published bundled catalog. That file is then modified only with harmless user whitespace. A fresh default `IErrorCatalogInitializer` must preserve those exact bytes, skip that existing file, create the other four bundled catalogs, cross-validate the complete context and publish the same `ProjectCatalog` context into the real context store.
+- The runtime case creates the analogous partial workspace through exact-token cancellation during the second staged template write, then initializes through public `IErrorCatalogRuntime.InitializeAsync(JsonsOptions)`. The expected result is a non-degraded, consistent `ProjectCatalog` runtime status, all five project files present, the previously published file byte-preserved, no staged `.tmp` artifacts, and successful legacy lookup of `AFW-GEN-0001` / `UnknownError`.
+- No production code, public API, package version or persisted JSON schema changed. Bootstrap and runtime documentation now explicitly connect partial-workspace re-entry with full context validation/publication.
+- **Verification pending:** 2 additional integration tests, expected complete suite **1458/1458 GREEN**. Last maintainer-confirmed complete suite remains **1456/1456 GREEN**, plus 8 binary smoke scenarios PASS. Next: run the focused integration class and complete suite; if GREEN, record the checkpoint and audit failure behavior when a preserved existing catalog in the recovered workspace is malformed rather than merely user-modified but valid.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1456/1456 GREEN**, confirmed locally by maintainer after partial-workspace re-entry and preservation of user-edited already-published catalogs (compiler-warning count not separately reported for this checkpoint).
