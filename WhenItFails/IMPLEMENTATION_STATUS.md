@@ -609,16 +609,16 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - Updated root README and detailed bootstrap documentation. This is per-file safe publication, **not** a transaction across all five project catalogs; already completed template creations from earlier loop iterations are not rolled back.
 - **Verified locally by maintainer:** all three safe-template-write contracts and the complete **1452/1452 GREEN** suite. Eight binary smoke scenarios remain confirmed PASS. Compiler-warning count was not separately reported for this checkpoint. Next: pin the partial-workspace contract when cancellation or failure occurs between successive template publications.
 
-## 2026-09-25 — partial workspace semantics across later template cancellation/failure (verification pending)
+## 2026-09-25 — partial workspace semantics across later template cancellation/failure (1454/1454 GREEN)
 
 - Added `JsonsBootstrapperPartialWorkspaceContractTests.cs` with two deterministic multi-template cases using the existing internal write seam. The first template is fully staged and published; the second template then either triggers cancellation after writing only its staged file or throws a deterministic `IOException`.
 - The intended contract is explicitly **per-file**, not workspace-transactional: the first completed project catalog remains byte-identical at its final path, the failed/cancelled second target never appears, and no staged `.tmp` artifact survives. Cancellation must propagate with the exact supplied token; the I/O case must keep the existing stable `JsonsWorkspaceInputOutputError` / `ResultStatus.Failed` response.
 - No production code, public API, package version or persisted JSON schema changed in this checkpoint. Detailed bootstrap documentation now states that successful earlier publications are deliberately not rolled back when a later template cannot be completed.
-- **Verification pending:** 2 additional focused tests, expected complete suite **1454/1454 GREEN**. Last maintainer-confirmed complete suite remains **1452/1452 GREEN**, plus 8 binary smoke scenarios PASS. Next: run the focused partial-workspace class and complete suite; if GREEN, record the checkpoint and continue with the next bootstrap/runtime safety gap.
+- **Verified locally by maintainer:** both partial-workspace contracts and the complete **1454/1454 GREEN** suite. Eight binary smoke scenarios remain confirmed PASS. Compiler-warning count was not separately reported for this checkpoint. Next: audit bootstrap re-entry after a partial workspace to ensure a later successful run completes only the missing catalogs without rewriting the already published ones.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1452/1452 GREEN**, confirmed locally by maintainer after staged bootstrap template publication, cancellation cleanup, concurrent-target preservation and injected I/O failure contracts (compiler-warning count not separately reported for this checkpoint).
+- Complete `WhenItFails.Tests` suite: **1454/1454 GREEN**, confirmed locally by maintainer after explicit partial-workspace cancellation/failure semantics across successive template publications (compiler-warning count not separately reported for this checkpoint).
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
