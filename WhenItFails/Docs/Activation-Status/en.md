@@ -1,6 +1,6 @@
 # Completed runtime activation status observations
 
-Status: **additive pre-1.0 candidate; eight focused tests await local verification**.
+Status: **additive pre-1.0 candidate; eight focused tests included in the maintainer-confirmed 1314/1314 GREEN suite**.
 
 ## Why this is separate from a context generation
 
@@ -77,6 +77,24 @@ advances the runtime observation sequence **without** advancing the
 context generation. Failed strict reinitialization and failed explicit
 reset leave the previous completed observation intact.
 
+## Serialized activation on the default runtime
+
+On a single default `ErrorCatalogRuntime` instance, `InitializeAsync`
+and `ResetToDefaultsAsync` use the same cancellable asynchronous gate.
+An operation holds it from entry to the underlying initializer/provider
+through publication, recovery and status recording. A later operation
+enters only after the first finishes, fails or propagates cancellation;
+waiting cancellation does not invoke the queued initializer/provider.
+This is an **instance-local**, non-reentrant activation gate. Do not call
+an awaited activation method recursively from within the initializer or
+built-in provider of the same runtime instance.
+
+Context resolution, status reads, optional activation reads and ordinary
+snapshot readers do not take the gate. Publication can still precede
+status recording, and a reader can observe that intermediate state.
+Custom runtimes, external store writers and separate runtime instances
+sharing a store are not serialized by this gate.
+
 ## Consistency limits
 
 The method returns a **selected, previously recorded association**.
@@ -87,15 +105,20 @@ must not treat a separately acquired `GetStatus()` or
 `GetPublishedCombinedSnapshot()` result as belonging to this
 observation without an additional, explicitly coordinated read.
 
-Concurrent runtime initializations are also **not serialized** by this
-API. If an unrelated operation publishes the *same context reference*
-between another operation's `Set` and status recording, reference
-equality alone cannot establish which operation owned the
-publication. Do not claim strict activation-event identity under
-overlapping writers; doing so requires lifecycle ownership or
-serialization of runtime activation and a policy for external `Set`.
-This optional status observation is an incremental contract, **not**
-the final atomic context-plus-status snapshot.
+The default `ErrorCatalogRuntime` now serializes its own `InitializeAsync`
+and `ResetToDefaultsAsync` operations through one asynchronous activation
+gate, including publication and status recording. This prevents overlapping
+activations *on the same runtime instance* from overtaking one another.
+The optional status **reader** itself does not acquire the gate, and direct
+writers using the injected context store or other runtime instances that
+share that store remain outside this serialization boundary. In particular,
+an external writer can publish the *same context reference* between this
+runtime's `Set` and status recording. Reference equality alone cannot
+establish which actor owned that publication. Strict activation-event
+identity across all writers therefore remains out of scope until the store
+has an explicit publication ownership policy. This optional observation
+is an incremental contract, **not** the final atomic context-plus-status
+snapshot.
 
 The default runtime still supports the existing nine-method
 `IErrorCatalogRuntime` interface and `GetStatus()` semantics.
