@@ -1,6 +1,6 @@
 # Shared-store runtime concurrency
 
-Status: **pre-1.0 ownership audit; five focused regression tests await local verification**.
+Status: **pre-1.0 ownership audit; five focused tests included in maintainer-confirmed 1324/1324 GREEN suite**.
 
 ## Scope of the existing activation gate
 
@@ -67,6 +67,10 @@ identified publication *owned by* the runtime operation under external
 writers. The publication-aware combined snapshot, separately called
 `GetStatus()` and completed-observation reader are not automatically
 one coherent multi-view snapshot.
+
+## Additive store-level ownership capability
+
+The default store now implements [`IErrorCatalogContextPublisher.Publish(context)`](../Publication-Ownership/en.md), which returns the exact record created by its successful atomic write. This solves **store-level** ownership even when another writer immediately republishes the same context reference. The initializer/runtime has not yet been rewired to return and consume that record, so the completed runtime-status observation's same-reference ownership gap remains unresolved at this stage.
 
 ## Next design decision
 
