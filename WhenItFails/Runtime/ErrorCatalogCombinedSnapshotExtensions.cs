@@ -57,8 +57,31 @@ public static class ErrorCatalogCombinedSnapshotExtensions
             };
         }
 
-        ErrorCatalogContext? context = response.Data;
+        Response<ErrorCatalogCombinedSnapshot> captured =
+            CaptureFromContext(response.Data);
 
+        if (!captured.IsSuccess)
+        {
+            return captured;
+        }
+
+        return new Response<ErrorCatalogCombinedSnapshot>
+        {
+            Status = response.Status,
+            Message = response.Message,
+            Data = captured.Data,
+            Issues = response.Issues ?? Array.Empty<IssueInfo>(),
+            Metadata = response.Metadata?.Copy() ?? new MetadataBag()
+        };
+    }
+
+    /// <summary>
+    /// Builds the same detached projection from a previously selected context.
+    /// This helper must never resolve the runtime or read the store again.
+    /// </summary>
+    internal static Response<ErrorCatalogCombinedSnapshot> CaptureFromContext(
+        ErrorCatalogContext? context)
+    {
         if (context?.ErrorCatalog is null)
         {
             return Response<ErrorCatalogCombinedSnapshot>.Invalid(
@@ -102,14 +125,7 @@ public static class ErrorCatalogCombinedSnapshotExtensions
                 new ErrorCategoryCatalogSnapshot(context.CategoryCatalog),
                 new ErrorCatalogValidationSnapshot(context.CrossValidationResult));
 
-            return new Response<ErrorCatalogCombinedSnapshot>
-            {
-                Status = response.Status,
-                Message = response.Message,
-                Data = snapshot,
-                Issues = response.Issues ?? Array.Empty<IssueInfo>(),
-                Metadata = response.Metadata?.Copy() ?? new MetadataBag()
-            };
+            return Response<ErrorCatalogCombinedSnapshot>.Ok(snapshot);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
