@@ -174,7 +174,7 @@ public sealed class PartialWorkspaceRecoveryIntegrationContractTests
             Assert.True(descriptorById.IsSuccess);
             Assert.NotNull(descriptorById.Data);
             Assert.Equal(
-                "UnknownError",
+                "UNKNOWNERROR",
                 descriptorById.Data.Name);
 
             var descriptorByName =
@@ -183,7 +183,7 @@ public sealed class PartialWorkspaceRecoveryIntegrationContractTests
             Assert.True(descriptorByName.IsSuccess);
             Assert.NotNull(descriptorByName.Data);
             Assert.Equal(
-                "AFW-GEN-0001",
+                "AFW_GEN_0001",
                 descriptorByName.Data.Id);
 
             Assert.Empty(
