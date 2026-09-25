@@ -320,6 +320,24 @@ This method independently selects a context and does not silently extend
 the existing combined snapshot APIs, which retain their existing public
 shape. See [code group snapshots](../Code-Group-Snapshots/en.md).
 
+## Detached supporting profile catalog
+
+The additive `GetProfileCatalogSnapshot()` extension copies the active
+profile catalog into a getter-only, detached view, including all
+include/exclude filters, default mappings, tags and metadata:
+
+```csharp
+using Afrowave.Toolbox.WhenItFails.Runtime;
+
+Response<ErrorProfileCatalogSnapshot> profiles =
+    runtime.GetProfileCatalogSnapshot();
+```
+
+It selects a context independently from other snapshot calls.
+`GetCombinedSnapshot()` and `GetCompletedCombinedSnapshot()` retain
+their original three-part data shape. See
+[detached profile snapshots](../Profile-Snapshots/en.md).
+
 ## Runtime status
 
 Retrieve the active status snapshot through:
