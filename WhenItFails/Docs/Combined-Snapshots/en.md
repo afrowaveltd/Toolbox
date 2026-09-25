@@ -1,6 +1,6 @@
 # Combined detached catalog snapshot
 
-Status: **additive pre-1.0 API candidate; eight test cases await local verification**.
+Status: **additive pre-1.0 API candidate; all eight test cases included in maintainer-confirmed 1286/1286 GREEN suite**.
 
 ## Scope
 
@@ -61,7 +61,7 @@ Applications should treat published contexts and their nested objects as
 read-only, and use the supported initialization/reset path to activate
 validated replacements.
 
-No durable **activation-generation ID** is exposed by this API. One must
+The original `GetCombinedSnapshot()` has no publication ID. A separate additive [publication-aware combined snapshot](../Published-Snapshots/en.md) captures the same three-part data along with the selected store publication's `StoreId` and `Generation` when the optional runtime/store capability exists; it is not an atomic runtime-status activation ID. One must
 be assigned and owned by the runtime activation/publication lifecycle,
 including retained-previous-context and reset semantics. A new identifier
 generated for each call identifies a capture, **not** the active context
