@@ -646,6 +646,14 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production code, public signature, package version or persisted JSON schema changes. Updated Bootstrap and Initialization/Recovery English docs.
 - **Verified locally by maintainer:** both explicit-repair focused contracts and complete **1462/1462 GREEN** suite. Eight binary smoke scenarios remain previously confirmed PASS; compiler-warning count not separately reported. Next: audit whether flexible-mode recovery metadata and context publication return cleanly to non-degraded `ProjectCatalog` after explicit user repair.
 
+## 2026-09-26 — flexible fallback to project activation after partial-workspace repair (verification pending)
+
+- Added `WhenItFails.Tests/Initialization/FlexiblePartialWorkspaceFallbackRepairContractTests.cs` with one focused default-DI integration test covering a path not previously exercised as a single sequence: deterministic partial bootstrap (second template write interrupted), preserved malformed project catalog, first-start flexible built-in fallback, explicit caller repair, and successful project catalog activation.
+- The fallback must retain the exact invalid project JSON bytes while completing the other four files; the initial status must be consistent `BuiltInFallback` with recovery reason/status/message. After the caller repairs only the malformed file, a fresh initialization must skip all five existing project catalogs, preserve their bytes, activate a new validated non-degraded `ProjectCatalog`, clear all recovery metadata and restore normalized descriptor lookup. No staged `.tmp` files may remain.
+- Existing `ErrorCatalogRuntimeIntegrationTests` already cover previous-context recovery after a damaged catalog and later return to project mode. This new test instead covers **first-start built-in fallback originating from a partial workspace**, without duplicating the previous-context test.
+- No production code, public API, package version or persisted JSON schema changed. English initialization/recovery documentation updated.
+- **Verification pending:** 1 additional focused test, expected complete suite **1463/1463 GREEN**. Last maintainer-confirmed complete suite **1462/1462 GREEN**; 8 binary smoke scenarios previously confirmed PASS. Next: run the focused flexible partial-workspace class and complete suite; record the observed result before any further changes.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1462/1462 GREEN**, confirmed locally by maintainer after explicit manual repair and strict runtime reactivation contracts (compiler-warning count not separately reported for this checkpoint).
