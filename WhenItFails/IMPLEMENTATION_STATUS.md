@@ -462,17 +462,17 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** six focused cases and full **1365/1365 GREEN**, zero errors (warning count not separately reported for this checkpoint). Source development does not change the published NuGet 0.1.0 version or persistent catalog JSON schemas.
 - Next: confirm focused/full suite. Then design an additive, explicitly scoped combined *all-supporting-catalog* capture from one selected publication with full failure/ownership semantics, without silently changing existing three-part combined snapshot types. Decide separately whether a versioned transport DTO is warranted.
 
-## 2026-09-25 — all-supporting-catalog detached capture (verification pending)
+## 2026-09-25 — all-supporting-catalog detached capture (1377/1377 GREEN)
 
 - Added `ErrorSupportingCatalogsSnapshot` (sealed, getter-only) and additive `GetSupportingCatalogsSnapshot(this IErrorCatalogRuntime)`. The extension selects the active context once and copies the four supporting category, owner, code-group and profile catalogs using their existing detached projections. No main definitions, validation findings, publication generation or runtime status are implied.
 - Missing catalogs return catalog-specific Invalid responses without partial data; null context responses, unsuccessful context forwarding, stable capture failure and cancellation propagation follow established snapshot contracts. Concurrent in-place mutation of the selected context remains unsupported.
 - Added `WhenItFails.Tests/PublicApi/ErrorSupportingCatalogsSnapshotContractTests.cs` with **12 theory-expanded focused cases** and English `Docs/Supporting-Catalog-Snapshots/en.md`; updated README, runtime API, public API review and profile docs. Existing combined snapshot and runtime interface shapes are unchanged. Published NuGet 0.1.0 and persisted catalog JSON schemas are unchanged.
-- **Verification pending:** focused 12 cases and expected complete **1377/1377 GREEN**. Last maintainer-confirmed full suite: **1365/1365 GREEN** with no reported errors; warning count for that checkpoint was not separately reported.
+- **Verified locally by maintainer:** full **1377/1377 GREEN** with no reported errors; focused test and compiler-warning counts were not separately reported for this checkpoint.
 - Next: confirm focused/full suite locally, then decide whether a publication-aware all-catalog read or separately versioned transport DTO is needed. Do not infer a generation or atomic status from this single-context-reference capture.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1365/1365 GREEN**, confirmed locally by maintainer after profile snapshot tests, with zero reported errors (warning count not separately reported for this checkpoint).
+- Complete `WhenItFails.Tests` suite: **1377/1377 GREEN**, confirmed locally by maintainer after all-supporting-catalog snapshot tests, with zero reported errors (warning count not separately reported for this checkpoint).
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
