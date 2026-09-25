@@ -46,20 +46,20 @@ cross-runtime ordering guarantee. A runtime's `GetStatus()` is
 instance-local diagnostic state and is not a synchronized
 description of every later external publication to its shared store.
 
-## Important same-reference ownership gap
+## Same-reference ownership boundary
 
-The current optional completed-observation recording checks that the
-store's latest publication contains the **same context reference** as
-the operation's payload. This is not sufficient to prove ownership.
+The previous reference-based association was insufficient: an external
+writer could republish the **same instance** after a runtime operation's
+write but before `RecordStatus` and cause attribution to the later
+record. The default initializer and runtime reset/fallback now propagate
+the **exact record returned by their own write**, so this scenario
+returns a changed-publication result instead of falsely accepting
+another writer's generation. The instance-local gate alone did not
+solve this; the owned record did.
 
-An external writer can publish that *same instance* after a runtime
-operation's `Set` and before its `RecordStatus`. The latest
-publication then has a **different generation** but the same object
-reference. The runtime cannot identify the publication it originally
-owned solely from that reference and can associate its status with
-the later external publication. This is an unresolved strict
-activation-identity gap. The instance-local activation gate does not
-prevent it.
+Custom initializers without an owned record and no-write previous-context
+recovery still follow the weaker reference-based path. Neither the owned
+write nor the gate makes the store and status one atomic transaction.
 
 Avoid describing `GetCompletedActivation()` as a globally atomic
 context/status transaction or its generation as the uniquely
@@ -70,7 +70,7 @@ one coherent multi-view snapshot.
 
 ## Additive store-level ownership capability
 
-The default store now implements [`IErrorCatalogContextPublisher.Publish(context)`](../Publication-Ownership/en.md), which returns the exact record created by its successful atomic write. This solves **store-level** ownership even when another writer immediately republishes the same context reference. The initializer/runtime has not yet been rewired to return and consume that record, so the completed runtime-status observation's same-reference ownership gap remains unresolved at this stage.
+The default store implements [`IErrorCatalogContextPublisher.Publish(context)`](../Publication-Ownership/en.md), which returns the exact record created by its successful atomic write. The default initializer and runtime reset/fallback now carry this record into status completion. Other/custom initializer paths and recovery without a new write still require an explicit selection/ownership design.
 
 ## Next design decision
 
@@ -78,11 +78,11 @@ A stronger contract needs **publication ownership**, not only a lock
 around `ErrorCatalogRuntime`:
 
 - A store operation that returns the **specific publication record**
-  created by the successful write, ideally via an additive optional
-  publisher capability.
-- Propagation of that record from the owning initializer or
-  runtime operation to the completed status, including rules for
-  flexible previous-context recovery (which does **not** republish).
+  created by the successful write: implemented by the default optional
+  publisher and propagated through default owned activation writes.
+- An explicit publication-selection record for flexible previous-context
+  recovery (which does **not** republish) and an opt-in ownership contract
+  for custom initializer paths.
 - A strategy for external `Set` callers and multiple runtime
   instances sharing the store; legacy/custom stores lacking the
   capability must receive a clearly defined weaker result rather
