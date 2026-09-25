@@ -478,17 +478,17 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - This is a publication-identified data capture, **not** an atomic status pairing or a transaction against external in-place mutation. Published NuGet 0.1.0 and catalog JSON schemas remain unchanged.
 - **Verified locally by maintainer:** complete **1392/1392 GREEN**; no failures reported. Focused-run and compiler-warning counts were not separately reported. Next: completed-activation-aware supporting catalog view with independent status/publication ownership tests.
 
-## 2026-09-25 — completed activation with four supporting catalogs (verification pending)
+## 2026-09-25 — completed activation with four supporting catalogs (1407/1407 GREEN)
 
 - Added optional `IErrorCatalogRuntimeSupportingObservationReader` to the default runtime and sealed getter-only `ErrorCatalogCompletedSupportingCatalogsSnapshot` with actual `StoreId`, `Generation`, runtime-local `ActivationSequence`, corresponding recorded status and all four detached supporting catalog projections. Existing `IErrorCatalogRuntime`, `IErrorCatalogRuntimeCombinedObservationReader`, and three-part combined snapshot types remain unchanged.
 - The method selects one recorded completed activation and its exact publication, checks publication/status before capture, reuses `ErrorSupportingCatalogsSnapshotExtensions.CaptureFromContext`, then rechecks publication and status. A same-reference republish or status-only previous-context recovery during capture invalidates the observation instead of mixing identities.
 - Added `WhenItFails.Tests/PublicApi/CompletedSupportingCatalogsSnapshotContractTests.cs` with **15 theory-expanded cases**; created English `Docs/Completed-Supporting-Catalog-Snapshots/en.md`; updated README, runtime API and public API stability docs. Missing catalogs preserve established supporting-snapshot failure codes; ordinary outer exceptions are normalized and cancellation propagates.
-- **Verification pending:** focused 15 tests and expected complete **1407/1407 GREEN**. Last maintainer-confirmed full suite **1392/1392 GREEN**, no failures reported. Compiler warnings were not separately reported. Published package 0.1.0 and persisted catalog JSON schemas remain unchanged.
+- **Verified locally by maintainer:** complete **1407/1407 GREEN**; focused run and compiler-warning count not separately reported. Published package 0.1.0 and persisted catalog JSON schemas remain unchanged.
 - Next: confirm focused/full suite and investigate any failure before extending the API further. The result is a checked observation, not a transaction against external in-place mutation or later store writes.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1392/1392 GREEN**, confirmed locally by maintainer after publication-aware supporting catalog tests, with zero reported failures (warning count not separately reported for this checkpoint).
+- Complete `WhenItFails.Tests` suite: **1407/1407 GREEN**, confirmed locally by maintainer after completed supporting catalog snapshot tests (compiler-warning count not separately reported for this checkpoint).
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
