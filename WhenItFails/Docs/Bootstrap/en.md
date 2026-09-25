@@ -485,6 +485,14 @@ profiles.json
 
 This is expected behavior.
 
+A later bootstrap run treats that partial workspace the same way as any other
+workspace: every already published target is preserved and reported as
+`AlreadyExisted = true` / `Skipped = true`, while only still-missing targets
+are staged and created. This also means that if an application or operator
+edits an earlier published catalog after the interrupted run, retrying bootstrap
+must preserve those edited bytes; bootstrap is not a repair or synchronization
+operation.
+
 The complete workspace is validated only after bootstrap finishes.
 
 ## Bootstrap does not imply valid catalogs
