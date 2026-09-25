@@ -46,6 +46,8 @@ public sealed class ActiveContextSharedReferenceContractTests
         ErrorCatalogContextStore store = new();
         ErrorCatalogContext first = new();
         ErrorCatalogContext second = new();
+        ErrorProfileCatalogDocument newContextProfile = new();
+        second.ProfileCatalog = newContextProfile;
         store.Set(first);
 
         ErrorCatalogContext previouslyRead = store.GetCurrent().Data!;
@@ -58,6 +60,7 @@ public sealed class ActiveContextSharedReferenceContractTests
         Assert.Same(oldContextOnly, first.ProfileCatalog);
         Assert.Same(second, store.Current);
         Assert.Same(second, store.GetCurrent().Data);
+        Assert.Same(newContextProfile, second.ProfileCatalog);
         Assert.NotSame(first.ProfileCatalog, second.ProfileCatalog);
     }
 }
