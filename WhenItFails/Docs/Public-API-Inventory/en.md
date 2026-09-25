@@ -50,7 +50,7 @@ No concrete public class is being hidden or renamed in this inventory checkpoint
 
 ## 5. Open 1.0 decisions and next steps
 
-1. Decide whether `GetCurrentContext()` intentionally exposes a **shared mutable active context** or should offer a separate read-only/snapshot projection. The current `ErrorCatalogContextStore` publishes/swaps a reference atomically but returns the same mutable object. Do not represent it as an immutable snapshot.
+1. **Current behavior and compatibility direction recorded:** `GetCurrentContext()` exposes the same live, mutable active context reference, and the publisher retains that reference too. Keep its 0.1.0 signature intact and treat the context as read-only by convention; reference publication is atomic, but nested mutable catalog objects are not immutable snapshots. Three focused regression tests have been committed (local verification pending). Decide separately whether version 1.0 needs an **additive** safe read-only/deep-snapshot API; its ownership, nested collection isolation, versioning and costs remain open.
 2. Determine JSON and nullability versioning guarantees for the transitive documents, payloads, profile definitions, errors and status enums. Keep schema evolution separate from C# API compatibility.
 3. For public concrete classes, identify genuine consumer/tooling use before any `public` → `internal` change. Interface signatures alone do not prove concrete constructors are unused.
 4. Perform an assembly-level exported-type/member inventory on the packaged binary and compare it against this source map before freezing the 1.0 surface. This source review is **not** that binary compatibility test.
