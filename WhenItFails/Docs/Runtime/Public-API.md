@@ -536,25 +536,15 @@ This means the active context and status are shared within the application servi
 
 A successful later initialization replaces the active context atomically.
 
-Consumers should request the current context from the runtime rather than storing stale copies indefinitely unless snapshot behavior is intentional.
+Consumers should request the current context from the runtime rather than storing old references indefinitely. `GetCurrentContext()` returns the **live, shared, mutable** `ErrorCatalogContext` instance. It is not a defensive copy, an immutable snapshot or an ownership transfer. Callers can currently replace its properties or modify objects and collections reachable through them; such changes can affect later runtime lookups and other consumers. Treat the returned context and its contained catalogs as read-only by convention. Do not edit the published context in place; build and validate a replacement through the supported initialization/reset flow.
+
+A reference retained before a later successful activation still points to the old context; it is not automatically retargeted to the newly active instance. Creating a shallow copy of `ErrorCatalogContext` does not isolate the nested catalog objects.
 
 ## Thread safety
 
-The runtime publishes the active context and status only after a complete successful activation.
+The store publishes and replaces the **context reference** atomically. The runtime status is separately published atomically. This lets readers obtain either the previous context reference or the new context reference during a successful replacement, assuming no one mutates a published context in place.
 
-Invalid or partially constructed snapshots are not exposed.
-
-Status updates are atomic.
-
-This allows concurrent consumers to observe either:
-
-```text
-the previous valid snapshot
-or
-the new valid snapshot
-```
-
-They should not observe an intermediate partially updated state.
+Atomic publication does **not** make the context, its catalog documents or contained definitions deeply immutable or thread-safe for arbitrary concurrent writes. In-place mutations by a publisher or consumer can be seen by other readers and can expose inconsistent combinations of fields. Treat active contexts as read-only after publication; perform updates by constructing and validating a separate context and activating it through the supported runtime flow.
 
 ## Failure behavior
 
