@@ -172,9 +172,8 @@ does not enter its built-in provider; a cancelled initialization behind an
 in-flight reset does not enter its initializer. In the former, an already
 active project context and its recorded status/sequence remain unchanged
 until the leading initializer finishes. In the latter, only the leading
-reset may publish. These two additional cases are pending local verification
-(expected complete suite **1447/1447 GREEN**; last confirmed **1445/1445
-GREEN**). They are specific to the current gated default runtime, not the
+reset may publish. These two additional cases were confirmed locally by the maintainer in the
+complete **1447/1447 GREEN** suite. They are specific to the current gated default runtime, not the
 original 0.1.0 runtime, and use in-memory fakes rather than project JSON I/O.
 
 The gate does **not** block ordinary readers, direct external store writes,
