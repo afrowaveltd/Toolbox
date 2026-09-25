@@ -223,6 +223,15 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** inventory test and complete **1236/1236 GREEN** suite after commit `955f5f897be96ec41e77ea34ab3ec482043ccf06`; the report contains 110 exported types. No production code or public visibility changed.
 - Next: verify `WhenItFails.Tests` full suite; review actual exported report against package 0.1.0 and the Setter utility dependency set, then select focused utility compatibility tests and decide active-context mutability policy.
 
+## 2026-09-25 — Setter standalone utility public API baseline (verification pending)
+
+- Added `WhenItFails.Tests/PublicApi/SetterUtilityPublicApiContractTests.cs` with five focused tests for `JsonCatalogDocumentWriter`, `DocumentationKeyGenerator`, `DocumentationKeyFormat`, and `ErrorCatalogCrossValidator`.
+- The tests snapshot standalone public construction and precise member signatures, including the generic `SaveToFileAsync<TDocument>` class constraint, the optional cancellation token, the generator's static `ToSegment`, the static `IsCanonical`, and the cross-validator's five typed catalog parameters with an optional profile catalog.
+- The narrow end-to-end smoke verifies that these tools can be called without DI: a canonical key is generated and validated, a null primary document gives a structured validation issue, and an empty writer path yields a structured invalid response before any filesystem write. Existing dedicated suites remain responsible for normal file writes/backups, cancellation and comprehensive key/cross-catalog semantics.
+- These are public **standalone utility candidates with confirmed Setter consumers**, not unreviewed internal details. No production visibility or behavior changed. Published NuGet 0.1.0 comparison and full 1.0 compatibility policy are still pending.
+- **Verification pending:** five focused tests and complete `WhenItFails.Tests` suite; last confirmed **1236/1236 GREEN**. Expected complete suite if all five pass: **1241/1241 GREEN**.
+- Next: review source-built vs published NuGet 0.1.0 public API, then the independently exported `JsonCatalogDocumentLoader` and auxiliary descriptor models; decide active-context mutability policy.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1235/1235 GREEN**, confirmed locally by the maintainer after JsonsTemplateFile public API contract tests.

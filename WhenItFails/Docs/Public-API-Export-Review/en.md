@@ -62,6 +62,10 @@ Their interfaces can remain the primary extension contract without freezing **ev
 - Public `init`/getter-only properties (notably `ErrorCatalogRuntimeStatus`) differ from mutable `get; set;` models; retain that distinction in API comparison.
 - The inventory's `TypeName` formatter **omits nullable-reference annotations, method generic constraints and most custom attributes**. It is therefore a human-readable type/member census, not a complete binary/API compatibility fingerprint. Existing focused tests for nullability and JSON property names remain necessary.
 
+## 4. Setter utility contract baseline (verification pending)
+
+The `SetterUtilityPublicApiContractTests` group contains five focused tests for four publicly exported types with confirmed Setter usage: `JsonCatalogDocumentWriter`, `DocumentationKeyGenerator`, `DocumentationKeyFormat`, and `ErrorCatalogCrossValidator`. It records their public constructors/method shapes (including the writer's generic class constraint and optional token, and cross-validator's optional profile parameter). A narrow smoke test exercises them without service registration or a workspace. Dedicated behavior suites still own backup, cancellation, complete documentation key formatting and cross-catalog validation behavior. No production code or visibility changes were made; local verification is pending.
+
 ## 3. Release/compatibility decisions still needed
 
 1. The maintainer has confirmed complete **1236/1236 GREEN** after the inventory test. Keep this verification separate from report generation and the still-pending external NuGet binary comparison.

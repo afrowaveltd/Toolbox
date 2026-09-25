@@ -155,6 +155,10 @@ The main `ErrorCatalogProviderPayload` has three publicly mutable properties: `C
 
 The report does not include all CLR metadata (for example complete generic constraints, nullability and custom attributes), and does not by itself establish cross-version binary compatibility, externally published NuGet contents, JSON schema stability or runtime behavior. The detailed contract tests already created remain authoritative for those focused facets. Do not make concrete-class visibility changes until this report and existing consumer usage are reviewed. The maintainer supplied the generated report: **110 exported types** in source-built assembly version **0.1.0.0**. The report generation is observed, but complete-suite verification after the new inventory test is still pending. See [Compiled public API review](../Public-API-Export-Review/en.md) for provisional 1.0 scope and concrete utility consumers.
 
+## Setter standalone utility API baseline (verification pending)
+
+`WhenItFails.Tests/PublicApi/SetterUtilityPublicApiContractTests.cs` adds five focused tests for standalone public `JsonCatalogDocumentWriter`, `DocumentationKeyGenerator`, `DocumentationKeyFormat`, and `ErrorCatalogCrossValidator`. The tests capture their declared public method/constructor shape and a no-DI, no-workspace smoke path. Setter consumes these types directly; they are **public utility candidates**, not automatically internal implementation details. Detailed functional behavior remains in their existing dedicated test suites. Local verification is pending; production code unchanged.
+
 ## Still under review
 
 The initial eight-type public API baseline is covered. The active-context mutability decision, nullable annotations, and the distinction between documented stable contracts and implementation details remain open before 1.0.
