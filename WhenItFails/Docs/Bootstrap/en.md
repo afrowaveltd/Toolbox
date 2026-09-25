@@ -493,6 +493,15 @@ edits an earlier published catalog after the interrupted run, retrying bootstrap
 must preserve those edited bytes; bootstrap is not a repair or synchronization
 operation.
 
+Two higher-level integration contracts now exercise the same recovery path with
+the real bundled five-file template set and the default DI graph. One resumes
+through `IErrorCatalogInitializer`; the other resumes through
+`IErrorCatalogRuntime`. After a deterministic second-template interruption,
+the retry must preserve the already published file byte-for-byte, create the
+four missing catalogs, produce a cross-valid project context, and leave no
+staged temporary files. These cases are pending local verification (expected
+complete suite **1458/1458 GREEN**; last confirmed **1456/1456 GREEN**).
+
 The complete workspace is validated only after bootstrap finishes.
 
 ## Bootstrap does not imply valid catalogs
