@@ -31,7 +31,11 @@ Jsons/
 
 Bundled catalogs are used as read-only templates and as optional runtime defaults.
 
-Existing project files are never overwritten automatically.
+Existing project files are never overwritten automatically. New template files are
+staged in the target directory and published only after the complete write succeeds,
+so cancellation or an I/O failure cannot leave a partial project catalog at the
+final path. If another writer creates the target before publication, that file is
+preserved and the bootstrap result reports it as already existing.
 
 ## Registration
 
