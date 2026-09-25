@@ -199,6 +199,14 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production code changed. **Verified locally by maintainer:** all four focused tests and complete **1232/1232 GREEN** suite after commit `fb3fc4c650709853041aafad69e6ea5e0993108e`.
 - Next: review `JsonsTemplateFile` public model, then exported assembly surface and concrete implementation stability decisions.
 
+## 2026-09-25 — JsonsTemplateFile public API baseline (verification pending)
+
+- Added `WhenItFails.Tests/PublicApi/JsonsTemplateFilePublicApiContractTests.cs` with three focused tests covering the public template model's CLR type/property shape, non-nullable string annotations, empty-string defaults, independent assignments and the typed `IJsonsTemplateProvider.GetTemplateFiles(JsonsOptions)` return type.
+- `JsonsTemplateFile` has three public get/set string properties (`Name`, `TargetFileName`, `Content`) and a public parameterless constructor. There are no explicit `JsonPropertyName` attributes; this checkpoint establishes a CLR contract, **not** a separately versioned JSON wire schema for bundled-template objects.
+- The template-provider shape was already covered in the first DI extension-point group; the third test explicitly ties its collection element type to this reviewed public model.
+- No production code changed. **Verification pending:** three focused tests and the complete suite; last confirmed **1232/1232 GREEN**. Expected complete total if all pass: **1235/1235 GREEN**.
+- Next: assembly-level exported public API inventory (including publicly visible constructors, methods, dependent models and concrete implementation classes); classify stable contracts/extension points/implementation details before deciding any 1.0 visibility or compatibility changes.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1232/1232 GREEN**, confirmed locally by the maintainer after validation model public API contract tests.
