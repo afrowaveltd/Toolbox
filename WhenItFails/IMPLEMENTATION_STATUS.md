@@ -259,18 +259,27 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production code changed. **Verified locally by maintainer:** all three focused tests and complete **1244/1244 GREEN** suite after commit `e6b33575ad15065e1df72567133d64a00ede5d48`. The maintainer did not separately report warning count in this checkpoint.
 - Next: audit independently exported `ErrorDescriptorRequest` and `ErrorDescriptor<TAttachment>` CLR/JSON properties and their documented consumer surface, then address active-context mutability.
 
-## 2026-09-25 — auxiliary descriptor public API/JSON baseline (verification pending)
+## 2026-09-25 — auxiliary descriptor public API/JSON baseline (1247/1247 GREEN)
 
 - Added `WhenItFails.Tests/PublicApi/DescriptorAuxiliaryModelsPublicApiContractTests.cs` with three focused tests for public `ErrorDescriptorRequest` and `ErrorDescriptor<TAttachment>`.
 - `ErrorDescriptorRequest` is sealed, publicly constructible, and has eight public get/set optional properties: seven nullable strings and nullable `int? Code`. Its public C# nullability is explicitly tested. It has no explicit `JsonPropertyName` attributes; this does not establish a separate fixed JSON wire naming policy for the request.
 - `ErrorDescriptor<TAttachment>` is sealed, publicly constructible, inherits `ErrorDescriptor`, adds one public get/set generic `TAttachment? Attachment`, and explicitly serializes that member as `"attachment"`. The test checks an integer attachment in serialized JSON while confirming that the inherited runtime-only `Exception` is excluded under its `JsonIgnore` attribute.
 - Existing `WhenItFails.Tests/Descriptors/ErrorDescriptorRequestContractTests.cs` and `ErrorDescriptorOfTContractTests.cs` already cover constructor defaults and assigned reference/value attachments, so those cases are not duplicated.
-- No production source, visibility or package version changed. **Verification pending:** three focused tests and full suite; last confirmed **1244/1244 GREEN**. Expected complete suite if all three pass: **1247/1247 GREEN**.
-- Next: decide and document whether `GetCurrentContext()` is a supported shared-mutable context API or requires a separate snapshot/read-only consumer API, based on existing store and runtime contracts.
+- No production source, visibility or package version changed. **Verified locally by maintainer:** all three focused tests and complete **1247/1247 GREEN** after commit `0d1c37e2eb4954ccea9d2ab1a6685ee5589d439a`; warning count was not separately reported.
+- Next: establish and document active-context shared-reference behavior and decide a compatible read-only consumer direction.
+
+## 2026-09-25 — shared active-context reference boundary (verification pending)
+
+- Added `WhenItFails.Tests/PublicApi/ActiveContextSharedReferenceContractTests.cs` (three focused tests). They record: a reader's mutation of a returned context is visible to later readers; the publisher's mutation of the stored instance is visible after publication; and replacing the active context leaves a previously returned reference pointing at the old instance.
+- Source audit: `ErrorCatalogContextStore.Set` atomically publishes the caller's reference with `Interlocked.Exchange`; `Current` and `GetCurrent` use `Volatile.Read` and return that same mutable object. `IErrorCatalogRuntime.GetCurrentContext()` forwards this response. Atomic reference replacement does not protect the context's mutable properties, nested catalog documents, definitions or collections from concurrent in-place modification.
+- Compatibility direction: preserve the existing public `GetCurrentContext(): Response<ErrorCatalogContext>` signature from 0.1.0. Document a read-only-by-convention consumer rule and use the supported initialization/reset flow to activate validated replacements. Do not silently replace the existing response with a shallow copy or claim deep immutability. A future *additive* safe read-only/deep-snapshot API needs a separate ownership/schema design before being promised for 1.0.
+- Updated `WhenItFails/README.md`, `Docs/Runtime/Public-API.md`, `Docs/Public-API-Stability/en.md` and `Docs/Public-API-Export-Review/en.md` to distinguish atomic reference publication from deep immutability and to record the 1247/1247 verified checkpoint.
+- **Verification pending:** three focused tests and complete **1250/1250 GREEN** suite expected if all pass. No production code, public signatures, package version or persisted JSON schema changed. The current environment lacks a .NET SDK, so this checkpoint must be verified by the maintainer locally.
+- Next: confirm tests and zero warnings; then audit the nested context documents and indexed error definitions for mutation leaks when designing a distinct safe consumer-view API.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1244/1244 GREEN**, confirmed locally by maintainer after standalone JsonCatalogDocumentLoader public API tests. The last explicitly confirmed warning-free build was at 1241/1241.
+- Complete `WhenItFails.Tests` suite: **1247/1247 GREEN**, confirmed locally by maintainer after auxiliary descriptor public API contract tests. The last explicitly confirmed warning-free build was at 1241/1241.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
