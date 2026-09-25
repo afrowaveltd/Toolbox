@@ -1,6 +1,6 @@
 # Publication-aware combined snapshots
 
-Status: **additive pre-1.0 API candidate; local verification pending**.
+Status: **additive pre-1.0 API candidate; maintainer-confirmed complete 1300/1300 GREEN suite after the required NotSupported(data: null) build correction**.
 
 ## Purpose
 
