@@ -151,10 +151,11 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
                 builtInResponse);
         }
 
+        ErrorCatalogContextPublication? ownedPublication;
+
         try
         {
-            _contextStore.Set(
-                builtInResponse.Data);
+            ownedPublication = PublishContext(builtInResponse.Data);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -182,7 +183,8 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
 
             // This was an explicit user operation,
             // not an automatic recovery fallback.
-            UsedFallback = false
+            UsedFallback = false,
+            OwnedPublication = ownedPublication
         };
         RecordStatus(
             payload);
@@ -699,10 +701,11 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
                 fallbackResponse);
         }
 
+        ErrorCatalogContextPublication? ownedPublication;
+
         try
         {
-            _contextStore.Set(
-                fallbackResponse.Data);
+            ownedPublication = PublishContext(fallbackResponse.Data);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
@@ -728,7 +731,8 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
                 ErrorCatalogContextSource.BuiltInDefaults,
 
             KeptPreviousContext = false,
-            UsedFallback = true
+            UsedFallback = true,
+            OwnedPublication = ownedPublication
         };
         RecordStatus(
       fallbackPayload,
@@ -1038,6 +1042,18 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
             sourceResponse.Status);
     }
 
+    private ErrorCatalogContextPublication? PublishContext(
+        ErrorCatalogContext context)
+    {
+        if (_contextStore is IErrorCatalogContextPublisher publisher)
+        {
+            return publisher.Publish(context);
+        }
+
+        _contextStore.Set(context);
+        return null;
+    }
+
     private void RecordStatus(
         ErrorCatalogInitializationPayload payload,
         Response<ErrorCatalogInitializationPayload>?
@@ -1114,18 +1130,40 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
 
         try
         {
-            Response<ErrorCatalogContextPublication>? response =
-                reader.GetCurrentPublication();
+            // For default owned write paths, never replace the exact winning
+            // publication with a later read that might belong to another
+            // writer publishing even the very same context reference.
+            ErrorCatalogContextPublication? publication =
+                payload.OwnedPublication;
 
-            if (response?.IsSuccess == true
-                && response.Data is { } publication
-                && ReferenceEquals(publication.Context, payload.Context))
+            if (publication is not null)
             {
-                long sequence = Interlocked.Increment(ref _activationSequence);
-                Volatile.Write(
-                    ref _completedActivation,
-                    new CompletedActivation(sequence, publication, status));
+                if (!ReferenceEquals(publication.Context, payload.Context))
+                {
+                    return;
+                }
             }
+            else
+            {
+                // Legacy/custom initializer or previous-context recovery:
+                // this is best-effort association, NOT proof of write ownership.
+                Response<ErrorCatalogContextPublication>? response =
+                    reader.GetCurrentPublication();
+
+                if (response?.IsSuccess != true
+                    || response.Data is not { } current
+                    || !ReferenceEquals(current.Context, payload.Context))
+                {
+                    return;
+                }
+
+                publication = current;
+            }
+
+            long sequence = Interlocked.Increment(ref _activationSequence);
+            Volatile.Write(
+                ref _completedActivation,
+                new CompletedActivation(sequence, publication, status));
         }
         catch (Exception)
         {
