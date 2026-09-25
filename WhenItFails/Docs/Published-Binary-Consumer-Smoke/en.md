@@ -245,7 +245,7 @@ Expected completion marker:
 
 **Maintainer-confirmed PASS:** both the original package consumer and unchanged consumer with the source DLL completed the strict reinitialization checks. Seven smoke scenarios now have confirmed PASS. This is not a complete ABI, JSON/wire-format, concurrency or recovery compatibility guarantee.
 
-## Optional pre-cancelled activation after a healthy project context (pending)
+## Optional pre-cancelled activation after a healthy project context (PASS confirmed)
 
 `-ExerciseCancelledActivation` is a mutually exclusive opt-in mode.
 The disposable consumer is compiled **once** against requested
@@ -275,11 +275,12 @@ git pull --ff-only origin master
 Expected completion marker:
 `Binary cancelled activation smoke: PASS (original package consumer and swapped source DLL).`
 
-**Pending local verification.** This deterministic probe covers an
-*already cancelled* token, not cancellation racing with writes,
-partially completed initialization, queued activation, or reset
-provider I/O. The seven previous modes are confirmed PASS; this
-one must be verified independently.
+**Maintainer-confirmed PASS:** the original package consumer and unchanged
+consumer using the substituted source DLL both passed the pre-cancelled
+initialization/reset checks. Eight modes now have confirmed PASS.
+This deterministic probe covers an *already cancelled* token, not
+cancellation racing with writes, partially completed initialization,
+queued activation or reset provider I/O.
 
 ## Observed maintainer execution
 
