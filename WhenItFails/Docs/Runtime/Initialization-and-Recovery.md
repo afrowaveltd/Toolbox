@@ -50,6 +50,22 @@ WhenItFailsOptions.InitializationMode
 
 The default mode is `Flexible`.
 
+## Malformed existing catalogs in a partially prepared workspace
+
+Bootstrap only fills missing project catalog files. If a previously published
+catalog exists but contains malformed JSON, re-entering bootstrap must not
+replace or repair it. The remaining missing files may be created independently,
+but full context loading/validation must reject the malformed catalog before
+publishing a project context.
+
+Two strict-mode integration contracts now exercise this boundary using the
+real default DI graph: a first start with no prior context must leave the
+runtime uninitialized, and a failed reinitialization must keep the previous
+context and recorded status reference-identical. Both cases also check byte
+preservation of the malformed catalog, creation of the other four files, and
+absence of staged temporary files. These tests are pending local verification
+(expected complete suite **1460/1460 GREEN**, last confirmed **1458/1458 GREEN**).
+
 ## Strict mode
 
 Strict mode requires the requested project-local catalog context to initialize successfully.
