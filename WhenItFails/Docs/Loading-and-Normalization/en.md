@@ -337,9 +337,8 @@ stream so the same file can immediately be reopened with exclusive read/write
 access. A separate built-in-defaults contract blocks the delegated context load
 after its temporary template file has been materialized, then cancels and
 expects the provider's `finally` cleanup to remove the complete temporary
-workspace before the outer load task completes. These two focused cases are
-pending local verification (expected complete suite **1449/1449 GREEN**; last
-confirmed **1447/1447 GREEN**).
+workspace before the outer load task completes. These two focused cases were confirmed locally by the maintainer in the
+complete **1449/1449 GREEN** suite.
 
 ## JSON parsing behavior
 
