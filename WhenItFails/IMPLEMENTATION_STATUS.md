@@ -537,6 +537,12 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - Added `WhenItFails.Tests/PublicApi/LegacyConcretePublicationExpansionContractTests.cs` with **3** focused tests of the existing store/runtime constructors, interface surfaces and added optional methods; no production code or public signatures changed.
 - **Verified locally by maintainer:** full **1445/1445 GREEN**, including three inventory and three legacy-concrete API contract additions; the individual focused-run and compiler-warning counts were not separately reported. The full current Markdown inventory has not been supplied. Next: test an executable built against the actual NuGet 0.1.0 package with the source-built DLL substituted without rebuilding the executable.
 
+## 2026-09-25 — precompiled NuGet 0.1.0 consumer binary smoke (verification pending)
+
+- Added `Toolroom/WhenItFails/PublicApiComparer/Test-PublishedConsumerBinary.ps1`. It builds one disposable .NET 10 consumer against exact requested NuGet `[0.1.0]`, exercises legacy context-store and DI/runtime pre-initialization calls, builds the current source DLL separately, and then runs the **same previously compiled consumer executable** after swapping only its WhenItFails DLL. It confirms the original application hash, loaded assembly path, substituted DLL hash and equal expected behavior; preserves the original dependency and runtimeconfig files.
+- Added English `Docs/Published-Binary-Consumer-Smoke/en.md` and tool usage instructions. This is a narrow smoke of one old application, **not** a full ABI, JSON/nullable or behavioral compatibility guarantee. A configured-feed/cache restore does not verify nuget.org publishing provenance.
+- **Execution pending:** the new PowerShell tool has not yet been run by the maintainer. Last maintainer-confirmed complete library suite **1445/1445 GREEN**; no new xUnit tests or production changes in this checkpoint. Next: run the binary smoke on the Windows checkout and record real results/hashes; inspect any dependency or behavior mismatch before extending coverage.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1445/1445 GREEN**, confirmed locally by maintainer after inventory and original-concrete API contract additions (compiler-warning count not separately reported for this checkpoint).

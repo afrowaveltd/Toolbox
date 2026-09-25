@@ -16,3 +16,14 @@ The updated report also contains source/package exported-type totals, package-on
 The temporary consumers remain under the printed temp directory for inspection. The script does not alter the repository's production code or package version. Published-only members are candidates for a compatibility review; source-only additions are not automatically breaking. This is a reflection signature census rather than a full ABI, nullable-reference, JSON or behavioral compatibility test.
 
 The initial comparison belonged to the historical **1241/1241 GREEN** checkpoint. The updated type-aware comparer was executed after the maintainer-confirmed **1439/1439 GREEN** checkpoint; the source and package DLL hashes are recorded in the current inventory documentation. Three additional inventory tests and the expected **1442/1442 GREEN** full-suite result have not yet been explicitly confirmed. Configured sources/cache do not independently establish the package's original publication provenance.
+
+
+## Running an unchanged 0.1.0 consumer with the source-built DLL
+
+The separate `Test-PublishedConsumerBinary.ps1` script builds a .NET 10 consumer against exact requested NuGet `[0.1.0]`, executes it with the original package DLL, copies its output, replaces only WhenItFails.dll in the copy, and executes the **same consumer binary without rebuilding**. It verifies the actual loaded assembly path, unchanged executable SHA-256, source DLL hash and the original store/DI/runtime pre-initialization contract results. Execute from Toolbox root as a single PowerShell command:
+
+```powershell
+& .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-binary-smoke.md')
+```
+
+This script is awaiting local execution and does not add xUnit tests. A PASS is evidence only for the exercised old consumer and its retained dependency graph, not a full ABI/behavior guarantee. Use `-Feed` to select a specific package source, otherwise configured sources/cache are used. See [binary smoke scope and steps](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).

@@ -1,6 +1,6 @@
 # Additive API entries on original concrete types
 
-Status: **2026-09-25 observed API census; three new focused tests pending local verification**.
+Status: **2026-09-25 observed API census; three focused tests included in maintainer-confirmed 1445/1445 GREEN**.
 
 ## Confirmed source-only changes
 
@@ -41,4 +41,4 @@ The comparer found **0 package-only types** and **0 package-only API census entr
 
 `LegacyConcretePublicationExpansionContractTests` adds **three** focused cases covering the original store constructor/interface, its two optional reader/publisher methods, and the runtime's six-dependency constructor and five added methods without modifying `IErrorCatalogRuntime`. These are source-level contracts, not a binary test against an old consumer.
 
-The previous three new `ExportedAssemblyInventoryTests` cases still require explicit test-result confirmation. Last maintainer-confirmed full suite: **1439/1439 GREEN**. The current total with both pending groups is **1445 tests expected** (1439 + 3 inventory + 3 legacy-class contracts), **not yet verified**. The complete current exported assembly inventory Markdown has not been supplied; no 1.0 API freeze is declared.
+The maintainer confirmed the complete **1445/1445 GREEN** suite after the three exported-inventory and three legacy-class additions. The complete current exported assembly inventory Markdown has not been supplied; no 1.0 API freeze is declared. A separate [unchanged precompiled consumer smoke](../Published-Binary-Consumer-Smoke/en.md) is now prepared and awaits local execution; it does not add xUnit tests.
