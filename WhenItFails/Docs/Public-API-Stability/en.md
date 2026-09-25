@@ -191,6 +191,12 @@ The default `ErrorCatalogDocumentNormalizer` creates a new document with normali
 
 Three focused tests in `NormalizedCatalogReferenceOwnershipTests` record those concrete aliasing boundaries without modifying production code or promising that a future 1.0 safe-context view will retain them. They complement rather than replace existing unit tests for the normalizers' direct metadata aliases. **Local verification pending:** expected complete suite **1256/1256 GREEN** if all pass. Before designing a safe view, separately review validation result and supporting catalog documents; shallow copying the main context alone cannot isolate nested metadata or indexed definition objects.
 
+## Supporting catalogs and validation freshness (verification pending)
+
+The default cross-validator produces an `ErrorCatalogValidationResult` from the input document state at validation time. It does not retain subscriptions or rerun validation if a category/profile document is subsequently mutated. The `IsValid` getter recomputes from the *stored mutable issue list*, not from the current supporting catalogs. A previously valid result may therefore remain `true` after the source catalog becomes invalid; conversely, mutating a published issue's `Severity` can flip `IsValid` without changing any catalog. `ErrorCatalogContext.CrossValidationResult` exposes the same mutable result instance when published in the default context store.
+
+Supporting category/profile documents and their nested definitions expose mutable lists, dictionaries and metadata. In particular, `ErrorProfileCatalogDocument.Profiles` exposes `ErrorProfileDefinition` instances whose `IncludeTags`, `DefaultMappings` and `Metadata` can be modified by a reader of a published context. `SupportingCatalogLiveStateBoundaryTests` captures these three behaviors with focused tests: stale cross-validation after category mutation, mutable issue severity shared across readers, and nested profile collection/mapping/metadata aliases. Expected complete suite **1259/1259 GREEN** if all three pass; maintainer verification pending. These tests document current ownership hazards rather than guaranteeing a future safe view preserves them; production code and the published API are unchanged.
+
 ## Still under review
 
 The initial eight-type public API baseline is covered. The shape and ownership of any future safe context view, nullable annotations, and the distinction between documented stable contracts and implementation details remain open before 1.0.
