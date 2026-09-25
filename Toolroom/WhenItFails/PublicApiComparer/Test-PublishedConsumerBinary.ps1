@@ -7,6 +7,7 @@ param(
     [switch]$ExerciseFirstStartFallback,
     [switch]$ExerciseStrictFirstStart,
     [switch]$ExerciseStrictReinitialization,
+    [switch]$ExerciseCancelledActivation,
     [string]$ReportPath = (Join-Path ([IO.Path]::GetTempPath()) 'WhenItFails-0.1.0-binary-smoke.md')
 )
 
@@ -80,6 +81,9 @@ if ($ExerciseStrictFirstStart -and ($ExerciseInitialization -or $ExerciseProject
 if ($ExerciseStrictReinitialization -and ($ExerciseInitialization -or $ExerciseProjectInitialization -or $ExerciseProjectRecovery -or $ExerciseFirstStartFallback -or $ExerciseStrictFirstStart)) {
     throw 'Strict reinitialization is a separate optional consumer probe.'
 }
+if ($ExerciseCancelledActivation -and ($ExerciseInitialization -or $ExerciseProjectInitialization -or $ExerciseProjectRecovery -or $ExerciseFirstStartFallback -or $ExerciseStrictFirstStart -or $ExerciseStrictReinitialization)) {
+    throw 'Cancelled activation is a separate optional consumer probe.'
+}
 if ($ExerciseStrictReinitialization) {
     $originalRegistration = 'services.AddWhenItFails()'
     $strictRegistration = 'services.AddWhenItFails(new Afrowave.Toolbox.WhenItFails.Configuration.WhenItFailsOptions { InitializationMode = Afrowave.Toolbox.WhenItFails.Enums.ErrorCatalogInitializationMode.Strict })'
@@ -142,7 +146,7 @@ foreach (var descriptor in new[] { byName.Data, byId.Data, byCode.Data })
     $expectedResult = 'RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|BUILTIN_DEFAULTS|DESCRIPTOR'
 }
 
-if ($ExerciseProjectInitialization -or $ExerciseStrictReinitialization) {
+if ($ExerciseProjectInitialization -or $ExerciseStrictReinitialization -or $ExerciseCancelledActivation) {
     $probe = @'
 if (args.Length != 1 || string.IsNullOrWhiteSpace(args[0]))
     throw new InvalidOperationException("An isolated project workspace root is required.");
@@ -330,6 +334,85 @@ foreach (var descriptor in new[] { retainedName.Data, retainedId.Data, retainedC
 '@
         $probe += [Environment]::NewLine + $strictProbe
     }
+    if ($ExerciseCancelledActivation) {
+        $cancelledProbe = @'
+// Start with one fully activated, validated project and a second successful
+// initialization. Cancellation is requested BEFORE either further operation,
+// so neither the old initializer nor the new activation gate may touch JSON.
+var contextBeforeCancellation = runtime.GetCurrentContext();
+var statusBeforeCancellation = runtime.GetStatus();
+if (!contextBeforeCancellation.IsSuccess || contextBeforeCancellation.Data is null ||
+    !statusBeforeCancellation.IsSuccess || statusBeforeCancellation.Data is null ||
+    statusBeforeCancellation.Data.State !=
+        Afrowave.Toolbox.WhenItFails.Enums.ErrorCatalogRuntimeState.ProjectCatalog ||
+    statusBeforeCancellation.Data.IsDegraded)
+    throw new InvalidOperationException("A healthy active project context is required before cancellation.");
+
+string[] hashesBeforeCancellation = projectCatalogFiles.Select(file =>
+    Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+        File.ReadAllBytes(file)))).ToArray();
+
+using var alreadyCancelled = new CancellationTokenSource();
+alreadyCancelled.Cancel();
+
+bool initializationCancelled = false;
+try
+{
+    _ = runtime.InitializeAsync(workspaceOptions, alreadyCancelled.Token)
+        .GetAwaiter().GetResult();
+}
+catch (OperationCanceledException exception)
+    when (exception.CancellationToken == alreadyCancelled.Token)
+{
+    initializationCancelled = true;
+}
+if (!initializationCancelled)
+    throw new InvalidOperationException(
+        "A pre-cancelled project initialization did not propagate its cancellation token.");
+
+bool resetCancelled = false;
+try
+{
+    _ = runtime.ResetToDefaultsAsync(alreadyCancelled.Token).GetAwaiter().GetResult();
+}
+catch (OperationCanceledException exception)
+    when (exception.CancellationToken == alreadyCancelled.Token)
+{
+    resetCancelled = true;
+}
+if (!resetCancelled)
+    throw new InvalidOperationException(
+        "A pre-cancelled bundled-default reset did not propagate its cancellation token.");
+
+var contextAfterCancellation = runtime.GetCurrentContext();
+var statusAfterCancellation = runtime.GetStatus();
+if (!contextAfterCancellation.IsSuccess ||
+    !ReferenceEquals(contextBeforeCancellation.Data, contextAfterCancellation.Data) ||
+    !statusAfterCancellation.IsSuccess ||
+    !ReferenceEquals(statusBeforeCancellation.Data, statusAfterCancellation.Data) ||
+    statusAfterCancellation.Data is null ||
+    statusAfterCancellation.Data.State !=
+        Afrowave.Toolbox.WhenItFails.Enums.ErrorCatalogRuntimeState.ProjectCatalog ||
+    statusAfterCancellation.Data.IsDegraded)
+    throw new InvalidOperationException(
+        "Pre-cancelled activation changed the previous context or runtime status.");
+
+string[] hashesAfterCancellation = projectCatalogFiles.Select(file =>
+    Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+        File.ReadAllBytes(file)))).ToArray();
+if (!hashesBeforeCancellation.SequenceEqual(hashesAfterCancellation, StringComparer.Ordinal))
+    throw new InvalidOperationException("Pre-cancelled activation rewrote a project catalog.");
+
+var descriptorAfterCancellation = runtime.FromId("AFW_GEN_0001");
+if (!descriptorAfterCancellation.IsSuccess ||
+    descriptorAfterCancellation.Data?.Name != "UNKNOWNERROR" ||
+    descriptorAfterCancellation.Data.Code != 100001 ||
+    descriptorAfterCancellation.Data.Title != "Unknown error" ||
+    descriptorAfterCancellation.Data.Message != "An unknown error occurred.")
+    throw new InvalidOperationException("Pre-cancelled activation lost the original descriptor.");
+'@
+        $probe += [Environment]::NewLine + $cancelledProbe
+    }
     $insertionMarker = 'Console.WriteLine("LOADED|" + typeof(ErrorCatalogContextStore).Assembly.Location);'
     if (-not $consumerSource.Contains($insertionMarker)) {
         throw 'The original consumer output marker is missing.'
@@ -356,6 +439,15 @@ foreach (var descriptor in new[] { retainedName.Data, retainedId.Data, retainedC
         }
         $consumerSource = $consumerSource.Replace($originalResult, $strictResult)
         $expectedResult = 'RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|PROJECT_INITIALIZATION|DESCRIPTOR|NO_FILE_REWRITE|STRICT_REINITIALIZATION_REJECTED|CONTEXT_RETAINED'
+    }
+    elseif ($ExerciseCancelledActivation) {
+        $originalResult = 'Console.WriteLine("RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|PROJECT_INITIALIZATION|DESCRIPTOR|NO_FILE_REWRITE");'
+        $cancelledResult = 'Console.WriteLine("RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|PROJECT_INITIALIZATION|DESCRIPTOR|NO_FILE_REWRITE|PRE_CANCELLED_INITIALIZATION_AND_RESET");'
+        if (-not $consumerSource.Contains($originalResult)) {
+            throw 'The original project initialization result marker is missing.'
+        }
+        $consumerSource = $consumerSource.Replace($originalResult, $cancelledResult)
+        $expectedResult = 'RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|PROJECT_INITIALIZATION|DESCRIPTOR|NO_FILE_REWRITE|PRE_CANCELLED_INITIALIZATION_AND_RESET'
     }
     else {
         $expectedResult = 'RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|PROJECT_INITIALIZATION|DESCRIPTOR|NO_FILE_REWRITE'
@@ -607,7 +699,7 @@ $report = @(
     '# WhenItFails 0.1.0 precompiled-consumer binary smoke'
     ''
     'Result: PASS — both executions completed with the same expected legacy contract result.'
-    "Consumer probe: $(if ($ExerciseStrictReinitialization) { 'strict failed reinitialization after healthy project activation; context/status, descriptor and five JSON files preserved' } elseif ($ExerciseStrictFirstStart) { 'strict first-start malformed project JSON; no activation or fallback; invalid file unchanged' } elseif ($ExerciseFirstStartFallback) { 'first-start invalid project JSON; bundled fallback; malformed file unchanged; three descriptor lookups' } elseif ($ExerciseProjectRecovery) { 'project catalogs then malformed JSON and previous-context recovery, with all five files preserved' } elseif ($ExerciseProjectInitialization) { 'project catalogs (isolated workspace; two InitializeAsync calls; five files preserved; descriptor lookup)' } elseif ($ExerciseInitialization) { 'bundled defaults (explicit reset; descriptor lookup)' } else { 'original pre-initialization path' })"
+    "Consumer probe: $(if ($ExerciseCancelledActivation) { 'pre-cancelled project InitializeAsync and ResetToDefaultsAsync after valid project activation; prior status, context and five JSON files preserved' } elseif ($ExerciseStrictReinitialization) { 'strict failed reinitialization after healthy project activation; context/status, descriptor and five JSON files preserved' } elseif ($ExerciseStrictFirstStart) { 'strict first-start malformed project JSON; no activation or fallback; invalid file unchanged' } elseif ($ExerciseFirstStartFallback) { 'first-start invalid project JSON; bundled fallback; malformed file unchanged; three descriptor lookups' } elseif ($ExerciseProjectRecovery) { 'project catalogs then malformed JSON and previous-context recovery, with all five files preserved' } elseif ($ExerciseProjectInitialization) { 'project catalogs (isolated workspace; two InitializeAsync calls; five files preserved; descriptor lookup)' } elseif ($ExerciseInitialization) { 'bundled defaults (explicit reset; descriptor lookup)' } else { 'original pre-initialization path' })"
     "Requested package: Afrowave.Toolbox.WhenItFails [0.1.0]"
     "Feed override: $(if ($Feed) { $Feed } else { 'configured NuGet sources/cache; publishing provenance unverified' })"
     "Package consumer executable SHA-256 (unchanged): $consumerHash"
@@ -618,10 +710,10 @@ $report = @(
     "Package run: $publishedResult"
     "Swapped run: $swappedResult"
     ''
-    "Scope: an executable compiled only once against requested package 0.1.0 and re-run without rebuilding after replacing only WhenItFails.dll. Legacy store/DI/pre-initialization calls$(if ($ExerciseStrictReinitialization) { ', healthy project activation followed by rejected strict reinitialization with unchanged context/status, descriptor and user-managed JSON in two separate temp roots' } elseif ($ExerciseStrictFirstStart) { ', strict first-start rejection of malformed project JSON without context, fallback, descriptor or JSON rewriting in two isolated roots' } elseif ($ExerciseFirstStartFallback) { ', first-start malformed project JSON with built-in fallback, unchanged file and descriptor lookup in two temp roots' } elseif ($ExerciseProjectRecovery) { ', valid project initialization and malformed-JSON previous-context recovery in separate temp roots' } elseif ($ExerciseProjectInitialization) { ', project workspace initialization/reinitialization in two temp roots with five catalog-file hashes and descriptor lookup' } elseif ($ExerciseInitialization) { ', bundled defaults and descriptor lookup' } else { '' })."
+    "Scope: an executable compiled only once against requested package 0.1.0 and re-run without rebuilding after replacing only WhenItFails.dll. Legacy store/DI/pre-initialization calls$(if ($ExerciseCancelledActivation) { ', two pre-cancelled activation entry points after valid project activation with unchanged context/status, five JSON hashes and descriptor in two separate temporary roots' } elseif ($ExerciseStrictReinitialization) { ', healthy project activation followed by rejected strict reinitialization with unchanged context/status, descriptor and user-managed JSON in two separate temp roots' } elseif ($ExerciseStrictFirstStart) { ', strict first-start rejection of malformed project JSON without context, fallback, descriptor or JSON rewriting in two isolated roots' } elseif ($ExerciseFirstStartFallback) { ', first-start malformed project JSON with built-in fallback, unchanged file and descriptor lookup in two temp roots' } elseif ($ExerciseProjectRecovery) { ', valid project initialization and malformed-JSON previous-context recovery in separate temp roots' } elseif ($ExerciseProjectInitialization) { ', project workspace initialization/reinitialization in two temp roots with five catalog-file hashes and descriptor lookup' } elseif ($ExerciseInitialization) { ', bundled defaults and descriptor lookup' } else { '' })."
     'The original .deps.json and other package dependencies remain unchanged. This narrow smoke is not exhaustive ABI, dependency-version, nullable, JSON, project-workspace initialization, recovery or behavioral compatibility testing.'
 )
 $report | Set-Content -LiteralPath $ReportPath -Encoding UTF8
-Write-Host $(if ($ExerciseStrictReinitialization) { 'Binary strict reinitialization smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseStrictFirstStart) { 'Binary strict first-start smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseFirstStartFallback) { 'Binary first-start fallback smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseProjectRecovery) { 'Binary project recovery smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseProjectInitialization) { 'Binary project initialization smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseInitialization) { 'Binary initialization smoke: PASS (original package consumer and swapped source DLL).' } else { 'Binary smoke: PASS (original package consumer and swapped source DLL).' })
+Write-Host $(if ($ExerciseCancelledActivation) { 'Binary cancelled activation smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseStrictReinitialization) { 'Binary strict reinitialization smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseStrictFirstStart) { 'Binary strict first-start smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseFirstStartFallback) { 'Binary first-start fallback smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseProjectRecovery) { 'Binary project recovery smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseProjectInitialization) { 'Binary project initialization smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseInitialization) { 'Binary initialization smoke: PASS (original package consumer and swapped source DLL).' } else { 'Binary smoke: PASS (original package consumer and swapped source DLL).' })
 Write-Host "Report: $ReportPath"
 Write-Host "Temporary consumers: $workspace"
