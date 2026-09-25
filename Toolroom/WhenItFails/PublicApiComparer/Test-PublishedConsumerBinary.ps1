@@ -3,6 +3,7 @@ param(
     [string]$Feed,
     [switch]$ExerciseInitialization,
     [switch]$ExerciseProjectInitialization,
+    [switch]$ExerciseProjectRecovery,
     [string]$ReportPath = (Join-Path ([IO.Path]::GetTempPath()) 'WhenItFails-0.1.0-binary-smoke.md')
 )
 
@@ -63,6 +64,9 @@ Console.WriteLine("RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME");
 
 if ($ExerciseInitialization -and $ExerciseProjectInitialization) {
     throw 'Choose only one optional consumer probe at a time.'
+}
+if ($ExerciseProjectRecovery -and -not $ExerciseProjectInitialization) {
+    throw 'Project recovery requires -ExerciseProjectInitialization.'
 }
 
 # This optional probe is inserted into the very same consumer source BEFORE
@@ -194,6 +198,62 @@ string[] repeatedHashes = projectCatalogFiles
 if (!initialHashes.SequenceEqual(repeatedHashes, StringComparer.Ordinal))
     throw new InvalidOperationException("Reinitialization unexpectedly rewrote a project catalog file.");
 '@
+    if ($ExerciseProjectRecovery) {
+        $recoveryProbe = @'
+var retainedBeforeFailure = runtime.GetCurrentContext().Data;
+if (retainedBeforeFailure is null)
+    throw new InvalidOperationException("No active project context exists before recovery.");
+
+const string invalidProjectCatalog = "{ this is intentionally malformed JSON";
+File.WriteAllText(workspaceOptions.ErrorCatalogFilePath, invalidProjectCatalog,
+    new System.Text.UTF8Encoding(false));
+
+string[] hashesBeforeRecovery = projectCatalogFiles
+    .Select(file => Convert.ToHexString(
+        System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(file))))
+    .ToArray();
+
+var recovered = runtime.InitializeAsync(workspaceOptions).GetAwaiter().GetResult();
+if (!recovered.IsSuccess || recovered.Data?.Context is null ||
+    !recovered.Data.KeptPreviousContext || recovered.Data.UsedFallback ||
+    recovered.Data.ContextSource !=
+        Afrowave.Toolbox.WhenItFails.Enums.ErrorCatalogContextSource.PreviousContext)
+    throw new InvalidOperationException(
+        "The existing context was not retained after malformed project JSON.");
+
+var retainedAfterFailure = runtime.GetCurrentContext();
+var recoveredStatus = runtime.GetStatus();
+if (!retainedAfterFailure.IsSuccess ||
+    !ReferenceEquals(retainedBeforeFailure, retainedAfterFailure.Data) ||
+    !recoveredStatus.IsSuccess || recoveredStatus.Data is null ||
+    recoveredStatus.Data.State !=
+        Afrowave.Toolbox.WhenItFails.Enums.ErrorCatalogRuntimeState.PreviousContextRecovery ||
+    !recoveredStatus.Data.IsDegraded ||
+    !recoveredStatus.Data.KeptPreviousContext ||
+    recoveredStatus.Data.UsedFallback)
+    throw new InvalidOperationException(
+        "The degraded previous-context runtime state is inconsistent.");
+
+string[] hashesAfterRecovery = projectCatalogFiles
+    .Select(file => Convert.ToHexString(
+        System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(file))))
+    .ToArray();
+if (!hashesBeforeRecovery.SequenceEqual(hashesAfterRecovery, StringComparer.Ordinal) ||
+    File.ReadAllText(workspaceOptions.ErrorCatalogFilePath) != invalidProjectCatalog)
+    throw new InvalidOperationException(
+        "Recovery rewrote a user-managed malformed JSON catalog.");
+
+var retainedDescriptor = runtime.FromId("AFW_GEN_0001");
+if (!retainedDescriptor.IsSuccess ||
+    retainedDescriptor.Data?.Name != "UNKNOWNERROR" ||
+    retainedDescriptor.Data.Code != 100001 ||
+    retainedDescriptor.Data.Title != "Unknown error" ||
+    retainedDescriptor.Data.Message != "An unknown error occurred.")
+    throw new InvalidOperationException(
+        "The previously valid descriptor was lost after project recovery.");
+'@
+        $probe += [Environment]::NewLine + $recoveryProbe
+    }
     $insertionMarker = 'Console.WriteLine("LOADED|" + typeof(ErrorCatalogContextStore).Assembly.Location);'
     if (-not $consumerSource.Contains($insertionMarker)) {
         throw 'The original consumer output marker is missing.'
@@ -206,7 +266,15 @@ if (!initialHashes.SequenceEqual(repeatedHashes, StringComparer.Ordinal))
         throw 'The original consumer result marker is missing.'
     }
     $consumerSource = $consumerSource.Replace($oldResult, $newResult)
-    $expectedResult = 'RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|PROJECT_INITIALIZATION|DESCRIPTOR|NO_FILE_REWRITE'
+    if ($ExerciseProjectRecovery) {
+        $consumerSource = $consumerSource.Replace(
+            'Console.WriteLine("RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|PROJECT_INITIALIZATION|DESCRIPTOR|NO_FILE_REWRITE");',
+            'Console.WriteLine("RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|PROJECT_INITIALIZATION|DESCRIPTOR|NO_FILE_REWRITE|PREVIOUS_CONTEXT_RECOVERY");')
+        $expectedResult = 'RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|PROJECT_INITIALIZATION|DESCRIPTOR|NO_FILE_REWRITE|PREVIOUS_CONTEXT_RECOVERY'
+    }
+    else {
+        $expectedResult = 'RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|PROJECT_INITIALIZATION|DESCRIPTOR|NO_FILE_REWRITE'
+    }
 }
 
 $consumerProject = Join-Path $consumerDir 'Consumer.csproj'
@@ -310,7 +378,7 @@ $report = @(
     '# WhenItFails 0.1.0 precompiled-consumer binary smoke'
     ''
     'Result: PASS — both executions completed with the same expected legacy contract result.'
-    "Consumer probe: $(if ($ExerciseProjectInitialization) { 'project catalogs (isolated workspace; two InitializeAsync calls; five files preserved; descriptor lookup)' } elseif ($ExerciseInitialization) { 'bundled defaults (explicit reset; descriptor lookup)' } else { 'original pre-initialization path' })"
+    "Consumer probe: $(if ($ExerciseProjectRecovery) { 'project catalogs then malformed JSON and previous-context recovery, with all five files preserved' } elseif ($ExerciseProjectInitialization) { 'project catalogs (isolated workspace; two InitializeAsync calls; five files preserved; descriptor lookup)' } elseif ($ExerciseInitialization) { 'bundled defaults (explicit reset; descriptor lookup)' } else { 'original pre-initialization path' })"
     "Requested package: Afrowave.Toolbox.WhenItFails [0.1.0]"
     "Feed override: $(if ($Feed) { $Feed } else { 'configured NuGet sources/cache; publishing provenance unverified' })"
     "Package consumer executable SHA-256 (unchanged): $consumerHash"
@@ -321,10 +389,10 @@ $report = @(
     "Package run: $publishedResult"
     "Swapped run: $swappedResult"
     ''
-    "Scope: an executable compiled only once against requested package 0.1.0 and re-run without rebuilding after replacing only WhenItFails.dll. Legacy store/DI/pre-initialization calls$(if ($ExerciseProjectInitialization) { ', project workspace initialization/reinitialization in two separate temp roots, five catalog-file hashes and UNKNOWNERROR descriptor lookup' } elseif ($ExerciseInitialization) { ', explicit bundled-default activation and UNKNOWNERROR descriptor lookup' } else { '' })."
+    "Scope: an executable compiled only once against requested package 0.1.0 and re-run without rebuilding after replacing only WhenItFails.dll. Legacy store/DI/pre-initialization calls$(if ($ExerciseProjectRecovery) { ', valid project initialization and malformed-JSON previous-context recovery using separate temp roots, catalog-file integrity and retained descriptor lookup' } elseif ($ExerciseProjectInitialization) { ', project workspace initialization/reinitialization in two separate temp roots, five catalog-file hashes and UNKNOWNERROR descriptor lookup' } elseif ($ExerciseInitialization) { ', explicit bundled-default activation and UNKNOWNERROR descriptor lookup' } else { '' })."
     'The original .deps.json and other package dependencies remain unchanged. This narrow smoke is not exhaustive ABI, dependency-version, nullable, JSON, project-workspace initialization, recovery or behavioral compatibility testing.'
 )
 $report | Set-Content -LiteralPath $ReportPath -Encoding UTF8
-Write-Host $(if ($ExerciseProjectInitialization) { 'Binary project initialization smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseInitialization) { 'Binary initialization smoke: PASS (original package consumer and swapped source DLL).' } else { 'Binary smoke: PASS (original package consumer and swapped source DLL).' })
+Write-Host $(if ($ExerciseProjectRecovery) { 'Binary project recovery smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseProjectInitialization) { 'Binary project initialization smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseInitialization) { 'Binary initialization smoke: PASS (original package consumer and swapped source DLL).' } else { 'Binary smoke: PASS (original package consumer and swapped source DLL).' })
 Write-Host "Report: $ReportPath"
 Write-Host "Temporary consumers: $workspace"
