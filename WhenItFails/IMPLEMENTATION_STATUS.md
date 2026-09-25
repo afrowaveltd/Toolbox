@@ -172,18 +172,18 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production code changed. **Verified locally by maintainer:** all four focused tests and complete **1222/1222 GREEN** suite after commit `643c4681e23988641e575b2d28901d05b726c527`.
 - Next: audit the four supporting definition models (`ErrorCategoryDefinition`, `ErrorOwnerDefinition`, `ErrorCodeGroupDefinition`, `ErrorProfileDefinition`) including JSON names/defaults/collection isolation.
 
-## 2026-09-24 — supporting definition model public API/JSON baseline (verification pending)
+## 2026-09-24 — supporting definition model public API/JSON baseline (1225/1225 GREEN)
 
 - Added `WhenItFails.Tests/PublicApi/SupportingDefinitionPublicApiContractTests.cs` with three focused tests covering `ErrorCategoryDefinition`, `ErrorOwnerDefinition`, `ErrorCodeGroupDefinition` and `ErrorProfileDefinition`.
 - The new tests snapshot each model's exact public property/accessor shape, all explicit `JsonPropertyName` names, and nullable-reference annotations. The models intentionally have different property counts and semantics, so the contract data records each shape independently instead of assuming one common schema.
 - Existing `WhenItFails.Tests/DefinitionContracts/*DefinitionContractTests.cs` already verify safe constructor defaults and per-instance mutable container isolation for all four models; those behavioral checks are intentionally not duplicated here.
 - This checkpoint treats the existing JSON names as compatibility-sensitive inputs to the 1.0 review but does not yet establish a general future JSON schema migration policy.
-- No production code changed. **Verification pending:** three focused tests and complete suite; last confirmed **1222/1222 GREEN**. Expected complete total if all three pass: **1225/1225 GREEN**.
+- No production code changed. **Verified locally by maintainer:** three focused tests and complete **1225/1225 GREEN** suite after commit `f04c00a03ea91822453d42c6de453672c5b0f2ac`.
 - Next: audit the main and four specialized provider payload models, then validation result/issue/severity and `JsonsTemplateFile`.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1222/1222 GREEN**, confirmed locally by the maintainer after catalog document public API/JSON contract tests.
+- Complete `WhenItFails.Tests` suite: **1225/1225 GREEN**, confirmed locally by the maintainer after supporting definition public API/JSON contract tests.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
