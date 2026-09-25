@@ -639,6 +639,13 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - These are *strict-mode* publication checks: flexible fallback/recovery has a separate existing contract and is not asserted here. No production code, public API, package version or persisted JSON schema changed.
 - **Verified locally by maintainer:** both focused strict-mode malformed-partial-workspace contracts and complete **1460/1460 GREEN** suite. Eight binary smoke scenarios remain confirmed PASS; compiler-warning count was not separately reported for this checkpoint. Next: verify explicit user repair of the malformed file followed by a clean strict runtime initialization without rewriting the other four project catalogs.
 
+## 2026-09-26 — strict runtime retry after explicit repair of malformed project catalog (verification pending)
+
+- Added `WhenItFails.Tests/Initialization/RepairedPartialWorkspaceInitializationContractTests.cs` with two real default-DI/strict-mode integration cases. First-start recovery begins with a deterministic second-template I/O interruption, then corrupts the only existing project catalog; the first strict initialization creates the other four files but publishes no context. A caller then manually restores valid bytes to the malformed catalog and retries. The second case starts from a healthy active context, corrupts an existing catalog, confirms strict failure preserves previous context/status, manually repairs the file and retries.
+- Both repaired retries require a valid, non-degraded `ProjectCatalog` activation and working normalized descriptor lookup. All five existing project files must be reported as `AlreadyExisted`/`Skipped`, remain byte-for-byte unchanged during the successful retry and leave no staged `.tmp`. In the reinitialization case a fresh context and runtime status replace the retained prior references **only after** a successful retry.
+- No production code, public signature, package version or persisted JSON schema changes. Updated Bootstrap and Initialization/Recovery English docs.
+- **Verification pending:** two additional focused tests; expected full suite **1462/1462 GREEN**. Last maintainer-confirmed complete suite **1460/1460 GREEN**; 8 previously confirmed binary smoke scenarios PASS. Next: run focused repaired-partial-workspace class and full suite, then record observed results and investigate any failures.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1460/1460 GREEN**, confirmed locally by maintainer after strict-mode rejection of malformed existing project catalog in recovered partial workspaces (compiler-warning count not separately reported for this checkpoint).
