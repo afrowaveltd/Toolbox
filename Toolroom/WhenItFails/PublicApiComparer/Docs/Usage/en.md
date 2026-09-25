@@ -82,3 +82,14 @@ Use `-ExerciseStrictFirstStart` alone. A consumer compiled once against package 
 ```
 
 See [Strict first-start compatibility smoke](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
+
+
+## Optional Strict reinitialization failure after valid project activation
+
+Use `-ExerciseStrictReinitialization` **alone**. It configures the original consumer in Strict mode before its single package `[0.1.0]` compilation. Each of the package and source-DLL-substituted runs uses a separate temporary workspace, initializes the project catalogs twice, corrupts only its own error catalog, then requires strict reinitialization to fail with no recovery payload. It verifies that the exact old active context and non-degraded `ProjectCatalog` status remain intact, all five files retain their hashes, and `UNKNOWNERROR` still resolves by name, ID and code. The original executable and dependency copies stay unchanged. **Local execution pending**; the six preceding smoke modes have confirmed PASS.
+
+```powershell
+& .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseStrictReinitialization -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-strict-reinitialization.md')
+```
+
+See [strict reinitialization smoke](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).

@@ -211,6 +211,42 @@ valid context after a strict reinitialization failure is a separate test.
 The experiment does not establish complete binary, behavioral, nullable
 or JSON compatibility.
 
+## Optional Strict reinitialization failure with an active project context (pending)
+
+`-ExerciseStrictReinitialization` is a separate, mutually exclusive
+mode. The original consumer is configured with
+`InitializationMode.Strict` **before being compiled exactly once**
+against requested NuGet `[0.1.0]`. Both executions of that same
+binary, with the package DLL and then the source DLL substituted,
+receive their own fresh temporary project workspace outside the
+repository checkout.
+
+Each execution successfully initializes the project catalog twice
+and verifies the five files are not rewritten. It then corrupts only
+its temporary `errors.en.json` and calls the original
+`InitializeAsync(JsonsOptions)` again. Strict mode must return
+non-success with no recovery payload; it must **retain the exact
+previously active context and recorded non-degraded ProjectCatalog
+status**, rather than record `PreviousContextRecovery` or
+`BuiltInFallback`. The original descriptor must remain available
+by name, ID and code. The intentionally malformed file and all four
+other catalogs must remain byte-identical after failed initialization,
+verified by five SHA-256 hashes.
+
+Run these commands separately in PowerShell from the Toolbox root:
+
+```powershell
+git pull --ff-only origin master
+& .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseStrictReinitialization -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-strict-reinitialization.md')
+```
+
+Expected completion marker:
+`Binary strict reinitialization smoke: PASS (original package consumer and swapped source DLL).`
+
+**Local verification pending.** The prior six modes are confirmed PASS;
+this additional probe is not a complete ABI, JSON/wire-format,
+concurrency or recovery compatibility guarantee.
+
 ## Observed maintainer execution
 
 On 2026-09-25, the maintainer ran the PowerShell tool against their updated
