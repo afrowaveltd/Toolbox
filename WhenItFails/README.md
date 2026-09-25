@@ -88,6 +88,7 @@ Recovery never overwrites or repairs project JSON files automatically.
 - [Public API stability review](Docs/Public-API-Stability/en.md)
 - [Public API inventory and 1.0 decision register](Docs/Public-API-Inventory/en.md)
 - [Compiled public API review (110 exported types)](Docs/Public-API-Export-Review/en.md)
+- [Published-vs-source public API comparison](../Toolroom/WhenItFails/PublicApiComparer/Docs/Usage/en.md)
 - [Design philosophy](Docs/Philosophy/en.md)
 - [Configuration](Docs/Configuration/en.md)
 - [Bootstrap and project workspace](Docs/Bootstrap/en.md)

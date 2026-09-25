@@ -233,6 +233,14 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - Replaced all three with the supported `Assert.Single(collection, predicate)` overload. This changes test syntax only; no production code or test expectations changed. **Verified locally by maintainer after fix `6ecaa40b7c26261d8e253c4fb463d2c7b01e333b`: all five focused tests GREEN, complete **1241/1241 GREEN**, and zero build warnings.**
 - Next: review source-built vs published NuGet 0.1.0 public API, then the independently exported `JsonCatalogDocumentLoader` and auxiliary descriptor models; decide active-context mutability policy.
 
+## 2026-09-25 — isolated published NuGet 0.1.0 versus source API comparison (verification pending)
+
+- Added `Toolroom/WhenItFails/PublicApiComparer/Compare-PublicApi.ps1` with README.md, Docs/Usage/en.md and IMPLEMENTATION_STATUS.md. It generates two independent temporary net10.0 consumers: a current-source ProjectReference and an exact published NuGet `[0.1.0]` PackageReference.
+- Each consumer inspects its actually loaded DLL in a separate process. The Markdown report records both resolved DLL paths, SHA-256 hashes and public signature differences; it distinguishes published-only from source-only entries.
+- Actual published-feed availability/provenance and script execution are **not yet verified**. A local NuGet cache may not prove package origin; do not substitute a new local build when published restore fails.
+- No production code or tests changed. Last maintainer-confirmed full suite **1241/1241 GREEN with zero warnings**. Reflection comparison is not a full ABI, nullable-reference, JSON or behavior guarantee.
+- Next: run the comparison against the actual published package and review its report before changing any public visibility.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1241/1241 GREEN**, locally confirmed by maintainer after Setter utility xUnit2031 warning fix; build with zero warnings.

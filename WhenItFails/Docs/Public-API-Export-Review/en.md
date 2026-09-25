@@ -66,6 +66,10 @@ Their interfaces can remain the primary extension contract without freezing **ev
 
 The `SetterUtilityPublicApiContractTests` group contains five focused tests for four publicly exported types with confirmed Setter usage: `JsonCatalogDocumentWriter`, `DocumentationKeyGenerator`, `DocumentationKeyFormat`, and `ErrorCatalogCrossValidator`. It records their public constructors/method shapes (including the writer's generic class constraint and optional token, and cross-validator's optional profile parameter). A narrow smoke test exercises them without service registration or a workspace. Dedicated behavior suites still own backup, cancellation, complete documentation key formatting and cross-catalog validation behavior. No production code or visibility changes were made. The maintainer confirmed five focused tests GREEN and observed three xUnit2031 warnings. The test-only fix uses `Assert.Single(collection, predicate)`; the maintainer subsequently confirmed **1241/1241 GREEN** complete suite with zero warnings.
 
+## 5. Isolated published-versus-source comparison workflow (verification pending)
+
+[PublicApiComparer](../../Toolroom/WhenItFails/PublicApiComparer/Docs/Usage/en.md) builds independent temporary consumers against the current project and the exact published NuGet `[0.1.0]` package. Separate reflection inspections record actual DLL paths, SHA-256 hashes and public signature differences. Real feed provenance and the comparison result remain pending; no production API has changed.
+
 ## 3. Release/compatibility decisions still needed
 
 1. The maintainer has confirmed complete **1236/1236 GREEN** after the inventory test. Keep this verification separate from report generation and the still-pending external NuGet binary comparison.
