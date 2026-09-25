@@ -265,6 +265,10 @@ The default runtime also implements the **optional** `IErrorCatalogRuntimeActiva
 
 This is **not** a fully atomic current context-and-status snapshot: readers can race with later external `Set` operations or overlapping runtime initializations. The existing `GetStatus()` and `GetPublishedCombinedSnapshot()` are still independent calls and must not be assumed to match this observation. See [activation status ownership and consistency limits](../Activation-Status/en.md).
 
+## Exact context publication ownership
+
+Infrastructure code that must identify **its own successful store write** can use the default store's optional `IErrorCatalogContextPublisher.Publish(context)`. Unlike calling `Set()` followed by a separate `GetCurrentPublication()`, `Publish()` returns the exact record that won the atomic write, even when a competing writer immediately replaces it with the **same** context reference. The original store interface is unchanged. This new store capability is not yet propagated to the default initializer/runtime's completed-status observation. See [exact publication ownership](../Publication-Ownership/en.md).
+
 ## Shared-store concurrency boundary
 
 The default activation gate is instance-local. Different runtime instances using the same context store, and direct external calls to `Set`, can publish outside that gate. In particular, same-reference republishes cannot currently be attributed to the original runtime operation by reference comparison alone. See [shared-store concurrency](../Shared-Store-Concurrency/en.md). Neither the completed activation status reader nor separately called snapshot/status methods are a globally atomic transaction.
