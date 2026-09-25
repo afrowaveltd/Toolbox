@@ -281,7 +281,7 @@ Added sealed getter-only `ErrorCatalogCompletedCombinedSnapshot` with `StoreId`,
 
 Six focused cases in `CompletedCombinedSnapshotContractTests` cover matched default activation and detached data, previous-context recovery retaining generation with a new status sequence, later same-reference republish rejection, a deterministic competing write at the post-copy publication check, missing category failure, and optional/legacy public API compatibility. The first focused run stopped with CS7036 because a test helper was missing its required built-in provider argument. The test was corrected without changing production code, and the maintainer subsequently confirmed the complete **1347/1347 GREEN** suite. Focused output and compiler warning count were not separately reported. No existing public interface methods, package version or persisted catalog JSON schemas changed. The new API is **not an atomic transaction**: writes after the final check and in-place mutations of the selected live context remain possible. See [completed combined snapshot documentation](../Completed-Combined-Snapshots/en.md).
 
-## Detached supporting owner catalog (verification pending)
+## Detached supporting owner catalog (1353/1353 GREEN)
 
 Added `ErrorOwnerDefinitionSnapshot` (all nine owner-definition fields),
 `ErrorOwnerCatalogSnapshot` (all 11 owner-document fields) and the additive
@@ -292,14 +292,36 @@ Metadata retains case-insensitive key lookup and mappings retain the source
 dictionary comparer. The extension obtains one active-context response and
 returns structured failures for an unavailable runtime, missing owner catalog,
 or malformed source without partial snapshot data. **Six** focused cases in
-`ErrorOwnerCatalogSnapshotContractTests` and expected complete
-**1353/1353 GREEN** await local verification.
+`ErrorOwnerCatalogSnapshotContractTests` and the complete
+**1353/1353 GREEN** suite were confirmed locally by the maintainer. Focused
+output and compiler warning count were not separately reported.
 
 This narrow owner projection does **not** alter either existing combined
 snapshot type or the original nine-method runtime interface. A separately
 captured owner snapshot can select a different publication than a completed
 combined snapshot. See [owner catalog snapshots](../Owner-Snapshots/en.md).
 No published package version or persisted catalog JSON schema changed.
+
+## Detached supporting code group catalog (verification pending)
+
+Added sealed getter-only `ErrorCodeGroupDefinitionSnapshot` (all ten
+current code-group definition fields), `ErrorCodeGroupCatalogSnapshot`
+(all 11 catalog-document fields) and the additive
+`GetCodeGroupCatalogSnapshot(this IErrorCatalogRuntime)` extension.
+It copies nested code groups, tags, default categories, default mappings
+and metadata into independently allocated read-only collections, preserving
+the source mapping key comparer and case-insensitive metadata keys.
+The extension takes one active-context response, forwards failures,
+rejects a missing code-group catalog and normalizes malformed source
+exceptions without partial snapshot data.
+
+Six focused cases in `ErrorCodeGroupCatalogSnapshotContractTests` and
+expected complete **1359/1359 GREEN** await local verification. The
+original runtime interface and existing combined snapshot types retain
+their public shape; independently obtained code group and other snapshots
+are not one atomic multi-catalog read. See
+[code group snapshot documentation](../Code-Group-Snapshots/en.md).
+The published package version and persisted JSON schemas remain unchanged.
 
 ## Still under review
 
