@@ -16,7 +16,7 @@ namespace Afrowave.Toolbox.WhenItFails.Services;
 /// <summary>
 /// Default high-level facade over the complete WhenItFails runtime.
 /// </summary>
-public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRuntimePublicationReader, IErrorCatalogRuntimeActivationReader, IErrorCatalogRuntimeCombinedObservationReader, IErrorCatalogRuntimeSupportingObservationReader
+public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRuntimePublicationReader, IErrorCatalogRuntimeActivationReader, IErrorCatalogRuntimeCombinedObservationReader, IErrorCatalogRuntimeSupportingObservationReader, IErrorCatalogRuntimeFullObservationReader
 {
     private readonly IErrorCatalogInitializer _initializer;
     private readonly WhenItFailsOptions _options;
@@ -474,6 +474,120 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
             return Response<ErrorCatalogCompletedSupportingCatalogsSnapshot>.Fail(
                 code: "WIF_COMPLETED_SUPPORTING_FAILED",
                 message: "The supporting catalog and status observation could not be captured.");
+        }
+    }
+
+    /// <inheritdoc />
+    public Response<ErrorCatalogCompletedFullSnapshot> GetCompletedFullSnapshot()
+    {
+        if (_contextStore is not IErrorCatalogContextPublicationReader reader)
+        {
+            return Response<ErrorCatalogCompletedFullSnapshot>.NotSupported(
+                data: null,
+                code: "WIF_COMPLETED_FULL_NOT_SUPPORTED",
+                message: "The context store does not support publication identity.");
+        }
+
+        // Select one completed activation, not independently observed status,
+        // data or publication generations.
+        CompletedActivation? selected = Volatile.Read(ref _completedActivation);
+
+        if (selected is null)
+        {
+            return Response<ErrorCatalogCompletedFullSnapshot>.Invalid(
+                code: "WIF_COMPLETED_FULL_UNAVAILABLE",
+                message: "No completed catalog and status observation is available.");
+        }
+
+        if (!ReferenceEquals(selected.Status, Volatile.Read(ref _currentStatus)))
+        {
+            return Response<ErrorCatalogCompletedFullSnapshot>.Invalid(
+                code: "WIF_COMPLETED_FULL_STATUS_CHANGED",
+                message: "The recorded runtime status has changed.");
+        }
+
+        try
+        {
+            Response<ErrorCatalogContextPublication>? before =
+                reader.GetCurrentPublication();
+
+            if (before is not { IsSuccess: true, Data: { } current }
+                || !ReferenceEquals(current, selected.Publication))
+            {
+                return Response<ErrorCatalogCompletedFullSnapshot>.Invalid(
+                    code: "WIF_COMPLETED_FULL_PUBLICATION_CHANGED",
+                    message: "The selected context publication is no longer current.");
+            }
+
+            ErrorCatalogContext context = selected.Publication.Context;
+
+            Response<ErrorCatalogCombinedSnapshot> main =
+                ErrorCatalogCombinedSnapshotExtensions.CaptureFromContext(context);
+
+            if (!main.IsSuccess || main.Data is null)
+            {
+                return new Response<ErrorCatalogCompletedFullSnapshot>
+                {
+                    Status = main.Status,
+                    Message = main.Message,
+                    Issues = main.Issues,
+                    Metadata = main.Metadata
+                };
+            }
+
+            // Share the already detached category projection rather than
+            // copying its source document again for the supporting view.
+            Response<ErrorSupportingCatalogsSnapshot> supporting =
+                ErrorSupportingCatalogsSnapshotExtensions.CaptureFromContext(
+                    context, main.Data.CategoryCatalog);
+
+            if (!supporting.IsSuccess || supporting.Data is null)
+            {
+                return new Response<ErrorCatalogCompletedFullSnapshot>
+                {
+                    Status = supporting.Status,
+                    Message = supporting.Message,
+                    Issues = supporting.Issues,
+                    Metadata = supporting.Metadata
+                };
+            }
+
+            // Confirm publication and status are still associated with the
+            // selected activation AFTER capturing every catalog and issue.
+            Response<ErrorCatalogContextPublication>? after =
+                reader.GetCurrentPublication();
+
+            if (after is not { IsSuccess: true, Data: { } latest }
+                || !ReferenceEquals(latest, selected.Publication))
+            {
+                return Response<ErrorCatalogCompletedFullSnapshot>.Invalid(
+                    code: "WIF_COMPLETED_FULL_PUBLICATION_CHANGED",
+                    message: "The context publication changed during capture.");
+            }
+
+            if (!ReferenceEquals(selected, Volatile.Read(ref _completedActivation))
+                || !ReferenceEquals(selected.Status, Volatile.Read(ref _currentStatus)))
+            {
+                return Response<ErrorCatalogCompletedFullSnapshot>.Invalid(
+                    code: "WIF_COMPLETED_FULL_STATUS_CHANGED",
+                    message: "The runtime status changed during capture.");
+            }
+
+            ErrorCatalogFullSnapshot detached = new(main.Data, supporting.Data);
+
+            return Response<ErrorCatalogCompletedFullSnapshot>.Ok(
+                new ErrorCatalogCompletedFullSnapshot(
+                    selected.Publication.StoreId,
+                    selected.Publication.Generation,
+                    selected.Sequence,
+                    selected.Status,
+                    detached));
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<ErrorCatalogCompletedFullSnapshot>.Fail(
+                code: "WIF_COMPLETED_FULL_FAILED",
+                message: "The full catalog and status observation could not be captured.");
         }
     }
 
