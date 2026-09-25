@@ -312,16 +312,16 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** all tests GREEN, complete suite **1263/1263 GREEN** after commit `82650bc55092f6ae758c0a6e13ab35d609840094`. Focused run and compiler warning count were not separately reported. No published package version changed.
 - Next: review CLR nullability/serialization shape and failure boundary of the new detached projection before planning separately versioned supporting-catalog and validation views.
 
-## 2026-09-25 — detached snapshot public CLR and JSON surface (verification pending)
+## 2026-09-25 — detached snapshot public CLR and JSON surface (1267/1267 GREEN)
 
 - Added `WhenItFails.Tests/PublicApi/ErrorDefinitionSnapshotPublicSurfaceTests.cs` with four focused tests: (1) the new `ErrorDefinitionSnapshot` has 16 getter-only public properties, no public constructor, and expected nullable-reference metadata; (2) `GetErrorDefinitionSnapshots` is an additive public static extension method without adding an `IErrorCatalogRuntime` interface method; (3) default `System.Text.Json` serialization of a detached snapshot retains captured list/metadata values even after source mutation; and (4) a malformed source definition with null metadata is normalized to a stable `WIF_ERROR_DEFINITION_SNAPSHOT_FAILED` without exposing exception details.
 - Updated `WhenItFails/Docs/Definition-Snapshots/en.md` and `Docs/Public-API-Stability/en.md`: current default JSON serialization is a **pre-1.0 observation, not a versioned wire-schema promise or a claim of direct deserialization**. The public data projection is read-only and detached; the outer Essentials `Response<T>` envelope remains mutable.
-- No production source, existing public method, package version or catalog JSON schema changed in this step. **Verification pending:** four focused tests and expected complete **1267/1267 GREEN** if all pass; last maintainer-confirmed full suite **1263/1263 GREEN**. Compiler warning count for the 1263 checkpoint was not separately reported.
-- Next: confirm focused/full suite; then independently design a safe, detached supporting-catalog and validation view without exposing mutable raw documents, or promising an atomic deep snapshot while live in-place writers remain possible.
+- No production source, existing public method, package version or catalog JSON schema changed in this step. **Verified locally by maintainer:** all tests GREEN, complete **1267/1267 GREEN** after commit `8cf6ef76c363587f6455d1f178708020d99081fa`. Focused test output and compiler warning count were not separately reported.
+- Next: independently design a safe, detached supporting-catalog and validation view without exposing mutable raw documents, or promising an atomic deep snapshot while live in-place writers remain possible.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1263/1263 GREEN**, confirmed locally by maintainer after detached definition snapshot API tests. The last explicitly confirmed warning-free build was at 1241/1241.
+- Complete `WhenItFails.Tests` suite: **1267/1267 GREEN**, confirmed locally by maintainer after detached definition snapshot public shape/JSON tests. The last explicitly confirmed warning-free build was at 1241/1241.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
