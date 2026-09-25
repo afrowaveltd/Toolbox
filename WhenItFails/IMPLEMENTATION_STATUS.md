@@ -181,18 +181,18 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production code changed. **Verified locally by maintainer:** three focused tests and complete **1225/1225 GREEN** suite after commit `f04c00a03ea91822453d42c6de453672c5b0f2ac`.
 - Next: audit the main and four specialized provider payload models, then validation result/issue/severity and `JsonsTemplateFile`.
 
-## 2026-09-25 — provider payload public API baseline (verification pending)
+## 2026-09-25 — provider payload public API baseline (1228/1228 GREEN)
 
 - Added `WhenItFails.Tests/PublicApi/CatalogProviderPayloadPublicApiContractTests.cs` with three focused tests covering all five public catalog provider payload types.
 - `ErrorCatalogProviderPayload` publishes `IErrorCatalog Catalog`, `ErrorCatalogDocument Document`, and `ErrorCatalogValidationResult ValidationResult`; four specialized payloads each publish their corresponding typed `Document` and a `ValidationResult`. All declared properties are public get/set.
 - The reference properties carry non-nullable C# annotations but currently start as `null!` on a manually constructed empty payload. Tests check both the annotations and actual empty-constructor state. A successful provider response must populate its payload; these tests do not claim that any incomplete instance is valid.
 - Assigned document and validation-result references are retained as supplied; payloads are not documented as deep copies or immutable snapshots. The existing models have no explicit JSON property-name attributes; **do not claim a separately versioned JSON wire contract for provider payloads** from this CLR-shape baseline.
-- No production code changed. **Verification pending:** three focused tests and full suite; last confirmed **1225/1225 GREEN**. Expected complete suite if all pass: **1228/1228 GREEN**.
+- No production code changed. **Verified locally by maintainer:** all three focused tests and complete **1228/1228 GREEN** suite after commit `17016cabb03aacccc408f3591fc95f846255230e`.
 - Next: audit `ErrorCatalogValidationResult`, `ErrorCatalogValidationIssue` and `ErrorCatalogValidationSeverity`, then the public template model.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1225/1225 GREEN**, confirmed locally by the maintainer after supporting definition public API/JSON contract tests.
+- Complete `WhenItFails.Tests` suite: **1228/1228 GREEN**, confirmed locally by the maintainer after provider payload public API contract tests.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.

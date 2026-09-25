@@ -131,11 +131,11 @@ This baseline treats the existing JSON names and defaults as compatibility-sensi
 
 Constructor defaults and independent mutable collections/dictionaries/metadata are already covered by the dedicated `WhenItFails.Tests/DefinitionContracts/*DefinitionContractTests.cs` tests, so the public-API suite deliberately does not repeat them. The maintainer confirmed all three new API tests and complete 1225/1225 suite GREEN; production code remains unchanged.
 
-## Catalog provider payload models (verification pending)
+## Catalog provider payload models (1228/1228 GREEN)
 
 The main `ErrorCatalogProviderPayload` has three publicly mutable properties: `Catalog: IErrorCatalog`, `Document: ErrorCatalogDocument`, and `ValidationResult: ErrorCatalogValidationResult`. The four specialized payloads each expose a corresponding typed `Document` and a `ValidationResult`. All five have a public parameterless constructor.
 
-`WhenItFails.Tests/PublicApi/CatalogProviderPayloadPublicApiContractTests.cs` checks the exact property/accessor shape, non-nullable annotations, the present `null!` constructor state and reference-preserving assignment of document/validation fields. Non-nullable annotations do not make an empty, manually constructed payload valid; consumers should use the populated payload returned by a successful provider. The payload models currently do not declare explicit JSON property-name attributes, so this group is a CLR API baseline rather than a separate JSON wire-schema commitment. Local verification is pending; production code is unchanged.
+`WhenItFails.Tests/PublicApi/CatalogProviderPayloadPublicApiContractTests.cs` checks the exact property/accessor shape, non-nullable annotations, the present `null!` constructor state and reference-preserving assignment of document/validation fields. Non-nullable annotations do not make an empty, manually constructed payload valid; consumers should use the populated payload returned by a successful provider. The payload models currently do not declare explicit JSON property-name attributes, so this group is a CLR API baseline rather than a separate JSON wire-schema commitment. The maintainer confirmed all three focused tests and complete 1228/1228 suite GREEN; production code is unchanged.
 
 ## Still under review
 
