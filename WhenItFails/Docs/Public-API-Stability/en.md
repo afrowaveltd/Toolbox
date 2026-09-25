@@ -143,11 +143,11 @@ The main `ErrorCatalogProviderPayload` has three publicly mutable properties: `C
 
 `WhenItFails.Tests/PublicApi/ValidationModelsPublicApiContractTests.cs` checks public CLR shape and nullability, exact enum values and recomputation of validity when an existing issue's severity changes. Existing tests already cover insertion, defaults, standard validity cases and the live issue-list view. Although `Issues` is exposed as an `IReadOnlyList`, its existing contents are mutable and `IsValid` is calculated from their current severity. **Do not treat validation results as immutable snapshots**. The maintainer confirmed all four focused tests and complete 1232/1232 suite GREEN; production code is unchanged.
 
-## Bundled JSON template file model (verification pending)
+## Bundled JSON template file model (1235/1235 GREEN)
 
 `JsonsTemplateFile` is the public item model returned in `IJsonsTemplateProvider.GetTemplateFiles(JsonsOptions)`. Its current CLR contract consists of a public parameterless constructor and three public get/set non-nullable string properties: `Name`, `TargetFileName`, and `Content`, each initialized to `string.Empty`.
 
-`WhenItFails.Tests/PublicApi/JsonsTemplateFilePublicApiContractTests.cs` checks this shape, defaults, independent assignments and the provider interface's typed collection return. The model does not declare explicit `JsonPropertyName` attributes; this review **does not** promise a separately versioned JSON wire schema for template file objects. The focused and complete tests await maintainer verification; production code is unchanged.
+`WhenItFails.Tests/PublicApi/JsonsTemplateFilePublicApiContractTests.cs` checks this shape, defaults, independent assignments and the provider interface's typed collection return. The model does not declare explicit `JsonPropertyName` attributes; this review **does not** promise a separately versioned JSON wire schema for template file objects. The maintainer confirmed all three focused tests and the complete 1235/1235 suite GREEN; production code is unchanged.
 
 ## Still under review
 
