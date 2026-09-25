@@ -16,7 +16,7 @@ namespace Afrowave.Toolbox.WhenItFails.Services;
 /// <summary>
 /// Default high-level facade over the complete WhenItFails runtime.
 /// </summary>
-public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
+public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRuntimePublicationReader
 {
     private readonly IErrorCatalogInitializer _initializer;
     private readonly WhenItFailsOptions _options;
@@ -170,6 +170,31 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime
     public Response<ErrorCatalogContext> GetCurrentContext()
     {
         return GetCurrentContextResponse();
+    }
+
+    /// <inheritdoc />
+    public Response<ErrorCatalogContextPublication> GetCurrentPublication()
+    {
+        if (_contextStore is not IErrorCatalogContextPublicationReader reader)
+        {
+            return Response<ErrorCatalogContextPublication>.NotSupported(
+                code: "WIF_CONTEXT_PUBLICATION_NOT_SUPPORTED",
+                message: "The configured context store does not support publication identity.");
+        }
+
+        try
+        {
+            return reader.GetCurrentPublication()
+                ?? Response<ErrorCatalogContextPublication>.Invalid(
+                    code: "WIF_CONTEXT_PUBLICATION_RESPONSE_NULL",
+                    message: "The context store returned a null publication response.");
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<ErrorCatalogContextPublication>.Fail(
+                code: "WIF_CONTEXT_PUBLICATION_FAILED",
+                message: "The active context publication could not be read.");
+        }
     }
 
     /// <inheritdoc />
