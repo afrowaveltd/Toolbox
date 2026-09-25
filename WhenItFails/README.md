@@ -102,6 +102,7 @@ Recovery never overwrites or repairs project JSON files automatically.
 - [Detached cross-validation snapshots](Docs/Validation-Snapshots/en.md)
 - [Detached category catalog snapshots](Docs/Category-Snapshots/en.md)
 - [Combined detached catalog snapshot](Docs/Combined-Snapshots/en.md)
+- [Context publication identity (infrastructure)](Docs/Context-Publication/en.md)
 - [Initialization and recovery](Docs/Runtime/Initialization-and-Recovery.md)
 - [Troubleshooting](Docs/Troubleshooting/en.md)
 
