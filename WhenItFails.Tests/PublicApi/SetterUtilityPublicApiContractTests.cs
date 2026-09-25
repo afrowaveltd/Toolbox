@@ -20,7 +20,8 @@ public sealed class SetterUtilityPublicApiContractTests
         AssertStandaloneClass(type);
 
         MethodInfo method = Assert.Single(
-            type.GetMethods(DeclaredPublic).Where(m => !m.IsSpecialName));
+            type.GetMethods(DeclaredPublic),
+            m => !m.IsSpecialName);
 
         Assert.Equal("SaveToFileAsync", method.Name);
         Assert.True(method.IsGenericMethodDefinition);
@@ -82,7 +83,8 @@ public sealed class SetterUtilityPublicApiContractTests
         Assert.Empty(type.GetConstructors(DeclaredPublic));
 
         MethodInfo method = Assert.Single(
-            type.GetMethods(DeclaredPublic).Where(m => !m.IsSpecialName));
+            type.GetMethods(DeclaredPublic),
+            m => !m.IsSpecialName);
 
         Assert.Equal("IsCanonical", method.Name);
         Assert.Equal(typeof(bool), method.ReturnType);
@@ -99,7 +101,8 @@ public sealed class SetterUtilityPublicApiContractTests
         AssertStandaloneClass(type);
 
         MethodInfo method = Assert.Single(
-            type.GetMethods(DeclaredPublic).Where(m => !m.IsSpecialName));
+            type.GetMethods(DeclaredPublic),
+            m => !m.IsSpecialName);
 
         Assert.Equal("Validate", method.Name);
         Assert.False(method.IsStatic);
