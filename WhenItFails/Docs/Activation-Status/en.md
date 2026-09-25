@@ -95,6 +95,10 @@ status recording, and a reader can observe that intermediate state.
 Custom runtimes, external store writers and separate runtime instances
 sharing a store are not serialized by this gate.
 
+## Shared-store publication ownership boundary
+
+The instance-local activation gate does **not** serialize operations on other default runtime instances or direct writes to their common store. Two runtimes can retain different local status observations for the same store generation (for example, project activation and previous-context recovery). More importantly, an external write that republishes the **same context instance** after another operation's `Set` can still pass the current reference-equality check: the reference does not identify which actor owns the new generation. This strict identity gap remains unresolved. See [shared-store concurrency and ownership](../Shared-Store-Concurrency/en.md) for the five regression scenarios and publication-owner design requirements.
+
 ## Consistency limits
 
 The method returns a **selected, previously recorded association**.
