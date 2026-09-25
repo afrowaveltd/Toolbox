@@ -277,18 +277,18 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** three focused tests and complete **1250/1250 GREEN** suite after shared-reference test commit `77826ab331da83f180cfa7ad6edb95d53efb4c47`. Warning count was not separately reported. No production code, public signatures, package version or persisted JSON schema changed.
 - Next: audit the nested context documents and indexed error definitions for mutation leaks when designing a distinct safe consumer-view API.
 
-## 2026-09-25 — indexed catalog mutable-definition boundary (verification pending)
+## 2026-09-25 — indexed catalog mutable-definition boundary (1253/1253 GREEN)
 
 - Audited `ErrorCatalogFactory` and `ErrorCatalog`: the factory passes `ErrorCatalogDocument.Errors` to the catalog; the catalog copies the source list membership into a read-only list, but retains the **same mutable `ErrorDefinition` instances** in that list and its once-built indexes.
 - Added `WhenItFails.Tests/PublicApi/IndexedCatalogMutableDefinitionBoundaryTests.cs` with three narrow tests: (1) mutating a source definition's ID/title is visible through the original index key while the new key is not indexed; (2) mutating `Tags` after indexing leaves the original tag key mapped to the changed definition, without indexing a new tag; (3) adding an item to the source document's `Errors` list does not extend an existing indexed catalog, while edits to an original item's fields remain visible.
 - This is a pre-1.0 **hazard and ownership baseline**, not a recommendation to mutate active definitions or a decision to retain stale-index behavior in a future safe view. A safe consumer projection must account for the identity/collection indexes and deep mutability of their stored objects.
 - Updated `WhenItFails/Docs/Public-API-Stability/en.md`, `Docs/Runtime/Public-API.md`, and `Docs/Public-API-Export-Review/en.md`; no production code, public signatures, NuGet version or JSON schema changed.
-- **Verification pending:** three focused tests and expected complete **1253/1253 GREEN** if all pass; last confirmed complete suite **1250/1250 GREEN**. Warning count was not separately reported.
-- Next: confirm focused and full suite, then examine whether normalized catalog document and `IErrorCatalog` share definition/metadata references before designing any separate safe-context API.
+- **Verified locally by maintainer:** complete **1253/1253 GREEN** suite (0 failed, 0 skipped), successful build with no compiler warnings reported after commit `b0d9ceb09180d5ba2e72448648cc70d05f5711bc`; `NETSDK1057` is an informational preview SDK notice. The three new tests are included in the passing complete suite; focused run was not separately reported.
+- Next: examine whether normalized catalog document and `IErrorCatalog` share definition/metadata references before designing any separate safe-context API.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1250/1250 GREEN**, confirmed locally by maintainer after active-context shared-reference contract tests. The last explicitly confirmed warning-free build was at 1241/1241.
+- Complete `WhenItFails.Tests` suite: **1253/1253 GREEN**, confirmed locally by maintainer after indexed-catalog mutable-definition boundary tests. The last explicitly confirmed warning-free build was at 1241/1241.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
