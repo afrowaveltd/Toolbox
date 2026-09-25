@@ -78,7 +78,16 @@ public static class ErrorSupportingCatalogsSnapshotExtensions
     /// This helper never reads the runtime or independently selects a publication.
     /// </summary>
     internal static Response<ErrorSupportingCatalogsSnapshot> CaptureFromContext(
-        ErrorCatalogContext? context)
+        ErrorCatalogContext? context) =>
+        CaptureFromContext(context, categorySnapshot: null);
+
+    /// <summary>
+    /// Allows a combined capture to reuse its already detached category view
+    /// so the same selected category document is not copied a second time.
+    /// </summary>
+    internal static Response<ErrorSupportingCatalogsSnapshot> CaptureFromContext(
+        ErrorCatalogContext? context,
+        ErrorCategoryCatalogSnapshot? categorySnapshot)
     {
         if (context?.CategoryCatalog is null)
         {
@@ -113,7 +122,7 @@ public static class ErrorSupportingCatalogsSnapshotExtensions
         try
         {
             ErrorSupportingCatalogsSnapshot snapshot = new(
-                new ErrorCategoryCatalogSnapshot(categories),
+                categorySnapshot ?? new ErrorCategoryCatalogSnapshot(categories),
                 new ErrorOwnerCatalogSnapshot(owners),
                 new ErrorCodeGroupCatalogSnapshot(codeGroups),
                 new ErrorProfileCatalogSnapshot(profiles));
