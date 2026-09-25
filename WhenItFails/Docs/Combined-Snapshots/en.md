@@ -89,6 +89,10 @@ without exposing exception details or partially captured data.
 No JSON wire schema, direct deserialization into these getter-only
 projection types, or stable version-1.0 public API freeze is implied.
 
+## Completed status paired with the selected context
+
+The separate [completed combined catalog/status snapshot](../Completed-Combined-Snapshots/en.md) obtains detached definitions, categories, recorded validation and the runtime's corresponding completed status from one selected publication, with consistency checks before and after copying. The original `GetCombinedSnapshot()` has no status or publication identity and remains unchanged.
+
 ## Related projections
 
 See [definition snapshots](../Definition-Snapshots/en.md),
