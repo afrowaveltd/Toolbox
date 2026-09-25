@@ -69,7 +69,7 @@ This opt-in probe deliberately avoids default project-workspace
 full descriptor serialization. Those paths need separate isolated,
 precompiled-consumer tests before claiming compatibility for them.
 
-## Optional isolated project-workspace initialization probe (pending)
+## Optional isolated project-workspace initialization probe (PASS confirmed)
 
 The existing precompiled consumer script also accepts
 `-ExerciseProjectInitialization`; this flag is mutually exclusive
@@ -101,11 +101,45 @@ git pull --ff-only origin master
 
 Expected on success:
 `Binary project initialization smoke: PASS (original package consumer and swapped source DLL).`
-**Local execution pending.** This is not the same as the already
-confirmed explicit bundled-default probe, nor does it test malformed
-JSON recovery, cancellation, or a full ABI/wire-format guarantee.
-An intentional failed initialization should be tested in a separate
-isolated-consumer scenario after this happy path is verified.
+**Confirmed by maintainer:** the original package consumer and the unchanged
+consumer with the source DLL both returned PASS. The script verified project
+initialization, existing-file hashes and descriptor lookups in two isolated
+workspaces. Recovery after malformed JSON is tested separately below; neither
+scenario proves full ABI, cancellation or wire-format compatibility.
+
+## Optional malformed-project previous-context recovery (pending)
+
+`-ExerciseProjectRecovery` extends `-ExerciseProjectInitialization`
+and **must be used together with it**. The same precompiled consumer first
+loads a valid project catalog into an isolated temporary workspace and
+checks all five files and descriptor lookups. It then deliberately replaces
+only its disposable `errors.en.json` with invalid JSON and repeats
+`InitializeAsync(JsonsOptions)`. Flexible initialization must retain the
+**same previously active context reference**, report a degraded
+`PreviousContextRecovery` state, continue resolving the original
+`UNKNOWNERROR` descriptor, and **not modify or repair** any of the five
+project files. File content is checked using SHA-256 both before and
+after attempted recovery, including the malformed error catalog.
+
+As with the earlier modes, the application is compiled **once against
+requested NuGet [0.1.0]** and run without rebuilding with the package and
+the source DLL, in two independent temporary workspaces. No malformed
+file is written to the source checkout or a user's real project catalogs.
+
+Run each command separately from Toolbox root:
+
+```powershell
+git pull --ff-only origin master
+& .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseProjectInitialization -ExerciseProjectRecovery -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-project-recovery.md')
+```
+
+Expected on success:
+`Binary project recovery smoke: PASS (original package consumer and swapped source DLL).`
+**Local execution pending.** This probe tests previous-context recovery
+after a previously valid project activation, not first-start built-in
+fallback, strict-mode failures, concurrent mutation or arbitrary malformed
+catalog content. No additional xUnit cases or production changes are
+included in this checkpoint.
 
 ## Observed maintainer execution
 

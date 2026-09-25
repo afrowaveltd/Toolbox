@@ -42,10 +42,21 @@ See [opt-in initialization smoke details](../../../../WhenItFails/Docs/Published
 
 ## Optional isolated project catalog initialization
 
-Use `-ExerciseProjectInitialization` to compile a disposable consumer once against package `[0.1.0]` and run that identical executable with the original package and swapped source DLL. Each run uses its **own empty temporary workspace**, calls `InitializeAsync(JsonsOptions)` twice, verifies five generated catalog files are not rewritten (SHA-256 before/after), and checks a non-degraded project activation and the `UNKNOWNERROR` descriptor by name, ID and code. This flag cannot be combined with `-ExerciseInitialization`. It does not write catalogs to the repository checkout. This extended mode is **pending local execution**; the earlier PASS applies to the bundled-default mode only.
+Use `-ExerciseProjectInitialization` to compile a disposable consumer once against package `[0.1.0]` and run that identical executable with the original package and swapped source DLL. Each run uses its **own empty temporary workspace**, calls `InitializeAsync(JsonsOptions)` twice, verifies five generated catalog files are not rewritten (SHA-256 before/after), and checks a non-degraded project activation and the `UNKNOWNERROR` descriptor by name, ID and code. This flag cannot be combined with `-ExerciseInitialization`. It does not write catalogs to the repository checkout. This extended mode was **confirmed PASS by the maintainer** for both original-package and swapped-source runs, following the earlier bundled-default PASS.
 
 ```powershell
 & .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseProjectInitialization -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-project-initialization.md')
 ```
 
 See [project workspace smoke details](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
+
+
+## Optional malformed project catalog recovery
+
+After the successful isolated project initialization check, use both `-ExerciseProjectInitialization` and `-ExerciseProjectRecovery`. The unchanged precompiled 0.1.0 consumer writes intentionally invalid JSON **only** to its disposable temporary error catalog, runs `InitializeAsync(JsonsOptions)` again, and verifies the previous valid context, degraded `PreviousContextRecovery` status, descriptor lookup, and unchanged hashes of all five project files (including the malformed one). The original package run and source DLL substitution run use distinct empty temp roots. **Local execution pending**; this does not imply a broader ABI guarantee.
+
+```powershell
+& .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseProjectInitialization -ExerciseProjectRecovery -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-project-recovery.md')
+```
+
+See [previous-context recovery smoke](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
