@@ -540,6 +540,8 @@ Consumers should request the current context from the runtime rather than storin
 
 A reference retained before a later successful activation still points to the old context; it is not automatically retargeted to the newly active instance. Creating a shallow copy of `ErrorCatalogContext` does not isolate the nested catalog objects.
 
+The default indexed `ErrorCatalog` copies its source list membership but retains each mutable `ErrorDefinition` instance. Mutating a definition returned by `GetAll()`, `FindById()` or another lookup can change its displayed fields while the indexes still use keys captured at construction. Editing the source document's `Errors` list does not automatically reindex the active lookup catalog. Do not modify definitions, tag lists, metadata or source document collections belonging to a published context; build and activate a separate validated context instead.
+
 ## Thread safety
 
 The store publishes and replaces the **context reference** atomically. The runtime status is separately published atomically. This lets readers obtain either the previous context reference or the new context reference during a successful replacement, assuming no one mutates a published context in place.
