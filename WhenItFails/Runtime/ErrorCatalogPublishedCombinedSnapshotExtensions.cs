@@ -29,6 +29,7 @@ public static class ErrorCatalogPublishedCombinedSnapshotExtensions
         if (runtime is not IErrorCatalogRuntimePublicationReader reader)
         {
             return Response<ErrorCatalogPublishedCombinedSnapshot>.NotSupported(
+                data: null,
                 code: "WIF_PUBLISHED_SNAPSHOT_NOT_SUPPORTED",
                 message: "The runtime does not support context publication identity.");
         }
