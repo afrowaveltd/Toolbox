@@ -75,7 +75,7 @@ See [first-start fallback smoke details](../../../../WhenItFails/Docs/Published-
 
 ## Optional Strict first-start rejection of malformed project JSON
 
-Use `-ExerciseStrictFirstStart` alone. A consumer compiled once against package `[0.1.0]` is configured with `InitializationMode.Strict` at its original DI registration. In two distinct temporary workspaces it places invalid `errors.en.json` before any initialization. Both the package and substituted source-DLL runs must reject the initialization without creating a context, status, fallback descriptor or modifying the JSON. The consumer binary and dependency graph remain unchanged, with DLL hashes/paths and result parity checked. **Local execution pending**; the five other modes have confirmed PASS.
+Use `-ExerciseStrictFirstStart` alone. A consumer compiled once against package `[0.1.0]` is configured with `InitializationMode.Strict` at its original DI registration. In two distinct temporary workspaces it places invalid `errors.en.json` before any initialization. Both the package and substituted source-DLL runs must reject the initialization without creating a context, status, fallback descriptor or modifying the JSON. The consumer binary and dependency graph remain unchanged, with DLL hashes/paths and result parity checked. **Maintainer-confirmed PASS** for both original-package and swapped-source runs; six modes have confirmed PASS.
 
 ```powershell
 & .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseStrictFirstStart -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-strict-first-start.md')

@@ -177,7 +177,7 @@ Expected marker on successful local verification:
 does not test strict-mode rejection, cancellation, validation of
 arbitrary malformed catalog types or exhaustive binary compatibility.
 
-## Optional strict first-start malformed-project rejection (pending)
+## Optional strict first-start malformed-project rejection (PASS confirmed)
 
 The separate `-ExerciseStrictFirstStart` mode configures the original
 consumer with `WhenItFailsOptions.InitializationMode = Strict` **before
@@ -205,7 +205,7 @@ git pull --ff-only origin master
 Expected final message:
 `Binary strict first-start smoke: PASS (original package consumer and swapped source DLL).`
 
-**Pending local verification.** Five prior smoke modes are confirmed PASS.
+**Maintainer-confirmed PASS:** the original-package and substituted-source-DLL executions both completed strict first-start checks. All six current smoke modes have confirmed PASS.
 This path only checks Strict first-start rejection; retaining a previously
 valid context after a strict reinitialization failure is a separate test.
 The experiment does not establish complete binary, behavioral, nullable
