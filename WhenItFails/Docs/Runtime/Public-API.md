@@ -259,6 +259,12 @@ Response<ErrorCatalogPublishedCombinedSnapshot> response =
 
 The default runtime implements the optional `IErrorCatalogRuntimePublicationReader`, which reads a single publication from its injected store when that store exposes the optional publication reader. Custom runtimes/stores without this capability return NotSupported instead of fabricated generations. `StoreId` and `Generation` identify the **selected store publication**, not an atomic pairing with runtime status. The original `GetCombinedSnapshot()` remains unchanged. See [publication-aware snapshot documentation](../Published-Snapshots/en.md).
 
+## Completed activation status observation
+
+The default runtime also implements the **optional** `IErrorCatalogRuntimeActivationReader`. `GetCompletedActivation()` returns a getter-only status observation containing the selected store publication's `StoreId` and `Generation`, a separate runtime-local `ActivationSequence`, and the corresponding recorded `ErrorCatalogRuntimeStatus`. Previous-context recovery can advance `ActivationSequence` without publishing a new generation. A custom store without publication support returns NotSupported; a context published without a completed matching status produces a non-success response instead of a fabricated pair.
+
+This is **not** a fully atomic current context-and-status snapshot: readers can race with later external `Set` operations or overlapping runtime initializations. The existing `GetStatus()` and `GetPublishedCombinedSnapshot()` are still independent calls and must not be assumed to match this observation. See [activation status ownership and consistency limits](../Activation-Status/en.md).
+
 ## Runtime status
 
 Retrieve the active status snapshot through:
