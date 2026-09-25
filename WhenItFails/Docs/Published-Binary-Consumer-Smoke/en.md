@@ -107,7 +107,7 @@ initialization, existing-file hashes and descriptor lookups in two isolated
 workspaces. Recovery after malformed JSON is tested separately below; neither
 scenario proves full ABI, cancellation or wire-format compatibility.
 
-## Optional malformed-project previous-context recovery (pending)
+## Optional malformed-project previous-context recovery (PASS confirmed)
 
 `-ExerciseProjectRecovery` extends `-ExerciseProjectInitialization`
 and **must be used together with it**. The same precompiled consumer first
@@ -135,7 +135,7 @@ git pull --ff-only origin master
 
 Expected on success:
 `Binary project recovery smoke: PASS (original package consumer and swapped source DLL).`
-**Local execution pending.** This probe tests previous-context recovery
+**Maintainer-confirmed PASS:** both package and swapped-source runs completed the recovery checks. This probe tests previous-context recovery
 after a previously valid project activation, not first-start built-in
 fallback, strict-mode failures, concurrent mutation or arbitrary malformed
 catalog content. No additional xUnit cases or production changes are

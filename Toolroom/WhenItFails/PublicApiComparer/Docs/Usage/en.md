@@ -53,7 +53,7 @@ See [project workspace smoke details](../../../../WhenItFails/Docs/Published-Bin
 
 ## Optional malformed project catalog recovery
 
-After the successful isolated project initialization check, use both `-ExerciseProjectInitialization` and `-ExerciseProjectRecovery`. The unchanged precompiled 0.1.0 consumer writes intentionally invalid JSON **only** to its disposable temporary error catalog, runs `InitializeAsync(JsonsOptions)` again, and verifies the previous valid context, degraded `PreviousContextRecovery` status, descriptor lookup, and unchanged hashes of all five project files (including the malformed one). The original package run and source DLL substitution run use distinct empty temp roots. **Local execution pending**; this does not imply a broader ABI guarantee.
+After the successful isolated project initialization check, use both `-ExerciseProjectInitialization` and `-ExerciseProjectRecovery`. The unchanged precompiled 0.1.0 consumer writes intentionally invalid JSON **only** to its disposable temporary error catalog, runs `InitializeAsync(JsonsOptions)` again, and verifies the previous valid context, degraded `PreviousContextRecovery` status, descriptor lookup, and unchanged hashes of all five project files (including the malformed one). The original package run and source DLL substitution run use distinct empty temp roots. **Maintainer-confirmed PASS** for original-package and source-DLL-substituted runs; this does not imply a broader ABI guarantee.
 
 ```powershell
 & .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseProjectInitialization -ExerciseProjectRecovery -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-project-recovery.md')
