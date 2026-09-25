@@ -13,7 +13,8 @@ namespace Afrowave.Toolbox.WhenItFails.Services;
 /// together as one immutable record. Nested context objects are still mutable.
 /// </remarks>
 public sealed class ErrorCatalogContextStore
-    : IErrorCatalogContextStore, IErrorCatalogContextPublicationReader
+    : IErrorCatalogContextStore, IErrorCatalogContextPublicationReader,
+      IErrorCatalogContextPublisher
 {
     private readonly Guid _storeId = Guid.NewGuid();
     private ErrorCatalogContextPublication? _current;
@@ -61,6 +62,12 @@ public sealed class ErrorCatalogContextStore
     /// <inheritdoc />
     public void Set(ErrorCatalogContext context)
     {
+        _ = Publish(context);
+    }
+
+    /// <inheritdoc />
+    public ErrorCatalogContextPublication Publish(ErrorCatalogContext context)
+    {
         ArgumentNullException.ThrowIfNull(context);
 
         while (true)
@@ -80,7 +87,9 @@ public sealed class ErrorCatalogContextStore
                 Interlocked.CompareExchange(ref _current, next, previous),
                 previous))
             {
-                return;
+                // Return this call's successful CAS record, not a later
+                // GetCurrentPublication read that another writer could replace.
+                return next;
             }
         }
     }
