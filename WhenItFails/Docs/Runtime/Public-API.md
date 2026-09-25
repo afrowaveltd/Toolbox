@@ -277,6 +277,12 @@ During flexible recovery, the default runtime now selects the previous context *
 
 The default activation gate is instance-local. Different runtime instances using the same context store, and direct external calls to `Set`, can publish outside that gate. In particular, same-reference republishes cannot currently be attributed to the original runtime operation by reference comparison alone. See [shared-store concurrency](../Shared-Store-Concurrency/en.md). Neither the completed activation status reader nor separately called snapshot/status methods are a globally atomic transaction.
 
+## Completed combined catalog and status snapshot
+
+The default runtime implements the optional `IErrorCatalogRuntimeCombinedObservationReader`. Its `GetCompletedCombinedSnapshot()` captures the **recorded completed status and detached main definitions, category catalog and validation findings from one selected publication**. It checks the store publication again after copying the data and rejects a changed status or generation without returning a partial snapshot. Custom stores without publication-reader support return NotSupported.
+
+This is a **checked observation**, not a transaction against external writes or in-place mutations of the live context. An external writer may publish again immediately after the final check. See [completed combined snapshots](../Completed-Combined-Snapshots/en.md) for scope, errors and consistency limits.
+
 ## Runtime status
 
 Retrieve the active status snapshot through:
