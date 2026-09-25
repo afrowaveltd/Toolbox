@@ -78,6 +78,10 @@ The compared DLL SHA-256 digests differ: source-built `587AED89A427E184CEB465073
 
 The comparer added no library tests: last confirmed complete suite remains **1241/1241 GREEN with zero warnings**. Both consumer builds succeeded; the displayed `NETSDK1057` lines are informational preview-SDK notices.
 
+## 7. Standalone JSON loader public contract (verification pending)
+
+`JsonCatalogDocumentLoader` is already exported in 0.1.0 and called by the default typed loader implementations. `JsonCatalogDocumentLoaderPublicApiContractTests` now targets its public parameterless constructor, generic `class`-constrained `LoadFromFileAsync<TDocument>` signature with optional token, direct use without DI, and pre-cancelled token propagation before filesystem access. Detailed I/O and JSON cases are covered elsewhere. Three new focused tests and full 1244/1244 suite await maintainer verification; no production API changes were made.
+
 ## 3. Release/compatibility decisions still needed
 
 1. The latest maintainer-confirmed full library suite is **1241/1241 GREEN with zero warnings**. The independently executed package/source comparer reports matching public-signature census (611/611), not full binary identity.
