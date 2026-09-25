@@ -388,7 +388,7 @@ snapshot data shapes are unchanged. Fifteen theory-expanded cases were included 
 full-suite **1407/1407 GREEN** checkpoint. See
 [completed supporting snapshots](../Completed-Supporting-Catalog-Snapshots/en.md).
 
-## Completed full operational catalog observation (verification pending)
+## Completed full operational catalog observation (1426/1426 GREEN; further tests pending)
 
 The additive optional `IErrorCatalogRuntimeFullObservationReader`
 exposes `GetCompletedFullSnapshot()`. Its sealed getter-only
@@ -399,8 +399,10 @@ three-part combined snapshot shapes are unchanged. The source context is
 selected once; the category projection is shared by the combined and
 supporting captures instead of copied twice. This is a checked completed
 activation view, not an atomic context/status transaction or raw JSON
-document clone. Nineteen theory-expanded focused cases and expected
-full suite **1426/1426 GREEN** await local verification. See
+document clone. Nineteen theory-expanded cases were included in the maintainer-confirmed
+full suite **1426/1426 GREEN**. Three subsequent successive-activation
+and publication-race tests await local verification (expected full suite
+**1429/1429 GREEN**). See
 [completed full snapshot docs](../Completed-Full-Snapshots/en.md).
 
 ## Still under review

@@ -1,6 +1,6 @@
 # Completed full operational catalog and activation snapshot
 
-Status: **additive pre-1.0 CLR API candidate; 19 focused theory-expanded tests pending maintainer verification**.
+Status: **additive pre-1.0 CLR API candidate; 19 cases included in maintainer-confirmed 1426/1426 GREEN; three additional race/activation tests pending verification**.
 
 ## Scope and usage
 
@@ -106,5 +106,13 @@ same-reference republishing, simultaneous publication/status changes during
 capture, uninitialized/legacy behavior, missing source components,
 malformed nested documents, cancellation and stable public CLR shape.
 
-Expected full test-suite result after local maintainer verification:
-**1426/1426 GREEN**.
+The initial 19 cases were included in maintainer-confirmed **1426/1426 GREEN**.
+Three additional focused tests protect successive successful activations,
+replacement before the first publication read, and a same-reference
+republication during capture. The first snapshot must retain its own
+six detached views and associated recorded status after the next
+successful activation; a changed publication record must be rejected
+even if the live context object is the same reference.
+
+**Next expected checkpoint:** 22/22 focused cases; **1429/1429 GREEN**
+complete suite, pending maintainer verification.

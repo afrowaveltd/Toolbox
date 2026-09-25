@@ -494,6 +494,12 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Scope:** complete detached operational indexed catalog view, not a raw `ErrorCatalogDocument` JSON clone, not a transaction against external in-place mutation and not a guarantee that no later publication occurs. No published NuGet 0.1.0 or persisted JSON schema change.
 - **Verified locally by maintainer:** complete **1426/1426 GREEN**. Individual focused-test and compiler-warning counts were not separately reported. Next: strengthen complete-snapshot successive-activation and error-boundary contracts before deciding the 1.0 CLR API scope.
 
+## 2026-09-25 — full-snapshot successive-activation and publication-race contracts (verification pending)
+
+- Added three focused cases to `WhenItFails.Tests/PublicApi/CompletedFullSnapshotContractTests.cs`: two consecutive successful reset activations advance actual store `Generation` and runtime `ActivationSequence`, with all six captured views of the earlier activation remaining detached; an external replacement before the first publication read is rejected; and re-publication of the *same context object during capture* is detected by the second publication read.
+- The deterministic `InterferingStore` test double now supports a first-publication-read hook alongside its existing second-read hook. Added a sequenced built-in provider for two successive successful resets. No production behavior or public API shape changed.
+- **Verification pending:** three new cases, **22/22 focused** `CompletedFullSnapshotContractTests`, expected complete **1429/1429 GREEN**. Last maintainer-confirmed full suite **1426/1426 GREEN**. Next: verify focused/full suite, then examine nullable annotations and explicit stable 1.0 public API scope before further additive expansion.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1426/1426 GREEN**, confirmed locally by maintainer after completed full snapshot tests (compiler-warning count not separately reported for this checkpoint).
