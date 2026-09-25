@@ -25,6 +25,9 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
         _builtInContextProvider;
     private readonly IErrorDescriptorService _descriptorService;
     private readonly IErrorProfileSelectionService _profileSelectionService;
+    // Serializes activation operations on this runtime instance; readers and
+    // direct writes to an injected store are not blocked by this gate.
+    private readonly SemaphoreSlim _activationGate = new(1, 1);
     private ErrorCatalogRuntimeStatus? _currentStatus;
     private long _activationSequence;
     private CompletedActivation? _completedActivation;
@@ -101,6 +104,21 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
     public async Task<Response<ErrorCatalogInitializationPayload>>
         ResetToDefaultsAsync(
             CancellationToken cancellationToken = default)
+    {
+        await _activationGate.WaitAsync(cancellationToken);
+        try
+        {
+            return await ResetToDefaultsCoreAsync(cancellationToken);
+        }
+        finally
+        {
+            _activationGate.Release();
+        }
+    }
+
+    private async Task<Response<ErrorCatalogInitializationPayload>>
+        ResetToDefaultsCoreAsync(
+            CancellationToken cancellationToken)
     {
         Response<ErrorCatalogContext>? builtInResponse;
 
@@ -496,6 +514,22 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
 
     private async Task<Response<ErrorCatalogInitializationPayload>>
         InitializeCoreAsync(
+            JsonsOptions options,
+            CancellationToken cancellationToken)
+    {
+        await _activationGate.WaitAsync(cancellationToken);
+        try
+        {
+            return await InitializeCoreLockedAsync(options, cancellationToken);
+        }
+        finally
+        {
+            _activationGate.Release();
+        }
+    }
+
+    private async Task<Response<ErrorCatalogInitializationPayload>>
+        InitializeCoreLockedAsync(
             JsonsOptions options,
             CancellationToken cancellationToken)
     {
