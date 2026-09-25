@@ -53,6 +53,7 @@ foreach (Type type in assembly.GetExportedTypes()
              .OrderBy(t => t.FullName, StringComparer.Ordinal))
 {
     string name = type.FullName ?? type.Name;
+    Console.WriteLine("TYPE|" + name);
     Console.WriteLine($"API|{name}|kind|{(type.IsInterface ? "interface" : type.IsEnum ? "enum" : type.IsValueType ? "struct" : type.IsSealed ? "sealed" : "class")}");
     if (type.BaseType is { } parent && parent != typeof(object))
         Console.WriteLine($"API|{name}|base|{parent.FullName}");
@@ -125,10 +126,18 @@ if (-not (Test-Path -LiteralPath $sourceDll -PathType Leaf) -or
 }
 
 $sourceApi = @($sourceOutput | Where-Object { $_ -like 'API|*' } | Sort-Object -Unique -CaseSensitive)
-$packageApi = @($packageOutput | Where-Object { $_ -like 'API|*' } | Sort-Object -Unique)
-if ($sourceApi.Count -eq 0 -or $packageApi.Count -eq 0) {
-    throw 'One inspector did not return public API entries.'
+$packageApi = @($packageOutput | Where-Object { $_ -like 'API|*' } | Sort-Object -Unique -CaseSensitive)
+$sourceTypes = @($sourceOutput | Where-Object { $_ -like 'TYPE|*' } | Sort-Object -Unique -CaseSensitive)
+$packageTypes = @($packageOutput | Where-Object { $_ -like 'TYPE|*' } | Sort-Object -Unique -CaseSensitive)
+if ($sourceApi.Count -eq 0 -or $packageApi.Count -eq 0 -or
+    $sourceTypes.Count -eq 0 -or $packageTypes.Count -eq 0) {
+    throw 'An inspector did not return exported types or public API entries.'
 }
+$typeDiff = @(Compare-Object -ReferenceObject $packageTypes -DifferenceObject $sourceTypes -CaseSensitive)
+$missingTypes = @($typeDiff | Where-Object { $_.SideIndicator -eq '<=' } |
+    Select-Object -ExpandProperty InputObject)
+$addedTypes = @($typeDiff | Where-Object { $_.SideIndicator -eq '=>' } |
+    Select-Object -ExpandProperty InputObject)
 $diff = @(Compare-Object -ReferenceObject $packageApi -DifferenceObject $sourceApi -CaseSensitive)
 $missing = @($diff | Where-Object { $_.SideIndicator -eq '<=' } | Select-Object -ExpandProperty InputObject)
 $added = @($diff | Where-Object { $_.SideIndicator -eq '=>' } | Select-Object -ExpandProperty InputObject)
@@ -142,6 +151,10 @@ $lines = @(
     "Published SHA-256: $((Get-FileHash -LiteralPath $packageDll -Algorithm SHA256).Hash)"
     "Requested package version: [0.1.0]"
     "Feed override: $(if ($Feed) { $Feed } else { 'configured sources and cache; check provenance' })"
+    "Source exported types: $($sourceTypes.Count)"
+    "Published exported types: $($packageTypes.Count)"
+    "Published-only types: $($missingTypes.Count)"
+    "Source-only types: $($addedTypes.Count)"
     "Source API entries: $($sourceApi.Count)"
     "Published API entries: $($packageApi.Count)"
     "Published-only entries: $($missing.Count)"
@@ -152,6 +165,14 @@ $lines = @(
 )
 if ($missing.Count -eq 0) { $lines += 'None.' } else {
     $lines += @($missing | ForEach-Object { '- ' + $_ })
+}
+$lines += @('', '## Published-only exported types', '')
+if ($missingTypes.Count -eq 0) { $lines += 'None.' } else {
+    $lines += @($missingTypes | ForEach-Object { '- ' + $_ })
+}
+$lines += @('', '## Source-only exported types', '')
+if ($addedTypes.Count -eq 0) { $lines += 'None.' } else {
+    $lines += @($addedTypes | ForEach-Object { '- ' + $_ })
 }
 $lines += @('', '## Source-only entries', '')
 if ($added.Count -eq 0) { $lines += 'None.' } else {
@@ -168,5 +189,6 @@ if (-not (Test-Path -LiteralPath $parent -PathType Container)) {
 }
 $lines | Set-Content -Path $ReportPath -Encoding UTF8
 Write-Host "Report: $ReportPath"
+Write-Host "Exported types: source $($sourceTypes.Count), package $($packageTypes.Count); package-only $($missingTypes.Count), source-only $($addedTypes.Count)"
 Write-Host "Published-only: $($missing.Count); source-only: $($added.Count)"
 Write-Host "Temporary consumers: $workspace"
