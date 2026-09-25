@@ -178,6 +178,7 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
         if (_contextStore is not IErrorCatalogContextPublicationReader reader)
         {
             return Response<ErrorCatalogContextPublication>.NotSupported(
+                data: null,
                 code: "WIF_CONTEXT_PUBLICATION_NOT_SUPPORTED",
                 message: "The configured context store does not support publication identity.");
         }
