@@ -227,6 +227,19 @@ Response<ErrorCategoryCatalogSnapshot> categoryResponse =
 
 This category view is independently captured; it does **not** share a context-generation identifier with separate definition/validation snapshot calls. Refer to [category snapshot ownership and context identity](../Category-Snapshots/en.md). A combined capture and stable activation identity remain separate design steps.
 
+## Combined detached catalog snapshot
+
+To capture the main error definitions, supporting category catalog and recorded cross-validation findings from **one selected active context reference**, use the additive extension:
+
+```csharp
+using Afrowave.Toolbox.WhenItFails.Runtime;
+
+Response<ErrorCatalogCombinedSnapshot> combinedResponse =
+    runtime.GetCombinedSnapshot();
+```
+
+The combined result contains detached, getter-only projections and requires only one `GetCurrentContext()` call. It does **not** include owner/code-group/profile catalogs or runtime status, provide an activation-generation ID, revalidate already mutated documents, or create a transaction against concurrent in-place modification of the selected context. See [combined snapshot ownership](../Combined-Snapshots/en.md).
+
 ## Runtime status
 
 Retrieve the active status snapshot through:
