@@ -51,9 +51,18 @@ The intended success marker is
 `Binary initialization smoke: PASS (original package consumer and swapped source DLL).`
 The Markdown report records whether this optional probe was enabled,
 both expected result markers and the actual executable/source/package hashes.
-**Pending maintainer verification:** the extended mode has not yet been run;
-the previously confirmed PASS applies only to the original
-pre-initialization mode.
+**Confirmed by maintainer:** the opt-in mode passed with the original
+package consumer and its unchanged executable after DLL substitution.
+The reported result in both runs was
+`RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|BUILTIN_DEFAULTS|DESCRIPTOR`.
+The unchanged consumer SHA-256 was
+`586F81041EA77AE853CB198784D753B991FA3980C1DCF51A95B4F850DD02022F`;
+the original package DLL SHA-256 was
+`379F7CF6FF99223ECF2F388AB6295A34D97F33A8BD8EB7F9A52152994347CE28`
+and the swapped source DLL SHA-256 was
+`C30205E4D42FB63EAB540063F8FF4BCD138A2A602F4A0942509C26B8FF4004F2`.
+NuGet sources/cache satisfied the exact `[0.1.0]` request; original
+publishing provenance has not been independently verified.
 
 This opt-in probe deliberately avoids default project-workspace
 `InitializeAsync()`, automatic recovery, user-managed JSON writes and

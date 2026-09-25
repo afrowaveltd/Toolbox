@@ -31,7 +31,7 @@ The maintainer reported **PASS on 2026-09-25** for the package-consumer executio
 
 ## Optional bundled-default activation and descriptor resolution
 
-Pass `-ExerciseInitialization` to the existing binary smoke script to compile the original package consumer **once** with a second test path before swapping its DLL. Both runs activate the isolated bundled defaults through `ResetToDefaultsAsync()`, read the non-degraded active status and resolve the historical `UNKNOWNERROR` definition by name, ID and numeric code, checking the descriptor identity and text. This mode does not create or overwrite a project-local catalog workspace; it does not test ordinary project `InitializeAsync()` or recovery. Its result is **pending local verification**; the earlier PASS was for the default pre-initialization path only.
+Pass `-ExerciseInitialization` to the existing binary smoke script to compile the original package consumer **once** with a second test path before swapping its DLL. Both runs activate the isolated bundled defaults through `ResetToDefaultsAsync()`, read the non-degraded active status and resolve the historical `UNKNOWNERROR` definition by name, ID and numeric code, checking the descriptor identity and text. This mode does not create or overwrite a project-local catalog workspace; it does not test ordinary project `InitializeAsync()` or recovery. The maintainer subsequently confirmed **PASS for both original-package and swapped-source runs** in this opt-in mode; the earlier default pre-initialization smoke remains PASS as well.
 
 ```powershell
 & .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseInitialization -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-binary-initialization.md')
