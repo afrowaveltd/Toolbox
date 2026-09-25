@@ -215,6 +215,14 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production code changed. **Verification pending:** one focused inventory test with an explicit report path and the complete suite; last maintainer-confirmed full suite **1235/1235 GREEN**. Expected total if the new test passes: **1236/1236 GREEN**.
 - Next: obtain and review the generated report, categorize public concrete types and decide the 1.0 compatibility policy. Do not invent exported-type counts before running reflection.
 
+## 2026-09-25 — reviewed compiled exported API report (110 exported types)
+
+- Received and reviewed the maintainer-generated Markdown inventory from `ExportedAssemblyInventoryTests`: source-built `Afrowave.Toolbox.WhenItFails`, assembly version `0.1.0.0`, **110 exported types** and publicly declared constructors/members. This proves report export occurred, not that the complete new suite passed or that this DLL is byte-identical to the separately published NuGet package.
+- Added `Docs/Public-API-Export-Review/en.md` with provisional 1.0 classification: application-facing stable-contract candidates; replaceable DI extension points; public standalone utilities used by Setter (`JsonCatalogDocumentWriter`, `DocumentationKeyGenerator`, `DocumentationKeyFormat`, `ErrorCatalogCrossValidator`); and exported concrete implementation candidates requiring individual compatibility decisions.
+- Public auxiliary models `ErrorDescriptor<TAttachment>` and `ErrorDescriptorRequest` and standalone generic document I/O signatures require explicit 1.0 scope decisions. The inventory omits nullable-reference annotations, most custom attributes and generic constraints: do not use it as a complete ABI baseline.
+- **Last maintainer-confirmed complete suite remains 1235/1235 GREEN.** The new exported-inventory test has generated its report; the maintainer has not supplied the full-suite 1236/1236 result in this turn. No production code or public visibility changed.
+- Next: verify `WhenItFails.Tests` full suite; review actual exported report against package 0.1.0 and the Setter utility dependency set, then select focused utility compatibility tests and decide active-context mutability policy.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1235/1235 GREEN**, confirmed locally by the maintainer after JsonsTemplateFile public API contract tests.
