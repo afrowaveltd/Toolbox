@@ -165,6 +165,12 @@ The report does not include all CLR metadata (for example complete generic const
 
 `WhenItFails.Tests/PublicApi/JsonCatalogDocumentLoaderPublicApiContractTests.cs` adds three focused tests for the public CLR shape, no-DI empty-path response, and pre-cancelled token propagation without filesystem access. Existing `WhenItFails.Tests/Loading/JsonCatalogDocumentLoader*Tests.cs` cover file/JSON behavior; this new group intentionally does not duplicate them. The maintainer confirmed all three focused tests and complete **1244/1244 GREEN** suite. No production source, public visibility or distributed package has changed.
 
+## Auxiliary descriptor models (verification pending)
+
+`ErrorDescriptorRequest` is a public sealed model with eight mutable optional properties: seven `string?` values and nullable `int? Code`. Its C# type and nullability are part of the reviewed public surface; the model does not declare explicit JSON property-name attributes, so no separately versioned request JSON naming convention is promised here.
+
+`ErrorDescriptor<TAttachment>` is a public sealed subclass of `ErrorDescriptor`, with one additional `TAttachment? Attachment` get/set property explicitly marked `[JsonPropertyName("attachment")]`. The inherited `Exception` is marked `[JsonIgnore]` to keep runtime exception objects out of JSON. `WhenItFails.Tests/PublicApi/DescriptorAuxiliaryModelsPublicApiContractTests.cs` snapshots the request's public shape/nullability, generic inheritance/property/attribute shape and a concrete typed JSON serialization case. Constructor defaults and attachment assignment semantics are already covered in dedicated descriptor tests. Local verification of the three new tests is pending; production code is unchanged.
+
 ## Still under review
 
 The initial eight-type public API baseline is covered. The active-context mutability decision, nullable annotations, and the distinction between documented stable contracts and implementation details remain open before 1.0.

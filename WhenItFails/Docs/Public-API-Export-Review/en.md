@@ -82,6 +82,10 @@ The comparer added no library tests: last confirmed complete suite remains **124
 
 `JsonCatalogDocumentLoader` is already exported in 0.1.0 and called by the default typed loader implementations. `JsonCatalogDocumentLoaderPublicApiContractTests` now targets its public parameterless constructor, generic `class`-constrained `LoadFromFileAsync<TDocument>` signature with optional token, direct use without DI, and pre-cancelled token propagation before filesystem access. Detailed I/O and JSON cases are covered elsewhere. The maintainer confirmed three new focused tests and the complete **1244/1244 GREEN** suite; no production API changes were made.
 
+## 8. Auxiliary descriptor model baseline (verification pending)
+
+`ErrorDescriptorRequest` and `ErrorDescriptor<TAttachment>` now have three focused public API tests in `DescriptorAuxiliaryModelsPublicApiContractTests` for request shape/nullability, generic inheritance and explicit `attachment` JSON output with inherited `Exception` ignored. Existing dedicated descriptor tests cover defaults and attachment assignment. No 1.0 JSON naming guarantee is inferred for `ErrorDescriptorRequest`, which has no explicit `JsonPropertyName` attributes. Local test confirmation is pending; production code is unchanged.
+
 ## 3. Release/compatibility decisions still needed
 
 1. The latest maintainer-confirmed full library suite is **1244/1244 GREEN** (the last explicit zero-warning confirmation was at 1241/1241). The independently executed package/source comparer reports matching public-signature census (611/611), not full binary identity.

@@ -259,6 +259,15 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production code changed. **Verified locally by maintainer:** all three focused tests and complete **1244/1244 GREEN** suite after commit `e6b33575ad15065e1df72567133d64a00ede5d48`. The maintainer did not separately report warning count in this checkpoint.
 - Next: audit independently exported `ErrorDescriptorRequest` and `ErrorDescriptor<TAttachment>` CLR/JSON properties and their documented consumer surface, then address active-context mutability.
 
+## 2026-09-25 — auxiliary descriptor public API/JSON baseline (verification pending)
+
+- Added `WhenItFails.Tests/PublicApi/DescriptorAuxiliaryModelsPublicApiContractTests.cs` with three focused tests for public `ErrorDescriptorRequest` and `ErrorDescriptor<TAttachment>`.
+- `ErrorDescriptorRequest` is sealed, publicly constructible, and has eight public get/set optional properties: seven nullable strings and nullable `int? Code`. Its public C# nullability is explicitly tested. It has no explicit `JsonPropertyName` attributes; this does not establish a separate fixed JSON wire naming policy for the request.
+- `ErrorDescriptor<TAttachment>` is sealed, publicly constructible, inherits `ErrorDescriptor`, adds one public get/set generic `TAttachment? Attachment`, and explicitly serializes that member as `"attachment"`. The test checks an integer attachment in serialized JSON while confirming that the inherited runtime-only `Exception` is excluded under its `JsonIgnore` attribute.
+- Existing `WhenItFails.Tests/Descriptors/ErrorDescriptorRequestContractTests.cs` and `ErrorDescriptorOfTContractTests.cs` already cover constructor defaults and assigned reference/value attachments, so those cases are not duplicated.
+- No production source, visibility or package version changed. **Verification pending:** three focused tests and full suite; last confirmed **1244/1244 GREEN**. Expected complete suite if all three pass: **1247/1247 GREEN**.
+- Next: decide and document whether `GetCurrentContext()` is a supported shared-mutable context API or requires a separate snapshot/read-only consumer API, based on existing store and runtime contracts.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1244/1244 GREEN**, confirmed locally by maintainer after standalone JsonCatalogDocumentLoader public API tests. The last explicitly confirmed warning-free build was at 1241/1241.
