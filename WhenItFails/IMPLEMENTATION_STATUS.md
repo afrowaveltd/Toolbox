@@ -654,6 +654,13 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production code, public API, package version or persisted JSON schema changed. English initialization/recovery documentation updated.
 - **Verified locally by maintainer:** focused flexible first-start fallback → explicit project repair test and complete **1463/1463 GREEN** suite. Eight binary smoke scenarios remain previously confirmed PASS; compiler-warning count not separately reported. Next: check that syntactically valid, semantically inconsistent project catalogs are not accepted during partial-workspace re-entry.
 
+## 2026-09-26 — semantically inconsistent existing catalog during partial workspace recovery (verification pending)
+
+- Added `WhenItFails.Tests/Initialization/SemanticallyInvalidPartialWorkspaceRecoveryContractTests.cs` with one default-DI strict-mode integration test. An injected second-template write failure leaves only the first bundled error catalog. The test changes the first error's `codeGroup` to `MISSING_GROUP` using a JSON DOM, keeping JSON syntax and standalone error structure valid.
+- The first strict initialization may create the other four missing project catalogs but must reject the unresolved cross-catalog reference as `UnknownErrorCodeGroup`, preserve the inconsistent existing JSON byte-for-byte, and publish no context or status. After explicit caller repair, retry must skip all five existing files, preserve their bytes, cross-validate successfully, publish a clean `ProjectCatalog` and restore descriptor lookup with no leftover staged `.tmp` files.
+- This is distinct from existing malformed-JSON tests: it probes the **cross-catalog relationship validation** boundary after successful per-file bootstrap. No production code, public API, package version or persisted JSON schema changed. English Bootstrap and Initialization/Recovery documentation updated.
+- **Verification pending:** one new focused test, expected complete suite **1464/1464 GREEN**. Last maintainer-confirmed complete suite **1463/1463 GREEN**, with 8 previously confirmed binary smoke scenarios PASS. Next: run the focused semantic partial-workspace class and complete suite; record observed failures or success before further changes.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1463/1463 GREEN**, confirmed locally by maintainer after flexible-mode partial-workspace built-in fallback and explicit project repair integration (compiler-warning count not separately reported for this checkpoint).
