@@ -294,6 +294,14 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** all tests GREEN, complete suite **1256/1256 GREEN** after commit `bfdf9b0b3d94978e50cf00bfe6e465f92835aaba`. Focused test output and warning count were not separately reported.
 - Next: audit cross-validation result and supporting catalog documents' nested mutability/ownership before defining any additive safe-context API.
 
+## 2026-09-25 — supporting catalog mutation and validation freshness (verification pending)
+
+- Added `WhenItFails.Tests/PublicApi/SupportingCatalogLiveStateBoundaryTests.cs` with three focused tests: (1) a result from `ErrorCatalogCrossValidator` reflects validation-time category relationships and does not revalidate when the category name changes; (2) `ErrorCatalogContext.CrossValidationResult` in the live store shares its mutable issue instances across readers, allowing severity changes to flip `IsValid`; (3) an active profile definition exposes live `IncludeTags`, `DefaultMappings` and `Metadata` reachable from the same shared context reference.
+- Source audit: `ErrorCatalogValidationResult.IsValid` evaluates the *currently stored issue severities* each time, not the current supporting catalog documents. Context and supporting documents remain mutable after publication. These observations are an ownership/freshness hazard baseline, **not** a new immutable/snapshot API or an endorsement of in-place mutation.
+- Updated `WhenItFails/Docs/Public-API-Stability/en.md` and `Docs/Runtime/Public-API.md` to distinguish validation-time findings from later mutable state. No production code, public API signature, package version or JSON schema changed.
+- **Verification pending:** 3 focused tests, expected complete suite **1259/1259 GREEN** if all pass. Last maintainer-confirmed complete suite: **1256/1256 GREEN**; warning count not separately reported.
+- Next: after local verification, continue the pre-1.0 consumer-view design by specifying ownership, nested graph isolation, and a separate additive API without modifying existing `GetCurrentContext()` behavior.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1256/1256 GREEN**, confirmed locally by maintainer after normalized document/index ownership boundary tests. The last explicitly confirmed warning-free build was at 1241/1241.
