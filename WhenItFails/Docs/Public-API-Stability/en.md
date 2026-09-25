@@ -405,7 +405,7 @@ and publication-race tests were included in the maintainer-confirmed
 **1429/1429 GREEN** full suite. See
 [completed full snapshot docs](../Completed-Full-Snapshots/en.md).
 
-## Snapshot nullable reference annotations (verification pending)
+## Snapshot nullable reference annotations (1435/1435 GREEN)
 
 Six focused `SnapshotNullableContractTests` pin the compiled nullable
 metadata of completed observation models, complete/supporting projections,
@@ -414,8 +414,16 @@ recovery fields, and non-nullable reader response envelopes. They explicitly
 distinguish `Response<T>` from its nullable `Data` payload: consumers
 must check success and non-null data. The test addition changes no
 production signature, existing nullable annotation, JSON schema, or published
-package. Expected complete suite: **1435/1435 GREEN**, pending maintainer
-verification. See [snapshot nullable contract notes](../Nullable-Snapshot-Contracts/en.md).
+package. Complete **1435/1435 GREEN** suite confirmed locally by maintainer. See [snapshot nullable contract notes](../Nullable-Snapshot-Contracts/en.md).
+
+## Snapshot capability separation (verification pending)
+
+Four new `SnapshotCapabilityBoundaryContractTests` cover the original
+nine-method runtime interface, five independent optional readers and eight
+additive context/publication extensions. All are real public CLR declarations
+today, but no 1.0 compatibility freeze has been declared. Expected complete
+suite **1439/1439 GREEN**, pending local verification. See
+[capability boundary review](../Pre-1.0-Snapshot-Capability-Boundaries/en.md).
 
 ## Still under review
 

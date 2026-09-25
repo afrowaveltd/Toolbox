@@ -1,6 +1,6 @@
 # Nullable contracts for detached snapshot consumers
 
-Status: **pre-1.0 CLR API review; six focused reflection tests pending local verification**.
+Status: **pre-1.0 CLR API review; six focused reflection tests confirmed in the 1435/1435 GREEN suite**.
 
 ## What the annotations promise
 
@@ -73,5 +73,5 @@ separately documents the existing Essentials `Ok(null)` behavior.
 
 No existing public signature, nullability annotation, serialization
 schema, or published NuGet 0.1.0 package is modified by this checkpoint.
-Last maintainer-confirmed complete suite: **1429/1429 GREEN**.
-Expected next complete suite after the six cases: **1435/1435 GREEN**.
+Maintainer-confirmed complete suite: **1435/1435 GREEN**. Four additional
+optional-capability boundary tests await verification (expected **1439/1439 GREEN**).
