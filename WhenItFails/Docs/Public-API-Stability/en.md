@@ -302,7 +302,7 @@ captured owner snapshot can select a different publication than a completed
 combined snapshot. See [owner catalog snapshots](../Owner-Snapshots/en.md).
 No published package version or persisted catalog JSON schema changed.
 
-## Detached supporting code group catalog (verification pending)
+## Detached supporting code group catalog (1359/1359 GREEN)
 
 Added sealed getter-only `ErrorCodeGroupDefinitionSnapshot` (all ten
 current code-group definition fields), `ErrorCodeGroupCatalogSnapshot`
@@ -316,12 +316,35 @@ rejects a missing code-group catalog and normalizes malformed source
 exceptions without partial snapshot data.
 
 Six focused cases in `ErrorCodeGroupCatalogSnapshotContractTests` and
-expected complete **1359/1359 GREEN** await local verification. The
+the complete **1359/1359 GREEN** suite were confirmed locally by the
+maintainer, with no errors or compiler warnings. The
 original runtime interface and existing combined snapshot types retain
 their public shape; independently obtained code group and other snapshots
 are not one atomic multi-catalog read. See
 [code group snapshot documentation](../Code-Group-Snapshots/en.md).
 The published package version and persisted JSON schemas remain unchanged.
+
+## Detached supporting profile catalog (verification pending)
+
+Added sealed, getter-only `ErrorProfileDefinitionSnapshot` (all 14 public
+profile-definition fields, including all eight independent include/exclude
+filters) and `ErrorProfileCatalogSnapshot` (all 11 profile-catalog fields).
+The additive `GetProfileCatalogSnapshot(this IErrorCatalogRuntime)`
+extension selects the active context once, captures detached profile
+definitions, tag/filter lists, mappings and metadata, and returns
+structured failures on unavailable context, absent profile catalog or
+malformed nested source. Nested collections have independent read-only
+wrappers, mappings preserve their source key comparer and metadata
+remains case-insensitive. Six focused cases in
+`ErrorProfileCatalogSnapshotContractTests` and expected complete
+**1365/1365 GREEN** await local verification.
+
+No existing runtime interface methods or combined snapshot data shapes
+are changed. Owners, code groups and profiles now have independent
+source-level projection implementations, but independently called
+extensions do **not** guarantee they select the same publication.
+See [profile snapshot documentation](../Profile-Snapshots/en.md).
+Published package version and persisted catalog JSON formats are unchanged.
 
 ## Still under review
 
