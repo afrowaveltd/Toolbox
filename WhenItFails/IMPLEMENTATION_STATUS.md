@@ -514,6 +514,13 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - Added English `Docs/Pre-1.0-Snapshot-Capability-Boundaries/en.md`; updated README and public API inventory/stability review.
 - **Verified locally by maintainer:** full **1439/1439 GREEN** after the four capability-boundary tests; compiler warning count was not separately reported. Published NuGet 0.1.0, persistent JSON schemas and production code unchanged. Next: regenerate the current exported-type inventory and compare with 0.1.0 before 1.0 compatibility commitments.
 
+## 2026-09-25 — current compiled API inventory and NuGet comparison (verification pending)
+
+- Added three cases to `WhenItFails.Tests/PublicApi/ExportedAssemblyInventoryTests.cs`: coverage of new optional readers and snapshot families in the exported assembly, internal capture helper non-exposure, and complete deterministic current-type Markdown reporting without hardcoding the obsolete 110-type checkpoint.
+- Extended `Toolroom/WhenItFails/PublicApiComparer/Compare-PublicApi.ps1` to include source/package exported type totals and type-level differences alongside existing member-level differences and the loaded DLL paths/hashes. Both API enumerations use the same case-sensitive sorting; the package consumer still requests exact `[0.1.0]` (feed provenance requires separate verification).
+- Added English `Docs/Current-Public-API-Inventory/en.md` with the local report-generation procedure. Older 110-type/611-member figures are historical, not the current compiled count.
+- **Verification pending:** three new cases, four focused inventory cases, expected full **1442/1442 GREEN**. Last confirmed full suite **1439/1439 GREEN**. Actual current exported-type count and package comparison outcome require running the tests/comparer on a current compiled checkout. No production API or published package changes.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1439/1439 GREEN**, confirmed locally by maintainer after snapshot capability boundary tests (compiler-warning count not separately reported for this checkpoint).
