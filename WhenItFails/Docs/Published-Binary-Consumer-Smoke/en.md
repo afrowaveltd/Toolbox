@@ -69,6 +69,44 @@ This opt-in probe deliberately avoids default project-workspace
 full descriptor serialization. Those paths need separate isolated,
 precompiled-consumer tests before claiming compatibility for them.
 
+## Optional isolated project-workspace initialization probe (pending)
+
+The existing precompiled consumer script also accepts
+`-ExerciseProjectInitialization`; this flag is mutually exclusive
+with `-ExerciseInitialization`. The original consumer is compiled
+**once against the requested exact NuGet [0.1.0]**, runs against the
+package DLL, and is then run **without recompilation** against the
+source-built replacement. Each execution receives a **different,
+previously empty, script-generated temporary directory** as the
+project `JsonsOptions.RootDirectory`. The tool does not initialize
+catalogs in the source checkout or overwrite user project files.
+
+The original `IErrorCatalogRuntime.InitializeAsync(JsonsOptions)`
+method creates and activates the project JSON catalogs; the probe
+checks non-degraded `ProjectCatalog` status, all five expected files,
+and the original `UNKNOWNERROR` descriptor resolved by name, ID
+and numeric code. Calling the same initialization again must succeed
+**without rewriting existing catalog files**: SHA-256 checks cover
+all five files before and after the second initialization. The
+consumer executable and its `.deps.json` and dependency copies
+remain unchanged across the original and substituted DLL runs;
+the script checks actual loaded assembly identity and hashes.
+
+From the Toolbox root, execute these two **single-line** commands:
+
+```powershell
+git pull --ff-only origin master
+& .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseProjectInitialization -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-project-initialization.md')
+```
+
+Expected on success:
+`Binary project initialization smoke: PASS (original package consumer and swapped source DLL).`
+**Local execution pending.** This is not the same as the already
+confirmed explicit bundled-default probe, nor does it test malformed
+JSON recovery, cancellation, or a full ABI/wire-format guarantee.
+An intentional failed initialization should be tested in a separate
+isolated-consumer scenario after this happy path is verified.
+
 ## Observed maintainer execution
 
 On 2026-09-25, the maintainer ran the PowerShell tool against their updated

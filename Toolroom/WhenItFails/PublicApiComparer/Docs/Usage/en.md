@@ -38,3 +38,14 @@ Pass `-ExerciseInitialization` to the existing binary smoke script to compile th
 ```
 
 See [opt-in initialization smoke details](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
+
+
+## Optional isolated project catalog initialization
+
+Use `-ExerciseProjectInitialization` to compile a disposable consumer once against package `[0.1.0]` and run that identical executable with the original package and swapped source DLL. Each run uses its **own empty temporary workspace**, calls `InitializeAsync(JsonsOptions)` twice, verifies five generated catalog files are not rewritten (SHA-256 before/after), and checks a non-degraded project activation and the `UNKNOWNERROR` descriptor by name, ID and code. This flag cannot be combined with `-ExerciseInitialization`. It does not write catalogs to the repository checkout. This extended mode is **pending local execution**; the earlier PASS applies to the bundled-default mode only.
+
+```powershell
+& .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseProjectInitialization -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-project-initialization.md')
+```
+
+See [project workspace smoke details](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
