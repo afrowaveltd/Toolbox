@@ -165,15 +165,23 @@ The report does not include all CLR metadata (for example complete generic const
 
 `WhenItFails.Tests/PublicApi/JsonCatalogDocumentLoaderPublicApiContractTests.cs` adds three focused tests for the public CLR shape, no-DI empty-path response, and pre-cancelled token propagation without filesystem access. Existing `WhenItFails.Tests/Loading/JsonCatalogDocumentLoader*Tests.cs` cover file/JSON behavior; this new group intentionally does not duplicate them. The maintainer confirmed all three focused tests and complete **1244/1244 GREEN** suite. No production source, public visibility or distributed package has changed.
 
-## Auxiliary descriptor models (verification pending)
+## Auxiliary descriptor models (1247/1247 GREEN)
 
 `ErrorDescriptorRequest` is a public sealed model with eight mutable optional properties: seven `string?` values and nullable `int? Code`. Its C# type and nullability are part of the reviewed public surface; the model does not declare explicit JSON property-name attributes, so no separately versioned request JSON naming convention is promised here.
 
-`ErrorDescriptor<TAttachment>` is a public sealed subclass of `ErrorDescriptor`, with one additional `TAttachment? Attachment` get/set property explicitly marked `[JsonPropertyName("attachment")]`. The inherited `Exception` is marked `[JsonIgnore]` to keep runtime exception objects out of JSON. `WhenItFails.Tests/PublicApi/DescriptorAuxiliaryModelsPublicApiContractTests.cs` snapshots the request's public shape/nullability, generic inheritance/property/attribute shape and a concrete typed JSON serialization case. Constructor defaults and attachment assignment semantics are already covered in dedicated descriptor tests. Local verification of the three new tests is pending; production code is unchanged.
+`ErrorDescriptor<TAttachment>` is a public sealed subclass of `ErrorDescriptor`, with one additional `TAttachment? Attachment` get/set property explicitly marked `[JsonPropertyName("attachment")]`. The inherited `Exception` is marked `[JsonIgnore]` to keep runtime exception objects out of JSON. `WhenItFails.Tests/PublicApi/DescriptorAuxiliaryModelsPublicApiContractTests.cs` snapshots the request's public shape/nullability, generic inheritance/property/attribute shape and a concrete typed JSON serialization case. Constructor defaults and attachment assignment semantics are already covered in dedicated descriptor tests. The maintainer confirmed three focused tests and the complete **1247/1247 GREEN** suite after commit `0d1c37e2eb4954ccea9d2ab1a6685ee5589d439a`; production code is unchanged.
+
+## Active context: shared-reference contract (verification pending)
+
+`ErrorCatalogContextStore.Set` atomically publishes the caller-supplied `ErrorCatalogContext` reference; `Current` and `GetCurrent()` return the **same instance**, not a defensive copy. `IErrorCatalogRuntime.GetCurrentContext()` forwards the context returned by the store. Both the publishing caller and anyone holding a returned context can modify its seven mutable properties and the objects reachable through them. Atomic reference replacement does not prevent in-place mutation or guarantee a consistent deep snapshot. A previously returned reference remains bound to the old context after replacement.
+
+`ActiveContextSharedReferenceContractTests` adds three focused tests covering reader mutation visibility, publisher mutation visibility, and replacement without retargeting an earlier reference. These are regression observations of the existing 0.1.0 behavior, not an endorsement of concurrent mutation or a commitment to freeze mutable ownership as the 1.0 design. Local verification of the three tests and full suite is pending; expected complete suite **1250/1250 GREEN** if all pass. No public signatures, production runtime behavior or package version changed.
+
+**Compatibility direction:** preserve the existing `GetCurrentContext(): Response<ErrorCatalogContext>` signature for 0.1.0 consumers. Document the returned object as live and shared and instruct callers not to mutate an active context. If a safe consumer-facing view is needed for 1.0, evaluate an **additive** read-only/deep-snapshot API separately, with explicit ownership and nested collection/definition isolation; do not silently change this method to a shallow copy or claim that an interface typed as `IReadOnlyList<T>` implies deeply immutable items.
 
 ## Still under review
 
-The initial eight-type public API baseline is covered. The active-context mutability decision, nullable annotations, and the distinction between documented stable contracts and implementation details remain open before 1.0.
+The initial eight-type public API baseline is covered. The shape and ownership of any future safe context view, nullable annotations, and the distinction between documented stable contracts and implementation details remain open before 1.0.
 
 No production visibility, names, signatures, or runtime behavior have been changed by this checkpoint.
 
