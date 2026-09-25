@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Xunit.Abstractions;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
+using Afrowave.Toolbox.WhenItFails.Runtime;
 
 namespace Afrowave.Toolbox.WhenItFails.Tests.PublicApi;
 
@@ -49,6 +50,86 @@ public sealed class ExportedAssemblyInventoryTests(ITestOutputHelper output)
         output.WriteLine("Enums: " + types.Count(type => type.IsEnum));
         output.WriteLine("Classes: " + types.Count(type => type.IsClass &&
             !typeof(Delegate).IsAssignableFrom(type)));
+    }
+
+    [Fact]
+    public void CurrentAssembly_ExportsAllNewOptionalObservationAndSnapshotTypes()
+    {
+        Type[] exported = typeof(IErrorCatalogRuntime).Assembly.GetExportedTypes();
+
+        foreach (Type type in new[]
+                 {
+                     typeof(IErrorCatalogRuntimePublicationReader),
+                     typeof(IErrorCatalogRuntimeActivationReader),
+                     typeof(IErrorCatalogRuntimeCombinedObservationReader),
+                     typeof(IErrorCatalogRuntimeSupportingObservationReader),
+                     typeof(IErrorCatalogRuntimeFullObservationReader),
+                     typeof(ErrorCatalogCombinedSnapshot),
+                     typeof(ErrorSupportingCatalogsSnapshot),
+                     typeof(ErrorCatalogPublishedSupportingCatalogsSnapshot),
+                     typeof(ErrorCatalogCompletedSupportingCatalogsSnapshot),
+                     typeof(ErrorCatalogFullSnapshot),
+                     typeof(ErrorCatalogCompletedFullSnapshot),
+                     typeof(ErrorOwnerCatalogSnapshot),
+                     typeof(ErrorCodeGroupCatalogSnapshot),
+                     typeof(ErrorProfileCatalogSnapshot),
+                     typeof(ErrorProfileDefinitionSnapshot),
+                     typeof(ErrorSupportingCatalogsSnapshotExtensions),
+                     typeof(ErrorCatalogPublishedSupportingCatalogsSnapshotExtensions)
+                 })
+        {
+            Assert.Contains(type, exported);
+            Assert.True(type.IsVisible, type.FullName);
+        }
+    }
+
+    [Fact]
+    public void CurrentAssembly_InternalCaptureHelpersAreNotPublicApiEntries()
+    {
+        foreach (Type extension in new[]
+                 {
+                     typeof(ErrorCatalogCombinedSnapshotExtensions),
+                     typeof(ErrorSupportingCatalogsSnapshotExtensions)
+                 })
+        {
+            Assert.Contains(extension.GetMethods(
+                    BindingFlags.NonPublic | BindingFlags.Static |
+                    BindingFlags.DeclaredOnly),
+                method => method.Name == "CaptureFromContext");
+
+            Assert.DoesNotContain(extension.GetMethods(Declared),
+                method => method.Name == "CaptureFromContext");
+        }
+    }
+
+    [Fact]
+    public void CurrentInventory_ListsEveryExportedTypeExactlyOnceInStableOrder()
+    {
+        Assembly assembly = typeof(IErrorCatalogRuntime).Assembly;
+        Type[] types = assembly.GetExportedTypes()
+            .OrderBy(type => type.FullName, StringComparer.Ordinal)
+            .ToArray();
+
+        string report = BuildReport(assembly, types);
+        Assert.Equal(report, BuildReport(assembly, types));
+        Assert.Contains("Exported types: " + types.Length, report);
+
+        int previous = -1;
+        foreach (Type type in types)
+        {
+            string heading = "## " + TypeName(type) + Environment.NewLine;
+            int offset = report.IndexOf(heading, StringComparison.Ordinal);
+            Assert.True(offset > previous,
+                "Missing or out-of-order type heading: " + TypeName(type));
+            Assert.Equal(offset, report.LastIndexOf(heading, StringComparison.Ordinal));
+            previous = offset;
+        }
+
+        Assert.Contains("## " + TypeName(typeof(ErrorCatalogFullSnapshot)) +
+            Environment.NewLine, report);
+        Assert.Contains("## " +
+            TypeName(typeof(IErrorCatalogRuntimeFullObservationReader)) +
+            Environment.NewLine, report);
     }
 
     private static string BuildReport(Assembly assembly, Type[] types)
