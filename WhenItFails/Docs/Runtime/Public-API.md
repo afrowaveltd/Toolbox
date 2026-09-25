@@ -269,6 +269,10 @@ This is **not** a fully atomic current context-and-status snapshot: readers can 
 
 Infrastructure code that must identify **its own successful store write** can use the default store's optional `IErrorCatalogContextPublisher.Publish(context)`. Unlike calling `Set()` followed by a separate `GetCurrentPublication()`, `Publish()` returns the exact record that won the atomic write, even when a competing writer immediately replaces it with the **same** context reference. The original store interface is unchanged. The default initializer and runtime reset/fallback now propagate their exact owned write record to completed-status observation. Legacy/custom initializers without an owned token and previous-context recovery retain weaker reference-based association; this is still not a globally atomic context/status read. See [exact publication ownership](../Publication-Ownership/en.md).
 
+## Previous-context publication selection
+
+During flexible recovery, the default runtime now selects the previous context **and its existing publication identity in one read** when the store supports `IErrorCatalogContextPublicationReader`. This does not republish the context or increment its generation; the completed-status sequence advances independently. A later external publication, even of the same context object, causes the completed-activation reader to report changed publication instead of attributing the new generation to recovery. A legacy or unavailable optional reader preserves the original weaker recovery path. See [previous-context selection](../Recovery-Selection/en.md).
+
 ## Shared-store concurrency boundary
 
 The default activation gate is instance-local. Different runtime instances using the same context store, and direct external calls to `Set`, can publish outside that gate. In particular, same-reference republishes cannot currently be attributed to the original runtime operation by reference comparison alone. See [shared-store concurrency](../Shared-Store-Concurrency/en.md). Neither the completed activation status reader nor separately called snapshot/status methods are a globally atomic transaction.
