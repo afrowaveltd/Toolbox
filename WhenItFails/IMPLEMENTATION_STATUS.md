@@ -190,6 +190,15 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production code changed. **Verified locally by maintainer:** all three focused tests and complete **1228/1228 GREEN** suite after commit `17016cabb03aacccc408f3591fc95f846255230e`.
 - Next: audit `ErrorCatalogValidationResult`, `ErrorCatalogValidationIssue` and `ErrorCatalogValidationSeverity`, then the public template model.
 
+## 2026-09-25 — validation result/issue/severity public API baseline (verification pending)
+
+- Added `WhenItFails.Tests/PublicApi/ValidationModelsPublicApiContractTests.cs` with four focused tests for `ErrorCatalogValidationResult`, `ErrorCatalogValidationIssue`, and `ErrorCatalogValidationSeverity`.
+- Public shape: result exposes getter-only `IReadOnlyList<ErrorCatalogValidationIssue> Issues` and computed getter-only `bool IsValid`; its four public methods are `AddIssue`, `AddError`, `AddWarning`, and `AddInformation`. The three severity-specific methods retain their three optional nullable detail parameters.
+- Issue model exposes six public get/set properties, with nullable `ErrorId`, `ErrorName`, and `Path`. The severity enum has exactly three values: `Information = 0`, `Warning = 1`, and `Error = 2`.
+- Existing `Validation/*Tests.cs` and `Enums/ErrorCatalogValidationSeverityContractTests.cs` already cover defaults, issue insertion, live list view, validity for different severity levels and numeric enum values; the new behavioral test adds recomputation of `IsValid` when a retained issue changes severity after insertion. The result must not be documented as an immutable snapshot.
+- No production code changed. **Verification pending:** four focused tests and full suite; last confirmed **1228/1228 GREEN**. Expected complete total if all four pass: **1232/1232 GREEN**.
+- Next: review `JsonsTemplateFile` public model, then exported assembly surface and concrete implementation stability decisions.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1228/1228 GREEN**, confirmed locally by the maintainer after provider payload public API contract tests.
