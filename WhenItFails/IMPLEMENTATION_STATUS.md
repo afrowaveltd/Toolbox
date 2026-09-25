@@ -445,6 +445,14 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** complete **1353/1353 GREEN** suite after commit `297975a2b3adf08a3c9922664201ec03a5b2d156`. Focused output and compiler warning count were not separately reported.
 - Next: confirm focused/full suite, then separately implement detached code-group and profile catalog views before considering an explicitly versioned full-context snapshot with generation and status semantics.
 
+## 2026-09-25 — detached supporting code group catalog snapshot (verification pending)
+
+- Added `WhenItFails/Runtime/ErrorCodeGroupDefinitionSnapshot.cs` (all **ten** code group definition fields) and `WhenItFails/Runtime/ErrorCodeGroupCatalogSnapshot.cs` (all **11** code group catalog document fields). Both are sealed and getter-only; tags, default categories, code groups, mappings and metadata are copied into independently allocated read-only collections/dictionaries. Mapping keys retain the source comparer and metadata keys remain case-insensitive.
+- Added `WhenItFails/Runtime/ErrorCodeGroupCatalogSnapshotExtensions.cs` with additive `GetCodeGroupCatalogSnapshot(this IErrorCatalogRuntime)`. It selects one context, forwards uninitialized failure without data, rejects missing code group catalog with `WIF_CODE_GROUP_SNAPSHOT_CATALOG_NULL`, and normalizes malformed source with `WIF_CODE_GROUP_SNAPSHOT_FAILED` without exposing exception details or partial data. Cancellation propagates. No existing runtime interface methods or combined snapshot data shape changed.
+- Added `WhenItFails.Tests/PublicApi/ErrorCodeGroupCatalogSnapshotContractTests.cs` with **six** focused tests: deep detachment and read-only nested collections, one context read and replacement isolation, uninitialized response, missing document, malformed nested categories and getter-only/additive public shape. Added English `WhenItFails/Docs/Code-Group-Snapshots/en.md`; updated README, `Docs/Runtime/Public-API.md` and `Docs/Public-API-Stability/en.md`.
+- **Verification pending:** six new focused cases and expected full **1359/1359 GREEN** if all pass; last confirmed full suite **1353/1353 GREEN**. Focused test output and compiler warning count were not separately reported. Published 0.1.0 NuGet package and persistent catalog JSON schemas unchanged.
+- Next: verify focused/full suite. Then implement a separately versioned detached profile catalog projection (including all its nested collections), before discussing any optional full-context view from a single selected publication. No atomic snapshot against external in-place mutation is claimed.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1353/1353 GREEN**, confirmed locally by maintainer after detached owner catalog snapshot tests. The last explicitly confirmed warning-free build was at 1241/1241.
