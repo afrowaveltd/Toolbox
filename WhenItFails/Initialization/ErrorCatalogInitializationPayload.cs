@@ -48,6 +48,14 @@ public sealed class ErrorCatalogInitializationPayload
    internal ErrorCatalogContextPublication? OwnedPublication { get; set; }
 
    /// <summary>
+   /// Gets the exact existing publication selected for a no-write
+   /// previous-context recovery. Unlike OwnedPublication, this record
+   /// was NOT created by the recovery operation itself.
+   /// Internal infrastructure data; not part of the public or JSON payload.
+   /// </summary>
+   internal ErrorCatalogContextPublication? SelectedPublication { get; set; }
+
+   /// <summary>
    /// Gets whether initialization completed with a valid context
    /// but required recovery behavior.
    /// </summary>
