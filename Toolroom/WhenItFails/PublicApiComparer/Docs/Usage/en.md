@@ -60,3 +60,14 @@ After the successful isolated project initialization check, use both `-ExerciseP
 ```
 
 See [previous-context recovery smoke](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
+
+
+## Optional first-start built-in fallback from malformed project JSON
+
+Use the separate `-ExerciseFirstStartFallback` switch. The unchanged consumer, compiled once against NuGet `[0.1.0]`, starts with no active context. In each of two separate private temp workspaces it creates an invalid `errors.en.json` **before its first** `InitializeAsync(JsonsOptions)`, checks the degraded `BuiltInFallback` state and the unchanged malformed file hash, then resolves `UNKNOWNERROR` by name, ID and code. The first execution uses the old package DLL; the second swaps only WhenItFails.dll for the new source build. Do not combine this switch with other optional probe flags. **Local verification pending**; earlier fallback-from-project-failure with a retained previous context is a different, already passing scenario.
+
+```powershell
+& .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseFirstStartFallback -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-first-start-fallback.md')
+```
+
+See [first-start fallback smoke details](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).

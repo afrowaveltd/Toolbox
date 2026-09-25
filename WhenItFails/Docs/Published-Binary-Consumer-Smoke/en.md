@@ -141,6 +141,43 @@ fallback, strict-mode failures, concurrent mutation or arbitrary malformed
 catalog content. No additional xUnit cases or production changes are
 included in this checkpoint.
 
+## Optional first-start malformed-project built-in fallback (pending)
+
+`-ExerciseFirstStartFallback` is a separate, mutually exclusive mode.
+In each of the two isolated temporary workspaces, the disposable
+**original 0.1.0 consumer executable** begins with an uninitialized
+runtime, writes invalid JSON to its temporary `errors.en.json` and
+calls `InitializeAsync(JsonsOptions)` for the first time. Because no
+previously valid context exists, Flexible initialization should
+activate the bundled defaults rather than retain a previous context.
+The test checks the degraded `BuiltInFallback` state, `UsedFallback`,
+a usable active context, and `UNKNOWNERROR` resolution through
+`FromName`, `FromId`, and `FromCode`. The original malformed
+user-managed file must remain byte-for-byte unchanged (content and
+SHA-256) after the fallback.
+
+The consumer is compiled once against requested package `[0.1.0]`,
+then run with the package DLL and again **without recompilation**
+with only the source-built WhenItFails.dll substituted. Each run
+gets a different new temporary root; no existing project files in
+the repository or user's workspace are touched. The script retains
+its executable/DLL hash and actual loaded-assembly checks.
+
+Run each PowerShell command on a separate line:
+
+```powershell
+git pull --ff-only origin master
+& .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseFirstStartFallback -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-first-start-fallback.md')
+```
+
+Expected marker on successful local verification:
+`Binary first-start fallback smoke: PASS (original package consumer and swapped source DLL).`
+
+**Verification pending.** The four previously confirmed PASS results do
+not imply that first-start fallback has already passed. This scenario
+does not test strict-mode rejection, cancellation, validation of
+arbitrary malformed catalog types or exhaustive binary compatibility.
+
 ## Observed maintainer execution
 
 On 2026-09-25, the maintainer ran the PowerShell tool against their updated
