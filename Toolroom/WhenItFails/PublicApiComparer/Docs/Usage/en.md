@@ -26,4 +26,4 @@ The separate `Test-PublishedConsumerBinary.ps1` script builds a .NET 10 consumer
 & .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-binary-smoke.md')
 ```
 
-This script is awaiting local execution and does not add xUnit tests. A PASS is evidence only for the exercised old consumer and its retained dependency graph, not a full ABI/behavior guarantee. Use `-Feed` to select a specific package source, otherwise configured sources/cache are used. See [binary smoke scope and steps](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
+The maintainer reported **PASS on 2026-09-25** for the package-consumer execution and the same executable after source DLL substitution; the script adds no xUnit tests. The observed PASS is evidence only for the exercised old consumer and its retained dependency graph, not a full ABI/behavior guarantee. Use `-Feed` to select a specific package source, otherwise configured sources/cache are used. See [binary smoke scope and steps](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).

@@ -433,9 +433,24 @@ generation without freezing the historical 110-type count. The isolated
 type/member differences for exactly requested package 0.1.0. The maintainer's current comparer excerpt reports **148 source vs. 110
 package types** and **830 vs. 611 API entries**, with **0 package-only
 types/entries** and **38 source-only types / 219 source-only entries**.
-The full inventory test and expected **1442/1442 GREEN** complete suite
-have not yet been confirmed; last confirmed **1439/1439 GREEN**. See
+The maintainer subsequently confirmed the combined inventory and
+legacy-type-contract additions in the complete **1445/1445 GREEN** suite. See
 [current inventory instructions](../Current-Public-API-Inventory/en.md).
+
+## Precompiled NuGet 0.1.0 consumer with source DLL substitution (PASS)
+
+The maintainer executed `Test-PublishedConsumerBinary.ps1` and reported
+`Binary smoke: PASS (original package consumer and swapped source DLL).`
+An executable compiled once against requested package `[0.1.0]` was run
+again without recompilation after replacing only its WhenItFails DLL; the
+script checks assembly loading, executable/DLL hashes and parity on its
+legacy context-store, DI and pre-initialization runtime calls. This
+supports compatibility **for those specific exercised calls only**,
+not exhaustive ABI, JSON, nullable, dependency or runtime behavior
+equivalence. The full report and current run-specific hashes were not
+provided; NuGet origin was not separately established. Complete xUnit
+suite last confirmed: **1445/1445 GREEN**. See
+[binary smoke documentation](../Published-Binary-Consumer-Smoke/en.md).
 
 ## Still under review
 
