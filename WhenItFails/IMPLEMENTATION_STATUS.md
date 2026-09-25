@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-09-25
+Last updated: 2026-09-26
 
 This file is the continuation point for `WhenItFails` development. Git history contains the detailed chronological checkpoints; keep this file focused on the current verified state, established contracts, and next step.
 
@@ -632,7 +632,7 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - First focused run reached **1457/1458 GREEN**. The runtime integration path itself succeeded through project activation; the sole failure was a test expectation mismatch against the established normalized descriptor contract: runtime names are uppercase stable keys (`UNKNOWNERROR`) and IDs normalize separators to underscores (`AFW_GEN_0001`). The test now keeps flexible human-form lookup inputs (`UnknownError`, `AFW-GEN-0001`) but asserts the canonical normalized descriptor outputs.
 - **Verified locally by maintainer:** both focused integration tests and the complete **1458/1458 GREEN** suite after correction of normalized descriptor expectations. Eight binary smoke scenarios remain confirmed PASS; compiler warning count was not separately reported at this checkpoint. Next: verify that re-entering a partial workspace containing a malformed existing project catalog preserves its bytes while strict initialization rejects publication.
 
-## 2026-09-25 — malformed preserved catalog after partial workspace recovery (verification pending)
+## 2026-09-26 — malformed preserved catalog after partial workspace recovery (verification pending)
 
 - Added `WhenItFails.Tests/Initialization/MalformedPartialWorkspaceInitializationContractTests.cs` with **two** strict-mode default-DI integration tests. The first creates a real partial workspace by interrupting the second staged bundled-template write, corrupts the preserved first project catalog and retries via public `IErrorCatalogRuntime`. The second initializes a healthy project context first, then removes four project catalog files and corrupts the preserved first catalog before strict reinitialization.
 - Both cases require the retry to create only the four missing project catalogs, leave malformed existing JSON byte-identical, and leave no staged `.tmp` artifacts. The failed project context must not be published. First-start strict mode must remain without an active context or runtime status. Failed strict reinitialization must retain the exact previous context/status references and working legacy descriptor lookup.
