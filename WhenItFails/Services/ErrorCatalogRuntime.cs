@@ -16,7 +16,7 @@ namespace Afrowave.Toolbox.WhenItFails.Services;
 /// <summary>
 /// Default high-level facade over the complete WhenItFails runtime.
 /// </summary>
-public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRuntimePublicationReader
+public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRuntimePublicationReader, IErrorCatalogRuntimeActivationReader
 {
     private readonly IErrorCatalogInitializer _initializer;
     private readonly WhenItFailsOptions _options;
@@ -26,6 +26,13 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
     private readonly IErrorDescriptorService _descriptorService;
     private readonly IErrorProfileSelectionService _profileSelectionService;
     private ErrorCatalogRuntimeStatus? _currentStatus;
+    private long _activationSequence;
+    private CompletedActivation? _completedActivation;
+
+    private sealed record CompletedActivation(
+        long Sequence,
+        ErrorCatalogContextPublication Publication,
+        ErrorCatalogRuntimeStatus Status);
 
     /// <summary>
     /// Initializes a new instance of the
@@ -196,6 +203,70 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
                 code: "WIF_CONTEXT_PUBLICATION_FAILED",
                 message: "The active context publication could not be read.");
         }
+    }
+
+    /// <inheritdoc />
+    public Response<ErrorCatalogActivationStatusSnapshot> GetCompletedActivation()
+    {
+        if (_contextStore is not IErrorCatalogContextPublicationReader reader)
+        {
+            return Response<ErrorCatalogActivationStatusSnapshot>.NotSupported(
+                data: null,
+                code: "WIF_ACTIVATION_STATUS_NOT_SUPPORTED",
+                message: "The configured context store does not support publication identity.");
+        }
+
+        CompletedActivation? completed =
+            Volatile.Read(ref _completedActivation);
+
+        if (completed is null)
+        {
+            return Response<ErrorCatalogActivationStatusSnapshot>.Invalid(
+                code: "WIF_ACTIVATION_STATUS_UNAVAILABLE",
+                message: "No completed activation status observation is available.");
+        }
+
+        if (!ReferenceEquals(
+            completed.Status,
+            Volatile.Read(ref _currentStatus)))
+        {
+            return Response<ErrorCatalogActivationStatusSnapshot>.Invalid(
+                code: "WIF_ACTIVATION_STATUS_PENDING",
+                message: "The runtime status has changed since the selected activation observation.");
+        }
+
+        Response<ErrorCatalogContextPublication>? publicationResponse;
+
+        try
+        {
+            publicationResponse = reader.GetCurrentPublication();
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<ErrorCatalogActivationStatusSnapshot>.Fail(
+                code: "WIF_ACTIVATION_PUBLICATION_READ_FAILED",
+                message: "The active context publication could not be read.");
+        }
+
+        if (publicationResponse?.IsSuccess != true
+            || !ReferenceEquals(
+                publicationResponse.Data,
+                completed.Publication))
+        {
+            return Response<ErrorCatalogActivationStatusSnapshot>.Invalid(
+                code: "WIF_ACTIVATION_PUBLICATION_CHANGED",
+                message: "The active context publication has changed since the recorded status.");
+        }
+
+        // A separate store writer can still publish immediately after this
+        // check. The observation identifies the selected completed record;
+        // it is not a lock on the active store or its mutable context.
+        return Response<ErrorCatalogActivationStatusSnapshot>.Ok(
+            new ErrorCatalogActivationStatusSnapshot(
+                completed.Publication.StoreId,
+                completed.Publication.Generation,
+                completed.Sequence,
+                completed.Status));
     }
 
     /// <inheritdoc />
@@ -998,9 +1069,38 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
                 + "an internally inconsistent status snapshot.");
         }
 
-        Volatile.Write(
-            ref _currentStatus,
-            status);
+        // The legacy status remains available independently. The optional
+        // completed observation is published only after a matching context
+        // publication has been selected, never by inferring an ID from time.
+        Volatile.Write(ref _completedActivation, null);
+        Volatile.Write(ref _currentStatus, status);
+
+        if (_contextStore is not IErrorCatalogContextPublicationReader reader)
+        {
+            return;
+        }
+
+        try
+        {
+            Response<ErrorCatalogContextPublication>? response =
+                reader.GetCurrentPublication();
+
+            if (response?.IsSuccess == true
+                && response.Data is { } publication
+                && ReferenceEquals(publication.Context, payload.Context))
+            {
+                long sequence = Interlocked.Increment(ref _activationSequence);
+                Volatile.Write(
+                    ref _completedActivation,
+                    new CompletedActivation(sequence, publication, status));
+            }
+        }
+        catch (Exception)
+        {
+            // Optional observation must not change the existing success or
+            // failure contract of initialization, reset, or recovery.
+            // GetCompletedActivation returns a non-success result instead.
+        }
     }
 
 }
