@@ -1,6 +1,6 @@
 # Publication-aware detached supporting catalog snapshots
 
-Status: **additive pre-1.0 CLR API candidate; 15 focused theory-expanded test cases pending local verification**.
+Status: **additive pre-1.0 CLR API candidate; 15 focused theory-expanded cases included in maintainer-confirmed 1392/1392 GREEN suite**.
 
 ## Purpose
 
@@ -88,3 +88,7 @@ ordinary reader exception, exact cancellation, and public API shape.
 
 Full suite expected after local maintainer verification:
 **1392/1392 GREEN**.
+
+The separate [completed supporting snapshot](../Completed-Supporting-Catalog-Snapshots/en.md)
+also pairs these four catalogs with a recorded completed activation status,
+with pre/post publication and status consistency checks.

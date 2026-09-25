@@ -374,6 +374,20 @@ Fifteen theory-expanded focused cases and full suite
 **1392/1392 GREEN** await maintainer verification. See
 [publication-aware supporting snapshots](../Published-Supporting-Catalog-Snapshots/en.md).
 
+## Completed supporting catalog/status observation (verification pending)
+
+The new optional `IErrorCatalogRuntimeSupportingObservationReader`
+exposes `GetCompletedSupportingCatalogsSnapshot()` from the default
+runtime. Its sealed getter-only model returns the selected store
+`StoreId`/`Generation`, runtime-local `ActivationSequence`,
+associated recorded status and four detached supporting catalog
+projections. A second publication read and status/activation check
+reject mismatched observations without mixing generations or status
+from another activation. Existing interfaces and three-part combined
+snapshot data shapes are unchanged. Fifteen theory-expanded cases and
+full-suite **1407/1407 GREEN** await local verification. See
+[completed supporting snapshots](../Completed-Supporting-Catalog-Snapshots/en.md).
+
 ## Still under review
 
 The initial eight-type public API baseline is covered. The shape and ownership of a **complete** safe context view, nullable annotations, and the distinction between documented stable contracts and implementation details remain open before 1.0.

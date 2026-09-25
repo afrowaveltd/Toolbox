@@ -376,6 +376,30 @@ return NotSupported rather than inventing a generation. Existing three-part
 combined projections are unchanged. See
 [publication-aware supporting snapshots](../Published-Supporting-Catalog-Snapshots/en.md).
 
+## Completed activation paired with four supporting catalogs
+
+For a checked observation containing the recorded runtime status,
+actual context publication identity and detached category, owner,
+code-group and profile catalogs, use the optional
+`IErrorCatalogRuntimeSupportingObservationReader` capability:
+
+```csharp
+using Afrowave.Toolbox.WhenItFails.Interfaces;
+
+if (runtime is IErrorCatalogRuntimeSupportingObservationReader reader)
+{
+    Response<ErrorCatalogCompletedSupportingCatalogsSnapshot> completed =
+        reader.GetCompletedSupportingCatalogsSnapshot();
+}
+```
+
+The runtime checks the selected publication and status before and after
+copying. Recovery can advance `ActivationSequence` without changing
+`Generation`. This is not transactional against external context mutation
+or a guarantee the publication remains current after return. The original
+three-part completed/combined snapshot API remains unchanged. See
+[completed supporting snapshots](../Completed-Supporting-Catalog-Snapshots/en.md).
+
 ## Runtime status
 
 Retrieve the active status snapshot through:
