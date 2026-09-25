@@ -499,8 +499,16 @@ through `IErrorCatalogInitializer`; the other resumes through
 `IErrorCatalogRuntime`. After a deterministic second-template interruption,
 the retry must preserve the already published file byte-for-byte, create the
 four missing catalogs, produce a cross-valid project context, and leave no
-staged temporary files. These cases are pending local verification (expected
-complete suite **1458/1458 GREEN**; last confirmed **1456/1456 GREEN**).
+staged temporary files. Both cases were confirmed locally in the
+complete **1458/1458 GREEN** suite.
+
+Subsequent strict-mode contracts verify the inverse boundary: a malformed
+already existing project catalog is not repaired by bootstrap and prevents
+project-context publication (**1460/1460 GREEN** confirmed). Explicitly
+replacing that malformed file with valid content allows initialization to
+succeed on a later attempt without rewriting any of the five now-existing
+catalogs. The two manual-repair follow-up tests are pending local verification
+(expected complete suite **1462/1462 GREEN**).
 
 The complete workspace is validated only after bootstrap finishes.
 
