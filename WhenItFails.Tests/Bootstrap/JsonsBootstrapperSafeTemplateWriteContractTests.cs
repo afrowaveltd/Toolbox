@@ -171,7 +171,7 @@ public sealed class JsonsBootstrapperSafeTemplateWriteContractTests
 
             Assert.False(response.IsSuccess);
             Assert.Equal(
-                ResultStatus.Failure,
+                ResultStatus.Failed,
                 response.Status);
             Assert.Equal(
                 "JsonsWorkspaceInputOutputError",
