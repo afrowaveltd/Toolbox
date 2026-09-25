@@ -1,6 +1,6 @@
 # Context publication identity
 
-Status: **additive store-layer contract; seven focused tests awaiting local verification**.
+Status: **additive store-layer contract; seven focused tests included in maintainer-confirmed 1293/1293 GREEN suite**.
 
 ## What a generation means
 
@@ -87,12 +87,15 @@ publication. A retained-previous-context recovery changes the status
 but not the context generation. Do not infer status identity or
 recovery lifecycle from a generation number alone.
 
-The existing `GetCombinedSnapshot()` currently uses one
-`GetCurrentContext()` read, **not** the optional publication reader,
-and therefore does not yet expose `StoreId` or `Generation`.
-Integration must avoid breaking custom runtime/store implementations
-and must define how to handle the status-update window before
-promising an activation-generation contract.
+The original `GetCombinedSnapshot()` still uses one
+`GetCurrentContext()` read and does not expose publication identity.
+The separate additive [publication-aware combined snapshot](../Published-Snapshots/en.md)
+uses the default runtime's optional publication-reader capability to copy
+three detached projections from **one selected store publication** and
+reports its actual `StoreId` and `Generation`. Custom runtimes and stores
+can opt in; unsupported implementations return NotSupported without
+fabricating an ID. This does **not** solve the status-update window or
+create a synchronized runtime activation/status contract.
 
 ## Thread safety limits
 
