@@ -10,15 +10,32 @@ namespace Afrowave.Toolbox.WhenItFails.Bootstrap;
 public sealed class JsonsBootstrapper : IJsonsBootstrapper
 {
     private readonly IJsonsTemplateProvider _templateProvider;
+    private readonly Func<string, string, CancellationToken, Task> _writeAllTextAsync;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="JsonsBootstrapper"/> class.
     /// </summary>
     /// <param name="templateProvider">JSON template provider.</param>
     public JsonsBootstrapper(IJsonsTemplateProvider templateProvider)
+        : this(
+            templateProvider,
+            static (path, content, cancellationToken) =>
+                File.WriteAllTextAsync(
+                    path,
+                    content,
+                    cancellationToken))
+    {
+    }
+
+    internal JsonsBootstrapper(
+        IJsonsTemplateProvider templateProvider,
+        Func<string, string, CancellationToken, Task> writeAllTextAsync)
     {
         _templateProvider = templateProvider
             ?? throw new ArgumentNullException(nameof(templateProvider));
+
+        _writeAllTextAsync = writeAllTextAsync
+            ?? throw new ArgumentNullException(nameof(writeAllTextAsync));
     }
 
     /// <inheritdoc />
@@ -1109,7 +1126,7 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
         }
     }
 
-    private static async Task<JsonsBootstrapFileResult> EnsureTemplateFileAsync(
+    private async Task<JsonsBootstrapFileResult> EnsureTemplateFileAsync(
         string packageDirectoryPath,
         JsonsTemplateFile templateFile,
         CancellationToken cancellationToken)
@@ -1119,15 +1136,9 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
 
         if (File.Exists(targetFilePath))
         {
-            return new JsonsBootstrapFileResult
-            {
-                Name = templateFile.Name,
-                TargetFilePath = targetFilePath,
-                AlreadyExisted = true,
-                Created = false,
-                Skipped = true,
-                Message = "File already exists and was not overwritten."
-            };
+            return CreateExistingFileResult(
+                templateFile,
+                targetFilePath);
         }
 
         string? targetDirectoryPath =
@@ -1139,20 +1150,102 @@ public sealed class JsonsBootstrapper : IJsonsBootstrapper
             Directory.CreateDirectory(targetDirectoryPath);
         }
 
-        await File.WriteAllTextAsync(
-            targetFilePath,
-            templateFile.Content,
-            cancellationToken);
+        string temporaryFilePath =
+            CreateTemporaryTemplateFilePath(targetFilePath);
 
+        try
+        {
+            await _writeAllTextAsync(
+                temporaryFilePath,
+                templateFile.Content,
+                cancellationToken);
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            try
+            {
+                File.Move(
+                    temporaryFilePath,
+                    targetFilePath,
+                    overwrite: false);
+            }
+            catch (IOException)
+                when (File.Exists(targetFilePath))
+            {
+                return CreateExistingFileResult(
+                    templateFile,
+                    targetFilePath);
+            }
+
+            return new JsonsBootstrapFileResult
+            {
+                Name = templateFile.Name,
+                TargetFilePath = targetFilePath,
+                AlreadyExisted = false,
+                Created = true,
+                Skipped = false,
+                Message = "File was created from template."
+            };
+        }
+        finally
+        {
+            DeleteFileIfExistsBestEffort(
+                temporaryFilePath);
+        }
+    }
+
+    private static JsonsBootstrapFileResult CreateExistingFileResult(
+        JsonsTemplateFile templateFile,
+        string targetFilePath)
+    {
         return new JsonsBootstrapFileResult
         {
             Name = templateFile.Name,
             TargetFilePath = targetFilePath,
-            AlreadyExisted = false,
-            Created = true,
-            Skipped = false,
-            Message = "File was created from template."
+            AlreadyExisted = true,
+            Created = false,
+            Skipped = true,
+            Message = "File already exists and was not overwritten."
         };
+    }
+
+    private static string CreateTemporaryTemplateFilePath(
+        string targetFilePath)
+    {
+        string directoryPath =
+            Path.GetDirectoryName(targetFilePath)
+            ?? string.Empty;
+
+        string fileName =
+            Path.GetFileName(targetFilePath);
+
+        string temporaryFileName =
+            $".{fileName}.{Guid.NewGuid():N}.tmp";
+
+        return Path.Combine(
+            directoryPath,
+            temporaryFileName);
+    }
+
+    private static void DeleteFileIfExistsBestEffort(
+        string? filePath)
+    {
+        if (string.IsNullOrWhiteSpace(filePath))
+        {
+            return;
+        }
+
+        try
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+        catch
+        {
+            // Cleanup must never replace the original bootstrap result or exception.
+        }
     }
 
     private static bool IsPathInsideDirectory(
