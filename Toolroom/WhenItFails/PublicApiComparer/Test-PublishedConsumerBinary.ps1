@@ -2,6 +2,7 @@
 param(
     [string]$Feed,
     [switch]$ExerciseInitialization,
+    [switch]$ExerciseProjectInitialization,
     [string]$ReportPath = (Join-Path ([IO.Path]::GetTempPath()) 'WhenItFails-0.1.0-binary-smoke.md')
 )
 
@@ -60,6 +61,10 @@ Console.WriteLine("LOADED|" + typeof(ErrorCatalogContextStore).Assembly.Location
 Console.WriteLine("RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME");
 '@
 
+if ($ExerciseInitialization -and $ExerciseProjectInitialization) {
+    throw 'Choose only one optional consumer probe at a time.'
+}
+
 # This optional probe is inserted into the very same consumer source BEFORE
 # its one-and-only compilation against the original 0.1.0 package.
 # Explicit reset uses isolated bundled defaults; it does not create or
@@ -113,6 +118,97 @@ foreach (var descriptor in new[] { byName.Data, byId.Data, byCode.Data })
     $expectedResult = 'RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|BUILTIN_DEFAULTS|DESCRIPTOR'
 }
 
+if ($ExerciseProjectInitialization) {
+    $probe = @'
+if (args.Length != 1 || string.IsNullOrWhiteSpace(args[0]))
+    throw new InvalidOperationException("An isolated project workspace root is required.");
+
+var workspaceOptions = new Afrowave.Toolbox.WhenItFails.Configuration.JsonsOptions
+{
+    RootDirectory = args[0]
+};
+var projectCatalogFiles = new[]
+{
+    workspaceOptions.ErrorCatalogFilePath,
+    workspaceOptions.CategoryCatalogFilePath,
+    workspaceOptions.CodeGroupCatalogFilePath,
+    workspaceOptions.OwnerCatalogFilePath,
+    workspaceOptions.ProfilesFilePath
+};
+if (projectCatalogFiles.Any(File.Exists))
+    throw new InvalidOperationException("The isolated project workspace must start empty.");
+
+var initialized = runtime.InitializeAsync(workspaceOptions).GetAwaiter().GetResult();
+if (!initialized.IsSuccess || initialized.Data?.Context is null)
+    throw new InvalidOperationException(
+        "The legacy project catalog initialization failed: " + initialized.Message);
+
+var statusAfterInit = runtime.GetStatus();
+var contextAfterInit = runtime.GetCurrentContext();
+if (!statusAfterInit.IsSuccess || statusAfterInit.Data is null ||
+    statusAfterInit.Data.State !=
+        Afrowave.Toolbox.WhenItFails.Enums.ErrorCatalogRuntimeState.ProjectCatalog ||
+    statusAfterInit.Data.IsDegraded ||
+    !contextAfterInit.IsSuccess || contextAfterInit.Data is null)
+    throw new InvalidOperationException("The isolated project catalog did not activate normally.");
+
+if (projectCatalogFiles.Any(file => !File.Exists(file)))
+    throw new InvalidOperationException("The initializer did not create all five expected project catalog files.");
+
+string[] initialHashes = projectCatalogFiles
+    .Select(file => Convert.ToHexString(
+        System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(file))))
+    .ToArray();
+
+var byName = runtime.FromName("UNKNOWNERROR");
+var byId = runtime.FromId("AFW_GEN_0001");
+var byCode = runtime.FromCode(100001);
+if (!byName.IsSuccess || !byId.IsSuccess || !byCode.IsSuccess ||
+    byName.Data is null || byId.Data is null || byCode.Data is null)
+    throw new InvalidOperationException("Legacy descriptor resolution from project catalogs failed.");
+
+foreach (var descriptor in new[] { byName.Data, byId.Data, byCode.Data })
+{
+    if (descriptor.Id != "AFW_GEN_0001" ||
+        descriptor.Name != "UNKNOWNERROR" ||
+        descriptor.Code != 100001 ||
+        descriptor.Title != "Unknown error" ||
+        descriptor.Message != "An unknown error occurred.")
+        throw new InvalidOperationException(
+            "Legacy project catalog descriptor identity or text changed.");
+}
+
+// A second ordinary initialization must retain existing project files.
+// It may rebuild the in-memory runtime context but must not rewrite the files.
+var repeated = runtime.InitializeAsync(workspaceOptions).GetAwaiter().GetResult();
+if (!repeated.IsSuccess || repeated.Data?.Context is null ||
+    !runtime.GetStatus().IsSuccess ||
+    runtime.GetStatus().Data?.State !=
+        Afrowave.Toolbox.WhenItFails.Enums.ErrorCatalogRuntimeState.ProjectCatalog)
+    throw new InvalidOperationException("Reinitialization of the existing project workspace failed.");
+
+string[] repeatedHashes = projectCatalogFiles
+    .Select(file => Convert.ToHexString(
+        System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(file))))
+    .ToArray();
+if (!initialHashes.SequenceEqual(repeatedHashes, StringComparer.Ordinal))
+    throw new InvalidOperationException("Reinitialization unexpectedly rewrote a project catalog file.");
+'@
+    $insertionMarker = 'Console.WriteLine("LOADED|" + typeof(ErrorCatalogContextStore).Assembly.Location);'
+    if (-not $consumerSource.Contains($insertionMarker)) {
+        throw 'The original consumer output marker is missing.'
+    }
+    $consumerSource = $consumerSource.Replace($insertionMarker,
+        $probe + [Environment]::NewLine + $insertionMarker)
+    $oldResult = 'Console.WriteLine("RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME");'
+    $newResult = 'Console.WriteLine("RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|PROJECT_INITIALIZATION|DESCRIPTOR|NO_FILE_REWRITE");'
+    if (-not $consumerSource.Contains($oldResult)) {
+        throw 'The original consumer result marker is missing.'
+    }
+    $consumerSource = $consumerSource.Replace($oldResult, $newResult)
+    $expectedResult = 'RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|PROJECT_INITIALIZATION|DESCRIPTOR|NO_FILE_REWRITE'
+}
+
 $consumerProject = Join-Path $consumerDir 'Consumer.csproj'
 [IO.File]::WriteAllText($consumerProject, $projectXml,
     [Text.UTF8Encoding]::new($false))
@@ -128,9 +224,9 @@ function Invoke-Dotnet {
 }
 
 function Invoke-Consumer {
-    param([string]$Application, [string]$ExpectedWhenItFailsAssembly)
+    param([string]$Application, [string]$ExpectedWhenItFailsAssembly, [string]$WorkspaceRoot)
 
-    $lines = @(& dotnet $Application)
+    $lines = @(& dotnet $Application $WorkspaceRoot)
     if ($LASTEXITCODE -ne 0) {
         throw "Consumer execution failed (exit $LASTEXITCODE): $Application"
     }
@@ -172,7 +268,8 @@ if (-not (Test-Path -LiteralPath $publishedApplication -PathType Leaf) -or
 
 $publishedHash = (Get-FileHash -LiteralPath $publishedDll -Algorithm SHA256).Hash
 $consumerHash = (Get-FileHash -LiteralPath $publishedApplication -Algorithm SHA256).Hash
-$publishedResult = Invoke-Consumer $publishedApplication $publishedDll
+$publishedWorkspaceRoot = Join-Path $workspace 'ProjectWorkspaceOriginal'
+$publishedResult = Invoke-Consumer $publishedApplication $publishedDll $publishedWorkspaceRoot
 
 # Independently build source DLL, but do not rebuild the package consumer.
 Invoke-Dotnet @('build', $whenItFailsProject, '-c', 'Release')
@@ -198,7 +295,8 @@ if ((Get-FileHash -LiteralPath $swappedApplication -Algorithm SHA256).Hash -ne $
 if ((Get-FileHash -LiteralPath $swappedDll -Algorithm SHA256).Hash -ne $sourceHash) {
     throw 'The swapped WhenItFails DLL does not match the source build.'
 }
-$swappedResult = Invoke-Consumer $swappedApplication $swappedDll
+$swappedWorkspaceRoot = Join-Path $workspace 'ProjectWorkspaceSwapped'
+$swappedResult = Invoke-Consumer $swappedApplication $swappedDll $swappedWorkspaceRoot
 if ($swappedResult -ne $publishedResult) {
     throw 'The package consumer produced different contract results after the DLL swap.'
 }
@@ -212,7 +310,7 @@ $report = @(
     '# WhenItFails 0.1.0 precompiled-consumer binary smoke'
     ''
     'Result: PASS — both executions completed with the same expected legacy contract result.'
-    "Initialization and descriptor probe: $(if ($ExerciseInitialization) { 'enabled (explicit bundled defaults; FromName/FromId/FromCode)' } else { 'disabled (original pre-initialization path)' })"
+    "Consumer probe: $(if ($ExerciseProjectInitialization) { 'project catalogs (isolated workspace; two InitializeAsync calls; five files preserved; descriptor lookup)' } elseif ($ExerciseInitialization) { 'bundled defaults (explicit reset; descriptor lookup)' } else { 'original pre-initialization path' })"
     "Requested package: Afrowave.Toolbox.WhenItFails [0.1.0]"
     "Feed override: $(if ($Feed) { $Feed } else { 'configured NuGet sources/cache; publishing provenance unverified' })"
     "Package consumer executable SHA-256 (unchanged): $consumerHash"
@@ -223,10 +321,10 @@ $report = @(
     "Package run: $publishedResult"
     "Swapped run: $swappedResult"
     ''
-    "Scope: one executable compiled once against package 0.1.0 and run again without rebuilding after replacing only WhenItFails.dll. It exercises original context-store/DI/pre-initialization calls$(if ($ExerciseInitialization) { ', plus explicit bundled-default activation, active status and the stable UNKNOWNERROR descriptor via name, ID and numeric code' } else { '' })."
+    "Scope: an executable compiled only once against requested package 0.1.0 and re-run without rebuilding after replacing only WhenItFails.dll. Legacy store/DI/pre-initialization calls$(if ($ExerciseProjectInitialization) { ', project workspace initialization/reinitialization in two separate temp roots, five catalog-file hashes and UNKNOWNERROR descriptor lookup' } elseif ($ExerciseInitialization) { ', explicit bundled-default activation and UNKNOWNERROR descriptor lookup' } else { '' })."
     'The original .deps.json and other package dependencies remain unchanged. This narrow smoke is not exhaustive ABI, dependency-version, nullable, JSON, project-workspace initialization, recovery or behavioral compatibility testing.'
 )
 $report | Set-Content -LiteralPath $ReportPath -Encoding UTF8
-Write-Host $(if ($ExerciseInitialization) { 'Binary initialization smoke: PASS (original package consumer and swapped source DLL).' } else { 'Binary smoke: PASS (original package consumer and swapped source DLL).' })
+Write-Host $(if ($ExerciseProjectInitialization) { 'Binary project initialization smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseInitialization) { 'Binary initialization smoke: PASS (original package consumer and swapped source DLL).' } else { 'Binary smoke: PASS (original package consumer and swapped source DLL).' })
 Write-Host "Report: $ReportPath"
 Write-Host "Temporary consumers: $workspace"
