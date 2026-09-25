@@ -456,6 +456,12 @@ This makes bootstrap behavior observable without requiring the caller to inspect
 
 Bootstrap processes template files one by one.
 
+A successfully published template is not rolled back if a later template is
+cancelled or fails. The later template's staged temporary file is removed and
+its final target remains absent, while every earlier completed publication
+remains intact. This is deliberate: bootstrap provides safe per-file
+publication, not a transaction spanning the entire workspace.
+
 If some files already exist and others do not, the resulting workspace may contain both preserved and newly created files.
 
 Example:
@@ -584,6 +590,9 @@ Cancellation is checked:
 Cancellation is not converted into an ordinary bootstrap failure response.
 
 It remains cancellation and must not be hidden as recoverable catalog failure.
+If cancellation occurs while a later template is being staged, any earlier
+template already published at its final path remains present; the cancelled
+template is not published and its temporary file is cleaned up.
 
 ## Read-only deployments
 
