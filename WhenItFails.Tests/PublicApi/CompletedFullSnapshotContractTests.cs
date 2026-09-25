@@ -110,6 +110,101 @@ public sealed class CompletedFullSnapshotContractTests
     }
 
     [Fact]
+    public async Task ConsecutiveSuccessfulResets_KeepOldSixPartSnapshotAndAdvanceBothIdentities()
+    {
+        ErrorCatalogContextStore store = new();
+        ErrorCatalogRuntime runtime = CreateRuntime(
+            store, new UnusedInitializer(),
+            new SequencedBuiltInProvider(call => Context(
+                call == 1 ? "FIRST" : "SECOND")));
+
+        Assert.True((await runtime.ResetToDefaultsAsync()).IsSuccess);
+        ErrorCatalogCompletedFullSnapshot first =
+            Assert.IsType<ErrorCatalogCompletedFullSnapshot>(
+                runtime.GetCompletedFullSnapshot().Data);
+
+        Assert.True((await runtime.ResetToDefaultsAsync()).IsSuccess);
+        ErrorCatalogCompletedFullSnapshot second =
+            Assert.IsType<ErrorCatalogCompletedFullSnapshot>(
+                runtime.GetCompletedFullSnapshot().Data);
+
+        Assert.Equal(first.StoreId, second.StoreId);
+        Assert.Equal(first.Generation + 1L, second.Generation);
+        Assert.Equal(first.ActivationSequence + 1L, second.ActivationSequence);
+        Assert.Equal(ErrorCatalogRuntimeState.BuiltInDefaults, first.Status.State);
+        Assert.Equal(ErrorCatalogRuntimeState.BuiltInDefaults, second.Status.State);
+        Assert.NotSame(first.Status, second.Status);
+        Assert.Same(runtime.GetStatus().Data, second.Status);
+
+        Assert.Equal("FIRST-ERROR", Assert.Single(first.Snapshot.Definitions).Id);
+        Assert.Equal("FIRST-CATEGORY",
+            Assert.Single(first.Snapshot.CategoryCatalog.Categories).Name);
+        Assert.Equal("FIRST-OWNER", Assert.Single(first.Snapshot.OwnerCatalog.Owners).Name);
+        Assert.Equal("FIRST-GROUP",
+            Assert.Single(first.Snapshot.CodeGroupCatalog.CodeGroups).Name);
+        Assert.Equal("FIRST-PROFILE",
+            Assert.Single(first.Snapshot.ProfileCatalog.Profiles).Name);
+        Assert.Equal("FIRST-WARNING",
+            Assert.Single(first.Snapshot.Validation.Issues).Code);
+        Assert.Equal("SECOND-ERROR", Assert.Single(second.Snapshot.Definitions).Id);
+        Assert.Equal("SECOND-CATEGORY",
+            Assert.Single(second.Snapshot.CategoryCatalog.Categories).Name);
+        Assert.Equal("SECOND-OWNER",
+            Assert.Single(second.Snapshot.OwnerCatalog.Owners).Name);
+        Assert.Equal("SECOND-GROUP",
+            Assert.Single(second.Snapshot.CodeGroupCatalog.CodeGroups).Name);
+        Assert.Equal("SECOND-PROFILE",
+            Assert.Single(second.Snapshot.ProfileCatalog.Profiles).Name);
+        Assert.Equal("SECOND-WARNING",
+            Assert.Single(second.Snapshot.Validation.Issues).Code);
+    }
+
+    [Fact]
+    public async Task ReplacementBeforeFirstPublicationRead_RejectsStaleStatus()
+    {
+        InterferingStore store = new();
+        ErrorCatalogRuntime runtime = CreateRuntime(
+            store, new UnusedInitializer(), new FixedBuiltInProvider(Context("FIRST")));
+        Assert.True((await runtime.ResetToDefaultsAsync()).IsSuccess);
+        store.OnFirstRead = () => store.Set(Context("SECOND"));
+
+        Response<ErrorCatalogCompletedFullSnapshot> result =
+            runtime.GetCompletedFullSnapshot();
+
+        Assert.Equal(1, store.PublicationReads);
+        Assert.Equal(ResultStatus.Invalid, result.Status);
+        Assert.Null(result.Data);
+        Assert.Contains(result.Issues,
+            issue => issue.Code == "WIF_COMPLETED_FULL_PUBLICATION_CHANGED");
+        Assert.Equal("SECOND-CATEGORY",
+            Assert.Single(store.Current!.CategoryCatalog.Categories).Name);
+    }
+
+    [Fact]
+    public async Task RepublishSameContextDuringCopy_RejectsChangedPublicationRecord()
+    {
+        InterferingStore store = new();
+        ErrorCatalogContext sameContext = Context("SAME");
+        ErrorCatalogRuntime runtime = CreateRuntime(
+            store, new UnusedInitializer(), new FixedBuiltInProvider(sameContext));
+        Assert.True((await runtime.ResetToDefaultsAsync()).IsSuccess);
+        ErrorCatalogContextPublication previous = store.CurrentPublication;
+        store.OnSecondRead = () => store.Set(sameContext);
+
+        Response<ErrorCatalogCompletedFullSnapshot> result =
+            runtime.GetCompletedFullSnapshot();
+
+        Assert.Equal(2, store.PublicationReads);
+        Assert.Equal(ResultStatus.Invalid, result.Status);
+        Assert.Null(result.Data);
+        Assert.Contains(result.Issues,
+            issue => issue.Code == "WIF_COMPLETED_FULL_PUBLICATION_CHANGED");
+        Assert.Same(sameContext, store.Current);
+        Assert.Equal(previous.StoreId, store.CurrentPublication.StoreId);
+        Assert.Equal(previous.Generation + 1L, store.CurrentPublication.Generation);
+    }
+
+    [Fact]
     public async Task RepublishingSameContextReference_RejectsStaleCompletedStatus()
     {
         ErrorCatalogContextStore store = new();
@@ -502,6 +597,20 @@ public sealed class CompletedFullSnapshotContractTests
             Task.FromResult(Response<ErrorCatalogContext>.Ok(context));
     }
 
+    private sealed class SequencedBuiltInProvider(
+        Func<int, ErrorCatalogContext> build) : IBuiltInErrorCatalogContextProvider
+    {
+        private int _calls;
+
+        public Task<Response<ErrorCatalogContext>> LoadAsync(
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult(
+                Response<ErrorCatalogContext>.Ok(build(++_calls)));
+        }
+    }
+
     private sealed class UnusedInitializer : IErrorCatalogInitializer
     {
         public Task<Response<ErrorCatalogInitializationPayload>> InitializeAsync(
@@ -519,6 +628,7 @@ public sealed class CompletedFullSnapshotContractTests
         private readonly ErrorCatalogContextStore _inner = new();
         private int _reads;
 
+        public Action? OnFirstRead { get; set; }
         public Action? OnSecondRead { get; set; }
         public int PublicationReads => _reads;
         public ErrorCatalogContextPublication CurrentPublication =>
@@ -532,7 +642,12 @@ public sealed class CompletedFullSnapshotContractTests
             _inner.Publish(context);
         public Response<ErrorCatalogContextPublication> GetCurrentPublication()
         {
-            if (++_reads == 2)
+            int readNumber = ++_reads;
+            if (readNumber == 1)
+            {
+                OnFirstRead?.Invoke();
+            }
+            else if (readNumber == 2)
             {
                 OnSecondRead?.Invoke();
             }
