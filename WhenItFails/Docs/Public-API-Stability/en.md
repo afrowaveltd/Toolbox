@@ -275,11 +275,31 @@ For flexible no-write previous-context recovery, the default runtime now obtains
 
 Five focused tests in `PreviousContextPublicationSelectionContractTests` cover ordinary no-write recovery, same-reference and different-context replacement at the selection boundary, legacy store behavior and failing optional reader fallback. The maintainer confirmed the full **1341/1341 GREEN** suite. Focused test output and compiler warning count were not separately reported. No existing public interface/signature, public payload JSON shape, published package version or persisted catalog schema changed. See [recovery selection documentation](../Recovery-Selection/en.md). The remaining stronger design task is a coherent combined data/status observation and explicit optional ownership rules for custom initializers.
 
-## Completed combined status and detached catalog view (verification pending)
+## Completed combined status and detached catalog view (1347/1347 GREEN)
 
 Added sealed getter-only `ErrorCatalogCompletedCombinedSnapshot` with `StoreId`, `Generation`, runtime-local `ActivationSequence`, recorded `Status`, and detached `Snapshot`. The default runtime implements optional `IErrorCatalogRuntimeCombinedObservationReader.GetCompletedCombinedSnapshot()` without changing its existing nine-method interface. It selects one previously recorded completed status and **its exact associated context publication**, verifies that record is still current, and derives the three detached catalog projections directly from its context. It then rechecks the current publication and selected status before returning. Different generations or changed status produce structured Invalid responses with no partial data; missing source components preserve the existing combined snapshot errors. The second publication read is a consistency check against the selected record, not a second independent context selection.
 
-Six focused cases in `CompletedCombinedSnapshotContractTests` cover matched default activation and detached data, previous-context recovery retaining generation with a new status sequence, later same-reference republish rejection, a deterministic competing write at the post-copy publication check, missing category failure, and optional/legacy public API compatibility. Expected complete **1347/1347 GREEN** if all pass; local verification pending. No existing public interface methods, package version or persisted catalog JSON schemas changed. The new API is **not an atomic transaction**: writes after the final check and in-place mutations of the selected live context remain possible. See [completed combined snapshot documentation](../Completed-Combined-Snapshots/en.md).
+Six focused cases in `CompletedCombinedSnapshotContractTests` cover matched default activation and detached data, previous-context recovery retaining generation with a new status sequence, later same-reference republish rejection, a deterministic competing write at the post-copy publication check, missing category failure, and optional/legacy public API compatibility. The first focused run stopped with CS7036 because a test helper was missing its required built-in provider argument. The test was corrected without changing production code, and the maintainer subsequently confirmed the complete **1347/1347 GREEN** suite. Focused output and compiler warning count were not separately reported. No existing public interface methods, package version or persisted catalog JSON schemas changed. The new API is **not an atomic transaction**: writes after the final check and in-place mutations of the selected live context remain possible. See [completed combined snapshot documentation](../Completed-Combined-Snapshots/en.md).
+
+## Detached supporting owner catalog (verification pending)
+
+Added `ErrorOwnerDefinitionSnapshot` (all nine owner-definition fields),
+`ErrorOwnerCatalogSnapshot` (all 11 owner-document fields) and the additive
+`GetOwnerCatalogSnapshot(this IErrorCatalogRuntime)` extension. The
+projections are sealed and getter-only, with independent read-only copies of
+owner definitions, aliases, document tags, default mappings and metadata.
+Metadata retains case-insensitive key lookup and mappings retain the source
+dictionary comparer. The extension obtains one active-context response and
+returns structured failures for an unavailable runtime, missing owner catalog,
+or malformed source without partial snapshot data. **Six** focused cases in
+`ErrorOwnerCatalogSnapshotContractTests` and expected complete
+**1353/1353 GREEN** await local verification.
+
+This narrow owner projection does **not** alter either existing combined
+snapshot type or the original nine-method runtime interface. A separately
+captured owner snapshot can select a different publication than a completed
+combined snapshot. See [owner catalog snapshots](../Owner-Snapshots/en.md).
+No published package version or persisted catalog JSON schema changed.
 
 ## Still under review
 
