@@ -1,6 +1,6 @@
 # Exact context publication ownership
 
-Status: **additive store-layer contract; six focused tests await local verification**.
+Status: **additive store-layer contract; six store-level tests included in maintainer-confirmed 1330/1330 GREEN suite; initializer/runtime bridge awaiting verification**.
 
 ## Why a successful write must return its own publication
 
@@ -53,15 +53,26 @@ protects the record, **not** the live mutable context inside it.
 `ErrorCatalogContextPublication.Context` must be treated as read-only
 after publication.
 
-This is a **store-level ownership capability**. It does **not** yet
-prove that the existing `ErrorCatalogInitializer` or
-`ErrorCatalogRuntime` uses that returned record. The initializer
-currently invokes legacy `Set` and returns a payload without an
-owned publication token. The runtime's optional completed-status
-observation still matches a context reference to a subsequently
-retrieved publication. Its same-reference ownership gap therefore
-remains until the exact token is propagated through initialization,
-fallback/reset and previous-context recovery.
+The default `ErrorCatalogInitializer` now uses `Publish` when the
+injected store supports it, retaining the **exact returned record** in an
+internal-only `ErrorCatalogInitializationPayload.OwnedPublication` property.
+The default runtime similarly uses `Publish` for its own explicit reset
+and automatic fallback writes and passes the returned record into
+`RecordStatus`. For these **owned write paths**, `RecordStatus` no longer
+substitutes a later current-publication read with matching context
+reference. If an external writer republishes even the identical context
+before status recording, the subsequent `GetCompletedActivation()` check
+rejects the newer record as `WIF_ACTIVATION_PUBLICATION_CHANGED` rather
+than attributing it to the earlier write. The original status flow and
+initialization result remain unchanged.
+
+The owned-publication property is **internal**, not part of the public
+payload surface, JSON output, or the published 0.1.0 package. For legacy
+stores without `IErrorCatalogContextPublisher`, the initializer and
+runtime still use the original `Set` path. Custom initializers that do
+not report an owned record, and previous-context recovery that does
+not perform a new write, still use a **best-effort** current-publication
+reference match; that path is not strict write ownership.
 
 Custom `IErrorCatalogContextStore` implementations need not implement
 `IErrorCatalogContextPublisher`. A future higher-level ownership-aware
@@ -77,9 +88,7 @@ write-path generation continuity, 64 concurrent writers receiving
 distinct records, null-write preservation, and optional-interface
 compatibility.
 
-After local verification, bridge this record through the **default
-initializer** to its successful payload and through the runtime's own
-fallback/reset write paths. Record the owning write rather than
-inferring it from context-reference equality. Preserve the existing
-public contracts and explicitly define behavior for custom initializers
-that cannot report an owned publication.
+After local verification, separately design a recovery-selection token
+and an optional owned-initializer capability for custom implementations.
+Do not claim globally atomic data/status reads: external writers can
+still replace the store after the identity check.
