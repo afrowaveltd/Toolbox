@@ -29,9 +29,25 @@ cancellation or I/O failure. Initialization is allowed to resume that workspace:
 bootstrap preserves every existing project file, creates only the missing
 catalogs, then the context provider loads and cross-validates the complete
 five-catalog set before publication. A focused default-initializer integration
-case and a public-runtime integration case cover this recovery path; verification
-is pending with an expected complete suite of **1458/1458 GREEN** (last
-confirmed **1456/1456 GREEN**).
+case and a public-runtime integration case cover this recovery path; both
+were confirmed locally in the complete **1458/1458 GREEN** suite.
+
+## Cancellation before context publication
+
+The default initializer checks the caller's cancellation token when entering,
+after an asynchronous bootstrap completes, after an asynchronous context load
+completes, and immediately before writing the new context to the store.
+A dependency can request cancellation and still return a successful task;
+the initializer must not interpret that successful task as permission to
+continue into the next stage or publish a new context.
+
+These checks are cooperative and apply **before** the synchronous publication
+boundary. They are not a rollback promise for cancellation that arrives
+after a store write succeeds. A pair of deterministic contracts cancels
+during otherwise successful dependency completions and checks exact token
+propagation, no downstream loading when bootstrap cancels, and preservation
+of the previous context publication. Verification pending (expected complete
+suite **1467/1467 GREEN**; last confirmed **1465/1465 GREEN**).
 
 ## Initialization modes
 
