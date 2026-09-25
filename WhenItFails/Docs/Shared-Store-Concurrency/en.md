@@ -70,7 +70,7 @@ one coherent multi-view snapshot.
 
 ## Additive store-level ownership capability
 
-The default store implements [`IErrorCatalogContextPublisher.Publish(context)`](../Publication-Ownership/en.md), which returns the exact record created by its successful atomic write. The default initializer and runtime reset/fallback now carry this record into status completion. Other/custom initializer paths and recovery without a new write still require an explicit selection/ownership design.
+The default store implements [`IErrorCatalogContextPublisher.Publish(context)`](../Publication-Ownership/en.md), which returns the exact record created by its successful atomic write. The default initializer and runtime reset/fallback now carry this record into status completion. Custom initializer paths without an owned write token still require an ownership design. Default recovery without a new write now selects the **existing** publication and its context in one read when the optional reader works; legacy/unavailable readers retain weaker association. See [previous-context selection](../Recovery-Selection/en.md).
 
 ## Next design decision
 
@@ -80,9 +80,9 @@ around `ErrorCatalogRuntime`:
 - A store operation that returns the **specific publication record**
   created by the successful write: implemented by the default optional
   publisher and propagated through default owned activation writes.
-- An explicit publication-selection record for flexible previous-context
-  recovery (which does **not** republish) and an opt-in ownership contract
-  for custom initializer paths.
+- The exact existing-publication selection for default flexible recovery:
+  implemented when the optional reader is available, without claiming a
+  new write; define an opt-in ownership contract for custom initializers.
 - A strategy for external `Set` callers and multiple runtime
   instances sharing the store; legacy/custom stores lacking the
   capability must receive a clearly defined weaker result rather
