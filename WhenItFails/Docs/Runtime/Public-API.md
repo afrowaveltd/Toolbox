@@ -401,6 +401,29 @@ or a guarantee the publication remains current after return. The original
 three-part completed/combined snapshot API remains unchanged. See
 [completed supporting snapshots](../Completed-Supporting-Catalog-Snapshots/en.md).
 
+## Completed full operational catalog observation
+
+Use the optional `IErrorCatalogRuntimeFullObservationReader` to capture
+indexed error definitions, all four supporting catalogs, recorded
+cross-validation findings and a matching completed activation status from
+one selected context publication:
+
+```csharp
+using Afrowave.Toolbox.WhenItFails.Interfaces;
+
+if (runtime is IErrorCatalogRuntimeFullObservationReader reader)
+{
+    var completed = reader.GetCompletedFullSnapshot();
+}
+```
+
+The result carries actual `StoreId`, `Generation` and runtime-local
+`ActivationSequence`. The runtime checks publication and recorded status
+before and after copying, but cannot prevent later publication or concurrent
+in-place modification of source documents. The main raw JSON document and
+catalog implementation are not exposed by this operational view.
+See [completed full snapshots](../Completed-Full-Snapshots/en.md).
+
 ## Runtime status
 
 Retrieve the active status snapshot through:

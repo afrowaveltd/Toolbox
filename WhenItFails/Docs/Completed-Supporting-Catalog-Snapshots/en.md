@@ -1,6 +1,6 @@
 # Completed activation with detached supporting catalogs
 
-Status: **additive pre-1.0 CLR API candidate; 15 focused test cases pending maintainer verification**.
+Status: **additive pre-1.0 CLR API candidate; 15 focused cases included in maintainer-confirmed 1407/1407 GREEN suite**.
 
 ## Purpose and usage
 
@@ -103,3 +103,7 @@ and optional public API shape.
 
 Expected full-suite checkpoint after local verification:
 **1407/1407 GREEN**.
+
+The [completed full operational snapshot](../Completed-Full-Snapshots/en.md)
+also includes the main indexed definitions and recorded validation results
+while preserving publication and completed-status consistency checks.

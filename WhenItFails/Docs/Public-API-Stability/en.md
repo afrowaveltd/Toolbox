@@ -388,6 +388,21 @@ snapshot data shapes are unchanged. Fifteen theory-expanded cases and
 full-suite **1407/1407 GREEN** await local verification. See
 [completed supporting snapshots](../Completed-Supporting-Catalog-Snapshots/en.md).
 
+## Completed full operational catalog observation (verification pending)
+
+The additive optional `IErrorCatalogRuntimeFullObservationReader`
+exposes `GetCompletedFullSnapshot()`. Its sealed getter-only
+`ErrorCatalogCompletedFullSnapshot` pairs one selected publication's
+actual store identity and recorded completed status with the detached
+six-part `ErrorCatalogFullSnapshot`. Existing runtime interfaces and
+three-part combined snapshot shapes are unchanged. The source context is
+selected once; the category projection is shared by the combined and
+supporting captures instead of copied twice. This is a checked completed
+activation view, not an atomic context/status transaction or raw JSON
+document clone. Nineteen theory-expanded focused cases and expected
+full suite **1426/1426 GREEN** await local verification. See
+[completed full snapshot docs](../Completed-Full-Snapshots/en.md).
+
 ## Still under review
 
 The initial eight-type public API baseline is covered. The shape and ownership of a **complete** safe context view, nullable annotations, and the distinction between documented stable contracts and implementation details remain open before 1.0.
