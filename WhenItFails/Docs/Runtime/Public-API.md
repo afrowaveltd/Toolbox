@@ -302,6 +302,24 @@ automatically in `GetCombinedSnapshot()` or
 three-part shape. Separately called snapshots can select different
 context generations. See [detached owner catalog snapshots](../Owner-Snapshots/en.md).
 
+## Detached supporting code group catalog
+
+The additive `GetCodeGroupCatalogSnapshot()` extension captures an
+independent read-only view of the active code group catalog, including
+numeric ranges, code prefixes, default categories/tags, mappings and
+metadata:
+
+```csharp
+using Afrowave.Toolbox.WhenItFails.Runtime;
+
+Response<ErrorCodeGroupCatalogSnapshot> codeGroups =
+    runtime.GetCodeGroupCatalogSnapshot();
+```
+
+This method independently selects a context and does not silently extend
+the existing combined snapshot APIs, which retain their existing public
+shape. See [code group snapshots](../Code-Group-Snapshots/en.md).
+
 ## Runtime status
 
 Retrieve the active status snapshot through:
