@@ -283,7 +283,9 @@ When a target catalog file does not exist:
 
 ```text
 missing file
-→ write bundled template
+→ write bundled template to a unique temporary file in the target directory
+→ re-check cancellation
+→ atomically publish by moving the completed temporary file to the target path
 → mark file as Created
 ```
 
@@ -301,6 +303,11 @@ Message: File was created from template.
 The exact template content depends on the package version.
 
 Once created, the project copy is no longer automatically synchronized with future bundled template changes.
+
+A missing target is never written in place. The temporary file is removed in a
+`finally` block when writing, cancellation, or publication fails. Therefore a
+cancelled or failed first write cannot leave a truncated final catalog that a later
+bootstrap would mistake for a valid pre-existing project file.
 
 ## Existing file behavior
 
@@ -571,7 +578,8 @@ Cancellation is checked:
 
 * before workspace processing begins,
 * before each template file is processed,
-* during asynchronous file writing.
+* during asynchronous temporary-file writing,
+* once more after the temporary write and before the file is published at its final path.
 
 Cancellation is not converted into an ordinary bootstrap failure response.
 
@@ -718,7 +726,16 @@ Runtime bootstrap and authoring backup policy should not be confused.
 
 Applications should avoid running multiple independent bootstrap operations against the same new workspace at exactly the same time.
 
-Although existing files are preserved, simultaneous first-run creation may still produce file-system races.
+Missing templates are staged under unique temporary names and published with a
+non-overwriting move. If another bootstrap process creates the final target after
+this instance's initial existence check but before publication, the concurrent file
+wins: it is preserved, the staged temporary file is removed, and this bootstrap
+reports the target as already existing/skipped.
+
+This closes the destructive first-run race for an individual target file. Multiple
+bootstrap operations are still not a workspace-wide transaction: different missing
+catalog files may be created by different processes, so one initialization owner
+remains the recommended architecture.
 
 Recommended startup architecture:
 
