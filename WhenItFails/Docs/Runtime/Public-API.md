@@ -283,6 +283,25 @@ The default runtime implements the optional `IErrorCatalogRuntimeCombinedObserva
 
 This is a **checked observation**, not a transaction against external writes or in-place mutations of the live context. An external writer may publish again immediately after the final check. See [completed combined snapshots](../Completed-Combined-Snapshots/en.md) for scope, errors and consistency limits.
 
+## Detached supporting owner catalog
+
+The additive `GetOwnerCatalogSnapshot()` extension returns a detached,
+getter-only owner catalog view, including owner code ranges, built-in flags,
+aliases, default mappings and metadata:
+
+```csharp
+using Afrowave.Toolbox.WhenItFails.Runtime;
+
+Response<ErrorOwnerCatalogSnapshot> ownerResponse =
+    runtime.GetOwnerCatalogSnapshot();
+```
+
+It obtains its own active-context reference once. It is **not** included
+automatically in `GetCombinedSnapshot()` or
+`GetCompletedCombinedSnapshot()`, which retain their existing public
+three-part shape. Separately called snapshots can select different
+context generations. See [detached owner catalog snapshots](../Owner-Snapshots/en.md).
+
 ## Runtime status
 
 Retrieve the active status snapshot through:
