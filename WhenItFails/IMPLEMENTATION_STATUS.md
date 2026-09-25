@@ -286,17 +286,17 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** complete **1253/1253 GREEN** suite (0 failed, 0 skipped), successful build with no compiler warnings reported after commit `b0d9ceb09180d5ba2e72448648cc70d05f5711bc`; `NETSDK1057` is an informational preview SDK notice. The three new tests are included in the passing complete suite; focused run was not separately reported.
 - Next: examine whether normalized catalog document and `IErrorCatalog` share definition/metadata references before designing any separate safe-context API.
 
-## 2026-09-25 — normalized document/index ownership boundary (verification pending)
+## 2026-09-25 — normalized document/index ownership boundary (1256/1256 GREEN)
 
 - Added `WhenItFails.Tests/PublicApi/NormalizedCatalogReferenceOwnershipTests.cs` with three focused cross-layer tests (normalization -> factory -> lookup): (1) normalized definitions are independent of source identity/title, yet the indexed definition is the normalized document's same object; (2) editing the normalized document/lookup definition is visible through the other reference while name indexes retain their original key; (3) normalized document/definition tag lists are distinct from source lists, but document/definition `MetadataBag` references remain aliased through normalization and catalog construction.
 - Source audit: `ErrorCatalogDocumentNormalizer` allocates a document and invokes `ErrorDefinitionNormalizer` for new definition objects; both normalizers reuse source `MetadataBag` references. `ErrorCatalogFactory`/`ErrorCatalog` copy only the source definition-list membership, not definitions or their metadata. This is a pre-1.0 isolation/ownership baseline, not a requirement to preserve these aliases in a future new safe view.
 - Updated `WhenItFails/Docs/Public-API-Stability/en.md` and `Docs/Runtime/Public-API.md`. No production code, public signatures, NuGet package version or JSON schema changed.
-- **Verification pending:** three new focused tests and expected complete **1256/1256 GREEN** if all pass. Last confirmed full suite: **1253/1253 GREEN**, 0 failed, 0 skipped, successful build with no compiler warnings reported. Preview SDK `NETSDK1057` is informational.
-- Next: confirm focused/full suite, then audit cross-validation result and supporting catalog documents' nested mutability/ownership before defining any additive safe-context API.
+- **Verified locally by maintainer:** all tests GREEN, complete suite **1256/1256 GREEN** after commit `bfdf9b0b3d94978e50cf00bfe6e465f92835aaba`. Focused test output and warning count were not separately reported.
+- Next: audit cross-validation result and supporting catalog documents' nested mutability/ownership before defining any additive safe-context API.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1253/1253 GREEN**, confirmed locally by maintainer after indexed-catalog mutable-definition boundary tests. The last explicitly confirmed warning-free build was at 1241/1241.
+- Complete `WhenItFails.Tests` suite: **1256/1256 GREEN**, confirmed locally by maintainer after normalized document/index ownership boundary tests. The last explicitly confirmed warning-free build was at 1241/1241.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
