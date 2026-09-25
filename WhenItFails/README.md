@@ -62,7 +62,7 @@ The main runtime entry point is:
 IErrorCatalogRuntime
 ```
 
-It provides initialization, current context access, runtime status information, error resolution, and profile selection.
+It provides initialization, current context access, runtime status information, error resolution, and profile selection. `GetCurrentContext()` returns the **live, shared, mutable** context, not an isolated snapshot. Treat that context and its contained catalogs as read-only in application code; use initialization or reset to publish a replacement. See the [runtime API documentation](Docs/Runtime/Public-API.md) for the reference-lifetime and concurrency implications.
 
 ## Initialization
 
