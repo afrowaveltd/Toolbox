@@ -72,3 +72,8 @@ After maintainer-confirmed **1439/1439 GREEN**, the existing compiled-assembly i
 ## 8. Classification of the 38 source-only exported CLR types
 
 The maintainer supplied the complete **38-name source-only type list** from the current package comparer. It comprises **2 store infrastructure interfaces, 5 optional runtime readers, 2 publication/activation infrastructure models, 19 detached catalog/validation/observation models and 10 additive snapshot extension classes**. See [complete classification](../Added-Public-Types-Classification/en.md). This is a provisional usage classification, not a visibility change or guarantee of 1.0 stability. The **219 source-only API entries** are not yet all available, and the current focused inventory and complete **1442/1442 GREEN** confirmation remain pending.
+
+
+## 9. Source-only additions to existing concrete classes
+
+A maintainer-supplied filtered comparer output identifies **14 API census entries on the two original classes**: `ErrorCatalogContextStore` (2 interface entries, 2 methods) and `ErrorCatalogRuntime` (5 interface entries, 5 methods). The other **205 entries** belong to the 38 new exported types; these counts describe census entries, not exclusively methods. The three new `LegacyConcretePublicationExpansionContractTests` protect original constructors and interface surfaces. They and the three previously added exported-inventory tests require local verification (expected full suite **1445/1445 GREEN**, last explicitly confirmed **1439/1439 GREEN**). See [the 14-item inventory](../Original-Type-API-Additions/en.md).

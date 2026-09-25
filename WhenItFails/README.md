@@ -89,6 +89,7 @@ Recovery never overwrites or repairs project JSON files automatically.
 - [Public API inventory and 1.0 decision register](Docs/Public-API-Inventory/en.md)
 - [Current exported API inventory and package comparison](Docs/Current-Public-API-Inventory/en.md)
 - [Classification of 38 additional public types](Docs/Added-Public-Types-Classification/en.md)
+- [Fourteen additions on original public types](Docs/Original-Type-API-Additions/en.md)
 - [Historical compiled API review (110 types at an earlier checkpoint)](Docs/Public-API-Export-Review/en.md)
 - [Published-vs-source public API comparison](../Toolroom/WhenItFails/PublicApiComparer/Docs/Usage/en.md)
 - [Design philosophy](Docs/Philosophy/en.md)

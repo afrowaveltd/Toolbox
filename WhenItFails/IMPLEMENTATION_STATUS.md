@@ -530,6 +530,13 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - The maintainer's comparer census remains **148 source / 110 package types**, **830 source / 611 package API entries**, **0 package-only types/entries**, **38 source-only types**, **219 source-only API entries**. The supplied excerpt shows *all type names* but not all 219 added member entries; do not infer that all added members belong exclusively to new types.
 - **Verification outstanding:** inventory focused **4/4** and complete **1442/1442 GREEN** not yet explicitly confirmed. Last confirmed complete suite **1439/1439 GREEN**. Next: inspect remaining 219-entry member diff and record full inventory test results before considering 1.0 API freeze.
 
+## 2026-09-25 — 14 additive public entries in original concrete classes (verification pending)
+
+- Maintainer supplied the complete source-only **existing-type API diff**: 14 of 219 additional API census entries belong to `ErrorCatalogContextStore` (2 new interface and 2 method entries) and `ErrorCatalogRuntime` (5 new interface and 5 method entries). All remaining **205 entries** belong to the **38 newly exported types**; an API census entry need not be a method.
+- Added English `Docs/Original-Type-API-Additions/en.md`, listing all 14 entries and explicit compatibility boundaries. Existing core interfaces and constructors are preserved; optional publication/observation interfaces are additive. The source/package comparer reports **0 package-only types/entries**, not full ABI or behavior equivalence.
+- Added `WhenItFails.Tests/PublicApi/LegacyConcretePublicationExpansionContractTests.cs` with **3** focused tests of the existing store/runtime constructors, interface surfaces and added optional methods; no production code or public signatures changed.
+- **Verification pending:** prior **3** inventory test additions and **3** new concrete-type contract tests (full suite expected **1445/1445 GREEN**). Last explicitly confirmed full suite **1439/1439 GREEN**. The current complete Markdown inventory and focused test outputs have not been supplied; do not imply 1442/1445 has already passed.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1439/1439 GREEN**, confirmed locally by maintainer after snapshot capability boundary tests (compiler-warning count not separately reported for this checkpoint).

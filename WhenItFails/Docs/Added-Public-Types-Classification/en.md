@@ -72,8 +72,10 @@ Source-only: **38 types, 219 API entries**. Package-only: **0 types, 0 API entri
 
 ## Compatibility boundaries and pending evidence
 
-The absence of package-only types/signatures in this comparer is useful evidence for preserving the inspected public signature census. It is **not** proof of full ABI/source, nullable metadata, serialization, behavior or complete dependency compatibility. The 38 names do **not** alone show whether all 219 added API entries belong only to those types: existing exported types can also gain public members. Inspect the complete member-diff report before assigning all 219 to the new types.
+The absence of package-only types/signatures in this comparer is useful evidence for preserving the inspected public signature census. It is **not** proof of full ABI/source, nullable metadata, serialization, behavior or complete dependency compatibility. The 38 names **do** now have an existing-type API census follow-up: exactly **14** additions are on the two previously exported concrete types and **205** entries are on the 38 new types; see [original-type additions](../Original-Type-API-Additions/en.md).
 
 Do not make these publicly exported types `internal` merely because their intended audience is infrastructure. Any future visibility restriction or 1.0 API freeze requires a separate compatibility and consumer-usage decision. The historic 110-type and 611-entry figures describe the requested 0.1.0 package consumer, not current source.
 
-Remaining verification: confirm the four focused inventory tests and complete **1442/1442 GREEN** suite, then review the entire 219-entry source-only member diff and the current compiled Markdown inventory. The most recent complete suite explicitly confirmed by the maintainer before this report was **1439/1439 GREEN**.
+Remaining verification: confirm the four focused inventory tests and complete **1442/1442 GREEN** suite, then review the current compiled Markdown inventory and package-compatibility evidence. The most recent complete suite explicitly confirmed by the maintainer before this report was **1439/1439 GREEN**.
+
+A later maintainer-supplied filtered API excerpt identifies **all 14** additions to existing concrete types; the remaining **205 census entries** belong to the 38 new exported types. See [original-type API additions](../Original-Type-API-Additions/en.md).
