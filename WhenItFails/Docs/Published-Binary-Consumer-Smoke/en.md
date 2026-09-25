@@ -173,10 +173,43 @@ git pull --ff-only origin master
 Expected marker on successful local verification:
 `Binary first-start fallback smoke: PASS (original package consumer and swapped source DLL).`
 
-**Verification pending.** The four previously confirmed PASS results do
-not imply that first-start fallback has already passed. This scenario
+**Maintainer-confirmed PASS.** Both runs completed the first-start fallback checks. This scenario
 does not test strict-mode rejection, cancellation, validation of
 arbitrary malformed catalog types or exhaustive binary compatibility.
+
+## Optional strict first-start malformed-project rejection (pending)
+
+The separate `-ExerciseStrictFirstStart` mode configures the original
+consumer with `WhenItFailsOptions.InitializationMode = Strict` **before
+its one-and-only compilation against requested package [0.1.0]**.
+The test runs that unchanged binary first against the package DLL and
+then against the source-built WhenItFails DLL swapped into a copy of
+the original output. Each run receives a distinct absent temporary root.
+
+The consumer places intentionally malformed `errors.en.json` in its
+temporary project catalog directory **before first initialization**.
+Unlike Flexible mode, Strict must reject the invalid catalog without
+publishing a context, activating bundled defaults, recording an active
+status or exposing the bundled `UNKNOWNERROR` descriptor through
+`FromName`, `FromId` or `FromCode`. The invalid JSON must remain
+unchanged in content and SHA-256. The script retains its checks of
+the loaded DLL path, executable hash, source DLL hash and result parity.
+
+Run one command per PowerShell paste from Toolbox root:
+
+```powershell
+git pull --ff-only origin master
+& .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseStrictFirstStart -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-strict-first-start.md')
+```
+
+Expected final message:
+`Binary strict first-start smoke: PASS (original package consumer and swapped source DLL).`
+
+**Pending local verification.** Five prior smoke modes are confirmed PASS.
+This path only checks Strict first-start rejection; retaining a previously
+valid context after a strict reinitialization failure is a separate test.
+The experiment does not establish complete binary, behavioral, nullable
+or JSON compatibility.
 
 ## Observed maintainer execution
 
