@@ -661,16 +661,16 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - This is distinct from existing malformed-JSON tests: it probes the **cross-catalog relationship validation** boundary after successful per-file bootstrap. No production code, public API, package version or persisted JSON schema changed. English Bootstrap and Initialization/Recovery documentation updated.
 - **Verified locally by maintainer:** focused semantic cross-catalog partial-workspace contract and complete **1464/1464 GREEN** suite. Eight binary smoke scenarios remain previously confirmed PASS; compiler-warning count not separately reported. Next: verify flexible previous-context recovery when partial-workspace re-entry fails specifically at cross-catalog validation, then clean reactivation after manual repair.
 
-## 2026-09-26 — flexible previous-context recovery after semantic partial-workspace mismatch (verification pending)
+## 2026-09-26 — flexible previous-context recovery after semantic partial-workspace mismatch (1465/1465 GREEN)
 
 - Added `WhenItFails.Tests/Initialization/FlexibleSemanticPartialWorkspaceRecoveryContractTests.cs` with one default-DI integration contract. After successful initial project activation, the first error's `codeGroup` is changed to `MISSING_GROUP` while retaining syntactically valid JSON; the other four catalog files are removed to model a partial workspace.
 - On retry, bootstrap may regenerate those four missing files but must preserve the invalid existing error catalog byte-for-byte. Cross-catalog validation must reject the new project context, and flexible mode must retain the exact previous healthy context as `PreviousContextRecovery`, reporting `UnknownErrorCodeGroup` and an `Invalid` recovery status while keeping descriptor lookup functional.
 - After explicit caller repair, all five catalog files must be skipped and preserved byte-for-byte, a new valid non-degraded `ProjectCatalog` context must be activated, and stale recovery metadata must be cleared. This covers semantic validation with **previous-context** recovery rather than the already verified strict rejection or first-start built-in fallback. No production code, public signature, package version or JSON schema changed.
-- **Verification pending:** one new focused test; expected full suite **1465/1465 GREEN**. Last maintainer-confirmed complete suite **1464/1464 GREEN**; 8 binary smoke scenarios previously confirmed PASS. Next: run the focused flexible semantic partial-workspace class and complete suite, then record actual results before further changes.
+- **Verified locally by maintainer:** focused flexible semantic partial-workspace contract and complete **1465/1465 GREEN** suite. Eight binary smoke scenarios remain previously confirmed PASS; compiler-warning count not separately reported. Next: continue the public API stability review and identify a concrete unpinned contract rather than adding a redundant partial-workspace test.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1464/1464 GREEN**, confirmed locally by maintainer after strict-mode semantic cross-catalog rejection and repaired partial-workspace retry (compiler-warning count not separately reported for this checkpoint).
+- Complete `WhenItFails.Tests` suite: **1465/1465 GREEN**, confirmed locally by maintainer after flexible previous-context recovery from a semantic partial-workspace mismatch and subsequent manual repair (compiler-warning count not separately reported for this checkpoint).
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
