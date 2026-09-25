@@ -246,6 +246,19 @@ The default `ErrorCatalogContextStore` also implements the **optional** `IErrorC
 
 This generation identifies **store publications**, not a synchronized context-plus-runtime-status activation. Normal initialization, reset, fallback and retained-previous-context recovery do not all change the context and status together. `GetCombinedSnapshot()` does not yet expose generation identity. See [context publication identity](../Context-Publication/en.md) for lifecycle and compatibility details.
 
+## Publication-aware combined catalog snapshots
+
+For a detached three-part catalog view with its **actual store publication identity**, use the additive `GetPublishedCombinedSnapshot()` extension:
+
+```csharp
+using Afrowave.Toolbox.WhenItFails.Runtime;
+
+Response<ErrorCatalogPublishedCombinedSnapshot> response =
+    runtime.GetPublishedCombinedSnapshot();
+```
+
+The default runtime implements the optional `IErrorCatalogRuntimePublicationReader`, which reads a single publication from its injected store when that store exposes the optional publication reader. Custom runtimes/stores without this capability return NotSupported instead of fabricated generations. `StoreId` and `Generation` identify the **selected store publication**, not an atomic pairing with runtime status. The original `GetCombinedSnapshot()` remains unchanged. See [publication-aware snapshot documentation](../Published-Snapshots/en.md).
+
 ## Runtime status
 
 Retrieve the active status snapshot through:
