@@ -65,10 +65,16 @@ returns `WIF_ACTIVATION_STATUS_PENDING` or
 store without the optional publication reader returns NotSupported
 with `WIF_ACTIVATION_STATUS_NOT_SUPPORTED` rather than a synthetic ID.
 
-The optional observation is deliberately **best effort**, and any
-failure of its private capture must not change the established
-initialization/reset/recovery result or existing `GetStatus()`
-behavior. A context publication performed externally without a
+The optional observation remains **best effort** overall. For writes made
+by the default initializer and the default runtime's reset/fallback paths,
+it now uses the exact record returned by the optional store publisher;
+`RecordStatus` does not infer those write identities from a later
+current-publication read. This closes the same-reference republish
+misattribution for those owned write paths. Custom/legacy initializers
+without an owned token and no-write previous-context recovery still use
+a weaker reference-based association. Any failure of the optional
+observation must not change the established initialization/reset/recovery
+result or existing `GetStatus()` behavior. A context publication performed externally without a
 corresponding runtime status completion invalidates the previously
 recorded observation (even if the same mutable context reference is
 re-published). Successful project initialization and reset/fallback
@@ -97,7 +103,7 @@ sharing a store are not serialized by this gate.
 
 ## Shared-store publication ownership boundary
 
-The instance-local activation gate does **not** serialize operations on other default runtime instances or direct writes to their common store. Two runtimes can retain different local status observations for the same store generation (for example, project activation and previous-context recovery). More importantly, an external write that republishes the **same context instance** after another operation's `Set` can still pass the current reference-equality check: the reference does not identify which actor owns the new generation. This strict identity gap remains unresolved. See [shared-store concurrency and ownership](../Shared-Store-Concurrency/en.md) for the five regression scenarios and publication-owner design requirements.
+The instance-local activation gate does **not** serialize operations on other default runtime instances or direct writes to their common store. Two runtimes can retain different local status observations for the same store generation (for example, project activation and previous-context recovery). The default initializer/reset/fallback now propagate their exact owned publication records, so a later same-reference republish no longer steals *those* completion identities. Custom initializers without an owned publication token and previous-context recovery still cannot prove strict write/selection ownership using object reference equality alone. See [shared-store concurrency and ownership](../Shared-Store-Concurrency/en.md) for the remaining boundaries.
 
 ## Consistency limits
 
