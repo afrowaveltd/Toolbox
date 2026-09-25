@@ -156,6 +156,24 @@ Explicit reset changes only the active runtime context.
 
 Project-local files remain unchanged.
 
+## Activation serialization
+
+The default `ErrorCatalogRuntime` serializes `InitializeAsync` (both overloads)
+and `ResetToDefaultsAsync` with one instance-local asynchronous gate. A queued
+activation waits until the preceding operation completes, fails or is
+cancelled; cancelling a queued request prevents that request from invoking
+its initializer or built-in provider. The gate is released in `finally`,
+including when cancellation propagates. The gate is not reentrant: do not
+invoke an awaited activation recursively from its initializer or provider.
+
+The gate does **not** block ordinary readers, direct external store writes,
+or operations on other runtime instances that share the same store. It does
+not make context publication and runtime status one atomic write: the context
+can still be observed after `Set` and before its status is recorded. See
+[completed activation status observations](../Activation-Status/en.md) for
+the distinct runtime-local status sequence, publication generation and
+remaining consistency limits.
+
 ## Runtime status
 
 The active runtime status is available through:
