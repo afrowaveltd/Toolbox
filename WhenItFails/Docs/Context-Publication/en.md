@@ -133,6 +133,10 @@ calls to `Set` by other code can also publish a context without any
 runtime status event. Any stronger API must define publication ownership,
 the status association, and the behavior of custom context stores.
 
+## Completed status observations
+
+The additive [completed activation status observation](../Activation-Status/en.md) records a selected context publication alongside one finished runtime status update. It uses a separate runtime-local sequence because previous-context recovery updates status without changing the store generation. The reader rejects a publication that no longer matches the recorded status event. This is **not** the final atomic activation protocol: external store writers and concurrent initializations can change the live publication independently, and a separately acquired combined snapshot/status is not automatically paired.
+
 ## Thread safety limits
 
 Atomic publication protects the **record** (context reference plus
