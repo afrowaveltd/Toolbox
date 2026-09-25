@@ -105,6 +105,7 @@ Recovery never overwrites or repairs project JSON files automatically.
 - [Context publication identity (infrastructure)](Docs/Context-Publication/en.md)
 - [Publication-aware combined snapshots](Docs/Published-Snapshots/en.md)
 - [Completed runtime activation status observations](Docs/Activation-Status/en.md)
+- [Shared-store concurrency and publication ownership](Docs/Shared-Store-Concurrency/en.md)
 - [Initialization and recovery](Docs/Runtime/Initialization-and-Recovery.md)
 - [Troubleshooting](Docs/Troubleshooting/en.md)
 
