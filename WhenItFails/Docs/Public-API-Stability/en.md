@@ -137,11 +137,11 @@ The main `ErrorCatalogProviderPayload` has three publicly mutable properties: `C
 
 `WhenItFails.Tests/PublicApi/CatalogProviderPayloadPublicApiContractTests.cs` checks the exact property/accessor shape, non-nullable annotations, the present `null!` constructor state and reference-preserving assignment of document/validation fields. Non-nullable annotations do not make an empty, manually constructed payload valid; consumers should use the populated payload returned by a successful provider. The payload models currently do not declare explicit JSON property-name attributes, so this group is a CLR API baseline rather than a separate JSON wire-schema commitment. The maintainer confirmed all three focused tests and complete 1228/1228 suite GREEN; production code is unchanged.
 
-## Catalog validation result/issue/severity models (verification pending)
+## Catalog validation result/issue/severity models (1232/1232 GREEN)
 
 `ErrorCatalogValidationResult` exposes getter-only `Issues: IReadOnlyList<ErrorCatalogValidationIssue>` and computed `IsValid: bool`, plus `AddIssue`, `AddError`, `AddWarning`, and `AddInformation`. The severity-specific helper methods each accept a code, message and three optional nullable details. `ErrorCatalogValidationIssue` has six get/set properties; `ErrorId`, `ErrorName`, and `Path` are annotated nullable. The `ErrorCatalogValidationSeverity` enum currently has exactly `Information = 0`, `Warning = 1`, `Error = 2`.
 
-`WhenItFails.Tests/PublicApi/ValidationModelsPublicApiContractTests.cs` checks public CLR shape and nullability, exact enum values and recomputation of validity when an existing issue's severity changes. Existing tests already cover insertion, defaults, standard validity cases and the live issue-list view. Although `Issues` is exposed as an `IReadOnlyList`, its existing contents are mutable and `IsValid` is calculated from their current severity. **Do not treat validation results as immutable snapshots**. These tests await maintainer verification; production code is unchanged.
+`WhenItFails.Tests/PublicApi/ValidationModelsPublicApiContractTests.cs` checks public CLR shape and nullability, exact enum values and recomputation of validity when an existing issue's severity changes. Existing tests already cover insertion, defaults, standard validity cases and the live issue-list view. Although `Issues` is exposed as an `IReadOnlyList`, its existing contents are mutable and `IsValid` is calculated from their current severity. **Do not treat validation results as immutable snapshots**. The maintainer confirmed all four focused tests and complete 1232/1232 suite GREEN; production code is unchanged.
 
 ## Still under review
 
