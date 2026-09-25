@@ -385,6 +385,7 @@ code-group and profile catalogs, use the optional
 
 ```csharp
 using Afrowave.Toolbox.WhenItFails.Interfaces;
+using Afrowave.Toolbox.WhenItFails.Runtime;
 
 if (runtime is IErrorCatalogRuntimeSupportingObservationReader reader)
 {
