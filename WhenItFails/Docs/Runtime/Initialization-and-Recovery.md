@@ -72,8 +72,18 @@ valid bytes and retries initialization. The runtime must then publish a
 non-degraded project context, preserve all five project catalogs byte-for-byte
 and report every file as already existing/skipped. First-start recovery and
 successful reinitialization following a retained healthy context are tested
-separately. These tests are pending local verification (expected complete suite
-**1462/1462 GREEN**; last confirmed **1460/1460 GREEN**).
+separately. Both tests were confirmed locally in the complete
+**1462/1462 GREEN** suite.
+
+An additional default-DI integration contract now exercises the flexible-mode
+transition after an interrupted project bootstrap: malformed existing JSON
+leads to a degraded `BuiltInFallback` on first start without replacing the
+project file. After the caller restores valid project JSON and retries,
+runtime must publish a fresh, non-degraded `ProjectCatalog` context,
+clear all recorded recovery metadata, report every existing project file
+as skipped, preserve all five files byte-for-byte, and leave no staged
+temporary artifacts. The new focused test is pending local verification
+(expected complete suite **1463/1463 GREEN**, last confirmed **1462/1462 GREEN**).
 
 ## Strict mode
 
