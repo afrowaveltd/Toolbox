@@ -211,7 +211,7 @@ valid context after a strict reinitialization failure is a separate test.
 The experiment does not establish complete binary, behavioral, nullable
 or JSON compatibility.
 
-## Optional Strict reinitialization failure with an active project context (pending)
+## Optional Strict reinitialization failure with an active project context (PASS confirmed)
 
 `-ExerciseStrictReinitialization` is a separate, mutually exclusive
 mode. The original consumer is configured with
@@ -243,9 +243,7 @@ git pull --ff-only origin master
 Expected completion marker:
 `Binary strict reinitialization smoke: PASS (original package consumer and swapped source DLL).`
 
-**Local verification pending.** The prior six modes are confirmed PASS;
-this additional probe is not a complete ABI, JSON/wire-format,
-concurrency or recovery compatibility guarantee.
+**Maintainer-confirmed PASS:** both the original package consumer and unchanged consumer with the source DLL completed the strict reinitialization checks. Seven smoke scenarios now have confirmed PASS. This is not a complete ABI, JSON/wire-format, concurrency or recovery compatibility guarantee.
 
 ## Observed maintainer execution
 
