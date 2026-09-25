@@ -201,6 +201,19 @@ Response<IReadOnlyList<ErrorDefinitionSnapshot>> snapshotResponse =
 
 Each snapshot owns separate read-only copies of the definition's categories, subcategories, tags and metadata, as well as its captured scalar fields. This is **not** a complete deep snapshot of the active context: supporting catalogs, cross-validation results and runtime status are not included. Do not mutate the published context during capture. See [detached definition snapshots](../Definition-Snapshots/en.md) for ownership, failure handling and consistency limitations.
 
+## Detached cross-validation findings
+
+For a read-only copy of the active context's **recorded validation issues**, use the additive runtime extension:
+
+```csharp
+using Afrowave.Toolbox.WhenItFails.Runtime;
+
+Response<ErrorCatalogValidationSnapshot> validationResponse =
+    runtime.GetCrossValidationSnapshot();
+```
+
+Each issue is captured in a new getter-only projection, and `IsValid` is calculated from captured severities rather than from a live validation result. This does **not** revalidate supporting catalogs, guarantee a transactional capture during in-place mutation or synchronize with a separate call to `GetErrorDefinitionSnapshots()`. See [detached validation snapshots](../Validation-Snapshots/en.md) for the scope and limitations.
+
 ## Runtime status
 
 Retrieve the active status snapshot through:
