@@ -241,6 +241,15 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production code or tests changed. Last maintainer-confirmed full suite **1241/1241 GREEN with zero warnings**. Reflection comparison is not a full ABI, nullable-reference, JSON or behavior guarantee.
 - Next: run the comparison against the actual published package and review its report before changing any public visibility.
 
+## 2026-09-25 — source-built versus NuGet-resolved 0.1.0 API comparison (611/611 signatures matched)
+
+- Maintainer ran `Toolroom/WhenItFails/PublicApiComparer/Compare-PublicApi.ps1` on Windows, with successful restores, Release builds and both isolated consumer executions. The generated Markdown report compares **611 current-source** and **611 package-consumer** API entries: **0 package-only** and **0 source-only**.
+- The exact `[0.1.0]` PackageReference was requested. No `-Feed` override was supplied; the report says “configured sources and cache; check provenance”. It establishes **API-census equality for the two DLLs that actually loaded**, not origin from nuget.org.
+- Source DLL SHA-256: `587AED89A427E184CEB465073201EB7CE986AE2219C964ACFFBF1C349EAE05EF`. Package-consumer DLL SHA-256: `379F7CF6FF99223ECF2F388AB6295A34D97F33A8BD8EB7F9A52152994347CE28`. The bytes differ despite matched reflected signatures; do not claim byte identity, exact binary equivalence, full ABI, nullable-annotation, JSON or runtime compatibility.
+- Both consumers built successfully; their build output included informational `NETSDK1057` (preview SDK), not compiler warnings. No new complete `WhenItFails.Tests` suite was run in this step: the last confirmed test baseline remains **1241/1241 GREEN, zero warnings**.
+- Source report contains local temporary user paths; record only hashes, counts and provenances in repository documentation. No production code, published package or API visibility changed.
+- Next: narrowly baseline `JsonCatalogDocumentLoader` as a standalone public utility (signature and no-DI invalid-path/cancellation entry points), then examine auxiliary descriptor models and context mutability/versioning policy.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1241/1241 GREEN**, locally confirmed by maintainer after Setter utility xUnit2031 warning fix; build with zero warnings.

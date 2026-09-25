@@ -70,10 +70,18 @@ The `SetterUtilityPublicApiContractTests` group contains five focused tests for 
 
 [PublicApiComparer](../../Toolroom/WhenItFails/PublicApiComparer/Docs/Usage/en.md) builds independent temporary consumers against the current project and the exact published NuGet `[0.1.0]` package. Separate reflection inspections record actual DLL paths, SHA-256 hashes and public signature differences. Real feed provenance and the comparison result remain pending; no production API has changed.
 
+## 6. Actual package-consumer comparison (611 vs 611 entries)
+
+The maintainer ran the isolated comparison on 2026-09-25. Both temporary consumers restored and built successfully. The report shows **611 public API entries on each side, zero package-only entries and zero source-only entries**. The package consumer requested exact `[0.1.0]`; no `-Feed` override was used, so the result reflects an artifact resolved from configured sources/cache, with original publication provenance unverified.
+
+The compared DLL SHA-256 digests differ: source-built `587AED89A427E184CEB465073201EB7CE986AE2219C964ACFFBF1C349EAE05EF`, package-consumer `379F7CF6FF99223ECF2F388AB6295A34D97F33A8BD8EB7F9A52152994347CE28`. This establishes matching signatures **within the comparer’s reflected census**, not identical binary content, complete ABI compatibility, nullability/JSON equivalence or identical runtime behavior. The temporary user-specific paths from the report are intentionally not copied into repository documentation.
+
+The comparer added no library tests: last confirmed complete suite remains **1241/1241 GREEN with zero warnings**. Both consumer builds succeeded; the displayed `NETSDK1057` lines are informational preview-SDK notices.
+
 ## 3. Release/compatibility decisions still needed
 
-1. The maintainer has confirmed complete **1236/1236 GREEN** after the inventory test. Keep this verification separate from report generation and the still-pending external NuGet binary comparison.
-2. Compare the source-built assembly inventory with an **externally restored, actual NuGet 0.1.0** binary. Assembly version `0.1.0.0` does not establish byte identity with the published package.
+1. The latest maintainer-confirmed full library suite is **1241/1241 GREEN with zero warnings**. The independently executed package/source comparer reports matching public-signature census (611/611), not full binary identity.
+2. Confirm **publishing-feed provenance** if a claim specifically requires nuget.org origin: the successful package restore used configured sources/cache. Keep this separate from the 611/611 API match.
 3. Define the supported scope for the standalone writer/documentation utilities (and their external and Toolroom consumers) before the next public-constructor baseline. Do not bulk-test all exported constructors as if they were all promised stable.
 4. Decide mutable active-context exposure and public JSON schema/version guarantees.
 5. Document stable consumer contracts, supported extension points and public implementation details separately, then create selected cross-version API regression checks. Avoid an indiscriminate `110`-type count assertion, since deliberate nonbreaking additions should remain possible.

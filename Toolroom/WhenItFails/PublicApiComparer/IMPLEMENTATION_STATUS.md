@@ -7,4 +7,4 @@ Last updated: 2026-09-25
 - Writes Markdown comparison containing both loaded DLL paths, SHA-256 hashes, public signature census and published-only/source-only differences. This is not a complete ABI, nullability, JSON or runtime-compatibility checker.
 - No production code, public visibility or package version changed.
 
-Verification pending: run script on a .NET 10 machine with access to the actual published 0.1.0 feed, review report and update this status together with WhenItFails/IMPLEMENTATION_STATUS.md. Last confirmed library suite: **1241/1241 GREEN, zero warnings**.
+Verification: maintainer successfully ran both independent .NET 10 consumers and obtained a report on 2026-09-25: **611 source API entries, 611 package-consumer entries, 0 missing and 0 added**. The DLL hashes differ, so byte identity is not established. Package reference was pinned to [0.1.0], but configured sources/cache were used without an explicit feed override; original publishing-feed provenance remains unverified. Last confirmed library suite: **1241/1241 GREEN, zero warnings**.
