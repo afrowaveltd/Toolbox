@@ -16,7 +16,7 @@ namespace Afrowave.Toolbox.WhenItFails.Services;
 /// <summary>
 /// Default high-level facade over the complete WhenItFails runtime.
 /// </summary>
-public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRuntimePublicationReader, IErrorCatalogRuntimeActivationReader
+public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRuntimePublicationReader, IErrorCatalogRuntimeActivationReader, IErrorCatalogRuntimeCombinedObservationReader
 {
     private readonly IErrorCatalogInitializer _initializer;
     private readonly WhenItFailsOptions _options;
@@ -285,6 +285,101 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
                 completed.Publication.Generation,
                 completed.Sequence,
                 completed.Status));
+    }
+
+    /// <inheritdoc />
+    public Response<ErrorCatalogCompletedCombinedSnapshot>
+        GetCompletedCombinedSnapshot()
+    {
+        if (_contextStore is not IErrorCatalogContextPublicationReader reader)
+        {
+            return Response<ErrorCatalogCompletedCombinedSnapshot>.NotSupported(
+                data: null,
+                code: "WIF_COMPLETED_COMBINED_NOT_SUPPORTED",
+                message: "The context store does not support publication identity.");
+        }
+
+        // Select a completed status and its exact associated publication
+        // record once. Do not independently select a later active context.
+        CompletedActivation? selected = Volatile.Read(ref _completedActivation);
+
+        if (selected is null)
+        {
+            return Response<ErrorCatalogCompletedCombinedSnapshot>.Invalid(
+                code: "WIF_COMPLETED_COMBINED_UNAVAILABLE",
+                message: "No completed catalog and status observation is available.");
+        }
+
+        if (!ReferenceEquals(selected.Status, Volatile.Read(ref _currentStatus)))
+        {
+            return Response<ErrorCatalogCompletedCombinedSnapshot>.Invalid(
+                code: "WIF_COMPLETED_COMBINED_STATUS_CHANGED",
+                message: "The recorded runtime status has changed.");
+        }
+
+        try
+        {
+            Response<ErrorCatalogContextPublication>? before =
+                reader.GetCurrentPublication();
+
+            if (before is not { IsSuccess: true, Data: { } current }
+                || !ReferenceEquals(current, selected.Publication))
+            {
+                return Response<ErrorCatalogCompletedCombinedSnapshot>.Invalid(
+                    code: "WIF_COMPLETED_COMBINED_PUBLICATION_CHANGED",
+                    message: "The selected context publication is no longer current.");
+            }
+
+            Response<ErrorCatalogCombinedSnapshot> capture =
+                ErrorCatalogCombinedSnapshotExtensions.CaptureFromContext(
+                    selected.Publication.Context);
+
+            if (!capture.IsSuccess || capture.Data is null)
+            {
+                return new Response<ErrorCatalogCompletedCombinedSnapshot>
+                {
+                    Status = capture.Status,
+                    Message = capture.Message,
+                    Issues = capture.Issues,
+                    Metadata = capture.Metadata
+                };
+            }
+
+            // A second read is a consistency check against the SAME selected
+            // record, not an independent selection of a new catalog.
+            Response<ErrorCatalogContextPublication>? after =
+                reader.GetCurrentPublication();
+
+            if (after is not { IsSuccess: true, Data: { } latest }
+                || !ReferenceEquals(latest, selected.Publication))
+            {
+                return Response<ErrorCatalogCompletedCombinedSnapshot>.Invalid(
+                    code: "WIF_COMPLETED_COMBINED_PUBLICATION_CHANGED",
+                    message: "The context publication changed during capture.");
+            }
+
+            if (!ReferenceEquals(selected, Volatile.Read(ref _completedActivation))
+                || !ReferenceEquals(selected.Status, Volatile.Read(ref _currentStatus)))
+            {
+                return Response<ErrorCatalogCompletedCombinedSnapshot>.Invalid(
+                    code: "WIF_COMPLETED_COMBINED_STATUS_CHANGED",
+                    message: "The runtime status changed during capture.");
+            }
+
+            return Response<ErrorCatalogCompletedCombinedSnapshot>.Ok(
+                new ErrorCatalogCompletedCombinedSnapshot(
+                    selected.Publication.StoreId,
+                    selected.Publication.Generation,
+                    selected.Sequence,
+                    selected.Status,
+                    capture.Data));
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return Response<ErrorCatalogCompletedCombinedSnapshot>.Fail(
+                code: "WIF_COMPLETED_COMBINED_FAILED",
+                message: "The combined catalog and status could not be captured.");
+        }
     }
 
     /// <inheritdoc />
