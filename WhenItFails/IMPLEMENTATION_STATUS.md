@@ -594,6 +594,13 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - This is **current-source-only** behavior: package 0.1.0 does not have the default runtime's activation gate; the eight earlier precompiled-consumer PASS results cover pre-cancelled entry calls but not queued cancellation. No production or public API changes; no user-managed JSON files are used by these in-memory gate contract tests.
 - **Verified locally by maintainer:** both additional focused tests and the complete **1447/1447 GREEN** suite. Eight binary smoke scenarios remain confirmed PASS. Compiler-warning count was not separately reported for this checkpoint. Next: add deterministic cancellation-during-catalog-I/O coverage, including cleanup guarantees and no partial publication.
 
+## 2026-09-25 — deterministic cancellation during catalog I/O and temporary-workspace cleanup (verification pending)
+
+- Added `WhenItFails.Tests/Loading/JsonCatalogDocumentLoaderMidDeserializationCancellationContractTests.cs`. A test-only JSON converter cancels the exact supplied token while `JsonSerializer.DeserializeAsync` is consuming a real catalog file, so the cancellation point is deterministic rather than timing-based. The contract requires the same cancellation token to propagate, source bytes to remain unchanged, no extra files to appear, and the loader stream to be disposed so the file can immediately be reopened exclusively for read/write.
+- Added `WhenItFails.Tests/Catalog/BuiltInErrorCatalogContextProviderCancellationCleanupContractTests.cs`. The fake context provider blocks only after the built-in template has been materialized in its isolated temporary workspace; cancellation must propagate with the same token and the provider's `finally` cleanup must remove the complete temporary root before `LoadAsync` completes.
+- The existing writer mid-serialization cancellation test already covers the complementary safe-write case: an existing target remains byte-identical and no temporary or backup artifact survives. No production code, public API, package version or persisted JSON schema changed in this checkpoint.
+- **Verification pending:** 2 additional focused tests, expected complete suite **1449/1449 GREEN**. Last maintainer-confirmed complete suite remains **1447/1447 GREEN**, plus 8 binary smoke scenarios PASS. Next: run both focused classes and the complete suite; if GREEN, record the 1449 checkpoint before selecting the next runtime hardening gap.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1447/1447 GREEN**, confirmed locally by maintainer after the two opposite-operation queued-cancellation contracts (compiler-warning count not separately reported for this checkpoint).
