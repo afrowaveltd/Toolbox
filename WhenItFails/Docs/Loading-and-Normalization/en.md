@@ -329,6 +329,18 @@ InputOutputError
 
 This allows application shutdown and timeout policy to remain explicit.
 
+A focused deterministic loader contract now also cancels from a custom JSON
+converter while `JsonSerializer.DeserializeAsync` is actively consuming the
+catalog file. The expected contract is exact cancellation propagation, unchanged
+source bytes, no extra filesystem artifacts, and disposal of the loader's file
+stream so the same file can immediately be reopened with exclusive read/write
+access. A separate built-in-defaults contract blocks the delegated context load
+after its temporary template file has been materialized, then cancels and
+expects the provider's `finally` cleanup to remove the complete temporary
+workspace before the outer load task completes. These two focused cases are
+pending local verification (expected complete suite **1449/1449 GREEN**; last
+confirmed **1447/1447 GREEN**).
+
 ## JSON parsing behavior
 
 The shared JSON loader uses consistent serializer behavior.
