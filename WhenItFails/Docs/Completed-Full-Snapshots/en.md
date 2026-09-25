@@ -107,12 +107,13 @@ capture, uninitialized/legacy behavior, missing source components,
 malformed nested documents, cancellation and stable public CLR shape.
 
 The initial 19 cases were included in maintainer-confirmed **1426/1426 GREEN**.
-Three additional focused tests protect successive successful activations,
+Three additional focused tests, included in maintainer-confirmed **1429/1429 GREEN**, protect successive successful activations,
 replacement before the first publication read, and a same-reference
 republication during capture. The first snapshot must retain its own
 six detached views and associated recorded status after the next
 successful activation; a changed publication record must be rejected
 even if the live context object is the same reference.
 
-**Next expected checkpoint:** 22/22 focused cases; **1429/1429 GREEN**
-complete suite, pending maintainer verification.
+**Verified:** 22/22 focused cases were included in the maintainer-confirmed
+**1429/1429 GREEN** complete suite. Six further nullable-contract tests are
+pending verification; see [snapshot nullable contracts](../Nullable-Snapshot-Contracts/en.md).

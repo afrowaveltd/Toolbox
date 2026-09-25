@@ -424,6 +424,16 @@ in-place modification of source documents. The main raw JSON document and
 catalog implementation are not exposed by this operational view.
 See [completed full snapshots](../Completed-Full-Snapshots/en.md).
 
+## Nullable data versus successful response
+
+Optional snapshot reader methods return a non-nullable `Response<T>`,
+but the shared Essentials envelope still allows a nullable `Data`
+payload. Check both `response.IsSuccess` and `response.Data is { }`
+before accessing the detached snapshot. Optional catalog fields such as
+`Description` are intentionally nullable; the snapshot itself is not
+expected to be null on a successful default-runtime capture.
+See [snapshot nullable contracts](../Nullable-Snapshot-Contracts/en.md).
+
 ## Runtime status
 
 Retrieve the active status snapshot through:

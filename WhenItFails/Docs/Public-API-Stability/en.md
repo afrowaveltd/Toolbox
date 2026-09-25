@@ -401,9 +401,21 @@ supporting captures instead of copied twice. This is a checked completed
 activation view, not an atomic context/status transaction or raw JSON
 document clone. Nineteen theory-expanded cases were included in the maintainer-confirmed
 full suite **1426/1426 GREEN**. Three subsequent successive-activation
-and publication-race tests await local verification (expected full suite
-**1429/1429 GREEN**). See
+and publication-race tests were included in the maintainer-confirmed
+**1429/1429 GREEN** full suite. See
 [completed full snapshot docs](../Completed-Full-Snapshots/en.md).
+
+## Snapshot nullable reference annotations (verification pending)
+
+Six focused `SnapshotNullableContractTests` pin the compiled nullable
+metadata of completed observation models, complete/supporting projections,
+nested read-only collections and string mappings, optional document and
+recovery fields, and non-nullable reader response envelopes. They explicitly
+distinguish `Response<T>` from its nullable `Data` payload: consumers
+must check success and non-null data. The test addition changes no
+production signature, existing nullable annotation, JSON schema, or published
+package. Expected complete suite: **1435/1435 GREEN**, pending maintainer
+verification. See [snapshot nullable contract notes](../Nullable-Snapshot-Contracts/en.md).
 
 ## Still under review
 

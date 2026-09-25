@@ -108,6 +108,7 @@ Recovery never overwrites or repairs project JSON files automatically.
 - [Publication-aware supporting catalog snapshot](Docs/Published-Supporting-Catalog-Snapshots/en.md)
 - [Completed activation with supporting catalogs](Docs/Completed-Supporting-Catalog-Snapshots/en.md)
 - [Completed full operational catalog snapshot](Docs/Completed-Full-Snapshots/en.md)
+- [Nullable contracts for snapshot consumers](Docs/Nullable-Snapshot-Contracts/en.md)
 - [Combined detached catalog snapshot](Docs/Combined-Snapshots/en.md)
 - [Context publication identity (infrastructure)](Docs/Context-Publication/en.md)
 - [Publication-aware combined snapshots](Docs/Published-Snapshots/en.md)
