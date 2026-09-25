@@ -542,6 +542,19 @@ load
 → activate context
 ```
 
+### Re-entry with syntactically valid but inconsistent catalogs
+
+An existing project catalog can parse as JSON and pass its own document
+validation while still referring to a missing owner, code group or category
+in another catalog. Bootstrap preserves such a file and may create other
+missing templates; cross-catalog validation occurs only afterward. If a
+required reference is unresolved, the initializer/runtime must not publish
+an invalid project context. A focused strict-mode integration contract checks
+this with a missing code-group reference in an otherwise valid error catalog,
+then checks explicit repair and clean re-entry. Verification is pending
+(expected complete suite **1464/1464 GREEN**; last confirmed
+**1463/1463 GREEN**).
+
 ## Invalid existing files
 
 When an existing catalog file contains invalid JSON or invalid catalog data, bootstrap still preserves it.
