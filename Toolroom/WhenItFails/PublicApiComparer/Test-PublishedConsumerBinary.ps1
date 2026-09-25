@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$Feed,
+    [switch]$ExerciseInitialization,
     [string]$ReportPath = (Join-Path ([IO.Path]::GetTempPath()) 'WhenItFails-0.1.0-binary-smoke.md')
 )
 
@@ -59,6 +60,59 @@ Console.WriteLine("LOADED|" + typeof(ErrorCatalogContextStore).Assembly.Location
 Console.WriteLine("RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME");
 '@
 
+# This optional probe is inserted into the very same consumer source BEFORE
+# its one-and-only compilation against the original 0.1.0 package.
+# Explicit reset uses isolated bundled defaults; it does not create or
+# overwrite a project-local Jsons/WhenItFails workspace.
+$expectedResult = 'RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME'
+if ($ExerciseInitialization) {
+    $probe = @'
+var reset = runtime.ResetToDefaultsAsync().GetAwaiter().GetResult();
+if (!reset.IsSuccess || reset.Data?.Context is null)
+    throw new InvalidOperationException(
+        "The legacy explicit bundled-default initialization failed: " + reset.Message);
+
+var active = runtime.GetCurrentContext();
+var status = runtime.GetStatus();
+if (!active.IsSuccess || active.Data is null ||
+    !status.IsSuccess || status.Data is null ||
+    status.Data.State != Afrowave.Toolbox.WhenItFails.Enums.ErrorCatalogRuntimeState.BuiltInDefaults ||
+    status.Data.IsDegraded)
+    throw new InvalidOperationException("The explicit bundled-default activation state is invalid.");
+
+var byName = runtime.FromName("UNKNOWNERROR");
+var byId = runtime.FromId("AFW_GEN_0001");
+var byCode = runtime.FromCode(100001);
+if (!byName.IsSuccess || !byId.IsSuccess || !byCode.IsSuccess ||
+    byName.Data is null || byId.Data is null || byCode.Data is null)
+    throw new InvalidOperationException("Legacy descriptor lookup failed after bundled-default activation.");
+
+foreach (var descriptor in new[] { byName.Data, byId.Data, byCode.Data })
+{
+    if (descriptor.Id != "AFW_GEN_0001" ||
+        descriptor.Name != "UNKNOWNERROR" ||
+        descriptor.Code != 100001 ||
+        descriptor.Title != "Unknown error" ||
+        descriptor.Message != "An unknown error occurred.")
+        throw new InvalidOperationException(
+            "Legacy descriptor identity or catalog text changed after activation.");
+}
+'@
+    $marker = 'Console.WriteLine("LOADED|" + typeof(ErrorCatalogContextStore).Assembly.Location);'
+    if (-not $consumerSource.Contains($marker)) {
+        throw 'The original consumer output marker is missing.'
+    }
+    $consumerSource = $consumerSource.Replace($marker,
+        $probe + [Environment]::NewLine + $marker)
+    $oldResult = 'Console.WriteLine("RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME");'
+    $newResult = 'Console.WriteLine("RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|BUILTIN_DEFAULTS|DESCRIPTOR");'
+    if (-not $consumerSource.Contains($oldResult)) {
+        throw 'The original consumer result marker is missing.'
+    }
+    $consumerSource = $consumerSource.Replace($oldResult, $newResult)
+    $expectedResult = 'RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|BUILTIN_DEFAULTS|DESCRIPTOR'
+}
+
 $consumerProject = Join-Path $consumerDir 'Consumer.csproj'
 [IO.File]::WriteAllText($consumerProject, $projectXml,
     [Text.UTF8Encoding]::new($false))
@@ -95,7 +149,7 @@ function Invoke-Consumer {
         throw "The executable loaded a different WhenItFails assembly: $actual"
     }
 
-    if ($result[0] -ne 'RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME') {
+    if ($result[0] -ne $expectedResult) {
         throw "Consumer contract result is unexpected: $($result[0])"
     }
 
@@ -157,7 +211,8 @@ if (-not (Test-Path -LiteralPath $reportParent -PathType Container)) {
 $report = @(
     '# WhenItFails 0.1.0 precompiled-consumer binary smoke'
     ''
-    'Result: PASS — both executions completed with the same legacy contract result.'
+    'Result: PASS — both executions completed with the same expected legacy contract result.'
+    "Initialization and descriptor probe: $(if ($ExerciseInitialization) { 'enabled (explicit bundled defaults; FromName/FromId/FromCode)' } else { 'disabled (original pre-initialization path)' })"
     "Requested package: Afrowave.Toolbox.WhenItFails [0.1.0]"
     "Feed override: $(if ($Feed) { $Feed } else { 'configured NuGet sources/cache; publishing provenance unverified' })"
     "Package consumer executable SHA-256 (unchanged): $consumerHash"
@@ -168,10 +223,10 @@ $report = @(
     "Package run: $publishedResult"
     "Swapped run: $swappedResult"
     ''
-    'Scope: one executable compiled once against package 0.1.0 and run again without rebuilding after replacing only WhenItFails.dll. It exercises the original context-store constructor/read/write and DI registration plus uninitialized runtime reads.'
-    'The original .deps.json and other package dependencies remain unchanged. This is not exhaustive ABI, dependency-version, nullable, JSON, initialization/recovery or behavioral compatibility testing.'
+    "Scope: one executable compiled once against package 0.1.0 and run again without rebuilding after replacing only WhenItFails.dll. It exercises original context-store/DI/pre-initialization calls$(if ($ExerciseInitialization) { ', plus explicit bundled-default activation, active status and the stable UNKNOWNERROR descriptor via name, ID and numeric code' } else { '' })."
+    'The original .deps.json and other package dependencies remain unchanged. This narrow smoke is not exhaustive ABI, dependency-version, nullable, JSON, project-workspace initialization, recovery or behavioral compatibility testing.'
 )
 $report | Set-Content -LiteralPath $ReportPath -Encoding UTF8
-Write-Host 'Binary smoke: PASS (original package consumer and swapped source DLL).'
+Write-Host $(if ($ExerciseInitialization) { 'Binary initialization smoke: PASS (original package consumer and swapped source DLL).' } else { 'Binary smoke: PASS (original package consumer and swapped source DLL).' })
 Write-Host "Report: $ReportPath"
 Write-Host "Temporary consumers: $workspace"
