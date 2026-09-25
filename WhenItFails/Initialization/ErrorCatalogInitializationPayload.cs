@@ -1,6 +1,7 @@
 using Afrowave.Toolbox.WhenItFails.Bootstrap;
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Enums;
+using Afrowave.Toolbox.WhenItFails.Runtime;
 
 namespace Afrowave.Toolbox.WhenItFails.Initialization;
 
@@ -37,6 +38,14 @@ public sealed class ErrorCatalogInitializationPayload
    /// was activated as a fallback.
    /// </summary>
    public bool UsedFallback { get; set; }
+
+   /// <summary>
+   /// Gets the exact publication created by a successful default
+   /// initializer/runtime write, when the context store supports ownership.
+   /// Internal infrastructure data: not exposed as a public API or serialized.
+   /// Null for custom/legacy paths that cannot prove their write identity.
+   /// </summary>
+   internal ErrorCatalogContextPublication? OwnedPublication { get; set; }
 
    /// <summary>
    /// Gets whether initialization completed with a valid context
