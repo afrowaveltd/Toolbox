@@ -601,6 +601,33 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
             return initializationResponse;
         }
 
+        // Select a complete context + generation record in one read.
+        // A later store read may already belong to another writer, even if
+        // both publications contain the exact same context object.
+        if (_contextStore is IErrorCatalogContextPublicationReader publicationReader)
+        {
+            try
+            {
+                Response<ErrorCatalogContextPublication>? selectedResponse =
+                    publicationReader.GetCurrentPublication();
+
+                if (selectedResponse is { IsSuccess: true, Data: { } selected })
+                {
+                    return CreatePreviousContextRecoveryResponse(
+                        options,
+                        selected.Context,
+                        initializationResponse,
+                        selected);
+                }
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                // Preserve the existing legacy recovery path for custom
+                // stores with an unavailable or failing optional reader.
+                // Such a path must not claim strict publication selection.
+            }
+        }
+
         Response<ErrorCatalogContext> previousContextResponse =
             GetCurrentContextResponse();
 
@@ -624,7 +651,8 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
             JsonsOptions options,
             ErrorCatalogContext previousContext,
             Response<ErrorCatalogInitializationPayload>
-                initializationResponse)
+                initializationResponse,
+            ErrorCatalogContextPublication? selectedPublication = null)
     {
         ErrorCatalogInitializationPayload recoveryPayload = new()
         {
@@ -638,7 +666,8 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
                 ErrorCatalogContextSource.PreviousContext,
 
             KeptPreviousContext = true,
-            UsedFallback = false
+            UsedFallback = false,
+            SelectedPublication = selectedPublication
         };
 
         Response<ErrorCatalogInitializationPayload>
@@ -1130,11 +1159,12 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
 
         try
         {
-            // For default owned write paths, never replace the exact winning
-            // publication with a later read that might belong to another
-            // writer publishing even the very same context reference.
+            // OwnedPublication identifies an exact write by this operation.
+            // SelectedPublication identifies the exact existing record
+            // chosen for no-write recovery. Neither may be replaced by
+            // a later read that could belong to another writer.
             ErrorCatalogContextPublication? publication =
-                payload.OwnedPublication;
+                payload.OwnedPublication ?? payload.SelectedPublication;
 
             if (publication is not null)
             {
@@ -1145,8 +1175,9 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
             }
             else
             {
-                // Legacy/custom initializer or previous-context recovery:
-                // this is best-effort association, NOT proof of write ownership.
+                // Legacy/custom initializer or recovery when the optional
+                // reader was unavailable: this remains a best-effort
+                // association, NOT proof of write or selection ownership.
                 Response<ErrorCatalogContextPublication>? response =
                     reader.GetCurrentPublication();
 
