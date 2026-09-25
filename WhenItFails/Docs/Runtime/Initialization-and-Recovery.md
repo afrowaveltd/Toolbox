@@ -24,6 +24,15 @@ A context becomes active only after the complete initialization pipeline succeed
 
 Partial or invalid contexts are never published.
 
+A project workspace may itself be partially prepared after an earlier bootstrap
+cancellation or I/O failure. Initialization is allowed to resume that workspace:
+bootstrap preserves every existing project file, creates only the missing
+catalogs, then the context provider loads and cross-validates the complete
+five-catalog set before publication. A focused default-initializer integration
+case and a public-runtime integration case cover this recovery path; verification
+is pending with an expected complete suite of **1458/1458 GREEN** (last
+confirmed **1456/1456 GREEN**).
+
 ## Initialization modes
 
 The runtime supports two modes:
