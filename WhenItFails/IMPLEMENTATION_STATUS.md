@@ -302,19 +302,19 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** complete **1259/1259 GREEN** suite after commit `24b5d675830fbb8b57961c4e789c0dbf4736fb94`; focused output and compiler warning count were not separately reported.
 - Next: provide an independently detached, additive first-stage main-definition projection without modifying `GetCurrentContext()` or the nine-method runtime interface.
 
-## 2026-09-25 — additive detached definition snapshot API (verification pending)
+## 2026-09-25 — additive detached definition snapshot API (1263/1263 GREEN)
 
 - Added `WhenItFails/Runtime/ErrorDefinitionSnapshot.cs`, a sealed read-only data projection of the 16 fields of one `ErrorDefinition`. It copies scalar values, category/subcategory/tag lists into new read-only collections, and metadata into a new case-insensitive read-only dictionary. It does not expose the live `ErrorDefinition` or `MetadataBag`.
 - Added `WhenItFails/Runtime/ErrorCatalogSnapshotExtensions.cs`: `GetErrorDefinitionSnapshots(this IErrorCatalogRuntime)` creates a new read-only list of detached definition snapshots from the active indexed catalog. It forwards unsuccessful context status/issues, handles missing context/catalog/list with stable invalid responses, and normalizes ordinary capture exceptions to a stable failure without exception details; cancellation exceptions propagate.
 - Existing `GetCurrentContext()` and all nine `IErrorCatalogRuntime` methods remain unchanged. This new method is an **extension**, not a new interface member. The projection is scoped to main error definitions; it is not a deep context snapshot and cannot guarantee a transaction while live source objects are concurrently modified.
 - Added `WhenItFails.Tests/PublicApi/ErrorDefinitionSnapshotContractTests.cs` with four focused tests for full read-only copy and metadata/list detachment, independence across activation, preserved uninitialized response, and missing-catalog failure. No changes to catalog normalization/indexing behavior, existing public signatures, persisted JSON schema or current package version.
 - Updated `WhenItFails/README.md`, `Docs/Runtime/Public-API.md`, `Docs/Public-API-Stability/en.md`; created `Docs/Definition-Snapshots/en.md` documenting scope, caveats, usage and open 1.0 API decisions.
-- **Verification pending:** four focused tests and expected complete **1263/1263 GREEN** if all pass; the last maintainer-confirmed full suite is **1259/1259 GREEN**. This environment has no .NET SDK for executing the project tests.
-- Next: verify compile and focused/full tests on maintainer environment; then review nullability/serialization shape of the new detached projection and plan separate safe snapshots for supporting catalogs and validation findings.
+- **Verified locally by maintainer:** all tests GREEN, complete suite **1263/1263 GREEN** after commit `82650bc55092f6ae758c0a6e13ab35d609840094`. Focused run and compiler warning count were not separately reported. No published package version changed.
+- Next: review CLR nullability/serialization shape and failure boundary of the new detached projection before planning separately versioned supporting-catalog and validation views.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1259/1259 GREEN**, confirmed locally by maintainer after supporting catalog mutation/validation freshness tests. The last explicitly confirmed warning-free build was at 1241/1241.
+- Complete `WhenItFails.Tests` suite: **1263/1263 GREEN**, confirmed locally by maintainer after detached definition snapshot API tests. The last explicitly confirmed warning-free build was at 1241/1241.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
