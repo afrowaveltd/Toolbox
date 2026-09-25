@@ -97,6 +97,42 @@ can opt in; unsupported implementations return NotSupported without
 fabricating an ID. This does **not** solve the status-update window or
 create a synchronized runtime activation/status contract.
 
+## Runtime status and publication lifecycle regression tests
+
+`ContextPublicationStatusLifecycleContractTests` records **six** specific
+default-runtime behaviors using the real `ErrorCatalogContextStore` and
+controlled initializer/provider test doubles:
+
+1. A successful project initialization publishes a context and later
+   records project status.
+2. A failed **strict** reinitialization retains the previous publication
+   **and** the previously recorded runtime status.
+3. A failed **flexible** reinitialization with a previous context retains
+   the same publication record and generation, but records a **new**
+   `PreviousContextRecovery` status.
+4. A first-initialization failure recovered with bundled defaults publishes
+   generation 1 with `BuiltInFallback` status; a subsequent explicit reset
+   publishes generation 2 with `BuiltInDefaults` status.
+5. A failed explicit reset preserves the active publication and status.
+6. A deterministic callback after the initializer calls `Set`, but
+   before it returns to `ErrorCatalogRuntime`, can observe the **new**
+   publication with the **previous** recorded status. This demonstrates
+   an observable ordering window without relying on timing or a
+   probabilistic multithreaded race.
+
+The six tests document the **existing lifecycle**. They do not prove that
+status and context are atomically paired; in fact, the final test
+demonstrates the opposite.
+
+For a future combined activation state, a design must address both
+the publication-before-status window and the independent status change
+during previous-context recovery. Merely double-reading the store
+generation around `GetStatus()` cannot prove correct pairing: the
+generation can stay unchanged while recovery status changes. Direct
+calls to `Set` by other code can also publish a context without any
+runtime status event. Any stronger API must define publication ownership,
+the status association, and the behavior of custom context stores.
+
 ## Thread safety limits
 
 Atomic publication protects the **record** (context reference plus
