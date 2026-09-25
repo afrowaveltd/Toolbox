@@ -4,7 +4,7 @@ Status: **provisional classification for 1.0 planning, not a frozen compatibilit
 Review date: 2026-09-25.
 Source: maintainer-generated `WhenItFails-public-api.md` from `ExportedAssemblyInventoryTests` on the source-built `Afrowave.Toolbox.WhenItFails` assembly, reporting assembly version `0.1.0.0` and **110 exported types**. The report lists *declared* public members of exported types. It is not a metadata/ABI diff against the published NuGet package.
 
-The report was supplied for review after commit `955f5f897be96ec41e77ea34ab3ec482043ccf06`. The last maintainer-confirmed **complete** `WhenItFails.Tests` suite remains **1235/1235 GREEN**; the new report demonstrates that the inventory export ran, but does **not** by itself confirm that the complete suite is 1236/1236 GREEN.
+The report was supplied for review after commit `955f5f897be96ec41e77ea34ab3ec482043ccf06`. The maintainer confirmed the inventory test and complete **1236/1236 GREEN** `WhenItFails.Tests` suite after commit `955f5f897be96ec41e77ea34ab3ec482043ccf06`. The source-built report still does **not** establish binary identity with the separately published NuGet package.
 
 ## 1. Classification: separate promises from visibility
 
@@ -64,7 +64,7 @@ Their interfaces can remain the primary extension contract without freezing **ev
 
 ## 3. Release/compatibility decisions still needed
 
-1. Verify full `WhenItFails.Tests` suite after inventory test, and keep its result separate from successful report generation.
+1. The maintainer has confirmed complete **1236/1236 GREEN** after the inventory test. Keep this verification separate from report generation and the still-pending external NuGet binary comparison.
 2. Compare the source-built assembly inventory with an **externally restored, actual NuGet 0.1.0** binary. Assembly version `0.1.0.0` does not establish byte identity with the published package.
 3. Define the supported scope for the standalone writer/documentation utilities (and their external and Toolroom consumers) before the next public-constructor baseline. Do not bulk-test all exported constructors as if they were all promised stable.
 4. Decide mutable active-context exposure and public JSON schema/version guarantees.
