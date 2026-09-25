@@ -67,7 +67,8 @@ public sealed class CompletedCombinedSnapshotContractTests
             store,
             new SequencedInitializer(store, call => call == 1
                 ? ProjectSuccess(context)
-                : InitializationFailure()));
+                : InitializationFailure()),
+            new FixedBuiltInProvider(Context("UNUSED-FALLBACK")));
 
         Assert.True((await runtime.InitializeAsync()).IsSuccess);
         ErrorCatalogCompletedCombinedSnapshot initial =
