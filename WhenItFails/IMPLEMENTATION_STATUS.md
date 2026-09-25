@@ -514,12 +514,14 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - Added English `Docs/Pre-1.0-Snapshot-Capability-Boundaries/en.md`; updated README and public API inventory/stability review.
 - **Verified locally by maintainer:** full **1439/1439 GREEN** after the four capability-boundary tests; compiler warning count was not separately reported. Published NuGet 0.1.0, persistent JSON schemas and production code unchanged. Next: regenerate the current exported-type inventory and compare with 0.1.0 before 1.0 compatibility commitments.
 
-## 2026-09-25 — current compiled API inventory and NuGet comparison (verification pending)
+## 2026-09-25 — package/source API comparison measured (1442 suite confirmation pending)
 
 - Added three cases to `WhenItFails.Tests/PublicApi/ExportedAssemblyInventoryTests.cs`: coverage of new optional readers and snapshot families in the exported assembly, internal capture helper non-exposure, and complete deterministic current-type Markdown reporting without hardcoding the obsolete 110-type checkpoint.
 - Extended `Toolroom/WhenItFails/PublicApiComparer/Compare-PublicApi.ps1` to include source/package exported type totals and type-level differences alongside existing member-level differences and the loaded DLL paths/hashes. Both API enumerations use the same case-sensitive sorting; the package consumer still requests exact `[0.1.0]` (feed provenance requires separate verification).
 - Added English `Docs/Current-Public-API-Inventory/en.md` with the local report-generation procedure. Older 110-type/611-member figures are historical, not the current compiled count.
-- **Verification pending:** three new cases, four focused inventory cases, expected full **1442/1442 GREEN**. Last confirmed full suite **1439/1439 GREEN**. Actual current exported-type count and package comparison outcome require running the tests/comparer on a current compiled checkout. No production API or published package changes.
+- **Maintainer-provided comparer result (2026-09-25):** source-built DLL **148 exported types / 830 API entries**; exact-requested NuGet `[0.1.0]` consumer **110 exported types / 611 API entries**. Package-only types **0**, source-only types **38**; package-only API entries **0**, source-only entries **219**. The reflected census shows no package-only signatures, but does not establish full binary, nullable, JSON or behavioral compatibility.
+- **Reported DLL SHA-256:** source `E81504A484AD99D5C818C98D594CDB88A08651638984D1A92503CDC367B9F0DD`; package consumer `379F7CF6FF99223ECF2F388AB6295A34D97F33A8BD8EB7F9A52152994347CE28`. Feed override was **not** used: the package came from configured sources/cache and original publishing provenance was not independently verified. Do not store user-specific temporary file paths in repository documents.
+- **Verification still pending:** the pasted comparison excerpt does **not** include focused inventory test output or confirmation of complete **1442/1442 GREEN**; last explicitly confirmed complete suite is **1439/1439 GREEN**. The comparison shows actual type/member totals only; full lists and inventory Markdown are not yet committed. No production code or published package changes.
 
 ## Current verified state
 

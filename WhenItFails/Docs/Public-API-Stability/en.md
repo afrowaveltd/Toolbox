@@ -430,9 +430,11 @@ Three added `ExportedAssemblyInventoryTests` cases validate newer exported
 snapshot types, internal-helper visibility and deterministic full inventory
 generation without freezing the historical 110-type count. The isolated
 `PublicApiComparer` now reports source/package exported-type totals and
-type/member differences for exactly requested package 0.1.0. The actual
-current count and comparison outcome require a local run; expected complete
-suite **1442/1442 GREEN**, last confirmed **1439/1439 GREEN**. See
+type/member differences for exactly requested package 0.1.0. The maintainer's current comparer excerpt reports **148 source vs. 110
+package types** and **830 vs. 611 API entries**, with **0 package-only
+types/entries** and **38 source-only types / 219 source-only entries**.
+The full inventory test and expected **1442/1442 GREEN** complete suite
+have not yet been confirmed; last confirmed **1439/1439 GREEN**. See
 [current inventory instructions](../Current-Public-API-Inventory/en.md).
 
 ## Still under review
