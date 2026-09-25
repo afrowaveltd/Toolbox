@@ -294,17 +294,27 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** all tests GREEN, complete suite **1256/1256 GREEN** after commit `bfdf9b0b3d94978e50cf00bfe6e465f92835aaba`. Focused test output and warning count were not separately reported.
 - Next: audit cross-validation result and supporting catalog documents' nested mutability/ownership before defining any additive safe-context API.
 
-## 2026-09-25 — supporting catalog mutation and validation freshness (verification pending)
+## 2026-09-25 — supporting catalog mutation and validation freshness (1259/1259 GREEN)
 
 - Added `WhenItFails.Tests/PublicApi/SupportingCatalogLiveStateBoundaryTests.cs` with three focused tests: (1) a result from `ErrorCatalogCrossValidator` reflects validation-time category relationships and does not revalidate when the category name changes; (2) `ErrorCatalogContext.CrossValidationResult` in the live store shares its mutable issue instances across readers, allowing severity changes to flip `IsValid`; (3) an active profile definition exposes live `IncludeTags`, `DefaultMappings` and `Metadata` reachable from the same shared context reference.
 - Source audit: `ErrorCatalogValidationResult.IsValid` evaluates the *currently stored issue severities* each time, not the current supporting catalog documents. Context and supporting documents remain mutable after publication. These observations are an ownership/freshness hazard baseline, **not** a new immutable/snapshot API or an endorsement of in-place mutation.
 - Updated `WhenItFails/Docs/Public-API-Stability/en.md` and `Docs/Runtime/Public-API.md` to distinguish validation-time findings from later mutable state. No production code, public API signature, package version or JSON schema changed.
-- **Verification pending:** 3 focused tests, expected complete suite **1259/1259 GREEN** if all pass. Last maintainer-confirmed complete suite: **1256/1256 GREEN**; warning count not separately reported.
-- Next: after local verification, continue the pre-1.0 consumer-view design by specifying ownership, nested graph isolation, and a separate additive API without modifying existing `GetCurrentContext()` behavior.
+- **Verified locally by maintainer:** complete **1259/1259 GREEN** suite after commit `24b5d675830fbb8b57961c4e789c0dbf4736fb94`; focused output and compiler warning count were not separately reported.
+- Next: provide an independently detached, additive first-stage main-definition projection without modifying `GetCurrentContext()` or the nine-method runtime interface.
+
+## 2026-09-25 — additive detached definition snapshot API (verification pending)
+
+- Added `WhenItFails/Runtime/ErrorDefinitionSnapshot.cs`, a sealed read-only data projection of the 16 fields of one `ErrorDefinition`. It copies scalar values, category/subcategory/tag lists into new read-only collections, and metadata into a new case-insensitive read-only dictionary. It does not expose the live `ErrorDefinition` or `MetadataBag`.
+- Added `WhenItFails/Runtime/ErrorCatalogSnapshotExtensions.cs`: `GetErrorDefinitionSnapshots(this IErrorCatalogRuntime)` creates a new read-only list of detached definition snapshots from the active indexed catalog. It forwards unsuccessful context status/issues, handles missing context/catalog/list with stable invalid responses, and normalizes ordinary capture exceptions to a stable failure without exception details; cancellation exceptions propagate.
+- Existing `GetCurrentContext()` and all nine `IErrorCatalogRuntime` methods remain unchanged. This new method is an **extension**, not a new interface member. The projection is scoped to main error definitions; it is not a deep context snapshot and cannot guarantee a transaction while live source objects are concurrently modified.
+- Added `WhenItFails.Tests/PublicApi/ErrorDefinitionSnapshotContractTests.cs` with four focused tests for full read-only copy and metadata/list detachment, independence across activation, preserved uninitialized response, and missing-catalog failure. No changes to catalog normalization/indexing behavior, existing public signatures, persisted JSON schema or current package version.
+- Updated `WhenItFails/README.md`, `Docs/Runtime/Public-API.md`, `Docs/Public-API-Stability/en.md`; created `Docs/Definition-Snapshots/en.md` documenting scope, caveats, usage and open 1.0 API decisions.
+- **Verification pending:** four focused tests and expected complete **1263/1263 GREEN** if all pass; the last maintainer-confirmed full suite is **1259/1259 GREEN**. This environment has no .NET SDK for executing the project tests.
+- Next: verify compile and focused/full tests on maintainer environment; then review nullability/serialization shape of the new detached projection and plan separate safe snapshots for supporting catalogs and validation findings.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1256/1256 GREEN**, confirmed locally by maintainer after normalized document/index ownership boundary tests. The last explicitly confirmed warning-free build was at 1241/1241.
+- Complete `WhenItFails.Tests` suite: **1259/1259 GREEN**, confirmed locally by maintainer after supporting catalog mutation/validation freshness tests. The last explicitly confirmed warning-free build was at 1241/1241.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
