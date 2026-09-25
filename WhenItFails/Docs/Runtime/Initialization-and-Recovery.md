@@ -63,8 +63,17 @@ real default DI graph: a first start with no prior context must leave the
 runtime uninitialized, and a failed reinitialization must keep the previous
 context and recorded status reference-identical. Both cases also check byte
 preservation of the malformed catalog, creation of the other four files, and
-absence of staged temporary files. These tests are pending local verification
-(expected complete suite **1460/1460 GREEN**, last confirmed **1458/1458 GREEN**).
+absence of staged temporary files. Both tests were confirmed locally in the
+complete **1460/1460 GREEN** suite.
+
+Two subsequent strict-mode integration tests exercise explicit repair instead
+of automatic repair. A caller replaces only the malformed error catalog with
+valid bytes and retries initialization. The runtime must then publish a
+non-degraded project context, preserve all five project catalogs byte-for-byte
+and report every file as already existing/skipped. First-start recovery and
+successful reinitialization following a retained healthy context are tested
+separately. These tests are pending local verification (expected complete suite
+**1462/1462 GREEN**; last confirmed **1460/1460 GREEN**).
 
 ## Strict mode
 
