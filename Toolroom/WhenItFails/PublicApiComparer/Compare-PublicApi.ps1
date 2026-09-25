@@ -79,9 +79,10 @@ foreach (Type type in assembly.GetExportedTypes()
     }
     foreach (PropertyInfo property in type.GetProperties(flags))
     {
+        MethodInfo? setter = property.SetMethod;
         string accessors = (property.GetMethod?.IsPublic == true ? "get;" : "") +
-            (property.SetMethod?.IsPublic == true
-                ? property.SetMethod.ReturnParameter.GetRequiredCustomModifiers()
+            (setter?.IsPublic == true
+                ? setter.ReturnParameter.GetRequiredCustomModifiers()
                     .Contains(typeof(System.Runtime.CompilerServices.IsExternalInit))
                     ? "init;" : "set;" : "");
         Console.WriteLine($"API|{name}|property|{property.PropertyType.FullName} {property.Name}|{accessors}");
@@ -123,12 +124,12 @@ if (-not (Test-Path -LiteralPath $sourceDll -PathType Leaf) -or
     throw 'Inspected assembly paths are missing.'
 }
 
-$sourceApi = @($sourceOutput | Where-Object { $_ -like 'API|*' } | Sort-Object -Unique)
+$sourceApi = @($sourceOutput | Where-Object { $_ -like 'API|*' } | Sort-Object -Unique -CaseSensitive)
 $packageApi = @($packageOutput | Where-Object { $_ -like 'API|*' } | Sort-Object -Unique)
 if ($sourceApi.Count -eq 0 -or $packageApi.Count -eq 0) {
     throw 'One inspector did not return public API entries.'
 }
-$diff = @(Compare-Object -ReferenceObject $packageApi -DifferenceObject $sourceApi)
+$diff = @(Compare-Object -ReferenceObject $packageApi -DifferenceObject $sourceApi -CaseSensitive)
 $missing = @($diff | Where-Object { $_.SideIndicator -eq '<=' } | Select-Object -ExpandProperty InputObject)
 $added = @($diff | Where-Object { $_.SideIndicator -eq '=>' } | Select-Object -ExpandProperty InputObject)
 
