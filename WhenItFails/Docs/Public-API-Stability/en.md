@@ -149,6 +149,12 @@ The main `ErrorCatalogProviderPayload` has three publicly mutable properties: `C
 
 `WhenItFails.Tests/PublicApi/JsonsTemplateFilePublicApiContractTests.cs` checks this shape, defaults, independent assignments and the provider interface's typed collection return. The model does not declare explicit `JsonPropertyName` attributes; this review **does not** promise a separately versioned JSON wire schema for template file objects. The maintainer confirmed all three focused tests and the complete 1235/1235 suite GREEN; production code is unchanged.
 
+## Compiled exported assembly inventory (verification pending)
+
+`WhenItFails.Tests/PublicApi/ExportedAssemblyInventoryTests.cs` uses `Assembly.GetExportedTypes()` on the compiled WhenItFails project DLL. It can write a sorted Markdown inventory of the actually exported types, publicly declared constructors, methods, properties (including `init`), fields, events, enum numeric values, and base/interface relationships when `AFROWAVE_WHENITFAILS_PUBLIC_API_REPORT` is set. Without that environment variable, the test only checks the assembly and prints summary counts.
+
+The report does not include all CLR metadata (for example complete generic constraints, nullability and custom attributes), and does not by itself establish cross-version binary compatibility, externally published NuGet contents, JSON schema stability or runtime behavior. The detailed contract tests already created remain authoritative for those focused facets. Do not make concrete-class visibility changes until this report and existing consumer usage are reviewed. Local verification and actual exported-type counts are pending.
+
 ## Still under review
 
 The initial eight-type public API baseline is covered. The active-context mutability decision, nullable annotations, and the distinction between documented stable contracts and implementation details remain open before 1.0.

@@ -207,6 +207,14 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production code changed. **Verified locally by maintainer:** all three focused tests and complete **1235/1235 GREEN** suite after commit `d2e376800dbc39671cb083d695266ddc3e5361fd`.
 - Next: assembly-level exported public API inventory (including publicly visible constructors, methods, dependent models and concrete implementation classes); classify stable contracts/extension points/implementation details before deciding any 1.0 visibility or compatibility changes.
 
+## 2026-09-25 — compiled exported API inventory test (verification pending)
+
+- Added `WhenItFails.Tests/PublicApi/ExportedAssemblyInventoryTests.cs` with one focused test using `typeof(IErrorCatalogRuntime).Assembly.GetExportedTypes()` to inspect the **compiled** WhenItFails assembly rather than counting source files. It verifies entry-point presence and exported type visibility.
+- When `AFROWAVE_WHENITFAILS_PUBLIC_API_REPORT` is explicitly set to a file in an existing directory, the test writes a sorted Markdown inventory of exported types and their declared public constructors, methods, properties (including get/set/init), events, fields, enum numeric values, base types and interfaces. It prints exported type/interface/class/enum counts through xUnit output. Without that environment variable it does not write files.
+- This is a first compiled-assembly inventory, **not a full ABI or nullability/attribute compatibility verifier**. The existing focused model tests cover nullable annotations and JSON names. Compare the exported source build against an external NuGet 0.1.0 consumer before any visibility or compatibility changes.
+- No production code changed. **Verification pending:** one focused inventory test with an explicit report path and the complete suite; last maintainer-confirmed full suite **1235/1235 GREEN**. Expected total if the new test passes: **1236/1236 GREEN**.
+- Next: obtain and review the generated report, categorize public concrete types and decide the 1.0 compatibility policy. Do not invent exported-type counts before running reflection.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1235/1235 GREEN**, confirmed locally by the maintainer after JsonsTemplateFile public API contract tests.
