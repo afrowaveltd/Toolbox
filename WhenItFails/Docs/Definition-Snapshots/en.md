@@ -1,6 +1,6 @@
 # Detached error definition snapshots
 
-Status: **additive pre-1.0 API candidate; local test verification pending**.
+Status: **additive pre-1.0 API candidate; first four focused tests and complete 1263/1263 suite confirmed GREEN**. Additional public-shape/JSON verification pending.
 
 ## Scope
 
@@ -48,6 +48,12 @@ successful response missing the required catalog or its definition list
 returns a stable Invalid result. Exceptions from the capture boundary are
 converted into a stable failure without including exception text;
 `OperationCanceledException` is propagated.
+
+## Public CLR and JSON boundaries
+
+`ErrorDefinitionSnapshot` is a public sealed projection without a public constructor or public setters. Its 16 getter-only properties preserve the current fields of `ErrorDefinition`; `DeveloperHint` and `DocumentationKey` are nullable strings, while the other string fields and the collection/dictionary properties are non-nullable in C# metadata. `GetErrorDefinitionSnapshots` is one public static extension method on `IErrorCatalogRuntime`; no new method is added to the runtime interface.
+
+Default `System.Text.Json` serialization of a captured snapshot produces readable data properties, including arrays for category/subcategory/tag lists and an object for string metadata. This is an **observed, pre-1.0 output shape**, not a fixed wire format or a promise of direct `JsonSerializer.Deserialize<ErrorDefinitionSnapshot>` support: the type has no public deserialization constructor. If a stable wire DTO is needed, design and version it separately from this read-only CLR projection. Its ordinary `Response<T>` envelope retains the established Essentials mutability and serialization contract.
 
 ## Ownership and concurrency
 
