@@ -72,7 +72,7 @@ it now uses the exact record returned by the optional store publisher;
 current-publication read. This closes the same-reference republish
 misattribution for those owned write paths. Custom/legacy initializers
 without an owned token and no-write previous-context recovery still use
-a weaker reference-based association. Any failure of the optional
+a weaker reference-based association only when no exact selection is available. When the default runtime selects a previous context through an optional publication reader, it retains that exact **existing** publication record instead of inferring the generation later. See [previous-context publication selection](../Recovery-Selection/en.md). Any failure of the optional
 observation must not change the established initialization/reset/recovery
 result or existing `GetStatus()` behavior. A context publication performed externally without a
 corresponding runtime status completion invalidates the previously
@@ -103,7 +103,7 @@ sharing a store are not serialized by this gate.
 
 ## Shared-store publication ownership boundary
 
-The instance-local activation gate does **not** serialize operations on other default runtime instances or direct writes to their common store. Two runtimes can retain different local status observations for the same store generation (for example, project activation and previous-context recovery). The default initializer/reset/fallback now propagate their exact owned publication records, so a later same-reference republish no longer steals *those* completion identities. Custom initializers without an owned publication token and previous-context recovery still cannot prove strict write/selection ownership using object reference equality alone. See [shared-store concurrency and ownership](../Shared-Store-Concurrency/en.md) for the remaining boundaries.
+The instance-local activation gate does **not** serialize operations on other default runtime instances or direct writes to their common store. Two runtimes can retain different local status observations for the same store generation (for example, project activation and previous-context recovery). The default initializer/reset/fallback now propagate their exact owned publication records, so a later same-reference republish no longer steals *those* completion identities. Custom initializers without an owned publication token and recovery through legacy/unavailable publication readers still cannot prove strict ownership using object reference equality alone. Default no-write recovery with an available reader now selects the exact prior publication and checks its identity before reporting a completed observation. See [shared-store concurrency and ownership](../Shared-Store-Concurrency/en.md) for the remaining boundaries.
 
 ## Consistency limits
 
@@ -122,11 +122,12 @@ activations *on the same runtime instance* from overtaking one another.
 The optional status **reader** itself does not acquire the gate, and direct
 writers using the injected context store or other runtime instances that
 share that store remain outside this serialization boundary. In particular,
-an external writer can publish the *same context reference* between this
-runtime's `Set` and status recording. Reference equality alone cannot
-establish which actor owned that publication. Strict activation-event
-identity across all writers therefore remains out of scope until the store
-has an explicit publication ownership policy. This optional observation
+an external writer can replace a selected publication immediately before
+or after the observation check. The default owned write and selected
+no-write recovery paths now retain exact publication records, while
+custom/legacy paths may still use reference-based association. Strict
+cross-writer current-state consistency remains out of scope until a
+coherent read/ownership protocol is defined. This optional observation
 is an incremental contract, **not** the final atomic context-plus-status
 snapshot.
 
