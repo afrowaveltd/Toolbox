@@ -159,11 +159,11 @@ The report does not include all CLR metadata (for example complete generic const
 
 `WhenItFails.Tests/PublicApi/SetterUtilityPublicApiContractTests.cs` adds five focused tests for standalone public `JsonCatalogDocumentWriter`, `DocumentationKeyGenerator`, `DocumentationKeyFormat`, and `ErrorCatalogCrossValidator`. The tests capture their declared public method/constructor shape and a no-DI, no-workspace smoke path. Setter consumes these types directly; they are **public utility candidates**, not automatically internal implementation details. Detailed functional behavior remains in their existing dedicated test suites. The maintainer confirmed all five focused tests GREEN, but reported three xUnit2031 analyzer warnings. They were corrected by using `Assert.Single(collection, predicate)` in all three locations. The maintainer subsequently confirmed a warning-free build, all five focused tests GREEN and complete **1241/1241 GREEN** suite after correction commit `6ecaa40b7c26261d8e253c4fb463d2c7b01e333b`; production code is unchanged.
 
-## Standalone generic JSON loader (verification pending)
+## Standalone generic JSON loader (1244/1244 GREEN)
 
 `JsonCatalogDocumentLoader` is publicly constructible and exposes one generic instance method, `LoadFromFileAsync<TDocument>(string filePath, CancellationToken cancellationToken = default)`, where `TDocument : class`, returning `Task<Response<TDocument>>`. The public contract permits direct use without DI. A cancelled token is checked before path validation in the current implementation.
 
-`WhenItFails.Tests/PublicApi/JsonCatalogDocumentLoaderPublicApiContractTests.cs` adds three focused tests for the public CLR shape, no-DI empty-path response, and pre-cancelled token propagation without filesystem access. Existing `WhenItFails.Tests/Loading/JsonCatalogDocumentLoader*Tests.cs` cover file/JSON behavior; this new group intentionally does not duplicate them. These focused tests are pending local verification. No production source, public visibility or distributed package has changed.
+`WhenItFails.Tests/PublicApi/JsonCatalogDocumentLoaderPublicApiContractTests.cs` adds three focused tests for the public CLR shape, no-DI empty-path response, and pre-cancelled token propagation without filesystem access. Existing `WhenItFails.Tests/Loading/JsonCatalogDocumentLoader*Tests.cs` cover file/JSON behavior; this new group intentionally does not duplicate them. The maintainer confirmed all three focused tests and complete **1244/1244 GREEN** suite. No production source, public visibility or distributed package has changed.
 
 ## Still under review
 

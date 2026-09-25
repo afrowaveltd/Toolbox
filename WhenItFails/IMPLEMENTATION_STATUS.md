@@ -250,18 +250,18 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - Source report contains local temporary user paths; record only hashes, counts and provenances in repository documentation. No production code, published package or API visibility changed.
 - Next: narrowly baseline `JsonCatalogDocumentLoader` as a standalone public utility (signature and no-DI invalid-path/cancellation entry points), then examine auxiliary descriptor models and context mutability/versioning policy.
 
-## 2026-09-25 — standalone JsonCatalogDocumentLoader public API baseline (verification pending)
+## 2026-09-25 — standalone JsonCatalogDocumentLoader public API baseline (1244/1244 GREEN)
 
 - Added `WhenItFails.Tests/PublicApi/JsonCatalogDocumentLoaderPublicApiContractTests.cs` with three focused tests for the independently public `JsonCatalogDocumentLoader` utility.
 - Its public parameterless constructor and one generic instance method `LoadFromFileAsync<TDocument>(string filePath, CancellationToken cancellationToken = default)` are checked, including the `class` generic constraint, exact `Task<Response<TDocument>>` return, and optional token metadata.
 - The narrow no-DI smoke asserts structured `FilePathIsEmpty` on an empty path without filesystem writes; a pre-cancelled token must throw `OperationCanceledException` before the empty-path check. The existing dedicated loader tests continue to cover reading valid/invalid JSON, missing/directory paths and file I/O semantics; no duplicate broad filesystem suite was added.
 - This is a **public standalone utility** baseline, not permission to narrow its already exported 0.1.0 entry point. The isolated source/package comparer recorded 611 matching reflected API entries, but full 1.0 compatibility scope, feed provenance and runtime/serialization compatibility remain separate.
-- No production code changed. **Verification pending:** three focused tests and complete suite; last confirmed **1241/1241 GREEN with zero warnings**. Expected complete suite if all three pass: **1244/1244 GREEN**.
+- No production code changed. **Verified locally by maintainer:** all three focused tests and complete **1244/1244 GREEN** suite after commit `e6b33575ad15065e1df72567133d64a00ede5d48`. The maintainer did not separately report warning count in this checkpoint.
 - Next: audit independently exported `ErrorDescriptorRequest` and `ErrorDescriptor<TAttachment>` CLR/JSON properties and their documented consumer surface, then address active-context mutability.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1241/1241 GREEN**, locally confirmed by maintainer after Setter utility xUnit2031 warning fix; build with zero warnings.
+- Complete `WhenItFails.Tests` suite: **1244/1244 GREEN**, confirmed locally by maintainer after standalone JsonCatalogDocumentLoader public API tests. The last explicitly confirmed warning-free build was at 1241/1241.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
