@@ -188,6 +188,19 @@ Before the first successful activation, this method returns a failure response.
 
 A failed later initialization does not automatically destroy a previously valid active context.
 
+## Detached error definition snapshots
+
+For a read-only **copy of the main indexed error definitions**, without exposing mutable `ErrorDefinition` or `MetadataBag` instances, use the additive runtime extension:
+
+```csharp
+using Afrowave.Toolbox.WhenItFails.Runtime;
+
+Response<IReadOnlyList<ErrorDefinitionSnapshot>> snapshotResponse =
+    runtime.GetErrorDefinitionSnapshots();
+```
+
+Each snapshot owns separate read-only copies of the definition's categories, subcategories, tags and metadata, as well as its captured scalar fields. This is **not** a complete deep snapshot of the active context: supporting catalogs, cross-validation results and runtime status are not included. Do not mutate the published context during capture. See [detached definition snapshots](../Definition-Snapshots/en.md) for ownership, failure handling and consistency limitations.
+
 ## Runtime status
 
 Retrieve the active status snapshot through:
