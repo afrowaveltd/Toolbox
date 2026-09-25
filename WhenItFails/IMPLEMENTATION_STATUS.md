@@ -507,16 +507,16 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - Added English `Docs/Nullable-Snapshot-Contracts/en.md`; updated README, runtime API, public API stability notes and completed full snapshot documentation. Reflection checks protect compile-time consumer contracts; they do not claim a transaction against external in-place mutation of published contexts.
 - **Verified locally by maintainer:** complete **1435/1435 GREEN** after six nullable-contract cases; focused-run and compiler-warning counts were not separately reported. Next: review pre-1.0 consumer-facing, optional and implementation-only contract boundaries without declaring version 1.0 released.
 
-## 2026-09-25 — pre-1.0 optional snapshot capability boundary review (verification pending)
+## 2026-09-25 — pre-1.0 optional snapshot capability boundary review (1439/1439 GREEN)
 
 - Added `WhenItFails.Tests/PublicApi/SnapshotCapabilityBoundaryContractTests.cs` with four focused reflection tests: unchanged nine-method `IErrorCatalogRuntime`, five independent single-method optional readers, six context-only and two publication-aware additive extensions.
 - Documented the distinction between live context publication records, detached consumer snapshot models and internal `CaptureFromContext` helpers. Existing public CLR signatures are unchanged; do not classify currently exported concrete types as private implementation details.
 - Added English `Docs/Pre-1.0-Snapshot-Capability-Boundaries/en.md`; updated README and public API inventory/stability review.
-- **Verification pending:** 4 focused tests and expected complete **1439/1439 GREEN**. Last maintainer-confirmed **1435/1435 GREEN**. Published NuGet 0.1.0, persistent JSON schemas and production code unchanged. Regenerate current exported-type inventory before making 1.0 compatibility commitments.
+- **Verified locally by maintainer:** full **1439/1439 GREEN** after the four capability-boundary tests; compiler warning count was not separately reported. Published NuGet 0.1.0, persistent JSON schemas and production code unchanged. Next: regenerate the current exported-type inventory and compare with 0.1.0 before 1.0 compatibility commitments.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1435/1435 GREEN**, confirmed locally by maintainer after nullable snapshot contract additions (compiler-warning count not separately reported for this checkpoint).
+- Complete `WhenItFails.Tests` suite: **1439/1439 GREEN**, confirmed locally by maintainer after snapshot capability boundary tests (compiler-warning count not separately reported for this checkpoint).
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
