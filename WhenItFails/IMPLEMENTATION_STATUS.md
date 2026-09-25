@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-09-24
+Last updated: 2026-09-25
 
 This file is the continuation point for `WhenItFails` development. Git history contains the detailed chronological checkpoints; keep this file focused on the current verified state, established contracts, and next step.
 
@@ -180,6 +180,15 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - This checkpoint treats the existing JSON names as compatibility-sensitive inputs to the 1.0 review but does not yet establish a general future JSON schema migration policy.
 - No production code changed. **Verified locally by maintainer:** three focused tests and complete **1225/1225 GREEN** suite after commit `f04c00a03ea91822453d42c6de453672c5b0f2ac`.
 - Next: audit the main and four specialized provider payload models, then validation result/issue/severity and `JsonsTemplateFile`.
+
+## 2026-09-25 — provider payload public API baseline (verification pending)
+
+- Added `WhenItFails.Tests/PublicApi/CatalogProviderPayloadPublicApiContractTests.cs` with three focused tests covering all five public catalog provider payload types.
+- `ErrorCatalogProviderPayload` publishes `IErrorCatalog Catalog`, `ErrorCatalogDocument Document`, and `ErrorCatalogValidationResult ValidationResult`; four specialized payloads each publish their corresponding typed `Document` and a `ValidationResult`. All declared properties are public get/set.
+- The reference properties carry non-nullable C# annotations but currently start as `null!` on a manually constructed empty payload. Tests check both the annotations and actual empty-constructor state. A successful provider response must populate its payload; these tests do not claim that any incomplete instance is valid.
+- Assigned document and validation-result references are retained as supplied; payloads are not documented as deep copies or immutable snapshots. The existing models have no explicit JSON property-name attributes; **do not claim a separately versioned JSON wire contract for provider payloads** from this CLR-shape baseline.
+- No production code changed. **Verification pending:** three focused tests and full suite; last confirmed **1225/1225 GREEN**. Expected complete suite if all pass: **1228/1228 GREEN**.
+- Next: audit `ErrorCatalogValidationResult`, `ErrorCatalogValidationIssue` and `ErrorCatalogValidationSeverity`, then the public template model.
 
 ## Current verified state
 
