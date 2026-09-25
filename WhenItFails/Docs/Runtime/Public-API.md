@@ -356,6 +356,26 @@ Response<ErrorSupportingCatalogsSnapshot> supporting =
 Existing three-part combined snapshot types are unchanged. See
 [all-supporting-catalog snapshot documentation](../Supporting-Catalog-Snapshots/en.md).
 
+## Publication-aware supporting catalogs
+
+When the runtime supports publication identity, the additive
+`GetPublishedSupportingCatalogsSnapshot()` extension captures all four
+supporting catalogs from **one selected store publication** and returns
+that record's actual `StoreId` and `Generation`:
+
+```csharp
+using Afrowave.Toolbox.WhenItFails.Runtime;
+
+Response<ErrorCatalogPublishedSupportingCatalogsSnapshot> published =
+    runtime.GetPublishedSupportingCatalogsSnapshot();
+```
+
+This is not an atomic catalog-plus-status activation or a transaction
+against in-place source mutation. Unsupported custom runtimes or stores
+return NotSupported rather than inventing a generation. Existing three-part
+combined projections are unchanged. See
+[publication-aware supporting snapshots](../Published-Supporting-Catalog-Snapshots/en.md).
+
 ## Runtime status
 
 Retrieve the active status snapshot through:

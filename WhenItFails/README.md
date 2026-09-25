@@ -105,6 +105,7 @@ Recovery never overwrites or repairs project JSON files automatically.
 - [Detached code group catalog snapshots](Docs/Code-Group-Snapshots/en.md)
 - [Detached profile catalog snapshots](Docs/Profile-Snapshots/en.md)
 - [Detached all-supporting-catalog snapshot](Docs/Supporting-Catalog-Snapshots/en.md)
+- [Publication-aware supporting catalog snapshot](Docs/Published-Supporting-Catalog-Snapshots/en.md)
 - [Combined detached catalog snapshot](Docs/Combined-Snapshots/en.md)
 - [Context publication identity (infrastructure)](Docs/Context-Publication/en.md)
 - [Publication-aware combined snapshots](Docs/Published-Snapshots/en.md)

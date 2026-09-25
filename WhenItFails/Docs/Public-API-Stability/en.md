@@ -359,6 +359,21 @@ context's nested documents. Twelve theory-expanded cases and full suite
 **1377/1377 GREEN** await local maintainer verification. See
 [supporting catalog snapshots](../Supporting-Catalog-Snapshots/en.md).
 
+## Publication-aware supporting catalog snapshot (verification pending)
+
+The additive `GetPublishedSupportingCatalogsSnapshot()` extension uses
+the existing optional runtime publication reader to select a single
+real store publication. Its sealed getter-only return model contains
+the actual `StoreId`, `Generation` and detached four-catalog
+`ErrorSupportingCatalogsSnapshot`. It does not read runtime status,
+invent a generation, change the existing three-part combined data
+shape or provide a transaction against external in-place mutation.
+The existing context-only supporting snapshot now reuses an internal
+`CaptureFromContext` helper, avoiding a second runtime read.
+Fifteen theory-expanded focused cases and full suite
+**1392/1392 GREEN** await maintainer verification. See
+[publication-aware supporting snapshots](../Published-Supporting-Catalog-Snapshots/en.md).
+
 ## Still under review
 
 The initial eight-type public API baseline is covered. The shape and ownership of a **complete** safe context view, nullable annotations, and the distinction between documented stable contracts and implementation details remain open before 1.0.

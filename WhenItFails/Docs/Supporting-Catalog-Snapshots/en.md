@@ -1,6 +1,6 @@
 # Detached all-supporting-catalog snapshot
 
-Status: **additive pre-1.0 CLR API candidate; 12 focused test cases pending maintainer verification**.
+Status: **additive pre-1.0 CLR API candidate; 12 focused cases included in maintainer-confirmed 1377/1377 GREEN suite**.
 
 ## Scope
 
@@ -78,3 +78,6 @@ uninitialized and null responses, four absent catalogs, malformed nested
 values, ordinary getter exceptions, exact cancellation propagation and the
 getter-only/additive public API surface. Full suite expected: **1377 tests**
 once locally confirmed.
+
+For actual store-scoped publication identity selected along with the
+four catalogs, see [publication-aware supporting snapshots](../Published-Supporting-Catalog-Snapshots/en.md).
