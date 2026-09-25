@@ -82,8 +82,18 @@ project file. After the caller restores valid project JSON and retries,
 runtime must publish a fresh, non-degraded `ProjectCatalog` context,
 clear all recorded recovery metadata, report every existing project file
 as skipped, preserve all five files byte-for-byte, and leave no staged
-temporary artifacts. The new focused test is pending local verification
-(expected complete suite **1463/1463 GREEN**, last confirmed **1462/1462 GREEN**).
+temporary artifacts. The focused test was confirmed locally in the complete
+**1463/1463 GREEN** suite.
+
+A separate strict-mode integration contract exercises a **syntactically valid**
+partial workspace whose preserved main catalog contains an error referencing
+an unknown code group. The remaining bundled files may be completed, but
+cross-catalog validation must reject publication with
+`UnknownErrorCodeGroup` while preserving the caller's existing JSON bytes.
+After explicit caller repair, a second pass must skip and preserve all five
+files and activate a clean project context. The focused test is pending local
+verification (expected complete suite **1464/1464 GREEN**, last confirmed
+**1463/1463 GREEN**).
 
 ## Strict mode
 
