@@ -359,7 +359,7 @@ context's nested documents. Twelve theory-expanded cases and full suite
 **1377/1377 GREEN** await local maintainer verification. See
 [supporting catalog snapshots](../Supporting-Catalog-Snapshots/en.md).
 
-## Publication-aware supporting catalog snapshot (verification pending)
+## Publication-aware supporting catalog snapshot (1392/1392 GREEN)
 
 The additive `GetPublishedSupportingCatalogsSnapshot()` extension uses
 the existing optional runtime publication reader to select a single
@@ -370,11 +370,11 @@ invent a generation, change the existing three-part combined data
 shape or provide a transaction against external in-place mutation.
 The existing context-only supporting snapshot now reuses an internal
 `CaptureFromContext` helper, avoiding a second runtime read.
-Fifteen theory-expanded focused cases and full suite
-**1392/1392 GREEN** await maintainer verification. See
+Fifteen theory-expanded focused cases were included in the maintainer-confirmed
+**1392/1392 GREEN** full suite. See
 [publication-aware supporting snapshots](../Published-Supporting-Catalog-Snapshots/en.md).
 
-## Completed supporting catalog/status observation (verification pending)
+## Completed supporting catalog/status observation (1407/1407 GREEN)
 
 The new optional `IErrorCatalogRuntimeSupportingObservationReader`
 exposes `GetCompletedSupportingCatalogsSnapshot()` from the default
@@ -384,8 +384,8 @@ associated recorded status and four detached supporting catalog
 projections. A second publication read and status/activation check
 reject mismatched observations without mixing generations or status
 from another activation. Existing interfaces and three-part combined
-snapshot data shapes are unchanged. Fifteen theory-expanded cases and
-full-suite **1407/1407 GREEN** await local verification. See
+snapshot data shapes are unchanged. Fifteen theory-expanded cases were included in the maintainer-confirmed
+full-suite **1407/1407 GREEN** checkpoint. See
 [completed supporting snapshots](../Completed-Supporting-Catalog-Snapshots/en.md).
 
 ## Completed full operational catalog observation (verification pending)
