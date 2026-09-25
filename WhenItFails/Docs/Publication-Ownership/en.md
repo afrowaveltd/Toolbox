@@ -1,6 +1,6 @@
 # Exact context publication ownership
 
-Status: **additive store-layer contract; six store-level tests included in maintainer-confirmed 1330/1330 GREEN suite; initializer/runtime bridge awaiting verification**.
+Status: **additive store-layer contract; default initializer/runtime owned-write bridge included in maintainer-confirmed 1336/1336 GREEN suite; no-write recovery selection verification pending**.
 
 ## Why a successful write must return its own publication
 
@@ -69,10 +69,14 @@ initialization result remain unchanged.
 The owned-publication property is **internal**, not part of the public
 payload surface, JSON output, or the published 0.1.0 package. For legacy
 stores without `IErrorCatalogContextPublisher`, the initializer and
-runtime still use the original `Set` path. Custom initializers that do
-not report an owned record, and previous-context recovery that does
-not perform a new write, still use a **best-effort** current-publication
-reference match; that path is not strict write ownership.
+runtime still use the original `Set` path. Custom initializers that do not report an owned record still use a
+**best-effort** current-publication reference match. For no-write
+previous-context recovery, the default runtime now selects the existing
+publication and its context in one read when the optional publication
+reader is available. That record is retained separately as an internal
+`SelectedPublication`: selecting an existing publication is **not**
+owning a new write. Recovery on legacy or failing readers retains the
+weaker best-effort path. See [previous-context selection](../Recovery-Selection/en.md).
 
 Custom `IErrorCatalogContextStore` implementations need not implement
 `IErrorCatalogContextPublisher`. A future higher-level ownership-aware
@@ -88,7 +92,7 @@ write-path generation continuity, 64 concurrent writers receiving
 distinct records, null-write preservation, and optional-interface
 compatibility.
 
-After local verification, separately design a recovery-selection token
-and an optional owned-initializer capability for custom implementations.
+After local verification, review an optional owned-initializer capability
+for custom implementations and design a coherent combined status/data read.
 Do not claim globally atomic data/status reads: external writers can
 still replace the store after the identity check.
