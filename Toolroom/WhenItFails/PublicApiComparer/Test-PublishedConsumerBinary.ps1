@@ -5,6 +5,7 @@ param(
     [switch]$ExerciseProjectInitialization,
     [switch]$ExerciseProjectRecovery,
     [switch]$ExerciseFirstStartFallback,
+    [switch]$ExerciseStrictFirstStart,
     [string]$ReportPath = (Join-Path ([IO.Path]::GetTempPath()) 'WhenItFails-0.1.0-binary-smoke.md')
 )
 
@@ -71,6 +72,9 @@ if ($ExerciseProjectRecovery -and -not $ExerciseProjectInitialization) {
 }
 if ($ExerciseFirstStartFallback -and ($ExerciseInitialization -or $ExerciseProjectInitialization -or $ExerciseProjectRecovery)) {
     throw 'First-start fallback is a separate optional consumer probe.'
+}
+if ($ExerciseStrictFirstStart -and ($ExerciseInitialization -or $ExerciseProjectInitialization -or $ExerciseProjectRecovery -or $ExerciseFirstStartFallback)) {
+    throw 'Strict first-start is a separate optional consumer probe.'
 }
 
 # This optional probe is inserted into the very same consumer source BEFORE
@@ -364,6 +368,67 @@ foreach (var descriptor in new[] { byName.Data, byId.Data, byCode.Data })
     $expectedResult = 'RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|FIRST_START_FALLBACK|DESCRIPTOR|NO_JSON_REWRITE'
 }
 
+if ($ExerciseStrictFirstStart) {
+    # Configure Strict mode in the original 0.1.0 consumer SOURCE before its
+    # one-and-only package compilation; keep the compiled consumer unchanged
+    # for the subsequent source-DLL substitution.
+    $registration = 'services.AddWhenItFails()'
+    $strictRegistration = 'services.AddWhenItFails(new Afrowave.Toolbox.WhenItFails.Configuration.WhenItFailsOptions { InitializationMode = Afrowave.Toolbox.WhenItFails.Enums.ErrorCatalogInitializationMode.Strict })'
+    if (-not $consumerSource.Contains($registration)) {
+        throw 'The original consumer DI registration marker is missing.'
+    }
+    $consumerSource = $consumerSource.Replace($registration, $strictRegistration)
+    $strictProbe = @'
+if (args.Length != 1 || string.IsNullOrWhiteSpace(args[0]))
+    throw new InvalidOperationException("An isolated strict first-start workspace root is required.");
+
+var strictOptions = new Afrowave.Toolbox.WhenItFails.Configuration.JsonsOptions
+{
+    RootDirectory = args[0]
+};
+if (Directory.Exists(strictOptions.RootDirectory))
+    throw new InvalidOperationException("Strict first-start workspace must be absent.");
+
+Directory.CreateDirectory(strictOptions.PackageDirectoryPath);
+const string malformedCatalog = "{ this is intentionally malformed JSON in strict mode";
+File.WriteAllText(strictOptions.ErrorCatalogFilePath, malformedCatalog,
+    new System.Text.UTF8Encoding(false));
+string malformedHash = Convert.ToHexString(
+    System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(strictOptions.ErrorCatalogFilePath)));
+
+var rejected = runtime.InitializeAsync(strictOptions).GetAwaiter().GetResult();
+if (rejected.IsSuccess || rejected.Data is not null)
+    throw new InvalidOperationException("Strict mode unexpectedly accepted an invalid project catalog.");
+
+if (runtime.GetCurrentContext().IsSuccess || runtime.GetStatus().IsSuccess)
+    throw new InvalidOperationException("Strict mode activated a context or status after invalid first-start JSON.");
+
+if (runtime.FromId("AFW_GEN_0001").IsSuccess ||
+    runtime.FromName("UNKNOWNERROR").IsSuccess ||
+    runtime.FromCode(100001).IsSuccess)
+    throw new InvalidOperationException("Strict rejection unexpectedly exposed a fallback descriptor.");
+
+if (!File.Exists(strictOptions.ErrorCatalogFilePath) ||
+    File.ReadAllText(strictOptions.ErrorCatalogFilePath) != malformedCatalog ||
+    Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+        File.ReadAllBytes(strictOptions.ErrorCatalogFilePath))) != malformedHash)
+    throw new InvalidOperationException("Strict rejection modified the malformed project JSON.");
+'@
+    $outputMarker = 'Console.WriteLine("LOADED|" + typeof(ErrorCatalogContextStore).Assembly.Location);'
+    if (-not $consumerSource.Contains($outputMarker)) {
+        throw 'The original consumer output marker is missing.'
+    }
+    $consumerSource = $consumerSource.Replace($outputMarker,
+        $strictProbe + [Environment]::NewLine + $outputMarker)
+    $oldResult = 'Console.WriteLine("RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME");'
+    $newResult = 'Console.WriteLine("RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|STRICT_FIRST_START_REJECTED|NO_CONTEXT|NO_JSON_REWRITE");'
+    if (-not $consumerSource.Contains($oldResult)) {
+        throw 'The original consumer result marker is missing.'
+    }
+    $consumerSource = $consumerSource.Replace($oldResult, $newResult)
+    $expectedResult = 'RESULT|PASS|STORE|DI|UNINITIALIZED_RUNTIME|STRICT_FIRST_START_REJECTED|NO_CONTEXT|NO_JSON_REWRITE'
+}
+
 $consumerProject = Join-Path $consumerDir 'Consumer.csproj'
 [IO.File]::WriteAllText($consumerProject, $projectXml,
     [Text.UTF8Encoding]::new($false))
@@ -465,7 +530,7 @@ $report = @(
     '# WhenItFails 0.1.0 precompiled-consumer binary smoke'
     ''
     'Result: PASS — both executions completed with the same expected legacy contract result.'
-    "Consumer probe: $(if ($ExerciseFirstStartFallback) { 'first-start invalid project JSON; bundled fallback; malformed file unchanged; three descriptor lookups' } elseif ($ExerciseProjectRecovery) { 'project catalogs then malformed JSON and previous-context recovery, with all five files preserved' } elseif ($ExerciseProjectInitialization) { 'project catalogs (isolated workspace; two InitializeAsync calls; five files preserved; descriptor lookup)' } elseif ($ExerciseInitialization) { 'bundled defaults (explicit reset; descriptor lookup)' } else { 'original pre-initialization path' })"
+    "Consumer probe: $(if ($ExerciseStrictFirstStart) { 'strict first-start malformed project JSON; no activation or fallback; invalid file unchanged' } elseif ($ExerciseFirstStartFallback) { 'first-start invalid project JSON; bundled fallback; malformed file unchanged; three descriptor lookups' } elseif ($ExerciseProjectRecovery) { 'project catalogs then malformed JSON and previous-context recovery, with all five files preserved' } elseif ($ExerciseProjectInitialization) { 'project catalogs (isolated workspace; two InitializeAsync calls; five files preserved; descriptor lookup)' } elseif ($ExerciseInitialization) { 'bundled defaults (explicit reset; descriptor lookup)' } else { 'original pre-initialization path' })"
     "Requested package: Afrowave.Toolbox.WhenItFails [0.1.0]"
     "Feed override: $(if ($Feed) { $Feed } else { 'configured NuGet sources/cache; publishing provenance unverified' })"
     "Package consumer executable SHA-256 (unchanged): $consumerHash"
@@ -476,10 +541,10 @@ $report = @(
     "Package run: $publishedResult"
     "Swapped run: $swappedResult"
     ''
-    "Scope: an executable compiled only once against requested package 0.1.0 and re-run without rebuilding after replacing only WhenItFails.dll. Legacy store/DI/pre-initialization calls$(if ($ExerciseFirstStartFallback) { ', first-start malformed project JSON with built-in fallback, unchanged user-managed file, and UNKNOWNERROR descriptor lookup in two isolated temp roots' } elseif ($ExerciseProjectRecovery) { ', valid project initialization and malformed-JSON previous-context recovery using separate temp roots, catalog-file integrity and retained descriptor lookup' } elseif ($ExerciseProjectInitialization) { ', project workspace initialization/reinitialization in two separate temp roots, five catalog-file hashes and UNKNOWNERROR descriptor lookup' } elseif ($ExerciseInitialization) { ', explicit bundled-default activation and UNKNOWNERROR descriptor lookup' } else { '' })."
+    "Scope: an executable compiled only once against requested package 0.1.0 and re-run without rebuilding after replacing only WhenItFails.dll. Legacy store/DI/pre-initialization calls$(if ($ExerciseStrictFirstStart) { ', strict-mode first-start rejection of malformed project JSON without context, fallback, descriptor or JSON rewriting in two isolated roots' } elseif ($ExerciseFirstStartFallback) { ', first-start malformed project JSON with built-in fallback, unchanged user-managed file, and UNKNOWNERROR descriptor lookup in two isolated temp roots' } elseif ($ExerciseProjectRecovery) { ', valid project initialization and malformed-JSON previous-context recovery using separate temp roots, catalog-file integrity and retained descriptor lookup' } elseif ($ExerciseProjectInitialization) { ', project workspace initialization/reinitialization in two separate temp roots, five catalog-file hashes and UNKNOWNERROR descriptor lookup' } elseif ($ExerciseInitialization) { ', explicit bundled-default activation and UNKNOWNERROR descriptor lookup' } else { '' })."
     'The original .deps.json and other package dependencies remain unchanged. This narrow smoke is not exhaustive ABI, dependency-version, nullable, JSON, project-workspace initialization, recovery or behavioral compatibility testing.'
 )
 $report | Set-Content -LiteralPath $ReportPath -Encoding UTF8
-Write-Host $(if ($ExerciseFirstStartFallback) { 'Binary first-start fallback smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseProjectRecovery) { 'Binary project recovery smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseProjectInitialization) { 'Binary project initialization smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseInitialization) { 'Binary initialization smoke: PASS (original package consumer and swapped source DLL).' } else { 'Binary smoke: PASS (original package consumer and swapped source DLL).' })
+Write-Host $(if ($ExerciseStrictFirstStart) { 'Binary strict first-start smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseFirstStartFallback) { 'Binary first-start fallback smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseProjectRecovery) { 'Binary project recovery smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseProjectInitialization) { 'Binary project initialization smoke: PASS (original package consumer and swapped source DLL).' } elseif ($ExerciseInitialization) { 'Binary initialization smoke: PASS (original package consumer and swapped source DLL).' } else { 'Binary smoke: PASS (original package consumer and swapped source DLL).' })
 Write-Host "Report: $ReportPath"
 Write-Host "Temporary consumers: $workspace"
