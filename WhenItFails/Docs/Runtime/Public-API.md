@@ -338,6 +338,24 @@ It selects a context independently from other snapshot calls.
 their original three-part data shape. See
 [detached profile snapshots](../Profile-Snapshots/en.md).
 
+## All four supporting catalogs from one context
+
+`GetSupportingCatalogsSnapshot()` selects one active context reference once
+and captures detached category, owner, code-group and profile catalogs.
+It does not include the main error definitions, validation findings,
+activation status or publication generation, and cannot protect against
+external in-place mutation of the selected context:
+
+```csharp
+using Afrowave.Toolbox.WhenItFails.Runtime;
+
+Response<ErrorSupportingCatalogsSnapshot> supporting =
+    runtime.GetSupportingCatalogsSnapshot();
+```
+
+Existing three-part combined snapshot types are unchanged. See
+[all-supporting-catalog snapshot documentation](../Supporting-Catalog-Snapshots/en.md).
+
 ## Runtime status
 
 Retrieve the active status snapshot through:

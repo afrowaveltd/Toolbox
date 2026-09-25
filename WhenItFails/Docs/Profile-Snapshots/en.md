@@ -1,6 +1,6 @@
 # Detached profile catalog snapshots
 
-Status: **additive pre-1.0 CLR API candidate; six focused tests await local verification**.
+Status: **additive pre-1.0 CLR API candidate; six focused tests included in maintainer-confirmed 1365/1365 GREEN suite**.
 
 ## Purpose and usage
 
@@ -59,8 +59,9 @@ The original `GetCombinedSnapshot()` and
 `GetCompletedCombinedSnapshot()` keep their existing public
 three-part data shape: main definitions, category catalog and recorded
 validation. They do **not** silently include profiles, owners or code
-groups. An explicitly designed full-catalog view from one selected
-publication is a separate possible next step.
+groups. The separate additive [all-supporting-catalog view](../Supporting-Catalog-Snapshots/en.md)
+selects one context reference and copies category, owner, code-group and
+profile catalogs together, without changing those existing three-part types.
 
 The pre-1.0 CLR projection does not establish a versioned JSON wire
 contract or promise direct deserialization into its getter-only types.

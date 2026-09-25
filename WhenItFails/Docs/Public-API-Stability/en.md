@@ -324,7 +324,7 @@ are not one atomic multi-catalog read. See
 [code group snapshot documentation](../Code-Group-Snapshots/en.md).
 The published package version and persisted JSON schemas remain unchanged.
 
-## Detached supporting profile catalog (verification pending)
+## Detached supporting profile catalog (1365/1365 GREEN)
 
 Added sealed, getter-only `ErrorProfileDefinitionSnapshot` (all 14 public
 profile-definition fields, including all eight independent include/exclude
@@ -336,8 +336,8 @@ structured failures on unavailable context, absent profile catalog or
 malformed nested source. Nested collections have independent read-only
 wrappers, mappings preserve their source key comparer and metadata
 remains case-insensitive. Six focused cases in
-`ErrorProfileCatalogSnapshotContractTests` and expected complete
-**1365/1365 GREEN** await local verification.
+`ErrorProfileCatalogSnapshotContractTests` and the complete
+**1365/1365 GREEN** suite were confirmed locally by the maintainer (zero reported errors).
 
 No existing runtime interface methods or combined snapshot data shapes
 are changed. Owners, code groups and profiles now have independent
@@ -345,6 +345,19 @@ source-level projection implementations, but independently called
 extensions do **not** guarantee they select the same publication.
 See [profile snapshot documentation](../Profile-Snapshots/en.md).
 Published package version and persisted catalog JSON formats are unchanged.
+
+## Detached four-supporting-catalog capture (verification pending)
+
+The additive `GetSupportingCatalogsSnapshot()` extension captures all four
+supporting catalogs from one selected active context reference. The sealed,
+getter-only `ErrorSupportingCatalogsSnapshot` contains independently detached
+category, owner, code-group and profile projections, without changing any
+existing combined three-part snapshot type or `IErrorCatalogRuntime`.
+It has no store generation, activation status, main definitions or validation.
+It is not transactional against external mutation of an already selected
+context's nested documents. Twelve theory-expanded cases and full suite
+**1377/1377 GREEN** await local maintainer verification. See
+[supporting catalog snapshots](../Supporting-Catalog-Snapshots/en.md).
 
 ## Still under review
 
