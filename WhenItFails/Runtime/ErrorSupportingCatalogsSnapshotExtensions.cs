@@ -55,7 +55,31 @@ public static class ErrorSupportingCatalogsSnapshotExtensions
             };
         }
 
-        ErrorCatalogContext? context = response.Data;
+        Response<ErrorSupportingCatalogsSnapshot> captured =
+            CaptureFromContext(response.Data);
+
+        if (!captured.IsSuccess)
+        {
+            return captured;
+        }
+
+        return new Response<ErrorSupportingCatalogsSnapshot>
+        {
+            Status = response.Status,
+            Message = response.Message,
+            Data = captured.Data,
+            Issues = response.Issues ?? Array.Empty<IssueInfo>(),
+            Metadata = response.Metadata?.Copy() ?? new MetadataBag()
+        };
+    }
+
+    /// <summary>
+    /// Captures the supporting catalog data from an already selected context.
+    /// This helper never reads the runtime or independently selects a publication.
+    /// </summary>
+    internal static Response<ErrorSupportingCatalogsSnapshot> CaptureFromContext(
+        ErrorCatalogContext? context)
+    {
         if (context?.CategoryCatalog is null)
         {
             return Missing("CATEGORY_CATALOG",
@@ -80,8 +104,7 @@ public static class ErrorSupportingCatalogsSnapshotExtensions
                 "The active context does not contain a profile catalog.");
         }
 
-        // Preserve the selected document references. Never invoke another runtime
-        // snapshot extension, which would select the active context again.
+        // Select all four source documents from the same selected context.
         ErrorCategoryCatalogDocument categories = context.CategoryCatalog;
         ErrorOwnerCatalogDocument owners = context.OwnerCatalog;
         ErrorCodeGroupCatalogDocument codeGroups = context.CodeGroupCatalog;
@@ -95,14 +118,7 @@ public static class ErrorSupportingCatalogsSnapshotExtensions
                 new ErrorCodeGroupCatalogSnapshot(codeGroups),
                 new ErrorProfileCatalogSnapshot(profiles));
 
-            return new Response<ErrorSupportingCatalogsSnapshot>
-            {
-                Status = response.Status,
-                Message = response.Message,
-                Data = snapshot,
-                Issues = response.Issues ?? Array.Empty<IssueInfo>(),
-                Metadata = response.Metadata?.Copy() ?? new MetadataBag()
-            };
+            return Response<ErrorSupportingCatalogsSnapshot>.Ok(snapshot);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
