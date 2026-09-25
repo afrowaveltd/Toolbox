@@ -1,6 +1,8 @@
 # Compiled public API review — WhenItFails 0.1.0
 
 Status: **provisional classification for 1.0 planning, not a frozen compatibility guarantee**.
+
+**Historical snapshot:** the 110 exported types and 611 comparison entries below describe earlier source checkpoints, not the current library after new snapshot APIs. See [current assembly inventory and package comparison](../Current-Public-API-Inventory/en.md) for instructions; do not infer an updated count from these historical results.
 Review date: 2026-09-25.
 Source: maintainer-generated `WhenItFails-public-api.md` from `ExportedAssemblyInventoryTests` on the source-built `Afrowave.Toolbox.WhenItFails` assembly, reporting assembly version `0.1.0.0` and **110 exported types**. The report lists *declared* public members of exported types. It is not a metadata/ABI diff against the published NuGet package.
 

@@ -62,3 +62,8 @@ No production code changes were made as part of this inventory.
 ## 6. Additive snapshot API review — 2026-09-25
 
 At the maintainer-confirmed **1435/1435 GREEN** checkpoint, the original runtime interface still declared nine methods. Optional publication/activation/combined/supporting/full readers and context-only/publication-aware snapshot extensions are separate public, pre-1.0 candidates; internal capture helpers remain implementation details. The historical 110-exported-type report is **not** a current source count. See [snapshot capability boundaries](../Pre-1.0-Snapshot-Capability-Boundaries/en.md). Four new contract tests await local verification (expected full **1439/1439 GREEN**). Regenerate the assembly inventory and compare the NuGet binary before freezing 1.0 signatures.
+
+
+## 7. Current export and 0.1.0 comparison checkpoint (pending)
+
+After maintainer-confirmed **1439/1439 GREEN**, the existing compiled-assembly inventory gained three tests for newer snapshot exports, internal capture-helper non-exposure, and deterministic complete type reporting. It emits its report from the locally compiled DLL when `AFROWAVE_WHENITFAILS_PUBLIC_API_REPORT` is set. `PublicApiComparer` additionally reports source/package exported-type totals and separate type/member differences against requested exact version `[0.1.0]`. The older 110-type and 611-entry counts are historical. Current counts and differences **have not yet been observed**. See [the current inventory procedure](../Current-Public-API-Inventory/en.md). The three new tests await maintainer verification (expected full **1442/1442 GREEN**).

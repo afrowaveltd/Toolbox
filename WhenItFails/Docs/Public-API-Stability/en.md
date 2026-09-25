@@ -416,14 +416,24 @@ must check success and non-null data. The test addition changes no
 production signature, existing nullable annotation, JSON schema, or published
 package. Complete **1435/1435 GREEN** suite confirmed locally by maintainer. See [snapshot nullable contract notes](../Nullable-Snapshot-Contracts/en.md).
 
-## Snapshot capability separation (verification pending)
+## Snapshot capability separation (1439/1439 GREEN)
 
 Four new `SnapshotCapabilityBoundaryContractTests` cover the original
 nine-method runtime interface, five independent optional readers and eight
 additive context/publication extensions. All are real public CLR declarations
-today, but no 1.0 compatibility freeze has been declared. Expected complete
-suite **1439/1439 GREEN**, pending local verification. See
+today, but no 1.0 compatibility freeze has been declared. Complete **1439/1439 GREEN** suite confirmed locally by maintainer. See
 [capability boundary review](../Pre-1.0-Snapshot-Capability-Boundaries/en.md).
+
+## Current compiled API inventory and package comparison (pending)
+
+Three added `ExportedAssemblyInventoryTests` cases validate newer exported
+snapshot types, internal-helper visibility and deterministic full inventory
+generation without freezing the historical 110-type count. The isolated
+`PublicApiComparer` now reports source/package exported-type totals and
+type/member differences for exactly requested package 0.1.0. The actual
+current count and comparison outcome require a local run; expected complete
+suite **1442/1442 GREEN**, last confirmed **1439/1439 GREEN**. See
+[current inventory instructions](../Current-Public-API-Inventory/en.md).
 
 ## Still under review
 
