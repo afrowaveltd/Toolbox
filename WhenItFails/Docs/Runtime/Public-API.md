@@ -267,7 +267,7 @@ This is **not** a fully atomic current context-and-status snapshot: readers can 
 
 ## Exact context publication ownership
 
-Infrastructure code that must identify **its own successful store write** can use the default store's optional `IErrorCatalogContextPublisher.Publish(context)`. Unlike calling `Set()` followed by a separate `GetCurrentPublication()`, `Publish()` returns the exact record that won the atomic write, even when a competing writer immediately replaces it with the **same** context reference. The original store interface is unchanged. This new store capability is not yet propagated to the default initializer/runtime's completed-status observation. See [exact publication ownership](../Publication-Ownership/en.md).
+Infrastructure code that must identify **its own successful store write** can use the default store's optional `IErrorCatalogContextPublisher.Publish(context)`. Unlike calling `Set()` followed by a separate `GetCurrentPublication()`, `Publish()` returns the exact record that won the atomic write, even when a competing writer immediately replaces it with the **same** context reference. The original store interface is unchanged. The default initializer and runtime reset/fallback now propagate their exact owned write record to completed-status observation. Legacy/custom initializers without an owned token and previous-context recovery retain weaker reference-based association; this is still not a globally atomic context/status read. See [exact publication ownership](../Publication-Ownership/en.md).
 
 ## Shared-store concurrency boundary
 
