@@ -105,6 +105,10 @@ sharing a store are not serialized by this gate.
 
 The instance-local activation gate does **not** serialize operations on other default runtime instances or direct writes to their common store. Two runtimes can retain different local status observations for the same store generation (for example, project activation and previous-context recovery). The default initializer/reset/fallback now propagate their exact owned publication records, so a later same-reference republish no longer steals *those* completion identities. Custom initializers without an owned publication token and recovery through legacy/unavailable publication readers still cannot prove strict ownership using object reference equality alone. Default no-write recovery with an available reader now selects the exact prior publication and checks its identity before reporting a completed observation. See [shared-store concurrency and ownership](../Shared-Store-Concurrency/en.md) for the remaining boundaries.
 
+## Checked combined status and catalog view
+
+For consumers that require recorded status and detached catalog data from the **same selected publication**, the default runtime offers an additive [completed combined snapshot](../Completed-Combined-Snapshots/en.md). It checks the publication before and after the copy and verifies the selected completed status has not changed. This avoids independently stitching together `GetStatus()` and a later catalog snapshot; it cannot lock out external writes after the final check or in-place edits during capture.
+
 ## Consistency limits
 
 The method returns a **selected, previously recorded association**.
