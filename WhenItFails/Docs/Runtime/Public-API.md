@@ -240,6 +240,12 @@ Response<ErrorCatalogCombinedSnapshot> combinedResponse =
 
 The combined result contains detached, getter-only projections and requires only one `GetCurrentContext()` call. It does **not** include owner/code-group/profile catalogs or runtime status, provide an activation-generation ID, revalidate already mutated documents, or create a transaction against concurrent in-place modification of the selected context. See [combined snapshot ownership](../Combined-Snapshots/en.md).
 
+## Context publication identity (infrastructure)
+
+The default `ErrorCatalogContextStore` also implements the **optional** `IErrorCatalogContextPublicationReader`. It atomically publishes a context reference alongside a `(StoreId, Generation)` pair; `Generation` advances with each successful store `Set`. Existing `IErrorCatalogContextStore` members are unchanged. This record is **not** a detached consumer snapshot: its `Context` is still the live mutable object.
+
+This generation identifies **store publications**, not a synchronized context-plus-runtime-status activation. Normal initialization, reset, fallback and retained-previous-context recovery do not all change the context and status together. `GetCombinedSnapshot()` does not yet expose generation identity. See [context publication identity](../Context-Publication/en.md) for lifecycle and compatibility details.
+
 ## Runtime status
 
 Retrieve the active status snapshot through:
