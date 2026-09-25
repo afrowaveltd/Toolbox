@@ -4,6 +4,7 @@ using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Configuration;
 using Afrowave.Toolbox.WhenItFails.Enums;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
+using Afrowave.Toolbox.WhenItFails.Runtime;
 
 namespace Afrowave.Toolbox.WhenItFails.Initialization;
 
@@ -126,9 +127,20 @@ public sealed class ErrorCatalogInitializer : IErrorCatalogInitializer
                  "Catalog context loading succeeded without payload data.");
       }
 
+      ErrorCatalogContextPublication? ownedPublication = null;
+
       try
       {
-         _contextStore.Set(contextResponse.Data);
+         if (_contextStore is IErrorCatalogContextPublisher publisher)
+         {
+            // Capture the record returned by this exact successful write;
+            // a later GetCurrentPublication() could belong to another writer.
+            ownedPublication = publisher.Publish(contextResponse.Data);
+         }
+         else
+         {
+            _contextStore.Set(contextResponse.Data);
+         }
       }
       catch(Exception exception) when(exception is not OperationCanceledException)
       {
@@ -144,7 +156,8 @@ public sealed class ErrorCatalogInitializer : IErrorCatalogInitializer
             ContextSource =
             ErrorCatalogContextSource.ProjectCatalog,
             KeptPreviousContext = false,
-            UsedFallback = false
+            UsedFallback = false,
+            OwnedPublication = ownedPublication
         };
 
         return Response<ErrorCatalogInitializationPayload>.Ok(payload);
