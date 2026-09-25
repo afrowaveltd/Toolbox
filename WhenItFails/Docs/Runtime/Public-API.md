@@ -548,6 +548,8 @@ The store publishes and replaces the **context reference** atomically. The runti
 
 Atomic publication does **not** make the context, its catalog documents or contained definitions deeply immutable or thread-safe for arbitrary concurrent writes. In-place mutations by a publisher or consumer can be seen by other readers and can expose inconsistent combinations of fields. Treat active contexts as read-only after publication; perform updates by constructing and validating a separate context and activating it through the supported runtime flow.
 
+`CrossValidationResult` records findings from the catalog state *at validation time*; it does not automatically revalidate supporting catalogs after a later mutation. Its `IsValid` property recomputes from its **mutable issue objects**, so editing an issue's severity can also change the reported validity. An earlier successful validation is not evidence that an in-place modified published context is still valid. Supporting profile and category definitions contain mutable nested collections and mappings; never use them as an implicit read-only snapshot.
+
 ## Failure behavior
 
 Runtime methods return structured failure responses when:
