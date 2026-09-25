@@ -248,10 +248,8 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
                 message: "The active context publication could not be read.");
         }
 
-        if (publicationResponse?.IsSuccess != true
-            || !ReferenceEquals(
-                publicationResponse.Data,
-                completed.Publication))
+        if (publicationResponse is not { IsSuccess: true, Data: { } publication }
+            || !ReferenceEquals(publication, completed.Publication))
         {
             return Response<ErrorCatalogActivationStatusSnapshot>.Invalid(
                 code: "WIF_ACTIVATION_PUBLICATION_CHANGED",
