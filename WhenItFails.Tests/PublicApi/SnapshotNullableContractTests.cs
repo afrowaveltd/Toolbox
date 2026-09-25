@@ -126,7 +126,7 @@ public sealed class SnapshotNullableContractTests
                          "GetCurrentPublication", typeof(ErrorCatalogContextPublication))
                  })
         {
-            MethodInfo method = Assert.IsType<MethodInfo>(reader.GetMethod(name));
+            MethodInfo method = Assert.IsAssignableFrom<MethodInfo>(reader.GetMethod(name));
             Assert.Equal(typeof(Response<>).MakeGenericType(payload), method.ReturnType);
             Assert.Equal(NullabilityState.NotNull,
                 Nullability.Create(method.ReturnParameter).ReadState);
@@ -170,7 +170,7 @@ public sealed class SnapshotNullableContractTests
 
     private static NullabilityInfo GetInfo(Type type, string name)
     {
-        PropertyInfo property = Assert.IsType<PropertyInfo>(
+        PropertyInfo property = Assert.IsAssignableFrom<PropertyInfo>(
             type.GetProperty(name, BindingFlags.Public | BindingFlags.Instance));
         return Nullability.Create(property);
     }
