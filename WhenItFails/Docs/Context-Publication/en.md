@@ -26,6 +26,10 @@ is installed. Re-publishing the **same context reference** is still a
 new publication with a new generation. A rejected null `Set` does
 not change the current publication.
 
+## Exact successful write ownership
+
+The default context store now also implements the optional `IErrorCatalogContextPublisher`. `Publish(context)` returns the **exact** `ErrorCatalogContextPublication` that won this call's atomic compare/exchange; the legacy `Set(context)` delegates to the same write path and keeps its original void signature. A later `GetCurrentPublication()` can already refer to another writer, even one that republishes the same context object. Ownership must be based on the returned record, not reference equality. See [exact publication ownership](../Publication-Ownership/en.md). The existing default initializer/runtime status flow does not yet propagate this new token and therefore has not gained strict activation ownership from this store-only change.
+
 ## Optional infrastructure interface
 
 `ErrorCatalogContextStore` implements both the original
