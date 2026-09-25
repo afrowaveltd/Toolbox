@@ -337,18 +337,18 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** all tests GREEN, complete **1278/1278 GREEN** after commit `6d14bddfb70bb2db43d0e0d3ac5e2059e1ebaef1`. Focused run details and compiler warning count were not separately reported. No change to the existing package version or persistent JSON schema.
 - Next: design a combined capture of main definitions, recorded validation and category catalog from one context selection; specify activation identity/lifecycle separately before claiming cross-call generation coherence.
 
-## 2026-09-25 — combined selected-reference snapshot (verification pending)
+## 2026-09-25 — combined selected-reference snapshot (1286/1286 GREEN)
 
 - Added `WhenItFails/Runtime/ErrorCatalogCombinedSnapshot.cs`, a sealed getter-only projection with three properties: `Definitions` (detached `ErrorDefinitionSnapshot` list), `CategoryCatalog` (detached `ErrorCategoryCatalogSnapshot`), and `Validation` (detached `ErrorCatalogValidationSnapshot`). It intentionally excludes owner/code-group/profile catalogs, independent runtime status, and a stable activation-generation ID.
 - Added `WhenItFails/Runtime/ErrorCatalogCombinedSnapshotExtensions.cs`: the additive `GetCombinedSnapshot(this IErrorCatalogRuntime)` calls `GetCurrentContext()` once, selects **one context reference**, checks all three required source components and projects them without invoking independently reading snapshot extensions. Missing context/required catalog/recorded validation produces stable Invalid codes without partial data; ordinary capture failures produce `WIF_COMBINED_SNAPSHOT_FAILED` without exception details; cancellation propagates. The existing nine-method runtime interface and `GetCurrentContext()` behavior remain unchanged.
 - Added `WhenItFails.Tests/PublicApi/ErrorCatalogCombinedSnapshotContractTests.cs`: five `[Fact]` tests and one three-case `[Theory]` = **eight test cases** for nested definition/category/issue detachment, one-read selection while the runtime changes contexts, uninitialized status forwarding, absent required components, malformed source, and getter-only CLR shape/interface compatibility.
 - Created `WhenItFails/Docs/Combined-Snapshots/en.md` and updated root README, `Docs/Runtime/Public-API.md` and `Docs/Public-API-Stability/en.md` to distinguish **single selected-reference consistency** from both a transaction against in-place mutation and a durable activation-generation ID. No owner/code-group/profile snapshot, runtime status pairing, published package version or persisted JSON schema changed.
-- **Verification pending:** eight new test cases and expected full **1286/1286 GREEN** if all pass. Last maintainer-confirmed suite: **1278/1278 GREEN**. This environment cannot execute the .NET project tests.
-- Next: verify focused/full suite; then design stable activation identity owned by the runtime publication lifecycle, including reinitialization/fallback/retained-previous-context semantics, without treating per-call capture IDs as context generations.
+- **Verified locally by maintainer:** complete **1286/1286 GREEN** suite after commit `e3527b703740181e2a6212eac3d3a5faa02a6bbd`. Focused run details and compiler warning count were not separately reported.
+- Next: establish publication identity at the context store boundary; analyze reinitialization/fallback/retained-previous-context semantics without treating per-call capture IDs as context generations.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1278/1278 GREEN**, confirmed locally by maintainer after detached category catalog snapshot tests. The last explicitly confirmed warning-free build was at 1241/1241.
+- Complete `WhenItFails.Tests` suite: **1286/1286 GREEN**, confirmed locally by maintainer after combined selected-reference snapshot tests. The last explicitly confirmed warning-free build was at 1241/1241.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
