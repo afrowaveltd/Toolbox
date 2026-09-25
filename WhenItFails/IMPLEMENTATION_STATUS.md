@@ -500,16 +500,16 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - The deterministic `InterferingStore` test double now supports a first-publication-read hook alongside its existing second-read hook. Added a sequenced built-in provider for two successive successful resets. No production behavior or public API shape changed.
 - **Verified locally by maintainer:** complete **1429/1429 GREEN** after three additional cases (22 focused cases in this class); focused-run and compiler-warning counts were not separately reported. Next: review nullable annotations and explicit stable 1.0 public API scope before further additive expansion.
 
-## 2026-09-25 — snapshot nullable annotation contract review (verification pending)
+## 2026-09-25 — snapshot nullable annotation contract review (1435/1435 GREEN)
 
 - Added `WhenItFails.Tests/PublicApi/SnapshotNullableContractTests.cs` with **six** focused reflection tests for compiled C# nullable metadata: completed status/snapshot references, all six complete operational data projections, nested list and dictionary elements, optional document/definition fields, optional reader response envelopes, and runtime recovery details.
 - Confirmed documented distinction between non-nullable `Response<T>` return values and its nullable `Data` payload (including the shared Essentials `Ok(null)` behavior). No production API, existing nullable annotations, serialization schemas or published package 0.1.0 were changed.
 - Added English `Docs/Nullable-Snapshot-Contracts/en.md`; updated README, runtime API, public API stability notes and completed full snapshot documentation. Reflection checks protect compile-time consumer contracts; they do not claim a transaction against external in-place mutation of published contexts.
-- **Verification pending:** 6 focused cases; expected complete **1435/1435 GREEN**. Last maintainer-confirmed **1429/1429 GREEN**. Next: verify focused/full suite, then review the pre-1.0 public API decision register without declaring version 1.0 released.
+- **Verified locally by maintainer:** complete **1435/1435 GREEN** after six nullable-contract cases; focused-run and compiler-warning counts were not separately reported. Next: review pre-1.0 consumer-facing, optional and implementation-only contract boundaries without declaring version 1.0 released.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1429/1429 GREEN**, confirmed locally by maintainer after full-snapshot activation/race contract additions (compiler-warning count not separately reported for this checkpoint).
+- Complete `WhenItFails.Tests` suite: **1435/1435 GREEN**, confirmed locally by maintainer after nullable snapshot contract additions (compiler-warning count not separately reported for this checkpoint).
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
