@@ -60,6 +60,10 @@ public sealed class ErrorCatalogInitializer : IErrorCatalogInitializer
              message: "The JSON workspace bootstrapper failed.");
       }
 
+      // A dependency may complete successfully after requesting cancellation.
+      // Do not start the next stage in that case.
+      cancellationToken.ThrowIfCancellationRequested();
+
       if(bootstrapResponse is null)
       {
          return Response<ErrorCatalogInitializationPayload>.Invalid(
@@ -102,6 +106,10 @@ public sealed class ErrorCatalogInitializer : IErrorCatalogInitializer
                  "The error catalog context provider failed during initialization.");
       }
 
+      // A successful asynchronous load does not imply that the token
+      // remained active until its completion.
+      cancellationToken.ThrowIfCancellationRequested();
+
       if(contextResponse is null)
       {
          return Response<ErrorCatalogInitializationPayload>.Invalid(
@@ -126,6 +134,11 @@ public sealed class ErrorCatalogInitializer : IErrorCatalogInitializer
              message:
                  "Catalog context loading succeeded without payload data.");
       }
+
+      // Last cooperative cancellation boundary before the synchronous
+      // store publication. Once publication succeeds it must not be
+      // reported as an aborted activation.
+      cancellationToken.ThrowIfCancellationRequested();
 
       ErrorCatalogContextPublication? ownedPublication = null;
 
