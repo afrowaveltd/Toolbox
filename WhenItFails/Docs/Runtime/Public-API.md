@@ -214,6 +214,19 @@ Response<ErrorCatalogValidationSnapshot> validationResponse =
 
 Each issue is captured in a new getter-only projection, and `IsValid` is calculated from captured severities rather than from a live validation result. This does **not** revalidate supporting catalogs, guarantee a transactional capture during in-place mutation or synchronize with a separate call to `GetErrorDefinitionSnapshots()`. See [detached validation snapshots](../Validation-Snapshots/en.md) for the scope and limitations.
 
+## Detached supporting category catalog
+
+The additive `GetCategoryCatalogSnapshot()` extension returns a read-only, detached projection of the current category catalog, including copied category definitions, aliases, parent categories, default tags, mappings and metadata:
+
+```csharp
+using Afrowave.Toolbox.WhenItFails.Runtime;
+
+Response<ErrorCategoryCatalogSnapshot> categoryResponse =
+    runtime.GetCategoryCatalogSnapshot();
+```
+
+This category view is independently captured; it does **not** share a context-generation identifier with separate definition/validation snapshot calls. Refer to [category snapshot ownership and context identity](../Category-Snapshots/en.md). A combined capture and stable activation identity remain separate design steps.
+
 ## Runtime status
 
 Retrieve the active status snapshot through:
