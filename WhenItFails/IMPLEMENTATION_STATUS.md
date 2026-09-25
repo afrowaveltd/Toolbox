@@ -616,6 +616,13 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production code, public API, package version or persisted JSON schema changed in this checkpoint. Detailed bootstrap documentation now states that successful earlier publications are deliberately not rolled back when a later template cannot be completed.
 - **Verified locally by maintainer:** both partial-workspace contracts and the complete **1454/1454 GREEN** suite. Eight binary smoke scenarios remain confirmed PASS. Compiler-warning count was not separately reported for this checkpoint. Next: audit bootstrap re-entry after a partial workspace to ensure a later successful run completes only the missing catalogs without rewriting the already published ones.
 
+## 2026-09-25 — bootstrap re-entry after partial workspace (verification pending)
+
+- Added `JsonsBootstrapperPartialWorkspaceReentryContractTests.cs` with two deterministic recovery cases following the previously pinned partial-workspace outcomes: one after cancellation of the second template and one after an injected second-template `IOException`.
+- Before retry, the already published first catalog is deliberately edited to different user content. A fresh bootstrap run must report that first file as existing/skipped, preserve its edited bytes exactly, create only the still-missing second catalog from the template, and leave no staged `.tmp` files. This pins bootstrap as **completion of missing files**, not repair, rollback or template resynchronization.
+- No production code, public API, package version or persisted JSON schema changed in this checkpoint. Detailed bootstrap documentation now describes re-entry into a partial workspace and preservation of user changes made between runs.
+- **Verification pending:** 2 additional focused tests, expected complete suite **1456/1456 GREEN**. Last maintainer-confirmed complete suite remains **1454/1454 GREEN**, plus 8 binary smoke scenarios PASS. Next: run the focused re-entry class and complete suite; if GREEN, record the checkpoint and continue auditing bootstrap/runtime interaction after partially prepared workspaces.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1454/1454 GREEN**, confirmed locally by maintainer after explicit partial-workspace cancellation/failure semantics across successive template publications (compiler-warning count not separately reported for this checkpoint).
