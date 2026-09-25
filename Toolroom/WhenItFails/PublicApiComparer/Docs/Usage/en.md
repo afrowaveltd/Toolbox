@@ -27,3 +27,14 @@ The separate `Test-PublishedConsumerBinary.ps1` script builds a .NET 10 consumer
 ```
 
 The maintainer reported **PASS on 2026-09-25** for the package-consumer execution and the same executable after source DLL substitution; the script adds no xUnit tests. The observed PASS is evidence only for the exercised old consumer and its retained dependency graph, not a full ABI/behavior guarantee. Use `-Feed` to select a specific package source, otherwise configured sources/cache are used. See [binary smoke scope and steps](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
+
+
+## Optional bundled-default activation and descriptor resolution
+
+Pass `-ExerciseInitialization` to the existing binary smoke script to compile the original package consumer **once** with a second test path before swapping its DLL. Both runs activate the isolated bundled defaults through `ResetToDefaultsAsync()`, read the non-degraded active status and resolve the historical `UNKNOWNERROR` definition by name, ID and numeric code, checking the descriptor identity and text. This mode does not create or overwrite a project-local catalog workspace; it does not test ordinary project `InitializeAsync()` or recovery. Its result is **pending local verification**; the earlier PASS was for the default pre-initialization path only.
+
+```powershell
+& .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseInitialization -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-binary-initialization.md')
+```
+
+See [opt-in initialization smoke details](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).

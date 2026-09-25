@@ -22,6 +22,44 @@ Get-Content (Join-Path $reportDir 'WhenItFails-0.1.0-binary-smoke.md') | Select-
 
 An optional `-Feed '<verified package source>'` overrides the NuGet restore source. Without an override, configured NuGet sources/cache may satisfy restore; successful execution **does not prove the package's original publishing origin**. If exact-package restore fails, do not build a new package and call it 0.1.0; report the failure.
 
+## Optional bundled-default initialization and descriptor compatibility probe
+
+The same script now accepts `-ExerciseInitialization`. This opt-in mode
+injects additional code into the **original 0.1.0 consumer source before its
+single compilation**, preserving the previous default smoke behavior.
+Both executions of that same compiled executable then exercise:
+
+- `IErrorCatalogRuntime.ResetToDefaultsAsync()` to activate validated,
+  isolated bundled defaults without creating or overwriting project-managed
+  `Jsons/WhenItFails` files;
+- successful `GetCurrentContext()` and `GetStatus()` with
+  `BuiltInDefaults` and no degraded recovery state;
+- `FromName("UNKNOWNERROR")`, `FromId("AFW_GEN_0001")` and
+  `FromCode(100001)`, comparing the known bundled descriptor's ID, name,
+  numeric code, title and message from the historical 0.1.0 template;
+- an unchanged consumer executable and original dependency graph, with
+  only WhenItFails.dll substituted in the second run.
+
+From the Toolbox root, each PowerShell command below is a single line:
+
+```powershell
+git pull --ff-only origin master
+& .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseInitialization -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-binary-initialization.md')
+```
+
+The intended success marker is
+`Binary initialization smoke: PASS (original package consumer and swapped source DLL).`
+The Markdown report records whether this optional probe was enabled,
+both expected result markers and the actual executable/source/package hashes.
+**Pending maintainer verification:** the extended mode has not yet been run;
+the previously confirmed PASS applies only to the original
+pre-initialization mode.
+
+This opt-in probe deliberately avoids default project-workspace
+`InitializeAsync()`, automatic recovery, user-managed JSON writes and
+full descriptor serialization. Those paths need separate isolated,
+precompiled-consumer tests before claiming compatibility for them.
+
 ## Observed maintainer execution
 
 On 2026-09-25, the maintainer ran the PowerShell tool against their updated
