@@ -523,6 +523,13 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Reported DLL SHA-256:** source `E81504A484AD99D5C818C98D594CDB88A08651638984D1A92503CDC367B9F0DD`; package consumer `379F7CF6FF99223ECF2F388AB6295A34D97F33A8BD8EB7F9A52152994347CE28`. Feed override was **not** used: the package came from configured sources/cache and original publishing provenance was not independently verified. Do not store user-specific temporary file paths in repository documents.
 - **Verification still pending:** the pasted comparison excerpt does **not** include focused inventory test output or confirmation of complete **1442/1442 GREEN**; last explicitly confirmed complete suite is **1439/1439 GREEN**. The comparison shows actual type/member totals only; full lists and inventory Markdown are not yet committed. No production code or published package changes.
 
+## 2026-09-25 — classification of 38 new exported CLR types (source-only type excerpt reviewed)
+
+- Maintainer supplied all **38 source-only exported type names** from the 0.1.0 comparer. Classified exhaustively in English `Docs/Added-Public-Types-Classification/en.md`: **2** optional store infrastructure interfaces, **5** optional runtime observation interfaces, **2** publication/activation infrastructure models, **19** detached data/observation models, and **10** additive snapshot extension classes. Count verified: 2 + 5 + 2 + 19 + 10 = 38.
+- This classification changes no CLR visibility, production code or 0.1.0 package. Publicly exported infrastructure types remain public; existing nine-method `IErrorCatalogRuntime` does not gain methods. Publication records contain live context references, unlike detached catalog projections.
+- The maintainer's comparer census remains **148 source / 110 package types**, **830 source / 611 package API entries**, **0 package-only types/entries**, **38 source-only types**, **219 source-only API entries**. The supplied excerpt shows *all type names* but not all 219 added member entries; do not infer that all added members belong exclusively to new types.
+- **Verification outstanding:** inventory focused **4/4** and complete **1442/1442 GREEN** not yet explicitly confirmed. Last confirmed complete suite **1439/1439 GREEN**. Next: inspect remaining 219-entry member diff and record full inventory test results before considering 1.0 API freeze.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1439/1439 GREEN**, confirmed locally by maintainer after snapshot capability boundary tests (compiler-warning count not separately reported for this checkpoint).
