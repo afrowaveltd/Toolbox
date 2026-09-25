@@ -470,17 +470,17 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** full **1377/1377 GREEN** with no reported errors; focused test and compiler-warning counts were not separately reported for this checkpoint.
 - Next: confirm focused/full suite locally, then decide whether a publication-aware all-catalog read or separately versioned transport DTO is needed. Do not infer a generation or atomic status from this single-context-reference capture.
 
-## 2026-09-25 — publication-aware supporting catalogs (verification pending)
+## 2026-09-25 — publication-aware supporting catalogs (1392/1392 GREEN)
 
 - Refactored the existing context-only supporting projection to reuse an internal `CaptureFromContext` helper without a second runtime read. Added sealed getter-only `ErrorCatalogPublishedSupportingCatalogsSnapshot` and additive `GetPublishedSupportingCatalogsSnapshot(this IErrorCatalogRuntime)`.
 - The new extension selects one actual store publication through the optional `IErrorCatalogRuntimePublicationReader` and captures all four supporting catalog documents from that record. It uses the real `StoreId` and `Generation` without a separate context/status read, synthetic identity or change to existing combined snapshot types.
 - Added `WhenItFails.Tests/PublicApi/PublishedSupportingCatalogsSnapshotContractTests.cs` with **15 theory-expanded cases** for identity, replacement, optional support, failure forwarding, four absent documents, nested-data failure, cancellation and public surface. Added English `Docs/Published-Supporting-Catalog-Snapshots/en.md` and updated README and runtime/public API documentation.
 - This is a publication-identified data capture, **not** an atomic status pairing or a transaction against external in-place mutation. Published NuGet 0.1.0 and catalog JSON schemas remain unchanged.
-- **Verification pending:** 15 focused cases and expected full **1392/1392 GREEN**; last maintainer-confirmed **1377/1377 GREEN** with no reported errors. Next: verify focused/full suite; then decide whether a completed-activation-aware full context view is needed, with independent status/ownership tests.
+- **Verified locally by maintainer:** complete **1392/1392 GREEN**; no failures reported. Focused-run and compiler-warning counts were not separately reported. Next: completed-activation-aware supporting catalog view with independent status/publication ownership tests.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1377/1377 GREEN**, confirmed locally by maintainer after all-supporting-catalog snapshot tests, with zero reported errors (warning count not separately reported for this checkpoint).
+- Complete `WhenItFails.Tests` suite: **1392/1392 GREEN**, confirmed locally by maintainer after publication-aware supporting catalog tests, with zero reported failures (warning count not separately reported for this checkpoint).
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
