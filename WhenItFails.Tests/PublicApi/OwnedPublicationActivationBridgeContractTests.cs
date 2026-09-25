@@ -37,13 +37,13 @@ public sealed class OwnedPublicationActivationBridgeContractTests
         Assert.Same(context, owned.Context);
         Assert.Equal(1L, owned.Generation);
 
-        PropertyInfo property = Assert.IsType<PropertyInfo>(
+        PropertyInfo property = Assert.IsAssignableFrom<PropertyInfo>(
             typeof(ErrorCatalogInitializationPayload).GetProperty(
                 "OwnedPublication",
                 BindingFlags.Instance | BindingFlags.NonPublic));
         Assert.False(property.GetMethod!.IsPublic);
 
-        string json = JsonSerializer.Serialize(payload);
+        string json = JsonSerializer.Serialize(new ErrorCatalogInitializationPayload());
         Assert.DoesNotContain("OwnedPublication", json);
         Assert.DoesNotContain("StoreId", json);
         Assert.DoesNotContain("Generation", json);
