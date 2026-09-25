@@ -319,6 +319,15 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production source, existing public method, package version or catalog JSON schema changed in this step. **Verified locally by maintainer:** all tests GREEN, complete **1267/1267 GREEN** after commit `8cf6ef76c363587f6455d1f178708020d99081fa`. Focused test output and compiler warning count were not separately reported.
 - Next: independently design a safe, detached supporting-catalog and validation view without exposing mutable raw documents, or promising an atomic deep snapshot while live in-place writers remain possible.
 
+## 2026-09-25 — additive detached cross-validation snapshot (verification pending)
+
+- Added `WhenItFails/Runtime/ErrorCatalogValidationIssueSnapshot.cs`, a sealed getter-only projection of the six issue fields (`Severity`, `Code`, `Message`, `ErrorId`, `ErrorName`, `Path`), without retaining the mutable source issue.
+- Added `WhenItFails/Runtime/ErrorCatalogValidationSnapshot.cs`, a sealed getter-only validation projection with an independent read-only list of issue snapshots. `IsValid` is calculated from **captured** issue severities, so subsequent edits of live source issues do not change an existing snapshot.
+- Added `WhenItFails/Runtime/ErrorCatalogValidationSnapshotExtensions.cs`: `GetCrossValidationSnapshot(this IErrorCatalogRuntime)` is an **additive extension** returning the active context's previously recorded findings. It does not change the nine-method runtime interface, call the validator again, or provide a transactional capture during concurrent in-place mutations. An invalid runtime response propagates without data; missing context/validation and ordinary capture exceptions produce stable codes without exception detail; cancellation propagates.
+- Added `WhenItFails.Tests/PublicApi/ErrorCatalogValidationSnapshotContractTests.cs` with **five** focused tests for issue/value detachment and live-mutation isolation, empty/error validity, uninitialized-context response, missing validation and getter-only public shapes. Updated root README, `Docs/Runtime/Public-API.md`, `Docs/Public-API-Stability/en.md`, and created `Docs/Validation-Snapshots/en.md` (English) covering scope, freshness and ownership limitations.
+- **Verification pending:** five focused tests and expected complete **1272/1272 GREEN** if all pass; last maintainer-confirmed complete suite **1267/1267 GREEN**. No published package version, existing public interface methods, source JSON schema or catalog behavior changed.
+- Next: confirm focused/full suite; then plan a coherent ownership/identity boundary for supporting catalog snapshots and status, explicitly distinguishing independently captured views from a single context generation.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1267/1267 GREEN**, confirmed locally by maintainer after detached definition snapshot public shape/JSON tests. The last explicitly confirmed warning-free build was at 1241/1241.
