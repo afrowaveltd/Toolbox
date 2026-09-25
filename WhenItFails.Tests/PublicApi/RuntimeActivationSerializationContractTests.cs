@@ -219,6 +219,133 @@ public sealed class RuntimeActivationSerializationContractTests
     }
 
     [Fact]
+    public async Task CancellingQueuedReset_DoesNotCallProviderOrReplaceActiveProject()
+    {
+        ErrorCatalogContextStore store = new();
+        ErrorCatalogContext active = new();
+        ErrorCatalogContext replacement = new();
+        TaskCompletionSource<bool> entered = NewSignal();
+        TaskCompletionSource<bool> release = NewSignal();
+
+        ControlledInitializer initializer = new(store, async (call, token) =>
+        {
+            if (call == 2)
+            {
+                entered.TrySetResult(true);
+                await release.Task.WaitAsync(token);
+            }
+
+            return ProjectSuccess(call == 1 ? active : replacement);
+        });
+
+        ControlledBuiltInProvider provider = new((_, _) =>
+            throw new InvalidOperationException("Cancelled reset reached the provider."));
+        ErrorCatalogRuntime runtime = CreateRuntime(store, initializer, provider);
+
+        Assert.True((await runtime.InitializeAsync().WaitAsync(TestTimeout)).IsSuccess);
+        ErrorCatalogRuntimeStatus recordedStatus =
+            Assert.IsType<ErrorCatalogRuntimeStatus>(runtime.GetStatus().Data);
+        ErrorCatalogContextPublication initial = Publication(store);
+        ErrorCatalogActivationStatusSnapshot initialActivation = Activation(runtime);
+
+        Task<Response<ErrorCatalogInitializationPayload>> inProgress =
+            runtime.InitializeAsync();
+
+        try
+        {
+            await entered.Task.WaitAsync(TestTimeout);
+
+            using CancellationTokenSource cancellation = new();
+            Task<Response<ErrorCatalogInitializationPayload>> queuedReset =
+                runtime.ResetToDefaultsAsync(cancellation.Token);
+
+            cancellation.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                async () => { await queuedReset.WaitAsync(TestTimeout); });
+
+            Assert.Equal(0, provider.CallCount);
+            Assert.Equal(2, initializer.CallCount);
+            Assert.Same(active, runtime.GetCurrentContext().Data);
+            Assert.Same(recordedStatus, runtime.GetStatus().Data);
+            Assert.Same(initial.Context, Publication(store).Context);
+            Assert.Equal(initial.Generation, Publication(store).Generation);
+            Assert.Equal(initialActivation.ActivationSequence,
+                Activation(runtime).ActivationSequence);
+
+            release.TrySetResult(true);
+            Assert.True((await inProgress.WaitAsync(TestTimeout)).IsSuccess);
+            Assert.Equal(0, provider.CallCount);
+            Assert.Equal(initial.Generation + 1L, Publication(store).Generation);
+            Assert.Same(replacement, runtime.GetCurrentContext().Data);
+            Assert.Equal(initialActivation.ActivationSequence + 1L,
+                Activation(runtime).ActivationSequence);
+            Assert.Equal(ErrorCatalogRuntimeState.ProjectCatalog,
+                Activation(runtime).Status.State);
+        }
+        finally
+        {
+            release.TrySetResult(true);
+            await inProgress.WaitAsync(TestTimeout);
+        }
+    }
+
+    [Fact]
+    public async Task CancellingQueuedInitializationBehindReset_DoesNotCallInitializer()
+    {
+        ErrorCatalogContextStore store = new();
+        ErrorCatalogContext builtIn = new();
+        TaskCompletionSource<bool> entered = NewSignal();
+        TaskCompletionSource<bool> release = NewSignal();
+
+        ControlledInitializer initializer = new(store, (_, _) =>
+            throw new InvalidOperationException("Cancelled initialization entered the initializer."));
+
+        ControlledBuiltInProvider provider = new(async (_, token) =>
+        {
+            entered.TrySetResult(true);
+            await release.Task.WaitAsync(token);
+            return Response<ErrorCatalogContext>.Ok(builtIn);
+        });
+
+        ErrorCatalogRuntime runtime = CreateRuntime(store, initializer, provider);
+        Task<Response<ErrorCatalogInitializationPayload>> reset =
+            runtime.ResetToDefaultsAsync();
+
+        try
+        {
+            await entered.Task.WaitAsync(TestTimeout);
+
+            using CancellationTokenSource cancellation = new();
+            Task<Response<ErrorCatalogInitializationPayload>> queuedInitialization =
+                runtime.InitializeAsync(new JsonsOptions(), cancellation.Token);
+
+            cancellation.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                async () => { await queuedInitialization.WaitAsync(TestTimeout); });
+
+            Assert.Equal(0, initializer.CallCount);
+            Assert.Equal(1, provider.CallCount);
+            Assert.False(runtime.GetStatus().IsSuccess);
+            Assert.False(store.GetCurrentPublication().IsSuccess);
+
+            release.TrySetResult(true);
+            Assert.True((await reset.WaitAsync(TestTimeout)).IsSuccess);
+            Assert.Equal(0, initializer.CallCount);
+            Assert.Equal(1, provider.CallCount);
+            Assert.Same(builtIn, runtime.GetCurrentContext().Data);
+            Assert.Equal(1L, Publication(store).Generation);
+            Assert.Equal(1L, Activation(runtime).ActivationSequence);
+            Assert.Equal(ErrorCatalogRuntimeState.BuiltInDefaults,
+                Activation(runtime).Status.State);
+        }
+        finally
+        {
+            release.TrySetResult(true);
+            await reset.WaitAsync(TestTimeout);
+        }
+    }
+
+    [Fact]
     public async Task FailedFirstInitialization_ReleasesGateForSubsequentSuccessfulAttempt()
     {
         ErrorCatalogContextStore store = new();
