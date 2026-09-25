@@ -223,19 +223,19 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Verified locally by maintainer:** inventory test and complete **1236/1236 GREEN** suite after commit `955f5f897be96ec41e77ea34ab3ec482043ccf06`; the report contains 110 exported types. No production code or public visibility changed.
 - Next: verify `WhenItFails.Tests` full suite; review actual exported report against package 0.1.0 and the Setter utility dependency set, then select focused utility compatibility tests and decide active-context mutability policy.
 
-## 2026-09-25 — Setter standalone utility public API baseline (5/5 focused GREEN; full suite pending)
+## 2026-09-25 — Setter standalone utility public API baseline (1241/1241 GREEN, zero warnings)
 
 - Added `WhenItFails.Tests/PublicApi/SetterUtilityPublicApiContractTests.cs` with five focused tests for `JsonCatalogDocumentWriter`, `DocumentationKeyGenerator`, `DocumentationKeyFormat`, and `ErrorCatalogCrossValidator`.
 - The tests snapshot standalone public construction and precise member signatures, including the generic `SaveToFileAsync<TDocument>` class constraint, the optional cancellation token, the generator's static `ToSegment`, the static `IsCanonical`, and the cross-validator's five typed catalog parameters with an optional profile catalog.
 - The narrow end-to-end smoke verifies that these tools can be called without DI: a canonical key is generated and validated, a null primary document gives a structured validation issue, and an empty writer path yields a structured invalid response before any filesystem write. Existing dedicated suites remain responsible for normal file writes/backups, cancellation and comprehensive key/cross-catalog semantics.
 - These are public **standalone utility candidates with confirmed Setter consumers**, not unreviewed internal details. No production visibility or behavior changed. Published NuGet 0.1.0 comparison and full 1.0 compatibility policy are still pending.
 - **Maintainer verified the five focused tests GREEN (5/5)** after `7f4875eeda318a43bd04aa0dcab3383f87ed6752`; the build reported three xUnit2031 analyzer warnings on `Assert.Single(collection.Where(predicate))`.
-- Replaced all three with the supported `Assert.Single(collection, predicate)` overload. This changes test syntax only; no production code or test expectations changed. **Warning-free rebuild and full-suite verification pending** after this fix. Last maintainer-confirmed complete suite: **1236/1236 GREEN**; expected complete count when all new tests pass: **1241/1241 GREEN**.
+- Replaced all three with the supported `Assert.Single(collection, predicate)` overload. This changes test syntax only; no production code or test expectations changed. **Verified locally by maintainer after fix `6ecaa40b7c26261d8e253c4fb463d2c7b01e333b`: all five focused tests GREEN, complete **1241/1241 GREEN**, and zero build warnings.**
 - Next: review source-built vs published NuGet 0.1.0 public API, then the independently exported `JsonCatalogDocumentLoader` and auxiliary descriptor models; decide active-context mutability policy.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1236/1236 GREEN**, confirmed locally by the maintainer after compiled exported API inventory tests. The next five Setter utility tests are confirmed focused GREEN, but the full 1241/1241 suite has not yet been reported.
+- Complete `WhenItFails.Tests` suite: **1241/1241 GREEN**, locally confirmed by maintainer after Setter utility xUnit2031 warning fix; build with zero warnings.
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
