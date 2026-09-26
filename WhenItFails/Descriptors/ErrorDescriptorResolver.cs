@@ -8,7 +8,7 @@ namespace Afrowave.Toolbox.WhenItFails.Descriptors;
 /// <summary>
 /// Default implementation that resolves runtime error descriptors from catalog definitions.
 /// </summary>
-public sealed class ErrorDescriptorResolver : IErrorDescriptorResolver
+internal sealed class ErrorDescriptorResolver : IErrorDescriptorResolver
 {
     private readonly IErrorDefinitionResolver _definitionResolver;
     private readonly IErrorDescriptorFactory _descriptorFactory;

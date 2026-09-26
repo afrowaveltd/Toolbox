@@ -8,7 +8,7 @@ namespace Afrowave.Toolbox.WhenItFails.Services;
 /// <summary>
 /// Default high-level service for creating runtime error descriptors.
 /// </summary>
-public sealed class ErrorDescriptorService : IErrorDescriptorService
+internal sealed class ErrorDescriptorService : IErrorDescriptorService
 {
     private readonly IErrorDescriptorResolver _descriptorResolver;
 

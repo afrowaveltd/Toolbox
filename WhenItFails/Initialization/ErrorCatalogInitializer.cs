@@ -11,7 +11,7 @@ namespace Afrowave.Toolbox.WhenItFails.Initialization;
 /// <summary>
 /// Default coordinator for the complete WhenItFails catalog initialization flow.
 /// </summary>
-public sealed class ErrorCatalogInitializer : IErrorCatalogInitializer
+internal sealed class ErrorCatalogInitializer : IErrorCatalogInitializer
 {
    private readonly IJsonsBootstrapper _bootstrapper;
    private readonly IErrorCatalogContextProvider _contextProvider;

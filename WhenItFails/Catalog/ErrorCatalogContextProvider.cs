@@ -11,7 +11,7 @@ namespace Afrowave.Toolbox.WhenItFails.Catalog;
 /// <summary>
 /// Default implementation that loads all JSON catalogs and creates a combined catalog context.
 /// </summary>
-public sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
+internal sealed class ErrorCatalogContextProvider : IErrorCatalogContextProvider
 {
     private readonly IErrorCatalogProvider _errorCatalogProvider;
     private readonly IErrorCategoryCatalogProvider _categoryCatalogProvider;

@@ -15,7 +15,7 @@ namespace Afrowave.Toolbox.WhenItFails.Catalog;
 /// loaded through the normal catalog pipeline and removed after loading.
 /// The resulting context remains fully in memory.
 /// </remarks>
-public sealed class BuiltInErrorCatalogContextProvider
+internal sealed class BuiltInErrorCatalogContextProvider
     : IBuiltInErrorCatalogContextProvider
 {
     private readonly IJsonsTemplateProvider _templateProvider;

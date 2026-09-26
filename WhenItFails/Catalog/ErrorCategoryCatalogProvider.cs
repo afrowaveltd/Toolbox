@@ -9,7 +9,7 @@ namespace Afrowave.Toolbox.WhenItFails.Catalog;
 /// <summary>
 /// Default implementation that loads, normalizes and validates error category catalog documents.
 /// </summary>
-public sealed class ErrorCategoryCatalogProvider : IErrorCategoryCatalogProvider
+internal sealed class ErrorCategoryCatalogProvider : IErrorCategoryCatalogProvider
 {
    private readonly IErrorCategoryCatalogLoader _loader;
    private readonly ErrorCategoryCatalogDocumentNormalizer _normalizer;

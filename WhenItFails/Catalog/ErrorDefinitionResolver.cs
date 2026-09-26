@@ -8,7 +8,7 @@ namespace Afrowave.Toolbox.WhenItFails.Catalog;
 /// <summary>
 /// Default implementation that resolves error definitions from a loaded catalog context.
 /// </summary>
-public sealed class ErrorDefinitionResolver : IErrorDefinitionResolver
+internal sealed class ErrorDefinitionResolver : IErrorDefinitionResolver
 {
     /// <inheritdoc />
     public Response<ErrorDefinition> FindById(

@@ -6,7 +6,7 @@ namespace Afrowave.Toolbox.WhenItFails.Catalog;
 /// <summary>
 /// Default factory for creating runtime error catalogs.
 /// </summary>
-public sealed class ErrorCatalogFactory : IErrorCatalogFactory
+internal sealed class ErrorCatalogFactory : IErrorCatalogFactory
 {
    /// <inheritdoc />
    public IErrorCatalog Create(ErrorCatalogDocument document)

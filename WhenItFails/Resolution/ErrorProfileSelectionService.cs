@@ -10,7 +10,7 @@ namespace Afrowave.Toolbox.WhenItFails.Resolution;
 /// Default implementation that resolves errors using a named profile
 /// from a loaded error catalog context.
 /// </summary>
-public sealed class ErrorProfileSelectionService
+internal sealed class ErrorProfileSelectionService
     : IErrorProfileSelectionService
 {
     private readonly IErrorProfileResolver _profileResolver;

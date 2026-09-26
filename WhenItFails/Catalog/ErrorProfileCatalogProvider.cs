@@ -9,7 +9,7 @@ namespace Afrowave.Toolbox.WhenItFails.Catalog;
 /// <summary>
 /// Default implementation that loads, normalizes and validates error profile catalog documents.
 /// </summary>
-public sealed class ErrorProfileCatalogProvider : IErrorProfileCatalogProvider
+internal sealed class ErrorProfileCatalogProvider : IErrorProfileCatalogProvider
 {
    private readonly IErrorProfileCatalogLoader _loader;
    private readonly ErrorProfileCatalogDocumentNormalizer _normalizer;

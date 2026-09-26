@@ -16,7 +16,7 @@ namespace Afrowave.Toolbox.WhenItFails.Services;
 /// <summary>
 /// Default high-level facade over the complete WhenItFails runtime.
 /// </summary>
-public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRuntimePublicationReader, IErrorCatalogRuntimeActivationReader, IErrorCatalogRuntimeCombinedObservationReader, IErrorCatalogRuntimeSupportingObservationReader, IErrorCatalogRuntimeFullObservationReader
+internal sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRuntimePublicationReader, IErrorCatalogRuntimeActivationReader, IErrorCatalogRuntimeCombinedObservationReader, IErrorCatalogRuntimeSupportingObservationReader, IErrorCatalogRuntimeFullObservationReader
 {
     private readonly IErrorCatalogInitializer _initializer;
     private readonly WhenItFailsOptions _options;

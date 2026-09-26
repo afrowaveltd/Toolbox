@@ -9,7 +9,7 @@ namespace Afrowave.Toolbox.WhenItFails.Catalog;
 /// <summary>
 /// Default implementation that loads, normalizes and validates error code group catalog documents.
 /// </summary>
-public sealed class ErrorCodeGroupCatalogProvider : IErrorCodeGroupCatalogProvider
+internal sealed class ErrorCodeGroupCatalogProvider : IErrorCodeGroupCatalogProvider
 {
    private readonly IErrorCodeGroupCatalogLoader _loader;
    private readonly ErrorCodeGroupCatalogDocumentNormalizer _normalizer;

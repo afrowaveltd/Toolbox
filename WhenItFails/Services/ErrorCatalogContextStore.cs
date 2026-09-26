@@ -12,7 +12,7 @@ namespace Afrowave.Toolbox.WhenItFails.Services;
 /// The context reference and its store-scoped generation are published
 /// together as one immutable record. Nested context objects are still mutable.
 /// </remarks>
-public sealed class ErrorCatalogContextStore
+internal sealed class ErrorCatalogContextStore
     : IErrorCatalogContextStore, IErrorCatalogContextPublicationReader,
       IErrorCatalogContextPublisher
 {

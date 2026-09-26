@@ -11,7 +11,7 @@ namespace Afrowave.Toolbox.WhenItFails.Catalog;
 /// This catalog is built from already loaded and preferably validated error definitions.
 /// It stores all definitions in memory and creates lookup indexes for fast searching.
 /// </remarks>
-public sealed class ErrorCatalog : IErrorCatalog
+internal sealed class ErrorCatalog : IErrorCatalog
 {
    private readonly IReadOnlyList<ErrorDefinition> _errors;
 

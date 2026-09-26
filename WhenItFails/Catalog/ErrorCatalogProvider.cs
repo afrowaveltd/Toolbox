@@ -8,7 +8,7 @@ namespace Afrowave.Toolbox.WhenItFails.Catalog;
 /// <summary>
 /// Default implementation that loads, normalizes, validates and creates runtime error catalogs.
 /// </summary>
-public sealed class ErrorCatalogProvider : IErrorCatalogProvider
+internal sealed class ErrorCatalogProvider : IErrorCatalogProvider
 {
     private readonly IErrorCatalogLoader _loader;
     private readonly IErrorCatalogDocumentNormalizer _normalizer;

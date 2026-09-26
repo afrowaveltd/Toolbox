@@ -7,7 +7,7 @@ namespace Afrowave.Toolbox.WhenItFails.Descriptors;
 /// <summary>
 /// Default implementation that creates runtime error descriptors from catalog definitions.
 /// </summary>
-public sealed class ErrorDescriptorFactory : IErrorDescriptorFactory
+internal sealed class ErrorDescriptorFactory : IErrorDescriptorFactory
 {
     /// <inheritdoc />
     public ErrorDescriptor Create(ErrorDefinition definition)

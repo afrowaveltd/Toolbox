@@ -9,7 +9,7 @@ namespace Afrowave.Toolbox.WhenItFails.Catalog;
 /// <summary>
 /// Default implementation that loads, normalizes and validates error owner catalog documents.
 /// </summary>
-public sealed class ErrorOwnerCatalogProvider : IErrorOwnerCatalogProvider
+internal sealed class ErrorOwnerCatalogProvider : IErrorOwnerCatalogProvider
 {
    private readonly IErrorOwnerCatalogLoader _loader;
    private readonly ErrorOwnerCatalogDocumentNormalizer _normalizer;
