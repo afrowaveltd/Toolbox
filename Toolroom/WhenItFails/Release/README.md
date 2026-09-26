@@ -11,8 +11,7 @@ Run from the Toolbox repository root:
 pwsh ./Toolroom/WhenItFails/Release/Test-CandidatePackage.ps1
 ```
 
-The smoke builds a **new temporary candidate package** from current source, verifies
-its contents and project-specific README, restores an isolated external consumer,
+The smoke builds a **new temporary candidate package** from current source, first verifies the generated Essentials dependency package (including its icon and project-specific README), then verifies the WhenItFails package contents and README, restores an isolated external consumer,
 initializes a real project catalog workspace, resolves a descriptor, and exercises
 explicit built-in reset/status behavior.
 
