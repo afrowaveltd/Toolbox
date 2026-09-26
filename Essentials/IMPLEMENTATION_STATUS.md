@@ -30,6 +30,15 @@ Last updated: 2026-09-26
 - No Essentials runtime API or behavior changed.
 - The WhenItFails candidate-package smoke now explicitly opens the generated Essentials `.nupkg` and verifies `README.md`, `LICENSE.txt`, the package icon, DLL and XML documentation, so this Linux-only packaging regression is pinned by the release workflow.
 
+## 2026-09-27 — explicit project README package item after NU5039
+
+- The next Linux `dotnet pack Essentials/Essentials.csproj -c Release` advanced beyond the previous icon failure, then stopped with NuGet `NU5039`: `PackageReadmeFile=README.md` was declared but the file was absent from the package.
+- Root cause: shared `Directory.Build.props` attempted `None Update="$(MSBuildProjectDirectory)/README.md"`; this is too early/import-order-dependent for a reliable project-local pack item.
+- Shared packaging now provides only a repository-root README fallback for projects with no local README.
+- `Essentials.csproj` explicitly uses `None Remove="README.md"` followed by `None Include="README.md" Pack="true" PackagePath="\\"`.
+- `WhenItFails.csproj` uses the same explicit project-owned README rule.
+- No Essentials runtime API or behavior changed.
+
 ## Verification pending
 
 Run:
