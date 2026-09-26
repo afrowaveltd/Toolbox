@@ -4,9 +4,9 @@ Status: **provisional classification for 1.0 planning, not a frozen compatibilit
 
 **Historical snapshot:** the 110 exported types and 611 comparison entries below describe earlier source checkpoints, not the current library after new snapshot APIs. See [current assembly inventory and package comparison](../Current-Public-API-Inventory/en.md) for instructions; do not infer an updated count from these historical results.
 Review date: 2026-09-25.
-Source: maintainer-generated `WhenItFails-public-api.md` from `ExportedAssemblyInventoryTests` on the source-built `Afrowave.Toolbox.WhenItFails` assembly, reporting assembly version `0.1.0.0` and **110 exported types**. The report lists *declared* public members of exported types. It is not a metadata/ABI diff against the published NuGet package.
+Source: maintainer-generated `WhenItFails-public-api.md` from `ExportedAssemblyInventoryTests` on the source-built `Afrowave.Toolbox.WhenItFails` assembly, reporting assembly version `0.1.0.0` and **110 exported types**. The report lists *declared* public members of exported types. It is not a metadata/ABI diff against the separately built local 0.1.0 NuGet reference artifact.
 
-The report was supplied for review after commit `955f5f897be96ec41e77ea34ab3ec482043ccf06`. The maintainer confirmed the inventory test and complete **1236/1236 GREEN** `WhenItFails.Tests` suite after commit `955f5f897be96ec41e77ea34ab3ec482043ccf06`. The source-built report still does **not** establish binary identity with the separately published NuGet package.
+The report was supplied for review after commit `955f5f897be96ec41e77ea34ab3ec482043ccf06`. The maintainer confirmed the inventory test and complete **1236/1236 GREEN** `WhenItFails.Tests` suite after commit `955f5f897be96ec41e77ea34ab3ec482043ccf06`. The source-built report still does **not** establish binary identity with the separate local 0.1.0 NuGet reference artifact.
 
 ## 1. Classification: separate promises from visibility
 
@@ -74,7 +74,7 @@ The `SetterUtilityPublicApiContractTests` group contains five focused tests for 
 
 ## 6. Actual package-consumer comparison (611 vs 611 entries)
 
-The maintainer ran the isolated comparison on 2026-09-25. Both temporary consumers restored and built successfully. The report shows **611 public API entries on each side, zero package-only entries and zero source-only entries**. The package consumer requested exact `[0.1.0]`; no `-Feed` override was used, so the result reflects an artifact resolved from configured sources/cache, with original publication provenance unverified.
+The maintainer ran the isolated comparison on 2026-09-25. Both temporary consumers restored and built successfully. The report shows **611 public API entries on each side, zero package-only entries and zero source-only entries**. The package consumer requested exact `[0.1.0]`; no `-Feed` override was used, so the result reflects the maintainer's local 0.1.0 artifact resolved from configured sources/cache. The package was never published.
 
 The compared DLL SHA-256 digests differ: source-built `587AED89A427E184CEB465073201EB7CE986AE2219C964ACFFBF1C349EAE05EF`, package-consumer `379F7CF6FF99223ECF2F388AB6295A34D97F33A8BD8EB7F9A52152994347CE28`. This establishes matching signatures **within the comparer’s reflected census**, not identical binary content, complete ABI compatibility, nullability/JSON equivalence or identical runtime behavior. The temporary user-specific paths from the report are intentionally not copied into repository documentation.
 
