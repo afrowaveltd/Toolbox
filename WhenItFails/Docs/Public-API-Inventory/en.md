@@ -46,7 +46,7 @@ Separate public utility candidates include `JsonCatalogDocumentWriter`, `Documen
 
 Verified internal helper declarations include `CatalogProviderPipeline`, `DefinitionNormalizationHelper` and `CatalogValidationHelper`. A `public` method on an `internal` containing type is **not** an externally accessible public type/member contract.
 
-No concrete public class is being hidden or renamed in this inventory checkpoint. Restricting existing public visibility may break users of the already published 0.1.0 package.
+No concrete public class is being hidden or renamed in this inventory checkpoint. Restricting existing public visibility may break consumers compiled against the existing local 0.1.0 reference package artifact, even though that artifact was never published to a feed.
 
 ## 5. Open 1.0 decisions and next steps
 
