@@ -8,6 +8,15 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 Core hardening and concrete class-level coverage audits are complete for the current scope. The current suite baseline is **1473/1473 GREEN**, Markdown links are clean (46 files / 431 local links), the refreshed compiled inventory still reports **148 exported types**, and the current `1.0.0-rc.1` candidate package smoke passes including direct external-consumer rejection of unsupported schema versions across all five packaged validators. The exact source-vs-original-0.1.0 comparer remains the only artifact-dependent compatibility gate.
 
+## 2026-09-27 — source-only comparer census prepared
+
+- Added `-SourceOnly` to `Toolroom/WhenItFails/PublicApiComparer/Compare-PublicApi.ps1` in commit `19f4a14090c9c566a7d97518750e67b8a275c9a1`.
+- The new mode builds only the current ProjectReference consumer and uses the **same reflection inspector / `API|...` census format** as the source half of the full 0.1.0 comparison.
+- It emits current source DLL path/hash, exported-type count, API-entry count and the complete sorted type/API census without restoring or fabricating the historical package.
+- The existing default full-comparison path remains unchanged and still requires the exact original 0.1.0 artifact.
+- Usage is documented in the comparer docs and current API inventory docs.
+- Next: run the new `-SourceOnly` mode on current master. Expected exported-type count is **148**; the API-entry count must be treated as newly measured rather than assumed from the historical **830**.
+
 ## 2026-09-27 — documentation verification-state reconciliation
 
 - Reconciled stale pre-1.0 documentation markers that still said focused contracts were pending even though those tests are part of the current maintainer-confirmed **1473/1473 GREEN** suite.
