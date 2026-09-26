@@ -8,6 +8,17 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 Core hardening and concrete class-level coverage audits are complete for the current scope. NuGet archive, dependency restore, embedded-template consumption and full external runtime initialization/resolution in a separate .NET 10 consumer are verified. Next: complete the public API stability review and define the exact stable 1.0 scope.
 
+## 2026-09-27 — Linux release-readiness checkpoint complete
+
+- **Maintainer-confirmed complete WhenItFails suite: 1472/1472 GREEN** after the packaging and release-tool changes.
+- **Essentials.Tests: PASS** on Linux; no test errors reported. Exact Essentials test count was not separately reported.
+- **Candidate package smoke: PASS**. The release tool packed Essentials 0.2.0 and temporary WhenItFails 1.0.0-rc.1, verified package README/license/icon/DLL/XML contents, confirmed the WhenItFails nuspec remained on the Essentials 0.2.0 dependency line, restored/built a clean external .NET 10 consumer from an isolated feed/global-packages directory, initialized the five project catalogs, resolved `AFW_GEN_0001 / UNKNOWNERROR`, reset to bundled defaults and verified runtime status.
+- The smoke now isolates `NUGET_PACKAGES`, disables HTTP cache for the external restore and retains its workspace automatically on failure, preventing stale same-version candidate artifacts from masking package-graph changes.
+- **Markdown-link validation: PASS**, no broken local links reported for the current documentation tree.
+- The Linux packaging sequence exposed and fixed three release-only defects that the runtime suite could not detect: cross-platform Essentials icon inclusion (`NU5046`), explicit project README packaging (`NU5039`), and candidate-version leakage/stale-cache behavior around the Essentials dependency.
+- No WhenItFails runtime semantics or public CLR API were changed by these packaging fixes. The current Linux source/package candidate is therefore release-smoke clean.
+- **Only remaining environment-dependent compatibility gate:** refresh the exact source-vs-package public API comparison and the precompiled-consumer binary smokes against the original maintainer-held local Windows `Afrowave.Toolbox.WhenItFails.0.1.0.nupkg` when it is available on Tuesday. Until then, development can continue against the confirmed 1472/1472 GREEN Linux baseline without fabricating a replacement 0.1.0 artifact.
+
 ## 2026-09-24 — core public API entry-point contract (1159/1159 GREEN)
 
 - Externally restored NuGet package 0.1.0 was inspected from a separate consumer after the successful runtime smoke test at `5e41e4b3`.
