@@ -25,7 +25,28 @@ dotnet test .\WhenItFails.Tests\WhenItFails.Tests.csproj -c Release
 & .\Toolroom\WhenItFails\PublicApiComparer\Compare-PublicApi.ps1 -ReportPath (Join-Path $reportDir 'WhenItFails-0.1.0-vs-source.md')
 ```
 
-## Linux procedure from Toolbox root
+## Source-side comparer census without the historical package
+
+The compiled Markdown inventory and the comparer census answer different questions.
+To refresh the comparer-style **source API-entry count** without the original 0.1.0
+package, run:
+
+```bash
+git pull --ff-only origin master
+
+report="${TMPDIR:-/tmp}/WhenItFails-current-source-api.md"
+pwsh ./Toolroom/WhenItFails/PublicApiComparer/Compare-PublicApi.ps1 \
+  -SourceOnly \
+  -ReportPath "$report"
+
+cat "$report"
+```
+
+This mode uses the same `API|...` reflection census as the source half of the full
+comparison. It records the current source DLL hash, exported-type count and API-entry
+count, but deliberately performs no package-side compatibility comparison.
+
+## Linux compiled-assembly inventory procedure
 
 The current-source inventory does **not** require the historical 0.1.0 package and can
 therefore be refreshed independently on Linux:
