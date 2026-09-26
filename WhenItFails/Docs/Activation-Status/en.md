@@ -83,6 +83,23 @@ advances the runtime observation sequence **without** advancing the
 context generation. Failed strict reinitialization and failed explicit
 reset leave the previous completed observation intact.
 
+## Cancellation point of no return
+
+The cancellation boundary intentionally ends at successful context publication.
+Before `Publish(...)`, the default initializer and runtime recheck the caller's
+token on all owned project/reset/fallback paths. Once a store publication has
+succeeded, however, that activation is committed: a cancellation requested by
+or during the publication call is not rechecked afterward. The runtime must
+finish recording the matching status and completed activation observation
+instead of reporting cancellation for an already-written context.
+
+This rule prevents a split state in which the store contains a new context but
+the activation call throws as though no activation occurred. Three focused
+contracts cover project initialization, explicit built-in reset and automatic
+flexible fallback using a publication-capable store that cancels the token only
+after the atomic write succeeds. Verification is pending with expected complete
+suite **1472/1472 GREEN**; last confirmed complete suite is **1469/1469 GREEN**.
+
 ## Serialized activation on the default runtime
 
 On a single default `ErrorCatalogRuntime` instance, `InitializeAsync`
