@@ -54,7 +54,7 @@ public data shape remains unchanged.
 
 This pre-1.0 CLR projection does not promise a versioned JSON wire
 format or direct deserialization into the getter-only snapshot type.
-The published 0.1.0 package and persistent catalog JSON schemas are
+The local 0.1.0 reference package artifact and persistent catalog JSON schemas are
 unchanged by this source-development step.
 
 ## Verification
