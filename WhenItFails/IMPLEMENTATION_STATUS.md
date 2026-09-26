@@ -6,9 +6,21 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Core runtime hardening is complete for the current pre-1.0 scope. The last fully verified baseline is **1473/1473 GREEN**, Markdown links are clean (**46 files / 431 local links / 0 broken**), and the pre-cleanup source census is **148 exported types / 830 API entries**. Commit `6afd3f6f88c7d71097fd1813d8e0dc2d9d80b276` has now internalized 17 DI-only default orchestration implementations and added one stable-release visibility contract. The post-cleanup complete-suite baseline is **1474/1474 GREEN**, maintainer-confirmed. After GREEN, remeasure the exported surface and rerun the candidate package/tooling gates before freezing 1.0.
+Core runtime hardening is complete for the current pre-1.0 scope. The original pre-cleanup source census is **148 exported types / 830 API entries**. The first 17-type visibility cleanup is maintainer-confirmed **1474/1474 GREEN**. Commit `147b96310090c6cbbb5f2a5819b440026fb6062b` now applies a second 5-type helper cleanup without adding tests, so the expected complete-suite total remains **1474**; verification of this second batch is pending. After GREEN, remeasure the exported surface and continue the remaining intentional tooling/API review before the package/documentation release gates.
 
-## 2026-09-27 — first stable public-surface cleanup (verification pending)
+## 2026-09-27 — second stable helper-surface cleanup (verification pending)
+
+- Commit `147b96310090c6cbbb5f2a5819b440026fb6062b` internalizes five additional low-level helpers: `JsonCatalogDocumentLoader`, `ErrorDefinitionNormalizer`, `ErrorCategoryDefinitionNormalizer`, `ErrorCodeGroupDefinitionNormalizer`, and `ErrorOwnerDefinitionNormalizer`.
+- Public typed JSON loaders retain parameterless construction for Toolbox Setter, while their constructors accepting the now-internal generic document loader are internal.
+- Public catalog document normalizers retain parameterless construction; their helper-injection constructors accepting the now-internal definition normalizers are internal.
+- `ErrorProfileDefinitionNormalizer` remains public because Toolbox Setter constructs it directly. `JsonsBootstrapper`, typed loaders, validators, document normalizers, `ErrorProfileResolver`, `TextKeyNormalizer`, writer/documentation utilities and cross-validator remain public where repository tooling currently depends on direct construction.
+- Existing `JsonCatalogDocumentLoader` behavior tests were retained and the former public-shape contract now asserts that the generic loader is not exported.
+- No new test method was added in this batch; expected complete-suite total remains **1474**.
+- The simple cumulative projection from the original 148 exported types would now be 126, but this is **not** a verified census. Record only the actual result from the compiled inventory/`-SourceOnly` comparer after GREEN.
+- Documentation commits `4d18b846`, `35c0de54`, `cc7c71ed`, and `85decb10` align the 1.0 policy, inventory, stability history and loading docs.
+- Next: run the complete WhenItFails Release suite. If GREEN, measure the public surface before deciding whether a third cleanup batch is justified.
+
+## 2026-09-27 — first stable public-surface cleanup (1474/1474 GREEN)
 
 - Commit `6afd3f6f88c7d71097fd1813d8e0dc2d9d80b276` changes 17 default orchestration implementations from public to internal and adds `StableReleaseImplementationVisibilityContractTests`.
 - Internalized: `BuiltInErrorCatalogContextProvider`, `ErrorCatalog`, `ErrorCatalogContextProvider`, `ErrorCatalogFactory`, the five default catalog providers, `ErrorDefinitionResolver`, `ErrorCatalogInitializer`, `ErrorProfileSelectionService`, `ErrorDescriptorFactory`, `ErrorDescriptorResolver`, `ErrorDescriptorService`, `ErrorCatalogContextStore`, and `ErrorCatalogRuntime`.
