@@ -67,8 +67,8 @@ partial data. `OperationCanceledException` propagates.
 
 This pre-1.0 CLR projection is not a versioned JSON wire protocol,
 a promise of direct deserialization into getter-only DTOs or an update
-to the persistent catalog JSON schemas. The published 0.1.0 NuGet
-package is unchanged.
+to the persistent catalog JSON schemas. The local 0.1.0 reference NuGet
+artifact is unchanged.
 
 ## Verification
 
