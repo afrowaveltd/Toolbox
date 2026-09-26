@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$Feed,
+    [switch]$SourceOnly,
     [string]$ReportPath = (Join-Path ([IO.Path]::GetTempPath()) 'WhenItFails-published-vs-source-api.md')
 )
 
@@ -34,10 +35,12 @@ Set-Content -Path (Join-Path $sourceDir 'Consumer.csproj') -Value (
     $head + [Environment]::NewLine +
     '    <ProjectReference Include="' + $escapedProject + '" />' +
     [Environment]::NewLine + $tail)
-Set-Content -Path (Join-Path $packageDir 'Consumer.csproj') -Value (
-    $head + [Environment]::NewLine +
-    '    <PackageReference Include="Afrowave.Toolbox.WhenItFails" Version="[0.1.0]" />' +
-    [Environment]::NewLine + $tail)
+if (-not $SourceOnly) {
+    Set-Content -Path (Join-Path $packageDir 'Consumer.csproj') -Value (
+        $head + [Environment]::NewLine +
+        '    <PackageReference Include="Afrowave.Toolbox.WhenItFails" Version="[0.1.0]" />' +
+        [Environment]::NewLine + $tail)
+}
 
 $inspector = @'
 using System.Reflection;
@@ -96,7 +99,9 @@ foreach (Type type in assembly.GetExportedTypes()
 '@
 
 Set-Content -Path (Join-Path $sourceDir 'Program.cs') -Value $inspector
-Set-Content -Path (Join-Path $packageDir 'Program.cs') -Value $inspector
+if (-not $SourceOnly) {
+    Set-Content -Path (Join-Path $packageDir 'Program.cs') -Value $inspector
+}
 
 function Invoke-Dotnet {
     param([string[]]$Arguments)
@@ -107,31 +112,80 @@ function Invoke-Dotnet {
 }
 
 Invoke-Dotnet @('restore', (Join-Path $sourceDir 'Consumer.csproj'))
-$restore = @('restore', (Join-Path $packageDir 'Consumer.csproj'))
-if ($Feed) { $restore += @('--source', $Feed) }
-Invoke-Dotnet $restore
+if (-not $SourceOnly) {
+    $restore = @('restore', (Join-Path $packageDir 'Consumer.csproj'))
+    if ($Feed) { $restore += @('--source', $Feed) }
+    Invoke-Dotnet $restore
+}
+
 Invoke-Dotnet @('build', (Join-Path $sourceDir 'Consumer.csproj'), '-c', 'Release', '--no-restore')
-Invoke-Dotnet @('build', (Join-Path $packageDir 'Consumer.csproj'), '-c', 'Release', '--no-restore')
+if (-not $SourceOnly) {
+    Invoke-Dotnet @('build', (Join-Path $packageDir 'Consumer.csproj'), '-c', 'Release', '--no-restore')
+}
 
 $sourceOutput = @(& dotnet run --project (Join-Path $sourceDir 'Consumer.csproj') -c Release --no-build --no-restore)
 if ($LASTEXITCODE -ne 0) { throw 'Source inspector failed.' }
-$packageOutput = @(& dotnet run --project (Join-Path $packageDir 'Consumer.csproj') -c Release --no-build --no-restore)
-if ($LASTEXITCODE -ne 0) { throw 'Published package inspector failed.' }
 
 $sourceDll = (($sourceOutput | Where-Object { $_ -like 'DLL|*' } | Select-Object -First 1) -replace '^DLL[|]', '')
-$packageDll = (($packageOutput | Where-Object { $_ -like 'DLL|*' } | Select-Object -First 1) -replace '^DLL[|]', '')
-if (-not (Test-Path -LiteralPath $sourceDll -PathType Leaf) -or
-    -not (Test-Path -LiteralPath $packageDll -PathType Leaf)) {
-    throw 'Inspected assembly paths are missing.'
+if (-not (Test-Path -LiteralPath $sourceDll -PathType Leaf)) {
+    throw 'Inspected source assembly path is missing.'
 }
 
 $sourceApi = @($sourceOutput | Where-Object { $_ -like 'API|*' } | Sort-Object -Unique -CaseSensitive)
-$packageApi = @($packageOutput | Where-Object { $_ -like 'API|*' } | Sort-Object -Unique -CaseSensitive)
 $sourceTypes = @($sourceOutput | Where-Object { $_ -like 'TYPE|*' } | Sort-Object -Unique -CaseSensitive)
+if ($sourceApi.Count -eq 0 -or $sourceTypes.Count -eq 0) {
+    throw 'Source inspector did not return exported types or public API entries.'
+}
+
+if ($SourceOnly) {
+    $sourceLines = @(
+        '# WhenItFails current source API census'
+        ''
+        "Source DLL: $sourceDll"
+        "Source SHA-256: $((Get-FileHash -LiteralPath $sourceDll -Algorithm SHA256).Hash)"
+        "Source exported types: $($sourceTypes.Count)"
+        "Source API entries: $($sourceApi.Count)"
+        ''
+        'This uses the same reflection inspector and API-entry format as the source side'
+        'of the full 0.1.0 package comparison. It does not inspect or fabricate a'
+        'historical package baseline.'
+        ''
+        '## Exported types'
+        ''
+    )
+    $sourceLines += @($sourceTypes | ForEach-Object { '- ' + $_ })
+    $sourceLines += @('', '## API entries', '')
+    $sourceLines += @($sourceApi | ForEach-Object { '- ' + $_ })
+    $sourceLines += @(
+        ''
+        'Signature census only: not a complete binary, nullability, JSON or runtime compatibility guarantee.'
+    )
+
+    $sourceParent = Split-Path -Parent $ReportPath
+    if (-not (Test-Path -LiteralPath $sourceParent -PathType Container)) {
+        throw "Report directory does not exist: $sourceParent"
+    }
+
+    $sourceLines | Set-Content -Path $ReportPath -Encoding UTF8
+    Write-Host "Report: $ReportPath"
+    Write-Host "Source exported types: $($sourceTypes.Count)"
+    Write-Host "Source API entries: $($sourceApi.Count)"
+    Write-Host "Temporary source consumer: $sourceDir"
+    return
+}
+
+$packageOutput = @(& dotnet run --project (Join-Path $packageDir 'Consumer.csproj') -c Release --no-build --no-restore)
+if ($LASTEXITCODE -ne 0) { throw 'Published package inspector failed.' }
+
+$packageDll = (($packageOutput | Where-Object { $_ -like 'DLL|*' } | Select-Object -First 1) -replace '^DLL[|]', '')
+if (-not (Test-Path -LiteralPath $packageDll -PathType Leaf)) {
+    throw 'Inspected package assembly path is missing.'
+}
+
+$packageApi = @($packageOutput | Where-Object { $_ -like 'API|*' } | Sort-Object -Unique -CaseSensitive)
 $packageTypes = @($packageOutput | Where-Object { $_ -like 'TYPE|*' } | Sort-Object -Unique -CaseSensitive)
-if ($sourceApi.Count -eq 0 -or $packageApi.Count -eq 0 -or
-    $sourceTypes.Count -eq 0 -or $packageTypes.Count -eq 0) {
-    throw 'An inspector did not return exported types or public API entries.'
+if ($packageApi.Count -eq 0 -or $packageTypes.Count -eq 0) {
+    throw 'Published package inspector did not return exported types or public API entries.'
 }
 $typeDiff = @(Compare-Object -ReferenceObject $packageTypes -DifferenceObject $sourceTypes -CaseSensitive)
 $missingTypes = @($typeDiff | Where-Object { $_.SideIndicator -eq '<=' } |
