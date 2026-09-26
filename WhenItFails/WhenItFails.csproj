@@ -17,7 +17,8 @@
               Visible="false" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\Essentials\Essentials.csproj" />
+        <ProjectReference Include="..\Essentials\Essentials.csproj"
+                          GlobalPropertiesToRemove="PackageVersion;Version;VersionPrefix;VersionSuffix;WhenItFailsPackageVersionOverride" />
     </ItemGroup>
     <ItemGroup>
         <Folder Include="Codes\" />
