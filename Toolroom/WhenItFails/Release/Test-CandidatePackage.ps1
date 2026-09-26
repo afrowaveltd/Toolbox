@@ -140,6 +140,51 @@ try {
 
     [xml]$nuspec = Get-Content -LiteralPath $nuspecFiles[0].FullName -Raw
 
+    $metadata = $nuspec.SelectSingleNode("//*[local-name()='metadata']")
+
+    if ($null -eq $metadata) {
+        throw 'WhenItFails candidate nuspec has no metadata node.'
+    }
+
+    $packageId = [string]$metadata.SelectSingleNode("*[local-name()='id']").InnerText
+    $packageVersionFromNuspec = [string]$metadata.SelectSingleNode("*[local-name()='version']").InnerText
+    $packageProjectUrl = [string]$metadata.SelectSingleNode("*[local-name()='projectUrl']").InnerText
+    $packageReleaseNotes = [string]$metadata.SelectSingleNode("*[local-name()='releaseNotes']").InnerText
+    $packageReadme = [string]$metadata.SelectSingleNode("*[local-name()='readme']").InnerText
+    $packageLicense = [string]$metadata.SelectSingleNode("*[local-name()='license']").InnerText
+    $repositoryNode = $metadata.SelectSingleNode("*[local-name()='repository']")
+    $repositoryUrl = if ($null -eq $repositoryNode) { '' } else { [string]$repositoryNode.GetAttribute('url') }
+    $repositoryType = if ($null -eq $repositoryNode) { '' } else { [string]$repositoryNode.GetAttribute('type') }
+
+    if ($packageId -ne 'Afrowave.Toolbox.WhenItFails') {
+        throw "Unexpected package ID in nuspec: $packageId"
+    }
+
+    if ($packageVersionFromNuspec -ne $PackageVersion) {
+        throw "Unexpected candidate version in nuspec: $packageVersionFromNuspec"
+    }
+
+    if ($packageProjectUrl -ne 'https://github.com/afrowaveltd/Toolbox') {
+        throw "Unexpected package project URL: $packageProjectUrl"
+    }
+
+    if ([string]::IsNullOrWhiteSpace($packageReleaseNotes)) {
+        throw 'Candidate package release notes are missing.'
+    }
+
+    if ($packageReadme -ne 'README.md') {
+        throw "Unexpected package readme metadata: $packageReadme"
+    }
+
+    if ($packageLicense -ne 'LICENSE.txt') {
+        throw "Unexpected package license metadata: $packageLicense"
+    }
+
+    if ($repositoryUrl -ne 'https://github.com/afrowaveltd/Toolbox' -or
+        $repositoryType -ne 'git') {
+        throw "Unexpected repository metadata: type=$repositoryType url=$repositoryUrl"
+    }
+
     $essentialsDependencies =
         @($nuspec.SelectNodes(
             "//*[local-name()='dependency' and @id='Afrowave.Toolbox.Essentials']"))
