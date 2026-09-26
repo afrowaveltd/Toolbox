@@ -1,11 +1,10 @@
 # WhenItFails 1.0 release checklist
 
 Status: **pre-release working checklist** for the first published WhenItFails package.
-The last fully verified source baseline is maintainer-confirmed **1473/1473 GREEN**.
-Commit `6afd3f6f88c7d71097fd1813d8e0dc2d9d80b276` adds one
-stable-release visibility contract and internalizes 17 default orchestration
-implementations; the expected next complete-suite total is **1474**, pending
-maintainer verification.
+The current complete-suite baseline is maintainer-confirmed **1474/1474 GREEN** after
+both pre-1.0 visibility cleanup batches. Commit `6afd3f6f` internalized 17 default
+orchestration implementations and added the visibility contract; commit `147b9631`
+internalized five additional low-level helpers without changing the test count.
 
 The pre-cleanup Linux release-readiness checkpoint is maintainer-confirmed **PASS**.
 Because the exported surface changed in commit `6afd3f6f`, rerun the candidate
@@ -42,9 +41,7 @@ Run the complete library suite:
 dotnet test WhenItFails.Tests/WhenItFails.Tests.csproj -c Release
 ```
 
-The currently expected post-cleanup count is **1474/1474 GREEN**. The previous
-**1473/1473 GREEN** result remains the last confirmed baseline until the visibility
-cleanup is rerun.
+The current expected and confirmed post-cleanup count is **1474/1474 GREEN**.
 
 SDK support-policy messages such as `NETSDK1057` are informational and must not be
 recorded as Toolbox compiler warnings.
@@ -152,12 +149,11 @@ promise.
 Before the first stable publication:
 
 - verify commit `6afd3f6f` and any later visibility cleanup with the complete suite;
-- rerun the source-only comparer and exported-assembly inventory and record the actual
-  new 1.0 type/member counts;
+- rerun the source-only comparer and exported-assembly inventory after each deliberate
+  visibility batch and record the actual type/member counts;
 - internalize any additional default orchestration implementations that are not
-  intentional consumer contracts;
-- rerun the source-only comparer and exported-assembly inventory and record the new
-  stable 1.0 counts;
+  intentional consumer or Toolbox-tooling contracts;
+- after the final cleanup batch, record one stable 1.0 source census;
 - review every remaining exported type against the final public API policy;
 - ensure the nine-method `IErrorCatalogRuntime` core surface remains intentional;
 - ensure enum numeric values, nullability, generic constraints and init/set semantics
