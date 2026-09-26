@@ -507,8 +507,8 @@ already existing project catalog is not repaired by bootstrap and prevents
 project-context publication (**1460/1460 GREEN** confirmed). Explicitly
 replacing that malformed file with valid content allows initialization to
 succeed on a later attempt without rewriting any of the five now-existing
-catalogs. The two manual-repair follow-up tests are pending local verification
-(expected complete suite **1462/1462 GREEN**).
+catalogs. The manual-repair follow-up contracts are included in the current
+maintainer-confirmed **1473/1473 GREEN** complete suite.
 
 The complete workspace is validated only after bootstrap finishes.
 
