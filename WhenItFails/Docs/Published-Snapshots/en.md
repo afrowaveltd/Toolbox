@@ -91,7 +91,7 @@ Invalid codes, also without partial data.
 
 This adds a public optional interface, one public snapshot type and
 one extension method, but does not change existing runtime/store
-interface methods or constructors, the published 0.1.0 NuGet package,
+interface methods or constructors, the local 0.1.0 reference NuGet artifact,
 or the persisted catalog JSON schemas. The output is a pre-1.0 CLR
 projection, **not a versioned JSON wire contract**.
 
