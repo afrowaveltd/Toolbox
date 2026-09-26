@@ -65,7 +65,7 @@ profile catalogs together, without changing those existing three-part types.
 
 The pre-1.0 CLR projection does not establish a versioned JSON wire
 contract or promise direct deserialization into its getter-only types.
-The published 0.1.0 package and persisted catalog JSON schemas remain
+The local 0.1.0 reference package artifact and persisted catalog JSON schemas remain
 unchanged.
 
 ## Verification
