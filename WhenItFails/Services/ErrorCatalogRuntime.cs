@@ -135,6 +135,8 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
                 message: "The bundled default catalog provider failed.");
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (builtInResponse is null)
         {
             return Response<ErrorCatalogInitializationPayload>.Invalid(
@@ -150,6 +152,8 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
             return CreateResetToDefaultsFailureResponse(
                 builtInResponse);
         }
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         ErrorCatalogContextPublication? ownedPublication;
 
@@ -1017,6 +1021,8 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
                 message: "The bundled default catalog provider failed.");
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (fallbackResponse is null)
         {
             fallbackResponse = Response<ErrorCatalogContext>.Invalid(
@@ -1033,6 +1039,8 @@ public sealed class ErrorCatalogRuntime : IErrorCatalogRuntime, IErrorCatalogRun
                 initializationResponse,
                 fallbackResponse);
         }
+
+        cancellationToken.ThrowIfCancellationRequested();
 
         ErrorCatalogContextPublication? ownedPublication;
 
