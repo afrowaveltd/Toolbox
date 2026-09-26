@@ -46,10 +46,13 @@ Last updated: 2026-09-27
 - The same package was consumed transitively by a clean external WhenItFails consumer from an isolated local feed/global-packages directory.
 - Packaging verification is therefore **PASS** for the current Linux source tree.
 
-## Verification pending
+## 2026-09-27 — complete local verification PASS
 
-Runtime/unit verification for Essentials itself remains:
+- Maintainer reran `Essentials.Tests` on Linux after the packaging fixes: **PASS**, no test errors reported.
+- The candidate-package smoke remains **PASS** and verifies the generated Essentials 0.2.0 package contents plus clean transitive consumption by an external WhenItFails consumer.
+- Markdown-link validation for the current Toolbox documentation also completed without errors.
+- No Essentials runtime API or behavior changed in this packaging/documentation hardening sequence.
 
-```bash
-dotnet test Essentials.Tests/Essentials.Tests.csproj -c Release
-```
+## Next step
+
+No additional Essentials blocker is open for the current WhenItFails release-readiness work. Continue with the WhenItFails 1.0 API/release review; the historical 0.1.0 compatibility artifact is unrelated to Essentials runtime verification.
