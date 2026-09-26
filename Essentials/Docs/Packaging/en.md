@@ -13,10 +13,12 @@ The package includes:
 - `Assets/toolbox-essentials-icon.png` as
   `assets/toolbox-essentials-icon.png`.
 
-The icon item uses a forward-slash project path and MSBuild `None Update`
-metadata. This is intentional: the SDK already discovers the PNG as a default
-`None` item, and using `Update` avoids duplicate-item behavior while keeping
-the path valid on both Windows and Linux.
+The icon item uses a forward-slash project path and an explicit
+`None Remove` + `None Include` pair. This is intentional: the Linux .NET 11
+RC SDK did not expose the PNG as an updatable default `None` item during
+packing, so `Update` silently left no pack item and NuGet raised `NU5046`.
+Removing any implicit item first and then explicitly including the PNG avoids
+duplicates while making the package input deterministic on Windows and Linux.
 
 ## Verification
 
@@ -31,4 +33,6 @@ Essentials into an isolated local feed before restoring the external consumer.
 
 The 2026-09-26 Linux candidate-package smoke exposed the previous
 Windows-specific `Assets\...` include: the package icon was missing and NuGet
-reported `NU5046`. The project now uses the cross-platform path above.
+reported `NU5046`. The first attempted cross-platform fix used `None Update`, but a Linux rerun
+still produced `NU5046`. The project now explicitly removes any implicit PNG
+item and includes the icon as a pack item with `PackagePath="assets/"`.
