@@ -6,7 +6,14 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Core hardening and concrete class-level coverage audits are complete for the current scope. NuGet archive, dependency restore, embedded-template consumption and full external runtime initialization/resolution in a separate .NET 10 consumer are verified. Next: complete the public API stability review and define the exact stable 1.0 scope.
+Core hardening and concrete class-level coverage audits are complete for the current scope. NuGet archive, dependency restore, embedded-template consumption and full external runtime initialization/resolution in a separate .NET 10 consumer are verified. The current suite baseline is **1473/1473 GREEN** and Markdown links are clean (46 files / 431 local links). Next: refresh the current exported-assembly inventory on Linux, review any additions against the existing 1.0 classifications, then complete the exact 0.1.0 comparison when the original Windows artifact is available.
+
+## 2026-09-27 — current API inventory refresh prepared
+
+- Added a Linux-native current-source inventory procedure to `Docs/Current-Public-API-Inventory/en.md` in commit `a780484ce33dc4ba74b3f18caf852e4c245d62f5`.
+- This step uses the existing `ExportedAssemblyInventoryTests` and needs no historical package. It emits the current compiled exported-type/member Markdown census when `AFROWAVE_WHENITFAILS_PUBLIC_API_REPORT` is set.
+- The historical exact 0.1.0 comparison remains a separate gate and must not be substituted with a repacked current DLL.
+- Next: run the focused inventory test on current master, capture the generated Markdown report, and update the source-only classification if the current census differs from the historical 148 types / 830 entries.
 
 ## 2026-09-27 — catalog schema-version compatibility contract (complete GREEN)
 
