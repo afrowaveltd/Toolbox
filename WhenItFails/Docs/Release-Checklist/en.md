@@ -3,10 +3,15 @@
 Status: **pre-release working checklist** for the first published WhenItFails package.
 The current source baseline is maintainer-confirmed **1472/1472 GREEN**.
 
-The current Linux candidate-package smoke is also maintainer-confirmed **PASS**:
-Essentials 0.2.0 and WhenItFails 1.0.0-rc.1 were packed, package contents were
-validated, and a clean external consumer restored, built and executed from an
-isolated local feed/global-packages directory.
+The current Linux release-readiness checkpoint is maintainer-confirmed **PASS**:
+
+- Essentials tests completed without errors;
+- the complete WhenItFails suite remains **1472/1472 GREEN**;
+- Essentials 0.2.0 and WhenItFails 1.0.0-rc.1 were packed;
+- package contents were validated;
+- a clean external consumer restored, built and executed from an isolated local
+  feed/global-packages directory;
+- Markdown-link validation completed without errors.
 
 The historical 0.1.0 package was never published. It exists only as the maintainer's
 original local Windows reference artifact and is used strictly for compatibility
@@ -122,8 +127,9 @@ lib/net10.0/Afrowave.Toolbox.WhenItFails.xml
 
 ## 6. 0.1.0 compatibility gate — requires original Windows artifact
 
-This is the only current release-readiness item that cannot be reproduced on the
-maintainer's Linux machine until the original 0.1.0 `.nupkg` is available.
+This is now the **only remaining environment-dependent release-readiness item**
+that cannot be reproduced on the maintainer's Linux machine until the original
+0.1.0 `.nupkg` is available.
 
 Copy or expose the **original** artifact to a directory and run:
 
