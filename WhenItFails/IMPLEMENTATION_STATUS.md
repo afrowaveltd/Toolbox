@@ -6,7 +6,19 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Core runtime hardening is complete for the current pre-1.0 scope. The last verified baseline is **1473/1473 GREEN**, Markdown links are clean (**46 files / 431 local links / 0 broken**), the current source census is **148 exported types / 830 API entries**, and candidate `1.0.0-rc.1` package smoke is PASS. The release strategy has now changed based on maintainer confirmation that WhenItFails has **no external consumers and has never been published**: the local 0.1.0 artifact is historical evidence, not a compatibility gate. Current work is final **1.0 public-surface cleanup**, starting with internalizing DI-only default orchestration implementations before measuring and freezing the new stable baseline.
+Core runtime hardening is complete for the current pre-1.0 scope. The last fully verified baseline is **1473/1473 GREEN**, Markdown links are clean (**46 files / 431 local links / 0 broken**), and the pre-cleanup source census is **148 exported types / 830 API entries**. Commit `6afd3f6f88c7d71097fd1813d8e0dc2d9d80b276` has now internalized 17 DI-only default orchestration implementations and added one stable-release visibility contract. The expected next complete-suite baseline is **1474/1474 GREEN**, pending maintainer verification. After GREEN, remeasure the exported surface and rerun the candidate package/tooling gates before freezing 1.0.
+
+## 2026-09-27 — first stable public-surface cleanup (verification pending)
+
+- Commit `6afd3f6f88c7d71097fd1813d8e0dc2d9d80b276` changes 17 default orchestration implementations from public to internal and adds `StableReleaseImplementationVisibilityContractTests`.
+- Internalized: `BuiltInErrorCatalogContextProvider`, `ErrorCatalog`, `ErrorCatalogContextProvider`, `ErrorCatalogFactory`, the five default catalog providers, `ErrorDefinitionResolver`, `ErrorCatalogInitializer`, `ErrorProfileSelectionService`, `ErrorDescriptorFactory`, `ErrorDescriptorResolver`, `ErrorDescriptorService`, `ErrorCatalogContextStore`, and `ErrorCatalogRuntime`.
+- These types remain available to the library and test assembly; public DI interfaces remain the supported extension boundary.
+- `ErrorProfileResolver` deliberately remains public because Toolbox Setter constructs it directly. Setter-facing JSON loaders/normalizers and supported standalone utilities also remain public in this first batch.
+- Repository construction search found no non-test/non-library direct construction for the 17 hidden types except the historical 0.1.0 binary-smoke script's use of `ErrorCatalogContextStore`; that historical path is no longer a release contract.
+- Previous verified suite: **1473/1473 GREEN**. The new visibility contract adds one test, so expected full result is **1474/1474 GREEN**.
+- The pre-cleanup **148 exported types / 830 API entries** is now historical reference. A simple type-count projection would be 131, but **do not record it as verified**; measure the actual post-cleanup type and API-entry counts after GREEN.
+- Documentation commits `1b32f59e`, `e8f0709f`, and `29714423` align the inventory, historical review and release checklist with the new first-release policy.
+- Next: run the complete WhenItFails Release suite. If GREEN, run the source-only comparer, compiled exported-assembly inventory, candidate package smoke, root/Setter verification and Markdown-link validation.
 
 ## 2026-09-27 — first stable release strategy reset
 
