@@ -83,7 +83,9 @@ The script:
 7. performs strict project initialization and verifies all five project catalog files;
 8. resolves the canonical `UNKNOWNERROR` descriptor;
 9. explicitly resets to bundled defaults and verifies runtime status;
-10. writes a SHA-256 report.
+10. verifies package ID/version, project URL, repository metadata, release notes,
+    README/license metadata, and both Essentials/WhenItFails symbol packages;
+11. writes a SHA-256 report.
 
 A custom candidate version can be supplied without changing source metadata:
 
@@ -173,7 +175,7 @@ Only after the compatibility/public-API gate is accepted:
 
 - change `WhenItFails/WhenItFails.csproj` from the development version to the
   intended release version;
-- add/update package release notes;
+- replace the current pre-release package notes with the final release notes;
 - verify repository URL, license, package description and tags;
 - decide the exact compatible Essentials package version;
 - rebuild from a clean checkout.
