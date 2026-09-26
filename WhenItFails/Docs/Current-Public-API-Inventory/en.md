@@ -1,6 +1,6 @@
 # Current exported API inventory and NuGet 0.1.0 comparison
 
-Status: pre-1.0 review; historical source/package comparer counts measured, complete **1472/1472 GREEN** suite confirmed, current compiled inventory/comparer refresh pending.
+Status: pre-1.0 review; historical source/package comparer counts measured, complete **1473/1473 GREEN** suite confirmed, current compiled inventory/comparer refresh pending.
 
 ## Two different measurements
 
@@ -25,12 +25,36 @@ dotnet test .\WhenItFails.Tests\WhenItFails.Tests.csproj -c Release
 & .\Toolroom\WhenItFails\PublicApiComparer\Compare-PublicApi.ps1 -ReportPath (Join-Path $reportDir 'WhenItFails-0.1.0-vs-source.md')
 ```
 
+## Linux procedure from Toolbox root
+
+The current-source inventory does **not** require the historical 0.1.0 package and can
+therefore be refreshed independently on Linux:
+
+```bash
+git pull --ff-only origin master
+
+report_dir="${TMPDIR:-/tmp}/WhenItFails-api-review"
+mkdir -p "$report_dir"
+export AFROWAVE_WHENITFAILS_PUBLIC_API_REPORT="$report_dir/WhenItFails-current-public-api.md"
+
+dotnet test WhenItFails.Tests/WhenItFails.Tests.csproj -c Release \
+  --filter "FullyQualifiedName~ExportedAssemblyInventoryTests"
+
+unset AFROWAVE_WHENITFAILS_PUBLIC_API_REPORT
+
+cat "$report_dir/WhenItFails-current-public-api.md"
+```
+
+This produces the current exported-type/member census only. It deliberately does not
+attempt the 0.1.0 package comparison; that remains blocked until the exact
+maintainer-held reference artifact is available.
+
 The inventory test writes a Markdown file only when the environment variable points to a file in an existing directory. The comparer records the actual loaded DLL paths and SHA-256 hashes, source/package exported type totals and type-delta lists, and source/package public member-entry totals and member-delta lists. Its temporary consumer directories are printed for inspection. Use `-Feed` when an explicit approved package source is required; if exact-package restore fails, record that failure rather than substituting a fresh local pack.
 
 ## 2026-09-26 Linux artifact-refresh restore result
 
 The maintainer reran the comparer from Linux after the complete
-**1472/1472 GREEN** suite. The current-source consumer restored and built, but
+**1473/1473 GREEN** suite. The current-source consumer restored and built, but
 the exact package consumer failed during restore with `NU1101` because the
 available source was `nuget.org` and
 `Afrowave.Toolbox.WhenItFails [0.1.0]` was not present there.
@@ -51,7 +75,7 @@ Publicly exported implementation classes remain public CLR APIs even if they are
 
 **Observed comparison:** source **148 types / 830 entries**, package **110 types / 611 entries**, source-only **38 types / 219 entries**, package-only **0 types / 0 entries**. The requested exact version is `[0.1.0]`. This package was **never published to nuget.org or another package feed**; it is a maintainer-held local reference artifact created on Windows. The earlier successful comparison resolved that local artifact through the maintainer's configured source/cache. SHA-256 of the inspected source DLL: `E81504A484AD99D5C818C98D594CDB88A08651638984D1A92503CDC367B9F0DD`; package DLL: `379F7CF6FF99223ECF2F388AB6295A34D97F33A8BD8EB7F9A52152994347CE28`.
 
-**Verification update:** the maintainer subsequently confirmed the complete **1472/1472 GREEN** suite. The three inventory and three legacy-class contract additions were already included in the earlier confirmed **1445/1445 GREEN** checkpoint; the separate focused-run count was not reported. A separate precompiled consumer binary smoke subsequently **passed**, running the same original package-built executable against the source-built DLL without recompilation. The maintainer subsequently supplied all **38 source-only type names** and a partial start of the member-entry diff. Their exhaustive group classification is in [added public types](../Added-Public-Types-Classification/en.md). A subsequent filtered diff identifies **14 entries on the two original concrete types**; the remaining **205 entries** belong to the 38 new exported types. See [original-type additions](../Original-Type-API-Additions/en.md). These entries include interface/kind declarations and are not all methods. A fresh compiled Markdown inventory and source/package comparer report for the current **1472/1472 GREEN** master are still pending. Do not declare 1.0 compatibility solely from the zero package-only census.
+**Verification update:** the maintainer subsequently confirmed the complete **1473/1473 GREEN** suite. The three inventory and three legacy-class contract additions were already included in the earlier confirmed **1445/1445 GREEN** checkpoint; the separate focused-run count was not reported. A separate precompiled consumer binary smoke subsequently **passed**, running the same original package-built executable against the source-built DLL without recompilation. The maintainer subsequently supplied all **38 source-only type names** and a partial start of the member-entry diff. Their exhaustive group classification is in [added public types](../Added-Public-Types-Classification/en.md). A subsequent filtered diff identifies **14 entries on the two original concrete types**; the remaining **205 entries** belong to the 38 new exported types. See [original-type additions](../Original-Type-API-Additions/en.md). These entries include interface/kind declarations and are not all methods. A fresh compiled Markdown inventory and source/package comparer report for the current **1473/1473 GREEN** master are still pending. Do not declare 1.0 compatibility solely from the zero package-only census.
 
 The 38 new exported types have now been classified by intended ownership in [the added-type classification](../Added-Public-Types-Classification/en.md). This is a source-excerpt-based review, not a 1.0 compatibility commitment.
 
