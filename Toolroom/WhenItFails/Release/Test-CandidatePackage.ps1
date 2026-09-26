@@ -56,7 +56,7 @@ try {
         '-c', 'Release',
         '-o', $feed,
         '--nologo',
-        "-p:PackageVersion=$PackageVersion"
+        "-p:WhenItFailsPackageVersionOverride=$PackageVersion"
     )
 
     $essentialsPackages = @(
