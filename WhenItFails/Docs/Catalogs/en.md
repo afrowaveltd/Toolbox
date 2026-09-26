@@ -56,6 +56,14 @@ Identifies the structure of the JSON document.
 
 Schema versioning allows loaders and maintenance tools to detect unsupported or outdated catalog formats.
 
+For the 1.0 runtime contract, all five catalog families support schema version
+`1.0`. A missing or blank value produces `MissingSchemaVersion`; a different
+non-empty value produces the error `UnsupportedSchemaVersion` at
+`schemaVersion`. Unsupported versions are not activated and are not silently
+migrated by runtime initialization. Supporting a later schema version is a deliberate
+schema-evolution change that requires compatibility, migration, documentation and test
+review.
+
 ### `catalogId`
 
 Provides a stable identity for the catalog document.
