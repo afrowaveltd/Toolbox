@@ -87,9 +87,11 @@ Flexible initialization may retain a previously valid context or activate bundle
 Recovery never overwrites or repairs project JSON files automatically.
 
 Cancellation is checked again after bootstrap and context loading, before the
-initializer publishes a new runtime context. A cancelled initialization must
-not replace the previously active context merely because a dependency returned
-a successful task after cancellation was requested.
+initializer publishes a new runtime context. The runtime also rechecks
+cancellation after loading bundled defaults and immediately before publishing
+them for explicit reset or automatic flexible fallback. A cancelled activation
+must not replace the previously active context merely because a dependency
+returned a successful task after cancellation was requested.
 
 ## Documentation
 
