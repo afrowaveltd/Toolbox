@@ -43,11 +43,18 @@ continue into the next stage or publish a new context.
 
 These checks are cooperative and apply **before** the synchronous publication
 boundary. They are not a rollback promise for cancellation that arrives
-after a store write succeeds. A pair of deterministic contracts cancels
-during otherwise successful dependency completions and checks exact token
-propagation, no downstream loading when bootstrap cancels, and preservation
-of the previous context publication. Verification pending (expected complete
-suite **1467/1467 GREEN**; last confirmed **1465/1465 GREEN**).
+after a store write succeeds. The initializer pair of deterministic contracts
+was confirmed in the complete **1467/1467 GREEN** suite.
+
+The same rule now applies to bundled-default activation. Both explicit
+`ResetToDefaultsAsync` and automatic flexible fallback recheck cancellation
+after the built-in provider completes and immediately before publishing its
+context. A provider that requests cancellation and still returns success must
+not create a new context publication or runtime status. A completed earlier
+reset activation must remain reference-identical when a later reset is
+cancelled at this boundary. Two focused runtime contracts are pending local
+verification (expected complete suite **1469/1469 GREEN**; last confirmed
+**1467/1467 GREEN**).
 
 ## Initialization modes
 
