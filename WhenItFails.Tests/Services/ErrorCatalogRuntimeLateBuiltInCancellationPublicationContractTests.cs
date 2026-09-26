@@ -13,7 +13,7 @@ namespace Afrowave.Toolbox.WhenItFails.Tests.Services;
 public sealed class ErrorCatalogRuntimeLateBuiltInCancellationPublicationContractTests
 {
     [Fact]
-    public async Task ResetToDefaultsAsync_WhenProviderReturnsSuccessAfterCancelling_PreservesPreviousPublicationAndStatus()
+    public async Task ResetToDefaultsAsync_WhenSecondProviderResultCancels_PreservesCompletedPublicationAndStatus()
     {
         using CancellationTokenSource source = new();
 
@@ -21,22 +21,34 @@ public sealed class ErrorCatalogRuntimeLateBuiltInCancellationPublicationContrac
         ErrorCatalogContext candidateContext = new();
 
         ErrorCatalogContextStore store = new();
-        store.Set(previousContext);
 
-        var previousPublication =
-            store.GetCurrentPublication().Data;
-
-        Assert.NotNull(previousPublication);
+        SequencedBuiltInProvider provider = new(
+            source,
+            previousContext,
+            candidateContext);
 
         ErrorCatalogRuntime runtime = new(
             new UnusedInitializer(),
             new WhenItFailsOptions(),
             store,
-            new CancellingSuccessfulBuiltInProvider(
-                source,
-                candidateContext),
+            provider,
             new UnusedDescriptorService(),
             new UnusedProfileSelectionService());
+
+        Response<ErrorCatalogInitializationPayload> first =
+            await runtime.ResetToDefaultsAsync();
+
+        Assert.True(first.IsSuccess);
+        Assert.Same(previousContext, store.Current);
+
+        var previousPublication =
+            store.GetCurrentPublication().Data;
+
+        var previousStatus =
+            runtime.GetStatus().Data;
+
+        Assert.NotNull(previousPublication);
+        Assert.NotNull(previousStatus);
 
         OperationCanceledException exception =
             await Assert.ThrowsAnyAsync<OperationCanceledException>(
@@ -45,14 +57,16 @@ public sealed class ErrorCatalogRuntimeLateBuiltInCancellationPublicationContrac
 
         Assert.True(source.IsCancellationRequested);
         Assert.Equal(source.Token, exception.CancellationToken);
+        Assert.Equal(2, provider.LoadCount);
 
         Assert.Same(previousContext, store.Current);
         Assert.NotSame(candidateContext, store.Current);
         Assert.Same(
             previousPublication,
             store.GetCurrentPublication().Data);
-
-        Assert.False(runtime.GetStatus().IsSuccess);
+        Assert.Same(
+            previousStatus,
+            runtime.GetStatus().Data);
     }
 
     [Fact]
@@ -91,6 +105,49 @@ public sealed class ErrorCatalogRuntimeLateBuiltInCancellationPublicationContrac
         Assert.False(store.GetCurrent().IsSuccess);
         Assert.False(runtime.GetCurrentContext().IsSuccess);
         Assert.False(runtime.GetStatus().IsSuccess);
+    }
+
+    private sealed class SequencedBuiltInProvider
+        : IBuiltInErrorCatalogContextProvider
+    {
+        private readonly CancellationTokenSource _source;
+        private readonly ErrorCatalogContext _firstContext;
+        private readonly ErrorCatalogContext _secondContext;
+
+        public SequencedBuiltInProvider(
+            CancellationTokenSource source,
+            ErrorCatalogContext firstContext,
+            ErrorCatalogContext secondContext)
+        {
+            _source = source;
+            _firstContext = firstContext;
+            _secondContext = secondContext;
+        }
+
+        public int LoadCount { get; private set; }
+
+        public Task<Response<ErrorCatalogContext>> LoadAsync(
+            CancellationToken cancellationToken = default)
+        {
+            LoadCount++;
+
+            if (LoadCount == 1)
+            {
+                return Task.FromResult(
+                    Response<ErrorCatalogContext>.Ok(
+                        _firstContext));
+            }
+
+            Assert.Equal(
+                _source.Token,
+                cancellationToken);
+
+            _source.Cancel();
+
+            return Task.FromResult(
+                Response<ErrorCatalogContext>.Ok(
+                    _secondContext));
+        }
     }
 
     private sealed class CancellingSuccessfulBuiltInProvider
