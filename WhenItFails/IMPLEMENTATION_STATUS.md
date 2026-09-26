@@ -6,7 +6,16 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Core runtime hardening is complete for the current pre-1.0 scope. The original pre-cleanup source census is **148 exported types / 830 API entries**. The first 17-type visibility cleanup is maintainer-confirmed **1474/1474 GREEN**. Commit `147b96310090c6cbbb5f2a5819b440026fb6062b` applies a second 5-type helper cleanup without adding tests. **Maintainer-confirmed verification remains 1474/1474 GREEN** after this second batch. After GREEN, remeasure the exported surface and continue the remaining intentional tooling/API review before the package/documentation release gates.
+Core runtime hardening is complete for the current pre-1.0 scope. The original pre-cleanup source census is **148 exported types / 830 API entries**. The first 17-type visibility cleanup is maintainer-confirmed **1474/1474 GREEN**. Commit `147b96310090c6cbbb5f2a5819b440026fb6062b` applies a second 5-type helper cleanup without adding tests. **Maintainer-confirmed verification remains 1474/1474 GREEN** after this second batch. After the second GREEN verification, the source-only comparer measured **126 exported types / 698 API entries**. Continue the final intentional tooling/DI API review before the package/documentation release gates.
+
+## 2026-09-27 — post-cleanup source census measured
+
+- Maintainer ran the source-only comparer after both visibility cleanup batches.
+- **Measured current source surface: 126 exported types / 698 API entries.**
+- This is a real compiled/reflection measurement, replacing the pre-cleanup 148/830 reference for current release work.
+- The reduction from the original pre-cleanup census is **22 exported types / 132 API entries**.
+- The complete suite remains **1474/1474 GREEN**.
+- Next: review the remaining 126 exports by ownership, with special attention to the 31 public DI interfaces and concrete Toolbox-tooling types, before declaring the 1.0 public surface frozen.
 
 ## 2026-09-27 — second stable helper-surface cleanup (1474/1474 GREEN)
 
