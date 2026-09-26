@@ -14,7 +14,8 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - Updated snapshot capability boundaries, validation snapshots, definition snapshots, completed full snapshots, publication ownership, bootstrap repair behavior, activation status and initialization/recovery documentation in commits `d640d6bf`, `4aa7281a`, `4ac45539`, `2975ed0b`, `165014db`, `2014be83`, `963b220b`, and `40d6101e`.
 - Reconciled `Docs/Public-API-Inventory/en.md` in commit `aa91550488678079ea2edc37f3648dda544df5f9`: live mutable context compatibility, additive detached snapshot APIs, persistent schema `1.0`, public implementation-surface policy and the refreshed **148 exported-type** inventory now match the candidate 1.0 policy.
 - No production code or test code changed in this reconciliation; the runtime-suite baseline remains **1473/1473 GREEN**.
-- Next: rerun Markdown-link validation after these documentation-only edits. If clean, continue with remaining stale-document cleanup only where it materially affects the 1.0 continuation state; the exact original-0.1.0 comparison remains the release freeze gate.
+- **Documentation-link verification complete:** maintainer checked 46 Markdown files and 431 local links with zero broken links after the reconciliation edits.
+- Next: refresh the current source-side comparer census with the same reflection inspector used by the exact 0.1.0 comparison, without requiring or fabricating the historical package.
 
 ## 2026-09-27 — candidate package re-smoke after schema guard
 
