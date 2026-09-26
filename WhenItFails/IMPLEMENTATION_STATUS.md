@@ -6,7 +6,16 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Core hardening and concrete class-level coverage audits are complete for the current scope. The current suite baseline is **1473/1473 GREEN**, Markdown links are clean (46 files / 431 local links), the refreshed current-source comparer census is **148 exported types / 830 API entries**, and the current `1.0.0-rc.1` candidate package smoke passes including direct external-consumer rejection of unsupported schema versions across all five packaged validators. The exact source-vs-original-0.1.0 comparer remains the only artifact-dependent compatibility gate.
+Core hardening and concrete class-level coverage audits are complete for the current pre-1.0 scope. The current suite baseline is **1473/1473 GREEN**, Markdown links are clean (**46 files / 431 local links / 0 broken**), the refreshed current-source comparer census is **148 exported types / 830 API entries**, and the current `1.0.0-rc.1` candidate package smoke passes including direct external-consumer rejection of unsupported schema versions across all five packaged validators. **All currently reproducible Linux/source-side release-readiness work is complete.** The exact source-vs-original-0.1.0 comparer and the binary-smoke refresh against that same original package are the remaining compatibility gate. Release-version and Essentials dependency-range decisions stay deferred until that gate is accepted.
+
+## 2026-09-27 — reproducible pre-1.0 release-readiness complete
+
+- **Documentation links reconfirmed clean** after the fresh 148/830 source-census documentation updates: 46 Markdown files, 431 local links, zero broken links.
+- Current independently verified Linux/source-side state: **1473/1473 GREEN**, candidate package smoke **PASS**, current-source comparer **148 exported types / 830 API entries**, Markdown links **46 / 431 / 0 broken**.
+- No further source-side API inventory or candidate-package verification is currently required before the historical-artifact gate.
+- The remaining compatibility work requires the exact maintainer-held original `Afrowave.Toolbox.WhenItFails.0.1.0.nupkg`: rerun the full source/package comparer and the precompiled-consumer binary smoke modes against that same artifact.
+- Do **not** change the committed release version or finalize the Essentials dependency range before that compatibility/public-API gate is accepted; those remain intentional post-gate release decisions.
+- Until the original artifact is available, new feature work may continue only if it deliberately preserves the frozen candidate 1.0 surface and is accompanied by the normal test/documentation checkpoints.
 
 ## 2026-09-27 — source-only comparer census prepared
 
