@@ -19,7 +19,7 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No WhenItFails runtime semantics or public CLR API were changed by these packaging fixes. The current Linux source/package candidate is therefore release-smoke clean.
 - **Only remaining environment-dependent compatibility gate:** refresh the exact source-vs-package public API comparison and the precompiled-consumer binary smokes against the original maintainer-held local Windows `Afrowave.Toolbox.WhenItFails.0.1.0.nupkg` when it is available on Tuesday. Until then, development can continue against the confirmed 1472/1472 GREEN Linux baseline without fabricating a replacement 0.1.0 artifact.
 - **Post-checkpoint metadata hardening:** added `PackageProjectUrl` and pre-release `PackageReleaseNotes` to WhenItFails. The candidate-package smoke now validates package ID/version, project URL, repository type/URL, release notes, README/license metadata and requires both Essentials and WhenItFails `.snupkg` files. Dependency-range policy was deliberately left unchanged until the final 1.0 version freeze.
-- **Verification pending after metadata-only change:** rerun only `Test-CandidatePackage.ps1`. Runtime tests and Markdown links were already maintainer-confirmed GREEN and no runtime/public CLR code changed.
+- **Metadata hardening verification complete:** the maintainer reran `Test-CandidatePackage.ps1` successfully after the metadata/symbol-package changes, and Markdown-link validation is also confirmed clean. No runtime/public CLR code changed; the **1472/1472 GREEN** runtime-suite baseline remains the current verified baseline.
 
 ## 2026-09-24 — core public API entry-point contract (1159/1159 GREEN)
 
