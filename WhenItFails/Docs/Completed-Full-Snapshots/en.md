@@ -1,6 +1,6 @@
 # Completed full operational catalog and activation snapshot
 
-Status: **additive pre-1.0 CLR API candidate; 19 cases included in maintainer-confirmed 1426/1426 GREEN; three additional race/activation tests pending verification**.
+Status: **additive pre-1.0 CLR API candidate; completed-full, race/activation and nullable contracts are included in the maintainer-confirmed 1473/1473 GREEN suite**.
 
 ## Scope and usage
 
@@ -114,6 +114,6 @@ six detached views and associated recorded status after the next
 successful activation; a changed publication record must be rejected
 even if the live context object is the same reference.
 
-**Verified:** 22/22 focused cases were included in the maintainer-confirmed
-**1429/1429 GREEN** complete suite. Six further nullable-contract tests are
-pending verification; see [snapshot nullable contracts](../Nullable-Snapshot-Contracts/en.md).
+**Verified:** the 22 focused completed-full cases and the later nullable-contract
+coverage are included in the current maintainer-confirmed **1473/1473 GREEN**
+complete suite; see [snapshot nullable contracts](../Nullable-Snapshot-Contracts/en.md).
