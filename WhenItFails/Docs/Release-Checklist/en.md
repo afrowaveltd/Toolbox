@@ -14,9 +14,9 @@ The current Linux release-readiness checkpoint is maintainer-confirmed **PASS**:
 - Markdown-link validation completed without errors.
 - the updated external consumer directly verified `UnsupportedSchemaVersion` across all five packaged validators.
 
-The historical 0.1.0 package was never published. It exists only as the maintainer's
-original local Windows reference artifact and is used strictly for compatibility
-comparison.
+The historical local 0.1.0 package was never published and has no external consumers.
+It is retained only as optional diagnostic evidence; **it is not a release gate for
+the first stable 1.0 package**.
 
 ## 1. Source and repository state
 
@@ -130,51 +130,33 @@ lib/net10.0/Afrowave.Toolbox.WhenItFails.dll
 lib/net10.0/Afrowave.Toolbox.WhenItFails.xml
 ```
 
-## 6. 0.1.0 compatibility gate — requires original Windows artifact
+## 6. Historical 0.1.0 diagnostics — optional
 
-This is now the **only remaining environment-dependent release-readiness item**
-that cannot be reproduced on the maintainer's Linux machine until the original
-0.1.0 `.nupkg` is available.
+The maintainer-held 0.1.0 package may still be used to compare historical API
+surfaces or rerun the precompiled-consumer binary smoke modes. Because that package
+was never published or used externally, differences from it do not block 1.0.
 
-Copy or expose the **original** artifact to a directory and run:
-
-```powershell
-pwsh ./Toolroom/WhenItFails/PublicApiComparer/Compare-PublicApi.ps1 \
-  -Feed "<directory-containing-original-0.1.0-nupkg>" \
-  -ReportPath "<report-path>"
-```
-
-Also rerun the precompiled-consumer binary smoke modes against that same artifact.
-
-Do not:
-
-- pack current source as version 0.1.0;
-- use a rebuilt DLL as the reference package;
-- describe 0.1.0 as previously published.
-
-The compatibility gate should require:
-
-- zero unexplained package-only exported types;
-- zero unexplained package-only API census entries;
-- review of all source-only additions;
-- PASS for the targeted precompiled consumer smoke scenarios.
+Do not fabricate a replacement 0.1.0 artifact and do not describe it as a published
+release. Historical comparisons remain useful archaeology, not a compatibility
+promise.
 
 ## 7. Public API freeze
 
-After the exact 0.1.0 comparison is refreshed:
+Before the first stable publication:
 
-- update the exported type/member counts and artifact hashes;
-- update the 38-type classification if the current source added or removed exports;
-- convert the candidate [1.0 public API policy](../Public-API-1.0-Policy/en.md) into the
-  final release policy;
+- internalize default orchestration implementations that are not intentional consumer
+  contracts;
+- rerun the source-only comparer and exported-assembly inventory and record the new
+  stable 1.0 counts;
+- review every remaining exported type against the final public API policy;
 - ensure the nine-method `IErrorCatalogRuntime` core surface remains intentional;
 - ensure enum numeric values, nullability, generic constraints and init/set semantics
-  have no unexplained changes;
-- review every package-only comparer result individually before release.
+  are intentional;
+- require the complete test/package/documentation gates to be GREEN.
 
 ## 8. Version and package metadata
 
-Only after the compatibility/public-API gate is accepted:
+Only after the final public-surface cleanup and verification gate is accepted:
 
 - change `WhenItFails/WhenItFails.csproj` from the development version to the
   intended release version;
