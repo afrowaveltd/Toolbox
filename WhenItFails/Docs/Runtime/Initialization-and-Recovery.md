@@ -52,9 +52,17 @@ after the built-in provider completes and immediately before publishing its
 context. A provider that requests cancellation and still returns success must
 not create a new context publication or runtime status. A completed earlier
 reset activation must remain reference-identical when a later reset is
-cancelled at this boundary. Two focused runtime contracts are pending local
-verification (expected complete suite **1469/1469 GREEN**; last confirmed
-**1467/1467 GREEN**).
+cancelled at this boundary. Both focused runtime contracts were confirmed locally in the complete
+**1469/1469 GREEN** suite.
+
+The complementary boundary is also explicit: once a context store publication
+has succeeded, cancellation is too late to roll that activation back or report
+it as aborted. The runtime therefore does not recheck the token after a
+successful owned publication; it completes the matching status and activation
+observation. Three deterministic contracts cover project initialization,
+explicit reset and automatic flexible fallback. Verification is pending
+(expected complete suite **1472/1472 GREEN**; last confirmed
+**1469/1469 GREEN**).
 
 ## Initialization modes
 
