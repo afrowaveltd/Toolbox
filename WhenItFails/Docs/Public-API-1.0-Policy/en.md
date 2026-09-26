@@ -1,6 +1,6 @@
 # WhenItFails 1.0 public API policy
 
-Status: **first-stable-release policy under final surface cleanup**.
+Status: **first-stable-release policy under final surface cleanup; first 17-type visibility batch committed, verification pending**.
 
 WhenItFails has not been published and has no external consumers. The maintainer-held
 local 0.1.0 artifact is therefore historical test evidence, **not a compatibility
@@ -192,7 +192,9 @@ or utilities.
 
 Default runtime orchestration implementations are **not** part of the intended 1.0
 consumer API. Their public interfaces remain the extension boundary while the default
-classes may be internal.
+classes may be internal. Commit `6afd3f6f88c7d71097fd1813d8e0dc2d9d80b276`
+applies the first visibility batch to 17 DI-only implementation classes; complete-suite
+and post-cleanup inventory verification are still pending.
 
 The final cleanup explicitly targets DI-only implementation classes such as the
 default runtime, context store/provider, initializer, catalog providers/factory,
