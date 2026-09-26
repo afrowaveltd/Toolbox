@@ -8,7 +8,7 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 Core hardening and concrete class-level coverage audits are complete for the current scope. NuGet archive, dependency restore, embedded-template consumption and full external runtime initialization/resolution in a separate .NET 10 consumer are verified. Next: complete the public API stability review and define the exact stable 1.0 scope.
 
-## 2026-09-27 — catalog schema-version compatibility contract (focused GREEN)
+## 2026-09-27 — catalog schema-version compatibility contract (complete GREEN)
 
 - Added `WhenItFails.Tests/Validation/CatalogSchemaVersionCompatibilityContractTests.cs` in commit `c40cf5a5559d2e6ca9b480603d3fabf54df2d478`.
 - **Expected RED confirmed by maintainer:** the one focused test failed at the first `Assert.False(result.IsValid)` with `Expected: False / Actual: True`, proving that unsupported non-empty schema versions were accepted before the fix.
@@ -16,8 +16,9 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - **Focused verification confirmed by maintainer: 1/1 GREEN** after the production fix.
 - The guard is internal and changes no public CLR signatures. Surrounding whitespace around `1.0` is accepted by the direct validation helper; provider pipelines already normalize catalog header text before validation.
 - Documentation commits `bb5fe31965e6dcaf76339682f14321f2e8b5c839`, `f301fcb79aa0033911026cf861d45bfcd16623fd`, `d285477adbf96c2cb8b442d7ceebd658a9eab344`, and `983353c8407279fb07b71880663bc046c5b2fa1a` define the stable 1.0 persistent-catalog schema baseline and the machine-readable validation issue.
-- Previous complete-suite baseline: **1472/1472 GREEN**. With this one added test, expected complete-suite total is now **1473/1473 GREEN**.
-- Next: run the complete WhenItFails suite and Markdown-link validation; only after both are GREEN continue with the next unresolved 1.0 compatibility contract.
+- **Complete verification confirmed by maintainer:** the Release test command completed successfully after the focused fix; with the one added contract the current suite baseline is **1473/1473 GREEN**.
+- **Markdown-link validation confirmed clean:** 46 Markdown files and 431 local links checked, with zero broken local links.
+- This closes the schema-version compatibility checkpoint. Next: refresh the current exported-assembly inventory that does not require the historical 0.1.0 artifact, then review any source-only additions before the final cross-version comparison.
 
 ## 2026-09-27 — Linux release-readiness checkpoint complete
 
