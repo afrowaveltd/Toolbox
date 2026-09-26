@@ -1,6 +1,8 @@
 # Public API inventory and 1.0 decision register
 
 Status: **pre-1.0 inventory; classification candidates, not a published 1.0 compatibility promise**.
+
+The current support-level decision is recorded in [the candidate 1.0 public API policy](../Public-API-1.0-Policy/en.md). This inventory remains evidence/input for that policy rather than a second competing classification.
 Source of truth: `afrowaveltd/Toolbox` GitHub `master` at `9f4fab423b898b8f30f584eeedbff54f97f0cadc` (the 1212/1212 GREEN checkpoint).
 The Git tree at this checkpoint is complete (`truncated=false`): 114 production `.cs` source files under `WhenItFails/`, including 31 files in `Interfaces/`. The number of files **is not** the count of public CLR types. The groups below record verified declarations and transitive public dependencies; this is not yet an exhaustive assembly-level API report.
 
