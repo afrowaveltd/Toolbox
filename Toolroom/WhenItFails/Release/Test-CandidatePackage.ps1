@@ -230,7 +230,7 @@ Console.WriteLine($"RUNTIME_STATE={status.Data.State}");
     Invoke-Dotnet @(
         'build',
         $consumerProject,
-        '-c', 'Relese',
+        '-c', 'Release',
         '--no-restore',
         '--nologo'
     )
@@ -263,7 +263,7 @@ Console.WriteLine($"RUNTIME_STATE={status.Data.State}");
         'Result: **PASS**'
         ''
         "- Candidate package version: ``$PackageVersion``"
-        "- Candidate nupgk SHA-256: ``$packageHash``"
+        "- Candidate nupkg SHA-256: ``$packageHash``"
         "- Candidate DLL SHA-256: ``$dllHash``"
         "- Package README matches ``WhenItFails/README.md``: **yes**"
         '- Required package entries: **present**'
@@ -280,7 +280,7 @@ Console.WriteLine($"RUNTIME_STATE={status.Data.State}");
         ''
         'This smoke validates the newly built candidate package only. It is not a'
         'substitute for the separate compatibility comparison against the original'
-        'maintainer-held 0.1.0 reference nupgk.'
+        'maintainer-held 0.1.0 reference nupkg.'
     )
 
     Set-Content -LiteralPath $ReportPath -Value $report
