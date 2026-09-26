@@ -3,7 +3,7 @@
 Status: **pre-1.0 inventory; classification candidates, not a published 1.0 compatibility promise**.
 
 The current support-level decision is recorded in [the candidate 1.0 public API policy](../Public-API-1.0-Policy/en.md). This inventory remains evidence/input for that policy rather than a second competing classification.
-Source of truth: current `afrowaveltd/Toolbox` GitHub `master`. The last fully verified pre-cleanup suite is **1473/1473 GREEN** with a source census of **148 exported types / 830 API entries**. Commit `6afd3f6f88c7d71097fd1813d8e0dc2d9d80b276` intentionally internalizes 17 DI-only default implementation classes and adds one visibility contract test. The post-cleanup exported/API counts and **1474-test** baseline are pending maintainer verification.
+Source of truth: current `afrowaveltd/Toolbox` GitHub `master`. The original pre-cleanup census was **148 exported types / 830 API entries**. Commit `6afd3f6f88c7d71097fd1813d8e0dc2d9d80b276` internalized 17 DI-only default implementation classes and its resulting complete suite is maintainer-confirmed **1474/1474 GREEN**. Commit `147b96310090c6cbbb5f2a5819b440026fb6062b` now applies a second 5-type helper cleanup; its verification and the final post-cleanup exported/API counts are pending.
 
 ## 1. Application-facing stable-contract candidates
 
@@ -54,6 +54,13 @@ construction:
   `ErrorDescriptorService`;
 - `ErrorCatalogContextStore` and `ErrorCatalogRuntime`.
 
+The second cleanup in `147b9631` additionally internalizes
+`JsonCatalogDocumentLoader`, `ErrorDefinitionNormalizer`,
+`ErrorCategoryDefinitionNormalizer`, `ErrorCodeGroupDefinitionNormalizer` and
+`ErrorOwnerDefinitionNormalizer`. Public typed loaders and document normalizers
+retain their parameterless constructors; only their helper-injection constructors
+become internal.
+
 This is an intentional pre-1.0 breaking cleanup. There are no external consumers and
 the package has never been published, so the historical local 0.1.0 binary is not a
 compatibility target.
@@ -79,17 +86,18 @@ an internal containing type is not exported CLR API.
 3. Public interfaces remain the supported DI replacement seams; their default
    orchestration implementations are internal unless direct construction is
    intentionally supported.
-4. The pre-cleanup census **148 / 830** is historical input only. After commit
-   `6afd3f6f`, the expected exported-type reduction is 17 types, but the authoritative
-   post-cleanup type/member counts must come from the compiled inventory and
-   `-SourceOnly` comparer after the suite is GREEN.
+4. The pre-cleanup census **148 / 830** is historical input only. The first 17-type
+   cleanup is test-verified; the second 5-type helper cleanup is now committed. The
+   authoritative final type/member counts must come from the compiled inventory and
+   `-SourceOnly` comparer after the second batch is GREEN.
 5. The unpublished local 0.1.0 artifact is optional historical diagnostics, not a
    first-release compatibility gate.
-6. The new visibility contract raises the expected complete-suite count from
-   **1473** to **1474**; verification is pending.
+6. The complete suite is confirmed **1474/1474 GREEN** for the first cleanup. The
+   second cleanup changes existing tests but adds no new test, so the expected suite
+   total remains **1474**; verification is pending.
 
-Next: verify the visibility cleanup, measure the resulting public surface, then review
-the remaining directly constructed tooling/low-level types before freezing 1.0.
+Next: verify the second cleanup, measure the resulting public surface, then review the
+remaining directly constructed tooling/low-level types before freezing 1.0.
 
 
 ## 6. Additive snapshot API review — 2026-09-25
