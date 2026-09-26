@@ -21,6 +21,7 @@ $consumerDir = Join-Path $workspace 'consumer'
 $projectWorkspace = Join-Path $workspace 'project-jsons'
 $essentialsExtractDir = Join-Path $workspace 'essentials-extract'
 $extractDir = Join-Path $workspace 'package-extract'
+$smokeSucceeded = $false
 
 New-Item -ItemType Directory -Force -Path $workspace, $feed, $consumerDir | Out-Null
 
@@ -377,17 +378,14 @@ Console.WriteLine($"RUNTIME_STATE={status.Data.State}");
     if ($KeepWorkspace) {
         Write-Host "Workspace retained: $workspace"
     }
+
+    $smokeSucceeded = $true
 }
 finally {
-    if ($KeepWorkspace) {
-        if (Test-Path -LiteralPath $workspace) {
-            Write-Host "Workspace retained: $workspace"
-        }
-    }
-    elseif ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $workspace)) {
+    if ($smokeSucceeded -and -not $KeepWorkspace -and (Test-Path -LiteralPath $workspace)) {
         Remove-Item -LiteralPath $workspace -Recurse -Force -ErrorAction SilentlyContinue
     }
-    elseif (Test-Path -LiteralPath $workspace) {
+    elseif (-not $smokeSucceeded -and (Test-Path -LiteralPath $workspace)) {
         Write-Host "Workspace retained after failure: $workspace"
     }
 }
