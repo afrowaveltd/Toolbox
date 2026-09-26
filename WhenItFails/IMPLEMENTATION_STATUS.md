@@ -6,7 +6,7 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Core hardening and concrete class-level coverage audits are complete for the current scope. The current suite baseline is **1473/1473 GREEN**, Markdown links are clean (46 files / 431 local links), the refreshed compiled inventory still reports **148 exported types**, and the candidate package smoke passed on current master after the schema-version runtime change. The release smoke now also contains a direct external-consumer assertion for unsupported schema rejection across all five packaged validators; rerun it once to verify that new smoke assertion itself. The exact source-vs-original-0.1.0 comparer remains the only artifact-dependent compatibility gate.
+Core hardening and concrete class-level coverage audits are complete for the current scope. The current suite baseline is **1473/1473 GREEN**, Markdown links are clean (46 files / 431 local links), the refreshed compiled inventory still reports **148 exported types**, and the current `1.0.0-rc.1` candidate package smoke passes including direct external-consumer rejection of unsupported schema versions across all five packaged validators. The exact source-vs-original-0.1.0 comparer remains the only artifact-dependent compatibility gate.
 
 ## 2026-09-27 — candidate package re-smoke after schema guard
 
@@ -15,7 +15,10 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - Commit `314397addbc2f9291d5346ea1b38e866f660c052` now extends that release smoke so the external NuGet consumer resolves all five validator interfaces from DI and requires `schemaVersion = "2.0"` to produce `UnsupportedSchemaVersion` at `schemaVersion`.
 - Release-tool documentation was updated in commits `77f95ab5e7d403cf34959ef3bfa95a6da1a9340a` and `1804f1e809963bd49aad2eb12f55e1c085e95fdb`.
 - No production library code or xUnit test count changed in this release-tool step; the suite baseline remains **1473/1473 GREEN**.
-- Next: rerun the candidate-package smoke once more to verify the new packaged-validator assertion. Then rerun Markdown-link validation because release documentation changed.
+- **Verification complete:** maintainer reran the updated smoke after pulling commit `92dc95766a9535f02a34f1cdc858ad6a7b9b3494`; candidate package smoke **PASS** with the new five-validator schema assertion enabled.
+- **Documentation verification complete:** Markdown-link validation checked 46 files and 431 local links with zero broken links.
+- The generated candidate remained `Afrowave.Toolbox.WhenItFails.1.0.0-rc.1.nupkg` and the external consumer built and executed successfully from the isolated package cache/feed.
+- Next: continue only with non-artifact-dependent 1.0 review work until the original 0.1.0 reference package is available for the exact compatibility gate.
 
 ## 2026-09-27 — current API inventory refresh complete
 
