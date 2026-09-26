@@ -1,9 +1,15 @@
 # WhenItFails 1.0 release checklist
 
 Status: **pre-release working checklist** for the first published WhenItFails package.
-The current source baseline is maintainer-confirmed **1473/1473 GREEN**.
+The last fully verified source baseline is maintainer-confirmed **1473/1473 GREEN**.
+Commit `6afd3f6f88c7d71097fd1813d8e0dc2d9d80b276` adds one
+stable-release visibility contract and internalizes 17 default orchestration
+implementations; the expected next complete-suite total is **1474**, pending
+maintainer verification.
 
-The current Linux release-readiness checkpoint is maintainer-confirmed **PASS**:
+The pre-cleanup Linux release-readiness checkpoint is maintainer-confirmed **PASS**.
+Because the exported surface changed in commit `6afd3f6f`, rerun the candidate
+package smoke after the new suite is GREEN. The previous PASS covered:
 
 - Essentials tests completed without errors;
 - the complete WhenItFails suite is **1473/1473 GREEN**;
@@ -36,8 +42,9 @@ Run the complete library suite:
 dotnet test WhenItFails.Tests/WhenItFails.Tests.csproj -c Release
 ```
 
-The currently expected count is **1473/1473 GREEN** until a deliberate test addition
-changes it.
+The currently expected post-cleanup count is **1474/1474 GREEN**. The previous
+**1473/1473 GREEN** result remains the last confirmed baseline until the visibility
+cleanup is rerun.
 
 SDK support-policy messages such as `NETSDK1057` are informational and must not be
 recorded as Toolbox compiler warnings.
@@ -144,8 +151,11 @@ promise.
 
 Before the first stable publication:
 
-- internalize default orchestration implementations that are not intentional consumer
-  contracts;
+- verify commit `6afd3f6f` and any later visibility cleanup with the complete suite;
+- rerun the source-only comparer and exported-assembly inventory and record the actual
+  new 1.0 type/member counts;
+- internalize any additional default orchestration implementations that are not
+  intentional consumer contracts;
 - rerun the source-only comparer and exported-assembly inventory and record the new
   stable 1.0 counts;
 - review every remaining exported type against the final public API policy;
