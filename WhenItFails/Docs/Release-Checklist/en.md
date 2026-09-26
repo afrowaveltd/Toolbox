@@ -12,6 +12,7 @@ The current Linux release-readiness checkpoint is maintainer-confirmed **PASS**:
 - a clean external consumer restored, built and executed from an isolated local
   feed/global-packages directory;
 - Markdown-link validation completed without errors.
+- the updated external consumer directly verified `UnsupportedSchemaVersion` across all five packaged validators.
 
 The historical 0.1.0 package was never published. It exists only as the maintainer's
 original local Windows reference artifact and is used strictly for compatibility
