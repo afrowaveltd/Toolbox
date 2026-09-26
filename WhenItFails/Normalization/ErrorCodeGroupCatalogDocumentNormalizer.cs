@@ -25,7 +25,7 @@ public sealed class ErrorCodeGroupCatalogDocumentNormalizer
     /// Initializes a new instance of the <see cref="ErrorCodeGroupCatalogDocumentNormalizer"/> class.
     /// </summary>
     /// <param name="codeGroupDefinitionNormalizer">Code group definition normalizer.</param>
-    public ErrorCodeGroupCatalogDocumentNormalizer(
+    internal ErrorCodeGroupCatalogDocumentNormalizer(
         ErrorCodeGroupDefinitionNormalizer codeGroupDefinitionNormalizer)
     {
         _codeGroupDefinitionNormalizer = codeGroupDefinitionNormalizer

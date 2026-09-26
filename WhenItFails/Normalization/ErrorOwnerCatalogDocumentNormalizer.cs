@@ -25,7 +25,7 @@ public sealed class ErrorOwnerCatalogDocumentNormalizer
     /// Initializes a new instance of the <see cref="ErrorOwnerCatalogDocumentNormalizer"/> class.
     /// </summary>
     /// <param name="ownerDefinitionNormalizer">Owner definition normalizer.</param>
-    public ErrorOwnerCatalogDocumentNormalizer(
+    internal ErrorOwnerCatalogDocumentNormalizer(
         ErrorOwnerDefinitionNormalizer ownerDefinitionNormalizer)
     {
         _ownerDefinitionNormalizer = ownerDefinitionNormalizer

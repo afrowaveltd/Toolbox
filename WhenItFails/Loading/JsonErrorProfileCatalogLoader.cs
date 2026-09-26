@@ -23,7 +23,7 @@ public sealed class JsonErrorProfileCatalogLoader : IErrorProfileCatalogLoader
     /// Initializes a new instance of the <see cref="JsonErrorProfileCatalogLoader"/> class.
     /// </summary>
     /// <param name="documentLoader">Shared JSON document loader.</param>
-    public JsonErrorProfileCatalogLoader(JsonCatalogDocumentLoader documentLoader)
+    internal JsonErrorProfileCatalogLoader(JsonCatalogDocumentLoader documentLoader)
     {
         _documentLoader = documentLoader
             ?? throw new ArgumentNullException(nameof(documentLoader));

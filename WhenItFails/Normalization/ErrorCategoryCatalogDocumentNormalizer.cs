@@ -25,7 +25,7 @@ public sealed class ErrorCategoryCatalogDocumentNormalizer
     /// Initializes a new instance of the <see cref="ErrorCategoryCatalogDocumentNormalizer"/> class.
     /// </summary>
     /// <param name="categoryDefinitionNormalizer">Category definition normalizer.</param>
-    public ErrorCategoryCatalogDocumentNormalizer(
+    internal ErrorCategoryCatalogDocumentNormalizer(
         ErrorCategoryDefinitionNormalizer categoryDefinitionNormalizer)
     {
         _categoryDefinitionNormalizer = categoryDefinitionNormalizer

@@ -6,7 +6,7 @@ namespace Afrowave.Toolbox.WhenItFails.Normalization;
 /// <summary>
 /// Normalizes flexible key-like fields in error code group definitions.
 /// </summary>
-public sealed class ErrorCodeGroupDefinitionNormalizer
+internal sealed class ErrorCodeGroupDefinitionNormalizer
 {
    /// <summary>
    /// Creates a normalized copy of the specified code group definition.

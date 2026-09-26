@@ -6,7 +6,7 @@ namespace Afrowave.Toolbox.WhenItFails.Normalization;
 /// <summary>
 /// Normalizes flexible key-like fields in error owner definitions.
 /// </summary>
-public sealed class ErrorOwnerDefinitionNormalizer
+internal sealed class ErrorOwnerDefinitionNormalizer
 {
    /// <summary>
    /// Creates a normalized copy of the specified owner definition.

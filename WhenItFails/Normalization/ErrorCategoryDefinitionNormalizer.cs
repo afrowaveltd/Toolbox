@@ -6,7 +6,7 @@ namespace Afrowave.Toolbox.WhenItFails.Normalization;
 /// <summary>
 /// Normalizes flexible key-like fields in error category definitions.
 /// </summary>
-public sealed class ErrorCategoryDefinitionNormalizer
+internal sealed class ErrorCategoryDefinitionNormalizer
 {
    /// <summary>
    /// Creates a normalized copy of the specified category definition.

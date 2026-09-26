@@ -5,20 +5,26 @@ using Afrowave.Toolbox.WhenItFails.Loading;
 
 namespace Afrowave.Toolbox.WhenItFails.Tests.PublicApi;
 
-public sealed class JsonCatalogDocumentLoaderPublicApiContractTests
+public sealed class JsonCatalogDocumentLoaderInternalContractTests
 {
     private const BindingFlags DeclaredPublic =
         BindingFlags.Public | BindingFlags.Instance |
         BindingFlags.Static | BindingFlags.DeclaredOnly;
 
     [Fact]
-    public void Loader_PreservesPublicGenericLoadingSignature()
+    public void Loader_IsInternalSharedHelperWithStableGenericLoadingBehavior()
     {
         Type type = typeof(JsonCatalogDocumentLoader);
 
-        Assert.True(type.IsPublic);
+        Assert.False(type.IsVisible);
         Assert.True(type.IsSealed);
-        Assert.NotNull(type.GetConstructor(Type.EmptyTypes));
+        Assert.NotNull(type.GetConstructor(
+            BindingFlags.Instance |
+            BindingFlags.Public |
+            BindingFlags.NonPublic,
+            binder: null,
+            Type.EmptyTypes,
+            modifiers: null));
 
         MethodInfo method = Assert.Single(
             type.GetMethods(DeclaredPublic),

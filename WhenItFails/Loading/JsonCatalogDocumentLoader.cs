@@ -12,7 +12,7 @@ namespace Afrowave.Toolbox.WhenItFails.Loading;
 /// It returns the standard Essentials <see cref="Response{T}"/> type
 /// instead of creating package-specific result wrappers.
 /// </remarks>
-public sealed class JsonCatalogDocumentLoader
+internal sealed class JsonCatalogDocumentLoader
 {
    private static readonly JsonSerializerOptions DefaultJsonSerializerOptions = CreateJsonSerializerOptions();
 

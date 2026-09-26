@@ -1,6 +1,8 @@
 using Afrowave.Toolbox.WhenItFails.Catalog;
 using Afrowave.Toolbox.WhenItFails.Descriptors;
 using Afrowave.Toolbox.WhenItFails.Initialization;
+using Afrowave.Toolbox.WhenItFails.Loading;
+using Afrowave.Toolbox.WhenItFails.Normalization;
 using Afrowave.Toolbox.WhenItFails.Resolution;
 using Afrowave.Toolbox.WhenItFails.Services;
 
@@ -29,7 +31,12 @@ public sealed class StableReleaseImplementationVisibilityContractTests
             typeof(ErrorDescriptorResolver),
             typeof(ErrorCatalogContextStore),
             typeof(ErrorCatalogRuntime),
-            typeof(ErrorDescriptorService)
+            typeof(ErrorDescriptorService),
+            typeof(JsonCatalogDocumentLoader),
+            typeof(ErrorDefinitionNormalizer),
+            typeof(ErrorCategoryDefinitionNormalizer),
+            typeof(ErrorCodeGroupDefinitionNormalizer),
+            typeof(ErrorOwnerDefinitionNormalizer)
         ];
 
         foreach (Type implementationType in implementationTypes)

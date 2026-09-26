@@ -23,7 +23,7 @@ public sealed class JsonErrorCategoryCatalogLoader : IErrorCategoryCatalogLoader
    /// Initializes a new instance of the <see cref="JsonErrorCategoryCatalogLoader"/> class.
    /// </summary>
    /// <param name="documentLoader">Shared JSON document loader.</param>
-   public JsonErrorCategoryCatalogLoader(JsonCatalogDocumentLoader documentLoader)
+   internal JsonErrorCategoryCatalogLoader(JsonCatalogDocumentLoader documentLoader)
    {
       _documentLoader = documentLoader
           ?? throw new ArgumentNullException(nameof(documentLoader));

@@ -12,7 +12,7 @@ namespace Afrowave.Toolbox.WhenItFails.Normalization;
 /// It only normalizes identity and classification fields that are intended
 /// to behave as stable keys.
 /// </remarks>
-public sealed class ErrorDefinitionNormalizer
+internal sealed class ErrorDefinitionNormalizer
 {
    /// <summary>
    /// Creates a normalized copy of the specified error definition.

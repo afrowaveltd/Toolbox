@@ -26,7 +26,7 @@ public sealed class ErrorCatalogDocumentNormalizer : IErrorCatalogDocumentNormal
    /// Initializes a new instance of the <see cref="ErrorCatalogDocumentNormalizer"/> class.
    /// </summary>
    /// <param name="errorDefinitionNormalizer">Error definition normalizer.</param>
-   public ErrorCatalogDocumentNormalizer(ErrorDefinitionNormalizer errorDefinitionNormalizer)
+   internal ErrorCatalogDocumentNormalizer(ErrorDefinitionNormalizer errorDefinitionNormalizer)
    {
       _errorDefinitionNormalizer = errorDefinitionNormalizer
           ?? throw new ArgumentNullException(nameof(errorDefinitionNormalizer));
