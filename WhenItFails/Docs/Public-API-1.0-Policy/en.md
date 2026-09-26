@@ -258,7 +258,7 @@ Before declaring the 1.0 public surface frozen:
 1. rerun the current exported-assembly inventory;
 2. rerun the source-versus-exact-0.1.0 comparer using the original local artifact;
 3. require zero unexplained package-only/removal entries;
-4. review any new source-only additions since the last 148-type / 830-entry census;
+4. compare against the freshly confirmed current-source baseline of 148 exported types / 830 API entries and review any later source-only additions;
 5. confirm the complete library suite remains GREEN;
 6. update this policy and the implementation status with the final artifact hashes and
    comparison counts.
