@@ -67,7 +67,7 @@ than attributing it to the earlier write. The original status flow and
 initialization result remain unchanged.
 
 The owned-publication property is **internal**, not part of the public
-payload surface, JSON output, or the published 0.1.0 package. For legacy
+payload surface, JSON output, or the local 0.1.0 reference package artifact. For legacy
 stores without `IErrorCatalogContextPublisher`, the initializer and
 runtime still use the original `Set` path. Custom initializers that do not report an owned record still use a
 **best-effort** current-publication reference match. For no-write
