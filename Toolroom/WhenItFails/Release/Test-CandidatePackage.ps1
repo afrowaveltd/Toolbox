@@ -307,6 +307,9 @@ Console.WriteLine($"RUNTIME_STATE={status.Data.State}");
         "- Candidate package version: ``$PackageVersion``"
         "- Candidate nupkg SHA-256: ``$packageHash``"
         "- Candidate DLL SHA-256: ``$dllHash``"
+        "- Essentials package: ``$($essentialsPackage.Name)``"
+        '- Essentials icon/package entries: **present**'
+        "- Essentials README matches ``Essentials/README.md``: **yes**"
         "- Package README matches ``WhenItFails/README.md``: **yes**"
         '- Required package entries: **present**'
         '- External consumer restore/build: **PASS**'
