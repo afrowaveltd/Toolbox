@@ -18,10 +18,13 @@ Last updated: 2026-09-26
 - The source icon exists at
   `Essentials/Assets/toolbox-essentials-icon.png`.
 - `Essentials.csproj` previously used the Windows-specific
-  `Assets\toolbox-essentials-icon.png` include. The item now uses
-  `None Update="Assets/toolbox-essentials-icon.png"` and
-  `PackagePath="assets/"`, preserving the declared
-  `PackageIcon=assets/toolbox-essentials-icon.png` path on Windows and Linux.
+  `Assets\toolbox-essentials-icon.png` include. The first Linux fix switched
+  to `None Update="Assets/toolbox-essentials-icon.png"`, but a second smoke
+  still produced `NU5046`, proving that the PNG was not present in the
+  evaluated default `None` set during pack. The project now uses an explicit
+  `None Remove` + `None Include="Assets/toolbox-essentials-icon.png"` with
+  `PackagePath="assets/"`. This avoids duplicate items while making the icon
+  package input deterministic across Windows and Linux.
 - Added the required project-level `README.md` plus
   `Docs/Overview/en.md` and `Docs/Packaging/en.md`.
 - No Essentials runtime API or behavior changed.
