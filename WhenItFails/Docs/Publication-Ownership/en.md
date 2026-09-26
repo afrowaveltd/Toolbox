@@ -1,6 +1,6 @@
 # Exact context publication ownership
 
-Status: **additive store-layer contract; default initializer/runtime owned-write bridge included in maintainer-confirmed 1336/1336 GREEN suite; no-write recovery selection verification pending**.
+Status: **additive store-layer contract; owned-write and no-write recovery-selection contracts are included in the maintainer-confirmed 1473/1473 GREEN suite**.
 
 ## Why a successful write must return its own publication
 
