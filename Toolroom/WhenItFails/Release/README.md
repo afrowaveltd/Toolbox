@@ -15,14 +15,20 @@ The smoke builds a **new temporary candidate package** from current source, firs
 initializes a real project catalog workspace, resolves a descriptor, and exercises
 explicit built-in reset/status behavior.
 
-The default temporary package version is `1.0.0-rc.1`. The script uses the
-WhenItFails-specific MSBuild property `WhenItFailsPackageVersionOverride`, so
-the candidate version does not propagate into the Essentials project reference.
+The default temporary package version is `1.0.0-rc.1`. The script uses the WhenItFails-specific MSBuild property
+`WhenItFailsPackageVersionOverride`. In addition, the WhenItFails
+`ProjectReference` removes parent version properties with
+`GlobalPropertiesToRemove`, so the candidate package version cannot propagate
+into the Essentials project build.
 Override the candidate version without editing the project file:
 
 ```powershell
 pwsh ./Toolroom/WhenItFails/Release/Test-CandidatePackage.ps1 -PackageVersion 1.0.0-rc.2
 ```
+
+The smoke parses **all** Essentials dependency nodes in the generated nuspec
+and requires them to remain on the Essentials 0.2.0 line. On failure, the
+temporary workspace is retained automatically for inspection.
 
 The generated candidate is not the historical 0.1.0 compatibility baseline.
 The original 0.1.0 `.nupkg` was never published and exists only as a
