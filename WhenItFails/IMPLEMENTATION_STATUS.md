@@ -8,6 +8,14 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 Core hardening and concrete class-level coverage audits are complete for the current scope. NuGet archive, dependency restore, embedded-template consumption and full external runtime initialization/resolution in a separate .NET 10 consumer are verified. Next: complete the public API stability review and define the exact stable 1.0 scope.
 
+## 2026-09-27 — catalog schema-version compatibility contract (RED expected)
+
+- Added `WhenItFails.Tests/Validation/CatalogSchemaVersionCompatibilityContractTests.cs` in commit `c40cf5a5559d2e6ca9b480603d3fabf54df2d478`.
+- The focused contract requires all five catalog validators (errors, categories, owners, code groups and profiles) to reject an unsupported non-empty `schemaVersion` such as `"2.0"` with an `UnsupportedSchemaVersion` validation error at `schemaVersion`.
+- Current validators only reject missing/blank schema versions, so the new focused test is intentionally expected to be **RED** before the production guard is added.
+- Baseline before this contract: maintainer-confirmed **1472/1472 GREEN**.
+- Next: run only `CatalogSchemaVersionCompatibilityContractTests`. If it fails for the expected missing `UnsupportedSchemaVersion` behavior, add the narrow shared/main-validator guard for supported schema `1.0`, document the 1.0 schema policy, then rerun focused + complete suites.
+
 ## 2026-09-27 — Linux release-readiness checkpoint complete
 
 - **Maintainer-confirmed complete WhenItFails suite: 1472/1472 GREEN** after the packaging and release-tool changes.
