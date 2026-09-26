@@ -98,6 +98,7 @@ returned a successful task after cancellation was requested.
 - [Getting started](Docs/Getting-Started/en.md)
 - [Public API stability review](Docs/Public-API-Stability/en.md)
 - [Candidate 1.0 public API policy](Docs/Public-API-1.0-Policy/en.md)
+- [1.0 release checklist](Docs/Release-Checklist/en.md)
 - [Public API inventory and 1.0 decision register](Docs/Public-API-Inventory/en.md)
 - [Current exported API inventory and package comparison](Docs/Current-Public-API-Inventory/en.md)
 - [Classification of 38 additional public types](Docs/Added-Public-Types-Classification/en.md)
