@@ -6,7 +6,16 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Core hardening and concrete class-level coverage audits are complete for the current pre-1.0 scope. The current suite baseline is **1473/1473 GREEN**, Markdown links are clean (**46 files / 431 local links / 0 broken**), the refreshed current-source comparer census is **148 exported types / 830 API entries**, and the current `1.0.0-rc.1` candidate package smoke passes including direct external-consumer rejection of unsupported schema versions across all five packaged validators. **All currently reproducible Linux/source-side release-readiness work is complete.** The exact source-vs-original-0.1.0 comparer and the binary-smoke refresh against that same original package are the remaining compatibility gate. Release-version and Essentials dependency-range decisions stay deferred until that gate is accepted.
+Core runtime hardening is complete for the current pre-1.0 scope. The last verified baseline is **1473/1473 GREEN**, Markdown links are clean (**46 files / 431 local links / 0 broken**), the current source census is **148 exported types / 830 API entries**, and candidate `1.0.0-rc.1` package smoke is PASS. The release strategy has now changed based on maintainer confirmation that WhenItFails has **no external consumers and has never been published**: the local 0.1.0 artifact is historical evidence, not a compatibility gate. Current work is final **1.0 public-surface cleanup**, starting with internalizing DI-only default orchestration implementations before measuring and freezing the new stable baseline.
+
+## 2026-09-27 — first stable release strategy reset
+
+- Maintainer confirmed that WhenItFails has not been used externally and no published package contract must be preserved.
+- Commit `f346c53357b367029ccd3796ca6197be1ce0b874` changes the 1.0 API policy from historical-0.1.0 compatibility preservation to **clean first-stable-release surface design**.
+- Commit `5d6179d5dde83084deebc43072cb439a483dec17` removes the unpublished 0.1.0 artifact from the release gate; historical comparer/binary smoke remains optional diagnostic archaeology.
+- The final 1.0 gate now requires an intentional exported surface, fresh source census/inventory, complete GREEN test suites, package smoke, documentation validation, final package metadata/dependency policy and clean external restore/execute.
+- First cleanup target: default DI orchestration classes that have public interfaces but do not need direct consumer construction. Toolbox Setter-owned low-level loaders/normalizers and documented standalone utilities are **not** hidden in this first batch.
+- Previous **148 / 830** source census is now a pre-cleanup reference, not the intended final 1.0 count.
 
 ## 2026-09-27 — reproducible pre-1.0 release-readiness complete
 
