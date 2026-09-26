@@ -1,6 +1,6 @@
 # Snapshot capability boundaries before 1.0
 
-Status: **source-level pre-1.0 review; four focused tests pending verification**.
+Status: **source-level pre-1.0 review; focused boundary contracts included in the maintainer-confirmed 1473/1473 GREEN suite**.
 
 ## Application-facing and optional entry points
 
@@ -49,5 +49,5 @@ concrete classes require separately scoped decisions.
 
 `SnapshotCapabilityBoundaryContractTests` adds four focused signature
 tests for the core interface, five optional readers, six context extensions
-and two publication-aware extensions. Last confirmed full suite:
-**1435/1435 GREEN**; expected next full suite **1439/1439 GREEN**.
+and two publication-aware extensions. These tests are included in the current
+maintainer-confirmed **1473/1473 GREEN** complete suite.
