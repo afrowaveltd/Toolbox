@@ -337,6 +337,7 @@ Console.WriteLine($"RUNTIME_STATE={status.Data.State}");
         "- Essentials package: ``$($essentialsPackage.Name)``"
         '- Essentials icon/package entries: **present**'
         "- Essentials README matches ``Essentials/README.md``: **yes**"
+        "- WhenItFails dependency on Essentials: ``$essentialsDependencyVersion``"
         "- Package README matches ``WhenItFails/README.md``: **yes**"
         '- Required package entries: **present**'
         '- External consumer restore/build: **PASS**'
