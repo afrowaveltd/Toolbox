@@ -1,6 +1,6 @@
 # Essentials implementation status
 
-Last updated: 2026-09-26
+Last updated: 2026-09-27
 
 ## Current scope
 
@@ -39,14 +39,17 @@ Last updated: 2026-09-26
 - `WhenItFails.csproj` uses the same explicit project-owned README rule.
 - No Essentials runtime API or behavior changed.
 
+## 2026-09-27 — package verification PASS
+
+- The full WhenItFails candidate-package smoke successfully packed Essentials 0.2.0 on Linux after the icon/README fixes.
+- The smoke opened the generated Essentials `.nupkg` and verified `README.md`, `LICENSE.txt`, `assets/toolbox-essentials-icon.png`, the net10.0 DLL and generated XML documentation.
+- The same package was consumed transitively by a clean external WhenItFails consumer from an isolated local feed/global-packages directory.
+- Packaging verification is therefore **PASS** for the current Linux source tree.
+
 ## Verification pending
 
-Run:
+Runtime/unit verification for Essentials itself remains:
 
 ```bash
 dotnet test Essentials.Tests/Essentials.Tests.csproj -c Release
-dotnet pack Essentials/Essentials.csproj -c Release
 ```
-
-The broader WhenItFails candidate-package smoke should then be rerun because it
-packs Essentials as the first dependency artifact.
