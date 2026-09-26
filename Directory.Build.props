@@ -22,6 +22,9 @@
 	<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
 	<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+
+	<AfrowavePackageReadmeSource Condition="Exists('$(MSBuildProjectDirectory)/README.md')">$(MSBuildProjectDirectory)/README.md</AfrowavePackageReadmeSource>
+	<AfrowavePackageReadmeSource Condition="'$(AfrowavePackageReadmeSource)' == ''">$(MSBuildThisFileDirectory)README.md</AfrowavePackageReadmeSource>
   </PropertyGroup>
 
   <PropertyGroup Condition="$([System.String]::Copy('$(MSBuildProjectName)').EndsWith('.Tests'))">
@@ -34,7 +37,7 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(IsPackable)' == 'true'">
-	<None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" Link="README.md" />
+	<None Include="$(AfrowavePackageReadmeSource)" Pack="true" PackagePath="\" Visible="false" Link="README.md" />
 	<None Include="$(MSBuildThisFileDirectory)LICENSE.txt" Pack="true" PackagePath="\" Visible="false" Link="LICENSE.txt" />
   </ItemGroup>
 </Project>
