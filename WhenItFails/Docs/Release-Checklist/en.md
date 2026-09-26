@@ -82,8 +82,12 @@ pwsh ./Toolroom/WhenItFails/Release/Test-CandidatePackage.ps1 \
   -PackageVersion 1.0.0-rc.2
 ```
 
-On failure the temporary workspace is retained automatically so the generated
-nuspec, local feed and external consumer can be inspected without rerunning.
+The smoke uses a workspace-local `NUGET_PACKAGES` directory and disables the
+HTTP cache for the external consumer restore. Reusing the same temporary
+candidate version must therefore never reuse a previous run from the user's
+global NuGet cache. On failure the temporary workspace is retained
+automatically so the generated nuspec, local feed, isolated package cache and
+external consumer can be inspected without rerunning.
 
 This smoke verifies the **new candidate package only**. It never substitutes for the
 old-package compatibility comparison.
