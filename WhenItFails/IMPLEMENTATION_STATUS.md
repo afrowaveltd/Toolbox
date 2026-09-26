@@ -6,7 +6,16 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Core hardening and concrete class-level coverage audits are complete for the current scope. The current suite baseline is **1473/1473 GREEN**, Markdown links are clean (46 files / 431 local links), and the refreshed current compiled inventory still reports **148 exported types** with no type-count drift. Next: rerun the candidate-package smoke after the schema-version runtime change; the exact source-vs-original-0.1.0 comparer remains the only artifact-dependent compatibility gate.
+Core hardening and concrete class-level coverage audits are complete for the current scope. The current suite baseline is **1473/1473 GREEN**, Markdown links are clean (46 files / 431 local links), the refreshed compiled inventory still reports **148 exported types**, and the candidate package smoke passed on current master after the schema-version runtime change. The release smoke now also contains a direct external-consumer assertion for unsupported schema rejection across all five packaged validators; rerun it once to verify that new smoke assertion itself. The exact source-vs-original-0.1.0 comparer remains the only artifact-dependent compatibility gate.
+
+## 2026-09-27 — candidate package re-smoke after schema guard
+
+- **Maintainer-confirmed PASS** for `Toolroom/WhenItFails/Release/Test-CandidatePackage.ps1` against current master after the production schema-version validation change.
+- The successful candidate remained `Afrowave.Toolbox.WhenItFails 1.0.0-rc.1`, restored/built/executed from the isolated temporary feed and package cache.
+- Commit `314397addbc2f9291d5346ea1b38e866f660c052` now extends that release smoke so the external NuGet consumer resolves all five validator interfaces from DI and requires `schemaVersion = "2.0"` to produce `UnsupportedSchemaVersion` at `schemaVersion`.
+- Release-tool documentation was updated in commits `77f95ab5e7d403cf34959ef3bfa95a6da1a9340a` and `1804f1e809963bd49aad2eb12f55e1c085e95fdb`.
+- No production library code or xUnit test count changed in this release-tool step; the suite baseline remains **1473/1473 GREEN**.
+- Next: rerun the candidate-package smoke once more to verify the new packaged-validator assertion. Then rerun Markdown-link validation because release documentation changed.
 
 ## 2026-09-27 — current API inventory refresh complete
 
