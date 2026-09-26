@@ -1,6 +1,6 @@
 # WhenItFails 1.0 public API policy
 
-Status: **candidate 1.0 policy for the maintainer-confirmed 1472/1472 GREEN source tree**.
+Status: **candidate 1.0 policy for the maintainer-confirmed 1473/1473 GREEN source tree**.
 The final cross-version freeze still requires a refreshed comparison against the exact
 maintainer-held local 0.1.0 NuGet reference artifact. That artifact was never
 published to a package feed.
