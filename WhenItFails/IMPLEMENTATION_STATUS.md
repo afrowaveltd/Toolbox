@@ -6,14 +6,16 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Core hardening and concrete class-level coverage audits are complete for the current scope. NuGet archive, dependency restore, embedded-template consumption and full external runtime initialization/resolution in a separate .NET 10 consumer are verified. The current suite baseline is **1473/1473 GREEN** and Markdown links are clean (46 files / 431 local links). Next: refresh the current exported-assembly inventory on Linux, review any additions against the existing 1.0 classifications, then complete the exact 0.1.0 comparison when the original Windows artifact is available.
+Core hardening and concrete class-level coverage audits are complete for the current scope. The current suite baseline is **1473/1473 GREEN**, Markdown links are clean (46 files / 431 local links), and the refreshed current compiled inventory still reports **148 exported types** with no type-count drift. Next: rerun the candidate-package smoke after the schema-version runtime change; the exact source-vs-original-0.1.0 comparer remains the only artifact-dependent compatibility gate.
 
-## 2026-09-27 — current API inventory refresh prepared
+## 2026-09-27 — current API inventory refresh complete
 
 - Added a Linux-native current-source inventory procedure to `Docs/Current-Public-API-Inventory/en.md` in commit `a780484ce33dc4ba74b3f18caf852e4c245d62f5`.
-- This step uses the existing `ExportedAssemblyInventoryTests` and needs no historical package. It emits the current compiled exported-type/member Markdown census when `AFROWAVE_WHENITFAILS_PUBLIC_API_REPORT` is set.
-- The historical exact 0.1.0 comparison remains a separate gate and must not be substituted with a repacked current DLL.
-- Next: run the focused inventory test on current master, capture the generated Markdown report, and update the source-only classification if the current census differs from the historical 148 types / 830 entries.
+- The maintainer supplied the freshly generated compiled Markdown inventory from current master. It reports assembly version `0.1.0.0` and **148 exported types**, matching the previous current-source type count; there is therefore no exported-type-count drift at this checkpoint.
+- The generated inventory lists declared public member signatures but does not emit the comparer-style API-entry total. The historical **830 source entries** are not relabeled as a fresh measurement.
+- `Docs/Current-Public-API-Inventory/en.md` and the 38-type classification were updated in commits `f0d4e0baff21a925a4cf57c0ff697d910f1ea6ce` and `288c0599dc084ad171846fb5fbc7b7359bd04a9d`.
+- The historical exact 0.1.0 source/package comparison remains a separate gate and must use the original maintainer-held artifact; it must not be replaced by a newly packed current DLL.
+- Next: rerun `Toolroom/WhenItFails/Release/Test-CandidatePackage.ps1` against current master because production validation behavior changed after the previous package-smoke checkpoint.
 
 ## 2026-09-27 — catalog schema-version compatibility contract (complete GREEN)
 
