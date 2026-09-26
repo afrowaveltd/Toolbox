@@ -15,8 +15,10 @@ The smoke builds a **new temporary candidate package** from current source, firs
 initializes a real project catalog workspace, resolves a descriptor, and exercises
 explicit built-in reset/status behavior.
 
-The default temporary package version is `1.0.0-rc.1`. Override it without editing
-the project file:
+The default temporary package version is `1.0.0-rc.1`. The script uses the
+WhenItFails-specific MSBuild property `WhenItFailsPackageVersionOverride`, so
+the candidate version does not propagate into the Essentials project reference.
+Override the candidate version without editing the project file:
 
 ```powershell
 pwsh ./Toolroom/WhenItFails/Release/Test-CandidatePackage.ps1 -PackageVersion 1.0.0-rc.2
