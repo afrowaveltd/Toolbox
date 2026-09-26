@@ -167,6 +167,7 @@ Examples include:
 ```text
 CatalogDocumentIsNull
 MissingSchemaVersion
+UnsupportedSchemaVersion
 MissingCatalogId
 MissingCatalogName
 MissingCatalogLanguage
@@ -209,6 +210,11 @@ catalogId
 ```
 
 Missing values are validation errors.
+
+The current runtime supports catalog `schemaVersion` `1.0`. Any other non-empty
+schema version produces the error `UnsupportedSchemaVersion` at
+`schemaVersion`. This applies consistently to the error, category, owner,
+code-group and profile catalog validators.
 
 The following values are recommended but not required for validity:
 
