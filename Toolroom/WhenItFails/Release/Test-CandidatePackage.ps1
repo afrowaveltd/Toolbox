@@ -21,9 +21,12 @@ $consumerDir = Join-Path $workspace 'consumer'
 $projectWorkspace = Join-Path $workspace 'project-jsons'
 $essentialsExtractDir = Join-Path $workspace 'essentials-extract'
 $extractDir = Join-Path $workspace 'package-extract'
+$nugetPackages = Join-Path $workspace 'nuget-packages'
+$previousNuGetPackages = $env:NUGET_PACKAGES
 $smokeSucceeded = $false
 
-New-Item -ItemType Directory -Force -Path $workspace, $feed, $consumerDir | Out-Null
+New-Item -ItemType Directory -Force -Path $workspace, $feed, $consumerDir, $nugetPackages | Out-Null
+$env:NUGET_PACKAGES = $nugetPackages
 
 function Invoke-Dotnet {
     param([string[]]$Arguments)
@@ -306,7 +309,8 @@ Console.WriteLine($"RUNTIME_STATE={status.Data.State}");
         'restore',
         $consumerProject,
         '--source', $feed,
-        '--source', $NuGetSource
+        '--source', $NuGetSource,
+        '--no-http-cache'
     )
 
     Invoke-Dotnet @(
@@ -374,6 +378,7 @@ Console.WriteLine($"RUNTIME_STATE={status.Data.State}");
     Write-Host 'Candidate package smoke: PASS'
     Write-Host "Report: $ReportPath"
     Write-Host "Candidate package: $($candidatePackage.FullName)"
+    Write-Host "Isolated NuGet packages: $nugetPackages"
 
     if ($KeepWorkspace) {
         Write-Host "Workspace retained: $workspace"
@@ -382,10 +387,18 @@ Console.WriteLine($"RUNTIME_STATE={status.Data.State}");
     $smokeSucceeded = $true
 }
 finally {
+    if ($null -eq $previousNuGetPackages) {
+        Remove-Item Env:NUGET_PACKAGES -ErrorAction SilentlyContinue
+    }
+    else {
+        $env:NUGET_PACKAGES = $previousNuGetPackages
+    }
+
     if ($smokeSucceeded -and -not $KeepWorkspace -and (Test-Path -LiteralPath $workspace)) {
         Remove-Item -LiteralPath $workspace -Recurse -Force -ErrorAction SilentlyContinue
     }
     elseif (-not $smokeSucceeded -and (Test-Path -LiteralPath $workspace)) {
         Write-Host "Workspace retained after failure: $workspace"
+        Write-Host "Isolated NuGet packages retained: $nugetPackages"
     }
 }
