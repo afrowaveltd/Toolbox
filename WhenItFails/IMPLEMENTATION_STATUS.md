@@ -18,7 +18,8 @@ Core runtime hardening is complete for the current pre-1.0 scope. The original p
 - No new test method was added in this batch; **maintainer-confirmed complete suite: 1474/1474 GREEN**.
 - The simple cumulative projection from the original 148 exported types would now be 126, but this is **not** a verified census. Record only the actual result from the compiled inventory/`-SourceOnly` comparer after GREEN.
 - Documentation commits `4d18b846`, `35c0de54`, `cc7c71ed`, and `85decb10` align the 1.0 policy, inventory, stability history and loading docs.
-- Next: measure the post-cleanup public surface with the source-only comparer and compiled exported-assembly inventory before deciding whether a third cleanup batch is justified.
+- Release checklist and current-inventory wording were reconciled in commits `31d6c277` and `5db319e3`: the current source surface is the release target and historical 0.1.0 comparison is optional diagnostics.
+- Next: run the source-only comparer and compiled exported-assembly inventory, then review the actual remaining export list before deciding whether a third cleanup batch is justified.
 
 ## 2026-09-27 — first stable public-surface cleanup (1474/1474 GREEN)
 
