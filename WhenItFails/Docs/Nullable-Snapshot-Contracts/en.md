@@ -72,6 +72,6 @@ fields, optional reader responses and runtime recovery details. It
 separately documents the existing Essentials `Ok(null)` behavior.
 
 No existing public signature, nullability annotation, serialization
-schema, or published NuGet 0.1.0 package is modified by this checkpoint.
+schema, or local NuGet 0.1.0 reference artifact is modified by this checkpoint.
 Maintainer-confirmed complete suite: **1435/1435 GREEN**. Four additional
 optional-capability boundary tests await verification (expected **1439/1439 GREEN**).
