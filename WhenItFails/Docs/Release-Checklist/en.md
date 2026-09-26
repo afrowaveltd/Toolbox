@@ -80,12 +80,14 @@ The script:
    `WhenItFails/README.md`;
 5. restores a new external .NET 10 consumer from the isolated feed;
 6. validates DI registration with `ValidateOnBuild` and `ValidateScopes`;
-7. performs strict project initialization and verifies all five project catalog files;
-8. resolves the canonical `UNKNOWNERROR` descriptor;
-9. explicitly resets to bundled defaults and verifies runtime status;
-10. verifies package ID/version, project URL, repository metadata, release notes,
+7. verifies that all five packaged catalog validators reject `schemaVersion = "2.0"`
+   with `UnsupportedSchemaVersion` at `schemaVersion`;
+8. performs strict project initialization and verifies all five project catalog files;
+9. resolves the canonical `UNKNOWNERROR` descriptor;
+10. explicitly resets to bundled defaults and verifies runtime status;
+11. verifies package ID/version, project URL, repository metadata, release notes,
     README/license metadata, and both Essentials/WhenItFails symbol packages;
-11. writes a SHA-256 report.
+12. writes a SHA-256 report.
 
 A custom candidate version can be supplied without changing source metadata:
 
