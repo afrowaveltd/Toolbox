@@ -8,6 +8,14 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 Core hardening and concrete class-level coverage audits are complete for the current scope. The current suite baseline is **1473/1473 GREEN**, Markdown links are clean (46 files / 431 local links), the refreshed compiled inventory still reports **148 exported types**, and the current `1.0.0-rc.1` candidate package smoke passes including direct external-consumer rejection of unsupported schema versions across all five packaged validators. The exact source-vs-original-0.1.0 comparer remains the only artifact-dependent compatibility gate.
 
+## 2026-09-27 — documentation verification-state reconciliation
+
+- Reconciled stale pre-1.0 documentation markers that still said focused contracts were pending even though those tests are part of the current maintainer-confirmed **1473/1473 GREEN** suite.
+- Updated snapshot capability boundaries, validation snapshots, definition snapshots, completed full snapshots, publication ownership, bootstrap repair behavior, activation status and initialization/recovery documentation in commits `d640d6bf`, `4aa7281a`, `4ac45539`, `2975ed0b`, `165014db`, `2014be83`, `963b220b`, and `40d6101e`.
+- Reconciled `Docs/Public-API-Inventory/en.md` in commit `aa91550488678079ea2edc37f3648dda544df5f9`: live mutable context compatibility, additive detached snapshot APIs, persistent schema `1.0`, public implementation-surface policy and the refreshed **148 exported-type** inventory now match the candidate 1.0 policy.
+- No production code or test code changed in this reconciliation; the runtime-suite baseline remains **1473/1473 GREEN**.
+- Next: rerun Markdown-link validation after these documentation-only edits. If clean, continue with remaining stale-document cleanup only where it materially affects the 1.0 continuation state; the exact original-0.1.0 comparison remains the release freeze gate.
+
 ## 2026-09-27 — candidate package re-smoke after schema guard
 
 - **Maintainer-confirmed PASS** for `Toolroom/WhenItFails/Release/Test-CandidatePackage.ps1` against current master after the production schema-version validation change.
