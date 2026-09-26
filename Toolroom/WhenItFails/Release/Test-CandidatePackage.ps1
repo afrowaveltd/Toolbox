@@ -261,8 +261,10 @@ try {
 
     $program = @'
 using Afrowave.Toolbox.WhenItFails.Configuration;
+using Afrowave.Toolbox.WhenItFails.Definitions;
 using Afrowave.Toolbox.WhenItFails.Enums;
 using Afrowave.Toolbox.WhenItFails.Interfaces;
+using Afrowave.Toolbox.WhenItFails.Validation;
 using Microsoft.Extensions.DependencyInjection;
 
 if (args.Length != 1)
@@ -293,6 +295,60 @@ using ServiceProvider provider = services.BuildServiceProvider(
 
 IErrorCatalogRuntime runtime =
     provider.GetRequiredService<IErrorCatalogRuntime>();
+
+ErrorCatalogValidationResult[] unsupportedSchemaResults =
+[
+    provider.GetRequiredService<IErrorCatalogValidator>().Validate(
+        new ErrorCatalogDocument
+        {
+            SchemaVersion = "2.0",
+            CatalogId = "candidate.errors",
+            CatalogName = "Candidate Errors",
+            Language = "en"
+        }),
+    provider.GetRequiredService<IErrorCategoryCatalogValidator>().Validate(
+        new ErrorCategoryCatalogDocument
+        {
+            SchemaVersion = "2.0",
+            CatalogId = "candidate.categories",
+            CatalogName = "Candidate Categories",
+            Language = "en"
+        }),
+    provider.GetRequiredService<IErrorCodeGroupCatalogValidator>().Validate(
+        new ErrorCodeGroupCatalogDocument
+        {
+            SchemaVersion = "2.0",
+            CatalogId = "candidate.code-groups",
+            CatalogName = "Candidate Code Groups",
+            Language = "en"
+        }),
+    provider.GetRequiredService<IErrorOwnerCatalogValidator>().Validate(
+        new ErrorOwnerCatalogDocument
+        {
+            SchemaVersion = "2.0",
+            CatalogId = "candidate.owners",
+            CatalogName = "Candidate Owners",
+            Language = "en"
+        }),
+    provider.GetRequiredService<IErrorProfileCatalogValidator>().Validate(
+        new ErrorProfileCatalogDocument
+        {
+            SchemaVersion = "2.0",
+            CatalogId = "candidate.profiles",
+            CatalogName = "Candidate Profiles",
+            Language = "en"
+        })
+];
+
+if (unsupportedSchemaResults.Any(result =>
+        result.IsValid ||
+        !result.Issues.Any(issue =>
+            issue.Code == "UnsupportedSchemaVersion" &&
+            issue.Path == "schemaVersion")))
+{
+    throw new InvalidOperationException(
+        "Candidate package did not reject unsupported schema versions consistently.");
+}
 
 var initialized = await runtime.InitializeAsync(jsons);
 
@@ -358,6 +414,7 @@ if (!status.IsSuccess ||
 }
 
 Console.WriteLine("CANDIDATE_PACKAGE_SMOKE=PASS");
+Console.WriteLine($"UNSUPPORTED_SCHEMA_VALIDATORS={unsupportedSchemaResults.Length}");
 Console.WriteLine($"PROJECT_FILES={expectedFiles.Length}");
 Console.WriteLine($"DESCRIPTOR_ID={descriptor.Data.Id}");
 Console.WriteLine($"DESCRIPTOR_NAME={descriptor.Data.Name}");
@@ -423,6 +480,7 @@ Console.WriteLine($"RUNTIME_STATE={status.Data.State}");
         "- Package README matches ``WhenItFails/README.md``: **yes**"
         '- Required package entries: **present**'
         '- External consumer restore/build: **PASS**'
+        '- Unsupported schema-version rejection across five packaged validators: **PASS**'
         '- Strict project initialization and five-file bootstrap: **PASS**'
         '- Descriptor lookup: **PASS**'
         '- Explicit built-in reset and runtime status: **PASS**'
