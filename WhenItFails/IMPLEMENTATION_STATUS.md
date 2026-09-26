@@ -684,17 +684,17 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No public API, package version or persisted JSON schema changed. Root README and Initialization/Recovery documentation updated.
 - **Verified locally by maintainer:** both late built-in cancellation contracts and complete **1469/1469 GREEN** suite. Eight binary smoke scenarios remain previously confirmed PASS; compiler-warning count not separately reported. Next: pin the post-publication point-of-no-return contract so cancellation raised during a successful store publication cannot turn a committed activation into an apparent cancellation.
 
-## 2026-09-26 — post-publication cancellation point of no return (verification pending)
+## 2026-09-26 — post-publication cancellation point of no return (1472/1472 GREEN)
 
 - Added `WhenItFails.Tests/Services/ErrorCatalogRuntimePostPublicationCancellationPointOfNoReturnContractTests.cs` with three deterministic owned-publication contracts: normal project initialization through the default initializer, explicit `ResetToDefaultsAsync`, and automatic flexible built-in fallback.
 - Each test uses a publication-capable store that first performs the real atomic `ErrorCatalogContextStore.Publish` write and only then cancels the caller token before returning the owned publication record. Expected contract: the activation remains successful, the committed context stays active, runtime status is consistent with that context, and `GetCompletedActivation()` exposes the matching generation/activation sequence. The fallback case must still finish its degraded recovery metadata.
 - This pins the complement of the **1467/1467** initializer and **1469/1469** runtime late-cancellation fixes. Cancellation observed **before** publication prevents the write; cancellation arising only **after the successful store write inside `Publish`** is past the point of no return and must not create an apparent aborted activation with a committed context.
 - No production code, public API, package version or persisted JSON schema changed in this checkpoint. Updated `Docs/Activation-Status/en.md` and Initialization/Recovery documentation.
-- **Verification pending:** 3 additional focused tests, expected complete suite **1472/1472 GREEN**. Last maintainer-confirmed complete suite **1469/1469 GREEN**; 8 binary smoke scenarios previously confirmed PASS. Next: run the focused point-of-no-return class and complete suite; if GREEN, record the checkpoint and continue with the next non-duplicative runtime/ownership boundary.
+- **Verified locally by maintainer:** all three post-publication point-of-no-return contracts and complete **1472/1472 GREEN** suite. Eight binary smoke scenarios remain previously confirmed PASS; compiler-warning count not separately reported. Next: resume the public API stability review and close an actually unresolved 1.0 contract rather than adding another activation variant.
 
 ## Current verified state
 
-- Complete `WhenItFails.Tests` suite: **1469/1469 GREEN**, confirmed locally by maintainer after preventing late cancellation from publishing built-in reset/fallback contexts (compiler-warning count not separately reported for this checkpoint).
+- Complete `WhenItFails.Tests` suite: **1472/1472 GREEN**, confirmed locally by maintainer after pinning the post-publication cancellation point of no return for project, reset and fallback activations (compiler-warning count not separately reported for this checkpoint).
 - The SDK emits `NETSDK1057` informational messages because the local SDK is `.NET 11.0.100-rc.1`; these are SDK support-policy messages, not compiler warnings from Toolbox code.
 - `ErrorDescriptorResolver` and `ErrorDescriptorService` hardening are complete for the current scope.
 - `ErrorCatalogProvider` and `CatalogProviderPipeline` dependency-boundary audits are complete for the current scope.
