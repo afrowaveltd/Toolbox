@@ -1,6 +1,6 @@
 # Detached cross-validation snapshots
 
-Status: **additive pre-1.0 API candidate; local verification pending**.
+Status: **additive pre-1.0 API candidate; current contracts included in the maintainer-confirmed 1473/1473 GREEN suite**.
 
 ## Purpose and usage
 
