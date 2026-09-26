@@ -136,24 +136,36 @@ try {
 
     [xml]$nuspec = Get-Content -LiteralPath $nuspecFiles[0].FullName -Raw
 
-    $essentialsDependency =
-        $nuspec.SelectSingleNode(
-            "//*[local-name()='dependency' and @id='Afrowave.Toolbox.Essentials']")
+    $essentialsDependencies =
+        @($nuspec.SelectNodes(
+            "//*[local-name()='dependency' and @id='Afrowave.Toolbox.Essentials']"))
 
-    if ($null -eq $essentialsDependency) {
+    if ($essentialsDependencies.Count -eq 0) {
         throw 'WhenItFails candidate nuspec has no Essentials dependency.'
     }
 
+    $essentialsDependencyVersions =
+        @($essentialsDependencies |
+            ForEach-Object { [string]$_.GetAttribute('version') })
+
+    $unexpectedEssentialsDependencyVersions =
+        @($essentialsDependencyVersions |
+            Where-Object { $_ -notmatch '0\.2\.0' })
+
+    if ($unexpectedEssentialsDependencyVersions.Count -gt 0) {
+        throw "WhenItFails candidate has unexpected Essentials dependency version(s): $($unexpectedEssentialsDependencyVersions -join ', ')"
+    }
+
+    $leakedCandidateDependencyVersions =
+        @($essentialsDependencyVersions |
+            Where-Object { $_ -match [regex]::Escape($PackageVersion) })
+
+    if ($leakedCandidateDependencyVersions.Count -gt 0) {
+        throw "Candidate package version leaked into Essentials dependency version(s): $($leakedCandidateDependencyVersions -join ', ')"
+    }
+
     $essentialsDependencyVersion =
-        [string]$essentialsDependency.GetAttribute('version')
-
-    if ($essentialsDependencyVersion -notmatch '0\.2\.0') {
-        throw "WhenItFails candidate requires unexpected Essentials version: $essentialsDependencyVersion"
-    }
-
-    if ($essentialsDependencyVersion -match [regex]::Escape($PackageVersion)) {
-        throw 'Candidate package version leaked into the Essentials dependency version.'
-    }
+        ($essentialsDependencyVersions | Sort-Object -Unique) -join ', '
 
     $expectedReadmeHash = (Get-FileHash -LiteralPath $projectReadme -Algorithm SHA256).Hash
     $packedReadmeHash = (Get-FileHash -LiteralPath (Join-Path $extractDir 'README.md') -Algorithm SHA256).Hash
@@ -367,7 +379,15 @@ Console.WriteLine($"RUNTIME_STATE={status.Data.State}");
     }
 }
 finally {
-    if (-not $KeepWorkspace -and (Test-Path -LiteralPath $workspace)) {
+    if ($KeepWorkspace) {
+        if (Test-Path -LiteralPath $workspace) {
+            Write-Host "Workspace retained: $workspace"
+        }
+    }
+    elseif ($LASTEXITCODE -eq 0 -and (Test-Path -LiteralPath $workspace)) {
         Remove-Item -LiteralPath $workspace -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    elseif (Test-Path -LiteralPath $workspace) {
+        Write-Host "Workspace retained after failure: $workspace"
     }
 }
