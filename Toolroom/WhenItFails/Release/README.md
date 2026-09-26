@@ -27,8 +27,11 @@ pwsh ./Toolroom/WhenItFails/Release/Test-CandidatePackage.ps1 -PackageVersion 1.
 ```
 
 The smoke parses **all** Essentials dependency nodes in the generated nuspec
-and requires them to remain on the Essentials 0.2.0 line. On failure, the
-temporary workspace is retained automatically for inspection.
+and requires them to remain on the Essentials 0.2.0 line. The smoke also redirects NuGet's global-packages folder to a workspace-local
+directory and uses `--no-http-cache` for the external consumer restore. This
+prevents an earlier candidate built with the same version from being reused
+from `~/.nuget/packages` or the HTTP cache. On failure, the temporary workspace
+is retained automatically for inspection.
 
 The generated candidate is not the historical 0.1.0 compatibility baseline.
 The original 0.1.0 `.nupkg` was never published and exists only as a
