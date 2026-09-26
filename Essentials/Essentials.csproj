@@ -13,7 +13,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<None Update="Assets/toolbox-essentials-icon.png"
+	<None Remove="Assets/toolbox-essentials-icon.png" />
+	<None Include="Assets/toolbox-essentials-icon.png"
 	      Pack="true"
 	      PackagePath="assets/"
 	      Visible="false" />
