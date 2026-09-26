@@ -60,10 +60,10 @@ pwsh ./Toolroom/WhenItFails/Release/Test-CandidatePackage.ps1
 
 The script:
 
-1. packs the current Essentials package into an isolated local feed;
+1. packs the current Essentials package into an isolated local feed and verifies its project README, license, DLL, XML documentation and package icon;
 2. packs WhenItFails as temporary `1.0.0-rc.1` by default without modifying the
    project version in Git;
-3. verifies required package entries;
+3. verifies required WhenItFails package entries;
 4. verifies the packed `README.md` is byte-identical to
    `WhenItFails/README.md`;
 5. restores a new external .NET 10 consumer from the isolated feed;
