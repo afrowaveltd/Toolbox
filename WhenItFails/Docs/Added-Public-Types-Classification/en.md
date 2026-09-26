@@ -9,7 +9,7 @@ Review checkpoint: 2026-09-25. Scope: **the 38 source-only exported type names a
 | Exported CLR types | 148 | 110 |
 | Public API census entries | 830 | 611 |
 
-Source-only: **38 types, 219 API entries**. Package-only: **0 types, 0 API entries** within the comparer census. The maintainer supplied all 38 source-only type names but only the opening portion of the 219 source-only member-entry list. The complete library suite is now maintainer-confirmed **1473/1473 GREEN**. A fresh current compiled inventory Markdown report has now been supplied and still reports **148 exported types**. The exact source/package comparer refresh has not yet been supplied because it requires the original 0.1.0 artifact. Package feed override was not used, so original publishing provenance is not independently established.
+Historical full-comparer delta: source-only **38 types, 219 API entries**; package-only **0 types, 0 API entries**. The maintainer supplied all 38 source-only type names but only the opening portion of the 219 source-only member-entry list. The complete library suite is maintainer-confirmed **1473/1473 GREEN**. A fresh current source-only comparer census now independently confirms **148 exported types / 830 API entries** with no source-side count drift. The package-side **110 / 611** counts and the derived 38/219 delta remain historical until the exact original 0.1.0 artifact is rerun.
 
 ## Classification by intended ownership
 
@@ -76,6 +76,6 @@ The absence of package-only types/signatures in this comparer is useful evidence
 
 Do not make these publicly exported types `internal` merely because their intended audience is infrastructure. Any future visibility restriction or 1.0 API freeze requires a separate compatibility and consumer-usage decision. The historic 110-type and 611-entry figures describe the requested 0.1.0 package consumer, not current source.
 
-Remaining verification is now specifically the **exact 0.1.0 comparison**, not the library suite or current exported-type inventory. The refreshed current assembly still reports **148 exported types**, so no type-count drift is observed. Rerun the source/package comparer against the maintainer-held original 0.1.0 artifact when available, then review whether member counts or deltas changed before converting these ownership groups into a final 1.0 compatibility decision.
+Remaining verification is now specifically the **exact 0.1.0 comparison**, not the library suite or current source census. The refreshed source-side comparer reports **148 exported types / 830 API entries**, so no current source-side census drift is observed. Rerun the source/package comparer against the maintainer-held original 0.1.0 artifact when available, then review whether member counts or deltas changed before converting these ownership groups into a final 1.0 compatibility decision.
 
 A later maintainer-supplied filtered API excerpt identifies **all 14** additions to existing concrete types; the remaining **205 census entries** belong to the 38 new exported types. See [original-type API additions](../Original-Type-API-Additions/en.md).
