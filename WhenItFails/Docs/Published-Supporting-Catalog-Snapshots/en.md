@@ -74,7 +74,7 @@ Ordinary publication-reader or outer capture failures produce
 `WIF_PUBLISHED_SUPPORTING_SNAPSHOT_FAILED` without exception details
 or partial data. `OperationCanceledException` propagates.
 
-The published 0.1.0 NuGet package and persistent JSON catalog
+The local 0.1.0 reference NuGet artifact and persistent JSON catalog
 schema are not changed by this source checkpoint.
 
 ## Verification
