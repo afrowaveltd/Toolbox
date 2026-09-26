@@ -128,6 +128,33 @@ try {
         Assert-FileExists (Join-Path $extractDir $entry)
     }
 
+    $nuspecFiles = @(Get-ChildItem -LiteralPath $extractDir -Filter '*.nuspec' -File)
+
+    if ($nuspecFiles.Count -ne 1) {
+        throw "Expected exactly one WhenItFails nuspec, found $($nuspecFiles.Count)."
+    }
+
+    [xml]$nuspec = Get-Content -LiteralPath $nuspecFiles[0].FullName -Raw
+
+    $essentialsDependency =
+        $nuspec.SelectSingleNode(
+            "//*[local-name()='dependency' and @id='Afrowave.Toolbox.Essentials']")
+
+    if ($null -eq $essentialsDependency) {
+        throw 'WhenItFails candidate nuspec has no Essentials dependency.'
+    }
+
+    $essentialsDependencyVersion =
+        [string]$essentialsDependency.GetAttribute('version')
+
+    if ($essentialsDependencyVersion -notmatch '0\.2\.0') {
+        throw "WhenItFails candidate requires unexpected Essentials version: $essentialsDependencyVersion"
+    }
+
+    if ($essentialsDependencyVersion -match [regex]::Escape($PackageVersion)) {
+        throw 'Candidate package version leaked into the Essentials dependency version.'
+    }
+
     $expectedReadmeHash = (Get-FileHash -LiteralPath $projectReadme -Algorithm SHA256).Hash
     $packedReadmeHash = (Get-FileHash -LiteralPath (Join-Path $extractDir 'README.md') -Algorithm SHA256).Hash
 
