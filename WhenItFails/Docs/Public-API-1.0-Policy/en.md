@@ -236,6 +236,12 @@ contract unless a focused contract explicitly requires it.
 Project-local WhenItFails catalog documents are a persisted configuration format and
 must be evolved deliberately.
 
+The stable 1.0 catalog-schema baseline is `schemaVersion: "1.0"` across all five
+catalog families. Default validators reject another non-empty version with
+`UnsupportedSchemaVersion`; runtime initialization does not infer compatibility or
+silently migrate it. Adding support for a later schema version requires an explicit
+compatibility/migration decision rather than accepting arbitrary version text.
+
 Detached runtime snapshot DTOs are CLR projections. Their public CLR shape does not
 by itself establish a versioned wire format.
 
