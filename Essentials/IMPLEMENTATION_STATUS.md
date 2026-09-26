@@ -25,6 +25,7 @@ Last updated: 2026-09-26
 - Added the required project-level `README.md` plus
   `Docs/Overview/en.md` and `Docs/Packaging/en.md`.
 - No Essentials runtime API or behavior changed.
+- The WhenItFails candidate-package smoke now explicitly opens the generated Essentials `.nupkg` and verifies `README.md`, `LICENSE.txt`, the package icon, DLL and XML documentation, so this Linux-only packaging regression is pinned by the release workflow.
 
 ## Verification pending
 
