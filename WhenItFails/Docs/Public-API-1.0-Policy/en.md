@@ -1,6 +1,6 @@
 # WhenItFails 1.0 public API policy
 
-Status: **first-stable-release policy under final surface cleanup; first 17-type visibility batch committed, verification pending**.
+Status: **first-stable-release policy under final surface cleanup; first 17-type batch verified, second 5-type helper batch committed and verification pending**.
 
 WhenItFails has not been published and has no external consumers. The maintainer-held
 local 0.1.0 artifact is therefore historical test evidence, **not a compatibility
@@ -180,21 +180,25 @@ public-shape contracts and are treated as supported tooling/library utilities:
 
 They may be used directly without DI where documented.
 
-`JsonCatalogDocumentLoader` also has a dedicated public generic loading contract and
-is treated as a supported low-level loading utility.
+The shared generic `JsonCatalogDocumentLoader` is an internal implementation helper.
+Consumers use the five typed loader interfaces/classes instead of depending on that
+generic helper directly.
 
-Other public helper/normalizer classes are not automatically promoted to
-application-facing API merely because they are exported. Their visibility remains
-compatibility-relevant, but new application code should prefer documented interfaces
-or utilities.
+Other exported helper/normalizer classes are not automatically promoted to
+application-facing API merely because they are visible. Types used directly by
+Toolbox tooling remain public only when that direct construction is intentional.
 
 ## 7. Default implementation visibility
 
 Default runtime orchestration implementations are **not** part of the intended 1.0
 consumer API. Their public interfaces remain the extension boundary while the default
 classes may be internal. Commit `6afd3f6f88c7d71097fd1813d8e0dc2d9d80b276`
-applies the first visibility batch to 17 DI-only implementation classes; complete-suite
-and post-cleanup inventory verification are still pending.
+applies the first visibility batch to 17 DI-only implementation classes and is
+maintainer-confirmed in the **1474/1474 GREEN** suite. Commit
+`147b96310090c6cbbb5f2a5819b440026fb6062b` applies a second cleanup to the
+generic JSON document loader plus four definition normalizers and hides their
+injection-only constructors from the exported surface; verification of that second
+batch is pending.
 
 The final cleanup explicitly targets DI-only implementation classes such as the
 default runtime, context store/provider, initializer, catalog providers/factory,
