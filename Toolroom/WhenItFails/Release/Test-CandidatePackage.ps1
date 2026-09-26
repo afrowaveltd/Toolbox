@@ -117,6 +117,22 @@ try {
 
     $candidatePackage = $candidatePackages[0]
 
+    $candidateSymbolPackage =
+        Join-Path $feed "Afrowave.Toolbox.WhenItFails.$PackageVersion.snupkg"
+
+    Assert-FileExists $candidateSymbolPackage
+
+    $essentialsSymbolPackages = @(
+        Get-ChildItem -LiteralPath $feed -File |
+            Where-Object {
+                $_.Name -like 'Afrowave.Toolbox.Essentials.*.snupkg'
+            }
+    )
+
+    if ($essentialsSymbolPackages.Count -ne 1) {
+        throw "Expected exactly one Essentials snupkg, found $($essentialsSymbolPackages.Count)."
+    }
+
     [System.IO.Compression.ZipFile]::ExtractToDirectory(
         $candidatePackage.FullName,
         $extractDir)
@@ -400,6 +416,10 @@ Console.WriteLine($"RUNTIME_STATE={status.Data.State}");
         '- Essentials icon/package entries: **present**'
         "- Essentials README matches ``Essentials/README.md``: **yes**"
         "- WhenItFails dependency on Essentials: ``$essentialsDependencyVersion``"
+        "- Package project URL: ``$packageProjectUrl``"
+        "- Repository metadata: ``$repositoryType $repositoryUrl``"
+        '- Package release notes: **present**'
+        '- Symbol packages: **present**'
         "- Package README matches ``WhenItFails/README.md``: **yes**"
         '- Required package entries: **present**'
         '- External consumer restore/build: **PASS**'
