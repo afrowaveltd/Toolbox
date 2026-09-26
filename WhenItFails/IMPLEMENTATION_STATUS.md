@@ -6,7 +6,7 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Core hardening and concrete class-level coverage audits are complete for the current scope. The current suite baseline is **1473/1473 GREEN**, Markdown links are clean (46 files / 431 local links), the refreshed compiled inventory still reports **148 exported types**, and the current `1.0.0-rc.1` candidate package smoke passes including direct external-consumer rejection of unsupported schema versions across all five packaged validators. The exact source-vs-original-0.1.0 comparer remains the only artifact-dependent compatibility gate.
+Core hardening and concrete class-level coverage audits are complete for the current scope. The current suite baseline is **1473/1473 GREEN**, Markdown links are clean (46 files / 431 local links), the refreshed current-source comparer census is **148 exported types / 830 API entries**, and the current `1.0.0-rc.1` candidate package smoke passes including direct external-consumer rejection of unsupported schema versions across all five packaged validators. The exact source-vs-original-0.1.0 comparer remains the only artifact-dependent compatibility gate.
 
 ## 2026-09-27 — source-only comparer census prepared
 
@@ -15,7 +15,9 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - It emits current source DLL path/hash, exported-type count, API-entry count and the complete sorted type/API census without restoring or fabricating the historical package.
 - The existing default full-comparison path remains unchanged and still requires the exact original 0.1.0 artifact.
 - Usage is documented in the comparer docs and current API inventory docs.
-- Next: run the new `-SourceOnly` mode on current master. Expected exported-type count is **148**; the API-entry count must be treated as newly measured rather than assumed from the historical **830**.
+- **Verification complete:** maintainer ran `-SourceOnly` on current master. The isolated consumer restored and built successfully with **0 warnings / 0 errors**, and the comparer freshly reported **148 exported types / 830 API entries**.
+- This confirms the current source-side census has not drifted from the last successful full-comparer source measurement. The package-side **110 / 611** baseline and 38/219 deltas remain historical until the exact original 0.1.0 artifact is available.
+- Next: no additional source-side compatibility measurement is required before the artifact-dependent full comparison.
 
 ## 2026-09-27 — documentation verification-state reconciliation
 
