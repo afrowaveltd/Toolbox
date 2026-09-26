@@ -1,5 +1,25 @@
 # Public API comparer — usage
 
+## Current source census without the historical package
+
+When the original 0.1.0 artifact is not available, refresh the **source side only**
+with the exact same reflection inspector and API-entry format used by the full
+comparison:
+
+```powershell
+pwsh ./Toolroom/WhenItFails/PublicApiComparer/Compare-PublicApi.ps1 \
+  -SourceOnly \
+  -ReportPath (Join-Path ([IO.Path]::GetTempPath()) 'WhenItFails-current-source-api.md')
+```
+
+`-SourceOnly` builds and inspects only the current ProjectReference consumer. It
+reports the loaded source DLL path, SHA-256, exported-type count, API-entry count,
+and the complete sorted type/API census. It never restores, rebuilds, or fabricates
+the historical 0.1.0 package. The reported source API-entry count is therefore
+directly comparable to the **source side** of a later full comparer run.
+
+## Full source versus exact 0.1.0 comparison
+
 From Toolbox root in PowerShell:
 
 ```powershell
