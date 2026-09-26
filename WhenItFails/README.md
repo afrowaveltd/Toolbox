@@ -31,6 +31,12 @@ Jsons/
 
 Bundled catalogs are used as read-only templates and as optional runtime defaults.
 
+The current runtime catalog schema is `1.0` for all five catalog families. A
+non-empty different `schemaVersion` is rejected with the machine-readable
+`UnsupportedSchemaVersion` validation issue instead of being interpreted as a
+compatible document. Runtime initialization never silently migrates an unsupported
+catalog schema.
+
 Existing project files are never overwritten automatically. New template files are
 staged in the target directory and published only after the complete write succeeds,
 so cancellation or an I/O failure cannot leave a partial project catalog at the
