@@ -51,6 +51,12 @@ public sealed class ErrorCatalogValidator : IErrorCatalogValidator
              message: "Catalog schema version is missing.",
              path: "schemaVersion");
       }
+      else
+      {
+         CatalogValidationHelper.ValidateSupportedSchemaVersion(
+             document.SchemaVersion,
+             result);
+      }
 
       if(string.IsNullOrWhiteSpace(document.CatalogId))
       {
