@@ -7,6 +7,8 @@ namespace Afrowave.Toolbox.WhenItFails.Validation;
 /// </summary>
 internal static class CatalogValidationHelper
 {
+   private const string SupportedSchemaVersion = "1.0";
+
    public static void ValidateDocumentHeader(
        string catalogKind,
        string? schemaVersion,
@@ -21,6 +23,10 @@ internal static class CatalogValidationHelper
              code: "MissingSchemaVersion",
              message: $"{catalogKind} catalog schema version is missing.",
              path: "schemaVersion");
+      }
+      else
+      {
+         ValidateSupportedSchemaVersion(schemaVersion, result);
       }
 
       if(string.IsNullOrWhiteSpace(catalogId))
@@ -46,6 +52,24 @@ internal static class CatalogValidationHelper
              message: $"{catalogKind} catalog language is missing. Default language should normally be specified.",
              path: "language");
       }
+   }
+
+   public static void ValidateSupportedSchemaVersion(
+       string schemaVersion,
+       ErrorCatalogValidationResult result)
+   {
+      if(string.Equals(
+          schemaVersion.Trim(),
+          SupportedSchemaVersion,
+          StringComparison.Ordinal))
+      {
+         return;
+      }
+
+      result.AddError(
+          code: "UnsupportedSchemaVersion",
+          message: $"Catalog schema version '{schemaVersion}' is not supported. Supported schema version is '{SupportedSchemaVersion}'.",
+          path: "schemaVersion");
    }
 
    public static void ValidateStringCollection(
