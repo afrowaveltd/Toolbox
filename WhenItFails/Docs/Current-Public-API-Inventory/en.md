@@ -35,13 +35,13 @@ the exact package consumer failed during restore with `NU1101` because the
 available source was `nuget.org` and
 `Afrowave.Toolbox.WhenItFails [0.1.0]` was not present there.
 
-This is an **artifact provenance/source availability result**, not a library or
-API compatibility failure. The comparer correctly stopped instead of
-substituting a freshly packed current DLL. A valid refresh now requires the
-real package source or directory containing the exact 0.1.0 artifact and must
-be rerun with `-Feed "<source-or-directory>"`. The historical comparison
-through a configured source/cache remains evidence for that earlier inspected
-artifact, but it is not replaced by this failed Linux restore.
+This is an **expected local-artifact availability result**, not a library or
+API compatibility failure. The 0.1.0 package was never published; the Linux
+machine simply does not have the maintainer-held Windows artifact. The comparer
+correctly stopped instead of substituting a freshly packed current DLL. A valid
+refresh requires copying or otherwise exposing that exact 0.1.0 `.nupkg` to a
+directory available on the current machine and rerunning with
+`-Feed "<artifact-directory>"`.
 
 ## Reading results
 
@@ -49,7 +49,7 @@ Source-only types and members may be nonbreaking additions; package-only entries
 
 Publicly exported implementation classes remain public CLR APIs even if they are classified as provisional for 1.0. Internal `CaptureFromContext` helper methods are not exposed. A complete operational snapshot omits some raw source JSON fields by design; do not call it a complete raw-document clone.
 
-**Observed comparison:** source **148 types / 830 entries**, package **110 types / 611 entries**, source-only **38 types / 219 entries**, package-only **0 types / 0 entries**. The requested exact version is `[0.1.0]`; configured package feeds/cache were used and origin was not independently established. SHA-256 of the inspected source DLL: `E81504A484AD99D5C818C98D594CDB88A08651638984D1A92503CDC367B9F0DD`; package DLL: `379F7CF6FF99223ECF2F388AB6295A34D97F33A8BD8EB7F9A52152994347CE28`.
+**Observed comparison:** source **148 types / 830 entries**, package **110 types / 611 entries**, source-only **38 types / 219 entries**, package-only **0 types / 0 entries**. The requested exact version is `[0.1.0]`. This package was **never published to nuget.org or another package feed**; it is a maintainer-held local reference artifact created on Windows. The earlier successful comparison resolved that local artifact through the maintainer's configured source/cache. SHA-256 of the inspected source DLL: `E81504A484AD99D5C818C98D594CDB88A08651638984D1A92503CDC367B9F0DD`; package DLL: `379F7CF6FF99223ECF2F388AB6295A34D97F33A8BD8EB7F9A52152994347CE28`.
 
 **Verification update:** the maintainer subsequently confirmed the complete **1472/1472 GREEN** suite. The three inventory and three legacy-class contract additions were already included in the earlier confirmed **1445/1445 GREEN** checkpoint; the separate focused-run count was not reported. A separate precompiled consumer binary smoke subsequently **passed**, running the same original package-built executable against the source-built DLL without recompilation. The maintainer subsequently supplied all **38 source-only type names** and a partial start of the member-entry diff. Their exhaustive group classification is in [added public types](../Added-Public-Types-Classification/en.md). A subsequent filtered diff identifies **14 entries on the two original concrete types**; the remaining **205 entries** belong to the 38 new exported types. See [original-type additions](../Original-Type-API-Additions/en.md). These entries include interface/kind declarations and are not all methods. A fresh compiled Markdown inventory and source/package comparer report for the current **1472/1472 GREEN** master are still pending. Do not declare 1.0 compatibility solely from the zero package-only census.
 
