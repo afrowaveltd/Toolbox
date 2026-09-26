@@ -9,7 +9,7 @@ Review checkpoint: 2026-09-25. Scope: **the 38 source-only exported type names a
 | Exported CLR types | 148 | 110 |
 | Public API census entries | 830 | 611 |
 
-Source-only: **38 types, 219 API entries**. Package-only: **0 types, 0 API entries** within the comparer census. The maintainer supplied all 38 source-only type names but only the opening portion of the 219 source-only member-entry list. No current complete inventory Markdown report or full 1442-test confirmation has been supplied. Package feed override was not used, so original publishing provenance is not independently established.
+Source-only: **38 types, 219 API entries**. Package-only: **0 types, 0 API entries** within the comparer census. The maintainer supplied all 38 source-only type names but only the opening portion of the 219 source-only member-entry list. The complete library suite is now maintainer-confirmed **1472/1472 GREEN**. A fresh current compiled inventory Markdown report and current source/package comparer refresh have not yet been supplied. Package feed override was not used, so original publishing provenance is not independently established.
 
 ## Classification by intended ownership
 
@@ -76,6 +76,6 @@ The absence of package-only types/signatures in this comparer is useful evidence
 
 Do not make these publicly exported types `internal` merely because their intended audience is infrastructure. Any future visibility restriction or 1.0 API freeze requires a separate compatibility and consumer-usage decision. The historic 110-type and 611-entry figures describe the requested 0.1.0 package consumer, not current source.
 
-Remaining verification: confirm the four focused inventory tests and complete **1442/1442 GREEN** suite, then review the current compiled Markdown inventory and package-compatibility evidence. The most recent complete suite explicitly confirmed by the maintainer before this report was **1439/1439 GREEN**.
+Remaining verification is now specifically the **current artifact refresh**, not the library suite: rerun the exported-assembly Markdown inventory and the 0.1.0 source/package comparer against the maintainer-confirmed **1472/1472 GREEN** master, then review whether exported type/member counts or deltas changed before converting these ownership groups into a 1.0 compatibility decision.
 
 A later maintainer-supplied filtered API excerpt identifies **all 14** additions to existing concrete types; the remaining **205 census entries** belong to the 38 new exported types. See [original-type API additions](../Original-Type-API-Additions/en.md).
