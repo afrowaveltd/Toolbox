@@ -1,9 +1,11 @@
 # WhenItFails 1.0 public API policy
 
-Status: **candidate 1.0 policy for the maintainer-confirmed 1473/1473 GREEN source tree**.
-The final cross-version freeze still requires a refreshed comparison against the exact
-maintainer-held local 0.1.0 NuGet reference artifact. That artifact was never
-published to a package feed.
+Status: **first-stable-release policy under final surface cleanup**.
+
+WhenItFails has not been published and has no external consumers. The maintainer-held
+local 0.1.0 artifact is therefore historical test evidence, **not a compatibility
+target or release gate**. The 1.0 surface may still make deliberate breaking cleanup
+changes until the final 1.0 baseline is verified and published.
 
 This document defines **support level and compatibility intent**. It does not change
 CLR visibility by itself and does not turn every public type into an application-level
@@ -11,22 +13,22 @@ entry point.
 
 ## Policy goals
 
-WhenItFails 1.0 should provide a small, obvious application API while preserving the
-public CLR surface already exercised by the 0.1.0 reference artifact and by current
-Toolbox tooling.
+WhenItFails 1.0 should provide a small, obvious application API and avoid freezing
+default implementation details that consumers can already replace through interfaces.
 
-The compatibility rules are:
+Before the first stable publication:
 
-- prefer additive evolution over renaming, removal or signature replacement;
-- keep the original nine-method `IErrorCatalogRuntime` interface stable;
-- add optional runtime capabilities through separate interfaces and extension methods;
-- treat enum numeric values, nullable-reference annotations, generic constraints,
-  `init` versus `set`, optional parameters and cancellation-token positions as
-  compatibility-relevant API;
-- separate CLR compatibility from persistent catalog JSON compatibility;
-- do not silently reinterpret a live mutable context as an immutable snapshot;
-- do not narrow an already public concrete type or constructor without a specific
-  compatibility review and migration path.
+- breaking cleanup is allowed when it reduces accidental public surface or fixes a
+  design contract;
+- the nine-method `IErrorCatalogRuntime` remains the intended core application facade;
+- optional runtime capabilities remain separate interfaces and extension methods;
+- enum numeric values, nullable-reference annotations, generic constraints,
+  `init` versus `set`, optional parameters and cancellation-token positions are
+  compatibility-relevant **once the 1.0 baseline is frozen**;
+- persistent catalog JSON compatibility remains separate from CLR compatibility;
+- a live mutable context must never be described as an immutable snapshot;
+- default orchestration implementations should be internal unless direct construction
+  is an intentional supported/tooling contract.
 
 ## 1. Core application API
 
@@ -186,26 +188,23 @@ application-facing API merely because they are exported. Their visibility remain
 compatibility-relevant, but new application code should prefer documented interfaces
 or utilities.
 
-## 7. Public concrete implementations
+## 7. Default implementation visibility
 
-Default concrete implementations such as `ErrorCatalogRuntime`,
-`ErrorCatalogContextStore`, `ErrorCatalogContextProvider`, `ErrorCatalogFactory`,
-`ErrorCatalog`, `JsonsBootstrapper`, default loaders/providers/validators,
-normalizers and resolver/factory classes remain real public CLR APIs.
+Default runtime orchestration implementations are **not** part of the intended 1.0
+consumer API. Their public interfaces remain the extension boundary while the default
+classes may be internal.
 
-For 1.0 policy they are classified as **public implementation surface** unless a
-section above explicitly promotes the type to core, advanced infrastructure or
-supported utility API.
+The final cleanup explicitly targets DI-only implementation classes such as the
+default runtime, context store/provider, initializer, catalog providers/factory,
+descriptor services/factories/resolvers and profile-resolution services.
 
-Rules for this category:
+Low-level concrete types that are directly used by Toolbox tooling remain public only
+when that direct construction is intentional. In particular the Setter currently
+depends on selected JSON loaders/normalizers plus the standalone utilities listed
+above; those are reviewed separately rather than hidden in bulk.
 
-- existing public visibility and already relied-upon constructors are not narrowed
-  casually;
-- interfaces remain the preferred dependency boundary for new application code;
-- constructor dependencies and implementation details may evolve only through a
-  compatibility review;
-- an implementation-surface classification is not permission to make a breaking
-  change inside 1.x.
+After 1.0 is published, changing an exported type's accessibility is a breaking change
+and must follow normal major-version rules.
 
 ## 8. Compatibility dimensions
 
@@ -245,24 +244,28 @@ compatibility/migration decision rather than accepting arbitrary version text.
 Detached runtime snapshot DTOs are CLR projections. Their public CLR shape does not
 by itself establish a versioned wire format.
 
-### Binary compatibility
+### Historical 0.1.0 diagnostics
 
-The project maintains targeted binary smoke coverage against the original 0.1.0
-reference consumer. A fresh complete API comparison against the exact original 0.1.0
-`.nupkg` is pending until that maintainer-held Windows artifact is available again.
+The original local 0.1.0 package may still be used for historical comparison or
+binary-smoke diagnostics. Because it was never published or consumed externally, its
+surface does not constrain the first stable 1.0 release. No final-release decision
+depends on reproducing that artifact.
 
 ## 9. 1.0 freeze gate
 
 Before declaring the 1.0 public surface frozen:
 
-1. rerun the current exported-assembly inventory;
-2. rerun the source-versus-exact-0.1.0 comparer using the original local artifact;
-3. require zero unexplained package-only/removal entries;
-4. compare against the freshly confirmed current-source baseline of 148 exported types / 830 API entries and review any later source-only additions;
-5. confirm the complete library suite remains GREEN;
-6. update this policy and the implementation status with the final artifact hashes and
-   comparison counts.
+1. complete the intentional visibility cleanup of default implementation classes;
+2. rerun the source-only comparer and exported-assembly inventory and record the new
+   stable 1.0 counts;
+3. confirm the complete WhenItFails suite, Essentials suite, candidate package smoke,
+   external-consumer smoke and documentation validation are GREEN;
+4. review every remaining exported type as core API, extension point, transitive model,
+   snapshot/observation contract or intentional standalone/tooling utility;
+5. finalize package version/release notes and the supported Essentials dependency
+   policy;
+6. pack the exact final `1.0.0` artifact, record hashes, restore it into a clean
+   external consumer, and only then publish/tag that exact commit.
 
-Until that artifact refresh is available, development may continue as long as changes
-respect the policy above and do not depend on inventing or repacking a replacement
-0.1.0 baseline.
+The historical 0.1.0 artifact is optional diagnostic evidence and is not part of this
+freeze gate.
