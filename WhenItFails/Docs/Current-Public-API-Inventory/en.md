@@ -1,6 +1,6 @@
-# Current exported API inventory and NuGet 0.1.0 comparison
+# Current exported API inventory and historical 0.1.0 comparison
 
-Status: pre-1.0 review; complete **1473/1473 GREEN** suite confirmed, current source comparer census freshly measured at **148 exported types / 830 API entries**, exact 0.1.0 package-side comparer refresh still pending.
+Status: pre-1.0 first-stable surface cleanup. Complete **1474/1474 GREEN** suite confirmed after two visibility batches. The last measured **148 exported types / 830 API entries** census is the pre-cleanup reference; a fresh post-cleanup source-only census and compiled inventory are now required. Historical 0.1.0 package comparison is optional diagnostics only.
 
 ## Two different measurements
 
@@ -66,9 +66,9 @@ unset AFROWAVE_WHENITFAILS_PUBLIC_API_REPORT
 cat "$report_dir/WhenItFails-current-public-api.md"
 ```
 
-This produces the current exported-type/member census only. It deliberately does not
-attempt the 0.1.0 package comparison; that remains blocked until the exact
-maintainer-held reference artifact is available.
+This produces the current exported-type/member census only. That is the authoritative
+measurement needed for the first stable 1.0 surface review. Historical 0.1.0 package
+comparison is optional and is not required to freeze the first published release.
 
 The inventory test writes a Markdown file only when the environment variable points to a file in an existing directory. The comparer records the actual loaded DLL paths and SHA-256 hashes, source/package exported type totals and type-delta lists, and source/package public member-entry totals and member-delta lists. Its temporary consumer directories are printed for inspection. Use `-Feed` when an explicit approved package source is required; if exact-package restore fails, record that failure rather than substituting a fresh local pack.
 
@@ -90,7 +90,11 @@ directory available on the current machine and rerunning with
 
 ## Reading results
 
-Source-only types and members may be nonbreaking additions; package-only entries need case-by-case review for possible removals or signature changes. An empty package-only list does not establish full ABI compatibility, nullable metadata, JSON compatibility or equivalent behavior.
+For the first stable 1.0 release, review the **current source census itself**: every
+remaining export should be intentional application API, DI extension point,
+transitive model, snapshot/observation contract, or supported tooling utility.
+Historical package-only/source-only deltas remain useful archaeology but do not
+constrain the unpublished first release.
 
 Publicly exported implementation classes remain public CLR APIs even if they are classified as provisional for 1.0. Internal `CaptureFromContext` helper methods are not exposed. A complete operational snapshot omits some raw source JSON fields by design; do not call it a complete raw-document clone.
 
