@@ -676,6 +676,14 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - Updated root English README and `Docs/Runtime/Initialization-and-Recovery.md`; also corrected the stale 1458 verification-pending description in the latter.
 - **Verified locally by maintainer:** both late-cancellation initializer contracts and complete **1467/1467 GREEN** suite. Eight binary smoke scenarios remain previously confirmed PASS; compiler-warning count not separately reported. Next: examine cancellation at the runtime activation/status boundary without weakening publication ownership.
 
+## 2026-09-26 — late cancellation before built-in reset/fallback publication (verification pending)
+
+- Audited the remaining built-in activation paths after the **1467/1467 GREEN** initializer cancellation fix. Found the same real gap in both `ResetToDefaultsCoreAsync` and first-start flexible fallback: `IBuiltInErrorCatalogContextProvider.LoadAsync` could request cancellation and still return a successful response, after which the runtime would publish the bundled context.
+- Production fix adds cooperative cancellation checks immediately after the built-in provider completes and again immediately before synchronous publication in both explicit reset and automatic fallback. No cancellation check is added after successful publication/status recording; the publication boundary remains the point after which activation is committed.
+- Added `WhenItFails.Tests/Services/ErrorCatalogRuntimeLateBuiltInCancellationPublicationContractTests.cs` with two deterministic contracts over the real `ErrorCatalogContextStore`. The reset case first completes a real built-in activation, then makes the second provider call cancel while returning another successful context; prior context publication and runtime status must remain the exact same objects. The flexible first-start case cancels while returning a valid fallback candidate; no context or status may be published.
+- No public API, package version or persisted JSON schema changed. Root README and Initialization/Recovery documentation updated.
+- **Verification pending:** 2 additional focused tests, expected complete suite **1469/1469 GREEN**. Last maintainer-confirmed complete suite **1467/1467 GREEN**; 8 binary smoke scenarios previously confirmed PASS. Next: run the focused late built-in cancellation class and complete suite; if GREEN, record the checkpoint and then pin the post-publication point-of-no-return contract for successful initializer activation.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1467/1467 GREEN**, confirmed locally by maintainer after closing the late-cancellation gap between asynchronous initializer dependencies and synchronous context publication (compiler-warning count not separately reported for this checkpoint).
