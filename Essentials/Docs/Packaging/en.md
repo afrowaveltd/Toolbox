@@ -13,12 +13,20 @@ The package includes:
 - `Assets/toolbox-essentials-icon.png` as
   `assets/toolbox-essentials-icon.png`.
 
-The icon item uses a forward-slash project path and an explicit
-`None Remove` + `None Include` pair. This is intentional: the Linux .NET 11
+Both project-specific package files now use explicit project-level item
+declarations. `README.md` is removed from any implicit item set and then
+re-included with `Pack="true"` at the package root. The icon uses the same
+`None Remove` + `None Include` pattern with a forward-slash project path. This is intentional: the Linux .NET 11
 RC SDK did not expose the PNG as an updatable default `None` item during
 packing, so `Update` silently left no pack item and NuGet raised `NU5046`.
-Removing any implicit item first and then explicitly including the PNG avoids
-duplicates while making the package input deterministic on Windows and Linux.
+Removing any implicit item first and then explicitly including the file avoids
+duplicates while making the package inputs deterministic on Windows and Linux.
+
+The shared `Directory.Build.props` now packs the repository-root README only
+as a fallback for packable projects that do **not** have a project-local
+`README.md`. Projects that own a README package it explicitly in their
+`.csproj`; this avoids relying on `None Update` timing in
+`Directory.Build.props`.
 
 ## Verification
 
@@ -36,3 +44,10 @@ Windows-specific `Assets\...` include: the package icon was missing and NuGet
 reported `NU5046`. The first attempted cross-platform fix used `None Update`, but a Linux rerun
 still produced `NU5046`. The project now explicitly removes any implicit PNG
 item and includes the icon as a pack item with `PackagePath="assets/"`.
+
+On 2026-09-27 the next Linux pack advanced past the icon check and then failed
+with `NU5039`: declared package readme `README.md` was missing. The shared
+props file had attempted to `Update` the project README before that item was
+reliably available in the evaluated pack item set. The shared update was
+removed; both Essentials and WhenItFails now explicitly package their own
+README from the project file.
