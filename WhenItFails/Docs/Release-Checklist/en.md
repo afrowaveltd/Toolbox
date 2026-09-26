@@ -62,10 +62,10 @@ The script:
 
 1. packs the current Essentials package into an isolated local feed and verifies its project README, license, DLL, XML documentation and package icon;
 2. packs WhenItFails as temporary `1.0.0-rc.1` by default without modifying the
-   project version in Git; the override is scoped to WhenItFails and must not change
-   the Essentials dependency version;
-3. verifies required WhenItFails package entries and confirms its nuspec still
-   references Essentials 0.2.0;
+   project version in Git; the override is scoped to WhenItFails and the
+   `ProjectReference` removes parent version properties before building Essentials;
+3. verifies required WhenItFails package entries and confirms **every** Essentials
+   dependency node in the generated nuspec remains on the 0.2.0 line;
 4. verifies the packed `README.md` is byte-identical to
    `WhenItFails/README.md`;
 5. restores a new external .NET 10 consumer from the isolated feed;
@@ -81,6 +81,9 @@ A custom candidate version can be supplied without changing source metadata:
 pwsh ./Toolroom/WhenItFails/Release/Test-CandidatePackage.ps1 \
   -PackageVersion 1.0.0-rc.2
 ```
+
+On failure the temporary workspace is retained automatically so the generated
+nuspec, local feed and external consumer can be inspected without rerunning.
 
 This smoke verifies the **new candidate package only**. It never substitutes for the
 old-package compatibility comparison.
