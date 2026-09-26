@@ -1,6 +1,14 @@
 # Compiled public API review — WhenItFails 0.1.0
 
-Status: **provisional classification for 1.0 planning, not a frozen compatibility guarantee**.
+Status: **historical API-review evidence; superseded by the first-stable surface cleanup for current visibility decisions**.
+
+> **Current 1.0 note (2026-09-27):** WhenItFails has no external consumers and
+> has never been published. Commit `6afd3f6f88c7d71097fd1813d8e0dc2d9d80b276`
+> intentionally internalizes 17 former public default orchestration
+> implementations before the first stable release. The older counts and
+> classifications below remain historical evidence only; use the
+> [current 1.0 policy](../Public-API-1.0-Policy/en.md) and
+> [current inventory](../Public-API-Inventory/en.md) for release decisions.
 
 **Historical snapshot:** the 110 exported types and 611 comparison entries below describe earlier source checkpoints, not the current library after new snapshot APIs. See [current assembly inventory and package comparison](../Current-Public-API-Inventory/en.md) for instructions; do not infer an updated count from these historical results.
 Review date: 2026-09-25.
