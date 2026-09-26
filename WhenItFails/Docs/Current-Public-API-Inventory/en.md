@@ -27,6 +27,22 @@ dotnet test .\WhenItFails.Tests\WhenItFails.Tests.csproj -c Release
 
 The inventory test writes a Markdown file only when the environment variable points to a file in an existing directory. The comparer records the actual loaded DLL paths and SHA-256 hashes, source/package exported type totals and type-delta lists, and source/package public member-entry totals and member-delta lists. Its temporary consumer directories are printed for inspection. Use `-Feed` when an explicit approved package source is required; if exact-package restore fails, record that failure rather than substituting a fresh local pack.
 
+## 2026-09-26 Linux artifact-refresh restore result
+
+The maintainer reran the comparer from Linux after the complete
+**1472/1472 GREEN** suite. The current-source consumer restored and built, but
+the exact package consumer failed during restore with `NU1101` because the
+available source was `nuget.org` and
+`Afrowave.Toolbox.WhenItFails [0.1.0]` was not present there.
+
+This is an **artifact provenance/source availability result**, not a library or
+API compatibility failure. The comparer correctly stopped instead of
+substituting a freshly packed current DLL. A valid refresh now requires the
+real package source or directory containing the exact 0.1.0 artifact and must
+be rerun with `-Feed "<source-or-directory>"`. The historical comparison
+through a configured source/cache remains evidence for that earlier inspected
+artifact, but it is not replaced by this failed Linux restore.
+
 ## Reading results
 
 Source-only types and members may be nonbreaking additions; package-only entries need case-by-case review for possible removals or signature changes. An empty package-only list does not establish full ABI compatibility, nullable metadata, JSON compatibility or equivalent behavior.
