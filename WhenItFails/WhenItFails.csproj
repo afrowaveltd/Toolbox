@@ -6,6 +6,8 @@
         <RootNamespace>Afrowave.Toolbox.WhenItFails</RootNamespace>
         <Description>Structured error catalogs, runtime resolution, recovery, profiles, mapping, and diagnostics for Afrowave Toolbox.</Description>
         <PackageTags>afrowave;toolbox;whenitfails;errors;errorhandling;dotnet;foundation</PackageTags>
+        <PackageProjectUrl>https://github.com/afrowaveltd/Toolbox</PackageProjectUrl>
+        <PackageReleaseNotes>Pre-release candidate for the first public WhenItFails package. Includes validated project catalogs, runtime recovery, diagnostics, profiles, detached observation snapshots, and release-readiness packaging hardening.</PackageReleaseNotes>
         <Version>0.1.0</Version>
         <PackageVersion Condition="'$(WhenItFailsPackageVersionOverride)' != ''">$(WhenItFailsPackageVersionOverride)</PackageVersion>
     </PropertyGroup>
