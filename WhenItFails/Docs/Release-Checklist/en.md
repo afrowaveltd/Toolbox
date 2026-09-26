@@ -3,6 +3,11 @@
 Status: **pre-release working checklist** for the first published WhenItFails package.
 The current source baseline is maintainer-confirmed **1472/1472 GREEN**.
 
+The current Linux candidate-package smoke is also maintainer-confirmed **PASS**:
+Essentials 0.2.0 and WhenItFails 1.0.0-rc.1 were packed, package contents were
+validated, and a clean external consumer restored, built and executed from an
+isolated local feed/global-packages directory.
+
 The historical 0.1.0 package was never published. It exists only as the maintainer's
 original local Windows reference artifact and is used strictly for compatibility
 comparison.
