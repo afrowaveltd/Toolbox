@@ -692,6 +692,14 @@ Core hardening and concrete class-level coverage audits are complete for the cur
 - No production code, public API, package version or persisted JSON schema changed in this checkpoint. Updated `Docs/Activation-Status/en.md` and Initialization/Recovery documentation.
 - **Verified locally by maintainer:** all three post-publication point-of-no-return contracts and complete **1472/1472 GREEN** suite. Eight binary smoke scenarios remain previously confirmed PASS; compiler-warning count not separately reported. Next: resume the public API stability review and close an actually unresolved 1.0 contract rather than adding another activation variant.
 
+## 2026-09-26 — current 1.0 public API artifact refresh (verification pending)
+
+- Returned to the declared main focus after the runtime cancellation hardening checkpoints. Existing focused public-API contracts already cover the auxiliary descriptors, enum numeric values, generic JSON loader/writer surfaces, runtime-status init-only shape, initialization/bootstrap payloads and the 38 additive snapshot/observation types; avoid duplicating those tests.
+- The last measured compiled comparison remains source **148 exported types / 830 API census entries** versus requested NuGet **0.1.0: 110 types / 611 entries**, with **38 source-only / 0 package-only types** and **219 source-only / 0 package-only entries**. That measurement predates the current **1472/1472 GREEN** master and therefore must not be treated as the final 1.0 inventory.
+- Updated `Docs/Current-Public-API-Inventory/en.md` and `Docs/Added-Public-Types-Classification/en.md` to distinguish the already confirmed complete library suite from the still-missing **current artifact refresh**. The next evidence is a fresh exported-assembly Markdown report plus a fresh exact-`[0.1.0]` source/package comparer run against current master.
+- No production source, public API, package version, JSON schema or test count changed in this documentation checkpoint. Current verified suite remains **1472/1472 GREEN**; 8 binary smoke scenarios remain previously confirmed PASS.
+- **Verification pending:** rerun the existing `ExportedAssemblyInventoryTests` with `AFROWAVE_WHENITFAILS_PUBLIC_API_REPORT` set, rerun the complete suite (expected still **1472/1472 GREEN**), and regenerate the `Compare-PublicApi.ps1` report. Review the current type/member deltas before promoting the provisional 38-type ownership classification into an explicit 1.0 compatibility policy.
+
 ## Current verified state
 
 - Complete `WhenItFails.Tests` suite: **1472/1472 GREEN**, confirmed locally by maintainer after pinning the post-publication cancellation point of no return for project, reset and fallback activations (compiler-warning count not separately reported for this checkpoint).
