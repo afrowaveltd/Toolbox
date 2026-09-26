@@ -3,7 +3,7 @@
 Status: **pre-1.0 inventory; classification candidates, not a published 1.0 compatibility promise**.
 
 The current support-level decision is recorded in [the candidate 1.0 public API policy](../Public-API-1.0-Policy/en.md). This inventory remains evidence/input for that policy rather than a second competing classification.
-Source of truth: current `afrowaveltd/Toolbox` GitHub `master`, with the latest maintainer-confirmed complete suite at **1473/1473 GREEN**. The refreshed compiled assembly inventory reports **148 exported CLR types**. Historical source-file counts and the earlier 110-type inventory remain useful chronology, but they are not the current API census.
+Source of truth: current `afrowaveltd/Toolbox` GitHub `master`. The last fully verified pre-cleanup suite is **1473/1473 GREEN** with a source census of **148 exported types / 830 API entries**. Commit `6afd3f6f88c7d71097fd1813d8e0dc2d9d80b276` intentionally internalizes 17 DI-only default implementation classes and adds one visibility contract test. The post-cleanup exported/API counts and **1474-test** baseline are pending maintainer verification.
 
 ## 1. Application-facing stable-contract candidates
 
@@ -39,35 +39,67 @@ The final interface added to this baseline is `IBuiltInErrorCatalogContextProvid
 
 Existing DI override tests prove `TryAddSingleton` precedence for the covered interfaces. They **do not** prove that all third-party implementations preserve full recovery, cancellation, data isolation or validation semantics. Treat the candidate classification as supported replaceability under review, not as permission to change arbitrary dependencies without contract tests.
 
-## 4. Public concrete types vs internal implementation
+## 4. Intentional implementation visibility before 1.0
 
-The following are **public concrete implementation examples requiring an explicit compatibility decision**: `ErrorCatalogRuntime`, `ErrorCatalogContextStore`, `ErrorCatalogContextProvider`, `ErrorCatalogFactory`, `ErrorCatalog`, `JsonsBootstrapper`, specialized JSON loaders/providers/validators, normalization classes, and `ErrorDescriptorFactory` / resolver classes. Their interface may be stable while their **constructor, subclassing and concrete-type surface** is not automatically guaranteed.
+The first stable-surface cleanup internalizes 17 default orchestration classes that
+are supplied through public DI interfaces rather than intended for direct consumer
+construction:
 
-Separate public utility candidates include `JsonCatalogDocumentWriter`, `DocumentationKeyGenerator`, `DocumentationKeyFormat` and `TextKeyNormalizer`. Their existing uses inside Toolbox (including Toolroom) and any consumer-facing documentation must be checked **before** considering a visibility change or treating them as implementation-only.
+- `BuiltInErrorCatalogContextProvider`, `ErrorCatalog`,
+  `ErrorCatalogContextProvider`, `ErrorCatalogFactory`, `ErrorCatalogProvider`;
+- the four specialized catalog providers;
+- `ErrorDefinitionResolver`, `ErrorCatalogInitializer`,
+  `ErrorProfileSelectionService`;
+- `ErrorDescriptorFactory`, `ErrorDescriptorResolver`,
+  `ErrorDescriptorService`;
+- `ErrorCatalogContextStore` and `ErrorCatalogRuntime`.
 
-Verified internal helper declarations include `CatalogProviderPipeline`, `DefinitionNormalizationHelper` and `CatalogValidationHelper`. A `public` method on an `internal` containing type is **not** an externally accessible public type/member contract.
+This is an intentional pre-1.0 breaking cleanup. There are no external consumers and
+the package has never been published, so the historical local 0.1.0 binary is not a
+compatibility target.
 
-No concrete public class is being hidden or renamed in this inventory checkpoint. Restricting existing public visibility may break consumers compiled against the existing local 0.1.0 reference package artifact, even though that artifact was never published to a feed.
+The cleanup deliberately **does not** bulk-hide lower-level types used directly by
+Toolbox Setter. `ErrorProfileResolver`, selected JSON loaders/normalizers,
+`TextKeyNormalizer`, `JsonCatalogDocumentWriter`,
+`DocumentationKeyGenerator`, `DocumentationKeyFormat` and
+`ErrorCatalogCrossValidator` remain subject to explicit tooling/API review.
+
+Verified internal helper declarations also include `CatalogProviderPipeline`,
+`DefinitionNormalizationHelper` and `CatalogValidationHelper`. A public member on
+an internal containing type is not exported CLR API.
 
 ## 5. Current 1.0 decisions and remaining gate
 
-1. `GetCurrentContext()` intentionally retains the original live, mutable context reference for compatibility. Consumers treat it as read-only by convention. The additive detached snapshot/observation family now provides the safer read path without expanding the original nine-method `IErrorCatalogRuntime` interface.
-2. Persistent project catalog JSON is explicitly versioned separately from CLR compatibility. The stable 1.0 catalog baseline is `schemaVersion: "1.0"`; other non-empty versions are rejected with `UnsupportedSchemaVersion`. Snapshot DTOs remain CLR projections, not a promised versioned JSON wire format.
-3. Public concrete implementations remain **public implementation surface** under the candidate 1.0 policy. Their visibility and already relied-upon constructors are not narrowed casually; interfaces remain the preferred dependency boundary for new code.
-4. The current compiled assembly inventory is refreshed and still reports **148 exported types**. The remaining binary/API gate is the exact comparison against the original maintainer-held 0.1.0 `.nupkg`; a rebuilt replacement must not be used.
-5. The transitive public payload/document/definition/validation/template contracts and the later snapshot/nullability contracts are all included in the current maintainer-confirmed **1473/1473 GREEN** suite. Earlier per-checkpoint counts remain historical evidence rather than the current verification state.
+1. `GetCurrentContext()` intentionally returns the live shared context; consumers
+   treat it as read-only by convention and use detached snapshots when isolation is
+   required.
+2. Persistent project catalog JSON is versioned separately from CLR compatibility.
+   The stable catalog baseline is `schemaVersion: "1.0"`; unsupported non-empty
+   versions are rejected.
+3. Public interfaces remain the supported DI replacement seams; their default
+   orchestration implementations are internal unless direct construction is
+   intentionally supported.
+4. The pre-cleanup census **148 / 830** is historical input only. After commit
+   `6afd3f6f`, the expected exported-type reduction is 17 types, but the authoritative
+   post-cleanup type/member counts must come from the compiled inventory and
+   `-SourceOnly` comparer after the suite is GREEN.
+5. The unpublished local 0.1.0 artifact is optional historical diagnostics, not a
+   first-release compatibility gate.
+6. The new visibility contract raises the expected complete-suite count from
+   **1473** to **1474**; verification is pending.
 
-No production code changes were made as part of this inventory reconciliation.
+Next: verify the visibility cleanup, measure the resulting public surface, then review
+the remaining directly constructed tooling/low-level types before freezing 1.0.
 
 
 ## 6. Additive snapshot API review — 2026-09-25
 
-The original runtime interface still declares exactly nine methods. Optional publication/activation/combined/supporting/full readers and the snapshot extension families remain separate public capabilities; internal capture helpers remain implementation details. The focused boundary contracts are included in the current **1473/1473 GREEN** suite. The refreshed compiled inventory reports **148 exported types**. See [snapshot capability boundaries](../Pre-1.0-Snapshot-Capability-Boundaries/en.md). The exact original-0.1.0 binary comparison remains the freeze gate.
+The original runtime interface still declares exactly nine methods. Optional publication/activation/combined/supporting/full readers and the snapshot extension families remain separate public capabilities; internal capture helpers remain implementation details. Their previously verified contracts are part of the **1473/1473 GREEN** pre-cleanup baseline. See [snapshot capability boundaries](../Pre-1.0-Snapshot-Capability-Boundaries/en.md). The new visibility cleanup does not alter those public interfaces or snapshot models; post-cleanup verification is pending.
 
 
-## 7. Current export refreshed; exact 0.1.0 comparison pending
+## 7. Pre-cleanup export baseline and post-cleanup remeasurement
 
-The compiled-assembly inventory tests cover newer snapshot exports, internal capture-helper non-exposure and deterministic complete type reporting. A freshly generated current-master report has now been supplied and still reports **148 exported source types**, so no exported-type-count drift is observed. `PublicApiComparer` separately measures source/package exported-type and member-entry differences against the exact requested `[0.1.0]` package. The last successful historical comparer measured **148 source / 110 package types**, **830 source / 611 package entries**, **38 source-only / 0 package-only types**, and **219 source-only / 0 package-only entries**. Those member counts remain historical until the exact original artifact is available for refresh. See [the current inventory procedure](../Current-Public-API-Inventory/en.md).
+Immediately before the stable-surface cleanup, the current source measured **148 exported types / 830 API entries**. Commit `6afd3f6f` internalizes 17 default implementation types, so that census is now the **pre-cleanup reference** rather than the intended 1.0 baseline. Rerun both the compiled exported-assembly inventory and the `-SourceOnly` comparer after the new suite is GREEN; record their actual resulting counts rather than deriving API entries arithmetically. Historical 0.1.0 package comparisons remain optional context only. See [the current inventory procedure](../Current-Public-API-Inventory/en.md).
 
 
 ## 8. Classification of the 38 source-only exported CLR types
