@@ -8,13 +8,15 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 Core hardening and concrete class-level coverage audits are complete for the current scope. NuGet archive, dependency restore, embedded-template consumption and full external runtime initialization/resolution in a separate .NET 10 consumer are verified. Next: complete the public API stability review and define the exact stable 1.0 scope.
 
-## 2026-09-27 — catalog schema-version compatibility contract (RED expected)
+## 2026-09-27 — catalog schema-version compatibility contract (GREEN verification pending)
 
 - Added `WhenItFails.Tests/Validation/CatalogSchemaVersionCompatibilityContractTests.cs` in commit `c40cf5a5559d2e6ca9b480603d3fabf54df2d478`.
-- The focused contract requires all five catalog validators (errors, categories, owners, code groups and profiles) to reject an unsupported non-empty `schemaVersion` such as `"2.0"` with an `UnsupportedSchemaVersion` validation error at `schemaVersion`.
-- Current validators only reject missing/blank schema versions, so the new focused test is intentionally expected to be **RED** before the production guard is added.
-- Baseline before this contract: maintainer-confirmed **1472/1472 GREEN**.
-- Next: run only `CatalogSchemaVersionCompatibilityContractTests`. If it fails for the expected missing `UnsupportedSchemaVersion` behavior, add the narrow shared/main-validator guard for supported schema `1.0`, document the 1.0 schema policy, then rerun focused + complete suites.
+- **Expected RED confirmed by maintainer:** the one focused test failed at the first `Assert.False(result.IsValid)` with `Expected: False / Actual: True`, proving that unsupported non-empty schema versions were accepted before the fix.
+- Production commits `5c2ec66a591dbdfd63f9570e6f771653b16e9144` and `a5e2a1930bfe8cbe575d694bb825c1171595ddd2` now reject non-empty schema versions other than `1.0` across all five default catalog validators with error code `UnsupportedSchemaVersion` at `schemaVersion`. Missing/blank versions retain the existing `MissingSchemaVersion` contract.
+- The guard is internal and changes no public CLR signatures. Surrounding whitespace around `1.0` is accepted by the direct validation helper; provider pipelines already normalize catalog header text before validation.
+- Documentation commits `bb5fe31965e6dcaf76339682f14321f2e8b5c839`, `f301fcb79aa0033911026cf861d45bfcd16623fd`, `d285477adbf96c2cb8b442d7ceebd658a9eab344`, and `983353c8407279fb07b71880663bc046c5b2fa1a` define the stable 1.0 persistent-catalog schema baseline and the machine-readable validation issue.
+- Baseline before the new contract: maintainer-confirmed **1472/1472 GREEN**. With this one added test, the expected complete-suite total after the fix is **1473/1473 GREEN**.
+- Next: rerun `CatalogSchemaVersionCompatibilityContractTests`; when focused GREEN is confirmed, run the complete WhenItFails suite and documentation-link validation.
 
 ## 2026-09-27 — Linux release-readiness checkpoint complete
 
