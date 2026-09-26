@@ -85,8 +85,14 @@ old-package compatibility comparison.
 
 ## 5. Package README selection
 
-Shared packaging configuration prefers a project-local `README.md` when one exists.
-Projects without their own README currently fall back to the repository root README.
+Projects that own a package README add it explicitly in their project file with
+a duplicate-safe `None Remove` + `None Include` pack item. Shared packaging
+uses the repository-root README only as a fallback when a project has no local
+README.
+
+This explicit rule was added after Linux NuGet `NU5039` showed that a
+project-local `None Update` in `Directory.Build.props` did not reliably become
+a package item.
 
 For WhenItFails the package must contain the exact current
 `WhenItFails/README.md`.
