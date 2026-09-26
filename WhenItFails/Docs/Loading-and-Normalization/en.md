@@ -38,11 +38,9 @@ Each catalog type has its own loader, while the common JSON reading behavior is 
 
 ## Shared JSON loader
 
-The common loader is:
-
-```csharp
-JsonCatalogDocumentLoader
-```
+The five typed catalog loaders share an **internal** generic JSON reader,
+`JsonCatalogDocumentLoader`. It is an implementation detail rather than a 1.0
+consumer entry point.
 
 Concrete catalog loaders use it to deserialize their document types.
 
