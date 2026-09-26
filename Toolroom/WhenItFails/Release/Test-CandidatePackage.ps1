@@ -59,6 +59,46 @@ try {
         "-p:PackageVersion=$PackageVersion"
     )
 
+    $essentialsPackages = @(
+        Get-ChildItem -LiteralPath $feed -File |
+            Where-Object {
+                $_.Name -like 'Afrowave.Toolbox.Essentials.*.nupkg' -and
+                $_.Name -notlike '*.snupkg'
+            }
+    )
+
+    if ($essentialsPackages.Count -ne 1) {
+        throw "Expected exactly one Essentials nupkg, found $($essentialsPackages.Count)."
+    }
+
+    $essentialsPackage = $essentialsPackages[0]
+
+    [System.IO.Compression.ZipFile]::ExtractToDirectory(
+        $essentialsPackage.FullName,
+        $essentialsExtractDir)
+
+    $requiredEssentialsEntries = @(
+        'README.md',
+        'LICENSE.txt',
+        'assets/toolbox-essentials-icon.png',
+        'lib/net10.0/Afrowave.Toolbox.Essentials.dll',
+        'lib/net10.0/Afrowave.Toolbox.Essentials.xml'
+    )
+
+    foreach ($entry in $requiredEssentialsEntries) {
+        Assert-FileExists (Join-Path $essentialsExtractDir $entry)
+    }
+
+    $expectedEssentialsReadmeHash =
+        (Get-FileHash -LiteralPath $essentialsReadme -Algorithm SHA256).Hash
+
+    $packedEssentialsReadmeHash =
+        (Get-FileHash -LiteralPath (Join-Path $essentialsExtractDir 'README.md') -Algorithm SHA256).Hash
+
+    if ($expectedEssentialsReadmeHash -ne $packedEssentialsReadmeHash) {
+        throw 'Essentials package README.md does not match Essentials/README.md.'
+    }
+
     $candidatePackages = @(
         Get-ChildItem -LiteralPath $feed -File |
             Where-Object {
