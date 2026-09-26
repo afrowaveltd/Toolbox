@@ -1,6 +1,6 @@
 # Detached error definition snapshots
 
-Status: **additive pre-1.0 API candidate; first four focused tests and complete 1263/1263 suite confirmed GREEN**. Additional public-shape/JSON verification pending.
+Status: **additive pre-1.0 API candidate; functional, public-surface, JSON and nullable snapshot contracts are included in the maintainer-confirmed 1473/1473 GREEN suite**.
 
 ## Scope
 
