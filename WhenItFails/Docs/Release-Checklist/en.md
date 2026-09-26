@@ -1,12 +1,12 @@
 # WhenItFails 1.0 release checklist
 
 Status: **pre-release working checklist** for the first published WhenItFails package.
-The current source baseline is maintainer-confirmed **1472/1472 GREEN**.
+The current source baseline is maintainer-confirmed **1473/1473 GREEN**.
 
 The current Linux release-readiness checkpoint is maintainer-confirmed **PASS**:
 
 - Essentials tests completed without errors;
-- the complete WhenItFails suite remains **1472/1472 GREEN**;
+- the complete WhenItFails suite is **1473/1473 GREEN**;
 - Essentials 0.2.0 and WhenItFails 1.0.0-rc.1 were packed;
 - package contents were validated;
 - a clean external consumer restored, built and executed from an isolated local
@@ -35,7 +35,7 @@ Run the complete library suite:
 dotnet test WhenItFails.Tests/WhenItFails.Tests.csproj -c Release
 ```
 
-The currently expected count is **1472/1472 GREEN** until a deliberate test addition
+The currently expected count is **1473/1473 GREEN** until a deliberate test addition
 changes it.
 
 SDK support-policy messages such as `NETSDK1057` are informational and must not be
