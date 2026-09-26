@@ -161,7 +161,7 @@ The report does not include all CLR metadata (for example complete generic const
 
 ## Standalone generic JSON loader (1244/1244 GREEN)
 
-`JsonCatalogDocumentLoader` is publicly constructible and exposes one generic instance method, `LoadFromFileAsync<TDocument>(string filePath, CancellationToken cancellationToken = default)`, where `TDocument : class`, returning `Task<Response<TDocument>>`. The public contract permits direct use without DI. A cancelled token is checked before path validation in the current implementation.
+Historical note: `JsonCatalogDocumentLoader` was previously publicly constructible and its generic loading behavior was reviewed before the first stable release. Commit `147b96310090c6cbbb5f2a5819b440026fb6062b` intentionally makes this shared generic helper internal. The five typed catalog loader interfaces/classes remain the supported loading surface, while the existing generic-loader behavior tests continue to protect the internal implementation. A cancelled token is still checked before path validation.
 
 `WhenItFails.Tests/PublicApi/JsonCatalogDocumentLoaderPublicApiContractTests.cs` adds three focused tests for the public CLR shape, no-DI empty-path response, and pre-cancelled token propagation without filesystem access. Existing `WhenItFails.Tests/Loading/JsonCatalogDocumentLoader*Tests.cs` cover file/JSON behavior; this new group intentionally does not duplicate them. The maintainer confirmed all three focused tests and complete **1244/1244 GREEN** suite. No production source, public visibility or distributed package has changed.
 
