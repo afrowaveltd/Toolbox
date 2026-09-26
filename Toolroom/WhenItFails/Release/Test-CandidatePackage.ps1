@@ -13,11 +13,13 @@ $root = (Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
 $essentialsProject = (Resolve-Path (Join-Path $root 'Essentials/Essentials.csproj')).Path
 $whenItFailsProject = (Resolve-Path (Join-Path $root 'WhenItFails/WhenItFails.csproj')).Path
 $projectReadme = (Resolve-Path (Join-Path $root 'WhenItFails/README.md')).Path
+$essentialsReadme = (Resolve-Path (Join-Path $root 'Essentials/README.md')).Path
 
 $workspace = Join-Path ([IO.Path]::GetTempPath()) ('WIF-CandidatePackage-' + [guid]::NewGuid().ToString('N'))
 $feed = Join-Path $workspace 'feed'
 $consumerDir = Join-Path $workspace 'consumer'
 $projectWorkspace = Join-Path $workspace 'project-jsons'
+$essentialsExtractDir = Join-Path $workspace 'essentials-extract'
 $extractDir = Join-Path $workspace 'package-extract'
 
 New-Item -ItemType Directory -Force -Path $workspace, $feed, $consumerDir | Out-Null
