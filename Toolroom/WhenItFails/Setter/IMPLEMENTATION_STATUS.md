@@ -1,6 +1,6 @@
 # Implementation status
 
-Last updated: 2026-09-23
+Last updated: 2026-09-27
 
 This file is the continuation point for `Toolroom/WhenItFails/Setter` development. Update it after every implementation, test, catalog, or documentation change that alters the current state or recommended next step.
 
@@ -22,7 +22,7 @@ This replaces the prior historical-only interpretation of the 1241 baseline: it 
 
 ## 2026-09-23 — core and Setter gate synchronization
 
-Current maintainer-confirmed full suites: core **1157/1157 GREEN**, Setter **1241/1241 GREEN** (freshly rerun).
+Current maintainer-confirmed full suites: core **1475/1475 GREEN** (2026-09-27 release baseline), Setter **1241/1241 GREEN** (last dedicated Setter rerun, 2026-09-23).
 
 Setter CLI catalog validation: 0 errors, 0 warnings, 0 information. Markdown links: 45 files / 424 links, none broken. Documentation keys: all 49 errors have unique, non-empty, canonical keys.
 
@@ -39,7 +39,7 @@ Recent focused hardening includes null/whitespace `JsonsOptions` workspace value
 The current user-verified complete regression baselines are fully green:
 
 - complete `Toolroom/WhenItFails/Setter.Tests`: **1,241 passed, 0 failed, 0 skipped**;
-- complete `WhenItFails.Tests`: **872 passed, 0 failed, 0 skipped**.
+- complete `WhenItFails.Tests`: **1,475 passed, 0 failed, 0 skipped** (current core release baseline).
 
 ## Verification status
 
@@ -57,7 +57,7 @@ The latest complete core test run:
 dotnet test WhenItFails.Tests
 ```
 
-Result: **872 passed, 0 failed, 0 skipped**.
+Current core release baseline: **1,475 passed, 0 failed, 0 skipped**. The Setter status file does not claim a fresh Setter-side rerun after the 2026-09-27 core release-documentation cleanup.
 
 Focused runtime/public-API checkpoints added after that complete core baseline include:
 
@@ -140,9 +140,9 @@ Setter currently does not provide automatic schema migration, multi-file atomic 
 
 ## Recommended next step
 
-Continue the runtime/public-API audit from the **872-test** green baseline by completing the malformed-diagnostics pass. Inspect remaining core helpers that extract a dependency issue (`ErrorDescriptorResolver`, `ErrorCatalogInitializer`, runtime forwarding and adjacent composition helpers) for direct first-element dereferences or assumptions about runtime-null issue entries. Add a red-first contract only where a concrete exception or unstable public response is proven; do not mechanically sweep Setter command output helpers.
+For the WhenItFails 1.0 publication cycle, keep Setter feature work frozen unless a release-blocking catalog/tooling defect is found. The core runtime/API audit is complete at **1475/1475 GREEN** with the frozen **126 exported types / 698 API entries** surface. Setter remains a separate Toolroom utility with its own last dedicated **1241/1241 GREEN** regression baseline and is not packaged inside `Afrowave.Toolbox.WhenItFails`.
 
-Prefer one narrow contract with a clear public response shape.
+After the core 1.0 artifact is frozen and published, resume Setter roadmap work from its own tests and documented intentional boundaries rather than reopening completed core hardening by default.
 
 ## Last completed change
 
