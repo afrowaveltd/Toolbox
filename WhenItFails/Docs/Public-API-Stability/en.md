@@ -1,10 +1,12 @@
 # Public API stability — core entry points
 
-This document records the pre-1.0 public API review of the application-facing entry points. It is a review baseline, not a declaration that version 1.0 has shipped.
+Status: **historical review ledger; release-relevant contracts are superseded by the frozen 1.0 policy, 126 exported types / 698 API entries, and the maintainer-confirmed 1475/1475 GREEN suite**.
 
-## Verified external package baseline
+This document preserves the chronological pre-1.0 public API review of the application-facing entry points. Intermediate counts and words such as candidate/pending below describe historical checkpoints; current release decisions are recorded in `Public-API-1.0-Policy/en.md` and `Public-API-Inventory/en.md`.
 
-The separately restored NuGet package version 0.1.0 has been exercised by an external .NET 10 consumer through registration, service resolution, initialization, status inspection, and error descriptor resolution. A separate reflection inspection of that consumer recorded the signatures below.
+## Historical local 0.1.0 package baseline
+
+The maintainer-held local NuGet package version 0.1.0 (never publicly published) was exercised by an external .NET 10 consumer through registration, service resolution, initialization, status inspection, and error descriptor resolution. A separate reflection inspection of that consumer recorded the signatures below.
 
 ## Stable-contract candidates
 
@@ -149,11 +151,11 @@ The main `ErrorCatalogProviderPayload` has three publicly mutable properties: `C
 
 `WhenItFails.Tests/PublicApi/JsonsTemplateFilePublicApiContractTests.cs` checks this shape, defaults, independent assignments and the provider interface's typed collection return. The model does not declare explicit `JsonPropertyName` attributes; this review **does not** promise a separately versioned JSON wire schema for template file objects. The maintainer confirmed all three focused tests and the complete 1235/1235 suite GREEN; production code is unchanged.
 
-## Compiled exported assembly inventory (verification pending)
+## Compiled exported assembly inventory (historical checkpoint; subsequently verified)
 
 `WhenItFails.Tests/PublicApi/ExportedAssemblyInventoryTests.cs` uses `Assembly.GetExportedTypes()` on the compiled WhenItFails project DLL. It can write a sorted Markdown inventory of the actually exported types, publicly declared constructors, methods, properties (including `init`), fields, events, enum numeric values, and base/interface relationships when `AFROWAVE_WHENITFAILS_PUBLIC_API_REPORT` is set. Without that environment variable, the test only checks the assembly and prints summary counts.
 
-The report does not include all CLR metadata (for example complete generic constraints, nullability and custom attributes), and does not by itself establish cross-version binary compatibility, externally published NuGet contents, JSON schema stability or runtime behavior. The detailed contract tests already created remain authoritative for those focused facets. Do not make concrete-class visibility changes until this report and existing consumer usage are reviewed. The maintainer supplied the generated report: **110 exported types** in source-built assembly version **0.1.0.0**. The report generation is observed, but complete-suite verification after the new inventory test is still pending. See [Compiled public API review](../Public-API-Export-Review/en.md) for provisional 1.0 scope and concrete utility consumers.
+The report does not include all CLR metadata (for example complete generic constraints, nullability and custom attributes), and does not by itself establish cross-version binary compatibility, published-package contents, JSON schema stability or runtime behavior. The detailed contract tests remain authoritative for those focused facets. This was an intermediate checkpoint: the maintainer supplied **110 exported types** in source-built assembly version **0.1.0.0**. Subsequent inventory, cleanup and manifest work completed the first-stable review at **126 exported types / 698 API entries** with **1475/1475 GREEN**. See [Compiled public API review](../Public-API-Export-Review/en.md) for the historical classification.
 
 ## Setter standalone utility API baseline (1241/1241 GREEN; zero warnings)
 
@@ -211,7 +213,7 @@ This is a **narrow main-definition projection**, not a deep snapshot of `ErrorCa
 
 The additive `ErrorCatalogValidationSnapshotExtensions.GetCrossValidationSnapshot(this IErrorCatalogRuntime)` returns a detached `ErrorCatalogValidationSnapshot` without extending the existing runtime interface. The projection copies each `ErrorCatalogValidationIssue` into a sealed, getter-only `ErrorCatalogValidationIssueSnapshot` and exposes an independent read-only issue list. `IsValid` is captured from copied issue severities and cannot change after live issue mutation. This captures **existing validation findings**, not a new validation of subsequently mutated source catalogs. It cannot guarantee atomic consistency if external code concurrently edits the live issue graph during capture; separate definition and validation snapshot calls are not one coherent multi-catalog transaction. `Response<T>` remains the ordinary mutable Essentials envelope.
 
-Five focused contract tests in `ErrorCatalogValidationSnapshotContractTests` cover detached issue/value ownership, empty vs error validity, uninitialized runtime response propagation, missing result failure and getter-only projection shapes. The maintainer confirmed all tests GREEN, complete **1272/1272 GREEN**. Focused output and compiler warning count were not separately reported. See [validation snapshot documentation](../Validation-Snapshots/en.md). No changes to existing runtime interface methods, published package version or JSON schema.
+Five focused contract tests in `ErrorCatalogValidationSnapshotContractTests` cover detached issue/value ownership, empty vs error validity, uninitialized runtime response propagation, missing result failure and getter-only projection shapes. The maintainer confirmed all tests GREEN, complete **1272/1272 GREEN**. Focused output and compiler warning count were not separately reported. See [validation snapshot documentation](../Validation-Snapshots/en.md). No changes to existing runtime interface methods, historical local 0.1.0 reference artifact or JSON schema.
 
 ## Detached supporting category projection (1278/1278 GREEN)
 
@@ -223,19 +225,19 @@ Added `ErrorCategoryCatalogSnapshot` (all 11 current category-document fields), 
 
 `ErrorCatalogCombinedSnapshotExtensions.GetCombinedSnapshot(this IErrorCatalogRuntime)` is an additive extension that calls `GetCurrentContext()` **once** and derives the existing detached definition, category and recorded-validation projections from the **same selected context reference**. Its sealed, getter-only `ErrorCatalogCombinedSnapshot` has three properties: `Definitions`, `CategoryCatalog`, and `Validation`. It does not add a runtime-interface method, alter the existing individual snapshot methods or publish a context-generation ID. Missing required source components produce stable Invalid failures without partial snapshot data; ordinary capture exceptions produce a stable Failed result without exception text. `ErrorCatalogCombinedSnapshotContractTests` adds **eight test cases** (five facts and one three-case theory) for deep data detachment, one-read context selection across replacement, uninitialized response, missing components, malformed nested data, and public CLR shape. The maintainer confirmed the complete **1286/1286 GREEN** suite. Focused run details and compiler warning count were not separately reported.
 
-**Selected-reference consistency is not activation-generation identity.** Captures of the same context reference can still differ if third-party callers mutate that published context in place, and a separate `GetStatus()` read is not atomically paired with the combined capture. Owners, code groups, profiles, and runtime status are not included. A durable activation-generation ID requires separate lifecycle design. See [combined snapshot documentation](../Combined-Snapshots/en.md). The published 0.1.0 package and persistent JSON schemas remain unchanged.
+**Selected-reference consistency is not activation-generation identity.** Captures of the same context reference can still differ if third-party callers mutate that published context in place, and a separate `GetStatus()` read is not atomically paired with the combined capture. Owners, code groups, profiles, and runtime status are not included. A durable activation-generation ID requires separate lifecycle design. See [combined snapshot documentation](../Combined-Snapshots/en.md). The historical local 0.1.0 reference artifact and persistent JSON schemas remain unchanged.
 
 ## Store-scoped context publication identity (1293/1293 GREEN)
 
 The default `ErrorCatalogContextStore` now implements the optional `IErrorCatalogContextPublicationReader`, which returns an immutable `ErrorCatalogContextPublication` record containing `StoreId`, a monotonically increasing `Generation` and the **live** `Context` reference. `Set` uses an atomic compare/exchange loop over the whole record, preserving publication order with concurrent writers. Its old `IErrorCatalogContextStore` interface and methods remain unchanged. Every successful `Set` advances generation, including publishing the same reference twice; failed `Set(null)` does not. Distinct store instances have independent generation scopes and store IDs. The new record is an **infrastructure boundary, not a safe consumer projection**. Seven focused tests in `ContextPublicationGenerationContractTests` cover pre-initialization, sequential/repeated publications, failed Set, concurrent writes, independent stores and public/interface shape. The maintainer confirmed the complete **1293/1293 GREEN** suite. Focused test output and compiler warning count were not separately reported.
 
-**Runtime activation identity is still open:** the initializer publishes before runtime status is recorded; automatic fallback/reset publish new contexts, while retained-previous-context recovery changes status without replacing the context. Direct store callers can publish independently of runtime status. The store publication identity therefore cannot yet be claimed to be an atomic context-and-status activation identity, and existing `GetCombinedSnapshot()` does not expose it. Any future integration needs an explicit consistent context/status read and a custom-store compatibility policy. See [publication identity documentation](../Context-Publication/en.md). Package version and persisted catalog JSON schema remain unchanged.
+**Runtime activation identity boundary at this historical checkpoint:** the initializer publishes before runtime status is recorded; automatic fallback/reset publish new contexts, while retained-previous-context recovery changes status without replacing the context. Direct store callers can publish independently of runtime status. Later publication-aware and completed-observation APIs provide selected generation/status consistency checks for the default supported paths, while still explicitly avoiding a false claim of a globally atomic transaction across arbitrary external writers. See [publication identity documentation](../Context-Publication/en.md). Package version and persisted catalog JSON schema remain unchanged.
 
 ## Publication-aware detached combined snapshot (1300/1300 GREEN)
 
 Added optional `IErrorCatalogRuntimePublicationReader` to the default `ErrorCatalogRuntime`, forwarding `GetCurrentPublication()` to the injected store only if it implements the optional store reader; unsupported custom stores return NotSupported. Added getter-only `ErrorCatalogPublishedCombinedSnapshot` (`StoreId`, `Generation`, detached `Snapshot`) and the additive `GetPublishedCombinedSnapshot(this IErrorCatalogRuntime)` extension. The latter reads exactly one **real store publication** and copies the existing three-part combined projection from its selected context; it never invokes a second context or status read and never invents generation IDs for unsupported custom runtimes/stores. The original `GetCombinedSnapshot()` was refactored to share an internal projection helper but retains its public signature and observed failure codes.
 
-Seven focused tests in `PublishedCombinedSnapshotContractTests` cover the real default runtime/store path, selection across replacement, unsupported custom runtime/store, uninitialized response, missing category and getter-only public shape. The first build reported two CS7036 errors because `Response<T>.NotSupported` requires `data`; both call sites were corrected with `data: null`. The maintainer subsequently confirmed the complete **1300/1300 GREEN** suite. Focused output and compiler warning count were not separately reported. Documented in [publication-aware snapshots](../Published-Snapshots/en.md). This is a **store publication ID, not a synchronized runtime status/activation ID**. No existing runtime/store interface methods, published package version or persisted catalog schema changed.
+Seven focused tests in `PublishedCombinedSnapshotContractTests` cover the real default runtime/store path, selection across replacement, unsupported custom runtime/store, uninitialized response, missing category and getter-only public shape. The first build reported two CS7036 errors because `Response<T>.NotSupported` requires `data`; both call sites were corrected with `data: null`. The maintainer subsequently confirmed the complete **1300/1300 GREEN** suite. Focused output and compiler warning count were not separately reported. Documented in [publication-aware snapshots](../Published-Snapshots/en.md). This is a **store publication ID, not a synchronized runtime status/activation ID**. No existing runtime/store interface methods, historical local 0.1.0 reference artifact or persisted catalog schema changed.
 
 ## Context publication versus runtime status lifecycle (1306/1306 GREEN)
 
@@ -261,19 +263,19 @@ Five tests in `SharedStoreRuntimePublicationBoundaryTests` capture behavior acro
 
 ## Exact store publication ownership (1330/1330 GREEN)
 
-Added optional `IErrorCatalogContextPublisher` with `Publish(ErrorCatalogContext): ErrorCatalogContextPublication` to the default `ErrorCatalogContextStore`. `Publish` returns **the exact successful atomic compare/exchange record owned by that write**, not a later current-publication read; another writer can therefore republish even the same context reference without retargeting the first caller's identity. The unchanged legacy `Set` delegates to `Publish` and discards its return value; both paths share one generation sequence. Six focused tests in `ExactContextPublicationOwnershipContractTests` cover record identity, same-reference later replacement, interleaved legacy writes, 64 concurrent publishers, rejected null write and additive interface shape. The maintainer confirmed complete **1330/1330 GREEN**. Focused run output and compiler warning count were not separately reported. No published package version or catalog JSON schema changed.
+Added optional `IErrorCatalogContextPublisher` with `Publish(ErrorCatalogContext): ErrorCatalogContextPublication` to the default `ErrorCatalogContextStore`. `Publish` returns **the exact successful atomic compare/exchange record owned by that write**, not a later current-publication read; another writer can therefore republish even the same context reference without retargeting the first caller's identity. The unchanged legacy `Set` delegates to `Publish` and discards its return value; both paths share one generation sequence. Six focused tests in `ExactContextPublicationOwnershipContractTests` cover record identity, same-reference later replacement, interleaved legacy writes, 64 concurrent publishers, rejected null write and additive interface shape. The maintainer confirmed complete **1330/1330 GREEN**. Focused run output and compiler warning count were not separately reported. No historical local 0.1.0 reference artifact or catalog JSON schema changed.
 
 **Integration checkpoint:** exact publication ownership is now propagated through the default initializer and runtime's owned reset/fallback writes. Custom initializer/legacy store paths and previous-context recovery without a new write still have weaker association rules. See [publication ownership](../Publication-Ownership/en.md).
 
 ## Exact owned-publication activation bridge (1336/1336 GREEN)
 
-The default `ErrorCatalogInitializer` now calls optional `IErrorCatalogContextPublisher.Publish` when available, retaining the exact returned record in an **internal-only, non-JSON** `ErrorCatalogInitializationPayload.OwnedPublication` property. The default runtime's explicit reset and automatic fallback also use `Publish`, and `RecordStatus` uses that exact record rather than a later current-publication read for those **owned write paths**. A same-reference external republish between write and status now causes `GetCompletedActivation()` to reject the changed publication, rather than attributing the later writer's generation to the original operation. Existing `Set`-only stores preserve their original flow; custom initializers without an owned record and previous-context recovery still use the weaker best-effort current-publication/reference match. Six focused tests in `OwnedPublicationActivationBridgeContractTests` are included in the maintainer-confirmed complete **1336/1336 GREEN** suite. Focused run output and compiler warning count were not separately reported. The nine-method runtime and legacy store/initializer interfaces, public payload surface, JSON schema and published package version are unchanged. The status/publication pair is **not an atomic transaction**; an external write may replace the current record immediately after an identity check.
+The default `ErrorCatalogInitializer` now calls optional `IErrorCatalogContextPublisher.Publish` when available, retaining the exact returned record in an **internal-only, non-JSON** `ErrorCatalogInitializationPayload.OwnedPublication` property. The default runtime's explicit reset and automatic fallback also use `Publish`, and `RecordStatus` uses that exact record rather than a later current-publication read for those **owned write paths**. A same-reference external republish between write and status now causes `GetCompletedActivation()` to reject the changed publication, rather than attributing the later writer's generation to the original operation. Existing `Set`-only stores preserve their original flow; custom initializers without an owned record and previous-context recovery still use the weaker best-effort current-publication/reference match. Six focused tests in `OwnedPublicationActivationBridgeContractTests` are included in the maintainer-confirmed complete **1336/1336 GREEN** suite. Focused run output and compiler warning count were not separately reported. The nine-method runtime and legacy store/initializer interfaces, public payload surface, JSON schema and historical local 0.1.0 reference artifact are unchanged. The status/publication pair is **not an atomic transaction**; an external write may replace the current record immediately after an identity check.
 
 ## Exact previous-context publication selection (1341/1341 GREEN)
 
 For flexible no-write previous-context recovery, the default runtime now obtains the selected context **and its existing `ErrorCatalogContextPublication` record in one call** to the optional store publication reader, instead of later inferring generation from a matching context reference. It retains the selected record in an **internal-only** `ErrorCatalogInitializationPayload.SelectedPublication` field, separate from `OwnedPublication` (the identity of a newly created write). A subsequent same-reference or different-context publication makes `GetCompletedActivation()` report `WIF_ACTIVATION_PUBLICATION_CHANGED` for the displaced selected record. The selection itself does not republish or advance generation; a successfully recorded recovery status advances the runtime-local activation sequence. An unavailable or failing optional reader preserves the legacy `GetCurrent()` path and its weaker association. This does **not** make the recovery response a guarantee that its selected context is still current after concurrent external writes.
 
-Five focused tests in `PreviousContextPublicationSelectionContractTests` cover ordinary no-write recovery, same-reference and different-context replacement at the selection boundary, legacy store behavior and failing optional reader fallback. The maintainer confirmed the full **1341/1341 GREEN** suite. Focused test output and compiler warning count were not separately reported. No existing public interface/signature, public payload JSON shape, published package version or persisted catalog schema changed. See [recovery selection documentation](../Recovery-Selection/en.md). The remaining stronger design task is a coherent combined data/status observation and explicit optional ownership rules for custom initializers.
+Five focused tests in `PreviousContextPublicationSelectionContractTests` cover ordinary no-write recovery, same-reference and different-context replacement at the selection boundary, legacy store behavior and failing optional reader fallback. The maintainer confirmed the full **1341/1341 GREEN** suite. Focused test output and compiler warning count were not separately reported. No existing public interface/signature, public payload JSON shape, historical local 0.1.0 reference artifact or persisted catalog schema changed. See [recovery selection documentation](../Recovery-Selection/en.md). The remaining stronger design task is a coherent combined data/status observation and explicit optional ownership rules for custom initializers.
 
 ## Completed combined status and detached catalog view (1347/1347 GREEN)
 
@@ -300,7 +302,7 @@ This narrow owner projection does **not** alter either existing combined
 snapshot type or the original nine-method runtime interface. A separately
 captured owner snapshot can select a different publication than a completed
 combined snapshot. See [owner catalog snapshots](../Owner-Snapshots/en.md).
-No published package version or persisted catalog JSON schema changed.
+No historical local 0.1.0 reference artifact or persisted catalog JSON schema changed.
 
 ## Detached supporting code group catalog (1359/1359 GREEN)
 
@@ -322,7 +324,7 @@ original runtime interface and existing combined snapshot types retain
 their public shape; independently obtained code group and other snapshots
 are not one atomic multi-catalog read. See
 [code group snapshot documentation](../Code-Group-Snapshots/en.md).
-The published package version and persisted JSON schemas remain unchanged.
+The historical local 0.1.0 reference artifact and persisted JSON schemas remain unchanged.
 
 ## Detached supporting profile catalog (1365/1365 GREEN)
 
@@ -344,9 +346,9 @@ are changed. Owners, code groups and profiles now have independent
 source-level projection implementations, but independently called
 extensions do **not** guarantee they select the same publication.
 See [profile snapshot documentation](../Profile-Snapshots/en.md).
-Published package version and persisted catalog JSON formats are unchanged.
+Historical local 0.1.0 reference artifact and persisted catalog JSON formats are unchanged.
 
-## Detached four-supporting-catalog capture (verification pending)
+## Detached four-supporting-catalog capture (subsequently verified)
 
 The additive `GetSupportingCatalogsSnapshot()` extension captures all four
 supporting catalogs from one selected active context reference. The sealed,
@@ -356,7 +358,7 @@ existing combined three-part snapshot type or `IErrorCatalogRuntime`.
 It has no store generation, activation status, main definitions or validation.
 It is not transactional against external mutation of an already selected
 context's nested documents. Twelve theory-expanded cases and full suite
-**1377/1377 GREEN** await local maintainer verification. See
+**1377/1377 GREEN** were later confirmed on the way to the final **1475/1475 GREEN** release suite. See
 [supporting catalog snapshots](../Supporting-Catalog-Snapshots/en.md).
 
 ## Publication-aware supporting catalog snapshot (1392/1392 GREEN)
@@ -388,7 +390,7 @@ snapshot data shapes are unchanged. Fifteen theory-expanded cases were included 
 full-suite **1407/1407 GREEN** checkpoint. See
 [completed supporting snapshots](../Completed-Supporting-Catalog-Snapshots/en.md).
 
-## Completed full operational catalog observation (1426/1426 GREEN; further tests pending)
+## Completed full operational catalog observation (historical 1426/1426 checkpoint; later contracts verified)
 
 The additive optional `IErrorCatalogRuntimeFullObservationReader`
 exposes `GetCompletedFullSnapshot()`. Its sealed getter-only
@@ -413,18 +415,17 @@ nested read-only collections and string mappings, optional document and
 recovery fields, and non-nullable reader response envelopes. They explicitly
 distinguish `Response<T>` from its nullable `Data` payload: consumers
 must check success and non-null data. The test addition changes no
-production signature, existing nullable annotation, JSON schema, or published
-package. Complete **1435/1435 GREEN** suite confirmed locally by maintainer. See [snapshot nullable contract notes](../Nullable-Snapshot-Contracts/en.md).
+production signature, existing nullable annotation, JSON schema, or historical local reference artifact. Complete **1435/1435 GREEN** suite confirmed locally by maintainer. See [snapshot nullable contract notes](../Nullable-Snapshot-Contracts/en.md).
 
 ## Snapshot capability separation (1439/1439 GREEN)
 
 Four new `SnapshotCapabilityBoundaryContractTests` cover the original
 nine-method runtime interface, five independent optional readers and eight
 additive context/publication extensions. All are real public CLR declarations
-today, but no 1.0 compatibility freeze has been declared. Complete **1439/1439 GREEN** suite confirmed locally by maintainer. See
+today; the later first-stable policy freezes the accepted 1.0 surface at **126 exported types / 698 API entries**. Complete **1439/1439 GREEN** suite confirmed locally by maintainer. See
 [capability boundary review](../Pre-1.0-Snapshot-Capability-Boundaries/en.md).
 
-## Current compiled API inventory and package comparison (pending)
+## Historical compiled API inventory and package comparison
 
 Three added `ExportedAssemblyInventoryTests` cases validate newer exported
 snapshot types, internal-helper visibility and deterministic full inventory
@@ -452,9 +453,9 @@ provided; NuGet origin was not separately established. Complete xUnit
 suite last confirmed: **1445/1445 GREEN**. See
 [binary smoke documentation](../Published-Binary-Consumer-Smoke/en.md).
 
-## Still under review
+## First-stable review closure
 
-The initial eight-type public API baseline is covered. The shape and ownership of a **complete** safe context view, nullable annotations, and the distinction between documented stable contracts and implementation details remain open before 1.0.
+The questions raised by the early baseline were resolved before the 1.0 freeze: live-context mutability is explicitly documented, detached snapshot/observation contracts provide copied views where applicable, nullable contracts are covered by focused tests, and implementation visibility/support levels are defined by the 1.0 policy. The final public surface is **126 exported types / 698 API entries** with **1475/1475 GREEN**.
 
 The locally built 0.1.0 NuGet reference artifact has not been changed by this source-development checkpoint. It was never published to a package feed. The current source includes additive public API candidates and the instance-local activation ordering change described above.
 
