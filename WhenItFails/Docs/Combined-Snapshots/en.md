@@ -1,6 +1,6 @@
 # Combined detached catalog snapshot
 
-Status: **additive pre-1.0 API candidate; all eight test cases included in maintainer-confirmed 1286/1286 GREEN suite**.
+Status: **frozen 1.0 additive API; combined-snapshot contracts are included in the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## Scope
 
