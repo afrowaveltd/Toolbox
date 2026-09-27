@@ -1,6 +1,6 @@
 # Snapshot capability boundaries before 1.0
 
-Status: **source-level pre-1.0 review; focused boundary contracts included in the maintainer-confirmed 1473/1473 GREEN suite**.
+Status: **historical pre-1.0 boundary review; its focused contracts are retained in the frozen 1.0 surface and the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## Application-facing and optional entry points
 
