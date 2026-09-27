@@ -182,32 +182,31 @@ Candidate versions may still be tested with the script's `-PackageVersion` overr
 The final verification must also run once with `-PackageVersion 1.0.0` so the exact
 stable package that would be published is inspected.
 
-## 9. Final package verification
+## 9. Final package verification — accepted
 
-The previously retained `1.0.0` candidate fingerprint is **diagnostic only** because
-the maintainer worktree was DIRTY when it was inspected. It must not be promoted to
-the immutable first-publication artifact. Build the final artifact only after the
-release commit is checked out with a clean worktree, then run this complete gate
-again and record the replacement hashes.
+The clean final gate passed on source commit
+`6face1742de35fbde665a9075c2e06649c171d7d`.
 
+Verified release record:
 
+- complete WhenItFails suite: **1475/1475 GREEN**;
+- Markdown links: **46 files / 431 links / 0 broken**;
+- exact stable `1.0.0` package smoke: **PASS**;
+- isolated external consumer restore/build/execute: **PASS**;
+- assembly version: **1.0.0.0**;
+- exported types: **126**;
+- package repository commit metadata: `6face1742de35fbde665a9075c2e06649c171d7d`;
+- `.nupkg` SHA-256: `FF33822150E18C4A5E3410B74888797354D345BBF9C0664F4B8A6CDB93E974EA`;
+- `.snupkg` SHA-256: `4410D1346019258391F83A8AB193EAA09A1759BFDF7DFE7887414266AB90B3C7`;
+- packaged DLL SHA-256: `01AEDDB2CB8CD9C1C89CA6D72CE3B6E3665A827495C183B25FDE4CF1353FA4CE`;
+- packaged PDB SHA-256: `F79859D6E876F61867E7ED8374B91A67F5A8B2DF0EEC448F6E60A85D7DC5378B`;
+- Essentials dependency: `0.2.0` minimum baseline;
+- README, license, XML documentation, symbol package and net10.0 PDB: present.
 
-Create the final package into a clean release directory and record:
-
-- `.nupkg` SHA-256;
-- `.snupkg` SHA-256 when produced;
-- contained DLL SHA-256;
-- assembly/package version;
-- target framework;
-- dependency versions;
-- README and license presence;
-- complete test result;
-- candidate package smoke result;
-- compatibility comparer result;
-- precompiled consumer smoke results.
-
-Restore and execute at least one completely new external consumer using only the
-final local release feed plus public Microsoft dependencies.
+The previously retained DIRTY-worktree candidate is diagnostic only. The artifact
+identified above is the immutable first-publication artifact. **Do not rebuild another
+package under version `1.0.0` for publication.** Historical 0.1.0 comparer/binary-smoke
+results remain optional diagnostic archaeology and are not a first-release gate.
 
 ## 10. First publication
 
