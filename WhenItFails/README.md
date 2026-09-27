@@ -178,8 +178,9 @@ It does not overwrite, delete, or modify project-local catalog files.
 
 ## Project status
 
-The first stable **1.0.0** release candidate is in final package verification.
+Version **1.0.0** is the first stable WhenItFails release line.
 
-The public CLR surface is frozen at **126 exported types / 698 API entries** and is
-guarded by an exact exported-type manifest contract. The package has not yet been
-published.
+The public CLR surface for 1.0 is frozen at **126 exported types / 698 API entries**
+and is guarded by an exact exported-type manifest contract. The stable package is
+verified through the complete test suite, isolated package-consumer smoke tests, and
+documentation-link validation before publication.
