@@ -1,8 +1,10 @@
 # WhenItFails 1.0 release checklist
 
 Status: **pre-release working checklist** for the first published WhenItFails package.
-The current complete-suite baseline is maintainer-confirmed **1474/1474 GREEN** after
-both pre-1.0 visibility cleanup batches. Commit `6afd3f6f` internalized 17 default
+The last confirmed complete-suite baseline is **1474/1474 GREEN** after both pre-1.0
+visibility cleanup batches. Commit `b8336c33` adds one exact exported-type manifest
+contract for the measured 126-type candidate surface, so the expected next complete
+suite is **1475/1475 GREEN**. Commit `6afd3f6f` internalized 17 default
 orchestration implementations and added the visibility contract; commit `147b9631`
 internalized five additional low-level helpers without changing the test count.
 
@@ -41,7 +43,8 @@ Run the complete library suite:
 dotnet test WhenItFails.Tests/WhenItFails.Tests.csproj -c Release
 ```
 
-The current expected and confirmed post-cleanup count is **1474/1474 GREEN**.
+The current expected count is **1475/1475 GREEN** after the exported-type manifest
+contract. The underlying cleanup behavior was already confirmed at 1474/1474.
 
 SDK support-policy messages such as `NETSDK1057` are informational and must not be
 recorded as Toolbox compiler warnings.
@@ -154,6 +157,7 @@ Before the first stable publication:
 - internalize any additional default orchestration implementations that are not
   intentional consumer or Toolbox-tooling contracts;
 - after the final cleanup batch, record one stable 1.0 source census;
+- pin the exact exported-type set in a contract test and require it to stay GREEN;
 - review every remaining exported type against the final public API policy;
 - ensure the nine-method `IErrorCatalogRuntime` core surface remains intentional;
 - ensure enum numeric values, nullability, generic constraints and init/set semantics
