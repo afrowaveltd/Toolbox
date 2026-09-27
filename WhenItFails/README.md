@@ -178,6 +178,8 @@ It does not overwrite, delete, or modify project-local catalog files.
 
 ## Project status
 
-The package is under active development.
+The first stable **1.0.0** release candidate is in final package verification.
 
-The public API and catalog structure may still evolve before the first stable release.
+The public CLR surface is frozen at **126 exported types / 698 API entries** and is
+guarded by an exact exported-type manifest contract. The package has not yet been
+published.
