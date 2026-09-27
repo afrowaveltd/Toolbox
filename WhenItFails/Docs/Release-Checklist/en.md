@@ -1,10 +1,9 @@
 # WhenItFails 1.0 release checklist
 
 Status: **pre-release working checklist** for the first published WhenItFails package.
-The last confirmed complete-suite baseline is **1474/1474 GREEN** after both pre-1.0
-visibility cleanup batches. Commit `b8336c33` adds one exact exported-type manifest
-contract for the measured 126-type candidate surface, so the expected next complete
-suite is **1475/1475 GREEN**. Commit `6afd3f6f` internalized 17 default
+The current complete-suite baseline is maintainer-confirmed **1475/1475 GREEN**.
+The exact exported-type manifest is GREEN for the frozen **126 exported types / 698
+API entries** candidate surface. Commit `6afd3f6f` internalized 17 default
 orchestration implementations and added the visibility contract; commit `147b9631`
 internalized five additional low-level helpers without changing the test count.
 
@@ -43,8 +42,7 @@ Run the complete library suite:
 dotnet test WhenItFails.Tests/WhenItFails.Tests.csproj -c Release
 ```
 
-The current expected count is **1475/1475 GREEN** after the exported-type manifest
-contract. The underlying cleanup behavior was already confirmed at 1474/1474.
+The current expected and confirmed count is **1475/1475 GREEN**.
 
 SDK support-policy messages such as `NETSDK1057` are informational and must not be
 recorded as Toolbox compiler warnings.
@@ -82,20 +80,22 @@ The script:
 2. packs WhenItFails as temporary `1.0.0-rc.1` by default without modifying the
    project version in Git; the override is scoped to WhenItFails and the
    `ProjectReference` removes parent version properties before building Essentials;
-3. verifies required WhenItFails package entries and confirms **every** Essentials
-   dependency node in the generated nuspec remains on the 0.2.0 line;
+3. verifies required WhenItFails package entries and requires **every** Essentials
+   dependency node in the generated nuspec to be exactly `0.2.0`, the minimum
+   supported dependency baseline;
 4. verifies the packed `README.md` is byte-identical to
    `WhenItFails/README.md`;
 5. restores a new external .NET 10 consumer from the isolated feed;
 6. validates DI registration with `ValidateOnBuild` and `ValidateScopes`;
-7. verifies that all five packaged catalog validators reject `schemaVersion = "2.0"`
+7. verifies the packaged assembly is version `1.0.0.0` and exports exactly 126 types;
+8. verifies that all five packaged catalog validators reject `schemaVersion = "2.0"`
    with `UnsupportedSchemaVersion` at `schemaVersion`;
-8. performs strict project initialization and verifies all five project catalog files;
-9. resolves the canonical `UNKNOWNERROR` descriptor;
-10. explicitly resets to bundled defaults and verifies runtime status;
-11. verifies package ID/version, project URL, repository metadata, release notes,
+9. performs strict project initialization and verifies all five project catalog files;
+10. resolves the canonical `UNKNOWNERROR` descriptor;
+11. explicitly resets to bundled defaults and verifies runtime status;
+12. verifies package ID/version, project URL, repository metadata, release notes,
     README/license metadata, and both Essentials/WhenItFails symbol packages;
-12. writes a SHA-256 report.
+13. writes a SHA-256 report.
 
 A custom candidate version can be supplied without changing source metadata:
 
@@ -166,17 +166,17 @@ Before the first stable publication:
 
 ## 8. Version and package metadata
 
-Only after the final public-surface cleanup and verification gate is accepted:
+The public-surface gate is accepted and current source metadata is now:
 
-- change `WhenItFails/WhenItFails.csproj` from the development version to the
-  intended release version;
-- replace the current pre-release package notes with the final release notes;
-- verify repository URL, license, package description and tags;
-- decide the exact compatible Essentials package version;
-- rebuild from a clean checkout.
+- package/project version: **1.0.0**;
+- assembly version expected from the package: **1.0.0.0**;
+- Essentials minimum supported baseline: **0.2.0**;
+- release notes: first stable release wording;
+- repository URL, license, description and tags remain release inputs.
 
-Do not bump the committed release version merely to perform a local package smoke;
-use the script's `-PackageVersion` override instead.
+Candidate versions may still be tested with the script's `-PackageVersion` override.
+The final verification must also run once with `-PackageVersion 1.0.0` so the exact
+stable package that would be published is inspected.
 
 ## 9. Final package verification
 
