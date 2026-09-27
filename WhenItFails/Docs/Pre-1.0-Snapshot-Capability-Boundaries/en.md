@@ -37,17 +37,17 @@ snapshot models and concrete service classes remain real public CLR APIs
 even when classified as provisional. Do not change their visibility without
 a separate compatibility decision.
 
-## Scope and remaining work
+## Historical scope and resolved follow-up
 
 The full snapshot is a detached *operational* view, not a raw JSON document
-clone or a transaction against concurrent in-place source mutation. The
-historical exported-assembly report listed 110 types at an earlier source
-checkpoint. Regenerate that report and compare against the published
-package before claiming a current type count or freezing 1.0 compatibility.
-Nullable annotations, JSON versioning, errors, and constructors of public
-concrete classes require separately scoped decisions.
+clone or a transaction against concurrent in-place source mutation. The earlier
+110-type report and the later 148/830 pre-cleanup census are historical evidence.
+The final first-stable surface was subsequently reviewed, reduced and frozen at
+**126 exported types / 698 API entries**. Nullable contracts, persistent catalog
+schema versioning, error behavior and supported public construction boundaries were
+resolved by focused contracts and the final 1.0 API policy.
 
 `SnapshotCapabilityBoundaryContractTests` adds four focused signature
 tests for the core interface, five optional readers, six context extensions
-and two publication-aware extensions. These tests are included in the current
-maintainer-confirmed **1473/1473 GREEN** complete suite.
+and two publication-aware extensions. These tests remain included in the final
+maintainer-confirmed **1475/1475 GREEN** release suite.
