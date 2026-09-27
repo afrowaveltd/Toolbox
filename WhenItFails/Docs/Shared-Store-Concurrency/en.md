@@ -1,6 +1,6 @@
 # Shared-store runtime concurrency
 
-Status: **pre-1.0 ownership audit; five focused tests included in maintainer-confirmed 1324/1324 GREEN suite**.
+Status: **frozen 1.0 concurrency/ownership contract for the default runtime and store; covered by the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## Scope of the existing activation gate
 
