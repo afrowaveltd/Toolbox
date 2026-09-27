@@ -1,9 +1,9 @@
 # Public API inventory and 1.0 decision register
 
-Status: **pre-1.0 inventory; classification candidates, not a published 1.0 compatibility promise**.
+Status: **frozen first-stable 1.0 inventory; 126 exported types / 698 API entries, guarded by the exact exported-type manifest contract**.
 
 The current support-level decision is recorded in [the candidate 1.0 public API policy](../Public-API-1.0-Policy/en.md). This inventory remains evidence/input for that policy rather than a second competing classification.
-Source of truth: current `afrowaveltd/Toolbox` GitHub `master`. The original pre-cleanup census was **148 exported types / 830 API entries**. Commit `6afd3f6f88c7d71097fd1813d8e0dc2d9d80b276` internalized 17 DI-only default implementation classes and its resulting complete suite is maintainer-confirmed **1474/1474 GREEN**. Commit `147b96310090c6cbbb5f2a5819b440026fb6062b` now applies a second 5-type helper cleanup; its verification and the final post-cleanup exported/API counts are pending.
+Source of truth: current `afrowaveltd/Toolbox` GitHub `master`. The original pre-cleanup census was **148 exported types / 830 API entries**. Commits `6afd3f6f88c7d71097fd1813d8e0dc2d9d80b276` and `147b96310090c6cbbb5f2a5819b440026fb6062b` internalized 22 implementation/helper types in two reviewed batches. The post-cleanup source-only comparer measured the frozen **126 exported types / 698 API entries** surface, and the exact exported-type manifest plus the complete **1475/1475 GREEN** suite lock that first-stable baseline.
 
 ## 1. Application-facing stable-contract candidates
 
@@ -86,33 +86,33 @@ an internal containing type is not exported CLR API.
 3. Public interfaces remain the supported DI replacement seams; their default
    orchestration implementations are internal unless direct construction is
    intentionally supported.
-4. The pre-cleanup census **148 / 830** is historical input only. The first 17-type
-   cleanup is test-verified; the second 5-type helper cleanup is now committed. The
-   authoritative final type/member counts must come from the compiled inventory and
-   `-SourceOnly` comparer after the second batch is GREEN.
+4. The pre-cleanup census **148 / 830** is historical input only. Both visibility
+   cleanup batches are verified. The authoritative first-stable census is
+   **126 exported types / 698 API entries**, measured by the source-only comparer and
+   protected by the exact exported-type manifest.
 5. The unpublished local 0.1.0 artifact is optional historical diagnostics, not a
    first-release compatibility gate.
-6. The complete suite is confirmed **1474/1474 GREEN** for the first cleanup. The
-   second cleanup changes existing tests but adds no new test, so the expected suite
-   total remains **1474**; verification is pending.
+6. The complete release suite is maintainer-confirmed **1475/1475 GREEN**. The
+   remaining exported types were reviewed against repository usage and accepted into
+   the frozen first-stable surface.
 
-Next: verify the second cleanup, measure the resulting public surface, then review the
-remaining directly constructed tooling/low-level types before freezing 1.0.
+Next release work is artifact identity, clean-build verification, tagging and first
+publication; no additional public-surface cleanup is pending for 1.0.
 
 
 ## 6. Additive snapshot API review — 2026-09-25
 
-The original runtime interface still declares exactly nine methods. Optional publication/activation/combined/supporting/full readers and the snapshot extension families remain separate public capabilities; internal capture helpers remain implementation details. Their previously verified contracts are part of the **1473/1473 GREEN** pre-cleanup baseline. See [snapshot capability boundaries](../Pre-1.0-Snapshot-Capability-Boundaries/en.md). The new visibility cleanup does not alter those public interfaces or snapshot models; post-cleanup verification is pending.
+The original runtime interface still declares exactly nine methods. Optional publication/activation/combined/supporting/full readers and the snapshot extension families remain separate public capabilities; internal capture helpers remain implementation details. Their earlier contracts were part of the **1473/1473 GREEN** pre-cleanup baseline and remain covered by the final **1475/1475 GREEN** release suite. See [snapshot capability boundaries](../Pre-1.0-Snapshot-Capability-Boundaries/en.md). The visibility cleanup does not alter those public interfaces or snapshot models.
 
 
 ## 7. Pre-cleanup export baseline and post-cleanup remeasurement
 
-Immediately before the stable-surface cleanup, the current source measured **148 exported types / 830 API entries**. Commit `6afd3f6f` internalizes 17 default implementation types, so that census is now the **pre-cleanup reference** rather than the intended 1.0 baseline. Rerun both the compiled exported-assembly inventory and the `-SourceOnly` comparer after the new suite is GREEN; record their actual resulting counts rather than deriving API entries arithmetically. Historical 0.1.0 package comparisons remain optional context only. See [the current inventory procedure](../Current-Public-API-Inventory/en.md).
+Immediately before the stable-surface cleanup, the current source measured **148 exported types / 830 API entries**. After both cleanup batches, the source-only comparer measured **126 exported types / 698 API entries**. That post-cleanup measurement is the frozen 1.0 baseline and is guarded by the exact exported-type manifest contract. Historical 0.1.0 package comparisons remain optional context only. See [the current inventory procedure](../Current-Public-API-Inventory/en.md).
 
 
 ## 8. Classification of the 38 source-only exported CLR types
 
-The maintainer supplied the complete **38-name source-only type list** from the current package comparer. It comprises **2 store infrastructure interfaces, 5 optional runtime readers, 2 publication/activation infrastructure models, 19 detached catalog/validation/observation models and 10 additive snapshot extension classes**. See [complete classification](../Added-Public-Types-Classification/en.md). This is a provisional usage classification, not a visibility change by itself. The ownership groups are now reflected in the candidate 1.0 policy, the refreshed current inventory remains at **148 exported types**, and the complete suite is **1473/1473 GREEN**. The exact member-entry delta still requires the original 0.1.0 artifact for refresh.
+The maintainer supplied the complete **38-name source-only type list** from the current package comparer. It comprises **2 store infrastructure interfaces, 5 optional runtime readers, 2 publication/activation infrastructure models, 19 detached catalog/validation/observation models and 10 additive snapshot extension classes**. See [complete classification](../Added-Public-Types-Classification/en.md). This section records the historical pre-cleanup classification that informed the two visibility batches. The resulting first-stable surface is now frozen at **126 exported types / 698 API entries** with the complete **1475/1475 GREEN** suite. Re-running the exact original 0.1.0 comparison remains optional historical diagnostics and is not a 1.0 release gate.
 
 
 ## 9. Source-only additions to existing concrete classes
