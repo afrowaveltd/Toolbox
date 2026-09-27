@@ -1,6 +1,6 @@
 # Context publication identity
 
-Status: **additive store-layer contract; seven focused tests included in maintainer-confirmed 1293/1293 GREEN suite**.
+Status: **frozen 1.0 store-layer contract; publication identity and consistency contracts are included in the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## What a generation means
 
