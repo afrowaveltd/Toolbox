@@ -21,6 +21,7 @@ $consumerDir = Join-Path $workspace 'consumer'
 $projectWorkspace = Join-Path $workspace 'project-jsons'
 $essentialsExtractDir = Join-Path $workspace 'essentials-extract'
 $extractDir = Join-Path $workspace 'package-extract'
+$symbolExtractDir = Join-Path $workspace 'symbol-package-extract'
 $nugetPackages = Join-Path $workspace 'nuget-packages'
 $previousNuGetPackages = $env:NUGET_PACKAGES
 $smokeSucceeded = $false
@@ -122,6 +123,14 @@ try {
 
     Assert-FileExists $candidateSymbolPackage
 
+    New-Item -ItemType Directory -Force -Path $symbolExtractDir | Out-Null
+    [System.IO.Compression.ZipFile]::ExtractToDirectory(
+        $candidateSymbolPackage,
+        $symbolExtractDir)
+
+    Assert-FileExists (
+        Join-Path $symbolExtractDir 'lib/net10.0/Afrowave.Toolbox.WhenItFails.pdb')
+
     $essentialsSymbolPackages = @(
         Get-ChildItem -LiteralPath $feed -File |
             Where-Object {
@@ -171,6 +180,7 @@ try {
     $repositoryNode = $metadata.SelectSingleNode("*[local-name()='repository']")
     $repositoryUrl = if ($null -eq $repositoryNode) { '' } else { [string]$repositoryNode.GetAttribute('url') }
     $repositoryType = if ($null -eq $repositoryNode) { '' } else { [string]$repositoryNode.GetAttribute('type') }
+    $repositoryCommit = if ($null -eq $repositoryNode) { '' } else { [string]$repositoryNode.GetAttribute('commit') }
 
     if ($packageId -ne 'Afrowave.Toolbox.WhenItFails') {
         throw "Unexpected package ID in nuspec: $packageId"
@@ -199,6 +209,10 @@ try {
     if ($repositoryUrl -ne 'https://github.com/afrowaveltd/Toolbox' -or
         $repositoryType -ne 'git') {
         throw "Unexpected repository metadata: type=$repositoryType url=$repositoryUrl"
+    }
+
+    if ([string]::IsNullOrWhiteSpace($repositoryCommit)) {
+        throw 'Candidate package repository commit metadata is missing.'
     }
 
     $essentialsDependencies =
@@ -468,7 +482,9 @@ Console.WriteLine($"RUNTIME_STATE={status.Data.State}");
     }
 
     $packageHash = (Get-FileHash -LiteralPath $candidatePackage.FullName -Algorithm SHA256).Hash
+    $symbolPackageHash = (Get-FileHash -LiteralPath $candidateSymbolPackage -Algorithm SHA256).Hash
     $dllHash = (Get-FileHash -LiteralPath (Join-Path $extractDir 'lib/net10.0/Afrowave.Toolbox.WhenItFails.dll') -Algorithm SHA256).Hash
+    $pdbHash = (Get-FileHash -LiteralPath (Join-Path $symbolExtractDir 'lib/net10.0/Afrowave.Toolbox.WhenItFails.pdb') -Algorithm SHA256).Hash
 
     $reportParent = Split-Path -Parent $ReportPath
     if ([string]::IsNullOrWhiteSpace($reportParent)) {
@@ -484,15 +500,18 @@ Console.WriteLine($"RUNTIME_STATE={status.Data.State}");
         ''
         "- Candidate package version: ``$PackageVersion``"
         "- Candidate nupkg SHA-256: ``$packageHash``"
+        "- Candidate snupkg SHA-256: ``$symbolPackageHash``"
         "- Candidate DLL SHA-256: ``$dllHash``"
+        "- Candidate PDB SHA-256: ``$pdbHash``"
         "- Essentials package: ``$($essentialsPackage.Name)``"
         '- Essentials icon/package entries: **present**'
         "- Essentials README matches ``Essentials/README.md``: **yes**"
         "- WhenItFails dependency on Essentials: ``$essentialsDependencyVersion`` (minimum supported baseline)"
         "- Package project URL: ``$packageProjectUrl``"
         "- Repository metadata: ``$repositoryType $repositoryUrl``"
+        "- Repository commit metadata: ``$repositoryCommit``"
         '- Package release notes: **present**'
-        '- Symbol packages: **present**'
+        '- Symbol package and net10.0 PDB: **present**'
         "- Package README matches ``WhenItFails/README.md``: **yes**"
         '- Required package entries: **present**'
         '- External consumer restore/build: **PASS**'
