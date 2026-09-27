@@ -60,9 +60,7 @@ This first owner snapshot is a separate narrow view. The existing
 `GetCombinedSnapshot()` and `GetCompletedCombinedSnapshot()` still
 contain only main definitions, categories and recorded validation;
 they do **not** automatically add owners or change their public shape.
-A future version can explicitly design a complete catalog view using
-one selected publication and ownership guarantees appropriate to
-the additional supporting documents.
+The later supporting-catalog and completed-full observation APIs provide the broader selected-publication views for consumers that need owners, code groups and profiles together. This narrow owner snapshot intentionally remains a separate lightweight view.
 
 No versioned JSON wire schema or direct deserialization contract is implied by this CLR projection. The API itself is included in the frozen 1.0 public surface.
 
