@@ -53,6 +53,13 @@ Last updated: 2026-09-27
 - Markdown-link validation for the current Toolbox documentation also completed without errors.
 - No Essentials runtime API or behavior changed in this packaging/documentation hardening sequence.
 
+## 2026-09-27 — first private publication prerequisite for WhenItFails
+
+- GitHub Packages was selected as the private NuGet registry for the Toolbox release family.
+- `Afrowave.Toolbox.WhenItFails 1.0.0` declares `Afrowave.Toolbox.Essentials 0.2.0` as its minimum package dependency, so Essentials **must be published first** for a clean feed-only consumer restore to succeed.
+- The retained final WhenItFails package-smoke workspace contains the exact Essentials 0.2.0 nupkg/snupkg built from release source commit `6face1742de35fbde665a9075c2e06649c171d7d`; that exact package was consumed transitively by the isolated PASS consumer.
+- Next publication preparation step: capture the exact Essentials nupkg/snupkg hashes and package repository metadata from the retained workspace, freeze those artifacts, create a versioned Essentials release tag for the matching source commit, then publish Essentials 0.2.0 before WhenItFails 1.0.0.
+
 ## Next step
 
 No additional Essentials blocker is open for the current WhenItFails release-readiness work. Continue with the WhenItFails 1.0 API/release review; the historical 0.1.0 compatibility artifact is unrelated to Essentials runtime verification.
