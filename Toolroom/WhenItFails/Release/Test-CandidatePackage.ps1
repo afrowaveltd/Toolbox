@@ -215,7 +215,7 @@ try {
 
     $unexpectedEssentialsDependencyVersions =
         @($essentialsDependencyVersions |
-            Where-Object { $_ -notmatch '0\.2\.0' })
+            Where-Object { $_ -ne '0.2.0' })
 
     if ($unexpectedEssentialsDependencyVersions.Count -gt 0) {
         throw "WhenItFails candidate has unexpected Essentials dependency version(s): $($unexpectedEssentialsDependencyVersions -join ', ')"
@@ -295,6 +295,20 @@ using ServiceProvider provider = services.BuildServiceProvider(
 
 IErrorCatalogRuntime runtime =
     provider.GetRequiredService<IErrorCatalogRuntime>();
+
+var whenItFailsAssembly = typeof(IErrorCatalogRuntime).Assembly;
+
+if (whenItFailsAssembly.GetName().Version != new Version(1, 0, 0, 0))
+{
+    throw new InvalidOperationException(
+        $"Unexpected WhenItFails assembly version: {whenItFailsAssembly.GetName().Version}");
+}
+
+if (whenItFailsAssembly.GetExportedTypes().Length != 126)
+{
+    throw new InvalidOperationException(
+        $"Unexpected WhenItFails exported type count: {whenItFailsAssembly.GetExportedTypes().Length}");
+}
 
 ErrorCatalogValidationResult[] unsupportedSchemaResults =
 [
@@ -414,6 +428,8 @@ if (!status.IsSuccess ||
 }
 
 Console.WriteLine("CANDIDATE_PACKAGE_SMOKE=PASS");
+Console.WriteLine($"ASSEMBLY_VERSION={whenItFailsAssembly.GetName().Version}");
+Console.WriteLine($"EXPORTED_TYPES={whenItFailsAssembly.GetExportedTypes().Length}");
 Console.WriteLine($"UNSUPPORTED_SCHEMA_VALIDATORS={unsupportedSchemaResults.Length}");
 Console.WriteLine($"PROJECT_FILES={expectedFiles.Length}");
 Console.WriteLine($"DESCRIPTOR_ID={descriptor.Data.Id}");
@@ -472,7 +488,7 @@ Console.WriteLine($"RUNTIME_STATE={status.Data.State}");
         "- Essentials package: ``$($essentialsPackage.Name)``"
         '- Essentials icon/package entries: **present**'
         "- Essentials README matches ``Essentials/README.md``: **yes**"
-        "- WhenItFails dependency on Essentials: ``$essentialsDependencyVersion``"
+        "- WhenItFails dependency on Essentials: ``$essentialsDependencyVersion`` (minimum supported baseline)"
         "- Package project URL: ``$packageProjectUrl``"
         "- Repository metadata: ``$repositoryType $repositoryUrl``"
         '- Package release notes: **present**'
@@ -480,6 +496,7 @@ Console.WriteLine($"RUNTIME_STATE={status.Data.State}");
         "- Package README matches ``WhenItFails/README.md``: **yes**"
         '- Required package entries: **present**'
         '- External consumer restore/build: **PASS**'
+        '- Stable assembly version 1.0.0.0 and 126 exported types: **PASS**'
         '- Unsupported schema-version rejection across five packaged validators: **PASS**'
         '- Strict project initialization and five-file bootstrap: **PASS**'
         '- Descriptor lookup: **PASS**'
