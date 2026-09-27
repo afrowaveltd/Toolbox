@@ -1,6 +1,6 @@
 # WhenItFails 1.0 release checklist
 
-Status: **pre-release working checklist** for the first published WhenItFails package.
+Status: **final pre-publication checklist** for the first published WhenItFails package. Runtime/API verification is GREEN; only a clean, immutable final artifact/tag/publication cycle remains.
 The current complete-suite baseline is maintainer-confirmed **1475/1475 GREEN**.
 The exact exported-type manifest is GREEN for the frozen **126 exported types / 698
 API entries** candidate surface. Commit `6afd3f6f` internalized 17 default
@@ -8,8 +8,9 @@ orchestration implementations and added the visibility contract; commit `147b963
 internalized five additional low-level helpers without changing the test count.
 
 The pre-cleanup Linux release-readiness checkpoint is maintainer-confirmed **PASS**.
-Because the exported surface changed in commit `6afd3f6f`, rerun the candidate
-package smoke after the new suite is GREEN. The previous PASS covered:
+The exported surface cleanup is complete. The exact stable `1.0.0` candidate
+package smoke has been rerun successfully after the frozen 126-type manifest was
+accepted. The verified gate covers:
 
 - Essentials tests completed without errors;
 - the complete WhenItFails suite is **1473/1473 GREEN**;
@@ -93,8 +94,11 @@ The script:
 9. performs strict project initialization and verifies all five project catalog files;
 10. resolves the canonical `UNKNOWNERROR` descriptor;
 11. explicitly resets to bundled defaults and verifies runtime status;
-12. verifies package ID/version, project URL, repository metadata, release notes,
-    README/license metadata, and both Essentials/WhenItFails symbol packages;
+12. verifies package ID/version, project URL, repository URL/type/commit metadata,
+    release notes and README/license metadata;
+13. verifies both Essentials/WhenItFails symbol packages and requires the WhenItFails
+    `.snupkg` to contain `lib/net10.0/Afrowave.Toolbox.WhenItFails.pdb`; the smoke
+    report records SHA-256 for the `.nupkg`, `.snupkg`, DLL and PDB;
 13. writes a SHA-256 report.
 
 A custom candidate version can be supplied without changing source metadata:
@@ -179,6 +183,14 @@ The final verification must also run once with `-PackageVersion 1.0.0` so the ex
 stable package that would be published is inspected.
 
 ## 9. Final package verification
+
+The previously retained `1.0.0` candidate fingerprint is **diagnostic only** because
+the maintainer worktree was DIRTY when it was inspected. It must not be promoted to
+the immutable first-publication artifact. Build the final artifact only after the
+release commit is checked out with a clean worktree, then run this complete gate
+again and record the replacement hashes.
+
+
 
 Create the final package into a clean release directory and record:
 
