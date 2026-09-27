@@ -8,6 +8,20 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 Core runtime hardening is complete for the current pre-1.0 scope. The original pre-cleanup source census is **148 exported types / 830 API entries**. The first 17-type visibility cleanup is maintainer-confirmed **1474/1474 GREEN**. Commit `147b96310090c6cbbb5f2a5819b440026fb6062b` applies a second 5-type helper cleanup without adding tests. **Maintainer-confirmed verification remains 1474/1474 GREEN** after this second batch. After the second GREEN verification, the source-only comparer measured **126 exported types / 698 API entries**. The remaining export set has been reviewed against repository usage and is pinned by an exact manifest test. **Maintainer-confirmed complete suite: 1475/1475 GREEN.** The **126 exported types / 698 API entries** surface is now the frozen first-stable candidate baseline. The complete Release suite, exact stable `1.0.0` candidate-package smoke, and Markdown-link validation are now maintainer-confirmed GREEN. Current work is limited to capturing the exact final artifact identity/hashes, tagging the frozen commit, and first publication verification.
 
+## 2026-09-27 — retained 1.0 candidate artifact fingerprint captured
+
+- Retained candidate package: `Afrowave.Toolbox.WhenItFails.1.0.0.nupkg`.
+- Package version: **1.0.0**; target framework: **net10.0**.
+- Candidate build reported local Git HEAD `0570b5c728ba6e5c86b3df9a59ec159db6baf386`.
+- **Important:** the maintainer's local worktree reported **DIRTY** when the artifact fingerprint was captured. Therefore this candidate is **not yet treated as cryptographically attributable to commit `0570b5c`** and must not yet be designated as the immutable first-publication artifact.
+- `.nupkg` SHA-256: `bfc65d24c637027d721bfb594f3be33bbc03e64d639d875fbd0279c9a4157e86`.
+- contained `lib/net10.0/Afrowave.Toolbox.WhenItFails.dll` SHA-256: `5ee40eb5b360e46cfccc51dbad4a12fc2604a0e0792844974815aec4c8f151a1`.
+- `.snupkg` is present; SHA-256: `4f4f9de68a310166b59267c1565da5739e23548636c5154959089225b28a940b`.
+- Required package content confirmed present: `README.md`, `LICENSE.txt`, runtime DLL and XML documentation.
+- Dependency metadata confirmed: `Afrowave.Toolbox.Essentials 0.2.0`, `Microsoft.Extensions.Configuration.Abstractions 10.0.9`, `Microsoft.Extensions.Configuration.Binder 10.0.9`, and `Microsoft.Extensions.DependencyInjection.Abstractions 10.0.9`.
+- This package remains an **internal/work candidate only**. WhenItFails still has **no previously published public release**; version 1.0.0 is intended to become the first publication only after the dirty-worktree ambiguity is resolved and one exact artifact is frozen/tagged.
+- Next: inspect the maintainer's local `git status --short` and diffs. Commit any intended source/documentation changes or discard unintended generated/local changes, obtain a clean worktree, then either prove this retained candidate matches the clean committed source or perform one final clean 1.0.0 package build and record its replacement hashes before tagging/publication.
+
 ## 2026-09-27 — exact stable 1.0 verification GREEN
 
 - **Complete Release suite: 1475/1475 GREEN**, 0 failed, 0 skipped; maintainer-reported test duration 1.3 s and successful build.
