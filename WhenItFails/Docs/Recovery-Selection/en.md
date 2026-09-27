@@ -1,6 +1,6 @@
 # Previous-context publication selection
 
-Status: **pre-1.0 internal recovery improvement; five focused tests awaiting local verification**.
+Status: **verified 1.0 recovery contract; the five focused cases are included in the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## No new write on previous-context recovery
 
@@ -50,8 +50,8 @@ a failing optional reader may also make
 
 The selected record field is internal infrastructure data, not a new
 public initialization-payload property or JSON field. The nine-method
-`IErrorCatalogRuntime`, legacy store/initializer contracts, published
-0.1.0 package and persisted catalog JSON schemas are unchanged.
+`IErrorCatalogRuntime`, legacy store/initializer contracts, the historical local
+0.1.0 reference artifact (which was never published), and persisted catalog JSON schemas are unchanged.
 
 ## Verification
 
@@ -60,7 +60,7 @@ focused cases: a successful previous-context selection with unchanged
 generation and incremented status sequence; a later same-reference
 republish; a later different-context republish; legacy store behavior;
 and fallback from a failing optional reader. No timing-dependent
-thread sleeps are used.
+thread sleeps are used. These cases are part of the maintainer-confirmed **1475/1475 GREEN** release suite.
 
 The next ownership boundary is a genuinely coherent combined
 catalog-and-status read, including what it means when external writers
