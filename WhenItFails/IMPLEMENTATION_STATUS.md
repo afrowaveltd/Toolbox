@@ -6,7 +6,16 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Core runtime hardening is complete for the current pre-1.0 scope. The original pre-cleanup source census is **148 exported types / 830 API entries**. The first 17-type visibility cleanup is maintainer-confirmed **1474/1474 GREEN**. Commit `147b96310090c6cbbb5f2a5819b440026fb6062b` applies a second 5-type helper cleanup without adding tests. **Maintainer-confirmed verification remains 1474/1474 GREEN** after this second batch. After the second GREEN verification, the source-only comparer measured **126 exported types / 698 API entries**. Continue the final intentional tooling/DI API review before the package/documentation release gates.
+Core runtime hardening is complete for the current pre-1.0 scope. The original pre-cleanup source census is **148 exported types / 830 API entries**. The first 17-type visibility cleanup is maintainer-confirmed **1474/1474 GREEN**. Commit `147b96310090c6cbbb5f2a5819b440026fb6062b` applies a second 5-type helper cleanup without adding tests. **Maintainer-confirmed verification remains 1474/1474 GREEN** after this second batch. After the second GREEN verification, the source-only comparer measured **126 exported types / 698 API entries**. The remaining export set has been reviewed against repository usage and is now pinned by an exact manifest test; verify the expected **1475/1475 GREEN** suite before promoting it to the frozen first-stable baseline.
+
+## 2026-09-27 — first stable exported-type manifest freeze (verification pending)
+
+- Fresh source comparer census after both cleanup batches: **126 exported types / 698 API entries** from source DLL SHA-256 `A468E68DEF8F703F452EEA97B6125797E15FEF96D1E5930422321170ECFADA7A`.
+- Repository usage audit found no additional concrete helper that should be hidden without also refactoring intentional Toolbox Setter/release-tooling consumers.
+- Commit `b8336c3300e5adf2381697021152624531fc1cad` adds `StableReleaseExportedTypeManifestContractTests`, containing the exact 126-type candidate 1.0 exported-type manifest.
+- The manifest fails on either an accidental new exported type or an accidental removed/renamed exported type. Deliberate public-surface changes must update the manifest and release documentation explicitly.
+- This adds one test; expected complete-suite total is now **1475/1475 GREEN**.
+- Next: run the complete WhenItFails Release suite. If GREEN, promote the 126/698 census to the frozen first-stable public-type baseline and proceed to final package/dependency/version gates.
 
 ## 2026-09-27 — post-cleanup source census measured
 
