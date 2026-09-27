@@ -1,6 +1,6 @@
 # Completed combined catalog and status snapshot
 
-Status: **additive pre-1.0 API candidate; six focused tests await local verification**.
+Status: **frozen 1.0 additive API; six focused contract tests are included in the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## Purpose
 
@@ -88,8 +88,8 @@ checks nor one runtime's instance-local activation gate serialize
 external writers.
 
 No stable JSON wire schema or direct deserialization contract for these
-getter-only projection types is promised. Package version 0.1.0 and
-persisted catalog JSON formats are unchanged.
+getter-only projection types is promised. The historical local 0.1.0 reference
+artifact was never published; persisted catalog JSON formats remain separately versioned.
 
 ## Verification
 
