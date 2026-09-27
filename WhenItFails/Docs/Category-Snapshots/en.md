@@ -1,6 +1,6 @@
 # Detached category catalog snapshots
 
-Status: **additive pre-1.0 API candidate; six focused tests await local verification**.
+Status: **frozen 1.0 additive API; six focused contract tests are included in the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## Scope and usage
 
