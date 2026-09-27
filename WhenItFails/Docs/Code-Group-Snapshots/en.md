@@ -1,6 +1,6 @@
 # Detached code group catalog snapshots
 
-Status: **additive pre-1.0 API candidate; six focused tests await local verification**.
+Status: **frozen 1.0 additive API; six focused contract tests are included in the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## Purpose and usage
 
@@ -52,10 +52,10 @@ publications if activation occurs between calls. The existing combined
 snapshot APIs are **not** silently extended with code groups; their
 public data shape remains unchanged.
 
-This pre-1.0 CLR projection does not promise a versioned JSON wire
-format or direct deserialization into the getter-only snapshot type.
-The local 0.1.0 reference package artifact and persistent catalog JSON schemas are
-unchanged by this source-development step.
+This CLR projection does not promise a versioned JSON wire format or direct
+deserialization into the getter-only snapshot type. The historical local 0.1.0
+reference artifact (never published) and persistent catalog JSON schemas remain
+separate compatibility concerns.
 
 ## Verification
 
