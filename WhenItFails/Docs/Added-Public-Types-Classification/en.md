@@ -1,6 +1,6 @@
 # Classification of 38 added public types after 0.1.0
 
-Review checkpoint: 2026-09-25. Scope: **the 38 source-only exported type names actually supplied by the maintainer** from the isolated NuGet 0.1.0 versus current source API comparison. This is a provisional 1.0 API classification, **not** a change of CLR visibility or a 1.0 compatibility guarantee.
+Review checkpoint: 2026-09-25. Scope: **the 38 source-only exported type names actually supplied by the maintainer** from the isolated local NuGet 0.1.0 versus source API comparison. This document is historical classification evidence; the current 1.0 visibility decision is the frozen **126 exported types / 698 API entries** surface.
 
 ## Observed comparison
 
@@ -70,12 +70,12 @@ Historical full-comparer delta: source-only **38 types, 219 API entries**; packa
 - `Afrowave.Toolbox.WhenItFails.Runtime.ErrorProfileCatalogSnapshotExtensions`
 - `Afrowave.Toolbox.WhenItFails.Runtime.ErrorSupportingCatalogsSnapshotExtensions`
 
-## Compatibility boundaries and pending evidence
+## Historical compatibility boundaries and evidence
 
 The absence of package-only types/signatures in this comparer is useful evidence for preserving the inspected public signature census. It is **not** proof of full ABI/source, nullable metadata, serialization, behavior or complete dependency compatibility. The 38 names **do** now have an existing-type API census follow-up: exactly **14** additions are on the two previously exported concrete types and **205** entries are on the 38 new types; see [original-type additions](../Original-Type-API-Additions/en.md).
 
 Do not make these publicly exported types `internal` merely because their intended audience is infrastructure. Any future visibility restriction or 1.0 API freeze requires a separate compatibility and consumer-usage decision. The historic 110-type and 611-entry figures describe the requested 0.1.0 package consumer, not current source.
 
-Remaining verification is now specifically the **exact 0.1.0 comparison**, not the library suite or current source census. The refreshed source-side comparer reports **148 exported types / 830 API entries**, so no current source-side census drift is observed. Rerun the source/package comparer against the maintainer-held original 0.1.0 artifact when available, then review whether member counts or deltas changed before converting these ownership groups into a final 1.0 compatibility decision.
+The exact original 0.1.0 comparison remains optional historical diagnostics only. The subsequent visibility cleanup and final source-only comparer produced the accepted **126 exported types / 698 API entries** first-stable surface, which is now protected by the exact manifest and the **1475/1475 GREEN** release suite.
 
 A later maintainer-supplied filtered API excerpt identifies **all 14** additions to existing concrete types; the remaining **205 census entries** belong to the 38 new exported types. See [original-type API additions](../Original-Type-API-Additions/en.md).
