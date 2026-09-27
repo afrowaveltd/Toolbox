@@ -6,7 +6,28 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Core runtime hardening is complete for the current pre-1.0 scope. The original pre-cleanup source census is **148 exported types / 830 API entries**. The first 17-type visibility cleanup is maintainer-confirmed **1474/1474 GREEN**. Commit `147b96310090c6cbbb5f2a5819b440026fb6062b` applies a second 5-type helper cleanup without adding tests. **Maintainer-confirmed verification remains 1474/1474 GREEN** after this second batch. After the second GREEN verification, the source-only comparer measured **126 exported types / 698 API entries**. The remaining export set has been reviewed against repository usage and is pinned by an exact manifest test. **Maintainer-confirmed complete suite: 1475/1475 GREEN.** The **126 exported types / 698 API entries** surface is now the frozen first-stable candidate baseline. The complete Release suite, exact stable `1.0.0` candidate-package smoke, and Markdown-link validation are maintainer-confirmed GREEN. A full pre-publication repository audit found no runtime/API implementation blocker for 1.0; stale release-documentation checkpoints were reconciled and Setter status was separated from the package gate. Current work is limited to obtaining a clean local worktree on the latest GitHub `master`, rerunning the final clean release gates, freezing one exact artifact/hash set, tagging that exact commit, and performing the first publication to the intended private package feed.
+Core runtime hardening is complete for the current pre-1.0 scope. The original pre-cleanup source census is **148 exported types / 830 API entries**. The first 17-type visibility cleanup is maintainer-confirmed **1474/1474 GREEN**. Commit `147b96310090c6cbbb5f2a5819b440026fb6062b` applies a second 5-type helper cleanup without adding tests. **Maintainer-confirmed verification remains 1474/1474 GREEN** after this second batch. After the second GREEN verification, the source-only comparer measured **126 exported types / 698 API entries**. The remaining export set has been reviewed against repository usage and is pinned by an exact manifest test. **Maintainer-confirmed complete suite: 1475/1475 GREEN.** The **126 exported types / 698 API entries** surface is now the frozen first-stable candidate baseline. The complete Release suite, exact stable `1.0.0` candidate-package smoke, and Markdown-link validation are maintainer-confirmed GREEN. A full pre-publication repository audit found no runtime/API implementation blocker for 1.0; stale release-documentation checkpoints were reconciled and Setter status was separated from the package gate. The clean final release gate has now passed on commit `6face1742de35fbde665a9075c2e06649c171d7d`. The exact `1.0.0` nupkg/snupkg/DLL/PDB hash set is frozen and the package repository metadata points to that same commit. Current work is limited to tagging **that exact commit**, publishing **those exact retained artifacts** to the intended private package feed, and verifying a clean restore by package ID/version after publication.
+
+## 2026-09-27 — final 1.0.0 artifact gate PASS and frozen
+
+- Clean release source commit: `6face1742de35fbde665a9075c2e06649c171d7d`.
+- Worktree was confirmed clean before and after the final gate.
+- Complete Release suite: **1475/1475 GREEN**, 0 failed, 0 skipped.
+- Markdown validation: **46 files / 431 local links / 0 broken links**.
+- Exact stable `Afrowave.Toolbox.WhenItFails 1.0.0` candidate-package smoke: **PASS**.
+- External isolated NuGet consumer restore/build/execute: **PASS**.
+- Assembly version: **1.0.0.0**; exported types: **126**.
+- Package repository commit metadata is exactly `6face1742de35fbde665a9075c2e06649c171d7d`.
+- Final `.nupkg` SHA-256: `FF33822150E18C4A5E3410B74888797354D345BBF9C0664F4B8A6CDB93E974EA`.
+- Final `.snupkg` SHA-256: `4410D1346019258391F83A8AB193EAA09A1759BFDF7DFE7887414266AB90B3C7`.
+- Final packaged DLL SHA-256: `01AEDDB2CB8CD9C1C89CA6D72CE3B6E3665A827495C183B25FDE4CF1353FA4CE`.
+- Final packaged PDB SHA-256: `F79859D6E876F61867E7ED8374B91A67F5A8B2DF0EEC448F6E60A85D7DC5378B`.
+- Essentials dependency: **0.2.0 minimum supported baseline**; package metadata/README/license/XML docs/symbol package/PDB all verified present.
+- Unsupported schema-version rejection across all five packaged validators, strict five-file initialization, canonical descriptor lookup, explicit built-in reset, and runtime status are all verified by the package smoke.
+- The retained release workspace is `/tmp/WIF-CandidatePackage-b6cc82a4fd2c437b803f64ff1c8c1273`; the exact nupkg to publish is its `feed/Afrowave.Toolbox.WhenItFails.1.0.0.nupkg`, with the matching `.snupkg` from the same feed.
+- These artifacts are now the **immutable first-publication artifacts**. Do not rebuild another `1.0.0` for publication.
+- WhenItFails still has **no previously published release**. Existing earlier NuGet files remain internal/work artifacts only.
+- Next: create a namespaced release tag pointing to **`6face174...`**, publish the exact retained nupkg/snupkg to the intended private feed, then verify clean restore/execute from that feed and record publication details here.
 
 ## 2026-09-27 — full first-publication readiness audit complete
 
