@@ -1,5 +1,7 @@
 # ASP.NET Core Problem Details integration plan
 
+Status: **post-1.0 integration-package roadmap; explicitly outside the core WhenItFails 1.0.0 release scope**.
+
 ## Purpose
 
 WhenItFails should integrate cleanly with ASP.NET Core HTTP APIs without introducing ASP.NET Core dependencies into the core `Afrowave.Toolbox.WhenItFails` package.
@@ -14,7 +16,7 @@ web.includeExceptionDetails
 web.includeStackTrace
 ```
 
-The missing piece is an explicit adapter between the WhenItFails runtime model and ASP.NET Core.
+A future integration package can provide an explicit adapter between the WhenItFails runtime model and ASP.NET Core. This adapter is not required for the core `Afrowave.Toolbox.WhenItFails` 1.0.0 release.
 
 ## Packaging
 
@@ -32,7 +34,7 @@ Afrowave.Toolbox.WhenItFails.AspNetCore
 
 This keeps the core package usable by CLI, desktop, services, workers and other non-web applications.
 
-## First stable scope
+## First integration-package scope
 
 The first implementation should provide a deterministic conversion from:
 
@@ -216,11 +218,11 @@ When implemented:
 - document controller and Minimal API examples,
 - document OpenAPI behavior.
 
-## Release priority
+## Release scope
 
-Problem Details support is considered a strong candidate for the first stable WhenItFails release because HTTP APIs are a primary consumer of structured errors and the existing WEB/API profile mappings already anticipate this integration.
+Problem Details support is intentionally **deferred until after the core 1.0.0 release**. HTTP APIs remain an important consumer of structured errors, and the existing WEB/API profile mappings anticipate this integration, but the adapter belongs in a separate package so the first stable core does not acquire ASP.NET Core dependencies.
 
-It should be implemented as an integration package rather than by coupling ASP.NET Core directly into the core runtime.
+When implemented, it should be delivered as an integration package rather than by coupling ASP.NET Core directly into the core runtime.
 
 ## Central principle
 
