@@ -1,6 +1,6 @@
 # Detached profile catalog snapshots
 
-Status: **additive pre-1.0 CLR API candidate; six focused tests included in maintainer-confirmed 1365/1365 GREEN suite**.
+Status: **frozen 1.0 additive API; profile snapshot contracts are included in the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## Purpose and usage
 
