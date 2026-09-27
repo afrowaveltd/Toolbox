@@ -4,7 +4,7 @@ Status: **first-stable-release API freeze accepted: 126 exported types / 698 API
 
 WhenItFails has not been published and has no external consumers. The maintainer-held
 local 0.1.0 artifact is therefore historical test evidence, **not a compatibility
-target or release gate**. The 1.0 surface is now frozen for release-candidate verification. Any deliberate
+target or release gate**. The 1.0 surface is now frozen for final pre-publication verification. Any deliberate
 public-surface change requires an explicit manifest/policy update and a new full
 release verification cycle before publication.
 
@@ -271,21 +271,18 @@ Because both packages are maintained in the same Toolbox repository, future
 Essentials changes that would break WhenItFails require an explicit WhenItFails
 compatibility/release decision rather than silently relying on the dependency range.
 
-## 9. 1.0 freeze gate
+## 9. 1.0 freeze gate — accepted
 
-Before declaring the 1.0 public surface frozen:
+The public-surface freeze gate is accepted. The following conditions define the
+established 1.0 baseline; any deliberate public-surface change reopens the gate and
+requires a fresh complete verification cycle:
 
-1. lock the reviewed 126-type candidate export set with an exact manifest contract;
-2. treat **126 exported types / 698 API entries** as the current first-stable candidate
-   census and rerun the census after any deliberate public-surface change;
-3. confirm the complete WhenItFails suite, Essentials suite, candidate package smoke,
-   external-consumer smoke and documentation validation are GREEN;
-4. review every remaining exported type as core API, extension point, transitive model,
-   snapshot/observation contract or intentional standalone/tooling utility;
-5. finalize package version/release notes and the supported Essentials dependency
-   policy;
-6. pack the exact final `1.0.0` artifact, record hashes, restore it into a clean
-   external consumer, and only then publish/tag that exact commit.
+1. the reviewed 126-type export set is locked by an exact manifest contract;
+2. **126 exported types / 698 API entries** is the frozen first-stable census; rerun the census after any deliberate public-surface change;
+3. the complete WhenItFails suite, Essentials build/consumption path, exact `1.0.0` candidate package smoke, external-consumer smoke and documentation validation have been confirmed GREEN;
+4. every remaining exported type has been reviewed as core API, extension point, transitive model, snapshot/observation contract or intentional standalone/tooling utility;
+5. package version/release notes and the supported Essentials dependency policy are finalized;
+6. the remaining pre-publication step is to pack the exact final `1.0.0` artifact from a clean release commit, record its hashes, restore/execute it in the isolated consumer, then tag and publish that exact immutable artifact/commit pair.
 
 The historical 0.1.0 artifact is optional diagnostic evidence and is not part of this
 freeze gate.
