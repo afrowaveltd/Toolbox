@@ -1,6 +1,6 @@
 # Publication-aware combined snapshots
 
-Status: **additive pre-1.0 API candidate; maintainer-confirmed complete 1300/1300 GREEN suite after the required NotSupported(data: null) build correction**.
+Status: **frozen 1.0 advanced observation API; publication-aware snapshot contracts are included in the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## Purpose
 
