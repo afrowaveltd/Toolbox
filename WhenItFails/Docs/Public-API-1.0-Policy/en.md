@@ -1,11 +1,12 @@
 # WhenItFails 1.0 public API policy
 
-Status: **first-stable-release policy under final surface cleanup; both visibility batches verified, candidate public surface measured at 126 exported types / 698 API entries**.
+Status: **first-stable-release API freeze accepted: 126 exported types / 698 API entries, exact 126-type manifest confirmed by the 1475/1475 GREEN suite**.
 
 WhenItFails has not been published and has no external consumers. The maintainer-held
 local 0.1.0 artifact is therefore historical test evidence, **not a compatibility
-target or release gate**. The 1.0 surface may still make deliberate breaking cleanup
-changes until the final 1.0 baseline is verified and published.
+target or release gate**. The 1.0 surface is now frozen for release-candidate verification. Any deliberate
+public-surface change requires an explicit manifest/policy update and a new full
+release verification cycle before publication.
 
 This document defines **support level and compatibility intent**. It does not change
 CLR visibility by itself and does not turn every public type into an application-level
@@ -257,6 +258,18 @@ The original local 0.1.0 package may still be used for historical comparison or
 binary-smoke diagnostics. Because it was never published or consumed externally, its
 surface does not constrain the first stable 1.0 release. No final-release decision
 depends on reproducing that artifact.
+
+## Package dependency policy
+
+`Afrowave.Toolbox.WhenItFails 1.0.0` depends on
+`Afrowave.Toolbox.Essentials 0.2.0` as its **minimum supported baseline**.
+
+The generated NuGet dependency text remains `0.2.0`, which NuGet interprets as
+version 0.2.0 or higher while resolving the lowest applicable version by default.
+No artificial upper bound is added without a demonstrated compatibility reason.
+Because both packages are maintained in the same Toolbox repository, future
+Essentials changes that would break WhenItFails require an explicit WhenItFails
+compatibility/release decision rather than silently relying on the dependency range.
 
 ## 9. 1.0 freeze gate
 
