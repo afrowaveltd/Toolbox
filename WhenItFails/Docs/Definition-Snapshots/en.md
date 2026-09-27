@@ -1,6 +1,6 @@
 # Detached error definition snapshots
 
-Status: **additive pre-1.0 API candidate; functional, public-surface, JSON and nullable snapshot contracts are included in the maintainer-confirmed 1473/1473 GREEN suite**.
+Status: **frozen 1.0 additive API; functional, public-surface, JSON and nullable snapshot contracts are included in the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## Scope
 
