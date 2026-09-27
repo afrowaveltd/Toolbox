@@ -72,10 +72,9 @@ one coherent multi-view snapshot.
 
 The default store implements [`IErrorCatalogContextPublisher.Publish(context)`](../Publication-Ownership/en.md), which returns the exact record created by its successful atomic write. The default initializer and runtime reset/fallback now carry this record into status completion. Custom initializer paths without an owned write token still require an ownership design. Default recovery without a new write now selects the **existing** publication and its context in one read when the optional reader works; legacy/unavailable readers retain weaker association. See [previous-context selection](../Recovery-Selection/en.md).
 
-## Next design decision
+## Remaining boundary after the 1.0 ownership work
 
-A stronger contract needs **publication ownership**, not only a lock
-around `ErrorCatalogRuntime`:
+The 1.0 design now has **publication ownership** for the default owned-write paths, not only a lock around `ErrorCatalogRuntime`. The remaining boundary is external/custom writers:
 
 - A store operation that returns the **specific publication record**
   created by the successful write: implemented by the default optional
@@ -87,9 +86,7 @@ around `ErrorCatalogRuntime`:
   instances sharing the store; legacy/custom stores lacking the
   capability must receive a clearly defined weaker result rather
   than a fabricated ownership token.
-- Read-side semantics for stale-but-previously-completed observations,
-  and a separately designed coherent combined data/status capture
-  if the consumer requires both from the same selected publication.
+- Read-side semantics for stale-but-previously-completed observations are handled by the completed-observation readers. External/custom writers still cannot be made globally transactional without a broader store-wide protocol.
 
 Do not treat an independently generated GUID, a hash of the context
 reference, a timestamp, or merely double-reading `Generation` as
