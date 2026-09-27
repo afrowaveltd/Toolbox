@@ -1,6 +1,31 @@
 # Current exported API inventory and historical 0.1.0 comparison
 
-Status: pre-1.0 first-stable surface cleanup. Complete **1474/1474 GREEN** suite confirmed after two visibility batches. The last measured **148 exported types / 830 API entries** census is the pre-cleanup reference; a fresh post-cleanup source-only census and compiled inventory are now required. Historical 0.1.0 package comparison is optional diagnostics only.
+Status: pre-1.0 first-stable surface cleanup. Complete **1474/1474 GREEN** suite confirmed after two visibility batches. The fresh post-cleanup source-only census is **126 exported types / 698 API entries** from source DLL SHA-256 `A468E68DEF8F703F452EEA97B6125797E15FEF96D1E5930422321170ECFADA7A`. Historical 0.1.0 package comparison is optional diagnostics only.
+
+## 2026-09-27 post-cleanup 1.0 candidate census
+
+After both intentional visibility cleanup batches, the maintainer reran
+`Compare-PublicApi.ps1 -SourceOnly` against current master.
+
+Measured current source surface:
+
+- **126 exported types**;
+- **698 comparer API entries**;
+- source DLL SHA-256:
+  `A468E68DEF8F703F452EEA97B6125797E15FEF96D1E5930422321170ECFADA7A`;
+- complete WhenItFails suite: **1474/1474 GREEN**.
+
+Compared with the pre-cleanup 148/830 census, the first-stable cleanup removed
+**22 exported types and 132 API entries**. The complete exported-type list from this
+report is now the candidate 1.0 type manifest. Remaining concrete exports were checked
+against repository usage: the typed loaders, validators, catalog/document normalizers,
+bootstrap/template implementations, profile resolver, writer, documentation helpers,
+cross-validator and key normalizer all have intentional Toolbox Setter/release-tooling
+consumers. Snapshot/observation types and DI interfaces are intentional supported
+advanced/extension contracts.
+
+The next freeze step is an exact exported-type manifest contract so later accidental
+visibility changes fail tests before release.
 
 ## Two different measurements
 
