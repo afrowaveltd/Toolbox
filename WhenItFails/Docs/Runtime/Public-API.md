@@ -225,7 +225,7 @@ Response<ErrorCategoryCatalogSnapshot> categoryResponse =
     runtime.GetCategoryCatalogSnapshot();
 ```
 
-This category view is independently captured; it does **not** share a context-generation identifier with separate definition/validation snapshot calls. Refer to [category snapshot ownership and context identity](../Category-Snapshots/en.md). A combined capture and stable activation identity remain separate design steps.
+This category view is independently captured; it does **not** share a context-generation identifier with separate definition/validation snapshot calls. Refer to [category snapshot ownership and context identity](../Category-Snapshots/en.md). Consumers that need one selected source reference can use the combined snapshot APIs; consumers that need a matched completed publication/status observation can use the optional completed-observation readers documented below.
 
 ## Combined detached catalog snapshot
 
