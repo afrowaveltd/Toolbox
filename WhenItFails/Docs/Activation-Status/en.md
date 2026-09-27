@@ -1,6 +1,6 @@
 # Completed runtime activation status observations
 
-Status: **additive pre-1.0 candidate; eight focused tests included in the maintainer-confirmed 1314/1314 GREEN suite**.
+Status: **frozen 1.0 advanced runtime contract; focused activation-observation tests remain covered by the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## Why this is separate from a context generation
 
