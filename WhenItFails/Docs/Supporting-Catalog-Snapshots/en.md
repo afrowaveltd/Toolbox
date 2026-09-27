@@ -1,6 +1,6 @@
 # Detached all-supporting-catalog snapshot
 
-Status: **additive pre-1.0 CLR API candidate; 12 focused cases included in maintainer-confirmed 1377/1377 GREEN suite**.
+Status: **frozen 1.0 additive API; supporting-catalog snapshot contracts are included in the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## Scope
 
