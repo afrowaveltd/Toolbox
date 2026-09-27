@@ -60,8 +60,8 @@ has succeeded, cancellation is too late to roll that activation back or report
 it as aborted. The runtime therefore does not recheck the token after a
 successful owned publication; it completes the matching status and activation
 observation. Three deterministic contracts cover project initialization,
-explicit reset and automatic flexible fallback. These contracts are included
-in the current maintainer-confirmed **1473/1473 GREEN** complete suite.
+explicit reset and automatic flexible fallback. These contracts remain included
+in the final maintainer-confirmed **1475/1475 GREEN** release suite.
 
 ## Initialization modes
 
