@@ -8,6 +8,16 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 Core runtime hardening is complete for the current pre-1.0 scope. The original pre-cleanup source census is **148 exported types / 830 API entries**. The first 17-type visibility cleanup is maintainer-confirmed **1474/1474 GREEN**. Commit `147b96310090c6cbbb5f2a5819b440026fb6062b` applies a second 5-type helper cleanup without adding tests. **Maintainer-confirmed verification remains 1474/1474 GREEN** after this second batch. After the second GREEN verification, the source-only comparer measured **126 exported types / 698 API entries**. The remaining export set has been reviewed against repository usage and is pinned by an exact manifest test. **Maintainer-confirmed complete suite: 1475/1475 GREEN.** The **126 exported types / 698 API entries** surface is now the frozen first-stable candidate baseline. Current work moves to package dependency/version/metadata and final artifact verification.
 
+## 2026-09-27 — final 1.0 package metadata prepared
+
+- **Public API freeze accepted:** maintainer-confirmed **1475/1475 GREEN**, frozen **126 exported types / 698 API entries**, exact 126-type manifest contract GREEN.
+- Commit `458f0cc41f14037cf7d1f933e3c564b53543471e` changes `WhenItFails.csproj` from development `0.1.0` metadata to the intended first stable **1.0.0** and replaces pre-release release notes with first-stable wording.
+- Essentials remains at verified `0.2.0`. For WhenItFails 1.0, `0.2.0` is the **minimum supported Essentials baseline**; the generated NuGet dependency text is intentionally `0.2.0` (NuGet minimum-version semantics).
+- Commit `709b2a3f93f2258f0e4cf572a90abd53a28a0363` strengthens the external candidate-package smoke: the packaged assembly must be `1.0.0.0`, export exactly 126 types, and every Essentials dependency node must be exactly `0.2.0`.
+- Commits `38f452f0`, `4e33bc78`, and `6948c353` update the API policy, release checklist and package README for final 1.0 verification.
+- No runtime/API behavior changed in this metadata step, but the assembly/package version changed and therefore requires a fresh complete build/test plus package smoke.
+- Next: run the complete WhenItFails Release suite, then run `Test-CandidatePackage.ps1 -PackageVersion 1.0.0` against the exact stable version and validate Markdown links. If all pass, create and retain the final release artifacts/hashes from that frozen commit.
+
 ## 2026-09-27 — first stable exported-type manifest freeze (1475/1475 GREEN)
 
 - Fresh source comparer census after both cleanup batches: **126 exported types / 698 API entries** from source DLL SHA-256 `A468E68DEF8F703F452EEA97B6125797E15FEF96D1E5930422321170ECFADA7A`.
