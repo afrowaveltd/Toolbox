@@ -1,6 +1,6 @@
 # Exact context publication ownership
 
-Status: **additive store-layer contract; owned-write and no-write recovery-selection contracts are included in the maintainer-confirmed 1473/1473 GREEN suite**.
+Status: **frozen 1.0 store-layer contract; owned-write and no-write recovery-selection contracts are included in the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## Why a successful write must return its own publication
 
