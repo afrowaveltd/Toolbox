@@ -132,8 +132,8 @@ must retain the earlier active context and record
 `PreviousContextRecovery` with `UnknownErrorCodeGroup`. Explicit caller
 repair must then activate a new non-degraded project context, clear all
 recovery metadata, and leave all existing files byte-for-byte unchanged.
-This new case is pending local verification (expected complete suite
-**1465/1465 GREEN**, last confirmed **1464/1464 GREEN**).
+This case was subsequently verified and is included in the final maintainer-confirmed
+**1475/1475 GREEN** release suite.
 
 ## Strict mode
 
