@@ -115,5 +115,5 @@ successful activation; a changed publication record must be rejected
 even if the live context object is the same reference.
 
 **Verified:** the 22 focused completed-full cases and the later nullable-contract
-coverage are included in the current maintainer-confirmed **1473/1473 GREEN**
-complete suite; see [snapshot nullable contracts](../Nullable-Snapshot-Contracts/en.md).
+coverage remain included in the final maintainer-confirmed **1475/1475 GREEN**
+release suite; see [snapshot nullable contracts](../Nullable-Snapshot-Contracts/en.md).
