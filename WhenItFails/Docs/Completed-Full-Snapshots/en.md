@@ -1,6 +1,6 @@
 # Completed full operational catalog and activation snapshot
 
-Status: **additive pre-1.0 CLR API candidate; completed-full, race/activation and nullable contracts are included in the maintainer-confirmed 1473/1473 GREEN suite**.
+Status: **frozen 1.0 advanced observation API; completed-full, race/activation and nullable contracts are included in the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## Scope and usage
 
