@@ -1,6 +1,6 @@
 # WhenItFails 1.0 public API policy
 
-Status: **first-stable-release policy under final surface cleanup; first 17-type batch verified, second 5-type helper batch committed and verification pending**.
+Status: **first-stable-release policy under final surface cleanup; both visibility batches verified, candidate public surface measured at 126 exported types / 698 API entries**.
 
 WhenItFails has not been published and has no external consumers. The maintainer-held
 local 0.1.0 artifact is therefore historical test evidence, **not a compatibility
@@ -197,8 +197,9 @@ applies the first visibility batch to 17 DI-only implementation classes and is
 maintainer-confirmed in the **1474/1474 GREEN** suite. Commit
 `147b96310090c6cbbb5f2a5819b440026fb6062b` applies a second cleanup to the
 generic JSON document loader plus four definition normalizers and hides their
-injection-only constructors from the exported surface; verification of that second
-batch is pending.
+injection-only constructors from the exported surface. The second batch is also
+maintainer-confirmed in the **1474/1474 GREEN** suite. The fresh post-cleanup census
+is **126 exported types / 698 API entries**.
 
 The final cleanup explicitly targets DI-only implementation classes such as the
 default runtime, context store/provider, initializer, catalog providers/factory,
@@ -261,9 +262,9 @@ depends on reproducing that artifact.
 
 Before declaring the 1.0 public surface frozen:
 
-1. complete the intentional visibility cleanup of default implementation classes;
-2. rerun the source-only comparer and exported-assembly inventory and record the new
-   stable 1.0 counts;
+1. lock the reviewed 126-type candidate export set with an exact manifest contract;
+2. treat **126 exported types / 698 API entries** as the current first-stable candidate
+   census and rerun the census after any deliberate public-surface change;
 3. confirm the complete WhenItFails suite, Essentials suite, candidate package smoke,
    external-consumer smoke and documentation validation are GREEN;
 4. review every remaining exported type as core API, extension point, transitive model,
