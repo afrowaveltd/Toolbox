@@ -1,6 +1,6 @@
 # Precompiled NuGet 0.1.0 consumer: source DLL substitution smoke
 
-Status: **maintainer-confirmed PASS for this targeted precompiled-consumer DLL-swap smoke (2026-09-25)**. Last maintainer-confirmed complete library test suite: **1445/1445 GREEN**.
+Status: **maintainer-confirmed PASS for the targeted historical precompiled-consumer DLL-swap modes (2026-09-25)**. These checks use the never-published local 0.1.0 reference artifact and are optional diagnostics for 1.0; the current release suite is **1475/1475 GREEN**.
 
 ## What this verifies
 
@@ -141,7 +141,7 @@ fallback, strict-mode failures, concurrent mutation or arbitrary malformed
 catalog content. No additional xUnit cases or production changes are
 included in this checkpoint.
 
-## Optional first-start malformed-project built-in fallback (pending)
+## Optional first-start malformed-project built-in fallback (PASS confirmed)
 
 `-ExerciseFirstStartFallback` is a separate, mutually exclusive mode.
 In each of the two isolated temporary workspaces, the disposable
