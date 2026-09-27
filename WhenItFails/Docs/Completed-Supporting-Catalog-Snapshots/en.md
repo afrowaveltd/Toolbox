@@ -1,6 +1,6 @@
 # Completed activation with detached supporting catalogs
 
-Status: **additive pre-1.0 CLR API candidate; 15 focused cases included in maintainer-confirmed 1407/1407 GREEN suite**.
+Status: **frozen 1.0 advanced observation API; supporting-catalog activation contracts are included in the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## Purpose and usage
 
