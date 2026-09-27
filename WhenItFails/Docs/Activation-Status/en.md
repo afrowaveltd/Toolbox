@@ -97,8 +97,8 @@ This rule prevents a split state in which the store contains a new context but
 the activation call throws as though no activation occurred. Three focused
 contracts cover project initialization, explicit built-in reset and automatic
 flexible fallback using a publication-capable store that cancels the token only
-after the atomic write succeeds. These contracts are included in the current
-maintainer-confirmed **1473/1473 GREEN** complete suite.
+after the atomic write succeeds. These contracts remain included in the final
+maintainer-confirmed **1475/1475 GREEN** release suite.
 
 ## Serialized activation on the default runtime
 
