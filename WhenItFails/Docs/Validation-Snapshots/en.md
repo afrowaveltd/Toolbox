@@ -1,6 +1,6 @@
 # Detached cross-validation snapshots
 
-Status: **additive pre-1.0 API candidate; current contracts included in the maintainer-confirmed 1473/1473 GREEN suite**.
+Status: **frozen 1.0 additive API; validation snapshot contracts are included in the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## Purpose and usage
 
