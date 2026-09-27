@@ -24,8 +24,9 @@ cross-validator and key normalizer all have intentional Toolbox Setter/release-t
 consumers. Snapshot/observation types and DI interfaces are intentional supported
 advanced/extension contracts.
 
-The next freeze step is an exact exported-type manifest contract so later accidental
-visibility changes fail tests before release.
+The exact exported-type manifest contract was subsequently added and is GREEN in the
+final **1475/1475** release suite, so accidental exported-type additions or removals
+now fail before release.
 
 ## Two different measurements
 
