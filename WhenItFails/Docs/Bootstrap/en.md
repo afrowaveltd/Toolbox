@@ -507,8 +507,8 @@ already existing project catalog is not repaired by bootstrap and prevents
 project-context publication (**1460/1460 GREEN** confirmed). Explicitly
 replacing that malformed file with valid content allows initialization to
 succeed on a later attempt without rewriting any of the five now-existing
-catalogs. The manual-repair follow-up contracts are included in the current
-maintainer-confirmed **1473/1473 GREEN** complete suite.
+catalogs. The manual-repair follow-up contracts remain included in the final
+maintainer-confirmed **1475/1475 GREEN** release suite.
 
 The complete workspace is validated only after bootstrap finishes.
 
@@ -551,9 +551,9 @@ missing templates; cross-catalog validation occurs only afterward. If a
 required reference is unresolved, the initializer/runtime must not publish
 an invalid project context. A focused strict-mode integration contract checks
 this with a missing code-group reference in an otherwise valid error catalog,
-then checks explicit repair and clean re-entry. Verification is pending
-(expected complete suite **1464/1464 GREEN**; last confirmed
-**1463/1463 GREEN**).
+then checks explicit repair and clean re-entry. This follow-up was subsequently
+verified and is included in the final maintainer-confirmed **1475/1475 GREEN**
+release suite.
 
 ## Invalid existing files
 
