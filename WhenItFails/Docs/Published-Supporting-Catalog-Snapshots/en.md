@@ -1,6 +1,6 @@
 # Publication-aware detached supporting catalog snapshots
 
-Status: **additive pre-1.0 CLR API candidate; 15 focused theory-expanded cases included in maintainer-confirmed 1392/1392 GREEN suite**.
+Status: **frozen 1.0 advanced observation API; publication-aware supporting-catalog contracts are included in the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## Purpose
 
