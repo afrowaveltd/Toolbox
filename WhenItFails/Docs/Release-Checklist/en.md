@@ -217,7 +217,7 @@ Before the first push to a package feed:
 - verify the destination feed/account intentionally;
 - inspect the final package from the exact file that will be uploaded;
 - keep the final package and hashes as release artifacts;
-- tag the corresponding Git commit;
+- tag the corresponding Git commit — **DONE**: `whenitfails-v1.0.0` targets `6face1742de35fbde665a9075c2e06649c171d7d`;
 - record publication details in `IMPLEMENTATION_STATUS.md`;
 - never rebuild a different package under the same published version.
 
