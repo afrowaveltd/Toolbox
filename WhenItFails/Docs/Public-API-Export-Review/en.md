@@ -29,9 +29,9 @@ The three categories below describe *intended use* and possible 1.0 policy, **no
 - Public objects reachable via these signatures: five catalog documents; category/owner/code-group/profile definitions; bootstrap payload and file result; provider payloads; validation result/issue/severity and `JsonsTemplateFile` when returned by supported extension interfaces.
 - Shared Essentials types exposed in signatures (notably `Response<T>`, `ResultStatus`, `MetadataBag`) have **separate** compatibility ownership in Essentials; WhenItFails must avoid inadvertently imposing inconsistent contracts on them.
 
-The first public-signature and JSON/default baselines for these models have focused tests. Still open: precise 1.0 JSON migration policy, nullable-reference metadata guarantees, mutability/isolation, and which fields are required in a successfully produced payload.
+The first public-signature and JSON/default baselines for these models have focused tests. The questions open at this checkpoint were later resolved for 1.0: persisted catalogs use schema baseline `1.0` with unsupported-version rejection, nullable contracts are explicitly tested where supported, live-context mutability is documented, and runtime-produced payload requirements are covered by focused contracts.
 
-**Active-context compatibility direction:** `GetCurrentContext()` returns the same live, mutable context reference held in `ErrorCatalogContextStore`, not a defensive copy. The publisher and all readers may currently mutate that instance and its nested catalogs; atomic reference replacement does not make these objects immutable. Preserve the 0.1.0 signature and explicitly document a read-only-by-convention consumer rule. Three focused shared-reference regression tests are confirmed in the complete **1250/1250 GREEN** suite. A subsequent three-test audit of nested definition ownership and stale index keys is committed, with local verification pending (expected full suite 1253 if they pass). Any genuinely safe consumer view needs a separately designed additive read-only/deep-snapshot contract and must account for nested objects, collections and definition mutability before 1.0.
+**Active-context compatibility direction:** `GetCurrentContext()` returns the same live, mutable context reference held in `ErrorCatalogContextStore`, not a defensive copy. The publisher and all readers may currently mutate that instance and its nested catalogs; atomic reference replacement does not make these objects immutable. Preserve the 0.1.0 signature and explicitly document a read-only-by-convention consumer rule. Three focused shared-reference regression tests were confirmed in the complete **1250/1250 GREEN** suite. The subsequent nested-definition ownership/stale-index audit and the later detached snapshot contracts were also verified and are included in the final **1475/1475 GREEN** suite. Application code treats the live context as read-only by convention and uses detached snapshot APIs when isolation is required.
 
 ### B. DI extension-point candidates
 
@@ -72,13 +72,13 @@ Their interfaces can remain the primary extension contract without freezing **ev
 - Public `init`/getter-only properties (notably `ErrorCatalogRuntimeStatus`) differ from mutable `get; set;` models; retain that distinction in API comparison.
 - The inventory's `TypeName` formatter **omits nullable-reference annotations, method generic constraints and most custom attributes**. It is therefore a human-readable type/member census, not a complete binary/API compatibility fingerprint. Existing focused tests for nullability and JSON property names remain necessary.
 
-## 4. Setter utility contract baseline (verification pending)
+## 4. Setter utility contract baseline (verified historical checkpoint)
 
 The `SetterUtilityPublicApiContractTests` group contains five focused tests for four publicly exported types with confirmed Setter usage: `JsonCatalogDocumentWriter`, `DocumentationKeyGenerator`, `DocumentationKeyFormat`, and `ErrorCatalogCrossValidator`. It records their public constructors/method shapes (including the writer's generic class constraint and optional token, and cross-validator's optional profile parameter). A narrow smoke test exercises them without service registration or a workspace. Dedicated behavior suites still own backup, cancellation, complete documentation key formatting and cross-catalog validation behavior. No production code or visibility changes were made. The maintainer confirmed five focused tests GREEN and observed three xUnit2031 warnings. The test-only fix uses `Assert.Single(collection, predicate)`; the maintainer subsequently confirmed **1241/1241 GREEN** complete suite with zero warnings.
 
-## 5. Isolated published-versus-source comparison workflow (verification pending)
+## 5. Isolated local-package-versus-source comparison workflow (historical diagnostics)
 
-[PublicApiComparer](../../Toolroom/WhenItFails/PublicApiComparer/Docs/Usage/en.md) builds independent temporary consumers against the current project and the exact published NuGet `[0.1.0]` package. Separate reflection inspections record actual DLL paths, SHA-256 hashes and public signature differences. Real feed provenance and the comparison result remain pending; no production API has changed.
+[PublicApiComparer](../../Toolroom/WhenItFails/PublicApiComparer/Docs/Usage/en.md) builds independent temporary consumers against the current project and the exact maintainer-held local NuGet `[0.1.0]` artifact. Separate reflection inspections record DLL paths, SHA-256 hashes and public signature differences. That artifact was never publicly published, so feed provenance is not a release requirement; these comparisons are retained only as historical diagnostics.
 
 ## 6. Actual package-consumer comparison (611 vs 611 entries)
 
@@ -92,16 +92,20 @@ The comparer added no library tests: last confirmed complete suite remains **124
 
 `JsonCatalogDocumentLoader` is already exported in 0.1.0 and called by the default typed loader implementations. `JsonCatalogDocumentLoaderPublicApiContractTests` now targets its public parameterless constructor, generic `class`-constrained `LoadFromFileAsync<TDocument>` signature with optional token, direct use without DI, and pre-cancelled token propagation before filesystem access. Detailed I/O and JSON cases are covered elsewhere. The maintainer confirmed three new focused tests and the complete **1244/1244 GREEN** suite; no production API changes were made.
 
-## 8. Auxiliary descriptor model baseline (verification pending)
+## 8. Auxiliary descriptor model baseline (verified historical checkpoint)
 
-`ErrorDescriptorRequest` and `ErrorDescriptor<TAttachment>` now have three focused public API tests in `DescriptorAuxiliaryModelsPublicApiContractTests` for request shape/nullability, generic inheritance and explicit `attachment` JSON output with inherited `Exception` ignored. Existing dedicated descriptor tests cover defaults and attachment assignment. No 1.0 JSON naming guarantee is inferred for `ErrorDescriptorRequest`, which has no explicit `JsonPropertyName` attributes. Local test confirmation is pending; production code is unchanged.
+`ErrorDescriptorRequest` and `ErrorDescriptor<TAttachment>` have focused public API tests in `DescriptorAuxiliaryModelsPublicApiContractTests` for request shape/nullability, generic inheritance and explicit `attachment` JSON output with inherited `Exception` ignored. Existing dedicated descriptor tests cover defaults and attachment assignment. Both models were subsequently accepted into the supported 1.0 model surface and remain covered by the final **1475/1475 GREEN** suite. No extra persistent JSON wire-format promise is inferred beyond the documented CLR/serialization contracts.
 
-## 3. Release/compatibility decisions still needed
+## 3. Historical review questions — resolved for 1.0
 
-1. The latest maintainer-confirmed full library suite is **1244/1244 GREEN** (the last explicit zero-warning confirmation was at 1241/1241). The independently executed package/source comparer reports matching public-signature census (611/611), not full binary identity.
-2. Confirm **publishing-feed provenance** if a claim specifically requires nuget.org origin: the successful package restore used configured sources/cache. Keep this separate from the 611/611 API match.
-3. Define the supported scope for the standalone writer/documentation utilities (and their external and Toolroom consumers) before the next public-constructor baseline. Do not bulk-test all exported constructors as if they were all promised stable.
-4. Decide mutable active-context exposure and public JSON schema/version guarantees.
-5. Document stable consumer contracts, supported extension points and public implementation details separately, then create selected cross-version API regression checks. Avoid an indiscriminate `110`-type count assertion, since deliberate nonbreaking additions should remain possible.
+The questions listed in the original checkpoint were subsequently resolved by the
+[current 1.0 policy](../Public-API-1.0-Policy/en.md) and
+[current inventory](../Public-API-Inventory/en.md):
 
-No code, visibility, runtime behavior or package version changes were made in this review.
+1. the complete release suite is **1475/1475 GREEN**;
+2. the local 0.1.0 artifact was never publicly published and is not a compatibility or feed-provenance gate;
+3. supported standalone utilities and Toolroom consumers are explicitly classified;
+4. live active-context mutability and the persistent catalog schema `1.0` policy are documented;
+5. the final first-stable surface is frozen at **126 exported types / 698 API entries** and guarded by the exact exported-type manifest.
+
+No historical 0.1.0 comparison is required to publish the first stable 1.0 package.
