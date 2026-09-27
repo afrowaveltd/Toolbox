@@ -2,20 +2,20 @@
 
 Status: **frozen first-stable 1.0 inventory; 126 exported types / 698 API entries, guarded by the exact exported-type manifest contract**.
 
-The current support-level decision is recorded in [the candidate 1.0 public API policy](../Public-API-1.0-Policy/en.md). This inventory remains evidence/input for that policy rather than a second competing classification.
+The current support-level decision is recorded in [the 1.0 public API policy](../Public-API-1.0-Policy/en.md). This inventory remains evidence/input for that policy rather than a second competing classification.
 Source of truth: current `afrowaveltd/Toolbox` GitHub `master`. The original pre-cleanup census was **148 exported types / 830 API entries**. Commits `6afd3f6f88c7d71097fd1813d8e0dc2d9d80b276` and `147b96310090c6cbbb5f2a5819b440026fb6062b` internalized 22 implementation/helper types in two reviewed batches. The post-cleanup source-only comparer measured the frozen **126 exported types / 698 API entries** surface, and the exact exported-type manifest plus the complete **1475/1475 GREEN** suite lock that first-stable baseline.
 
-## 1. Application-facing stable-contract candidates
+## 1. Application-facing stable contracts
 
 - Entry points: `IErrorCatalogRuntime` and the four `AddWhenItFails(...)` overloads.
 - Published configuration and error models: `WhenItFailsOptions`, `JsonsOptions`, `ErrorDefinition`, `ErrorDescriptor`, `ErrorCatalogContext`, and `ErrorCatalogRuntimeStatus`.
 - Read-only lookup interface: `IErrorCatalog`. Its collection-returning methods expose a read-only **collection interface**, not deeply immutable `ErrorDefinition` instances.
 - User-visible statuses and configuration values: `ErrorCatalogContextSource`, `ErrorCatalogRuntimeState`, `ErrorCatalogInitializationMode` and the `ResultStatus` type supplied by Essentials.
-- `ErrorDescriptor<TAttachment>` and `ErrorDescriptorRequest` are separately public concrete model types; review actual consumer use and JSON annotations before classifying them as stable API or optional convenience models.
+- `ErrorDescriptor<TAttachment>` and `ErrorDescriptorRequest` are supported public concrete model types. Their focused public-API/serialization contracts are part of the accepted 1.0 surface.
 
 All previously verified contract tests are recorded in [the baseline review](../Public-API-Stability/en.md). A verified source declaration by itself is not a promise of future binary, source or serialization compatibility.
 
-## 2. Transitive public models: explicit review required
+## 2. Transitive public models
 
 These types appear in public entry-point, extension-interface or public-model signatures. They **cannot be dismissed as private implementation details** solely because they live below `Bootstrap`, `Catalog`, `Definitions` or `Validation`.
 
@@ -29,7 +29,7 @@ These types appear in public entry-point, extension-interface or public-model si
 | `ErrorCatalogValidationResult`, `ErrorCatalogValidationIssue`, `ErrorCatalogValidationSeverity` | Validators, providers, context | Issue list mutation, severity values, validity semantics |
 | `JsonsTemplateFile` | `IJsonsTemplateProvider` | Template name/path/content contract |
 
-These declarations were checked against GitHub source at the inventory checkpoint. Prioritize `ErrorCatalogInitializationPayload` and bootstrap payloads in the next **small contract-test group**, then the document/definition schema and provider/validation result types. Do not freeze all properties in one unreviewed bulk reflection test.
+These declarations were subsequently covered by focused public-API/default/nullability/serialization contracts as appropriate and accepted into the frozen 1.0 surface. Persistent catalog JSON compatibility remains governed separately by `schemaVersion: "1.0"`.
 
 ## 3. DI extension points
 
@@ -37,7 +37,7 @@ There are 31 interface source files in `WhenItFails/Interfaces/`. All 31 now hav
 
 The final interface added to this baseline is `IBuiltInErrorCatalogContextProvider`. It exposes `LoadAsync(CancellationToken = default)` returning `Task<Response<ErrorCatalogContext>>`, and its source DI registration uses `TryAddSingleton`. `BuiltInCatalogContextProviderPublicApiContractTests` verifies the signature and prior-registration precedence without executing the provider's temporary filesystem workflow.
 
-Existing DI override tests prove `TryAddSingleton` precedence for the covered interfaces. They **do not** prove that all third-party implementations preserve full recovery, cancellation, data isolation or validation semantics. Treat the candidate classification as supported replaceability under review, not as permission to change arbitrary dependencies without contract tests.
+Existing DI override tests prove `TryAddSingleton` precedence for the covered interfaces. They **do not** prove that all third-party implementations preserve full recovery, cancellation, data isolation or validation semantics. Treat these interfaces as supported replacement seams under the documented contracts, not as permission to change arbitrary dependencies without compatibility review and tests.
 
 ## 4. Intentional implementation visibility before 1.0
 
