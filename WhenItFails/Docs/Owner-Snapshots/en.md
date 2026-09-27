@@ -1,6 +1,6 @@
 # Detached owner catalog snapshots
 
-Status: **additive pre-1.0 API candidate; six focused tests await local verification**.
+Status: **frozen 1.0 additive API; six focused contract tests are included in the maintainer-confirmed 1475/1475 GREEN release suite**.
 
 ## Scope and usage
 
@@ -64,8 +64,7 @@ A future version can explicitly design a complete catalog view using
 one selected publication and ownership guarantees appropriate to
 the additional supporting documents.
 
-No versioned JSON wire schema, direct deserialization contract, or
-published package upgrade is implied by this pre-1.0 CLR projection.
+No versioned JSON wire schema or direct deserialization contract is implied by this CLR projection. The API itself is included in the frozen 1.0 public surface.
 
 ## Verification
 
