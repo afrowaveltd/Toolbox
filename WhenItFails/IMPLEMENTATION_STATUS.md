@@ -6,7 +6,17 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 ## Current focus
 
-Core runtime hardening is complete for the current pre-1.0 scope. The original pre-cleanup source census is **148 exported types / 830 API entries**. The first 17-type visibility cleanup is maintainer-confirmed **1474/1474 GREEN**. Commit `147b96310090c6cbbb5f2a5819b440026fb6062b` applies a second 5-type helper cleanup without adding tests. **Maintainer-confirmed verification remains 1474/1474 GREEN** after this second batch. After the second GREEN verification, the source-only comparer measured **126 exported types / 698 API entries**. The remaining export set has been reviewed against repository usage and is pinned by an exact manifest test. **Maintainer-confirmed complete suite: 1475/1475 GREEN.** The **126 exported types / 698 API entries** surface is now the frozen first-stable candidate baseline. Current work moves to package dependency/version/metadata and final artifact verification.
+Core runtime hardening is complete for the current pre-1.0 scope. The original pre-cleanup source census is **148 exported types / 830 API entries**. The first 17-type visibility cleanup is maintainer-confirmed **1474/1474 GREEN**. Commit `147b96310090c6cbbb5f2a5819b440026fb6062b` applies a second 5-type helper cleanup without adding tests. **Maintainer-confirmed verification remains 1474/1474 GREEN** after this second batch. After the second GREEN verification, the source-only comparer measured **126 exported types / 698 API entries**. The remaining export set has been reviewed against repository usage and is pinned by an exact manifest test. **Maintainer-confirmed complete suite: 1475/1475 GREEN.** The **126 exported types / 698 API entries** surface is now the frozen first-stable candidate baseline. The complete Release suite, exact stable `1.0.0` candidate-package smoke, and Markdown-link validation are now maintainer-confirmed GREEN. Current work is limited to capturing the exact final artifact identity/hashes, tagging the frozen commit, and first publication verification.
+
+## 2026-09-27 — exact stable 1.0 verification GREEN
+
+- **Complete Release suite: 1475/1475 GREEN**, 0 failed, 0 skipped; maintainer-reported test duration 1.3 s and successful build.
+- **Exact stable candidate package smoke: PASS** using package version `1.0.0`.
+- The isolated external consumer restored and built successfully against the generated local feed/package cache.
+- The candidate smoke report is `/tmp/WhenItFails-1.0.0-final-smoke.md`; the generated candidate is `Afrowave.Toolbox.WhenItFails.1.0.0.nupkg` in the retained smoke workspace.
+- **Markdown validation: 46 files / 431 local links / 0 broken links.**
+- The runtime/API surface remains frozen at **126 exported types / 698 API entries**; no production source change is required by this checkpoint.
+- Next: capture the SHA-256 of the exact retained `.nupkg` and contained DLL plus final package metadata/content manifest, then tag the corresponding frozen commit. Do not rebuild a different package under version `1.0.0` after the final artifact is selected for publication.
 
 ## 2026-09-27 — final 1.0 package metadata prepared
 
