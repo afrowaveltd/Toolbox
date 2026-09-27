@@ -9,7 +9,7 @@ Review checkpoint: 2026-09-25. Scope: **the 38 source-only exported type names a
 | Exported CLR types | 148 | 110 |
 | Public API census entries | 830 | 611 |
 
-Historical full-comparer delta: source-only **38 types, 219 API entries**; package-only **0 types, 0 API entries**. The maintainer supplied all 38 source-only type names but only the opening portion of the 219 source-only member-entry list. The complete library suite is maintainer-confirmed **1473/1473 GREEN**. A fresh current source-only comparer census now independently confirms **148 exported types / 830 API entries** with no source-side count drift. The package-side **110 / 611** counts and the derived 38/219 delta remain historical until the exact original 0.1.0 artifact is rerun.
+Historical full-comparer delta: source-only **38 types, 219 API entries**; package-only **0 types, 0 API entries**. The maintainer supplied all 38 source-only type names but only the opening portion of the 219 source-only member-entry list. At that historical checkpoint the complete library suite was maintainer-confirmed **1473/1473 GREEN**; the final release suite is **1475/1475 GREEN**. A fresh current source-only comparer census now independently confirms **148 exported types / 830 API entries** with no source-side count drift. The package-side **110 / 611** counts and the derived 38/219 delta remain historical until the exact original 0.1.0 artifact is rerun.
 
 ## Classification by intended ownership
 
