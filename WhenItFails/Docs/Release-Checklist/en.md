@@ -13,8 +13,8 @@ package smoke has been rerun successfully after the frozen 126-type manifest was
 accepted. The verified gate covers:
 
 - Essentials tests completed without errors;
-- the complete WhenItFails suite is **1473/1473 GREEN**;
-- Essentials 0.2.0 and WhenItFails 1.0.0-rc.1 were packed;
+- the complete WhenItFails suite is **1475/1475 GREEN**;
+- Essentials 0.2.0 and the exact stable WhenItFails 1.0.0 candidate were packed;
 - package contents were validated;
 - a clean external consumer restored, built and executed from an isolated local
   feed/global-packages directory;
@@ -99,7 +99,7 @@ The script:
 13. verifies both Essentials/WhenItFails symbol packages and requires the WhenItFails
     `.snupkg` to contain `lib/net10.0/Afrowave.Toolbox.WhenItFails.pdb`; the smoke
     report records SHA-256 for the `.nupkg`, `.snupkg`, DLL and PDB;
-13. writes a SHA-256 report.
+14. writes a SHA-256 report.
 
 A custom candidate version can be supplied without changing source metadata:
 
