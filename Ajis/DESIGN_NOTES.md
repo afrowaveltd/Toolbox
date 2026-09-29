@@ -711,6 +711,7 @@ The following statements summarize the strongest architectural direction agreed 
 26. Once derived metadata exists, A2 tooling/storage should maintain it transactionally during supported mutations instead of forcing repeated full rescans.
 27. Metadata tooling should expose automatic generation, non-mutating validation, repair, and safe copy-based full repair; copy-based repair must use generation/version checks or journaling so concurrent mutations cannot be lost.
 28. Early metadata may include an Engine strategy hint/request with values Auto, Ram, or Disk so the reader can choose its storage/execution strategy before consuming the payload.
+29. Early metadata may include a rounded working-memory hint measured or estimated by the producer so Auto engine selection can compare expected memory demand with current host availability before payload processing begins.
 
 
 ## 12. Optional embedded schema header
@@ -1449,6 +1450,144 @@ must not change the logical document value.
 Therefore `Engine` belongs to execution/planning metadata, not the logical schema contract itself, even if it is physically stored in the same early metadata/header region.
 
 A future specification may separate logical schema metadata and execution hints into distinct namespaces while keeping both available before the payload.
+
+
+
+### 14.11 Memory requirement / working-memory hint
+
+Early metadata may include a numeric memory-planning hint describing the approximate working memory required or observed for processing the document.
+
+The purpose is to improve `Engine = Auto` decisions before the payload is consumed.
+
+Conceptual example:
+
+```ajis
+#schema: {
+    engine: Auto,
+    memoryHint: 512MiB,
+    type: "Person",
+    count: 10000000,
+    fields: {
+        Id: Int64,
+        Name: String,
+        Age: Int32
+    }
+}
+```
+
+The exact name and representation are not yet frozen. Internally the value should use an unambiguous byte-based unit; human-readable tooling may display rounded KiB/MiB/GiB values.
+
+#### Producer-generated value
+
+When the serializer can observe or estimate its own peak working memory for the operation, it may emit a rounded value.
+
+For example:
+
+```text
+observed peak working memory: 487 MiB
+stored memory hint:          512 MiB
+```
+
+Rounding upward to a practical boundary is preferable to reporting false precision.
+
+The value is optional. Open-ended streams, cross-language implementations, or serializers that cannot measure the value reliably may omit it.
+
+#### Hint, not a semantic requirement
+
+The memory figure is execution/planning metadata, not part of the logical data model.
+
+It must not mean that every implementation literally requires that amount of RAM. Different runtimes and profiles may process the same document with very different working sets.
+
+Therefore the safer semantic interpretation is:
+
+```text
+producer-observed/recommended working-memory hint
+```
+
+rather than a strict universal minimum.
+
+A C LowMemory implementation may use far less RAM than a .NET serializer that produced the document. Conversely, another implementation may require more.
+
+#### Auto engine decision
+
+When `Engine = Auto`, the reader may compare the memory hint against both:
+
+- configured A2 memory budget
+- current actually available memory / memory pressure
+
+The decision should not rely only on total physical RAM.
+
+Conceptual policy:
+
+```text
+effectiveRamBudget =
+    min(
+        configured A2 budget,
+        safely usable currently available memory
+    )
+
+if memoryHint <= effectiveRamBudget
+    -> RAM strategy may be selected
+else
+    -> Disk/hybrid strategy
+```
+
+This matters on machines where nominal RAM is mostly consumed by the operating system and other applications.
+
+Example:
+
+```text
+Physical RAM:       4 GiB
+A2 configured cap:  20% = ~819 MiB
+Currently available: 620 MiB
+Safe A2 share now:   350 MiB
+Document hint:       512 MiB
+
+Decision: Disk
+```
+
+Even though 512 MiB is below the nominal 20% cap, current memory pressure makes a disk-backed strategy safer.
+
+#### Engine interaction
+
+The intended relationship is:
+
+```text
+Engine = Ram
+    -> explicitly prefer RAM subject to host policy
+
+Engine = Disk
+    -> use disk-backed strategy immediately
+
+Engine = Auto
+    -> evaluate memory hint + current host conditions + profile
+```
+
+The host/application remains authoritative and may override document hints.
+
+#### Updating the hint
+
+Metadata tools may refresh the memory hint when they have enough information.
+
+Possible sources include:
+
+- measured peak working memory during serialization
+- measured peak during `CheckMeta` / `FixMeta`
+- model/schema-based estimates
+- storage-engine statistics
+
+Because the value is implementation-dependent, tooling should preserve provenance where useful, for example conceptually:
+
+```text
+memoryHint:
+  bytes: 536870912
+  source: observed
+  profile: Standard
+```
+
+The exact representation remains open.
+
+A stale or missing memory hint never makes a document invalid. It only reduces the quality of automatic planning.
 
 
 ### 14.7 Progressive knowledge
