@@ -726,6 +726,7 @@ The following statements summarize the strongest architectural direction agreed 
 41. A2 Identity should optimize for ordinary deployments where tens of thousands of users and single-file portability/backup are more valuable than hyperscale complexity.
 42. A2 Identity should include a built-in backup scheduler combining rapid mirror replication with retained, verified point-in-time snapshots so disk failure and logical corruption/deletion are both covered.
 43. A2 Identity should keep a separate retained change-history store for fine-grained rollback, while normal account deletion should preserve a non-personal tombstone/stable identity so references do not become dangling.
+44. A2 Identity should expose user-relevant change history through a profile History view, with direct revert only for operations that can be safely and transactionally reversed.
 
 
 ## 12. Optional embedded schema header
@@ -3900,6 +3901,174 @@ Conceptually:
       + retained scheduled snapshots
 
 This provides local undo, hardware redundancy, and disaster recovery without requiring a separate database server.
+
+### 22.33 User-visible History tab
+
+A2 Identity should expose the Change Recycle Bin through a normal end-user profile history experience.
+
+A user's profile UI should be able to show recent meaningful account changes for the configured retention period.
+
+Examples:
+
+- display name changed
+- email changed
+- phone number changed
+- avatar changed
+- password changed
+- two-factor authentication enabled/disabled
+- passkey added/removed
+- external login added/removed
+- role or permission changed where the application chooses to expose it
+- account deactivated/reactivated
+- other user-visible profile/security changes
+
+The UI should present semantic events rather than raw storage diffs.
+
+Example:
+
+    2026-09-29 14:31
+    Email changed
+    old@example.com -> new@example.com
+    Source: Profile settings
+    [Revert changes]
+
+### 22.34 History as a security feature
+
+The History tab is not only convenience/undo. It is also a security-awareness surface.
+
+A user may notice a change they did not perform or did not intend, for example:
+
+- password changed
+- recovery email changed
+- passkey added
+- external login linked
+- two-factor authentication disabled
+- profile data changed unexpectedly
+
+The history record may include safe contextual information supplied by the host, such as:
+
+- timestamp
+- change type
+- application/source
+- session/device label
+- coarse client information
+
+Sensitive or privacy-invasive telemetry should not be collected merely for presentation. Exact policy remains application-controlled.
+
+The UI may provide an adjacent action such as 'Secure account' for suspicious security events, but the A2 Identity storage model itself should remain focused on recording/reverting state rather than inventing a full threat-detection product.
+
+### 22.35 Revert Changes action
+
+Where a change is safely reversible, the History UI may expose a direct Revert Changes action.
+
+Revert must use the same transactional Change Recycle Bin semantics as administrative/tooling rollback.
+
+Reverting a change creates a new history event rather than deleting the original event.
+
+Conceptually:
+
+    10:00 Email A -> Email B
+    11:15 Revert change 123
+    11:15 Email B -> Email A
+
+### 22.36 Not every event is directly reversible
+
+The UI must distinguish between:
+
+- reversible data changes
+- reversible but security-sensitive changes
+- non-reversible events
+- events whose historical value has been erased/redacted
+
+Examples of generally straightforward reversible changes:
+
+- display name
+- avatar
+- phone number
+- ordinary profile preferences
+
+Security-sensitive changes may require re-authentication or another explicit confirmation before revert, for example:
+
+- email / normalized login identifier
+- role membership
+- two-factor settings
+- external login bindings
+- passkeys
+
+Some operations should not be implemented as restoring an old secret from history.
+
+For example, password history should normally record that a password changed, but the UI should not display or restore a previous plaintext password. A suspicious password-change event can instead lead to a fresh password reset flow.
+
+The same principle applies to authenticator secrets, security stamps, recovery codes, tokens, and similar credentials.
+
+### 22.37 History projection layer
+
+The raw Change Recycle Bin should remain an internal structured history store.
+
+A separate history projection converts low-level change records into user-facing events.
+
+Conceptually:
+
+    Change Recycle Bin
+        -> History projector
+        -> Profile History UI
+
+This separation allows:
+
+- hiding internal-only mutations
+- grouping several low-level writes into one meaningful event
+- localizing event text
+- redacting sensitive values
+- deciding whether Revert is available
+- applying application-specific presentation rules
+
+Example: changing an email address may update several normalized/indexed fields internally, but the user should see one event:
+
+    Email changed
+
+rather than five storage-field mutations.
+
+### 22.38 User scope and administrative scope
+
+A normal user should see only history relevant to their own identity/profile and only fields allowed by application policy.
+
+Administrative tooling may expose a broader audit/change view with appropriate authorization.
+
+The same underlying change record can therefore have different projections:
+
+    User History
+    Administrator History
+    Technical diagnostics
+
+without duplicating the authoritative change data.
+
+### 22.39 History retention UX
+
+If the default Change Recycle Bin retention is 30 days, the UI should communicate that clearly.
+
+Example:
+
+    History is available for the last 30 days.
+
+When a change is close to expiry, the UI may simply stop offering revert after the underlying reversible data has been purged.
+
+Applications may choose longer or shorter retention according to their needs.
+
+### 22.40 A2 Identity demo requirement
+
+The A2 Identity reference/demo application should include the History tab from the beginning.
+
+The demo should prove the complete path:
+
+    profile mutation
+      -> committed identity change
+      -> Change Recycle Bin entry
+      -> semantic History event
+      -> optional Revert Changes
+      -> new committed mutation
+      -> new History event
+
+This makes the recycle-bin design directly visible and testable instead of leaving it as hidden infrastructure.
 
 ## 23. Future migration
 
