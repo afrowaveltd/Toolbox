@@ -725,6 +725,7 @@ The following statements summarize the strongest architectural direction agreed 
 40. A2 Identity should be the first major reference library, implementing ASP.NET Core Identity storage contracts over A2FS and publishing measured scalability/resource limits instead of assuming database-like unlimited scale.
 41. A2 Identity should optimize for ordinary deployments where tens of thousands of users and single-file portability/backup are more valuable than hyperscale complexity.
 42. A2 Identity should include a built-in backup scheduler combining rapid mirror replication with retained, verified point-in-time snapshots so disk failure and logical corruption/deletion are both covered.
+43. A2 Identity should keep a separate retained change-history store for fine-grained rollback, while normal account deletion should preserve a non-personal tombstone/stable identity so references do not become dangling.
 
 
 ## 12. Optional embedded schema header
@@ -3735,6 +3736,170 @@ A2 Studio may provide the same operations graphically.
 The restore operation should validate the selected backup before replacing the live store, preserve the old live store until the new one is committed, and use atomic swap/rename semantics where supported.
 
 The key product goal is that a small-site operator can understand and recover the Identity store without specialist database-administration knowledge.
+
+### 22.25 Change Recycle Bin
+
+A2 Identity should support a separate change-history store, tentatively named **Change Recycle Bin**, whose purpose is user-visible rollback of recent mutations.
+
+This is distinct from the WAL/journal:
+
+- WAL/journal -> crash recovery and atomic commit correctness
+- Change Recycle Bin -> reversible application/data changes over a longer retention window
+
+A practical default retention target is 30 days, configurable by the application/operator.
+
+Conceptually:
+
+    identity.a2fs
+    identity.changes.a2fs
+
+Every committed logical mutation may append a reversible change record to the change store.
+
+Examples:
+
+- user created
+- user updated
+- user deactivated
+- user anonymized
+- role added/removed
+- claim added/removed
+- login/token/passkey change
+- avatar changed
+- metadata/index-affecting mutation where useful
+
+### 22.26 Change record model
+
+A change record should contain enough information to reconstruct or reverse the logical mutation without requiring a full-store snapshot.
+
+Possible fields include:
+
+- change ID
+- generation/transaction ID
+- UTC timestamp
+- entity type
+- stable entity ID
+- operation kind
+- changed properties
+- previous values
+- new values where useful
+- actor/source metadata where explicitly supplied by the host
+- schema/model version
+- checksum/integrity metadata
+
+For large binary values such as avatars, the history record may reference a retained binary blob/chunk rather than duplicating bytes inline.
+
+The change store should be append-oriented and independently compactable.
+
+### 22.27 Revert semantics
+
+Tooling should support operations such as:
+
+    a2tool identity changes list --user <id>
+    a2tool identity changes show <change-id>
+    a2tool identity changes revert <change-id>
+    a2tool identity changes revert --to <timestamp>
+
+Final syntax is not frozen.
+
+Revert is itself a new committed mutation.
+
+Therefore history should remain auditable as:
+
+    change A
+    change B
+    revert B -> creates change C
+
+rather than silently deleting historical evidence.
+
+### 22.28 Retention and compaction
+
+The default Change Recycle Bin retention may be 30 days.
+
+Expired history can be removed/compacted without touching the authoritative identity store.
+
+Retention may be configured by:
+
+- age
+- maximum history size
+- maximum generations
+- per-entity policy
+
+History cleanup should run independently from normal request processing and should remain bounded-memory.
+
+### 22.29 Identity records should use tombstones rather than broken references
+
+Normal A2 Identity delete behavior should prefer preserving stable identity/reference integrity.
+
+Instead of physically removing the record, the store may transition it to a tombstone/anonymized state such as:
+
+    Active
+      -> Inactive
+      -> Anonymized / DeletedTombstone
+
+The stable UserId remains resolvable so other A2 records, audit records, application records, or external references do not become dangling/null merely because the identity was deactivated.
+
+A tombstone record should retain only the minimum non-sensitive structural identity needed for referential integrity, for example:
+
+    UserId
+    State = DeletedTombstone
+    DeletedAt
+
+plus any explicitly required non-personal operational metadata.
+
+Ordinary authentication/login lookup must never treat a tombstone as an active account.
+
+### 22.30 Anonymization versus reversible deactivation
+
+A reversible disable/delete operation and an irreversible privacy erase are different operations and must not be conflated.
+
+Reversible deactivation may keep previous values in the Change Recycle Bin for the configured retention period.
+
+An irreversible privacy erase must remove or cryptographically destroy the sensitive historical values as required by the selected application policy, while preserving only a non-personal tombstone/stable reference where necessary for referential integrity.
+
+Therefore the system may expose distinct operations conceptually such as:
+
+    DeactivateUser
+    AnonymizeUser
+    ErasePersonalData
+
+Final API names are not frozen.
+
+If ErasePersonalData is invoked, retained change-history records containing the erased personal values must be purged/redacted or rendered unrecoverable according to policy. A 'recycle bin' must not silently make an intended irreversible erase reversible.
+
+### 22.31 Relationship and pointer behavior
+
+Pointers/references to a tombstoned identity remain valid as identity references.
+
+Example:
+
+    Order.CreatedBy -> *user-123
+
+after anonymization still resolves to:
+
+    user-123 { State: DeletedTombstone }
+
+rather than becoming null or broken.
+
+This preserves historical object graphs and prevents cascading loss of meaning in unrelated application data.
+
+### 22.32 Change history and backup are complementary
+
+Change Recycle Bin and scheduled backups solve different problems:
+
+- Change Recycle Bin -> fast fine-grained undo of recent logical changes
+- mirror -> fast recovery from storage/device failure
+- versioned backup -> broader point-in-time recovery
+
+A strong default deployment therefore uses all three.
+
+Conceptually:
+
+    live identity store
+      + mirror
+      + 30-day change recycle bin
+      + retained scheduled snapshots
+
+This provides local undo, hardware redundancy, and disaster recovery without requiring a separate database server.
 
 ## 23. Future migration
 
