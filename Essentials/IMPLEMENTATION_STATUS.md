@@ -60,6 +60,19 @@ Last updated: 2026-09-27
 - This removes Windows/Linux CRLF-only worktree noise from release preparation and keeps PowerShell scripts cross-platform with LF endings.
 - No runtime, public API, package metadata, or frozen release artifact changed.
 
+## 2026-09-29 — Essentials 0.2.0 final artifact frozen
+
+- Release source commit: `781f55834df7414eeed959b39c41dc6f97c99ecb`.
+- Package: `Afrowave.Toolbox.Essentials 0.2.0`.
+- Package repository commit metadata: `781f55834df7414eeed959b39c41dc6f97c99ecb`.
+- Final nupkg SHA-256: `BF87CB47E7CD8CAF186014A704A304CEC5E71DF59792E87889184836167DDA52`.
+- Final snupkg SHA-256: `0FFC48910EDEEB185BA1A1F7CB523E163F2A6B906B33B70AB1BD976407FB58F3`.
+- Final DLL SHA-256: `E60B20AF44C6D5F9B7AE9ACD2F436EC5A4361C002579C7EA9839270372A4C59D`.
+- Final PDB SHA-256: `396063FD62A06406170132C5EACD3D52A9D2A989EE51D2285746E76CE03A2B16`.
+- Verified content: README, LICENSE, package icon, net10.0 DLL, XML docs, and symbol PDB.
+- These exact files are the immutable first-publication artifacts for Essentials 0.2.0; do not rebuild version 0.2.0 for publication.
+- Next: preserve these bytes outside Temp, tag exactly this source commit as `essentials-v0.2.0`, publish Essentials first to GitHub Packages, then publish the already frozen WhenItFails 1.0.0 artifact.
+
 ## 2026-09-29 — whole-Toolbox Windows regression GREEN
 
 - Maintainer pulled current GitHub `master` on Windows and completed the whole Toolbox build/test suite: **5914/5914 GREEN**.
