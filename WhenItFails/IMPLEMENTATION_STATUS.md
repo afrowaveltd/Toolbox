@@ -8,6 +8,13 @@ This file is the continuation point for `WhenItFails` development. Git history c
 
 Core runtime hardening is complete for the current pre-1.0 scope. The original pre-cleanup source census is **148 exported types / 830 API entries**. The first 17-type visibility cleanup is maintainer-confirmed **1474/1474 GREEN**. Commit `147b96310090c6cbbb5f2a5819b440026fb6062b` applies a second 5-type helper cleanup without adding tests. **Maintainer-confirmed verification remains 1474/1474 GREEN** after this second batch. After the second GREEN verification, the source-only comparer measured **126 exported types / 698 API entries**. The remaining export set has been reviewed against repository usage and is pinned by an exact manifest test. **Maintainer-confirmed complete suite: 1475/1475 GREEN.** The **126 exported types / 698 API entries** surface is now the frozen first-stable candidate baseline. The complete Release suite, exact stable `1.0.0` candidate-package smoke, and Markdown-link validation are maintainer-confirmed GREEN. A full pre-publication repository audit found no runtime/API implementation blocker for 1.0; stale release-documentation checkpoints were reconciled and Setter status was separated from the package gate. The clean final release gate has now passed on commit `6face1742de35fbde665a9075c2e06649c171d7d`. The exact `1.0.0` nupkg/snupkg/DLL/PDB hash set is frozen and the package repository metadata points to that same commit. The annotated tag `whenitfails-v1.0.0` is now pushed and verified to reference **exactly** commit `6face1742de35fbde665a9075c2e06649c171d7d`. Current work is limited to publishing **the already frozen retained artifacts** to the intended private package feed and verifying a clean restore by package ID/version after publication.
 
+## 2026-09-29 — repository line-ending policy hardened
+
+- Root `.gitattributes` now enforces **LF** for cross-platform text in both index and working tree; only native `*.bat` / `*.cmd` scripts use CRLF.
+- Common binary formats are explicitly marked binary so line-ending normalization cannot touch them.
+- This removes Windows/Linux CRLF-only worktree noise from release preparation and keeps PowerShell scripts cross-platform with LF endings.
+- No runtime, public API, package metadata, or frozen release artifact changed.
+
 ## 2026-09-29 — whole-Toolbox Windows regression GREEN
 
 - Maintainer pulled current GitHub `master` on Windows and completed a full Toolbox build/test run: **5914/5914 GREEN**.
