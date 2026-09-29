@@ -728,6 +728,7 @@ The following statements summarize the strongest architectural direction agreed 
 43. A2 Identity should keep a separate retained change-history store for fine-grained rollback, while normal account deletion should preserve a non-personal tombstone/stable identity so references do not become dangling.
 44. A2 Identity should expose user-relevant change history through a profile History view, with direct revert only for operations that can be safely and transactionally reversed.
 45. A2 Identity should track revocable sessions/trusted-device bindings so users can terminate access from a specific device without requiring a global password change when the underlying reusable credential is not itself compromised.
+46. DeviceIdentity should be a first-class A2 Identity object, and migration from EF/SQL Identity should be a supported side-by-side, dry-run-first workflow with validation and low-risk DI/configuration cutover.
 
 
 ## 12. Optional embedded schema header
@@ -4221,6 +4222,197 @@ For events where a safe corrective action exists, the UI may attach that action 
     [Remove passkey]
 
 This makes the user's security history actionable and reduces the need for an administrator to repair ordinary account-security mistakes.
+
+### 22.48 First-class DeviceIdentity
+
+A2 Identity should treat device identity as a first-class domain object rather than only as incidental metadata attached to a login event.
+
+Conceptually:
+
+    User
+      -> Devices
+          -> Sessions
+          -> Credential bindings
+          -> History
+
+A DeviceIdentity may contain stable non-secret identity plus revocable security bindings, for example:
+
+- DeviceId
+- UserId
+- user-defined/display label
+- platform / OS family
+- browser/client family
+- first seen
+- last seen
+- trusted/remembered state
+- active/revoked state
+- associated session IDs
+- associated passkey/credential-binding IDs where applicable
+- optional host-supplied coarse location/history metadata
+
+The exact device fingerprinting strategy must remain privacy-conscious and should not rely on brittle or invasive browser fingerprinting. Stable identity should preferably come from an explicit A2 Identity device binding/token generated during authentication/trust enrollment.
+
+DeviceIdentity gives the user and application a stable unit for:
+
+- viewing known devices
+- revoking one device
+- revoking all sessions for one device
+- removing trust without changing the account password
+- recording device-specific History
+- detecting newly enrolled devices at the application layer
+
+### 22.49 A2 Identity must improve on the baseline
+
+A2 Identity should aim for behavioral compatibility with normal ASP.NET Core Identity usage where practical, but its purpose is not merely to reproduce the existing feature set.
+
+A2-specific improvements discussed so far include:
+
+- first-class DeviceIdentity
+- actionable user-visible History
+- per-session and per-device revocation
+- Change Recycle Bin with reversible profile changes
+- tombstone/anonymization model that preserves references
+- avatars/binary user data stored natively in A2FS
+- single-file portable identity store
+- built-in mirror/snapshot backup scheduler
+- simple restore/migration tooling
+- bounded-memory disk-first Server profile
+
+These additional capabilities are part of the reason for an application to choose or migrate to A2 Identity.
+
+### 22.50 Migration from EF/SQL Identity
+
+A2 Identity should provide an explicit migration path from an existing ASP.NET Core Identity database managed through EF Core.
+
+The migration should use the database bridge/EF metadata model rather than hard-code one exact SQL schema wherever possible.
+
+Conceptual workflow:
+
+    existing ASP.NET Core Identity DB
+        -> inspect EF Core Identity model
+        -> validate supported entities/features
+        -> dry-run migration report
+        -> stream export
+        -> build A2 Identity/A2FS store
+        -> build indexes/pointers
+        -> verify counts, keys, relationships, security data
+        -> switch application DI/storage backend
+
+The normal migration goal is to preserve existing account identities and authentication state where the source data allows it, so users do not need to recreate accounts simply because the persistence provider changed.
+
+### 22.51 Migration dry-run
+
+Before changing production data, the migration tool should support a read-only validation pass.
+
+Example conceptual command:
+
+    a2tool identity migrate check --source <ef-identity>
+
+The report may include:
+
+- source entity/table counts
+- supported/unsupported Identity capabilities
+- custom user/role properties discovered
+- key types
+- relationship validation
+- duplicate normalized usernames/emails where relevant
+- orphaned relationship rows
+- unsupported provider-specific values
+- estimated A2FS size
+- estimated index size
+- estimated migration scratch/disk requirement
+- warnings about external key-management dependencies
+
+The dry-run must not mutate either source or destination.
+
+### 22.52 Migration build and verification
+
+The actual migration should construct a new A2 Identity store side-by-side with the live SQL store rather than converting the production source in place.
+
+Conceptually:
+
+    SQL Identity (authoritative)
+        |
+        +--> build identity-new.a2fs
+                 -> Users
+                 -> Roles
+                 -> relations
+                 -> claims/logins/tokens/etc.
+                 -> indexes
+                 -> metadata
+                 -> optional DeviceIdentity bootstrap
+                 -> validation
+
+Only after validation succeeds should the application be switched to the A2 backend.
+
+Verification should include at least:
+
+- entity counts
+- key uniqueness
+- UserRole relationship counts
+- claims/logins/token relationship integrity
+- normalized-name indexes
+- representative user lookups
+- representative role lookups
+- ability to open the new store in Server profile
+- CheckMeta()/A2 Identity consistency checks
+
+### 22.53 Cutover strategy
+
+For a small application, the simplest migration can use a short maintenance window:
+
+    1. run dry-run in advance
+    2. enter maintenance/read-only mode
+    3. export final SQL generation
+    4. build/verify A2 store
+    5. switch DI/configuration to A2 Identity
+    6. start application
+    7. keep SQL source untouched for rollback window
+
+For larger systems, a later migration mode may capture changes occurring after the initial bulk export and replay them before cutover, but this is not required for the first A2 Identity version.
+
+### 22.54 Easy rollback after migration
+
+The migration process should preserve the original SQL Identity database during an explicit rollback period.
+
+The application should be able to switch storage provider by configuration/DI rather than by rewriting authentication/business code.
+
+Conceptually:
+
+    IdentityBackend = EfCore
+
+or:
+
+    IdentityBackend = A2
+
+This makes trial adoption substantially less risky.
+
+Where writes have occurred in A2 after cutover, returning to SQL requires an explicit reverse migration/synchronization step rather than simply flipping configuration and discarding newer changes.
+
+### 22.55 Custom Identity models
+
+Migration must not assume that every application uses only the default IdentityUser/IdentityRole properties.
+
+Because many applications derive custom user/role classes, the EF model bridge should discover custom mapped properties and represent them in A2 schema where supported.
+
+Unknown/custom scalar fields should normally migrate automatically through the general A2 type system.
+
+Custom relationships may require explicit mapping policy if they extend beyond the A2 Identity core model.
+
+### 22.56 Migration as a product feature
+
+The migration tool is not merely developer scaffolding.
+
+A smooth SQL/EF -> A2 Identity migration path is part of the product adoption strategy:
+
+    install A2 Identity
+      -> run migration check
+      -> create A2 store
+      -> verify
+      -> change DI/configuration
+      -> run
+
+The fewer application-code changes required, the easier it is for an existing ASP.NET Core Identity application to evaluate A2 Identity without committing to an irreversible rewrite.
 
 ## 23. Future migration
 
