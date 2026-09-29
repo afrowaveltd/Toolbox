@@ -727,6 +727,7 @@ The following statements summarize the strongest architectural direction agreed 
 42. A2 Identity should include a built-in backup scheduler combining rapid mirror replication with retained, verified point-in-time snapshots so disk failure and logical corruption/deletion are both covered.
 43. A2 Identity should keep a separate retained change-history store for fine-grained rollback, while normal account deletion should preserve a non-personal tombstone/stable identity so references do not become dangling.
 44. A2 Identity should expose user-relevant change history through a profile History view, with direct revert only for operations that can be safely and transactionally reversed.
+45. A2 Identity should track revocable sessions/trusted-device bindings so users can terminate access from a specific device without requiring a global password change when the underlying reusable credential is not itself compromised.
 
 
 ## 12. Optional embedded schema header
@@ -4069,6 +4070,157 @@ The demo should prove the complete path:
       -> new History event
 
 This makes the recycle-bin design directly visible and testable instead of leaving it as hidden infrastructure.
+
+### 22.41 Login/session history and trusted-device control
+
+A2 Identity History should include authentication/session events in addition to profile-data changes.
+
+A user-facing History/Security view may show events such as:
+
+- successful login
+- failed login where appropriate
+- session created
+- session refreshed
+- session revoked
+- remembered/trusted device added
+- remembered/trusted device removed
+- passkey added/removed
+- external login linked/unlinked
+- two-factor authentication changed
+- password changed
+- recovery/security settings changed
+
+Useful user-visible context may include:
+
+- timestamp
+- session/device label
+- browser/user-agent summary
+- operating-system/platform summary
+- coarse location derived by the host if the application chooses to provide it
+- authentication method
+- current/expired/revoked state
+- first seen / last seen
+
+Exact raw IP addresses or other sensitive telemetry should be exposed only according to application/privacy policy.
+
+### 22.42 Per-session revocation
+
+A2 Identity should support server-side session identity so one compromised or abandoned session can be revoked without necessarily changing the account password.
+
+Conceptually:
+
+    SessionId
+    UserId
+    DeviceId / DeviceLabel
+    CreatedAt
+    LastSeenAt
+    AuthMethod
+    State = Active | Revoked | Expired
+    CredentialBinding / token-family identifier where applicable
+
+The user UI may expose actions such as:
+
+    [Sign out this session]
+    [Sign out all other sessions]
+    [Remove trusted device]
+
+Revocation should invalidate the server-side session/token family immediately and create a new History event.
+
+### 22.43 Session versus credential
+
+Session revocation and credential revocation are different operations.
+
+If a browser merely holds an active session cookie or refresh token, revoking that session/token family is sufficient to end that access.
+
+If the device also holds a reusable authentication credential (for example a passkey, external login binding, remembered-device credential, or a stored password known to the browser/user), the user may also need to revoke/remove that credential or require additional verification for future logins.
+
+A2 Identity should therefore model at least:
+
+- sessions
+- trusted/remembered devices
+- passkeys/authenticators
+- external-login bindings
+- global account credentials/security state
+
+and let the user act on the correct layer.
+
+A password change should not be the only available response to a lost/abandoned device, but a stored password that remains valid cannot be made unusable on one browser solely by revoking a server session.
+
+### 22.44 Device/session security UI
+
+A practical profile UI may provide a combined Security / History view such as:
+
+    Current session
+      Prague, Windows / Edge
+      Active now
+
+    Work PC
+      Windows / Edge
+      Last seen: 2026-09-28 16:42
+      Trusted device
+      [Revoke session] [Remove trust]
+
+    Phone
+      Android / Chrome
+      Last seen: 2026-09-29 08:10
+      [Revoke session]
+
+The History tab should allow filtering by categories, for example:
+
+- Profile
+- Security
+- Logins
+- Sessions
+- Devices
+- Roles/permissions
+- All
+
+### 22.45 Remembered-device / key invalidation
+
+For remembered-browser or device-bound authentication, A2 Identity should issue a revocable server-tracked identifier/key/token family rather than relying only on an opaque client-side artifact with no server-side control.
+
+Removing a trusted device should:
+
+1. mark the device/credential binding revoked
+2. invalidate all active sessions belonging to that binding where policy requires it
+3. reject future refresh/remembered-login attempts using the revoked binding
+4. write the action into History
+
+This gives the user a targeted response when a workstation is lost, reassigned, or no longer under their control.
+
+### 22.46 Global revocation remains available
+
+A2 Identity should also support an account-wide revocation operation for serious compromise.
+
+Conceptually:
+
+    revoke all sessions
+    revoke remembered devices
+    optionally rotate account-wide security stamp/version
+
+This is separate from changing the password.
+
+Changing the password may remain appropriate when the password itself is believed compromised; otherwise targeted session/device revocation is less disruptive.
+
+### 22.47 History as the control surface
+
+History should not be a passive log only.
+
+For events where a safe corrective action exists, the UI may attach that action directly to the event:
+
+    Login from Work PC
+    [Revoke session]
+
+    Trusted device added
+    [Remove trust]
+
+    Email changed
+    [Revert change]
+
+    Passkey added
+    [Remove passkey]
+
+This makes the user's security history actionable and reduces the need for an administrator to repair ordinary account-security mistakes.
 
 ## 23. Future migration
 
