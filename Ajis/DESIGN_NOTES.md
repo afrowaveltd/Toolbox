@@ -712,6 +712,8 @@ The following statements summarize the strongest architectural direction agreed 
 27. Metadata tooling should expose automatic generation, non-mutating validation, repair, and safe copy-based full repair; copy-based repair must use generation/version checks or journaling so concurrent mutations cannot be lost.
 28. Early metadata may include an Engine strategy hint/request with values Auto, Ram, or Disk so the reader can choose its storage/execution strategy before consuming the payload.
 29. Early metadata may include a rounded working-memory hint measured or estimated by the producer so Auto engine selection can compare expected memory demand with current host availability before payload processing begins.
+30. AJIS should reserve unquoted #directive tokens as parser/control-plane syntax while quoted keys such as "#meta" remain ordinary user data.
+31. Conditional directives such as #if/#else/#endif may allow one document to carry platform- or environment-specific branches without turning AJIS into an arbitrary-code execution language.
 
 
 ## 12. Optional embedded schema header
@@ -1605,7 +1607,116 @@ initial stream
 A document is not invalid merely because optional optimization metadata is absent.
 
 
-## 15. Future migration
+## 15. Directive namespace and conditional documents
+
+AJIS should distinguish ordinary data from parser/control directives syntactically.
+
+In strict/canonical AJIS, ordinary object keys are quoted and string values are quoted. The parser may accept relaxed input forms such as unquoted ordinary keys, but canonical serialization should emit the strict form selected by the final specification.
+
+### 15.1 Unquoted # directives
+
+An unquoted token beginning with # is reserved for AJIS directives.
+
+Conceptually:
+
+    #meta: {
+        "engine": "Auto"
+    }
+
+is a parser directive, while:
+
+    {
+        "#meta": {
+            "engine": "Auto"
+        }
+    }
+
+is ordinary user data whose key happens to be the string #meta.
+
+This gives AJIS a collision-free control namespace:
+
+    #meta    -> AJIS directive
+    "#meta" -> ordinary data key
+
+Potential reserved directives include #meta, #schema, #if, #else, and #endif. The exact vocabulary and extension/versioning rules remain open.
+
+### 15.2 Meta as a control-plane container
+
+A useful direction is to keep execution/planning metadata under #meta and logical type information under #schema.
+
+Conceptually:
+
+    #meta: {
+        "engine": "Auto",
+        "memoryHint": 536870912
+    }
+
+    #schema: {
+        "type": "Person",
+        "count": 10000000
+    }
+
+This makes the separation explicit:
+
+    #meta   -> how the document may be processed
+    #schema -> what the logical data is
+    payload -> the data itself
+
+### 15.3 Conditional directives
+
+AJIS may support declarative conditional sections so one document can contain branches for different target systems or environments.
+
+Conceptual example:
+
+    #if: "platform == 'windows'"
+        ... Windows branch ...
+    #else
+        ... other platforms ...
+    #endif
+
+The paired form originally discussed, where #endif may repeat the condition, may also be considered during grammar design.
+
+The parser evaluates the condition before materializing the branch. Non-selected branches should be structurally skipped in streaming fashion.
+
+### 15.4 Declarative condition language only
+
+Conditional directives should remain side-effect-free and portable rather than becoming an embedded arbitrary programming language.
+
+Potential context values include platform/OS family, architecture, runtime, A2 implementation/version, active capabilities, document profile, and application-defined named variables explicitly supplied by the host.
+
+Potential operations include equality/inequality, boolean AND/OR/NOT, membership in a finite set, version comparison, and capability presence.
+
+Document conditions must not implicitly gain file access, network access, process execution, reflection, arbitrary function invocation, or unrestricted host-environment access. The host supplies the evaluation context and remains authoritative.
+
+### 15.5 Unknown conditions
+
+The final specification must define deterministic behavior for unknown variables or unsupported condition features. Candidate behaviors include false-by-default with a validation warning, or fail-closed with a stable condition error. Implementations must not silently diverge.
+
+### 15.6 Conditional metadata and schema
+
+Conditional directives may apply to data, metadata, or schema annotations. For example a low-memory profile may select Engine=Disk while another profile selects Auto. Grammar and nesting rules must remain unambiguous, and early metadata must still be available soon enough for execution planning.
+
+### 15.7 Streaming behavior
+
+Conditional parsing remains stream-first:
+
+    read #if
+      -> evaluate condition
+      -> selected branch: parse normally
+      -> non-selected branch: structural skip
+      -> continue after #endif
+
+This allows very large inactive branches without materializing them.
+
+### 15.8 JSON lossless conversion
+
+JSON has no native AJIS directives, so lossless ToJson()/FromJson() should preserve directive semantics inside the reserved #ajisData metadata envelope.
+
+### 15.9 Tooling
+
+a2tool and A2 Studio should expose directive-aware inspection and validation. Useful operations may include viewing directives, resolving a document against an explicit context, validating conditions, and explaining why a branch was selected or skipped.
+
+## 16. Future migration
 
 When the dedicated A2 repository is created:
 
