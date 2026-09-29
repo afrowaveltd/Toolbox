@@ -718,6 +718,7 @@ The following statements summarize the strongest architectural direction agreed 
 33. A2 may support bounded indexed joins and server/client execution profiles without becoming a general-purpose relational database engine.
 34. A2 may use EF Core metadata for bidirectional database export/import, preserving entity identity and relationships while offering both relational snapshots and human-friendly graph projections.
 35. A2 should support logical references/pointers so shared entities, many-to-many relationships, and cyclic graphs can be represented without duplication while preserving bounded-memory processing.
+36. A pointer is a named logical address to one complete A2 value/object; small pointer tables may be materialized early in RAM, while large tables may resolve through disk-backed indexes without changing semantics.
 
 
 ## 12. Optional embedded schema header
@@ -2859,6 +2860,134 @@ A reference to an unknown identifier is a stable validation error unless the sel
 Duplicate pointer definitions, incompatible target types, and broken references should be detectable through CheckMeta()/validation tooling.
 
 Reference IDs are document identities, not security capabilities; possession of an ID must not imply authorization to access external resources.
+
+### 20.11 Pointer as a named logical address
+
+The intended A2 pointer concept is more specific than a cache entry and less physical than a C/C++ memory pointer.
+
+A pointer is a named logical address to an A2 value/object stored in the document's reference space.
+
+Conceptually:
+
+    pointer name -> one complete logical A2 value/object
+
+For small shared lookup domains such as Roles, Statuses, Countries, Permissions, Categories, or other dictionary-like entities, the pointer table may contain the complete values near the beginning of the document.
+
+Example:
+
+    {
+        #meta: {
+            ...
+        },
+
+        #pointers: {
+            roleAdmin: {
+                "Id": 1,
+                "Name": "Administrator"
+            },
+            roleUser: {
+                "Id": 2,
+                "Name": "User"
+            }
+        },
+
+        "Users": [
+            {
+                "Id": 100,
+                "Name": "Peter",
+                "Roles": [ *roleAdmin, *roleUser ]
+            },
+            {
+                "Id": 101,
+                "Name": "Anna",
+                "Roles": [ *roleUser ]
+            }
+        ]
+    }
+
+The exact grammar remains open, but the intended semantics are clear:
+
+    roleAdmin   -> pointer definition / named logical address
+    *roleAdmin  -> dereference/reference to that logical value
+    "roleAdmin" -> ordinary string
+
+### 20.12 Pointer table as an early header structure
+
+#pointers is an early AJIS directive/header section, alongside #meta and #schema, and should be available before ordinary payload data where possible.
+
+A conceptual document shape is:
+
+    {
+        #meta: { ... },
+        #schema: { ... },
+        #pointers: { ... },
+        ... ordinary data ...
+    }
+
+The final canonical ordering of #meta, #schema, and #pointers remains to be specified, but all are intended to be discoverable early enough for the parser to plan execution and resolve common references efficiently.
+
+For a small pointer table the parser may materialize all pointer values immediately in RAM because the cost is bounded and deliberate.
+
+Example:
+
+    Roles = 6 objects
+    Permissions = 24 objects
+
+Keeping these values resident can be substantially cheaper than repeatedly reading or reconstructing them from the payload.
+
+For a very large pointer table the implementation may transparently switch to an indexed disk-backed resolver. Pointer semantics do not change.
+
+### 20.13 Pointer updates and bulk changes
+
+Because references point to one logical value rather than embedding copies, changing a pointer target changes the value observed through every reference to it.
+
+Example:
+
+    roleUser.Name = "Standard User"
+
+does not require finding and rewriting every User record that contains *roleUser.
+
+This enables efficient bulk changes for shared values such as:
+
+- role names
+- status definitions
+- organization metadata
+- category labels
+- shared configuration fragments
+- common address/location objects where identity is intentional
+
+The update must preserve the distinction between changing the target object and rebinding a pointer name to a different target.
+
+### 20.14 Relationship to database foreign keys
+
+A database foreign key normally stores the identity needed to find another row.
+
+An A2 pointer is conceptually similar, but the A2 document may place the complete referenced object in its pointer/reference area and expose a direct logical reference to it.
+
+Thus for small lookup tables:
+
+    SQL:
+      User.RoleId -> lookup row in Roles table
+
+    A2:
+      User.Role -> *roleAdmin
+
+The A2 reader may already have roleAdmin materialized, making the lookup effectively immediate.
+
+For large lookup sets, the pointer may resolve through an index/RecordId/offset instead, preserving the same public semantics.
+
+### 20.15 Pointers are not automatically caches
+
+Pointers define identity and reference semantics. Caching is an implementation optimization layered underneath.
+
+A parser may cache pointer targets because they are frequently used, but:
+
+- a pointer remains valid even if its target is not resident in RAM
+- eviction from a cache must not change pointer identity
+- pointer lifetime is defined by document/reference scope, not cache lifetime
+- disk-backed/lazy resolution is allowed
+
+This distinction keeps the data model deterministic while allowing aggressive performance optimization.
 
 ## 21. Future migration
 
