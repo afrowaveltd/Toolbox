@@ -730,6 +730,7 @@ The following statements summarize the strongest architectural direction agreed 
 45. A2 Identity should track revocable sessions/trusted-device bindings so users can terminate access from a specific device without requiring a global password change when the underlying reusable credential is not itself compromised.
 46. DeviceIdentity should be a first-class A2 Identity object, and migration from EF/SQL Identity should be a supported side-by-side, dry-run-first workflow with validation and low-risk DI/configuration cutover.
 47. A2 Identity should support federated authentication/profile providers such as LDAP/AD, with per-field source/override/write-back policies and a rich native user profile so external authority and local personalization can coexist.
+48. LDAP/AD integration should support both read-only and selective bidirectional modes, with a global safety switch plus per-field mapping, direction, workflow, conflict, and capability policies.
 
 
 ## 12. Optional embedded schema header
@@ -4755,6 +4756,252 @@ Conceptually:
       AD authentication + mostly A2 application profile
 
 without requiring a disruptive all-at-once identity migration.
+
+### 22.70 LDAP/AD connector operating modes
+
+A2 Identity should support LDAP/Active Directory integration through a dedicated connector layer rather than treating directory access as a hard-coded special case inside the core identity store.
+
+A simple first configuration switch may be:
+
+    LDAPReadOnly = true | false
+
+with the following broad intent:
+
+- true  -> A2 Identity may read/synchronize from LDAP/AD but never writes directory values
+- false -> A2 Identity may write back selected directory-backed values when policy and permissions allow
+
+The boolean should remain a convenient top-level switch, while more detailed field/operation policies refine behavior underneath.
+
+### 22.71 Read-only directory mode
+
+Read-only mode is appropriate when LDAP/AD is authoritative and A2 Identity is only enriching or presenting the profile.
+
+Typical flow:
+
+    LDAP/AD
+      -> authenticate user
+      -> read directory attributes
+      -> synchronize DirectoryProfile snapshot
+      -> combine with LocalProfile
+      -> expose EffectiveProfile
+
+In this mode, any user edits to directory-owned fields must remain local A2 overrides only if the field policy permits them, or be rejected if the field is DirectoryOnly.
+
+No LDAP modify operation may be attempted.
+
+### 22.72 Read-write directory mode
+
+Read-write mode allows A2 Identity to update selected LDAP/AD attributes when the application scenario requires it.
+
+Example:
+
+    user edits mobile phone
+      -> validate input
+      -> update A2 profile transaction
+      -> connector writes mapped LDAP attribute
+      -> verify result
+      -> record History event
+
+or, depending on consistency policy:
+
+    validate
+      -> LDAP write
+      -> confirm provider state
+      -> commit synchronized A2 state
+
+The exact transaction/compensation strategy must be specified because A2FS and LDAP cannot share one native atomic transaction.
+
+### 22.73 Field-level directory write policy
+
+`LDAPReadOnly=false` must not mean that every attribute becomes writable.
+
+Each mapped field should have an explicit policy such as:
+
+    DirectoryReadOnly
+    LocalOverride
+    WriteBack
+    WriteBackWithWorkflow
+
+Possible examples:
+
+    Department      = DirectoryReadOnly
+    DisplayName     = WriteBack
+    Mobile          = WriteBack
+    Office          = WriteBack
+    PreferredName   = LocalOverride
+    Avatar          = LocalOverride / A2Only
+    Email           = WriteBackWithWorkflow
+
+`WriteBackWithWorkflow` is intended for sensitive or high-impact values that must not be changed through a generic profile edit.
+
+### 22.74 Email as a special managed field
+
+Email should be treated as a special identity/contact field rather than an ordinary editable string.
+
+Even when LDAP write-back is enabled, changing the primary email should go through a dedicated workflow.
+
+Possible workflow responsibilities:
+
+- verify new address
+- confirm current user/session
+- enforce uniqueness
+- update normalized/indexed A2 values
+- update LDAP/AD mapped attribute where configured
+- update external identity bindings if policy requires it
+- record History
+- invalidate/re-evaluate related security state where appropriate
+
+The ordinary profile editor should not directly mutate the primary email field.
+
+### 22.75 Connector mapping
+
+The LDAP/AD connector should use explicit mapping between A2 fields and provider attributes.
+
+Conceptually:
+
+    A2.DisplayName  <-> LDAP displayName
+    A2.GivenName    <-> LDAP givenName
+    A2.FamilyName   <-> LDAP sn
+    A2.Mobile       <-> LDAP mobile
+    A2.Department   <-> LDAP department
+    A2.JobTitle     <-> LDAP title
+    A2.Manager      <-> LDAP manager
+
+Mappings should be configurable because directory schemas and organizational conventions differ.
+
+Custom provider mappings should be possible without modifying A2 Identity core.
+
+### 22.76 Direction per mapping
+
+Each mapping should be able to declare synchronization direction independently.
+
+Conceptually:
+
+    ReadOnly
+    ImportOnly
+    ExportOnly
+    Bidirectional
+
+Examples:
+
+    Department  = ImportOnly
+    JobTitle    = ImportOnly
+    Mobile      = Bidirectional
+    DisplayName = Bidirectional
+    Avatar      = A2Only
+
+This is more expressive than one global LDAPReadOnly flag while keeping that flag as a simple master safety switch.
+
+### 22.77 Conflict handling
+
+Bidirectional synchronization requires explicit conflict rules.
+
+Potential policies include:
+
+    DirectoryWins
+    A2Wins
+    NewestWins
+    ManualResolve
+
+`NewestWins` requires trustworthy timestamps/version markers and must not be used blindly when provider clocks or replication delay can make ordering ambiguous.
+
+Administrative tooling should expose unresolved conflicts rather than silently overwriting important values.
+
+### 22.78 Provider capabilities
+
+The connector should advertise what it can do.
+
+Conceptually:
+
+    CanReadProfiles
+    CanWriteProfiles
+    CanAuthenticate
+    CanSearchUsers
+    CanCreateUsers
+    CanDisableUsers
+    CanManageGroups
+    CanManagePasswords
+
+A2 Identity can then enable/disable features based on actual provider capability and configured policy.
+
+LDAP/AD write capability must never be assumed merely because bind/read access succeeds.
+
+### 22.79 Afrowave AD scenario
+
+For Afrowave infrastructure, a likely target mode is:
+
+    LDAPReadOnly = false
+
+with selective bidirectional mappings.
+
+Example intent:
+
+- authenticate against Afrowave AD
+- synchronize authoritative corporate fields
+- allow users to edit permitted profile fields through A2 Identity
+- write selected approved changes back into AD
+- keep A2-only fields such as avatar/device/history/application profile outside AD
+- require dedicated workflows for sensitive fields such as primary email
+
+This makes A2 Identity the user-facing profile/security layer while AD remains the directory/authentication authority.
+
+### 22.80 Connector ownership and project placement
+
+The generic A2 Identity model should define provider abstractions, synchronization semantics, mapping contracts, and write policies.
+
+Concrete LDAP/AD transport/connection code may belong in an integration package or the broader GetConnected family rather than bloating the A2 core format/storage layer.
+
+Possible package split:
+
+    Afrowave.A2.Identity
+    Afrowave.A2.Identity.Ldap
+
+or:
+
+    Afrowave.GetConnected.Ldap
+        used by
+    Afrowave.A2.Identity
+
+Final package ownership should be decided when the dedicated A2 repository and GetConnected integration boundaries are formalized.
+
+### 22.81 History and audit for directory writes
+
+Every provider write initiated through A2 Identity should generate a History/audit event with at least:
+
+- affected user
+- logical field
+- old/new effective values where safe
+- provider
+- direction
+- outcome
+- timestamp
+- initiating actor/source
+
+Failed write-back attempts should also be visible to administrators and diagnostics.
+
+User-facing History may simplify or redact provider details while preserving the meaningful event.
+
+### 22.82 Failure and compensation
+
+Because A2 Identity and LDAP/AD are separate systems, write-back can partially fail.
+
+The connector layer must define explicit behavior for cases such as:
+
+- A2 update succeeds but LDAP write fails
+- LDAP write succeeds but A2 commit fails
+- provider becomes unavailable mid-operation
+- provider rejects validation/permissions
+
+Possible strategies include:
+
+- provider-first then local commit
+- local provisional change + provider commit + finalize
+- compensation/revert
+- queued retry for non-security-critical fields
+
+Security-sensitive fields should prefer synchronous confirmed completion rather than silent eventual retry.
+
+The chosen strategy should be visible in History/diagnostics so administrators can understand whether local and directory state are synchronized.
 
 ## 23. Future migration
 
