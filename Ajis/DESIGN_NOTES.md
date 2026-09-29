@@ -708,6 +708,7 @@ The following statements summarize the strongest architectural direction agreed 
 23. Lossless logical AJIS-to-JSON round trips may use a reserved `#ajisData` metadata envelope so AJIS-only semantics survive systems that can transport only JSON.
 24. AJIS should aim to have no unrepresentable application data: uncommon/native/custom values need an extensible tagged representation or binary/attachment escape hatch rather than becoming unsupported.
 25. Tooling may enrich an existing document later (for example by adding missing collection counts or inferred schema metadata) without requiring the original producer to know everything up front.
+26. Once derived metadata exists, A2 tooling/storage should maintain it transactionally during supported mutations instead of forcing repeated full rescans.
 
 
 ## 12. Optional embedded schema header
@@ -1154,6 +1155,46 @@ Therefore enrichment tools may offer modes such as:
 - strict declared schema generation
 
 The final specification/tooling design should define these semantics clearly.
+
+### 14.8 Maintained derived metadata
+
+Once optional derived metadata such as `count` exists, A2 tooling and mutable storage engines should keep it synchronized with supported data mutations.
+
+Examples:
+
+```text
+Add one item       -> count + 1
+Remove one item    -> count - 1
+Replace one item   -> count unchanged
+Add N items        -> count + N
+Remove N items     -> count - N
+```
+
+Nested collections maintain their own independent counts.
+
+The same principle may later apply to other safely maintainable metadata, for example:
+
+- minimum/maximum values
+- null counts
+- fixed-width allocation metadata
+- index cardinality
+- attachment counts
+- checksum/signature state
+- schema/version metadata
+- storage statistics
+
+Not every metadata value can be updated incrementally. A mutation may therefore mark some derived metadata as **dirty/stale** and trigger recalculation at commit/save time or on explicit request.
+
+The logical mutation and its metadata update should be treated as one transaction where the storage format supports transactional mutation. A successful `Add` must not leave the collection with an old count.
+
+For plain human-readable AJIS text, the in-memory/tooling model may update the count immediately while the physical file is safely rewritten on save/commit. A2FS/TP-style storage can maintain dedicated metadata areas more efficiently.
+
+For append-only streaming creation where the final count is initially unknown, the serializer may:
+
+1. omit `count` while streaming, or
+2. maintain an internal running count and emit/finalize it if the chosen output/container format permits safe finalization.
+
+A2 should never require a full rescan merely to update metadata that can be derived exactly from the mutation already being performed.
 
 ### 14.7 Progressive knowledge
 
