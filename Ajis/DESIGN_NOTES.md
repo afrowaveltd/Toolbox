@@ -722,6 +722,7 @@ The following statements summarize the strongest architectural direction agreed 
 37. A2 should support compact and documentation-oriented writer modes; Verbal output may generate explanatory comments without changing document semantics.
 38. Samples, documentation, CLI help, and the web playground should preferably share one executable sample catalog.
 39. A dual-backend reference application should compare equivalent SQL/EF Core and A2/A2FS behavior on a realistic sample database before performance claims are made.
+40. A2 Identity should be the first major reference library, implementing ASP.NET Core Identity storage contracts over A2FS and publishing measured scalability/resource limits instead of assuming database-like unlimited scale.
 
 
 ## 12. Optional embedded schema header
@@ -3219,7 +3220,235 @@ The same query corpus should run against both backends where practical.
 
 Server profile tests should particularly verify that A2 does not consume memory proportional to total data size.
 
-## 22. Future migration
+## 22. A2 Identity as the first reference library
+
+A2 should not try to reproduce every database feature. Its target is a deliberately smaller storage/query model that is highly efficient for workloads where A2's strengths matter: indexed lookup, simple relationships, bounded joins, paging, streaming, and predictable resource use.
+
+The first major reference library should be **A2 Identity**.
+
+The purpose of A2 Identity is twofold:
+
+1. provide a useful production-oriented ASP.NET Core Identity storage provider backed by A2/A2FS
+2. act as the first serious end-to-end proving ground for A2 storage, indexing, relationships, binary values, concurrency, recovery, and server execution profiles
+
+### 22.1 Compatibility target
+
+A2 Identity should aim to be usable through the normal ASP.NET Core Identity manager/store model rather than inventing a separate authentication API.
+
+Current ASP.NET Core Identity explicitly supports custom persistence stores. Its high-level managers are separated from storage through interfaces such as IUserStore<TUser>, IRoleStore<TRole>, IUserRoleStore<TUser>, and the other capability-specific user store interfaces.
+
+A2 Identity should therefore implement the relevant Identity store contracts so existing application code can continue to use UserManager<TUser>, RoleManager<TRole>, SignInManager<TUser>, role checks, claims, logins, tokens, passkeys, lockout, two-factor features, and other supported Identity capabilities according to the interfaces implemented by the store.
+
+The exact .NET 11 surface must be verified against the final released framework before freezing A2 Identity 1.0 APIs.
+
+### 22.2 Storage model
+
+A2 Identity should use A2FS rather than a giant in-memory AJIS object graph.
+
+Conceptual data sets:
+
+    Users
+    Roles
+    UserRoles
+    UserClaims
+    RoleClaims
+    UserLogins
+    UserTokens
+    UserPasskeys / related capability data where required
+
+Small lookup domains such as Roles may be represented through A2 pointer/reference semantics and kept resident when practical.
+
+Large collections such as Users remain A2FS-backed and indexed.
+
+Likely important indexes include:
+
+- User.Id
+- User.NormalizedUserName
+- User.NormalizedEmail where required
+- Role.Id
+- Role.NormalizedName
+- UserRoles.UserId
+- UserRoles.RoleId
+- claims/login lookup keys required by Identity operations
+
+Uniqueness rules required by Identity must be enforced explicitly by the A2 storage layer.
+
+### 22.3 User images as a native extension
+
+A2 Identity may add first-class user images/avatars as an A2-specific extension.
+
+Unlike a conventional relational schema where an avatar is often stored externally or as a BLOB column, A2 can keep the binary value or attachment in the same logical user store.
+
+Conceptually:
+
+    User
+      Id
+      UserName
+      ...
+      Avatar -> binary / attachment
+
+The avatar should remain optional and must not be loaded when ordinary Identity operations need only credentials, normalized names, roles, or claims.
+
+A2FS projection/column separation should ensure that:
+
+    FindByNameAsync(userName)
+
+does not read megabytes of avatar data.
+
+This is an important A2FS conformance requirement: large binary fields must not penalize queries that do not project them.
+
+### 22.4 Identity workload is deliberately narrow
+
+A2 Identity does not need SQL arithmetic, arbitrary aggregation, complex multi-table joins, stored procedures, or a general SQL dialect.
+
+The important operations are closer to:
+
+- unique indexed lookup by user ID/name/email
+- indexed lookup by role name
+- add/remove role membership
+- retrieve roles for one user
+- retrieve users for one role
+- claims/login/token/passkey lookup and mutation
+- create/update/delete user
+- paging/search for administration UI
+- one or two bounded relationship traversals
+- concurrency/version checks
+
+This workload is an excellent match for the intended A2 query/storage scope.
+
+### 22.5 Primary scalability question
+
+The benchmark should answer a concrete question:
+
+> How many Identity users can A2FS manage while keeping common Identity operations fast enough and server memory bounded?
+
+This should be measured rather than guessed.
+
+Candidate test scales:
+
+    1,000 users
+    10,000 users
+    100,000 users
+    1,000,000 users
+    10,000,000 users
+    larger if results remain useful
+
+Each scale should include realistic role/claim/login/token distributions and optionally avatars of multiple sizes.
+
+### 22.6 Critical benchmark operations
+
+At every scale, measure at least:
+
+- FindById
+- FindByNormalizedUserName
+- FindByNormalizedEmail
+- Create user
+- Update user
+- Delete user
+- IsInRole
+- GetRoles
+- GetUsersInRole
+- AddToRole / RemoveFromRole
+- claims lookup/update
+- login/token/passkey-related operations supported by the target Identity version
+- ordered/paged administrative user listing
+- concurrent login-like reads
+- concurrent mixed read/write workload
+- avatar lookup separately from normal user lookup
+
+Measure:
+
+- p50/p95/p99 latency
+- throughput
+- peak process working memory
+- A2-owned buffer/memory usage where observable
+- allocations
+- disk I/O
+- index size
+- total A2FS size
+- cold-start behavior
+- warm-cache behavior
+- startup/open time
+- recovery time after simulated interruption
+
+### 22.7 Comparison target
+
+The reference application should expose the same logical ASP.NET Core Identity operations through two storage providers:
+
+    Microsoft/EF Core Identity store
+    A2 Identity store
+
+The first assertion is correctness/behavioral compatibility.
+
+Only after equivalent Identity behavior is demonstrated should resource/performance comparisons be made.
+
+The useful result is not 'A2 wins'. The useful result is a measured operating envelope such as:
+
+    A2 Identity remains comfortable up to X users on profile Y / hardware Z
+    A2 Identity remains functional but latency changes above X
+    for workload Q a conventional database becomes the better choice
+
+### 22.8 Hardware profiles
+
+Benchmarks should include several deliberately different machines/profiles.
+
+Useful examples:
+
+- constrained client/workstation: 4 GiB RAM
+- ordinary small server
+- modern workstation/server with abundant RAM
+- slow SATA/HDD or old NAS storage
+- SSD/NVMe storage
+
+This helps determine whether the A2 Server profile and disk-first design actually keep memory independent of total user count.
+
+### 22.9 Server profile expectations
+
+A2 Identity should normally use Profile=Server.
+
+Desired behavior:
+
+- persistent indexes on disk
+- bounded per-request buffers
+- no whole-user-store materialization
+- rapid release/reuse of temporary request resources
+- avatars/binary payloads fetched only when requested
+- role pointer values may remain resident because the domain is tiny
+- controlled shared caches
+- WAL/crash-safe mutations
+- deterministic concurrency handling
+
+### 22.10 Demo application
+
+A2 Identity should ship with or be accompanied by a small reference web application.
+
+The same UI/application behavior should be runnable with either backend through configuration:
+
+    IdentityBackend = EfCore
+
+or:
+
+    IdentityBackend = A2
+
+The demo should exercise registration, login, roles, claims, administration, user search/paging, avatar upload/display, and representative concurrent requests.
+
+This makes A2 Identity both a practical package and a continuously executable demonstration of the A2 architecture.
+
+### 22.11 Success criteria
+
+A2 Identity should be considered successful when:
+
+- normal ASP.NET Core Identity application code needs minimal/no changes beyond DI/store configuration
+- supported Identity store contracts have conformance tests
+- storage remains crash-safe and transactionally consistent
+- memory usage is bounded as user count grows
+- user images do not penalize ordinary identity lookups
+- indexed role/user operations remain predictable
+- the practical user-count envelope has been measured and documented on known hardware
+
+The project should explicitly publish benchmark limits rather than implying unlimited scale.
+
+## 23. Future migration
 
 When the dedicated A2 repository is created:
 
