@@ -714,6 +714,7 @@ The following statements summarize the strongest architectural direction agreed 
 29. Early metadata may include a rounded working-memory hint measured or estimated by the producer so Auto engine selection can compare expected memory demand with current host availability before payload processing begins.
 30. AJIS should reserve unquoted #directive tokens as parser/control-plane syntax while quoted keys such as "#meta" remain ordinary user data.
 31. Conditional directives such as #if/#else/#endif may allow one document to carry platform- or environment-specific branches without turning AJIS into an arbitrary-code execution language.
+32. A2 transport adapters may stream a continuous GZip-compressed AJIS byte stream through SignalR or other transports without materializing the complete document.
 
 
 ## 12. Optional embedded schema header
@@ -1995,7 +1996,140 @@ or a bundle/container whose manifest identifies GZip-compressed members.
 GZip is compression, not confidentiality protection. Encryption/authentication remain separate TP/A2 security concerns.
 
 
-## 17. Future migration
+
+## 17. GZip streaming over network transports
+
+A2/AJIS should support transport-level streaming compression so a producer can serialize AJIS, compress it incrementally with GZip, and send the compressed bytes over a streaming transport such as SignalR without first materializing the complete document.
+
+ASP.NET Core SignalR supports server-to-client and client-to-server streaming through `IAsyncEnumerable<T>` and `ChannelReader<T>`, so a .NET implementation can expose compressed byte chunks as the stream items.
+
+Conceptual pipeline:
+
+```text
+object/data source
+    -> AJIS serializer
+    -> GZip stream encoder
+    -> bounded byte chunks
+    -> SignalR stream
+    -> bounded byte chunks
+    -> GZip stream decoder
+    -> AJIS parser
+    -> destination
+```
+
+The important property is that neither side needs the complete uncompressed or compressed document in memory.
+
+### 17.1 Compress before transport chunking
+
+Compression should operate on the continuous AJIS byte stream before transport framing/chunking.
+
+Preferred order:
+
+```text
+AJIS bytes
+  -> GZip encoder
+  -> compressed byte stream
+  -> transport chunks/messages
+```
+
+rather than compressing every SignalR message independently.
+
+Keeping one logical GZip stream allows the compressor to exploit redundancy across chunk boundaries and avoids per-message GZip framing overhead.
+
+Transport chunk size is an implementation/runtime concern and does not change AJIS semantics.
+
+### 17.2 SignalR shape
+
+A .NET transport adapter may conceptually expose:
+
+```csharp
+IAsyncEnumerable<ReadOnlyMemory<byte>> StreamAjisAsync(...);
+```
+
+or an equivalent `ChannelReader<byte[]>` / pipeline abstraction.
+
+The exact public API is not frozen.
+
+A bounded producer/consumer buffer should provide natural backpressure when the network or receiver cannot keep up.
+
+Cancellation must flow from SignalR into the serializer/compressor so disconnecting a client stops producing data and releases resources.
+
+### 17.3 Transport header / negotiation
+
+The receiver needs to know the transport encoding before it can interpret the compressed AJIS bytes.
+
+This information may be supplied outside the compressed payload by the transport invocation/session metadata, for example conceptually:
+
+```text
+contentType  = application/a2
+compression  = gzip
+version      = 2
+```
+
+Alternatively, formats that carry their own outer header may identify GZip through magic/flags.
+
+After the GZip decoder starts, the normal early AJIS directives such as `#meta` and `#schema` become the first logical content seen by the AJIS parser.
+
+Therefore transport compression does not remove the benefit of early AJIS metadata:
+
+```text
+transport says gzip
+    -> initialize GZip decoder
+    -> read #meta/#schema
+    -> choose RAM/Disk/Auto strategy
+    -> continue streaming payload
+```
+
+### 17.4 Compression policy
+
+GZip transport compression should be optional and explicit.
+
+A useful policy direction:
+
+```text
+Compression = None | GZip | Auto
+```
+
+- `None` — send AJIS bytes directly.
+- `GZip` — stream through GZip.
+- `Auto` — choose according to payload/schema hints, transport capabilities, and application policy.
+
+The host may skip compression for payloads that are already mostly compressed binary data.
+
+### 17.5 Binary attachments
+
+If an AJIS/TP stream contains attachments such as JPEG, PNG, MP4, ZIP, or other already-compressed formats, recompressing those bytes may provide little benefit.
+
+A2 may therefore eventually support segmented/member-level compression policies where structured/textual AJIS content is compressed while already-compressed attachment payloads are passed through efficiently.
+
+The simple baseline remains valid: one GZip stream over the whole AJIS byte stream.
+
+### 17.6 SignalR transport versus WebSocket compression
+
+Application-level AJIS GZip streaming is distinct from WebSocket protocol compression.
+
+SignalR may run over WebSockets or other transports, and WebSocket compression is negotiated at the WebSocket layer. A2 should not depend on that transport-specific feature for its own compression contract.
+
+Using an explicit A2 GZip stream provides consistent behavior across supported streaming transports.
+
+If lower transport layers also compress, implementations should avoid accidental double compression where it provides no benefit.
+
+### 17.7 Security note
+
+Compression is orthogonal to encryption and authentication.
+
+When compression is combined with secrets and attacker-influenced data over an encrypted interactive channel, implementations should account for known compression side-channel risks at the transport/application level.
+
+This does not make GZip unsuitable as the normal A2 compression codec; it means security-sensitive protocols should choose compression boundaries deliberately.
+
+### 17.8 Reuse by SemTam / TamTam
+
+The same transport-compression abstraction can later be reused by SemTam/TamTam adapters.
+
+A2 should provide the byte-stream serialization/compression primitives; SignalR, raw sockets, HTTP streams, files, and future transports should be adapters over the same stream-first core rather than separate serialization implementations.
+
+
+## 18. Future migration
 
 When the dedicated A2 repository is created:
 
