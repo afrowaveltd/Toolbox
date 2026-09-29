@@ -719,6 +719,9 @@ The following statements summarize the strongest architectural direction agreed 
 34. A2 may use EF Core metadata for bidirectional database export/import, preserving entity identity and relationships while offering both relational snapshots and human-friendly graph projections.
 35. A2 should support logical references/pointers so shared entities, many-to-many relationships, and cyclic graphs can be represented without duplication while preserving bounded-memory processing.
 36. A pointer is a named logical address to one complete A2 value/object; small pointer tables may be materialized early in RAM, while large tables may resolve through disk-backed indexes without changing semantics.
+37. A2 should support compact and documentation-oriented writer modes; Verbal output may generate explanatory comments without changing document semantics.
+38. Samples, documentation, CLI help, and the web playground should preferably share one executable sample catalog.
+39. A dual-backend reference application should compare equivalent SQL/EF Core and A2/A2FS behavior on a realistic sample database before performance claims are made.
 
 
 ## 12. Optional embedded schema header
@@ -2989,7 +2992,234 @@ A parser may cache pointer targets because they are frequently used, but:
 
 This distinction keeps the data model deterministic while allowing aggressive performance optimization.
 
-## 21. Future migration
+## 21. Human-readable writing modes, samples, playground, and reference benchmark
+
+A2/AJIS should deliberately support both compact transport-oriented output and highly readable working/documentation output.
+
+### 21.1 Writer presentation modes
+
+A useful initial model is:
+
+    WriteMode = Compact | Standard | Verbal
+
+Possible semantics:
+
+- Compact: minimize textual overhead for transport/storage while remaining valid AJIS.
+- Standard: normal readable canonical AJIS with sensible indentation.
+- Verbal: documentation-oriented AJIS with generated explanatory comments and section markers.
+
+The exact enum names are not frozen.
+
+Canonical semantic content must not change between modes. Only formatting, comments, and other non-semantic presentation details change.
+
+### 21.2 Generated structural comments
+
+Because AJIS supports comments, generated documents can use them to improve orientation.
+
+Example Verbal output:
+
+    /**
+     * --- META ---
+     * Processing hints for the AJIS reader.
+     * These values do not change the logical payload.
+     */
+    #meta: {
+        "engine": "Auto"
+    },
+
+    /**
+     * --- POINTERS ---
+     * Named shared values referenced later by *name.
+     */
+    #pointers: {
+        roleAdmin: { "Id": 1, "Name": "Administrator" },
+        roleUser:  { "Id": 2, "Name": "User" }
+    },
+
+    /* ---- PAYLOAD DATA ---- */
+
+    "Users": [
+        ...
+    ]
+
+Generated comments are presentation metadata only. They must not affect parsing semantics and may be omitted by Compact/transport writers.
+
+### 21.3 Comment levels
+
+Verbal mode may itself support different explanation levels, for example:
+
+    Comments = None | Sections | Explanatory | Tutorial
+
+Possible intent:
+
+- Sections: only visual separators such as META / SCHEMA / POINTERS / PAYLOAD.
+- Explanatory: short descriptions of what each section or unusual construct means.
+- Tutorial: include examples and hints suitable for learning the format.
+
+This keeps normal readable files concise while allowing sample/tutorial generation to be intentionally verbose.
+
+### 21.4 GetSample(...) as executable documentation
+
+A2 should provide a sample-generation API so developers can learn by generating valid examples instead of reading only long prose documentation.
+
+Working API concept:
+
+    var sample = A2.GetSample(parameters);
+
+or:
+
+    var sample = A2.Samples.Create(options);
+
+Final naming is not frozen.
+
+Parameters may select features such as:
+
+- schema
+- meta
+- pointers
+- conditions
+- tuples
+- unions
+- binary values / attachments
+- encryption annotations
+- paging metadata
+- database graph example
+- server/client profile example
+- Compact / Standard / Verbal output
+
+Example concept:
+
+    A2.GetSample(new() {
+        Pointers = true,
+        Schema = true,
+        Conditions = true,
+        WriteMode = Verbal
+    });
+
+The generator should use the real production serializer/format model so examples cannot silently drift away from actual parser behavior.
+
+### 21.5 A2 website / interactive playground
+
+A2 should have a first-party web playground developed alongside the specification and implementations.
+
+The playground should use the real A2 implementation where practical rather than a separately reimplemented demo grammar.
+
+Useful panes/features:
+
+- source AJIS editor
+- resolved document view
+- JSON lossless conversion view
+- parsed tree/schema view
+- metadata/pointer view
+- validation result
+- query result
+- execution plan
+- Compact / Standard / Verbal formatting switch
+- sample selector
+- editable parameters/context
+- ToJson / FromJson round-trip demonstration
+- download/export of generated examples
+
+A beginner should be able to open the site, select a feature, change a value, and immediately see how AJIS behaves.
+
+This interactive documentation is especially important as A2 grows beyond simple JSON-like serialization.
+
+### 21.6 Documentation and playground share samples
+
+Samples shown in written documentation, tests, CLI help, and the web playground should come from one shared sample catalog where feasible.
+
+Conceptually:
+
+    A2.SampleCatalog
+        -> Docs
+        -> GetSample()
+        -> a2tool sample
+        -> web playground
+        -> conformance/demo tests
+
+This reduces documentation drift and turns examples into testable artifacts.
+
+### 21.7 WideWorldImporters as a large reference database
+
+A strong end-to-end demonstration/benchmark candidate is Microsoft's WideWorldImporters sample database.
+
+It provides a non-trivial relational model with realistic tables, relationships, transactional data, and enough complexity to exercise:
+
+- DB -> A2 export
+- A2 -> DB import
+- indexes
+- joins
+- filtering
+- projections
+- server profile
+- bounded-memory operation
+- EF Core metadata mapping
+- query-plan comparison
+
+AdventureWorks can remain a secondary/alternate sample, but WideWorldImporters is a particularly suitable primary test target because it was designed as a modern SQL Server sample and includes OLTP and analytics-oriented material.
+
+### 21.8 Dual-backend reference application
+
+A2 should eventually include a reference application exposing the same logical operations through two interchangeable backends:
+
+    Backend A: SQL Server / EF Core
+    Backend B: A2 / A2FS
+
+Both backends operate on equivalent data exported from the same source database.
+
+Example operations:
+
+- find customer/user by key
+- list records for one organization/category
+- indexed filter
+- simple join
+- ordered paging
+- projection
+- insert/update/delete
+- bulk read/export
+
+The application should compare results for correctness first, then optionally measure performance/resource use.
+
+Important measurements include:
+
+- latency
+- throughput
+- peak working memory
+- allocated memory
+- disk reads/writes
+- index size
+- cold/warm behavior
+- concurrent request behavior
+
+The goal is not to claim that A2 universally beats SQL Server. The goal is to identify the workload boundary where an embedded A2 engine is simpler or more resource-efficient, and where a mature DBMS remains the better tool.
+
+### 21.9 Semantic equivalence testing
+
+For operations supported by both backends, the reference app/test suite should assert semantic equivalence:
+
+    SQL result == A2 result
+
+before comparing speed.
+
+This makes the SQL implementation an independent behavioral oracle for relational-style features such as simple joins, filtering, ordering, and paging.
+
+### 21.10 Scaling the benchmark
+
+WideWorldImporters can be exported once at normal size and also expanded/generated into much larger A2 data sets for stress testing.
+
+Useful scales:
+
+- original sample size
+- 10x
+- 100x
+- larger-than-RAM
+- ~150 GB A2FS stress target
+
+The same query corpus should run against both backends where practical.
+
+Server profile tests should particularly verify that A2 does not consume memory proportional to total data size.
+
+## 22. Future migration
 
 When the dedicated A2 repository is created:
 
