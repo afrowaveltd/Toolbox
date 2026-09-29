@@ -717,6 +717,7 @@ The following statements summarize the strongest architectural direction agreed 
 32. A2 transport adapters may stream a continuous GZip-compressed AJIS byte stream through SignalR or other transports without materializing the complete document.
 33. A2 may support bounded indexed joins and server/client execution profiles without becoming a general-purpose relational database engine.
 34. A2 may use EF Core metadata for bidirectional database export/import, preserving entity identity and relationships while offering both relational snapshots and human-friendly graph projections.
+35. A2 should support logical references/pointers so shared entities, many-to-many relationships, and cyclic graphs can be represented without duplication while preserving bounded-memory processing.
 
 
 ## 12. Optional embedded schema header
@@ -2654,7 +2655,212 @@ A2 does not need to replace EF Core's change tracking, provider ecosystem, migra
 
 The goal is a portable A2 snapshot/document representation with reliable round-trip semantics and bounded-memory processing.
 
-## 20. Future migration
+## 20. Logical pointers / references
+
+A2 should support logical references (working name: pointers) so repeated/shared entities can be represented once and referenced many times.
+
+The term pointer is useful conceptually, but the persisted value must not be a raw machine memory address. It is a stable document-level reference identifier that the parser can resolve to an object/value.
+
+Conceptual idea:
+
+    #pointers: {
+        roleAdmin: p1,
+        roleUser:  p2
+    }
+
+    {
+        "Roles": {
+            p1: { "Id": 1, "Name": "Admin" },
+            p2: { "Id": 2, "Name": "User" }
+        },
+
+        "Users": [
+            {
+                "Id": 10,
+                "Name": "Peter",
+                "Roles": [ *p1, *p2 ]
+            },
+            {
+                "Id": 11,
+                "Name": "Anna",
+                "Roles": [ *p2 ]
+            }
+        ]
+    }
+
+The exact syntax is not frozen. The important semantic distinction is:
+
+    object/value definition -> assigned logical reference ID
+    *p1                     -> reference to that previously/known object/value
+
+### 20.1 Why references matter
+
+Logical references solve several problems at once:
+
+- shared entities are stored once instead of duplicated
+- many-to-many relationships map naturally
+- cyclic object graphs become representable
+- database exports can preserve entity identity
+- graph/document views can stay compact
+- repeated large subobjects need not be serialized repeatedly
+- in-memory readers may resolve references to the same logical object instance where appropriate
+
+Example: one Role entity can be referenced by 50,000 users without serializing 50,000 copies of the role object.
+
+### 20.2 Parser resolution model
+
+A reader may maintain a compact reference table in memory:
+
+    p1 -> Role(Admin)
+    p2 -> Role(User)
+    p3 -> Address(...)
+
+For a small reference table this can be held directly in RAM.
+
+For very large pointer tables, A2 must remain bounded-memory and may store the lookup table in disk-backed ScratchStore/A2FS indexes.
+
+The existence of references must never imply that every referenced object must remain permanently materialized in RAM.
+
+Possible strategies include:
+
+- direct in-memory reference table for small graphs
+- lazy object materialization
+- record-ID / offset lookup into A2FS
+- disk-backed pointer index
+- weak/cache-based materialization for repeated access
+
+### 20.3 Forward and backward references
+
+The simplest initial implementation may require definitions before references:
+
+    define p1
+    later use *p1
+
+However, the format may eventually support forward references if the parser can register unresolved references and bind them later.
+
+For streaming and low-memory implementations, backward-only references are simpler and should be considered as a baseline capability.
+
+If forward references are supported, unresolved-reference limits and disk spill must prevent unbounded memory growth.
+
+### 20.4 Pointer table versus inline identity annotation
+
+Two complementary forms may be useful.
+
+Central table:
+
+    #pointers: {
+        p1: ...
+        p2: ...
+    }
+
+Inline identity:
+
+    {
+        #id: p1,
+        "Id": 1,
+        "Name": "Admin"
+    }
+
+and reference:
+
+    *p1
+
+The final grammar should choose whether both forms are allowed or whether one is canonical.
+
+A central #pointers section is attractive for early planning and graph inspection. Inline IDs are attractive for streaming because an object can define its identity where it appears.
+
+A hybrid design may use inline definitions while #pointers contains an optional early index/directory of known references.
+
+### 20.5 References are logical identity, not copying
+
+Resolving *p1 should mean 'the same logical entity/value', not 'deserialize a fresh copy of the content'.
+
+This distinction is especially important for:
+
+- database entity identity
+- mutable in-memory graphs
+- cycles
+- deduplication
+- equality semantics
+
+Language bindings may expose this differently. For example, .NET may resolve repeated references to the same object instance in graph-materialization mode, while a low-memory C reader may expose the same stable reference ID/record locator without materializing a persistent object instance.
+
+### 20.6 Interaction with database export/import
+
+The database bridge can use A2 references to preserve shared entities naturally.
+
+Example:
+
+    Roles:
+      p1 -> Admin
+      p2 -> User
+
+    Users:
+      Peter.Roles -> [*p1, *p2]
+      Anna.Roles  -> [*p2]
+
+During import, the relationship layer resolves p1/p2 to the correct Role primary keys and recreates UserRoles relationships.
+
+This avoids duplicating shared entities in Graph mode while retaining a human-readable object-oriented view.
+
+### 20.7 Interaction with #schema and metadata
+
+#schema may describe reference-capable fields, for example conceptually:
+
+    "Roles": {
+        "type": "List<RoleRef>",
+        "referenceTarget": "Role"
+    }
+
+#meta may contain planning information such as pointer count or preferred pointer-index engine.
+
+Optional metadata examples:
+
+    pointerCount: 2
+    pointerEngine: Auto
+
+These values remain optional planning aids.
+
+### 20.8 JSON lossless conversion
+
+JSON has no native reference syntax, so lossless ToJson()/FromJson() should preserve references through #ajisData.
+
+Conceptually, ordinary JSON may carry stable IDs and reference placeholders while #ajisData defines which paths/values represent A2 references.
+
+This allows:
+
+    AJIS shared graph
+        -> JSON + #ajisData
+        -> JSON-only transport
+        -> FromJson()
+        -> same logical graph identity
+
+### 20.9 Cycles
+
+References make cyclic graphs representable.
+
+Example:
+
+    p1 -> Person { manager: *p2 }
+    p2 -> Person { manager: *p1 }
+
+A2 parsers must detect and handle cycles without recursive infinite materialization.
+
+Graph materializers may create placeholders/identity slots first, then populate members.
+
+Streaming/event readers may expose references symbolically rather than constructing a full cyclic object graph.
+
+### 20.10 Integrity
+
+Reference identifiers must be unique within their declared scope.
+
+A reference to an unknown identifier is a stable validation error unless the selected mode explicitly permits forward references.
+
+Duplicate pointer definitions, incompatible target types, and broken references should be detectable through CheckMeta()/validation tooling.
+
+Reference IDs are document identities, not security capabilities; possession of an ID must not imply authorization to access external resources.
+
+## 21. Future migration
 
 When the dedicated A2 repository is created:
 
