@@ -705,6 +705,7 @@ The following statements summarize the strongest architectural direction agreed 
 20. The same public operation should scale from tiny input to data sets far larger than RAM, with strategy changing underneath rather than forcing a different application model.
 21. An optional schema available at the beginning of a document may describe anonymous/self-describing data and allow parsers/storage engines to prepare execution before consuming the payload.
 22. Optional collection counts in the early schema/header are hints and planning metadata: when known they enable capacity planning and progress reporting; when unknown they are simply omitted.
+23. Lossless logical AJIS-to-JSON round trips may use a reserved `#ajisData` metadata envelope so AJIS-only semantics survive systems that can transport only JSON.
 
 
 ## 12. Optional embedded schema header
@@ -712,6 +713,8 @@ The following statements summarize the strongest architectural direction agreed 
 A2/AJIS should support an optional schema declaration at the beginning of a document, tentatively represented by a reserved field/directive such as `#schema`.
 
 The schema is not required for ordinary self-describing AJIS data, but when present it can act as an early contract and planning hint before the parser starts consuming the full payload.
+
+Although the schema remains human-readable and editable, its primary producer is expected to be the A2/AJIS serializer. Applications should normally describe their language/runtime model and serialization policy, while the serializer emits the corresponding schema metadata consistently. Hand-authored or edited schemas remain supported where useful.
 
 Conceptual example:
 
@@ -882,7 +885,137 @@ This could reduce repeated schema transmission in long-lived streams or repeated
 The exact schema-ID, hashing, canonicalization, and versioning rules are intentionally left open for the future specification.
 
 
-## 13. Future migration
+
+## 13. JSON interoperability and lossless AJIS round-trip
+
+JSON is treated as a compatible subset/input surface of AJIS/A2, but AJIS may contain semantics that plain JSON cannot represent directly.
+
+A2 should therefore provide explicit conversion functions such as:
+
+```text
+ToJson(...)
+FromJson(...)
+```
+
+Different conversion profiles may exist, but one profile must support a **lossless logical round-trip** through JSON.
+
+### 13.1 Reserved `#ajisData` metadata envelope
+
+For the lossless profile, AJIS-only metadata can be represented inside valid JSON using a reserved top-level metadata member tentatively named `#ajisData`.
+
+Conceptual example:
+
+```json
+{
+  "#ajisData": {
+    "version": 2,
+    "schema": {
+      "type": "Person",
+      "count": 10000000,
+      "fields": {
+        "Id": "Int64",
+        "Name": "String",
+        "Age": "Int32"
+      }
+    }
+  },
+  "data": [
+    {
+      "Id": 1,
+      "Name": "Peter",
+      "Age": 42
+    }
+  ]
+}
+```
+
+The exact JSON envelope shape is not yet frozen. The key principle is that the output remains ordinary valid JSON while preserving enough reserved AJIS metadata for `FromJson()` to reconstruct the original logical AJIS document.
+
+Potential `#ajisData` contents may include:
+
+- embedded schema
+- collection counts
+- tuple/union type identity where JSON arrays/objects alone are ambiguous
+- AJIS-specific scalar/type information
+- directives or annotations required for semantic reconstruction
+- selective-encryption metadata where appropriate and safe to expose
+- package/document version information
+- other AJIS-only semantics that would otherwise be lost
+
+The metadata envelope should be extensible and versioned.
+
+### 13.2 JSON compatibility profiles
+
+A useful direction is to keep multiple export intents conceptually separate:
+
+- **Minimal** — produce the simplest conventional JSON representation; AJIS-only distinctions may be intentionally lost.
+- **Functional** — preserve practical semantics needed by common consumers while remaining convenient JSON.
+- **DeterministicRoundtrip / Lossless** — include `#ajisData` metadata sufficient to reconstruct the logical AJIS document.
+
+This retains the principle that a user who only needs ordinary JSON does not pay for all AJIS metadata, while a user forced to route data through JSON can preserve AJIS semantics.
+
+### 13.3 Schema preservation through JSON-only systems
+
+The optional AJIS `#schema` header maps naturally into the JSON metadata envelope.
+
+Conceptually:
+
+```text
+AJIS:
+#schema: { ... }
+<data>
+
+        ToJson(lossless)
+              |
+              v
+
+JSON:
+{
+  "#ajisData": {
+    "schema": { ... }
+  },
+  "data": ...
+}
+
+        FromJson(...)
+              |
+              v
+
+AJIS:
+#schema: { ... }
+<data>
+```
+
+This is particularly useful when an intermediate API, message bus, persistence layer, or third-party service accepts JSON but does not understand AJIS.
+
+The intermediary only needs to preserve the reserved metadata field. It does not need to understand it.
+
+### 13.4 Reserved-name handling
+
+Because `#ajisData` carries protocol metadata, the final specification must define an unambiguous collision rule for user data that contains the same property name.
+
+A likely direction is to reserve the `#ajisData` name (or a broader `#...` protocol namespace) for AJIS metadata in round-trip JSON mode and provide an escaping/mapping rule for conflicting user keys.
+
+The rule must be deterministic and itself losslessly reversible.
+
+### 13.5 Meaning of "lossless"
+
+The initial goal of lossless JSON conversion is **logical/semantic round-trip**, not necessarily byte-for-byte reproduction of the original textual AJIS source.
+
+For example, a lossless round-trip should preserve distinctions such as schema/type information, tuples, unions, protected-field metadata, and AJIS-specific scalar semantics where required.
+
+Preserving original whitespace, formatting style, or comment placement would require a separate source-preservation mode and should not be silently implied by semantic `ToJson()/FromJson()` round-trip guarantees.
+
+### 13.6 Streaming compatibility
+
+The JSON interoperability layer must remain stream-first.
+
+When possible, `ToJson()` and `FromJson()` should stream the data payload while reading/writing the comparatively small metadata envelope separately.
+
+A known schema/count can therefore be emitted before the streamed JSON payload, just as it can be emitted before native AJIS data.
+
+
+## 14. Future migration
 
 When the dedicated A2 repository is created:
 
