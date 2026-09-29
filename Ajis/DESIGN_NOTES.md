@@ -1716,6 +1716,86 @@ JSON has no native AJIS directives, so lossless ToJson()/FromJson() should prese
 
 a2tool and A2 Studio should expose directive-aware inspection and validation. Useful operations may include viewing directives, resolving a document against an explicit context, validating conditions, and explaining why a branch was selected or skipped.
 
+
+### 15.10 Example use case: platform-specific software delivery
+
+Conditional directives are expected to be relatively uncommon in ordinary data documents, but they can remove the need for separate configuration/decision formats in cases where environment-dependent data is genuinely useful.
+
+One example is software download routing.
+
+A download service or client can supply an explicit A2 evaluation context such as:
+
+```text
+platform = windows
+architecture = x64
+```
+
+and an AJIS document may contain:
+
+```ajis
+{
+    #if: "platform == 'windows'"
+    "download": "https://example.invalid/download/windows"
+    #else
+    #if: "platform == 'linux'"
+    "download": "https://example.invalid/download/linux"
+    #else
+    #if: "platform == 'macos'"
+    "download": "https://example.invalid/download/macos"
+    #else
+    "download": "https://example.invalid/download/generic"
+    #endif
+    #endif
+    #endif
+}
+```
+
+The exact conditional syntax may later become more compact (for example `#elseif`), but the semantic model is straightforward: one transportable document can resolve differently for Windows, Linux, macOS, or a generic fallback.
+
+AJIS itself should not secretly probe the machine. The application/browser/client determines or receives the environment information and explicitly supplies it to the parser/resolver. This keeps resolution deterministic and testable.
+
+The same pattern can be useful for:
+
+- platform-specific paths
+- architecture-specific binaries
+- feature/capability-specific configuration
+- runtime-version compatibility choices
+- regional endpoints supplied through an explicit context
+- deployment-profile defaults
+
+These are convenience/control-plane cases rather than the primary purpose of AJIS, but supporting them avoids needing a separate ad-hoc format when the requirement appears.
+
+### 15.11 Lossless JSON remains the universal bridge
+
+Conditional directives do not break JSON interoperability.
+
+In lossless conversion, the ordinary JSON data representation can still be emitted as valid JSON while AJIS-only directive structure is stored inside the reserved `#ajisData` envelope.
+
+Conceptually:
+
+```text
+AJIS source with #if/#else/#endif
+        |
+        | ToJson(Lossless)
+        v
+valid JSON + "#ajisData"
+        |
+        | arbitrary JSON-only transport/storage
+        v
+valid JSON + "#ajisData"
+        |
+        | FromJson()
+        v
+reconstructed AJIS directive tree
+```
+
+Therefore a system that understands only JSON does not need to evaluate or even understand AJIS directives. It only needs to preserve the reserved `#ajisData` metadata if lossless reconstruction is required.
+
+This supports the wider design goal:
+
+> Rich AJIS semantics may exceed JSON, but JSON remains a viable lossless transport envelope when AJIS metadata is preserved.
+
+
 ## 16. Future migration
 
 When the dedicated A2 repository is created:
