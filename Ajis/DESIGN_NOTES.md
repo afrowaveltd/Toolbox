@@ -716,6 +716,7 @@ The following statements summarize the strongest architectural direction agreed 
 31. Conditional directives such as #if/#else/#endif may allow one document to carry platform- or environment-specific branches without turning AJIS into an arbitrary-code execution language.
 32. A2 transport adapters may stream a continuous GZip-compressed AJIS byte stream through SignalR or other transports without materializing the complete document.
 33. A2 may support bounded indexed joins and server/client execution profiles without becoming a general-purpose relational database engine.
+34. A2 may use EF Core metadata for bidirectional database export/import, preserving entity identity and relationships while offering both relational snapshots and human-friendly graph projections.
 
 
 ## 12. Optional embedded schema header
@@ -2389,7 +2390,271 @@ These requirements should be implemented explicitly rather than assuming that in
 The target remains an embedded/specialized structured data engine, not an attempt to duplicate every feature of a mature general-purpose RDBMS.
 
 
-## 19. Future migration
+## 19. EF Core / database import-export bridge
+
+A2 should investigate a bidirectional database bridge built around EF Core metadata.
+
+Core idea:
+
+    database / DbContext
+        <-> EF Core model metadata
+        <-> A2 database snapshot / graph
+
+EF Core already exposes entity types, properties, keys, foreign keys, reference/collection navigations, and many-to-many skip navigations. A2 can use that model instead of reverse-engineering relationships from row values.
+
+Working API concepts:
+
+    await A2.Database.ExportAsync(dbContext, destination, options);
+    await A2.Database.ImportAsync(source, dbContext, options);
+
+Final naming is not frozen.
+
+### 19.1 Export goals
+
+A database export may preserve:
+
+- entity sets / logical tables
+- scalar property values
+- primary and alternate keys
+- foreign keys
+- one-to-one relationships
+- one-to-many relationships
+- many-to-many relationships
+- join-entity payload where present
+- owned/complex value structures where supported
+- indexes and uniqueness metadata where available/useful
+- concurrency/version properties
+- provider/model identity metadata
+- optional provider-specific annotations required for higher-fidelity restore
+
+The export should remain stream-first and should not require loading the complete database into an EF change tracker or object graph.
+
+Read-only no-tracking queries, batching/keyset iteration, and bounded navigation loading should be preferred.
+
+### 19.2 Three representation modes
+
+A2 should separate physical/lossless database preservation from human-friendly document projection.
+
+#### Relational / Snapshot mode
+
+Entities remain stored once in their logical sets and relationships are represented explicitly by keys/relationship metadata.
+
+Conceptually:
+
+    {
+        "Users": [
+            { "Id": "u1", "Name": "Peter" }
+        ],
+        "Roles": [
+            { "Id": "r1", "Name": "Admin" }
+        ],
+        "UserRoles": [
+            { "UserId": "u1", "RoleId": "r1" }
+        ]
+    }
+
+This is the preferred lossless database round-trip representation because entity identity and join relationships remain unambiguous.
+
+#### Graph / Document mode
+
+The same logical database may be projected into an object-oriented document view.
+
+Conceptually:
+
+    {
+        "Users": [
+            {
+                "Id": "u1",
+                "Name": "Peter",
+                "Roles": [
+                    { "Id": "r1", "Name": "Admin" }
+                ]
+            }
+        ]
+    }
+
+This is convenient for humans, APIs, export files, and Mongo/document-style consumers.
+
+However, repeated/shared entities must retain identity. A role referenced by 50,000 users must not become 50,000 unrelated roles during a reverse import.
+
+Therefore Graph mode needs one of:
+
+- explicit A2 references
+- stable entity identity metadata
+- schema-defined key-based identity resolution
+
+The final mechanism should reuse A2's general object-reference/identity feature rather than inventing a database-only reference syntax.
+
+#### Hybrid mode
+
+A Hybrid representation may preserve canonical entity sets once while also carrying convenient relationship projections or indexes/views.
+
+This spends additional disk space in exchange for easier browsing and faster common access.
+
+### 19.3 Example: ASP.NET Core Identity
+
+A useful conformance/demo target is an ASP.NET Core Identity-style model containing entities such as:
+
+    Users
+    Roles
+    UserRoles
+    UserClaims
+    RoleClaims
+    UserLogins
+    UserTokens
+
+A document-oriented export may expose a user approximately as:
+
+    {
+        "Id": "...",
+        "UserName": "...",
+        "Roles": [
+            { "Id": "...", "Name": "Administrator" },
+            { "Id": "...", "Name": "Billing" }
+        ],
+        "Claims": [ ... ],
+        "Logins": [ ... ]
+    }
+
+while the lossless snapshot retains enough entity/key/relationship information to reconstruct the original many-to-many/link entities.
+
+This makes Identity a strong real-world test because it contains ordinary entities, uniqueness requirements, several relationship types, and security-sensitive fields.
+
+### 19.4 Import / reverse direction
+
+Import must be a first-class operation rather than an afterthought.
+
+The importer should reconstruct entities and relationships in dependency order.
+
+Conceptual phases:
+
+    read #schema / database model metadata
+        -> validate target model compatibility
+        -> establish key policy
+        -> insert/update principal entities
+        -> insert/update dependent entities
+        -> create join relationships
+        -> restore indexes/constraints where applicable
+        -> validate counts/relationships
+        -> commit
+
+Import policies may include:
+
+- InsertOnly
+- Upsert
+- Replace
+- Merge
+- ValidateOnly
+
+Key handling may include:
+
+- PreserveKeys
+- RegenerateKeys
+- MapKeys
+
+If keys are regenerated, the importer must keep an old-key -> new-key map so foreign keys and many-to-many relationships are rewritten consistently. Large maps may spill to disk rather than consume unbounded RAM.
+
+### 19.5 Existing target model versus database creation
+
+Two distinct use cases should be separated.
+
+#### Import into an existing DbContext/model
+
+This is the simpler and safer first target.
+
+A2 validates the exported model/schema against the target EF Core model and writes entities through the target context/provider.
+
+#### Create a new database from A2
+
+A later capability may create a database/schema directly from the stored A2 model.
+
+This requires more provider-specific handling for:
+
+- SQL types
+- identity/sequence behavior
+- computed columns
+- collations
+- defaults
+- provider-specific indexes
+- constraints
+- migration semantics
+
+Therefore logical EF-model round-trip should come before promising exact physical database reproduction across arbitrary providers.
+
+### 19.6 Relationship discovery
+
+The bridge should use EF Core metadata rather than relying only on CLR property shape.
+
+That matters because foreign keys define relationships, navigations provide object-oriented access, collection navigations represent the many side, and many-to-many relationships may use skip navigations with a join entity hidden from ordinary CLR navigation code.
+
+Join entities may also contain payload columns that must not be lost.
+
+### 19.7 Streaming and large databases
+
+Exporting a large database must not mean:
+
+    Include(every navigation)
+    -> ToList()
+    -> serialize giant object graph
+
+The intended model is:
+
+    read model metadata once
+        -> stream entity batches
+        -> write A2 entity sets / graph fragments
+        -> write/update relationship metadata/indexes
+        -> release batch
+
+The same principle applies during import.
+
+For very large relationship maps or key-remapping tables, A2 may use ScratchStore/A2FS-backed temporary indexes.
+
+### 19.8 Database snapshot metadata
+
+A database-oriented A2 document may include metadata such as:
+
+- source framework/provider
+- model/schema version
+- entity counts
+- relationship counts
+- key definitions
+- export timestamp
+- model fingerprint
+- database/application schema identifier
+
+This metadata is optional where appropriate, generated automatically when available, and can be validated through the existing CheckMeta/FixMeta concepts.
+
+A model fingerprint can allow a fast compatibility check before a large import begins.
+
+### 19.9 Security / selective export
+
+Database exports may contain fields that should not automatically be placed into a portable backup/export.
+
+Identity-style databases are a particularly important example because password hashes, security stamps, login-provider data, authenticator keys, tokens, and personal data may have different export requirements.
+
+The bridge should therefore integrate with A2's selective protection model and explicit export policies.
+
+Possible actions per property/entity:
+
+- Include
+- Exclude
+- Encrypt
+- Transform
+- Redact
+
+The exact defaults should be chosen deliberately for each adapter rather than assuming that database export always means copying every sensitive value in plaintext.
+
+A true backup mode may intentionally preserve everything, but should make that intent explicit.
+
+### 19.10 Database bridge is not an ORM replacement
+
+The EF Core bridge uses EF Core as model/relationship knowledge and database-provider access.
+
+A2 does not need to replace EF Core's change tracking, provider ecosystem, migrations, or general LINQ translation.
+
+The goal is a portable A2 snapshot/document representation with reliable round-trip semantics and bounded-memory processing.
+
+## 20. Future migration
 
 When the dedicated A2 repository is created:
 
