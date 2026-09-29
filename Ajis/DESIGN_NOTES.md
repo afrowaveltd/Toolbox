@@ -1960,6 +1960,41 @@ AJIS/A2
 The goal remains semantic/lossless reconstruction, not byte-identical reproduction of textual formatting.
 
 
+
+### 16.8 Default compression: GZip
+
+For JSON bundles and other interoperability-oriented compressed representations, GZip should be the default compression algorithm unless a more specific format requirement exists.
+
+Reasons:
+
+- extremely broad cross-platform and cross-language support
+- mature and well-tested implementations
+- streaming compression/decompression
+- simple integration with .NET through `System.IO.Compression`
+- easy implementation in C, Rust, Java, JavaScript runtimes, Python, and common tooling
+- no dependency on a proprietary codec
+- already aligned with the intended `.tpg` package meaning
+
+The default should remain an implementation/interoperability choice rather than a permanent restriction of the format. The container/metadata model should identify the compression algorithm explicitly so future implementations may support additional codecs without changing document semantics.
+
+Conceptually:
+
+```text
+compression:
+  algorithm: gzip
+```
+
+For a JSON bundle, a practical transport form may therefore be:
+
+```text
+document.ajson.gz
+```
+
+or a bundle/container whose manifest identifies GZip-compressed members.
+
+GZip is compression, not confidentiality protection. Encryption/authentication remain separate TP/A2 security concerns.
+
+
 ## 17. Future migration
 
 When the dedicated A2 repository is created:
