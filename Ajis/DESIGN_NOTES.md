@@ -706,6 +706,8 @@ The following statements summarize the strongest architectural direction agreed 
 21. An optional schema available at the beginning of a document may describe anonymous/self-describing data and allow parsers/storage engines to prepare execution before consuming the payload.
 22. Optional collection counts in the early schema/header are hints and planning metadata: when known they enable capacity planning and progress reporting; when unknown they are simply omitted.
 23. Lossless logical AJIS-to-JSON round trips may use a reserved `#ajisData` metadata envelope so AJIS-only semantics survive systems that can transport only JSON.
+24. AJIS should aim to have no unrepresentable application data: uncommon/native/custom values need an extensible tagged representation or binary/attachment escape hatch rather than becoming unsupported.
+25. Tooling may enrich an existing document later (for example by adding missing collection counts or inferred schema metadata) without requiring the original producer to know everything up front.
 
 
 ## 12. Optional embedded schema header
@@ -1015,7 +1017,160 @@ When possible, `ToJson()` and `FromJson()` should stream the data payload while 
 A known schema/count can therefore be emitted before the streamed JSON payload, just as it can be emitted before native AJIS data.
 
 
-## 14. Future migration
+
+## 14. Universal data representation and metadata enrichment
+
+A2/AJIS should be designed with the goal that application data does not become "unsupported" merely because it is not one of a small fixed set of primitive types.
+
+Human-readable native representations should be used for common data. For uncommon, platform-specific, or future data types, the format needs an explicit extensibility mechanism.
+
+### 14.1 Native types plus an extension escape hatch
+
+The native value model should cover the broadly useful cross-language cases directly, including at least:
+
+- null
+- boolean
+- signed/unsigned integers of useful widths
+- arbitrary/large integers where supported
+- floating-point values
+- decimal/fixed-precision values
+- strings
+- binary data
+- date/time/duration-like values
+- arrays/lists
+- objects/maps
+- tuples
+- unions/tagged alternatives
+- references where object identity must be preserved
+- attachments/external binary payloads
+
+For values outside the native model, AJIS should support a tagged/custom value form carrying:
+
+- stable type identifier
+- optional version
+- payload representation
+- optional codec/format identifier
+
+Conceptual examples:
+
+```ajis
+CustomValue: @type("vendor/example", {
+    ...
+})
+```
+
+or for opaque binary payloads:
+
+```ajis
+CustomValue: @binary(
+    type: "vendor/example",
+    attachment: "payload-17"
+)
+```
+
+The exact syntax is not yet fixed. The requirement is that unfamiliar data remains transportable and preservable even when the current reader cannot interpret its application-level meaning.
+
+Readers that do not understand a custom type should be able to preserve/forward it as an opaque tagged value rather than corrupting or discarding it.
+
+### 14.2 Human-readable where practical, binary where appropriate
+
+"AJIS can represent it" does not mean every value must be expanded into human-readable text.
+
+The preferred hierarchy is:
+
+1. readable native textual representation when practical
+2. structured tagged representation when additional type identity is required
+3. attachment/binary representation for large or inherently binary values
+
+This keeps ordinary documents pleasant to inspect and edit while still allowing complete representation of real application data.
+
+### 14.3 Object identity and references
+
+Simple JSON-style trees are insufficient for some application graphs.
+
+A2 should eventually define a reference/identity mechanism so that:
+
+- repeated references to the same object can remain the same logical object
+- cyclic graphs can be represented without infinite recursion
+- large shared subgraphs do not need to be duplicated
+
+The exact reference syntax and semantics remain open, but this capability is important to the "no unrepresentable data" goal.
+
+### 14.4 Tool-driven metadata enrichment
+
+Metadata such as schema details, collection counts, indexes, inferred types, or statistics may be unknown when a document is initially created.
+
+A2 tooling should be able to scan an existing document later and enrich it with useful metadata.
+
+Examples:
+
+```text
+a2tool file.ajis enrich schema
+a2tool file.ajis enrich count
+a2tool file.ajis enrich all
+```
+
+Names are illustrative; final CLI syntax is not frozen.
+
+For a 100,000-record collection whose `count` was omitted during streaming creation, the tool can later stream through the collection, count logical items, and write the exact count into the schema/header.
+
+The enrichment scan must remain bounded-memory. Counting 100,000 or 100,000,000 records does not require materializing them.
+
+### 14.5 Updating early metadata in large text documents
+
+Because `#schema` is intentionally at the beginning of a plain text AJIS document, adding or enlarging metadata there cannot always be performed as an in-place byte edit.
+
+For plain AJIS text, a safe enrichment implementation may therefore:
+
+1. stream-scan the source
+2. compute the missing metadata
+3. write a new temporary document with the enriched header/schema
+4. stream-copy the original payload
+5. validate and fsync as appropriate
+6. atomically replace the original file if requested
+
+This is still bounded-memory even for very large documents.
+
+Container/storage formats such as TP or A2FS may support more efficient metadata updates through their own headers/index areas without rewriting the entire payload.
+
+A future format optimization may reserve metadata space or provide an indexed metadata section, but plain human-readable AJIS should not depend on fixed-size header padding.
+
+### 14.6 Inference is assistance, not truth
+
+When tooling infers schema from existing data, inferred information must be distinguishable from explicitly declared schema where that distinction matters.
+
+For example, a scan might observe:
+
+```text
+Age: Int32 in all 100,000 observed records
+```
+
+but that does not necessarily prove that the producer's intended contract forbids another numeric representation in the future.
+
+Therefore enrichment tools may offer modes such as:
+
+- exact observed structure
+- conservative inferred schema
+- strict declared schema generation
+
+The final specification/tooling design should define these semantics clearly.
+
+### 14.7 Progressive knowledge
+
+A2 should support a document lifecycle where information becomes richer over time:
+
+```text
+initial stream
+  -> valid AJIS with minimal metadata
+  -> later count/schema enrichment
+  -> optional indexes/statistics
+  -> optional packaging/signing/encryption
+```
+
+A document is not invalid merely because optional optimization metadata is absent.
+
+
+## 15. Future migration
 
 When the dedicated A2 repository is created:
 
