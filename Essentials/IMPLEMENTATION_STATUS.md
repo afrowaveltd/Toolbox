@@ -53,6 +53,12 @@ Last updated: 2026-09-27
 - Markdown-link validation for the current Toolbox documentation also completed without errors.
 - No Essentials runtime API or behavior changed in this packaging/documentation hardening sequence.
 
+## 2026-09-29 — whole-Toolbox Windows regression GREEN
+
+- Maintainer pulled current GitHub `master` on Windows and completed the whole Toolbox build/test suite: **5914/5914 GREEN**.
+- Since the WhenItFails 1.0 release commit, repository changes are documentation/status-only; Essentials runtime/package source has not changed in that interval.
+- This provides an additional cross-platform repository-wide GREEN checkpoint before the first GitHub Packages publication.
+
 ## 2026-09-27 — first private publication prerequisite for WhenItFails
 
 - GitHub Packages was selected as the private NuGet registry for the Toolbox release family.
