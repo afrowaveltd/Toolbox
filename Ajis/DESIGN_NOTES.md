@@ -704,6 +704,7 @@ The following statements summarize the strongest architectural direction agreed 
 19. Tooling must itself obey the same bounded-memory and paging principles as the A2 engine.
 20. The same public operation should scale from tiny input to data sets far larger than RAM, with strategy changing underneath rather than forcing a different application model.
 21. An optional schema available at the beginning of a document may describe anonymous/self-describing data and allow parsers/storage engines to prepare execution before consuming the payload.
+22. Optional collection counts in the early schema/header are hints and planning metadata: when known they enable capacity planning and progress reporting; when unknown they are simply omitted.
 
 
 ## 12. Optional embedded schema header
@@ -754,7 +755,60 @@ Examples:
 
 The schema must be treated as a planning aid, not as permission to preallocate memory proportional to the declared number of records. A2's bounded-memory/stream-first invariants still apply.
 
-### 12.2 Anonymous/self-describing objects
+### 12.2 Optional collection count metadata
+
+When the serializer already knows the number of logical items in a collection, the early schema/header may include an optional `count`.
+
+Conceptual example:
+
+```ajis
+#schema: {
+    type: "Person",
+    count: 10000000,
+    fields: {
+        Id: Int64,
+        Name: String,
+        Age: Int32
+    }
+}
+```
+
+`count` is explicitly optional.
+
+If the source is an open-ended stream, generator, network feed, or any other source whose final item count is not known when serialization begins, the serializer simply omits `count`. The absence of `count` does not reduce document validity or streaming capability.
+
+When `count` is present, a reader may use it as useful early metadata for:
+
+- storage/capacity planning
+- pre-sizing fixed-width A2FS regions where appropriate
+- sizing indexes or metadata structures
+- estimating scratch-space requirements
+- exposing total logical item count without scanning the payload
+- progress reporting during read/import/copy operations
+- estimating completion time where the application chooses to do so
+
+For example, tooling may expose:
+
+```text
+Reading records: 4,281,337 / 10,000,000  (42.8%)
+```
+
+without first scanning the document to discover its total size.
+
+The intended model is:
+
+```text
+count known   -> emit count -> reader may optimize and report progress
+count unknown -> omit count -> normal streaming continues
+```
+
+The metadata is helpful, not mandatory.
+
+A reader must not require `count` in order to parse a collection, and the presence of `count` must not cause the complete collection to be preallocated in RAM. Resource-profile and bounded-memory rules remain authoritative.
+
+The final specification should decide whether a declared count is merely advisory or whether strict validation may optionally verify that the number of received logical items matches the declaration. A sensible direction is to allow the parser to use it as planning metadata immediately and validate the final observed count when validation mode requests it.
+
+### 12.3 Anonymous/self-describing objects
 
 An embedded schema allows A2 to transport data for which the receiver has no precompiled CLR/C/Rust/Java model.
 
@@ -769,7 +823,7 @@ This enables genuinely anonymous/self-describing data exchange while retaining s
 
 A .NET consumer may expose a dynamic/runtime record abstraction rather than requiring a generated CLR class. Other language implementations should provide equivalent idiomatic runtime-schema access.
 
-### 12.3 Schema and compiled models
+### 12.4 Schema and compiled models
 
 When the consumer already has a target model, the embedded schema may be used to verify compatibility before the payload is consumed.
 
@@ -783,7 +837,7 @@ Possible outcomes include:
 
 The exact compatibility/versioning rules must be defined later in the normative specification.
 
-### 12.4 Schema and streaming
+### 12.5 Schema and streaming
 
 The presence of `#schema` must never force full-document buffering.
 
@@ -809,7 +863,7 @@ network
   -> ...
 ```
 
-### 12.5 Schema and security
+### 12.6 Schema and security
 
 Schema visibility is part of the protection model.
 
@@ -819,7 +873,7 @@ Schema visibility is part of the protection model.
 
 Because field names and types can themselves reveal sensitive information, exposing `#schema` must remain an explicit security choice rather than an accidental side effect.
 
-### 12.6 Schema identity and reuse
+### 12.7 Schema identity and reuse
 
 A future optimization may allow schemas to carry a stable identifier/version or to reference a known schema by ID.
 
