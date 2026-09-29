@@ -53,6 +53,13 @@ Last updated: 2026-09-27
 - Markdown-link validation for the current Toolbox documentation also completed without errors.
 - No Essentials runtime API or behavior changed in this packaging/documentation hardening sequence.
 
+## 2026-09-29 — repository line-ending policy hardened
+
+- Root `.gitattributes` now enforces **LF** for cross-platform text in both index and working tree; only native `*.bat` / `*.cmd` scripts use CRLF.
+- Common binary formats are explicitly marked binary so line-ending normalization cannot touch them.
+- This removes Windows/Linux CRLF-only worktree noise from release preparation and keeps PowerShell scripts cross-platform with LF endings.
+- No runtime, public API, package metadata, or frozen release artifact changed.
+
 ## 2026-09-29 — whole-Toolbox Windows regression GREEN
 
 - Maintainer pulled current GitHub `master` on Windows and completed the whole Toolbox build/test suite: **5914/5914 GREEN**.
