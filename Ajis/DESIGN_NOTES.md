@@ -729,6 +729,7 @@ The following statements summarize the strongest architectural direction agreed 
 44. A2 Identity should expose user-relevant change history through a profile History view, with direct revert only for operations that can be safely and transactionally reversed.
 45. A2 Identity should track revocable sessions/trusted-device bindings so users can terminate access from a specific device without requiring a global password change when the underlying reusable credential is not itself compromised.
 46. DeviceIdentity should be a first-class A2 Identity object, and migration from EF/SQL Identity should be a supported side-by-side, dry-run-first workflow with validation and low-risk DI/configuration cutover.
+47. A2 Identity should support federated authentication/profile providers such as LDAP/AD, with per-field source/override/write-back policies and a rich native user profile so external authority and local personalization can coexist.
 
 
 ## 12. Optional embedded schema header
@@ -4413,6 +4414,347 @@ A smooth SQL/EF -> A2 Identity migration path is part of the product adoption st
       -> run
 
 The fewer application-code changes required, the easier it is for an existing ASP.NET Core Identity application to evaluate A2 Identity without committing to an irreversible rewrite.
+
+### 22.57 Federated identity/profile providers
+
+A2 Identity should be able to cooperate with external user directories and authentication systems such as LDAP / Active Directory rather than assuming that A2 is always the sole authority for authentication and user profile data.
+
+The core concept is separation of concerns:
+
+    authentication source
+        != necessarily
+    profile-data source
+        != necessarily
+    effective application profile
+
+Example:
+
+    Active Directory
+        -> authenticates the employee
+        -> supplies corporate attributes
+
+    A2 Identity
+        -> stores application-specific profile data
+        -> stores user-selected presentation overrides
+        -> stores devices/sessions/history/avatar
+        -> presents one effective user object to the application
+
+### 22.58 Authentication provider versus profile provider
+
+A2 Identity should model external authentication and external profile data as related but separate capabilities.
+
+Possible abstractions:
+
+    IA2AuthenticationProvider
+    IA2ProfileProvider
+
+or an equivalent capability-oriented provider model.
+
+An LDAP/AD integration might implement both.
+
+Other providers may provide authentication only, profile data only, or both.
+
+Potential provider examples:
+
+- local A2 credentials
+- LDAP / Active Directory
+- Microsoft Entra / OpenID Connect
+- OAuth/OIDC providers
+- custom corporate directory
+- application-specific identity service
+
+Final interfaces and names are not frozen.
+
+### 22.59 External identity binding
+
+An A2 user should be able to carry one or more stable external identity bindings.
+
+Conceptually:
+
+    ExternalIdentity
+    {
+        Provider: "corp-ad",
+        ProviderType: "LDAP/AD",
+        SubjectId: "...stable directory identity...",
+        UserPrincipalName: "user@example.com",
+        Domain: "EXAMPLE",
+        Enabled: true
+    }
+
+The binding must use a stable provider identifier where possible rather than relying only on mutable display names or email addresses.
+
+For Active Directory this may map to an appropriate stable directory identity such as object GUID/SID depending on the integration design.
+
+### 22.60 Per-field source policy
+
+A simple global rule such as 'LDAP wins if a value exists' is not sufficient.
+
+Different profile fields may need different authority, fallback, and edit behavior.
+
+A2 Identity should therefore support per-field resolution policies conceptually such as:
+
+    DirectoryOnly
+    DirectoryPreferred
+    A2Preferred
+    A2Only
+    Merge
+
+Possible semantics:
+
+- DirectoryOnly: value comes from external directory and cannot be overridden locally.
+- DirectoryPreferred: use directory value when present; otherwise use A2 value.
+- A2Preferred: use local A2 override when present; otherwise use directory value.
+- A2Only: ignore directory value for the effective application profile.
+- Merge: combine provider and A2 values using type-specific rules.
+
+Names are not frozen.
+
+Example policy:
+
+    LegalName      = DirectoryOnly
+    Department     = DirectoryPreferred
+    JobTitle       = DirectoryPreferred
+    DisplayName    = A2Preferred
+    Avatar         = A2Only
+    PreferredName  = A2Only
+    Locale         = A2Preferred
+    Phones         = Merge
+
+This allows corporate authority and user personalization to coexist.
+
+### 22.61 Effective profile projection
+
+The application should normally consume one resolved A2 Identity user profile rather than manually querying LDAP and A2 separately.
+
+Conceptually:
+
+    Directory snapshot
+         +
+    A2 profile / overrides
+         +
+    field-source policy
+         ->
+    EffectiveUser
+
+The resolved value should optionally expose provenance for diagnostics/admin tooling:
+
+    DisplayName = "Mukwano"
+    Source = A2Override
+
+    Department = "Engineering"
+    Source = LDAP
+
+Normal application code should not need to care which provider supplied each value.
+
+### 22.62 Avoid LDAP on every application read
+
+One goal of A2 Identity federation is to avoid making every profile read dependent on LDAP availability and latency.
+
+A practical mode is:
+
+    authenticate against AD/LDAP
+      -> fetch selected directory attributes
+      -> normalize/store a directory snapshot in A2
+      -> resolve effective profile
+      -> serve normal application reads from A2
+
+Refresh may happen:
+
+- on successful login
+- on a configured interval
+- on explicit administrator/user refresh
+- through a background synchronization worker
+
+Applications may opt into live provider reads when they truly require them, but this should not be mandatory.
+
+### 22.63 Directory snapshot versus local override
+
+A2 should keep provider-derived values logically distinct from locally owned values rather than destructively copying them into one undifferentiated record.
+
+Conceptually:
+
+    User
+      DirectoryProfile
+        DisplayName = "Peter Novak"
+        Department  = "Sales"
+        Title       = "Account Manager"
+
+      LocalProfile
+        DisplayName = "Petr"
+        Avatar      = <attachment>
+        Locale      = "cs-CZ"
+
+      EffectiveProfile
+        DisplayName = "Petr"       // A2Preferred
+        Department  = "Sales"      // DirectoryPreferred
+        Title       = "Account Manager"
+        Avatar      = <attachment>
+        Locale      = "cs-CZ"
+
+This preserves source provenance and allows the directory to refresh without overwriting application-owned personalization.
+
+### 22.64 Rich native A2 user model
+
+A2 Identity should ship with a substantially richer default user model than the minimal common IdentityUser property set.
+
+The goal is to give developers a useful ready-made profile model while still allowing extension/custom properties.
+
+Potential native profile groups:
+
+#### Identity
+
+- Id
+- UserName
+- NormalizedUserName
+- DisplayName
+- PreferredName
+- GivenName
+- MiddleName / Initials
+- FamilyName
+- Pronouns / salutation where application chooses to use them
+- External identities
+
+#### Contact
+
+- PrimaryEmail
+- AdditionalEmails
+- Phone
+- Mobile
+- AlternatePhone
+- Address
+- City
+- Region/State
+- PostalCode
+- Country
+
+#### Organization / work
+
+- Company / Organization
+- Department
+- JobTitle
+- Manager reference
+- Employee/Directory identifier
+- Office / location
+
+#### Presentation / localization
+
+- Avatar / profile image
+- Locale
+- Language
+- TimeZone
+- display preferences
+
+#### Security / account
+
+- account state
+- lockout/security state
+- authentication methods
+- external identity bindings
+- passkeys
+- devices
+- sessions
+- security/history metadata
+
+#### Application extension space
+
+- custom typed properties
+- custom claims
+- application-defined profile sections
+
+The exact 1.0 model should remain carefully bounded; not every possible directory attribute needs to become a permanent first-class A2 property.
+
+### 22.65 AD-inspired, not AD-cloned
+
+Active Directory is a useful source of mature user-profile concepts, but A2 Identity should not copy the entire AD schema.
+
+Useful common concepts include:
+
+- display name
+- given/family name
+- email
+- phone/mobile
+- organization/company
+- department
+- title
+- manager
+- physical/address information
+- locale
+- stable external directory identity
+
+A2 should prefer a compact, application-oriented model plus an extension space for uncommon/provider-specific attributes.
+
+Provider-specific values that do not warrant first-class A2 fields may be preserved in namespaced provider metadata.
+
+### 22.66 Write-back policy
+
+Reading a directory attribute does not imply that A2 Identity is allowed to write it back.
+
+Each provider/field may therefore have a write policy such as:
+
+    ReadOnly
+    LocalOverrideOnly
+    ProviderWriteBack
+
+Example:
+
+    Department  -> ReadOnly from AD
+    DisplayName -> LocalOverrideOnly
+    Mobile      -> ProviderWriteBack only if organization enables it
+
+ProviderWriteBack must be explicit and permission-aware. A2 Identity should never silently mutate LDAP/AD merely because the user edited the effective profile.
+
+### 22.67 Provider synchronization and History
+
+Changes imported from an external directory should integrate with A2 Identity History.
+
+Example:
+
+    2026-09-29 08:15
+    Department changed
+    Sales -> Engineering
+    Source: Corporate Active Directory
+
+Such events are normally informational rather than directly reversible when the directory is authoritative.
+
+Locally owned overrides remain reversible through the normal Change Recycle Bin where appropriate.
+
+This lets the user understand whether a visible profile change came from:
+
+- themselves
+- an administrator
+- an external directory
+- synchronization
+- a local revert
+
+### 22.68 Federation resilience
+
+If the external directory is temporarily unavailable, A2 Identity should be able to continue serving non-authentication profile reads from the last valid synchronized snapshot where policy permits.
+
+Authentication behavior depends on the configured provider and security policy; A2 must not silently accept stale directory credentials merely because cached profile data exists.
+
+This distinction is important:
+
+    cached profile data may remain usable
+    != cached authority to authenticate
+
+### 22.69 Federation as a migration/adoption feature
+
+Federation also allows gradual adoption.
+
+An organization may keep AD/LDAP as the authentication authority while moving application-specific user profile/storage responsibilities to A2 Identity.
+
+Conceptually:
+
+    Phase 1:
+      AD authentication + AD profile
+
+    Phase 2:
+      AD authentication + AD/A2 merged profile
+
+    Phase 3:
+      AD authentication + mostly A2 application profile
+
+without requiring a disruptive all-at-once identity migration.
 
 ## 23. Future migration
 
