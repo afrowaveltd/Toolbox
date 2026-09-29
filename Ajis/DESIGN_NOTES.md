@@ -709,6 +709,7 @@ The following statements summarize the strongest architectural direction agreed 
 24. AJIS should aim to have no unrepresentable application data: uncommon/native/custom values need an extensible tagged representation or binary/attachment escape hatch rather than becoming unsupported.
 25. Tooling may enrich an existing document later (for example by adding missing collection counts or inferred schema metadata) without requiring the original producer to know everything up front.
 26. Once derived metadata exists, A2 tooling/storage should maintain it transactionally during supported mutations instead of forcing repeated full rescans.
+27. Metadata tooling should expose automatic generation, non-mutating validation, repair, and safe copy-based full repair; copy-based repair must use generation/version checks or journaling so concurrent mutations cannot be lost.
 
 
 ## 12. Optional embedded schema header
@@ -1195,6 +1196,160 @@ For append-only streaming creation where the final count is initially unknown, t
 2. maintain an internal running count and emit/finalize it if the chosen output/container format permits safe finalization.
 
 A2 should never require a full rescan merely to update metadata that can be derived exactly from the mutation already being performed.
+
+
+### 14.9 Metadata generation and repair API
+
+The .NET-facing configuration should expose a simple switch controlling whether serializers generate useful metadata automatically while writing.
+
+Working-name example:
+
+```csharp
+public bool AutomaticallyGenerateMeta { get; set; } = true;
+```
+
+The final public name should be reviewed for API consistency; shorter alternatives such as `AutoGenerateMeta` or `GenerateMetadataAutomatically` may be preferable. The semantic default is **true**.
+
+When enabled, serializers should emit metadata they already know cheaply and exactly, for example:
+
+- schema/type information
+- known collection counts
+- protection/encryption annotations
+- attachment metadata
+- other deterministic metadata that can be produced without an expensive second pass
+
+The setting must not force a pre-scan of open-ended streams merely to discover optional metadata.
+
+#### CheckMeta()
+
+`CheckMeta()` is a non-mutating validation operation.
+
+It should inspect existing metadata and report conditions such as:
+
+- missing metadata that can be inferred
+- incorrect/stale collection counts
+- schema/data mismatches
+- stale statistics
+- invalid metadata references
+- metadata marked dirty
+- security/signature metadata implications
+
+The operation should return a structured result/report rather than only text, so CLI, Studio, tests, and applications can consume the same information.
+
+Conceptual result:
+
+```text
+Meta status:
+  schema         VALID
+  count          STALE (declared 100000, observed 100014)
+  statistics     MISSING
+  indexes        VALID
+```
+
+`CheckMeta()` must not modify the document.
+
+#### FixMeta()
+
+`FixMeta()` is the mutating repair operation for a document that can be safely updated through the active storage/editor transaction model.
+
+It may:
+
+- add missing metadata
+- correct stale counts
+- regenerate schema metadata
+- refresh derived statistics
+- clear dirty metadata after successful recalculation
+
+Where the active format supports transactional mutation, metadata changes and data changes must commit atomically.
+
+For plain text AJIS, the tooling layer may perform a safe rewrite internally even though the public operation is simply called `FixMeta()`.
+
+#### FixMetaOffline()
+
+A separate full-document repair mode is useful for very large documents or cases where metadata must be reconstructed from a complete scan.
+
+Working-name example:
+
+```text
+FixMetaOffline()
+```
+
+The operation works against a copy/snapshot of the original document:
+
+```text
+original
+   |
+   +--> stable snapshot / generation G
+            |
+            v
+        rebuild TEMP
+            |
+            v
+        validate TEMP
+            |
+            v
+        atomic replace / generation G+1
+```
+
+The original document remains authoritative until the rebuilt copy has been fully validated and committed.
+
+If the rebuild fails, the temporary copy is discarded and the original remains intact.
+
+#### Concurrent changes during offline repair
+
+A long-running offline repair must not silently overwrite changes made after the repair started.
+
+A2 therefore needs document generation/version tracking or an equivalent optimistic-concurrency token.
+
+At minimum:
+
+1. capture source generation/version `G`
+2. rebuild metadata against a stable snapshot of `G`
+3. before replacement, verify that the authoritative document is still at `G`
+4. if unchanged, perform an atomic replacement and advance generation
+5. if changed, do not overwrite the newer document
+
+A more advanced online-compatible implementation may allow writes to continue while the rebuild runs by maintaining a mutation journal/WAL.
+
+Conceptual flow:
+
+```text
+capture snapshot at generation G
+        |
+        +--> background rebuild into TEMP
+        |
+new writes continue on original
+        |
+        +--> append mutations to journal
+        |
+rebuild catches up
+        |
+brief commit lock
+        |
+replay remaining journal tail
+        |
+refresh affected metadata
+        |
+validate
+        |
+atomic swap
+        |
+generation G+1
+```
+
+This preserves responsiveness while avoiding lost updates.
+
+The final API may expose both policies explicitly, for example:
+
+- exclusive offline repair: block mutations for the duration
+- snapshot/background repair: allow mutations and reconcile them before commit
+
+The exact names remain open, but the correctness rule is not negotiable:
+
+> Metadata repair must never replace a document with a rebuilt copy that omits mutations committed after the repair snapshot was taken.
+
+Readers may remain available throughout a copy-based repair where the storage format permits it.
+
 
 ### 14.7 Progressive knowledge
 
