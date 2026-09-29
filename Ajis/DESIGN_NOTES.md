@@ -1796,7 +1796,171 @@ This supports the wider design goal:
 > Rich AJIS semantics may exceed JSON, but JSON remains a viable lossless transport envelope when AJIS metadata is preserved.
 
 
-## 16. Future migration
+
+## 16. Binary data in JSON interoperability
+
+AJIS/A2 may contain true binary values and attachments. Plain JSON has no native binary scalar type, so lossless JSON conversion needs an explicit representation.
+
+Two complementary transport forms are useful.
+
+### 16.1 Single-file JSON: Base64 text representation
+
+When the result must remain one ordinary JSON document, binary data should be encoded as Base64 text.
+
+Base64 is preferred because it is widely supported, deterministic, streamable, and interoperable across languages and platforms.
+
+The size overhead is approximately 4/3 of the original byte count (about 33%, before any JSON/string overhead).
+
+Conceptually:
+
+```json
+{
+  "#ajisData": {
+    "binary": {
+      "$.avatar": {
+        "encoding": "base64",
+        "mime": "image/png"
+      }
+    }
+  },
+  "avatar": "iVBORw0KGgoAAA..."
+}
+```
+
+The exact metadata shape is not frozen. The important rule is that `#ajisData` carries enough type information for `FromJson()` to distinguish a Base64-encoded binary value from an ordinary user string.
+
+A reader must never guess that an arbitrary string is binary merely because it looks like Base64.
+
+Optional metadata may include:
+
+- encoding
+- MIME/media type
+- logical binary type
+- original length
+- hash/checksum
+- attachment identity
+- compression/encryption information where applicable
+
+### 16.2 Streaming Base64
+
+Large binary values must not require loading the complete binary payload or the complete encoded string into RAM.
+
+The converter should support streaming transformation:
+
+```text
+binary input chunks
+    -> Base64 encoder
+    -> JSON string output
+```
+
+and the reverse:
+
+```text
+JSON/Base64 chunks
+    -> Base64 decoder
+    -> binary destination
+```
+
+Working memory should remain bounded by encoder/decoder buffers.
+
+### 16.3 Compression interaction
+
+When a binary value is compressible and the chosen interoperability profile allows it, compression may occur before Base64 encoding:
+
+```text
+binary
+  -> optional compression
+  -> Base64
+  -> JSON
+```
+
+However, already-compressed formats such as JPEG, PNG, MP4, ZIP, or many PDF files may gain little from another compression pass.
+
+The conversion metadata must identify any transform required for exact reconstruction.
+
+### 16.4 Bundle mode: JSON plus binary attachments
+
+For large attachments, a second lossless interoperability mode may avoid Base64 expansion by keeping JSON metadata separate from raw binary payloads.
+
+Conceptually:
+
+```text
+bundle/
+  data.json
+  attachments/
+    avatar.bin
+    document.pdf
+    payload-17.bin
+```
+
+or a single ZIP-compatible/container archive containing the same logical layout.
+
+The JSON document stores references and metadata; binary files remain binary.
+
+Example concept:
+
+```json
+{
+  "#ajisData": {
+    "attachments": {
+      "avatar-1": {
+        "path": "attachments/avatar.bin",
+        "mime": "image/png",
+        "length": 284719,
+        "hash": "..."
+      }
+    }
+  },
+  "avatar": {
+    "#attachment": "avatar-1"
+  }
+}
+```
+
+The exact syntax is not frozen.
+
+This mode is more efficient for very large binary content, while single-file Base64 remains the universal fallback when only one JSON document can be transported.
+
+### 16.5 Suggested conversion intents
+
+A useful API direction is to make the tradeoff explicit:
+
+```text
+ToJson(..., BinaryMode.InlineBase64)
+ToJson(..., BinaryMode.Bundle)
+```
+
+Possible semantics:
+
+- `InlineBase64` — one valid JSON document; universally portable; larger output.
+- `Bundle` — JSON manifest/document plus external binary attachments; smaller and faster for large binary data, but requires multi-file/container transport.
+
+A higher-level `Auto` mode may choose based on attachment size and target capabilities, but an explicit deterministic mode should always be available.
+
+### 16.6 Relationship to TP
+
+TP remains the native A2 transport/container solution for data plus attachments.
+
+JSON bundle mode exists primarily for interoperability with ecosystems that require JSON for the structured part but can carry companion files or an archive.
+
+If a system can carry TP directly, there is normally no reason to convert large binary attachments to Base64 JSON first.
+
+### 16.7 Lossless round-trip requirement
+
+Both forms must preserve enough metadata for:
+
+```text
+AJIS/A2
+  -> JSON representation
+  -> intermediate transport/storage
+  -> FromJson()
+  -> original logical binary values/attachments
+```
+
+The goal remains semantic/lossless reconstruction, not byte-identical reproduction of textual formatting.
+
+
+## 17. Future migration
 
 When the dedicated A2 repository is created:
 
