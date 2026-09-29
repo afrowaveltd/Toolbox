@@ -724,6 +724,7 @@ The following statements summarize the strongest architectural direction agreed 
 39. A dual-backend reference application should compare equivalent SQL/EF Core and A2/A2FS behavior on a realistic sample database before performance claims are made.
 40. A2 Identity should be the first major reference library, implementing ASP.NET Core Identity storage contracts over A2FS and publishing measured scalability/resource limits instead of assuming database-like unlimited scale.
 41. A2 Identity should optimize for ordinary deployments where tens of thousands of users and single-file portability/backup are more valuable than hyperscale complexity.
+42. A2 Identity should include a built-in backup scheduler combining rapid mirror replication with retained, verified point-in-time snapshots so disk failure and logical corruption/deletion are both covered.
 
 
 ## 12. Optional embedded schema header
@@ -3554,6 +3555,186 @@ The benchmark should answer not only 'how fast is it?' but also:
 - can a small server host the application and identity store comfortably together?
 
 These operational measurements are part of A2 Identity's value proposition.
+
+### 22.17 Free/open A2 Identity distribution
+
+A2 Identity is intended to be freely usable by anyone as part of the A2 ecosystem.
+
+The exact repository/package license should be selected explicitly when the dedicated A2/A2 Identity repositories are created, but the product goal is that the A2 Identity library, A2FS storage provider, tooling, and built-in backup facilities do not require a commercial database license or a paid identity-storage module.
+
+This is an operational/deployment advantage rather than a claim that ASP.NET Core Identity itself is proprietary; ASP.NET Core Identity is open-source and supports custom persistence providers.
+
+### 22.18 Built-in backup scheduler
+
+A2 Identity should include a first-class backup scheduler as part of the normal product, not as a separate optional utility.
+
+The scheduler should support at least two related but distinct protection modes:
+
+1. Mirror replication
+2. Versioned point-in-time backups
+
+These solve different failure modes and should normally be used together.
+
+#### Mirror replication
+
+A mirror keeps a second copy of the current logical store on another target such as:
+
+- another physical disk
+- another volume
+- NAS/network path
+- removable backup target
+- remote A2 transport endpoint
+
+Conceptually:
+
+    primary identity store
+        -> committed generation N
+        -> mirror generation N
+
+The mirror is intended for rapid recovery from primary-disk/device failure.
+
+For a single-file deployment, the mirror target may also be a single TP/A2 container.
+
+#### Versioned backups
+
+A mirror is not sufficient protection against logical mistakes or corruption because deletion/corruption can also be mirrored.
+
+The scheduler therefore needs retained generations/snapshots, for example:
+
+    identity-2026-09-29T120000Z.tp
+    identity-2026-09-29T130000Z.tp
+    identity-2026-09-29T140000Z.tp
+
+or an equivalent generation-based repository.
+
+Retention policy examples:
+
+- keep last N backups
+- hourly for 24 hours
+- daily for 30 days
+- weekly for 12 weeks
+- monthly for 12 months
+
+Final defaults remain open.
+
+### 22.19 TP as the portable backup artifact
+
+A2 Identity backups should be able to use the TP family as the portable backup artifact.
+
+Examples:
+
+    identity.tp   -> plain snapshot
+    identity.tpg  -> GZip-compressed snapshot
+    identity.tpp  -> password-protected snapshot
+    identity.tpe  -> key/certificate-protected snapshot
+    identity.tps  -> signed snapshot
+
+Protection/compression/signing capabilities may be combined according to the TP container rules.
+
+A backup TP may contain the complete logical A2FS Identity store, metadata, indexes or rebuild metadata, and any required recovery information.
+
+The preferred restore experience is:
+
+    stop/quiesce app
+      -> select backup TP
+      -> validate
+      -> restore/swap store
+      -> start/resume app
+
+### 22.20 Consistent snapshots
+
+Every scheduled backup must represent a transactionally consistent generation.
+
+The backup scheduler should integrate with A2FS generation/WAL/snapshot facilities rather than copying an actively mutating file blindly.
+
+Conceptual flow:
+
+    request snapshot
+      -> establish generation G
+      -> continue live writes to newer WAL/generation
+      -> copy/export stable G
+      -> validate backup
+      -> publish backup atomically
+
+This allows online backups without stopping the web application where the storage engine supports snapshots.
+
+For very small/simple deployments, an explicit short quiesce window is also acceptable.
+
+### 22.21 Efficient mirroring for large stores
+
+Repeatedly copying a multi-gigabyte TP/A2FS file in full after every small Identity mutation would be wasteful.
+
+The mirror mechanism should therefore be able to replicate only committed changes where the storage engine supports it.
+
+Possible mechanisms include:
+
+- WAL/journal segment replication
+- changed-page/chunk replication
+- append-only generation segments
+- block/hash based delta copy
+
+The mirror target then advances from generation G to G+1 without retransmitting unchanged data.
+
+A full verified copy remains available as a fallback/reseed mechanism.
+
+### 22.22 Backup verification
+
+A backup is not complete merely because bytes were copied.
+
+The scheduler should verify at least:
+
+- container/header validity
+- expected generation ID
+- checksums/hashes
+- required metadata/index structures
+- ability to open the snapshot read-only
+
+Stronger verification modes may perform CheckMeta() and selected Identity consistency checks.
+
+The scheduler should record the last successful verified backup generation and expose it through diagnostics/tooling.
+
+### 22.23 Scheduling and health
+
+A2 Identity should expose scheduler configuration through normal application configuration and tooling.
+
+Conceptual settings:
+
+    Enabled
+    MirrorTarget
+    SnapshotTarget
+    Interval
+    RetentionPolicy
+    Compression
+    Protection
+    VerificationLevel
+
+The service should expose health information such as:
+
+- last successful mirror generation
+- last verified backup time
+- current backup generation
+- mirror lag
+- failed backup count
+- last failure reason
+- available target space
+
+This is especially important for small deployments where there may be no dedicated DBA monitoring the system.
+
+### 22.24 Recovery workflow
+
+Recovery should be intentionally simple and scriptable.
+
+Conceptually:
+
+    a2tool identity status
+    a2tool identity backups list
+    a2tool identity restore <backup>
+
+A2 Studio may provide the same operations graphically.
+
+The restore operation should validate the selected backup before replacing the live store, preserve the old live store until the new one is committed, and use atomic swap/rename semantics where supported.
+
+The key product goal is that a small-site operator can understand and recover the Identity store without specialist database-administration knowledge.
 
 ## 23. Future migration
 
