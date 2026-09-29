@@ -715,6 +715,7 @@ The following statements summarize the strongest architectural direction agreed 
 30. AJIS should reserve unquoted #directive tokens as parser/control-plane syntax while quoted keys such as "#meta" remain ordinary user data.
 31. Conditional directives such as #if/#else/#endif may allow one document to carry platform- or environment-specific branches without turning AJIS into an arbitrary-code execution language.
 32. A2 transport adapters may stream a continuous GZip-compressed AJIS byte stream through SignalR or other transports without materializing the complete document.
+33. A2 may support bounded indexed joins and server/client execution profiles without becoming a general-purpose relational database engine.
 
 
 ## 12. Optional embedded schema header
@@ -2129,7 +2130,266 @@ The same transport-compression abstraction can later be reused by SemTam/TamTam 
 A2 should provide the byte-stream serialization/compression primitives; SignalR, raw sockets, HTTP streams, files, and future transports should be adapters over the same stream-first core rather than separate serialization implementations.
 
 
-## 18. Future migration
+
+## 18. Server/client execution profiles and bounded joins
+
+A2 may be useful as an embedded server-side data engine for applications that need structured persistence, indexing, filtering, and a small number of relational-style joins without operating a full external database server.
+
+The goal is not to reproduce SQL/database-server breadth. The useful target is a deliberately bounded subset that preserves A2's stream-first and bounded-memory properties.
+
+### 18.1 Server and Client execution profiles
+
+A2 should distinguish execution profile from storage engine.
+
+Storage engine answers:
+
+```text
+Engine = Auto | Ram | Disk
+```
+
+Execution profile answers:
+
+```text
+Profile = Auto | Server | Client
+```
+
+These are orthogonal.
+
+Examples:
+
+```text
+Server + Disk
+Server + Auto
+Client + Ram
+Client + Auto
+```
+
+#### Server profile
+
+The Server profile should optimize for:
+
+- fast request completion
+- bounded per-request memory
+- quick release/reuse of buffers
+- avoiding large temporary object graphs
+- aggressive use of persistent indexes
+- disk-backed scratch/intermediate state when useful
+- high concurrency
+- cancellation/backpressure
+- predictable resource ceilings
+- reusable pools and caches whose size is globally controlled
+- avoiding one expensive query starving unrelated requests
+
+A server may intentionally spend more disk space to save RAM and CPU time on repeated queries.
+
+Useful server-side persisted helpers may include:
+
+- secondary indexes
+- join indexes
+- sort/order indexes
+- query-plan metadata
+- precomputed statistics
+- materialized lookup tables
+- cached projections where explicitly enabled
+
+#### Client profile
+
+The Client profile should optimize for efficient interactive work on the current machine:
+
+- adapt to current RAM and memory pressure
+- use more RAM/cache when available
+- prefetch where it improves responsiveness
+- spill automatically when memory becomes constrained
+- prioritize smooth paging/browsing/editing
+- choose strategies according to local CPU, RAM, and storage characteristics
+
+A client profile may keep useful data hot longer than a server profile because there are fewer competing independent requests.
+
+#### Auto profile
+
+`Auto` may derive an execution strategy from environment and host policy, but applications should be able to select Server or Client explicitly.
+
+### 18.2 Indexed joins without a general relational engine
+
+A2 may support a deliberately small join model.
+
+A common case:
+
+```text
+Users.ajis
+  Id
+  Name
+  OrganizationId
+  AddressId
+
+Addresses.ajis
+  Id
+  City
+  Country
+
+Organizations.ajis
+  Id
+  Name
+```
+
+If the join key has an index, the engine does not need to load both data sets into RAM.
+
+Conceptual lookup join:
+
+```text
+stream Users
+   |
+   +-- OrganizationId -> Organizations.Id index lookup
+   |
+   +-- AddressId      -> Addresses.Id index lookup
+   |
+   v
+project result
+```
+
+Working memory remains approximately proportional to the current record, parser/query state, and bounded lookup buffers rather than total file size.
+
+### 18.3 Initial join scope
+
+To avoid uncontrolled database-engine scope, an initial A2 join feature should prefer simple equality/index joins.
+
+Useful initial forms:
+
+- inner join
+- left join
+- semi join / existence filter
+- anti join / non-existence filter
+
+Example:
+
+```csharp
+users
+    .Where(u => u.OrganizationId == selectedOrganizationId)
+    .Join(
+        addresses,
+        u => u.AddressId,
+        a => a.Id,
+        (u, a) => new { u.Id, u.Name, a.City });
+```
+
+The exact API is not frozen.
+
+The important implementation property is that indexed joins can be executed as streaming lookup joins rather than hash-materializing an entire large side in memory.
+
+### 18.4 Organization / identity use case
+
+A2FS/AJIS could serve as an application identity/user store in deployments where requirements are modest and well-defined.
+
+For example, one Users data set may contain people belonging to three organizations.
+
+An index on:
+
+```text
+OrganizationId
+```
+
+allows:
+
+```text
+OrganizationId == 2
+```
+
+to identify only the relevant people without scanning/materializing all users.
+
+A join or lookup through `OrganizationId` may then attach organization information, while `AddressId` may resolve an address stored in a separate data set.
+
+This supports clean separation of data sets without requiring a large general-purpose DBMS merely to perform one or two well-known relationships.
+
+### 18.5 Join indexes and disk-for-speed tradeoffs
+
+A2 explicitly does not need to minimize disk usage at all costs.
+
+When a repeated join is important, A2 may create a persistent join-oriented index.
+
+Conceptually:
+
+```text
+Users.OrganizationId -> Organization row/record ID
+Users.AddressId      -> Address row/record ID
+```
+
+or a materialized lookup structure optimized for a known relationship.
+
+This duplicates some information on disk but can substantially reduce CPU, random scanning, and request latency.
+
+The preferred tradeoff for Server mode is often:
+
+```text
+more disk
+in exchange for
+less RAM + faster request completion
+```
+
+### 18.6 Query planner expectations
+
+A2 does not need a full SQL optimizer.
+
+For the intended join scope, a small deterministic planner can choose among a few strategies:
+
+```text
+indexed lookup join
+merge join when both sides are ordered/indexed by the same key
+bounded in-memory hash join for demonstrably small inputs
+disk-backed/external strategy when needed
+```
+
+The planner should expose its decision through tooling:
+
+```text
+a2> explain
+Drive: Users.OrganizationId index
+Join: Addresses.Id lookup index
+Projection: Id, Name, City
+Engine: Disk
+Estimated working memory: 18 MiB
+```
+
+### 18.7 Server resource lifetime
+
+Server mode should strongly prefer request-scoped or pooled resources with deterministic release.
+
+Conceptually:
+
+```text
+request
+  -> acquire bounded buffers/readers
+  -> execute indexed/streaming query
+  -> emit result stream
+  -> return buffers / close readers
+  -> release scratch segments
+```
+
+The profile should avoid retaining large temporary state after a request merely because memory is currently available.
+
+Long-lived shared indexes/cache structures are a separate controlled resource class.
+
+### 18.8 Identity-store boundary
+
+Using A2 as an identity/user data store is plausible, but doing so safely requires storage guarantees in addition to query capability.
+
+Relevant requirements include:
+
+- unique-key enforcement
+- atomic mutation
+- crash recovery / WAL
+- durable commit semantics
+- concurrency control
+- consistent indexes
+- backup/restore
+- access-control integration
+- encryption/protection where required
+
+These requirements should be implemented explicitly rather than assuming that indexing and joins alone make A2 a database server.
+
+The target remains an embedded/specialized structured data engine, not an attempt to duplicate every feature of a mature general-purpose RDBMS.
+
+
+## 19. Future migration
 
 When the dedicated A2 repository is created:
 
