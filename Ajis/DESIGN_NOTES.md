@@ -710,6 +710,7 @@ The following statements summarize the strongest architectural direction agreed 
 25. Tooling may enrich an existing document later (for example by adding missing collection counts or inferred schema metadata) without requiring the original producer to know everything up front.
 26. Once derived metadata exists, A2 tooling/storage should maintain it transactionally during supported mutations instead of forcing repeated full rescans.
 27. Metadata tooling should expose automatic generation, non-mutating validation, repair, and safe copy-based full repair; copy-based repair must use generation/version checks or journaling so concurrent mutations cannot be lost.
+28. Early metadata may include an Engine strategy hint/request with values Auto, Ram, or Disk so the reader can choose its storage/execution strategy before consuming the payload.
 
 
 ## 12. Optional embedded schema header
@@ -1349,6 +1350,105 @@ The exact names remain open, but the correctness rule is not negotiable:
 > Metadata repair must never replace a document with a rebuilt copy that omits mutations committed after the repair snapshot was taken.
 
 Readers may remain available throughout a copy-based repair where the storage format permits it.
+
+
+
+### 14.10 Engine strategy metadata
+
+Early document metadata may include an execution/storage strategy selector named `Engine` (working name) with values:
+
+```text
+Auto
+Ram
+Disk
+```
+
+The default is:
+
+```text
+Engine = Auto
+```
+
+Conceptual schema/header example:
+
+```ajis
+#schema: {
+    engine: Disk,
+    type: "Person",
+    count: 10000000,
+    fields: {
+        Id: Int64,
+        Name: String,
+        Age: Int32
+    }
+}
+```
+
+Because metadata is read before the payload, the parser/storage planner can choose the implementation strategy immediately.
+
+Semantics:
+
+- `Auto` — let the implementation choose RAM, disk-backed scratch/storage, or a hybrid strategy according to profile, memory pressure, source/destination capabilities, and workload.
+- `Ram` — prefer/require RAM-backed processing for this document where permitted by host policy.
+- `Disk` — prefer/require disk-backed processing from the beginning rather than waiting for memory pressure or a later spill decision.
+
+This is especially useful for known-large streams. A producer that knows a document will be large can emit `Engine: Disk`, allowing the receiver to prepare ScratchStore/A2FS/temp structures before reading the first data item.
+
+Example pipeline:
+
+```text
+read metadata
+  -> Engine = Disk
+  -> open ScratchStore / disk-backed structures
+  -> prepare schema/storage plan
+  -> begin streaming payload
+```
+
+This avoids unnecessary RAM growth followed by a later migration to disk.
+
+#### Host policy remains authoritative
+
+Document metadata must not be allowed to override hard resource/security policy of the consuming application.
+
+Recommended precedence:
+
+```text
+explicit operation override
+        >
+application/runtime policy
+        >
+document Engine metadata
+        >
+default Auto
+```
+
+Examples:
+
+- a server configured as disk-only may ignore a document's `Ram` request
+- a read-only/constrained environment with no usable scratch storage may reject `Disk` with a stable capability/resource error
+- an application may intentionally force `Auto` regardless of document metadata
+
+This keeps `Engine` useful for planning while preventing untrusted input from dictating unsafe host resource behavior.
+
+#### Engine is execution metadata, not data semantics
+
+Changing:
+
+```text
+Engine: Ram
+```
+
+to:
+
+```text
+Engine: Disk
+```
+
+must not change the logical document value.
+
+Therefore `Engine` belongs to execution/planning metadata, not the logical schema contract itself, even if it is physically stored in the same early metadata/header region.
+
+A future specification may separate logical schema metadata and execution hints into distinct namespaces while keeping both available before the payload.
 
 
 ### 14.7 Progressive knowledge
