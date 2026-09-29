@@ -703,8 +703,132 @@ The following statements summarize the strongest architectural direction agreed 
 18. Signed packages are read-only with respect to the original signature; edits produce a new state/signature.
 19. Tooling must itself obey the same bounded-memory and paging principles as the A2 engine.
 20. The same public operation should scale from tiny input to data sets far larger than RAM, with strategy changing underneath rather than forcing a different application model.
+21. An optional schema available at the beginning of a document may describe anonymous/self-describing data and allow parsers/storage engines to prepare execution before consuming the payload.
 
-## 12. Future migration
+
+## 12. Optional embedded schema header
+
+A2/AJIS should support an optional schema declaration at the beginning of a document, tentatively represented by a reserved field/directive such as `#schema`.
+
+The schema is not required for ordinary self-describing AJIS data, but when present it can act as an early contract and planning hint before the parser starts consuming the full payload.
+
+Conceptual example:
+
+```ajis
+#schema: {
+    type: "Person",
+    fields: {
+        Id: Int64,
+        Name: String,
+        Age: Int32,
+        Address: {
+            Country: String,
+            City: String,
+            Street: String
+        }
+    }
+}
+
+[
+    ...
+]
+```
+
+The exact syntax is not yet frozen. The important semantic property is that the schema is available at the beginning of the stream.
+
+### 12.1 Early allocation and storage planning
+
+Because the parser can inspect `#schema` before reading the payload, it may prepare its execution strategy in advance.
+
+Examples:
+
+- allocate or rent appropriately sized working buffers
+- choose RAM versus ScratchStore strategy
+- prepare A2FS columns before the first record arrives
+- create fixed-width column storage with known element widths
+- create variable-width value indexes for strings/binary fields
+- initialize selective-encryption handling for protected fields
+- prepare indexes or metadata structures requested by the destination
+- select optimized parsers/converters for known field types
+- validate incoming records against the declared contract while streaming
+
+The schema must be treated as a planning aid, not as permission to preallocate memory proportional to the declared number of records. A2's bounded-memory/stream-first invariants still apply.
+
+### 12.2 Anonymous/self-describing objects
+
+An embedded schema allows A2 to transport data for which the receiver has no precompiled CLR/C/Rust/Java model.
+
+A receiver can:
+
+1. read `#schema`
+2. construct a runtime type/schema descriptor
+3. prepare suitable storage
+4. stream and validate values according to that descriptor
+
+This enables genuinely anonymous/self-describing data exchange while retaining strong type information.
+
+A .NET consumer may expose a dynamic/runtime record abstraction rather than requiring a generated CLR class. Other language implementations should provide equivalent idiomatic runtime-schema access.
+
+### 12.3 Schema and compiled models
+
+When the consumer already has a target model, the embedded schema may be used to verify compatibility before the payload is consumed.
+
+Possible outcomes include:
+
+- exact match
+- compatible match
+- compatible with conversions
+- missing/extra optional fields
+- incompatible schema
+
+The exact compatibility/versioning rules must be defined later in the normative specification.
+
+### 12.4 Schema and streaming
+
+The presence of `#schema` must never force full-document buffering.
+
+The intended pipeline is:
+
+```text
+read schema
+-> build runtime plan
+-> begin streaming values
+-> validate/map/store one logical unit at a time
+```
+
+For network transport this is especially useful because the receiver can prepare the destination before most of the payload has arrived.
+
+Example:
+
+```text
+network
+  -> #schema
+  -> prepare A2FS columns/indexes/encryption plan
+  -> record 1
+  -> record 2
+  -> ...
+```
+
+### 12.5 Schema and security
+
+Schema visibility is part of the protection model.
+
+- Opaque protection may hide the schema with the payload.
+- Values protection may intentionally expose the schema while encrypting values.
+- Selective protection may expose schema metadata indicating which fields are protected.
+
+Because field names and types can themselves reveal sensitive information, exposing `#schema` must remain an explicit security choice rather than an accidental side effect.
+
+### 12.6 Schema identity and reuse
+
+A future optimization may allow schemas to carry a stable identifier/version or to reference a known schema by ID.
+
+This could reduce repeated schema transmission in long-lived streams or repeated TP messages, while still permitting the full schema to be embedded when portability/self-description is more important.
+
+The exact schema-ID, hashing, canonicalization, and versioning rules are intentionally left open for the future specification.
+
+
+## 13. Future migration
 
 When the dedicated A2 repository is created:
 
