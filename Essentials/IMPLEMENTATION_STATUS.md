@@ -60,6 +60,15 @@ Last updated: 2026-09-27
 - This removes Windows/Linux CRLF-only worktree noise from release preparation and keeps PowerShell scripts cross-platform with LF endings.
 - No runtime, public API, package metadata, or frozen release artifact changed.
 
+## 2026-09-29 — Essentials 0.2.0 release tag pushed
+
+- Annotated tag: `essentials-v0.2.0`.
+- GitHub tag object SHA: `652a12460e76e23d8729d61c8dd2b3d5e7b74ebf`.
+- Tag target commit: `781f55834df7414eeed959b39c41dc6f97c99ecb` — exactly the commit embedded in the frozen Essentials 0.2.0 package repository metadata.
+- Tag message: `Afrowave.Toolbox.Essentials 0.2.0`.
+- Tag is annotated but unsigned; artifact/package identity is unchanged.
+- Remaining gate: authenticate the Windows NuGet client to the private GitHub Packages registry, publish the exact retained nupkg, then verify a clean restore/execute from the registry.
+
 ## 2026-09-29 — Essentials 0.2.0 final artifact frozen
 
 - Release source commit: `781f55834df7414eeed959b39c41dc6f97c99ecb`.
