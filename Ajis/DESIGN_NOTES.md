@@ -723,6 +723,7 @@ The following statements summarize the strongest architectural direction agreed 
 38. Samples, documentation, CLI help, and the web playground should preferably share one executable sample catalog.
 39. A dual-backend reference application should compare equivalent SQL/EF Core and A2/A2FS behavior on a realistic sample database before performance claims are made.
 40. A2 Identity should be the first major reference library, implementing ASP.NET Core Identity storage contracts over A2FS and publishing measured scalability/resource limits instead of assuming database-like unlimited scale.
+41. A2 Identity should optimize for ordinary deployments where tens of thousands of users and single-file portability/backup are more valuable than hyperscale complexity.
 
 
 ## 12. Optional embedded schema header
@@ -3447,6 +3448,112 @@ A2 Identity should be considered successful when:
 - the practical user-count envelope has been measured and documented on known hardware
 
 The project should explicitly publish benchmark limits rather than implying unlimited scale.
+
+### 22.12 Target deployment scale and operational simplicity
+
+A2 Identity is primarily aimed at ordinary web sites, internal applications, small-to-medium services, and self-hosted deployments rather than hyperscale cloud identity infrastructure.
+
+A realistic first operating target is not hundreds of millions of users. A much more valuable target is to make tens of thousands of users boring, predictable, and easy to operate.
+
+A representative practical milestone is:
+
+    50,000 users
+
+with normal Identity operations remaining fast, memory usage bounded, indexes healthy, and deployment/backup simple.
+
+If A2 Identity scales comfortably beyond that, the measured envelope should be documented, but the design should not become needlessly complex merely to chase hyperscale workloads outside the intended audience.
+
+### 22.13 Single-file operational model
+
+One of the strongest A2 Identity advantages should be operational simplicity.
+
+The preferred deployment model should allow the complete logical identity store to be represented as a single portable A2/A2FS container where practical.
+
+Conceptually:
+
+    identity.a2fs
+
+may contain:
+
+- users
+- roles
+- user-role relationships
+- claims
+- logins
+- tokens/passkeys where supported
+- indexes
+- metadata
+- avatars/binary user data
+- recovery/journal state as appropriate to the selected storage layout
+
+The operator experience should be as close as safely possible to:
+
+    stop application
+    copy one file
+    start application
+
+for an offline backup, migration, or deployment transfer.
+
+This is a major product goal rather than merely a file-layout convenience.
+
+### 22.14 Copyability versus consistency
+
+The simple one-file story must still respect transactional consistency.
+
+For a guaranteed offline copy, the application/store should be stopped or placed into an explicit quiescent/snapshot state before copying.
+
+For online backup, A2 should provide a snapshot/export operation that produces a transactionally consistent copy while the live store continues running where supported.
+
+A raw file copy taken during active mutation must not be advertised as safe unless the storage format explicitly guarantees that behavior.
+
+Potential APIs/tooling may include:
+
+    A2Identity.BackupAsync(destination)
+    a2tool identity.a2fs snapshot backup.a2fs
+
+Final naming is not frozen.
+
+### 22.15 Portability as a first-class feature
+
+The same A2 Identity file should be portable across machines and deployments without requiring a separate database server installation.
+
+Typical migration scenario:
+
+    stop old instance
+      -> copy identity.a2fs
+      -> copy application/configuration
+      -> start new instance
+
+Provider-specific server objects, migration history tables, connection-string changes, and external DB provisioning should not be required merely to move the identity store.
+
+Security-sensitive key material that is intentionally external to the data store remains separate where appropriate; portability must not weaken key-management boundaries.
+
+### 22.16 Benchmark emphasis for the intended audience
+
+The most meaningful benchmark points for A2 Identity should therefore include:
+
+    1,000 users
+    5,000 users
+    10,000 users
+    25,000 users
+    50,000 users
+    100,000 users
+
+before moving into million-user stress tests.
+
+For the intended audience, success at 50,000 users with low operational complexity may be more valuable than extreme-scale headline numbers.
+
+The benchmark should answer not only 'how fast is it?' but also:
+
+- how much RAM does the server need?
+- how large is the store/index footprint?
+- how long does startup/open take?
+- how quickly can a consistent backup be made?
+- how quickly can the store be restored/moved?
+- how much maintenance does the store require?
+- can a small server host the application and identity store comfortably together?
+
+These operational measurements are part of A2 Identity's value proposition.
 
 ## 23. Future migration
 
