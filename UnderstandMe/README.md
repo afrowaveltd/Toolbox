@@ -26,6 +26,8 @@ A request resolves typed effective `Settings` from configured defaults and permi
 
 The default provider preference is economical/free or local translation (such as LibreTranslate), then equally ranked paid APIs, then AI, all configurable globally or for particular language pairs. Model capabilities can be retested on version changes, while historical model quality scores are not used for automatic permanent ranking. See [Request Settings, memory and live segment updates](Docs/Request-Settings-and-Live-Translation/en.md).
 
+The splitter's `(RequestId, SegmentId)` partial translation model is **UI-neutral**: applications may use Blazor, JavaScript, Avalonia or another rendering mechanism; no DOM/JS function is a dependency. Paid provider adapters declare pricing/metering capabilities, while each configured subscription account holds its own monthly included usage, optional overage price and an administrator-approved hard/soft limit. Accounting and quota reservations are persistent and independent of SystemMonitor; no automatic extra package purchase occurs.
+
 ## Planned areas
 
 | Area | Responsibility |
@@ -47,6 +49,7 @@ The default provider preference is economical/free or local translation (such as
 - [QueueMaster, scheduling and reliability](Docs/QueueMaster-and-Reliability/en.md)
 - [Translation Chains and backend workers](Docs/Translation-Chains/en.md)
 - [Provider preferences, cost and escalation](Docs/Provider-Routing/en.md)
+- [Provider pricing, monthly packages, quota monitoring and spending limits](Docs/Provider-Billing-and-Quotas/en.md)
 - [Editor, audit and rollback](Docs/Editor-and-Audit/en.md)
 - [Afutrans integration and interfaces](Docs/Afutrans-Integration/en.md)
 - [AfroLT future lightweight .NET translation service](Docs/AfroLT-Future-Design/en.md)
