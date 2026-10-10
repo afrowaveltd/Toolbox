@@ -80,6 +80,12 @@ The administrator should be able to see per billing account/endpoint and period:
 
 Persist billing evidence outside SignalR. A typed `ProviderQuotaChanged` or `ProviderBudgetThresholdReached` event may be broadcast to **SystemMonitor**, but live monitoring is best-effort and cannot be the billing ledger. Never include credentials, raw translated source text or a payment instrument in these events.
 
+## Optional activation and operator-funded public access
+
+**A human-only installation or a deployment using only locally free translation must not require the paid-provider billing feature to be configured or available.** Pricing/usage accounts are optional components activated when an operator chooses to use providers with a metered external API or otherwise requires an explicit cost policy. A default provider preference for free/local -> paid -> AI never enables paid accounts by itself.
+
+An administrator can deliberately **sponsor translation for everyone**, including an opt-in anonymous public API profile authorized to access paid/AI engines. The spending is controlled by the host's **shared public-profile quota and provider-account hard budget**, not by inventing a paying individual for an unidentified caller. Per-client charges/entitlements require an actual trusted client identity; anonymous public consumption is attributable to the shared public profile, with whichever usage controls the operator selects. [Client Access Policies](../Client-Access-Policies/en.md).
+
 ## Non-goals and open details
 
 This is **not** a full payment system, automatic webshop or invoice reconciliation product. Do not assume provider prices are always public or static. Pricing may change independently of model version. Remaining specifics to agree on: precise `Words` counting per provider, billing period time zones and renewal, reservation policy if actual consumption exceeds estimate, cancellation/retry/partial batch charges, package rollover/stacking, currency exchange (when displaying consolidated multi-currency totals), history retention, shared-account multi-server ledger, and exact admin UI flows.
