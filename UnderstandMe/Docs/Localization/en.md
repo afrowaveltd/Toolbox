@@ -21,6 +21,12 @@ Dictionary stores can be local flat JSON (`en.json`, `de.json`, etc.), structure
 
 Synchronous `IStringLocalizer` consumers must not be assumed able to await a remote backend; an asynchronous API/host strategy is a separate open design point.
 
+## SystemPersistent memory versus provisional cache
+
+The optional `SystemPersistent` translation-memory tier provides durable, bounded reuse of **explicitly selected and verified** translations. It is not a duplicate of every request history and must not expand forever. Request Settings can opt in to **lookup** before requesting a backend; **writing/promoting** an entry is a separate, explicitly controlled operation. Preserve authoritative target dictionaries as the highest-priority answer, then allowed context-matched SystemPersistent entries, then provisional cache, then the live backend.
+
+Match on source/target culture, Translation Target/domain, context/format, source identity and protected placeholder structure; reject stale/incompatible glossary or source revisions. Support quotas, removal/expiry policy and pinned entries where applicable. RealTime non-Mandatory requests can immediately display source text and later replace only the completed segment identified by `RequestId` and `SegmentId`. User-facing segment updates use a separate application channel rather than SystemMonitor. [Request Settings and Live Translation](../Request-Settings-and-Live-Translation/en.md).
+
 ## Placeholder hints
 
 For a source string such as `We found {count} dictionaries in {folderCount} folders`, a flat hint store may be:
