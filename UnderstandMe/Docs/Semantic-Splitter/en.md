@@ -25,6 +25,14 @@ For Markdown, “contents of each tag” means **text-bearing Markdown syntax/AS
 
 For HTML, a tag's translatable text is a useful unit, but nesting and inline spans are not reasons to break an otherwise coherent sentence into one-word chunks. Use an HTML parser, select safe translatable text content, retain source element/text-node references, and ignore excluded elements such as `script`, `style`, and code/non-translatable regions according to adapter policy. The renderer reconstructs valid markup and may update individual blocks through Blazor, JS or another client UI. No translation provider may be given unrestricted executable HTML to publish as trusted output.
 
+## Structured template + source-first ResultList (proposal, not frozen)
+
+A promising design for HTML/Markdown is to **preserve the parsed document structure**, replace each translatable semantic region with an **internal reference**, and maintain a request-local `ResultList` keyed by temporary integer `SegmentId=0..N`. Every slot **initially contains its original source text**, so the host can render the complete source document immediately and replace slots as translated results arrive. Each slot should distinguish original/current text, pending/success/failure and revision to avoid treating empty output or stale asynchronous results incorrectly.
+
+The illustrative rewriting `<tag placeholder="0">@ResultList[0]</tag>` is only a useful mental model, not a mandate to mutate or serialize source HTML with custom attributes. Use **HTML parser/DOM or Markdown AST mapping** to bind result slots to correct text-bearing nodes while retaining nesting and other markup. Simple sibling tags map easily; a mixed-content sentence like `<p>Hello <strong>beautiful</strong> world!</p>` needs **one coherent translation context** with protected inline formatting rather than three unrelated words. HTML void elements such as `br` and `img` need not have closing tags; use a parser instead of regex-based tag pairing. The renderer/host projects current result slots into safe final output via its preferred UI or format adapter.
+
+See the exploratory contract in [Structural Template and ResultList](../Structural-Template-and-ResultList/en.md). This representation is **separate from QueueMaster work queues, permanent dictionary keys and any chat host storage**.
+
 ## Sentence boundaries and context
 
 A period (`.`) or end of line can be a useful starting separator, but an implementation must account for common counterexamples: decimals (`1.96`), abbreviations (`Dr.`), dates, URLs/domains, ellipses and language-specific punctuation. Prefer a configurable sentence boundary detector over a naïve `Split('.')` so chunks remain meaningful. Preservation of punctuation, spaces and newlines matters for exact reassembly.
