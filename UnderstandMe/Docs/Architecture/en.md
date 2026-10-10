@@ -34,7 +34,13 @@ The default known-client profile adds no restrictions beyond the host's enabled-
 
 The mandatory Human provider is a **regular QueueMaster-compatible worker**, not a separate engine or an always-online service. The host may enqueue/persist human-intended work when no translator is connected; opening a translator UI later retrieves authoritative pending/in-progress totals by priority/language and allows atomic exclusive claim, editing and completion. No new physical per-human queue is introduced; the existing five priority queues and persistent work ownership remain authoritative. A missed monitoring event or disconnected UI cannot cause accepted work to disappear.
 
-A delayed human continuation after an ephemeral RealTime request is separately and durably accepted, rather than changing the default volatile P0 semantics. Human results are validated and delivered through the same typed contracts as other providers. See [Human Translation Workflow](../Human-Translation-Workflow/en.md).
+There is **no automatic human continuation** of an ephemeral RealTime request. An explicitly authorized manual translation of the content must be submitted separately as a durable **non-P0** request; private chat text is never exposed to Human merely because RealTime fails. Human results are validated and delivered through the same typed contracts as other providers. See [Human Translation Workflow](../Human-Translation-Workflow/en.md).
+
+## P0 RealTime boundary: no Human and no private-chat exposure
+
+Although **Human is the only required provider capability**, the Human worker belongs **only to durable explicitly authorized non-RealTime P1-P4 translation**. `P0 RealTime` is an automatic-only execution path. If a host has no activated automatic translator, P0 is **inactive**: return the original untranslated text almost immediately, without queuing or invoking Human. If a configured machine translator fails, no Human fallback is allowed, including for `Mandatory` requests.
+
+RealTime may carry private chat messages. Its source content must **not be persisted as a Human job, placed in a manual editor/inbox, or copied for later human review** merely because automatic translation is unavailable. An actual human task exists only when separately submitted as an authorized and durable non-P0 manual request. This is a strict selection/privacy constraint, not just a preference or a postponed worker choice. See [Human Translation Workflow](../Human-Translation-Workflow/en.md) and [Request Settings](../Request-Settings-and-Live-Translation/en.md).
 
 ## Composition
 
