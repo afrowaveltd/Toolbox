@@ -22,6 +22,14 @@ A request with effective `Privacy = Private` is excluded from automatic Human ro
 
 The mandatory **manual dictionary revision audit** below remains intact for real **manual edits of authoritative dictionaries**; it does not mean that automatically generated private chat translations must be exposed to a human auditor or registered as public dictionary keys. Operational usage/status may be audited with **no raw private content**. Automated checks may operate within the effective privacy and provider-disclosure policy. See [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
 
+## Recipient self-correction is a separate optional feature
+
+**A private chat recipient is allowed to correct the translated message they personally received.** This is performed through the chat application's own UI or a specifically integrated translation-correction tool, **not** the central Human translation backlog, unrelated auditors or a generic dictionary Editor listing everyone's messages.
+
+The correction affects only that recipient's visible result. They can choose **no cache** (only the current view changes), or **opt in to a recipient-scoped saved correction** for later authorized views. Source-message ownership and privacy are unchanged; choosing cache does not give permission to make the original or edited private message globally available. Broader sharing, if provided by a host, needs a separate explicit and authorized operation.
+
+The following **mandatory dictionary revision audit** still applies to manual edits of authoritative localization dictionaries. It does **not** mandate creating a global/manual audit record of private chat translation corrections. A host may maintain scoped metadata/revision controls to manage its own recipient overrides without publishing their contents. [Chat Translation Flow](../Chat-Translation-Flow/en.md).
+
 ## Mandatory revision audit
 
 Every **committed manual dictionary change**, whether originating from WebUI, GUI, TUI or a plugin/API, must create an audit record. Store at least actor, timestamp, target, language, key, old and new value, revision lineage and the nature of edit/restore. Ensure change and audit record are committed together or neither is accepted. Editors must not erase their own audit trails.
