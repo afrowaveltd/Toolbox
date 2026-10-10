@@ -14,6 +14,10 @@ The **only required translation provider capability is a Human worker**. Underst
 
 The standard free/local -> equally ranked paid APIs -> AI order describes **preference among activated eligible machine providers only**. It must never instantiate missing providers, automatically authorize paid costs or make a paid engine mandatory. A human can be an explicit preferred provider or the only provider; human worker readiness/turnaround and request acceptance deadlines are independent of machine endpoint health checks. If nobody can currently execute the work, return a truthful deferred/manual-queue or unavailable outcome according to the request policy, not a fictitious machine translation.
 
+## RealTime provider eligibility is automatic-only
+
+**Human is not eligible for `P0 RealTime`, even though Human is the only mandatory baseline capability.** P0 may execute only on activated automatic backends. In a Human-only installation, P0 translation is inactive and returns untranslated source immediately. If all enabled automatic engines fail or are forbidden, even `RealTime | Mandatory` must return source/unavailable rather than route to Human or create delayed human work. Private real-time chats must not be copied into manual worker queues or editors. Human can process only **independently submitted, authorized, persistent P1-P4** translation work. [Human Translation Workflow](../Human-Translation-Workflow/en.md).
+
 ## Separate the different priorities
 
 - **Job priority** belongs to QueueMaster: P0 real-time through P4 background, controlling *when* work is dispatched.
