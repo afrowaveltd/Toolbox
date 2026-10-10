@@ -15,5 +15,8 @@ This is a discussion backlog, **not** an implementation plan. Decisions recorded
 11. **Source format plugins:** model detection for flat/structured JSON and SQL; conflict-safe writeback, allowed filesystem roots, extensibility for AJIS.
 12. **Verification before coding:** define unit/integration tests for queue transitions, exact placeholder multiplicity, recovery, editing audits, optional AI checks and .NET 10/11 compatibility.
 
+13. **Native translation feasibility:** prototype .NET-to-CTranslate2 interop; measure baseline Argos/LibreTranslate versus a constrained native worker on a small VPS; test model loading, tokenization, segmentation, concurrency, crashes, independent process restart and failover.
+14. **Attribution and licenses:** resolve the individual Argos model-package license/provenance/redistribution question, required third-party notices, and which improvements to propose upstream to LibreTranslate/Argos/CTranslate2.
+
 Current status and next continuation point: [Implementation Status](../../IMPLEMENTATION_STATUS.md).
 

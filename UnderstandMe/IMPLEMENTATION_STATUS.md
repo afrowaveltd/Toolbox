@@ -29,6 +29,14 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - No code, solution, package references or target frameworks are changed by this pass.
 - No build/test execution or pipeline verification is claimed. The next coding phase must establish a new test baseline.
 
+## 2026-10-10 — future native translation and upstream conduct (design only)
+
+- Documented a possible independent C#/.NET native translator using compatible Argos models, CTranslate2 interop and model/process isolation rather than copying LibreTranslate service code.
+- Recorded potential distributed workers with different subsets of directional models, bounded model memory/concurrency and automatic restart/recovery. The actual stability and memory benefit is not yet measured.
+- Established transparent upstream credit, respectful collaboration and an offer to share useful improvements with LibreTranslate/Argos maintainers as an intended development practice.
+- Recorded the verified differing upstream source licenses (LibreTranslate AGPL-3.0, Argos Translate MIT/CC0, CTranslate2 MIT) and flagged **individual model-package redistribution/license verification as unresolved**.
+- No implementation, binary, package reference, test or runtime behavior changed.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.

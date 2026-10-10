@@ -97,7 +97,25 @@ Prefer Microsoft/.NET tools when they meet requirements; `System.Text.Json` is t
 
 UnderstandMe starts from a `net10.0` skeleton. The design direction is shared behavior and stable .NET 10-compatible contracts, with optional modern compile-time API/facades/features for `net11.0` (e.g. C# unions). Afutrans hosts target .NET 11. Public result/failure conventions should reuse Essentials and WhenItFails rather than invent a parallel error subsystem. Detailed packaging, native-union API shape and framework-targeting strategy remain open.
 
-## 10. Source repositories and document maturity
+## 10. Future native translation worker and upstream collaboration
+
+**Design exploration only; not an implementation commitment.** Current Afutrans/UnderstandMe translation will continue to support self-hosted LibreTranslate endpoints. A future independently developed C#/.NET native translation worker could consume compatible Argos language-model packages via CTranslate2 and tokenization/segmentation components, without copying LibreTranslate's HTTP/server implementation. It would be available as an in-process library or an isolated worker service, with language-pair capabilities, per-instance model inventories, memory/concurrency budgets, optional model unload/reload, and automatic recovery after ordinary failures. For native crashes, an external supervisor/process restart and durable queue ownership recovery are required; in-process C# exception handling alone cannot guarantee recovery. Model overhead, stability and throughput must be **benchmarked**, not assumed to improve merely by replacing Python.
+
+Multiple worker instances could hold **different subsets of directional translation models** (not arbitrarily ten languages each) across virtual machines or physical hosts. QueueMaster routes only to compatible ready instances; indirect language-pair translation can be composed in a Chain when explicitly permitted. Preserve the current minimal endpoint readiness contract (`IsReady`) and separate capability metadata.
+
+### Open-source conduct and provenance
+
+This work should complement rather than impersonate or copy the work of LibreTranslate and Argos Translate. Clearly acknowledge the upstream projects, link to their repositories, document which components and models we actually use, and offer reusable .NET integration, reliability improvements, interoperability or upstream contributions to their maintainers when useful. Maintain truthful attribution even if the new module has independently written code.
+
+At the time of this note, **LibreTranslate source is AGPL-3.0**; **Argos Translate is MIT/CC0 dual-licensed**; and **CTranslate2 is MIT-licensed**. Distinguish use of an independent model/runtime integration from copying or modifying LibreTranslate source. Do not assume that every downloaded `.argosmodel` package has a sufficiently clear redistribution license just because its tooling is open source: verify the provenance, rights, bundled dependencies, attribution requirements and distribution terms of each shipped model. Record third-party notices and consult legal review for any planned mixed-license distribution or network-service derivative.
+
+References:
+- LibreTranslate: https://github.com/LibreTranslate/LibreTranslate
+- Argos Translate: https://github.com/argosopentech/argos-translate
+- CTranslate2: https://github.com/OpenNMT/CTranslate2
+- Open discussion of individual model-package licensing: https://github.com/argosopentech/argos-translate/issues/533
+
+## 11. Source repositories and document maturity
 
 - Toolbox: https://github.com/afrowaveltd/Toolbox
 - Afutrans: https://github.com/afrowaveltd/Afutrans
