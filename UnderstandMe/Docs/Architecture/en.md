@@ -44,6 +44,12 @@ A format-aware splitter yields ordered `(SegmentId, Text)` pairs; an independent
 
 Configuration changes apply to **new requests**. Existing queued/in-flight work retains its captured effective Settings, but an administrator's orchestration pause/stop supersedes dispatch irrespective of Mandatory. The optional approved bounded SystemPersistent memory is checked before provider calls; write/promotion is separate from reading and temporary cache. Capability tests consider model version changes, without maintaining automatic long-lived language-quality rankings. [Request Settings and Live Translation](../Request-Settings-and-Live-Translation/en.md).
 
+## Provider billing and UI-independent live results
+
+**Billing belongs to a provider account's commercial plan, not a single hard-coded vendor price.** A provider adapter declares metering/cost capabilities; configured account/endpoint billing Settings represent purchased monthly bundles, renewal, included usage, allowed overage price and an administrator-controlled spending cap. A durable UsageLedger/QuotaAccount tracks usage and concurrent reservations (potentially shared across hosts) independently from best-effort SystemMonitor. At each chargeable dispatch, provider routing checks current account caps, even though existing requests retain their original selection preferences. An administrator alone approves overage or a new package; the system calculates, enforces and reports. [Provider Billing](../Provider-Billing-and-Quotas/en.md).
+
+Likewise, the **splitter and completion contract is presentation-neutral**: segment identity, source content/format metadata, RequestId, verified translated segment and revision. Blazor, JavaScript, Avalonia or other clients choose their own way to change displayed text or re-render a component. The translation core does not prescribe DOM spans or JavaScript functions. [Request Settings and Live Translation](../Request-Settings-and-Live-Translation/en.md).
+
 ## Hierarchical SystemMonitor
 
 Each module emits events independently. A host maps `/SystemMonitor` for events from all locally registered modules, and `/AfroLT/SystemMonitor`, `/Afutrans/SystemMonitor`, `/UnderstandMe/SystemMonitor` for each module's own events. All use one typed envelope with sender identity. The host fans out a single event to global and module feeds, without Hub-to-Hub forwarding. Remote instances only aggregate through an optional bridge. Monitoring is outbound-only, best-effort, never a storage or command channel. See [SystemMonitor](../SystemMonitor/en.md).
