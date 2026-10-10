@@ -125,6 +125,14 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - The SystemMonitor Hub still exposes no client-callable event publishing methods; incoming remote monitoring events are accepted only through the configured SignalR receiver client.
 - Updated `Docs/SystemMonitor/en.md`, `Docs/Architecture/en.md`, `Notes.md`, `Docs/Open-Questions/en.md` and this status. Documentation only; no runtime implementation or test suite changed.
 
+## 2026-10-10 — administrator-approved monitoring enrollment (design only)
+
+- Added a self-enrollment request for new nodes (example VPS4): public ClientId GUID, declared endpoint and modules; the receiving host stores it as **Pending**, never approves unknown nodes automatically.
+- A typed `MonitorRegistrationRequested` event is broadcast through the read-only `/SystemMonitor` so an online administrator may review immediately; offline administrators use the durable pending list. Approve/deny is performed through a separate authorized administrative API/UI.
+- Upon approval, the receiving host creates a new **private random GUID ClientKey** associated with the approved ClientId and allowed sources. The applicant retrieves it through an independent protected claim/poll flow and later presents both values in HTTPS control headers. The key must never appear in monitoring events; although it is a GUID, it acts as a small bearer credential.
+- Distinguishes enrollment/control from the reverse-direction pull connection: the aggregator's SignalR receiver connects to the approved source under separately validated HTTPS server identity. SignalR monitor Hub stays strictly server-to-client.
+- Documented pending-registration durability, notification best effort, revocation, one-time claim security and anti-flood tests. Updated `Docs/SystemMonitor/en.md`, `Docs/Architecture/en.md`, `Notes.md`, `Docs/Open-Questions/en.md`, and this status. No runtime code, package or test implementation changed.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
