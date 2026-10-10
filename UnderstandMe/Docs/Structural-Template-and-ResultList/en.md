@@ -70,6 +70,14 @@ This **inner-candidate + full-context alignment** approach is a proposed strateg
 
 Where a provider can preserve protected inline markers or validated HTML **in one full-context translation**, that may be preferable to additional inner phrase requests. Every extra translation call is subject to current eligibility, quota, cost, deadline and privacy rules; never force paid calls solely to restore bold/italic. The source-initialized `ResultList` and separate structural mapping remain unchanged. [Inline Markup Restoration](../Inline-Markup-Restoration/en.md).
 
+## Fallback by outer anchors and significance of inline identifiers
+
+If the tagged inner expression cannot be aligned directly to the authoritative whole translation, the user proposes translating the **outer pieces** before and after it as a second alignment attempt. For `Hello <strong>beautiful</strong> world!`, translate `Hello` and `world` separately as clues (e.g. `Ahoj` and `svět`), locate corresponding spans in `Ahoj super světe!`, and consider whether the remaining text `super` can be unambiguously tied to the original inner tag. Handle morphology such as `svět` vs `světe`, and decline to infer a span on ambiguity, repetitions or word-order changes. Never overwrite the whole-sentence translation with a composite made from fragment translations.
+
+When no reliable matching strategy succeeds, **the default for safely cosmetic inline tags** (e.g. `<strong>`, `<i>` **without important attributes**) is to **omit those tags** from the reconstructed translation, preserving the translated words and the surrounding structural tags. When the unmatched nested tag has **`id`** or other semantically functional attribute (link, reference, required application/accessibility binding), default to **typed structural failure** instead: never remove a required identifier silently. The host can render the original segment safely or handle the flagged partial candidate according to effective Settings. A tag's name alone does not establish that it is harmless; inspect its attributes and structural role.
+
+The policy is configurable, with a default `OmitUnmatchedCosmeticFormatting`, optional strict formatting enforcement and bounded retries/extra translation calls subject to provider quotas, client entitlement, privacy and deadline. See [Inline Markup Restoration](../Inline-Markup-Restoration/en.md).
+
 ## Lifecycle and presentation neutrality
 
 1. Format-specific adapter parses and validates the source structure.
