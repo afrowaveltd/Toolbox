@@ -127,5 +127,10 @@ This is a discussion backlog, **not** an implementation plan. Decisions recorded
 98. **Markdown/HTML grouping:** decide exact Markdown AST node grouping, HTML nested inline text grouping, non-translatable elements and metadata for safe content placement; preserve code, links, placeholders and original markup. Avoid one-word chunks caused by formatting tags.
 99. **Oversized semantic units and context:** set provider max-length fallback order (further safe split or other eligible engine), context preservation/strict boundaries, and how to report a unit too large without truncation. Verify request-local chunk IDs remain ephemeral and no dictionary or chat history keys are generated.
 
+100. **Structural template + source-filled ResultList (proposal):** keep parsed HTML/Markdown structure plus temporary `SegmentId=0..N` slot mapping. Initialize slot values to source content and progressively replace verified completions so partial failures still render the original. Determine `OriginalText` versus `CurrentText` model, status, revision, duplicate/out-of-order completion handling and efficient rendering.
+101. **HTML parsing and element mapping:** decide parser/AST interface, how void `br`/`img` and malformed HTML are handled, whether to use separate `SegmentRef` metadata rather than mutating real HTML attributes, and text-bearing attribute translation. Avoid collisions with actual `placeholder` attributes.
+102. **Nested inline markup versus sentence context:** design protected inline formatting markers and mapping for mixed content such as `<p>Hello <strong>beautiful</strong> world!</p>`; avoid translating each DOM text node as an unrelated word and validate reconstructed safe markup.
+103. **Result projection and hosting:** define minimal UI-neutral projection contract for HTML/Markdown/desktop updates, source fallback on failed chunks and ephemeral cleanup. Do not turn a ResultList into a persistent chat database, QueueMaster work queue or `KEY=VALUE` UI dictionary.
+
 Current status and next continuation point: [Implementation Status](../../IMPLEMENTATION_STATUS.md).
 
