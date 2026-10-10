@@ -57,6 +57,19 @@ Avoid automatic translation of `script`, `style`, code, hidden/private nontransl
 
 The format-aware processor reconstructs valid, appropriately escaped/sanitized output. Raw translated text is not directly assigned to HTML `innerHTML` as trusted markup.
 
+## Variant alignment to reconstruct nested inline tags (proposal)
+
+For `<p>Hello <strong>beautiful</strong> world!</p>`, a useful strategy is:
+
+1. Extract the **inner highlighted phrase** `beautiful` from the parsed source structure; ask a compatible translation provider for a primary translation and **supported** alternatives (for example `nádherný`, `krásný`, `fascinující`).
+2. Translate the **entire untagged contextual sentence** `Hello beautiful world!` to Czech, for example `Ahoj nádherný světe!`. The full sentence, not an assembly of independently translated English fragments, determines grammar and word order.
+3. Locate one sufficiently reliable candidate in the complete target sentence as a **whole target word/phrase**. Here `nádherný` matches, so the format adapter annotates that target-language span and reconstructs `Ahoj <strong>nádherný</strong> světe!`.
+4. If no safe, unique match can be established, **never wrap an arbitrary occurrence**. Try a permissible format-preserving strategy or retain verified plain target text with a formatting warning for cosmetic markup; semantically functional markup such as links needs a safer explicit fallback/source-preserved result.
+
+This **inner-candidate + full-context alignment** approach is a proposed strategy, not a frozen requirement or a promise that every engine supplies synonyms. Word form changes (`krásný` versus `krásného`), repeated expressions, paraphrases, nested/crossing spans and different provider outputs can defeat literal matching. Matchers must respect language-specific morphology, word boundaries, source position/context, valid tag nesting, and the final reconstruction's safety.
+
+Where a provider can preserve protected inline markers or validated HTML **in one full-context translation**, that may be preferable to additional inner phrase requests. Every extra translation call is subject to current eligibility, quota, cost, deadline and privacy rules; never force paid calls solely to restore bold/italic. The source-initialized `ResultList` and separate structural mapping remain unchanged. [Inline Markup Restoration](../Inline-Markup-Restoration/en.md).
+
 ## Lifecycle and presentation neutrality
 
 1. Format-specific adapter parses and validates the source structure.
