@@ -73,6 +73,12 @@ One useful implementation direction is **parse structure -> map semantic chunks 
 
 Each result slot can keep `OriginalText`, `CurrentText`, processing status and revision; a failed/unfinished translation still displays source content. This design enables client-specific progressive rendering while keeping the host responsible for final assembly and storage. Still exploratory: finalize the HTML/Markdown AST representation and protected inline markers when we design the Splitter/ResultProcessor contract. [Structural Template and ResultList](../Structural-Template-and-ResultList/en.md).
 
+## Optional nested-tag reconstruction chain
+
+A format-aware Chain/ResultProcessor can attempt `parse markup → extract marked inner phrase → obtain permitted translation alternatives → translate full surrounding plain sentence → align candidate target spans → reconstruct and validate markup`. This is a **proposal**, not a required two-call workflow. Whole-context translation determines meaning and order; matching the translated inline phrase supplies a potential placement for original `strong`, `em` or another allowed tag.
+
+Alternate forms are not guaranteed by every provider, and grammatical inflection, repeated target tokens or paraphrase may prevent safe alignment. The chain must report markup-restoration uncertainty rather than tag the wrong word. Protected-marker/format-aware translation is another interchangeable strategy, possibly needing fewer calls. Additional inner-phrase calls must respect client authorization, per-provider usage caps, global cost, privacy and deadline; none silently escalates to Human audit in P0. [Inline Markup Restoration](../Inline-Markup-Restoration/en.md).
+
 ## Semantic splitting is format-aware, not a fixed chunk size
 
 The Splitter should output **coherent meaning-bearing units** and avoid fragmentation. A short phrase may remain one unit; formatted ordinary text prefers paragraphs, long unformatted text prefers sentences. For Markdown, use semantic AST node contents while preserving syntax; for HTML, parse translatable element content and preserve inline markup/context rather than splitting a sentence into unrelated one-word chunks. Other formats use registered splitter adapters when introduced. Explicit `Settings` selects paragraph versus sentence policy; split oversized units at further safe boundaries only when necessary for a provider's limits.
