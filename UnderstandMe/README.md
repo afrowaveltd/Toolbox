@@ -92,6 +92,10 @@ Afutrans' assisted editor is **WYSIWYG like Word** for translated text: select a
 
 Optionally, an authorized user may invoke an **AI agent to edit the chosen document/region visibly as it works**, with revision-scoped live patches, pause/stop, inspect/accept and a grouped revert. The human retains final control; newer manual edits cannot be overwritten by stale agent updates. Agent-specific checkpoints do not create a revision for every token. AI remains optional. [Direct Editing, Autosave and Revisions](Docs/Direct-Editing-Autosave-and-Revisions/en.md).
 
+## Transfer source formatting by selecting translated text
+
+Afutrans assisted WYSIWYG lets the user **click formatted text in the original**, remember its enclosing parsed element **with complete original attributes** (`class`, `id`, `data-*`, etc.) and **drag-select the corresponding translated words**. The editor safely wraps those words in the original element without changing their translation, even when automatic markup alignment failed. Nested source elements offer an ancestor choice; tag/attribute copy must validate target `id` uniqueness, links, permitted attributes and correct HTML structure rather than silently discarding important properties. The action autosaves after the usual one-second idle delay and is fully undoable. [Source Tag Transfer](Docs/Source-Tag-Transfer/en.md).
+
 ## Planned areas
 
 | Area | Responsibility |
