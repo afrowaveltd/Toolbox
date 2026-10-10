@@ -40,9 +40,11 @@ A monitoring host may also load an optional **SignalR client receiver** connecte
 
 Preserve original event/source IDs and generic message contracts. Federation is explicitly configured and uses bounded nonblocking queues, per-connection reconnect/health status, provenance and loop/deduplication protection. It remains best-effort, never a durable job or incident delivery mechanism. See [SystemMonitor](../SystemMonitor/en.md).
 
-### Simple peer authorization for monitoring links
+### Lite SystemMonitor peer identification
 
-Modules remain independent: the **monitoring host**, not a core translation module, authenticates SignalR peers. A server-to-server receiver uses a registered `NodeId` plus a different random secret for each receiving server. The recipient checks its local allowlist and feed/module read permissions before allowing a subscription. No central directory or identity service is required. The outbound-only Hub has no `Publish` command: remote events enter federation only through separately configured trusted client receivers. Their claimed event source must match the authorized peer or explicitly permitted relayed origins. Read keys, forwarding permissions and administration rights are distinct. [SystemMonitor security](../SystemMonitor/en.md).
+SystemMonitor's basic pairing is **identification/filtering**, not full application authentication. Each node has a known GUID `NodeId`. Remote receiver configurations list the expected node and its HTTPS endpoint; the source announces its identity, offered module sources and typed event contracts in an initial `MonitorHello`. An unknown or mismatched node is ignored, and in-process listeners require no credentials. A connecting monitor client may identify itself by GUID during connection establishment if the serving host uses a client allowlist.
+
+No default shared high-entropy key, OAuth/JWT provider or central identity service is needed in this limited anonymous, outbound-only monitoring scenario. GUIDs are not secrets and do not cryptographically authenticate a source; trusted endpoint configuration and normal TLS certificate checks remain important. The monitoring Hub has no client-callable publishing function. Further authorization can be an optional extension if the threat model changes. See [SystemMonitor identification](../SystemMonitor/en.md).
 
 ## Design-stage constraints
 
