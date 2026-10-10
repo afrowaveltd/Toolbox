@@ -33,6 +33,12 @@ In a mixed deployment, P0 selects only enabled, suitable automatic engines. If n
 
 **Privacy boundary:** a RealTime request may carry private chats or other user-sensitive text. It must **never be exposed to a human translator, Human task inbox, manual editor or durable manual work store solely because real-time translation was requested**. No default manual-copy, manual audit of the text or indefinite persistence. Distinct text logging/caching policies must also follow explicit privacy configuration. `RealTime | Mandatory` is urgency, **not consent to human review**.
 
+## Private requests never enter Human queues
+
+Effective `Privacy = Private` disallows both automatic routing **to a human translator** and **manual content audit**, whether the source is a RealTime chat, a forum conversation or another confidential item. The translation may nonetheless be stored durably in a **tenant/conversation/message-scoped result cache**, readable only by current authorized participants. **Persistent private translation results are not persistent human jobs** and are never part of the visible Human backlog.
+
+Human work still requires a separate authorized non-P0 manual request whose effective privacy/visibility policy explicitly permits Human reading. Exposing content through a generic administrator UI is not a substitute for that authorization. [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
+
 ## Human persistence applies only to explicitly submitted manual work
 
 Human translation tasks are **separately and deliberately submitted** to a non-P0 persistent workflow; they must be authorized for human viewing and storage under the relevant client/target privacy policy. An operator/user may independently submit a new non-real-time manual request for content they are authorized to disclose, but **the engine must not derive or create that request automatically from P0 or use a hidden "human continuation" option**.
