@@ -30,6 +30,14 @@ Client usage quotas are distinct from the organization's provider billing quotas
 
 [Client Access Policies](../Client-Access-Policies/en.md) defines these independent constraints and optional public API profiles.
 
+## Enforcing request Privacy throughout admission and retrieval
+
+A request can include an independent **`Privacy`** classification. Its effective classification is resolved from the authenticated caller, target/conversation owner and administrator rules. It can be tightened, not silently weakened by a preference or `Mandatory`. `Private` excludes **manual translator routing and manual audit** but does **not** forbid saving a verified translation for later authorized reuse.
+
+At admission and provider selection, do not offer Human as an eligible provider for Private work regardless of its queue priority. For private RealTime content P0 remains strictly automatic-only; a translation result may be stored separately in an **access-scoped result cache** while the volatile P0 job is discarded. A remote machine/AI provider is only eligible when the controlling policy permits sending private text to that processing endpoint. Caller names/IDs are not authority to read private translation history.
+
+A history/cache lookup must recheck current authorization to the source message and appropriate tenant/conversation/segment scope. Reuse a saved verified translation when allowed rather than retranslate merely because the user reopened chat history; return untranslated source if no eligible RealTime engine/cache result exists, without creating manual work. Never reveal private text through error messages, monitoring or provider-substitution diagnostics. [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
+
 ## Admission and normalized effective request
 
 1. Receive and preserve the **OriginalRequest** (source content/reference, target language, requested provider and preferences, priority, flags, formatting/validation needs).
