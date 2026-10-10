@@ -26,6 +26,12 @@ Each candidate must support the source/target language, format/HTML, placeholder
 
 Providers and endpoints remain replaceable plugins; QueueMaster does not own the commercial selection policy. Details and provisional examples: [Provider routing and cost](../Provider-Routing/en.md).
 
+## Request Settings and incremental translation
+
+A Translation Request resolves its Settings when created: exclusive P0–P4 queue priority, composable independent flags such as `Mandatory`, and appropriate provider, cache, split and delivery options. QueueMaster owns job priority, whereas the Pipe selects eligible providers according to the request's **captured** effective policy. An orchestrator pause stops dispatch, even for urgent or mandatory requests; administrator preference changes do not silently rewrite work already accepted.
+
+For browser documents, a format-aware splitter supplies ordered `(SegmentId, Text)` pairs. Completion notifications include both `RequestId` and `SegmentId`, so a client can replace individual paragraphs/inline text as results arrive, without holding the whole article or document. Update ordinary text with `textContent`; only insert format-adapter-generated and sanitized HTML for protected Markdown/HTML formatting. Translation results use an application-facing update path, **not** the administrative SystemMonitor. [Request Settings and Live Translation](../Request-Settings-and-Live-Translation/en.md).
+
 ## Configurable chain examples
 
 - `FastUI`: short machine translation → placeholder/format validation → provisional cache.
