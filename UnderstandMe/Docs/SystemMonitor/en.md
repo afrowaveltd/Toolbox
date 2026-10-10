@@ -126,6 +126,24 @@ In-process module listeners need no network identity check. When a remote connec
 
 This design does not contradict the **FM-radio principle**: enrollment and administrator approval have their own durable records and reliable request/response; their **announcements** through SignalR are optional best-effort broadcasts. Live monitoring remains a nonblocking listener. Rate-limit and deduplicate unapproved registration attempts to avoid flooding the pending list or admin dashboard. Approval should trigger an asynchronous source-connection attempt; failures affect monitoring visibility only, never the running module.
 
+## Adaptive identity challenge for previously approved nodes
+
+**Refinement (2026-10-10):** think of the receiver as a doorman who recognizes a familiar visitor, but asks for identification when the visitor's appearance changes. The `ClientKey` GUID issued after **manual approval** is **not required in the header of every ordinary connection**. It is held in the client's local settings and presented only at initial approved activation when necessary or in a **receiver-initiated challenge** when familiar attributes no longer match. The public `ClientId` GUID is still needed to select the correct approved-node record.
+
+Proposed practical lifecycle:
+
+1. **First enrollment/approval:** the administrator explicitly approves a pending node; the receiving host creates and privately distributes the bound `ClientKey`. The initial confirmed pairing can establish the known-node baseline.
+2. **Stable active SignalR session:** the receiver already associates a connection with its approved node. No repeated credentials or challenge are needed for ordinary monitoring events.
+3. **Ordinary new connection/reconnect:** the node sends only its public `ClientId` and minimal identification/connection metadata. If it matches a previously approved node and expected endpoint/profile, the receiver may permit this **lite convenience path** without repeating the `ClientKey`. This is **heuristic recognition**, not cryptographic reauthentication.
+4. **Suspicion/changed attributes:** if source address, expected endpoint, claimed module types, connection profile or other configured characteristics change unexpectedly, the recipient can issue a **one-time `IdentityChallenge`**. The claimant presents its private `ClientKey` for comparison with the registered value, over HTTPS, using a separate enrollment/verification control endpoint or during a separately defined connection-establishment handshake. Until successful, the new connection is **not admitted into trusted monitoring aggregation**.
+5. **Success:** associate the connection with the registered client and, if appropriate, update the observed baseline. **Failure:** reject or ignore just this monitoring connection. Never automatically approve a new `ClientId`, and never interrupt translations, recovery or other monitors.
+
+A challenge must be bound to the expected node/connection with a short expiration; no keys are included in monitoring events, the public `MonitorHello`, ordinary logs or query strings. The outbound-only `/SystemMonitor` Hub keeps **zero application methods for clients**: any challenge-response exchange is handled on the separate lightweight connection/control path, not as `Publish` or a business method of the monitor Hub.
+
+**Important deliberate tradeoff:** HTTP headers identifying a node can be imitated, public GUIDs are not secrets, and source IPs can change or be shared behind NAT/proxies. Thus accepting an unchanged-looking *new* connection without the private `ClientKey` does **not** prove that it really is the same node. Even the private GUID is only a simple bearer credential when requested. This policy is appropriate only for the explicitly limited, low-impact anonymous monitor threat model; when authenticity of each new session matters, configure a mode that challenges **every new connection** or use stronger mutual authentication. Trusted HTTPS server validation always remains enabled.
+
+For clarity, the earlier requirement that every subsequent control request **always** carry `ClientId` and `ClientKey` is **superseded for ordinary monitoring reconnects**. Privileged enrollment, approval and key-management operations remain independently authorized; their guarantees are not relaxed by this monitoring convenience rule.
+
 ## Verification before implementation
 
 Test that a source event appears once on its own feed and once on the aggregate, never on another module's feed; verify sender identity, absence of listeners, disconnect/slow subscribers, permissions, and optional bridge deduplication.
