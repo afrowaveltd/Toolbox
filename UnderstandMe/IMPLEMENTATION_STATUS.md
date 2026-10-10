@@ -189,6 +189,15 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Cost breakdown, included/remaining units and warnings may be shown to the admin; live SystemMonitor emits best-effort notifications only. Model details, time zone/period boundaries, actual provider counting, ambiguous timed-out billing and quota concurrency are recorded as questions 62–66 in `Docs/Open-Questions/en.md`.
 - Updated `Docs/Provider-Routing/en.md`, `Docs/Request-Settings-and-Live-Translation/en.md`, `Docs/Translation-Chains/en.md`, `Docs/Architecture/en.md`, `Docs/QueueMaster-and-Reliability/en.md`, `Notes.md`, `README.md` and this status. Design/documentation only; no runtime code, packages, or tests changed.
 
+## 2026-10-10 — orchestrator-first admission and authorized provider alternatives (agreed design only)
+
+- Agreed that **the orchestrator, not the caller, has final authority** over effective translation request Settings, provider eligibility, priority restrictions, financial controls and operational queue commands.
+- A caller naming Google API or another provider is a **preference**. Preserve OriginalRequest; normalize allowed EffectiveRequest at admission under admin policy, and report changes to the client with typed reason codes.
+- **Functional best effort is the default:** a request must not be rejected solely because its preferred engine is forbidden, unavailable or blocked by a hard monthly quota. Evaluate other compatible authorized endpoints, and perform translation when feasible; reject with a precise reason only when none can meet actual hard requirements, or report failure if a previously accepted job becomes impossible.
+- `Accepted/Deferred` admission receipts do not claim completion. A completed response identifies the backend actually used (per-segment provenance if needed) and provider substitutions; errors should reuse Essentials/WhenItFails rather than establishing an incompatible second framework.
+- Current account hard billing limits and administrator queue pause/stop still govern every **new dispatch** for previously accepted work, while the historical original request and effective provider preference snapshot remain unchanged. `Mandatory` and caller requests cannot override them.
+- Created `Docs/Request-Admission-and-Normalization/en.md` and updated `Docs/Provider-Routing/en.md`, `Docs/Request-Settings-and-Live-Translation/en.md`, `Docs/Provider-Billing-and-Quotas/en.md`, `Docs/QueueMaster-and-Reliability/en.md`, `Docs/Architecture/en.md`, `Notes.md`, `Docs/Open-Questions/en.md`, `README.md` and this status. Documentation only: no source code or tests modified or executed.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
