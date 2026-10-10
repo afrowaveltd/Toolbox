@@ -61,6 +61,12 @@ An AI pass can combine translation, tone and constraints in one composed prompt;
 
 The request's effective `Privacy` determines visibility and permitted processor hand-offs **independently of how long translated results are kept**. A `Private` request can use an authorized machine-only translation and automated validation Chain, then retain just its verified final output in a conversation-scoped cache for later permitted history views. It must **not** automatically branch to Human/manual audit or promote private text into global translation memory/dictionaries. `P0 RealTime` remains volatile and automatic-only even when its separately stored result is long-lived. Private result access checks and deletion remain the host/source-owner's responsibility. [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
 
+## Chat translation is not localization dictionary processing
+
+Chat translation can use the existing format-aware Splitter and automatic translation Chain without dictionary-sync steps. For chats, **chunk IDs `0..N` are request-local temporary correlation only**. The engine returns translated pieces, and **the consuming chat application assembles, displays and optionally saves the whole translated message**. Do not register those IDs as UI `KEY=VALUE` dictionary entries or require a central chat-result repository.
+
+A message recipient may voluntarily amend their **own displayed translated text** in an optional host-side editing tool and select **cache correction** or **do not cache**. This must not trigger generic Human manual-audit jobs, automatically modify a shared authoritative dictionary, or disclose the source to other recipients. The accepted correction and optional recipient cache are **post-processing in the chat app**, not a translator provider. See [Chat Translation Flow](../Chat-Translation-Flow/en.md).
+
 ## Source fidelity and structure
 
 Human comments may be explicit, emotional or sarcastic. Preserve source meaning, wording intensity and tone unless the target's explicit editorial policy authorizes changes. Documentation may allow professional polishing. Distinguish faithful translation from optional editorial rewriting. An AI semantic check compares proposed output to the **original**, not a previous generated translation.
