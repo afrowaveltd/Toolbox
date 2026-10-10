@@ -93,6 +93,13 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Monitoring is outbound-only and best-effort, without command or persistence responsibilities.
 - Created `Docs/SystemMonitor/en.md` and synchronized related design documents. No code or tests changed.
 
+## 2026-10-10 — generic SystemMonitor event payloads (design only)
+
+- Agreed that module-specific monitor transmitter and aggregate SystemMonitor event router are passive subscribers to the same module-emitted event, not SignalR Hub-to-Hub relays.
+- Replaced the proposed plain-string Message with a generic Message<T> payload in the shared event envelope; different event types can carry their own typed report DTOs.
+- Proposed ContractId and SchemaVersion for interoperable .NET 10/11 and non-.NET deserialization without trusting arbitrary CLR type names, plus an explicit supported-type registry.
+- Recorded serialization, passive listener and global/module feed parity tests for the later implementation phase. Updated Docs/SystemMonitor/en.md, Notes.md, and Docs/Open-Questions/en.md. Documentation only; no runtime code or test suite changed.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
