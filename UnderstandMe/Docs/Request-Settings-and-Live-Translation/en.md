@@ -74,6 +74,14 @@ If no attempt succeeds, the default effective `InlineMarkupFailurePolicy` (conce
 
 A translated text candidate and a fully valid reconstructed structured output are distinct states: when a required `id` cannot be placed, the response **must not claim a successful formatted result**. The consuming application may safely display original/source content or an explicitly flagged partial text preview under policy. [Inline Markup Restoration](../Inline-Markup-Restoration/en.md).
 
+## HTML-aware routing and user-guided draft correction
+
+A format-specific profile may select **native HTML translation** or **AI-oriented translation for complex HTML**, but only among activated/eligible engines permitted by system, ClientPolicy, source privacy and real provider budget. This can override the **preference order within that authorized format profile** without changing the default global plain-text tiers. Output is always parsed/validated: native HTML handling or AI model output cannot guarantee preservation of IDs, links, markup structure or placeholders.
+
+Afutrans can explicitly open an **assisted translation editor** that displays **rendered original left**, with **rendered translated document / source HTML / split** modes on the right. A source-initialized segment list preserves original text for not-yet-translated or failed regions, each labelled separately from verified translations. The authorized editor may correct a marked span and its inline formatting, ask for another eligible provider result, or choose **a manually triggered AI suggestion for the selected region**. The current human draft is authoritative over any stale incoming automatic completion: use revision/optimistic concurrency checks and require explicit acceptance of a suggestion.
+
+This is distinct from `P0 RealTime` (automatic-only, volatile) and does not enable unrelated Human workers or manual auditing of private chat content. Interactive automatic sub-requests may use ordinary non-P0 priorities, while the host owns the draft, preview, selection map and export. Safe preview must not execute arbitrary imported document scripts. [Assisted Document Translation](../Assisted-Document-Translation/en.md).
+
 ## Configurable meaningful segmentation
 
 `Settings` can choose format-aware `Auto` splitting, plain-text `Paragraph` or `Sentence` behavior, and format/size constraints. **Paragraphs are preferred where recognizable**, while long continuous unformatted text is segmented at sentence boundaries. Short text stays one chunk unless a real requirement demands otherwise. Line-ending interpretation is format-dependent: newlines can represent paragraphs or wrapping; a period can be punctuation in a decimal, abbreviation or URL. Preserve source whitespace/punctuation and protected placeholders.
