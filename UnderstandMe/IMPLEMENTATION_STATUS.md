@@ -140,6 +140,13 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Clarified the security tradeoff: IP/header/public-GUID familiarity is spoofable and **does not strongly authenticate a newly reconnected node**. Challenge-every-new-connection remains a possible stricter option.
 - Updated `Docs/SystemMonitor/en.md`, `Docs/Architecture/en.md`, `Notes.md`, `Docs/Open-Questions/en.md` and this status. No implementation or test execution occurred.
 
+## 2026-10-10 — operational blocking of noisy monitor sources (design only)
+
+- Clarified admin response to misbehaving SystemMonitor origins: `Mute` hides events only in a presentation, `Block` drops a source at router ingress, and `Disconnect` stops a controlled remote SignalR receiver connection / revokes subsequent access.
+- Preserve original `ClientId` plus immediate relay information so a particular forwarded origin can be blocked without losing all other sources from the same VPS.
+- Noted that the light identity system uses a claimed sender ID as a practical filtering handle rather than guaranteed identity proof. Add bounded ingress/rate limits for noisy streams and registration attempts, and prevent any monitor remediation from interfering with actual processing.
+- Updated `Docs/SystemMonitor/en.md`, `Docs/Open-Questions/en.md` and this status. Documentation only; no source changes or tests run.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
