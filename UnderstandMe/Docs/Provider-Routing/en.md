@@ -97,6 +97,12 @@ A caller's requested Google API cannot bypass a per-client paid-provider restric
 
 Details: [Client Access Policies](../Client-Access-Policies/en.md).
 
+## Private request visibility and machine processor eligibility
+
+Provider routing must include an explicit request `Privacy` classification and target/client-controlled **processor disclosure policy**. A `Private` request may be translated by permitted automatic engines, including remote APIs **only when the applicable privacy policy permits that transfer**; it cannot fall back to Human or enter manual audit. The fact that a provider account is paid/available says nothing about whether private chat content may be sent to it.
+
+The engine's per-attempt result can be saved later to a **scope-restricted translation-result store** independently of P0 job persistence, avoiding repeated translation of historical chats. The cache must not turn private results into globally shared memory or make private text visible to general monitoring/admin UI. Routing may reuse an existing translation only after the host verifies source-message access rights, language and revision. [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
+
 ## Eligibility, fallback and quality
 
 The selection policy first **filters for eligible endpoints** based on languages, request format, capabilities, ready state, privacy/LocalOnly limits, explicit allowlists, budget and other hard constraints. Then it chooses among eligible candidates by priority/order or cost/latency preference. Never submit unsupported languages or a format to a provider merely because it ranks first.
