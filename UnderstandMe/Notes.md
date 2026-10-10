@@ -167,6 +167,12 @@ The basic SystemMonitor pairing is intentionally lightweight: **NodeId is a GUID
 
 No mandatory per-recipient API keys, OAuth server, JWT signing, shared identity authority or rotation machinery in the lite design. GUIDs can be copied/spoofed; remote connections therefore use fixed trusted HTTPS addresses and normal server certificate verification. The outbound-only Hub has no remote Publish method; incoming federation events originate only at our independently configured SignalR client receiver. Optional stronger security could be introduced later if needed without affecting the typed event model. See [SystemMonitor design](Docs/SystemMonitor/en.md).
 
+### Admin-approved self-enrollment of a new monitoring node
+
+A newly started server (e.g. VPS4) may ask VPS3 to register as a source by submitting its public `ClientId` GUID and a simple declaration of its identity, endpoint and offered module/event types. Registration is **Pending**, never auto-approved. The recipient saves that small pending request and emits a typed `MonitorRegistrationRequested` event over `/SystemMonitor`; if an administrator watches live they can open the request and approve/deny immediately, otherwise the record waits for later review. Decisions happen through a separate authenticated admin API, not a callable method on the read-only Hub.
+
+Approval issues a **new recipient-generated GUID `ClientKey`** bound to the approved `ClientId` and sources. The applicant retrieves it on a private enrollment/control path, proves that it owns the original pending request (e.g. one-time claim ticket), stores it and supplies `ClientId` plus `ClientKey` in HTTPS headers for subsequent control requests. The approval key is not public event data. The registered remote source can then be picked up automatically by VPS3's independent SignalR receiver. This keeps monitoring lossy and one-way while approval is durable. GUID `ClientKey` is still a small bearer credential, not a public identification field. [SystemMonitor enrollment design](Docs/SystemMonitor/en.md).
+
 ## 11. Source repositories and document maturity
 
 - Toolbox: https://github.com/afrowaveltd/Toolbox
