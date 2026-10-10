@@ -20,6 +20,8 @@ Provide reusable building blocks for software localization, automatic and human 
 - Prefer Microsoft/.NET components when appropriate, including `System.Text.Json`, while keeping external formats and translation providers pluggable.
 - Core/library compatibility starts at .NET 10; .NET 11-specific features and API surfaces are design topics, not yet implemented.
 
+At admission the orchestrator **normalizes a client's requested provider and settings under administrator/system constraints**. An explicit Google API preference can be replaced by an eligible allowed backend when that provider is forbidden, unavailable or has exhausted its hard monthly quota. A valid request is rejected only when no authorized compatible translation route exists, with a precise reason. Acceptance is not completion: the eventual response identifies the actual provider used and any substitutions, without ever allowing a request flag to bypass spending caps or orchestrator pauses.
+
 ## Request-specific behavior
 
 A request resolves typed effective `Settings` from configured defaults and permitted overrides, with **queue priority separate from behavior flags and provider priority**. `RealTime` plus `Mandatory` may immediately use a currently available acceptable translation backend; ordinary RealTime may return original content and update translated paragraphs as segments finish. Admin queue pause/stop takes precedence, and existing requests retain their accepted policy when configuration changes. Optional bounded `SystemPersistent` approved translation memory can be checked before selecting a provider, without growing an unbounded store.
@@ -48,6 +50,7 @@ The splitter's `(RequestId, SegmentId)` partial translation model is **UI-neutra
 - [Localization and placeholders](Docs/Localization/en.md)
 - [QueueMaster, scheduling and reliability](Docs/QueueMaster-and-Reliability/en.md)
 - [Translation Chains and backend workers](Docs/Translation-Chains/en.md)
+- [Orchestrator request admission and provider substitution](Docs/Request-Admission-and-Normalization/en.md)
 - [Provider preferences, cost and escalation](Docs/Provider-Routing/en.md)
 - [Provider pricing, monthly packages, quota monitoring and spending limits](Docs/Provider-Billing-and-Quotas/en.md)
 - [Editor, audit and rollback](Docs/Editor-and-Audit/en.md)
