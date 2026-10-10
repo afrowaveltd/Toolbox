@@ -100,6 +100,15 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Proposed ContractId and SchemaVersion for interoperable .NET 10/11 and non-.NET deserialization without trusting arbitrary CLR type names, plus an explicit supported-type registry.
 - Recorded serialization, passive listener and global/module feed parity tests for the later implementation phase. Updated Docs/SystemMonitor/en.md, Notes.md, and Docs/Open-Questions/en.md. Documentation only; no runtime code or test suite changed.
 
+## 2026-10-10 — optional remote SystemMonitor receivers (design only)
+
+- Agreed that an orchestrator may optionally act as a SignalR client, subscribing to multiple remote root SystemMonitors and routing their live events together with its own.
+- Recorded the three-server scenario: VPS3 receives VPS1 and VPS2 event streams and provides one aggregate `/SystemMonitor` for an administrator.
+- No inbound methods are added to the outbound-only monitor Hub. A separate receiver adapter and the existing event router implement the fan-in.
+- Preserve typed event contracts, original sender and EventId; require explicit trusted endpoints, bounded nonblocking delivery, reconnect health, deduplication and prevention of forwarding loops.
+- Remote monitoring remains best-effort: missed events are not replayed or persisted by SignalR, and remote outages cannot stop the local core.
+- Updated `Docs/SystemMonitor/en.md`, `Docs/Architecture/en.md`, `Notes.md`, `Docs/Open-Questions/en.md`, and this status. No code, packages or tests changed.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
