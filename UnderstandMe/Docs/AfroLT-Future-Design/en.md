@@ -136,35 +136,11 @@ References:
 - Microsoft SignalR hubs: https://learn.microsoft.com/en-us/aspnet/core/signalr/hubs
 - Microsoft SignalR .NET client: https://learn.microsoft.com/en-us/aspnet/core/signalr/dotnet-client
 
-## SystemMonitor — shared, one-way event broadcasting
+## Hierarchical SystemMonitor
 
-**Agreed architectural direction:** use the same simple, opt-in monitoring transport convention across AfroLT, UnderstandMe and Afutrans: **§/SystemMonitor§**. This is the FM-radio principle applied uniformly to the Afrowave family. It is a **server-to-client live event stream only**, not a job queue, command channel, audit store, replay service, or dependency of translation execution.
+AfroLT can run independently with `/AfroLT/SystemMonitor` (only its own events) and `/SystemMonitor` (all publishers registered within that host, possibly only AfroLT). Hosts embedding UnderstandMe and Afutrans may expose their dedicated module monitor routes and include their events in the aggregate.
 
-Each independent module publishes its own typed operational events through a small transport-neutral emitter. The host offers the actual SignalR Hub only when monitoring is enabled. **A process/HTTP host registers at most one §/SystemMonitor§ route.** A standalone AfroLT host, a separate UnderstandMe service and a separate Afutrans server may each use the same route on their own origin. When multiple modules run *inside one host*, its single §/SystemMonitor§ aggregates their events. Each event identifies its source module and instance so receivers can distinguish them.
-
-The Hub exposes **no application methods callable by clients**: monitoring clients connect and receive broadcasts. SignalR necessarily accepts connections at the protocol level, but it does not listen for business commands, await user answers, dispatch jobs or control the engine. If a host also needs client translation commands, they use its normal translation Hub/REST interface; administrative commands, if enabled, belong to separate authorized REST/direct APIs or an optional §/admin§ command Hub—not to §/SystemMonitor§.
-
-### Common event envelope (proposed; names not frozen)
-
-- §SourceModule§ (e.g. AfroLT, UnderstandMe, Afutrans) and §InstanceId§ for distributed nodes;
-- timestamp, event name/category and level (§Info§ / §Warning§ / §Error§ / success as an event kind);
-- optional correlation/job ID and stable diagnostic code;
-- short privacy-safe summary and typed diagnostic details where authorized.
-
-Examples: §TranslationCompleted§, §TranslationFailed§, §ModelLoaded§, §WorkerUnavailable§, §RecoveryStarted§ and §RecoverySucceeded§. Do not broadcast submitted translation text, credentials, user identity or sensitive failure data by default. A host can enforce monitoring permissions and event visibility; authorization does not turn the stream into a command interface.
-
-### Event durability and delivery
-
-**May be lost:** monitoring broadcasts are best-effort and ephemeral. Zero subscribers, slow subscribers, disconnects, missing acknowledgements or client replies must never alter processing. Use a bounded, nonblocking fan-out so a stalled connection cannot apply backpressure to core work.
-
-**Must not be lost:** durable jobs, final results, critical incidents and editor audit history are committed separately in their authoritative stores under their own acknowledgement rules. They may additionally *announce* their committed state over §/SystemMonitor§. There is no "guaranteed SignalR" mode that substitutes for persistence.
-
-Monitoring starts from events received after connection. A monitor that needs a current-state snapshot or older diagnostics can query independently authorized read APIs or stores; the outbound-only Hub itself does not handle snapshot queries and does not keep history.
-
-### Module boundaries
-
-A module requires only an internal event-emission abstraction; it does **not** need §Microsoft.AspNetCore.SignalR§ to compile or operate. A shared optional monitoring transport adapter maps these typed events to SignalR §/SystemMonitor§. AfroLT remains completely independent of UnderstandMe and Afutrans: reuse of the standard is by compatible contracts or optional adapters, not mandatory project references or circular dependencies.
-
+Each module emits each event once. The host fans it out to the global and module routes using one typed event envelope including sender module, instance and event ID. No Hub-to-Hub forwarding or required dependency on other modules. Remote aggregation needs an explicit optional bridge. All monitoring is outbound-only, best-effort, not a command API or durable storage. See [SystemMonitor](../SystemMonitor/en.md).
 
 ## Open design details
 
