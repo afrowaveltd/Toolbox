@@ -18,7 +18,7 @@ The Editor remains a distinct dictionary management and audited revision tool; a
 
 ## Private translated content is not manual-audit material
 
-A request with effective `Privacy = Private` is excluded from all Human translation, manual quality audit, general dictionary browsing, and human-visible prompt/source/result history. This is true **even when its successful translation is stored durably** for authorized chat/forum history lookup. Private result persistence is not permission for other users, translators or admins to inspect the content.
+A request with effective `Privacy = Private` is excluded from automatic Human routing, manual quality audit, general dictionary browsing, and human-visible prompt/source/result history. An independently requested non-P0 Human translation would require explicit owner authorization and narrowly scoped translator access; it is not a manual audit or a fallback. This is true **even when its successful translation is stored durably** for authorized chat/forum history lookup. Private result persistence is not permission for other users, translators or admins to inspect the content.
 
 The mandatory **manual dictionary revision audit** below remains intact for real **manual edits of authoritative dictionaries**; it does not mean that automatically generated private chat translations must be exposed to a human auditor or registered as public dictionary keys. Operational usage/status may be audited with **no raw private content**. Automated checks may operate within the effective privacy and provider-disclosure policy. See [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
 
