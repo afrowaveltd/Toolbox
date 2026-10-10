@@ -30,6 +30,12 @@ Afutrans and compatible third-party Afutrans modules use English source strings 
 
 Afutrans can publish its own events at `/Afutrans/SystemMonitor` and all installed module events at `/SystemMonitor`. Co-hosted UnderstandMe and AfroLT modules also have dedicated `/UnderstandMe/SystemMonitor` and `/AfroLT/SystemMonitor` feeds. Each event has the same typed format with sender identity. This is a best-effort outbound feed, never a command or archive. See [SystemMonitor](../SystemMonitor/en.md).
 
+## Live monitoring UI
+
+Afutrans may expose a clickable dashboard for the combined `/SystemMonitor` feed. Each administrator can select precisely which hosts, modules, instances, severities, event types and correlation IDs to display and save personal presets; filtering the view does not alter upstream publishers, the approval registry or other clients' views.
+
+A monitoring admission failure is recorded as an incident and the invalid event is discarded, never auto-blocking the node. Incident review and any manual actions (mute, block, revoke or disconnect) are performed by authorized administrators through a separate control surface. Repeated incidents may be aggregated to keep the dashboard readable. See [SystemMonitor design](../SystemMonitor/en.md).
+
 ## Current repository findings (2026-10-10)
 
 - Toolbox `UnderstandMe/UnderstandMe.csproj`: net10.0 skeleton, project references declared to the Essentials and WhenItFails package IDs; no implemented workflow verified.
