@@ -16,6 +16,12 @@ Each Translation Target describes data locations, dictionaries, default culture,
 
 Configuration may add/remove targets, endpoints, workers, pipelines and prompt profiles without code changes. Scheduling can discover and reconcile missing/changed source keys and produce background jobs. Event-driven updates plus a periodic full scan (illustrative default: every three hours) are complementary.
 
+## Operator-defined translation provider policies
+
+Afutrans should let each Translation Target choose a reusable provider-selection profile and permitted overrides for individual jobs or Chain steps. A low-cost installation can prefer self-hosted LibreTranslate and escalate to a configured paid/AI endpoint only after a specified failure or unsuccessful mandatory validation. A different operator can make their licensed Google or Microsoft API the default. UI configuration must expose the effective provider order, compatibility filters (language/format/placeholder), eligibility and enabled fallback triggers, along with estimated/actual provider charges where the backend supports them.
+
+This is configuration over the generic UnderstandMe provider selection boundary, not a separate Afutrans-only selection engine. Privacy/LocalOnly restrictions and spending ceilings cannot be bypassed by a UI user preference. No paid endpoint is implicitly called just because another provider returns a result. [Provider routing and cost](../Provider-Routing/en.md).
+
 ## Communication
 
 Messenger delivers authorized local/SignalR events and status projections. Clients may submit requests, receive acceptance and progress, and confirm results. Reconnect uses replay/deduplication for durable messages. `Update_Cache` informs connected localizers of committed changed values. Messenger does NOT instruct workers or own queues.
