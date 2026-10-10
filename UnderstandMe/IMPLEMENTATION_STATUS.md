@@ -319,6 +319,12 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Keep only actual **structural insertion safety and preview security** controls needed to avoid breaking editing or executing untrusted content; these checks must not be disguised ID linting. Corrected `Docs/Source-Tag-Transfer/en.md`, `Docs/Direct-Editing-Autosave-and-Revisions/en.md`, `Docs/Assisted-Document-Translation/en.md`, `Docs/Structural-Template-and-ResultList/en.md`, `Docs/Inline-Markup-Restoration/en.md`, `Docs/Editor-and-Audit/en.md`, `Docs/Afutrans-Integration/en.md`, `Notes.md`, `README.md`, and `Docs/Open-Questions/en.md`.
 - All changes are **design documentation only**; no .NET source/tests were modified or executed. Resume implementation from the latest master and this status, not superseded duplicate-ID checks.
 
+## 2026-10-10 — future document normalizer separated from translation (scope note only)
+
+- Reserved HTML/document validation and normalization for a **separate future Toolbox document-processing tool**, not UnderstandMe. Illustrative future behavior: case-sensitive processing of source IDs, optional normalized `lowercase_underscore` format (`UserProfile` -> `user_profile`), and matching updates/validation for references in related JavaScript (`document.getElementById("UserProfile")` -> `document.getElementById("user_profile")`). The actual tool is **not being designed or implemented now**.
+- **UnderstandMe must preserve original IDs and attributes exactly as received**, and must not check duplicate-ID uniqueness, rename IDs, rewrite related JavaScript or block translations merely because source HTML has errors. This supersedes any older translation-side normalization/linting suggestions.
+- Updated `Docs/Source-Tag-Transfer/en.md` and this status only. Documentation/scope note; no runtime code, tests or new document-tool project added.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
