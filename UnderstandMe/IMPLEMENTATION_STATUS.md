@@ -147,6 +147,13 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Noted that the light identity system uses a claimed sender ID as a practical filtering handle rather than guaranteed identity proof. Add bounded ingress/rate limits for noisy streams and registration attempts, and prevent any monitor remediation from interfering with actual processing.
 - Updated `Docs/SystemMonitor/en.md`, `Docs/Open-Questions/en.md` and this status. Documentation only; no source changes or tests run.
 
+## 2026-10-10 — interactive monitoring filters and incident-first admission (design only)
+
+- Defined a clickable SystemMonitor view-filter interface where each administrator independently selects source/VPS, original ClientId, relay, module/instance, severity/outcome, event contract, correlation/job ID and search/time criteria; presets are supported. Presentation filtering changes neither a publisher nor another subscriber's view.
+- **Supersedes the suggestion of automatic blocking for bad requests/events:** an invalid or suspicious inbound monitoring event is recorded as a safe, persistent incident and then dropped; no automatic registry block, revocation or disconnection. Correct new-node enrollment requests still become Pending.
+- Only an authorized human administrator chooses subsequent actions: inspect, ignore, display mute, manually block/revoke or disconnect. Repetitive incidents may be aggregated and incoming event buffers bounded without promoting this to automatic trust-state changes.
+- Updated `Docs/SystemMonitor/en.md`, `Docs/Architecture/en.md`, `Docs/Afutrans-Integration/en.md`, `Notes.md`, `Docs/Open-Questions/en.md`, and this status. Documentation only; no code or tests changed.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
