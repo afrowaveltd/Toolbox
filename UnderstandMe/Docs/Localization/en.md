@@ -27,6 +27,10 @@ The optional `SystemPersistent` translation-memory tier provides durable, bounde
 
 Match on source/target culture, Translation Target/domain, context/format, source identity and protected placeholder structure; reject stale/incompatible glossary or source revisions. Support quotas, removal/expiry policy and pinned entries where applicable. RealTime non-Mandatory requests can immediately display source text and later replace only the completed segment identified by `RequestId` and `SegmentId`. User-facing segment updates use a separate application channel rather than SystemMonitor. [Request Settings and Live Translation](../Request-Settings-and-Live-Translation/en.md).
 
+## Human-only installations and privacy of RealTime content
+
+For RealTime translation the resolver may immediately return source text when no activated eligible **automatic** engine is available; if only Human is configured, P0 translation is **inactive**, and no Human job may be created by fallback. Non-Mandatory live partial updates, when configured, must come from automated translators only. In particular, a RealTime lookup of a private chat message must not disclose that message to a human translator or persist it as manual work. A separate durable manual job requires explicit authorized non-P0 submission; any dictionary registration/cache is independently governed by target privacy policy. [Human Translation Workflow](../Human-Translation-Workflow/en.md).
+
 ## Placeholder hints
 
 For a source string such as `We found {count} dictionaries in {folderCount} folders`, a flat hint store may be:
