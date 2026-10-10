@@ -78,6 +78,12 @@ When no reliable matching strategy succeeds, **the default for safely cosmetic i
 
 The policy is configurable, with a default `OmitUnmatchedCosmeticFormatting`, optional strict formatting enforcement and bounded retries/extra translation calls subject to provider quotas, client entitlement, privacy and deadline. See [Inline Markup Restoration](../Inline-Markup-Restoration/en.md).
 
+## ResultList as the assisted editor's source of display truth
+
+The source-filled `ResultList` and structural template allow a **left original / right current translation** editor without requiring all chunks to finish. A region left untranslated remains source text with an explicit status; an automatic HTML-capable engine may update whole structural regions while an editor repairs selected problem spans and markup annotations. The right panel can choose **safe rendered preview**, **validated source HTML**, or **both**. Keep `OriginalText`, provider output and manual `CurrentText` revisions separable so late asynchronous results cannot overwrite user corrections.
+
+A matching user can recognize `svět`/`světe` or a paraphrase that automated variant/outer-anchor alignment could not confirm, explicitly select the desired target text span and reapply a cosmetic inline tag. ID/link-bearing markup still requires a successful structural validation rather than silent cosmetic omission. The host manages drafts, undo, acceptance and export; ResultList mapping stays an application-facing data contract rather than a fixed browser implementation. [Assisted Document Translation](../Assisted-Document-Translation/en.md).
+
 ## Lifecycle and presentation neutrality
 
 1. Format-specific adapter parses and validates the source structure.
