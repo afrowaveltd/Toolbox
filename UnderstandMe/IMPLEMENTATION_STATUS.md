@@ -86,6 +86,13 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Live events may be missed and are never authoritative storage; core jobs, audit, critical incidents and final results retain independent durable ownership. No listener/response may block work.
 - Updated `Docs/AfroLT-Future-Design/en.md`, `Docs/Architecture/en.md`, `Docs/Afutrans-Integration/en.md`, `Notes.md`, and `Docs/Open-Questions/en.md`. Documentation only; no code, dependencies or tests changed.
 
+## 2026-10-10 — hierarchical SystemMonitor design
+
+- Added one aggregate `/SystemMonitor` feed and named `/AfroLT/SystemMonitor`, `/Afutrans/SystemMonitor`, `/UnderstandMe/SystemMonitor` feeds.
+- One typed event and sender identity are used throughout; host-level fan-out, not Hub-to-Hub relaying. Optional remote bridges require explicit configuration.
+- Monitoring is outbound-only and best-effort, without command or persistence responsibilities.
+- Created `Docs/SystemMonitor/en.md` and synchronized related design documents. No code or tests changed.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
