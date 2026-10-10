@@ -39,6 +39,12 @@ Effective `Privacy = Private` disallows both automatic routing **to a human tran
 
 Human work still requires a separate authorized non-P0 manual request whose effective privacy/visibility policy explicitly permits Human reading. Exposing content through a generic administrator UI is not a substitute for that authorization. [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
 
+## Recipient editing is not human-provider auditing
+
+An authorized chat recipient can **correct their own already translated message** using an optional chat-application tool. That is self-service post-processing **outside** the Human worker queues, not a request to an external Human translator and not manual audit performed by an administrator. The user may opt in to keeping the corrected version in a recipient-scoped cache or disable caching for that correction. It does not alter the sender's text, automatically publish the correction or change anyone else's message view.
+
+Transient Splitter IDs `0..N` are only for chunk matching, not permanent human-job identifiers. [Chat Translation Flow](../Chat-Translation-Flow/en.md).
+
 ## Human persistence applies only to explicitly submitted manual work
 
 Human translation tasks are **separately and deliberately submitted** to a non-P0 persistent workflow; they must be authorized for human viewing and storage under the relevant client/target privacy policy. An operator/user may independently submit a new non-real-time manual request for content they are authorized to disclose, but **the engine must not derive or create that request automatically from P0 or use a hidden "human continuation" option**.
