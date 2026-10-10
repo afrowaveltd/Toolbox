@@ -32,6 +32,14 @@ Afutrans translation UI can be closed for hours or days while **the host keeps a
 
 This is a presentation/work client of the common QueueMaster/Human provider contract, not an alternative scheduler or dedicated physical human queue. WebUI, Avalonia and TUI can share the same command/state model. [Human Translation Workflow](../Human-Translation-Workflow/en.md).
 
+## Assisted document translation workspace
+
+Afutrans should offer an **assisted HTML/document editor**: rendered original at left, translated output at right, and right-side **render / HTML source / split** views. Allow a user to select a source/target region to see the original segment, current translation, provider, alternates and any formatting/structural warnings. Source-filled ResultList slots remain visible for untranslated segments instead of dropping them. Use a safe preview that does not execute imported scripts or trust arbitrary translated HTML.
+
+The authorized editor can manually correct text, bind a lost inline `strong`/`i` to the right target-language word after recognizing morphological correspondence, retry a selected region, or request **an explicit AI suggestion**. Suggestions and late provider completions must never silently overwrite later human edits. Publishing/exporting requires appropriate structure/ID/link/placeholder validation and host-owned draft/version persistence.
+
+Prefer **an actually HTML-capable endpoint** for supported HTML input and verify its output. For complex nesting/mixed markup, an **assisted-HTML format-specific profile can prefer an eligible AI provider** by default, if the administrator has enabled it and its privacy/cost quotas allow it. This **does not override** the ordinary text default provider ranking or require AI to be installed; AI is not guaranteed perfect. Human-only hosts can still edit/translate manually. [Assisted Document Translation](../Assisted-Document-Translation/en.md).
+
 ## Operator-defined translation provider policies
 
 Afutrans should let each Translation Target choose a reusable provider-selection profile and permitted overrides for individual jobs or Chain steps. A low-cost installation can prefer self-hosted LibreTranslate and escalate to a configured paid/AI endpoint only after a specified failure or unsuccessful mandatory validation. A different operator can make their licensed Google or Microsoft API the default. UI configuration must expose the effective provider order, compatibility filters (language/format/placeholder), eligibility and enabled fallback triggers, along with estimated/actual provider charges where the backend supports them.
