@@ -91,6 +91,12 @@ The Splitter should output **coherent meaning-bearing units** and avoid fragment
 
 Chunks retain temporary `RequestId + SegmentId` correlation and formatting metadata for reassembly by the host; they are **not durable UI dictionary keys**. The result-processing/placeholder contract must survive splitting. [Semantic Splitter](../Semantic-Splitter/en.md).
 
+## Assisted document translation is an optional explicit Chain
+
+For a structured HTML file, the orchestrator may select a **native HTML-capable machine provider** or, in an operator-configured complex-HTML assisted profile, prioritize an **eligible AI model**. Every automatic response is parsed and validated for node identity, required attributes, links and placeholders. A Chain can keep successfully translated spans, leave unresolved spans as their original source with an explicit state, and surface them in an **Afutrans human editing session** rather than treating partial translation as finished.
+
+The editor can manually replace text or fix an inline-tag alignment, request another eligible machine translation **for the selected chunk only**, or invoke a separately authorized AI suggestion. Draft revisions and optional history/undo prevent late provider results from erasing newer manual edits. This is not an automatic Human fallback or manual audit in `P0 RealTime`: the assisted session is explicitly opened and uses ordinary eligible non-P0 requests; AI and the editor are both optional components. [Assisted Document Translation](../Assisted-Document-Translation/en.md).
+
 ## Source fidelity and structure
 
 Human comments may be explicit, emotional or sarcastic. Preserve source meaning, wording intensity and tone unless the target's explicit editorial policy authorizes changes. Documentation may allow professional polishing. Distinguish faithful translation from optional editorial rewriting. An AI semantic check compares proposed output to the **original**, not a previous generated translation.
