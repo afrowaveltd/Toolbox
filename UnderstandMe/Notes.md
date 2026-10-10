@@ -157,6 +157,10 @@ SignalR is an optional live transmission channel, comparable to an FM radio: obs
 
 Operational events are emitted once by each module through a typed publisher; the dedicated module SignalR transmitter and the aggregate /SystemMonitor router are both passive listeners, not a chain of Hubs. The shared event envelope uses a **generic Message<T>** rather than a string; report models are chosen and versioned by the originating module (model loading, queue state, translation progress, etc.). The root and module feeds carry the same event type/envelope and retain EventId, SourceModule and InstanceId. For wire interoperability, pair the strongly typed .NET payload with a stable, language-neutral ContractId and SchemaVersion; receivers deserialize known contracts via a registry and do not resolve arbitrary CLR types from remote input. Missing clients or listener failures have no effect on work. See [SystemMonitor design](Docs/SystemMonitor/en.md).
 
+### Remote SystemMonitor aggregation through optional SignalR clients
+
+A monitoring orchestrator can optionally connect as a **SignalR client** to one or more remote `/SystemMonitor` sources. Example: VPS3 subscribes to VPS1 and VPS2 and republishes their events alongside its own on VPS3's `/SystemMonitor`; the administrator needs only the VPS3 connection. This uses the existing event listener/router model and does **not** add client-callable functions to the monitoring Hub. Each original generic event retains its sender/module/instance, event ID and typed payload contract. Cross-host forwarding must prevent loops and duplicate events, configure authentication and trust, and stay bounded/nonblocking. Remote disconnects/reconnects affect only visibility of that source; missed monitoring broadcasts are not recovered from SignalR. No external module dependency or persistent message bus is mandatory. See [SystemMonitor federation](Docs/SystemMonitor/en.md).
+
 ## 11. Source repositories and document maturity
 
 - Toolbox: https://github.com/afrowaveltd/Toolbox
