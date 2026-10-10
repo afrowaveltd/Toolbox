@@ -14,6 +14,12 @@ The orchestrator must make a **best effort to preserve the functional intent of 
 
 An engine named in a request is only a preference **among globally activated and client-authorized providers**. Host configuration decides what to activate at all. The administrator may deliberately configure an opt-in public anonymous profile that accesses all activated providers, even paid/AI, or only free/manual providers; the core must not override that choice with hard-coded free-only public restrictions. The host's global hard budget and provider-account restrictions always apply. [Client Access Policies](../Client-Access-Policies/en.md).
 
+## RealTime does not authorize manual translation
+
+**P0 `RealTime` is exclusively machine processing.** When the only provider is Human, P0 translation execution is inactive: return the **original untranslated content almost immediately**, without accepting any delayed Human work. A client-supplied Human preference, `Mandatory` flag, or automatic provider failure **must not bypass this P0 rule**. Private real-time chat text must not become visible in human-translator lists or durable manual storage through orchestration fallback.
+
+For P0, the usual functional-best-effort substitution applies **only among currently allowed automatic engines**. If no automatic option can translate, an immediate untranslated/original response with a meaningful reason is the permitted result. A client who independently authorizes human translation must submit a separate **non-P0 durable request**, subject to normal privacy/client permissions. See [Human Translation Workflow](../Human-Translation-Workflow/en.md).
+
 ## Caller-specific policy before provider selection
 
 Resolve a **trusted ClientContext** and an optional **ClientPolicy** for each incoming translation command. The administrator can give one registered paying client access to configured paid Google/Microsoft/AI endpoints while another client can use only free/local engines. A host may optionally publish idle self-hosted capacity, human work or even administrator-authorized paid/AI engines through an opt-in public API with a **configurable** public/anonymous profile. The normal profile for known clients can initially allow **all globally enabled providers**, but permissions are intersected with global hard rules and provider-account budgets. Never use the publicly self-reported ClientId from a request body as proof of paid entitlement.
