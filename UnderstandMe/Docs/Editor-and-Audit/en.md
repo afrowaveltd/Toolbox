@@ -8,7 +8,7 @@ The Editor can directly request particular source and target dictionaries via Da
 
 Optional editor improvement requests default to low/background priority. Their failure is **nonfatal** and must not modify the existing dictionary. Manual saving is a distinct write operation, not an unnecessary trip through an async queue.
 
-A human can separately register as a normal translation worker, declare known languages and use a small long-running buffer, accepting work as availability allows. This is not mandatory for an Editor UI.
+A human can separately register as a normal translation worker, declare known languages and use a small long-running buffer, accepting **explicitly submitted persistent P1-P4 work** as availability allows. Human never processes P0 RealTime requests; RealTime is reserved for automatic providers, and if only Human exists P0 remains inactive and returns original content. This is not mandatory for an Editor UI. [Human translation workflow](../Human-Translation-Workflow/en.md).
 
 ## Translator interface over the durable backlog
 
