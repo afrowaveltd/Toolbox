@@ -11,7 +11,7 @@ The interface is a **view and worker client** over QueueMaster/application contr
 ## Durable lifecycle
 
 1. A client creates a translation request; the orchestrator normalizes Settings, ClientPolicy, provider eligibility and persistence policy. If the work is to be handled by a human **later**, the accepted human-work item is durably saved before the system promises it has been accepted for later execution.
-2. QueueMaster owns the item in one of the existing P0-P4 priority categories, with durable state such as `Pending` while no compatible human worker is connected. Long absence of workers **does not delete or lose** accepted human requests.
+2. QueueMaster owns the item in an existing **non-RealTime P1-P4 priority category**, with durable state such as `Pending` while no compatible human worker is connected. **P0 is reserved for automated real-time translation and must never be human-assigned**. Long absence of workers **does not delete or lose** accepted human requests.
 3. When an authorized human opens a translation UI (WebUI, Blazor, desktop, TUI, etc.), the interface queries a **state snapshot**: waiting count by priority, languages/direction, age, applicable targets and optional filters. It then may subscribe to live changes. **A SystemMonitor event is not the source of truth** for these counts; connection to monitoring is optional and loss of events must not lose requests.
 4. A worker can select/request a compatible work item through QueueMaster's **claim/reservation API** (or request the next eligible item). The orchestrator/QueueMaster atomically grants exclusive ownership/lease; a second human worker cannot take the same active item.
 5. Human translator edits and submits the result. The shared ResultProcessor validates language/format/placeholder invariants and writes a durable completion/checkpoint under the job policy; any required editor/audit trail is preserved. Complete/fail/return results flow through the same typed provider-independent contracts as automatic engines.
@@ -25,18 +25,24 @@ Human sessions may be long-lived and can be interrupted unexpectedly. The **owne
 
 Human worker capability includes authorized access to appropriate source/target languages and any specific work/project permissions. The UI should show **waiting/claimed/in progress** separately, plus per-priority totals and "mine" filters; counts can vary with active claims and permissions. The number and placement of translator UI views are host choices, not required UI dependencies of UnderstandMe.
 
-## Relationship to P0 RealTime and Persistence
+## Hard separation: RealTime is automatic only
 
-Previously agreed: ordinary `P0 RealTime` requests are volatile and may return source text immediately. This remains valid. **A translation explicitly queued for eventual human work must be durable**, regardless of when a translator connects.
+**P0 `RealTime` is exclusively for immediate automatic translation. A Human worker is never an eligible P0 endpoint, regardless of `Mandatory`, provider fallback order, failure of a machine engine or a client's attempts to request Human directly.** If the host has only Human configured, **P0 is inactive**: a real-time translation request returns the **original untranslated content almost immediately**. It must not be queued to Human, retained as pending manual work or shown in a translator's inbox.
 
-If a transient RealTime request should also trigger later manual completion, create/accept a **separate durable human continuation item** (with correlation to its original RequestId/segment) according to the user's effective policy. Do not silently persist every P0 request just because Human is a supported provider; do not promise indefinite delivery on a volatile request without committing the human continuation. Its final result can update an authoritative dictionary, SystemPersistent memory or a client-facing result as permitted; never assume browser session remains open.
+In a mixed deployment, P0 selects only enabled, suitable automatic engines. If none can return a translation under the applicable real-time policy, return original content or an explicit reason as specified by the public response contract; **no human fallback**. Automatic *live segment updates* remain permitted only for eligible automatic providers within their short-lived P0 request lifetime.
 
-The `Persist` state of a human backlog item is a correctness requirement for delayed human fulfillment, not optional step-history `Preserve` or an unlimited audit archive. Reconciliation after restart reconstructs the existing five priority queues from durable pending and in-progress items without creating independent human-only queues.
+**Privacy boundary:** a RealTime request may carry private chats or other user-sensitive text. It must **never be exposed to a human translator, Human task inbox, manual editor or durable manual work store solely because real-time translation was requested**. No default manual-copy, manual audit of the text or indefinite persistence. Distinct text logging/caching policies must also follow explicit privacy configuration. `RealTime | Mandatory` is urgency, **not consent to human review**.
+
+## Human persistence applies only to explicitly submitted manual work
+
+Human translation tasks are **separately and deliberately submitted** to a non-P0 persistent workflow; they must be authorized for human viewing and storage under the relevant client/target privacy policy. An operator/user may independently submit a new non-real-time manual request for content they are authorized to disclose, but **the engine must not derive or create that request automatically from P0 or use a hidden "human continuation" option**.
+
+Such accepted P1-P4 manual tasks are durably stored before acceptance is acknowledged and can wait for a translator to open their UI. Their `Persist` property is a correctness requirement for delayed work, separate from optional step `Preserve` or an unlimited audit archive. After restart, rebuild the applicable P1-P4 human backlog from durable state without adding a sixth physical queue; P0 remains inactive in Human-only deployments.
 
 ## Scope and further choices
 
 This agrees on durable human queueing, on-demand interface, trustworthy per-priority counts and exclusive claim/release. Still to specify: claim timeouts and heartbeat rules, draft recovery, UI choice of next versus manual selection, human capacity/skill matching, cancellation/deadline handling, translator audit permissions, accessible privacy-safe preview, manual payment/time accounting if ever needed, and how long to preserve completed human results.
 
-Test empty/no-human sessions, persisted pending work over restart and long offline intervals, counts per P0-P4, per-language eligibility, concurrent claim attempts, stale claims/completion, draft recovery, cancellation, and loss of UI/SignalR connection without loss of work.
+Test empty/no-human sessions, persisted P1-P4 pending work over restart and long offline intervals, inactive P0 with Human-only provider and immediate untranslated return, forbidden human fallback for RealTime and private chats, counts with zero/inactive P0, per-language eligibility, concurrent claim attempts, stale claims/completion, draft recovery, cancellation, and loss of UI/SignalR connection without loss of work.
 
 See [QueueMaster](../QueueMaster-and-Reliability/en.md), [Translation Chains](../Translation-Chains/en.md), [Request Settings](../Request-Settings-and-Live-Translation/en.md), [Architecture](../Architecture/en.md), [Implementation Status](../../IMPLEMENTATION_STATUS.md).
