@@ -46,7 +46,7 @@ Illustrative profiles, not hard-coded types:
 
 Provider permission can be expressed by capability/tier and by explicit endpoint/account IDs when needed. **Paid** describes the configured account's charging regime, not a permanent vendor label: a provider family may have self-hosted and cloud endpoints with different costs and permitted usage.
 
-Client policies need explicit enable/disable status, version/effective time and straightforward admin review, but do **not** require an elaborate central identity platform. For externally exposed chargeable services, the boundary must recognize the real caller through appropriate application/API authentication (e.g. an API key/session); the **lite GUID-only SystemMonitor identification is not an appropriate model for authorizing billable translation requests**.
+Client policies need explicit enable/disable status, version/effective time and straightforward admin review, but do **not** require an elaborate central identity platform. When an externally exposed service grants **client-specific paid entitlements or tracks individually paid usage**, the boundary must reliably identify that client through appropriate API/application authentication (e.g. an API key/session); the **lite GUID-only SystemMonitor identification is not appropriate for such authorizations**. However, the operator may deliberately fund **anonymous public paid translations** under a separate shared public profile: no individual paid entitlement is claimed, and all requests consume a **common administrator-authorized public spending/quota pool**. In that case individual-client metering cannot be promised without client identity. A shared hard budget and resource admission rules remain effective.
 
 ## Best-effort functional fallback
 
