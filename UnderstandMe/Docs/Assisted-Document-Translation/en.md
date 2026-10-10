@@ -46,6 +46,22 @@ Show visible per-region states rather than treating everything as translated: `O
 
 The editor permits **human recognition of alignments that automatic matching missed** (such as Czech morphology and reworded equivalents). The editor can select the intended translated target span, attach the original safe inline tag or choose to omit a cosmetic tag, then revalidate. This gives an escape hatch for cases where even AI/variant matching cannot confidently place the correct `strong`/`i` tag.
 
+## Mandatory usability baseline: no dead end when automatic translation fails
+
+**System-wide manual authoring is always available to an authorized document translator.** No machine/AI backend is a prerequisite for creating a target-language document. If an automatic engine cannot translate a segment or fails to preserve required HTML structure, the user can **type a replacement directly**, even if this source format lacks a specialized automatic translator. Any missing structured parser/validator is reported truthfully and never treated as automatic validation success. The document remains workable as a draft.
+
+**The simplest editor interaction is edit-in-place** in both right-hand views:
+
+- In **rendered Preview**, click/tap a paragraph/line to directly edit the visible translated text; an explicit "Edit manually" modal is not mandatory.
+- In **Source**, click a line/region of translated HTML and type directly. Both modes operate on a single shared draft; safely reparse and refresh preview as changes become valid. Source editing may temporarily produce incomplete tags; preserve the draft and show parsing diagnostics, with the **last valid render** displayed where necessary.
+- On wide displays use original left/translated right; on small/mobile displays stack or switch `Original | Translation | Source` without losing edit controls. Optimize for responsive layout, keyboard/touch accessibility, caret preservation and simple use.
+
+**All accepted edits autosave in the background**: immediate optimistic display, short bounded debounce/batching, durable save acknowledgement, visible `Saving/Saved/Retrying/Conflict/Failed` status. Never claim Saved before persistence acknowledgement; retry or offer a recoverable path when storage fails. Avoid a required manual Save button, but preserve deliberate publish/export approval and structural validation.
+
+**Every committed logical change enters revision history** with author, time, region, before/after or recoverable diff and document/source revision. Undo/revert uses a **new revision**, never deletion of historical versions; keep selectable revision previews and restore both segment and document versions where allowed. Provider or AI results arriving after a manual edit cannot overwrite that newer draft. This is document-host revision history, distinct from optional translation-step `Preserve` and mandatory localization dictionary manual-edit audit. The per-recipient private chat correction workflow retains its separate optional no-cache policy; the assisted document editor's autosave does not override it.
+
+See [Direct Editing, Autosave and Revisions](../Direct-Editing-Autosave-and-Revisions/en.md) for the detailed UX/state/recovery contract.
+
 ## Safe, reversible editing lifecycle
 
 - Preserve the **immutable original**, provider output and current user draft separately; keep a record of source version, translated segment state and manual changes sufficient for undo/review under configured host retention. Applying a suggestion must not silently replace later manual edits or other accepted segments.
