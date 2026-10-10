@@ -10,6 +10,16 @@ Optional editor improvement requests default to low/background priority. Their f
 
 A human can separately register as a normal translation worker, declare known languages and use a small long-running buffer, accepting **explicitly submitted persistent P1-P4 work** as availability allows. Human never processes P0 RealTime requests; RealTime is reserved for automatic providers, and if only Human exists P0 remains inactive and returns original content. This is not mandatory for an Editor UI. [Human translation workflow](../Human-Translation-Workflow/en.md).
 
+## Assisted HTML/document translation editor in Afutrans
+
+Separate three human activities: **explicit Human-provider backlog**, **manual authoritative UI dictionary edits** (with mandatory dictionary revision audit) and **assisted correction of a translated document**. The third is an optional, deliberately opened Afutrans document-review session, not a central auditor that automatically receives chat/private RealTime content. A document owner/editor with appropriate access can inspect and change their own document; no unrelated human access is implied.
+
+The assisted interface places **rendered original on the left** and **translated version on the right**, with right-side **Preview / HTML Source / Split** modes. Clicking either side maps to the corresponding original/translated segment and its source-first ResultList. Show translated, source-preserved/untranslated, formatting-omitted, invalid-structure and manually edited states; never pretend a region is translated just because HTML rendering succeeded.
+
+The editor can **directly correct translated text or safely edit its HTML**, select formatting/word spans that automated alignment could not find, request alternative candidates, try provider translation for a selected region or **explicitly ask a permitted AI endpoint** to suggest a revision. AI suggestions are separate non-destructive candidates: the user chooses whether to accept them, and late async suggestions cannot overwrite newer manual edits (revision/conflict checks). Undo, restore source, validate, save draft and export/publish are desired capabilities. An authorized user can solve inflection or ambiguity manually rather than require another expensive machine pass.
+
+HTML preview needs safe isolated rendering of untrusted documents/scripts/resources. Validate ID/links/functional attributes, placeholders and full-document structure before publishing, and keep unresolved source regions visible. **Manual document review does not change the mandatory dictionary-edit audit rule**, and private chat recipient-only corrections retain their separate scope. See [Assisted Document Translation](../Assisted-Document-Translation/en.md).
+
 ## Translator interface over the durable backlog
 
 As a **Human worker**, the operator can connect at any later time to inspect durable pending work in the existing QueueMaster queues: per-priority counts, compatible language directions, status (pending/claimed/in progress) and items available to that person. Nothing requires the interface or its operator to be online when requests arrive. A human translation item is claimed **exclusively through the QueueMaster worker contract**, not directly dequeued from UI code; interruption or disconnect needs safe release/recovery without losing the original item.
