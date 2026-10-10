@@ -16,6 +16,12 @@ A request captures its effective `Settings` when created. `QueuePriority` remain
 
 Changing the configured provider priority or selection flags applies **only to new logical requests**. Waiting or running requests keep their accepted policy snapshot and their original job priority. **Administrative orchestrator control has precedence:** pause/stop of a queue prevents further dispatch despite Mandatory flags, without reinterpreting the queued items. A paused queue may resume later under the original request snapshots. Credential revocation/unavailable endpoints require explicit operational failure/recovery handling rather than silent policy rewriting. [Request Settings and Live Translation](../Request-Settings-and-Live-Translation/en.md).
 
+## Chargeable attempts and operational quota guards
+
+A request's provider preference is frozen when it is created, but **the right to incur new billable usage is checked at dispatch** using the current, administrator-approved account quotas and hard spending limits. A job already in the queue must not silently exceed the current provider billing cap simply because it was accepted earlier. If the selected endpoint has no permitted quota, Pipe/provider routing can choose another already-authorized eligible endpoint, wait for plan renewal/admin action, or return a defined unavailable outcome under the original request policy.
+
+The QueueMaster continues owning priority queues and work leases. It does not maintain a second global queue for each subscription or embed billing rules. An independent usage service atomically reserves expected metered units across all workers sharing that account and reconciles actual/estimated use after the attempt; attempts with unknown provider-side charge remain tracked. Billing evidence is durable and **not** SignalR telemetry. [Provider Billing and Quotas](../Provider-Billing-and-Quotas/en.md).
+
 ## Notifications
 
 `QueueEmpty` represents whether an individual central queue has no items. An enqueue that **atomically changes a given queue from zero items to one** triggers the common `AddedToQueue` event; enqueues to already nonempty queues do not. Idle buffers can wake and request work. A periodic check (initial suggestion ~500 ms) provides a safety net. A buffer that becomes free while compatible work already exists also requests more.
