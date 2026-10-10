@@ -31,13 +31,15 @@ Match on source/target culture, Translation Target/domain, context/format, sourc
 
 For RealTime translation the resolver may immediately return source text when no activated eligible **automatic** engine is available; if only Human is configured, P0 translation is **inactive**, and no Human job may be created by fallback. Non-Mandatory live partial updates, when configured, must come from automated translators only. In particular, a RealTime lookup of a private chat message must not disclose that message to a human translator or persist it as manual work. A separate durable manual job requires explicit authorized non-P0 submission; any dictionary registration/cache is independently governed by target privacy policy. [Human Translation Workflow](../Human-Translation-Workflow/en.md).
 
-## Private translations can be reused without making chat content public
+## UI dictionary keys are not chat translation identifiers
 
-For chat, forum or similar history, `Privacy = Private` may coexist with a **durably stored verified translation result**, under host/target retention settings. The P0 job remains volatile; its private result is cached/persisted in a **viewer-authorized, conversation/tenant-scoped** translation store so revisiting history does not retransmit an unchanged message to the backend.
+The `KEY = VALUE` convention and dictionary-less source registration in this document apply **only to configured application/web UI localization dictionaries**, including flat JSON or other dictionary backends. **Chat messages, private discussions, articles and other user-created content do not enter this dictionary lifecycle by default.**
 
-Private message bodies must **not** be auto-registered as public/default-language `KEY = VALUE` dictionary entries or promoted into global `SystemPersistent` memory. Keep the application-local dictionary-less workflow for eligible public/application UI strings, but private chat history uses **its source owner's protected identity and access rules**, source revision/hash, format and language in its own lookup key. Check present permissions on every read. An edit, delete, retention expiry or revoked chat membership must invalidate/restrict the translation as appropriate. This is separate from real-time Human exclusion and from ordinary provisional cache.
+A chat Splitter emits temporary ordered `(SegmentId, Text)` pieces with `SegmentId = 0..N` scoped to an active request. These IDs serve **only for correlating/reassembling partial translated results**. Do not store them as localization keys or cache keys, and never register entire private chat messages in `en.json`/`cs.json` or another global UI dictionary.
 
-A private-result lookup may be served to an **authorized participant** without invoking an engine again; translation existence must not imply permission to read the source. See [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
+The **chat host** reassembles completed translations, decides whether to store a finished message in its own history and checks its audience permissions. Its authorized recipient may optionally correct their own displayed translation and choose whether to cache **that correction** or keep it only in the current view. Recipient-saved corrections are per-user/message/culture overrides, not shared glossary entries. A separate, explicitly authorized promotion/share mechanism (if ever added) is not implied by opting in to cache.
+
+This separation does not interfere with ordinary UI dictionary caches and `SystemPersistent` memory intended for eligible non-private application strings. See [Chat Translation Flow](../Chat-Translation-Flow/en.md) and [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
 
 ## Placeholder hints
 
