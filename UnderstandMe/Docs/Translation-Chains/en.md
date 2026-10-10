@@ -18,6 +18,12 @@ A provider describes a family (LibreTranslate, Google, Microsoft, Ollama, OpenAI
 
 Translation alternatives may be produced by multiple providers in parallel for an editor, or sequentially for cost-sensitive automatic fallback. A failure can retry or choose another compatible endpoint. QueueMaster does not need to know what semantic operation the worker performs.
 
+## Human translation as the zero-external-engine baseline
+
+The library **must support the Human translation worker** without LibreTranslate, any paid API, AI or model/runtime dependency. A human-only workflow may queue an item for manual pickup, assign it to an authorized human worker, accept an edited/translated result, validate its protected structure, and return it through the same typed result contract as any other provider. No particular UI application is required to implement the worker contract.
+
+A Human provider is a baseline **capability**, not an assurance that a human operator is currently ready or a blanket requirement that human review is part of every Chain. Without an available worker, work may wait in a permitted human workflow or fail/return original text under the request's configured deadline and flags. Machine translators, AI reviewers and their respective Chain stages must remain entirely optional.
+
 ## Provider priorities, price-aware selection and escalation
 
 Worker eligibility and provider priority are separate from QueueMaster's **job priority**. A Translation Pipe's provider-selection policy can rank compatible endpoints by explicit preference (LibreTranslate then Google, or Google first) or by estimated cost. Global defaults, named Pipe policies, Translation Targets and permitted per-request overrides define the effective order, with hard privacy, capabilities and budget limits never overridable by an individual request.
