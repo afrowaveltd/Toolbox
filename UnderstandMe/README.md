@@ -15,7 +15,7 @@ Provide reusable building blocks for software localization, automatic and human 
 - A `Messenger` distributes events and authorized status information; it does **not** assign work.
 - Translation Chains compose configurable translation, splitting, assembly, review, and validation steps.
 - Standard .NET localization, optional dictionary-less registration, configurable storage and short-lived RealTime translation are first-class use cases.
-- AI, machine translation and human editors are optional workers rather than mandatory dependencies.
+- **Human translation is the mandatory baseline provider capability.** All machine/AI translation providers (LibreTranslate, AfroLT, Google, Microsoft, Ollama and others) are optional integrations that administrators activate individually; a human-only deployment is valid.
 - Provider priority is separate from job priority; self-hosted LibreTranslate, paid APIs and AI engines are selectable per policy, target and permitted request overrides.
 - Prefer Microsoft/.NET components when appropriate, including `System.Text.Json`, while keeping external formats and translation providers pluggable.
 - Core/library compatibility starts at .NET 10; .NET 11-specific features and API surfaces are design topics, not yet implemented.
@@ -35,6 +35,12 @@ The splitter's `(RequestId, SegmentId)` partial translation model is **UI-neutra
 Optional per-client `ClientPolicy` settings determine which enabled provider families, endpoints or paid API accounts each trusted client may use, along with their own word/cost quotas and request rate/concurrency limits. **Ordinary known clients are unrestricted by default at the client layer**, while administrator/system hard limits still apply; a separately configured public/anonymous profile can share unused self-hosted LibreTranslate capacity **without exposing paid APIs**. Provider-account budgets and client-plan quotas are enforced independently. An explicit Google request from a client not allowed to use it is rerouted to another permitted suitable engine where feasible.
 
 No publicly accessible translation listener is automatically exposed merely by using the library; authenticated client context and business API entitlement are independent from the minimal GUID identity of the outbound-only SystemMonitor. See [Client Access Policies](Docs/Client-Access-Policies/en.md).
+
+## Provider activation is optional, public entitlements are configurable
+
+The host may configure **zero automatic translation engines** and operate exclusively with human translators. The library must support human-work assignment, manual results and relevant validation, though it cannot guarantee immediate human availability. Default free/local -> paid -> AI ordering ranks **only enabled machine backends**; it never enables a vendor or forces credentials/paid calls. Every provider other than Human is an optional feature.
+
+Ordinary known clients have no extra default provider restrictions beyond global host policy. Public APIs are opt-in, and their client profile is **administrator-selectable**: free/local only, human only, selected paid/AI providers or fully open access to all enabled providers, with the configured global budgets and resource limits. A generous public operator is supported just as much as a strictly offline/human-only operator. See [Client Access Policies](Docs/Client-Access-Policies/en.md) and [Provider Routing](Docs/Provider-Routing/en.md).
 
 ## Planned areas
 
