@@ -22,6 +22,12 @@ The orchestrator validates and **normalizes a caller's requested provider and op
 
 At dispatch, current queue pause and account hard limits may hold a previously accepted job or cause another **already-authorized** endpoint to be chosen under the captured selection policy. QueueMaster remains responsible for ownership, priorities and atomic dispatch, not for vendor authorization or the commercial selection calculation. Explicit rejection before acceptance is distinct from a clear failure/unavailability after a formerly feasible job becomes impossible. [Admission rules](../Request-Admission-and-Normalization/en.md).
 
+## Shared capacity, clients and admission policy
+
+The orchestrator supplies QueueMaster only **admitted effective requests** after applying the caller's `ClientPolicy` and global administrator settings. Client identity, provider restrictions, paid-plan entitlement, words/day and maximum concurrency are **not new global job priorities** and must not create one queue per customer by default. Client-specific caps and reserved internal capacity can be admission or dispatch constraints; QueueMaster keeps ownership of the same five priority queues, compatible endpoint handoff and orchestration control.
+
+An optional public Afutrans API may borrow spare LibreTranslate capacity without monopolizing workers needed for internal tasks. Choose explicit rate/concurrency/queued-item caps and fairness/resource-reservation behavior before implementation. Validate the trusted caller identity at the external application boundary; at dispatch check current client caps **and** current provider account limits, preserving the originally accepted request's preferences. [Client Access Policies](../Client-Access-Policies/en.md).
+
 ## Chargeable attempts and operational quota guards
 
 A request's provider preference is frozen when it is created, but **the right to incur new billable usage is checked at dispatch** using the current, administrator-approved account quotas and hard spending limits. A job already in the queue must not silently exceed the current provider billing cap simply because it was accepted earlier. If the selected endpoint has no permitted quota, Pipe/provider routing can choose another already-authorized eligible endpoint, wait for plan renewal/admin action, or return a defined unavailable outcome under the original request policy.
