@@ -44,6 +44,12 @@ Afutrans may offer a **public API using spare capacity** of its own locally run 
 
 Admin configuration includes permitted provider tiers/accounts, client quotas (words/day or other meter), maximum request/concurrency/rate, client priority ceilings, reserve for internal work and user-visible reasons for using a different provider. By default established/internal users have no additional provider restriction; the public/anonymous profile should be separately restricted. A **free/local-only public profile is one selectable configuration, not an invariant**; an administrator may explicitly choose broader public provider access or human-only operation. The same admission enforcement applies to direct .NET/REST/business SignalR entry points. See [Client Access Policies](../Client-Access-Policies/en.md).
 
+## Private historical chat and forum translation
+
+Afutrans may translate private chats or forum history and **save verified translations** so authorized readers reopening a message do not trigger new machine translations. Save in the source application's conversation/message-scoped result store (or configured access-aware adapter), **not** automatically in globally shared dictionaries or the general Editor. `P0` work remains volatile and Human-ineligible; result retention is independent.
+
+`Privacy = Private` excludes automatic manual audit and content browsing by general administrators/translators, even when the translation result is persistent. The host controls who can view source messages and their translated results and must recheck access on every history lookup; content-free aggregate processing/status metrics may remain visible. Explicit consent and separately initiated non-P0 manual work would be required for intentional translation by a named human. [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
+
 ## Communication
 
 Messenger delivers authorized local/SignalR events and status projections. Clients may submit requests, receive acceptance and progress, and confirm results. Reconnect uses replay/deduplication for durable messages. `Update_Cache` informs connected localizers of committed changed values. Messenger does NOT instruct workers or own queues.
