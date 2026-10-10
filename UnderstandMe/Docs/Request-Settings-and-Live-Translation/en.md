@@ -26,6 +26,12 @@ Keep `RequestedProvider` and `UsedProvider` distinct; a provider can only be rep
 
 If a user leaves the page, whether the continuation is canceled, kept briefly for reuse or persisted depends on the original request policy. Existing default P0 real-time operations remain **volatile** unless explicitly designed as a different durable job; sending an asynchronous browser update is not proof of durable work.
 
+## Delayed human continuation is durable work
+
+A Human provider may have **no connected translator** when a request arrives. When the effective request asks for eventual human fulfillment, the orchestrator commits a durable human work item so it can wait in the normal QueueMaster priority queues until someone opens the translator UI. The response can indicate accepted/pending rather than pretending a human result is already available.
+
+The ordinary `P0 RealTime` behavior remains volatile and can immediately return the original untranslated content. If a delayed manual result is desired in addition, accept a **separate durable human follow-up** correlated to the original request/segments; it is not a hidden decision to preserve every transient P0 request. The translator UI, persistence and claim state are independent of how the final user-facing content is rendered. See [Human Translation Workflow](../Human-Translation-Workflow/en.md).
+
 ## Splitter and UI-agnostic incremental delivery
 
 The **contract is not a JavaScript or HTML API**. The splitter produces an ordered list `(SegmentId, SourceText)` with `SegmentId = 0..N`, plus enough original format and position metadata to reconstruct the content. Split on semantic/paragraph boundaries where appropriate; do not break Markdown links, HTML structure, fenced code, placeholders or other protected constructs. Different text/document types may use different format-aware splitters.
