@@ -134,6 +134,12 @@ Preserve the LibreTranslate-inspired `Suggest a better translation` feature. Ing
 
 **AfroLT must be standalone-capable.** Neither UnderstandMe nor Afutrans is a mandatory dependency. One translation/model/capacity/recovery core can be exposed through direct .NET calls, versioned HTTP REST/JSON + OpenAPI/Scalar, and an optional self-contained SignalR Hub for persistent bidirectional client communication (jobs, progress, completion). A separate optional integration adapter connects it to UnderstandMe QueueMaster and Messenger; the core never depends on those external modules. Use plain typed wire DTOs; native unions stay an internal .NET 11 API concern. REST remains available without SignalR, and embedded mode needs no web server. See [AfroLT design](Docs/AfroLT-Future-Design/en.md).
 
+### One command model across REST and SignalR
+
+AfroLT's direct .NET API, REST endpoints and its optional single SignalR Hub are thin entrances into the **same application command handlers**. Commands such as translation, supported languages, status and suggesting corrections accept/return the same logical typed request/response DTO models regardless of transport. The application service, not the adapter, owns validation, authorization policy, idempotency, model selection, recovery and error semantics. HTTP status/headers, Hub method replies and push events are only delivery-specific envelopes; a queued job may be polled by REST or followed over SignalR using the same job ID. Verify parity with shared command tests and transport-level contract tests.
+
+See [AfroLT future design](Docs/AfroLT-Future-Design/en.md).
+
 ## 11. Source repositories and document maturity
 
 - Toolbox: https://github.com/afrowaveltd/Toolbox

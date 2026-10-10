@@ -28,5 +28,7 @@ This is a discussion backlog, **not** an implementation plan. Decisions recorded
 20. **AfroLT standalone packaging and optional adapters:** ensure zero dependency on UnderstandMe/Afutrans, small embedded-core deployment, optional self-hosting and SignalR host assemblies, and one authoritative internal translation service.
 21. **SignalR contract:** choose versioned hub route and method/event DTOs, JSON default versus optional MessagePack, bounded batch/stream semantics, reconnect/reconciliation, authentication/tenant isolation, quotas, cancellation and idempotent job acceptance.
 
+22. **Shared transport-neutral command contracts:** choose minimal typed command handlers and caller context; define the exact request/response DTO and error representation shared by direct .NET, REST and the single SignalR Hub; verify REST/Hub parity and separate transport envelopes without duplicate business logic.
+
 Current status and next continuation point: [Implementation Status](../../IMPLEMENTATION_STATUS.md).
 

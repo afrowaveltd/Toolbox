@@ -100,6 +100,20 @@ All three call the same translation core, capability discovery, bounded worker/m
 
 The **SignalR Hub belongs to AfroLT's standalone host**, not to UnderstandMe's passive `Messenger`. These can later be connected by a separate adapter, while keeping UnderstandMe's Messenger passive and QueueMaster solely responsible for global work assignment. AfroLT Core must have no compile-time dependency on UnderstandMe or Afutrans. Optional integration packages may depend inward on AfroLT Core and UnderstandMe contracts, not the reverse.
 
+### Transport-neutral command API (agreed design principle)
+
+**REST and SignalR are adapters over EXACTLY the same application commands and typed request/response models.** A command has one handler, one validation path, one policy/security decision and one outcome/error interpretation. An application command never asks which transport delivered it. A Hub is not a second implementation of the REST endpoint, and the REST endpoint is not an HTTP wrapper that invokes a Hub.
+
+Illustrative command names (not final C# signatures): `Translate`, `TranslateBatch`, `SuggestTranslation`, `GetLanguages`, `GetStatus` and `GetJob`. Each command is executed by the same in-process application service, whether the caller used the library API, REST, or SignalR. Transport adapters must remain thin.
+
+- **Same request/response DTO contracts:** field names, validation, culture identifiers, correlation/job IDs, result objects and documented failure codes are shared. Network DTOs are plain, versioned, language-neutral objects; C# 15 native unions are not imposed on non-.NET clients.
+- **Same execution and security:** cancellation, per-client limits, authorizations, idempotency, provider selection, model capabilities and job state reside in the core/application layer. Hub and HTTP request identities are normalized into a transport-neutral caller context.
+- **Transport-specific delivery only:** HTTP status codes and headers exist only on REST, while Hub method replies, streaming/progress events and connection lifecycle exist only on SignalR. Both convey the same logical outcome; a queued-job acceptance is not mistaken for completed translation.
+- **One source of truth for results:** asynchronous job progress is tracked by the core and made observable through polling endpoints or SignalR notifications. A lost Hub connection cannot lose a persisted job; reconnect and query by job ID.
+- **Contract verification:** run shared command-handler tests plus parity tests invoking both transport adapters with equivalent requests and asserting identical logical responses, failure codes, authorization decisions and idempotency behavior.
+
+This principle applies to new commands and legacy compatibility adapters alike: an old `/suggest` or `/translate` shape maps to the same internal command rather than branching into a separate processing path.
+
 ### SignalR behavior
 
 Suggested hub features (nonfinal API names): submit a short translation, submit a bounded batch/longer job, query available language pairs/models and subscribe to the caller's job status; the server can emit progress and result/failed/completed notifications. For long-running operations return a correlation/job ID rather than holding one hub method invocation open indefinitely. Keep typed DTOs compatible with both .NET 10 and 11 clients and language-neutral HTTP JSON consumers. The REST surface remains a complete fallback for clients without SignalR.
