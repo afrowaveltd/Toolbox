@@ -46,6 +46,12 @@ SystemMonitor's basic pairing is **identification/filtering**, not full applicat
 
 No default shared high-entropy key, OAuth/JWT provider or central identity service is needed in this limited anonymous, outbound-only monitoring scenario. GUIDs are not secrets and do not cryptographically authenticate a source; trusted endpoint configuration and normal TLS certificate checks remain important. The monitoring Hub has no client-callable publishing function. Further authorization can be an optional extension if the threat model changes. See [SystemMonitor identification](../SystemMonitor/en.md).
 
+### Pending monitor registrations and administrator approval
+
+An unknown monitoring node may request enrollment through a separate small HTTPS control endpoint and identify itself by public `ClientId` GUID, its remote endpoint and offered modules. **Enrollment is never automatic.** The receiving monitor host persists the pending request, then optionally broadcasts a typed `MonitorRegistrationRequested` event. An administrator can approve/deny immediately if listening or later from the stored requests, using a separate authorized API/UI. On approval the recipient issues a **new private random `ClientKey` GUID**, binds it to `ClientId` and permitted sources, and makes it retrievable only by the original applicant through a separate enrollment claim channel. The approved client can subsequently present both IDs in HTTPS control request headers.
+
+The event stream must not carry this private key; SignalR monitoring remains purely outbound and best-effort. Enabling a source after approval uses an independently configured receiver SignalR client and normal HTTPS source checks. The issued credential secures recipient-side control/enrollment and is not automatically authentication for the reverse-direction signal stream. See [SystemMonitor enrollment](../SystemMonitor/en.md).
+
 ## Design-stage constraints
 
 - No folder layout, package split, DI registrations or interface method signatures are final.
