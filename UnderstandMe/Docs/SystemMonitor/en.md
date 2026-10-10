@@ -52,6 +52,31 @@ Strong typing is preserved **inside .NET**. For remote SignalR receivers, the en
 
 The event-router abstraction must not require every payload to derive from an all-purpose base class or reduce it to string/object before publication. The SignalR transport may serialize the resulting generic event with System.Text.Json. Any polymorphism or open-generic behavior must be tested, including .NET 10/11 and non-.NET receivers. Sender metadata, type identifiers and payload privacy rules apply to both root and module-scoped feeds.
 
+## Optional remote SystemMonitor receivers and federation
+
+**New design direction:** the monitoring orchestrator can act as a **SignalR client** as well as a publisher. It can connect to any number of explicitly configured remote `/SystemMonitor` endpoints and merge their live events with its own. This feature is optional: AfroLT, UnderstandMe and Afutrans remain usable without a receiving client, and no upstream system needs to know that it is being monitored.
+
+Example topology:
+
+- VPS1 broadcasts its own modules at `https://vps1.example/SystemMonitor`.
+- VPS2 broadcasts its own modules at `https://vps2.example/SystemMonitor`.
+- VPS3 hosts the aggregate and runs two outgoing SignalR client connections, one to each remote. Its own publisher and both remote receivers feed the same local event router.
+- Administrators subscribe only to VPS3's `/SystemMonitor` to see all three machines in one stream. Module-scoped routes can continue filtering by `SourceModule` when remote events are admitted.
+
+The **receiver** is an optional host-side adapter (working name `ISystemMonitorReceiver`). It subscribes to the remote hub's server-to-client event callback through a SignalR client connection and passes the event to the same local router/publisher interface used by local modules. The aggregate Hub remains **outbound-only**: inbound remote traffic arrives at the receiver client, not through new methods exposed on the monitoring Hub. This is simply event-driven routing, not a mandatory central collector.
+
+### Safe federation rules
+
+1. Preserve the **original** `EventId`, `SourceModule`, `InstanceId`, `ContractId`, `SchemaVersion`, timestamp and typed `Message<T>` payload. A forwarding node must not impersonate the original sender, allocate a fresh business event ID, or silently change the payload type.
+2. Maintain optional separate relay/transport metadata (e.g. `ReceivedFrom`, `RelayPath` or bounded `HopCount`) for diagnostics and loop prevention. Do not overload the original module sender field with the relay identity.
+3. Prevent retransmission loops, particularly with reciprocal or chained bridges, by checking the local host identity/relay path, bounding hops, and suppressing recently seen `(origin, EventId)` pairs using a **bounded, expiring in-memory cache**. This cache is not an event archive.
+4. A remote observer can forward known typed report models via the registered contract serializer; unknown future `Message<T>` contracts may be transparently passed through as compatible serialized wire payloads or skipped with a local diagnostic. Never instantiate arbitrary CLR types advertised by remote peers.
+5. Configure each remote endpoint, credentials, access permissions, permitted modules and event filters explicitly. Only connect to trusted hosts; do not expose private per-user translation data merely because monitors are federated. Avoid duplicate subscriptions to an aggregate and its module feeds unless intentionally filtered/deduplicated.
+6. Keep **one bounded receive path per configured connection**, independent of core work. Disconnections do not stop the local engine or other receivers. The remote connection has its own health indicator and reconnect policy, including recovery after the default finite SignalR retry schedule. No replay, catch-up or guaranteed delivery is implied.
+7. If VPS1 becomes unavailable, VPS3 continues broadcasting its own and VPS2's events. A disconnected source is visibly marked unavailable through local connection-health status; its past monitoring messages remain lost unless they were independently committed elsewhere.
+
+This is a **fan-in of best-effort monitoring streams**. It does not combine databases, ownership of queued jobs, persistent audit histories or administrative permissions. It does not make unrelated module dependencies mandatory. Tests must cover a one-hop VPS1/VPS2 to VPS3 aggregation, disconnect/reconnect, source identity, duplicate forwarding, loops and mixed known/unknown typed payloads.
+
 ## Verification before implementation
 
 Test that a source event appears once on its own feed and once on the aggregate, never on another module's feed; verify sender identity, absence of listeners, disconnect/slow subscribers, permissions, and optional bridge deduplication.
