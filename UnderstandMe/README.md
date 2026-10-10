@@ -66,6 +66,10 @@ The Splitter prefers **semantic chunks**, not arbitrary length: short text can s
 
 For HTML/Markdown, a proposed representation keeps a **parsed structural template** with request-local references to a `ResultList`. Each slot begins with **the original source text**, so uncompleted parts remain visible; verified translations update slots progressively without changing the document layout. Prefer AST/DOM mapping rather than inserting literal synthetic `placeholder` attributes into user HTML; nested formatting remains protected and rendered safely. Design proposal, not yet final public API. See [Structural Template and ResultList](Docs/Structural-Template-and-ResultList/en.md).
 
+## Restoring inline formatting after contextual translation
+
+A proposed strategy for nested HTML/Markdown is to translate **the full sentence for meaning**, separately obtain alternative translations of highlighted inner text, find a reliable matching span in the target-language sentence and restore the original safe markup around it. Example: `Hello <strong>beautiful</strong> world!` → `Ahoj <strong>nádherný</strong> světe!`. Exact matching alone fails with inflection, repeated words or paraphrase, so ambiguous matches must not lead to wrong markup. When supported, a single validated markup-preserving provider call is an alternative; additional translation calls are subject to cost/privacy/latency limits. **Design proposal, not implemented.** [Inline Markup Restoration](Docs/Inline-Markup-Restoration/en.md).
+
 ## Planned areas
 
 | Area | Responsibility |
