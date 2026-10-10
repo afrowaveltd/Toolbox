@@ -50,7 +50,7 @@ Client policies need explicit enable/disable status, version/effective time and 
 
 ## Request Privacy is distinct from client provider entitlement
 
-A caller's `Privacy = Private` request carries **content-access restrictions separate from the client's quota and entitlement**. A client entitled to Google does not automatically authorize sending private chats to Google; a target/owner privacy policy separately defines which remote machine processors may receive private content. Private requests are **not eligible for Human translation or manual audit**, even if the client is entitled to use Human for other jobs.
+A caller's `Privacy = Private` request carries **content-access restrictions separate from the client's quota and entitlement**. A client entitled to Google does not automatically authorize sending private chats to Google; a target/owner privacy policy separately defines which remote machine processors may receive private content. Private requests are **not eligible for automatic Human routing or manual audit**, even if the client is entitled to use Human for other jobs. A separately approved manual translation request is a different operation with purpose-specific Human access.
 
 Private translated results can be saved for authorized history reuse without making them visible to general administrators, other clients or a global shared dictionary. Translation result storage and reads must use trusted tenant/conversation/message rights, not merely the supplied ClientId or a cached result ID. A provider's per-client budget ledger may retain content-free usage, but no private chat text belongs in a public usage dashboard. See [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
 
