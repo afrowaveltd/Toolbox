@@ -40,5 +40,9 @@ This is a discussion backlog, **not** an implementation plan. Decisions recorded
 28. **Typed monitoring payloads:** settle the MonitorEvent<T>/Message<T> generic interface and contract registry, including stable wire ContractId/SchemaVersion, System.Text.Json serialization for different T, unknown models, .NET 10/11 and cross-language client compatibility.
 29. **Passive listener parity:** validate that the dedicated module transmitter and aggregate event-router listener each receive the same logical generic event, maintain its original payload model, and cannot delay or disrupt the publisher.
 
+30. **Optional remote monitoring client:** specify configurable remote URLs, authentication/trust, source filters and a long-lived SignalR client reconnect policy for VPS3-style multi-host aggregation; do not make remote reception mandatory.
+31. **Federation metadata and safety:** preserve the original typed event, origin and EventId, define optional relay path/hop metadata, per-source health reporting and bounded deduplication/loop prevention for chained or reciprocal connections.
+32. **Cross-host contract tests:** simulate two remote monitors feeding a third, disconnect/reconnect with gaps, module-scoped filtering, unknown generic payloads, malicious/untrusted senders and bounded fan-in without blocking local work.
+
 Current status and next continuation point: [Implementation Status](../../IMPLEMENTATION_STATUS.md).
 
