@@ -169,6 +169,17 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Questions cover wait-versus-paid-fallback-versus-fail on cheaper endpoint congestion; translation memory and domain glossaries distinct from provisional cache; no-cost provider routing dry-run/explanations; configuration snapshot semantics for in-flight jobs; active endpoint capability tests; and evidence-based quality by language pair/domain.
 - Suggested discussing wait/fallback/fail first, because it affects both operating cost and job deadlines. No source code, packages, tests or settled provider policy were changed.
 
+## 2026-10-10 — request Settings, Mandatory RealTime and segmented live translation (agreed design only)
+
+- Settled the six provider/runtime design topics discussed with the user; preserved as **agreed architectural behavior** rather than mere backlog suggestions.
+- Created `Docs/Request-Settings-and-Live-Translation/en.md` defining an effective typed Settings snapshot when a logical request is created, separate P0–P4 QueuePriority and composable behavior flags, including `Mandatory`. New defaults apply to new requests; already accepted queued/in-flight work retains original policies. Orchestrator pause/stop has operational precedence.
+- `RealTime + Mandatory` should avoid waiting for an occupied preferred endpoint and choose an available, compatible, policy-acceptable translator now, without bypassing budget/privacy/format limits. Ordinary non-Mandatory RealTime may return source text immediately and continue delivering later translated segments.
+- Splitter outputs stable ordered `(SegmentId, Text)` from 0..N; `RequestId` disambiguates concurrent documents. Browser replaces only verified returned segments (textContent for plain text, sanitized format-aware HTML for Markdown blocks); application-facing update delivery is separate from SystemMonitor and request lifetime/durability remains explicit.
+- `SystemPersistent` was accepted as **optional, bounded approved translation memory** checked before provider routing, separate from dictionary, provisional cache and historical logs. Reading and promoting/writing are independently configurable to avoid unlimited growth.
+- Confirmed economical default provider tiers: local/free, including LibreTranslate, then paid APIs **equal priority by default**, then AI. Operators may override globally/per language pair. No automatic permanent language quality rank based on stale model observations; capability validation may be redone when a model version changes.
+- Provider-selection dry-run simulator was **deferred** until Settings/provider routing are implemented; no new immediate dependency or feature committed as implemented.
+- Updated `Docs/Provider-Routing/en.md`, `Docs/Translation-Chains/en.md`, `Docs/Localization/en.md`, `Docs/QueueMaster-and-Reliability/en.md`, `Docs/Architecture/en.md`, `Notes.md`, `Docs/Open-Questions/en.md`, `README.md` and this status. No .NET implementation or executable tests were changed or run.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
