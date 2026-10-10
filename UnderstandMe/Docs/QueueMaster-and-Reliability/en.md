@@ -34,6 +34,12 @@ A request's provider preference is frozen when it is created, but **the right to
 
 The QueueMaster continues owning priority queues and work leases. It does not maintain a second global queue for each subscription or embed billing rules. An independent usage service atomically reserves expected metered units across all workers sharing that account and reconciles actual/estimated use after the attempt; attempts with unknown provider-side charge remain tracked. Billing evidence is durable and **not** SignalR telemetry. [Provider Billing and Quotas](../Provider-Billing-and-Quotas/en.md).
 
+## Human-only execution is valid
+
+**Human is the only mandatory supported translation provider**. QueueMaster must be able to enqueue/reserve/release compatible manual work for a Human worker and accept the completed human result without any automatic provider or paid billing account. Human worker capacity may be long-lived or zero while a person is away; the orchestrator's effective request wait/deadline/persistence policy decides whether the request may remain pending or must return unavailable/original text. The existence of the Human contract does not imply instantaneous availability.
+
+LibreTranslate, AfroLT and all other automatic endpoints are optional registered features. If none are activated, the global queue contract and recoverable human job lifecycle remain usable; no phantom machine buffer, translator model or AI reviewer is required. [Translation Chains](../Translation-Chains/en.md), [Provider Routing](../Provider-Routing/en.md).
+
 ## Notifications
 
 `QueueEmpty` represents whether an individual central queue has no items. An enqueue that **atomically changes a given queue from zero items to one** triggers the common `AddedToQueue` event; enqueues to already nonempty queues do not. Idle buffers can wake and request work. A periodic check (initial suggestion ~500 ms) provides a safety net. A buffer that becomes free while compatible work already exists also requests more.
