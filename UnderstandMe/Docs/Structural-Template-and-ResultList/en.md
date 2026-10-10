@@ -90,6 +90,12 @@ The source-initialized ResultList supplies the current text/structural reference
 
 **An accepted edit autosaves** in the host document store with revision acknowledgement and logical change history. Background AI/provider callbacks carry the base revision and are not allowed to overwrite newer manual versions. A revert to historical text/markup is applied as **another new revision**. Keep revision IDs separate from ephemeral `RequestId/SegmentId` and from QueueMaster job IDs; the host owns persistence and restoration. While editing invalid HTML source, persist the current draft with parsing diagnostics and use the last valid structural preview until correction, not invented valid output. [Direct Editing, Autosave and Revisions](../Direct-Editing-Autosave-and-Revisions/en.md).
 
+## Explicit source tag selection to target range
+
+When automated inner-phrase/outer-anchor alignment fails, **an authorized editor can identify alignment manually** rather than lose important markup. In the source preview, clicking a text span selects its **parsed enclosing element** (or a chosen ancestor) with a structural snapshot of the **complete tag name, attributes and source identity**. In the translated WYSIWYG draft the user selects the correct Czech/target-language text span; the format adapter creates an equivalent wrapper with the **original allowed `class`, `id`, `data-*` and other source attributes** and correct closing structure.
+
+Preserve the selected target wording, including any case-inflected word that automatic matching could not identify. Detect **duplicate target `id`** and invalid target nesting; never silently strip or rename structural IDs. Keep source and translated previews in separate safe document contexts. Invalid/unsafe attributes or nonwrappable tags cause an explicit conflict, not corrupted markup. The draft/ResultList structural map and revision update as **one manual edit**, invoking the shared 1-second autosave and revert history. This is a UI/format-adapter command, not a persistent dictionary key, automatic AI operation or translation provider. [Source Tag Transfer](../Source-Tag-Transfer/en.md).
+
 ## Lifecycle and presentation neutrality
 
 1. Format-specific adapter parses and validates the source structure.
