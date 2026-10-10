@@ -153,6 +153,10 @@ SignalR is an optional live transmission channel, comparable to an FM radio: obs
 
 `/SystemMonitor` aggregates events from all module publishers registered in one host. `/AfroLT/SystemMonitor`, `/Afutrans/SystemMonitor` and `/UnderstandMe/SystemMonitor` stream only their named modules. Each module emits one typed event, distributed to its module feed and global feed with the same envelope plus sender/instance identity and event ID. Separate hosts require an explicit bridge for remote aggregation. All these SignalR routes remain outbound-only, best-effort and independent of command processing or durable records. See [SystemMonitor](Docs/SystemMonitor/en.md).
 
+### Typed SystemMonitor events and passive event listeners
+
+Operational events are emitted once by each module through a typed publisher; the dedicated module SignalR transmitter and the aggregate /SystemMonitor router are both passive listeners, not a chain of Hubs. The shared event envelope uses a **generic Message<T>** rather than a string; report models are chosen and versioned by the originating module (model loading, queue state, translation progress, etc.). The root and module feeds carry the same event type/envelope and retain EventId, SourceModule and InstanceId. For wire interoperability, pair the strongly typed .NET payload with a stable, language-neutral ContractId and SchemaVersion; receivers deserialize known contracts via a registry and do not resolve arbitrary CLR types from remote input. Missing clients or listener failures have no effect on work. See [SystemMonitor design](Docs/SystemMonitor/en.md).
+
 ## 11. Source repositories and document maturity
 
 - Toolbox: https://github.com/afrowaveltd/Toolbox
