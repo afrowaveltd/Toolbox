@@ -42,6 +42,7 @@ Provide reusable building blocks for software localization, automatic and human 
 - [Editor, audit and rollback](Docs/Editor-and-Audit/en.md)
 - [Afutrans integration and interfaces](Docs/Afutrans-Integration/en.md)
 - [AfroLT future lightweight .NET translation service](Docs/AfroLT-Future-Design/en.md)
+- [Hierarchical SystemMonitor live-event routing](Docs/SystemMonitor/en.md)
 - [Open design questions](Docs/Open-Questions/en.md)
 - [Current implementation status and continuation point](IMPLEMENTATION_STATUS.md)
 
