@@ -18,19 +18,18 @@ A valid request should **not lose its translation function merely because the na
 
 Keep `RequestedProvider` and `UsedProvider` distinct; a provider can only be reported as **actually used after an attempt has run**, never merely after QueueMaster accepted a job. See [Request Admission and Normalization](../Request-Admission-and-Normalization/en.md).
 
-## RealTime behavior
+## RealTime behavior — automatic only, no human access
 
-- **RealTime + Mandatory:** do not wait for the **preferred** occupied provider. Select the first currently available, compatible and acceptable endpoint in the configured effective provider tier/order, considering source/target language, format/protected placeholders, configured quality/latency/cost limits and allowed escalation. Mandatory means the system should *try available alternatives now*, **not** promise success, bypass budget/LocalOnly constraints, or endlessly wait. If no acceptable endpoint exists, report a defined unavailable/fallback outcome rather than violating hard rules.
-- **RealTime without Mandatory:** the calling page/service may return the original untranslated text immediately, while an eligible background continuation produces and emits verified segment translations when ready. No automatic paid escalation is implied; backend work follows the request's configured provider preference, wait/timeout and lifetime.
-- Other queue priorities (P1-P4) can independently choose whether to wait, fail or fall back within their own deadline and cost policy; `Mandatory` is not itself a substitute for QueueMaster priority.
+`P0 RealTime` is **exclusively for automated, immediate output**. Human is **never an eligible worker** for P0, even when `Mandatory` is set or automatic candidates fail. A host with **only the Human provider** does not activate P0 translation execution: an incoming RealTime request returns **the unchanged original text virtually immediately**, without enqueueing, awaiting, or exposing it to a human.
 
-If a user leaves the page, whether the continuation is canceled, kept briefly for reuse or persisted depends on the original request policy. Existing default P0 real-time operations remain **volatile** unless explicitly designed as a different durable job; sending an asynchronous browser update is not proof of durable work.
+- **RealTime + Mandatory:** select the first currently available, compatible and acceptable **automatic** endpoint according to the effective provider policy, avoiding waits for a preferred busy engine. If no automatic endpoint is eligible or timely, return the original text (with an appropriate untranslated/unavailable status/reason) rather than violate hard limits or route to Human.
+- **RealTime without Mandatory:** the page/service can display original text at once and receive verified **automatic** translated segments later while a short-lived RealTime request remains active. This never implies a Human fallback or persistent manual task.
+- **Privacy:** RealTime can carry **private chat messages**. Do not persist or expose source text to Human queues, manual editors or reviewers automatically. `Mandatory` does not imply authorization for manual access. Any logging/cache is subject to separately approved data-handling settings and must not silently retain sensitive chat text.
+- Other P1-P4 priorities can queue explicitly authorized Human requests with durable storage and human-access policy, distinct from RealTime. The user's deliberate non-P0 manual submission is the only way to create such human work.
 
-## Delayed human continuation is durable work
+## Separate manual translation workflow
 
-A Human provider may have **no connected translator** when a request arrives. When the effective request asks for eventual human fulfillment, the orchestrator commits a durable human work item so it can wait in the normal QueueMaster priority queues until someone opens the translator UI. The response can indicate accepted/pending rather than pretending a human result is already available.
-
-The ordinary `P0 RealTime` behavior remains volatile and can immediately return the original untranslated content. If a delayed manual result is desired in addition, accept a **separate durable human follow-up** correlated to the original request/segments; it is not a hidden decision to preserve every transient P0 request. The translator UI, persistence and claim state are independent of how the final user-facing content is rendered. See [Human Translation Workflow](../Human-Translation-Workflow/en.md).
+A human may be offline while the system collects **explicitly submitted and authorized non-P0 manual requests**. Those requests are durably accepted under P1-P4 and are later claimed through QueueMaster by a human who opens a translation UI. **Never auto-convert a P0 request into a durable human continuation.** If the user independently requests manual treatment of text they are authorized to disclose, it is a **new manual request**, not a RealTime fallback or an implied `Persist` flag. See [Human Translation Workflow](../Human-Translation-Workflow/en.md).
 
 ## Splitter and UI-agnostic incremental delivery
 
