@@ -223,6 +223,14 @@ Hints follow occurrence order; missing/extra hints are validated and skip the cu
 
 The `IStringLocalizer` synchronous API and live asynchronous translation have different timing contracts; their integration requires explicit design, without blocking normal lookups indefinitely.
 
+### 2026-10-11 — layered localization, combinable hints and CLDR references (agreed design direction)
+
+**The dictionary-less start is a hard product requirement:** missing dictionaries, hints, grammar variants, CLDR data, AI or network must not prevent first use. Basic `en.json`, `cs.json` and other locale files remain flat key/string maps, usable by simple third-party JSON localizers. Store generated placeholder descriptions/examples separately (e.g. `en.placeholders.json`), and localized grammar variants/overrides in sidecar files (e.g. `cs.grammar.json`) or separate SQL tables. Prefer a usable fallback phrase over perfect grammar; never accept corrupted placeholder identities/multiplicity.
+
+**Inline hint API:** keep the original indexer accepting `params string[] args` *unchanged* for source and binary compatibility. Introduce an overload taking a typed hint or composite-hints container before the `params` tail; C# optional parameters cannot be skipped positionally. Hint types (plural, gender, case, condition) may each have specific fields; support combining multiple selectors within one context. Use optional unions for standard hint variants in newer .NET while preserving an extensible .NET 10-friendly abstraction. Exact signatures/union syntax are not yet settled. Keep actual runtime arguments distinct from safe-to-store translator hints.
+
+**Automation:** Afutrans may consult the now-vendored pinned Unicode CLDR 48.2.3 JSON to discover target-language plural categories, generate sample translations/variants, validate them, store them outside the basic dictionary and expose locale-specific edits/overrides in the editor. CLDR rule evaluation/import is **not yet implemented**. Do not assume English `one/other` categories suffice in Czech or vice versa; don't infer global category logic from a few equal-looking examples. Native source-language forms can also use selectors. See [Layered Localization and Grammar Hints](Docs/Grammar-Hints-and-Variants/en.md).
+
 ## 6. Persistence, lifecycle and cache
 
 Default operational storage for standalone Afutrans: SQLite. Larger deployments may use pluggable EF Core database providers (e.g. PostgreSQL or SQL Server). The **internal operational database** is separate from DataAccess connectors that read/write client dictionaries or articles.

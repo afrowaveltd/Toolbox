@@ -114,6 +114,7 @@ Afutrans assisted WYSIWYG lets the user **click formatted text in the original**
 - [Working requirements and agreed principles](Notes.md)
 - [Architecture and module boundaries](Docs/Architecture/en.md)
 - [Localization and placeholders](Docs/Localization/en.md)
+- [Layered localization, optional grammar and composable inline hints](Docs/Grammar-Hints-and-Variants/en.md)
 - [QueueMaster, scheduling and reliability](Docs/QueueMaster-and-Reliability/en.md)
 - [Human translation worker and durable on-demand backlog](Docs/Human-Translation-Workflow/en.md)
 - [Translation Chains and backend workers](Docs/Translation-Chains/en.md)

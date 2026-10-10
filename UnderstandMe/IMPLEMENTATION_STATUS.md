@@ -1,6 +1,6 @@
 # UnderstandMe implementation status
 
-Last updated: 2026-10-10  
+Last updated: 2026-10-11  
 Phase: **requirements/design preparation; implementation has not begun**.
 
 This is the continuation point for UnderstandMe work in the GitHub source of truth. Keep it updated after every later change. For established functional intent see [Notes.md](Notes.md). Do not mistake planned capabilities for implemented features.
@@ -325,12 +325,21 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - **UnderstandMe must preserve original IDs and attributes exactly as received**, and must not check duplicate-ID uniqueness, rename IDs, rewrite related JavaScript or block translations merely because source HTML has errors. This supersedes any older translation-side normalization/linting suggestions.
 - Updated `Docs/Source-Tag-Transfer/en.md` and this status only. Documentation/scope note; no runtime code, tests or new document-tool project added.
 
+## 2026-10-11 — layered grammar and hint contract captured (design only)
+
+- Audited the latest GitHub state of Toolbox UnderstandMe and Afutrans, including the CLDR data commit. Established that dictionary-less and placeholder requirements were already described, but the newer *flat dictionary + optional grammar/hint layers* and backwards-compatible indexer overload were not recorded together.
+- Added `Docs/Grammar-Hints-and-Variants/en.md` as the continuation specification: dictionary-less must work even without sidecars/CLDR/network; base `en.json`/`cs.json` stay flat; translator-facing placeholder hints, runtime selector hints, grammar variant/override stores and versioned metadata remain separate.
+- Captured preserving the existing `params string[] args` API and adding a typed/combinable-hints-before-`params` overload, one common resolver, .NET 10 compatibility and optional use of newer C# unions. Exact public types and representation remain **to be finalized**.
+- Recorded optional CLDR-driven generation, strict placeholder validation, editor corrections per locale, verified-safe deduplication, source-language grammar use and resilient fallbacks. The linked Afutrans repository already has pinned CLDR 48.2.3 source JSON; it does **not** implement the CLDR interpreter or grammar engine.
+- **Verification:** checked upstream repository file contents and latest heads; this change is documentation only. **No build/tests run**, no runtime or .NET API implemented.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
 2. Agree on minimal common object/interface contracts, QueueMaster ownership/atomicity and translator buffer semantics.
 3. Decide the net10/net11 API packaging strategy and existing Toolbox dependency baselines.
-4. Define testable increments and only then create the formal implementation plan and begin code, tests and per-change status updates.
+4. Start with the smallest dictionary-less + flat JSON + protected placeholder vertical slice and backwards-compatible localization overload, as recorded in [Layered Grammar and Hints](Docs/Grammar-Hints-and-Variants/en.md). Keep CLDR and sidecars optional.
+5. Define testable increments and only then create the formal implementation plan and begin code, tests and per-change status updates.
 
 Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 

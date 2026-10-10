@@ -57,6 +57,15 @@ Placeholder identity and original content remain available in memory. During tra
 
 No delimiter (ASCII, Unicode or HTML) is guaranteed preserved by every engine. Protection strategies are interchangeable: provider-compatible HTML markers, textual tokens, differential translation experiments and optional AI repair. Test per provider/language pair. Placeholder correctness is mandatory; perfect grammar (plural/gender inflection) is not part of the initial goal.
 
+
+## Planned optional grammar and inline hint layers (2026-10-11)
+
+**Agreed design direction, not implemented:** keep every basic locale dictionary as a **flat JSON key/string map**, suitable for an ordinary localizer. Optional translator-facing hints (for example `en.placeholders.json`), locale-specific variants (`cs.grammar.json`), CLDR reference rules and eventual SQL equivalents are strictly separate. They are never prerequisites for dictionary-less source-key registration or basic lookup. Failed grammar generation falls back to the known base/source phrase rather than preventing startup; strict placeholder integrity still applies to every accepted generated translation.
+
+Preserve the existing `t[key, params string[] args]` contract and add a distinct typed-hints-before-`params` overload. Support composite plural/gender/other hints through one resolver without forcing a public API change for every new rule. Prefer typed hint records/optional unions to untyped argument bags; keep .NET 10 extensibility and note that the exact API/JSON schema is not finalized.
+
+Afutrans can later generate and review per-locale variants using pinned offline CLDR datasets, while editors may override locale-specific rules and values. English is the Afutrans convention, not a hard requirement on UnderstandMe; native English grammar variants may also be needed. [Layered Localization and Grammar Hints](../Grammar-Hints-and-Variants/en.md) is the detailed continuation document.
+
 ## Data safety
 
 Provisional cache entries cannot overwrite a newer authoritative value. Keys include at least target/source identity, culture and phrase identity, plus relevant context. Cache expiration and event-driven refresh are complementary. Registration events and final-translation notifications are distinct concerns; their exact event contracts remain under discussion.
