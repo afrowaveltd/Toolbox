@@ -6,9 +6,19 @@ Status: design agreement, 2026-10-10; not implemented. This document complements
 
 An installation may run Afutrans as an internal translation service **and optionally publish spare translation capacity as a public API**. Different callers must be able to use different provider tiers and resources without creating vendor-specific logic inside QueueMaster or translation workers.
 
-**Default for ordinary, known clients**: no additional client-specific provider restriction — all configured provider families are eligible **subject to global administrator restrictions, provider capabilities and account hard limits**. A client policy can narrow those permissions. Public/anonymous access is a distinct explicitly configured client profile; it is not granted unlimited use of paid API accounts simply because ordinary known clients have no extra restrictions.
+**Default for ordinary, known clients**: no additional client-specific provider restriction — all configured provider families are eligible **subject to global administrator restrictions, provider capabilities and account hard limits**. A client policy can narrow those permissions. Public/anonymous access is a separately **opt-in exposed endpoint and configurable policy**. The operator can restrict it to local/free translation or explicitly permit paid/AI use, subject to global ceilings; known-client defaults do not silently turn public access on.
 
 A public deployment is optional and is a host exposure decision, not a core library requirement. By default, merely installing the UnderstandMe library must not expose an external HTTP listener.
+
+## Nothing but human translation is mandatory
+
+**Human translation is the one baseline provider capability**: UnderstandMe must be able to accept, queue/assign and receive manually supplied translations without an external translation engine. This does **not** imply that a human is online, that a human must approve every automatic result, or that a synchronous RealTime call can return a human translation immediately. Human worker availability and the request's allowed wait/manual workflow determine the outcome.
+
+LibreTranslate, AfroLT, Google, Microsoft, AI and every other automatic backend are **optional independently enabled integrations**. A human-only installation is a valid deployment, not an incomplete installation. Merely publishing a preferred free -> paid -> AI ranking does **not** enable, install or purchase any provider.
+
+`ClientPolicy` grants permission only among the installed, **activated**, globally permitted and currently eligible providers. The default known-client policy does not *add* permissions or activate paid services; it merely adds no further per-client restriction.
+
+**Public exposure and public entitlement are separate operator choices.** Public API routes are opt-in. When the host operator enables public service, they can explicitly select a free-only, paid-inclusive, unrestricted, human-only or custom public profile. A free/local restricted public profile is a recommended example, **not a hard-coded limit**: a philanthropist may deliberately allow anonymous callers access to every activated translator, including paid APIs, within administrator-authorized global spending rules. Conversely, an operator can disable every automatic engine, paid provider or AI integration even for themselves. No per-client policy can bypass a global hard cap.
 
 ## Distinct responsibilities
 
@@ -30,7 +40,7 @@ Illustrative profiles, not hard-coded types:
 | --- | --- | --- |
 | InternalDefault | All enabled and globally allowed engines by default | Regular orchestrator/account limits |
 | RegisteredFree | Local/free endpoints such as LibreTranslate | Word/day quota, rate/concurrency cap |
-| PublicAnonymous | Only administrator-approved free/local endpoints | Strict input/rate/concurrency limits; spare-capacity priority |
+| PublicAnonymous | Configurable on explicit activation: free/local, all globally enabled engines including paid, human-only or custom | Administrator-defined quota, rate, concurrency and priority rules |
 | PaidClient | Provider accounts/tiers explicitly included in purchased entitlement, potentially Google/Microsoft/AI | Client's plan, word/token quota or cost ceiling |
 | CustomClient | Configured per-client allow/deny choices and limits | Overrides permitted by administrator |
 
@@ -65,6 +75,6 @@ Public API request/reply contracts remain shared across REST, direct .NET and op
 
 ## Open implementation details
 
-Finalize `ClientPolicy` schema/group precedence and provider allowlist semantics; authenticated versus anonymous client ID strategy; publicly offered spare-capacity scheduler limits; daily/monthly client quota resets/time zones; multi-host atomic reservations; partial charge/retry accounting; permission changes mid-job; privacy of client usage reporting; and admission codes. Test allowed local fallback, forbidden Google and AI, paid entitlement, provider hard budget exhausted for every client, per-client quota exhaustion even with unused provider capacity, input spoofing, rate limiting, and fairness without starving internal work.
+Finalize `ClientPolicy` schema/group precedence and provider allowlist semantics; authenticated versus anonymous client ID strategy and explicit opt-in approval of paid access for anonymous callers; publicly offered spare-capacity scheduler limits; daily/monthly client quota resets/time zones; multi-host atomic reservations; partial charge/retry accounting; permission changes mid-job; privacy of client usage reporting; and admission codes. Test allowed local fallback, forbidden Google and AI, paid entitlement, provider hard budget exhausted for every client, per-client quota exhaustion even with unused provider capacity, input spoofing, rate limiting, and fairness without starving internal work.
 
 See [Request Admission](../Request-Admission-and-Normalization/en.md), [Provider Routing](../Provider-Routing/en.md), [Provider Billing](../Provider-Billing-and-Quotas/en.md), [QueueMaster](../QueueMaster-and-Reliability/en.md), [Architecture](../Architecture/en.md), [Implementation Status](../../IMPLEMENTATION_STATUS.md).
