@@ -61,6 +61,14 @@ An account hard limit is an **absolute constraint on further billable dispatch**
 
 Billing and engine selection must share one coherent eligibility decision, without giving QueueMaster responsibility for the cost model. Admission responses identify policy substitutions; completion/segment results identify the **actual** provider and charge estimate/receipt. See [Request Admission and Normalization](../Request-Admission-and-Normalization/en.md).
 
+## Client plans versus real provider-account cost
+
+In addition to the provider-account plan (what Afutrans pays Google/Microsoft), a host can offer **different ClientPolicy plans** (what a particular client is allowed to consume). A paying client may use approved paid endpoints while a public/anonymous free client is restricted to free/local capacity. Per-client quotas, such as words per day or per month, are separate from the shared provider package allowance. A client's paid entitlement is not unlimited permission to use the host's provider account.
+
+Before every costly or capacity-limited dispatch enforce both the client's own quota and the real provider-account hard budget, with safe concurrent reservations when multiple requests/hosts share a ledger. If either limit is exhausted, select another already-authorized eligible provider or return a precise denial/unavailable reason. Provider charges belong to actual provider usage, whereas client-plan consumption may have a different metering unit; record and reconcile them separately. This does not implement customer payments or automatic purchase of extra provider bundles.
+
+See [Client Access Policies](../Client-Access-Policies/en.md).
+
 ## Cost reporting and monitoring
 
 The administrator should be able to see per billing account/endpoint and period:
