@@ -144,6 +144,18 @@ A challenge must be bound to the expected node/connection with a short expiratio
 
 For clarity, the earlier requirement that every subsequent control request **always** carry `ClientId` and `ClientKey` is **superseded for ordinary monitoring reconnects**. Privileged enrollment, approval and key-management operations remain independently authorized; their guarantees are not relaxed by this monitoring convenience rule.
 
+## Operator controls for misbehaving monitoring sources
+
+A practical benefit of sender IDs is that a node which accidentally or deliberately floods the monitor with nonsense can be isolated **without stopping any translation engine or unrelated stream**. This is deliberately simple operator-controlled remediation, complementary to the lite approved-node registration/challenge.
+
+- **Mute (presentation filter):** an administrator may hide an original `ClientId`, `SourceModule`, instance or event type in one dashboard without changing receiver connections or other dashboards.
+- **Block (router ingress):** add a disabled/blocked state to the approved-node registry or source filter; the monitoring router drops further events from that origin before they enter its aggregate and module-specific feeds. Clearing the block can restore monitoring without a new registration if the approval record remains intact.
+- **Disconnect / revoke:** if the host is the **SignalR client receiving** a remote SystemMonitor feed, it can stop/dispose **its own receiver connection** and disable reconnection for a blocked peer. If it serves clients, it may refuse their future connections and close managed active sessions. A host cannot generally disconnect arbitrary clients of someone else's Hub.
+- **Forwarded origin:** preserve both the original sender identity and the immediate upstream relay. When VPS3 receives several origins through VPS2, blocking one original `ClientId` should filter just that origin rather than cutting off VPS2 and all other sources. The upstream relay can be blocked separately if the link itself misbehaves.
+- **Flood control:** cap unapproved registration frequency, inbound event rates and memory buffers so continuous noise does not exhaust the observer. These limits apply to monitoring infrastructure only, not source engines. Surface an operator-visible diagnostic when a source is muted/blocked.
+
+Treat a claimed `ClientId` as a **filtering handle**, not infallible proof of the real sender. If another peer successfully impersonates that ID, blocking it may also silence the genuine source; record the immediate connection identity and relay alongside original event metadata to make that operationally visible. These actions can be invoked through a separate authorized admin UI/API; `/SystemMonitor` remains outbound-only and neither stores events nor accepts admin commands.
+
 ## Verification before implementation
 
 Test that a source event appears once on its own feed and once on the aggregate, never on another module's feed; verify sender identity, absence of listeners, disconnect/slow subscribers, permissions, and optional bridge deduplication.
