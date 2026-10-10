@@ -39,6 +39,12 @@ A semantic text chunk may contain nested inline formatting. Instead of sending e
 
 Exact matching alone can fail because of inflection, paraphrase, multiple occurrences and altered word order. Never bind a tag to a guessed span. When supported, a provider's protected inline markup/HTML mode can be a more economical one-request strategy; the **inner variants + full-context alignment** method is an optional alternative. The Splitter owns **source-side semantic units and markup mapping**, while ResultProcessor/format adapter validates alignment and safe output. [Inline Markup Restoration](../Inline-Markup-Restoration/en.md).
 
+## Anchor-based fallback and optional inline formatting loss
+
+If inner translated variants do not appear inside the whole-sentence translation, a further **optional** attempt may translate surrounding source text (prefix and suffix), then use their corresponding **target-language anchor spans** to infer where the nested tag belongs. Example: `Hello` → `Ahoj`, `world` → `svět` may align with `Ahoj super světe!`; morphology-aware matching can recognize `svět`/`světe`. Only an **unambiguous** target span may be wrapped. A shift in word order, paraphrase or repeated anchors can make the inference unreliable.
+
+The Splitter keeps the original inline tag identity and attributes in the mapping. By default, when restoration still fails, **plain cosmetic** `strong`/`em`/`i` without significant attributes may be **omitted** while preserving text. If the inline tag carries `id` or any required functional structure/attribute, the **default is a typed failure** rather than silently losing that identity. These strategies and extra translation attempts are configured independently from the source chunking rules. [Inline Markup Restoration](../Inline-Markup-Restoration/en.md).
+
 ## Sentence boundaries and context
 
 A period (`.`) or end of line can be a useful starting separator, but an implementation must account for common counterexamples: decimals (`1.96`), abbreviations (`Dr.`), dates, URLs/domains, ellipses and language-specific punctuation. Prefer a configurable sentence boundary detector over a naïve `Split('.')` so chunks remain meaningful. Preservation of punctuation, spaces and newlines matters for exact reassembly.
