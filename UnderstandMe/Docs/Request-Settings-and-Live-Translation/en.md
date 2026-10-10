@@ -18,6 +18,14 @@ A valid request should **not lose its translation function merely because the na
 
 Keep `RequestedProvider` and `UsedProvider` distinct; a provider can only be reported as **actually used after an attempt has run**, never merely after QueueMaster accepted a job. See [Request Admission and Normalization](../Request-Admission-and-Normalization/en.md).
 
+## Privacy is independent from retention and queue priority
+
+`TranslationRequest.Privacy` (conceptual property name; type TBD) expresses confidentiality and **who can view the source and translated results**. It is distinct from `Persist`, `CachePolicy`, `LifeTime`, `SystemPersistent` and P0-P4 `QueuePriority`. An administrator/client/target policy may **tighten**, but not silently weaken, a declared Private scope. A request marked **Private** must not be submitted for Human translation or manual audit, even if it is not P0. Automated validation and permitted automatic providers remain eligible, according to the effective privacy policy.
+
+**Private does not mean ephemeral.** A private chat/forum/history translation may be retained as an **access-restricted translation result** and returned to the same authorized audience on subsequent history views. This avoids repeatedly translating unchanged content. `P0 RealTime` job state stays volatile; storing its verified result in a separate privacy-scoped translation cache does **not** make the P0 job persistent or send it to the Human backlog. The scope/reader authorization, owner-specific source identity/revision, language and retention must be checked on every cache lookup; do not leak a private result into global dictionaries or shared SystemPersistent memory.
+
+Manual review is prohibited for Private source/result contents; SystemMonitor and ordinary admin UI may see only safe content-free operational data. Privacy policy also governs which outside machine/AI endpoints may receive that text; it does not automatically force local-only unless the controlling policy says so. [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
+
 ## RealTime behavior — automatic only, no human access
 
 `P0 RealTime` is **exclusively for automated, immediate output**. Human is **never an eligible worker** for P0, even when `Mandatory` is set or automatic candidates fail. A host with **only the Human provider** does not activate P0 translation execution: an incoming RealTime request returns **the unchanged original text virtually immediately**, without enqueueing, awaiting, or exposing it to a human.
