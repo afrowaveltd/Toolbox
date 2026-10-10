@@ -49,5 +49,10 @@ This is a discussion backlog, **not** an implementation plan. Decisions recorded
 35. **Threat-model boundary:** accept that GUID is a public identifier, not cryptographic authentication. Test trusted HTTPS endpoint/certificate validation, explicit receiver configuration and absence of any remote client-callable Publish method; keep stronger credentials optional if requirements change.
 36. **Monitor identification tests:** connection announcement precedes normal events, unknown GUID is rejected/ignored, misdeclared event source is not forwarded, and failures never block local work.
 
+37. **Monitor node self-enrollment:** finalize the small separate HTTPS request endpoint, `ClientId` + declared source metadata, durable pending registration record, and typed non-secret `MonitorRegistrationRequested` notification to live administrators. Never auto-approve.
+38. **Admin decision and client claim:** define authorized approve/deny UI and audited decision, recipient-generated GUID `ClientKey` bound to the approved client/source permissions, safe one-time applicant claim/poll flow after offline approval, replacement/revocation and HTTPS headers for subsequent control calls. Do not publish the key on SignalR.
+39. **Enrollment/source-direction clarity:** distinguish the credential used on VPS4 -> VPS3 enrollment/control from VPS3 -> VPS4 read-only SignalR monitoring; configure and validate remote server identity independently. Approval may start automatic source monitoring without changing the outgoing-only Hub.
+40. **Enrollment tests:** concurrent/duplicate requests, administrator absent/present, rejected and approved nodes, secret-claim theft, expired claim tickets, registration flooding, and rejected/failed remote connection without impacting existing monitoring or other work.
+
 Current status and next continuation point: [Implementation Status](../../IMPLEMENTATION_STATUS.md).
 
