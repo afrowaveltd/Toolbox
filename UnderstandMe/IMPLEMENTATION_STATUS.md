@@ -133,6 +133,13 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Distinguishes enrollment/control from the reverse-direction pull connection: the aggregator's SignalR receiver connects to the approved source under separately validated HTTPS server identity. SignalR monitor Hub stays strictly server-to-client.
 - Documented pending-registration durability, notification best effort, revocation, one-time claim security and anti-flood tests. Updated `Docs/SystemMonitor/en.md`, `Docs/Architecture/en.md`, `Notes.md`, `Docs/Open-Questions/en.md`, and this status. No runtime code, package or test implementation changed.
 
+## 2026-10-10 — on-demand GUID challenge for familiar monitoring nodes (design only)
+
+- Refined the administrator-approved SystemMonitor pairing with a doorman-style, **risk-triggered identity challenge**. After first approved activation, normal active connections require no additional GUID transmission; routine new/reconnected sessions may use the approved public ClientId and familiar network/source metadata without sending ClientKey every time.
+- If the apparent connection identity changes unexpectedly, the recipient requests the **private recipient-issued ClientKey GUID** over a separate HTTPS connection-verification path before trusting new monitoring events. The outbound-only SystemMonitor Hub still has no client-callable business methods.
+- Clarified the security tradeoff: IP/header/public-GUID familiarity is spoofable and **does not strongly authenticate a newly reconnected node**. Challenge-every-new-connection remains a possible stricter option.
+- Updated `Docs/SystemMonitor/en.md`, `Docs/Architecture/en.md`, `Notes.md`, `Docs/Open-Questions/en.md` and this status. No implementation or test execution occurred.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
