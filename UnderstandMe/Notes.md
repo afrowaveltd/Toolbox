@@ -37,6 +37,14 @@ Translator endpoint readiness has only one externally visible state variable: `I
 
 P0 RealTime work is deliberately volatile and short lived: do not persist every live translation request. Other tasks may use SQL-backed job persistence according to their policy. Registering new localization keys is independent of retaining the P0 job.
 
+### Durable human backlog independent of translator login
+
+**Human translation consumes pending queued work**, potentially long after requests were accepted. The translator UI does not need to be online for the orchestrator/QueueMaster to accept requests. Human-designated waiting items must be **durably saved** and visible later in the original five QueueMaster priority queues, with an authoritative per-priority/language count when a translator signs in. Human work is a normal worker path, not a sixth physical queue or independent scheduling service.
+
+The authorized human chooses/claims compatible work via an **exclusive atomic QueueMaster reservation**. Pending items and in-progress states survive server/UI disconnect; a lease/recovery scheme avoids double assignment and stale submission overwriting newer work. Results follow normal validation, typed result and audit rules. The host/UI chooses whether to show all accessible work or filtered choices; neither an administrative SystemMonitor event nor a live translator connection owns work.
+
+The earlier `P0 RealTime` volatile default still holds for instant requests. A request meant to receive a human translation days later must create a **separately durable human continuation** with correlation to the original if needed; do not silently persist every P0 event. Human readiness has no requirement to be immediate. See [Human Translation Workflow](Docs/Human-Translation-Workflow/en.md).
+
 ## 4. Job, Pipe and Chain configuration
 
 `TranslationRequest`, `TranslationJob`, job items, translation results and their alternatives are distinct concepts. One logical job can contain many items; one item/step can yield multiple candidate results, including arrays and structured objects instead of a single string.
