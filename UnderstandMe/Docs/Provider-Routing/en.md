@@ -6,6 +6,14 @@ Status: agreed architectural direction and design questions, 2026-10-10. This is
 
 UnderstandMe supports multiple translation providers rather than requiring one translation engine. The preferred first provider is chosen by **policy and workload**, not hard-coded in QueueMaster. Self-hosted LibreTranslate is a first-class economical default for suitable workloads. Other installations may prefer Google, Microsoft, an AI provider, self-hosted AfroLT or a human worker. Installing any optional backend does not make it a core dependency.
 
+## Mandatory human capability, optional automatic engines
+
+The **only required translation provider capability is a Human worker**. UnderstandMe must support submitting work to an available human translator/editor and receiving verified manually supplied results without configuring any machine or AI engine. Human-only is a valid operating mode; availability may be asynchronous, and a human is not forced to review every automatic translation unless the chosen Chain requires it.
+
+**All machine and AI providers are optional integrations:** LibreTranslate, AfroLT, Google, Microsoft, Ollama, OpenAI and community engines are registered and activated individually by the host administrator. Provider adapters, credentials, subscription plans, model files and automatic translation jobs must not be required to run the human-only core.
+
+The standard free/local -> equally ranked paid APIs -> AI order describes **preference among activated eligible machine providers only**. It must never instantiate missing providers, automatically authorize paid costs or make a paid engine mandatory. A human can be an explicit preferred provider or the only provider; human worker readiness/turnaround and request acceptance deadlines are independent of machine endpoint health checks. If nobody can currently execute the work, return a truthful deferred/manual-queue or unavailable outcome according to the request policy, not a fictitious machine translation.
+
 ## Separate the different priorities
 
 - **Job priority** belongs to QueueMaster: P0 real-time through P4 background, controlling *when* work is dispatched.
@@ -59,7 +67,7 @@ Suggested conceptual profiles, not mandatory names:
 
 ## Agreed default tiers and request-specific options
 
-The agreed **default tier ordering** is self-hosted/free translation (LibreTranslate or similar) → paid translation APIs (each paid API has **equal priority by default**) → AI translation/review. These are merely sensible operator defaults, not vendor-specific branches compiled into the selector. A host administrator can reorder providers globally or **for an individual language pair**, and a request can select an allowed override via its effective Settings. Do not automatically lower a provider's configured priority based on stale quality observations.
+The agreed **default preference among activated automatic providers** is self-hosted/free translation (LibreTranslate or similar) → paid translation APIs (each paid API has **equal priority by default**) → AI translation/review. **None is required or enabled by this ranking; Human is always supported and can operate alone.** These are merely sensible operator defaults, not vendor-specific branches compiled into the selector. A host administrator can reorder providers globally or **for an individual language pair**, and a request can select an allowed override via its effective Settings. Do not automatically lower a provider's configured priority based on stale quality observations.
 
 Request-level `QueuePriority` (P0–P4), independent behavior flags such as `Mandatory` and the configured provider tier are separate. **P0 RealTime + Mandatory** takes the first *available*, acceptable, working compatible backend in effective order without waiting for a busy preferred one, respecting hard cost/privacy/capability boundaries. A **non-Mandatory RealTime** request may immediately return the source and deliver translated segments asynchronously when capacity allows. If there is no eligible functioning backend, a configured unavailable/source-return outcome applies: `Mandatory` does not promise impossible translation or unlimited paid spending.
 
