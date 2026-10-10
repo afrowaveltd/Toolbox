@@ -57,6 +57,10 @@ For documents and other long texts, a format-aware splitter supplies ordered `(S
 
 An AI pass can combine translation, tone and constraints in one composed prompt; two-pass translation + final review; or separate translation, style revision and semantic validation. The web-host editor should let a user build/reorder/configure these chains. Individual steps choose prompts/models. Prompt templates and fragments are versioned/configurable with inspectable composed final prompts.
 
+## Private request handling in Chains
+
+The request's effective `Privacy` determines visibility and permitted processor hand-offs **independently of how long translated results are kept**. A `Private` request can use an authorized machine-only translation and automated validation Chain, then retain just its verified final output in a conversation-scoped cache for later permitted history views. It must **not** automatically branch to Human/manual audit or promote private text into global translation memory/dictionaries. `P0 RealTime` remains volatile and automatic-only even when its separately stored result is long-lived. Private result access checks and deletion remain the host/source-owner's responsibility. [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
+
 ## Source fidelity and structure
 
 Human comments may be explicit, emotional or sarcastic. Preserve source meaning, wording intensity and tone unless the target's explicit editorial policy authorizes changes. Documentation may allow professional polishing. Distinguish faithful translation from optional editorial rewriting. An AI semantic check compares proposed output to the **original**, not a previous generated translation.
