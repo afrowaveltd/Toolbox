@@ -54,6 +54,12 @@ Each translation request has a stable `RequestId` to separate identical segment 
 
 The host chooses its own result/update transport: component callbacks, direct .NET calls, SignalR, SSE, polling or another interface. The **administrative `/SystemMonitor` is not the delivery mechanism for translated user content**. When an update is missed, the client may fetch currently available verified results if the request's caching/durability rules allow it. Volatile P0 work may expire. The fundamental rule is *identify the segment, translate it independently, notify completion, update only that segment*.
 
+## Chat-specific transient correlation and recipient corrections
+
+For chat/forum/user-generated text, `RequestId` and splitter-generated `SegmentId = 0..N` exist only **during the translation request** to match translated chunks. Unlike localization dictionary `KEY=VALUE` entries, **chunk IDs are never durable keys**. UnderstandMe returns the segments and metadata; the **consuming chat application** reassembles the entire translated message and independently manages its message history and retention.
+
+An authorized recipient may edit their own displayed translation after it is returned. This is **personal review/self-correction**, not a Human translator audit or a P0 fallback. The recipient can decide to apply the correction without caching, or explicitly opt in to a **recipient-scoped cached correction**. Storing the chat application's *initial translated message* under its own history policy is a different choice from storing the recipient's *edited override*. Neither turns the volatile P0 job persistent nor sends it to Human work queues. Sharing an edit more broadly requires its own explicit authorization; 'cache' does not itself mean 'publish'. [Chat Translation Flow](../Chat-Translation-Flow/en.md).
+
 ## Optional SystemPersistent translation memory
 
 Treat `SystemPersistent` as an optional **bounded permanent/reusable translation memory**, not an unbounded history or indiscriminate log of every translation. A request can opt to **read** this layer before provider routing; permission to **write/promote** into it is a separate decision. Only configured validated/approved translations should be promoted automatically or manually. Dictionary-authoritative translations take precedence; then a permitted context-matched SystemPersistent memory match; then provisional cache; then a live provider request when necessary.
