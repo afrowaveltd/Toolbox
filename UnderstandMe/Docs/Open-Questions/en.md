@@ -54,5 +54,9 @@ This is a discussion backlog, **not** an implementation plan. Decisions recorded
 39. **Enrollment/source-direction clarity:** distinguish the credential used on VPS4 -> VPS3 enrollment/control from VPS3 -> VPS4 read-only SignalR monitoring; configure and validate remote server identity independently. Approval may start automatic source monitoring without changing the outgoing-only Hub.
 40. **Enrollment tests:** concurrent/duplicate requests, administrator absent/present, rejected and approved nodes, secret-claim theft, expired claim tickets, registration flooding, and rejected/failed remote connection without impacting existing monitoring or other work.
 
+41. **Adaptive monitor familiarity:** define the small approved-node connection profile (ClientId, configured HTTPS endpoint, stable versus changeable network hints, module list); distinguish active connections from newly established/reconnected sessions and document the deliberate spoofing risk of accepted unchanged-looking connections.
+42. **On-demand GUID challenge:** define which changes trigger `IdentityChallenge`, where HTTPS challenge/response occurs outside the event-only Hub, challenge expiry and connection binding, and how the recipient compares the private recipient-issued ClientKey before forwarding data.
+43. **Compatibility and risk-level tests:** known routine reconnect with only ClientId, changed IP behind NAT/proxy, changed source-module claims, successful/failed/no response to the GUID challenge, spoofed familiar headers/IP, plus optional challenge-every-session policy for stricter deployments. No scenario may stop core work.
+
 Current status and next continuation point: [Implementation Status](../../IMPLEMENTATION_STATUS.md).
 
