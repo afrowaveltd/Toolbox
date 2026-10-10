@@ -52,6 +52,12 @@ A Human worker can process **durably queued translation requests whenever a tran
 
 Request `Privacy` is separate from queue priority, provider choice and result persistence. A **Private** chat/forum translation can be retained for future authorized history views without keeping its volatile P0 execution alive. Saved translations are restricted to the original source's tenant/conversation/message and current readership permissions, not shared globally or exposed to Human translators, manual auditors or general administrative UI. Automatic checks and permitted processing providers remain configurable. A source change, deletion or lost access must invalidate/restrict the cached translation. See [Privacy, access-scoped translations and retention](Docs/Translation-Privacy-and-Scoped-Storage/en.md).
 
+## Chat translation and recipient corrections
+
+UI/application localization dictionaries use `KEY=VALUE`. **Chats and user-generated messages do not.** Their Splitter chunk IDs `0..N` exist only for matching results during a request; the translation engine returns translated chunks while the **consuming chat application assembles the full text, displays it and owns saved history**.
+
+After an automatic private translation, the **authorized recipient** may optionally correct their own displayed version in a host UI. The correction may remain session-only (**no cache**) or be cached at that recipient's **explicit choice**; broader sharing, if offered, requires a separate authorized choice. This is not the generic Human translator queue or manual audit. `P0` remains volatile and machine-only, even when the chat application retains its finished translation outside the engine. See [Chat translation flow and recipient corrections](Docs/Chat-Translation-Flow/en.md).
+
 ## Planned areas
 
 | Area | Responsibility |
