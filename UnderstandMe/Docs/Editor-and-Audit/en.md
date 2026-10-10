@@ -20,6 +20,14 @@ The editor can **directly correct translated text or safely edit its HTML**, sel
 
 HTML preview needs safe isolated rendering of untrusted documents/scripts/resources. Validate ID/links/functional attributes, placeholders and full-document structure before publishing, and keep unresolved source regions visible. **Manual document review does not change the mandatory dictionary-edit audit rule**, and private chat recipient-only corrections retain their separate scope. See [Assisted Document Translation](../Assisted-Document-Translation/en.md).
 
+## Direct editing, autosave and revision history (Afutrans)
+
+**No successful machine translation is required for an authorized user to finish a document manually.** The user may write the target text from scratch or repair an existing result. In assisted mode the right-hand **rendered preview is directly editable**, as is the corresponding **HTML/Markdown source line/region**. A simple click/tap starts editing: the user should not need a separate modal or mandatory Save button. Both representations share one draft and a safe source/render mapping. Responsive layouts retain full editing on narrow/mobile screens.
+
+**Persist each accepted change automatically in the background**, with immediate local display and explicit durable acknowledgement. Short debounce/batching is permitted, but unrecoverable lost changes or falsely reporting `Saved` are not. Preserve a visible state for network/offline/retry/conflict/save error. Source drafts with mid-typing incomplete HTML remain editable and saved as drafts, while previews retain a known valid representation if required.
+
+Every committed logical edit creates a **versioned history item** (who, when, what changed); restoring an older version must be implemented as a **new revision**, so history stays intact. Provide simple undo, history browsing and revert. Late provider/AI completions must not overwrite newer user edits. Document revision storage is host-owned; **manual UI-dictionary edits** still get the separately mandatory revision audit below, while **private chat recipient corrections** remain subject to their own explicit cache/no-cache choice. [Direct Editing, Autosave and Revisions](../Direct-Editing-Autosave-and-Revisions/en.md).
+
 ## Translator interface over the durable backlog
 
 As a **Human worker**, the operator can connect at any later time to inspect durable pending work in the existing QueueMaster queues: per-priority counts, compatible language directions, status (pending/claimed/in progress) and items available to that person. Nothing requires the interface or its operator to be online when requests arrive. A human translation item is claimed **exclusively through the QueueMaster worker contract**, not directly dequeued from UI code; interruption or disconnect needs safe release/recovery without losing the original item.
