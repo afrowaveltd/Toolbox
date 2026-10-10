@@ -216,6 +216,13 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Clarified a special supported scenario: an administrator may deliberately sponsor **anonymous public paid translations** with a shared public-profile spending cap and provider-account hard limit. Only **client-specific paid entitlements** need verifiable caller identity for attribution; this is distinct from the lightweight SystemMonitor peer mechanism.
 - Updated `Docs/Client-Access-Policies/en.md`, `Docs/Provider-Routing/en.md`, `Docs/Translation-Chains/en.md`, `Docs/Architecture/en.md`, `Docs/Afutrans-Integration/en.md`, `Docs/Request-Admission-and-Normalization/en.md`, `Docs/Provider-Billing-and-Quotas/en.md`, `Docs/QueueMaster-and-Reliability/en.md`, `README.md`, `Notes.md`, `Docs/Open-Questions/en.md` and this implementation status. **Design documentation only; no .NET code changed or tests executed**.
 
+## 2026-10-10 — Human translator as durable backlog worker (agreed design only)
+
+- Clarified that Human translation is simply **eventual processing of the existing QueueMaster five priority queues**. A human translator may be offline while new human-intended work is accepted and durably persisted. When the translator later opens any UI, they see authoritative waiting/claimed counts per priority and language, and choose/claim work. The UI does not own the queue and SystemMonitor events are never the source of truth.
+- Durable human work must support **atomic exclusive claim/reservation, disconnected worker recovery, stale-claim conflict detection and preservation of completed/checkpointed results**. Specific timeout/heartbeat mechanisms remain open questions.
+- Preserved the previously agreed **volatile P0 RealTime default**: eventual Human fulfillment from a live request requires an explicitly admitted, durable human continuation item correlated to the original request, not an implicit new retention policy for all RealTime work.
+- Created `Docs/Human-Translation-Workflow/en.md`; updated `Docs/QueueMaster-and-Reliability/en.md`, `Docs/Translation-Chains/en.md`, `Docs/Architecture/en.md`, `Docs/Request-Settings-and-Live-Translation/en.md`, `Docs/Editor-and-Audit/en.md`, `Docs/Afutrans-Integration/en.md`, `Notes.md`, `README.md`, `Docs/Open-Questions/en.md`, and this status. **Design/documentation only; no runtime code, package or test execution.**
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
