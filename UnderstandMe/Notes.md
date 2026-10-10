@@ -179,6 +179,12 @@ Once a node is administrator-approved, its private recipient-issued `ClientKey` 
 
 No credential challenge is performed by a client-callable method on `/SystemMonitor`; it remains outgoing-only. Be explicit that public GUID/header/IP familiarity is spoofable and constitutes only **lightweight recognition**, not proven identity for every new session. Challenge every new connection when stronger authenticity is necessary. Key details: [SystemMonitor design](Docs/SystemMonitor/en.md).
 
+### Clickable monitoring filters and human-controlled incident decisions
+
+The combined SystemMonitor stream may be high-volume. Each admin dashboard must provide a convenient interactive filter builder across servers/original ClientIds, relays, modules, instances, severities/results, contract/event names, correlation IDs, time and searchable diagnostics, supporting multi-select and saved personal presets. Client display filtering does **not** modify publishing, other clients' views, or the approved-node registry.
+
+At the router's admission boundary, an invalid/unexpected event is **recorded as an incident and discarded**, not converted into an automatic source block or revocation. Repeated identical incidents may be counted/aggregated to avoid storage or UI floods. The operator decides separately whether to ignore it, inspect the source, manually mute, manually block/revoke, or change expected-source settings. A proper new-node registration remains Pending, not an incident solely because it is new. Critical incident storage persists independently of the SignalR live notifications. See [SystemMonitor](Docs/SystemMonitor/en.md).
+
 ## 11. Source repositories and document maturity
 
 - Toolbox: https://github.com/afrowaveltd/Toolbox
