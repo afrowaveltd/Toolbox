@@ -22,6 +22,12 @@ Afutrans should let each Translation Target choose a reusable provider-selection
 
 This is configuration over the generic UnderstandMe provider selection boundary, not a separate Afutrans-only selection engine. Privacy/LocalOnly restrictions and spending ceilings cannot be bypassed by a UI user preference. No paid endpoint is implicitly called just because another provider returns a result. [Provider routing and cost](../Provider-Routing/en.md).
 
+## Optional spare-capacity API and per-client plans
+
+Afutrans may offer a **public API using spare capacity** of its own locally run LibreTranslate/other free endpoint(s), with administrators deciding whether the public endpoint is exposed at all. A `ClientPolicy` profile distinguishes normal internal users, named customers with paid-provider entitlements, registered free users and anonymous public users. A paid API account must not become accessible to a public/free client merely because Google is enabled for internal work.
+
+Admin configuration includes permitted provider tiers/accounts, client quotas (words/day or other meter), maximum request/concurrency/rate, client priority ceilings, reserve for internal work and user-visible reasons for using a different provider. By default established/internal users have no additional provider restriction; the public/anonymous profile should be separately restricted. The same admission enforcement applies to direct .NET/REST/business SignalR entry points. See [Client Access Policies](../Client-Access-Policies/en.md).
+
 ## Communication
 
 Messenger delivers authorized local/SignalR events and status projections. Clients may submit requests, receive acceptance and progress, and confirm results. Reconnect uses replay/deduplication for durable messages. `Update_Cache` informs connected localizers of committed changed values. Messenger does NOT instruct workers or own queues.
