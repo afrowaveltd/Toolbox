@@ -34,6 +34,12 @@ The architecture must also allow asynchronous requests for additional translatio
 
 Each module emits events independently. A host maps `/SystemMonitor` for events from all locally registered modules, and `/AfroLT/SystemMonitor`, `/Afutrans/SystemMonitor`, `/UnderstandMe/SystemMonitor` for each module's own events. All use one typed envelope with sender identity. The host fans out a single event to global and module feeds, without Hub-to-Hub forwarding. Remote instances only aggregate through an optional bridge. Monitoring is outbound-only, best-effort, never a storage or command channel. See [SystemMonitor](../SystemMonitor/en.md).
 
+### Optional remote event aggregation
+
+A monitoring host may also load an optional **SignalR client receiver** connected to multiple trusted remote `/SystemMonitor` endpoints. Received events enter the same local event router as self-generated events; its root `/SystemMonitor` combines local and imported monitoring streams, as in VPS1 and VPS2 feeding VPS3. The receiver does not add callable methods to the outbound-only Hub and does not make individual modules depend on one another.
+
+Preserve original event/source IDs and generic message contracts. Federation is explicitly configured and uses bounded nonblocking queues, per-connection reconnect/health status, provenance and loop/deduplication protection. It remains best-effort, never a durable job or incident delivery mechanism. See [SystemMonitor](../SystemMonitor/en.md).
+
 ## Design-stage constraints
 
 - No folder layout, package split, DI registrations or interface method signatures are final.
