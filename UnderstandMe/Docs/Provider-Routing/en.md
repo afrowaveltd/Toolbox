@@ -67,6 +67,16 @@ Accepted requests capture effective routing Settings at creation; changing admin
 
 Details on typed Settings flags, live segments and SystemPersistent translation memory: [Request Settings and Live Translation](../Request-Settings-and-Live-Translation/en.md).
 
+## Orchestrator-normalized requests and default provider substitution
+
+A caller's requested vendor/endpoint (for example Google API) is a **preference**, never a direct provider call or permission to override the administrator. On admission, the orchestrator preserves the original request, checks the governing Settings and creates an **effective request**. It may normalize priorities, optional behavior flags and provider choice under administrator rules, and reports the adjustments to the client.
+
+**Default policy: keep the translation possible.** If the caller-selected provider is forbidden, exhausted or incapable, the orchestrator should consider other **eligible authorized** providers in its configured ranking and attempt the translation when feasible. Rejecting merely because the preferred engine is disallowed is wrong. If no provider can satisfy required language/format/privacy and hard budget constraints, **reject explicitly with a reason** (or report failure if the job was already accepted). This fallback to another eligible engine on policy restriction is part of best-effort admission, not consent to paid overage or bypass of caller-protected hard requirements. `Mandatory` may expedite use of a ready acceptable alternative but does not override hard limits.
+
+The provider selected at completion need not match the one named by the request. Client results should distinguish `RequestedProvider`, `EffectivePolicyAdjustments`, actual `UsedProvider`/`UsedEndpoint`, and `Rejected`/`Unavailable` reasons. For segmented jobs, different approved endpoints may execute distinct segments: report provenance by segment/attempt where relevant. Receipt of an accepted job never guarantees the translation has already succeeded. The authoritative selection/admission logic is a host/application orchestrator function, not an internal decision hard-coded into a provider adapter or the central QueueMaster.
+
+See [Request Admission and Normalization](../Request-Admission-and-Normalization/en.md) for the complete default response and rejection rules.
+
 ## Eligibility, fallback and quality
 
 The selection policy first **filters for eligible endpoints** based on languages, request format, capabilities, ready state, privacy/LocalOnly limits, explicit allowlists, budget and other hard constraints. Then it chooses among eligible candidates by priority/order or cost/latency preference. Never submit unsupported languages or a format to a provider merely because it ranks first.
