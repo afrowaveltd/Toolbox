@@ -77,6 +77,14 @@ The provider selected at completion need not match the one named by the request.
 
 See [Request Admission and Normalization](../Request-Admission-and-Normalization/en.md) for the complete default response and rejection rules.
 
+## Per-client eligibility and public API profiles
+
+Provider selection evaluates the **trusted caller's ClientPolicy** along with system/admin limits, capabilities and price. By default, ordinary known clients may use all system-enabled engines; operators can override individual clients or groups to deny paid API, AI or particular accounts. An optional public Afutrans API can expose surplus free/local translation capacity with a separate restricted profile, rate/parallelism and usage limits. Paid clients may have paid-provider access only within their approved entitlement.
+
+A caller's requested Google API cannot bypass a per-client paid-provider restriction. The selector must look for eligible LibreTranslate or another allowed backend and transparently report `RequestedProviderNotAllowedForClient` (conceptual code); do not reject a translatable task solely for an invalid vendor preference. Check current **client quota and provider-account quota independently before dispatch**. Public client identities must be resolved at the transport/command boundary, not invented by the request payload or inferred from the weak GUID-only SystemMonitor protocol.
+
+Details: [Client Access Policies](../Client-Access-Policies/en.md).
+
 ## Eligibility, fallback and quality
 
 The selection policy first **filters for eligible endpoints** based on languages, request format, capabilities, ready state, privacy/LocalOnly limits, explicit allowlists, budget and other hard constraints. Then it chooses among eligible candidates by priority/order or cost/latency preference. Never submit unsupported languages or a format to a provider merely because it ranks first.
