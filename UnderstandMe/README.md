@@ -62,6 +62,10 @@ After an automatic private translation, the **authorized recipient** may optiona
 
 The Splitter prefers **semantic chunks**, not arbitrary length: short text can stay intact, formatted plain text usually splits by paragraph, unformatted continuous prose by sentence, Markdown by meaningful document nodes and HTML by translatable element content. Configurable `Settings` controls the mode; provider limits may trigger safe secondary splitting. Temporary `0..N` IDs are used only to match chunks, and the caller reconstructs the translated document or chat message. See [Semantic Splitter](Docs/Semantic-Splitter/en.md).
 
+## Structural templates and progressive translations
+
+For HTML/Markdown, a proposed representation keeps a **parsed structural template** with request-local references to a `ResultList`. Each slot begins with **the original source text**, so uncompleted parts remain visible; verified translations update slots progressively without changing the document layout. Prefer AST/DOM mapping rather than inserting literal synthetic `placeholder` attributes into user HTML; nested formatting remains protected and rendered safely. Design proposal, not yet final public API. See [Structural Template and ResultList](Docs/Structural-Template-and-ResultList/en.md).
+
 ## Planned areas
 
 | Area | Responsibility |
