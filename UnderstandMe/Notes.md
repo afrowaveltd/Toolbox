@@ -149,6 +149,14 @@ Chunks are useful mostly for **large or structured text**; small normal texts ca
 
 Each Splitter assigns request-local `Id=0..N` to temporary translation chunks; these are not stored as `KEY=VALUE` dictionary entries or durable chat IDs. Caller receives translated segments and owns reassembly and final storage. The policy can be overridden by `Settings` (conceptual Auto/Paragraph/Sentence/FormatAware modes). See [Semantic Splitter](Docs/Semantic-Splitter/en.md), [Chat Translation Flow](Docs/Chat-Translation-Flow/en.md).
 
+### Structural template and source-initialized ResultList (exploratory)
+
+The proposed HTML representation `<tag placeholder=0>@ResultList[0]</tag>` captures a useful **template + replaceable text slots** design. Parse HTML/Markdown into its own structural model first, map each meaningful translatable unit to a request-local integer `Id=0..N`, and **initialize `ResultList` with the original content** for all slots. Render source immediately; translate asynchronously; update only each verified result slot as it completes, preserving original, translated/current text, status and revision. Failed/pending results keep the source visible. IDs are temporary and unrelated to dictionary keys, durable work queues or chat message identity.
+
+This is a **conceptual mapping, not a final decision to write synthetic attributes into HTML**. Use a proper HTML parser (void elements including `br`, nested tags, text nodes, malformed-but-recoverable source); map safe structural/AST references separately instead of overwriting real `placeholder` attributes. Mixed content (`<p>Hello <strong>beautiful</strong> world!</p>`) should remain a coherent translation chunk where possible while protected inline markers preserve formatting. Raw translated markup is not automatically trusted as executable HTML. Markdown uses AST nodes rather than HTML assumptions; chat hosts remain responsible for assembling and storing translated messages.
+
+Next contract design must decide structure/slot API, safe HTML/Markdown node mapping, out-of-order updates, inline markup protection, empty-result state, and source fidelity. [Structural Template and ResultList](Docs/Structural-Template-and-ResultList/en.md), [Semantic Splitter](Docs/Semantic-Splitter/en.md).
+
 ## 5. Localization and dictionary-less start
 
 Use standard .NET localization concepts. Hosts configure default culture, dictionaries/storage, target languages, ignored/manual-only languages, live translation and monitoring. For dictionary-less mode, a missing source key is registered in the default dictionary where `KEY = VALUE`. General UnderstandMe should not mandate English; Afutrans and participating Afutrans modules conventionally use English source keys.
