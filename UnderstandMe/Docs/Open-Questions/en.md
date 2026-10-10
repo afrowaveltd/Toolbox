@@ -18,5 +18,8 @@ This is a discussion backlog, **not** an implementation plan. Decisions recorded
 13. **Native translation feasibility:** prototype .NET-to-CTranslate2 interop; measure baseline Argos/LibreTranslate versus a constrained native worker on a small VPS; test model loading, tokenization, segmentation, concurrency, crashes, independent process restart and failover.
 14. **Attribution and licenses:** resolve the individual Argos model-package license/provenance/redistribution question, required third-party notices, and which improvements to propose upstream to LibreTranslate/Argos/CTranslate2.
 
+15. **AfroLT service design:** keep LibreTranslate for HTML/placeholder workflows; decide the independently implemented service's HTTP compatibility surface, capability advertisement, default HTML fallback, and how model health/restart are exposed.
+16. **AfroLT WebUI and OpenAPI:** define externally sourced CSS/theme policy, access control of instance settings, Scalar API reference publication policy, and OpenAPI 3.2 versus 3.1 client compatibility.
+
 Current status and next continuation point: [Implementation Status](../../IMPLEMENTATION_STATUS.md).
 

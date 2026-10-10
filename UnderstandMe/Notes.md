@@ -115,6 +115,14 @@ References:
 - CTranslate2: https://github.com/OpenNMT/CTranslate2
 - Open discussion of individual model-package licensing: https://github.com/argosopentech/argos-translate/issues/533
 
+### AfroLT as a complementary future service
+
+AfroLT is a prospective **independently implemented** .NET translation library/HTTP service, not a replacement for LibreTranslate. Keep **LibreTranslate first-class**, especially for HTML translations and placeholder-protected markup, where duplicating mature behavior is unnecessary. AfroLT may implement similar user-facing features by different engineering choices (bounded memory/concurrency, model subsets, fault isolation, recovery and clean .NET integration).
+
+Two new desired host features: a lightweight interactive translation web page with **external CSS/theme support**, and an HTTP API documented using **Microsoft's OpenAPI generator with Scalar UI**, not a required Swagger UI/Swashbuckle stack. On .NET 11 the current Microsoft OpenAPI default is 3.2; allow emitting 3.1 when client tooling needs it. The web translator, administrative controls and API reference are separate surfaces. Precise service endpoints, theme loading, security and compatibility remain open questions.
+
+See [AfroLT future design](Docs/AfroLT-Future-Design/en.md) for the standalone proposal and upstream references.
+
 ## 11. Source repositories and document maturity
 
 - Toolbox: https://github.com/afrowaveltd/Toolbox
