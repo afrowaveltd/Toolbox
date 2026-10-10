@@ -144,6 +144,11 @@ See [AfroLT future design](Docs/AfroLT-Future-Design/en.md).
 
 Alongside the one public translation Hub, AfroLT Hosting may expose an explicitly authorized **\`/admin\` SignalR Hub** for live events and operational monitoring. Translation requests, business commands and DTOs remain shared with the same underlying application services, not separately implemented per Hub. Operational sources publish success/failure, worker/model readiness, recovery and capacity events regardless of subscribers. On connection, an authorized monitor receives a snapshot followed by live deltas. No subscribers means no translation interruption. Important errors and audit events persist independently of SignalR; high-volume telemetry may be ephemeral. Privileged administrative actions (model reload, maintenance etc.) are executed through separate authorized common command handlers, not by the event publisher. Protect per-client data and admin access. See [AfroLT future design](Docs/AfroLT-Future-Design/en.md).
 
+
+### SignalR is a best-effort broadcast, not an archive
+
+SignalR is an optional live transmission channel, comparable to an FM radio: observers may listen, ask questions and receive answers, but the engine must not depend on their presence or replies. Messages that **may be lost** (telemetry, progress, monitoring event broadcasts) use best-effort SignalR and can be dropped when no client is listening. Work, results, incidents or edit changes that **must not be lost** are committed/acknowledged in the responsible durable subsystem, independently of their optional SignalR notification. Failure to deliver/acknowledge an event, or a missing response to a client request, must not stall, cancel, undo or redirect the underlying accepted work. Request retries must use idempotency/command identity to avoid accidental double execution. See [AfroLT future design](Docs/AfroLT-Future-Design/en.md).
+
 ## 11. Source repositories and document maturity
 
 - Toolbox: https://github.com/afrowaveltd/Toolbox
