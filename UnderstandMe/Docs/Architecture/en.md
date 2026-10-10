@@ -40,6 +40,10 @@ A monitoring host may also load an optional **SignalR client receiver** connecte
 
 Preserve original event/source IDs and generic message contracts. Federation is explicitly configured and uses bounded nonblocking queues, per-connection reconnect/health status, provenance and loop/deduplication protection. It remains best-effort, never a durable job or incident delivery mechanism. See [SystemMonitor](../SystemMonitor/en.md).
 
+### Simple peer authorization for monitoring links
+
+Modules remain independent: the **monitoring host**, not a core translation module, authenticates SignalR peers. A server-to-server receiver uses a registered `NodeId` plus a different random secret for each receiving server. The recipient checks its local allowlist and feed/module read permissions before allowing a subscription. No central directory or identity service is required. The outbound-only Hub has no `Publish` command: remote events enter federation only through separately configured trusted client receivers. Their claimed event source must match the authorized peer or explicitly permitted relayed origins. Read keys, forwarding permissions and administration rights are distinct. [SystemMonitor security](../SystemMonitor/en.md).
+
 ## Design-stage constraints
 
 - No folder layout, package split, DI registrations or interface method signatures are final.
