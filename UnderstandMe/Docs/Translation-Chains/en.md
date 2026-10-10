@@ -24,6 +24,12 @@ The library **must support the Human translation worker** without LibreTranslate
 
 A Human provider is a baseline **capability**, not an assurance that a human operator is currently ready or a blanket requirement that human review is part of every Chain. Without an available worker, work may wait in a permitted human workflow or fail/return original text under the request's configured deadline and flags. Machine translators, AI reviewers and their respective Chain stages must remain entirely optional.
 
+## Human work consumes persisted backlog when a translator opens the UI
+
+The human translation workflow is **not dependent on anyone being online at admission time**. Accepted work intended for later human translation remains persistently pending in QueueMaster's existing five priority categories until a compatible authorized translator opens a client, views waiting counts by priority/language and claims an item. Work can be processed later without losing its original request identity or changing the queue priority. Human UI may be Blazor/WebUI, desktop or another client, none mandatory.
+
+A claimed item has exclusive durable ownership/release and recovery behavior; final human output follows the same shared validation and typed result contract. No new parallel physical queue belongs to the Editor. Ordinary volatile RealTime remains volatile; a delayed human follow-up from a RealTime request is a separately accepted **durable** continuation. See [Human Translation Workflow](../Human-Translation-Workflow/en.md).
+
 ## Provider priorities, price-aware selection and escalation
 
 Worker eligibility and provider priority are separate from QueueMaster's **job priority**. A Translation Pipe's provider-selection policy can rank compatible endpoints by explicit preference (LibreTranslate then Google, or Google first) or by estimated cost. Global defaults, named Pipe policies, Translation Targets and permitted per-request overrides define the effective order, with hard privacy, capabilities and budget limits never overridable by an individual request.
