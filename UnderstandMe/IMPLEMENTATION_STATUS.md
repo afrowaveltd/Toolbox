@@ -258,6 +258,13 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - `RequestId + SegmentId=0..N` remain temporary request-local IDs; **no UI dictionary `KEY=VALUE` registration, persistent chat key or central host content store is created by splitting**. The consuming application reassembles and optionally stores the full translation.
 - Created `Docs/Semantic-Splitter/en.md`; updated `Docs/Chat-Translation-Flow/en.md`, `Docs/Request-Settings-and-Live-Translation/en.md`, `Docs/Translation-Chains/en.md`, `Docs/Architecture/en.md`, `Notes.md`, `README.md`, `Docs/Open-Questions/en.md` and this status. Documentation only; **no source code or tests changed or executed**.
 
+## 2026-10-10 — structural templates and source-initialized ResultList (proposal, not finalized)
+
+- Captured the user's exploratory HTML reconstruction pattern: parsed structured source + **temporary integer references** to a `ResultList`; initialize every slot with **original source** so the whole document renders immediately; verified translations progressively replace slots, while unfinished/failed parts retain source.
+- Proposed a format-aware parser/structural map instead of injecting literal `placeholder=0` attributes or a raw `@ResultList[0]` expression into user HTML. HTML uses appropriate parsing for void elements such as `br`, nested content and mixed text/formatting; Markdown uses a semantic AST. A nested inline sentence needs contextual translation with protected markup rather than one word per text node.
+- Illustrative per-slot data: `Id`, `OriginalText`, `CurrentText`, state and revision; `0..N` IDs are **ephemeral** and not localization dictionary keys, durable queues or chat message IDs. Projection/rendering remains UI-neutral; caller/host owns final content assembly and optional persistence.
+- Created `Docs/Structural-Template-and-ResultList/en.md`; updated `Docs/Semantic-Splitter/en.md`, `Docs/Request-Settings-and-Live-Translation/en.md`, `Docs/Translation-Chains/en.md`, `Notes.md`, `README.md`, `Docs/Open-Questions/en.md` and this status. **No public API/final HTML parser decision, runtime code or test changes**; detailed nesting/format contracts remain open in Questions 100–103.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
