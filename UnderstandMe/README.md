@@ -30,6 +30,12 @@ The default provider preference is economical/free or local translation (such as
 
 The splitter's `(RequestId, SegmentId)` partial translation model is **UI-neutral**: applications may use Blazor, JavaScript, Avalonia or another rendering mechanism; no DOM/JS function is a dependency. Paid provider adapters declare pricing/metering capabilities, while each configured subscription account holds its own monthly included usage, optional overage price and an administrator-approved hard/soft limit. Accounting and quota reservations are persistent and independent of SystemMonitor; no automatic extra package purchase occurs.
 
+## Client access and public API policies
+
+Optional per-client `ClientPolicy` settings determine which enabled provider families, endpoints or paid API accounts each trusted client may use, along with their own word/cost quotas and request rate/concurrency limits. **Ordinary known clients are unrestricted by default at the client layer**, while administrator/system hard limits still apply; a separately configured public/anonymous profile can share unused self-hosted LibreTranslate capacity **without exposing paid APIs**. Provider-account budgets and client-plan quotas are enforced independently. An explicit Google request from a client not allowed to use it is rerouted to another permitted suitable engine where feasible.
+
+No publicly accessible translation listener is automatically exposed merely by using the library; authenticated client context and business API entitlement are independent from the minimal GUID identity of the outbound-only SystemMonitor. See [Client Access Policies](Docs/Client-Access-Policies/en.md).
+
 ## Planned areas
 
 | Area | Responsibility |
