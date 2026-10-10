@@ -40,6 +40,14 @@ The authorized editor can manually correct text, bind a lost inline `strong`/`i`
 
 Prefer **an actually HTML-capable endpoint** for supported HTML input and verify its output. For complex nesting/mixed markup, an **assisted-HTML format-specific profile can prefer an eligible AI provider** by default, if the administrator has enabled it and its privacy/cost quotas allow it. This **does not override** the ordinary text default provider ranking or require AI to be installed; AI is not guaranteed perfect. Human-only hosts can still edit/translate manually. [Assisted Document Translation](../Assisted-Document-Translation/en.md).
 
+## Simple responsive assisted editor with always-available manual input
+
+Afutrans must offer an **authorized manual path to enter a translation even when every automatic backend, AI or structured-content mode fails/is disabled**. The user may type/replace the target text from scratch; the lack of a capable engine is not a terminal obstruction to document translation. This is an explicit editing workflow and does not grant access to private content or redirect P0 messages to Human.
+
+On wide screens, retain **rendered original left / translated document right**. The right panel's **rendered Preview and HTML Source are both directly editable** by clicking/tapping the text/line. Do not force a special edit modal or Save button. On small displays use a practical vertical stack or `Original | Translation | Source` switch, preserving full edit functionality. A single synchronized draft backs both views, with inline error annotations and readable `Saving/Saved/Retry/Conflict` feedback.
+
+**Autosave each accepted edit in the background** with durable acknowledgement and recovery from transient write failures; temporarily invalid HTML source must remain editable as a draft, with last valid preview if necessary. **Keep an attributable version history and permit reverting any retained version**, where the revert itself creates a new revision. AI/provider suggestions are optional, must not overwrite newer manual changes and require explicit approval in assisted sessions. [Direct Editing, Autosave and Revisions](../Direct-Editing-Autosave-and-Revisions/en.md).
+
 ## Operator-defined translation provider policies
 
 Afutrans should let each Translation Target choose a reusable provider-selection profile and permitted overrides for individual jobs or Chain steps. A low-cost installation can prefer self-hosted LibreTranslate and escalate to a configured paid/AI endpoint only after a specified failure or unsuccessful mandatory validation. A different operator can make their licensed Google or Microsoft API the default. UI configuration must expose the effective provider order, compatibility filters (language/format/placeholder), eligibility and enabled fallback triggers, along with estimated/actual provider charges where the backend supports them.
