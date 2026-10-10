@@ -108,6 +108,12 @@ For **complex HTML**, an **optional format-specific AssistedHTML profile** may p
 
 The user can also **manually edit the draft** or request a **targeted AI proposal for a selected region**, subject to explicit authorization and provider costs; AI output does not override a later human draft revision automatically. For significant tag identity/links, maintain a structural failure until resolved; for unmatched cosmetic formatting, the default omission policy still applies. No part of this assisted workflow is automatic Human auditing of P0/private chat content. [Assisted Document Translation](../Assisted-Document-Translation/en.md).
 
+## Manual alignment by transferring an entire original tag
+
+Automated `ProtectedMarkup`/`VariantAlignment`/`OuterAnchorAlignment` need not be the last chance to restore formatting. An authorized Afutrans editor can **click on source text to choose its containing parsed tag**, storing the **original opening element with all attributes and appropriate closing semantics** in an in-memory source-tag selection, then **drag-select the correctly corresponding translated phrase**. The format adapter applies that full tag as a safe, validated wrapper without replacing the translated words. Thus the human, not a probabilistic algorithm, decides that `super` in `Ahoj super světe!` corresponds to source `<strong class="x" id="y">beautiful</strong>`.
+
+This supports preserving **`class`, `id`, `data-*`, ARIA and other meaningful attributes** even when machine translation cannot align the text. The transfer must check for duplicate target IDs, semantically significant links/attribute dependencies, invalid nesting and unsafe active markup. **Never silently drop or invent a different `id`**; if exact safe insertion is impossible, show the conflict and leave the target unchanged. The act is manual WYSIWYG editing (one undoable revision and 1-second autosave), not translation-engine code. [Source Tag Transfer](../Source-Tag-Transfer/en.md).
+
 ## Result shape and safe projection
 
 Conceptual rendering state may separately hold:
