@@ -54,6 +54,12 @@ Each translation request has a stable `RequestId` to separate identical segment 
 
 The host chooses its own result/update transport: component callbacks, direct .NET calls, SignalR, SSE, polling or another interface. The **administrative `/SystemMonitor` is not the delivery mechanism for translated user content**. When an update is missed, the client may fetch currently available verified results if the request's caching/durability rules allow it. Volatile P0 work may expire. The fundamental rule is *identify the segment, translate it independently, notify completion, update only that segment*.
 
+## Configurable meaningful segmentation
+
+`Settings` can choose format-aware `Auto` splitting, plain-text `Paragraph` or `Sentence` behavior, and format/size constraints. **Paragraphs are preferred where recognizable**, while long continuous unformatted text is segmented at sentence boundaries. Short text stays one chunk unless a real requirement demands otherwise. Line-ending interpretation is format-dependent: newlines can represent paragraphs or wrapping; a period can be punctuation in a decimal, abbreviation or URL. Preserve source whitespace/punctuation and protected placeholders.
+
+For **Markdown**, chunk the semantic contents of headings, paragraphs, list items, blockquotes or other text-bearing nodes, preserving surrounding syntax. For **HTML**, use translatable element/text content but keep nested inline markup and whole sentence context together when practical; don't translate executable/structural markup. Future types receive their own format-aware adapters. Only subdivide further when a compatible endpoint's length limit requires it. [Semantic Splitter](../Semantic-Splitter/en.md).
+
 ## Chat-specific transient correlation and recipient corrections
 
 For chat/forum/user-generated text, `RequestId` and splitter-generated `SegmentId = 0..N` exist only **during the translation request** to match translated chunks. Unlike localization dictionary `KEY=VALUE` entries, **chunk IDs are never durable keys**. UnderstandMe returns the segments and metadata; the **consuming chat application** reassembles the entire translated message and independently manages its message history and retention.
