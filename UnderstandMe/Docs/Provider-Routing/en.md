@@ -26,6 +26,16 @@ A provider family (LibreTranslate, Google, Microsoft, AfroLT, Ollama/AI, Human, 
 
 Actual costs depend on the backend and billing basis; do not claim one provider is universally cheaper or that a local service has zero cost. Configured costs may be estimated/unknown. Keep provider capability detection and cost estimation separate from client-specific policy decisions. The engine contract returns typed results/failures through existing Toolbox conventions.
 
+## Pricing, account packages and quota enforcement
+
+A provider describes how it meters billable translation (words, characters, tokens, requests or other units), and each **configured account/endpoint plan** supplies the actual operator tariff. For example, an account may have **1,000,000 source words per month** included with a configured extra-word rate. Providers can have different negotiated plans, so do not equate one provider-family price with every account's cost.
+
+The admin selects one of the quota-exhaustion behaviors: **hard cutoff**, **explicitly authorized overage with price and capped spend**, or **wait for the admin to add a legitimately purchased bundle**. The system tracks consumption, availability, estimated versus provider-reported charges and remaining units. No package is purchased and no overage permission is raised automatically.
+
+Before **every chargeable dispatch**, the routing selector asks an independent, durable quota/usage service whether the chosen account can reserve sufficient allowed billable units. Reservation and settlement must account for concurrency (potentially across VPS hosts), failed/timeout billing uncertainty and provider-specific counting. If an endpoint is over its hard cap, it is unavailable for that chargeable dispatch; choose another eligible provider, wait or return an allowed fallback result according to request Settings. This immediate hard cap is a **current operational guard** even for older queued requests whose initial provider-order Settings remain frozen; `Mandatory` cannot waive it. Cost is estimated when a provider does not supply exact billing usage.
+
+Provider selection remains one concern, commercial plan tracking another; neither is part of SignalR's event delivery or QueueMaster's global priority logic. See [Provider Billing and Quotas](../Provider-Billing-and-Quotas/en.md).
+
 ## Request policy and configuration precedence
 
 Define reusable **ProviderSelectionPolicy** profiles and attach one to a Translation Pipe, target, chain step or eligible request. Configuration hierarchy is: system defaults -> named Pipe profile -> Translation Target constraints/preferences -> allowed individual request overrides. **Hard requirements are never bypassed** by more specific preferences, including privacy, supported formats/languages, permitted provider families, maximum spending and mandatory validation/review.
