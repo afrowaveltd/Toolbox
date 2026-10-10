@@ -208,6 +208,14 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Client authentication for financially meaningful public requests **must not rely on unverified request-supplied IDs or the intentionally lite SystemMonitor GUID identification mechanism**.
 - Updated `Docs/Request-Admission-and-Normalization/en.md`, `Docs/Provider-Routing/en.md`, `Docs/Provider-Billing-and-Quotas/en.md`, `Docs/Architecture/en.md`, `Docs/Afutrans-Integration/en.md`, `Docs/QueueMaster-and-Reliability/en.md`, `README.md`, `Notes.md`, `Docs/Open-Questions/en.md` and this status. Design-only documentation; no .NET runtime code or tests changed or run.
 
+## 2026-10-10 — mandatory Human capability; all automatic providers optional (agreed design only)
+
+- Clarified the minimum viable provider baseline: **Human translation is the only mandatory provider capability**. UnderstandMe and the Afutrans host must support a human-only deployment with manual work assignment, typed results and validation; immediate human availability and mandatory human review of machine results are **not** assumed.
+- LibreTranslate, AfroLT, Google, Microsoft, Ollama/AI and all other automatic translation engines are **optional and individually activated plugins**. No external model, cloud API, credential, paid subscription or billing service is required by the human-only core. The default free/local -> equally ranked paid APIs -> AI preference applies only to **activated** automatic providers.
+- Preserved the unrestricted **known-client default** at the client-permission layer: it does not activate any vendor and remains subject to administrator-enabled provider sets and global limits. **Public API exposure is opt-in**, but the operator chooses the public profile — free/local, Human-only, chosen paid/AI providers, or all activated providers. Free-only public access is only a template, **not a hardcoded restriction**.
+- Clarified a special supported scenario: an administrator may deliberately sponsor **anonymous public paid translations** with a shared public-profile spending cap and provider-account hard limit. Only **client-specific paid entitlements** need verifiable caller identity for attribution; this is distinct from the lightweight SystemMonitor peer mechanism.
+- Updated `Docs/Client-Access-Policies/en.md`, `Docs/Provider-Routing/en.md`, `Docs/Translation-Chains/en.md`, `Docs/Architecture/en.md`, `Docs/Afutrans-Integration/en.md`, `Docs/Request-Admission-and-Normalization/en.md`, `Docs/Provider-Billing-and-Quotas/en.md`, `Docs/QueueMaster-and-Reliability/en.md`, `README.md`, `Notes.md`, `Docs/Open-Questions/en.md` and this implementation status. **Design documentation only; no .NET code changed or tests executed**.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
