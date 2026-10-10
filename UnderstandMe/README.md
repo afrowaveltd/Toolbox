@@ -80,6 +80,12 @@ Some translation providers accept **HTML directly**, avoiding much tag reconstru
 
 Afutrans can offer a **side-by-side editor**: original document rendered left; translated document right with **render / HTML source / split** modes, linked segment selection and visible untranslated/error regions. An authorized user can repair text or format alignment manually, request an alternative for a selected region or invoke **opt-in AI assistance** and inspect the proposal before accepting. Draft revisions prevent late automatic responses from overwriting user edits; publishing/export requires validated structure. [Assisted Document Translation](Docs/Assisted-Document-Translation/en.md).
 
+## Manual-first completion and automatically saved editing
+
+An authorized Afutrans user must **always have a manual route to enter or repair a translation**, regardless of machine/AI provider failures, missing engines or unsupported format-specific translation. In the responsive assisted editor, click/tap and edit **directly in the rendered translated panel or its HTML/Markdown source**, with both views synchronized to one draft (wide side-by-side or simple stacked/mobile switch).
+
+Changes appear immediately and **autosave in the background** without a mandatory Save button. Show real save/failed/conflict states; keep incomplete HTML editable as a draft while protecting valid preview/publish. Every committed logical edit has recoverable **revision history**, and reverting an old state creates a **new revision**, never erasing the trail. A stale AI/provider result may not overwrite manual edits. This is an explicit authorized editor, not a Human fallback from private P0 RealTime; private-chat recipient edits retain their separate cache/no-cache rules. See [Direct Editing, Autosave and Revisions](Docs/Direct-Editing-Autosave-and-Revisions/en.md).
+
 ## Planned areas
 
 | Area | Responsibility |
