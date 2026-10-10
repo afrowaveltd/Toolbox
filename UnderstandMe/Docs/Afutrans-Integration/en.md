@@ -50,6 +50,14 @@ Afutrans may translate private chats or forum history and **save verified transl
 
 `Privacy = Private` excludes automatic manual audit and content browsing by general administrators/translators, even when the translation result is persistent. The host controls who can view source messages and their translated results and must recheck access on every history lookup; content-free aggregate processing/status metrics may remain visible. Explicit consent and separately initiated non-P0 manual work would be required for intentional translation by a named human. [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
 
+## Recipient-corrected message translations
+
+Afutrans (or any consuming chat/forum application) may embed an **optional recipient translation-correction tool**. Once a private message has been automatically translated, **its authorized recipient** may improve the translation for personal readability. This is not a Human worker request, general translator audit or dictionary correction; it must not make the source text visible to unrelated operators.
+
+The recipient chooses whether that correction is **used only in the current view** or **cached for their own later viewing**. The app itself owns both original history results and any personal corrected override, keyed by its own message/revision, recipient and language. Optional broader contribution/publication is a **separate deliberate, authorized operation**, not an automatic consequence of permitting personal cache.
+
+The Splitter's `0..N` IDs only correlate chunks within one translation request. The chat application reassembles full text and decides what, if anything, to save; unlike UI dictionary targets it does **not** register dynamic text as `KEY=VALUE`. [Chat Translation Flow](../Chat-Translation-Flow/en.md).
+
 ## Communication
 
 Messenger delivers authorized local/SignalR events and status projections. Clients may submit requests, receive acceptance and progress, and confirm results. Reconnect uses replay/deduplication for durable messages. `Update_Cache` informs connected localizers of committed changed values. Messenger does NOT instruct workers or own queues.
