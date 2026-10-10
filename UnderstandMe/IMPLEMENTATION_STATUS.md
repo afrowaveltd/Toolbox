@@ -249,6 +249,15 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - `P0 RealTime` remains volatile and automatic-only, while the host may save assembled finished text under its own history policy. No automatic fallback to Human, global UI dictionary registration, generic SystemPersistent promotion or administrator content browsing. Existing manual **UI-dictionary revision audit** is preserved and does not become mandatory auditing of private chat edits.
 - Created `Docs/Chat-Translation-Flow/en.md`, rewrote chat-specific rules in `Docs/Translation-Privacy-and-Scoped-Storage/en.md`, updated `Docs/Localization/en.md`, `Docs/Request-Settings-and-Live-Translation/en.md`, `Docs/Editor-and-Audit/en.md`, `Docs/Translation-Chains/en.md`, `Docs/Architecture/en.md`, `Docs/Afutrans-Integration/en.md`, `Docs/Request-Admission-and-Normalization/en.md`, `Docs/Human-Translation-Workflow/en.md`, `README.md`, `Notes.md`, `Docs/Open-Questions/en.md` and this status. Documentation only; no source code or executable tests changed or run.
 
+## 2026-10-10 — meaningful format-aware Splitter rules (agreed design only)
+
+- Agreed that chunks must be **meaningful semantic units**, not fixed-size fragments. Chunking is primarily for larger/structured inputs; a short ordinary text can stay one chunk.
+- For **plain text**, prefer **paragraph** boundaries where present, with configurable newline/blank-line semantics. For longer unformatted prose, use **sentence** boundaries; period-based heuristics must preserve abbreviations, numeric decimals, URLs, language punctuation and whitespace. Request `Settings` selects Auto/Paragraph/Sentence/etc. modes (conceptual names).
+- For **Markdown**, chunk meaningful content of headings, paragraphs, list items, table cells and other text-bearing parsed nodes while preserving syntax and context. For **HTML**, translate appropriate text-bearing element content and retain nesting/inline formatting; never split purely by tags if it would destroy sentence meaning, and never treat scripts/styles/code as translatable content.
+- Each other supported document type may later supply its own format-specific Splitter adapter. If an intact semantic chunk exceeds an endpoint's input-size limit, subdivide safely at a more granular boundary or use a suitable alternate endpoint. Preserve placeholders/links/format mapping.
+- `RequestId + SegmentId=0..N` remain temporary request-local IDs; **no UI dictionary `KEY=VALUE` registration, persistent chat key or central host content store is created by splitting**. The consuming application reassembles and optionally stores the full translation.
+- Created `Docs/Semantic-Splitter/en.md`; updated `Docs/Chat-Translation-Flow/en.md`, `Docs/Request-Settings-and-Live-Translation/en.md`, `Docs/Translation-Chains/en.md`, `Docs/Architecture/en.md`, `Notes.md`, `README.md`, `Docs/Open-Questions/en.md` and this status. Documentation only; **no source code or tests changed or executed**.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
