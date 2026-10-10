@@ -26,6 +26,10 @@ Admin dashboard: detailed authorized targets, job text/history, work progress, p
 
 Afutrans and compatible third-party Afutrans modules use English source strings and dictionary-less registration so new UI keys are discovered without prebuilding catalogs. UnderstandMe remains flexible enough for unrelated apps whose source language or key policy differs.
 
+## Shared SystemMonitor stream
+
+Afutrans may host one outgoing-only SignalR `/SystemMonitor` Hub which broadcasts live events from its own components and any UnderstandMe/AfroLT adapters registered inside the same host. Each event identifies the source module/instance. Independently deployed components may expose their own `/SystemMonitor` on different addresses. This Hub has **no client-callable application commands** and no responsibility for durable history, status queries or reliable delivery. The monitoring UI can obtain a current snapshot and historical incident/audit information from separately authorized read APIs; live broadcasts remain best-effort. If no one listens, work continues normally. [AfroLT monitoring convention](../AfroLT-Future-Design/en.md).
+
 ## Current repository findings (2026-10-10)
 
 - Toolbox `UnderstandMe/UnderstandMe.csproj`: net10.0 skeleton, project references declared to the Essentials and WhenItFails package IDs; no implemented workflow verified.

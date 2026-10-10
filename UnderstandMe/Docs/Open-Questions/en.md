@@ -33,5 +33,7 @@ This is a discussion backlog, **not** an implementation plan. Decisions recorded
 23. **AfroLT admin Hub:** specify auth and per-tenant visibility for \`/admin\`; current status snapshot and event contract (success/failure, worker/model state, recovery, capacity), subscription filters, bounded fanout/backpressure, event ordering and privacy; separate durable operational/audit records from ephemeral SignalR notifications.
 24. **Admin command security and parity:** define which privileged administrative actions are exposed and ensure admin Hub, REST and direct .NET entry points invoke the same authorized application command handlers rather than duplicating work or involving passive Messenger as a scheduler.
 
+25. **Shared SystemMonitor contracts:** settle the minimum typed event envelope, module/instance identity, event naming, privacy-safe payloads, access policies and bounded/nonblocking publisher adapters across AfroLT, UnderstandMe and Afutrans; ensure one Hub per host at `/SystemMonitor` with no client-callable commands, while independent hosts may each use that same path.
+
 Current status and next continuation point: [Implementation Status](../../IMPLEMENTATION_STATUS.md).
 

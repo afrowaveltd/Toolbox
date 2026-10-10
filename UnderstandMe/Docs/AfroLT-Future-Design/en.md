@@ -136,41 +136,35 @@ References:
 - Microsoft SignalR hubs: https://learn.microsoft.com/en-us/aspnet/core/signalr/hubs
 - Microsoft SignalR .NET client: https://learn.microsoft.com/en-us/aspnet/core/signalr/dotnet-client
 
-## Administrative SignalR Hub and live observability
+## SystemMonitor — shared, one-way event broadcasting
 
-AfroLT's optional hosted deployment should expose a **second, separately authorized SignalR Hub at `/admin`** in addition to its user-facing translation Hub (working route: `/hubs/translation`). The originally discussed "one hub" applies to the *translation command interface*: there is still only one public translation Hub and one common command layer. The extra admin Hub is a distinct **administrative access and observation surface**, not a second translation engine or dispatcher.
+**Agreed architectural direction:** use the same simple, opt-in monitoring transport convention across AfroLT, UnderstandMe and Afutrans: **§/SystemMonitor§**. This is the FM-radio principle applied uniformly to the Afrowave family. It is a **server-to-client live event stream only**, not a job queue, command channel, audit store, replay service, or dependency of translation execution.
 
-### Events and status snapshots
+Each independent module publishes its own typed operational events through a small transport-neutral emitter. The host offers the actual SignalR Hub only when monitoring is enabled. **A process/HTTP host registers at most one §/SystemMonitor§ route.** A standalone AfroLT host, a separate UnderstandMe service and a separate Afutrans server may each use the same route on their own origin. When multiple modules run *inside one host*, its single §/SystemMonitor§ aggregates their events. Each event identifies its source module and instance so receivers can distinguish them.
 
-- AfroLT Core emits typed operational events regardless of listeners: successful and failed translations, worker readiness changes, model load/unload, slow requests, model/runtime failure, recovery start/success/failure, and optionally aggregate capacity/throughput updates. The initial event taxonomy is illustrative.
-- A lightweight event publisher exposes subscriptions. The `/admin` adapter forwards authorized events to connected administrators; when nobody subscribes, engine behavior remains unchanged. There is no mandatory per-event remote delivery or queue dependency on an online administrator.
-- When a monitor connects it first receives a **current status snapshot** (readiness, enabled models/language pairs, capacity, active jobs, aggregate counts) and then live event deltas. Clients may select event categories/severities, with reasonable event rates and bounded buffers.
-- Events should carry a timestamp, event kind, source worker/instance, correlation/job ID when applicable, outcome and diagnostic code. Do not expose submitted translation text, credentials or client identity in default diagnostic broadcasts; sensitive details require additional authorization and deliberate retrieval.
-- SignalR is **not the durable error log**. Significant errors, authorized manual changes and audit-relevant events are recorded by the appropriate persistence/logging component independently of the Hub, so nobody being connected does not determine what is saved. Ordinary high-frequency telemetry can be ephemeral and safely dropped for slow/disconnected subscribers.
-- An administration client can display live failures and successes, operational counters and recovery events; optionally use the data to trigger further workflows **through separately authorized application commands**, not by giving the event publisher or passive Messenger scheduling responsibilities.
+The Hub exposes **no application methods callable by clients**: monitoring clients connect and receive broadcasts. SignalR necessarily accepts connections at the protocol level, but it does not listen for business commands, await user answers, dispatch jobs or control the engine. If a host also needs client translation commands, they use its normal translation Hub/REST interface; administrative commands, if enabled, belong to separate authorized REST/direct APIs or an optional §/admin§ command Hub—not to §/SystemMonitor§.
 
-### Administrative requests
+### Common event envelope (proposed; names not frozen)
 
-The `/admin` Hub may also expose privileged commands such as querying detailed health, requesting a worker/model reload or initiating allowed maintenance. **These are not implemented inside the Hub.** They call the same transport-neutral application command handlers that would be exposed by an authorized REST administrative endpoint or direct .NET API. No duplicate command logic and no secondary state owner.
+- §SourceModule§ (e.g. AfroLT, UnderstandMe, Afutrans) and §InstanceId§ for distributed nodes;
+- timestamp, event name/category and level (§Info§ / §Warning§ / §Error§ / success as an event kind);
+- optional correlation/job ID and stable diagnostic code;
+- short privacy-safe summary and typed diagnostic details where authorized.
 
-Security boundaries: require strong authentication and an administrator-specific policy for `/admin` (and separate authorization for sensitive administrative commands), do not leak per-tenant content in shared event streams, and enforce backpressure/rate limits. Treat a disconnected admin dashboard as a normal condition, not an error or an interruption to translation.
+Examples: §TranslationCompleted§, §TranslationFailed§, §ModelLoaded§, §WorkerUnavailable§, §RecoveryStarted§ and §RecoverySucceeded§. Do not broadcast submitted translation text, credentials, user identity or sensitive failure data by default. A host can enforce monitoring permissions and event visibility; authorization does not turn the stream into a command interface.
 
+### Event durability and delivery
 
-### SignalR as an ephemeral transport ("FM radio", not an archive)
+**May be lost:** monitoring broadcasts are best-effort and ephemeral. Zero subscribers, slow subscribers, disconnects, missing acknowledgements or client replies must never alter processing. Use a bounded, nonblocking fan-out so a stalled connection cannot apply backpressure to core work.
 
-**Transport is not responsible for durability or business completion.** SignalR is analogous to speaking to a listening audience: it broadcasts live information and may answer questions, but it does not become the source of truth and must not control the underlying engine. The source/application component classifies each message by its delivery and retention requirements **before** choosing a transport:
+**Must not be lost:** durable jobs, final results, critical incidents and editor audit history are committed separately in their authoritative stores under their own acknowledgement rules. They may additionally *announce* their committed state over §/SystemMonitor§. There is no "guaranteed SignalR" mode that substitutes for persistence.
 
-- **May be lost:** live progress, ordinary success/failure broadcasts, dashboard counters, worker heartbeat, diagnostic notifications. Publish through SignalR if listeners are present; drop or skip fan-out if none are connected. No acknowledgement, replay, persistence or waiting for a listener is required. Slow listeners may lose events.
-- **Must not be lost:** accepted durable jobs, authoritative results, edit audit, important incidents or any explicitly guaranteed workflow event. Persist them in the responsible work/audit/log/outbox store and use the **application's own acknowledgement and recovery mechanism** where needed. A SignalR event can *announce* the new state, but never replace its durable commit or acknowledgement.
-- **Questions/optional answers:** a SignalR client may ask for the current status or submit the same application command as over REST. It can expect a reply at the transport boundary, but a missing reply (disconnection or timeout) must not interrupt, roll back or change an already accepted core operation. Query/retry by stable job/command ID and use idempotency if the caller needs to determine whether a durable command took effect.
+Monitoring starts from events received after connection. A monitor that needs a current-state snapshot or older diagnostics can query independently authorized read APIs or stores; the outbound-only Hub itself does not handle snapshot queries and does not keep history.
 
-The event publisher MUST NOT wait for any subscriber response before continuing translation or model recovery. No online dashboard, successful broadcast, SignalR ACK or observer subscription is a prerequisite for the engine. Keep best-effort fan-out nonblocking and bounded, while preserving independently required diagnostic/audit writes; don't accidentally downgrade mandatory persistence just because an event is also broadcast. If a workflow genuinely requires guaranteed message delivery, that is a separate persistent mechanism (e.g. Outbox/Inbox), not a switch that turns the SignalR Hub into an archive.
+### Module boundaries
 
-**Operational rule:** no subscribers = no impact on translation; subscriber disconnect = no impact on translation; missing event reply = no impact on translation. REST and both Hubs still call the same command handlers and return the same logical DTOs.
+A module requires only an internal event-emission abstraction; it does **not** need §Microsoft.AspNetCore.SignalR§ to compile or operate. A shared optional monitoring transport adapter maps these typed events to SignalR §/SystemMonitor§. AfroLT remains completely independent of UnderstandMe and Afutrans: reuse of the standard is by compatible contracts or optional adapters, not mandatory project references or circular dependencies.
 
-### Relationship to UnderstandMe
-
-The standalone AfroLT Hub belongs to AfroLT Hosting and never makes UnderstandMe mandatory. When integrated, an optional adapter can forward operational events to UnderstandMe's passive Messenger and/or a monitoring dashboard; QueueMaster retains responsibility for scheduling UnderstandMe jobs. The command/event contracts should remain coherent across direct .NET, REST and both SignalR Hubs.
 
 ## Open design details
 

@@ -149,6 +149,10 @@ Alongside the one public translation Hub, AfroLT Hosting may expose an explicitl
 
 SignalR is an optional live transmission channel, comparable to an FM radio: observers may listen, ask questions and receive answers, but the engine must not depend on their presence or replies. Messages that **may be lost** (telemetry, progress, monitoring event broadcasts) use best-effort SignalR and can be dropped when no client is listening. Work, results, incidents or edit changes that **must not be lost** are committed/acknowledged in the responsible durable subsystem, independently of their optional SignalR notification. Failure to deliver/acknowledge an event, or a missing response to a client request, must not stall, cancel, undo or redirect the underlying accepted work. Request retries must use idempotency/command identity to avoid accidental double execution. See [AfroLT future design](Docs/AfroLT-Future-Design/en.md).
 
+### Standardized `/SystemMonitor` event-only Hub across modules
+
+AfroLT, UnderstandMe and Afutrans use a unified monitoring convention: each **module emits its own operational events**, and an optional host-level `/SystemMonitor` SignalR Hub only streams them outward. A separate deployed host can mount its own `/SystemMonitor`; if multiple modules run in one process, one Hub aggregates their named sources rather than registering conflicting routes. The Hub exposes **no application methods**, no queue control, and no archive/snapshot query; optional admin actions continue through separate transport-neutral command interfaces (REST, direct .NET or an optional `/admin` command Hub). Live monitoring is lossy/best-effort; anything that must survive is committed and acknowledged by its owning subsystem. No listener, answer or acknowledgement can block the engine. See [AfroLT design](Docs/AfroLT-Future-Design/en.md).
+
 ## 11. Source repositories and document maturity
 
 - Toolbox: https://github.com/afrowaveltd/Toolbox

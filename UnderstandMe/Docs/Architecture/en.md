@@ -30,6 +30,12 @@ The host registers DataAccess, format adapters, backend endpoints, result proces
 
 The architecture must also allow asynchronous requests for additional translation work from a chain step or editor, preserving correlation to the originating job while remaining within QueueMaster's public API.
 
+## Cross-project monitoring convention
+
+A module **emits** events; it does not own a networking Hub. Hosts may optionally register a shared, strictly **outbound** SignalR `/SystemMonitor` endpoint for live monitoring. Every module publishes an identifiable event source; if several modules share one host, a single Hub multiplexes all sources. Separate hosts may use identical `/SystemMonitor` paths on different origins. No client-callable command methods are defined on this Hub; core execution never waits for listeners.
+
+The monitoring emitter is transport-neutral. A server that needs administrative commands serves them separately from `/SystemMonitor`. Persistence/ACK for indispensable data occurs at its authoritative subsystem regardless of event broadcasts. See [AfroLT future design](../AfroLT-Future-Design/en.md).
+
 ## Design-stage constraints
 
 - No folder layout, package split, DI registrations or interface method signatures are final.

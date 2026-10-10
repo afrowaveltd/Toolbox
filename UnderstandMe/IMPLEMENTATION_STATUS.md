@@ -78,6 +78,14 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Operations classify data at the source: telemetry/monitoring can be lost; durable jobs, accepted results, critical incidents and edit audit persist through their own stores/acknowledgements. SignalR may announce durable state but cannot substitute for it.
 - Subscriber absence, disconnects and missing replies cannot block, cancel, reverse or change already accepted core work. Durable command retries need identity/idempotency. No Hub code was implemented or tested.
 
+## 2026-10-10 — SystemMonitor shared outgoing-only event convention (design only)
+
+- Recorded user-selected `/SystemMonitor` as the shared optional SignalR route for **server-to-client monitoring only** in AfroLT, UnderstandMe and Afutrans.
+- Each module emits typed events independently; a single host Hub aggregates named sources to avoid conflicting paths. Different processes may each expose the same route on their own host/origin.
+- Removed the earlier ambiguity between an admin observation Hub and admin commands: `/SystemMonitor` has no callable business methods; privileged commands remain separate and use shared application handlers.
+- Live events may be missed and are never authoritative storage; core jobs, audit, critical incidents and final results retain independent durable ownership. No listener/response may block work.
+- Updated `Docs/AfroLT-Future-Design/en.md`, `Docs/Architecture/en.md`, `Docs/Afutrans-Integration/en.md`, `Notes.md`, and `Docs/Open-Questions/en.md`. Documentation only; no code, dependencies or tests changed.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
