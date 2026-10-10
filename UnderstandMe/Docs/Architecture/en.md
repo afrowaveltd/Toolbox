@@ -68,6 +68,14 @@ The optional **Afutrans assisted editor** presents **rendered original left** an
 
 The host owns safe isolated HTML preview, document drafts, undo, validation, export and permissions. It must not execute arbitrary imported scripts or expose unauthorized private contents merely to render a comparison. This assisted session is an explicit non-P0 workflow distinct from Human translator backlog, mandatory UI dictionary revision audit and a private-chat recipient's personal correction. [Assisted Document Translation](../Assisted-Document-Translation/en.md).
 
+## Always-available manual completion and autosave/revision boundaries
+
+**Automation never owns the sole path to a translation.** An authorized Afutrans user has a reachable **manual authoring/editing workflow** even if every automatic provider is unavailable, disabled, over quota or unable to restore structured content. This manual path is separate from automatic P0 RealTime dispatch and never bypasses privacy/host editor permissions. For unimplemented structured formats, the host can still accept translated text as a manual draft without falsely claiming a fully validated formatted result.
+
+The **Afutrans presentation** directly edits the translated document in both safe rendered preview and source-code view. Wide layouts compare original/target side by side; narrow displays stack or switch panels. A **single synchronized host-owned draft** backs both representations; temporary source syntax errors are allowed in saved drafts but must not be misrepresented as a publishable valid document.
+
+Changes update the view immediately and are **automatically durably persisted** through a versioned host draft contract, with explicit acknowledgement, optimistic revision conflict detection and visible failure/retry state. Every committed logical edit is recorded in **history**, and reverting a prior version creates **a new revision** rather than deleting intermediate history. Late machine/AI completions must not overwrite manual content. Translation engine ResultList/segment contracts enable mappings and source fallback but do not dictate browser UI, host draft storage or revision retention. The standard UI-dictionary edit audit remains separately mandatory. [Direct Editing, Autosave and Revisions](../Direct-Editing-Autosave-and-Revisions/en.md).
+
 ## Composition
 
 The host registers DataAccess, format adapters, backend endpoints, result processors, optional Chain steps, history/audit, Messenger transports and UI extensions through interfaces. Translation Targets supply connection and policy profiles. Features can be omitted entirely.
