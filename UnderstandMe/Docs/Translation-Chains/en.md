@@ -67,6 +67,12 @@ Chat translation can use the existing format-aware Splitter and automatic transl
 
 A message recipient may voluntarily amend their **own displayed translated text** in an optional host-side editing tool and select **cache correction** or **do not cache**. This must not trigger generic Human manual-audit jobs, automatically modify a shared authoritative dictionary, or disclose the source to other recipients. The accepted correction and optional recipient cache are **post-processing in the chat app**, not a translator provider. See [Chat Translation Flow](../Chat-Translation-Flow/en.md).
 
+## Semantic splitting is format-aware, not a fixed chunk size
+
+The Splitter should output **coherent meaning-bearing units** and avoid fragmentation. A short phrase may remain one unit; formatted ordinary text prefers paragraphs, long unformatted text prefers sentences. For Markdown, use semantic AST node contents while preserving syntax; for HTML, parse translatable element content and preserve inline markup/context rather than splitting a sentence into unrelated one-word chunks. Other formats use registered splitter adapters when introduced. Explicit `Settings` selects paragraph versus sentence policy; split oversized units at further safe boundaries only when necessary for a provider's limits.
+
+Chunks retain temporary `RequestId + SegmentId` correlation and formatting metadata for reassembly by the host; they are **not durable UI dictionary keys**. The result-processing/placeholder contract must survive splitting. [Semantic Splitter](../Semantic-Splitter/en.md).
+
 ## Source fidelity and structure
 
 Human comments may be explicit, emotional or sarcastic. Preserve source meaning, wording intensity and tone unless the target's explicit editorial policy authorizes changes. Documentation may allow professional polishing. Distinguish faithful translation from optional editorial rewriting. An AI semantic check compares proposed output to the **original**, not a previous generated translation.
