@@ -22,6 +22,14 @@ A library is a collection of independently replaceable workers and interfaces, n
 
 A human can be a translator worker, but the Editor additionally acts as an independent dictionary-management client. A new provider registers capabilities; QueueMaster does not need enum cases naming every possible community implementation.
 
+## Provider activation and minimal human-only installation
+
+**Human translation is the only mandatory translation provider capability**: the core must accept human work, support a manual translator worker and receive typed human-created results. A system with no external machine or AI translator is fully valid. Human translation does not require permanent availability or mandatory human review of all machine-produced results; those are workflow choices.
+
+LibreTranslate, AfroLT, Google, Microsoft, Ollama/AI and any other automatic provider are **optional modules/plugins** individually activated by the host. No automatic backend package, model or paid API credentials are required by the core, and a provider-priority list does not auto-enable vendors. Default preferences apply to the subset actually installed and enabled. An operator who wishes to avoid paid translation can simply omit paid/AI integrations altogether.
+
+The default known-client profile adds no restrictions beyond the host's enabled-provider set and global hard limits. An optional public Afutrans service has a **separately enabled and administrator-configurable** profile: it may offer only idle free/local capacity, deliberately expose all enabled providers including paid/AI capacity, or any narrower/human-only choice. The software must neither force paid access nor forbid an explicit administrator-approved public offering. [Client Access Policies](../Client-Access-Policies/en.md), [Provider Routing](../Provider-Routing/en.md).
+
 ## Composition
 
 The host registers DataAccess, format adapters, backend endpoints, result processors, optional Chain steps, history/audit, Messenger transports and UI extensions through interfaces. Translation Targets supply connection and policy profiles. Features can be omitted entirely.
