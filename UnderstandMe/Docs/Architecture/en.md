@@ -42,6 +42,12 @@ Although **Human is the only required provider capability**, the Human worker be
 
 RealTime may carry private chat messages. Its source content must **not be persisted as a Human job, placed in a manual editor/inbox, or copied for later human review** merely because automatic translation is unavailable. An actual human task exists only when separately submitted as an authorized and durable non-P0 manual request. This is a strict selection/privacy constraint, not just a preference or a postponed worker choice. See [Human Translation Workflow](../Human-Translation-Workflow/en.md) and [Request Settings](../Request-Settings-and-Live-Translation/en.md).
 
+## Privacy is an independent request and result-storage dimension
+
+Each translation request carries a `Privacy` classification that can be made stricter by Client/Target/host policy. It controls **visibility**, while `Persist` and cache/lifetime options control **retention**. A `Private` chat/forum translation may be persisted for history reuse but must be available **only to current authorized viewers** of its source and may not appear in Human translator queues, manual audit, public dictionary keys, shared translation memory or raw SystemMonitor data. These exclusions apply to any queue priority, not just P0.
+
+**P0 is still volatile and automatic-only**: saving its verified translated result in a separate scoped content store does **not** retain the P0 work item. The host owns source-message permission checks on **every** private translation lookup, with correct tenant, conversation, message revision, culture, retention and deletion behavior. Provider adapters accept private text only when authorized by the effective external-processor disclosure policy. [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
+
 ## Composition
 
 The host registers DataAccess, format adapters, backend endpoints, result processors, optional Chain steps, history/audit, Messenger transports and UI extensions through interfaces. Translation Targets supply connection and policy profiles. Features can be omitted entirely.
