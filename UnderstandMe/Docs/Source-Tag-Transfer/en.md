@@ -42,6 +42,12 @@ Required checks:
 
 If full faithful transfer cannot be completed, **keep the current target content unchanged and show what blocked the operation**, allowing the user to resolve the conflict. Do not discard an `id` and declare success. The default cosmetic-tag-omission rule for **automated** restoration does not override a user's **explicit request to copy a particular original element with its attributes**.
 
+## Out of scope: future document normalization tools
+
+A **separate future Toolbox document-processing tool** (not UnderstandMe/Afutrans translation) may validate and normalize original HTML IDs with case-sensitive identification and an agreed `lowercase_underscore` naming convention, e.g. `id="UserProfile"` -> `id="user_profile"`. When HTML has linked JavaScript, that tool must also inspect/update affected references consistently, e.g. `document.getElementById("UserProfile")` -> `document.getElementById("user_profile")`; otherwise normalization could break the document. This is only a **deferred project boundary**, not a specification or implementation request now.
+
+**UnderstandMe does none of this.** It copies original `id` attributes verbatim, does not diagnose or repair duplicate IDs, and does not rename identifiers or rewrite JavaScript while translating. Document linting, normalization and cross-file reference validation belong to the future tool.
+
 ## Interaction and responsibilities
 
 This is an **Afutrans assisted editing command**, not translation engine or QueueMaster logic. The source/target UI identifies parsed source element and selected target-language range; the format adapter performs the structural transfer; ResultList/draft mapping updates the target view and validation; the host saves and records revisions. The engine itself does not need to know whether the original clicked `strong` was restored manually.
