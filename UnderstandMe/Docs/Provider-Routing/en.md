@@ -103,6 +103,14 @@ Provider routing must include an explicit request `Privacy` classification and t
 
 The engine's per-attempt result can be saved later to a **scope-restricted translation-result store** independently of P0 job persistence, avoiding repeated translation of historical chats. The cache must not turn private results into globally shared memory or make private text visible to general monitoring/admin UI. Routing may reuse an existing translation only after the host verifies source-message access rights, language and revision. [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
 
+## HTML-native capability and complex-document AI preference
+
+Provider adapters should describe and, where possible, **probe/verify actual HTML-mode, inline-marker and structural-preservation capabilities**, separately from plain-text translation. When a provider accepts HTML natively, the orchestrator may pass appropriate parsed/safe content in the provider's supported format; after translation, the format adapter checks required tags, IDs, links, attributes and placeholders. Native HTML support reduces reconstruction effort but **does not prove correctness** without validation.
+
+For **complex HTML** in an explicitly selected **Afutrans assisted-document profile**, a host-configured default may rank eligible **AI providers** ahead of other engines, since broader context can help with nested mixed-content formatting. This is **format/complexity-aware ranking**, not a universal change to existing free/local -> paid API -> AI default ordering for other tasks, nor a guarantee that AI preserves every structure. An HTML-native non-AI endpoint can also be first if capabilities/validation favor it. User/admin policy controls this; missing/disabled/unauthorized AI cannot be invoked.
+
+If an HTML engine leaves portions untranslated or restoration fails, return accurately marked per-segment states and let an authorized editor choose manual correction, selective alternative request or approved AI help. Every provider attempt and selected region respects ClientPolicy, account budgets, privacy and deadlines; no silent paid escalation or human fallback from P0. [Assisted Document Translation](../Assisted-Document-Translation/en.md).
+
 ## Eligibility, fallback and quality
 
 The selection policy first **filters for eligible endpoints** based on languages, request format, capabilities, ready state, privacy/LocalOnly limits, explicit allowlists, budget and other hard constraints. Then it chooses among eligible candidates by priority/order or cost/latency preference. Never submit unsupported languages or a format to a provider merely because it ranks first.
