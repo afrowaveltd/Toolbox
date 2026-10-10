@@ -42,6 +42,8 @@ The host may configure **zero automatic translation engines** and operate exclus
 
 Ordinary known clients have no extra default provider restrictions beyond global host policy. Public APIs are opt-in, and their client profile is **administrator-selectable**: free/local only, human only, selected paid/AI providers or fully open access to all enabled providers, with the configured global budgets and resource limits. A generous public operator is supported just as much as a strictly offline/human-only operator. See [Client Access Policies](Docs/Client-Access-Policies/en.md) and [Provider Routing](Docs/Provider-Routing/en.md).
 
+A Human worker can process **durably queued translation requests whenever a translator opens an interface**, even days later. The UI shows waiting and claimed work grouped by existing P0-P4 priorities and eligible languages; QueueMaster grants exclusive claims, tracks completion and recovers interrupted work. No extra human queue, continuously connected person or machine provider is required. If a volatile RealTime request needs later human translation, its follow-up is accepted as an explicit durable work item.
+
 ## Planned areas
 
 | Area | Responsibility |
@@ -61,6 +63,7 @@ Ordinary known clients have no extra default provider restrictions beyond global
 - [Architecture and module boundaries](Docs/Architecture/en.md)
 - [Localization and placeholders](Docs/Localization/en.md)
 - [QueueMaster, scheduling and reliability](Docs/QueueMaster-and-Reliability/en.md)
+- [Human translation worker and durable on-demand backlog](Docs/Human-Translation-Workflow/en.md)
 - [Translation Chains and backend workers](Docs/Translation-Chains/en.md)
 - [Orchestrator request admission and provider substitution](Docs/Request-Admission-and-Normalization/en.md)
 - [Provider preferences, cost and escalation](Docs/Provider-Routing/en.md)
