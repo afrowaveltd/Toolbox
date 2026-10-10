@@ -154,6 +154,15 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Only an authorized human administrator chooses subsequent actions: inspect, ignore, display mute, manually block/revoke or disconnect. Repetitive incidents may be aggregated and incoming event buffers bounded without promoting this to automatic trust-state changes.
 - Updated `Docs/SystemMonitor/en.md`, `Docs/Architecture/en.md`, `Docs/Afutrans-Integration/en.md`, `Notes.md`, `Docs/Open-Questions/en.md`, and this status. Documentation only; no code or tests changed.
 
+## 2026-10-10 — per-request translation provider priority and cost-aware fallback (design only)
+
+- Reaffirmed that discussing, documenting and validating modular rules comes before implementing blocks. No new source code, test suite or actual translation integration was created in this change.
+- Added `Docs/Provider-Routing/en.md` for **independent translation provider preferences**, economics and explicit escalation. QueueMaster's five **job priority** queues remain distinct from provider/endpoint selection priority.
+- LibreTranslate remains a supported low-direct-cost self-hosted provider, but not a mandatory default: operator policies may prefer Google, Microsoft, AfroLT or AI, or prohibit all remote endpoints (`LocalOnly`).
+- Provider-selection policies can apply through system defaults, named Pipes, Translation Targets, individual permitted jobs and Chain steps; hard constraints (language/format support, readiness, privacy, spending cap and mandatory validation) are not bypassed by overrides.
+- Fallback/quality escalation requires an explicit trigger and configured limits; a provider's reputation alone does not prove translation quality. Budget, retry billing, latency and cross-provider feature compatibility remain design/test topics.
+- Updated `Docs/Translation-Chains/en.md`, `Docs/Architecture/en.md`, `Docs/Afutrans-Integration/en.md`, `README.md`, `Notes.md`, `Docs/Open-Questions/en.md` and this status. No package, worker, queue or monitoring implementation changed.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
