@@ -22,6 +22,12 @@ Afutrans must remain usable as a **manual translation, dictionary and review hos
 
 An optional public translation API is **not automatically exposed**. When enabled, the operator chooses whether it offers only spare local capacity, human work, selected paid/AI backends, or all enabled providers (e.g. a philanthropic public service). Any global authorized budget, account quotas, privacy constraints and public usage controls still apply. No default template imposes a permanent prohibition on paid translation for public callers.
 
+## On-demand human translation inbox
+
+Afutrans translation UI can be closed for hours or days while **the host keeps accepting and durably storing human-intended work**. On login, an authorized human translator sees authoritative counts **by each of the five QueueMaster priorities**, language directions, waiting versus claimed/in-progress state and compatible available requests. The translator chooses an item or accepts the next suitable item via an atomic QueueMaster claim, edits and submits a validated result. Session disconnection must not erase the task; ownership can be released/recovered without duplication.
+
+This is a presentation/work client of the common QueueMaster/Human provider contract, not an alternative scheduler or dedicated physical human queue. WebUI, Avalonia and TUI can share the same command/state model. [Human Translation Workflow](../Human-Translation-Workflow/en.md).
+
 ## Operator-defined translation provider policies
 
 Afutrans should let each Translation Target choose a reusable provider-selection profile and permitted overrides for individual jobs or Chain steps. A low-cost installation can prefer self-hosted LibreTranslate and escalate to a configured paid/AI endpoint only after a specified failure or unsuccessful mandatory validation. A different operator can make their licensed Google or Microsoft API the default. UI configuration must expose the effective provider order, compatibility filters (language/format/placeholder), eligibility and enabled fallback triggers, along with estimated/actual provider charges where the backend supports them.
