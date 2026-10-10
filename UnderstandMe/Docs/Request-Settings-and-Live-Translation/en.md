@@ -54,6 +54,12 @@ Each translation request has a stable `RequestId` to separate identical segment 
 
 The host chooses its own result/update transport: component callbacks, direct .NET calls, SignalR, SSE, polling or another interface. The **administrative `/SystemMonitor` is not the delivery mechanism for translated user content**. When an update is missed, the client may fetch currently available verified results if the request's caching/durability rules allow it. Volatile P0 work may expire. The fundamental rule is *identify the segment, translate it independently, notify completion, update only that segment*.
 
+## Source-first results for incremental rendering (proposal)
+
+A format adapter may construct a parsed **structural template** whose translatable units reference a request-local `ResultList` slot. Initialize every slot with its **original text**; when a compatible provider completes and validation succeeds, replace only that slot with the translated content, preserving its stable ID and a version/status field. This produces an immediately renderable source preview, incremental mixed source/translated display, and deterministic final reconstruction even when provider completions arrive out of order. On failure retain source text in that slot.
+
+The proposed `<tag placeholder="0">@ResultList[0]</tag>` syntax is illustrative only. Avoid modifying raw HTML just to store IDs: prefer HTML DOM/Markdown AST node mapping or another adapter-owned structural reference, especially for nested inline formatting, void elements and real source attributes. The application/renderer decides how to project changes (Blazor, JS, desktop, file output). ResultList IDs expire with the translation request; they are not stored chat message keys or UI dictionary `KEY=VALUE` entries. [Structural Template and ResultList](../Structural-Template-and-ResultList/en.md).
+
 ## Configurable meaningful segmentation
 
 `Settings` can choose format-aware `Auto` splitting, plain-text `Paragraph` or `Sentence` behavior, and format/size constraints. **Paragraphs are preferred where recognizable**, while long continuous unformatted text is segmented at sentence boundaries. Short text stays one chunk unless a real requirement demands otherwise. Line-ending interpretation is format-dependent: newlines can represent paragraphs or wrapping; a period can be punctuation in a decimal, abbreviation or URL. Preserve source whitespace/punctuation and protected placeholders.
