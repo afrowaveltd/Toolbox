@@ -173,6 +173,12 @@ A newly started server (e.g. VPS4) may ask VPS3 to register as a source by submi
 
 Approval issues a **new recipient-generated GUID `ClientKey`** bound to the approved `ClientId` and sources. The applicant retrieves it on a private enrollment/control path, proves that it owns the original pending request (e.g. one-time claim ticket), stores it and supplies `ClientId` plus `ClientKey` in HTTPS headers for subsequent control requests. The approval key is not public event data. The registered remote source can then be picked up automatically by VPS3's independent SignalR receiver. This keeps monitoring lossy and one-way while approval is durable. GUID `ClientKey` is still a small bearer credential, not a public identification field. [SystemMonitor enrollment design](Docs/SystemMonitor/en.md).
 
+### Adaptive SystemMonitor identity checks for familiar nodes
+
+Once a node is administrator-approved, its private recipient-issued `ClientKey` GUID need not accompany every ordinary monitoring connection. An ongoing SignalR session already has its assigned node identity. For a new/reconnected session, the receiver can compare the public `ClientId`, expected remote endpoint, connection/IP hints and declared module profile to its approved-node baseline. If something looks different, it asks for the stored private `ClientKey` over the separate HTTPS verification path before admitting events. This is the doorman asking a familiar visitor for ID after an unusual change.
+
+No credential challenge is performed by a client-callable method on `/SystemMonitor`; it remains outgoing-only. Be explicit that public GUID/header/IP familiarity is spoofable and constitutes only **lightweight recognition**, not proven identity for every new session. Challenge every new connection when stronger authenticity is necessary. Key details: [SystemMonitor design](Docs/SystemMonitor/en.md).
+
 ## 11. Source repositories and document maturity
 
 - Toolbox: https://github.com/afrowaveltd/Toolbox
