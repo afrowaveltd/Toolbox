@@ -30,6 +30,12 @@ LibreTranslate, AfroLT, Google, Microsoft, Ollama/AI and any other automatic pro
 
 The default known-client profile adds no restrictions beyond the host's enabled-provider set and global hard limits. An optional public Afutrans service has a **separately enabled and administrator-configurable** profile: it may offer only idle free/local capacity, deliberately expose all enabled providers including paid/AI capacity, or any narrower/human-only choice. The software must neither force paid access nor forbid an explicit administrator-approved public offering. [Client Access Policies](../Client-Access-Policies/en.md), [Provider Routing](../Provider-Routing/en.md).
 
+## Human translators process durable waiting work
+
+The mandatory Human provider is a **regular QueueMaster-compatible worker**, not a separate engine or an always-online service. The host may enqueue/persist human-intended work when no translator is connected; opening a translator UI later retrieves authoritative pending/in-progress totals by priority/language and allows atomic exclusive claim, editing and completion. No new physical per-human queue is introduced; the existing five priority queues and persistent work ownership remain authoritative. A missed monitoring event or disconnected UI cannot cause accepted work to disappear.
+
+A delayed human continuation after an ephemeral RealTime request is separately and durably accepted, rather than changing the default volatile P0 semantics. Human results are validated and delivered through the same typed contracts as other providers. See [Human Translation Workflow](../Human-Translation-Workflow/en.md).
+
 ## Composition
 
 The host registers DataAccess, format adapters, backend endpoints, result processors, optional Chain steps, history/audit, Messenger transports and UI extensions through interfaces. Translation Targets supply connection and policy profiles. Features can be omitted entirely.
