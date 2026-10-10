@@ -86,6 +86,12 @@ The accepted request's ranking/preferences are snapshotted at creation. However,
 
 Provider unavailability by itself does not justify permanent administrative changes to that provider's configured priority. Only authorized administrator actions mutate global settings.
 
+## Chat translation does not grant editorial access
+
+The orchestrator's `Privacy` and provider eligibility contract covers translating private chat content without sharing it with unrelated Human workers or auditors. A chat translation request does **not** cause creation of a reusable UI `KEY=VALUE` dictionary entry or a persisted engine-side chunk ID. The engine returns request-local pieces to the **chat host**, which assembles the complete translation and manages its own message storage and authorized-reader checks.
+
+A recipient's voluntary correction is an **application-side operation** after translation. It neither modifies the initial translation request nor authorizes the engine to publish the message. Saving that correction is independently controlled by a **recipient opt-in cache choice**; any sharing beyond their own scope requires separately authorized action. No source-content disclosure arises merely from the recipient editing their display. [Chat Translation Flow](../Chat-Translation-Flow/en.md).
+
 ## Client visibility and observability
 
 The client may know **that** the orchestrator substituted or adjusted the request and **why**, with typed reasons. A monitoring/admin view can show richer diagnostic eligibility decisions, cost estimates, retry attempts and quota notices, without exposing credentials or private source text. Administrative `/SystemMonitor` broadcasts remain optional/best-effort; admission receipts and authoritative job results are not dependent on SignalR monitoring.
