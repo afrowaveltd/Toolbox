@@ -22,6 +22,10 @@ Afutrans must remain usable as a **manual translation, dictionary and review hos
 
 An optional public translation API is **not automatically exposed**. When enabled, the operator chooses whether it offers only spare local capacity, human work, selected paid/AI backends, or all enabled providers (e.g. a philanthropic public service). Any global authorized budget, account quotas, privacy constraints and public usage controls still apply. No default template imposes a permanent prohibition on paid translation for public callers.
 
+## Live translation versus manual work
+
+Afutrans uses automatic translation engines **only** for `P0 RealTime`. When the deployment has only a Human provider, P0 is inactive and returns untranslated source immediately. No live request automatically creates Human work even after an engine failure or with `Mandatory`. Manual translation requires a separate authorized, durably queued non-P0 request; the translator inbox shows only such requests. This also preserves the privacy of conversational text. See [Human Translation Workflow](../Human-Translation-Workflow/en.md).
+
 ## On-demand human translation inbox
 
 Afutrans translation UI can be closed for hours or days while **the host keeps accepting and durably storing human-intended work**. On login, an authorized human translator sees authoritative counts **by each of the five QueueMaster priorities**, language directions, waiting versus claimed/in-progress state and compatible available requests. The translator chooses an item or accepts the next suitable item via an atomic QueueMaster claim, edits and submits a validated result. Session disconnection must not erase the task; ownership can be released/recovered without duplication.
