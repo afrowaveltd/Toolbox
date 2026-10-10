@@ -10,6 +10,12 @@ Optional editor improvement requests default to low/background priority. Their f
 
 A human can separately register as a normal translation worker, declare known languages and use a small long-running buffer, accepting work as availability allows. This is not mandatory for an Editor UI.
 
+## Translator interface over the durable backlog
+
+As a **Human worker**, the operator can connect at any later time to inspect durable pending work in the existing QueueMaster queues: per-priority counts, compatible language directions, status (pending/claimed/in progress) and items available to that person. Nothing requires the interface or its operator to be online when requests arrive. A human translation item is claimed **exclusively through the QueueMaster worker contract**, not directly dequeued from UI code; interruption or disconnect needs safe release/recovery without losing the original item.
+
+The Editor remains a distinct dictionary management and audited revision tool; an optional host UI may combine human-work inbox and editor screens, but their responsibilities and work lifecycles remain separate. A human worker's final output follows the same typed result validation and source protection as other translation providers. For delayed work, persistent acceptance is required even if the originating request was realtime and returned the source text. See [Human Translation Workflow](../Human-Translation-Workflow/en.md).
+
 ## Mandatory revision audit
 
 Every **committed manual dictionary change**, whether originating from WebUI, GUI, TUI or a plugin/API, must create an audit record. Store at least actor, timestamp, target, language, key, old and new value, revision lineage and the nature of edit/restore. Ensure change and audit record are committed together or neither is accepted. Editors must not erase their own audit trails.
