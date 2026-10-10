@@ -62,6 +62,18 @@ The editor permits **human recognition of alignments that automatic matching mis
 
 See [Direct Editing, Autosave and Revisions](../Direct-Editing-Autosave-and-Revisions/en.md) for the detailed UX/state/recovery contract.
 
+## Word-style formatting, VS Code-style source, live AI agent
+
+Afutrans **rendered translation pane is WYSIWYG**: click/drag to select words or phrases, then toggle formatting with familiar shortcuts such as **`Ctrl+B`** (bold/`<strong>`) and **`Ctrl+I`** (italic/`<em>`), matching toolbar buttons or platform equivalents. The format adapter maps the selection to valid translated-document markup and preserves protected IDs, link structure and nesting. This explicitly lets users repair a bold/italic span that the automatic variant/outer-anchor matcher failed to position.
+
+The translated **Source** pane acts like a straightforward **VS Code-style HTML/Markdown editor** with syntax highlighting, paired tags/brackets, indentation, inline diagnostics and direct code edits. Both WYSIWYG and Source edit the **same document draft**; source edits refresh the safe rendered view when valid, and temporary malformed HTML does not erase the in-progress draft. A mobile layout uses a simple responsive view switch; avoid excessive menus.
+
+**Manual autosave uses a fixed 1-second idle debounce**: restart the timer on *every* manual content/format change and dispatch durable saving **1,000 ms after the most recent change**. Blur/navigation/view switching should flush outstanding edits as feasible; show storage acknowledgment/status and do not claim 'Saved' before confirmation. Save temporarily invalid source as a draft and retain the last valid safe preview. Logical grouped changes become reversible revision-history entries.
+
+An optional **visible AI editing agent** (explicit invocation, inspired by the *workflow* of an IDE coding agent) can modify a selected paragraph, region or document progressively **before the user's eyes**, not just offer disconnected chat advice. Show editable candidate patches/diffs or clearly marked in-draft agent changes, with **Pause / Stop / Accept / Revert** and user override at any point. User retains final decision; agent edits are non-destructive, revision-scoped, tracked in history and ideally revertible **as one operation**. An intervening manual edit must block stale AI writes from replacing it. Stream/animate applied *safe structured patches*, not uncontrolled HTML/scripts or one persisted revision per token; every patch and final publish must respect structure, document permission, provider privacy and budget.
+
+This AI assisted editing is optional. A Human-only installation retains all ordinary WYSIWYG/Source/manual functionality. [Direct Editing, Autosave and Revisions](../Direct-Editing-Autosave-and-Revisions/en.md).
+
 ## Safe, reversible editing lifecycle
 
 - Preserve the **immutable original**, provider output and current user draft separately; keep a record of source version, translated segment state and manual changes sufficient for undo/review under configured host retention. Applying a suggestion must not silently replace later manual edits or other accepted segments.
