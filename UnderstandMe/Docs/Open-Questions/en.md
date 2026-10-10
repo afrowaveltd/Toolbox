@@ -58,5 +58,8 @@ This is a discussion backlog, **not** an implementation plan. Decisions recorded
 42. **On-demand GUID challenge:** define which changes trigger `IdentityChallenge`, where HTTPS challenge/response occurs outside the event-only Hub, challenge expiry and connection binding, and how the recipient compares the private recipient-issued ClientKey before forwarding data.
 43. **Compatibility and risk-level tests:** known routine reconnect with only ClientId, changed IP behind NAT/proxy, changed source-module claims, successful/failed/no response to the GUID challenge, spoofed familiar headers/IP, plus optional challenge-every-session policy for stricter deployments. No scenario may stop core work.
 
+44. **Source removal and filtering:** define admin actions for presentation-only Mute, ingress Block, and managed receiver Disconnect/revoke. Preserve original and immediate-relay identity so one remote source can be excluded without losing unrelated events.
+45. **Misbehaving source tests:** verify a blocked original ClientId stops entering aggregate/module feeds, an unrelated source remains visible through the same relay, a muted source remains active outside one dashboard, and flood limits do not affect source engines. Record the caveat that claimed IDs can be impersonated in lite mode.
+
 Current status and next continuation point: [Implementation Status](../../IMPLEMENTATION_STATUS.md).
 
