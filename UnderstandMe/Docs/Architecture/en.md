@@ -36,6 +36,14 @@ Keep the **translator provider selection policy** outside the QueueMaster's five
 
 One installation may prioritize local LibreTranslate and escalate only when necessary; another can prioritize a paid provider and use the others as fallback. Selection is configurable globally, by Translation Target/Chain step and, if allowed, for an individual request. Strict LocalOnly, formats/languages and spending constraints are not waived by overrides. Validation and review remain explicit Chain/ResultProcessor responsibilities. [Provider routing](../Provider-Routing/en.md).
 
+## Request Settings, live segments and stable provider policies
+
+A typed effective `Settings` snapshot is resolved for each new logical request. It separates the exclusive QueueMaster P0–P4 job priority from combinable execution flags, e.g. `Mandatory` and opt-in `SystemPersistent` translation-memory reads/writes. QueueMaster schedules; Translation Pipe/provider policy chooses compatible available endpoints according to cost/privacy/language and operator-configured priority, including overrides by language pair. Default routing tiers are local/free -> equally ranked paid APIs -> AI, all configurable. A RealTime Mandatory request favors an **available acceptable** backend without waiting for a busy preferred endpoint, whereas non-Mandatory RealTime can return original source immediately and update later. No required provider may violate hard constraints.
+
+A format-aware splitter yields ordered `(SegmentId, Text)` pairs; an independent `RequestId` scopes browser live updates. A client can replace individual verified paragraphs while preserving Markdown/HTML format boundaries using safe DOM text updates or validated rendered HTML, without using the outbound-only administrative SystemMonitor for translated user content.
+
+Configuration changes apply to **new requests**. Existing queued/in-flight work retains its captured effective Settings, but an administrator's orchestration pause/stop supersedes dispatch irrespective of Mandatory. The optional approved bounded SystemPersistent memory is checked before provider calls; write/promotion is separate from reading and temporary cache. Capability tests consider model version changes, without maintaining automatic long-lived language-quality rankings. [Request Settings and Live Translation](../Request-Settings-and-Live-Translation/en.md).
+
 ## Hierarchical SystemMonitor
 
 Each module emits events independently. A host maps `/SystemMonitor` for events from all locally registered modules, and `/AfroLT/SystemMonitor`, `/Afutrans/SystemMonitor`, `/UnderstandMe/SystemMonitor` for each module's own events. All use one typed envelope with sender identity. The host fans out a single event to global and module feeds, without Hub-to-Hub forwarding. Remote instances only aggregate through an optional bridge. Monitoring is outbound-only, best-effort, never a storage or command channel. See [SystemMonitor](../SystemMonitor/en.md).
