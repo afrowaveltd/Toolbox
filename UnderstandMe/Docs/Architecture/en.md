@@ -30,6 +30,14 @@ The host registers DataAccess, format adapters, backend endpoints, result proces
 
 The architecture must also allow asynchronous requests for additional translation work from a chain step or editor, preserving correlation to the originating job while remaining within QueueMaster's public API.
 
+## Policy-first request admission with functional best effort
+
+The host **orchestrator** is the authority at the request boundary: before enqueueing, it validates the caller's translation intent, applies higher-priority system/administrator policies, preserves the original request, and creates a normalized effective Settings snapshot. Caller-specified endpoint, Google API or otherwise, is a **preference**, not an enforceable choice. If forbidden, over-quota or unavailable, the orchestrator must seek an eligible authorized alternative rather than rejecting solely on the requested provider. If none can satisfy language, format, privacy and hard account limits, return a specific typed rejection or later failure with explanatory reasons.
+
+The orchestrator can adjust permitted priority/flag/provider preferences on admission and must disclose material changes to the client. QueueMaster accepts approved work, schedules it and respects administrative pauses; provider routing evaluates candidates and current readiness/account caps at dispatch. The actual provider is reported after execution, not merely from an admission plan. A restrictive billing/operational cap takes precedence even over previously accepted jobs, without rewriting their original request or historical policy snapshot.
+
+These rules apply to every transport and frontend without requiring a specific module to know the concrete vendor implementation. [Request Admission and Normalization](../Request-Admission-and-Normalization/en.md).
+
 ## Provider routing is not queue priority
 
 Keep the **translator provider selection policy** outside the QueueMaster's five job-priority queues. The QueueMaster retains ownership of job scheduling and atomic dispatch; a Pipe-level selector uses provider/endpoint capability declarations, configured order, per-request constraints and cost caps to determine compatible candidates and permitted escalation. Neither a worker adapter nor the global queue hard-codes LibreTranslate, Google, Microsoft or AfroLT as a mandatory dependency.
