@@ -144,17 +144,28 @@ A challenge must be bound to the expected node/connection with a short expiratio
 
 For clarity, the earlier requirement that every subsequent control request **always** carry `ClientId` and `ClientKey` is **superseded for ordinary monitoring reconnects**. Privileged enrollment, approval and key-management operations remain independently authorized; their guarantees are not relaxed by this monitoring convenience rule.
 
-## Operator controls for misbehaving monitoring sources
+## Monitoring dashboard: precise interactive view filters
 
-A practical benefit of sender IDs is that a node which accidentally or deliberately floods the monitor with nonsense can be isolated **without stopping any translation engine or unrelated stream**. This is deliberately simple operator-controlled remediation, complementary to the lite approved-node registration/challenge.
+The aggregated `/SystemMonitor` can receive events from many instances and modules. **Each connected administrator must be able to choose exactly what to see** in a clear, interactive filter UI rather than watching all events at once.
 
-- **Mute (presentation filter):** an administrator may hide an original `ClientId`, `SourceModule`, instance or event type in one dashboard without changing receiver connections or other dashboards.
-- **Block (router ingress):** add a disabled/blocked state to the approved-node registry or source filter; the monitoring router drops further events from that origin before they enter its aggregate and module-specific feeds. Clearing the block can restore monitoring without a new registration if the approval record remains intact.
-- **Disconnect / revoke:** if the host is the **SignalR client receiving** a remote SystemMonitor feed, it can stop/dispose **its own receiver connection** and disable reconnection for a blocked peer. If it serves clients, it may refuse their future connections and close managed active sessions. A host cannot generally disconnect arbitrary clients of someone else's Hub.
-- **Forwarded origin:** preserve both the original sender identity and the immediate upstream relay. When VPS3 receives several origins through VPS2, blocking one original `ClientId` should filter just that origin rather than cutting off VPS2 and all other sources. The upstream relay can be blocked separately if the link itself misbehaves.
-- **Flood control:** cap unapproved registration frequency, inbound event rates and memory buffers so continuous noise does not exhaust the observer. These limits apply to monitoring infrastructure only, not source engines. Surface an operator-visible diagnostic when a source is muted/blocked.
+Suggested independently combinable include/exclude facets: remote host/VPS and original `ClientId`; immediate relay; `SourceModule` and `InstanceId`; severity/outcome (errors, warnings, successes, progress, recovery); event name/`ContractId`; optional `CorrelationId`/job ID, searchable diagnostic code or text and time range. Multi-selection, search, reset, per-user saved filter presets and one-click focus on a source/error category are useful. Clicking a particular source can show its events without altering the underlying feed.
 
-Treat a claimed `ClientId` as a **filtering handle**, not infallible proof of the real sender. If another peer successfully impersonates that ID, blocking it may also silence the genuine source; record the immediate connection identity and relay alongside original event metadata to make that operationally visible. These actions can be invoked through a separate authorized admin UI/API; `/SystemMonitor` remains outbound-only and neither stores events nor accepts admin commands.
+**A presentation filter only changes that administrator's visible list.** It never revokes a registration, changes receiver trust, blocks the publisher, hides another administrator's view, or marks a hidden valid event as suspicious. The straightforward default is per-client filtering after receiving events. If measured network traffic warrants it, an optional per-connection interest profile can be supplied on a separate connection setup/read path to reduce output without adding business commands to the outbound-only Hub; this is an optimization, not an authorization decision.
+
+## Suspicious inbound events: incident, discard, administrator decides
+
+**The router must not automatically block, blacklist, disconnect, de-register or punish a monitoring source.** For an event with an unexpected origin, wrong module attribution, unsupported/invalid payload contract, malformed schema or another admission failure:
+
+1. **Record a monitoring incident** in a dedicated durable incident record outside SignalR, with timestamp, reason/code, observed connection, claimed original sender, immediate relay and safe diagnostics. Never persist secrets or untrusted oversized payloads.
+2. **Drop only that invalid event/request.** It must not appear as a valid source event in the aggregate or any module stream. Never interrupt other event sources or the underlying engines.
+3. **Leave node approval and registration unchanged.** A connected administrator may also receive a safe `MonitorIncidentRecorded` notification and review details through a separate authorized incident read interface. If nobody listens, the incident record still exists.
+4. **Wait for an explicit administrator decision.** Only an admin can choose to leave the node active, adjust its expected contract, manually mute its view, block an origin at router ingress, revoke its pairing or stop a managed receiver connection using a separate authorized admin interface. No automatic sanction follows the incident.
+
+Repeated invalid input may be **aggregated by incident signature**, with occurrence count, first/last timestamp and rate-limited diagnostics, instead of writing an unbounded number of identical incidents. Bounded buffers and per-source intake quotas can discard excess events to preserve monitor availability, but they must not silently become a persistent automatic blacklist. If normal load shedding drops otherwise valid best-effort events, track that as monitoring loss/telemetry, not necessarily an allegation of hostile activity.
+
+**Registration requests are separate from rejected events:** an unknown node may submit a correctly formed *enrollment request* that becomes `Pending` for admin review; it is not automatically a malicious incident. An unapproved node's attempt to inject ordinary monitoring events is discarded and can be recorded as an incident.
+
+Sender `ClientId` remains a practical filtering and correlation handle, not a strong identity proof. Preserve original and relay information so an administrator can address one source without disrupting unrelated sources from the same VPS. The outbound-only `/SystemMonitor` still accepts no client-callable publishing or administration commands.
 
 ## Verification before implementation
 
