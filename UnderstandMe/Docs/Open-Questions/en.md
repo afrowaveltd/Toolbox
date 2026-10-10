@@ -58,8 +58,10 @@ This is a discussion backlog, **not** an implementation plan. Decisions recorded
 42. **On-demand GUID challenge:** define which changes trigger `IdentityChallenge`, where HTTPS challenge/response occurs outside the event-only Hub, challenge expiry and connection binding, and how the recipient compares the private recipient-issued ClientKey before forwarding data.
 43. **Compatibility and risk-level tests:** known routine reconnect with only ClientId, changed IP behind NAT/proxy, changed source-module claims, successful/failed/no response to the GUID challenge, spoofed familiar headers/IP, plus optional challenge-every-session policy for stricter deployments. No scenario may stop core work.
 
-44. **Source removal and filtering:** define admin actions for presentation-only Mute, ingress Block, and managed receiver Disconnect/revoke. Preserve original and immediate-relay identity so one remote source can be excluded without losing unrelated events.
-45. **Misbehaving source tests:** verify a blocked original ClientId stops entering aggregate/module feeds, an unrelated source remains visible through the same relay, a muted source remains active outside one dashboard, and flood limits do not affect source engines. Record the caveat that claimed IDs can be impersonated in lite mode.
+44. **Interactive administrator filters:** finalize independent multi-select source/VPS, module/instance, event type/severity, correlation/job, full-text/diagnostic and time filters; include saved personal presets, default views, reset, and performance with large incoming event rates.
+45. **Incident-and-discard on bad input:** define admission validation and durable incident schema; invalid/mismatched event is dropped, its registered source is **never blocked automatically**. Distinguish new legitimate Pending registrations from rejected regular event input.
+46. **Admin-only node decisions:** define read and manual controls for incident review, view-only Mute, ingress Block, revocation and disconnect; ensure no automatic sanctions are triggered by counts of incidents.
+47. **Robustness tests:** per-admin UI filters do not affect other admins or source feeds; repeated incidents aggregate safely, invalid messages do not enter normal streams, unaffected nodes stay live, and ingestion quotas shed load without changing trust state.
 
 Current status and next continuation point: [Implementation Status](../../IMPLEMENTATION_STATUS.md).
 
