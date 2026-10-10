@@ -161,6 +161,12 @@ Operational events are emitted once by each module through a typed publisher; th
 
 A monitoring orchestrator can optionally connect as a **SignalR client** to one or more remote `/SystemMonitor` sources. Example: VPS3 subscribes to VPS1 and VPS2 and republishes their events alongside its own on VPS3's `/SystemMonitor`; the administrator needs only the VPS3 connection. This uses the existing event listener/router model and does **not** add client-callable functions to the monitoring Hub. Each original generic event retains its sender/module/instance, event ID and typed payload contract. Cross-host forwarding must prevent loops and duplicate events, configure authentication and trust, and stay bounded/nonblocking. Remote disconnects/reconnects affect only visibility of that source; missed monitoring broadcasts are not recovered from SignalR. No external module dependency or persistent message bus is mandatory. See [SystemMonitor federation](Docs/SystemMonitor/en.md).
 
+### Paired access keys for independent SystemMonitor peers
+
+No central identity authority: each monitoring node has a public `NodeId` and registers a separate opaque 256-bit access secret at **each remote hub to which it subscribes**. The receiving host validates its configured peer allowlist and permitted feed/module scopes before streaming. A GUID is appropriate as a node identity; the authentication secret should be cryptographically generated, secret, revocable and rotated independently per link. Standard SignalR bearer-token transport over TLS can carry the key without requiring a full OAuth/JWT system.
+
+Because the SystemMonitor Hub is outbound-only, consumers cannot publish fabricated events through Hub methods. Remote event intake occurs only via the optional configured SignalR client receiver, which verifies the expected source and any explicitly allowed relayed origins; untrusted `SourceModule` fields are never credentials. Deny unknown keys, scope listener access and separate admin permissions. Connection failures must never affect engine work. See [SystemMonitor design](Docs/SystemMonitor/en.md).
+
 ## 11. Source repositories and document maturity
 
 - Toolbox: https://github.com/afrowaveltd/Toolbox
