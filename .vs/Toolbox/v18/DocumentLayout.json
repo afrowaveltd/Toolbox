@@ -1,14 +1,18 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "D:\\Toolbox\\",
+  "WorkspaceRootPath": "\\\\vmware-host\\Shared Folders\\PROGRAMMING\\Afrowave Projects\\Toolbox\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|d:\\toolbox\\toolroom\\whenitfails\\setter\\readme\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
-      "RelativeMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|solutionrelative:toolroom\\whenitfails\\setter\\readme\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+      "AbsoluteMoniker": "D:0:0:{2136C064-B8AD-4D34-8AE8-A18D1F53156C}|UnderstandMe\\UnderstandMe.csproj|\\\\vmware-host\\shared folders\\programming\\afrowave projects\\toolbox\\understandme\\notes.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|d:\\toolbox\\toolroom\\whenitfails\\setter\\readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
-      "RelativeMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|solutionrelative:toolroom\\whenitfails\\setter\\readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+      "AbsoluteMoniker": "D:0:0:{2136C064-B8AD-4D34-8AE8-A18D1F53156C}|UnderstandMe\\UnderstandMe.csproj|\\\\vmware-host\\shared folders\\programming\\afrowave projects\\toolbox\\understandme\\understandme.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|\\\\vmware-host\\shared folders\\programming\\afrowave projects\\toolbox\\toolroom\\whenitfails\\setter\\readme.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{56420946-6B23-4621-A7D5-034C95F32AFD}|Toolroom\\WhenItFails\\Setter\\Afrowave.Toolbox.Toolroom.WhenItFails.Setter.csproj|\\\\vmware-host\\shared folders\\programming\\afrowave projects\\toolbox\\toolroom\\whenitfails\\setter\\readme\\en.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
     }
   ],
   "DocumentGroupContainers": [
@@ -18,20 +22,45 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 51,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "README.md",
-              "DocumentMoniker": "D:\\Toolbox\\Toolroom\\WhenItFails\\Setter\\README.md",
+              "DocumentMoniker": "\\\\vmware-host\\Shared Folders\\PROGRAMMING\\Afrowave Projects\\Toolbox\\Toolroom\\WhenItFails\\Setter\\README.md",
               "RelativeDocumentMoniker": "Toolroom\\WhenItFails\\Setter\\README.md",
-              "ToolTip": "D:\\Toolbox\\Toolroom\\WhenItFails\\Setter\\README.md",
+              "ToolTip": "\\\\vmware-host\\Shared Folders\\PROGRAMMING\\Afrowave Projects\\Toolbox\\Toolroom\\WhenItFails\\Setter\\README.md",
               "RelativeToolTip": "Toolroom\\WhenItFails\\Setter\\README.md",
               "ViewState": "AgIAAAUBAAAAAAAAAAAAABUBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
               "WhenOpened": "2026-07-02T15:49:46.29Z",
               "IsPinned": true,
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Notes.md",
+              "DocumentMoniker": "\\\\vmware-host\\Shared Folders\\PROGRAMMING\\Afrowave Projects\\Toolbox\\UnderstandMe\\Notes.md",
+              "RelativeDocumentMoniker": "UnderstandMe\\Notes.md",
+              "ToolTip": "\\\\vmware-host\\Shared Folders\\PROGRAMMING\\Afrowave Projects\\Toolbox\\UnderstandMe\\Notes.md",
+              "RelativeToolTip": "UnderstandMe\\Notes.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAADIAAADbAQAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2026-10-09T22:28:55.627Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "UnderstandMe",
+              "DocumentMoniker": "\\\\vmware-host\\Shared Folders\\PROGRAMMING\\Afrowave Projects\\Toolbox\\UnderstandMe\\UnderstandMe.csproj",
+              "RelativeDocumentMoniker": "UnderstandMe\\UnderstandMe.csproj",
+              "ToolTip": "\\\\vmware-host\\Shared Folders\\PROGRAMMING\\Afrowave Projects\\Toolbox\\UnderstandMe\\UnderstandMe.csproj",
+              "RelativeToolTip": "UnderstandMe\\UnderstandMe.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-10-09T22:21:59.433Z",
               "EditorCaption": ""
             },
             {
@@ -236,11 +265,11 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 3,
               "Title": "en.md",
-              "DocumentMoniker": "D:\\Toolbox\\Toolroom\\WhenItFails\\Setter\\Readme\\en.md",
+              "DocumentMoniker": "\\\\vmware-host\\Shared Folders\\PROGRAMMING\\Afrowave Projects\\Toolbox\\Toolroom\\WhenItFails\\Setter\\Readme\\en.md",
               "RelativeDocumentMoniker": "Toolroom\\WhenItFails\\Setter\\Readme\\en.md",
-              "ToolTip": "D:\\Toolbox\\Toolroom\\WhenItFails\\Setter\\Readme\\en.md",
+              "ToolTip": "\\\\vmware-host\\Shared Folders\\PROGRAMMING\\Afrowave Projects\\Toolbox\\Toolroom\\WhenItFails\\Setter\\Readme\\en.md",
               "RelativeToolTip": "Toolroom\\WhenItFails\\Setter\\Readme\\en.md",
               "ViewState": "AgIAAAEBAAAAAAAAAAAAABUBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",

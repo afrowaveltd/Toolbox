@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Afrowave.Toolbox.UnderstandMe</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Afrowave.Toolbox.Essentials" Version="0.2.0" />
+    <PackageReference Include="Afrowave.Toolbox.WhenItFails" Version="0.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Models\" />
+    <Folder Include="Enums\" />
+    <Folder Include="Localization\" />
+    <Folder Include="DataStorages\" />
+    <Folder Include="Docs\" />
+    <Folder Include="Readme\" />
+    <Folder Include="Settings\" />
+    <Folder Include="Translation\" />
+  </ItemGroup>
+
+</Project>
