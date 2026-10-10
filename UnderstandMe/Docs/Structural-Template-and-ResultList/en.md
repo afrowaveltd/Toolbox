@@ -84,6 +84,12 @@ The source-filled `ResultList` and structural template allow a **left original /
 
 A matching user can recognize `svět`/`světe` or a paraphrase that automated variant/outer-anchor alignment could not confirm, explicitly select the desired target text span and reapply a cosmetic inline tag. ID/link-bearing markup still requires a successful structural validation rather than silent cosmetic omission. The host manages drafts, undo, acceptance and export; ResultList mapping stays an application-facing data contract rather than a fixed browser implementation. [Assisted Document Translation](../Assisted-Document-Translation/en.md).
 
+## Direct edits and autosaved draft revisions
+
+The source-initialized ResultList supplies the current text/structural reference for both **direct editing in rendered translation** and **editing translated HTML source**. This is one synchronized document draft with multiple presentations, not separate result lists that can drift. An editor can replace an unresolved region **without any successful provider attempt**. Manual edits update the current target text/format annotation and the host-owned draft revision; `OriginalText` remains immutable.
+
+**An accepted edit autosaves** in the host document store with revision acknowledgement and logical change history. Background AI/provider callbacks carry the base revision and are not allowed to overwrite newer manual versions. A revert to historical text/markup is applied as **another new revision**. Keep revision IDs separate from ephemeral `RequestId/SegmentId` and from QueueMaster job IDs; the host owns persistence and restoration. While editing invalid HTML source, persist the current draft with parsing diagnostics and use the last valid structural preview until correction, not invented valid output. [Direct Editing, Autosave and Revisions](../Direct-Editing-Autosave-and-Revisions/en.md).
+
 ## Lifecycle and presentation neutrality
 
 1. Format-specific adapter parses and validates the source structure.
