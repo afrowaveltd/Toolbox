@@ -16,6 +16,12 @@ As a **Human worker**, the operator can connect at any later time to inspect dur
 
 The Editor remains a distinct dictionary management and audited revision tool; an optional host UI may combine human-work inbox and editor screens, but their responsibilities and work lifecycles remain separate. A human worker's final output follows the same typed result validation and source protection as other translation providers. For delayed work, persistent acceptance is required even if the originating request was realtime and returned the source text. See [Human Translation Workflow](../Human-Translation-Workflow/en.md).
 
+## Private translated content is not manual-audit material
+
+A request with effective `Privacy = Private` is excluded from all Human translation, manual quality audit, general dictionary browsing, and human-visible prompt/source/result history. This is true **even when its successful translation is stored durably** for authorized chat/forum history lookup. Private result persistence is not permission for other users, translators or admins to inspect the content.
+
+The mandatory **manual dictionary revision audit** below remains intact for real **manual edits of authoritative dictionaries**; it does not mean that automatically generated private chat translations must be exposed to a human auditor or registered as public dictionary keys. Operational usage/status may be audited with **no raw private content**. Automated checks may operate within the effective privacy and provider-disclosure policy. See [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
+
 ## Mandatory revision audit
 
 Every **committed manual dictionary change**, whether originating from WebUI, GUI, TUI or a plugin/API, must create an audit record. Store at least actor, timestamp, target, language, key, old and new value, revision lineage and the nature of edit/restore. Ensure change and audit record are committed together or neither is accepted. Editors must not erase their own audit trails.
