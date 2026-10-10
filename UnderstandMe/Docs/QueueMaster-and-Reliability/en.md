@@ -60,6 +60,12 @@ An endpoint has `IsReady` as a single boolean readiness state. Capabilities (sou
 
 Temporary endpoint outages are expected. Retry cadence/count is configurable; a previous LibreTranslate experiment used 2-second retries up to 10 attempts. During transient unavailability, a small buffer can remain reserved briefly or eligible unprocessed work can be reassigned when another compatible endpoint requests capacity. Avoid both duplicate publishes and starvation; exact leasing/retry/hand-off details will be designed and tested later. Periodically check unavailable endpoints and allow them to rejoin automatically.
 
+## Private durable results do not change volatile P0 work
+
+**Privacy and Persistence are independent.** A request can have `Privacy = Private` and still keep an authorized, stored final translation of a chat/forum message so history does not have to be translated every time. The **P0 RealTime work item remains volatile** and automatic-only; only its validated result can be separately committed to an access-scoped translation store/cache under the request's retention and source-owner policy. It does not become a pending Human assignment or a globally shared dictionary entry.
+
+QueueMaster owns execution and durability of explicit non-P0 work, not per-conversation authorization or content retrieval. The application/storage adapter owns scoped result lookup, current reader permission checks, source-revision matching, deletion/expiry propagation and safe data storage. Private content must not enter manual audit, Human worker buffers or content-bearing monitoring events. **Store only required results and metadata**, not full P0 histories by default. [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
+
 ## Persistence
 
 P0 RealTime requests are volatile/fire-and-forget, without durable job history. Normal/long-running tasks may use `Persist` so an acknowledged request survives restarts. Default standalone operational database: SQLite; larger deployments can select supported EF Core database providers. This is **not** the same as the source/target dictionary storage.
