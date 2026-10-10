@@ -48,6 +48,12 @@ Each translation request carries a `Privacy` classification that can be made str
 
 **P0 is still volatile and automatic-only**: saving its verified translated result in a separate scoped content store does **not** retain the P0 work item. The host owns source-message permission checks on **every** private translation lookup, with correct tenant, conversation, message revision, culture, retention and deletion behavior. Provider adapters accept private text only when authorized by the effective external-processor disclosure policy. [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
 
+## Message translation stays host-owned
+
+**Application localization** and **chat/message translation** share processing contracts but not their storage model. `KEY=VALUE`/dictionary-less keys are reserved for application/web UI resource dictionaries. For chat/other user-generated text, the Splitter assigns **temporary `0..N` segment IDs**, the engine returns translated segments, and **the consuming host assembles the entire message**. Chunk IDs are neither stored nor treated as dictionary keys. The chat app owns its message history, translated content reuse, authorized recipient views and retention; UnderstandMe does **not** mandate centralized chat persistence.
+
+A recipient can optionally **edit their own translated view**. The application applies the correction only in the current view when caching is disabled, or saves a **recipient-specific override** at their opt-in when permitted. Cache does not automatically mean publication to other users or shared memory; broader sharing, if supported, is a separate authorized action. Initial automatically translated text remains private to its allowed recipients; no generic Human auditor receives it. The dictionary Editor's required revision audit applies to UI dictionaries, not automatically to personal chat edits. [Chat Translation Flow](../Chat-Translation-Flow/en.md).
+
 ## Composition
 
 The host registers DataAccess, format adapters, backend endpoints, result processors, optional Chain steps, history/audit, Messenger transports and UI extensions through interfaces. Translation Targets supply connection and policy profiles. Features can be omitted entirely.
