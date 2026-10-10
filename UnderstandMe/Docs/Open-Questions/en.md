@@ -25,5 +25,8 @@ This is a discussion backlog, **not** an implementation plan. Decisions recorded
 18. **Translation improvement feedback:** reviewable `/suggest`-compatible input, source-based AI/human approval, audit and consent/provenance, abuse controls, immediate translation-memory overrides and separately curated model training.
 19. **Cross-platform interoperability:** test non-.NET, legacy HTTP clients and optional LibreTranslate-compatible DTOs and endpoints; document stable JSON/error contracts.
 
+20. **AfroLT standalone packaging and optional adapters:** ensure zero dependency on UnderstandMe/Afutrans, small embedded-core deployment, optional self-hosting and SignalR host assemblies, and one authoritative internal translation service.
+21. **SignalR contract:** choose versioned hub route and method/event DTOs, JSON default versus optional MessagePack, bounded batch/stream semantics, reconnect/reconciliation, authentication/tenant isolation, quotas, cancellation and idempotent job acceptance.
+
 Current status and next continuation point: [Implementation Status](../../IMPLEMENTATION_STATUS.md).
 

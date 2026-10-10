@@ -130,6 +130,10 @@ AfroLT API docs should offer `/api-docs` -> `/api-docs/latest` plus persistent `
 
 Preserve the LibreTranslate-inspired `Suggest a better translation` feature. Ingest proposals into a separate store with optional human/AI quality review against the original. Approved suggestions may become auditable translation-memory overrides for immediate use or enter a separately curated future model-training dataset. Submission does not directly retrain or overwrite deployed model weights. See [AfroLT future design](Docs/AfroLT-Future-Design/en.md).
 
+### AfroLT independence and three interface options
+
+**AfroLT must be standalone-capable.** Neither UnderstandMe nor Afutrans is a mandatory dependency. One translation/model/capacity/recovery core can be exposed through direct .NET calls, versioned HTTP REST/JSON + OpenAPI/Scalar, and an optional self-contained SignalR Hub for persistent bidirectional client communication (jobs, progress, completion). A separate optional integration adapter connects it to UnderstandMe QueueMaster and Messenger; the core never depends on those external modules. Use plain typed wire DTOs; native unions stay an internal .NET 11 API concern. REST remains available without SignalR, and embedded mode needs no web server. See [AfroLT design](Docs/AfroLT-Future-Design/en.md).
+
 ## 11. Source repositories and document maturity
 
 - Toolbox: https://github.com/afrowaveltd/Toolbox

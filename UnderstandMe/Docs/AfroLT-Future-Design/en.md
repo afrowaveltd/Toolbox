@@ -84,6 +84,44 @@ Sources:
 - https://scalar.com/products/api-references/integrations/aspnetcore/integration
 - https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/aspnetcore-openapi
 
+## Standalone-first core and optional SignalR Hub
+
+**Architectural requirement:** AfroLT MUST be usable **on its own**, without either UnderstandMe or Afutrans at build time or runtime. It may be deployed in-process as a reusable .NET library, or as a separately hosted service. Its engine owns only the resource/capacity controls it needs to function independently; it must not be forced to adopt the global five-queue UnderstandMe scheduler, Messenger, Translation Chains, or Afutrans UI in standalone installations.
+
+AfroLT uses **one internal translation service** with three interchangeable adapters:
+
+| Surface | Consumer | Notes |
+| --- | --- | --- |
+| Direct .NET API | .NET library consumer | In-process invocation, no web server or SignalR required |
+| REST HTTP + JSON | Legacy, browser, PHP, Python, .NET and other HTTP clients | Versioned contracts, Microsoft OpenAPI + Scalar reference |
+| Optional ASP.NET Core SignalR Hub | Persistent .NET and other SignalR clients | Bidirectional requests, progress, notifications and result delivery |
+
+All three call the same translation core, capability discovery, bounded worker/model manager and fault-handling services. Neither HTTP nor SignalR Hub may implement its own translation logic or introduce a second authoritative state. The web host should permit SignalR to be disabled independently without disabling the REST API or the direct library.
+
+The **SignalR Hub belongs to AfroLT's standalone host**, not to UnderstandMe's passive `Messenger`. These can later be connected by a separate adapter, while keeping UnderstandMe's Messenger passive and QueueMaster solely responsible for global work assignment. AfroLT Core must have no compile-time dependency on UnderstandMe or Afutrans. Optional integration packages may depend inward on AfroLT Core and UnderstandMe contracts, not the reverse.
+
+### SignalR behavior
+
+Suggested hub features (nonfinal API names): submit a short translation, submit a bounded batch/longer job, query available language pairs/models and subscribe to the caller's job status; the server can emit progress and result/failed/completed notifications. For long-running operations return a correlation/job ID rather than holding one hub method invocation open indefinitely. Keep typed DTOs compatible with both .NET 10 and 11 clients and language-neutral HTTP JSON consumers. The REST surface remains a complete fallback for clients without SignalR.
+
+SignalR uses WebSockets when possible and can fall back to other transports. Persistent bidirectional connections can reduce the overhead of repeated exchanges and enable server-initiated events; this is **not a blanket throughput advantage over REST** for all request patterns. Default wire format: SignalR JSON via `System.Text.Json`, compatible with our other JSON conventions. Optional MessagePack can reduce wire sizes, but is a separate dependency/protocol with interoperability tradeoffs; notably .NET 11's native union types are currently supported by SignalR's JSON protocol, not by the MessagePack protocol. Expose wire DTOs that don't require native unions.
+
+Ensure authentication/authorization for connected users, per-client job isolation, quotas and backpressure, message size/streaming limits, cancellation, and reconnection/resume by job ID. SignalR reconnection alone does not guarantee durable delivery; acknowledge persistent jobs only after durable acceptance and avoid duplicate publication through idempotent IDs. Ephemeral short translations may use simpler nonpersistent semantics.
+
+Proposed module boundaries (names provisional):
+
+`AfroLT.Core` -> independent translation/model/capacity/fault handling contracts and implementation
+`AfroLT.Hosting` -> optional ASP.NET Core HTTP host and admin/translation website
+`AfroLT.SignalR` -> optional Hub transport adapter
+`AfroLT.UnderstandMe` -> optional plugin adapter exposing AfroLT as an UnderstandMe translation worker
+
+These are **conceptual boundaries, not committed package names**. A tiny standalone embedded client should not be required to load ASP.NET Core, SignalR, QueueMaster, or other host-only infrastructure.
+
+References:
+- Microsoft SignalR overview: https://learn.microsoft.com/en-us/aspnet/core/signalr/introduction
+- Microsoft SignalR hubs: https://learn.microsoft.com/en-us/aspnet/core/signalr/hubs
+- Microsoft SignalR .NET client: https://learn.microsoft.com/en-us/aspnet/core/signalr/dotnet-client
+
 ## Open design details
 
 - Determine which LibreTranslate-compatible endpoints (if any) are worth replicating, and how capability negotiation avoids false HTML support claims.
