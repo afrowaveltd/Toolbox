@@ -77,19 +77,32 @@ The **receiver** is an optional host-side adapter (working name `ISystemMonitorR
 
 This is a **fan-in of best-effort monitoring streams**. It does not combine databases, ownership of queued jobs, persistent audit histories or administrative permissions. It does not make unrelated module dependencies mandatory. Tests must cover a one-hop VPS1/VPS2 to VPS3 aggregation, disconnect/reconnect, source identity, duplicate forwarding, loops and mixed known/unknown typed payloads.
 
-## Pairwise key authorization for monitoring links
+## Lite peer identification at monitoring connection time
 
-**Agreed direction:** preserve module isolation, but require every inter-server monitoring connection to be explicitly trusted. Each node has a public `NodeId` (a GUID is suitable for identification) and a **secret access key registered at the receiving endpoint**. Configure secrets **per link/recipient**, not a single reusable secret shared with every server. No central identity service is required.
+**Scope:** this is a low-friction **known-node registration and event-source filtering** mechanism for anonymous, read-only monitoring. It is not general application authentication or protection for sensitive data. The primary risk addressed is polluted monitoring output from an unintended or misconfigured source. No central authority, OAuth/JWT, per-link 256-bit secrets, permission bureaucracy or persistent message protocol is required for the agreed basic mode.
 
-For example, when VPS3 subscribes to VPS1's outgoing `/SystemMonitor`, VPS1 is the authorization receiver: VPS1 registers the access key presented by the VPS3 SignalR client and grants `monitor.read` for its permitted feeds. VPS2 independently registers a different key for VPS3. If VPS3 later serves an external monitor, that client presents a key registered on VPS3. Unknown, disabled or revoked keys are denied **before** event subscription. Registration is a configuration/admin operation outside the event-only Hub.
+Each monitor node has a stable `NodeId` (GUID) and descriptive identification metadata. The monitoring receiver maintains a small set of known `NodeId` values, expected endpoint addresses and optionally allowed modules or typed event contracts. When a monitoring connection starts, peers exchange lightweight connection identification as appropriate to their roles:
 
-Suggested minimal trust record: `NodeId`, human-readable peer name, **hash of its AccessKey**, permitted module scopes and feed(s), enabled/revoked status, and optional creation/expiration time. A generated GUID v4 can serve as a node ID, but use a dedicated cryptographically random 256-bit opaque token for the access secret (e.g. `RandomNumberGenerator.GetBytes(32)`). Treat it as a simple bearer/API key rather than implementing an original cryptographic protocol. Store it securely, never embed it in events, URLs, exception text or logs, compare using safe verification, and provide replacement/revocation. Require TLS for all remote connections.
+- The **connecting client** can present its GUID during SignalR connection establishment when the serving host needs a simple client allowlist.
+- The **source server** announces a typed `MonitorHello` at the start of the event subscription, containing its `NodeId`, instance/display name, the module sources it publishes, supported `ContractId`/`SchemaVersion` identifiers and protocol version.
+- A receiver such as VPS3 compares the received identification against its **configured remote URL and registered expected node** before forwarding subsequent `MonitorEvent<T>` messages to the aggregate stream. Events from unregistered or unexpected sources are ignored (or the connection closed); a source must not silently claim to be another node. For deliberately configured relay servers, the allowed downstream sources are explicitly listed.
 
-**Authorize the direction of each connection.** A normal client cannot inject an event into `/SystemMonitor` because the Hub exposes no client-callable `Publish` method. Remote event ingress to a federation happens **only through the explicitly configured outgoing SignalR receiver client**. Authenticate the TLS remote host, bind its connection configuration to the expected peer and approved source-module list, and reject or quarantine events claiming an unexpected source. `SourceModule` or `NodeId` fields within a `Message<T>` envelope are not, by themselves, proof of identity. A relay must be specifically authorized to forward named upstream origins; a trusted but compromised relay otherwise remains capable of lying, so this is connection-level trust rather than end-to-end signed provenance.
+Conceptual first-message payload:
 
-In .NET clients, use SignalR's standard `AccessTokenProvider` / `Authorization: Bearer` mechanism to **transport** the opaque secret; a small custom authentication handler can validate the registered key and apply authorization policy to the Hub. No JWT issuance or OAuth provider is needed for this internal API-key arrangement. Browser SignalR clients can transmit tokens in a URL query on certain transports, so an admin browser UI should preferably use its existing authenticated web session and avoid leaking shared node keys in query logs. Server-to-server .NET clients can send the header instead. On key revocation, explicitly terminate the affected active connection or recheck access; normal SignalR authentication does not automatically revoke established connections.
+```json
+{
+  "nodeId": "88969d54-4d28-43da-872a-f86852d88f3d",
+  "name": "Afrowave VPS1",
+  "modules": ["AfroLT", "UnderstandMe"],
+  "contracts": ["afrolt.model-loaded.v1", "understandme.queue-status.v1"]
+}
+```
 
-**Fail closed for untrusted peers; fail open for engine availability.** A rejected monitoring connection results in no stream access and an independent diagnostic record, but it never pauses translation, model recovery or other module operations. Security applies identically to root and module-specific monitor routes.
+This identification exchange is **separate from business event messages** and is not a client-callable `Publish` method on the outbound-only SystemMonitor Hub. The serving host can read connection metadata from the initial HTTP/SignalR negotiation, and can send the server-to-client `MonitorHello` after connecting. Ordinary SignalR transport/protocol negotiation alone does not provide a custom node manifest, so we define it in our monitoring contract.
+
+**Limits of this lite mechanism:** knowing or copying a GUID can enable impersonation. A GUID proves neither ownership nor cryptographic origin. The safety assumption is a deliberately narrow, non-sensitive, one-way monitoring environment with trusted, explicitly configured HTTPS endpoints and standard TLS server certificate validation. A malicious party cannot inject events into the outbound-only Hub simply by knowing the event format; the actual risk is a misconfigured/compromised source endpoint or an untrusted receiver bridge. If genuinely hostile-network guarantees become necessary later, an **optional stronger authentication mechanism** can be added without changing the typed event model or the basic GUID-based discovery convention.
+
+In-process module listeners need no network identity check. When a remote connection fails or its NodeId is unknown, only that monitoring source disappears: translation, queued work, recovery and other monitors continue unaffected.
 
 ## Verification before implementation
 
