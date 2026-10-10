@@ -67,6 +67,12 @@ Chat translation can use the existing format-aware Splitter and automatic transl
 
 A message recipient may voluntarily amend their **own displayed translated text** in an optional host-side editing tool and select **cache correction** or **do not cache**. This must not trigger generic Human manual-audit jobs, automatically modify a shared authoritative dictionary, or disclose the source to other recipients. The accepted correction and optional recipient cache are **post-processing in the chat app**, not a translator provider. See [Chat Translation Flow](../Chat-Translation-Flow/en.md).
 
+## Candidate structural mapping for translatable results
+
+One useful implementation direction is **parse structure -> map semantic chunks to temporary segment references -> initialize a source-filled ResultList -> update verified slots -> project safe formatted output**. Simple `<tag>content</tag>` structures make mapping obvious; nested inline markup and mixed text require preserving sentence context across formatting nodes. No direct source rewriting or custom HTML `placeholder` attribute is required.
+
+Each result slot can keep `OriginalText`, `CurrentText`, processing status and revision; a failed/unfinished translation still displays source content. This design enables client-specific progressive rendering while keeping the host responsible for final assembly and storage. Still exploratory: finalize the HTML/Markdown AST representation and protected inline markers when we design the Splitter/ResultProcessor contract. [Structural Template and ResultList](../Structural-Template-and-ResultList/en.md).
+
 ## Semantic splitting is format-aware, not a fixed chunk size
 
 The Splitter should output **coherent meaning-bearing units** and avoid fragmentation. A short phrase may remain one unit; formatted ordinary text prefers paragraphs, long unformatted text prefers sentences. For Markdown, use semantic AST node contents while preserving syntax; for HTML, parse translatable element content and preserve inline markup/context rather than splitting a sentence into unrelated one-word chunks. Other formats use registered splitter adapters when introduced. Explicit `Settings` selects paragraph versus sentence policy; split oversized units at further safe boundaries only when necessary for a provider's limits.
