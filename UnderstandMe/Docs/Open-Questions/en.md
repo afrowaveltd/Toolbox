@@ -44,9 +44,10 @@ This is a discussion backlog, **not** an implementation plan. Decisions recorded
 31. **Federation metadata and safety:** preserve the original typed event, origin and EventId, define optional relay path/hop metadata, per-source health reporting and bounded deduplication/loop prevention for chained or reciprocal connections.
 32. **Cross-host contract tests:** simulate two remote monitors feeding a third, disconnect/reconnect with gaps, module-scoped filtering, unknown generic payloads, malicious/untrusted senders and bounded fan-in without blocking local work.
 
-33. **Per-peer monitoring keys:** settle the NodeId/key registration schema, independent high-entropy per-recipient bearer secrets, module/feed read scopes, source/relay allowlists, storage/rotation/revocation and active connection termination.
-34. **Federation authorization tests:** unknown/revoked/incorrect/insufficiently scoped credentials must fail closed; monitoring receiver must reject spoofed upstream origins and unauthorized relays; zero valid monitoring connections must never block translation.
-35. **SignalR client credentials:** use standard token transport over TLS without exposing service keys to browser URLs or logs; explicitly distinguish read-only monitoring access from admin commands and any future forwarding permission.
+33. **Lite SystemMonitor handshake:** finalize which identifying GUIDs/metadata travel at SignalR connection establishment and which fields the source announces via `MonitorHello` (node name, modules, typed contract versions and instance metadata).
+34. **Known-node checks:** define the receiver's configured endpoint + expected NodeId registry, module/source consistency checks and expected behavior for unknown/mismatched nodes, including optional relay-source declarations.
+35. **Threat-model boundary:** accept that GUID is a public identifier, not cryptographic authentication. Test trusted HTTPS endpoint/certificate validation, explicit receiver configuration and absence of any remote client-callable Publish method; keep stronger credentials optional if requirements change.
+36. **Monitor identification tests:** connection announcement precedes normal events, unknown GUID is rejected/ignored, misdeclared event source is not forwarded, and failures never block local work.
 
 Current status and next continuation point: [Implementation Status](../../IMPLEMENTATION_STATUS.md).
 
