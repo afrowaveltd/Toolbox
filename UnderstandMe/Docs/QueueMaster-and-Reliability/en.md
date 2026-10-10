@@ -40,6 +40,14 @@ The QueueMaster continues owning priority queues and work leases. It does not ma
 
 LibreTranslate, AfroLT and all other automatic endpoints are optional registered features. If none are activated, the global queue contract and recoverable human job lifecycle remain usable; no phantom machine buffer, translator model or AI reviewer is required. [Translation Chains](../Translation-Chains/en.md), [Provider Routing](../Provider-Routing/en.md).
 
+## Durable human backlog and on-demand translators
+
+The **Human worker is a delayed consumer of the existing five QueueMaster queues**, not a separate queue engine. Human translation requests intended to wait until someone is available are **durably accepted and persisted**, even when there is no translator logged in. The UI can open later and fetch authoritative **pending/in-progress counts by priority** and compatible language/target; it then claims selected work through QueueMaster. Opening the UI is not necessary for enqueueing, and disconnecting must not lose waiting work.
+
+A human translator must **atomically claim one compatible item**, with exclusive ownership and an explicit release/recovery/lease policy. Another translator cannot publish completion for the same active item. A stale/out-of-date lease or disconnected session must not overwrite another translator's result. Result validation, committed status and audit follow the shared provider-independent workflow. The UI displays counts and optionally receives status notifications, but **Messenger/SystemMonitor is not a job database**.
+
+**Persistence distinction:** ordinary `P0 RealTime` work is volatile. If a RealTime request should produce a translation later through a human, accept a **separate durable human continuation** with correlated RequestId/segment identity under its effective policy; do not implicitly make every P0 request persistent. A durable human assignment must survive a restart. No additional physical 'human queue' is required. Details: [Human Translation Workflow](../Human-Translation-Workflow/en.md).
+
 ## Notifications
 
 `QueueEmpty` represents whether an individual central queue has no items. An enqueue that **atomically changes a given queue from zero items to one** triggers the common `AddedToQueue` event; enqueues to already nonempty queues do not. Idle buffers can wake and request work. A periodic check (initial suggestion ~500 ms) provides a safety net. A buffer that becomes free while compatible work already exists also requests more.
