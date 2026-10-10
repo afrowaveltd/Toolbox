@@ -16,6 +16,7 @@ Provide reusable building blocks for software localization, automatic and human 
 - Translation Chains compose configurable translation, splitting, assembly, review, and validation steps.
 - Standard .NET localization, optional dictionary-less registration, configurable storage and short-lived RealTime translation are first-class use cases.
 - AI, machine translation and human editors are optional workers rather than mandatory dependencies.
+- Provider priority is separate from job priority; self-hosted LibreTranslate, paid APIs and AI engines are selectable per policy, target and permitted request overrides.
 - Prefer Microsoft/.NET components when appropriate, including `System.Text.Json`, while keeping external formats and translation providers pluggable.
 - Core/library compatibility starts at .NET 10; .NET 11-specific features and API surfaces are design topics, not yet implemented.
 
@@ -39,6 +40,7 @@ Provide reusable building blocks for software localization, automatic and human 
 - [Localization and placeholders](Docs/Localization/en.md)
 - [QueueMaster, scheduling and reliability](Docs/QueueMaster-and-Reliability/en.md)
 - [Translation Chains and backend workers](Docs/Translation-Chains/en.md)
+- [Provider preferences, cost and escalation](Docs/Provider-Routing/en.md)
 - [Editor, audit and rollback](Docs/Editor-and-Audit/en.md)
 - [Afutrans integration and interfaces](Docs/Afutrans-Integration/en.md)
 - [AfroLT future lightweight .NET translation service](Docs/AfroLT-Future-Design/en.md)
