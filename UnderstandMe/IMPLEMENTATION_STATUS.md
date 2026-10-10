@@ -117,6 +117,14 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Unknown credentials are denied but disconnected/untrusted monitors do not interfere with core work. Recorded connection-revocation, spoofing, relay allowlist and access-scoping questions/tests.
 - Updated `Docs/SystemMonitor/en.md`, `Docs/Architecture/en.md`, `Notes.md`, `Docs/Open-Questions/en.md` and this status. No source code or tests changed.
 
+## 2026-10-10 — simplified SystemMonitor peer identification (design only)
+
+- **Supersedes the earlier same-day proposal for mandatory per-link 256-bit bearer keys.** The agreed baseline is a lite GUID `NodeId` known to the receiving monitor, plus a `MonitorHello` describing the originating node and what modules/event contracts it will send. Optional connecting-client GUID metadata can support a simple allowlist.
+- For VPS3-style federation, the receiver compares declared origin with the explicitly configured HTTPS endpoint and registered node/module sources before forwarding live events. Unknown or inconsistent sources are ignored without affecting work.
+- Documented the intentional trust boundary: GUID is identification, **not strong authentication** and can be copied; use normal HTTPS server-certificate verification. No mandatory OAuth, JWT, per-link secret distribution or central account system for anonymous outbound-only monitoring.
+- The SystemMonitor Hub still exposes no client-callable event publishing methods; incoming remote monitoring events are accepted only through the configured SignalR receiver client.
+- Updated `Docs/SystemMonitor/en.md`, `Docs/Architecture/en.md`, `Notes.md`, `Docs/Open-Questions/en.md` and this status. Documentation only; no runtime implementation or test suite changed.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
