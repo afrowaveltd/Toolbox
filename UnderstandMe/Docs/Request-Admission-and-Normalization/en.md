@@ -8,6 +8,16 @@ Status: architecture rules agreed in discussion 2026-10-10; documentation only, 
 
 The orchestrator must make a **best effort to preserve the functional intent of a valid translation request**. A forbidden or unavailable preferred provider is a reason to **substitute an acceptable eligible provider**, not a reason to reject the whole translation while a suitable authorized alternative exists. Do not silently violate the real task's hard requirements (language pair, format/placeholder integrity, source restrictions, agreed deadline, authorized spend). Refuse or fail explicitly only when the effective constraints leave no feasible way to complete it.
 
+## Caller-specific policy before provider selection
+
+Resolve a **trusted ClientContext** and an optional **ClientPolicy** for each incoming translation command. The administrator can give one registered paying client access to configured paid Google/Microsoft/AI endpoints while another client can use only free/local engines. A host may optionally publish its otherwise idle self-hosted LibreTranslate capacity as a public API with a restricted public/anonymous profile. The normal profile for known clients can initially allow **all globally enabled providers**, but permissions are intersected with global hard rules and provider-account budgets. Never use the publicly self-reported ClientId from a request body as proof of paid entitlement.
+
+Effective eligible provider list = configured/system-allowed providers **intersected** with those allowed by the client plan, compatible capabilities and current account budgets. The client's requested vendor is still only a preference. If Google is allowed globally but forbidden by this client's policy, use a compatible eligible free/local endpoint when possible and report a client-specific adjustment instead of rejecting the translation. If **no** permitted capable endpoint remains, return a structured reason. `Mandatory` and individual flags cannot grant forbidden paid access.
+
+Client usage quotas are distinct from the organization's provider billing quotas. A public client can exhaust its own daily word quota even while the provider account has unused capacity, and vice versa. At dispatch enforce **both** current client resource/plan limits and provider-account quota atomically; if an administrator changes client entitlement, it affects future attempts even for previously accepted jobs (historical request preference remains unchanged). Public spare-capacity limits, rate/concurrency controls and optional reserved internal capacity prevent public callers from monopolizing the engine.
+
+[Client Access Policies](../Client-Access-Policies/en.md) defines these independent constraints and optional public API profiles.
+
 ## Admission and normalized effective request
 
 1. Receive and preserve the **OriginalRequest** (source content/reference, target language, requested provider and preferences, priority, flags, formatting/validation needs).
