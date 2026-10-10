@@ -83,6 +83,14 @@ An independent durable UsageLedger/QuotaAccount tracks per-period usage, estimat
 
 See [Provider Billing and Quotas](Docs/Provider-Billing-and-Quotas/en.md), [Provider Routing](Docs/Provider-Routing/en.md) and [Request Settings](Docs/Request-Settings-and-Live-Translation/en.md).
 
+### Orchestrator-first request normalization and approved provider substitution
+
+The **host orchestrator**, not the caller, is authoritative for a translation request's admissible priority, flags, privacy, provider list and financial limits. A caller may name Google API directly, but this is a preference, not an enforceable permission. At **admission**, preserve the original request, apply system/admin Settings, and capture a normalized effective request plus policy adjustment reasons. Choose a permissible candidate plan before queueing; a provider specified by the caller is not automatically the selected/used backend.
+
+**Do not render a valid translation request useless just because the preferred engine cannot be used.** Default behavior is to try another compatible and authorized endpoint that satisfies the actual translation requirements. For example, if Google is not allowed, is unavailable or hits its 1,000,000-word monthly hard limit, attempt a suitable free/local translator or another admin-approved provider. No new paid billable attempt against the exhausted account is permitted. If the system finds no capable provider under mandatory language/format/privacy/budget constraints, reject with a **specific structured reason** (or fail explicitly if it was previously accepted). `Mandatory` never circumvents allowed provider sets, spend caps or a manual orchestrator queue pause.
+
+Admission `Accepted`/`Deferred` is distinct from `Completed`/`Rejected`/`Failed`. The response makes material changes visible, retaining the `RequestedProvider` and reporting **actual** `UsedProvider` only once translation happens (per segment when work is distributed). New admin preferences apply to new requests, but current provider readiness, revoked permission and hard budget/quota gates are evaluated at new dispatch. Keep usage ledger outside SystemMonitor and avoid revealing sensitive policy or credential details to unprivileged callers. See [Request Admission and Normalization](Docs/Request-Admission-and-Normalization/en.md) and [Provider Billing](Docs/Provider-Billing-and-Quotas/en.md).
+
 ## 5. Localization and dictionary-less start
 
 Use standard .NET localization concepts. Hosts configure default culture, dictionaries/storage, target languages, ignored/manual-only languages, live translation and monitoring. For dictionary-less mode, a missing source key is registered in the default dictionary where `KEY = VALUE`. General UnderstandMe should not mandate English; Afutrans and participating Afutrans modules conventionally use English source keys.
