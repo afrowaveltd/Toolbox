@@ -52,6 +52,12 @@ An unknown monitoring node may request enrollment through a separate small HTTPS
 
 The event stream must not carry this private key; SignalR monitoring remains purely outbound and best-effort. Enabling a source after approval uses an independently configured receiver SignalR client and normal HTTPS source checks. The issued credential secures recipient-side control/enrollment and is not automatically authentication for the reverse-direction signal stream. See [SystemMonitor enrollment](../SystemMonitor/en.md).
 
+### Risk-triggered challenge for recognized monitor nodes
+
+An already approved monitor client is normally recognized by its public `ClientId` and familiar connection metadata (expected host, observed network profile and declared sources); its private, recipient-issued `ClientKey` **need not be sent on every routine monitoring reconnection**. If the peer's network/source/declared modules change unexpectedly, the recipient requests the private GUID through a separate HTTPS connection-verification step and admits the new connection only after a match. An existing live SignalR connection retains its associated node identity.
+
+This is a **lightweight familiarity heuristic**, not identity proof: headers and IP addresses can be imitated, and NAT/proxy addresses can be shared or change. Installations needing stronger guarantees can challenge each new connection. The SystemMonitor Hub remains outgoing-only; key challenges and any other control exchanges happen outside its application methods. [Adaptive SystemMonitor challenge](../SystemMonitor/en.md).
+
 ## Design-stage constraints
 
 - No folder layout, package split, DI registrations or interface method signatures are final.
