@@ -157,6 +157,14 @@ This is a **conceptual mapping, not a final decision to write synthetic attribut
 
 Next contract design must decide structure/slot API, safe HTML/Markdown node mapping, out-of-order updates, inline markup protection, empty-result state, and source fidelity. [Structural Template and ResultList](Docs/Structural-Template-and-ResultList/en.md), [Semantic Splitter](Docs/Semantic-Splitter/en.md).
 
+### Inline tag restoration using inner alternatives and whole-sentence translation (design proposal)
+
+For `Hello <strong>beautiful</strong> world!`, a promising approach is: translate tagged **inner phrase** `beautiful` first to gather acceptable target variants (`nádherný`, `krásný`, `fascinující` when actually supported), then translate **the complete untagged sentence** for meaning and word order (e.g. `Ahoj nádherný světe!`). Search for an unambiguous candidate target span; reattach `<strong>` around `nádherný`, reconstruct and validate the original markup around the meaningful text. Unlike splitting by DOM text nodes, context remains available.
+
+This is **not guaranteed**: Czech gender/case/number may change inflection (`krásný` vs `krásného`), a term may recur more than once, and paraphrase may eliminate literal synonyms altogether. Use language-aware whole-word/phrase matching, ambiguity detection, source span context and valid nesting. Never wrap a random match. If the match fails, prefer a verified whole-sentence translation with an explicit lost-cosmetic-format warning, or safe source/structure-preserving fallback for semantically functional tags such as links. Nested formatting may require hierarchical annotations, not blindly matching independent strings.
+
+`VariantAlignment` can be one **optional** format strategy. A compatible provider's validated HTML/inline-marker translation might restore tags from one context-rich call without repeated inner phrase API calls. Each extra attempt increases cost/latency and is subject to client rights, provider caps, privacy and real-time deadline; no implicit paid overage or P0 Human fallback. Keep an AST/DOM structural mapping and source-filled `ResultList`. See [Inline Markup Restoration](Docs/Inline-Markup-Restoration/en.md) and [Structural Template](Docs/Structural-Template-and-ResultList/en.md).
+
 ## 5. Localization and dictionary-less start
 
 Use standard .NET localization concepts. Hosts configure default culture, dictionaries/storage, target languages, ignored/manual-only languages, live translation and monitoring. For dictionary-less mode, a missing source key is registered in the default dictionary where `KEY = VALUE`. General UnderstandMe should not mandate English; Afutrans and participating Afutrans modules conventionally use English source keys.
