@@ -16,6 +16,12 @@ Each Translation Target describes data locations, dictionaries, default culture,
 
 Configuration may add/remove targets, endpoints, workers, pipelines and prompt profiles without code changes. Scheduling can discover and reconcile missing/changed source keys and produce background jobs. Event-driven updates plus a periodic full scan (illustrative default: every three hours) are complementary.
 
+## Human-only hosting and configurable provider activation
+
+Afutrans must remain usable as a **manual translation, dictionary and review host even when no machine/AI backend is installed**. Human translation is the required baseline provider capability; LibreTranslate, AfroLT, commercial translation APIs and AI models are optional activated features. The administrator may run everything manually, install only LibreTranslate, permit paid engines for selected clients, or activate all supported engines without needing to rework the host.
+
+An optional public translation API is **not automatically exposed**. When enabled, the operator chooses whether it offers only spare local capacity, human work, selected paid/AI backends, or all enabled providers (e.g. a philanthropic public service). Any global authorized budget, account quotas, privacy constraints and public usage controls still apply. No default template imposes a permanent prohibition on paid translation for public callers.
+
 ## Operator-defined translation provider policies
 
 Afutrans should let each Translation Target choose a reusable provider-selection profile and permitted overrides for individual jobs or Chain steps. A low-cost installation can prefer self-hosted LibreTranslate and escalate to a configured paid/AI endpoint only after a specified failure or unsuccessful mandatory validation. A different operator can make their licensed Google or Microsoft API the default. UI configuration must expose the effective provider order, compatibility filters (language/format/placeholder), eligibility and enabled fallback triggers, along with estimated/actual provider charges where the backend supports them.
@@ -26,7 +32,7 @@ This is configuration over the generic UnderstandMe provider selection boundary,
 
 Afutrans may offer a **public API using spare capacity** of its own locally run LibreTranslate/other free endpoint(s), with administrators deciding whether the public endpoint is exposed at all. A `ClientPolicy` profile distinguishes normal internal users, named customers with paid-provider entitlements, registered free users and anonymous public users. A paid API account must not become accessible to a public/free client merely because Google is enabled for internal work.
 
-Admin configuration includes permitted provider tiers/accounts, client quotas (words/day or other meter), maximum request/concurrency/rate, client priority ceilings, reserve for internal work and user-visible reasons for using a different provider. By default established/internal users have no additional provider restriction; the public/anonymous profile should be separately restricted. The same admission enforcement applies to direct .NET/REST/business SignalR entry points. See [Client Access Policies](../Client-Access-Policies/en.md).
+Admin configuration includes permitted provider tiers/accounts, client quotas (words/day or other meter), maximum request/concurrency/rate, client priority ceilings, reserve for internal work and user-visible reasons for using a different provider. By default established/internal users have no additional provider restriction; the public/anonymous profile should be separately restricted. A **free/local-only public profile is one selectable configuration, not an invariant**; an administrator may explicitly choose broader public provider access or human-only operation. The same admission enforcement applies to direct .NET/REST/business SignalR entry points. See [Client Access Policies](../Client-Access-Policies/en.md).
 
 ## Communication
 
