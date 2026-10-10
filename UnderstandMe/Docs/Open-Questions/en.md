@@ -37,5 +37,8 @@ This is a discussion backlog, **not** an implementation plan. Decisions recorded
 26. **Cross-host aggregation:** optional explicit bridging between separate processes, with origin preservation, deduplication, security and loop prevention. No automatic federation by matching route names.
 27. **Monitor reliability tests:** zero listeners, slow/disconnected clients, privacy-safe diagnostics, bounded nonblocking fan-out, and no effects on business commands or durable writes.
 
+28. **Typed monitoring payloads:** settle the MonitorEvent<T>/Message<T> generic interface and contract registry, including stable wire ContractId/SchemaVersion, System.Text.Json serialization for different T, unknown models, .NET 10/11 and cross-language client compatibility.
+29. **Passive listener parity:** validate that the dedicated module transmitter and aggregate event-router listener each receive the same logical generic event, maintain its original payload model, and cannot delay or disrupt the publisher.
+
 Current status and next continuation point: [Implementation Status](../../IMPLEMENTATION_STATUS.md).
 
