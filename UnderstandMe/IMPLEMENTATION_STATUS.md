@@ -163,6 +163,12 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Fallback/quality escalation requires an explicit trigger and configured limits; a provider's reputation alone does not prove translation quality. Budget, retry billing, latency and cross-provider feature compatibility remain design/test topics.
 - Updated `Docs/Translation-Chains/en.md`, `Docs/Architecture/en.md`, `Docs/Afutrans-Integration/en.md`, `README.md`, `Notes.md`, `Docs/Open-Questions/en.md` and this status. No package, worker, queue or monitoring implementation changed.
 
+## 2026-10-10 — additional provider design questions identified (discussion candidates)
+
+- Reviewed the existing provider-routing, QueueMaster, Chain and open-questions documents for remaining gaps. Added six **unresolved candidates** to `Docs/Open-Questions/en.md` (items 53–58), not new agreed implementation requirements.
+- Questions cover wait-versus-paid-fallback-versus-fail on cheaper endpoint congestion; translation memory and domain glossaries distinct from provisional cache; no-cost provider routing dry-run/explanations; configuration snapshot semantics for in-flight jobs; active endpoint capability tests; and evidence-based quality by language pair/domain.
+- Suggested discussing wait/fallback/fail first, because it affects both operating cost and job deadlines. No source code, packages, tests or settled provider policy were changed.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
