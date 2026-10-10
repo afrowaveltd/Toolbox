@@ -54,6 +54,12 @@ Each translation request carries a `Privacy` classification that can be made str
 
 A recipient can optionally **edit their own translated view**. The application applies the correction only in the current view when caching is disabled, or saves a **recipient-specific override** at their opt-in when permitted. Cache does not automatically mean publication to other users or shared memory; broader sharing, if supported, is a separate authorized action. Initial automatically translated text remains private to its allowed recipients; no generic Human auditor receives it. The dictionary Editor's required revision audit applies to UI dictionaries, not automatically to personal chat edits. [Chat Translation Flow](../Chat-Translation-Flow/en.md).
 
+## Semantic Splitter and document-specific adapters
+
+One reusable **format-aware Splitter** creates meaningful, request-local chunks; a short text need not split. For plain prose, **paragraphs are preferred** if reliably present, with sentence boundaries for longer unformatted continuous text. Markdown uses semantic text-bearing syntax nodes; HTML uses translatable element/text content while preserving nested inline markup. Each new format may register its own splitter without changing QueueMaster/provider interfaces. A provider size ceiling may require safer further subdivision; not arbitrary first-pass chopping.
+
+`Settings` can select format and paragraph/sentence policy. `RequestId` and `SegmentId` remain **transient**, not saved localization `KEY=VALUE` keys. The host, not the engine, assembles the final document/message and owns presentation/storage. [Semantic Splitter](../Semantic-Splitter/en.md).
+
 ## Composition
 
 The host registers DataAccess, format adapters, backend endpoints, result processors, optional Chain steps, history/audit, Messenger transports and UI extensions through interfaces. Translation Targets supply connection and policy profiles. Features can be omitted entirely.
