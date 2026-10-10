@@ -104,6 +104,28 @@ This identification exchange is **separate from business event messages** and is
 
 In-process module listeners need no network identity check. When a remote connection fails or its NodeId is unknown, only that monitoring source disappears: translation, queued work, recovery and other monitors continue unaffected.
 
+## Self-registration requests and explicit administrator approval
+
+**New design direction (2026-10-10):** a previously unknown node may **request** enrollment, but must never be silently approved. A short and separate enrollment/control endpoint is allowed even though the `/SystemMonitor` Hub itself remains an **outbound-only event transmitter**. It must not acquire a client-callable `Publish` method.
+
+### Enrollment lifecycle
+
+1. The new instance (e.g. VPS4) generates a durable public `ClientId` / `NodeId` GUID and sends a registration request to the intended monitoring orchestrator (VPS3) through a small HTTPS enrollment endpoint. The request carries the declared node name, advertised source URL, self-reported address and planned module names/event-contract versions. The receiving server also records the observed remote network address (do not mistake user-supplied address text for verified origin).
+2. VPS3 creates a small **durable Pending registration record**. A pending request is **not** permission to stream or enter its trusted receiver list. The new source remains excluded from aggregation.
+3. VPS3 emits a normal typed monitoring event (e.g. `MonitorEvent<MonitorRegistrationRequested>`) describing the pending request **without any secret or claim ticket**. If an administrator is listening, a dashboard can immediately show *who requests connection to which node, from where, and what they intend to publish*. If nobody is listening, the best-effort notification can disappear; the pending record remains available for later review.
+4. Administrators explicitly approve or reject through a **separate authorized administration API/UI**, never by calling an application method on the outgoing-only SystemMonitor Hub. Approval is an auditable state change and must not be inferred from a monitor client viewing a notification.
+5. On approval, VPS3 generates a **new random GUID v4 `ClientKey`** for that approved peer and stores its association with the public `ClientId`, approved source endpoint and permitted source modules/contract scopes. The GUID is server-generated only after the administrator approves. A denial records the decision but issues no key. The credential may be replaced/revoked by the recipient later.
+6. VPS4 obtains the result through the **independent enrollment control path** (for example, polling by request ID with a separate one-time claim ticket returned to the original applicant). On success it saves its assigned `ClientKey` and presents `ClientId` + `ClientKey` in HTTPS request headers when using subsequent pairing/control requests. After approval the orchestrator may automatically enable its previously configured SignalR receiver client to consume VPS4's outgoing monitor, which remains a distinct read-only Hub.
+7. The consuming receiver still validates the configured HTTPS server identity and expected source before admitting VPS4's `MonitorEvent<T>` data into its own aggregate. The issued key authorizes enrollment/control against the **recipient**; it must **not** be broadcast in `MonitorHello` or assumed to magically authenticate the opposite-direction SignalR subscription. If access to the source Hub is restricted, the source must independently recognize the receiver (or use its own trust configuration).
+
+### Two identifiers, different responsibilities
+
+- `ClientId`: **public** GUID naming the node/installation. It may be displayed in monitor events and administrator dashboards.
+- `ClientKey`: **recipient-issued** random GUID v4 associated with an approved enrollment. This is a **lightweight shared bearer credential in practice**: it must be kept private and not included in public events, `Message<T>` payloads, logs, URLs, screenshots or `MonitorHello`. It is deliberately simpler than a central OAuth/JWT system, but knowing both identifiers is enough to impersonate the approved peer on that enrollment-control path. HTTPS with valid certificate checking is required.
+- `RegistrationId` / one-time claim ticket: track a pending registration and let only its original applicant retrieve the assigned key after asynchronous approval. The public request ID alone must **not** entitle anyone to claim the credential. The claim ticket is not a monitor event and has a bounded lifetime.
+
+This design does not contradict the **FM-radio principle**: enrollment and administrator approval have their own durable records and reliable request/response; their **announcements** through SignalR are optional best-effort broadcasts. Live monitoring remains a nonblocking listener. Rate-limit and deduplicate unapproved registration attempts to avoid flooding the pending list or admin dashboard. Approval should trigger an asynchronous source-connection attempt; failures affect monitoring visibility only, never the running module.
+
 ## Verification before implementation
 
 Test that a source event appears once on its own feed and once on the aggregate, never on another module's feed; verify sender identity, absence of listeners, disconnect/slow subscribers, permissions, and optional bridge deduplication.
