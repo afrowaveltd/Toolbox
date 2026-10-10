@@ -74,6 +74,12 @@ A proposed strategy for nested HTML/Markdown is to translate **the full sentence
 
 If translated inner-word variants cannot be matched to a full-sentence translation, a further optional attempt translates the **surrounding prefix/suffix** and uses their target-language matches (including inflection) to infer the highlighted span. If the match remains uncertain, **default to retaining the full translated text while omitting only harmless cosmetic tags** such as `strong`/`i`. **Never silently omit an inline tag with `id` or another significant function/binding**: return a typed structural error and let the host apply its configured safe fallback. Extra attempts, stricter styles and spending limits are configurable. See [Inline Markup Restoration](Docs/Inline-Markup-Restoration/en.md).
 
+## Assisted HTML/document translation in Afutrans
+
+Some translation providers accept **HTML directly**, avoiding much tag reconstruction; their results still require validation of structure, IDs, links and placeholders. For **complex HTML**, an explicit format-specific assisted profile may **prefer a capable enabled AI model** when authorized and within budget, without changing ordinary plain-text routing or requiring AI. No model is assumed perfectly faithful.
+
+Afutrans can offer a **side-by-side editor**: original document rendered left; translated document right with **render / HTML source / split** modes, linked segment selection and visible untranslated/error regions. An authorized user can repair text or format alignment manually, request an alternative for a selected region or invoke **opt-in AI assistance** and inspect the proposal before accepting. Draft revisions prevent late automatic responses from overwriting user edits; publishing/export requires validated structure. [Assisted Document Translation](Docs/Assisted-Document-Translation/en.md).
+
 ## Planned areas
 
 | Area | Responsibility |
