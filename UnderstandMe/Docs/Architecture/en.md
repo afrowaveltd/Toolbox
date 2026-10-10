@@ -58,6 +58,12 @@ An already approved monitor client is normally recognized by its public `ClientI
 
 This is a **lightweight familiarity heuristic**, not identity proof: headers and IP addresses can be imitated, and NAT/proxy addresses can be shared or change. Installations needing stronger guarantees can challenge each new connection. The SystemMonitor Hub remains outgoing-only; key challenges and any other control exchanges happen outside its application methods. [Adaptive SystemMonitor challenge](../SystemMonitor/en.md).
 
+### Administrator-driven monitoring filters and incident handling
+
+The aggregate monitoring dashboard offers clear independent interactive view filters by source/VPS, module/instance, severity, event type, correlation/job ID and text, with saved presets. A user's display filter never changes which module is trusted or which other monitor clients can see events.
+
+The router checks incoming event validity separately. On a suspicious or malformed event, it **records a durable, safe incident and drops that event** without changing the sender's registration. Only a human administrator can later mute a source in their view, manually revoke/block a registered origin or stop a managed receiver. Repeated incidents can be counted/deduplicated to prevent logging floods. Legitimate new enrollment requests are kept as Pending, not automatically classified as malicious. See [SystemMonitor design](../SystemMonitor/en.md).
+
 ## Design-stage constraints
 
 - No folder layout, package split, DI registrations or interface method signatures are final.
