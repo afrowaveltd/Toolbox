@@ -86,6 +86,12 @@ An authorized Afutrans user must **always have a manual route to enter or repair
 
 Changes appear immediately and **autosave in the background** without a mandatory Save button. Show real save/failed/conflict states; keep incomplete HTML editable as a draft while protecting valid preview/publish. Every committed logical edit has recoverable **revision history**, and reverting an old state creates a **new revision**, never erasing the trail. A stale AI/provider result may not overwrite manual edits. This is an explicit authorized editor, not a Human fallback from private P0 RealTime; private-chat recipient edits retain their separate cache/no-cache rules. See [Direct Editing, Autosave and Revisions](Docs/Direct-Editing-Autosave-and-Revisions/en.md).
 
+## Word-like WYSIWYG and live AI edits
+
+Afutrans' assisted editor is **WYSIWYG like Word** for translated text: select a span and press `Ctrl+B`/`Ctrl+I` (or a formatting button) to insert safe `strong`/`em` markup. The **Source** view supports direct HTML/Markdown editing with code-editor conveniences, sharing the same document. Every **manual** edit resets a **1,000 ms inactivity timer**; after 1 second of no further changes, autosave begins in the background and creates a recoverable logical revision. Revert never erases history; invalid in-progress HTML can save as a draft without passing export validation.
+
+Optionally, an authorized user may invoke an **AI agent to edit the chosen document/region visibly as it works**, with revision-scoped live patches, pause/stop, inspect/accept and a grouped revert. The human retains final control; newer manual edits cannot be overwritten by stale agent updates. Agent-specific checkpoints do not create a revision for every token. AI remains optional. [Direct Editing, Autosave and Revisions](Docs/Direct-Editing-Autosave-and-Revisions/en.md).
+
 ## Planned areas
 
 | Area | Responsibility |
