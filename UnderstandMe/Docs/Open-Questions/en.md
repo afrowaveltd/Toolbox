@@ -21,5 +21,9 @@ This is a discussion backlog, **not** an implementation plan. Decisions recorded
 15. **AfroLT service design:** keep LibreTranslate for HTML/placeholder workflows; decide the independently implemented service's HTTP compatibility surface, capability advertisement, default HTML fallback, and how model health/restart are exposed.
 16. **AfroLT WebUI and OpenAPI:** define externally sourced CSS/theme policy, access control of instance settings, Scalar API reference publication policy, and OpenAPI 3.2 versus 3.1 client compatibility.
 
+17. **Versioned reference paths versus API versions:** prototype stable Scalar/spec routes and older-client compatibility tests; separately version the actual HTTP API and define deprecation terms.
+18. **Translation improvement feedback:** reviewable `/suggest`-compatible input, source-based AI/human approval, audit and consent/provenance, abuse controls, immediate translation-memory overrides and separately curated model training.
+19. **Cross-platform interoperability:** test non-.NET, legacy HTTP clients and optional LibreTranslate-compatible DTOs and endpoints; document stable JSON/error contracts.
+
 Current status and next continuation point: [Implementation Status](../../IMPLEMENTATION_STATUS.md).
 

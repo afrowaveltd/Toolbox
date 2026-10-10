@@ -123,6 +123,13 @@ Two new desired host features: a lightweight interactive translation web page wi
 
 See [AfroLT future design](Docs/AfroLT-Future-Design/en.md) for the standalone proposal and upstream references.
 
+
+### Versioned documentation, older clients, and suggestions
+
+AfroLT API docs should offer `/api-docs` -> `/api-docs/latest` plus persistent `/api-docs/v3.2/`, `/api-docs/v3.1/` and corresponding machine-readable specifications. OpenAPI specification versions are distinct from AfroLT HTTP API versions. Maintain usable older API routes/adapters and ordinary language-neutral JSON contracts; a historical documentation page alone does not guarantee runtime compatibility.
+
+Preserve the LibreTranslate-inspired `Suggest a better translation` feature. Ingest proposals into a separate store with optional human/AI quality review against the original. Approved suggestions may become auditable translation-memory overrides for immediate use or enter a separately curated future model-training dataset. Submission does not directly retrain or overwrite deployed model weights. See [AfroLT future design](Docs/AfroLT-Future-Design/en.md).
+
 ## 11. Source repositories and document maturity
 
 - Toolbox: https://github.com/afrowaveltd/Toolbox

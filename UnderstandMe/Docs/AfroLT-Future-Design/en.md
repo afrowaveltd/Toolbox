@@ -45,6 +45,45 @@ References:
 - LibreTranslate HTML `format`: https://docs.libretranslate.com/api/operations/translate/
 - LibreTranslate: https://github.com/LibreTranslate/LibreTranslate
 
+
+## Versioned Scalar references and compatibility
+
+Desired documentation routes (design, not implemented):
+
+| Route | Purpose |
+| --- | --- |
+| `/api-docs` | Redirect to `/api-docs/latest` |
+| `/api-docs/latest` | Reference for the newest supported **OpenAPI specification version** (currently 3.2 on .NET 11) |
+| `/api-docs/v3.2/` | Stable, version-specific Scalar reference to an OpenAPI 3.2 document |
+| `/api-docs/v3.1/` | Stable, version-specific Scalar reference to an OpenAPI 3.1 document |
+| `/openapi/...` | Persistent machine-readable specification documents, each with its own versioned URL |
+
+As future specs appear, only the `latest` alias changes. Existing versioned URLs should remain stable; a retained/archive JSON document is acceptable when a newer generator can no longer reproduce exactly an old specification.
+
+**The OpenAPI document format version is NOT the AfroLT HTTP API version.** The same AfroLT API v1 might be described with both OpenAPI 3.1 and 3.2. Separate the lifecycle of the HTTP contract (e.g. `/api/v1`, `/api/v2`), JSON DTO compatibility, generated spec versions and Scalar-rendered pages. Maintaining old reference pages without maintaining old HTTP behavior is not backward compatibility.
+
+Current Scalar ASP.NET Core supports multiple OpenAPI documents, configurable paths, and multiple UI mounts. Microsoft's `Microsoft.AspNetCore.OpenApi` can emit multiple separately configured documents and select the OpenAPI specification version. Prototype exact registration and use automated schema/client-compatibility tests before locking routes or advertised versions.
+
+Interoperability extends beyond .NET 10/11: non-.NET and older consumers should be able to use versioned plain HTTP+JSON contracts without C# native unions. Prefer `System.Text.Json`, stable error formats, explicit capability discovery, documented authentication and throttling, and an optional, tested compatibility adapter for useful LibreTranslate endpoints (rather than claiming full API equivalence by default). Keep LibreTranslate itself as an eligible worker, notably for HTML translations.
+
+## Suggest a better translation
+
+Keep a user-visible `Suggest a better translation` action inspired by LibreTranslate's `POST /suggest`, which accepts source text (`q`), a proposed translation (`s`), and `source`/`target` language identifiers. The LibreTranslate maintainers explicitly explain that submitted suggestions are **saved for future use, not automatically applied to the deployed model**.
+
+AfroLT should keep suggestions in a separate, reviewable store (source text, translated candidate when available, new proposal, language pair, relevant context/target, timestamp, origin and optional actor with appropriate permissions). Submitting a suggestion never overwrites a published translation or neural-model weights. Configurable review may compare the proposal against the *original* text using the optional AI semantic auditor, request human confirmation, or reject content violating meaning, placeholder, formatting, privacy or source-context policy.
+
+Approved suggestions have two distinct possible follow-ups:
+1. An opt-in, auditable **translation-memory override** or localized dictionary edit can improve identical-context future lookups immediately without retraining a model.
+2. A separately curated, rights-verified, versioned **training dataset** can be used for later offline model fine-tuning/retraining and explicit model deployment. Model training is NOT a per-suggestion side effect.
+
+Provide abuse controls, duplicate handling, tenant/target isolation, contributor rights/consent and data-retention policy; automatic feedback cannot turn into uncontrolled data poisoning. If useful, a legacy `/suggest` payload adapter can translate to the richer internal suggestion contract.
+
+Sources:
+- https://docs.libretranslate.com/api/operations/suggest/
+- https://community.libretranslate.com/t/feedback-suggest-api-not-working-in-offline-mode/649
+- https://scalar.com/products/api-references/integrations/aspnetcore/integration
+- https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/aspnetcore-openapi
+
 ## Open design details
 
 - Determine which LibreTranslate-compatible endpoints (if any) are worth replicating, and how capability negotiation avoids false HTML support claims.
