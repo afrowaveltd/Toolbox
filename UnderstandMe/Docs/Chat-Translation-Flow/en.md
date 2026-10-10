@@ -8,6 +8,12 @@ Status: architectural clarification agreed 2026-10-10; documentation only, no co
 
 For message translation, the format-aware Splitter produces an **ephemeral request-local** ordered list `List<(Id, Text)>`, with `Id = 0..N`. `RequestId` and per-chunk IDs are used **only to correlate and reassemble** partial translations, including out-of-order completion. They are **not persisted as chat translation keys, cache IDs or dictionary records**. The translation engine receives only needed segments, processes them, and returns translated segments/results. Transient correlation state expires when the active request is assembled/finished.
 
+## Meaningful chunks depend on source structure
+
+Splitter chunking is primarily useful for **larger or structured texts**. A short ordinary chat message can stay **one unit**. For longer plain text, prefer **paragraph boundaries** when the source contains recognizable paragraphs (line breaks or blank lines according to the configured source format); otherwise prefer **sentences**. The delimiter is configurable; a literal period is not always a sentence end (decimal numbers, abbreviations, URLs). For Markdown and HTML, use text-bearing structural elements as natural units, preserving formatting and content context instead of splitting blindly by punctuation.
+
+Each `Id=0..N` remains **transient request-local correlation only**, independent of the chat application's persistent message ID and unrelated to `KEY=VALUE` dictionaries. The host receives translated chunks and assembles the final message. Details: [Semantic Splitter](../Semantic-Splitter/en.md).
+
 ## Composition, presentation and persistence belong to the caller
 
 **The consuming chat/forum application** owns message identity, recipient permissions, assembling chunks into the entire translated message, UI display and any saved history/cache. UnderstandMe supplies a transport/framework-neutral splitting/translation/result contract and never requires a chat-specific message database.
