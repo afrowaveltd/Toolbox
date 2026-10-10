@@ -76,6 +76,14 @@ The **Afutrans presentation** directly edits the translated document in both saf
 
 Changes update the view immediately and are **automatically durably persisted** through a versioned host draft contract, with explicit acknowledgement, optimistic revision conflict detection and visible failure/retry state. Every committed logical edit is recorded in **history**, and reverting a prior version creates **a new revision** rather than deleting intermediate history. Late machine/AI completions must not overwrite manual content. Translation engine ResultList/segment contracts enable mappings and source fallback but do not dictate browser UI, host draft storage or revision retention. The standard UI-dictionary edit audit remains separately mandatory. [Direct Editing, Autosave and Revisions](../Direct-Editing-Autosave-and-Revisions/en.md).
 
+## WYSIWYG commands, fixed manual idle saving and revisioned AI patches
+
+The Afutrans assisted editor has **one translated document model** and two editing projections: **WYSIWYG with Word-like selection/formatting commands** (`Ctrl+B` bold/`strong`, `Ctrl+I` italic/`em`, toolbar/platform alternatives), and **Source with familiar code-editor behavior** (HTML syntax feedback, tag matching/indentation, direct code edits). The AST/structural mapper applies validated formatting to selected target text; controls must not lose required IDs, link bindings or accessible text. The desktop layout stays two-pane and the mobile UI remains simply switchable.
+
+The host's direct-manual-edit save scheduler uses an **exact 1,000 ms inactivity debounce**, restarted for each keystroke/formatting command, with durable acknowledgment and honest status. Every saved logical change is revisioned; revert adds another revision. Invalid intermediate HTML still saves as a draft but cannot be published as validated. The editor **does not need a Save button** for ordinary changes.
+
+An optional explicitly invoked **AI document-editing agent** streams **visible structured draft patches** to the selected region/document, with pause, stop, inspection, accept, manual takeover and grouped undo/revert. The user controls final acceptance and publish, while provider/client/privacy/cost limits remain binding. Agent patches are attributed to the agent, version-checked against intervening manual edits, checkpointed without per-token history spam, and must not execute raw generated code. AI is not required for the editor to function. [Direct Editing, Autosave and Revisions](../Direct-Editing-Autosave-and-Revisions/en.md).
+
 ## Composition
 
 The host registers DataAccess, format adapters, backend endpoints, result processors, optional Chain steps, history/audit, Messenger transports and UI extensions through interfaces. Translation Targets supply connection and policy profiles. Features can be omitted entirely.
