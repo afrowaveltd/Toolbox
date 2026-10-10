@@ -44,5 +44,9 @@ This is a discussion backlog, **not** an implementation plan. Decisions recorded
 31. **Federation metadata and safety:** preserve the original typed event, origin and EventId, define optional relay path/hop metadata, per-source health reporting and bounded deduplication/loop prevention for chained or reciprocal connections.
 32. **Cross-host contract tests:** simulate two remote monitors feeding a third, disconnect/reconnect with gaps, module-scoped filtering, unknown generic payloads, malicious/untrusted senders and bounded fan-in without blocking local work.
 
+33. **Per-peer monitoring keys:** settle the NodeId/key registration schema, independent high-entropy per-recipient bearer secrets, module/feed read scopes, source/relay allowlists, storage/rotation/revocation and active connection termination.
+34. **Federation authorization tests:** unknown/revoked/incorrect/insufficiently scoped credentials must fail closed; monitoring receiver must reject spoofed upstream origins and unauthorized relays; zero valid monitoring connections must never block translation.
+35. **SignalR client credentials:** use standard token transport over TLS without exposing service keys to browser URLs or logs; explicitly distinguish read-only monitoring access from admin commands and any future forwarding permission.
+
 Current status and next continuation point: [Implementation Status](../../IMPLEMENTATION_STATUS.md).
 
