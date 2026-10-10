@@ -18,21 +18,20 @@ The effective snapshot combines system/host defaults, administrator-configured P
 
 If a user leaves the page, whether the continuation is canceled, kept briefly for reuse or persisted depends on the original request policy. Existing default P0 real-time operations remain **volatile** unless explicitly designed as a different durable job; sending an asynchronous browser update is not proof of durable work.
 
-## Splitter and partial browser replacement
+## Splitter and UI-agnostic incremental delivery
 
-A format-aware splitter outputs an ordered list of stable pairs `(SegmentId, SourceText)` with `SegmentId = 0..N`, plus enough original formatting/position metadata to put pieces back in order. Use paragraph or semantic block boundaries for articles/Markdown; do not split HTML tags, link syntax, fenced code, placeholders or other protected constructs. Translate only extracted human-readable segments.
+The **contract is not a JavaScript or HTML API**. The splitter produces an ordered list `(SegmentId, SourceText)` with `SegmentId = 0..N`, plus enough original format and position metadata to reconstruct the content. Split on semantic/paragraph boundaries where appropriate; do not break Markdown links, HTML structure, fenced code, placeholders or other protected constructs. Different text/document types may use different format-aware splitters.
 
-One logical request must also have a unique `RequestId` so that two documents containing segment 0 do not collide. A completion message is conceptually `TranslationSegmentCompleted(RequestId, SegmentId, TargetCulture, VerifiedTextOrMarkup, Revision)`; the renderer associates it with the matching DOM container, ignores events for other pages/cultures and handles out-of-order or repeated completions idempotently.
+Each translation request has a stable `RequestId` to separate identical segment IDs in different documents. A completion is conceptually `TranslationSegmentCompleted(RequestId, SegmentId, TargetCulture, VerifiedContent, Revision)`. Consumers map the returned identity to their existing display/content model, ignore unrelated translations, and apply only the newest relevant completion regardless of arrival order. No consumer must use a DOM, `span` elements, JavaScript or a particular rendering framework.
 
-Example of a plain-text DOM target (illustrative, not a frozen wire format):
+**Examples of adapters, not requirements:**
 
-```html
-<span data-request-id="req-123" data-segment-id="0">Original paragraph text</span>
-```
+- Blazor updates component state for the matching segment and lets the component rerender.
+- A browser JavaScript client updates a matching DOM node (e.g. `data-request-id` and `data-segment-id`), using `textContent` for plain text.
+- An Avalonia app updates the corresponding view-model item; other front ends use their native equivalents.
+- For formatted Markdown/HTML documents, the adapter restores structure through format-aware parsing/rendering and validated/sanitized markup rather than assigning arbitrary translated text directly to `innerHTML`.
 
-Use `element.textContent = translatedText` for plain text. For Markdown/HTML documents, first parse source into a safe rendering structure, add stable request/segment attributes on **appropriate block or inline containers**, and insert **sanitized** translated markup only when the format adapter explicitly returns trusted validated HTML. Raw translation text must not be assigned directly to `innerHTML`. A `span` is suitable for inline text, but not a generic wrapper around block-level Markdown paragraphs; choose elements consistent with valid HTML.
-
-The browser can receive segment results through an application's dedicated response/update channel (SignalR, SSE or another delivery contract). **Do not overload the best-effort administrative `/SystemMonitor` with user-facing translations**. The authoritative translation result/cache and, where enabled, accepted job storage are separate; after reconnect, clients may fetch the current verified state. In volatile P0 mode the update itself may be lost according to the documented lifetime policy.
+The host chooses its own result/update transport: component callbacks, direct .NET calls, SignalR, SSE, polling or another interface. The **administrative `/SystemMonitor` is not the delivery mechanism for translated user content**. When an update is missed, the client may fetch currently available verified results if the request's caching/durability rules allow it. Volatile P0 work may expire. The fundamental rule is *identify the segment, translate it independently, notify completion, update only that segment*.
 
 ## Optional SystemPersistent translation memory
 
@@ -47,6 +46,10 @@ Routing/validation/cost policies are captured from **effective Settings when a n
 **The orchestrator has operational precedence.** An administrator can pause/stop a queue; its waiting items do not start until resumed, regardless of their Request priority or `Mandatory` flag. Pause is not silent reinterpretation of the requests' provider policies. A serious global disable/credential revocation may prevent future dispatch for operational/safety reasons; if it conflicts with a request's snapshot, record a clear failure/paused outcome rather than quietly changing its historical policy.
 
 Preserve the effective settings version/hash with durable job metadata so that delayed work or restart/resume remains reproducible. For volatile work keep only the scoped snapshot needed until its lifetime ends.
+
+## Paid provider usage settings
+
+The request's effective `Settings` can declare whether paid providers are eligible, a spending cap and fallback behavior when a subscription account has exhausted its included monthly units. The provider declares metering/pricing capabilities, while each configured billing account declares its own package, quota and overage policy. **Hard/authorized spend limits are checked afresh at chargeable dispatch**, even when provider-order preferences were frozen at request creation. This is an orchestrator/account-level operational constraint, not rewriting an accepted request's priority. `Mandatory` cannot exceed a hard cap or purchase another package. [Provider Billing and Quotas](../Provider-Billing-and-Quotas/en.md).
 
 ## Provider language-specific ordering and capability checks
 
