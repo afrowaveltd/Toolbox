@@ -32,9 +32,53 @@ This differs from returning three isolated translations of `Hello`, `beautiful`,
 3. Obtain a contextual translation for the whole semantic chunk after extracting its source text and protecting/removing formatting markup appropriately. Keep the whole translated text as the **authoritative semantic output**.
 4. Match inner candidate(s) against the whole translation as **complete target-language token/phrase spans**, not arbitrary substrings. Consider normalized Unicode/case/whitespace, safe punctuation boundaries and morphology where a suitable language-aware matcher is available. Record `SpanStart/Length`, candidate identity and confidence/ambiguity.
 5. If exactly one sufficiently reliable span exists, add a structural **format annotation** referencing that target-text range. Reconstruct the original allowed inline element around the matched target span via the format adapter; preserve meaningful nesting/order and produce valid, properly escaped markup. No literal provider output becomes trusted executable HTML.
-6. If the mapping is missing, ambiguous, overlaps incompatibly or would create invalid nesting, **do not wrap an arbitrary word**. Try another **permitted and budget-bounded** markup-preserving strategy; otherwise emit verified plain translated text with a typed format-restoration warning for optional cosmetic tags. For semantically functional tags (e.g. links), omission can change document behavior: use a structure-preserving fallback or return a clearly marked unavailable/source-preserved section according to policy, rather than silently removing a link.
+6. If the mapping is missing, ambiguous, overlaps incompatibly or would create invalid nesting, **do not wrap an arbitrary word**. Before falling back, optionally try **prefix/suffix source-fragment translations** to find target-side boundary anchors; only use a unique and reliable aligned span. Then follow the configured **default cosmetic-omit versus strict-identifier failure** policy below. Semantically functional tags (links/identity/anchors) must not be silently removed.
 
 All resulting per-segment status/revisions remain correlated through ephemeral `RequestId + SegmentId`; **the consuming host** assembles, renders and optionally stores final text. No permanent dictionary keys/chunk IDs are generated.
+
+## Second attempt: align the surrounding fragments (proposed)
+
+When no inner-word candidate can be found in the authoritative whole-sentence translation, **do not immediately drop the tag**. The user's refinement is to also translate the text **before** and **after** the marked span, e.g.:
+
+```html
+<p>Hello <strong>beautiful</strong> world!</p>
+```
+
+```text
+Inner source/variants:    beautiful -> nádherný | krásný | dokonalý
+Whole source:             Hello beautiful world!
+Whole translated result:  Ahoj super světe!
+Prefix source/translation: Hello -> Ahoj
+Suffix source/translation: world -> svět
+Context match:            Ahoj ... světe! (svět/světe morphological relation)
+Candidate middle span:    super
+```
+
+A sufficiently reliable **unique** pair of outer anchors may identify the gap corresponding to the original tagged text, even if a direct inner-word translation did not appear inside the full translation. This is **contextual alignment evidence**, not permission to replace the full translation with words from the separate calls. For the example, if the prefix/suffix positions and target word-order correspondence are demonstrably unambiguous, restoring `<strong>super</strong>` is plausible. The algorithm should require exact word boundaries and normalized/linguistic matching for inflection (e.g. `svět` vs `světe`) and should check that no competing or reordered matches undermine the boundary inference.
+
+**Do not assume every translated inner phrase lies literally between translated prefix and suffix.** Languages may reorder constituents, collapse a phrase, or rewrite the sentence idiomatically. If anchors are missing, duplicated, contradictory, cross over, or leave an unreasonable span, mark alignment uncertain and use the configured fallback. Translation requests for both surrounding fragments are **optional and bounded** by endpoint capacity, cost, privacy, time and request policy.
+
+## Default and configurable failure policy
+
+Classify each **original parsed inline element** by whether losing it would affect only presentation or break required structure/identity:
+
+| Inline markup kind | Default if no reliable target span |
+| --- | --- |
+| Pure cosmetic formatting from a safe allowlist (e.g. plain `i`, `em`, `strong` with no significant attributes) | **Drop the unplaceable inner formatting tag**, preserve the complete validated whole-sentence translation and its enclosing structural tags. Report `FormattingOmitted` / warning, not a translation failure |
+| Any tag containing an `id` attribute or another required identifier/reference | **Strict failure** by default. Do not silently delete, reassign, duplicate or attach its identity to an arbitrary translated word. Return a typed `MarkupRestorationFailed` failure/partial-result status; the host chooses a safe source-preserving display |
+| Semantically functional inline elements such as links, anchors, variables, input associations, interactive or accessibility-relevant attributes | Treat as structurally significant; attempt another authorized structure-preserving method or return strict failure/source-preserving fallback, not invisible data loss |
+| Cosmetic formatting with host-declared custom rules | Follow effective `InlineMarkupFailurePolicy`, provided higher-priority structural/privacy requirements remain enforced |
+
+**A tag is not purely cosmetic just because its tag name is `span`, `i` or `strong`**: `id`, event-independent application bindings, `data-*` dependencies, accessibility attributes and CSS classes with significant behavior can change the result. Allow cosmetic removal only when the **element AND its attributes** are explicitly safe to omit. This must not delete the text **inside** the tag, remove enclosing block elements (`p`, list structure etc.) or alter the authoritative translated wording.
+
+A conceptual configurable policy:
+
+- `OmitUnmatchedCosmeticFormatting` (**default**): keep the full translation with only safely optional tags omitted and provide a nonfatal warning.
+- `StrictStructure`: fail/return a source-preserving result when any required formatting is lost, including cosmetic tags if the client opts in.
+- `AllowBoundedAlignmentRetries`: try inner variants, then **outer-prefix/suffix anchors**, and optionally protected-markup or another permitted provider strategy within a configured attempt/cost/deadline budget.
+- Per-tag/attribute allowlist and identifier rules remain under administrator/target Settings. **Request overrides cannot relax stronger structural guarantees**.
+
+An identity-bearing nested element for which formatting cannot safely be reconstructed is a **typed failure, not a completed translation with secretly removed ID**. Integrate error reporting with existing Essentials/WhenItFails Result conventions rather than inventing a second error subsystem. The translated plain text may be retained as an internal candidate or exposed as an explicitly marked partial preview when policy allows, never misrepresented as fully valid HTML.
 
 ## Why exact string matching is insufficient
 
@@ -51,7 +95,8 @@ The user proposal is **one useful matching strategy**, especially with plain-tex
 
 - `ProtectedMarkup`: translation preserving validated inline tags/markers in a context-rich request, if supported and verified;
 - `VariantAlignment`: user-proposed inner-phrase candidate translation + whole-context translation + target-span matching and safe tag restoration;
-- `Fallback`: bounded retry with another eligible strategy/provider; then explicit style-loss or source-preserving result where appropriate.
+- `OuterAnchorAlignment`: if matching the inner variants fails, translate prefix/suffix fragments around the marked content, match target-side outer anchors (including safe inflection handling), and infer the highlighted span only on unambiguous evidence;
+- `Fallback`: bounded retry with another eligible strategy/provider; then **omit unmatched cosmetic formatting by default** or **fail strictly** for identity-bearing/functional elements.
 
 Provider calls for inner spans incur **additional costs, quota reservations, latency and processing overhead**. The orchestrator still applies ClientPolicy, account hard caps, privacy and requested deadline to **every** such call; `Mandatory` cannot force paid overage. P0 must remain automated and volatile; no Human/manual-audit fallback to recover tags.
 
@@ -68,6 +113,6 @@ Do not make `CurrentTranslatedText` contain untrusted executable HTML. The forma
 
 ## Test matrix before coding
 
-Test exact and alternative match from the example, grammatical inflection, repeated candidate ambiguity, missing synonym due to paraphrase, nested and adjacent inline markup, crossed/overlapping spans, mixed RTL/LTR language scripts, multiword tags, empty tagged text, links and attributes, placeholders, incomplete HTML, duplicate/out-of-order segment updates, extra-call quota exhaustion, privacy settings forbidding an external provider, and graceful no-style/source-preserved fallback. Verify original message content and markdown/HTML structure are not silently corrupted.
+Test exact/alternative match; inner synonyms absent but outer prefix/suffix translations locate a unique target span (including `svět` vs `světe`); anchor ambiguity/repetition and reordered sentence; grammatical inflection and paraphrase; tag omission for `<strong>`/`<i>` with no critical attributes while preserving child text and outer `<p>`; **strict failure when `id` or semantically functional attributes are present**; `<a href>` link preservation; custom strict cosmetic setting; nested/adjacent tags, crossing spans, RTL/LTR scripts, placeholders, incomplete HTML, duplicate/out-of-order updates, exhaustion of extra-call budget and privacy limits. Verify no target translation is fabricated from separately translated fragments and no significant markup identity is lost. Verify original message content and markdown/HTML structure are not silently corrupted.
 
 Related: [Structural Template and ResultList](../Structural-Template-and-ResultList/en.md), [Semantic Splitter](../Semantic-Splitter/en.md), [Translation Chains](../Translation-Chains/en.md), [Provider Billing](../Provider-Billing-and-Quotas/en.md), [Implementation Status](../../IMPLEMENTATION_STATUS.md).
