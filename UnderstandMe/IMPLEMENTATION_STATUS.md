@@ -223,6 +223,14 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Preserved the previously agreed **volatile P0 RealTime default**: eventual Human fulfillment from a live request requires an explicitly admitted, durable human continuation item correlated to the original request, not an implicit new retention policy for all RealTime work.
 - Created `Docs/Human-Translation-Workflow/en.md`; updated `Docs/QueueMaster-and-Reliability/en.md`, `Docs/Translation-Chains/en.md`, `Docs/Architecture/en.md`, `Docs/Request-Settings-and-Live-Translation/en.md`, `Docs/Editor-and-Audit/en.md`, `Docs/Afutrans-Integration/en.md`, `Notes.md`, `README.md`, `Docs/Open-Questions/en.md`, and this status. **Design/documentation only; no runtime code, package or test execution.**
 
+## 2026-10-10 — P0 RealTime automatic-only; no Human access (agreed correction, design only)
+
+- Corrected the previous generic 'Human can process pending queue work' description: **Human never processes P0 RealTime**. RealTime is exclusively for immediate **automatic** translation, including when `Mandatory` is requested. If **only Human is activated**, P0 translation execution is **inactive** and a RealTime request **returns unchanged source text almost immediately** without enqueueing it for manual translation.
+- When automatic providers fail, are unsupported, busy or prohibited, no RealTime-to-Human fallback or automatic durable human continuation may occur. The permissible P0 outcome is untranslated source text with an explanatory status as appropriate. Optional short-lived live segment updates remain automatic-only.
+- **Privacy boundary:** P0 may contain private chats and must never expose those texts in Human queues, translator UI, manual editor or durable human job storage solely because RealTime was requested or failed. `Mandatory` is not consent for manual processing; any separate logging/cache follows its own explicit privacy policy.
+- Human work is **only separately submitted/authorized, durable non-P0 work (P1-P4)** processed when a human translator opens an interface. Existing five global priority categories are preserved; no sixth human queue. Distinguish this from prior wording suggesting automatic Human continuations after P0, which is now **superseded**.
+- Updated `Docs/Human-Translation-Workflow/en.md`, `Docs/QueueMaster-and-Reliability/en.md`, `Docs/Request-Settings-and-Live-Translation/en.md`, `Docs/Translation-Chains/en.md`, `Docs/Architecture/en.md`, `Docs/Provider-Routing/en.md`, `Docs/Request-Admission-and-Normalization/en.md`, `Docs/Localization/en.md`, `Docs/Editor-and-Audit/en.md`, `Docs/Afutrans-Integration/en.md`, `Notes.md`, `README.md`, `Docs/Open-Questions/en.md` and this status. Documentation only: no runtime code or executable tests modified or run.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
