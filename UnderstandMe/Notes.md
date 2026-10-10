@@ -73,6 +73,16 @@ Default engine **tiers**: self-hosted/free (LibreTranslate or equivalent) -> pai
 
 See [Request Settings and Live Translation](Docs/Request-Settings-and-Live-Translation/en.md), [Provider Routing](Docs/Provider-Routing/en.md), and [QueueMaster](Docs/QueueMaster-and-Reliability/en.md).
 
+### UI-neutral segments and paid provider accounting
+
+**Clarification of earlier browser/JS examples:** the format-aware splitter's contract is solely to produce a stable ordered sequence `(SegmentId, Text)` with formatting/position metadata, and to correlate partial verified results by `RequestId` plus `SegmentId`. Each consumer chooses how to update its view: a Blazor component, JS DOM node, Avalonia view model or another interface. `innerHTML`, `span` and any JavaScript function were illustrations, **not required architecture**. Formatted output must still be safely rendered according to source format. User-facing incremental results are independent of administrative SystemMonitor.
+
+**Billing is part of the configured translation provider/account model:** provider-specific charging units (words, characters, tokens, requests etc.) and supported metering rules are declared by the adapter, while the operator's account/endpoint plan supplies real negotiated prices, included packages, monthly renewals, authorized overage costs and limits. E.g. one account may include **1,000,000 words/month**, reducing its allowance as chargeable translations are dispatched and settled. Admin configures whether to stop at the hard limit, allow extra words at a configured price under a cap, or wait for manual purchase/registration of an additional package. The system does **not** decide to spend more or buy bundles on its own.
+
+An independent durable UsageLedger/QuotaAccount tracks per-period usage, estimated versus authoritative costs and reserved units. **Chargeable dispatches must check current quotas and atomically reserve budget** across concurrent workers sharing the billing account, even for requests created before a newer admin spending restriction. Request provider preferences and job priority remain frozen when accepted; current account hard caps, like manual orchestration pause, are an operational guard on future dispatch. Unknown/timeout provider charges require tracked estimates rather than assuming zero billable use. Billing records outlive optional best-effort SystemMonitor notifications; the dashboard can display remaining quota, estimated/actual spending and approaching-limit warnings.
+
+See [Provider Billing and Quotas](Docs/Provider-Billing-and-Quotas/en.md), [Provider Routing](Docs/Provider-Routing/en.md) and [Request Settings](Docs/Request-Settings-and-Live-Translation/en.md).
+
 ## 5. Localization and dictionary-less start
 
 Use standard .NET localization concepts. Hosts configure default culture, dictionaries/storage, target languages, ignored/manual-only languages, live translation and monitoring. For dictionary-less mode, a missing source key is registered in the default dictionary where `KEY = VALUE`. General UnderstandMe should not mandate English; Afutrans and participating Afutrans modules conventionally use English source keys.
