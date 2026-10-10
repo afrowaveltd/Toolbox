@@ -141,6 +141,14 @@ See [Privacy and Scoped Storage](Docs/Translation-Privacy-and-Scoped-Storage/en.
 
 Private source content is never sent automatically to external Human translators or manual auditors; self-edit by a participant who already has read access is different. `P0 RealTime` remains automatic-only and volatile; storing the assembled translation in host application history does not persist P0 or force central UnderstandMe chat data storage. See [Chat Translation Flow](Docs/Chat-Translation-Flow/en.md), [Privacy and Scoped Storage](Docs/Translation-Privacy-and-Scoped-Storage/en.md), [Localization](Docs/Localization/en.md).
 
+### Semantic, configurable chunk boundaries (agreed)
+
+Chunks are useful mostly for **large or structured text**; small normal texts can remain **one chunk**. Splitter uses the source format and Settings to choose meaningful boundaries, not fixed lengths. Plain readable text **prefers paragraphs** when available (newline/blank-line interpretation is configurable), while long continuous text **without meaningful paragraph formatting** is split by **sentences**. Periods are a rough clue, not a safe literal delimiter because of decimals (`1.96`), abbreviations and URLs; keep sentence punctuation/whitespace and language-specific boundaries intact.
+
+**Markdown**: group text-bearing Markdown syntax/AST nodes (headings, paragraphs, list items, tables etc.) and preserve tokens/inline links/code. **HTML**: translate appropriate element/text content while retaining tag structure; avoid treating nested formatting tags as reasons to fragment one sentence into isolated words. New document types get pluggable per-format splitters when developed. If an intact meaningful unit exceeds an actual provider limit, split further at the next safe boundary or select another suitable endpoint. Avoid breaking placeholders, markup and the original reassembly mapping.
+
+Each Splitter assigns request-local `Id=0..N` to temporary translation chunks; these are not stored as `KEY=VALUE` dictionary entries or durable chat IDs. Caller receives translated segments and owns reassembly and final storage. The policy can be overridden by `Settings` (conceptual Auto/Paragraph/Sentence/FormatAware modes). See [Semantic Splitter](Docs/Semantic-Splitter/en.md), [Chat Translation Flow](Docs/Chat-Translation-Flow/en.md).
+
 ## 5. Localization and dictionary-less start
 
 Use standard .NET localization concepts. Hosts configure default culture, dictionaries/storage, target languages, ignored/manual-only languages, live translation and monitoring. For dictionary-less mode, a missing source key is registered in the default dictionary where `KEY = VALUE`. General UnderstandMe should not mandate English; Afutrans and participating Afutrans modules conventionally use English source keys.
