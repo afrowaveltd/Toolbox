@@ -74,6 +74,12 @@ An optional **visible AI editing agent** (explicit invocation, inspired by the *
 
 This AI assisted editing is optional. A Human-only installation retains all ordinary WYSIWYG/Source/manual functionality. [Direct Editing, Autosave and Revisions](../Direct-Editing-Autosave-and-Revisions/en.md).
 
+## Click original tag; drag selection in target; apply all attributes
+
+The user can repair formatting without typing HTML or trusting automatic word-alignment heuristics: **click the source text on the left** to arm its containing `strong`, `em`, `span` or other eligible element; Afutrans remembers the **complete parsed opening element with `class`, `id`, `data-*` and other attributes plus matching closing semantics**. Then **drag-select the intended text in the translated right-hand WYSIWYG view**, and the editor wraps it with the copied structural element. The target words remain unchanged; only the selected format/structure is applied. If the clicked text lies inside multiple nested elements, let the user choose the desired enclosing element.
+
+This should feel like **copy formatting from the source to a target selection**, including tag identity and attributes, not just toggling bold/italic. Validate source/target mapping, markup nesting, and **duplicate `id`** within the target: a source `id` may be copied to the translation's separate document but not duplicated twice there. Functional attributes/links/bindings must be retained where safe; disallowed executable attributes or unsupported block/void-range wrapping must be reported rather than silently omitted. Use AST/DOM-safe insertion, not injecting unchecked strings into browser HTML. The action is a **single revisioned, undoable manual edit** and obeys the usual **1-second idle autosave**. [Source Tag Transfer](../Source-Tag-Transfer/en.md).
+
 ## Safe, reversible editing lifecycle
 
 - Preserve the **immutable original**, provider output and current user draft separately; keep a record of source version, translated segment state and manual changes sufficient for undo/review under configured host retention. Applying a suggestion must not silently replace later manual edits or other accepted segments.
