@@ -82,6 +82,12 @@ Afutrans can explicitly open an **assisted translation editor** that displays **
 
 This is distinct from `P0 RealTime` (automatic-only, volatile) and does not enable unrelated Human workers or manual auditing of private chat content. Interactive automatic sub-requests may use ordinary non-P0 priorities, while the host owns the draft, preview, selection map and export. Safe preview must not execute arbitrary imported document scripts. [Assisted Document Translation](../Assisted-Document-Translation/en.md).
 
+## Manual editing as an explicit fallback path, not an automatic P0 fallback
+
+Provider eligibility and cost constraints can end an **automatic** translation attempt as `Unavailable` or `Failed`, but must not end an authorized person's ability to **enter/repair a translation in a separate assisted editor**. No language engine or AI needs to be active to allow manual document creation. This distinction preserves P0 RealTime semantics: if only Human exists, P0 still returns source immediately and **does not create a Human queue job or expose private chats to unrelated editors**.
+
+An authorized editor can click a target line/paragraph in rendered Preview **or** translated HTML Source and type directly. Changes share one host-owned document model, appear optimistically and are **autosaved on the background storage path** with visible durable acknowledgement; short debounce/batching is permitted but `Saved` must never be shown before confirmation. Revision conflicts or transient save errors require visible retry/recovery without silently losing edits. Every logical change has an attributable revision; choosing an older state performs **a new revert revision**. A temporarily invalid source file can remain an editable/saved draft; publishing/export requires genuine formatting/identifier validation. Details: [Direct Editing, Autosave and Revisions](../Direct-Editing-Autosave-and-Revisions/en.md).
+
 ## Configurable meaningful segmentation
 
 `Settings` can choose format-aware `Auto` splitting, plain-text `Paragraph` or `Sentence` behavior, and format/size constraints. **Paragraphs are preferred where recognizable**, while long continuous unformatted text is segmented at sentence boundaries. Short text stays one chunk unless a real requirement demands otherwise. Line-ending interpretation is format-dependent: newlines can represent paragraphs or wrapping; a period can be punctuation in a decimal, abbreviation or URL. Preserve source whitespace/punctuation and protected placeholders.
