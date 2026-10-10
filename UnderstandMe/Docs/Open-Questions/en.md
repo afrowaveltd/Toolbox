@@ -63,5 +63,11 @@ This is a discussion backlog, **not** an implementation plan. Decisions recorded
 46. **Admin-only node decisions:** define read and manual controls for incident review, view-only Mute, ingress Block, revocation and disconnect; ensure no automatic sanctions are triggered by counts of incidents.
 47. **Robustness tests:** per-admin UI filters do not affect other admins or source feeds; repeated incidents aggregate safely, invalid messages do not enter normal streams, unaffected nodes stay live, and ingestion quotas shed load without changing trust state.
 
+48. **Provider priority vs job priority:** define minimal endpoint capabilities and the Pipe-owned selection policy; verify independent QueueMaster P0-P4 dispatch and provider order/cost ranking, including configurable Google-first and LibreTranslate-first profiles.
+49. **Provider cost model:** define per-character/token/request/local compute estimates, handling unknown prices/currencies, spending caps, quota/latency constraints, and whether costs are recorded per job/step/target; explicitly avoid assuming local translation has zero cost.
+50. **Escalation/fallback decision:** define exact retryable failures versus validation-based escalation and mandatory AI/human review; determine attempt limits, per-endpoint cooldown, ambiguous timeout retry billing/idempotency and fallback exhaustion outcomes.
+51. **Provider override hierarchy and privacy:** settle global -> Pipe -> Translation Target -> allowed job/Chain-step precedence without relaxing source/target language, format/HTML, protected placeholders, LocalOnly, forbidden remote providers or budget caps.
+52. **Provider routing tests:** primary compatible provider, unsupported pair/capabilities, endpoint not ready, LocalOnly never calls external APIs, paid-primary preference, cost-first preference, budget rejection, validation failure escalation, exhausted providers and independent monitoring of attempts/cost estimates.
+
 Current status and next continuation point: [Implementation Status](../../IMPLEMENTATION_STATUS.md).
 
