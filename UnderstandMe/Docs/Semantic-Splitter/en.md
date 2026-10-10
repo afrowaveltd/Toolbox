@@ -33,6 +33,12 @@ The illustrative rewriting `<tag placeholder="0">@ResultList[0]</tag>` is only a
 
 See the exploratory contract in [Structural Template and ResultList](../Structural-Template-and-ResultList/en.md). This representation is **separate from QueueMaster work queues, permanent dictionary keys and any chat host storage**.
 
+## Reattaching inline markup after contextual translation (proposed strategy)
+
+A semantic text chunk may contain nested inline formatting. Instead of sending each text node as an independent context-free translation, keep the **entire containing phrase/sentence** as one translatable unit. One possible strategy translates the **inner tagged text** to obtain candidate forms, separately translates the **full untagged phrase**, locates candidate(s) in the target translation and wraps the recognized target span with the preserved inline tag. For example `Hello <strong>beautiful</strong> world!` can translate as `Ahoj nádherný světe!` and return `Ahoj <strong>nádherný</strong> světe!` when `nádherný` is an unambiguous match.
+
+Exact matching alone can fail because of inflection, paraphrase, multiple occurrences and altered word order. Never bind a tag to a guessed span. When supported, a provider's protected inline markup/HTML mode can be a more economical one-request strategy; the **inner variants + full-context alignment** method is an optional alternative. The Splitter owns **source-side semantic units and markup mapping**, while ResultProcessor/format adapter validates alignment and safe output. [Inline Markup Restoration](../Inline-Markup-Restoration/en.md).
+
 ## Sentence boundaries and context
 
 A period (`.`) or end of line can be a useful starting separator, but an implementation must account for common counterexamples: decimals (`1.96`), abbreviations (`Dr.`), dates, URLs/domains, ellipses and language-specific punctuation. Prefer a configurable sentence boundary detector over a naïve `Split('.')` so chunks remain meaningful. Preservation of punctuation, spaces and newlines matters for exact reassembly.
