@@ -48,6 +48,10 @@ A Human worker can process **durably queued translation requests whenever a tran
 
 `P0 RealTime` uses **automatic providers only**. In a Human-only installation P0 is inactive and a real-time request returns original content immediately. `Mandatory` does not change that or add work to the Human backlog. Human translation requires a distinct authorized, persistent **P1-P4 request**. See [Human Translation Workflow](Docs/Human-Translation-Workflow/en.md).
 
+## Privacy and translation history reuse
+
+Request `Privacy` is separate from queue priority, provider choice and result persistence. A **Private** chat/forum translation can be retained for future authorized history views without keeping its volatile P0 execution alive. Saved translations are restricted to the original source's tenant/conversation/message and current readership permissions, not shared globally or exposed to Human translators, manual auditors or general administrative UI. Automatic checks and permitted processing providers remain configurable. A source change, deletion or lost access must invalidate/restrict the cached translation. See [Privacy, access-scoped translations and retention](Docs/Translation-Privacy-and-Scoped-Storage/en.md).
+
 ## Planned areas
 
 | Area | Responsibility |
