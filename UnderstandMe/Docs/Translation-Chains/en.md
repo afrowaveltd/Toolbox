@@ -18,6 +18,14 @@ A provider describes a family (LibreTranslate, Google, Microsoft, Ollama, OpenAI
 
 Translation alternatives may be produced by multiple providers in parallel for an editor, or sequentially for cost-sensitive automatic fallback. A failure can retry or choose another compatible endpoint. QueueMaster does not need to know what semantic operation the worker performs.
 
+## Provider priorities, price-aware selection and escalation
+
+Worker eligibility and provider priority are separate from QueueMaster's **job priority**. A Translation Pipe's provider-selection policy can rank compatible endpoints by explicit preference (LibreTranslate then Google, or Google first) or by estimated cost. Global defaults, named Pipe policies, Translation Targets and permitted per-request overrides define the effective order, with hard privacy, capabilities and budget limits never overridable by an individual request.
+
+Each candidate must support the source/target language, format/HTML, placeholder requirements, capacity and privacy constraints before selection. Fallback to a second backend is an **explicit configured option**, not a universal rule: try another provider after eligible transient failures, failed mandatory validation or a required review, subject to bounded retries, deadline and maximum spend. Do not equate provider reputation with a measured quality score. A Chain can select a different engine for semantic review than for its initial cheap translation, or prohibit all paid providers in a LocalOnly/Economy profile.
+
+Providers and endpoints remain replaceable plugins; QueueMaster does not own the commercial selection policy. Details and provisional examples: [Provider routing and cost](../Provider-Routing/en.md).
+
 ## Configurable chain examples
 
 - `FastUI`: short machine translation → placeholder/format validation → provisional cache.
