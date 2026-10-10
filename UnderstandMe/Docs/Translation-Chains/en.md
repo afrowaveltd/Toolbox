@@ -28,7 +28,11 @@ A Human provider is a baseline **capability**, not an assurance that a human ope
 
 The human translation workflow is **not dependent on anyone being online at admission time**. Accepted work intended for later human translation remains persistently pending in QueueMaster's existing five priority categories until a compatible authorized translator opens a client, views waiting counts by priority/language and claims an item. Work can be processed later without losing its original request identity or changing the queue priority. Human UI may be Blazor/WebUI, desktop or another client, none mandatory.
 
-A claimed item has exclusive durable ownership/release and recovery behavior; final human output follows the same shared validation and typed result contract. No new parallel physical queue belongs to the Editor. Ordinary volatile RealTime remains volatile; a delayed human follow-up from a RealTime request is a separately accepted **durable** continuation. See [Human Translation Workflow](../Human-Translation-Workflow/en.md).
+A claimed item has exclusive durable ownership/release and recovery behavior; final human output follows the same shared validation and typed result contract. No new parallel physical queue belongs to the Editor. Ordinary volatile RealTime never feeds Human. If a user separately authorizes manual translation of content, they submit a **new, durable non-P0 manual request**, not a continuation created automatically from RealTime. See [Human Translation Workflow](../Human-Translation-Workflow/en.md).
+
+## RealTime may never select a Human worker
+
+**P0 RealTime executes only with automatic translation engines.** Human is unavailable as a candidate regardless of provider order or `Mandatory`; when only Human is configured, P0 translation stays inactive and the caller receives the unchanged source text immediately. An automatic translation failure cannot create a durable human follow-up or disclose P0 content (including private chats) to a Human queue/editor. RealTime segment delivery is permitted only from eligible automatic engines. An actual Human task requires an **independently authorized non-P0 persistent request**, placed in the regular P1-P4 human backlog. See [Human Translation Workflow](../Human-Translation-Workflow/en.md).
 
 ## Provider priorities, price-aware selection and escalation
 
