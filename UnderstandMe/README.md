@@ -70,6 +70,10 @@ For HTML/Markdown, a proposed representation keeps a **parsed structural templat
 
 A proposed strategy for nested HTML/Markdown is to translate **the full sentence for meaning**, separately obtain alternative translations of highlighted inner text, find a reliable matching span in the target-language sentence and restore the original safe markup around it. Example: `Hello <strong>beautiful</strong> world!` → `Ahoj <strong>nádherný</strong> světe!`. Exact matching alone fails with inflection, repeated words or paraphrase, so ambiguous matches must not lead to wrong markup. When supported, a single validated markup-preserving provider call is an alternative; additional translation calls are subject to cost/privacy/latency limits. **Design proposal, not implemented.** [Inline Markup Restoration](Docs/Inline-Markup-Restoration/en.md).
 
+## Nested inline formatting failure policy
+
+If translated inner-word variants cannot be matched to a full-sentence translation, a further optional attempt translates the **surrounding prefix/suffix** and uses their target-language matches (including inflection) to infer the highlighted span. If the match remains uncertain, **default to retaining the full translated text while omitting only harmless cosmetic tags** such as `strong`/`i`. **Never silently omit an inline tag with `id` or another significant function/binding**: return a typed structural error and let the host apply its configured safe fallback. Extra attempts, stricter styles and spending limits are configurable. See [Inline Markup Restoration](Docs/Inline-Markup-Restoration/en.md).
+
 ## Planned areas
 
 | Area | Responsibility |
