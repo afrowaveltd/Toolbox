@@ -36,6 +36,12 @@ The assisted HTML preview supports **text selection + Ctrl+B/Ctrl+I** (or platfo
 
 An explicitly activated **AI editor agent can visibly perform document edits** within authorized selected regions, like an IDE agent, with progress/diffs and direct draft changes. The user may pause/stop, accept, edit over, or revert **the whole agent operation**; late AI patches never overwrite newer human edits. Agent changes are revisioned and attributed but do not need one autosave revision per streamed token. Final publish still requires structural validation and human control. This is unrelated to unconditional audit of private chats or automatic P0 Human fallback. [Direct Editing, Autosave and Revisions](../Direct-Editing-Autosave-and-Revisions/en.md).
 
+## Copy complete source HTML element to a selected target span
+
+The assisted Afutrans editor should let a user **click a formatted fragment of the original** to select the enclosing source HTML element, including **its full tag and original attributes (`class`, `id`, `data-*`, other supported attributes)**. A compact picker can offer the nearest inline element or an enclosing ancestor for nested markup. The user **drags to select corresponding words in the translated WYSIWYG view**, and the adapter wraps only that selected target text with the same parsed element shell and valid closing tag. This restores identity/formatting without retranslation or manually retyping HTML.
+
+Unlike `Ctrl+B`/`Ctrl+I`, the action preserves more than style. Before inserting, validate valid HTML nesting, attribute/URL safety and target-document `id` uniqueness. Do not silently drop meaningful original attributes; show an explicit conflict if the full safe transfer is impossible. The operation remains a **single manual edit with the existing one-second idle autosave, revision history and undo**. [Source Tag Transfer](../Source-Tag-Transfer/en.md).
+
 ## Translator interface over the durable backlog
 
 As a **Human worker**, the operator can connect at any later time to inspect durable pending work in the existing QueueMaster queues: per-priority counts, compatible language directions, status (pending/claimed/in progress) and items available to that person. Nothing requires the interface or its operator to be online when requests arrive. A human translation item is claimed **exclusively through the QueueMaster worker contract**, not directly dequeued from UI code; interruption or disconnect needs safe release/recovery without losing the original item.
