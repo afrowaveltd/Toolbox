@@ -20,6 +20,12 @@ Provide reusable building blocks for software localization, automatic and human 
 - Prefer Microsoft/.NET components when appropriate, including `System.Text.Json`, while keeping external formats and translation providers pluggable.
 - Core/library compatibility starts at .NET 10; .NET 11-specific features and API surfaces are design topics, not yet implemented.
 
+## Request-specific behavior
+
+A request resolves typed effective `Settings` from configured defaults and permitted overrides, with **queue priority separate from behavior flags and provider priority**. `RealTime` plus `Mandatory` may immediately use a currently available acceptable translation backend; ordinary RealTime may return original content and update translated paragraphs as segments finish. Admin queue pause/stop takes precedence, and existing requests retain their accepted policy when configuration changes. Optional bounded `SystemPersistent` approved translation memory can be checked before selecting a provider, without growing an unbounded store.
+
+The default provider preference is economical/free or local translation (such as LibreTranslate), then equally ranked paid APIs, then AI, all configurable globally or for particular language pairs. Model capabilities can be retested on version changes, while historical model quality scores are not used for automatic permanent ranking. See [Request Settings, memory and live segment updates](Docs/Request-Settings-and-Live-Translation/en.md).
+
 ## Planned areas
 
 | Area | Responsibility |
