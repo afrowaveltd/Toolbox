@@ -180,6 +180,15 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Provider-selection dry-run simulator was **deferred** until Settings/provider routing are implemented; no new immediate dependency or feature committed as implemented.
 - Updated `Docs/Provider-Routing/en.md`, `Docs/Translation-Chains/en.md`, `Docs/Localization/en.md`, `Docs/QueueMaster-and-Reliability/en.md`, `Docs/Architecture/en.md`, `Notes.md`, `Docs/Open-Questions/en.md`, `README.md` and this status. No .NET implementation or executable tests were changed or run.
 
+## 2026-10-10 — UI-neutral segments and admin-governed paid provider metering (design only)
+
+- Clarified that `List<(SegmentId, Text)>` with stable `RequestId`, formatting metadata and incremental completed results is the **core contract**. Blazor component state, JavaScript DOM replacement and Avalonia are implementation choices of the consuming UI, not library requirements. Replaced the prior JS-centric segment description in `Docs/Request-Settings-and-Live-Translation/en.md`.
+- Created `Docs/Provider-Billing-and-Quotas/en.md`. Translation provider adapters declare metering/price units and capabilities; configured actual **account/endpoint commercial plans** store subscription/package usage, included monthly units, currency, renewal, overage rates and admin-selected limits (e.g. one million words/month).
+- Agreed: an administrator selects **hard stop**, **explicit paid overage within an authorized cap**, or **manual purchase/registration of an additional package**. The software measures and estimates usage but never independently buys new packages or increases spending permission.
+- Defined an independent durable UsageLedger/QuotaAccount with atomic allowance reservations before chargeable dispatch and reconciliation of actual vs estimated provider charges. This handles concurrent requests and shared accounts across VPS nodes; cost records are not SignalR monitoring messages. Current hard budget/quota controls supersede dispatch, while existing queued jobs retain their accepted provider-order preference.
+- Cost breakdown, included/remaining units and warnings may be shown to the admin; live SystemMonitor emits best-effort notifications only. Model details, time zone/period boundaries, actual provider counting, ambiguous timed-out billing and quota concurrency are recorded as questions 62–66 in `Docs/Open-Questions/en.md`.
+- Updated `Docs/Provider-Routing/en.md`, `Docs/Request-Settings-and-Live-Translation/en.md`, `Docs/Architecture/en.md`, `Docs/QueueMaster-and-Reliability/en.md`, `Notes.md`, `README.md` and this status. Design/documentation only; no runtime code, packages, or tests changed.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
