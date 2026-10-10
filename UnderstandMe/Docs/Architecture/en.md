@@ -60,6 +60,14 @@ One reusable **format-aware Splitter** creates meaningful, request-local chunks;
 
 `Settings` can select format and paragraph/sentence policy. `RequestId` and `SegmentId` remain **transient**, not saved localization `KEY=VALUE` keys. The host, not the engine, assembles the final document/message and owns presentation/storage. [Semantic Splitter](../Semantic-Splitter/en.md).
 
+## Format-aware HTML engine routing and assisted document editing
+
+**HTML-capable provider output** and **human-assisted corrections** are complementary, not competing translation systems. An endpoint can advertise/prove HTML-mode or protected-markup capabilities; the orchestrator routes based on **actual supported format**, target languages, admin/client permission, cost and privacy. For **complex HTML**, a deliberately configured Afutrans assisted-document profile may **prefer an eligible AI model** with broad context handling, without replacing the normal provider ranking for other kinds of work or making AI mandatory. Any AI/native-HTML result still needs structural/identity/link/placeholder validation.
+
+The optional **Afutrans assisted editor** presents **rendered original left** and **translated document right**, where the right side offers rendered preview, HTML source and combined view. Source-initialized `ResultList` and structural references show translated, untranslated, uncertain formatting and failed structural regions. The authorized user can select a corresponding region on either side, correct text/tag placement manually, request a specific translation alternative or **invoke an approved AI suggestion for that region**. The suggestion is a candidate, not automatic acceptance; version checks protect manual edits from stale provider responses.
+
+The host owns safe isolated HTML preview, document drafts, undo, validation, export and permissions. It must not execute arbitrary imported scripts or expose unauthorized private contents merely to render a comparison. This assisted session is an explicit non-P0 workflow distinct from Human translator backlog, mandatory UI dictionary revision audit and a private-chat recipient's personal correction. [Assisted Document Translation](../Assisted-Document-Translation/en.md).
+
 ## Composition
 
 The host registers DataAccess, format adapters, backend endpoints, result processors, optional Chain steps, history/audit, Messenger transports and UI extensions through interfaces. Translation Targets supply connection and policy profiles. Features can be omitted entirely.
