@@ -10,6 +10,12 @@ Provisional priority names: P0 `RealTime`, P1 `Interactive`, P2 `High`, P3 `Norm
 
 An endpoint buffer is intentionally small (five items is an initial tuning candidate). Every free slot can request **one** item. QueueMaster chooses the highest-priority waiting item compatible with that endpoint. Within an endpoint buffer, work remains strict FIFO; there is no priority-based skipping, preemption or buffer rearrangement. This bounds queued-ahead work without a complex load-balancing algorithm. Faster translators naturally request replenishment more often.
 
+## Captured request policies versus orchestrator commands
+
+A request captures its effective `Settings` when created. `QueuePriority` remains exactly one level P0–P4, while optional behavior flags (for example `Mandatory`) may be combined independently. A RealTime Mandatory request may select another ready, compatible endpoint when its preferred engine is busy rather than waiting, subject to configured eligibility and spending limits; a RealTime request without that flag may return source text and continue translating by segments.
+
+Changing the configured provider priority or selection flags applies **only to new logical requests**. Waiting or running requests keep their accepted policy snapshot and their original job priority. **Administrative orchestrator control has precedence:** pause/stop of a queue prevents further dispatch despite Mandatory flags, without reinterpreting the queued items. A paused queue may resume later under the original request snapshots. Credential revocation/unavailable endpoints require explicit operational failure/recovery handling rather than silent policy rewriting. [Request Settings and Live Translation](../Request-Settings-and-Live-Translation/en.md).
+
 ## Notifications
 
 `QueueEmpty` represents whether an individual central queue has no items. An enqueue that **atomically changes a given queue from zero items to one** triggers the common `AddedToQueue` event; enqueues to already nonempty queues do not. Idle buffers can wake and request work. A periodic check (initial suggestion ~500 ms) provides a safety net. A buffer that becomes free while compatible work already exists also requests more.
