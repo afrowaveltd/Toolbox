@@ -109,6 +109,14 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Remote monitoring remains best-effort: missed events are not replayed or persisted by SignalR, and remote outages cannot stop the local core.
 - Updated `Docs/SystemMonitor/en.md`, `Docs/Architecture/en.md`, `Notes.md`, `Docs/Open-Questions/en.md`, and this status. No code, packages or tests changed.
 
+## 2026-10-10 — pairwise monitoring authorization (design only)
+
+- Agreed that independent nodes connect only when the receiving SystemMonitor host has registered and authorized their access key. NodeId may be GUID; secrets are separately generated cryptographically random 256-bit tokens and are scoped per receiving peer/link.
+- Read access is limited to approved system/module routes; the key can be revoked/rotated without a central identity provider. Use standard SignalR bearer header transport over TLS and secure secret storage.
+- The event-only SignalR Hub exposes no client-side publish operation. Remote event ingestion occurs exclusively through configured receiver clients, which validate expected remote peer and permitted original sources/relay rights rather than trusting sender fields.
+- Unknown credentials are denied but disconnected/untrusted monitors do not interfere with core work. Recorded connection-revocation, spoofing, relay allowlist and access-scoping questions/tests.
+- Updated `Docs/SystemMonitor/en.md`, `Docs/Architecture/en.md`, `Notes.md`, `Docs/Open-Questions/en.md` and this status. No source code or tests changed.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
