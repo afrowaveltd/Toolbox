@@ -38,6 +38,14 @@ The orchestrator can adjust permitted priority/flag/provider preferences on admi
 
 These rules apply to every transport and frontend without requiring a specific module to know the concrete vendor implementation. [Request Admission and Normalization](../Request-Admission-and-Normalization/en.md).
 
+## Per-client translation policies and optional public capacity
+
+Add a **ClientPolicy** boundary to the application orchestrator: trusted `ClientContext` (registered/paid, internal or public anonymous) supplies provider/endpoint/account access, per-client quota and request priority/rate/concurrency limits. The original client request does not self-authorize paid engines. By default ordinary registered/internal clients can use all provider types allowed by global administration; optional named profiles can narrow this to free/local engines or extend it to purchased paid-provider entitlements.
+
+Policy is an **intersection** of global admin limits, client plan and request's hard needs, rather than a second QueueMaster scheduler. A shared paid-provider usage account retains its own hard cap independent of individual client-plan quota. For example, the optional public Afutrans API may publish spare local LibreTranslate capacity to other users, while clients lacking paid access can never spend the host's Google allowance. Public usage receives configurable rate/concurrency/quota caps and can be scheduled behind reserved internal capacity without changing the queue's single ownership model.
+
+Authentication for billable translation access is distinct from the intentionally lite GUID-only monitoring peer identification. All business transports enforce the same client policy through common application handlers; an anonymous public profile can be configured separately. [Client Access Policies](../Client-Access-Policies/en.md).
+
 ## Provider routing is not queue priority
 
 Keep the **translator provider selection policy** outside the QueueMaster's five job-priority queues. The QueueMaster retains ownership of job scheduling and atomic dispatch; a Pipe-level selector uses provider/endpoint capability declarations, configured order, per-request constraints and cost caps to determine compatible candidates and permitted escalation. Neither a worker adapter nor the global queue hard-codes LibreTranslate, Google, Microsoft or AfroLT as a mandatory dependency.
