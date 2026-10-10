@@ -10,6 +10,14 @@ The effective snapshot combines system/host defaults, administrator-configured P
 
 **Do not conflate** `QueuePriority` (one exclusive P0-P4 value) with independent request behavior flags (bitmask) or endpoint/provider ranking. Conceptual flags may include `Mandatory`, `AllowFallback`, `UseSystemPersistent`, `StoreSystemPersistent`, `ValidatePlaceholders` and `NotifyOnCompletion`. Exact names, allowed combinations and validation rules remain open. Bitmask flags represent independent opt-in capabilities; mutually exclusive states (e.g. priority level or wait strategy) should remain enums/options rather than conflicting flags.
 
+## Orchestrator admission and client preferences
+
+A request's explicit requested provider (e.g. Google API) is a **preference**, not authority to call that endpoint. The orchestrator first validates the request and normalizes the effective Settings under higher-priority administrator/host policies. It preserves the original, records changed provider/priority/flag choices and informs the caller about policy adjustments in the admission receipt or final result.
+
+A valid request should **not lose its translation function merely because the named provider is disallowed or its billing quota is exhausted**: search for an eligible, compatible, policy-permitted alternate provider and continue when possible. If none can meet the hard requirements (language, format, permitted account spending, privacy, etc.), return a typed rejection or subsequent unavailable/failure reason. A caller's `Mandatory` flag cannot bypass administrator-approved limits. Active orchestration pauses and current hard billable limits still govern dispatch for old as well as new effective-request snapshots.
+
+Keep `RequestedProvider` and `UsedProvider` distinct; a provider can only be reported as **actually used after an attempt has run**, never merely after QueueMaster accepted a job. See [Request Admission and Normalization](../Request-Admission-and-Normalization/en.md).
+
 ## RealTime behavior
 
 - **RealTime + Mandatory:** do not wait for the **preferred** occupied provider. Select the first currently available, compatible and acceptable endpoint in the configured effective provider tier/order, considering source/target language, format/protected placeholders, configured quality/latency/cost limits and allowed escalation. Mandatory means the system should *try available alternatives now*, **not** promise success, bypass budget/LocalOnly constraints, or endlessly wait. If no acceptable endpoint exists, report a defined unavailable/fallback outcome rather than violating hard rules.
