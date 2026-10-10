@@ -47,6 +47,16 @@ Suggested conceptual profiles, not mandatory names:
 | LocalOnly | Compatible local LibreTranslate or AfroLT endpoint | Other local providers only; no external service |
 | ReviewFirst | Configured translation provider plus a separately required validation/review Chain step | Target-specific alternate provider or human review |
 
+## Agreed default tiers and request-specific options
+
+The agreed **default tier ordering** is self-hosted/free translation (LibreTranslate or similar) → paid translation APIs (each paid API has **equal priority by default**) → AI translation/review. These are merely sensible operator defaults, not vendor-specific branches compiled into the selector. A host administrator can reorder providers globally or **for an individual language pair**, and a request can select an allowed override via its effective Settings. Do not automatically lower a provider's configured priority based on stale quality observations.
+
+Request-level `QueuePriority` (P0–P4), independent behavior flags such as `Mandatory` and the configured provider tier are separate. **P0 RealTime + Mandatory** takes the first *available*, acceptable, working compatible backend in effective order without waiting for a busy preferred one, respecting hard cost/privacy/capability boundaries. A **non-Mandatory RealTime** request may immediately return the source and deliver translated segments asynchronously when capacity allows. If there is no eligible functioning backend, a configured unavailable/source-return outcome applies: `Mandatory` does not promise impossible translation or unlimited paid spending.
+
+Accepted requests capture effective routing Settings at creation; changing admin provider priorities affects **new requests**, not queued or in-flight items. Orchestrator pause/stop overrides dispatch across all request preferences without rewriting the original Settings. A future dry-run routing simulator is useful, but **deferred** until the core selector is stable. Compare capabilities again when the declared model/version changes, but model version numerals from different language pairs are not reliable comparative quality scores.
+
+Details on typed Settings flags, live segments and SystemPersistent translation memory: [Request Settings and Live Translation](../Request-Settings-and-Live-Translation/en.md).
+
 ## Eligibility, fallback and quality
 
 The selection policy first **filters for eligible endpoints** based on languages, request format, capabilities, ready state, privacy/LocalOnly limits, explicit allowlists, budget and other hard constraints. Then it chooses among eligible candidates by priority/order or cost/latency preference. Never submit unsupported languages or a format to a provider merely because it ranks first.
