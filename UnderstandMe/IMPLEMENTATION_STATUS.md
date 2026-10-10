@@ -198,6 +198,16 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Current account hard billing limits and administrator queue pause/stop still govern every **new dispatch** for previously accepted work, while the historical original request and effective provider preference snapshot remain unchanged. `Mandatory` and caller requests cannot override them.
 - Created `Docs/Request-Admission-and-Normalization/en.md` and updated `Docs/Provider-Routing/en.md`, `Docs/Request-Settings-and-Live-Translation/en.md`, `Docs/Provider-Billing-and-Quotas/en.md`, `Docs/QueueMaster-and-Reliability/en.md`, `Docs/Architecture/en.md`, `Notes.md`, `Docs/Open-Questions/en.md`, `README.md` and this status. Documentation only: no source code or tests modified or executed.
 
+## 2026-10-10 — per-client translation access and optional public spare-capacity API (agreed design only)
+
+- Confirmed previous admission, provider account quota and global administrator policy design already existed; identified **per-client provider entitlement** as a separate missing layer, rather than duplicating the existing commercial/QueueMaster components.
+- Created `Docs/Client-Access-Policies/en.md` for `ClientContext` and `ClientPolicy`: distinct registered/internal, anonymous/public, free and paying clients; per-client allowed provider families/accounts, feature entitlements, word/cost limits, input/concurrency/rate caps and optional group policies.
+- **Baseline:** ordinary known clients can use all globally permitted provider engines by default unless an administrator narrows their client policy. Optional public/anonymous Afutrans API receives its own restricted profile to share spare self-hosted LibreTranslate/free capacity **without using the operator's paid API billing accounts**. Enabling the core library does not automatically publish a public endpoint.
+- The orchestrator intersects trusted client authorization with global rules, provider capabilities, provider billing availability and request requirements. If a client requests forbidden Google, fall back to an allowed capable engine (e.g. LibreTranslate); reject only if none qualifies, returning an explanatory code.
+- Per-client usage quotas and the host's actual provider-account packages remain independent limits; atomically enforce both before dispatch when needed. Optional spare-capacity controls prevent public traffic from starving internal processing, without creating one queue per client or changing existing P0-P4 queue ownership.
+- Client authentication for financially meaningful public requests **must not rely on unverified request-supplied IDs or the intentionally lite SystemMonitor GUID identification mechanism**.
+- Updated `Docs/Request-Admission-and-Normalization/en.md`, `Docs/Provider-Routing/en.md`, `Docs/Provider-Billing-and-Quotas/en.md`, `Docs/Architecture/en.md`, `Docs/Afutrans-Integration/en.md`, `Docs/QueueMaster-and-Reliability/en.md`, `README.md`, `Notes.md`, `Docs/Open-Questions/en.md` and this status. Design-only documentation; no .NET runtime code or tests changed or run.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.
