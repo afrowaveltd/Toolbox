@@ -30,6 +30,12 @@ The host registers DataAccess, format adapters, backend endpoints, result proces
 
 The architecture must also allow asynchronous requests for additional translation work from a chain step or editor, preserving correlation to the originating job while remaining within QueueMaster's public API.
 
+## Provider routing is not queue priority
+
+Keep the **translator provider selection policy** outside the QueueMaster's five job-priority queues. The QueueMaster retains ownership of job scheduling and atomic dispatch; a Pipe-level selector uses provider/endpoint capability declarations, configured order, per-request constraints and cost caps to determine compatible candidates and permitted escalation. Neither a worker adapter nor the global queue hard-codes LibreTranslate, Google, Microsoft or AfroLT as a mandatory dependency.
+
+One installation may prioritize local LibreTranslate and escalate only when necessary; another can prioritize a paid provider and use the others as fallback. Selection is configurable globally, by Translation Target/Chain step and, if allowed, for an individual request. Strict LocalOnly, formats/languages and spending constraints are not waived by overrides. Validation and review remain explicit Chain/ResultProcessor responsibilities. [Provider routing](../Provider-Routing/en.md).
+
 ## Hierarchical SystemMonitor
 
 Each module emits events independently. A host maps `/SystemMonitor` for events from all locally registered modules, and `/AfroLT/SystemMonitor`, `/Afutrans/SystemMonitor`, `/UnderstandMe/SystemMonitor` for each module's own events. All use one typed envelope with sender identity. The host fans out a single event to global and module feeds, without Hub-to-Hub forwarding. Remote instances only aggregate through an optional bridge. Monitoring is outbound-only, best-effort, never a storage or command channel. See [SystemMonitor](../SystemMonitor/en.md).
