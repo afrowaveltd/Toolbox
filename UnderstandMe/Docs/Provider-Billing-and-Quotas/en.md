@@ -53,6 +53,14 @@ The admin may change these settings manually. A `RealTime | Mandatory` request c
 
 Changes in price/allowance apply to **new dispatch admission checks immediately**, even for a request created under an older Settings snapshot; this is a global operational guard, just like an orchestrator pause. The request's original provider *preference* and behavior flags remain unchanged. Do not silently reinterpret historical queue priority or provider order when an administrator changes pricing. Administrative spend constraints take precedence over accepting new paid charges.
 
+## Orchestrator policy checks and graceful alternative selection
+
+A client cannot force a paid vendor by specifying its name in a translation request. Before QueueMaster accepts the normalized request, the **orchestrator applies current administrator permissions and effective provider ranking**. If Google (or another preferred account) is forbidden or has no approved available quota, the orchestrator looks for another compatible **authorized** provider by default, rather than rejecting an otherwise translatable request. The client is informed when the actual provider differs and receives a structured reason.
+
+An account hard limit is an **absolute constraint on further billable dispatch**, not a command to stop all translation. After the allowed included units are exhausted, no new chargeable call may be sent through that account without prior explicit overage authorization; the orchestrator may use another provider, wait when permitted, or only then report rejection/unavailable with a reason when all eligible routes are exhausted. `Mandatory` and an explicit vendor request do not grant an overage exception. A previously accepted job still has its account's remaining quota checked **at each chargeable dispatch**, and may require a different eligible endpoint when the current hard cap is reached. Never silently charge for an alternative paid vendor if request/account policy disallows spending.
+
+Billing and engine selection must share one coherent eligibility decision, without giving QueueMaster responsibility for the cost model. Admission responses identify policy substitutions; completion/segment results identify the **actual** provider and charge estimate/receipt. See [Request Admission and Normalization](../Request-Admission-and-Normalization/en.md).
+
 ## Cost reporting and monitoring
 
 The administrator should be able to see per billing account/endpoint and period:
