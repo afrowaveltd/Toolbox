@@ -49,6 +49,16 @@ Pipes can be named/reused globally (`FastUI`, `ArticleAI`, `DictionarySync`, `Ma
 
 Articles and comments are split into coherent chunks, translated (potentially in parallel), reassembled in order, then receive a **mandatory final AI correction/check** according to their content policy. Review receives source and translation. Content policies distinguish faithful informal/explicit comments from more polished documentation/articles without changing meaning or tone except where explicit editorial changes are allowed. Document structure and protected tokens require verification. A failed mandatory check does not silently publish an unchecked result.
 
+### Provider priorities, price-aware routing and bounded escalation
+
+**Two separate priorities:** QueueMaster's P0-P4 priority determines *when* a request is handled; provider preference determines *which eligible translator* handles a Chain translation step. Provider selection is a Pipe-level policy, not a new physical queue or logic embedded in QueueMaster.
+
+Self-hosted **LibreTranslate is a first-class economy/default provider** for installations prioritizing low direct translation costs, including this planned Afrowave deployment. But it is not forced on all users. An installation may prefer Google/Microsoft/AI even when LibreTranslate is available; another may require LocalOnly and prohibit remote API use. A provider family can have multiple configured endpoints, each with language/format/HTML/protected-token capabilities, capacity/readiness, restrictions and optional cost estimates. Unknown cost cannot safely be assumed zero.
+
+Provider-selection profiles support explicit ordered preferences or cheapest eligible endpoint, with fallback/escalation enabled only under selected conditions (timeout/provider failure, incompatible capability, failed required placeholder/structure validation, configured semantic review or deliberate alternate result). Provider choice can be configured globally, by Pipe, per Translation Target or for allowed individual jobs and Chain steps; hard constraints for budget, privacy, formats and mandatory checks cannot be overridden. A different engine can perform quality review from the original source without taking over the initial translation. A superficially fluent result does not prove accuracy; quality-triggered escalation needs an actual configured validation/review mechanism.
+
+Set maximum attempts, switching rules, deadlines, budget ceilings and chargeable timeout retry behavior to avoid cost explosion. Track provider selection, attempts, accepted result and estimated/actual costs without exposing original content or credentials in SystemMonitor. No provider has mandatory static enum cases or a hard-coded dependency. See [Provider routing and escalation](Docs/Provider-Routing/en.md).
+
 ## 5. Localization and dictionary-less start
 
 Use standard .NET localization concepts. Hosts configure default culture, dictionaries/storage, target languages, ignored/manual-only languages, live translation and monitoring. For dictionary-less mode, a missing source key is registered in the default dictionary where `KEY = VALUE`. General UnderstandMe should not mandate English; Afutrans and participating Afutrans modules conventionally use English source keys.
