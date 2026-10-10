@@ -100,6 +100,14 @@ The user proposal is **one useful matching strategy**, especially with plain-tex
 
 Provider calls for inner spans incur **additional costs, quota reservations, latency and processing overhead**. The orchestrator still applies ClientPolicy, account hard caps, privacy and requested deadline to **every** such call; `Mandatory` cannot force paid overage. P0 must remain automated and volatile; no Human/manual-audit fallback to recover tags.
 
+## Provider-native HTML, AI and assisted manual alignment
+
+Not every provider requires reconstructing inline tags from separate phrase translations: **some adapters can request structured HTML translation natively**, while some models accept context-rich prompts with protected markup. Detect the specific endpoint capability and then **validate** returned tags, `id`, links, required attributes, protected placeholders and structural nesting. A valid-looking AI-generated page is not automatically structurally or semantically correct.
+
+For **complex HTML**, an **optional format-specific AssistedHTML profile** may prefer an eligible AI endpoint, even when ordinary text translation still defaults to local/free -> paid -> AI. Capability-based routing and admin/client/privacy/budget caps control eligibility. If an attempt cannot preserve formatting/structure, retain original result slots, mark translation and formatting states independently, and give an **authorized user** a chance to repair it in a side-by-side Afutrans editor (rendered source left; render/source/split translation right). The user can explicitly select the correctly inflected target word and reattach an `i`/`strong` annotation when automatic alignment was inconclusive.
+
+The user can also **manually edit the draft** or request a **targeted AI proposal for a selected region**, subject to explicit authorization and provider costs; AI output does not override a later human draft revision automatically. For significant tag identity/links, maintain a structural failure until resolved; for unmatched cosmetic formatting, the default omission policy still applies. No part of this assisted workflow is automatic Human auditing of P0/private chat content. [Assisted Document Translation](../Assisted-Document-Translation/en.md).
+
 ## Result shape and safe projection
 
 Conceptual rendering state may separately hold:
