@@ -31,6 +31,14 @@ Match on source/target culture, Translation Target/domain, context/format, sourc
 
 For RealTime translation the resolver may immediately return source text when no activated eligible **automatic** engine is available; if only Human is configured, P0 translation is **inactive**, and no Human job may be created by fallback. Non-Mandatory live partial updates, when configured, must come from automated translators only. In particular, a RealTime lookup of a private chat message must not disclose that message to a human translator or persist it as manual work. A separate durable manual job requires explicit authorized non-P0 submission; any dictionary registration/cache is independently governed by target privacy policy. [Human Translation Workflow](../Human-Translation-Workflow/en.md).
 
+## Private translations can be reused without making chat content public
+
+For chat, forum or similar history, `Privacy = Private` may coexist with a **durably stored verified translation result**, under host/target retention settings. The P0 job remains volatile; its private result is cached/persisted in a **viewer-authorized, conversation/tenant-scoped** translation store so revisiting history does not retransmit an unchanged message to the backend.
+
+Private message bodies must **not** be auto-registered as public/default-language `KEY = VALUE` dictionary entries or promoted into global `SystemPersistent` memory. Keep the application-local dictionary-less workflow for eligible public/application UI strings, but private chat history uses **its source owner's protected identity and access rules**, source revision/hash, format and language in its own lookup key. Check present permissions on every read. An edit, delete, retention expiry or revoked chat membership must invalidate/restrict the translation as appropriate. This is separate from real-time Human exclusion and from ordinary provisional cache.
+
+A private-result lookup may be served to an **authorized participant** without invoking an engine again; translation existence must not imply permission to read the source. See [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
+
 ## Placeholder hints
 
 For a source string such as `We found {count} dictionaries in {folderCount} folders`, a flat hint store may be:
