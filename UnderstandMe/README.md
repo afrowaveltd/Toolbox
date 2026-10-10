@@ -58,6 +58,10 @@ UI/application localization dictionaries use `KEY=VALUE`. **Chats and user-gener
 
 After an automatic private translation, the **authorized recipient** may optionally correct their own displayed version in a host UI. The correction may remain session-only (**no cache**) or be cached at that recipient's **explicit choice**; broader sharing, if offered, requires a separate authorized choice. This is not the generic Human translator queue or manual audit. `P0` remains volatile and machine-only, even when the chat application retains its finished translation outside the engine. See [Chat translation flow and recipient corrections](Docs/Chat-Translation-Flow/en.md).
 
+## Meaningful document and message splitting
+
+The Splitter prefers **semantic chunks**, not arbitrary length: short text can stay intact, formatted plain text usually splits by paragraph, unformatted continuous prose by sentence, Markdown by meaningful document nodes and HTML by translatable element content. Configurable `Settings` controls the mode; provider limits may trigger safe secondary splitting. Temporary `0..N` IDs are used only to match chunks, and the caller reconstructs the translated document or chat message. See [Semantic Splitter](Docs/Semantic-Splitter/en.md).
+
 ## Planned areas
 
 | Area | Responsibility |
