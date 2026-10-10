@@ -136,6 +136,29 @@ References:
 - Microsoft SignalR hubs: https://learn.microsoft.com/en-us/aspnet/core/signalr/hubs
 - Microsoft SignalR .NET client: https://learn.microsoft.com/en-us/aspnet/core/signalr/dotnet-client
 
+## Administrative SignalR Hub and live observability
+
+AfroLT's optional hosted deployment should expose a **second, separately authorized SignalR Hub at \`/admin\`** in addition to its user-facing translation Hub (working route: \`/hubs/translation\`). The originally discussed "one hub" applies to the *translation command interface*: there is still only one public translation Hub and one common command layer. The extra admin Hub is a distinct **administrative access and observation surface**, not a second translation engine or dispatcher.
+
+### Events and status snapshots
+
+- AfroLT Core emits typed operational events regardless of listeners: successful and failed translations, worker readiness changes, model load/unload, slow requests, model/runtime failure, recovery start/success/failure, and optionally aggregate capacity/throughput updates. The initial event taxonomy is illustrative.
+- A lightweight event publisher exposes subscriptions. The \`/admin\` adapter forwards authorized events to connected administrators; when nobody subscribes, engine behavior remains unchanged. There is no mandatory per-event remote delivery or queue dependency on an online administrator.
+- When a monitor connects it first receives a **current status snapshot** (readiness, enabled models/language pairs, capacity, active jobs, aggregate counts) and then live event deltas. Clients may select event categories/severities, with reasonable event rates and bounded buffers.
+- Events should carry a timestamp, event kind, source worker/instance, correlation/job ID when applicable, outcome and diagnostic code. Do not expose submitted translation text, credentials or client identity in default diagnostic broadcasts; sensitive details require additional authorization and deliberate retrieval.
+- SignalR is **not the durable error log**. Significant errors, authorized manual changes and audit-relevant events are recorded by the appropriate persistence/logging component independently of the Hub, so nobody being connected does not determine what is saved. Ordinary high-frequency telemetry can be ephemeral and safely dropped for slow/disconnected subscribers.
+- An administration client can display live failures and successes, operational counters and recovery events; optionally use the data to trigger further workflows **through separately authorized application commands**, not by giving the event publisher or passive Messenger scheduling responsibilities.
+
+### Administrative requests
+
+The \`/admin\` Hub may also expose privileged commands such as querying detailed health, requesting a worker/model reload or initiating allowed maintenance. **These are not implemented inside the Hub.** They call the same transport-neutral application command handlers that would be exposed by an authorized REST administrative endpoint or direct .NET API. No duplicate command logic and no secondary state owner.
+
+Security boundaries: require strong authentication and an administrator-specific policy for \`/admin\` (and separate authorization for sensitive administrative commands), do not leak per-tenant content in shared event streams, and enforce backpressure/rate limits. Treat a disconnected admin dashboard as a normal condition, not an error or an interruption to translation.
+
+### Relationship to UnderstandMe
+
+The standalone AfroLT Hub belongs to AfroLT Hosting and never makes UnderstandMe mandatory. When integrated, an optional adapter can forward operational events to UnderstandMe's passive Messenger and/or a monitoring dashboard; QueueMaster retains responsibility for scheduling UnderstandMe jobs. The command/event contracts should remain coherent across direct .NET, REST and both SignalR Hubs.
+
 ## Open design details
 
 - Determine which LibreTranslate-compatible endpoints (if any) are worth replicating, and how capability negotiation avoids false HTML support claims.

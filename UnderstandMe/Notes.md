@@ -140,6 +140,10 @@ AfroLT's direct .NET API, REST endpoints and its optional single SignalR Hub are
 
 See [AfroLT future design](Docs/AfroLT-Future-Design/en.md).
 
+### Administrative SignalR Hub and optional monitoring
+
+Alongside the one public translation Hub, AfroLT Hosting may expose an explicitly authorized **\`/admin\` SignalR Hub** for live events and operational monitoring. Translation requests, business commands and DTOs remain shared with the same underlying application services, not separately implemented per Hub. Operational sources publish success/failure, worker/model readiness, recovery and capacity events regardless of subscribers. On connection, an authorized monitor receives a snapshot followed by live deltas. No subscribers means no translation interruption. Important errors and audit events persist independently of SignalR; high-volume telemetry may be ephemeral. Privileged administrative actions (model reload, maintenance etc.) are executed through separate authorized common command handlers, not by the event publisher. Protect per-client data and admin access. See [AfroLT future design](Docs/AfroLT-Future-Design/en.md).
+
 ## 11. Source repositories and document maturity
 
 - Toolbox: https://github.com/afrowaveltd/Toolbox

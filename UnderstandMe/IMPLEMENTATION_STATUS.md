@@ -65,6 +65,13 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 - Transport adapters handle only transport-specific envelopes (HTTP status codes or SignalR connection/events), never separate translation logic; job IDs, results, policies and idempotency are shared.
 - Added a requirement for command-level tests and REST/SignalR parity contract tests. No code or test implementation was performed.
 
+## 2026-10-10 — dedicated AfroLT administration Hub (design only)
+
+- Planned **two distinct optional SignalR surfaces** in the AfroLT host: the existing one public translation Hub and the administrator-only \`/admin\` Hub for live monitoring and privileged requests.
+- Confirmed that success/failure/model/recovery events are emitted independently of subscribers; zero listeners must never change engine behavior. Admin clients receive a current snapshot and live deltas; noncritical telemetry need not be durable.
+- Critical error records and mandatory edit audits remain independent of SignalR; administrative commands use the existing common authorized command handlers, not the Hub or the passive Messenger as a second engine.
+- Added access control, tenant data privacy and backpressure as explicit design constraints. No implementation or tests changed.
+
 ## Next continuation
 
 1. Continue discussing unresolved design questions using `Docs/Open-Questions/en.md`; do not finalize the implementation plan prematurely.

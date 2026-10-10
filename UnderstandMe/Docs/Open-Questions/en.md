@@ -30,5 +30,8 @@ This is a discussion backlog, **not** an implementation plan. Decisions recorded
 
 22. **Shared transport-neutral command contracts:** choose minimal typed command handlers and caller context; define the exact request/response DTO and error representation shared by direct .NET, REST and the single SignalR Hub; verify REST/Hub parity and separate transport envelopes without duplicate business logic.
 
+23. **AfroLT admin Hub:** specify auth and per-tenant visibility for \`/admin\`; current status snapshot and event contract (success/failure, worker/model state, recovery, capacity), subscription filters, bounded fanout/backpressure, event ordering and privacy; separate durable operational/audit records from ephemeral SignalR notifications.
+24. **Admin command security and parity:** define which privileged administrative actions are exposed and ensure admin Hub, REST and direct .NET entry points invoke the same authorized application command handlers rather than duplicating work or involving passive Messenger as a scheduler.
+
 Current status and next continuation point: [Implementation Status](../../IMPLEMENTATION_STATUS.md).
 
