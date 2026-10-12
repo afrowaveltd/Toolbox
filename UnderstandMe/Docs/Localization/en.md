@@ -1,0 +1,74 @@
+# Localization, Dictionary-less Start and Placeholders
+
+Status: requirements design; no localization engine is implemented in the current UnderstandMe skeleton.
+
+## Modes and storage
+
+Support standard .NET localization abstractions, including `IStringLocalizer`, plus optional middleware/integration for applications and web apps. Source/target cultures, fallback cultures, dictionary-less registration, key/value convention, ignored or manual-only target languages, live translation and background processing must be configurable per target.
+
+Dictionary-less start means the application can register previously unseen phrases without pre-authored catalogs. In its simplest form, the source-language dictionary stores `KEY = VALUE`. Alternative projects may use stable symbolic keys with source-language values supplied separately. Afutrans/plugins use English phrases as the default source convention; UnderstandMe itself should allow other source languages.
+
+Dictionary stores can be local flat JSON (`en.json`, `de.json`, etc.), structured JSON, SQL or another configured DataAccess adapter. Culture identifiers must be configurable rather than permanently limited to two-letter names; regional languages may need locale tags.
+
+## Lookup lifecycle
+
+1. Look up the key in the target-language dictionary. If present, return the authoritative value.
+2. On a miss, check the default-language dictionary; register `KEY = VALUE` and any placeholder hints only if newly discovered. Signal the change.
+3. If the target-language provisional translation is not already cached, request one quick, **nonpersistent** translation for the current user's language according to live-translation policy and timeout.
+4. Return that usable validated result promptly, or the source/fallback on failure; cache a provisional result separately from the authoritative dictionary.
+5. After delivery, or on a later lookup/expiry, check whether an authoritative translation has arrived and promote/replace the cache value.
+6. A committed translation change may publish `Update_Cache`, locally or via SignalR, to accelerate refresh. Lost events are repaired via periodic reconciliation (illustrative interval: three hours) and startup/reconnect catch-up.
+
+Synchronous `IStringLocalizer` consumers must not be assumed able to await a remote backend; an asynchronous API/host strategy is a separate open design point.
+
+## SystemPersistent memory versus provisional cache
+
+The optional `SystemPersistent` translation-memory tier provides durable, bounded reuse of **explicitly selected and verified** translations. It is not a duplicate of every request history and must not expand forever. Request Settings can opt in to **lookup** before requesting a backend; **writing/promoting** an entry is a separate, explicitly controlled operation. Preserve authoritative target dictionaries as the highest-priority answer, then allowed context-matched SystemPersistent entries, then provisional cache, then the live backend.
+
+Match on source/target culture, Translation Target/domain, context/format, source identity and protected placeholder structure; reject stale/incompatible glossary or source revisions. Support quotas, removal/expiry policy and pinned entries where applicable. RealTime non-Mandatory requests can immediately display source text and later replace only the completed segment identified by `RequestId` and `SegmentId`. User-facing segment updates use a separate application channel rather than SystemMonitor. [Request Settings and Live Translation](../Request-Settings-and-Live-Translation/en.md).
+
+## Human-only installations and privacy of RealTime content
+
+For RealTime translation the resolver may immediately return source text when no activated eligible **automatic** engine is available; if only Human is configured, P0 translation is **inactive**, and no Human job may be created by fallback. Non-Mandatory live partial updates, when configured, must come from automated translators only. In particular, a RealTime lookup of a private chat message must not disclose that message to a human translator or persist it as manual work. A separate durable manual job requires explicit authorized non-P0 submission; any dictionary registration/cache is independently governed by target privacy policy. [Human Translation Workflow](../Human-Translation-Workflow/en.md).
+
+## UI dictionary keys are not chat translation identifiers
+
+The `KEY = VALUE` convention and dictionary-less source registration in this document apply **only to configured application/web UI localization dictionaries**, including flat JSON or other dictionary backends. **Chat messages, private discussions, articles and other user-created content do not enter this dictionary lifecycle by default.**
+
+A chat Splitter emits temporary ordered `(SegmentId, Text)` pieces with `SegmentId = 0..N` scoped to an active request. These IDs serve **only for correlating/reassembling partial translated results**. Do not store them as localization keys or cache keys, and never register entire private chat messages in `en.json`/`cs.json` or another global UI dictionary.
+
+The **chat host** reassembles completed translations, decides whether to store a finished message in its own history and checks its audience permissions. Its authorized recipient may optionally correct their own displayed translation and choose whether to cache **that correction** or keep it only in the current view. Recipient-saved corrections are per-user/message/culture overrides, not shared glossary entries. A separate, explicitly authorized promotion/share mechanism (if ever added) is not implied by opting in to cache.
+
+This separation does not interfere with ordinary UI dictionary caches and `SystemPersistent` memory intended for eligible non-private application strings. See [Chat Translation Flow](../Chat-Translation-Flow/en.md) and [Privacy and Scoped Storage](../Translation-Privacy-and-Scoped-Storage/en.md).
+
+## Placeholder hints
+
+For a source string such as `We found {count} dictionaries in {folderCount} folders`, a flat hint store may be:
+
+```json
+{
+  "We found {count} dictionaries in {folderCount} folders": ["5", "2"]
+}
+```
+
+Hints map by **occurrence index** in the original key (0, 1, ...). They are illustrative values for the translator, not necessarily runtime replacement arguments. The translator must compare the number of hints against occurrences; a mismatch skips the current automatic attempt for later correction.
+
+Placeholder identity and original content remain available in memory. During translation, each original occurrence is protected with a marker carrying its index. Restoring markers solely in the new order of appearance would be wrong for languages that reorder parts of the sentence. Accept only a result with the exact expected set and multiplicity of placeholder indices; never save a broken string.
+
+No delimiter (ASCII, Unicode or HTML) is guaranteed preserved by every engine. Protection strategies are interchangeable: provider-compatible HTML markers, textual tokens, differential translation experiments and optional AI repair. Test per provider/language pair. Placeholder correctness is mandatory; perfect grammar (plural/gender inflection) is not part of the initial goal.
+
+
+## Planned optional grammar and inline hint layers (2026-10-11)
+
+**Agreed design direction, not implemented:** keep every basic locale dictionary as a **flat JSON key/string map**, suitable for an ordinary localizer. Optional translator-facing hints (for example `en.placeholders.json`), locale-specific variants (`cs.grammar.json`), CLDR reference rules and eventual SQL equivalents are strictly separate. They are never prerequisites for dictionary-less source-key registration or basic lookup. Failed grammar generation falls back to the known base/source phrase rather than preventing startup; strict placeholder integrity still applies to every accepted generated translation.
+
+Preserve the existing `t[key, params string[] args]` contract and add a distinct typed-hints-before-`params` overload. Support composite plural/gender/other hints through one resolver without forcing a public API change for every new rule. Prefer typed hint records/optional unions to untyped argument bags; keep .NET 10 extensibility and note that the exact API/JSON schema is not finalized.
+
+Afutrans can later generate and review per-locale variants using pinned offline CLDR datasets, while editors may override locale-specific rules and values. English is the Afutrans convention, not a hard requirement on UnderstandMe; native English grammar variants may also be needed. [Layered Localization and Grammar Hints](../Grammar-Hints-and-Variants/en.md) is the detailed continuation document.
+
+## Data safety
+
+Provisional cache entries cannot overwrite a newer authoritative value. Keys include at least target/source identity, culture and phrase identity, plus relevant context. Cache expiration and event-driven refresh are complementary. Registration events and final-translation notifications are distinct concerns; their exact event contracts remain under discussion.
+
+Related: [QueueMaster](../QueueMaster-and-Reliability/en.md), [Notes](../../Notes.md).
+
