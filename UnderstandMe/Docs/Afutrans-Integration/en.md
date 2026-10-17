@@ -116,3 +116,16 @@ A monitoring admission failure is recorded as an incident and the invalid event 
 
 Source repositories: [Toolbox](https://github.com/afrowaveltd/Toolbox) · [Afutrans](https://github.com/afrowaveltd/Afutrans).
 
+
+## Rust localization client interoperability (planned, 2026-10-18)
+
+Rust applications (including future Textscape components) need **only a small native localization runtime**, not a port of UnderstandMe, its translator providers or Afutrans orchestration:
+
+- Load and use the **same flat JSON dictionaries** as the .NET localizer; provide normal lookup, placeholder substitution, fallback and optional dictionary-less registration of missing UI keys. Use compatible auxiliary hint/rule JSON **only when needed** for shared behavior. Remain usable fully offline without a .NET runtime.
+- Include an **optional REST/HTTP client** capable of submitting a source dictionary (and relevant auxiliary metadata) to a configured .NET Afutrans/UnderstandMe service, requesting a target language translation/update, and **receiving the translated/updated dictionary** through the same ordinary versioned JSON REST API available to other clients. Rust does not implement translation providers, queues, editing/review workflows or an independent translation service.
+- Keep the operation **explicitly optional**: local UI lookup, dictionary-less startup and fallback must not block on server connectivity. No mandatory online registration, telemetry or always-running connection.
+- Define request/response contracts shared with .NET. A small translation can return the dictionary directly; long-running processing may return a job identifier for later status/result retrieval, without duplicating server queue logic in Rust. Concrete HTTP routes, JSON envelope and auth policies remain to be designed; no endpoints are implemented yet.
+- For returned data, validate JSON and protected placeholder compatibility; preserve existing local/manual overrides and use a safe update (e.g. write temporary file, validate, then atomic replace) so an interrupted transfer cannot destroy a usable local dictionary. Respect source revisions and existing hint metadata on import.
+- Common contract/conformance examples should verify the **same results** for equivalent Rust/.NET localizations from the same dictionary and metadata, but only for the intentionally shared runtime subset.
+
+**Ownership boundary:** Rust = localizer + optional REST client; .NET UnderstandMe/Afutrans = translation, automation, provider access, editor and authoritative dictionary management. The file format and REST interface are interoperable; no duplication of the full .NET system is intended. This is a design decision only, with no current implementation or test evidence.
