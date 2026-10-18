@@ -108,25 +108,20 @@ Related: [QueueMaster](../QueueMaster-and-Reliability/en.md), [Notes](../../Note
 
 **Scope:** localizers own lookup and dictionary access/update; .NET UnderstandMe/Afutrans owns provider routing, automated translation, jobs, review and administration. Concrete REST routes, SignalR method names, revision tokens and authentication remain design questions; this section does not claim working endpoints.
 
+## Dita: independent reference only, not a source-code dependency (2026-10-18)
 
-## Dita localization as practical .NET baseline (2026-10-18)
+**Explicit project boundary:** [Dita](https://github.com/afrowaveltd/Dita/tree/master/Dita.Shared/Localization) is an entirely separate application/project, consulted only for ideas and lessons learned. **Do not copy, extract, refactor, migrate or depend on Dita's localization classes or packages** when implementing UnderstandMe. Dita is not a donor module, shared runtime, or required test project.
 
-**Decision / migration guideline, not an implementation claim:** start the .NET localization work in UnderstandMe from the existing design and proven building blocks in [Afrowave Dita](https://github.com/afrowaveltd/Dita/tree/master/Dita.Shared/Localization), rather than designing a new localizer from scratch. Inspect current code and tests before extracting/adapting anything.
+A review of Dita's existing `JsonStringLocalizer`, `LocalizeService`, `LanguageService` and `PlaceholderService` shows useful *concepts* worth considering: .NET `IStringLocalizer` compatibility, flat locale JSON files, dictionary-less source registration, named placeholders, optional sidecar hints and translation-safe placeholder protection. Reimplement these *independently* in UnderstandMe with explicit contracts and tests, rather than treating Dita's APIs and internal assumptions as authoritative.
 
-Confirmed Dita source components:
-- `Services/JsonStringLocalizer.cs`: JSON-backed Microsoft `IStringLocalizer`, source/target fallback, dictionary-less key registration, named placeholders and optional translation integration.
-- `Services/LocalizeService.cs` and `Services/ILocalizeService.cs`: target/default dictionary lookup and creating absent `key = value = original source phrase` entries.
-- `Services/LanguageService.cs` and `Services/ILanguageService.cs`: language metadata and dictionary reading/writing; locale operations and RTL metadata.
-- `Services/PlaceholderService.cs` and `Services/IPlaceholderService.cs`: `{name}` extraction/formatting; `Locales/placeholders.json` default/reference values; protected translation markers, restoration attempts and persistence.
-- Separate translator/provider services already exist in Dita, but the **minimal UnderstandMe localization runtime must not require them**.
+### First independent implementation path
 
-Practical extraction/adaptation approach:
-1. Preserve the familiar `IStringLocalizer` integration, easy flat JSON editing and dictionary-less `en key = en value` registration; **configure** source language, dictionary location and fallback. Do not blindly copy Dita's deployment-path assumptions or force network/cache into a basic localizer.
-2. Strengthen placeholder validation with exact occurrence/index matching and no acceptance of translated text with missing, duplicate or corrupted placeholders; retain examples/reference hints without conflating runtime substitution values with durable metadata.
-3. Extend the **optional auxiliary JSON** beyond Dita's stored placeholder defaults to context, examples/allowed `string` vs iterable-of-strings variant domains, locale-specific grammar choices and other planned hint data. Keep primary dictionaries flat. Evolve/convert Dita sidecar data without losing existing values; no forced sidecar for a first start.
-4. Add native/local host reload on dictionary changes plus safe atomic update/swap and planned optional REST/SignalR dictionary import/export, separately from automatic translation providers.
-5. Establish shared JSON format and localization/placeholder behavior tests for the deliberately small Rust runtime; Rust handles local lookup/fallback/dictionary-less and optional REST client **only**, while .NET retains automatic translation and orchestration.
+1. Build a small, **standalone UnderstandMe** .NET 10 localization core that works without a translation service: flat JSON lookup, configured locale/source fallbacks and dictionary-less source registration. Preserve a usable source text even when no files exist.
+2. Add deterministic `{name}` placeholder formatting, placeholder integrity checks and an optional auxiliary JSON store. Expand hints/allowed values/grammar only after the basic contract is tested.
+3. Support safe local dictionary replacement/reload with tests. Keep REST, SignalR and online sync as optional host adapters layered on later.
+4. Use **Afutrans**, which already has its *own* basic `Afutrans.Core/Localization/ILocalizer` and `Localizer`, as the first **real integration and test application**. Provide an adapter so its existing UI/view-model contracts and `CultureChanged` event continue to work. Its present built-in English/Czech catalogs are a transitional fixture, not UnderstandMe's mandatory runtime data.
+5. Later establish shared flat-JSON/sidecar contract tests for a minimal Rust localizer; Rust will not duplicate .NET translation engines or orchestration.
 
-Follow the established [layered hints/grammar direction](../Grammar-Hints-and-Variants/en.md) and [host/interoperability exchange plan](../Afutrans-Integration/en.md). Keep compatibility with existing valid data and public usage as far as practical, but do not assume every Dita internal implementation is already a final UnderstandMe contract.
+Reference: [layered hints and grammar](../Grammar-Hints-and-Variants/en.md) and [host integration](../Afutrans-Integration/en.md). Keep the `UnderstandMe` library independent of both Dita and Afutrans; dependencies point from Afutrans to the independent UnderstandMe localization package, not in reverse.
 
-**Verification scope:** Dita's listed source files and localization documentation were inspected; no code, tests or runtime integration changed in this documentation pass.
+**Status:** this documents intended direction only; no code, .NET build/tests or integrations have been implemented in this editing pass.
