@@ -72,3 +72,38 @@ Provisional cache entries cannot overwrite a newer authoritative value. Keys inc
 
 Related: [QueueMaster](../QueueMaster-and-Reliability/en.md), [Notes](../../Notes.md).
 
+## Cross-platform localization host capabilities and live dictionary exchange (2026-10-18)
+
+## Cross-platform localization host capabilities and live dictionary exchange (2026-10-18)
+
+**Design decision — not yet implemented.** Every implementation of the *shared localization subset* (.NET, Rust or later languages) is a fully usable offline localizer, but also exposes appropriate optional dictionary import/export/update facilities for its host environment. This does **not** mean porting the complete UnderstandMe/QueueMaster/AI translation engine to each language. The translation workflow remains in the .NET UnderstandMe/Afutrans services.
+
+### Common dictionary contract
+
+- The authoritative interchange unit is a **flat locale JSON dictionary** with an optional associated sidecar set for context, placeholder descriptions, allowed values, and language-specific grammar rules. Preserve stable source key identity (Afutrans convention: English key equals English source value), locale and origin/target identifiers.
+- Implement native lookup, safe placeholder replacement, configurable fallback and dictionary-less source registration from absent keys, all **without requiring network access**. Optional sidecars must not block a simple translation.
+- Each host can **get/export** its dictionary for an authorized translation manager and **receive/import** an updated dictionary or approved changes. Dictionary updates are not intrinsically tied to a new application version. Preserve local user overrides and validate protected placeholders before activating changes.
+- Use an explicitly versioned, shared transport-independent dictionary exchange contract, suitable for REST JSON, a business SignalR Hub, and host-local file adapters. Consider source revision/ETag-like conditional writes and conflict responses; do not silently overwrite more recent local/human corrections.
+- Make update status observable and ensure either the old valid dictionary or the newly validated dictionary is active (atomic replacement/snapshot semantics). A temporary invalid JSON edit should not blank out the application's UI.
+
+### Desktop and local clients (.NET, Rust, other languages)
+
+- Detect changes to locally configured dictionary/sidecar files and **reload them dynamically** (debounced validation and replacement) without requiring application restart. A file watcher is an implementation detail; if change detection misses an event, the next explicit reload/rescan must still work.
+- Allow **optional update checks at startup** and an explicit user/application-triggered download or full dictionary synchronization from a configured HTTP REST API. Network absence or failure leaves the current local catalog and offline fallback operational.
+- When configured for bidirectional sync, support submitting the local source dictionary or changed entries, with relevant sidecars, to the .NET translation service; fetching the returned updated target dictionary; and applying it safely. No additional automatic machine translator runs inside a Rust localizer.
+- Server-driven change events are optional accelerators rather than the source of truth: reconnection can recheck current revisions.
+
+### Web application hosts and passive/active translation targets
+
+- An application can **expose authorized REST endpoints and, where useful, a dedicated business SignalR Hub** to retrieve its current dictionary/metadata and submit/publish validated updated dictionaries. The .NET translator can *pull* from that application and *push back* a translated/edited dictionary, while an active application can initiate the same exchange against Afutrans.
+- REST handles authoritative snapshot/change retrieval, versioned writes and retry/resume. Business SignalR may carry corresponding authorized commands and notifications of changed dictionary revisions. These must route through the **same application validation, authorization, persistence and audit logic**; do not create two divergent translation engines.
+- **Do not use the outbound-only `/SystemMonitor` monitoring Hub for dictionary reads, writes or translation commands.** A localization business Hub is separate. An update notification is never proof that data was durably accepted.
+- Web hosts may use filesystem, storage adapter or database backing behind their API. Do not require exposing filesystem paths publicly; honor target access policies and disallow unauthorized writes. Dictionary exchange is distinct from private chats/documents, which must never be enrolled as ordinary dictionary keys automatically.
+
+### Automatic connection to Afutrans
+
+- Afutrans can register a configured Translation Target with a location/transport, permitted languages, credentials and sync policy; discover new keys and synchronize translation results **on a configured schedule or source change**. A target may be passive and never invoke the translator itself, or active and request an update.
+- Automatic sync is **opt-in/configurable**, not a mandatory runtime dependency. The localizer must return usable text before an update, while an offline/disabled translation system preserves local usability.
+- Share one suite of language-neutral JSON dictionary/sidecar fixtures and host exchange/reload tests between .NET and Rust, including unchanged revision, conflicts, malformed file, manual override, offline startup and reordered protected placeholders.
+
+**Scope:** localizers own lookup and dictionary access/update; .NET UnderstandMe/Afutrans owns provider routing, automated translation, jobs, review and administration. Concrete REST routes, SignalR method names, revision tokens and authentication remain design questions; this section does not claim working endpoints.
