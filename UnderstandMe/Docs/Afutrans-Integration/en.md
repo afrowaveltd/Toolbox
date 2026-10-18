@@ -129,3 +129,19 @@ Rust applications (including future Textscape components) need **only a small na
 - Common contract/conformance examples should verify the **same results** for equivalent Rust/.NET localizations from the same dictionary and metadata, but only for the intentionally shared runtime subset.
 
 **Ownership boundary:** Rust = localizer + optional REST client; .NET UnderstandMe/Afutrans = translation, automation, provider access, editor and authoritative dictionary management. The file format and REST interface are interoperable; no duplication of the full .NET system is intended. This is a design decision only, with no current implementation or test evidence.
+
+## Host-driven dictionary exchange via local adapters, REST and business SignalR (2026-10-18)
+
+## Host-driven dictionary exchange via local adapters, REST and business SignalR (2026-10-18)
+
+**Clarification of the Rust client note above:** dictionary exchange is a capability of **all appropriate localization hosts**, not a Rust-only feature. A Rust localizer remains minimal: read/format/reload/export/import flat JSON dictionaries and optional metadata, plus an optional REST client. It never embeds the .NET translation engine.
+
+- **Desktop:** hot-reload a changed local dictionary/sidecar safely; optionally check for updates via a configured REST endpoint at startup or on user request. Keep working without any network connection.
+- **Web:** provide authorized REST endpoints and optionally a separate **business SignalR** interface for retrieving and returning whole dictionaries or validated changes. Afutrans may pull a web app's dictionaries, translate/review them and push back the result; a web app may also initiate the exchange itself. Both directions are legitimate.
+- **Automation:** a configured Afutrans Translation Target may discover/update dictionaries periodically or react to change notifications, applying target rules and existing workflow. Neither a web frontend nor a desktop app needs to run or reimplement the translator/queue engine.
+- **Interoperability:** flat JSON dictionaries and optional per-key sidecar files remain portable between projects and runtimes. Exchange the relevant sidecar context, placeholder metadata and approved grammar variants together with dictionary entries.
+- **Reliability:** validate returned JSON and placeholder integrity, preserve manual overrides, track source revisions to avoid stale overwrites, and activate an accepted update atomically. REST endpoints (or equivalent persistent store) remain authoritative; SignalR update messages can be best-effort and replayed from revision checks.
+- **API separation:** dictionary business methods belong in an authorized localization interface, **not** the existing outbound-only `/SystemMonitor` Hub. REST and a business SignalR interface use the same application contracts, authorization, persistence and validation, and do not assume a specific UI framework.
+- **No forced infrastructure:** network sync, hosting public endpoints and automatic translation are optional. The local dictionary-less first-use case works in an offline app with no Afutrans service running.
+
+The exact methods, routes, update/version envelopes and transport specifics are deliberately pending. Documentation-only planned behavior; no implementation or tests claimed.
