@@ -353,3 +353,11 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Placeholders variants, auxiliary JSON, file-watching, automatic translation, CLDR, REST/SignalR and Afutrans integration remain future steps.
 - **Verification:** dotnet SDK was not available in the editing environment. Code and tests were committed, but not compiled or executed locally. Do not call them GREEN until verified.
 - [Interfaces, usage, limitations and test instructions](Docs/Localization/First-Implementation/en.md).
+
+## 2026-10-18 — verified GitHub Actions baseline
+
+- Verified GitHub Actions [run #39167610994](https://github.com/afrowaveltd/Toolbox/actions/runs/39167610994), commit `b5ec307506fbde97608b35dfff9cc14d5620bd10` on `master`.
+- Restore, solution build and test phases **all succeeded**, with **zero build warnings**.
+- **UnderstandMe.Tests: 14 passed / 0 failed.** Other solution suites: 1475 + 3198 + 1241 passed, for **5928 tests passed total**.
+- The runner used .NET 10 on Ubuntu; this validates the initial localizer APIs and tests, **not Afutrans runtime integration, .NET 11 nor Rust**.
+- Next implementation step: named-placeholder structure checks and sidecar context/variant metadata, then Afutrans adapter without editing the user-built WebTranslator.

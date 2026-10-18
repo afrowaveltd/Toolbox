@@ -1,6 +1,6 @@
 # Localization — first independent implementation
 
-**Status:** first code slice and tests committed; compiled/tested status pending verification. Independent .NET 10 UnderstandMe library, no Dita or Afutrans dependencies.
+**Status:** first code slice implemented and verified by GitHub Actions [run #39167610994](https://github.com/afrowaveltd/Toolbox/actions/runs/39167610994). .NET 10 solution build passed with zero warnings. 14/14 UnderstandMe tests and 5,928/5,928 solution tests passed. Independent .NET 10 UnderstandMe library, no Dita or Afutrans dependencies.
 
 ## Implemented public interfaces
 
@@ -29,7 +29,7 @@ With no existing locale files, this returns `Hello Bolaji` immediately and write
 
 Command: `dotnet test UnderstandMe.Tests/UnderstandMe.Tests.csproj` (or after .sln registration, `dotnet test Toolbox.sln`).
 
-**14 xUnit tests prepared, not yet verified:** dictionaryless startup, target precedence, parent/source fallbacks, no overwrite, opt-out registration, placeholder formatting, unknown placeholders, no recursive substitution, double braces, explicit reload, malformed reload retaining valid snapshot, corrupt source preservation, unsafe path rejection, duplicate JSON keys, and concurrent registration.
+**14 xUnit tests passed in GitHub Actions:** dictionaryless startup, target precedence, parent/source fallbacks, no overwrite, opt-out registration, placeholder formatting, unknown placeholders, no recursive substitution, double braces, explicit reload, malformed reload retaining valid snapshot, corrupt source preservation, unsafe path rejection, duplicate JSON keys, and concurrent registration.
 
 ## Deliberate limits / next steps
 

@@ -2,7 +2,7 @@
 
 UnderstandMe is a planned, modular localization, globalization, translation, and translation-workflow toolkit for .NET applications. It belongs to [Afrowave Toolbox](https://github.com/afrowaveltd/Toolbox).
 
-> **Status: first offline localization core committed; translation and orchestration remain design-stage.** The .NET 10 project now contains standalone JSON localization code and a separate test project. Tests have not yet been verified. See [first implementation](Docs/Localization/First-Implementation/en.md).
+> **Status: first offline localization core committed; translation and orchestration remain design-stage.** The .NET 10 project now contains standalone JSON localization code and a separate test project. GitHub Actions build and all 5,928 solution tests passed (including 14 UnderstandMe tests) with zero build warnings. See [first implementation](Docs/Localization/First-Implementation/en.md).
 
 ## Purpose
 
