@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Afrowave.Toolbox.Toolroom.W
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnderstandMe", "UnderstandMe\UnderstandMe.csproj", "{2136C064-B8AD-4D34-8AE8-A18D1F53156C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnderstandMe.Tests", "UnderstandMe.Tests\UnderstandMe.Tests.csproj", "{9D96341C-831C-4BE7-9D60-F57E5B212AA1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -139,6 +141,18 @@ Global
 		{2136C064-B8AD-4D34-8AE8-A18D1F53156C}.Release|x64.Build.0 = Release|Any CPU
 		{2136C064-B8AD-4D34-8AE8-A18D1F53156C}.Release|x86.ActiveCfg = Release|Any CPU
 		{2136C064-B8AD-4D34-8AE8-A18D1F53156C}.Release|x86.Build.0 = Release|Any CPU
+		{9D96341C-831C-4BE7-9D60-F57E5B212AA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D96341C-831C-4BE7-9D60-F57E5B212AA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D96341C-831C-4BE7-9D60-F57E5B212AA1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9D96341C-831C-4BE7-9D60-F57E5B212AA1}.Debug|x64.Build.0 = Debug|Any CPU
+		{9D96341C-831C-4BE7-9D60-F57E5B212AA1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9D96341C-831C-4BE7-9D60-F57E5B212AA1}.Debug|x86.Build.0 = Debug|Any CPU
+		{9D96341C-831C-4BE7-9D60-F57E5B212AA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D96341C-831C-4BE7-9D60-F57E5B212AA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D96341C-831C-4BE7-9D60-F57E5B212AA1}.Release|x64.ActiveCfg = Release|Any CPU
+		{9D96341C-831C-4BE7-9D60-F57E5B212AA1}.Release|x64.Build.0 = Release|Any CPU
+		{9D96341C-831C-4BE7-9D60-F57E5B212AA1}.Release|x86.ActiveCfg = Release|Any CPU
+		{9D96341C-831C-4BE7-9D60-F57E5B212AA1}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

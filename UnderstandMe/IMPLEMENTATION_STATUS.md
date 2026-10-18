@@ -1,7 +1,7 @@
 # UnderstandMe implementation status
 
 Last updated: 2026-10-11  
-Phase: **requirements/design preparation; implementation has not begun**.
+Phase: **first offline localization source committed; most UnderstandMe modules are still design-stage**.
 
 This is the continuation point for UnderstandMe work in the GitHub source of truth. Keep it updated after every later change. For established functional intent see [Notes.md](Notes.md). Do not mistake planned capabilities for implemented features.
 
@@ -343,3 +343,13 @@ This is the continuation point for UnderstandMe work in the GitHub source of tru
 
 Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 
+
+## 2026-10-18 — first code slice: JSON localizer
+
+- Created the net10 standalone `Localization` core: ITextLocalizer, ILocalizationDictionaryStore, FileJsonDictionaryStore, JsonTextLocalizer, LocalizationOptions.
+- Added UnderstandMe.Tests with 14 xUnit tests and registered it in Toolbox.sln.
+- Supports locale fallback, first-start key registration into flat source JSON, named placeholders, explicit Reload, and safe per-instance file writes.
+- Dita remains fully separate and was used only as inspiration. Neither Dita nor Afutrans (including user-authored WebTranslator) was changed.
+- Placeholders variants, auxiliary JSON, file-watching, automatic translation, CLDR, REST/SignalR and Afutrans integration remain future steps.
+- **Verification:** dotnet SDK was not available in the editing environment. Code and tests were committed, but not compiled or executed locally. Do not call them GREEN until verified.
+- [Interfaces, usage, limitations and test instructions](Docs/Localization/First-Implementation/en.md).
