@@ -231,3 +231,6 @@ Proposal: treat CLDR as an optional **shared Toolbox module** rather than an int
 
 The current physical files remain in [Afutrans CLDR JSON](https://github.com/afrowaveltd/Afutrans/tree/main/Afutrans.Core/Jsons/Cldr); rehome only after building a provider, testing its rules and updating consumers. This is a recommendation/design step, not an implemented package or a migration.
 
+## Optional shared language catalog for apps (proposal, 2026-10-19)
+
+An optional reusable language catalog supports endonyms, script-aware LTR/RTL labels, BCP 47 identity and country-based language recommendations. Different apps can show languages drawn from installed locales or from their translation backend's supported language pairs, then rank Uganda-associated languages and provide `Show all` (including French). Do not infer user language from nationality or treat CLDR territory lists as permitted-language policy. The base localizer must not need this catalog. See [Language Catalog and Country Selection](../Language-Catalog-and-Country-Selection/en.md).

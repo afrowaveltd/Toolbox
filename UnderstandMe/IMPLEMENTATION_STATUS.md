@@ -448,3 +448,9 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Geographic/territory CLDR resources are potentially host-specific; their presence must not force every library consumer to load all data. Preserve license/manifest, override and source provenance.
 - Migration must happen after provider/contract tests and consumer integration, not before. **No data or code was moved**, no compiler/runtime behavior changed and no new tests ran. Last verified baseline remains 15/15 UnderstandMe, 5,929 Toolbox.
 
+## 2026-10-19 — optional shared language metadata and country-based language picker
+
+- Rechecked Afutrans JSON: `languages.json` has 185 `code/name/native/optional rtl` entries, and CLDR 48.2.3 `territoryInfo.json` provides country-language associations including Uganda. Coverage differs; not every territory language has an entry in the smaller endonym file.
+- Proposed optional `ILanguageCatalog`, `ILanguageTerritoryProvider`, provider-specific language availability and script-aware direction contracts. This supports native language names in a UI picker, locale resource discovery, LibreTranslate capability filtering and Uganda recommendations with **Show all** (e.g. French).
+- Direction is tied to language+script where relevant; a coarse `rtl` flag must not blindly flip an app or individual option. Basic dictionaryless localization remains fully usable without catalog metadata.
+- Added `Docs/Language-Catalog-and-Country-Selection/en.md` and crosslinks in Architecture and Grammar. **Documentation only**; no source data moved, no code or tests changed. Last verified Toolbox baseline 5,929/5,929, UnderstandMe 15/15.
