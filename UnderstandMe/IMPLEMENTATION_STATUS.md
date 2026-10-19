@@ -376,3 +376,10 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - **UnderstandMe 15/15 tests passed**, including `Memory_store_works_without_json_files_or_translation_engines`. Toolbox total **5,929 tests passed** (15 + 1475 + 3198 + 1241).
 - The run emitted **7 CS1591 XML documentation warnings** related to new public constructors/methods, not runtime failures. XML docs were added in this follow-up commit; their warning resolution awaits its CI build.
 - Core APIs remain synchronous local/cached; future remote/DB sources require separate async contracts. No remote provider was implemented.
+
+## 2026-10-19 — verified XML documentation clean-up (final CI)
+
+- Verified [GitHub Actions run #39316162045](https://github.com/afrowaveltd/Toolbox/actions/runs/39316162045) for source commit `fe3bd64ba8b6e4c3cd7b367644c5a9f84319502a`: restore/build/test workflow completed successfully.
+- **Build: 0 warnings, 0 errors.** The seven prior CS1591 warnings were resolved by XML documentation on public methods and constructors.
+- **UnderstandMe: 15/15 passed. Toolbox total: 5,929/5,929 passed** (15 + 1475 + 3198 + 1241).
+- Scope: `DictionaryTextLocalizer` + pluggable synchronous store, in-memory test backend, JSON file adapter. No real remote DB/Node backend, no automatic translate, no Afutrans integration or Rust port has yet been delivered.
