@@ -211,3 +211,11 @@ See [working notes](../../Notes.md), [QueueMaster](../QueueMaster-and-Reliabilit
 
 **Boundary:** change-notification capability and concrete delivery adapters are future work. The currently implemented `ILocalizationDictionaryStore` has only synchronous `Load`/`TryAdd`, and `DictionaryTextLocalizer` has `Get`/`Format`/`Reload`. Do not claim the new notification API, watchers, network endpoints or automatic translation are already implemented. Names and exact signatures are examples pending a real first adapter.
 
+## Host-controlled configuration and optional pull discovery (2026-10-19)
+
+Every consuming application provides its configuration, via `appsettings.json`/`IConfiguration` + optional typed options, explicit constructor parameters, dependency injection, a custom config interface or its own settings store. UnderstandMe components must not assume one configuration file or a mandatory framework; the host selects the implementations and supplies validated effective settings. Config options independently control storage, metadata, notifications, enabled transports, and scanning per target. Disabled notifications are a valid configuration.
+
+Push notifications and **translation-service-owned periodic polling** are independent/combinable change-discovery mechanisms. Where an accessor cannot detect external SQL edits, an Afutrans scanner worker may periodically query that target via generic data contracts, compare authoritative dictionary/metadata revisions or snapshots, and submit newly discovered work to QueueMaster. A scanner observes/discovers; it does **not** execute machine translation, pick scheduling priority, or require an event-capable application. Push and poll paths converge on one idempotent admission/reconciliation path.
+
+Typed settings/source/transport interfaces remain future incremental work. See [Configuration and Change Detection](../Localization/Configuration-and-Change-Detection/en.md).
+

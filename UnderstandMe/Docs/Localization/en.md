@@ -161,3 +161,11 @@ DataAccessor detects changes it actually performs; detecting out-of-band SQL/fil
 
 **Status:** documented design only, not an implemented `ILocalizationDictionaryStore` event or API.
 
+## Configurable providers, notification policy and independent discovery (2026-10-19)
+
+The host may use `appsettings.json`, constructor-injected typed options, DI or a custom configuration provider. A localizer may be configured to publish **no change events**, or selected kinds of successful dictionary changes via local callbacks, Messenger, REST, SignalR or custom transports. Neither the JSON filename nor a Microsoft web configuration stack is compulsory for UnderstandMe.
+
+A separate translation-service worker may periodically **pull** authorized dictionary and metadata revisions through provider interfaces. It is especially useful for SQL catalogs or applications that never publish events. The worker compares/checkpoints source changes, hands off valid jobs through the normal admission/QueueMaster path and does not duplicate active push-triggered work. Detection is optional and configurable per target, including its interval and enabled state.
+
+Neither polling nor notifications are part of synchronous `ITextLocalizer.Get`. See [configuration and scanning contract](Configuration-and-Change-Detection/en.md).
+

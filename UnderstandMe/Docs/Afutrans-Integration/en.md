@@ -156,3 +156,13 @@ SignalR/ephemeral callbacks are optional accelerators; a configured periodic or 
 
 **Documentation/design only:** no target event emitter, REST/SignalR endpoint or automatic job admission implemented in this change.
 
+## Per-target configuration sources and scheduler-owned polling (2026-10-19)
+
+Afutrans must allow a Translation Target to be configured programmatically, from `appsettings.json`, from database-backed UI settings or through a custom configuration provider. The target policy separately selects dictionary and metadata accessors, optional emitted/consumed dictionary-change notifications and optional periodic scanner behavior. A host with read-only packaged desktop dictionaries does not need an event publisher. A remote-backed desktop application can enable the same features as a web host.
+
+For SQL and other targets without outgoing events, Afutrans's **independent scheduled scanner worker** may periodically fetch revisions/catalog entries, diff source keys and metadata and submit eligible work through the common QueueMaster handoff. This is **not** a separate translator worker nor an obligation imposed on the source application. Notifications and scans may be combined, with idempotent admission so the same change does not create duplicate work.
+
+Preserve established Afutrans scheduler semantics: persisted `NextRunAtUtc`, per-task startup delay, interval as rest time after scan completion, never execute the same task concurrently, do not replay every missed interval, and finish a scan on durable work handoff rather than on completion of long translation jobs. Frequencies are configurable; no fixed default such as 15 minutes is implied.
+
+See the [cross-platform config/polling specification](../Localization/Configuration-and-Change-Detection/en.md). This is planned design, not implemented code.
+

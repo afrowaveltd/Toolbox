@@ -400,3 +400,11 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Event delivery is best-effort unless supported by an appropriate durable change-log/outbox and reconciliation process; publishing or subscribing cannot be required for successful writes, local lookup, or dictionaryless startup.
 - Design-only documentation updated in Architecture, Localization and Afutrans Integration. No new runtime notifier, database trigger, REST/SignalR API or tests were added. Last verified code baseline remains 15/15 UnderstandMe and 5,929/5,929 Toolbox tests.
 
+## 2026-10-19 — configurable change delivery and translation-service polling
+
+- Confirmed **fully pluggable host-owned configuration**: appsettings/IConfiguration, constructor/typed options, dependency injection, custom providers or each application's own settings backend. Source selection, provider settings, notification enabled/disabled, selected transports and scan policy are independent choices.
+- Confirmed **scheduled pull discovery** as a parallel/alternative to push events. A translation-service-owned scanner can periodically inspect SQL or other dictionary/metadata stores that never emit notifications, compare revisions or snapshots and submit eligible work through shared contracts.
+- Push and poll must converge on deduplicated/idempotent admission; the scanner may not be a second translator or QueueMaster priority scheduler. Reconciliation and checkpoint handling must not drop accepted source changes when scans fail.
+- Respect Afutrans Scheduler design (persist `NextRunAtUtc`, delay after startup, rest interval from completion, no self-overlap, finish on accepted work handoff). Intervals per target are configurable and polling may be fully disabled.
+- Added `Docs/Localization/Configuration-and-Change-Detection/en.md` and linked Architecture, Localization and Afutrans Integration. Documentation only; no configuration-source/notification/polling interfaces or implementation/tests were added. Last verified code baseline: UnderstandMe 15/15, Toolbox 5,929/5,929.
+
