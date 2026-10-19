@@ -138,3 +138,14 @@ Reference: [layered hints and grammar](../Grammar-Hints-and-Variants/en.md) and 
 - Prefer simple interfaces and implement extra contracts when a real second provider needs them, not an overengineered factory hierarchy now.
 
 The misleading first-slice runtime name `JsonTextLocalizer` is replaced with `DictionaryTextLocalizer` (pre-release rename). JSON-specific loading remains in `FileJsonDictionaryStore`. The first additional proof uses an in-memory test provider through the same interface.
+
+## Logical dictionary plus logical metadata, independent of physical storage (2026-10-19)
+
+The agreed design treats **dictionary entries and their translation/localization metadata as a coherent logical resource**, not as a mandated pair of physical JSON files. In an Afutrans file-backed installation, the resource maps to flat locale JSON dictionaries plus optional auxiliary JSON files. For a database-backed host, both can be SQL rows/tables; for another integration they may come from REST, SignalR, a remote node or custom storage. The rest of the localization and translation pipeline must not notice the physical difference.
+
+The **same provider-facing contracts** are shared by localization and dictionary translation/editor workflows. A resolver never parses sidecar file paths or executes SQL itself; a translator does not have a separate incompatible metadata reader. The provider/adapter supplies normalized language/key/value information, optional hint/grammar metadata, and revision identity when supported. A translation accepted against one source/metadata revision must not overwrite a newer version without conflict handling.
+
+The current first-slice `ITextLocalizer` and `ILocalizationDictionaryStore` demonstrate one injection boundary and file + in-memory operation. They **do not yet** provide the planned metadata abstraction, remote async APIs, coherent resource snapshots or database implementations. Introduce those incrementally without tying the core to a particular backend or to compulsory online services.
+
+See [cross-module contract decision](../Architecture/en.md).
+

@@ -383,3 +383,12 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - **Build: 0 warnings, 0 errors.** The seven prior CS1591 warnings were resolved by XML documentation on public methods and constructors.
 - **UnderstandMe: 15/15 passed. Toolbox total: 5,929/5,929 passed** (15 + 1475 + 3198 + 1241).
 - Scope: `DictionaryTextLocalizer` + pluggable synchronous store, in-memory test backend, JSON file adapter. No real remote DB/Node backend, no automatic translate, no Afutrans integration or Rust port has yet been delivered.
+
+## 2026-10-19 — logical dictionary/metadata provider contract across localization and translation
+
+- Confirmed a universal UnderstandMe requirement: dictionaries and associated hint/grammar metadata are **logical resource categories**, not necessarily separate JSON files. Afutrans uses flat JSON plus auxiliary JSON; other hosts may use SQL (one/multiple tables), remote services, custom document stores or other nodes.
+- Both localization and translation/editor workflows **must use common provider contracts** to access these resources rather than building independent file/SQL/HTTP paths with diverging semantics.
+- Keep transport, persistence, dictionary representation and metadata representation independent. Coherent source-key/culture/domain identity, optional revisions and prevention of lost manual edits belong to the contract.
+- Existing file and in-memory adapters remain valid; **metadata abstraction, DB/remote implementations, async refresh and coherent resource revisioning are planned, not implemented**. The already verified 15 tests/5,929 Toolbox tests remain the last confirmed runtime baseline; this update is documentation only.
+- Updated `Docs/Architecture/en.md`, `Docs/Localization/en.md` and `Docs/Grammar-Hints-and-Variants/en.md` to preserve this cross-module rule.
+

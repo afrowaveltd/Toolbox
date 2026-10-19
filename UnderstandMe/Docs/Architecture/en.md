@@ -172,3 +172,22 @@ The router checks incoming event validity separately. On a suspicious or malform
 
 See [working notes](../../Notes.md), [QueueMaster](../QueueMaster-and-Reliability/en.md) and [open questions](../Open-Questions/en.md).
 
+## One logical localization contract across all storage backends (2026-10-19)
+
+**Confirmed architecture decision:** UnderstandMe is a reusable localization **and translation** toolkit for unrelated applications with different persistence topologies. Neither subsystem may depend on files, JSON, SQL, a specific remote service, Afutrans, or any other concrete backing implementation. They consume **the same logical dictionary and associated metadata contracts**, with host-selected adapters.
+
+- A localization dictionary is a language-/culture-scoped set of source-key/translated-string entries. Associated metadata (meaning/context, placeholder examples and finite value domains, grammar selectors/variants, provenance and revisions where needed) is **logically distinct**, but is **not required to live in a physically separate sidecar JSON file**.
+- An Afutrans installation may use flat `en.json` / `cs.json` dictionaries and adjacent auxiliary JSON files. Another host may put translations and metadata in one SQL database (same table, separate tables or another arrangement), use a non-JSON document store, expose them through an authorized REST/SignalR application service, or implement its own storage adapter. These are backend choices, not separate product semantics.
+- Both the fast localization resolver **and** automated/human translation workflows use the same normalized resource identity and access contracts. They must not implement independent persistence paths that silently disagree about placeholder hints, languages, revisions, ownership or authoritative translations.
+- The logical contract should identify at least the translation target/domain and source key, relevant culture, and optional metadata identity. Where an adapter supports revisions, use a coherent revision/snapshot or optimistic-concurrency token so a translation is validated against the metadata/source revision it belongs to. Do not silently overwrite later approved/manual edits.
+- Keep read and write **capabilities separable**: read-only dictionaries are valid and must still localize; dictionary-less registration may use an authorized writable backend or a deferred outbox. Do not require every provider to implement manual editing, subscriptions, online synchronization or transactional operations.
+- Fast synchronous localization consumes local/cached, validated snapshots. Remote/SQL sources may be refreshed **asynchronously** behind adapters and report changes through optional callbacks, polling or SignalR; network failure never stops ordinary offline localization.
+- Distinguish **storage format** from **interchange format**: a SQL-backed target may exchange a normalized dictionary as JSON over REST without using JSON as its persistence format. The interchange protocol also must not become the localization core API.
+- Metadata-driven grammar and placeholders must query a logical metadata provider/contract, not open `*.placeholders.json` or `*.grammar.json` directly inside the resolver. Auxiliary JSON is one implementation of that provider, and optional absence is normal.
+- Prefer small interface boundaries and build another adapter/test before freezing new method signatures. The existing `ILocalizationDictionaryStore` covers basic synchronous lookup and registration only; a metadata interface, async provider, revisions and a unified catalog view are **planned**, not yet implemented. Avoid prematurely inventing an elaborate universal storage framework.
+- Preserve the separate rule that ordinary application/UI dictionaries are not the default store for private chat content or unrelated documents. Storage abstraction does not weaken privacy/access boundaries.
+
+**Equivalence test goal:** given the same normalized dictionary entries and metadata, an in-memory/file-backed adapter and a database/remote adapter should yield identical localization, placeholder resolution and validation results. Differences in reliability and authorization belong to adapter policies, not phrase semantics.
+
+**Scope:** this is a contract and design decision only. No SQL, Node.js, remote metadata adapter or translation workflow has been implemented by this documentation change.
+

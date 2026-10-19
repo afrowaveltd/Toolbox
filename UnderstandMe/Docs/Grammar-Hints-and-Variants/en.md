@@ -101,3 +101,14 @@ Test requirements from the beginning: **completely empty dictionary start; no hi
 - Interaction between CLDR parent locales, explicit fallback cultures and source-language grammar variants.
 
 **Canonical decision:** functionality and dictionary-less usability first; richer grammar and automation add independently opt-in layers without changing the base dictionary format or old public API.
+
+## Metadata is a logical contract, not a required sidecar file (2026-10-19)
+
+All examples named `en.placeholders.json`, `cs.grammar.json` and similar are **examples for the file/JSON adapter**. They do not define the only storage model. A host may store the same per-key hints, example/allowed placeholder values, grammar selectors, reviewed variants and provenance in SQL, a remotely served catalog or another DataAccess adapter, possibly alongside translations in a single physical store.
+
+The localizer and the translation workflow **must consume a common logical metadata interface/normalized view**, so both observe compatible source and target identity, language, revision and placeholder context regardless of persistence. This also lets a translator update authoritative translations and metadata consistently without requiring two JSON files or duplicating language rules in every backend.
+
+Physical atomicity differs across providers: file adapters may stage/revalidate/reconcile two files; SQL providers may use transactions; remote providers may use conditional revisions. The public semantic contract requires no silent lost updates or activation of internally inconsistent translations, while the adapter chooses how to meet it.
+
+The file-based sidecar format stays optional. Dictionaryless start, lookup and source fallback must work when no metadata source is present. Exact new API names/signatures remain open until an actual second storage implementation is designed/tested.
+
