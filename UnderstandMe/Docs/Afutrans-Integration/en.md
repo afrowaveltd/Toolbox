@@ -166,3 +166,10 @@ Preserve established Afutrans scheduler semantics: persisted `NextRunAtUtc`, per
 
 See the [cross-platform config/polling specification](../Localization/Configuration-and-Change-Detection/en.md). This is planned design, not implemented code.
 
+## Source snapshot reconciliation and key retirement policy (2026-10-19)
+
+Afutrans's configured Translation Target declares its own source/default language (not necessarily en), SourceText/dictionaryless or Symbolic keys, accessor, scan baseline and independent retention settings. Compare **both key and value**, plus relevant metadata: SourceText rewording is a new key + old key retirement candidate; a Symbolic source value modification marks existing translations stale and creates appropriately scoped translation/review work.
+
+Store the last **successfully reconciled** source snapshot or equivalent revision/hash checkpoint, not merely the latest read. Update it only after safe work admission; retries and event+poll duplicates must be idempotent. Old dictionaryless keys cannot be identified as unused from catalog diffs while they remain stored; rely on optional active-release manifests or aggregated per-key last-seen evidence, protecting rare screens, offline clients and prior deployed versions. The proposed default is reversible archival and **no automatic permanent purge**.
+
+Details: [Dictionary snapshots and key lifecycle](../Localization/Dictionary-Snapshots-and-Key-Lifecycle/en.md). No actual scanner or lifecycle implementation exists yet.

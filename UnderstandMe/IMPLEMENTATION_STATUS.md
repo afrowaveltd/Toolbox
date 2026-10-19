@@ -408,3 +408,10 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Respect Afutrans Scheduler design (persist `NextRunAtUtc`, delay after startup, rest interval from completion, no self-overlap, finish on accepted work handoff). Intervals per target are configurable and polling may be fully disabled.
 - Added `Docs/Localization/Configuration-and-Change-Detection/en.md` and linked Architecture, Localization and Afutrans Integration. Documentation only; no configuration-source/notification/polling interfaces or implementation/tests were added. Last verified code baseline: UnderstandMe 15/15, Toolbox 5,929/5,929.
 
+## 2026-10-19 — source snapshot comparison, per-target language and obsolete-key handling
+
+- Documented per-target source culture (en, cs, etc.) and SourceText/dictionaryless vs Symbolic key strategy. SourceText source entries use key=value. Symbolic source values must be compared in addition to keys and trigger stale-revision translation/review when changed.
+- Planned per-target last successfully reconciled source snapshot/checkpoint (full dictionary for small targets; revision/change feed/key+value hashes for large SQL/API targets). Advance only after durable work admission, with push/poll idempotency and conflict handling.
+- Clarified that dictionary comparison **cannot detect an unused key still present** in a dictionaryless source catalog. Proposed optional build/version key manifests, batched anonymous per-key last-seen evidence, and explicit removal decisions.
+- Proposed Active → SuspectedUnused → Archived reversible lifecycle; physical Purged state optional and **off by default**, especially protecting rare messages and offline/older deployments.
+- Added detailed design and test cases in Docs/Localization/Dictionary-Snapshots-and-Key-Lifecycle/en.md, linked scanner/localization/Afutrans docs. **Documentation only; no source or tests changed**. Last verified baseline remains UnderstandMe 15/15, Toolbox 5,929/5,929.

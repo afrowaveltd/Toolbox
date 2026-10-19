@@ -169,3 +169,8 @@ A separate translation-service worker may periodically **pull** authorized dicti
 
 Neither polling nor notifications are part of synchronous `ITextLocalizer.Get`. See [configuration and scanning contract](Configuration-and-Change-Detection/en.md).
 
+## Source key revision versus key usage (2026-10-19)
+
+Every target independently sets a source culture (en, cs or another) and a key mode. In dictionaryless SourceText mode, key=value in the selected source culture, and a reworded sentence is a **new key**. In Symbolic mode the identifier is stable but its source value can change; the translator must detect changed values and invalidate old target translation revisions instead of treating the source as unchanged.
+
+An obsolete SourceText phrase often remains in a dictionary after the app no longer uses it, so comparing successive catalogs cannot establish that it is unused. Usage is an **optional** separate capability (e.g. batched aggregate last-seen reports or a current-build key manifest), not mandatory network calls from Get. Absent evidence or rare use must never trigger automatic destructive deletion. A reversible lifecycle and independently configured cleanup policy are proposed in [Dictionary snapshots and key lifecycle](Dictionary-Snapshots-and-Key-Lifecycle/en.md).

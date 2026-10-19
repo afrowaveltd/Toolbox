@@ -84,3 +84,13 @@ A source supporting revision/ETag/change token should be queried cheaply first, 
 7. Same target scan cannot overlap itself; separate targets may proceed independently; no scanner assigns its own QueueMaster priority.
 
 **Current implementation baseline:** `ITextLocalizer`, `DictionaryTextLocalizer`, `ILocalizationDictionaryStore` and `FileJsonDictionaryStore`, with a test-only memory provider. No configuration-source interface, notifier, SQL polling worker or network transport has been added in this documentation change.
+
+## Last accepted source snapshot and safe retirement (2026-10-19)
+
+Per Translation Target, Afutrans retains the **last successfully reconciled normalized source state** (whole prior dictionary for small JSON targets, or revision/change feed/key-value hashes for large SQL or remote targets). Compare key additions, missing keys, source-value modifications, and metadata revisions against that state. Only advance a durable checkpoint **after accepted work is safely handed off**; failed scans retry, with idempotent job admission shared by push and poll.
+
+Each target chooses its own source culture and key strategy. Dictionaryless SourceText registers source key = source value in *that* culture, whether en or cs. Symbolic keys allow source value changes under the same key; such a change makes translations for the older source revision stale. In SourceText mode, rewording creates a new key and leaves the old entry for lifecycle evaluation.
+
+An unchanged old key may stay present in the source catalog indefinitely, even if the application no longer references it. Therefore catalog snapshots alone cannot reveal unused keys. An optional per-build active-key manifest or aggregated, batched last-access evidence is needed; inactivity alone is insufficient for destructive deletion. Prefer reversible Active → SuspectedUnused → Archived stages and optional retention/approval-controlled physical purge, disabled by default.
+
+Full design and cases: [Dictionary snapshots and key lifecycle](../Dictionary-Snapshots-and-Key-Lifecycle/en.md). This is documentation only.
