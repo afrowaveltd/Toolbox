@@ -464,3 +464,10 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Evaluated future broader sources: official Unicode CLDR `cldr-localenames-full` for multilingual display names, IANA Language Subtag Registry for valid registered tags/aliases. CLDR English names are **not** guaranteed endonyms; preserve manually supplied native names and script/RTL metadata.
 - Next: importer with preview, provenance, conflict resolution, user override layer and deletion tombstones; optionally interactive editor/CLI and pluggable SQL stores. These are **not** implemented and must not overwrite manual adjustments during upstream refreshes. See Docs/Language-Catalog-and-Country-Selection/en.md.
 
+## 2026-10-19 — additional pinned CLDR JSON inventory in Afutrans
+
+- Confirmed and linked 19 more source-preserving Unicode CLDR 48.2.3 JSON datasets in `Afutrans.Core/Jsons/Cldr` for language/territory/script names, layout direction, number systems and week conventions.
+- [Separate additional manifest](https://github.com/afrowaveltd/Afutrans/blob/main/Afutrans.Core/Jsons/Cldr/manifest-additional.json) identifies every original upstream path and Git blob SHA; the original Afutrans `languages.json` and CLDR data remain untouched.
+- These are reference files, not automatically active in UnderstandMe; reuse through a future tested optional language catalog / CLDR provider without making dictionaryless startup depend on them.
+- Documentation only in Toolbox; Afutrans JSON assets have been committed separately. No Toolbox source/tests changed; last verified Toolbox run remains 5,938/5,938.
+

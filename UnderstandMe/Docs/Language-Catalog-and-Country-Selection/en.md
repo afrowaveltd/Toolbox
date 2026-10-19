@@ -82,3 +82,9 @@ The current JSON adapter **edits its selected JSON file directly**. It does **no
 
 **Concurrency limitation:** the current JSON store synchronizes writes within **one instance**, not across processes/hosts. Shared SQL/multi-node catalogs require a revision-aware transaction/ETag provider. A graphical editor, CLI, import/merge engine, country provider, script-aware direction resolver and CLDR name import are still planned, not present.
 
+## Pinned extra CLDR assets ready for a future shared provider (2026-10-19)
+
+The Afutrans repository now contains [19 additional original CLDR 48.2.3 JSON files](https://github.com/afrowaveltd/Afutrans/tree/main/Afutrans.Core/Jsons/Cldr): language display names in `en`, `cs`, `sw`, `lg`, `rw`, `fr`, `ar`, `ha`; localized territories in `en`, `cs`, `sw`, `lg`; script display names in `en`, `cs`; RTL/LTR-oriented layout examples for `en`, `ar`, `he`; and `numberingSystems.json` plus `weekData.json`. Source paths, release and individual upstream blob hashes are in [manifest-additional.json](https://github.com/afrowaveltd/Afutrans/blob/main/Afutrans.Core/Jsons/Cldr/manifest-additional.json).
+
+These files are **reference datasets only**, not runtime components. The basic 185-entry Afutrans `languages.json` remains intact. They provide a better eventual source for optional UnderstandMe `ILanguageCatalog`/territory/direction adapters, but localized CLDR language names are not guaranteed to be native endonyms, nor do they prove backend translation support. Preserve manual catalog overrides and perform a tested migration before moving canonical assets into a Toolbox package.
+
