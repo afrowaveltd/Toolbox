@@ -1,6 +1,6 @@
 # Translation Target snapshots, source revisions and obsolete localization keys
 
-Status: architecture proposal (2026-10-19). No scheduled scanner, usage tracking, SQL storage or key archival has yet been implemented.
+Status: architecture proposal (revised 2026-10-19). No scheduled scanner, shared lookup, SQL storage or key lifecycle has yet been implemented.
 
 ## Per-project culture and identity policy
 
@@ -30,38 +30,25 @@ Checkpoint advancement occurs only **after changed work is durably admitted/ackn
 
 Push notifications and polling scans share one normalized change and job-admission path. The scanner is a discovery worker, not a second translation engine. Per-task scheduler settings and disabled polling remain valid.
 
-## Stored key versus actual use
+## Dictionaryless retention — revised decision (2026-10-19)
 
-**Crucial:** A dictionaryless localizer registers discovered source keys, but normally does not remove old entries. Comparing two stored catalogs therefore **cannot reveal that an unchanged key has stopped being referenced by the application**. No lookup for a while is also weak evidence: rare screens, annual messages, feature flags, older deployed versions, or offline clients may still depend on it.
+**Supersedes the earlier proposal to archive dictionaryless keys after inactivity.** A discovered dictionaryless / SourceText phrase **stays in its source and translated catalogs even when the originating application no longer references it**. Those entries can be reused by another project and may be located through the planned \`FindInAnyDictionary\` signature search. There is no \`LastSeen\`-based retirement, automatic archive or purge for this keying mode.
 
-Support optional independent evidence, where feasible:
-- An application/build manifest enumerating keys referenced by a particular released version; track which versions remain deployed. Static extraction may miss dynamically constructed keys.
-- A batched, anonymous *per key* last-seen/usage aggregator in consenting hosts, with no per-user tracing and no disk/network I/O on every lookup.
-- Explicit removal/rename declarations from a source repository or app, or an administrator-approved retirement decision.
-- Coverage and retention rules so unavailable deployment telemetry cannot be mistaken for proof of obsolescence.
+An application's active set of references and the shared store of reusable phrases are different concepts; a refactoring of a web page need not destroy useful translation history. Only an explicitly authorized removal for another justified purpose (e.g., a mistaken or sensitive entry) may physically delete content, subject to permissions and audit.
 
-## Configurable safe key lifecycle
+Keep the distinct Symbolic key mode's source revision detection and optional, independently configured project-level retirement policy if a host needs it. A symbolic source-value modification still invalidates translations tied to its previous source revision; it is not treated as key reuse without checks.
 
-Proposed conceptual states, not frozen public enum values:
-
-1. **Active:** normal resolution and translation.
-2. **SuspectedUnused:** qualified by configurable inactivity/manifests/declared removals. Key still resolves; any later lookup can restore Active.
-3. **Archived:** soft-retired, excluded from active export/new translation work when policy permits; keep the full prior translation, hints, edit history and ability to restore.
-4. **Purged:** separately authorized/retention-governed physical removal, **disabled by default**.
-
-An illustrative 90-day no-usage threshold may nominate a key for review; it must **not itself delete anything**. Absence of telemetry or the existence of offline/older clients should block automatic destructive assumptions. Policy is per target and may require a release grace window, active manifest evidence or manual approval.
-
-If a key is reused, restore archived translations only when they match its source identity/revision and relevant metadata; otherwise use source fallback and retranslate. For SourceText, two different phrasings must not be automatically treated as a rename on the basis of fuzzy text similarity; suggestions for manually assisted mapping are fine.
+For the canonical placeholder identity/signature matching, protected target-placeholder renaming, context constraints and planned tests, see [Shared translation reuse and placeholder signatures](../Shared-Translation-Reuse-and-Placeholder-Signatures/en.md).
 
 ## Planned tests
 
 - en and cs source cultures with independent SourceText and Symbolic modes, including cs key = value.
 - Symbolic key value change generates stale-target state and new work without inventing a new key.
-- SourceText text modification generates a new key; original remains until the configured retirement policy.
-- Two catalogs unchanged while runtime stopped using an old phrase: scanner alone cannot claim that phrase is unused.
-- Low-frequency annual messages, feature flags, offline clients and old active versions are not incorrectly purged.
+- SourceText text modification generates a new key; original dictionaryless phrase remains available without inactivity cleanup.
+- Two catalogs unchanged while runtime stopped using an old phrase: old dictionaryless entry remains available for other projects.
+- Low-frequency annual messages, feature flags, offline clients and previously registered dictionaryless phrases remain intact.
 - Missing event delivery, scan failure/crash, source revision conflict, and push/poll duplicate all preserve data and do not lose/duplicate admitted work.
-- Soft archive and later reactivation preserve approved human edits/history.
+- Cross-project signature lookup finds equivalent templates and safely remaps placeholder names without losing approved human edits/history.
 - SQL revision and JSON full-dictionary comparison produce equivalent logical changes.
 
 Related design: Configuration-and-Change-Detection/en.md (sibling directory) and Afutrans-Integration/en.md. The current verified localizer remains unchanged by this document.

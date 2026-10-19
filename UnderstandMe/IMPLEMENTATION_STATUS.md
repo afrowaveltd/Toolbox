@@ -415,3 +415,11 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Clarified that dictionary comparison **cannot detect an unused key still present** in a dictionaryless source catalog. Proposed optional build/version key manifests, batched anonymous per-key last-seen evidence, and explicit removal decisions.
 - Proposed Active → SuspectedUnused → Archived reversible lifecycle; physical Purged state optional and **off by default**, especially protecting rare messages and offline/older deployments.
 - Added detailed design and test cases in Docs/Localization/Dictionary-Snapshots-and-Key-Lifecycle/en.md, linked scanner/localization/Afutrans docs. **Documentation only; no source or tests changed**. Last verified baseline remains UnderstandMe 15/15, Toolbox 5,929/5,929.
+
+## 2026-10-19 — retain dictionaryless phrases; cross-project signature search
+
+- **Supersedes** the previous proposed `LastSeen` / SuspectedUnused / Archived / Purged lifecycle **for dictionaryless SourceText entries**. Once a source phrase is discovered, keep it and its translations even if no app currently references it; it can be reused in other authorized applications.
+- Proposed optional `FindInAnyDictionary` capability against authorized dictionaries or shared translation memory, using exact lookup then canonical signature comparison that ignores placeholder **names**, not literal text, count, repeated identity, format or compatible grammar/context requirements. Example `Hello {user}` = `Hello {customer}` structurally (`Hello {#0}`).
+- Target-language shared templates need validated canonical slot remapping to the consuming project's placeholder names, preserving reordering and occurrence constraints. Manual project overrides remain authoritative. Source/default locale may differ per target.
+- Keep Symbolic key source-value revision detection. SourceText rewording creates a new key but does not remove old dictionaryless translations. Physical removal is a separate explicitly authorized action, not an inactivity policy.
+- Updated source snapshot and configuration docs to supersede older retirement recommendations; added `Docs/Localization/Shared-Translation-Reuse-and-Placeholder-Signatures/en.md`. **Documentation only, not implemented or tested.** Last tested baseline remains 15/15 UnderstandMe and 5,929/5,929 Toolbox.
