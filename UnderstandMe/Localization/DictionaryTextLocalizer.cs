@@ -11,7 +11,7 @@ public sealed class DictionaryTextLocalizer : ITextLocalizer
     private readonly LocalizationOptions _options;
     private readonly object _gate = new();
     private readonly Dictionary<string, IReadOnlyDictionary<string, string>> _snapshots =
-        new(StringComparer.OrdinalIgnoreCase);
+        [with(StringComparer.OrdinalIgnoreCase)];
 
     /// <summary>Creates a localizer over an interchangeable dictionary store.</summary>
     /// <param name="store">Dictionary snapshot and source-registration implementation.</param>
