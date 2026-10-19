@@ -441,3 +441,10 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Translation core stays blind to storage location and format; source revision protection, safe coherent publish and protection for manual edits are required. Articles are not automatically promoted into global UI localization dictionaries.
 - Added Docs/Document-Storage-and-Translation/en.md and updated Architecture, Afutrans Integration and shared dictionary matching notes. **Documentation only; no code/tests changed.** Last verified baseline: UnderstandMe 15/15, Toolbox 5,929/5,929.
 
+## 2026-10-19 — proposal: relocate reusable CLDR reference data into optional shared module
+
+- Rechecked GitHub: `UnderstandMe` currently has no `Jsons` directory; official pinned **CLDR 48.2.3** resources, provenance manifest and Unicode license are in `Afutrans/Afutrans.Core/Jsons/Cldr`.
+- Proposed one canonical shared optional Toolbox language-rule module (`UnderstandMe.Cldr` or equivalent) using a neutral `ILanguageRulesProvider` contract. UnderstandMe can use it for plural/ordinal/range/locale rule selection; Afutrans for grammar variant generation, translating/editing and import. Ordinary localization remains fully functional without it.
+- Geographic/territory CLDR resources are potentially host-specific; their presence must not force every library consumer to load all data. Preserve license/manifest, override and source provenance.
+- Migration must happen after provider/contract tests and consumer integration, not before. **No data or code was moved**, no compiler/runtime behavior changed and no new tests ran. Last verified baseline remains 15/15 UnderstandMe, 5,929 Toolbox.
+

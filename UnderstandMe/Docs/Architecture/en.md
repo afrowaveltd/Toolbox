@@ -225,3 +225,9 @@ Separate UI localization dictionaries from long-form translated **articles/docum
 
 See [Pluggable article/document storage](../Document-Storage-and-Translation/en.md). Proposed key matching enum `Capitalization { Smart=0, Exact=1, IgnoreCase=2 }` belongs in the localization matching policy (not physical storage or output text capitalization). Design only.
 
+## Optional shared language-rule implementation boundary (proposal, 2026-10-19)
+
+Proposal: treat CLDR as an optional **shared Toolbox module** rather than an intrinsic Afutrans asset. Small neutral `ILanguageRulesProvider`-like abstractions belong in UnderstandMe (without compulsory package or JSON parsing); an `UnderstandMe.Cldr` / `Afrowave.Globalization.Cldr` optional provider would own pinned Unicode CLDR data and locale-aware rule evaluation. Afutrans would consume the module to generate and review grammatical translation variants. The module should retain an offline data manifest and the required source license. Avoid dependency cycles and preserve dictionaryless operation without CLDR.
+
+The current physical files remain in [Afutrans CLDR JSON](https://github.com/afrowaveltd/Afutrans/tree/main/Afutrans.Core/Jsons/Cldr); rehome only after building a provider, testing its rules and updating consumers. This is a recommendation/design step, not an implemented package or a migration.
+
