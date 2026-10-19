@@ -41,4 +41,44 @@ These capabilities belong in an **optional shared Toolbox language-data provider
 - UI dictionary language list and translator-provider language pairs are independently resolved and correctly intersected/ranked where requested.
 - No catalog / no internet / no CLDR does not break base localization or dictionaryless start.
 
-**Not implemented yet:** language catalog service, territory filtering, RTL resolver, upstream-data relocation or tests.
+**Updated implementation status:** basic reader/editor interfaces and a file-JSON language catalog with nine tests are now implemented. Territory filtering, locale/script-aware direction, remote/SQL stores, graphical/CLI editor and upstream import/merge are not implemented.
+
+## First implemented editable JSON catalog and future upstream imports (2026-10-19)
+
+**Actual code now present in Toolbox** (rather than only a proposed API):
+
+- `UnderstandMe/LanguageCatalog/LanguageCatalogEntry.cs`: `Code`, `Name`, `NativeName`, nullable `RightToLeft` (legacy language-level direction hint). This deliberately does not pretend to resolve script-specific direction.
+- `UnderstandMe/LanguageCatalog/ILanguageCatalogReader.cs`: `GetAll()` and `Find(code)`, independent of backend format.
+- `UnderstandMe/LanguageCatalog/ILanguageCatalogEditor.cs`: separately opt-in editing with `Upsert(entry)` and explicit `Remove(code)`. Read-only backends can implement only the reader.
+- `UnderstandMe/LanguageCatalog/FileJsonLanguageCatalogStore.cs`: reads/writes the **existing Afutrans `languages.json` array schema** using `System.Text.Json`. Missing file is an empty catalog; validates entries and rejects duplicate identifiers, including case-only duplicates; sorts codes on write and uses same-directory temporary file replacement. It **preserves arbitrary unknown JSON object properties** on an existing language when changing its known properties, so custom fields survive routine edits.
+- Nine xUnit tests in `UnderstandMe.Tests/LanguageCatalog` cover empty startup, reading endonyms/RTL, update/add sorted preserving unknown fields, explicit remove, no-op edit, duplicate/malformed input retention, unsafe codes, and concurrent writes within one store instance.
+- GitHub Actions [run 39329364298](https://github.com/afrowaveltd/Toolbox/actions/runs/39329364298) **passed** at commit `96846fac6dfc392ea14497ff0b185257a2f6eb4c`: UnderstandMe **24/24**, whole Toolbox **5938/5938**, build **0 warnings and 0 errors**. This also corrected a pre-existing invalid collection initializer in `DictionaryTextLocalizer` that had broken preceding runs.
+
+Sample future host usage (ordinary C# code, not yet a bundled interactive editor):
+
+```csharp
+var catalog = new FileJsonLanguageCatalogStore(pathToLanguagesJson);
+ILanguageCatalogReader reader = catalog;
+ILanguageCatalogEditor editor = catalog;
+
+editor.Upsert(new LanguageCatalogEntry
+{
+    Code = "lg",
+    Name = "Ganda",
+    NativeName = "Luganda"
+});
+
+var available = reader.GetAll();
+bool removed = editor.Remove("lg"); // explicit action only
+```
+
+**Source options for a richer catalog:** official [Unicode CLDR language display names](https://github.com/unicode-org/cldr-json/tree/main/cldr-json/cldr-localenames-full) have more coverage than the current downloaded 185-entry seed; the [IANA Language Subtag Registry](https://www.iana.org/assignments/language-subtags-tags-extensions) is a separate authority for BCP 47 registered identifiers and preferred aliases. The CLDR `cldr-localenames-full/main/en/languages.json` provides names in **English**, *not guaranteed endonyms*. Endonyms may require each language's own locale display-name data or reviewed manual overrides; some languages are not fully covered. Keep current pinned CLDR version/provenance consistent with an explicit importer version.
+
+### Next required capability: safe import with manual overrides
+
+An import module must be optional, use the same reader/editor contracts or a small batch capability, and expose **preview/dry-run** counts (new/changed/unchanged/conflicts). Do not automatically replace a manually corrected `NativeName`, RTL/script override, or custom metadata with downloaded upstream values.
+
+The current JSON adapter **edits its selected JSON file directly**. It does **not yet** have a separate override layer or upstream importer. For future refreshes, prefer e.g. a read-only versioned CLDR base plus a user-editable overlay (`languages.overrides.json`, SQL or another provider), with deterministic precedence, reviewed conflicts and explicit *tombstones* for deliberately hidden entries so imports do not silently resurrect deletions. Changes in external data should never delete local languages by omission. The editor must offer add/edit/remove/search and later a batch import preview, with access restrictions and an audit in managed/multiwriter deployments.
+
+**Concurrency limitation:** the current JSON store synchronizes writes within **one instance**, not across processes/hosts. Shared SQL/multi-node catalogs require a revision-aware transaction/ETag provider. A graphical editor, CLI, import/merge engine, country provider, script-aware direction resolver and CLDR name import are still planned, not present.
+

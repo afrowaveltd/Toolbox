@@ -454,3 +454,13 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Proposed optional `ILanguageCatalog`, `ILanguageTerritoryProvider`, provider-specific language availability and script-aware direction contracts. This supports native language names in a UI picker, locale resource discovery, LibreTranslate capability filtering and Uganda recommendations with **Show all** (e.g. French).
 - Direction is tied to language+script where relevant; a coarse `rtl` flag must not blindly flip an app or individual option. Basic dictionaryless localization remains fully usable without catalog metadata.
 - Added `Docs/Language-Catalog-and-Country-Selection/en.md` and crosslinks in Architecture and Grammar. **Documentation only**; no source data moved, no code or tests changed. Last verified Toolbox baseline 5,929/5,929, UnderstandMe 15/15.
+
+## 2026-10-19 — editable language catalog JSON slice (verified code)
+
+- Added `LanguageCatalogEntry`, `ILanguageCatalogReader`, optional `ILanguageCatalogEditor`, and `FileJsonLanguageCatalogStore` under `UnderstandMe/LanguageCatalog`. Works with existing 185-language array format from Afutrans (without moving/changing its source JSON), and supports independent read, upsert/edit and explicit removal.
+- JSON adapter preserves unknown custom fields while editing, sorts entries by code, detects case-only duplicate tags, rejects invalid JSON and unsafe tags, writes via same-directory temp file replacement. Writes are synchronized within the store instance, **not** cross-process transactions.
+- Added nine LanguageCatalog xUnit tests, taking the UnderstandMe suite from 15 to **24**. Fixed earlier faulty initializer in `DictionaryTextLocalizer` that prevented previous CI builds.
+- Verified [GitHub Actions #39329364298](https://github.com/afrowaveltd/Toolbox/actions/runs/39329364298): UnderstandMe **24/24**; whole Toolbox **5,938/5,938** (24 + 1,475 + 3,198 + 1,241); **0 warnings, 0 errors**.
+- Evaluated future broader sources: official Unicode CLDR `cldr-localenames-full` for multilingual display names, IANA Language Subtag Registry for valid registered tags/aliases. CLDR English names are **not** guaranteed endonyms; preserve manually supplied native names and script/RTL metadata.
+- Next: importer with preview, provenance, conflict resolution, user override layer and deletion tombstones; optionally interactive editor/CLI and pluggable SQL stores. These are **not** implemented and must not overwrite manual adjustments during upstream refreshes. See Docs/Language-Catalog-and-Country-Selection/en.md.
+
