@@ -112,3 +112,9 @@ Physical atomicity differs across providers: file adapters may stage/revalidate/
 
 The file-based sidecar format stays optional. Dictionaryless start, lookup and source fallback must work when no metadata source is present. Exact new API names/signatures remain open until an actual second storage implementation is designed/tested.
 
+## Shared result eligibility: complete hints, values and grammar (2026-10-19)
+
+Cross-dictionary matches must evaluate the **entire relevant hint signature**, including illustrative/default placeholder values, finite allowed-value sets (or typed numeric domains), grammatical case, gender, number, person and language-specific variants. The names `{user}` and `{customer}` can differ while structural slots are the same; actual runtime substitution values remain local to the requesting app and do not become shared metadata. When eligible-value sets differ, **conservatively reject automatic reuse** unless an explicitly designed compatibility rule proves equivalence.
+
+An identical number/domain constraint can use the same **rule semantics for the same target locale**; it does not imply identical plural/grammatical output for different target languages or contexts. The metadata layer also needs an optional `do not share` / `ProjectOnly` marker for exceptional translation/domain/privacy handling. Host- and tenant-level authorization is enforced regardless of that marker. See [shared dictionary indexing, matching and caching](Localization/Shared-Dictionary-Indexing-and-Casing/en.md).
+

@@ -60,3 +60,12 @@ Index by a versioned signature + source/target locale and other required search 
 - Concurrent project updates and push/poll discoveries do not duplicate approved translations or overwrite manual edits.
 
 **Boundary:** neither `FindInAnyDictionary` nor signature indexing, reuse/remapping, shared translation memory or related tests exist in the current code baseline; design only.
+
+## Shared dictionary indexing, case-aware lookup and restricted entries (2026-10-19)
+
+Cross-project reuse must account for **the full metadata and grammar signature**, not only placeholder names. The metadata context can include placeholder type, grammatical gender/case/number, allowed value domains, source-language illustrative defaults and locale-specific variants. Different allowed-value sets are *not* an automatic match, even with the same source text structure. Numeric grammar is locale-dependent. Maintain a configurable per-entry `ProjectOnly`/no-share override (alongside broader host/tenant permissions) for ambiguous or domain-specific translations.
+
+Recommended shared UI lookup semantics: exact project key/override first; subsequently an optional **Smart case-insensitive candidate** and placeholder-normalized lookup, with ambiguity/context checks. Case-only distinctions can carry different meaning (`US` vs `us`); do not collapse original stored key identities. Casing of translated presentation is **independent of case-insensitive lookup** and must honor target-language rules and explicit overrides rather than blind title-casing.
+
+Flat JSON stores should remain deterministically alphabetically sorted **on write**, while runtime indexes are hash-based. `Dictionary<TKey,TValue>` already provides hash lookup. Optional central SQL signature/case indices and bounded local remote-result caches can support many apps; benchmark 60k keys under actual locale/metadata/workload mixes. See [Shared dictionary indexing and casing](Shared-Dictionary-Indexing-and-Casing/en.md). **Design only, not implemented.**
+

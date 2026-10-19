@@ -180,3 +180,12 @@ An obsolete SourceText phrase often remains in a dictionary after the app no lon
 Afutrans or an optional shared translation service may expose a logical `FindInAnyDictionary` search over **authorized** dictionaries. Search exact source keys first, then a versioned **canonical structural signature** that keeps all fixed text literal but replaces placeholder names with stable slot identities by first occurrence, preserving repeats and target-language reordering. Example: `Hello {user}` and `Hello {customer}` both normalize to `Hello {#0}` and can reuse a validated `Ahoj {#0}` mapping to the requesting placeholder name.
 
 Shared matching is independent of storage (JSON/SQL/remote), respects source/target culture, compatible grammar/context hints and review policy, and never replaces a project's own original key or manual override. No background scan/purge based on `LastSeen` is needed for dictionaryless keys. See [Shared translation reuse and placeholder signatures](Shared-Translation-Reuse-and-Placeholder-Signatures/en.md). **Design only.**
+
+## Shared SQL catalogs, case-aware keys and caches (2026-10-19)
+
+Multiple authorized apps may connect to **one shared SQL dictionary provider directly**, not just exchange translations through Afutrans. Each project maintains its own source culture, key mode, authorized scope and override/metadata rules. Cross-project `FindInAnyDictionary` can use exact indexes, versioned placeholder-normalized signature indexes and an optional case-insensitive candidate index, without treating all case-only keys as semantically identical.
+
+Case-insensitive lookup should prefer exact identity first and avoid false matches such as English `US` versus `us`. Output capitalization is a locale-sensitive presentation rule, not an automatic title-case of the translated string. Full placeholder hints, allowed-value lists and grammar must be compatible, and entry/host `no-share` policies must be respected.
+
+JSON exports can be alphabetically sorted for stable diffs; in-memory `Dictionary<TKey,TValue>` already uses hashing. Central indexing and bounded revision-aware read-through caching can support tens of thousands of phrases and online sources. Measure actual memory/performance; do not impose JSON/indexing assumptions on every DataAccessor. Full design: [Shared dictionary indexing and casing](Shared-Dictionary-Indexing-and-Casing/en.md).
+

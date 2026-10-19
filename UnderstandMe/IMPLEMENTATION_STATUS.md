@@ -423,3 +423,13 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Target-language shared templates need validated canonical slot remapping to the consuming project's placeholder names, preserving reordering and occurrence constraints. Manual project overrides remain authoritative. Source/default locale may differ per target.
 - Keep Symbolic key source-value revision detection. SourceText rewording creates a new key but does not remove old dictionaryless translations. Physical removal is a separate explicitly authorized action, not an inactivity policy.
 - Updated source snapshot and configuration docs to supersede older retirement recommendations; added `Docs/Localization/Shared-Translation-Reuse-and-Placeholder-Signatures/en.md`. **Documentation only, not implemented or tested.** Last tested baseline remains 15/15 UnderstandMe and 5,929/5,929 Toolbox.
+
+## 2026-10-19 — shared SQL dictionary, case-insensitive candidates, hint-aware reuse
+
+- Confirmed a **shared backing SQL dictionary** may serve multiple applications natively through provider contracts, independently of Afutrans. Individual applications still have their own source languages, manual overrides, scopes and permissions.
+- Planned Smart key matching: exact project key first, optionally case-insensitive canonical candidate with source locale and ambiguity checks (e.g. `US`/`us`), then placeholder-normalized signature; translation casing follows **target-language presentation policy** rather than naive title-casing.
+- Cross-project reuse must compare relevant placeholder hints, default/illustrative values, allowed-value lists, grammatical gender/case/number/person, target locale and context. Divergent finite-value sets do not automatically share, even if structural signatures match. Numeric grammar is **locale dependent**, not universally identical across languages.
+- Allow optional per-entry `ProjectOnly`/no-share metadata plus independent application/tenant access controls; opt-out matters for special domain wording, approved overrides, private translations and legal/licensing constraints.
+- Deterministic alphabetic JSON write order remains useful for Git/review, but `.NET Dictionary` already provides hash-based runtime lookup. Optional SQL/canonical-signature indices and bounded revision-aware remote caches should be benchmarked with realistic 60,000-item workloads and multiple languages.
+- Added `Docs/Localization/Shared-Dictionary-Indexing-and-Casing/en.md` and cross-links to signature, grammar and localization docs. **Documentation only:** no schema, interface, search algorithm, cache code or new tests; last observed verified code baseline remains UnderstandMe 15/15 and Toolbox 5,929/5,929.
+
