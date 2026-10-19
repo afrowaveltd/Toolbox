@@ -125,3 +125,16 @@ A review of Dita's existing `JsonStringLocalizer`, `LocalizeService`, `LanguageS
 Reference: [layered hints and grammar](../Grammar-Hints-and-Variants/en.md) and [host integration](../Afutrans-Integration/en.md). Keep the `UnderstandMe` library independent of both Dita and Afutrans; dependencies point from Afutrans to the independent UnderstandMe localization package, not in reverse.
 
 **Status:** this documents intended direction only; no code, .NET build/tests or integrations have been implemented in this editing pass.
+
+## Storage-neutral dictionary provider architecture (2026-10-19)
+
+**Decision:** UnderstandMe must support interchangeable dictionary providers by interfaces, not be permanently coupled to JSON. Flat locale JSON is an optional default for Afutrans and a convenient interchange format, not a restriction on other consumers.
+
+- Keep synchronous localization operations independent from persistence and transport. `ITextLocalizer` resolves a normalized catalog snapshot; `ILocalizationDictionaryStore` is the already-implemented initial injection point.
+- Concrete providers may read/write JSON, other local document formats, SQL/EF Core via DataAccess, in-memory catalogs, remote REST/SignalR, Node.js services or application nodes.
+- Add a separate **asynchronous** dictionary source/refresh contract for remote/database loads instead of blocking synchronous localization on network I/O. Runtime lookup continues against a valid cached snapshot, even offline.
+- Treat read, write/registration, change notifications, revisions/conflicts and optional placeholder/grammar metadata as separate **capabilities**. Read-only sources are first class; dictionaryless discovery writes only where a writable target or deferred outbox is available.
+- Keep dictionary exchange format (e.g. REST JSON) independent of the backing store. Reuse transport-neutral contracts; no circular dependency from the localizer to Afutrans or a particular server.
+- Prefer simple interfaces and implement extra contracts when a real second provider needs them, not an overengineered factory hierarchy now.
+
+The misleading first-slice runtime name `JsonTextLocalizer` is replaced with `DictionaryTextLocalizer` (pre-release rename). JSON-specific loading remains in `FileJsonDictionaryStore`. The first additional proof uses an in-memory test provider through the same interface.

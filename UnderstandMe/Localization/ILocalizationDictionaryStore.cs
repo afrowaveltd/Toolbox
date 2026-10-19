@@ -1,6 +1,7 @@
 namespace Afrowave.Toolbox.UnderstandMe.Localization;
 
-/// <summary>Reads and registers flat language dictionaries without a translation service.</summary>
+/// <summary>Reads and registers normalized locale dictionaries independently of their backing store.</summary>
+/// <remarks>Initial synchronous contract intended for local or cached snapshots. Future remote/database source refresh can use separate asynchronous interfaces.</remarks>
 public interface ILocalizationDictionaryStore
 {
     /// <summary>Returns an empty dictionary if the locale file is absent; throws on invalid data.</summary>

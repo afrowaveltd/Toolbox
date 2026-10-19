@@ -4,12 +4,12 @@ using Xunit;
 
 namespace Afrowave.Toolbox.UnderstandMe.Tests.Localization;
 
-public sealed class JsonTextLocalizerTests : IDisposable
+public sealed class DictionaryTextLocalizerTests : IDisposable
 {
     private readonly string _root = Path.Combine(Path.GetTempPath(), "UnderstandMe-" + Guid.NewGuid().ToString("N"));
     private FileJsonDictionaryStore Store => new(_root);
 
-    private JsonTextLocalizer Create(bool registerMissing = true) =>
+    private DictionaryTextLocalizer Create(bool registerMissing = true) =>
         new(Store, new LocalizationOptions { SourceCulture = "en", RegisterMissingSourceKeys = registerMissing });
 
     [Fact]
@@ -136,6 +136,47 @@ public sealed class JsonTextLocalizerTests : IDisposable
         Parallel.For(0, 25, i => t.Get("Key " + i, "sw"));
         using var json = JsonDocument.Parse(File.ReadAllText(Path.Combine(_root, "en.json")));
         Assert.Equal(25, json.RootElement.EnumerateObject().Count());
+    }
+
+
+    [Fact]
+    public void Memory_store_works_without_json_files_or_translation_engines()
+    {
+        var store = new MemoryStore();
+        store.Set("cs", "Welcome", "Vítej");
+        var t = new DictionaryTextLocalizer(store);
+        Assert.Equal("Vítej", t.Get("Welcome", "cs"));
+        Assert.Equal("New phrase", t.Get("New phrase", "sw"));
+        Assert.Equal("New phrase", store.Load("en")["New phrase"]);
+        store.Set("cs", "Welcome", "Ahoj");
+        Assert.Equal("Vítej", t.Get("Welcome", "cs"));
+        Assert.True(t.Reload("cs"));
+        Assert.Equal("Ahoj", t.Get("Welcome", "cs"));
+    }
+
+    private sealed class MemoryStore : ILocalizationDictionaryStore
+    {
+        private readonly Dictionary<string, Dictionary<string, string>> _data =
+            new(StringComparer.OrdinalIgnoreCase);
+
+        public IReadOnlyDictionary<string, string> Load(string culture) =>
+            _data.TryGetValue(culture, out var values)
+                ? new Dictionary<string, string>(values, StringComparer.Ordinal)
+                : new Dictionary<string, string>(StringComparer.Ordinal);
+
+        public bool TryAdd(string culture, string key, string value)
+        {
+            if (!_data.TryGetValue(culture, out var values))
+                _data[culture] = values = new Dictionary<string, string>(StringComparer.Ordinal);
+            return values.TryAdd(key, value);
+        }
+
+        public void Set(string culture, string key, string value)
+        {
+            if (!_data.TryGetValue(culture, out var values))
+                _data[culture] = values = new Dictionary<string, string>(StringComparer.Ordinal);
+            values[key] = value;
+        }
     }
 
     private void Write(string culture, string json)

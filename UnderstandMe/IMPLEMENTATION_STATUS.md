@@ -361,3 +361,11 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - **UnderstandMe.Tests: 14 passed / 0 failed.** Other solution suites: 1475 + 3198 + 1241 passed, for **5928 tests passed total**.
 - The runner used .NET 10 on Ubuntu; this validates the initial localizer APIs and tests, **not Afutrans runtime integration, .NET 11 nor Rust**.
 - Next implementation step: named-placeholder structure checks and sidecar context/variant metadata, then Afutrans adapter without editing the user-built WebTranslator.
+
+## 2026-10-19 — storage-agnostic localization decision and code refinement
+
+- Confirmed the original `ILocalizationDictionaryStore` is the minimum backend-neutral contract. A local JSON file is one adapter for Afutrans; future UnderstandMe backends may be memory, databases, remote services, or Node.js/remote nodes.
+- Renamed the unreleased runtime `JsonTextLocalizer` to `DictionaryTextLocalizer`, reflecting its existing interface-only dependency. No Dita or Afutrans source changes.
+- Added one new in-memory store xUnit test for source registration, target lookup and catalog refresh, independent of files/JSON.
+- Future async dictionary-source and optional writer/notification capabilities are planned but **not implemented**. Remote refresh must not block synchronous UI localization.
+- The initial 14/14 tests were verified previously; this rename/15th test requires an independent CI check before claiming success.

@@ -13,12 +13,12 @@
 | `ILocalizationDictionaryStore.TryAdd(culture, key, value)` | Register a new source entry if absent, never overwriting it. |
 | `FileJsonDictionaryStore` | UTF-8 locale JSON files; rejects invalid flat shape/duplicates; writes with a temporary file and replacement. |
 | `LocalizationOptions` | `SourceCulture` defaults to `en`; `RegisterMissingSourceKeys` defaults to `true`. |
-| `JsonTextLocalizer` | Offline core implementing the interfaces using a pluggable store. |
+| `DictionaryTextLocalizer` | Offline core implementing the interfaces using a pluggable store. |
 
 ## Simple usage
 
 ```csharp
-ITextLocalizer t = new JsonTextLocalizer(new FileJsonDictionaryStore("Locales"));
+ITextLocalizer t = new DictionaryTextLocalizer(new FileJsonDictionaryStore("Locales"));
 string result = t.Format("Hello {name}",
     new Dictionary<string, string> { ["name"] = "Bolaji" }, "sw");
 ```
@@ -29,7 +29,7 @@ With no existing locale files, this returns `Hello Bolaji` immediately and write
 
 Command: `dotnet test UnderstandMe.Tests/UnderstandMe.Tests.csproj` (or after .sln registration, `dotnet test Toolbox.sln`).
 
-**14 xUnit tests passed in GitHub Actions:** dictionaryless startup, target precedence, parent/source fallbacks, no overwrite, opt-out registration, placeholder formatting, unknown placeholders, no recursive substitution, double braces, explicit reload, malformed reload retaining valid snapshot, corrupt source preservation, unsafe path rejection, duplicate JSON keys, and concurrent registration.
+**Initial 14 xUnit tests passed in GitHub Actions; the new 15th adapter-independence test awaits CI:** dictionaryless startup, target precedence, parent/source fallbacks, no overwrite, opt-out registration, placeholder formatting, unknown placeholders, no recursive substitution, double braces, explicit reload, malformed reload retaining valid snapshot, corrupt source preservation, unsafe path rejection, duplicate JSON keys, and concurrent registration.
 
 ## Deliberate limits / next steps
 
@@ -40,3 +40,15 @@ Command: `dotnet test UnderstandMe.Tests/UnderstandMe.Tests.csproj` (or after .s
 - Afutrans UI scaffolds are disposable except the user-authored `WebTranslator`, which must not be rewritten. Its current localizer is not replaced in this commit.
 - Dita is a fully independent project and was used only as conceptual inspiration. There is no source-code migration.
 - Future work: confirm build/tests, add stricter placeholder structure validation, optional sidecar metadata, adapt Afutrans, then add hot reload and optional REST/SignalR exchange.
+
+## Backend-independent dictionary sources (decision 2026-10-19)
+
+UnderstandMe is **not inherently a JSON localization library**. Its public localizer uses the `ILocalizationDictionaryStore` contract; `FileJsonDictionaryStore` is just one adapter. The now-neutral `DictionaryTextLocalizer` name replaces the misleading pre-release `JsonTextLocalizer` name.
+
+Potential adapters: flat JSON files (as Afutrans prefers), in-memory data, SQL/other databases, remote REST/SignalR endpoints, Node.js services or other remote nodes. The logical catalog is a normalized string key/value snapshot, not a requirement for a particular persistence or wire format.
+
+Additional capabilities should be **optional and interface-based**: read, write, change notification and metadata hints. Read-only sources are valid. Remote/database refresh must use async APIs and cancellation instead of blocking synchronous UI lookup on network I/O; a fast cached `ITextLocalizer.Get` reads the current valid snapshot. A source revision/change notification can trigger background refresh, and absent connectivity preserves offline fallback. Future async interface names and signatures are deliberately not final until an actual second backend is implemented.
+
+Do not confuse the format used to exchange dictionaries (often REST/JSON) with the host's storage technology. The flat JSON format remains the Afutrans interoperable convention; UnderstandMe may use other backing stores. Dictionaryless registration requires a writable source or a separately configured deferred registration target.
+
+A new `MemoryStore` xUnit test proves that lookup, first-key registration and explicit refresh function without any JSON file, using only the interface. No remote, SQL or Node.js adapter has yet been implemented.

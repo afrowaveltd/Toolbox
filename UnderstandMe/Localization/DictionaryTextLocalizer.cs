@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace Afrowave.Toolbox.UnderstandMe.Localization;
 
 /// <summary>Independent offline localizer with dictionary-less source registration.</summary>
-public sealed class JsonTextLocalizer : ITextLocalizer
+public sealed class DictionaryTextLocalizer : ITextLocalizer
 {
     private readonly ILocalizationDictionaryStore _store;
     private readonly LocalizationOptions _options;
@@ -13,7 +13,7 @@ public sealed class JsonTextLocalizer : ITextLocalizer
     private readonly Dictionary<string, IReadOnlyDictionary<string, string>> _snapshots =
         new(StringComparer.OrdinalIgnoreCase);
 
-    public JsonTextLocalizer(ILocalizationDictionaryStore store, LocalizationOptions? options = null)
+    public DictionaryTextLocalizer(ILocalizationDictionaryStore store, LocalizationOptions? options = null)
     {
         _store = store ?? throw new ArgumentNullException(nameof(store));
         _options = options ?? new LocalizationOptions();
