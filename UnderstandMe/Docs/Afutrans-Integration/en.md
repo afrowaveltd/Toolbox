@@ -181,3 +181,10 @@ Afutrans should support optional cross-project lookup of approved UI phrase tran
 Normalize placeholder *names only*, keeping fixed characters and binding topology: `Hello {user}` and `Hello {customer}` -> `Hello {#0}`. When reusing a target-language template, rebind canonical slots to the requesting app's variable names while preserving reordered placeholder identity, occurrence count, source/target cultures, metadata constraints and manual overrides. Never scan every database at every synchronous UI lookup; index/cached lookup belongs to optional translation/sync services.
 
 Exact matching and signature matching return candidates under configured authorization/quality policy; target-project approved translations have precedence. A source-text rewrite still creates a new source key, but it does **not** delete the prior shared dictionaryless phrase. Full plan: [Shared translation reuse and placeholder signatures](../Localization/Shared-Translation-Reuse-and-Placeholder-Signatures/en.md). No implementation/test change in this note.
+
+## Multilingual article storage is a host-selected adapter (2026-10-19)
+
+Afutrans may eventually translate full articles automatically into every enabled target language. The host may keep body files such as `articles/2OESEDR/en.md`, `cs.md` and a separate metadata JSON/AJIS with localized titles; or use an SQL table with ArticleId, Culture, SourceRevision and Body plus indexed metadata; or MongoDB, future indexed AjisFS, or a hybrid. UnderstandMe's translator must neither see nor mandate these physical layouts.
+
+Content, localized metadata, listing/indexing and coherent versioned publication are separately replaceable capabilities; one provider may implement several. An article's source revision and human edits must be protected against stale translation results. This is for future development and does not modify the user-authored WebTranslator. See [document storage design](../Document-Storage-and-Translation/en.md).
+

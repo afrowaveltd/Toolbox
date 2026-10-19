@@ -56,3 +56,21 @@ Sometimes structural matching is still unsafe despite compatible shallow hints: 
 - A disconnected remote provider does not block local rendering; missed events can be reconciled against versioned authoritative storage.
 
 **Scope:** this design adds no new APIs or tests. The last observed verified code baseline was 15/15 UnderstandMe and 5,929/5,929 Toolbox tests.
+
+## Capitalization enum and future indexed storage adapters (2026-10-19)
+
+**Proposed, not implemented**, with `Smart` the default for an unset enum:
+
+```csharp
+public enum Capitalization
+{
+    Smart = 0,
+    Exact = 1,
+    IgnoreCase = 2
+}
+```
+
+This policy governs **matching source keys**, not transforming returned target text. `Exact` requires exact key identity. `IgnoreCase` considers case-folded candidates with explicit collision/ambiguity handling. `Smart` prefers an exact scoped/project-approved key, then cautiously tries a compatible case-insensitive candidate with locale/context/placeholder validation. `US` and `us` need distinct meanings, so do not permanently merge their original keys. Preserve original casing and manual overrides; output capitalization follows target locale/explicit variants, not blind `ToTitleCase`. Type naming can be revisited before public release.
+
+Indexed storage adapters may include SQL, MongoDB, and **future AjisFS**, which is expected to gain native indexing but does not have a verified runtime implementation yet. No universal MongoDB performance superiority is assumed; benchmark actual workloads. `Dictionary<TKey,TValue>` already implements hash lookups for memory. Large document/article translations use independent storage contracts rather than overloading UI dictionary APIs. See [Document Storage and Translation](../Document-Storage-and-Translation/en.md).
+

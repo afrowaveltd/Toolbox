@@ -219,3 +219,9 @@ Push notifications and **translation-service-owned periodic polling** are indepe
 
 Typed settings/source/transport interfaces remain future incremental work. See [Configuration and Change Detection](../Localization/Configuration-and-Change-Detection/en.md).
 
+## Storage-neutral long-form articles and host configuration (2026-10-19)
+
+Separate UI localization dictionaries from long-form translated **articles/documents**. The application/host owns article identity, source revision, content/metadata stores, query/indexing and publication through optional interchangeable interfaces. UnderstandMe translation workers process content and return validated results, independent of SQL, MongoDB, filesystem or future indexed AjisFS. One adapter may serve body+metadata; a hybrid is valid. Revision-aware publish must protect later source edits and approved human results.
+
+See [Pluggable article/document storage](../Document-Storage-and-Translation/en.md). Proposed key matching enum `Capitalization { Smart=0, Exact=1, IgnoreCase=2 }` belongs in the localization matching policy (not physical storage or output text capitalization). Design only.
+

@@ -433,3 +433,11 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Deterministic alphabetic JSON write order remains useful for Git/review, but `.NET Dictionary` already provides hash-based runtime lookup. Optional SQL/canonical-signature indices and bounded revision-aware remote caches should be benchmarked with realistic 60,000-item workloads and multiple languages.
 - Added `Docs/Localization/Shared-Dictionary-Indexing-and-Casing/en.md` and cross-links to signature, grammar and localization docs. **Documentation only:** no schema, interface, search algorithm, cache code or new tests; last observed verified code baseline remains UnderstandMe 15/15 and Toolbox 5,929/5,929.
 
+## 2026-10-19 — key Capitalization policies and pluggable article stores
+
+- Proposed `Capitalization` matching enum (`Smart=0`, `Exact=1`, `IgnoreCase=2`); `Smart` is the default. Exact precedence and collision checks remain; target presentation capitalization is a separate, locale-dependent responsibility.
+- Recorded SQL, MongoDB and future indexed AjisFS as interchangeable storage providers. AjisFS indexed storage is a design target, not implemented. Do not generalize database speed without reproducible benchmarks.
+- Designed host-side `IArticleContentStore`, `IArticleMetadataStore`, optional `IArticleQuery` and publication capabilities. ArticleId/culture/revision/content and localized title/date metadata may be stored in folders (`en.md`, `cs.md`, `metadata.json`), SQL rows, MongoDB documents, AjisFS or hybrid storage.
+- Translation core stays blind to storage location and format; source revision protection, safe coherent publish and protection for manual edits are required. Articles are not automatically promoted into global UI localization dictionaries.
+- Added Docs/Document-Storage-and-Translation/en.md and updated Architecture, Afutrans Integration and shared dictionary matching notes. **Documentation only; no code/tests changed.** Last verified baseline: UnderstandMe 15/15, Toolbox 5,929/5,929.
+
