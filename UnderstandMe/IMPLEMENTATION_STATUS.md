@@ -392,3 +392,11 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Existing file and in-memory adapters remain valid; **metadata abstraction, DB/remote implementations, async refresh and coherent resource revisioning are planned, not implemented**. The already verified 15 tests/5,929 Toolbox tests remain the last confirmed runtime baseline; this update is documentation only.
 - Updated `Docs/Architecture/en.md`, `Docs/Localization/en.md` and `Docs/Grammar-Hints-and-Variants/en.md` to preserve this cross-module rule.
 
+## 2026-10-19 — optional event/callback change notifications
+
+- Confirmed dictionary change detection/publishing is an **optional provider or localization-service capability**, not a mandatory requirement for every DataAccessor or localizer. Suitable sources include an accepted DataAccessor write, dictionary-less registration, and adapter-specific out-of-band file/SQL change detection.
+- Clarified `DictionaryChanged` as a *logical notification*, with independently selected delivery via C# events/callbacks, Messenger, authenticated REST callbacks or business SignalR; desktops with bundled read-only catalogs need no publisher/listener, while online desktops may opt in.
+- A single accepted change should be reported once logically, with stable IDs/revisions to deduplicate listeners. Source key additions may trigger authorized automatic translation via QueueMaster; updates to translated target values must not recursively enqueue translation. Cache refresh and external detection are distinct event semantics.
+- Event delivery is best-effort unless supported by an appropriate durable change-log/outbox and reconciliation process; publishing or subscribing cannot be required for successful writes, local lookup, or dictionaryless startup.
+- Design-only documentation updated in Architecture, Localization and Afutrans Integration. No new runtime notifier, database trigger, REST/SignalR API or tests were added. Last verified code baseline remains 15/15 UnderstandMe and 5,929/5,929 Toolbox tests.
+

@@ -149,3 +149,15 @@ The current first-slice `ITextLocalizer` and `ILocalizationDictionaryStore` demo
 
 See [cross-module contract decision](../Architecture/en.md).
 
+## Optional change signaling for dictionary providers and localizers (2026-10-19)
+
+An underlying `DataAccessor` **or** a localizer/editor may detect an accepted dictionary/metadata change. The system expresses it as a **single logical change notice**, distributed only when an optional notifier/transport is configured. This is a capability, not a method/event that all providers are forced to implement. Read-only embedded desktop catalogs remain valid; remote-backed desktop or web applications may subscribe.
+
+Events/notifications can travel via normal local application callbacks, Messenger, HTTP REST calls/webhooks, business SignalR or future transports. The event is not the transport. A normalized event ideally has a change kind, culture and target, affected key(s) or snapshot revision, and a stable change ID/correlation for deduplication; payload shape is not finalized. A successful `TryAdd` of a genuinely new source key is distinct from a failed add, file reload, translated target update or grammar-metadata correction.
+
+Automatic translation listeners may create durable jobs **only for relevant authorized source changes**; a target translation change must not feed back into another translation request. Other optional listeners refresh local cache or notify web UI. No subscriber/no connectivity must not block localization or a successful write. Lost ephemeral announcements are reconciled from the actual authoritative store; durable translation workflow uses a persisted outbox/change-log/scan when stronger delivery is required.
+
+DataAccessor detects changes it actually performs; detecting out-of-band SQL/file/API writes requires a provider-specific watcher, trigger/change-feed or polling. Avoid duplicate notices when both localizer and accessor observe the same operation. See [Architecture: Optional dictionary-change notifications](../Architecture/en.md).
+
+**Status:** documented design only, not an implemented `ILocalizationDictionaryStore` event or API.
+

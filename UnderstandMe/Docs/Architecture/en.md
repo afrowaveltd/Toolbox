@@ -191,3 +191,23 @@ See [working notes](../../Notes.md), [QueueMaster](../QueueMaster-and-Reliabilit
 
 **Scope:** this is a contract and design decision only. No SQL, Node.js, remote metadata adapter or translation workflow has been implemented by this documentation change.
 
+## Optional dictionary-change notifications and distribution (2026-10-19)
+
+**Decision:** a dictionary provider/DataAccessor or a localization/editor service **may produce a logical change notification** after a successful source registration, dictionary update or metadata/translation commit, where the backing technology supports detecting the change. There is **no required subscriber, always-on server, network connection or signal transport**. A self-contained desktop application with read-only bundled dictionaries is a fully supported use case; a desktop app backed by remote catalogs may opt into exactly the same change infrastructure as a web host.
+
+### Source and single logical event
+
+- A writer may know of a change because it performed a successful mutation through the shared accessor; a localizer may know because its dictionary-less registration or authorized update succeeded. An accessor observing external changes may use filesystem watching, a database notification/change feed, polling/version comparisons, or another provider-specific capability. Not every provider can detect external edits, and simple read-only adapters need not emit events.
+- **Normalize to one logical dictionary change**, even if both localizer and store know about it. The ideal publication boundary is an accepted commit/change record in a shared application service or DataAccessor; other observers must not republish it as a new change. Publishing is optional, implemented through a small capability interface or a host-supplied notifier, not an unconditional `event` property on every store.
+- The event should describe the target/domain and relevant culture, entry key(s) or a batch/snapshot revision, the change kind (`SourceKeyAdded`, `TranslationUpdated`, `EntryRemoved`, `MetadataUpdated`, etc.), and origin/correlation or stable change ID when supplied. Include source/metadata revision where supported. Payload **need not contain full translations**; listeners may request an authorized snapshot. Do not leak tenant-sensitive or private content through a global bus.
+- **Only report accepted changes**, not attempted/failed updates or an unchanged re-save. A `Reload` that discovers an externally changed revision may raise `DictionaryChanged` for in-memory refresh, but this must not pretend a new source phrase was registered or generate duplicate translation jobs.
+
+### Delivery adapters and optional consumers
+
+- Delivery is an independently selectable adapter: in-process .NET event/callback, local Messenger, an HTTP callback or REST API call/webhook, a dedicated **business** SignalR notification/command path, or another host-specific mechanism. `DictionaryChanged` is the **logical notification**, not necessarily a C# `event` syntax feature. REST callback failures and disconnected SignalR subscribers cannot roll back a successfully committed dictionary change.
+- Subscribers are optional and independently configurable. Examples: invalidate/reload local caches, notify connected web clients, enqueue authorized automatic translation for newly registered source keys, or initiate a reconciliation/synchronization scan. **A changed target-language translation or metadata update is not automatically a request to retranslate the same source**.
+- For background automatic translation, delivery must be distinguished from ownership: Messenger/SignalR transmits information, but QueueMaster/workflow owns accepted jobs. If notification loss would cause work to be missed, use a persisted change/outbox record, idempotent consumption/reconciliation and revision tracking at the appropriate host. An ephemeral .NET event or SignalR is best-effort and cannot by itself guarantee processing.
+- Web hosts can expose authorized REST and/or SignalR business endpoints, but their `SystemMonitor` Hubs remain outbound-only telemetry and must never receive dictionary mutation commands. A local read-only desktop installation may simply omit every publisher and consumer.
+
+**Boundary:** change-notification capability and concrete delivery adapters are future work. The currently implemented `ILocalizationDictionaryStore` has only synchronous `Load`/`TryAdd`, and `DictionaryTextLocalizer` has `Get`/`Format`/`Reload`. Do not claim the new notification API, watchers, network endpoints or automatic translation are already implemented. Names and exact signatures are examples pending a real first adapter.
+
