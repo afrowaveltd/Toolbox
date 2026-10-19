@@ -21,8 +21,8 @@ A scan reads the coherent current source state, compares it to the prior accepte
 | --- | --- |
 | New key | Submit eligible missing-language translation work once. |
 | Same symbolic key, changed source value | Mark previous target translations stale for that source revision; preserve history and request suitable translation/review. |
-| SourceText key replaced/reworded | Detect a new key; old key is only a retirement candidate, not automatically a confirmed rename. |
-| Source key missing from authoritative source catalog/active-key manifest | Potential retirement candidate; do not immediately hard-delete translations. |
+| SourceText key replaced/reworded | Detect a new key; preserve the old dictionaryless phrase and its translations for cross-project reuse. |
+| Source key missing from a project's currently active source catalog/manifest | Record the project-level absence without expiring a previously discovered dictionaryless entry in the shared reusable pool. |
 | Relevant placeholder/context/grammar metadata changed | Revalidate affected translations/variants; decide whether focused regeneration is necessary. |
 | Target translation changed | Refresh consumers/audit; do not recursively trigger automatic source translation. |
 
@@ -32,13 +32,13 @@ Push notifications and polling scans share one normalized change and job-admissi
 
 ## Dictionaryless retention — revised decision (2026-10-19)
 
-**Supersedes the earlier proposal to archive dictionaryless keys after inactivity.** A discovered dictionaryless / SourceText phrase **stays in its source and translated catalogs even when the originating application no longer references it**. Those entries can be reused by another project and may be located through the planned \`FindInAnyDictionary\` signature search. There is no \`LastSeen\`-based retirement, automatic archive or purge for this keying mode.
+**Supersedes the earlier proposal to archive dictionaryless keys after inactivity.** A discovered dictionaryless / SourceText phrase **stays in its source and translated catalogs even when the originating application no longer references it**. Those entries can be reused by another project and may be located through the planned `FindInAnyDictionary` signature search. There is no `LastSeen`-based retirement, automatic archive or purge for this keying mode.
 
 An application's active set of references and the shared store of reusable phrases are different concepts; a refactoring of a web page need not destroy useful translation history. Only an explicitly authorized removal for another justified purpose (e.g., a mistaken or sensitive entry) may physically delete content, subject to permissions and audit.
 
 Keep the distinct Symbolic key mode's source revision detection and optional, independently configured project-level retirement policy if a host needs it. A symbolic source-value modification still invalidates translations tied to its previous source revision; it is not treated as key reuse without checks.
 
-For the canonical placeholder identity/signature matching, protected target-placeholder renaming, context constraints and planned tests, see [Shared translation reuse and placeholder signatures](../Shared-Translation-Reuse-and-Placeholder-Signatures/en.md).
+For the canonical placeholder identity/signature matching, protected target-placeholder renaming, context constraints and planned tests, see [Shared translation reuse and placeholder signatures](Shared-Translation-Reuse-and-Placeholder-Signatures/en.md).
 
 ## Planned tests
 
