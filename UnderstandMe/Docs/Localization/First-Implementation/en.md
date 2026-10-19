@@ -29,7 +29,7 @@ With no existing locale files, this returns `Hello Bolaji` immediately and write
 
 Command: `dotnet test UnderstandMe.Tests/UnderstandMe.Tests.csproj` (or after .sln registration, `dotnet test Toolbox.sln`).
 
-**Initial 14 xUnit tests passed in GitHub Actions; the new 15th adapter-independence test awaits CI:** dictionaryless startup, target precedence, parent/source fallbacks, no overwrite, opt-out registration, placeholder formatting, unknown placeholders, no recursive substitution, double braces, explicit reload, malformed reload retaining valid snapshot, corrupt source preservation, unsafe path rejection, duplicate JSON keys, and concurrent registration.
+**All 15 xUnit tests passed in GitHub Actions, including the independent in-memory backend test:** dictionaryless startup, target precedence, parent/source fallbacks, no overwrite, opt-out registration, placeholder formatting, unknown placeholders, no recursive substitution, double braces, explicit reload, malformed reload retaining valid snapshot, corrupt source preservation, unsafe path rejection, duplicate JSON keys, and concurrent registration.
 
 ## Deliberate limits / next steps
 

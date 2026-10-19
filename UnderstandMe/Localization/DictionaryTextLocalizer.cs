@@ -13,6 +13,9 @@ public sealed class DictionaryTextLocalizer : ITextLocalizer
     private readonly Dictionary<string, IReadOnlyDictionary<string, string>> _snapshots =
         new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>Creates a localizer over an interchangeable dictionary store.</summary>
+    /// <param name="store">Dictionary snapshot and source-registration implementation.</param>
+    /// <param name="options">Localization settings, or defaults.</param>
     public DictionaryTextLocalizer(ILocalizationDictionaryStore store, LocalizationOptions? options = null)
     {
         _store = store ?? throw new ArgumentNullException(nameof(store));
@@ -20,6 +23,7 @@ public sealed class DictionaryTextLocalizer : ITextLocalizer
         ArgumentException.ThrowIfNullOrWhiteSpace(_options.SourceCulture);
     }
 
+    /// <inheritdoc />
     public string Get(string key, string? culture = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
@@ -52,6 +56,7 @@ public sealed class DictionaryTextLocalizer : ITextLocalizer
         }
     }
 
+    /// <inheritdoc />
     public string Format(string key, IReadOnlyDictionary<string, string> values, string? culture = null)
     {
         ArgumentNullException.ThrowIfNull(values);
@@ -87,6 +92,7 @@ public sealed class DictionaryTextLocalizer : ITextLocalizer
         return result.ToString();
     }
 
+    /// <inheritdoc />
     public bool Reload(string culture)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(culture);

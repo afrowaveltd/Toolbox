@@ -14,7 +14,7 @@ string text = t.Format("Hello {name}",
     new Dictionary<string, string> { ["name"] = "Bolaji" }, "cs");
 ```
 
-**Testování:** `dotnet test UnderstandMe.Tests/UnderstandMe.Tests.csproj`. Původních 14 testů **prošlo v GitHub Actions**; nový 15. test pro paměťové úložiště čeká na CI.
+**Testování:** `dotnet test UnderstandMe.Tests/UnderstandMe.Tests.csproj`. Všech 15 testů **prošlo v GitHub Actions**, včetně testu paměťového úložiště.
 
 **Není hotovo:** file watcher, pomocný JSON a gramatické varianty, přísnější placeholderová validace, CLDR, REST/SignalR, překladové enginy ani napojení Afutrans.
 

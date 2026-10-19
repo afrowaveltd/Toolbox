@@ -8,12 +8,15 @@ public sealed class FileJsonDictionaryStore : ILocalizationDictionaryStore
     private readonly string _directory;
     private readonly object _gate = new();
 
+    /// <summary>Opens a flat-JSON dictionary store rooted at the specified directory.</summary>
+    /// <param name="directory">Root directory for locale JSON files.</param>
     public FileJsonDictionaryStore(string directory)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(directory);
         _directory = Path.GetFullPath(directory);
     }
 
+    /// <inheritdoc />
     public IReadOnlyDictionary<string, string> Load(string culture)
     {
         string path = GetPath(culture);
@@ -21,6 +24,7 @@ public sealed class FileJsonDictionaryStore : ILocalizationDictionaryStore
             return ReadFile(path);
     }
 
+    /// <inheritdoc />
     public bool TryAdd(string culture, string key, string value)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);

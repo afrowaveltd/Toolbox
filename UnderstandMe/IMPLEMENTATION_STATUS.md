@@ -369,3 +369,10 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Added one new in-memory store xUnit test for source registration, target lookup and catalog refresh, independent of files/JSON.
 - Future async dictionary-source and optional writer/notification capabilities are planned but **not implemented**. Remote refresh must not block synchronous UI localization.
 - The initial 14/14 tests were verified previously; this rename/15th test requires an independent CI check before claiming success.
+
+## 2026-10-19 — verified storage-neutral refactor and XML documentation follow-up
+
+- Verified GitHub Actions run [#39315844408](https://github.com/afrowaveltd/Toolbox/actions/runs/39315844408): solution build and test steps successful.
+- **UnderstandMe 15/15 tests passed**, including `Memory_store_works_without_json_files_or_translation_engines`. Toolbox total **5,929 tests passed** (15 + 1475 + 3198 + 1241).
+- The run emitted **7 CS1591 XML documentation warnings** related to new public constructors/methods, not runtime failures. XML docs were added in this follow-up commit; their warning resolution awaits its CI build.
+- Core APIs remain synchronous local/cached; future remote/DB sources require separate async contracts. No remote provider was implemented.
