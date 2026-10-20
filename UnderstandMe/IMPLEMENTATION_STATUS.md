@@ -598,3 +598,12 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - **Verification pending:** source committed on GitHub, but no dotnet SDK is available in the current execution environment. Do not claim tests green until GitHub Actions for these commits completes. Next step: idempotent repair scheduling with backoff and candidate validation before publishing in Afutrans/UnderstandMe orchestration.
 
 - README implementation overview synchronized in commit [`badf84d`](https://github.com/afrowaveltd/Toolbox/commit/badf84dd4bd2a45a0d9049ec8bbf1b6e65318ada). CI status remains unverified at the time of this documentation update.
+
+
+## 2026-10-20 — pure repair eligibility planner
+
+- Previous scanner commits through `488b3e5` independently verified **SUCCESS** in GitHub Actions [#39412757479](https://github.com/afrowaveltd/Toolbox/actions/runs/39412757479).
+- Added `LocalizationRepairPlanner.SelectEligible` to filter missing/invalid translation candidates using scheduler-supplied per-target-culture `LocalizationRepairLease` state. Pending same-revision repairs and failed same-revision retries before `RetryNotBefore` are skipped; changed source templates are new revisions and eligible immediately. Exact key matching is ordinal; culture matching ignores case and surrounding whitespace. Duplicate candidates are not emitted twice; duplicate leases are rejected explicitly.
+- Added focused tests for pending claims, cooldown boundary, source revision changes, target-culture isolation, duplicate suppression and invalid input. Commits: [implementation](https://github.com/afrowaveltd/Toolbox/commit/ae096fd356274c90ef00ef77d817ba19bec38b5e), [tests](https://github.com/afrowaveltd/Toolbox/commit/d5d6c77c6847f10ae2a67374214c935fa2814c03).
+- **Scope limitation:** this is a pure selector; it does **not** atomically claim leases, persist backoff, enqueue jobs, publish validated candidates or provide concurrent scheduler guarantees. These require the eventual durable QueueMaster or orchestration adapter.
+- CI verification of these newer commits is pending at documentation time. Do not claim green tests before completion.
