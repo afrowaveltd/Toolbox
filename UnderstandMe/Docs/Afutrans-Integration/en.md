@@ -208,3 +208,11 @@ Afutrans owners may explicitly configure **classic FTP** or non-sensitive HTTP t
 Afutrans must be transparent that it can technically read authorized dictionaries for processing. **Private by default**; owners may separately opt in to publish eligible selected entries or an eligible whole dictionary (with preview/exclusions and owner-approved ongoing contributions) into a shared source/target/context-aware translation index. Public API access and a published dictionary are separate choices. Published suggestions still respect owner-specific human overrides, placeholder integrity, source locale, context and contribution license.
 
 See [Afutrans Connector Trust and Community Dictionaries](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Connector-Trust-and-Community-Dictionaries/en.md). **Architecture only, no connector or publication implementation.**
+
+## Optional external intermediary and open/authorized API policies (2026-10-20)
+
+For hosted Afutrans, a separate **intermediary application (API Gateway / access router)** may be the only external entry point. It verifies optional Id-backed service/user/app claims and request-operation permissions before forwarding to Afutrans private REST/business SignalR endpoints. Operators may allow anonymous public translations under constrained policies while protecting target/storage registration, SQL/FTP connector configuration, credential management and private dictionaries behind scoped authorization.
+
+This is **not** a second engine: UnderstandMe and QueueMaster continue to work through their shared host-owned contracts, and standalone/offline localization requires no Id/Gateway. An Afutrans command handler still verifies a trusted scoped internal caller and target-level permissions even after Gateway admission; all transports share effective `ClientPolicy` rules. The gateway should not expose secret target connection strings or become the place where dictionary authorization data is stored. Detailed API/UI design deliberately deferred.
+
+See [Client Access Policies](../Client-Access-Policies/en.md) and [Afutrans service integration](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Registered-Service-Integration/en.md). **Architecture only; not implemented.**

@@ -93,3 +93,15 @@ Clients can be deployed without Id; use appropriately authenticated local/standa
 
 See [Afutrans Registered Service Integration](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Registered-Service-Integration/en.md).
 
+## Hosted Afutrans behind optional intermediary application (2026-10-20)
+
+The user proposes a **reusable intermediary / service-access gateway** in front of hosted Afutrans: outside users/applications send translation or management requests to the intermediary, which optionally resolves first-party Id identity and registered application/service grants, decides admission and routes accepted requests to an otherwise non-public Afutrans service. This can be applied to other Afrowave services without embedding network/Id requirements in UnderstandMe.
+
+- **Open mode:** explicit operator choice to accept anonymous requests for specifically published translation capabilities under a constrained `PublicAnonymous` ClientPolicy (quotas, rate, size, provider access, privacy and global budgets). No automatic right to view tenant dictionaries, add new storage, edit a database connector or administer clients.
+- **Authorized mode:** Id-issued or local authenticated identity and operation-/target-scoped grants for create/update Translation Target, configure FTP/SQL connectors or secret references, read/write private catalogs, manage projects/providers and account functions. Public translation can coexist with protected administration on the same installation.
+- **Double check the security boundary:** the edge is primary identity/admission gate, but the Afutrans application handler still authenticates the service-to-service caller context and rechecks effective `ClientPolicy`, target ownership, read/write capabilities, quota and sensitive action permissions. Enforce the same invariant on direct .NET, REST and SignalR internal entry points. Do not trust arbitrary forwarded identity headers, self-declared `ClientId` or that an HTTP request was routed through an expected hostname.
+- Afutrans itself can have no public listener; use private network/mTLS or equivalent backend authentication. Id provides identity and grants, not dictionary/SQL/FTP secrets. **Id is optional** in standalone/offline Afutrans deployments and UnderstandMe has no compulsory network/gateway dependency.
+
+The intermediary's actual product name, topology, internal token/envelope format, credential and revocation TTL, Gateway vs BFF or service routing, quota enforcement ownership and transport-specific contract are **deliberately undecided**. Further design deferred at the owner's request.
+
+Reference: [Afutrans Registered Service Integration](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Registered-Service-Integration/en.md). **Design-only note, not implemented behavior.**
