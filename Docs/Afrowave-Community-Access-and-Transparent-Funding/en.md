@@ -62,3 +62,15 @@ Afrowave contributors should be free to **split a single contribution into sever
 
 **Implementation timing remains deferred:** no funding page, payment gateway or financial watchdog until live useful community services and a meaningful reason to accept donations. Detailed proposal: [Afutrans public funding charter](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Community-First-No-Profit-and-Transparent-Funding/en.md). **Documentation only.**
 
+## Planned directly verifiable bank-sourced public financial feed (2026-10-20)
+
+Once real useful Afrowave services justify voluntary contributions, the owner intends to seek a **dedicated bank account with an officially authorized public transaction/balance API or transparent-account feed**. The planned public community page will show actual bank-source **incoming transfers, outgoing transfers and current account balance**, independently verifiable where the bank offers public source links, alongside simple Afrowave accounting and a visible timestamp of the last successfully fetched bank state.
+
+An API feed is not intrinsically instant: distinguish last successful sync and booked/pending payment status according to the bank's actual semantics. An authorized **read-only server-side mirror**, using webhooks or bounded polling, must not expose bank secrets or any payment initiation function. Treat 'public transparent bank account' and 'PSD2/Open Banking access to a private account' as different products/permissions; do not assume a private account's owner credentials can be made publicly available.
+
+The bank feed documents transfers/balance, while the separate purpose ledger documents donor-selected splits, unspent future-month server reserves, fees, invoices and actually provisioned AI/VPS value. Reconcile independently, show any discrepancy honestly, and do not confuse bank expenditure with proven service installation or unused provider token credits. Maintain **simple money in / money out / current bank balance** public UX instead of exposing VAT-tax tables.
+
+**Privacy requirement:** evaluate whether the selected bank's public product reveals transfer counterparty names, numbers, references and payer-authored messages; inform users *before* they donate what becomes publicly visible from the bank itself. Publicly show transaction amounts/balances without automatically leaking private donor details or falsely claiming that application-side redaction can hide information already disclosed by the bank's transparent service.
+
+**Timing unchanged:** this is **only an optional future bank-selection criterion**. Do not implement financial monitoring, banking integration, public payments or fundraising until useful running services create a clear need for donations. Detailed service design: [Afutrans public bank-backed transparency](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Community-First-No-Profit-and-Transparent-Funding/en.md).
+

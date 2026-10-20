@@ -541,3 +541,9 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Preserve legally/accountingly required underlying tax, FX and invoice detail only in source records/evidence; do **not** display VAT/rates as extra public subrows, while never hiding a real separate charge or changing the paid total.
 - Updated [Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md](../Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md) and root README; [Afutrans policy](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Community-First-No-Profit-and-Transparent-Funding/en.md) aligned. **Future requirement only; no payment/watchdog/app code or tests.**
 
+## 2026-10-20 — optional live bank API mirror and independently verified balances
+
+- User would like to obtain a dedicated Afrowave bank account with an **official public read-only API** when the financial contribution feature eventually makes sense. Show bank-verified incoming/outgoing transfers, current bank balance and last actual successful refresh directly to the community.
+- Distinguish bank-booked transactions from still-pending items; do not claim real-time freshness that selected bank does not deliver. Reconcile separate donor purposes/fee deductions/monthly held reserves and real service expense with independent bank data.
+- Require an appropriately permissioned transparent-account feed, confidential access credentials, no public transfer/write authority and upfront assessment of any counterparty/payee details exposed by the bank **itself**. Public view should remain as simple as money in/out/balance.
+- Updated [Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md](../Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md) and root README. **Architecture only; no bank selection, account, API mirror, finance UI, code or tests.**

@@ -109,3 +109,6 @@ Afrowave's hosted services aim to give everyone the **maximum feasible access fr
 
 Future community funding transparency will show **real gross contributions, one actual transfer/processing fee, net available funds, the full amount actually paid for each service (tax included), and unspent reserves**—not an overwhelming VAT/tax breakdown. Detailed accounting evidence remains available for internal reconciliation and any required compliance. This is a planned principle only; donations and financial monitoring are **not being implemented before useful services exist**. See [Community Funding](Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md).
 
+### Optional future bank-verified public funds view
+
+When services are running and voluntary support is useful, Afrowave intends to prefer a **dedicated bank account with officially supported public read-only transaction and balance data**. Any eventual public finance page should display bank-sourced incoming/outgoing postings, bank balance and last verified update alongside actual cost/purpose reconciliation—never bank credentials, write access or sensitive donor details. Bank data freshness and its direct public privacy implications must be clear. **Not implemented or accepting donations yet.** See [Community Funding](Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md).
