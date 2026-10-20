@@ -148,3 +148,11 @@ Id2 should be able to accept **full writes when Id1 fails**, provided Id2 has th
 
 More than two Id nodes are supported conceptually: securely register a node, bootstrap/catch up as nonwritable `Degraded`, validate replica and key versions, become `Ready` follower, then allow leadership when eligible. Voting membership is independent of number of API/replica nodes: majority `floor(N/2)+1`, and adding a 4th voter to a 3-voter group does not improve single-failure tolerance (3/4 votes required). Preserve quorum during controlled sequential reconfiguration. See [Observer and Uplink](../Id-Observer-and-Uplink/en.md) for state matrix and acceptance tests. **Design only.**
 
+## Preferred fallback route over unnecessary leadership change (2026-10-20)
+
+Specific user case: Id1 is current leader and sees Id2 but not Observer; Id2 sees Id1 and Observer. **Prefer option 3: Id2 relays Id1 ↔ Observer communication** through an authenticated fallback path. Neither immediately promote Id2 (option 1) nor merely report a fixable direct-link outage (option 2). Keep Id1 as leader **while the actual voter quorum/lease, replication policy and data authority are healthy**.
+
+**Node status and link status differ:** Id1 may remain `Ready`/`Leader`, with `Id1→Observer DirectLink=Degraded` and `ObserverRoute=ViaId2`. Observer should show direct vs relayed visibility honestly. On direct-link restoration prefer the direct route and stop relaying after controlled handover. A generic SignalR forwarder only bridges approved control messages; for consensus/database TCP connectivity use an appropriate authenticated overlay/proxy that the actual cluster stack supports. Relayed heartbeats cannot replace quorum votes.
+
+See [Id Observer and Uplink](../Id-Observer-and-Uplink/en.md) for the complete routing/authentication/recovery tests. **Design only.**
+

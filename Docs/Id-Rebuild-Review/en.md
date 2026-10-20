@@ -158,3 +158,9 @@ An Observer report can detect a lost node and trigger recovery, but **cannot dem
 
 See [Observer and Uplink](../Id-Observer-and-Uplink/en.md) and [High Availability](../Id-High-Availability-and-Replication/en.md). **Architecture only; no source implementation/tests.**
 
+## Resilient Id-to-Observer route preference (2026-10-20)
+
+When Id1 (leader) cannot connect **directly** to Observer but can reach Id2, and Id2 can reach Observer, the preferred behavior is an **authorized alternate route Id1 → Id2 → Observer**, not immediate failover to Id2. The Id1 node can remain `Ready` while its specific direct link is `Degraded`; leader authority continues only while consensus/fencing and database durability remain satisfied. Relay permission must be scoped to trusted cluster nodes and limited messages, not automatically extended to all community apps. Preserve original-node signatures, avoid loops/replay, report original and relayed reachability separately. Dedicated SignalR relay is suitable for Uplink commands; a secure network tunnel/overlay is needed where transparent TCP/consensus connections must pass through Id2.
+
+See [Observer and Uplink](../Id-Observer-and-Uplink/en.md); no runtime changes yet.
+

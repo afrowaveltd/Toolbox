@@ -113,3 +113,62 @@ References: [etcd failures](https://etcd.io/docs/v3.5/op-guide/failures/), [etcd
 
 **Status:** requirements and future acceptance tests only. No C# status enum/observer endpoint, quorum/fencing mechanism, replication, API routing or new Id tests implemented.
 
+## Multi-hop trusted connectivity: Id1 → Id2 → Observer (2026-10-20)
+
+**Author-preferred response to one missing connection: repair the route before moving the leader.** Concrete case: Id1 is `Leader`; its direct Uplink to Id2 is healthy; direct Id1–Observer is broken; Id2–Observer is healthy. Choose **option 3**: Id2 acts as a trusted intermediate relay so Id1 and Observer can exchange approved control traffic. Do **not** unnecessarily promote Id2 because it alone has a direct Observer link, and do **not** merely record the failure when a safe alternative path is available.
+
+```text
+                X direct path broken
+       Id1  - - - - - - - - > Observer
+        |                           ^
+        | direct, trusted           | direct, trusted
+        v                           |
+       Id2 -------------------------+
+
+         Id1 -> Id2 -> Observer
+```
+
+### Logical goal
+
+> If a node can reach at least one trusted, authorized cluster peer, it can ask that peer to relay communication to other explicitly authorized cluster destinations.
+
+This is **scoped transitive reachability**, not an unrestricted network gateway and not proof every destination in the world is reachable. Whether the intermediate peer can actually reach the destination, is authorized to relay the requested protocol and has sufficient capacity remains to be checked. Route selection should **prefer direct paths**, then authorized, bounded fallbacks; discover and discard stale paths promptly.
+
+### Separation of health, link quality, role and authority
+
+- Id1 may remain globally **`Ready` as `Leader`** while a *particular direct link* is marked `Degraded` with an incident. A direct link's failure is not by itself a node-wide `Degraded` health transition or grounds to change leadership, provided application/DB readiness and authoritative quorum stay healthy.
+- Id2 may be `Ready` as `Follower` and additionally act as a relay for an Id1–Observer control channel. **Relay ≠ leader:** intermediary traffic does not give Id2 permission to mutate Id1/Observer data or assume cluster authority.
+- Observer should display `Id1 direct: unreachable` and `Id1 via Id2: reachable`, not collapse these into a false statement that direct connectivity is healthy. Track route provenance, timestamps, hop count, and live downstream delivery acknowledgements.
+- If the relay fails too, fall back to actual quorum/fencing decisions based on authenticated voting-system membership and database write readiness. A missing direct Observer link does not revoke writes while Id1+Id2 hold a legitimate majority.
+
+### Relay mechanism choices and limitations
+
+**Control-plane Relay via SignalR:** intermediary forwards an end-to-end authenticated envelope with `SourceNode`, `DestinationNode`, `MessageId`, `LeaderEpoch`, `Sequence`, `TimeToLive`, `HopLimit`, `Trace/RouteId` and bounded payload. Observer must verify that the original source is really Id1; **authentication to Id2 alone must not cause Observer to treat Id2 as Id1**. Id2 is an authorized forwarder, not a delegate allowed to forge leader heartbeats or new votes. Use no arbitrary hub method invocation or forwarding of Id bearer tokens. Maintain dedupe/replay protection, TTL, loop prevention, access policy and rate limits.
+
+**Transport connectivity via secured overlay (e.g. WireGuard):** if the goal is transparent Id1-to-Observer TCP traffic, database replication, existing TLS clients or a consensus/DCS implementation whose voting connections require normal network sockets, a routed, authenticated overlay or deliberately scoped proxy is more suitable than reimplementing generic TCP forwarding as SignalR messages. End-to-end TLS/mTLS remains in place through the intermediate hop. Do not confuse a relayed SignalR health message with a functioning database replication or quorum-voting channel.
+
+**Quorum:** the example Id1+Id2 link already offers 2 of 3 voting members **if those actual voting peers remain connected in the chosen consensus implementation**. Id1 can retain lease/leadership without direct Observer connectivity. A relayed Observer vote counts only if the real consensus stack **securely supports that route**; the Observer's application-level heartbeat dashboard cannot manufacture a vote. When the network partition isolates a prior leader from quorum, fencing still prevents simultaneous writers.
+
+**Trust scope:** only explicitly enrolled internal cluster nodes may relay privileged Id control traffic. Ordinary user-created Afrowave apps sending `IAmHere` do not become routers or cluster voters. For future general service-mesh use, distinguish service discovery from relay permission; forbid access to other tenants, Id keys, internal-only administrative endpoints and unapproved destinations. Each hop is monitored and subject to quotas, expiry and audit.
+
+### Suggested route health representation (not a frozen API)
+
+| Item | Meaning |
+| --- | --- |
+| `NodeHealth` | `Ready`, `Degraded`, or `Fail`: overall usable service status |
+| `NodeRole` | `Leader`, `Follower`: actual leader/replica responsibilities |
+| `LinkHealth(Id1,Observer)` | `DirectUnavailable`, with distinct reason/last confirmed direct probe |
+| `Route(Id1,Observer)` | `ViaId2`, independently authenticated, with bounded hop count |
+| `RouteHealth` | `ReadyViaRelay` after Id1 and Observer successfully acknowledge a test/control exchange |
+| `CanWrite(Id1)` | Derived **only** from actual leader lease/quorum, fencing and DB state; unaffected by relay appearance alone |
+
+### Integration tests to implement later
+
+1. Cut only Id1–Observer direct path while Id1–Id2 and Id2–Observer remain up. Detect failure; establish authorized relay; Id1 stays legitimate `Leader`/`Ready`; report direct-link incident and relay route, no failover.
+2. Restore direct link: prefer direct communication again after stable health confirmation, retire relay automatically without dropping authorized in-flight messages or duplicating change events.
+3. Break Id2–Observer during relay: retire stale route, report that Id1's Observer path is now lost; proceed according to **real** cluster quorum/write availability rather than falsely assuming observer votes traverse an application Hub.
+4. Spoof source `Id1` through Id2, inject wrong epoch, replay message or create circular Id1–Id2 forwarding: reject unauthorized, stale or looping traffic.
+5. Cut direct database replication but keep SignalR messages relayable: replication is still marked unhealthy and write durability policy is enforced; SignalR success alone never makes database healthy.
+6. Register an ordinary Afrowave service and send valid `IAmHere`: service may be monitored but gains no cluster voting/privileged Id routing access.
+
+**Status:** architecture/documentation only; no SignalR relay router, mesh, overlay provisioning, routing table or tests are implemented.
