@@ -128,3 +128,15 @@ The original idea that Id2 must contact Id1 before it serves clients becomes a s
 
 **Status: architecture documentation only.** No new Id Uplink Hub, HA manager, SMTP alert worker, data replica or tests implemented here. Do not infer that the historic Id repo already contains production-ready replication.
 
+## Observer: independent supervisor, optional SignalR relay and quorum witness (2026-10-20)
+
+**Author clarification:** add a separately hosted `Observer` service as the third cluster participant and a broader Afrowave service health receiver (`IAmHere` heartbeats). Observer is potentially both a **third voter/witness** and **SignalR Uplink forwarder** when Id1 and Id2 cannot communicate directly but can both reach Observer. These are independent responsibilities with distinct authentication/permissions.
+
+- **Id1–Id2 link fails, Observer sees both:** relay control/status where useful and prefer keeping the present authorized leader. The relay may provide an alternate control route but SignalR does not replace transaction-log replication.
+- **Id1–Observer link fails, Id1–Id2 remain connected:** two of three true voters can maintain quorum; report Observer degradation.
+- **Id1 loses Id2 and Observer while Id2+Observer remain connected:** minority Id1 must be fenced from writes; Id2+Observer may elect/preserve a leader under the selected quorum stack and durability policy.
+- **Observer fails, Id1+Id2 remain linked:** no obligatory Observer path for normal service; safe cluster quorum may remain available. A third observer alone stores no identity data.
+- Every ordinary app can report liveness but must **not** automatically become an Id election voter. Observer cannot access/edit passwords, Id-managed privileges or tenant content simply because it monitors the platform; active probes and independent outside-cluster monitoring remain necessary.
+
+The full failure matrix, model contracts, trust boundaries and test plan are in [Id Observer and Uplink](../Id-Observer-and-Uplink/en.md). **Documented design; no runtime implementation or tests.**
+

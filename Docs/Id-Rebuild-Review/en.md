@@ -144,3 +144,9 @@ Two data servers and one voting witness do **not** imply three durable data copi
 
 See [Id High Availability and Replication](../Id-High-Availability-and-Replication/en.md). **Documented design only; no code/test changes.**
 
+## Observer as supervisor, relay and Id witness (2026-10-20)
+
+User refined the HA architecture: a separate `Observer` application receives small authenticated `IAmHere` health signals from registered Afrowave services. For **Id1/Id2 specifically**, Observer may relay Uplink messages if their direct link fails, and participates as an independent third vote **only through an actual cluster consensus/fencing system**. If both Ids see Observer but not each other, relay can preserve control communication without needless takeover. If Id1 loses both links but Id2 sees Observer, Id1 must stop writes and Id2 can promote only with quorum and valid replicated data. If Observer alone is lost but the two Ids communicate, they may continue at two of three votes.
+
+Only designated Id cluster members/voters may affect the Id election; unrelated applications reporting heartbeat have no vote. SignalR relay is **not** authoritative DB replication and Observer must not become the single required request router. Prefer optional direct and alternate paths, incident alerts and external watchdog checks. See [Observer and Uplink](../Id-Observer-and-Uplink/en.md). **Design only.**
+
