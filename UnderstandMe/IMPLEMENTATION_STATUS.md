@@ -596,3 +596,5 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Added xUnit tests for exact-locale missing/invalid detection, retained data, parent-language independence, empty source, normalized same-locale no-op and invalid arguments.
 - Commits: [scanner](https://github.com/afrowaveltd/Toolbox/commit/3409e7033461873ae27cd41c6a3120d53d603523), [tests](https://github.com/afrowaveltd/Toolbox/commit/0435a7f1d362014a4bf788ad03ffdcbd28a59879).
 - **Verification pending:** source committed on GitHub, but no dotnet SDK is available in the current execution environment. Do not claim tests green until GitHub Actions for these commits completes. Next step: idempotent repair scheduling with backoff and candidate validation before publishing in Afutrans/UnderstandMe orchestration.
+
+- README implementation overview synchronized in commit [`badf84d`](https://github.com/afrowaveltd/Toolbox/commit/badf84dd4bd2a45a0d9049ec8bbf1b6e65318ada). CI status remains unverified at the time of this documentation update.
