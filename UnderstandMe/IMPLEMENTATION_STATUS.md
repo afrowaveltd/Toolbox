@@ -547,3 +547,9 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Distinguish bank-booked transactions from still-pending items; do not claim real-time freshness that selected bank does not deliver. Reconcile separate donor purposes/fee deductions/monthly held reserves and real service expense with independent bank data.
 - Require an appropriately permissioned transparent-account feed, confidential access credentials, no public transfer/write authority and upfront assessment of any counterparty/payee details exposed by the bank **itself**. Public view should remain as simple as money in/out/balance.
 - Updated [Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md](../Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md) and root README. **Architecture only; no bank selection, account, API mirror, finance UI, code or tests.**
+
+## 2026-10-20 — future private donor intake and public operational bank transfers
+
+- User prefers a **separate contribution receiving/proxy account** with personalized private contributor receipt; a reconciled aggregate transfer (e.g. publicly `Paywall income`) goes to the transparent Afrowave operating account. Avoid counting the internal transfer twice; acknowledge amounts awaiting transfer.
+- **Outgoing business payments** such as InterServer VPS costs should remain transparently visible, including actual supplier and paid amount; do not automatically hide ordinary business account information, while keeping donor privacy and banking secrets protected.
+- Future-only note added to [Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md](../Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md). **No more banking/payment architecture or implementation now; return focus to localization.**

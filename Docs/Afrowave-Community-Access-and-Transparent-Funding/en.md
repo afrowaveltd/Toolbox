@@ -74,3 +74,12 @@ The bank feed documents transfers/balance, while the separate purpose ledger doc
 
 **Timing unchanged:** this is **only an optional future bank-selection criterion**. Do not implement financial monitoring, banking integration, public payments or fundraising until useful running services create a clear need for donations. Detailed service design: [Afutrans public bank-backed transparency](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Community-First-No-Profit-and-Transparent-Funding/en.md).
 
+## Proxy intake account and public outgoing supplier payments (2026-10-20)
+
+**Future owner-selected principle, no implementation planned now:** voluntary contributions arrive on a separate proxy/intake account where the individual receives a proper personally addressed receipt. An **aggregate reconciled transfer**, publicly described for example as `Paywall income`, then moves into the main publicly observable Afrowave operations account. This separation reduces inadvertent public disclosure of donor identities on the main feed; it does not itself conceal what a bank might expose on the proxy account. The service itself remains free-first and contributors never buy queue position.
+
+Do **not** count internal transfers between controlled accounts as fresh external income. Retain private individual payment-to-allocation audit links, account settlement fees, restrictions and reserves; show public totals consistent with the main account and distinguish any funds still held in the intake account.
+
+Public main-account **outgoing supplier payments should ordinarily remain visible**, e.g. actual payment to InterServer for VPS hosting with the real supplier, amount and transaction date, and business recipient bank account where allowed. The design does not treat normal vendor/account numbers as secrets by default; protect genuinely sensitive donor/third-party personal data, banking credentials and required confidential information. Simplicity and verifiability matter more than complex tax breakdowns.
+
+**Phase gate unchanged:** no payment account integration, financial watchdog, fundraising UI or extensive new finance design before working community services justify accepting donations. This note records intent only.
