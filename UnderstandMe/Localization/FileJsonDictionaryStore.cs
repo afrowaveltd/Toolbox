@@ -3,7 +3,7 @@ using System.Text.Json;
 namespace Afrowave.Toolbox.UnderstandMe.Localization;
 
 /// <summary>Flat JSON localization store; one culture per file. No network dependency.</summary>
-public sealed class FileJsonDictionaryStore : ILocalizationDictionaryStore
+public sealed class FileJsonDictionaryStore : ILocalizationDictionaryStore, ILocalizationTranslationInvalidationStore
 {
     private readonly string _directory;
     private readonly object _gate = new();
@@ -38,23 +38,48 @@ public sealed class FileJsonDictionaryStore : ILocalizationDictionaryStore
                 return false;
 
             entries.Add(key, value);
-            Directory.CreateDirectory(_directory);
-            var sorted = entries.OrderBy(pair => pair.Key, StringComparer.Ordinal)
-                .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
-            string temporaryPath = Path.Combine(_directory, "." + Guid.NewGuid().ToString("N") + ".tmp");
-
-            try
-            {
-                File.WriteAllText(temporaryPath, JsonSerializer.Serialize(sorted,
-                    new JsonSerializerOptions { WriteIndented = true }));
-                File.Move(temporaryPath, path, overwrite: true);
-            }
-            finally
-            {
-                if (File.Exists(temporaryPath))
-                    File.Delete(temporaryPath);
-            }
+            WriteFile(path, entries);
             return true;
+        }
+    }
+
+    /// <inheritdoc />
+    public bool TryRemove(string culture, string key, string expectedValue)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        ArgumentNullException.ThrowIfNull(expectedValue);
+        string path = GetPath(culture);
+
+        lock (_gate)
+        {
+            var entries = ReadFile(path).ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+            if (!entries.TryGetValue(key, out string? current) ||
+                !string.Equals(current, expectedValue, StringComparison.Ordinal))
+                return false;
+
+            entries.Remove(key);
+            WriteFile(path, entries);
+            return true;
+        }
+    }
+
+    private void WriteFile(string path, Dictionary<string, string> entries)
+    {
+        Directory.CreateDirectory(_directory);
+        var sorted = entries.OrderBy(pair => pair.Key, StringComparer.Ordinal)
+            .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+        string temporaryPath = Path.Combine(_directory, "." + Guid.NewGuid().ToString("N") + ".tmp");
+
+        try
+        {
+            File.WriteAllText(temporaryPath, JsonSerializer.Serialize(sorted,
+                new JsonSerializerOptions { WriteIndented = true }));
+            File.Move(temporaryPath, path, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(temporaryPath))
+                File.Delete(temporaryPath);
         }
     }
 

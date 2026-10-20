@@ -15,4 +15,11 @@ public sealed class LocalizationOptions
     /// Default: true. Disable only for explicitly trusted legacy dictionaries.
     /// </summary>
     public bool ValidateLocalizedPlaceholders { get; init; } = true;
+    /// <summary>
+    /// Automatically remove only malformed target translations (never source
+    /// entries) when placeholder validation fails and the store supports
+    /// conditional removal. Default: true. Disable for review-only workflows.
+    /// </summary>
+    public bool AutoInvalidateInvalidTargetTranslations { get; init; } = true;
 }
+

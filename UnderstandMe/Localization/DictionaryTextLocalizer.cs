@@ -41,12 +41,31 @@ public sealed class DictionaryTextLocalizer : ITextLocalizer
                 ? sourceValue
                 : key;
 
+            // Never delete target entries merely because the authoritative
+            // source template itself contains invalid placeholder syntax.
+            bool sourceSyntaxValid = LocalizationPlaceholderValidator.HasValidPlaceholderSyntax(sourceTemplate);
             foreach (string candidate in CultureCandidates(selected, source))
             {
-                if (GetSnapshot(candidate).TryGetValue(key, out string? value) &&
-                    (!_options.ValidateLocalizedPlaceholders ||
-                     LocalizationPlaceholderValidator.HasMatchingPlaceholders(sourceTemplate, value)))
+                if (!GetSnapshot(candidate).TryGetValue(key, out string? value))
+                    continue;
+
+                if (!_options.ValidateLocalizedPlaceholders ||
+                    LocalizationPlaceholderValidator.HasMatchingPlaceholders(sourceTemplate, value))
                     return value;
+
+                // Repair only this broken target-culture entry. Do not remove
+                // its source key, parent translation, or any other culture.
+                if (_options.AutoInvalidateInvalidTargetTranslations &&
+                    sourceSyntaxValid &&
+                    !string.Equals(candidate, source, StringComparison.OrdinalIgnoreCase))
+                {
+                    TryInvalidateStoredValue(candidate, key, value);
+                    // Another writer might already have fixed this entry;
+                    // conditional removal preserves that newer valid value.
+                    if (GetSnapshot(candidate).TryGetValue(key, out string? latest) &&
+                        LocalizationPlaceholderValidator.HasMatchingPlaceholders(sourceTemplate, latest))
+                        return latest;
+                }
             }
 
             if (_options.RegisterMissingSourceKeys)
@@ -98,6 +117,57 @@ public sealed class DictionaryTextLocalizer : ITextLocalizer
             result.Append(template[i++]);
         }
         return result.ToString();
+    }
+
+    /// <inheritdoc />
+    public bool InvalidateTranslation(string culture, string key)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(culture);
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        string normalized = culture.Trim();
+
+        // Never destroy the canonical dictionaryless or symbolic source.
+        if (string.Equals(normalized, _options.SourceCulture.Trim(), StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        lock (_gate)
+        {
+            if (_store is not ILocalizationTranslationInvalidationStore)
+                return false;
+
+            try
+            {
+                // Read the current value instead of trusting a cached snapshot.
+                // The actual removal still uses a conditional compare-and-remove.
+                var current = _store.Load(normalized);
+                _snapshots[normalized] = current;
+                if (!current.TryGetValue(key, out string? value))
+                    return false;
+
+                return TryInvalidateStoredValue(normalized, key, value);
+            }
+            catch (IOException) { return false; }
+            catch (UnauthorizedAccessException) { return false; }
+            catch (JsonException) { return false; }
+        }
+    }
+
+    private bool TryInvalidateStoredValue(string culture, string key, string expectedValue)
+    {
+        if (_store is not ILocalizationTranslationInvalidationStore invalidator)
+            return false;
+
+        try
+        {
+            bool removed = invalidator.TryRemove(culture, key, expectedValue);
+            // Refresh also when a compare failed: a concurrent writer may
+            // have replaced the invalid snapshot with a correct translation.
+            _snapshots[culture] = _store.Load(culture);
+            return removed;
+        }
+        catch (IOException) { return false; }
+        catch (UnauthorizedAccessException) { return false; }
+        catch (JsonException) { return false; }
     }
 
     /// <inheritdoc />

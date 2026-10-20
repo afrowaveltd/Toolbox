@@ -30,6 +30,16 @@ public sealed class LocalizationPlaceholderValidatorTests
         Assert.Equal(expected, LocalizationPlaceholderValidator.HasMatchingPlaceholders(source, candidate));
     }
 
+    [Theory]
+    [InlineData("Hello {name}", true)]
+    [InlineData("Hello {{name}}", true)]
+    [InlineData("I have {broken", false)]
+    [InlineData("{name}}", false)]
+    public void Source_placeholder_syntax_is_checked_separately(string template, bool expected)
+    {
+        Assert.Equal(expected, LocalizationPlaceholderValidator.HasValidPlaceholderSyntax(template));
+    }
+
     [Fact]
     public void Placeholder_validation_requires_non_null_templates()
     {

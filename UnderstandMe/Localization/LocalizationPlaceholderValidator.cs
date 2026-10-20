@@ -39,6 +39,15 @@ public static class LocalizationPlaceholderValidator
         return true;
     }
 
+    /// <summary>Checks that a template has well-formed named placeholder syntax.</summary>
+    /// <param name="template">Template to check.</param>
+    /// <returns>True when its brace syntax is valid, even if no placeholders exist.</returns>
+    public static bool HasValidPlaceholderSyntax(string template)
+    {
+        ArgumentNullException.ThrowIfNull(template);
+        return TryReadPlaceholders(template, out _);
+    }
+
     private static bool TryReadPlaceholders(string template, out Dictionary<string, int> occurrences)
     {
         occurrences = new Dictionary<string, int>(StringComparer.Ordinal);

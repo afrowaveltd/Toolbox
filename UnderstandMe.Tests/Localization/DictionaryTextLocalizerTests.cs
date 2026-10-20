@@ -174,8 +174,9 @@ public sealed class DictionaryTextLocalizerTests : IDisposable
         Assert.Equal("I have 3 kids", localizer.Format(source,
             new Dictionary<string, string> { ["count"] = "3" }, "cs"));
 
-        // Validation must not delete the bad candidate or mutate the source store.
-        Assert.Equal(invalidTranslation, Store.Load("cs")[source]);
+        // Only the invalid target is removed; source is untouched. A future
+        // Afutrans scanner can regenerate the missing target culture entry.
+        Assert.False(Store.Load("cs").ContainsKey(source));
         Assert.False(File.Exists(Path.Combine(_root, "en.json")));
     }
 
@@ -188,6 +189,8 @@ public sealed class DictionaryTextLocalizerTests : IDisposable
 
         Assert.Equal("Nazdar Ada", Create().Format("Hello {name}",
             new Dictionary<string, string> { ["name"] = "Ada" }, "cs-CZ"));
+        Assert.False(Store.Load("cs-CZ").ContainsKey("Hello {name}"));
+        Assert.Equal("Nazdar {name}", Store.Load("cs")["Hello {name}"]);
     }
 
     [Fact]
@@ -231,6 +234,101 @@ public sealed class DictionaryTextLocalizerTests : IDisposable
     {
         Write("cs", """{"Hello there":"Dobrý den"}""");
         Assert.Equal("Dobrý den", Create().Get("Hello there", "cs"));
+    }
+
+
+    [Fact]
+    public void Explicit_invalidation_removes_one_target_entry_only()
+    {
+        Write("en", """{"Hello {name}":"Hello {name}","Other":"Source"}""");
+        Write("cs", """{"Hello {name}":"Ahoj {name}","Other":"Jiné"}""");
+        Write("de", """{"Hello {name}":"Hallo {name}"}""");
+        var t = Create();
+
+        Assert.Equal("Ahoj Ada", t.Format("Hello {name}",
+            new Dictionary<string, string> { ["name"] = "Ada" }, "cs"));
+
+        Assert.True(t.InvalidateTranslation("cs", "Hello {name}"));
+        Assert.False(t.InvalidateTranslation("cs", "Hello {name}"));
+        Assert.Equal("Hello Ada", t.Format("Hello {name}",
+            new Dictionary<string, string> { ["name"] = "Ada" }, "cs"));
+        Assert.Equal("Jiné", Store.Load("cs")["Other"]);
+        Assert.Equal("Hello {name}", Store.Load("en")["Hello {name}"]);
+        Assert.Equal("Hallo {name}", Store.Load("de")["Hello {name}"]);
+    }
+
+    [Fact]
+    public void Source_culture_is_never_invalidated_even_explicitly()
+    {
+        Write("en", """{"Welcome":"Welcome"}""");
+        var t = Create();
+
+        Assert.False(t.InvalidateTranslation("EN", "Welcome"));
+        Assert.Equal("Welcome", Store.Load("en")["Welcome"]);
+    }
+
+    [Fact]
+    public void Automatic_invalidation_can_be_disabled_for_review_only_deployments()
+    {
+        Write("en", """{"Kids":"I have {count} kids"}""");
+        Write("cs", """{"Kids":"Mám děti"}""");
+        var t = new DictionaryTextLocalizer(Store, new LocalizationOptions
+        {
+            SourceCulture = "en",
+            RegisterMissingSourceKeys = false,
+            AutoInvalidateInvalidTargetTranslations = false
+        });
+
+        Assert.Equal("I have 3 kids", t.Format("Kids",
+            new Dictionary<string, string> { ["count"] = "3" }, "cs"));
+        Assert.Equal("Mám děti", Store.Load("cs")["Kids"]);
+    }
+
+    [Fact]
+    public void Invalid_source_syntax_does_not_trigger_target_deletion()
+    {
+        Write("en", """{"Kids":"I have {broken kids"}""");
+        Write("cs", """{"Kids":"Mám {count} dětí"}""");
+        var t = Create(false);
+
+        Assert.Equal("Kids", t.Get("Kids", "cs"));
+        Assert.Equal("Mám {count} dětí", Store.Load("cs")["Kids"]);
+    }
+
+    [Fact]
+    public void Conditional_store_removal_does_not_delete_newer_correction()
+    {
+        Write("cs", """{"Kids":"Mám děti","Other":"Jiné"}""");
+        var store = Store;
+
+        Assert.False(store.TryRemove("cs", "Kids", "stale bad translation"));
+        Assert.Equal("Mám děti", store.Load("cs")["Kids"]);
+        Assert.True(store.TryRemove("cs", "Kids", "Mám děti"));
+        Assert.False(store.Load("cs").ContainsKey("Kids"));
+        Assert.Equal("Jiné", store.Load("cs")["Other"]);
+        Assert.False(store.TryRemove("cs", "Kids", "Mám děti"));
+    }
+
+    [Fact]
+    public void Malformed_json_is_not_overwritten_by_invalidation()
+    {
+        Write("cs", """{"Kids":null}""");
+        var t = Create();
+        Assert.False(t.InvalidateTranslation("cs", "Kids"));
+        Assert.Equal("""{"Kids":null}""", File.ReadAllText(Path.Combine(_root, "cs.json")));
+    }
+
+    [Fact]
+    public void Read_only_invalidation_capability_is_optional()
+    {
+        var memory = new MemoryStore();
+        memory.Set("cs", "Hello {name}", "Ahoj");
+        var t = new DictionaryTextLocalizer(memory);
+
+        Assert.Equal("Hello Ada", t.Format("Hello {name}",
+            new Dictionary<string, string> { ["name"] = "Ada" }, "cs"));
+        Assert.False(t.InvalidateTranslation("cs", "Hello {name}"));
+        Assert.Equal("Ahoj", memory.Load("cs")["Hello {name}"]);
     }
 
     private sealed class MemoryStore : ILocalizationDictionaryStore
