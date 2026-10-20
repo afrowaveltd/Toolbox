@@ -52,3 +52,12 @@ Additional capabilities should be **optional and interface-based**: read, write,
 Do not confuse the format used to exchange dictionaries (often REST/JSON) with the host's storage technology. The flat JSON format remains the Afutrans interoperable convention; UnderstandMe may use other backing stores. Dictionaryless registration requires a writable source or a separately configured deferred registration target.
 
 A new `MemoryStore` xUnit test proves that lookup, first-key registration and explicit refresh function without any JSON file, using only the interface. No remote, SQL or Node.js adapter has yet been implemented.
+
+## Named placeholder candidate validation (2026-10-20)
+
+**Small additive implementation slice:** `LocalizationPlaceholderValidator.HasMatchingPlaceholders(source, candidate)` provides a strict, opt-in check for proposed translated templates. It requires the **same ordinal placeholder names with the same occurrence counts**, including duplicate slots; order may change for target-language grammar. `{{` and `}}` are treated as escaped literal braces. Stray/unmatched braces, empty/invalid names, removed/added/renamed slots are rejected.
+
+This validator does **not** require a dictionary, CLDR, provider, Afutrans or metadata. It does not alter `ITextLocalizer`, `DictionaryTextLocalizer.Get/Format` or dictionaryless source registration. In particular it is **not yet integrated into translation admission/import or the existing localizer's legacy translations**; consumers can use it before accepting a candidate. Future integration must handle a previously stored translation with extra slots consciously, without silently breaking source registration.
+
+Tests in `UnderstandMe.Tests/Localization/LocalizationPlaceholderValidatorTests.cs` cover reordering, repeated placeholders, escaped braces, Unicode plain text, case sensitivity, invalid tokens/braces and null inputs. Build/CI results belong in `IMPLEMENTATION_STATUS.md` once observed. **No additional grammar, hint sidecars or CLDR engine implemented.**
+

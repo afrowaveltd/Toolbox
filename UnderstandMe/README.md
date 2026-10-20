@@ -150,3 +150,7 @@ CommunityFree is intended to **slow down, not exhaust arbitrary monthly translat
 
 Shared Afrowave translation service is designed for **maximum feasible free community access with equal terms from day one and permanently**, not paid queue-jumping, arbitrary credits or personal profit. Slow, fairly process deferred work when capacity is busy; reserve genuine overload/backpressure for actual service protection. All optional contributions are allocated to real and disclosed operating value (VPS/LibreTranslate, AI provider credits, network/backups) with public private-data-safe **last-cent** financial reconciliation and donor-specific receipts; unspent funds remain explicitly held. No billing or payment dependency enters UnderstandMe. See [Afrowave Community Access and Transparent Funding](../Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md).
 
+### Strict named-placeholder validation (first implementation slice)
+
+`LocalizationPlaceholderValidator.HasMatchingPlaceholders(source, candidate)` checks that a proposed translation contains **exactly the original named placeholders including repeated counts**, regardless of order. It understands escaped `{{`/`}}` braces and rejects malformed bracket sequences. This standalone opt-in utility is for future translation admission and does not change dictionaryless registration, JSON files or existing localizer API. See [Localization first implementation](Docs/Localization/First-Implementation/en.md).
+

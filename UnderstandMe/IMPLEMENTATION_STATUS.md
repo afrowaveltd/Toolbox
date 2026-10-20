@@ -553,3 +553,10 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - User prefers a **separate contribution receiving/proxy account** with personalized private contributor receipt; a reconciled aggregate transfer (e.g. publicly `Paywall income`) goes to the transparent Afrowave operating account. Avoid counting the internal transfer twice; acknowledge amounts awaiting transfer.
 - **Outgoing business payments** such as InterServer VPS costs should remain transparently visible, including actual supplier and paid amount; do not automatically hide ordinary business account information, while keeping donor privacy and banking secrets protected.
 - Future-only note added to [Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md](../Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md). **No more banking/payment architecture or implementation now; return focus to localization.**
+
+## 2026-10-20 — strict standalone candidate placeholder validator (new code)
+
+- Returned from system architecture/finance discussions to the existing UnderstandMe offline localization implementation. Added `Localization/LocalizationPlaceholderValidator.cs`: public opt-in `HasMatchingPlaceholders(source, candidate)` checks exact ordinal name/occurrence multiset independent of order, escaped double braces and conservatively rejects malformed braces, with no required hints, CLDR, provider or network dependency.
+- Added `UnderstandMe.Tests/Localization/LocalizationPlaceholderValidatorTests.cs` with xUnit coverage for reordering, repeated slots, missing/renamed/additional placeholders, escaped braces, malformed syntax and null inputs. **No change** to `ITextLocalizer` or dictionaryless localizer behavior; translation admission/writer integration remains future work.
+- Updated [Docs/Localization/First-Implementation/en.md](Docs/Localization/First-Implementation/en.md) and root UnderstandMe README. **Build/tests not yet independently confirmed at commit time**; CI workflow on `master` is the intended verification path. No fabricated green test result. Preserve existing tests and recheck workflow run before claiming PASS.
+
