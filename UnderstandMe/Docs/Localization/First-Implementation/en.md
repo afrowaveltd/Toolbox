@@ -75,3 +75,12 @@ Optional realtime rescue by translating **fully rendered source text**, scoped i
 
 **Verified:** GitHub Actions [.NET workflow #39408931347](https://github.com/afrowaveltd/Toolbox/actions/runs/39408931347) for code commit [`b2faa1c`](https://github.com/afrowaveltd/Toolbox/commit/b2faa1cb5515f80f2c2e0448e985f2f773f4322f) completed **SUCCESS** (restore, build and test steps all green). No exact per-project test totals or zero-warning claims were extracted from the run.
 
+## InvalidateTranslation: focused target-only repair hook (2026-10-20)
+
+**New .NET 10 source slice committed:** [`1a08085`](https://github.com/afrowaveltd/Toolbox/commit/1a08085fc5619e03938fb76afd25c900e9717fe9) introduces `ITextLocalizer.InvalidateTranslation(culture, key)`, optional storage capability `ILocalizationTranslationInvalidationStore.TryRemove(culture, key, expectedValue)`, and `FileJsonDictionaryStore` target-only conditional deletion with temp-file JSON replacement.
+
+When strict placeholder validation fails, the runtime now **automatically invalidates just the still-matching malformed target** by default on writable compatible stores; operators may disable automatic invalidation with `AutoInvalidateInvalidTargetTranslations=false`. Malformed source syntax and source-culture entries are protected; stale snapshots are refreshed after conditional delete or compare failure. Existing offline source/parent fallback preserves the caller's interpolated placeholders. Read-only custom stores still work without any delete capability.
+
+Updated xUnit tests for explicit invalidation, missing/repeated/renamed tokens, target-only and source preservation, invalid-source opt-out, opt-in/out, CAS safety, malformed JSON and optional read-only stores. The **Afutrans scanner able to notice missing targets even with unchanged source snapshots** is designed but not yet implemented, nor are event broadcasting, incidents or realtime one-shot rescue.
+
+**Verification:** GitHub Actions build/tests for this code commit must be observed separately; no local `dotnet` SDK is available in this tool runtime. Do not claim additional passing test totals without checking CI.
