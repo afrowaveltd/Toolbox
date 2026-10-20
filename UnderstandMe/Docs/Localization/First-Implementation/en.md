@@ -73,5 +73,5 @@ Unit tests were added for missing/extra/renamed/invalid slots, region-parent fal
 
 Optional realtime rescue by translating **fully rendered source text**, scoped invalidation/change events, Afutrans regeneration, incident logging and per-entry last-good revision retention remain **planned, not implemented**, preserving synchronous cache-first lookups and source-key history. **Do not delete a dictionaryless source key to trigger translation**: it would destroy reusable translations and manual edits. Full design: [Invalid Placeholder Fallback](../Invalid-Placeholder-Fallback/en.md).
 
-**Verification:** this repository commit includes code and tests; GitHub Actions push workflow must be checked separately before claiming a green run.
+**Verified:** GitHub Actions [.NET workflow #39408931347](https://github.com/afrowaveltd/Toolbox/actions/runs/39408931347) for code commit [`b2faa1c`](https://github.com/afrowaveltd/Toolbox/commit/b2faa1cb5515f80f2c2e0448e985f2f773f4322f) completed **SUCCESS** (restore, build and test steps all green). No exact per-project test totals or zero-warning claims were extracted from the run.
 
