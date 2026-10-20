@@ -71,3 +71,45 @@ Future tests:
 
 **Design-stage only.** No Observer, relay, quorum integration, deployed SMTP health report or related tests exists in the new Id project at this time.
 
+## Three external states, fenced authority and scalable cluster membership (2026-10-20)
+
+**Confirmed conceptual API preference:** the externally visible node/service health state remains a deliberately small three-value enumeration: `Ready`, `Degraded`, `Fail`. Keep leader/follower membership, replication progress and quorum eligibility **orthogonal** instead of overloading one enum.
+
+| State | Meaning | Public and write behavior |
+| --- | --- | --- |
+| `Ready` | Node satisfies the readiness requirements **for its current role** and has an accepted, sufficiently current view of cluster state | A ready `Leader` can take authorized writes. A ready `Follower` may serve permitted reads or proxy requests to the leader; it cannot independently write identities. |
+| `Degraded` | A live node has incomplete network reachability, stale replication, lacks a valid leadership lease/quorum, is joining/rejoining, or is under maintenance | May provide approved safe read/health endpoints, **never** unauthorized identity writes; release from degraded state only after resync + validation + applicable lease/role requirements |
+| `Fail` | Critical service operations are unavailable or the supervisor cannot establish the required readiness; a stopped/crashed process may be observed externally as `Unreachable` | Remove from operational routing; no authoritative writes. `Unreachable` is a **reason/observation**, not proof of the physical root cause. |
+
+Additional independent values: `NodeRole` (`Leader`, `Follower`, optional `Candidate`), `CanWrite` (derived from leader lease/epoch, fencing and DB authority), `CanServeReads`, `QuorumAvailable`, `ReplicationPosition`, `SyncStatus`, `LastObservedAt`, `StateReason`, `MembershipVersion`, `PublicEndpointReachable`. Internal rejoin phases `Discover`, `CatchUp`, `Validate` map to externally `Degraded`. `Ready` describes a healthy follower **or** leader and does not grant writes merely because the state name is `Ready`.
+
+### Automatic degradation must physically revoke write authority
+
+- The author wants Id1 automatically moved to `Degraded` and Id2 to continue **fully, including new writes**, if Id1 disappears, while Id1 remains degraded until again online **and caught up**. Implement this by actual database/consensus lease loss, fencing/epoch rejection and health-checked ingress routing. Observer can trigger health reports or ask the HA orchestrator to act, but cannot revoke an **unreachable** primary safely by merely sending a SignalR demotion command.
+- The old leader must cease writes **even if Observer cannot reach it**. A leader that loses the ability to renew a required quorum lease or use the fenced storage must demote; the authoritative store rejects stale leader epochs. Id2 can promote only after consensus, suitable replica freshness, write-fencing and key readiness.
+- If Id1 loses **only one** connectivity path (Observer or Id2) while the cluster still has a legitimate majority and working replication route, do not degrade or fail over needlessly. Report `LinkDegraded` as a warning/condition, possibly enable Observer relay. Conversely, public ingress can mark an API instance degraded/unready even while its internal DB leader is alive, and arrange a **safe leader handoff** if service-level availability requires it.
+- In an ordinary two-Id + voting Observer setup, Id2+Observer could authorize leadership with 2/3 votes if Id1 isolated; Id1+Id2 still possess 2/3 if only Observer fails. The **voter system**, not a health dashboard, must count these votes. Detection has bounded timeouts/leases and no guarantee of instant transition.
+- Two data-bearing nodes plus an observer-only voter do **not** ensure zero acknowledged write loss and write availability under a data-node loss. A strict synchronous configuration may temporarily refuse commits, or an asynchronous policy accepts an explicitly measured RPO. For both stronger durability and available writes after one failure, consider a properly configured third data-bearing replica/consensus system.
+
+### Grow beyond two Id servers without creating a new problem
+
+- **Application/replica membership** is independent of **consensus voters**. Register a new Id instance with strong node identity and explicit administrative authorization. First run a bootstrap/catch-up in `Degraded` with no public/write readiness, then validate schema, replication position, keys, membership epoch and health, then switch to `Ready` as `Follower`. Promotion to `Leader` is a distinct later decision.
+- Voter count `N` requires a strict majority: `quorum = floor(N / 2) + 1`. A 3-voter configuration needs 2; a 4-voter configuration needs 3 (still tolerates only one failure); a 5-voter configuration needs 3 (tolerates two). Do **not** automatically give every newly registered Id app, Observer instance or service heartbeat a vote; preserve deliberate membership control and suitable odd voting-group sizes.
+- Adding a fourth data-bearing Id instance may improve read throughput/data replication resilience **without immediately changing the voting set**. Adding and removing voters uses quorum-approved, sequential, restart-safe membership changes, preferably a supported `learner`/nonvoting catch-up stage where the selected cluster stack provides it. Do not add two members at once or count an unready peer toward quorum accidentally.
+- Scaling read/API Id nodes is straightforward through the common contracts; scaling strongly consistent write authority still has one leader or equivalent ordered transactional mechanism, even with more than two Id services.
+- Observer remains a replaceable **Supervisor + optional Relay + explicitly enrolled Witness**. Do not rely on a single Observer machine for every application's availability or for normal Id traffic; its loss should be survivable while other voting members remain quorate.
+
+### Scenarios to test
+
+1. Id1 becomes unreachable, Id2 and Observer are quorate: Id2 safely becomes write leader and handles logins, MFA, registrations and authorized grants after the HA database layer confirms durability/fencing; Id1 is externally `Fail`/`Unreachable` until observed again.
+2. Id1 returns: `Degraded`, discover current leader, catch up and validate; **only then `Ready`** as follower. No automatic return to preferred-primary leadership.
+3. Id1 loses only Observer: Id1+Id2 remain quorate; no forced failover. Observer returns and topology/health warning clears.
+4. Id1 loses only Id2 direct Uplink: Observer can relay control traffic if permitted; database write capability still follows the HA store's independent state.
+5. Id1 isolated from both quorum peers while still answering HTTP: its authoritative writes stop and fail closed; no two conflicting Id account revisions.
+6. Add Id3: first `Degraded`/nonvoting catch-up, then `Ready` follower and only deliberately change voter membership if required; no quorum regression when an added node is initially offline.
+7. Failover with a stale Id2 replica and only two physical data copies demonstrates chosen RPO/durability policy rather than silently losing acknowledged writes.
+
+References: [etcd failures](https://etcd.io/docs/v3.5/op-guide/failures/), [etcd runtime reconfiguration](https://etcd.io/docs/v3.5/op-guide/runtime-configuration/), [Patroni failover and DCS leases](https://patroni.readthedocs.io/en/latest/dcs_failsafe_mode.html). Specific database/consensus implementation remains undecided.
+
+**Status:** requirements and future acceptance tests only. No C# status enum/observer endpoint, quorum/fencing mechanism, replication, API routing or new Id tests implemented.
+

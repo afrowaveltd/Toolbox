@@ -150,3 +150,11 @@ User refined the HA architecture: a separate `Observer` application receives sma
 
 Only designated Id cluster members/voters may affect the Id election; unrelated applications reporting heartbeat have no vote. SignalR relay is **not** authoritative DB replication and Observer must not become the single required request router. Prefer optional direct and alternate paths, incident alerts and external watchdog checks. See [Observer and Uplink](../Id-Observer-and-Uplink/en.md). **Design only.**
 
+## Three health states and explicit leadership fencing (2026-10-20)
+
+The Id deployment should expose exactly three high-level health values: **`Ready`, `Degraded`, `Fail`**, while keeping the **`Leader`/`Follower`** node role and actual quorum-fenced write authorization as independent dimensions. A returning Id is `Degraded` until reconciled with the **currently authorized leader**, verified and only then `Ready`. Id2 must be able to fully take over when Id1 disappears, subject to safe consensus, replica freshness and configured durability guarantees.
+
+An Observer report can detect a lost node and trigger recovery, but **cannot demote a disconnected Id node merely by announcing a different state**; a lease/epoch and database fencing must make any old leader reject authoritative writes. Losing one link with an intact majority should not automatically force takeover. To add Id3 or later nodes, first authenticate/register and sync them in `Degraded`, then enable `Ready` follower; change voting membership by deliberate quorum-safe reconfiguration rather than automatically making every node a voter.
+
+See [Observer and Uplink](../Id-Observer-and-Uplink/en.md) and [High Availability](../Id-High-Availability-and-Replication/en.md). **Architecture only; no source implementation/tests.**
+

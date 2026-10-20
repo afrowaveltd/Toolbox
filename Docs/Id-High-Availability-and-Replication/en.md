@@ -140,3 +140,11 @@ The original idea that Id2 must contact Id1 before it serves clients becomes a s
 
 The full failure matrix, model contracts, trust boundaries and test plan are in [Id Observer and Uplink](../Id-Observer-and-Uplink/en.md). **Documented design; no runtime implementation or tests.**
 
+## Three-state external health and multi-Id join procedure (2026-10-20)
+
+**User-requested public status vocabulary:** `Ready`, `Degraded`, `Fail`. Keep `Leader`/`Follower` role, quorum lease/epoch, write authority and replication state separate. A `Ready` follower is not independently authorized to commit identities; `Degraded` covers incomplete network/catch-up/quorum/maintenance and may offer safely scoped reads; `Fail` covers unavailable critical functionality (with reason `Unreachable` when health probes only know that a node is not accessible).
+
+Id2 should be able to accept **full writes when Id1 fails**, provided Id2 has the elected leader lease, trusted key material, suitable replica freshness and a data replication/durability policy that actually permits commits. Observer's status change **does not itself revoke an isolated Id1's writes**; the database leader fencing, consensus epoch and lease expiration must enforce that independently. Losing just one peer link when an authorized quorum remains available should report connectivity degradation, not automatically demote a healthy primary.
+
+More than two Id nodes are supported conceptually: securely register a node, bootstrap/catch up as nonwritable `Degraded`, validate replica and key versions, become `Ready` follower, then allow leadership when eligible. Voting membership is independent of number of API/replica nodes: majority `floor(N/2)+1`, and adding a 4th voter to a 3-voter group does not improve single-failure tolerance (3/4 votes required). Preserve quorum during controlled sequential reconfiguration. See [Observer and Uplink](../Id-Observer-and-Uplink/en.md) for state matrix and acceptance tests. **Design only.**
+
