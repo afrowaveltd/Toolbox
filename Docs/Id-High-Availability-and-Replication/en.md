@@ -62,3 +62,69 @@ Even temporary unavailability of Id could prevent **new login, account recovery,
 Select the initial Id database implementation and clustering/orchestration stack, independent hosting/failure domains, automated routing/fencing mechanism, backup strategy, operational RPO/RTO/SLO targets, revocation freshness/cache intervals, key custody and monitoring. Do not claim zero downtime before failover drills and region-loss exercises prove the chosen architecture.
 
 **Implementation status:** no Id replica, failover orchestration, distributed key store, off-cluster backup or compatibility tests were added with this document. Work remains design-stage.
+
+## Preferred-primary Id1/Id2, SignalR Uplink, rejoin and SMTP alerts (2026-10-20)
+
+### Preserve the author's original design
+
+- **Id1** is the preferred normal primary; **Id2** is a redundant synchronized server, with room for more. A distinct always-connected **SignalR Uplink Hub** reports node health, cluster status, sync/rejoin requests and committed-change positions. Each Id node integrates with a separately registered SMTP service application to send problem notifications.
+- Once Id1 genuinely fails, an authorized and sufficiently current Id2 takes over and durably commits further changes. A returning node must contact/discover the **current legitimate leader**, reconcile, validate and only then advertise healthy public service endpoints. If Id2 was promoted, recovering Id1 must initially rejoin **as its follower**.
+
+### Preferred primary is not a permanently authorized master
+
+| Provisional setting | Meaning |
+| --- | --- |
+| `NodeId` | Persistent identity for this Id installation/node |
+| `PreferredPrimary` (author's `IsMaster`) | Desired normal primary; **configuration preference, not authority to write** |
+| `LeaderId`, `LeaderEpoch` | Quorum-authorized leader and monotonic generation; stale leadership cannot perform privileged writes |
+| `Role` | Observed dynamic `Recovering`, `Follower`, `Leader`, `Unavailable` |
+| `ReplicationPosition` | Database replication offset/transaction-log position used for catch-up verification |
+| `UplinkConnected` | Informational peer-connectivity state, **not** proof that peer is dead or alive |
+| `ReadReady`, `WriteReady`, `PublicReady` | Separate health/readiness gates for API ingress |
+
+After Id2 becomes a legitimate leader, Id1's preferred-primary flag **must not** force an immediate takeover. A planned, verified **switchover** can return leadership to Id1 later, once caught up and ready, with a new epoch/fencing. Frequent automatic failbacks risk repeated service interruption.
+
+### Separate SignalR control plane from authoritative replication
+
+- Keep SignalR Uplink: authenticated bidirectional heartbeats, topology/health, `LeaderChanged`, `ReplicationProgress`, `SyncRequested`, `SyncCompleted`, `NodeReady`, and change-available notifications. Reconnect/replay/deduplication is required. Hub commands never grant themselves leader status.
+- **Do not elect a leader merely because the other node's SignalR uplink disconnects.** Both Ids can remain reachable by public clients despite their mutual network split. An independent quorum/leader lease and fencing mechanism must authorize only one writer; the minority rejects high-impact mutations rather than creating a second identity history.
+- Use a proven database **transaction-log replication mechanism** for identity, MFA, sessions/revocation and app/service-grant records. SignalR event messages do not guarantee durable ordering or delivery and must not be the only record of changes.
+- For ancillary node-local projections/settings that require special sync, use durable revisions or a transactional outbox with monotonic sequence, idempotent replay and snapshot fallback. Acknowledged writes are committed to an explicit authoritative data history, never a loose pair of local JSON stores.
+
+### Two-node plus witness limitations
+
+- A suggested minimum cluster has **two independent Id/data servers and a third independent quorum/fencing voter**. A voter is not a third copy of the identity database. Choose a mature HA design appropriate for the selected database. PostgreSQL with Patroni and a suitable 3-voter DCS is an example, not a decided implementation.
+- If Id1 is lost and Id2 holds quorum and an eligible up-to-date replica, it can receive a new leader epoch and serve writes. If the partitioned Id1 stays alive, it must be fenced and stop accepting authoritative writes.
+- **Durability and availability must be negotiated explicitly:** with only two data-bearing nodes, synchronous confirmation to the replica can stop writes when Id2 is unavailable; permitting asynchronous Id1 writes during that outage risks losing recently acknowledged changes if Id1 then dies. A third voting-only witness does not store those changes. If zero acknowledged-write loss plus continued write availability on loss of one data replica is required, evaluate **three data-bearing nodes or equivalent durable data quorum**, not only two plus witness.
+- Document service RPO, RTO and tolerated replica lag. Never claim perfect write availability and zero loss under every failure; use a temporary read-only/error state rather than split-brain corruption when quorum is unavailable.
+- Patroni references: https://github.com/patroni/patroni/blob/master/docs/faq.rst ; https://patroni.readthedocs.io/en/latest/ha_multi_dc.html ; https://patroni.readthedocs.io/en/latest/replication_modes.html .
+
+### Rejoin state machine (proposed)
+
+1. `Bootstrapping`: process starts non-public; load protected node identity and trusted cluster membership.
+2. `DiscoverLeader`: use Uplink where available, but **verify** authoritative leader identity/epoch through quorum rather than static Id1 preference.
+3. `CatchUp`: replay trusted database replication log to current position, or use controlled snapshot/rewind when logs were lost or timelines diverged. No independent writes while catching up.
+4. `Validate`: check consistency, schema, signing keys, revocation status freshness, DB position and local settings.
+5. `FollowerReady`: only safe allowed read/auth endpoints are exposed as determined by policy; writes route to current leader and no stale new privileges are minted.
+6. `LeaderReady`: requires actual authorized promotion, fencing, current durable state and key readiness. Ingress sends write traffic only here.
+7. `Degraded` / `ReadOnly`: no quorum or unverified leader; cease authoritative writes and report explicit status.
+
+The original idea that Id2 must contact Id1 before it serves clients becomes a stronger invariant: **a rejoining Id node must synchronize with the _currently authorized leader_ before it advertises readiness**. Id1 might no longer be that leader. Never discard legitimate post-failover Id2 changes to restore Id1's older snapshot.
+
+### SMTP and monitoring
+
+- Use the planned Afrowave SMTP **service application** to deliver node/cluster failure alerts. Queue incidents in an outbox, limit and deduplicate retries; **mail availability never blocks Id login, readiness, elections or transactions**.
+- A process that dies cannot send its own failure email. Peers should report suspected failure, but a lightweight **independent external monitor** must check cluster ingress, quorum and SMTP failure so a common-mode outage is visible.
+- Alert on `UplinkLost`, `ReplicaLag`, `QuorumLost`, `LeaderChanged`, `Failover`, `RejoinFailed`, `SigningKeyUnavailable`, `CertificateExpiry` and `IngressUnhealthy`. Notifications are not a consensus vote.
+
+### Future fault-injection tests
+
+- Id1 dies -> quorum-authorized Id2 takes over, Id1 returns as follower then optionally planned switchover to preferred primary.
+- Uplink is cut but both instances receive client requests -> at most one writer; minority cannot independently create users or system roles.
+- Id2 stops while Id1 runs -> synchronous strict vs asynchronous/nonzero-RPO operational behavior is transparent and tested.
+- Id1 returns with a divergent history or missing transaction logs -> controlled rewind/full resync and validation before readiness.
+- Reordered/duplicate/lost SignalR events -> durable source-of-truth replication or outbox recovers idempotently.
+- SMTP service fails or both Id services die -> no login failure caused by alerts; external monitor still detects the problem.
+
+**Status: architecture documentation only.** No new Id Uplink Hub, HA manager, SMTP alert worker, data replica or tests implemented here. Do not infer that the historic Id repo already contains production-ready replication.
+

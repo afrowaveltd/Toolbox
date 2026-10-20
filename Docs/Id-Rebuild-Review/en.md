@@ -133,3 +133,14 @@ Reference: [Afutrans Registered Service Integration](https://github.com/afrowave
 Existing app-owned sessions may remain usable under bounded expiry/revocation policy when Id is unreachable, but new global authentication and high-impact writes depend on an available authoritative Id quorum. Test node loss, network partition, site loss, revocation, crypto-key rotation and restore. Id remains independent of Afutrans availability and can load localization resources offline.
 
 Owners may elect plain FTP/HTTP for their own test/public applications if the chosen connector supports it, with honest warning and strict isolated worker boundaries. This **does not allow** unencrypted Id authorization-code/token transport on remote HTTP callbacks (see RFC 9700). Details: [Id High Availability and Replication](../Id-High-Availability-and-Replication/en.md). **Design only.**
+
+## Preferred-primary Uplink deployment pattern clarified (2026-10-20)
+
+The author prefers **Id1 as normal master**, **Id2 as synchronized standby**, a dedicated bidirectional **SignalR Uplink Hub** for node events/status/recovery, and a separate SMTP service application for failure notifications. Id2 may take over on confirmed Id1 failure; after return, the recovering node contacts the **current authorized leader**, performs durable catch-up and only then becomes publicly ready.
+
+**Architecture correction:** persist a `PreferredPrimary` preference rather than treating `IsMaster` as permanent permission to write. Dynamic `LeaderId`/`LeaderEpoch` plus quorum/fencing prevent dual-writer split brain when SignalR connectivity fails but both servers are publicly accessible. Original Id1 rejoins as follower after Id2 takeover; optional planned switchover restores normal preference.
+
+Two data servers and one voting witness do **not** imply three durable data copies. Choose documented synchronous durability vs asynchronous continued-write/RPO trade-offs, or add a third data-bearing node for stronger combined guarantees. SignalR is control/notifications; transactional DB replication is the authoritative sync. SMTP alerts use an outbox and external monitoring because failed hosts cannot report their own death.
+
+See [Id High Availability and Replication](../Id-High-Availability-and-Replication/en.md). **Documented design only; no code/test changes.**
+
