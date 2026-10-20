@@ -80,3 +80,13 @@ Keep `Persist` (recoverable job execution), `Preserve` (optional step outputs/hi
 
 Related: [Translation Chains](../Translation-Chains/en.md), [Notes](../../Notes.md).
 
+## Contribution-funded capacity is a service admission policy (2026-10-20)
+
+Hosted Afutrans can offer free **durable deferred** translations on bounded community capacity and optional contribution-funded faster or dedicated LibreTranslate worker capacity. This belongs to host Orchestrator/`ClientPolicy` admission, allowed priority ceilings, compatible worker allocation and shared resource quotas; it is **not a sixth central queue or a new P0-P4 priority meaning**. QueueMaster retains five logical priorities, bounded endpoint FIFO buffers and pull-based dispatch.
+
+- P0 remains volatile/automatic-only and requires actual realtime service eligibility/capacity. A waiting free translation that can finish later must be explicitly submitted as a **non-P0 durable job** and clearly identified to the caller; it never silently converts a private chat P0 request into persistent/human review work.
+- Contributor entitlement can authorize requests at an existing faster compatible priority or a reserved/isolated worker pool, subject to the current orchestrator limits; payment cannot overrule admin pause/stop, budget ceilings, format/privacy restrictions, worker `IsReady` or secure tenant authorization.
+- Concrete anti-starvation policy for accepted `CommunityFree` jobs must guarantee some progress under sustained priority load, while maintaining internal workload reservation and no scheduler-owned vendor billing. This may be by minimum worker-capacity reservation or quota/fair dispatch constraints; aging policy needs explicit design to avoid contradicting frozen request priorities.
+- Admission and the worker queue may impose bounded waiting, max queue depth, per-client word/rate/concurrency, and fair rejection/backpressure rather than indefinitely accepting work with no resources.
+
+See [Client Access Policies](../Client-Access-Policies/en.md) and [Afutrans capacity proposal](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Community-Capacity-and-Contributor-Priority/en.md). **Design only; no change to QueueMaster implementation.**

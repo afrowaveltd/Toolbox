@@ -216,3 +216,13 @@ For hosted Afutrans, a separate **intermediary application (API Gateway / access
 This is **not** a second engine: UnderstandMe and QueueMaster continue to work through their shared host-owned contracts, and standalone/offline localization requires no Id/Gateway. An Afutrans command handler still verifies a trusted scoped internal caller and target-level permissions even after Gateway admission; all transports share effective `ClientPolicy` rules. The gateway should not expose secret target connection strings or become the place where dictionary authorization data is stored. Detailed API/UI design deliberately deferred.
 
 See [Client Access Policies](../Client-Access-Policies/en.md) and [Afutrans service integration](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Registered-Service-Integration/en.md). **Architecture only; not implemented.**
+
+## Community deferred queue, funded priority and dedicated LibreTranslate (2026-10-20)
+
+Hosted Afutrans can offer **free deferred translation requests** on finite shared/community capacity and optionally accept user contributions or commercial subscriptions to increase the number of VPS and independent LibreTranslate workers. Contributors may gain configured priority/capacity, and organizations can choose reserved/dedicated pools. The author's intent is **infrastructure cost sustainability rather than artificially monetizing translation knowledge**.
+
+Preserve the existing five P0-P4 execution priorities, true immediate P0 automatic-only semantics and explicit durable P1-P4 background/interactive job distinction. A free delayed request is not an uncompleted P0 job; it is a separately accepted work request. Contributor status constrains permitted priority/capacity via verified `ClientPolicy`/Gateway/Id grant, while QueueMaster continues dispatching compatible admitted work. Guaranteed free progress, caps and backpressure prevent a crowd or a large contributor from taking down workers.
+
+Payment/accounting, self-hosted VPS running cost and chargeable external translation-provider budget remain **distinct optional responsibilities**, with transparent operator-authorized spending. Backend and host deployment may remain fully standalone/offline and human-only; no mandatory Id, payment connector or public listener is added.
+
+See [Afutrans Community Capacity and Contributor Priority](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Community-Capacity-and-Contributor-Priority/en.md) and [Client Access Policies](../Client-Access-Policies/en.md). **Design only.**

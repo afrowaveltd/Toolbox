@@ -105,3 +105,15 @@ The user proposes a **reusable intermediary / service-access gateway** in front 
 The intermediary's actual product name, topology, internal token/envelope format, credential and revocation TTL, Gateway vs BFF or service routing, quota enforcement ownership and transport-specific contract are **deliberately undecided**. Further design deferred at the owner's request.
 
 Reference: [Afutrans Registered Service Integration](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Registered-Service-Integration/en.md). **Design-only note, not implemented behavior.**
+
+## Community-free deferred work and contributor capacity entitlement (2026-10-20)
+
+**Author's preferred hosted Afutrans product model:** offer free **explicitly deferred/non-realtime** community translation within transparent finite rate/queue/word/capacity constraints. Optional contributions/subscriptions fund new VPS, self-hosted LibreTranslate workers and faster or dedicated capacity. This is an operator-configured `ClientPolicy`/capacity-entitlement feature, **not a paid prerequisite for the reusable UnderstandMe library or ordinary offline localization**.
+
+- Anonymous `CommunityFree` may submit only those published translation operations the operator allows; it cannot create SQL/FTP storage targets, read private dictionaries or request arbitrary provider accounts. A privileged target command always requires independently checked scope even with an API Gateway.
+- A verified `ContributorPriority` client may be admitted with a higher *allowed* queue priority, reserved compatible worker slots, greater rate/concurrency quotas or a dedicated server pool according to configuration; it cannot self-assert paid status/priority from request fields, bypass per-target permission or hard budgets, or force mandatory P0 on a busy host.
+- Public free jobs with deferred results must be **durably accepted as explicit non-P0 requests** and return `Accepted`/job/status rather than promising an immediate answer. P0 RealTime is still volatile and automatic-only; there is no implicit P0 → deferred/Human escalation.
+- Protect internal critical workloads but avoid starving admitted free work indefinitely. Use configurable minimum capacity share, admitted-work limits, dispatch fairness or effective-priority bounds; do not equate payment status with a QueueMaster enum or introduce per-client global physical queues by default. Concrete fairness mechanism remains to be designed/tested.
+- Separate (1) client authorization/entitlement, (2) quota/capacity reservations, (3) service-contribution/subscription revenue, (4) backend Google/Microsoft spend and (5) self-hosted VPS operating costs. `ClientPolicy` enforces entitlements; the provider `UsageLedger` cannot prove a payment was received.
+
+See [Afutrans Community Capacity and Contributor Priority](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Community-Capacity-and-Contributor-Priority/en.md). **Design only; no payment service, priority policy implementation or guarantees frozen.**

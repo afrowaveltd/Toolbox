@@ -93,3 +93,13 @@ This is **not** a full payment system, automatic webshop or invoice reconciliati
 Tests: quota boundary with parallel requests, no negative remaining in hard mode, automatic rejection of unapproved overage, manually authorized overage calculation and cap, package extension only after approval, renewal timing, timeout with unknown charge, retry idempotency, global hard budget overriding request flags, failover to free endpoint, and accurate estimated/actual labeling.
 
 Related: [Provider Routing](../Provider-Routing/en.md), [Request Settings and Live Updates](../Request-Settings-and-Live-Translation/en.md), [QueueMaster](../QueueMaster-and-Reliability/en.md), [Implementation Status](../../IMPLEMENTATION_STATUS.md).
+
+## Contributor revenue is distinct from translator-provider costs (2026-10-20)
+
+A hosted Afutrans operator may offer **free deferred translation work**, optionally funded by operator/donor contributions, plus verified paid/contributor priority or dedicated LibreTranslate VPS capacity. This affects the **service's worker availability**, not automatically which external paid translation provider is enabled. A `ContributorPriority` customer can still be restricted to self-hosted LibreTranslate, and free public usage may be funded by sponsoring infrastructure without any paid vendor requests.
+
+Maintain separate auditable dimensions for **client plan/subscription/contribution receipts and entitlement periods**, **provider metered spending and hard budgets** (`UsageLedger`), and **VPS/LibreTranslate fixed infrastructure costs, capacity and utilization**. No need to implement payment processing inside UnderstandMe; a future billing/payment service may attest paid entitlements to the optional API Gateway/host without exposing payer information to translation workers.
+
+Capacity plans must remain finite: track worker slots/concurrency and measured waiting/processing times, reflect outages/restarts, protect internal/reserved community capacity and avoid selling unsupported response-time guarantees. Do not claim cost recovery or dedicate a specific portion of proceeds without real accounting; no provider-account hard limit is weakened by client contributions.
+
+See [Afutrans community funding design](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Community-Capacity-and-Contributor-Priority/en.md). **Design only; no payment or new metering code implemented.**
