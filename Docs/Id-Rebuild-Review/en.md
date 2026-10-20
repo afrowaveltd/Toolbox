@@ -42,7 +42,7 @@ These are findings from specific inspected code paths, **not proof of exploitabl
 ## Suggested independent responsibilities (design exploration)
 
 - `IInstallationManager` / bootstrap workflow: state machine, recovery and activation; at bootstrap use a minimal trusted local installation authority to create the first owner/brand/system app atomically. After activation use normal authorization services.
-- `IIdentityManager`: central user accounts, credential/authentication lifecycle, optional external identity-provider connectors; avoid making a specific UI or storage provider compulsory.
+- `IIdentityManager`: **first-party** central user identity, credentials, sessions, account recovery, optional native MFA and independent credential-storage adapters; **no external social/enterprise identity-provider sign-in is in scope** for the stated Id vision. Id itself may expose standards-compatible authentication endpoints to *its registered applications*.
 - `IBrandsManager`: manage brands/developer organizations, their owners/members and transfers. Legacy `OwnerId` can remain a migration compatibility field, while new members and permissions can use scoped records.
 - `IApplicationsManager`: application registration, settings, lifecycle, ownership and brand membership; treat Id itself as a registered application in the same domain model.
 - `IApplicationUsersManager`, `IRolesManager` and a distinct authorization/policy evaluator: application-scoped membership, roles, consent, privacy claims and explicit system-level capabilities.
@@ -65,3 +65,49 @@ These are **proposed names/responsibilities, not frozen public APIs**. Keep norm
 ## Source-of-truth / non-actions
 
 Historical code stays in `afrowaveltd/AfrowaveWebPublic`. This note lives in the Toolbox's general `Docs/Id-Rebuild-Review/en.md` as a cross-project continuation record only. No code changes, dependencies, data migration or actual Id redesign have been committed. Future Id project should receive its own `README.md`, topic-specific `Docs/<topic>/en.md` and `IMPLEMENTATION_STATUS.md` when development starts. Future architecture must be confirmed with the user before treating these proposals as established contracts.
+
+## Product intent clarified by the author (2026-10-20)
+
+These are **confirmed product-intent requirements from the owner**, which clarify and supersede earlier exploratory wording in this review. They do not mean the old project implemented them.
+
+### One first-party identity across Afrowave applications
+
+- A person **registers once in Id**; their same central user identity is recognized by all registered Afrowave applications. Applications do not hold copies of central login passwords and do not require a second sign-up to establish another login identity.
+- Being centrally authenticated does **not** confer membership or a role in every application. When following a link from the Id portal, the target application's owner-defined admission policy decides whether to assign an initial user role automatically, require manual approval, use invitation or another configured flow, or deny enrollment.
+- App membership, role changes, and app-specific data-sharing grants are **separately scoped**. An app cannot read unrelated apps' role assignments or use its own application-role IDs to obtain access to another application's resources. Application-scoped access tokens/claims disclose only authorized information for the intended application.
+
+### `IsAuthenticator`, Id's reserved role scope, and platform oversight
+
+- The **Id application** is a normal `Application` entity under the same registration model, but designated as the system's authentication/administration application by a **trusted bootstrap invariant** represented by `IsAuthenticator`. That flag is not editable by ordinary app registrations and must be verified against the reserved application identity in the persisted platform settings/authorization layer.
+- Roles belonging to the **Id application** carry carefully scoped **platform-management capabilities**: e.g. register/manage brands and apps under policy, enforce platform service rules, temporarily suspend/disable a registered app, revoke its platform authentication/client access, or impose a central login lock where warranted.
+- **Explicit prohibition / responsibility boundary:** platform administration must **not** edit another application's roles, memberships or internal authorization policies simply because an Id operator has a system role. These belong to that application's owner/delegated administrators. Platform interventions affect Id/platform-level availability and access, not the target app's business state or private records.
+- Distinguish **user global authentication lock** (one person cannot authenticate through Id), **application suspension** (a registered application is blocked from using the platform), and **per-application admission/ban** (a decision made by the application's owner). These must be independent actions and separately auditable; do not delete data or roles as a side effect of an access suspension.
+- For abusive/illegal published material, Id can suspend platform access or the app's registration according to its published policy, with recorded actor, reason, affected subject, scope, timestamp, review/appeal path and reversal. Platform ability to suspend must **not** imply unfettered access to read private application content. Proportional emergency controls and normal review can be separate workflows.
+- An ordinary community developer must not set `IsAuthenticator=true` or gain Id's system capabilities by copying role names such as `Owner` or `Administrator`. Bootstrap the trusted Id registration exactly once and test privilege separation exhaustively.
+
+### First-party authentication, MFA without third-party sign-in, and privacy
+
+- Id provides authentication **itself**. The current intended design specifically excludes sign-in through third-party providers (Google, Facebook, Microsoft/social or external enterprise IdPs); do **not** introduce mandatory or speculative external identity-provider connectors. The central Id service may expose open/standardized protocols to its first-party and other registered client applications; this is not external-provider sign-in.
+- **MFA is supported but not a universal prerequisite**. Offer native options such as TOTP, passkeys/WebAuthn and recovery codes where appropriate, plus host/admin-configurable additional requirements for sensitive privileged operations. Users without MFA can still use permitted basic functions under platform policy.
+- Privacy by design: collect only **the minimum account information needed** for identification, recovery and the user's chosen features, and store permitted per-application consent and role data; do not collect analytics, behavioral tracking, profiling, unnecessary personal fields or share unnecessary identity attributes with third parties or between apps.
+- No third-party tracking or advertising cookies, SDKs or silent external-login dependencies. Essential **first-party session/security cookies** are permissible and must use appropriate Secure, HttpOnly, SameSite, expiration and rotation practices; distinguish these from surveillance cookies.
+- Security/audit records required to operate a trustworthy identity platform are distinct from behavioral surveillance: minimize content, retention and access; record privileged interventions without collecting browsing histories. Do not claim literally zero persisted user data when account identity, credentials and scoped consent must exist for the product to function.
+
+### First-installation and readiness
+
+- The first-run installation wizard **creates the initial administrator, brand and Id application** and configures their policies before opening the operational portal. Platform roles are bound to Id's reserved application identity, never implicitly made global merely by role-name equality.
+- Bootstrap/activation must have transactional/idempotent checkpoints, harden first-owner creation against parallel unauthenticated installation attempts, and reliably record the reserved `IsAuthenticator` designation. After activation, the installation privileged endpoint is disabled; subsequent brand and app registrations use authenticated, authorized ordinary workflows.
+- The ready-to-use language selector and necessary local resources should be prepared **before the first page is served**; optional external translation outages should not block basic Id authentication by default.
+
+### Target acceptance and isolation tests
+
+1. User U signs in to Id once, then visits apps A and B: A assigns `User` automatically, B requires manual approval; B's approval decision does not alter A's membership or Id's central identity.
+2. Id system moderator suspends A or locks U's **central login** according to policy, with audit and review, while A's internal roles and business data are unchanged. A developer cannot suspend B or impose a global lock.
+3. A developer with `Administrator` role **only in app A** cannot request platform operations, grant themselves an Id role, make A an authenticator or administer app B.
+4. Even an authorized Id platform operator cannot issue a normal cross-app `CreateRole`, `AssignRole` or unscoped user-data read merely because they can suspend apps; separate explicit extraordinary mechanisms, if ever introduced, require their own policy and authority.
+5. Native password/session and optional TOTP/passkeys work without calling an external login/identity provider or delivering any third-party tracking cookies; no mandatory MFA for ordinary users.
+6. App A receives only approved identity claims and consents; no user analytics or app B membership leaks. Session/security logs use constrained purpose and retention.
+7. Fresh setup establishes exactly one reserved authenticator application even after interruption/restart and untrusted parallel requests.
+
+**Boundary:** These are design decisions and planned tests, not implemented or security-tested Id code. Keep them in the future Id's own README/Docs/IMPLEMENTATION_STATUS once the rebuild project is created; never silently widen platform operators' powers during implementation.
+
