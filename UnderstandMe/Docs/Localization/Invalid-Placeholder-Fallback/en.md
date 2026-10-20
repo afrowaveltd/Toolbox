@@ -8,7 +8,7 @@ The existing `LocalizationPlaceholderValidator.HasMatchingPlaceholders(source, c
 
 **Actual implemented behavior:** choose requested target if valid; otherwise try parent locale (e.g., `cs-CZ` -> `cs`) if valid; otherwise use source-culture dictionary template when valid; otherwise return the original key. `Format` then inserts the caller's values into that selected template without recursively processing the replacement values. No invalid localized candidate is returned in the default strict mode. Unrelated catalog entries remain usable.
 
-The operator can explicitly opt out for known legacy catalogs with `LocalizationOptions.ValidateLocalizedPlaceholders = false`; the default is **true**, prioritizing source-information preservation. The dictionaryless source `TryAdd` policy remains independent, and validation **does not mutate any source or target JSON, remove a key, trigger translation or require a network**.
+The operator can explicitly opt out for known legacy catalogs with `LocalizationOptions.ValidateLocalizedPlaceholders = false`; the default is **true**, prioritizing source-information preservation. The dictionaryless source `TryAdd` policy remains independent. **As of commit `1a08085`, a writable target JSON entry can be conditionally removed when structurally invalid; source entries are never deleted.** This is an offline storage change only, and it does not trigger a network translation.
 
 Examples:
 
@@ -28,7 +28,7 @@ Important runtime split: `ITextLocalizer.Get/Format` are synchronous **offline/c
 
 ## Repair without deleting the authoritative source phrase — proposed, not built
 
-**The initial suggestion to physically delete source key and value to force another translation is NOT the safe default.** This would destroy dictionaryless reusable source phrases, unrelated already-valid locale translations, revision history and manual corrections. An invalid **target-locale revision** should instead be marked invalid/quarantined in a sidecar/status (or indexed invalidation record) without removing the source key. Users may explicitly review/replace erroneous translations, preserving history.
+**The initial suggestion to physically delete source key and value to force another translation is NOT the safe default.** This would destroy dictionaryless reusable source phrases, unrelated already-valid locale translations, revision history and manual corrections. An invalid **target-locale entry** is now removed only from its own target dictionary through conditional `InvalidateTranslation(culture,key)` when writable. No source key is touched. An optional sidecar/audit record may preserve invalid revisions for incident review in a future implementation; it is not required for the missing-key scanner to discover the repair.
 
 When notifications are configured, publish a **translation-invalidated event after a durable invalidation state is recorded** (or a host-owned diagnostic/request-for-repair event), scoped to target ID, source key identity, culture, source revision, bad target revision and placeholder validation reason. Afutrans can enqueue **just the affected locale variant** for regeneration, with idempotent event + scan reconciliation; validate the replacement template before atomic publication. No unconditional delete/recreate of all locale entries, recursive source deletion or invalidation storm. If there is a valid parent-language fallback, use it until repair succeeds.
 
@@ -52,7 +52,7 @@ If change events are disabled, report a **bounded/deduplicated** incident via th
 6. Host-enabled async rendered-text translation respects privacy, request timeouts, provider budgets, cancellation and does not publish the one-shot full-value result as reusable template.
 7. Offline, failure, malformed JSON or temporary online service unavailability still yields usable data without blocking synchronous UI.
 
-**Current implementation boundary:** only synchronous target-template validation, fallback and its unit tests are implemented here. No automatic incident publisher, online realtime retry, change-event transport, key deletion, quarantine store or Afutrans regeneration logic is implemented.
+**Current implementation boundary:** synchronous target-template validation, safe fallback, explicit `InvalidateTranslation` and default conditional invalid-target deletion are implemented and unit-tested. No automatic incident publisher, online realtime retry, change-event transport, quarantine store or Afutrans regeneration scanner is implemented. The implementation passed [GitHub Actions #39410576675](https://github.com/afrowaveltd/Toolbox/actions/runs/39410576675).
 
 ## Focused target-only deletion through InvalidateTranslation (2026-10-20)
 

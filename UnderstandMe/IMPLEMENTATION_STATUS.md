@@ -580,3 +580,10 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - **Tests added:** target-only, original source and unrelated language preservation, validation fallback, disabling automatic removal, malformed source, compare-and-remove freshness, malformed JSON and memory read-only store. This is source committed at [`1a08085`](https://github.com/afrowaveltd/Toolbox/commit/1a08085fc5619e03938fb76afd25c900e9717fe9).
 - **Scanner design:** Afutrans must detect **target missing keys independently of source dictionary changes**, translate only the missing locale, validate before publishing and back off invalid retranslation loops. No change events, incident pipeline or realtime rescue implementation yet.
 - Updated [Invalid Placeholder Fallback](Docs/Localization/Invalid-Placeholder-Fallback/en.md), [Configuration and Change Detection](Docs/Localization/Configuration-and-Change-Detection/en.md), first implementation documentation and README. **CI pending**, no local dotnet SDK; record CI result when observed.
+
+## CI verified — target-only placeholder invalidation (2026-10-20)
+
+- Feature commit [`1a08085`](https://github.com/afrowaveltd/Toolbox/commit/1a08085fc5619e03938fb76afd25c900e9717fe9) passed full .NET GitHub Actions workflow [#39410576675](https://github.com/afrowaveltd/Toolbox/actions/runs/39410576675) with **conclusion SUCCESS**.
+- Follow-up documentation commit [`a9d0cf7`](https://github.com/afrowaveltd/Toolbox/commit/a9d0cf77ad66c8dff6f157e1736ea18d3395c302) also passed the full workflow [#39410869057](https://github.com/afrowaveltd/Toolbox/actions/runs/39410869057) with **conclusion SUCCESS**.
+- These results supersede the earlier 'CI pending' text in the dated feature entry. No exact test totals or warning counts were independently extracted from the runs; do not invent them.
+- Afutrans remains a separate planned consumer, with its future missing-target-locale scanner documented in [Afutrans target invalidation and rescan](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Localization-Target-Invalidation-and-Rescan/en.md). No Afutrans runtime scanner/tests were added.
