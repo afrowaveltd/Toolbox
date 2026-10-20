@@ -587,3 +587,12 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Follow-up documentation commit [`a9d0cf7`](https://github.com/afrowaveltd/Toolbox/commit/a9d0cf77ad66c8dff6f157e1736ea18d3395c302) also passed the full workflow [#39410869057](https://github.com/afrowaveltd/Toolbox/actions/runs/39410869057) with **conclusion SUCCESS**.
 - These results supersede the earlier 'CI pending' text in the dated feature entry. No exact test totals or warning counts were independently extracted from the runs; do not invent them.
 - Afutrans remains a separate planned consumer, with its future missing-target-locale scanner documented in [Afutrans target invalidation and rescan](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Localization-Target-Invalidation-and-Rescan/en.md). No Afutrans runtime scanner/tests were added.
+
+
+## 2026-10-20 — read-only per-locale repair scanner (implementation)
+
+- Added `LocalizationTranslationScanner.Scan(store,sourceCulture,targetCulture)`, returning sorted typed `LocalizationRepairItem` entries classified as `MissingTarget` or `InvalidTargetPlaceholders`. It compares authoritative source dictionary values to exact target locale values, not fallback render output.
+- Invalid source placeholder syntax is skipped for source-side repair; a valid parent fallback does not suppress target-locale repair. This is a **pure read-only scan**: no deletion, provider calls, dictionaryless registration, queue jobs or side effects.
+- Added xUnit tests for exact-locale missing/invalid detection, retained data, parent-language independence, empty source, normalized same-locale no-op and invalid arguments.
+- Commits: [scanner](https://github.com/afrowaveltd/Toolbox/commit/3409e7033461873ae27cd41c6a3120d53d603523), [tests](https://github.com/afrowaveltd/Toolbox/commit/0435a7f1d362014a4bf788ad03ffdcbd28a59879).
+- **Verification pending:** source committed on GitHub, but no dotnet SDK is available in the current execution environment. Do not claim tests green until GitHub Actions for these commits completes. Next step: idempotent repair scheduling with backoff and candidate validation before publishing in Afutrans/UnderstandMe orchestration.
