@@ -172,3 +172,10 @@ This is **scoped transitive reachability**, not an unrestricted network gateway 
 6. Register an ordinary Afrowave service and send valid `IAmHere`: service may be monitored but gains no cluster voting/privileged Id routing access.
 
 **Status:** architecture/documentation only; no SignalR relay router, mesh, overlay provisioning, routing table or tests are implemented.
+
+## Observer-driven public region candidate projection (2026-10-20)
+
+Observer tracks Id node health, public reachability, routing via direct/relay links and operational capability. A separate **Autodiscovery projection** may expose a minimal, authenticated/HTTPS-trusted list of **healthy public Id ingress candidates** grouped by region for consumer clients or global routers. This list is NOT the privileged Observer topology and must not publish private database IP addresses, quorum endpoints, secrets or user traffic metrics. A health heartbeat alone does not prove public readiness, and Observer's list cannot grant leader write authority.
+
+Keep standard OIDC discovery (`issuer`, signing key metadata and security endpoints) stable and separate from optional region discovery. Browsers may use a single Id hostname with regional ingress, avoiding per-region cookie/issuer changes. Backend SDKs can select measured-fast compatible region endpoints with bounded TTL/fallback, but must enforce trusted endpoint allowlists, issuer and authorization checks. Observer failure must not disable healthy Id services or the stable bootstrap ingress. Details: [Id Autodiscovery and Regional Routing](../Id-Autodiscovery-and-Regional-Routing/en.md). **Documentation only.**
+

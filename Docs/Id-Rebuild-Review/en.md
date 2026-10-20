@@ -164,3 +164,11 @@ When Id1 (leader) cannot connect **directly** to Observer but can reach Id2, and
 
 See [Observer and Uplink](../Id-Observer-and-Uplink/en.md); no runtime changes yet.
 
+## Autodiscovery: nearest eligible regional Id without new identity authority (2026-10-20)
+
+Id should expose an **Autodiscovery** capability listing alive, verified, suitably capable regional Id service endpoints, e.g. a user connecting from the USA prefers a healthy USA VPS rather than a distant EU instance. This extends the Observer's health picture and Id's redundant deployment into latency-aware client routing.
+
+**Distinguish** normal OpenID Connect discovery and *one stable logical issuer* from a new optional **Afrowave live endpoint/region catalog**. The preferred browser path is stable `id.afrowave.ltd` with geo-aware/global failover ingress so first-party Id cookies and token identity do not change by region. Id2 in USA may serve local work or forward mutations to current leader; no region gets autonomous system-grant/password/MFA write authority based on proximity.
+
+Discovery must itself be highly available, validate the health/capability of each endpoint, expose only public/authorized metadata, cache for bounded periods, support trusted fallback and handle mid-login failover securely. Observer publishes candidate data but does not manufacture quorum. See [Id Autodiscovery and Regional Routing](../Id-Autodiscovery-and-Regional-Routing/en.md). **Design only.**
+

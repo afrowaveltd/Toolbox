@@ -156,3 +156,11 @@ Specific user case: Id1 is current leader and sees Id2 but not Observer; Id2 see
 
 See [Id Observer and Uplink](../Id-Observer-and-Uplink/en.md) for the complete routing/authentication/recovery tests. **Design only.**
 
+## Regional Id Autodiscovery and stable issuer (2026-10-20)
+
+**Author request:** add a live discovery interface that returns usable Id authorities/entry points, so clients can choose a healthy and low-latency regional instance (e.g. US user uses US VPS even if preferred authoritative Id leader resides in EU). Maintain **one logical issuer/identity source of truth**, not competing independently writable regional Ids.
+
+Recommended browser integration uses stable first-party `https://id.afrowave.ltd` origin/issuer with health-based global/geographic ingress; optional nonstandard Afrowave discovery lists minimal eligible regional endpoints for trusted SDK/backend clients. Distinguish standard OIDC `/.well-known/openid-configuration` metadata from a separate live operational/topology list; do **not** silently change token issuer, redirect origin or trust anchor when region selection changes. `Ready`/capability/read freshness matters as much as location; leader-dependent writes proxy to the current authoritative cluster or fail clearly.
+
+Observer supplies candidate health/capability/reachability, while the actual leader lease/fenced DB remains the only write authority. Discovery itself needs redundant ingress, bounded cache and fallback; list only public endpoints, not privileged internals. Region proximity is an optimization **not** a guarantee of lower end-to-end latency if writes go across regions. See [Id Autodiscovery and Regional Routing](../Id-Autodiscovery-and-Regional-Routing/en.md). **Design only.**
+
