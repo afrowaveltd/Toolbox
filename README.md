@@ -105,3 +105,7 @@ This package is under active development. Public behavior is being documented an
 
 Afrowave's hosted services aim to give everyone the **maximum feasible access free from launch and permanently**, with no personal enrichment, artificial paywalls or paid queue-jumping inside shared community capacity. Optional donations should fund verifiable real services (e.g. LibreTranslate VPS or AI provider credits), with privacy-safe last-cent reconciliation of received funds, fees, actual invoices, usable capacity and unspent balances. These hosting values impose **no payment dependency on Toolbox libraries**. See [Afrowave Community Access and Transparent Funding](Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md).
 
+### Simple, verifiable community expense display
+
+Future community funding transparency will show **real gross contributions, one actual transfer/processing fee, net available funds, the full amount actually paid for each service (tax included), and unspent reserves**—not an overwhelming VAT/tax breakdown. Detailed accounting evidence remains available for internal reconciliation and any required compliance. This is a planned principle only; donations and financial monitoring are **not being implemented before useful services exist**. See [Community Funding](Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md).
+

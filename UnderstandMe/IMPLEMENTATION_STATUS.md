@@ -534,3 +534,10 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - User clarified future donations must support **multiple explicit purposes in one payment** (example USD 10: USD 5 AI + USD 5 VPS). Fees/FX and gross-vs-net attribution must be disclosed and accurately reconciled without diverting donor restrictions.
 - Excess community server donations remain visible as **purpose-bound funds for subsequent months**, separate from current invoices and already-provisioned capacity; never spend solely to clear an accounting balance.
 - **Do not implement donation/payment pages or a financial watchdog yet**; revisit once genuinely useful running community services exist and requesting contributions becomes meaningful. Updated [Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md](../Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md). No code/tests changed.
+
+## 2026-10-20 — plain-language public financial totals and no tax-breakdown clutter
+
+- User chose a **simple public accounting UI**, not an itemized Czech-electricity-bill-style display. Show actual gross contribution, real whole transfer/processing fee, net sum, purpose allocation, **true tax-inclusive purchase total** (VPS/AI/etc), visible future reserve and remaining amount; all values reconcile.
+- Preserve legally/accountingly required underlying tax, FX and invoice detail only in source records/evidence; do **not** display VAT/rates as extra public subrows, while never hiding a real separate charge or changing the paid total.
+- Updated [Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md](../Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md) and root README; [Afutrans policy](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Community-First-No-Profit-and-Transparent-Funding/en.md) aligned. **Future requirement only; no payment/watchdog/app code or tests.**
+
