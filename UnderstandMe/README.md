@@ -4,6 +4,10 @@ UnderstandMe is a planned, modular localization, globalization, translation, and
 
 > **Status: first offline localization core committed; translation and orchestration remain design-stage.** The .NET 10 project now contains standalone JSON localization code and a separate test project. GitHub Actions [run #39407132671](https://github.com/afrowaveltd/Toolbox/actions/runs/39407132671) passed **5,957 solution tests** (including **43 UnderstandMe tests**), with **zero build warnings/errors**, after adding standalone placeholder validation. See [first implementation](Docs/Localization/First-Implementation/en.md).
 
+## Latest implementation: target locale repair scanning
+
+The read-only `LocalizationTranslationScanner.Scan` compares source dictionary entries against one exact target locale. It reports missing entries and translations with invalid named placeholders without modifying source/target files, triggering network providers, or disturbing dictionaryless registration. A valid parent-locale fallback does not hide a missing exact target translation. Scheduling, retries/backoff and candidate publishing remain future integration work. New scanner tests have been committed; CI verification is pending. See [implementation status](IMPLEMENTATION_STATUS.md).
+
 ## Purpose
 
 Provide reusable building blocks for software localization, automatic and human translation, document and dictionary processing, and configurable work orchestration. Consumers can use a small subset or assemble a complete translation service. [Afutrans](https://github.com/afrowaveltd/Afutrans) is a planned full-featured host and editor built from these building blocks; it is not a prerequisite for using UnderstandMe.
