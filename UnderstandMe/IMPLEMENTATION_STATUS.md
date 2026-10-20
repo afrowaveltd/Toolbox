@@ -607,3 +607,11 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Added focused tests for pending claims, cooldown boundary, source revision changes, target-culture isolation, duplicate suppression and invalid input. Commits: [implementation](https://github.com/afrowaveltd/Toolbox/commit/ae096fd356274c90ef00ef77d817ba19bec38b5e), [tests](https://github.com/afrowaveltd/Toolbox/commit/d5d6c77c6847f10ae2a67374214c935fa2814c03).
 - **Scope limitation:** this is a pure selector; it does **not** atomically claim leases, persist backoff, enqueue jobs, publish validated candidates or provide concurrent scheduler guarantees. These require the eventual durable QueueMaster or orchestration adapter.
 - CI verification of these newer commits is pending at documentation time. Do not claim green tests before completion.
+
+
+## 2026-10-20 — XML API documentation required
+
+- Development rule: all new and changed public library API declarations must receive English C# XML documentation: types, enum values, record primary-constructor parameters, public members, parameters, return semantics, exceptions where relevant, and operational constraints. Keep docs synchronized with behavior, and ensure XML docs generation is part of the build configuration where applicable.
+- Afutrans will expose OpenAPI and Scalar later; XML documentation should be reusable for its service contract documentation, but C# class XML comments alone do not automatically become OpenAPI endpoint descriptions. Plan explicit endpoint/DTO XML comment integration when the host is implemented.
+- Completed the XML API documentation for the new `LocalizationRepairPlanner`, `LocalizationRepairLease`, `LocalizationTranslationScanner`, `LocalizationRepairItem` and `LocalizationRepairReason` (including enum values), without behavioral changes.
+- Commits: [planner XML docs](https://github.com/afrowaveltd/Toolbox/commit/1f9246546af40b0fbfa64015680c21ce4dfcf11d), [scanner XML docs](https://github.com/afrowaveltd/Toolbox/commit/c6d6b00929b0577f14af0077143af565a14290f4). CI for these commits requires confirmation.
