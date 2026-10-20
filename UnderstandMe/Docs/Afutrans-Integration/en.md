@@ -233,3 +233,11 @@ For hosted Afutrans, preserve **three independent capacity domains**: first-part
 
 The Gateway/Id (optional) verifies tenant/target identity and enrollment, the Afutrans application boundary validates endpoint and lane permissions, QueueMaster dispatches only compatible assigned workers. Tenant secrets/provider accounts remain outside Id; target privacy and budget caps apply. Never impose hosted billing on local/offline UnderstandMe or Human-only use. See [Queue lanes](../Queue-Lanes-and-Tenant-Owned-Providers/en.md) and [Afutrans dedicated funding design](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Dedicated-Capacity-BYO-Backends-and-Transparency/en.md). **Design only.**
 
+## Cooperative backend slots and fair free waiting (2026-10-20)
+
+The host operator prefers **slow but eventually processed CommunityFree deferred translations** to 'credits exhausted' artificial total/monthly caps. Admission is still finite, fair and protected from floods; show queued state and return explicit busy/retry when real durable backlog resources cannot support more.
+
+Afutrans may opt to share **idle backend buffer slots**, separately from lane/queue ownership: Afrowave's internal unused P0-capable workers can help CommunityFree as temporary, **non-guaranteed** capacity, and consenting tenant owners may offer selected LibreTranslate or AI/other provider capabilities to the community, or accept a reciprocal but independently authorized offer. Private content may use borrowed endpoints **only with its target's processor/remote AI privacy policy**. A tenant can run its own realtime and use other explicitly allowed backend capacity for deferred work.
+
+At borrower dispatch, host policy checks provider owner permission, revocable slot lease, per-owner expense budget and privacy; donor P0 demand stops new loans, but an in-flight task is only preemptible if safe/provider-supported. A self-hosted engine may register through a secure outbound agent without opening inbound ports. See [Capacity Lending and Backpressure](../Capacity-Lending-and-Backpressure/en.md). **Design only.**
+

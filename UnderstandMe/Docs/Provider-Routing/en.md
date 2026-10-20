@@ -149,3 +149,11 @@ The orchestrator filters by trusted lane+tenant+target and permitted endpoint *b
 
 See [Queue lanes and Tenant-Owned Providers](../Queue-Lanes-and-Tenant-Owned-Providers/en.md). **Design only.**
 
+## Best-effort borrowed endpoint routing and owner-hosted agents (2026-10-20)
+
+An endpoint may normally belong to one protected QueueLane but expose a **short-lived, owner-authorized capacity offer** of selected available buffer slots to another lane. Provider routing still filters by lane, validated borrow lease, source owner processor/privacy consent, actual provider capabilities, cost account budgets, protected slot reservations, endpoint health and retry/expiry constraints **before** provider ranking. No implicit cross-lane backend fallback or reciprocal permission.
+
+Example: a tenant's own realtime provider handles P0 while eligible non-P0 work routes to a community-offered LibreTranslate buffer; community is separately allowed to consume a tenant-donated AI translation slot. Calls to customer-hosted LibreTranslate/Ollama may work through an authenticated **outbound worker/connector agent**, avoiding mandatory publicly opened inbound ports. Such an agent must not become an arbitrary private network proxy or bypass provider account ownership.
+
+Borrowed P0-capable owner capacity is **best effort**, with normal realtime constraints; it cannot guarantee availability while idle, instantly preempt running tasks, or silently convert volatile P0 into deferred/human work. See [Capacity Lending and Backpressure](../Capacity-Lending-and-Backpressure/en.md). **Design only.**
+

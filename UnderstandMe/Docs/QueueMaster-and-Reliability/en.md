@@ -99,3 +99,13 @@ QueueMaster owns dynamic lane-specific queues and leases, not exactly five physi
 
 See [Queue lanes and Tenant-Owned Providers](../Queue-Lanes-and-Tenant-Owned-Providers/en.md) and [Afutrans dedicated-capacity decision](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Dedicated-Capacity-BYO-Backends-and-Transparency/en.md). **Design only, no scheduler/host code or tests.**
 
+## Idle backend buffer lending without cross-lane queue mixing (2026-10-20)
+
+Separate QueueLanes remain, with P0-P4 priorities inside each, but capacity can be **temporarily lent**: a donor-owned provider buffer that has an eligible free slot may pull one **authorized** borrower-lane request under a short-lived `CapacityOffer`/slot lease. Keep the original work lane, durable job identity, tenant/target privacy, provider cost owner and per-buffer FIFO. This does **not** mean an open consumer can choose a different tenant's engine arbitrarily or preempt community work.
+
+Afrowave may voluntarily offer *unused* first-party P0-capable backend slots to CommunityFree **without guaranteeing external realtime**, with internal protected minimum; owner P0 demand immediately stops new loans but in-flight nonpreemptible requests complete/drain within bounds. For strict internal realtime, reserve at least the required always-available slots instead of pretending an already-running call can be interrupted without provider support.
+
+Prefer **throttled durable non-P0 community admission + fair waiting** over permanent translation-credit exhaustion, subject to real bounded queue bytes/storage, denial-of-service protection and honest backpressure. No infinite queue promise, no silent P0 persistence or Human fallback. Home machines may use authenticated outbound-only worker agents when inbound ports are unavailable.
+
+See [Capacity Lending and Backpressure](../Capacity-Lending-and-Backpressure/en.md). **Architecture only.**
+

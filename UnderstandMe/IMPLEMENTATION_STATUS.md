@@ -514,3 +514,11 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Worker pool isolation, owner-scoped provider-account limits, dynamic lane lifecycle/recovery, finite shared API/scheduler/network capacity and clear contribution/hosting cost breakdown are future requirements. Private content, Id secrets and account keys remain separated.
 - Added [Docs/Queue-Lanes-and-Tenant-Owned-Providers/en.md](Docs/Queue-Lanes-and-Tenant-Owned-Providers/en.md), corrected queue master/client access text and updated provider routing/billing/integration/README. [Afutrans design](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Dedicated-Capacity-BYO-Backends-and-Transparency/en.md). **Docs only, no code/test changes.**
 
+## 2026-10-20 — capacity loans, cooperative provider sharing and adaptive free waiting
+
+- New user preference: **no default cumulative free-user translation credits**. Defer and slow work instead; maintain honest finite queue/durable-storage/abuse/backpressure admission, actual provider spend caps, and original P0 volatile automatic-only restrictions.
+- Protected internal/community/tenant QueueLanes may **temporarily lend idle per-endpoint Translator buffer slots** under explicit donor policy (scopes, cost, processor privacy, protected owner minimum, TTL, recall). Does not merge queue ownership or sell community priority. Stop new borrowed dispatch upon internal P0 need; safely finish/drain active nonpreemptible work; no guaranteed public realtime SLA.
+- Voluntary tenant AI ↔ Community LibreTranslate sharing is per-direction optional; both provider owner and content processor policy must permit work. Tenant can handle its own realtime while routing other approved jobs to shared buffers. No automatic cross-lane provider fallbacks or cost leakage.
+- Self-hosted backend can use authorized **outbound worker agent** without inbound NAT port forwarding; agent trust, safe network routes, privacy and retries are future design requirements.
+- Added [Docs/Capacity-Lending-and-Backpressure/en.md](Docs/Capacity-Lending-and-Backpressure/en.md) and updated QueueMaster, Client Access, Provider Routing, Afutrans Integration and [Afutrans service concept](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Cooperative-Backend-Sharing/en.md). **Docs only; no source tests/build in this change.**
+

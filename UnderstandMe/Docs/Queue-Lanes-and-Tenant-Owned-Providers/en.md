@@ -55,3 +55,14 @@ Customer-owned backend use carries **no mandatory Afrowave VPS rental**. Future 
 7. Standard Human-only/standalone UnderstandMe works without Id, Gateway, public endpoints, subscriptions or any automatic providers.
 
 **Implementation:** this does not create a QueueLane type, tenant registry, account integration, queue runner, BYOP connector or tests. It is a documentation-level correction to the earlier single-global-queue design.
+
+## Voluntary capacity lending and adaptive community backpressure (2026-10-20)
+
+**Refinement:** keep isolated lane job ownership but optionally *lend a compatible **idle Translator buffer slot*** from one owner's backend to another **expressly authorized** lane. Examples include Afrowave giving CommunityFree occasional unused internal realtime-capable slots, or a customer voluntarily donating an AI provider while being allowed to use a separately shared LibreTranslate endpoint. Owners opt in per direction with allowed capabilities, borrower groups, processor privacy, actual paid-provider spend caps, expiry and reserved-owner capacity. Lending neither merges the queues nor sells priority over community work; default remains no cross-lane sharing.
+
+When the donor needs its own capacity, stop new borrowed dispatch immediately and reclaim on a bounded **in-flight work completion**. Noninterruptible backend calls cannot be instantly preempted: retain truly guaranteed P0 capacity reserved, or use explicit safe cancellation when available. Any public use of spare P0 is **nonguaranteed**. A customer can use its own P0 engine and choose authorized alternative for other work.
+
+CommunityFree should **prefer slower deferred processing over arbitrary monthly/total translation credit expiration**. Preserve practical queue/backlog/storage bounds, per-caller burst controls, actual cloud account hard costs, privacy checks and `Busy/RetryLater` when no safe admission exists. Explicitly accepted deferred work is durable; P0 is volatile and never silently becomes Human/persistent.
+
+See [Capacity Lending and Backpressure](../Capacity-Lending-and-Backpressure/en.md) and [Afutrans Cooperative Backend Sharing](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Cooperative-Backend-Sharing/en.md). **Design only.**
+

@@ -124,3 +124,11 @@ Commercial subscriptions buy **independently provided worker capacity / tenant-s
 
 `ClientContext` / `ClientPolicy` verifies lane membership, tenant/target access and allowed provider accounts; request fields never self-authorize `LaneId`, P0 or provider choice. Finite shared API, QueueMaster and persistence resources remain protected, even for tenants paying their own vendor. Details: [Queue lanes and Tenant-Owned Providers](../Queue-Lanes-and-Tenant-Owned-Providers/en.md).
 
+## No monthly community credit cliff; authorized endpoint loan (2026-10-20)
+
+**Operator preference correction:** a free CommunityFree user should normally **wait longer** when capacity is busy, rather than be denied additional translations for exhausting an arbitrary monthly or lifetime word/request allowance. Earlier examples of `20,000 words/day`/fixed free client quotas are possible optional abuse/owner configurations, **not** the intended default. Enforce finite queue/storage, concurrency and abuse protections with adaptive `Busy/RetryLater` and fair admission, plus real provider account hard spending limits; promise no unbounded accepted backlog.
+
+Tenant-owned endpoints may be shared to selected users or to CommunityFree through **explicit revocable provider-owner capacity offers**, but only if the submitted text's application/target owner also permits this remote provider/AI processor. Afrowave may donate idle reserved-capacity surplus to community as non-guaranteed slots without enabling paid queue-jumping or granting free users privileged P0 ownership. Customer's own realtime plus other authorized borrowed engines is a supported composite policy.
+
+See [Capacity Lending and Backpressure](../Capacity-Lending-and-Backpressure/en.md). **Design only.**
+
