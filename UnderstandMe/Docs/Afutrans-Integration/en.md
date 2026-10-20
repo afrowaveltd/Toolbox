@@ -201,3 +201,10 @@ Afutrans may be a registered **service application** in Afrowave Id (which is it
 
 Details, examples and future security/integration tests: [Afutrans Registered Service Integration](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Registered-Service-Integration/en.md). All these are design targets, not implemented Id or Afutrans APIs.
 
+## Optional insecure owner connector and published community corpus boundary (2026-10-20)
+
+Afutrans owners may explicitly configure **classic FTP** or non-sensitive HTTP target connectors, with prominent clear-text risk notices and per-target isolation, alongside recommended SFTP/FTPS/HTTPS and SQL adapters. This is an application-owner choice; the *hosted service* independently enforces target permissions, resource/network limits, secret separation and prevention of access to Id/other tenants. Never use an insecure owner target transport for Id-issued authorization codes, identity credentials or platform service control.
+
+Afutrans must be transparent that it can technically read authorized dictionaries for processing. **Private by default**; owners may separately opt in to publish eligible selected entries or an eligible whole dictionary (with preview/exclusions and owner-approved ongoing contributions) into a shared source/target/context-aware translation index. Public API access and a published dictionary are separate choices. Published suggestions still respect owner-specific human overrides, placeholder integrity, source locale, context and contribution license.
+
+See [Afutrans Connector Trust and Community Dictionaries](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Connector-Trust-and-Community-Dictionaries/en.md). **Architecture only, no connector or publication implementation.**

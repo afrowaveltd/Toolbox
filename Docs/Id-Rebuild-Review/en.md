@@ -126,3 +126,10 @@ These are **confirmed product-intent requirements from the owner**, which clarif
 
 Reference: [Afutrans Registered Service Integration](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Registered-Service-Integration/en.md). Proposed acceptance scenarios include public discovery without free access; B1/B2 independent service grants; Id app using local translation while Afutrans offline; safe target secrets; platform suspend without role/data alteration; and per-app first-party cookies. **Design only; no new app/Id functionality is implemented.**
 
+## Replication and availability are minimum Id platform requirements (2026-10-20)
+
+**Confirmed:** Id is the logical source of truth for first-party identity, service registry, authentication, reserved platform privileges and app/service grants (not third-party applications' own internal roles). Global outages would block new logins across Afrowave. Require at least two independent Id service instances, a replicated authoritative database with safe failover, a third independent quorum/fencing voter/witness for typical consensus-based two-data-node deployments, resilient ingress/key management, tested offsite backups and measured RPO/RTO. **Two active writers without quorum are not acceptable**; a minority partition must never issue conflicting identity mutations.
+
+Existing app-owned sessions may remain usable under bounded expiry/revocation policy when Id is unreachable, but new global authentication and high-impact writes depend on an available authoritative Id quorum. Test node loss, network partition, site loss, revocation, crypto-key rotation and restore. Id remains independent of Afutrans availability and can load localization resources offline.
+
+Owners may elect plain FTP/HTTP for their own test/public applications if the chosen connector supports it, with honest warning and strict isolated worker boundaries. This **does not allow** unencrypted Id authorization-code/token transport on remote HTTP callbacks (see RFC 9700). Details: [Id High Availability and Replication](../Id-High-Availability-and-Replication/en.md). **Design only.**
