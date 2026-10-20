@@ -479,3 +479,10 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Keep naming aligned with existing user patterns (`I...Manager`, `I...Service`, `...Async`, constructor DI, small interfaces); exact bootstrap API names deliberately remain open. Existing old `TranslateLanguageNamesAsync` implementation loops over **countries** despite the method name; new implementation must distinguish both responsibilities.
 - Updated `Docs/Language-Catalog-and-Country-Selection/en.md` and `Docs/Architecture/en.md`. **Documentation only, not implemented or tested**. Last independently verified functional baseline remains UnderstandMe 24/24 and Toolbox 5,938/5,938.
 
+## 2026-10-20 — optional Id app/service registry boundary for Afutrans
+
+- Captured the user's platform architecture: Id provides one first-party identity, app/brand registry and separately scoped service grants; Afutrans may be a registered service used by Id and explicitly allowed third-party community apps.
+- Registry visibility/service application metadata **does not authorize** translations, reveal tenant dictionaries, grant system privileges, or give Id permission to modify another app's roles. Core `ClientContext`/`ClientPolicy` enforcement applies identically to business REST/SignalR and direct use.
+- App-owned first-party session cookies with an Id-only login session replace cross-domain cookie sharing. Translation/API clients authenticate separately; optional SFTP/SQL/API target connectors have owner-scoped secret references and read/write capabilities; no plaintext untrusted FTP.
+- Linked [Afutrans service integration design](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Registered-Service-Integration/en.md) and updated Toolbox Id review, UnderstandMe Afutrans integration and Client-Access policy. **Documentation only, no code or tests modified.** Last previously verified Toolbox functional suite remains 5,938/5,938.
+

@@ -84,3 +84,12 @@ Public API request/reply contracts remain shared across REST, direct .NET and op
 Finalize `ClientPolicy` schema/group precedence and provider allowlist semantics; authenticated versus anonymous client ID strategy and explicit opt-in approval of paid access for anonymous callers; publicly offered spare-capacity scheduler limits; daily/monthly client quota resets/time zones; multi-host atomic reservations; partial charge/retry accounting; permission changes mid-job; privacy of client usage reporting; and admission codes. Test allowed local fallback, forbidden Google and AI, paid entitlement, provider hard budget exhausted for every client, per-client quota exhaustion even with unused provider capacity, input spoofing, rate limiting, and fairness without starving internal work.
 
 See [Request Admission](../Request-Admission-and-Normalization/en.md), [Provider Routing](../Provider-Routing/en.md), [Provider Billing](../Provider-Billing-and-Quotas/en.md), [QueueMaster](../QueueMaster-and-Reliability/en.md), [Architecture](../Architecture/en.md), [Implementation Status](../../IMPLEMENTATION_STATUS.md).
+
+## Id application registry and Afutrans client-policy boundary (2026-10-20)
+
+An optional Afrowave Id registration integration may supply authenticated **caller application identity**, public service discovery and an application-to-service grant/entitlement for Afutrans. That Id grant is an input to, **not a replacement for**, Afutrans `ClientContext` and effective `ClientPolicy`; the service still enforces its own accepted feature/provider restrictions, queue/resource caps and per-target read/write/privacy rules. A listed/public service is not an unrestricted data service. An explicitly enabled anonymous translation profile remains possible under its own capped administrator-controlled policy; it is not automatically inherited from a registry listing.
+
+Clients can be deployed without Id; use appropriately authenticated local/standalone policies or approved anonymous profiles. Trust must be established by an authenticated request boundary (signed/audience-bound credentials, securely managed API keys or equivalent), **not** by self-declared GUIDs. REST and business SignalR request handling must use one policy decision and cannot leak target credentials. No mandatory Id SDK is introduced into the core UnderstandMe module.
+
+See [Afutrans Registered Service Integration](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Registered-Service-Integration/en.md).
+
