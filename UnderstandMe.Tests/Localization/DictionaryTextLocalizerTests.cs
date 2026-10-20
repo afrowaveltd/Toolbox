@@ -61,10 +61,10 @@ public sealed class DictionaryTextLocalizerTests : IDisposable
     [Fact]
     public void Named_placeholders_do_not_modify_catalog()
     {
-        Write("cs", """{"Hello {name}":"Ahoj {name} z {city}!"}""");
+        Write("cs", """{"Hello {name} from {city}":"Ahoj {name} z {city}!"}""");
         var t = Create();
         Assert.Equal("Ahoj Bolaji z Lagos!",
-            t.Format("Hello {name}", new Dictionary<string, string>
+            t.Format("Hello {name} from {city}", new Dictionary<string, string>
             { ["name"] = "Bolaji", ["city"] = "Lagos" }, "cs"));
         Assert.Contains("{name}", File.ReadAllText(Path.Combine(_root, "cs.json")));
     }
@@ -152,6 +152,85 @@ public sealed class DictionaryTextLocalizerTests : IDisposable
         Assert.Equal("Vítej", t.Get("Welcome", "cs"));
         Assert.True(t.Reload("cs"));
         Assert.Equal("Ahoj", t.Get("Welcome", "cs"));
+    }
+
+
+    [Theory]
+    [InlineData("I have {count} kids", "Mám děti")]
+    [InlineData("I have {count} kids", "Mám {count} a {count} dětí")]
+    [InlineData("I have {count} kids", "Mám {number} dětí")]
+    [InlineData("I have {count} kids", "Mám {count dětí")]
+    [InlineData("I have {count} kids", "Mám {count}} dětí")]
+    public void Invalid_target_placeholder_is_rejected_and_source_values_survive(
+        string source, string invalidTranslation)
+    {
+        Write("cs", JsonSerializer.Serialize(new Dictionary<string, string>
+        {
+            [source] = invalidTranslation
+        }));
+
+        var localizer = Create(registerMissing: false);
+        Assert.Equal(source, localizer.Get(source, "cs"));
+        Assert.Equal("I have 3 kids", localizer.Format(source,
+            new Dictionary<string, string> { ["count"] = "3" }, "cs"));
+
+        // Validation must not delete the bad candidate or mutate the source store.
+        Assert.Equal(invalidTranslation, Store.Load("cs")[source]);
+        Assert.False(File.Exists(Path.Combine(_root, "en.json")));
+    }
+
+    [Fact]
+    public void Invalid_region_translation_falls_back_to_valid_parent_translation()
+    {
+        Write("en", """{"Hello {name}":"Hello {name}"}""");
+        Write("cs-CZ", """{"Hello {name}":"Ahoj"}""");
+        Write("cs", """{"Hello {name}":"Nazdar {name}"}""");
+
+        Assert.Equal("Nazdar Ada", Create().Format("Hello {name}",
+            new Dictionary<string, string> { ["name"] = "Ada" }, "cs-CZ"));
+    }
+
+    [Fact]
+    public void Symbolic_key_uses_source_dictionary_template_for_validation_and_fallback()
+    {
+        Write("en", """{"Kids":"I have {count} kids"}""");
+        Write("cs", """{"Kids":"Mám děti"}""");
+
+        var localizer = Create();
+        Assert.Equal("I have {count} kids", localizer.Get("Kids", "cs"));
+        Assert.Equal("I have 3 kids", localizer.Format("Kids",
+            new Dictionary<string, string> { ["count"] = "3" }, "cs"));
+    }
+
+    [Fact]
+    public void Target_with_reordered_placeholders_is_valid()
+    {
+        Write("cs", """{"{name} has {count} items":"{count} položek má {name}"}""");
+
+        Assert.Equal("3 položek má Ada", Create().Format("{name} has {count} items",
+            new Dictionary<string, string> { ["name"] = "Ada", ["count"] = "3" }, "cs"));
+    }
+
+    [Fact]
+    public void Strict_runtime_validation_can_be_explicitly_disabled_for_legacy_data()
+    {
+        Write("cs", """{"Hello {name}":"Ahoj {name} z {city}"}""");
+        var localizer = new DictionaryTextLocalizer(Store, new LocalizationOptions
+        {
+            SourceCulture = "en",
+            RegisterMissingSourceKeys = false,
+            ValidateLocalizedPlaceholders = false
+        });
+
+        Assert.Equal("Ahoj Ada z Lagos", localizer.Format("Hello {name}",
+            new Dictionary<string, string> { ["name"] = "Ada", ["city"] = "Lagos" }, "cs"));
+    }
+
+    [Fact]
+    public void Translation_without_placeholders_may_still_be_valid()
+    {
+        Write("cs", """{"Hello there":"Dobrý den"}""");
+        Assert.Equal("Dobrý den", Create().Get("Hello there", "cs"));
     }
 
     private sealed class MemoryStore : ILocalizationDictionaryStore

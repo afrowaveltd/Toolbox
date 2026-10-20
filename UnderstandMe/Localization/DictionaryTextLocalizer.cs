@@ -35,9 +35,17 @@ public sealed class DictionaryTextLocalizer : ITextLocalizer
 
         lock (_gate)
         {
+            // A symbolic key may differ from its source-language template.
+            // Missing dictionaryless entries use the original key as the template.
+            string sourceTemplate = GetSnapshot(source).TryGetValue(key, out string? sourceValue)
+                ? sourceValue
+                : key;
+
             foreach (string candidate in CultureCandidates(selected, source))
             {
-                if (GetSnapshot(candidate).TryGetValue(key, out string? value))
+                if (GetSnapshot(candidate).TryGetValue(key, out string? value) &&
+                    (!_options.ValidateLocalizedPlaceholders ||
+                     LocalizationPlaceholderValidator.HasMatchingPlaceholders(sourceTemplate, value)))
                     return value;
             }
 

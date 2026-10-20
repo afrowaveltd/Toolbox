@@ -157,3 +157,8 @@ Shared Afrowave translation service is designed for **maximum feasible free comm
 ### Verified placeholder validator tests
 
 The optional named-placeholder validator and its 19 new test cases passed in GitHub Actions [run #39407132671](https://github.com/afrowaveltd/Toolbox/actions/runs/39407132671): **43 UnderstandMe and 5,957 total tests, zero warnings/errors**. It does not yet enforce validity on existing dictionary entries.
+
+### Invalid localized placeholders: safe fallback in the runtime
+
+`DictionaryTextLocalizer` now defaults to **strict validation** of localized `{name}` placeholders (same exact names and occurrence counts as the source template). Missing, extra, renamed or malformed target placeholders cause fallback to a valid parent locale or original source template **before caller values are inserted**, so useful runtime values are not lost. Use `LocalizationOptions.ValidateLocalizedPlaceholders=false` only for intentional legacy opt-out. The localizer remains completely offline and non-destructive; it does not erase dictionaryless entries. Future optional async rendered-text rescue, error events, incidents and Afutrans retranslation are design only. [Details](Docs/Localization/Invalid-Placeholder-Fallback/en.md).
+

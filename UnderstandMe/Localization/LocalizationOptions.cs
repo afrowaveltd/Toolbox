@@ -8,4 +8,11 @@ public sealed class LocalizationOptions
 
     /// <summary>Register unknown source phrases as key=value. Default: true.</summary>
     public bool RegisterMissingSourceKeys { get; init; } = true;
+
+    /// <summary>
+    /// Skip stored translations whose named placeholder identities, occurrence
+    /// counts, or brace syntax differ from the source-language template.
+    /// Default: true. Disable only for explicitly trusted legacy dictionaries.
+    /// </summary>
+    public bool ValidateLocalizedPlaceholders { get; init; } = true;
 }

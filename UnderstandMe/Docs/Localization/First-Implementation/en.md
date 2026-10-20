@@ -64,3 +64,14 @@ Tests in `UnderstandMe.Tests/Localization/LocalizationPlaceholderValidatorTests.
 ## CI verification of named placeholder validation (2026-10-20)
 
 The additive validator commit [`f22ec3d`](https://github.com/afrowaveltd/Toolbox/commit/f22ec3d3de9e14ee7e0b2167283235dc75c243d6) passed the .NET 10 workflow [run #39407132671](https://github.com/afrowaveltd/Toolbox/actions/runs/39407132671): zero warnings/errors, **43/43 UnderstandMe tests and 5,957/5,957 full solution tests**. The validator remains opt-in; no automatic activation in localizer lookups or future translation admission yet.
+
+## Safe runtime fallback for mismatched localized placeholders (2026-10-20)
+
+`DictionaryTextLocalizer` now applies `LocalizationPlaceholderValidator.HasMatchingPlaceholders` to each stored target candidate by default **at lookup time**. Source template is the authoritative source-locale dictionary **value** for symbolic keys, otherwise the dictionaryless source key. If the selected target adds, removes, renames or duplicates a placeholder (or has malformed braces), `Get` tries a valid parent locale then valid source template before returning key. `Format` substitutes values into this safe fallback, avoiding silently lost information. Locale files are not modified or deleted; offline dictionaryless start remains intact. A legacy host can explicitly opt out with `LocalizationOptions.ValidateLocalizedPlaceholders=false`.
+
+Unit tests were added for missing/extra/renamed/invalid slots, region-parent fallback, symbolic-source templates, valid reordering and explicit legacy opt-out. Historical test `Named_placeholders_do_not_modify_catalog` now uses a legitimate two-slot source and target instead of implicitly approving a newly introduced `{city}`.
+
+Optional realtime rescue by translating **fully rendered source text**, scoped invalidation/change events, Afutrans regeneration, incident logging and per-entry last-good revision retention remain **planned, not implemented**, preserving synchronous cache-first lookups and source-key history. **Do not delete a dictionaryless source key to trigger translation**: it would destroy reusable translations and manual edits. Full design: [Invalid Placeholder Fallback](../Invalid-Placeholder-Fallback/en.md).
+
+**Verification:** this repository commit includes code and tests; GitHub Actions push workflow must be checked separately before claiming a green run.
+
