@@ -103,3 +103,12 @@ Maintain separate auditable dimensions for **client plan/subscription/contributi
 Capacity plans must remain finite: track worker slots/concurrency and measured waiting/processing times, reflect outages/restarts, protect internal/reserved community capacity and avoid selling unsupported response-time guarantees. Do not claim cost recovery or dedicate a specific portion of proceeds without real accounting; no provider-account hard limit is weakened by client contributions.
 
 See [Afutrans community funding design](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Community-Capacity-and-Contributor-Priority/en.md). **Design only; no payment or new metering code implemented.**
+
+## Separate customer-paid backends from Afrowave cost ledger (2026-10-20)
+
+A customer-supplied Microsoft/Google translation subscription, hosted AI provider or self-hosted LibreTranslate/Ollama is billed/operated by **that customer**, subject to their account/provider hard caps. Afrowave must never silently spend its own paid-provider budget as fallback. A managed VPS tenant plan pays for dedicated hosting capacity; it does not purchase preferential access to CommunityFree workers.
+
+Distinguish (1) donations/funding actually received, (2) tenant managed VPS and network/backups/setup costs, (3) externally metered vendor charges for each owner's account, (4) explicitly allocated free community operating costs. Publish privacy-preserving actual figures with disclosed fees/taxes rather than an invented '100% of funds go directly to VPS' assertion. Having one's own backend does not impose a compulsory rental subscription; shared host resource safeguards still apply.
+
+See [Queue lanes and Tenant-Owned Providers](../Queue-Lanes-and-Tenant-Owned-Providers/en.md). **Design only.**
+

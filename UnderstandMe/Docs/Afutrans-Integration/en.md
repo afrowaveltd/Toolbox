@@ -226,3 +226,10 @@ Preserve the existing five P0-P4 execution priorities, true immediate P0 automat
 Payment/accounting, self-hosted VPS running cost and chargeable external translation-provider budget remain **distinct optional responsibilities**, with transparent operator-authorized spending. Backend and host deployment may remain fully standalone/offline and human-only; no mandatory Id, payment connector or public listener is added.
 
 See [Afutrans Community Capacity and Contributor Priority](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Community-Capacity-and-Contributor-Priority/en.md) and [Client Access Policies](../Client-Access-Policies/en.md). **Design only.**
+
+## Dynamic capacity lanes and Bring Your Own provider (2026-10-20)
+
+For hosted Afutrans, preserve **three independent capacity domains**: first-party reserved AfrowaveInternal realtime/resources, protected free/deferred CommunityFree workers, and dynamically authorized tenant-specific queue lanes with separately rented VPS or customer-owned backend resources. No commercial purchase of earlier queue placement in CommunityFree. Customers with their own LibreTranslate/Google/Microsoft/Ollama/AI endpoint need not pay our VPS rental.
+
+The Gateway/Id (optional) verifies tenant/target identity and enrollment, the Afutrans application boundary validates endpoint and lane permissions, QueueMaster dispatches only compatible assigned workers. Tenant secrets/provider accounts remain outside Id; target privacy and budget caps apply. Never impose hosted billing on local/offline UnderstandMe or Human-only use. See [Queue lanes](../Queue-Lanes-and-Tenant-Owned-Providers/en.md) and [Afutrans dedicated funding design](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Dedicated-Capacity-BYO-Backends-and-Transparency/en.md). **Design only.**
+

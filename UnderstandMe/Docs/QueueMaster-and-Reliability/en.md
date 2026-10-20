@@ -4,7 +4,7 @@ Status: agreed operational concept; concrete synchronization and SQL schema are 
 
 ## Work ownership
 
-QueueMaster is the only owner of five central priority queues. Producers submit logical jobs, batches or items through its API. Translators do **not** dequeue central work directly; their individual small FIFO buffers request the next compatible item when capacity appears.
+QueueMaster is the logical owner of dynamically registered **queue lanes**, each retaining the familiar P0–P4 priority classes where enabled. A standalone host may have one default five-priority lane. Producers submit logical jobs, batches or items through its API. Translators do **not** dequeue central work directly; their individual small FIFO buffers request the next compatible item when capacity appears.
 
 Provisional priority names: P0 `RealTime`, P1 `Interactive`, P2 `High`, P3 `Normal`, P4 `Background`.
 
@@ -24,15 +24,15 @@ At dispatch, current queue pause and account hard limits may hold a previously a
 
 ## Shared capacity, clients and admission policy
 
-The orchestrator supplies QueueMaster only **admitted effective requests** after applying the caller's `ClientPolicy` and global administrator settings. Client identity, provider restrictions, paid-plan entitlement, words/day and maximum concurrency are **not new global job priorities** and must not create one queue per customer by default. Client-specific caps and reserved internal capacity can be admission or dispatch constraints; QueueMaster keeps ownership of the same five priority queues, compatible endpoint handoff and orchestration control.
+The orchestrator supplies QueueMaster only **admitted effective requests** after applying the caller's `ClientPolicy` and global administrator settings. Client identity and per-client quotas are **not new global job priorities**; explicit dedicated tenant queues are dynamically enrolled with **separate** worker pools. Do not create a lane for every anonymous community client by default. Client-specific caps and reserved internal capacity can be admission or dispatch constraints; QueueMaster keeps ownership of the same five priority queues, compatible endpoint handoff and orchestration control.
 
-An optional public Afutrans API may borrow spare LibreTranslate capacity without monopolizing workers needed for internal tasks. Choose explicit rate/concurrency/queued-item caps and fairness/resource-reservation behavior before implementation. Validate the trusted caller identity at the external application boundary; at dispatch check current client caps **and** current provider account limits, preserving the originally accepted request's preferences. [Client Access Policies](../Client-Access-Policies/en.md).
+An optionally public Afutrans deployment uses a **protected community LibreTranslate worker pool**, separate from internal realtime and dedicated tenant resources. Any surplus-resource donation must be an explicit owner/operator decision preserving reserved capacity. Choose explicit rate/concurrency/queued-item caps and fairness/resource-reservation behavior before implementation. Validate the trusted caller identity at the external application boundary; at dispatch check current client caps **and** current provider account limits, preserving the originally accepted request's preferences. [Client Access Policies](../Client-Access-Policies/en.md).
 
 ## Chargeable attempts and operational quota guards
 
 A request's provider preference is frozen when it is created, but **the right to incur new billable usage is checked at dispatch** using the current, administrator-approved account quotas and hard spending limits. A job already in the queue must not silently exceed the current provider billing cap simply because it was accepted earlier. If the selected endpoint has no permitted quota, Pipe/provider routing can choose another already-authorized eligible endpoint, wait for plan renewal/admin action, or return a defined unavailable outcome under the original request policy.
 
-The QueueMaster continues owning priority queues and work leases. It does not maintain a second global queue for each subscription or embed billing rules. An independent usage service atomically reserves expected metered units across all workers sharing that account and reconciles actual/estimated use after the attempt; attempts with unknown provider-side charge remain tracked. Billing evidence is durable and **not** SignalR telemetry. [Provider Billing and Quotas](../Provider-Billing-and-Quotas/en.md).
+QueueMaster continues owning **lane-scoped priority queues and work leases** and supports deliberately enrolled tenant lanes. It does not turn subscriptions into a new global Paid priority or embed billing rules. An independent usage service atomically reserves expected metered units across all workers sharing that account and reconciles actual/estimated use after the attempt; attempts with unknown provider-side charge remain tracked. Billing evidence is durable and **not** SignalR telemetry. [Provider Billing and Quotas](../Provider-Billing-and-Quotas/en.md).
 
 ## Human-only execution is valid
 
@@ -42,7 +42,7 @@ LibreTranslate, AfroLT and all other automatic endpoints are optional registered
 
 ## Durable human backlog; no Human in P0 RealTime
 
-Human translators consume **durable non-RealTime P1-P4** requests from the same QueueMaster scheduling infrastructure; there is **no sixth physical queue**. Human work is persisted when accepted regardless of whether a translator is online. The translator UI can open later, show pending/in-progress totals grouped by the existing priorities (P0 shown as inactive/zero for Human), and atomically claim compatible P1-P4 work with exclusive lease/release, validation and recovery.
+Human translators consume **durable non-RealTime P1-P4** requests from permitted QueueMaster lanes. There is **no sixth global priority class named Human**; a customer lane is a separate resource domain, not a human-priority queue. Human work is persisted when accepted regardless of whether a translator is online. The translator UI can open later, show pending/in-progress totals grouped by the existing priorities (P0 shown as inactive/zero for Human), and atomically claim compatible P1-P4 work with exclusive lease/release, validation and recovery.
 
 **P0 RealTime is an automatic-only, volatile dispatch path.** The Human provider **must never be assigned P0 items**. In a Human-only installation **P0 is not activated and incoming RealTime translation returns the source text essentially immediately**. Even if automatic providers exist but fail or cannot satisfy the policy, no RealTime item may escalate to Human; `Mandatory` cannot change this. A real-time message may contain private chat content and must not be persisted as Human work, automatically copied into a translator inbox or exposed for later manual review.
 
@@ -50,7 +50,7 @@ Delayed human translation is permitted **only by a distinct, explicitly submitte
 
 ## Notifications
 
-`QueueEmpty` represents whether an individual central queue has no items. An enqueue that **atomically changes a given queue from zero items to one** triggers the common `AddedToQueue` event; enqueues to already nonempty queues do not. Idle buffers can wake and request work. A periodic check (initial suggestion ~500 ms) provides a safety net. A buffer that becomes free while compatible work already exists also requests more.
+`QueueEmpty` represents whether an individual lane+priority queue has no items. An enqueue that **atomically changes a given queue from zero items to one** triggers the common `AddedToQueue` event; enqueues to already nonempty queues do not. Idle buffers can wake and request work. A periodic check (initial suggestion ~500 ms) provides a safety net. A buffer that becomes free while compatible work already exists also requests more.
 
 QueueMaster (not the event) selects the priority and ensures one owner per item. A partially empty buffer can be replenished one slot at a time; default size and thresholds remain subject to tests.
 
@@ -90,3 +90,12 @@ Hosted Afutrans can offer free **durable deferred** translations on bounded comm
 - Admission and the worker queue may impose bounded waiting, max queue depth, per-client word/rate/concurrency, and fair rejection/backpressure rather than indefinitely accepting work with no resources.
 
 See [Client Access Policies](../Client-Access-Policies/en.md) and [Afutrans capacity proposal](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Community-Capacity-and-Contributor-Priority/en.md). **Design only; no change to QueueMaster implementation.**
+
+## 2026-10-20 — dynamic isolated queue lanes supersede shared paid priority
+
+**Superseding user decision:** paid tenants must not jump ahead of CommunityFree users in the same queue/worker pool. Afrowave gets a protected internal lane including eligible P0 RealTime; `CommunityFree` receives its own protected shared worker pool for explicit deferred non-P0 work; each authorized `TenantDedicated` gets a separate queue lane **and its own backend resource capacity**. Customer can rent separately managed LibreTranslate VPS or attach their **own** LibreTranslate, Microsoft/Google Translator, Ollama/AI or other compatible endpoint, without a compulsory VPS subscription. Existing P0–P4 priorities remain *within each lane*.
+
+QueueMaster owns dynamic lane-specific queues and leases, not exactly five physical queues globally. A new lane only exists after explicit tenant enrollment, not automatically for every anonymous caller. Worker/endpoint binding, provider-account billing ownership and shared gateway/DB/queue resource limits must enforce real isolation. No automatic cross-lane resource fallback; no purchase of queue position in the community pool.
+
+See [Queue lanes and Tenant-Owned Providers](../Queue-Lanes-and-Tenant-Owned-Providers/en.md) and [Afutrans dedicated-capacity decision](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Dedicated-Capacity-BYO-Backends-and-Transparency/en.md). **Design only, no scheduler/host code or tests.**
+

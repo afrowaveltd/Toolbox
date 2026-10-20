@@ -138,3 +138,7 @@ The current Afutrans codebase is an experimental application skeleton. Its exist
 
 **Source of truth:** [Toolbox GitHub repository](https://github.com/afrowaveltd/Toolbox).
 
+### Dynamic queue lanes and Bring Your Own providers (planned)
+
+Hosted Afutrans may isolate `AfrowaveInternal`, `CommunityFree` and customer-specific `TenantDedicated` queue lanes, **each with its own worker capacity**. Commercial tenants do **not** buy priority over free community work; they rent their own LibreTranslate VPS or connect their own compatible LibreTranslate, Google/Microsoft, Ollama/AI backends without compulsory VPS fee. QueueMaster retains P0–P4 **inside** each dynamically managed lane. Tenant security, physical resource limits, privacy and provider-billing ownership remain enforceable. See [Queue Lanes and Tenant-Owned Providers](Docs/Queue-Lanes-and-Tenant-Owned-Providers/en.md).
+

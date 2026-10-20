@@ -506,3 +506,11 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - No mandatory paid service or Id integration for UnderstandMe. `ClientPolicy`/host admission owns caller capacity entitlement, QueueMaster retains five P0–P4 queues and P0 remains volatile, automatic-only, non-Human, and cannot auto-convert to delayed/human work.
 - Protect provider spending hard limits and owner data rights. Give free admitted requests an actual fairness/capacity share so sustained paying traffic cannot starve them; separate contribution revenue records, provider metered expenses and VPS costs.
 - Updated Client Access Policies, QueueMaster, Provider Billing and Afutrans Integration design. Canonical hosted product note: [Afutrans community capacity](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Community-Capacity-and-Contributor-Priority/en.md). **Documentation only: no working payment/queue capacity or new tests; pricing/SLAs deferred.**
+
+## 2026-10-20 — isolated lanes replace paid shared priority; BYO backends
+
+- **Supersedes** idea of purchased fast placement inside CommunityFree queue. Afrowave first-party internal P0/resources, deferred free community workers, and owner-specific tenant queues/workers are independently capacity-bound. P0–P4 remain priorities within each lane; QueueMaster needs dynamic lanes instead of exactly five global physical queues.
+- Tenant can rent managed LibreTranslate VPS or connect own compatible LibreTranslate, Microsoft/Google subscription or Ollama/AI backend with tenant-owned credentials and billing. No mandatory VPS rent for one's own backend; no automatic cross-lane fallback.
+- Worker pool isolation, owner-scoped provider-account limits, dynamic lane lifecycle/recovery, finite shared API/scheduler/network capacity and clear contribution/hosting cost breakdown are future requirements. Private content, Id secrets and account keys remain separated.
+- Added [Docs/Queue-Lanes-and-Tenant-Owned-Providers/en.md](Docs/Queue-Lanes-and-Tenant-Owned-Providers/en.md), corrected queue master/client access text and updated provider routing/billing/integration/README. [Afutrans design](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Dedicated-Capacity-BYO-Backends-and-Transparency/en.md). **Docs only, no code/test changes.**
+

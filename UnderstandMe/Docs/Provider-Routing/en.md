@@ -140,3 +140,12 @@ Escalation also needs a policy for **which failures are retryable**, per-endpoin
 Specify the minimum provider capability contract, policy precedence and selection algorithm; define capability/price units (per character/token/request/local resource), and test language eligibility, unsupported HTML, LocalOnly constraints, absent/unhealthy endpoints, budget ceilings, retries after ambiguous timeouts, mandatory validation failure, provider-order overrides and fallback exhaustion. Test that QueueMaster job priority does not get conflated with provider rank.
 
 See [Translation Chains](../Translation-Chains/en.md), [Architecture](../Architecture/en.md), [AfroLT future design](../AfroLT-Future-Design/en.md), [Implementation Status](../../IMPLEMENTATION_STATUS.md).
+
+## Tenant-owned providers and worker-lane authorization (2026-10-20)
+
+Installed LibreTranslate, Google, Microsoft, Ollama or other AI providers may have **several independently owned accounts/endpoints**. Provider registration binds `EndpointId`, owner tenant, queue lane/worker pool, supported languages/content/AI capabilities, privacy rules, credential reference and provider billing account. The customer may bring an already-owned backend **without** renting Afrowave VPS; a managed rented VPS is an alternative, not a prerequisite.
+
+The orchestrator filters by trusted lane+tenant+target and permitted endpoint *before* provider preference. Paid tenant work cannot preempt CommunityFree workers: each dedicated lane has its own funded/owned worker capacity. Never silently route a customer to another tenant's account or Afrowave's paid provider on a timeout/quota failure. AI review and AI translation capabilities need specific adapters/policies, not mere string-equivalence with an ordinary translator.
+
+See [Queue lanes and Tenant-Owned Providers](../Queue-Lanes-and-Tenant-Owned-Providers/en.md). **Design only.**
+
