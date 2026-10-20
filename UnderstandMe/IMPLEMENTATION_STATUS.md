@@ -560,3 +560,9 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Added `UnderstandMe.Tests/Localization/LocalizationPlaceholderValidatorTests.cs` with xUnit coverage for reordering, repeated slots, missing/renamed/additional placeholders, escaped braces, malformed syntax and null inputs. **No change** to `ITextLocalizer` or dictionaryless localizer behavior; translation admission/writer integration remains future work.
 - Updated [Docs/Localization/First-Implementation/en.md](Docs/Localization/First-Implementation/en.md) and root UnderstandMe README. **Build/tests not yet independently confirmed at commit time**; CI workflow on `master` is the intended verification path. No fabricated green test result. Preserve existing tests and recheck workflow run before claiming PASS.
 
+## 2026-10-20 — placeholder validator CI confirmed GREEN
+
+- **GitHub master code commit:** [`f22ec3d`](https://github.com/afrowaveltd/Toolbox/commit/f22ec3d3de9e14ee7e0b2167283235dc75c243d6), independent candidate placeholder validation and additive xUnit tests; no changes to dictionaryless localization behavior.
+- **Verified GitHub Actions run [#39407132671](https://github.com/afrowaveltd/Toolbox/actions/runs/39407132671)** for code commit `f22ec3d3de9e14ee7e0b2167283235dc75c243d6`: .NET 10 build SUCCESS, **0 warnings, 0 errors**, full solution tests **5,957 passed, 0 failed**. Breakdown: UnderstandMe.Tests **43 passed**, WhenItFails.Tests **1,475 passed**, Essentials.Tests **3,198 passed**, WhenItFails.Setter.Tests **1,241 passed**. This slice added 19 test cases.
+- The validator remains opt-in and has not been wired into old stored translation lookup or future candidate admission. Preserve dictionaryless behavior during subsequent integration.
+

@@ -2,7 +2,7 @@
 
 UnderstandMe is a planned, modular localization, globalization, translation, and translation-workflow toolkit for .NET applications. It belongs to [Afrowave Toolbox](https://github.com/afrowaveltd/Toolbox).
 
-> **Status: first offline localization core committed; translation and orchestration remain design-stage.** The .NET 10 project now contains standalone JSON localization code and a separate test project. GitHub Actions build and all 5,928 solution tests passed (including 14 UnderstandMe tests) with zero build warnings. See [first implementation](Docs/Localization/First-Implementation/en.md).
+> **Status: first offline localization core committed; translation and orchestration remain design-stage.** The .NET 10 project now contains standalone JSON localization code and a separate test project. GitHub Actions [run #39407132671](https://github.com/afrowaveltd/Toolbox/actions/runs/39407132671) passed **5,957 solution tests** (including **43 UnderstandMe tests**), with **zero build warnings/errors**, after adding standalone placeholder validation. See [first implementation](Docs/Localization/First-Implementation/en.md).
 
 ## Purpose
 
@@ -154,3 +154,6 @@ Shared Afrowave translation service is designed for **maximum feasible free comm
 
 `LocalizationPlaceholderValidator.HasMatchingPlaceholders(source, candidate)` checks that a proposed translation contains **exactly the original named placeholders including repeated counts**, regardless of order. It understands escaped `{{`/`}}` braces and rejects malformed bracket sequences. This standalone opt-in utility is for future translation admission and does not change dictionaryless registration, JSON files or existing localizer API. See [Localization first implementation](Docs/Localization/First-Implementation/en.md).
 
+### Verified placeholder validator tests
+
+The optional named-placeholder validator and its 19 new test cases passed in GitHub Actions [run #39407132671](https://github.com/afrowaveltd/Toolbox/actions/runs/39407132671): **43 UnderstandMe and 5,957 total tests, zero warnings/errors**. It does not yet enforce validity on existing dictionary entries.

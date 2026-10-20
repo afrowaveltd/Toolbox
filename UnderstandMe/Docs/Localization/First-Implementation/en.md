@@ -61,3 +61,6 @@ This validator does **not** require a dictionary, CLDR, provider, Afutrans or me
 
 Tests in `UnderstandMe.Tests/Localization/LocalizationPlaceholderValidatorTests.cs` cover reordering, repeated placeholders, escaped braces, Unicode plain text, case sensitivity, invalid tokens/braces and null inputs. Build/CI results belong in `IMPLEMENTATION_STATUS.md` once observed. **No additional grammar, hint sidecars or CLDR engine implemented.**
 
+## CI verification of named placeholder validation (2026-10-20)
+
+The additive validator commit [`f22ec3d`](https://github.com/afrowaveltd/Toolbox/commit/f22ec3d3de9e14ee7e0b2167283235dc75c243d6) passed the .NET 10 workflow [run #39407132671](https://github.com/afrowaveltd/Toolbox/actions/runs/39407132671): zero warnings/errors, **43/43 UnderstandMe tests and 5,957/5,957 full solution tests**. The validator remains opt-in; no automatic activation in localizer lookups or future translation admission yet.
