@@ -88,3 +88,40 @@ The Afutrans repository now contains [19 additional original CLDR 48.2.3 JSON fi
 
 These files are **reference datasets only**, not runtime components. The basic 185-entry Afutrans `languages.json` remains intact. They provide a better eventual source for optional UnderstandMe `ILanguageCatalog`/territory/direction adapters, but localized CLDR language names are not guaranteed to be native endonyms, nor do they prove backend translation support. Preserve manual catalog overrides and perform a tested migration before moving canonical assets into a Toolbox package.
 
+## Ready-before-serving: language picker bootstrap and incremental reconciliation (2026-10-20)
+
+The historical [`AfrowaveWebPublic/Id` application startup](https://github.com/afrowaveltd/AfrowaveWebPublic/blob/master/Id/Program.cs) calls application-data seeding and localized-name translation **before the web host begins serving requests**. The new host integration should preserve the useful requirement: **the first served page already receives a valid, fully populated language-selector snapshot**. Do not make a language dropdown wait for client-side calls, a late periodic scanner, or translation requests initiated by its own rendering.
+
+### Separate the work that is needed before serving from optional live translation
+
+1. **Discover** eligible locale codes from the host's configured `Locales` resources; optionally inspect configured translation-provider capabilities. These are different lists. Normalize/validate codes and exclude `old.json`, backups, temporary files or malformed locale paths.
+2. **Resolve names** from configured `ILanguageCatalogReader`, reviewed host overrides and optional CLDR local-name data. Use endonyms/known English display names as safe local fallbacks. Never require a network call to display a language. Keep script-aware RTL/LTR metadata where available.
+3. **Register missing source-language phrases** (such as localized language labels or territory names if the host explicitly chooses to treat them as localizable UI strings) through the ordinary dictionary/metadata registration service, preserving dictionaryless guarantees and avoiding re-registration of already known keys. Keep language *catalog identity* distinct from phrase *translation identity*; do not persist dynamic user content or incorrectly use the native-name field as the English source.
+4. Optionally **translate newly registered names for configured target locales** via the host translation workflow. The behavior is a configurable startup policy, not a hidden network call from `ITextLocalizer`, `GetAll()` or a Razor view. Check prior reviewed translations first, run only the missing eligible jobs, validate results, and protect manual overrides.
+5. **Build and atomically activate an immutable selector snapshot** before the host declares `LanguagePickerReady` and starts accepting requests. First-page language options, localized labels and per-item direction are consistent for that snapshot.
+6. After startup, a separate hosted **reconciler** detects added/removed/changed locale resources or provider languages, submits incremental work and atomically swaps in a new valid snapshot when accepted. No interval of empty/incomplete menus; do not delete historical dictionaryless phrases merely because a resource file disappeared.
+
+### Readiness policy should be explicit and under host control
+
+- `LocalReady` (illustrative name): default recommended for normal UI hosts. The application may start once it has a correct selector with locally available catalog names/endonyms/fallbacks. Machine translation can continue later or be unavailable. Basic offline/dictionaryless behavior is never blocked by CLDR or an external translation provider.
+- `RequireLocalizedLabels` (illustrative): applications that **explicitly require every requested label translated before serving** may hold readiness until the required validated local or generated translations exist, bounded by configured startup deadline/cancellation and with clear failure/reporting policy. Never retry external providers forever or silently accept corrupt placeholders. Hosts may alternatively fail readiness explicitly rather than serve partial labels.
+- These modes govern **host readiness**, not low-level localizer API availability. Translating every supported language on every process restart is unnecessary; use durable revision/checkpoint information to avoid repeated work.
+
+### Proposed API ownership (names not frozen)
+
+- `ILanguageCatalogReader` and `ILanguageCatalogEditor` already exist in Toolbox; they only read/edit language metadata, not drive translation or web startup.
+- The host's orchestrator / optional `ILanguagePickerInitializer` resolves configured resources and catalog labels, triggers permitted translation-workflow requests where necessary and activates a coherent snapshot. A separate `ILanguagePickerSnapshotProvider` would expose fast synchronous ready-to-render options.
+- An optional hosted change watcher / reconciliation worker handles subsequent additions and refreshes. The host composition root calls initialization **before** ASP.NET starts serving endpoints; not every library consumer needs these services.
+
+**Historical implementation note:** the inspected `Id/Services/ApplicationLoader.cs` method named `TranslateLanguageNamesAsync` actually iterates **country names** in its current `master` revision. Preserve the user's intended workflow, not that accidental mismatch between a method name and what it translates. Keep new dedicated language-label and territory-label workflows distinct.
+
+### Future tests
+
+- First HTTP request after application start sees the full eligible language selector and no late empty-list period.
+- First-start with no catalog/no remote translator can still show valid locale codes and native/English fallback names; strict host policy reports missing mandatory translations clearly.
+- Missing `xx.json` source registration triggers work only once; new `xx.json` discovered after startup publishes one coherent snapshot and does not erase previous locale resources or manually approved target labels.
+- Offline/restarted host reuses last validated snapshot; flaky or slow provider cannot indefinitely block `LocalReady`.
+- `LanguagePickerReady` is independent of optional full-document translation and of provider availability; stop/cancel cleans up unfinished startup work.
+- Native RTL option in LTR page stays correctly isolated; user-selected UI direction is resolved independently.
+
+**Status:** documented behavior only. No `ILanguagePickerInitializer`, hosted reconciler, readiness option, web wiring or tests are currently implemented.

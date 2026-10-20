@@ -471,3 +471,11 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - These are reference files, not automatically active in UnderstandMe; reuse through a future tested optional language catalog / CLDR provider without making dictionaryless startup depend on them.
 - Documentation only in Toolbox; Afutrans JSON assets have been committed separately. No Toolbox source/tests changed; last verified Toolbox run remains 5,938/5,938.
 
+## 2026-10-20 — language picker ready before application serves requests
+
+- Inspected the historical public [`AfrowaveWebPublic/Id`](https://github.com/afrowaveltd/AfrowaveWebPublic/tree/master/Id) bootstrapping pattern and the user's explicit requirement: language names/options should be discovered, registered and sufficiently translated **before the app starts serving users**, not on first page render.
+- Proposed optional host-owned, readiness-aware language selector bootstrap: discover `Locales/*.json`, normalize valid language IDs, resolve endonyms/CLDR fallback, register new phrases, submit missing name translation work according to configured policy, and atomically activate a coherent snapshot. Later locale/provider additions use independent reconciliation and snapshot swap.
+- Separate default `LocalReady` (complete locally usable selection, offline safe) and opt-in strict/bounded `RequireLocalizedLabels` startup readiness so a failed network translator cannot accidentally hang every installation. Translation/country-label preparation must not run inside the core localizer, language JSON store or Razor dropdown.
+- Keep naming aligned with existing user patterns (`I...Manager`, `I...Service`, `...Async`, constructor DI, small interfaces); exact bootstrap API names deliberately remain open. Existing old `TranslateLanguageNamesAsync` implementation loops over **countries** despite the method name; new implementation must distinguish both responsibilities.
+- Updated `Docs/Language-Catalog-and-Country-Selection/en.md` and `Docs/Architecture/en.md`. **Documentation only, not implemented or tested**. Last independently verified functional baseline remains UnderstandMe 24/24 and Toolbox 5,938/5,938.
+

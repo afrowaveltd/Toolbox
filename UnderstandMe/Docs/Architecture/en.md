@@ -234,3 +234,12 @@ The current physical files remain in [Afutrans CLDR JSON](https://github.com/afr
 ## Optional shared language catalog for apps (proposal, 2026-10-19)
 
 An optional reusable language catalog supports endonyms, script-aware LTR/RTL labels, BCP 47 identity and country-based language recommendations. Different apps can show languages drawn from installed locales or from their translation backend's supported language pairs, then rank Uganda-associated languages and provide `Show all` (including French). Do not infer user language from nationality or treat CLDR territory lists as permitted-language policy. The base localizer must not need this catalog. See [Language Catalog and Country Selection](../Language-Catalog-and-Country-Selection/en.md).
+
+## Ready-before-serving language selection is a host-owned workflow (2026-10-20)
+
+Historical `AfrowaveWebPublic/Id` initialized language/locale resources and translated display names before serving HTTP, so its first rendered language selector already had usable options. Preserve this behavior by defining an optional **host bootstrap/readiness** step: configured locale-resource discovery; language metadata/endonym fallback; optional localizable-label registration/translation through host workflow; versioned immutable language-selector snapshot; readiness gate before starting HTTP. After activation, an independent watcher/reconciler may refresh snapshots without blanking the selector.
+
+**Do not** put network requests, providers, timers, `IHostedService` startup, or page-option creation into `DictionaryTextLocalizer` or `FileJsonLanguageCatalogStore`. Separate reader/editor interfaces remain small and reusable outside ASP.NET; optional initialization uses a composition-root-selected policy: recommended locally complete selector without external network (works offline), or a bounded strict mode requiring configured translated labels before readiness. Existing manual translations and source/metadata revisions always win. Include startup and post-start additions in tests.
+
+See [Language Catalog and Country Selection](../Language-Catalog-and-Country-Selection/en.md). **Design only**; no new runtime API or tests.
+
