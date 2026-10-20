@@ -55,3 +55,10 @@ Meter usage at the real account owner: donated cloud Google/Microsoft/AI capacit
 7. Same queue lane can route own P0 to owned backend and explicit non-P0 to an allowed borrowed provider under separate capability/retention policies.
 
 **Implementation:** architecture only. No `CapacityOffer`, new worker lease, multi-owner provider onboarding, outbound agent, adaptive queue admission or tests implemented.
+
+## No synthetic credit restrictions; communicate actual constraints (2026-10-20)
+
+**Non-negotiable default/end-state for hosted CommunityFree:** avoid per-period/per-lifetime translation credit bans and payment gates. Prefer slower job dispatch, optional deferred durable acceptance, meaningful queue information, capacity sharing and honest `RetryLater` only if *physical safety* is genuinely at stake. Real queue/storage limits, abuse controls, paid provider budget caps and P0 volatility still matter, but none should be designed as a conversion funnel to paid service.
+
+Any donated resource or monetary contribution should improve actual measured availability; monetary gifts go only to disclosed hosting, provider token purchases or other necessary services, with public cent-precise accounting and unspent balances, no hidden personal markup. See [Community Access Charter](../../Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md). **No queue/payment implementation here.**
+

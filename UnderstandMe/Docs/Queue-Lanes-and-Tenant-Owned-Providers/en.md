@@ -66,3 +66,9 @@ CommunityFree should **prefer slower deferred processing over arbitrary monthly/
 
 See [Capacity Lending and Backpressure](../Capacity-Lending-and-Backpressure/en.md) and [Afutrans Cooperative Backend Sharing](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Cooperative-Backend-Sharing/en.md). **Design only.**
 
+## Contributions support real resources, not artificial paid scheduling (2026-10-20)
+
+CommunityFree has equal service rights regardless of donation status. A contributor never buys priority in the same protected community worker queue. Managed tenant VPS is an **at-cost** separately funded resource option; connecting a customer's existing Google, Microsoft, LibreTranslate or AI provider is permitted without a mandatory hosting fee. Voluntary donor funds/worker offers may increase the total free capacity, but must not create privileged positions in it.
+
+The hosted operator's guiding purpose is **not to profit**: donor funds pay evidenced community service expenses and/or verified AI provider credits. Public last-cent bookkeeping lists contributions, third-party processing/FX/tax costs, real infrastructure expenses and held balances; private receipts show the donor's own allocation, keeping personal details out of public reports. See [Afrowave community charter](../../Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md). **Design only.**
+

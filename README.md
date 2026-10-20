@@ -100,3 +100,8 @@ dotnet test
 ## Status
 
 This package is under active development. Public behavior is being documented and stabilized step by step.
+
+## Community-first service and transparent infrastructure funding
+
+Afrowave's hosted services aim to give everyone the **maximum feasible access free from launch and permanently**, with no personal enrichment, artificial paywalls or paid queue-jumping inside shared community capacity. Optional donations should fund verifiable real services (e.g. LibreTranslate VPS or AI provider credits), with privacy-safe last-cent reconciliation of received funds, fees, actual invoices, usable capacity and unspent balances. These hosting values impose **no payment dependency on Toolbox libraries**. See [Afrowave Community Access and Transparent Funding](Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md).
+
