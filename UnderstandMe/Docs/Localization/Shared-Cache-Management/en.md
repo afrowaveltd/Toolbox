@@ -118,3 +118,14 @@ Design update only.
 - Required tests: hit at 4m59s extends lifetime; miss after 5m inactivity; exact expiry boundary; repeated active hits; concurrent hit and eviction; race at expiry; fake clock rather than sleep; same phrase isolated by conversation and target; memory-pressure eviction; cancellation/failure not cached; no persistent/public promotion or content-level stats.
 
 **Design agreed; implementation and tests pending.**
+
+
+## Configurable promotion threshold for P0 transient reuse (2026-10-21)
+
+- Proposed configuration property `PermanentlyStoreAfterCalls` (integer, default `int.MaxValue`) controls the number of eligible successful uses of a transient P0 entry within its sliding-expiration lifetime before evaluating persistence. A threshold of 50 means the entry is considered on its 50th use without expiration; an expired/evicted entry loses its counter and must start over. Explicit authorized manual persistence is independent of this threshold.
+- **Frequency is not authorization**: a threshold can trigger persistence only when the application's trusted policy explicitly permits durable storage of that content **and** the destination scope (application/private, owner, or community) has independently valid access/publication consent. A private chat must not be made community-readable simply because its contents recur.
+- `int.MaxValue` is a disabled sentinel (do not promote automatically even if the counter saturates); reject zero and negative thresholds, and use saturating counters. Clarify whether duplicate rendering or an independent request constitutes a 'call' before API implementation. P0 ephemeral use counters are request-local/scope-local, never phrase popularity telemetry or exported diagnostics.
+- Promotion must revalidate source/target and privacy policy, enforce atomic idempotent writes, and never run automatically when P0 durable-content policy is disabled. Sliding TTL may still reset independently of the threshold.
+- Tests: 49/50/51 uses, expiry before threshold, saturation, default sentinel, invalid thresholds, concurrency at threshold, revoked consent, private vs community destination and explicitly authorized manual persist.
+
+Design only; no implementation or tests added.
