@@ -683,3 +683,7 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - P0 RealTime user-generated message content/results must not enter any shared/private engine cache, persistent translation memory, phrase-level statistics or auto-promotion pipeline. Allow only bounded request-local transient processing; chat application's own authorized conversation history is independent.
 - Optional pre-existing dictionary cache lookup may be read-only with no phrase-level access telemetry, subject to access policy. Aggregate content-free operational metrics remain possible.
 - Added security requirements and edge cases to [Shared Cache Management](Docs/Localization/Shared-Cache-Management/en.md). **Design only; no runtime enforcement or tests added yet.**
+
+## 2026-10-21 — confirmed P0 cache read-only behavior
+
+- P0 RealTime reads from already-existing authorized shared dictionary cache entries, but must never write its content/results to any cache or update per-phrase usage statistics; cache misses trigger volatile translation without write-back. See [Shared Cache Management](Docs/Localization/Shared-Cache-Management/en.md). Documentation decision only; tests/runtime enforcement remain future work.
