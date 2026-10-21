@@ -615,3 +615,13 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Afutrans will expose OpenAPI and Scalar later; XML documentation should be reusable for its service contract documentation, but C# class XML comments alone do not automatically become OpenAPI endpoint descriptions. Plan explicit endpoint/DTO XML comment integration when the host is implemented.
 - Completed the XML API documentation for the new `LocalizationRepairPlanner`, `LocalizationRepairLease`, `LocalizationTranslationScanner`, `LocalizationRepairItem` and `LocalizationRepairReason` (including enum values), without behavioral changes.
 - Commits: [planner XML docs](https://github.com/afrowaveltd/Toolbox/commit/1f9246546af40b0fbfa64015680c21ce4dfcf11d), [scanner XML docs](https://github.com/afrowaveltd/Toolbox/commit/c6d6b00929b0577f14af0077143af565a14290f4). CI for these commits requires confirmation.
+
+
+## 2026-10-21 — in-process atomic repair claims
+
+- Verified previous documentation and repair-planner updates through commit `36ae126`: GitHub Actions [#39471189599](https://github.com/afrowaveltd/Toolbox/actions/runs/39471189599) completed successfully.
+- Added `InMemoryLocalizationRepairClaims` and `LocalizationRepairClaim`: synchronized atomic claim acquisition for one normalized locale and ordinal key, bounded lease expiry, unique fencing token, source-template revision supersession, and token-checked completion with retry cooldown.
+- Added concurrent (100-attempt) single-winner test, expired claim replacement and stale-token rejection, changed-source supersession, culture alias/key isolation, and invalid duration test.
+- Implemented full public XML comments on the new types and methods. Source commits: [implementation](https://github.com/afrowaveltd/Toolbox/commit/0977e045477cb3f1bf4e8c07800f51929a707b8d), [tests](https://github.com/afrowaveltd/Toolbox/commit/f735959989f529d7bc52d86d1e80334ecb751c3e), [test correction](https://github.com/afrowaveltd/Toolbox/commit/21a332f3361b75742447790b99a61b2d281d46d6).
+- **Important scope:** this claims implementation is in-memory, within one process, not durable or shared across hosts. Neither claim nor successful completion is an atomic translation-dictionary publish. External persistence, transactional distributed ownership, expiration/fencing during publish, and source revalidation before accepting results are future work.
+- New implementation's GitHub Actions result pending at documentation time.
