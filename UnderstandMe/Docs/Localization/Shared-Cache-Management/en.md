@@ -129,3 +129,18 @@ Design update only.
 - Tests: 49/50/51 uses, expiry before threshold, saturation, default sentinel, invalid thresholds, concurrency at threshold, revoked consent, private vs community destination and explicitly authorized manual persist.
 
 Design only; no implementation or tests added.
+
+
+## RealTime durable application cache and minimal administrative visibility (2026-10-21)
+
+- Realtime threshold-based persistence is eligible **only for the owning application's private, access-controlled durable cache**, never automatically for `OwnerShared` or `CommunityShared`. Keep the default `PermanentlyStoreAfterCalls=int.MaxValue` sentinel to disable automatic promotion. Explicit authorized opt-in remains required for application-private persistence.
+- An application's private cache is not a public API surface. Requests must be bound to authenticated application membership and a trusted server-side scope, with explicit role and operation policies. Caller-supplied `ApplicationId` alone is not authorization.
+- Separate **cache maintenance** from **content disclosure**: `Owner` and `Administrator` roles can be granted narrow invalidation of an exact entry (delete by exact key/locale/scope or opaque handle) without automatically receiving broad content-read or enumeration permissions. Prefer opaque handles and no content return for maintenance operations.
+- Normal production deployments **do not expose cache enumeration** (`GetAllCachedValues` and unrestricted `GetCachedValues`) through external APIs. Full-dump diagnostics may be exposed only in explicit development/debug deployments with independently authenticated, authorized, audited access, never merely by a caller toggling a `Debug=true` argument. Scrub private content from logs and monitoring.
+- **Knowledge of the exact key is not permission to retrieve private content.** Exact-key reads require application authorization and, for private chat records, the original conversation/participant authorization or a narrower approved scope. Resist guessing/enumeration and cross-tenant probing by denying unauthorized lookups without revealing whether a key exists; apply rate limits and response shaping.
+- Promotion and administrative removal must be atomic, scoped, auditable and safe under concurrent writes; deletion cannot cross an application boundary, and removal must not expose the removed value.
+- Keep ordinary P0 transient cache and any app-private persistent cache separate from the chat application's own durable conversation history. Apply content lifetime and deletion requirements independent of cache TTL.
+
+Required tests: unauthorized exact-key reads; guessed keys; cross-app and cross-conversation isolation; Owner/Administrator delete-without-read; deleted-key concurrency and audit; production enumeration forbidden; debug-mode server-side enforcement; role revocation; community-promotion prohibition; threshold persistence scoped to one application; no data in logs/errors; timing and presence-oracle checks.
+
+Design only; runtime authorization and APIs are not yet implemented.
