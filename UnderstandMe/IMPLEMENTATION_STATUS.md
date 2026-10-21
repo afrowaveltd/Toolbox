@@ -707,3 +707,8 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 
 - Proposed `PermanentlyStoreAfterCalls` with default `int.MaxValue` disabling automatic promotion. An enabled positive threshold counts eligible uses of an unexpired P0 transient entry; sliding expiry resets the count. Manual authorized persistence remains independent.
 - The threshold cannot infer publication consent; durable destination and permissions must be separately authorized. Added concurrency, expiry, saturation and privacy edge cases to [Shared Cache Management](Docs/Localization/Shared-Cache-Management/en.md). **Design only, no runtime/test code.**
+
+## 2026-10-21 — realtime app-private persistence and production cache access (design)
+
+- Clarified optional RealTime promotion after `PermanentlyStoreAfterCalls`: eligible only for **application-private**, never automatically community/owner-shared cache, with default disabled and explicit trusted policy. Application Owner/Administrator may be granted exact-key deletion without broad content read; production enumeration disabled, full inspection reserved for explicitly authorized development/debug environment.
+- Exact-key knowledge is not authorization: authenticated app identity and participant/conversation scope are required where applicable, protecting against guessed keys and cross-application information leakage. Updated [Shared Cache Management](Docs/Localization/Shared-Cache-Management/en.md) including security edge tests. **Design only; no API/runtime implementation.**
