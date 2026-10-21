@@ -12,7 +12,7 @@ public sealed class InMemoryLocalizationRepairClaimsTests
     {
         var claims = new InMemoryLocalizationRepairClaims();
         int successes = 0;
-        Parallel.For(0, 100, _ =>
+        Parallel.For(0, 100, i =>
         {
             if (claims.TryClaim("cs", "hello", "Hello", Now, TimeSpan.FromMinutes(5), out _))
                 Interlocked.Increment(ref successes);
