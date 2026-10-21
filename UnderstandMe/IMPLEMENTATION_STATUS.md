@@ -692,3 +692,8 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 
 - Recorded design proposal for bounded per-conversation/tenant transient P0 memoization and in-flight coalescing, to avoid repeatedly calling providers for the same phrase within an authorized live session. No P0 content may be automatically promoted to shared or persistent stores just because its hit count grows; durable common-phrase catalogs require independently approved source content.
 - Updated [Shared Cache Management](Docs/Localization/Shared-Cache-Management/en.md) with isolation, lifetime and concurrency edge cases. **Proposal only; no runtime code or tests changed.**
+
+## 2026-10-21 — UseRealtimeCache and dual logical P0 lanes (design)
+
+- Accepted `UseRealtimeCache` as a request setting under administrator policy. Distinguish cached/uncached **logical** P0 lanes, not new priorities. Cached is bounded, ephemeral, scope-isolated, and never automatically durable or globally shared; uncached never retains result payloads. Both can read already-approved dictionary cache under separate authorization. Preserve one P0 priority and shared resource controls.
+- Documented security, fairness and edge-case requirements in [Shared Cache Management](Docs/Localization/Shared-Cache-Management/en.md). Design only; no runtime implementation/tests added.
