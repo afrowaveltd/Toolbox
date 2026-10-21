@@ -106,3 +106,15 @@ Repeated real-time phrases (e.g. `Hello` in a group chat) should not trigger the
 - The future API needs XML comments for `UseRealtimeCache` and clear names for scope/TTL/limits; tests must cover true/false, policy override, scoped hit/miss, eviction, burst traffic fairness, in-flight request merging, cancellation, fallback, and absence of durable/shared writes. No actual scheduler/queue implementation exists yet.
 
 Design update only. 
+
+
+## P0 transient cache sliding inactivity expiration (2026-10-21)
+
+- For requests admitted to the authorized `UseRealtimeCache=true` logical P0 lane, use configurable **sliding expiration** rather than automatically persisting repeated chat phrases. Proposed baseline `RealtimeCacheSlidingExpiration = TimeSpan.FromMinutes(5)`; actual TTL is host-policy bounded.
+- Start the inactivity deadline when a successful translation is inserted. Each authorized cache hit within the same isolation scope resets the entry's expiration to `now + TTL`. If no hit occurs for five minutes, treat the entry as expired and discard it. Expired content must never be returned; physical cleanup can be lazy on access plus periodic sweeping.
+- Keep source locale, target locale, content/placeholder context, policy and authorized conversation/session scope in cache identity. Repeat requests from unrelated conversations must not revive each other's entries. The setting cannot authorize global/shared publication or disk persistence, and neither content nor per-phrase popularity is logged.
+- Bound total memory, entry size and item count independently of the inactivity timeout. Under memory pressure, evict earlier even if recently used; a five-minute sliding TTL is not a minimum retention guarantee. Clear on session revocation/closure, provider safety invalidation and application shutdown.
+- A cache miss can use single-flight in-flight coalescing before storing a successful result; failures must not poison the cache. For `UseRealtimeCache=false`, never insert into or refresh this transient cache.
+- Required tests: hit at 4m59s extends lifetime; miss after 5m inactivity; exact expiry boundary; repeated active hits; concurrent hit and eviction; race at expiry; fake clock rather than sleep; same phrase isolated by conversation and target; memory-pressure eviction; cancellation/failure not cached; no persistent/public promotion or content-level stats.
+
+**Design agreed; implementation and tests pending.**
