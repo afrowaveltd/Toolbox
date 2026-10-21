@@ -712,3 +712,8 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 
 - Clarified optional RealTime promotion after `PermanentlyStoreAfterCalls`: eligible only for **application-private**, never automatically community/owner-shared cache, with default disabled and explicit trusted policy. Application Owner/Administrator may be granted exact-key deletion without broad content read; production enumeration disabled, full inspection reserved for explicitly authorized development/debug environment.
 - Exact-key knowledge is not authorization: authenticated app identity and participant/conversation scope are required where applicable, protecting against guessed keys and cross-application information leakage. Updated [Shared Cache Management](Docs/Localization/Shared-Cache-Management/en.md) including security edge tests. **Design only; no API/runtime implementation.**
+
+## 2026-10-22 — proportional cache access controls (design)
+
+- Security priority clarified: secure durable dictionaries and exports; allow simple exact-key cache lookups while preventing production enumeration and cross-application disclosure. Avoid heavyweight per-conversation checks on every cached translation lookup unless an actual threat model requires them.
+- Added clarification in [Shared Cache Management](Docs/Localization/Shared-Cache-Management/en.md). Documentation-only; no runtime or tests added.
