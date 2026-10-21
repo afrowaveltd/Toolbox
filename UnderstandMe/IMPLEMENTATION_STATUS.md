@@ -687,3 +687,8 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 ## 2026-10-21 — confirmed P0 cache read-only behavior
 
 - P0 RealTime reads from already-existing authorized shared dictionary cache entries, but must never write its content/results to any cache or update per-phrase usage statistics; cache misses trigger volatile translation without write-back. See [Shared Cache Management](Docs/Localization/Shared-Cache-Management/en.md). Documentation decision only; tests/runtime enforcement remain future work.
+
+## 2026-10-21 — proposed safe P0 reuse refinement
+
+- Recorded design proposal for bounded per-conversation/tenant transient P0 memoization and in-flight coalescing, to avoid repeatedly calling providers for the same phrase within an authorized live session. No P0 content may be automatically promoted to shared or persistent stores just because its hit count grows; durable common-phrase catalogs require independently approved source content.
+- Updated [Shared Cache Management](Docs/Localization/Shared-Cache-Management/en.md) with isolation, lifetime and concurrency edge cases. **Proposal only; no runtime code or tests changed.**
