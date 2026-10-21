@@ -59,3 +59,16 @@ All management operations (`GetCachedValues`, `FlushCache`, `PreloadCache`, bulk
 Required edge tests: two apps of the same owner sharing under `OwnerShared`; unrelated owners denied; app-private isolation; community opt-in and read-only reuse; source locale segregation; forged application/owner IDs rejected; owner transfer/revocation; concurrent writes and flushes across scopes; unauthorized statistics and enumeration blocked; fallback behavior when a shared entry is missing or ineligible.
 
 This section is a design contract only, not an implemented identity, authentication or caching API.
+
+
+## P0 RealTime private content exclusion (security decision)
+
+- **P0 RealTime request contents and translated results must never be automatically inserted into application, owner or community translation caches, persistent translation memory, frequently-used phrase tables, or source-text-level usage telemetry.** This is a hard admission rule above the caller's preferred cache write scope.
+- In-memory request-local state may exist only for necessary active processing and must be discarded on completion/cancellation/expiry. No persistent in-flight payloads or automatic promotion on popularity thresholds.
+- Aggregate operational metrics (counts, latency, faults) may be collected without request text, translations, recipient identity or content-derived keys. Avoid logging sensitive payloads, including exception messages and diagnostics.
+- An authorized consuming chat application may separately retain the completed translation in its own access-controlled conversation history subject to its own policy; that is not a shared translation cache or P0 queue persistence.
+- Optional **read-only** lookup of pre-existing explicitly shareable dictionary translations can be permitted under policy, but P0 lookups must not create entries, increment phrase-level popularity statistics, expose lookup logs, or promote the content. Strict privacy-sensitive deployments may turn even reads off.
+- Cache APIs must reject P0 write/preload/promotion requests rather than relying on application self-reporting of whether content is private. Enforce against all cache scopes and all transports, including direct .NET, REST, SignalR, and batch ingestion; use trusted request classification.
+- Tests: P0 cannot write to any cache scope; P0 cannot update content-specific counters; P0 cancellation/exception cannot leave durable content; P0 read-only access does not mutate or reveal lookup keys; request class spoofing does not bypass policy; mixed batches reject or isolate P0 items; other non-P0 durable translation workflows remain operational.
+
+Design decision only: no cache runtime enforcement is implemented yet.
