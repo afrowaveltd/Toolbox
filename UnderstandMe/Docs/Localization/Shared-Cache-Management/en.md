@@ -39,3 +39,23 @@ Status: design only (2026-10-21). No runtime cache APIs, persistence, or tests a
 - XML docs for all public types, members, params, returns, and exceptions.
 - Unit/edge tests: source-language isolation; target-language differentiation; case/region normalization; escaped JSON and literal Unicode; malformed source key=value rejection; tenant/private isolation; preload/lazy/hybrid behavior; missing providers; expired/stale values; repeated flush; flush-vs-read and add-vs-flush concurrency; duplicate batch entries; memory bounds and eviction; counter overflow; single-flight successes/failures/cancellations; durable promotion thresholds and idempotence.
 - Integration tests against separately configured LibreTranslate localhost and optional public host without checking API credentials into Git; no live provider calls in ordinary unit tests.
+
+
+## Application, owner and community cache scopes
+
+Cache sharing is an explicit, independently configurable policy for each registered application. A registered application has an immutable `ApplicationId` and an authenticated `OwnerId` (or tenant identity); neither identifier itself grants access.
+
+Proposed modes:
+- `ApplicationPrivate`: cache entries are available only to the registering application, even when other applications have identical source/target text.
+- `OwnerShared`: entries may be reused by authorized applications of the same owner, without allowing unrelated owners to read them.
+- `CommunityShared`: eligible validated entries may be reused across consenting applications/owners under the community access policy.
+
+A private application can optionally **read** eligible public/community entries without **publishing** its own translations publicly. Distinguish `ReadScopes` from `WriteScope` so opt-in reuse never implies unwanted disclosure. Owner-level sharing must require authenticated owner/tenant membership and authorization; raw user-supplied `ApplicationId` or `OwnerId` strings are not credentials. Distinguish ownership reassignment and revocation from immutable translation provenance; never silently expose prior private entries to a new owner.
+
+Every scope remains partitioned by canonical **source locale**; within each partition, keys include effective scope identity, target locale, validated source phrase, compatible placeholder signature and relevant translation context. `SetValueFromKey=true` source invariant remains necessary for cross-project reuse. Explicit-key dictionaries remain project-scoped even when owner or community sharing is enabled for other eligible dictionaries.
+
+All management operations (`GetCachedValues`, `FlushCache`, `PreloadCache`, bulk adds, statistics, persistent promotion) must authorize their scope and be unambiguous about whether they affect application, owner or community entries. A scope-local flush must not evict another owner's entries. Admin global flush requires elevated permission. Usage counters are scoped and opt-in, and never leak another application's private phrases through aggregated views.
+
+Required edge tests: two apps of the same owner sharing under `OwnerShared`; unrelated owners denied; app-private isolation; community opt-in and read-only reuse; source locale segregation; forged application/owner IDs rejected; owner transfer/revocation; concurrent writes and flushes across scopes; unauthorized statistics and enumeration blocked; fallback behavior when a shared entry is missing or ineligible.
+
+This section is a design contract only, not an implemented identity, authentication or caching API.
