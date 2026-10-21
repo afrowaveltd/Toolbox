@@ -144,3 +144,12 @@ Design only; no implementation or tests added.
 Required tests: unauthorized exact-key reads; guessed keys; cross-app and cross-conversation isolation; Owner/Administrator delete-without-read; deleted-key concurrency and audit; production enumeration forbidden; debug-mode server-side enforcement; role revocation; community-promotion prohibition; threshold persistence scoped to one application; no data in logs/errors; timing and presence-oracle checks.
 
 Design only; runtime authorization and APIs are not yet implemented.
+
+
+## Simplified cache confidentiality boundary (2026-10-22)
+
+- Design priority: safeguard **durable stored dictionaries and exports** against unauthorized reads/changes. Ordinary cache exact-key lookup should remain lightweight; with `SetValueFromKey`, the source key itself is the original content, and its translation generally reveals little beyond a transformation available to any translator.
+- Avoid expanding per-key authentication/audit machinery where it adds no material protection. Keep application/scope selection and avoid exposing the contents of entire cache partitions in production; an exact-key lookup must not turn into key enumeration. Do not log cached message content.
+- Persisted data remains a distinct security boundary, including application-private P0 dictionaries optionally promoted after an authorized frequency threshold. Storage encryption/access controls/retention and export authorization should be appropriate to the content.
+- Key knowledge is not a general-purpose credential and may still act as a presence oracle (e.g. revealing that a given message was used); avoid cross-app probing and observable enumeration without disproportionate complexity. The exact policy should be proportional to actual threat models.
+- This clarification **supersedes earlier suggestions for heavyweight exact-key per-conversation ACL enforcement** in ordinary cache read paths. No runtime change in this documentation update.
