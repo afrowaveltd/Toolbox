@@ -3,7 +3,7 @@ using System.Text.Json;
 namespace Afrowave.Toolbox.UnderstandMe.Localization;
 
 /// <summary>Flat JSON localization store; one culture per file. No network dependency.</summary>
-public sealed class FileJsonDictionaryStore : ILocalizationDictionaryStore, ILocalizationTranslationInvalidationStore
+public sealed class FileJsonDictionaryStore : ILocalizationDictionaryStore, ILocalizationTranslationInvalidationStore, ILocalizationConditionalTranslationWriter
 {
     private readonly string _directory;
     private readonly object _gate = new();
@@ -59,6 +59,46 @@ public sealed class FileJsonDictionaryStore : ILocalizationDictionaryStore, ILoc
 
             entries.Remove(key);
             WriteFile(path, entries);
+            return true;
+        }
+    }
+
+
+    /// <inheritdoc />
+    public bool TryPublish(string sourceCulture, string targetCulture, string key,
+        string expectedSourceTemplate, string? expectedTargetValue, string translation)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceCulture);
+        ArgumentException.ThrowIfNullOrWhiteSpace(targetCulture);
+        ArgumentException.ThrowIfNullOrWhiteSpace(key);
+        ArgumentNullException.ThrowIfNull(expectedSourceTemplate);
+        ArgumentNullException.ThrowIfNull(translation);
+        string sourcePath = GetPath(sourceCulture);
+        string targetPath = GetPath(targetCulture);
+        if (string.Equals(Path.GetFileName(sourcePath), Path.GetFileName(targetPath),
+                StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("Cannot publish translations into the source culture.", nameof(targetCulture));
+
+        if (!LocalizationPlaceholderValidator.HasMatchingPlaceholders(expectedSourceTemplate, translation))
+            return false;
+
+        lock (_gate)
+        {
+            var source = ReadFile(sourcePath);
+            if (!source.TryGetValue(key, out string? actualSource) ||
+                !string.Equals(actualSource, expectedSourceTemplate, StringComparison.Ordinal))
+                return false;
+
+            var target = ReadFile(targetPath).ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+            bool present = target.TryGetValue(key, out string? current);
+            if (expectedTargetValue is null ? present :
+                !present || !string.Equals(current, expectedTargetValue, StringComparison.Ordinal))
+                return false;
+            if (present && string.Equals(current, translation, StringComparison.Ordinal))
+                return false;
+
+            target[key] = translation;
+            WriteFile(targetPath, target);
             return true;
         }
     }
