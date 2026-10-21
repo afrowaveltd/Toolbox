@@ -702,3 +702,8 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 
 - Agreed short-lived P0 memo entries with configurable sliding inactivity expiry (baseline five minutes). Each authorized hit resets expiry; entries idle past deadline are logically expired and purged. Cache remains scope-isolated, memory-bounded and never persisted/promoted to shared memory. `UseRealtimeCache=false` bypasses inserts and sliding refresh.
 - Added design and precise fake-clock expiry, concurrency, authorization, failure and memory-pressure test cases to [Shared Cache Management](Docs/Localization/Shared-Cache-Management/en.md). **No runtime implementation yet.**
+
+## 2026-10-21 — optional threshold-based durable cache promotion (design)
+
+- Proposed `PermanentlyStoreAfterCalls` with default `int.MaxValue` disabling automatic promotion. An enabled positive threshold counts eligible uses of an unexpired P0 transient entry; sliding expiry resets the count. Manual authorized persistence remains independent.
+- The threshold cannot infer publication consent; durable destination and permissions must be separately authorized. Added concurrency, expiry, saturation and privacy edge cases to [Shared Cache Management](Docs/Localization/Shared-Cache-Management/en.md). **Design only, no runtime/test code.**
