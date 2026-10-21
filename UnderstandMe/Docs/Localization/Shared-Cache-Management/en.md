@@ -72,3 +72,10 @@ This section is a design contract only, not an implemented identity, authenticat
 - Tests: P0 cannot write to any cache scope; P0 cannot update content-specific counters; P0 cancellation/exception cannot leave durable content; P0 read-only access does not mutate or reveal lookup keys; request class spoofing does not bypass policy; mixed batches reject or isolate P0 items; other non-P0 durable translation workflows remain operational.
 
 Design decision only: no cache runtime enforcement is implemented yet.
+
+## Confirmed P0 cache direction (2026-10-21)
+
+- P0 RealTime **may read** existing, authorized, validated shared dictionary cache entries to avoid redundant provider calls; this is the supported normal behavior, not a forced cache bypass.
+- P0 **must never write** request content or results into any engine cache (application-private, owner-shared, community-shared), persistent translation memory, or phrase-level access statistics. No automatic insertion, promotion or warming caused by P0 misses.
+- P0 read lookups are side-effect-free with respect to entry storage and per-phrase statistics; aggregate content-free operational counters remain separate. Reads enforce cache scope permissions and source/target identity. A miss proceeds through transient translation without cache write-back.
+- Test P0 hit/miss, all cache scopes, blocked writes and bulk routes, zero per-entry hit-count changes, and permission checks. Implementation pending.
