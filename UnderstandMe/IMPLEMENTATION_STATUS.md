@@ -665,3 +665,9 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Source language partitioning is necessary but not sufficient: retain access/privacy boundaries, target-language identity, placeholder signature, relevant translation context and tenant policy when selecting reusable translations. Never share explicit-key project dictionaries merely because a source entry happens to satisfy `key == value`.
 - The canonical storage flag is `SetValueFromKey`; enabling it enforces the invariant across source entry imports/reads and shared-cache admission. Existing `RegisterMissingSourceKeys` is not yet equivalent to this strict storage contract.
 - **Design decision recorded; implementation/tests outstanding.** Implement conditional deletion, next-use re-registration and source-locale partitioned cache interfaces with XML docs and edge-case tests (including concurrency, unicode escapes, and project isolation) in the next coding slices.
+
+## 2026-10-21 — shared cache lifecycle and usage statistics (design)
+
+- Documented proposed `GetAllCachedValues`, `GetCachedValues(sourceLang)`, `FlushAllCache`, `FlushCache(sourceLang)`, single/bulk cache admission/removal, preload, and statistics APIs; distinguish volatile memory eviction from durable translation memory deletion.
+- Defined lazy, preload and hybrid cache warmup models, deduplication of concurrently missing translations, and optional usage-threshold promotion of eligible translations to persistent stores. Preserve source-language partition, target identity, strict automatic source equality, per-tenant privacy boundaries, bounded counters and memory budgets.
+- Added [Docs/Localization/Shared-Cache-Management/en.md](Docs/Localization/Shared-Cache-Management/en.md) with future XML documentation and edge-case testing requirements. **Documentation/design only; no runtime API or tests implemented in this commit.**
