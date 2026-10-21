@@ -671,3 +671,9 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Documented proposed `GetAllCachedValues`, `GetCachedValues(sourceLang)`, `FlushAllCache`, `FlushCache(sourceLang)`, single/bulk cache admission/removal, preload, and statistics APIs; distinguish volatile memory eviction from durable translation memory deletion.
 - Defined lazy, preload and hybrid cache warmup models, deduplication of concurrently missing translations, and optional usage-threshold promotion of eligible translations to persistent stores. Preserve source-language partition, target identity, strict automatic source equality, per-tenant privacy boundaries, bounded counters and memory budgets.
 - Added [Docs/Localization/Shared-Cache-Management/en.md](Docs/Localization/Shared-Cache-Management/en.md) with future XML documentation and edge-case testing requirements. **Documentation/design only; no runtime API or tests implemented in this commit.**
+
+## 2026-10-21 — application/owner/community shared cache policy (design)
+
+- Accepted three cache isolation levels: `ApplicationPrivate`, `OwnerShared`, `CommunityShared`, configured per registered application with `ApplicationId` and authenticated owner identity. Separate shared-cache read permissions from publication permissions. Do not trust caller-supplied IDs as authorization.
+- Source-language partitioning remains mandatory inside each scope; explicit-key dictionaries cannot join cross-project shared translation memory solely by setting a cache scope. Management, telemetry and flush operations must be scope-aware and privacy-safe.
+- Updated [Shared Cache Management](Docs/Localization/Shared-Cache-Management/en.md) with operational contracts and edge-case test requirements. **Design only; no runtime functionality or tests added.**
