@@ -677,3 +677,9 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Accepted three cache isolation levels: `ApplicationPrivate`, `OwnerShared`, `CommunityShared`, configured per registered application with `ApplicationId` and authenticated owner identity. Separate shared-cache read permissions from publication permissions. Do not trust caller-supplied IDs as authorization.
 - Source-language partitioning remains mandatory inside each scope; explicit-key dictionaries cannot join cross-project shared translation memory solely by setting a cache scope. Management, telemetry and flush operations must be scope-aware and privacy-safe.
 - Updated [Shared Cache Management](Docs/Localization/Shared-Cache-Management/en.md) with operational contracts and edge-case test requirements. **Design only; no runtime functionality or tests added.**
+
+## 2026-10-21 — P0 privacy invariant for shared cache (design)
+
+- P0 RealTime user-generated message content/results must not enter any shared/private engine cache, persistent translation memory, phrase-level statistics or auto-promotion pipeline. Allow only bounded request-local transient processing; chat application's own authorized conversation history is independent.
+- Optional pre-existing dictionary cache lookup may be read-only with no phrase-level access telemetry, subject to access policy. Aggregate content-free operational metrics remain possible.
+- Added security requirements and edge cases to [Shared Cache Management](Docs/Localization/Shared-Cache-Management/en.md). **Design only; no runtime enforcement or tests added yet.**
