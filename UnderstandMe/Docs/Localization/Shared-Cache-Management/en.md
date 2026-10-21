@@ -94,3 +94,15 @@ Repeated real-time phrases (e.g. `Hello` in a group chat) should not trigger the
 - Tests needed: 30 identical messages coalesce/reuse without 30 provider requests; concurrent hits; two private chats cannot read each other's memo; expiry/revocation; no P0 durable writes or phrase telemetry; cache scope authorization; sensitive repeated text never automatically promoted.
 
 **Status: proposed design refinement, not yet implemented or finalized as an API contract.**
+
+
+## P0 RealTime logical lanes and UseRealtimeCache (2026-10-21)
+
+- Adopt a request-level flag named `UseRealtimeCache`, resolved under effective host/application policy during request admission. Two **logical P0 lanes** share one P0 priority, scheduling budget and worker pool: `P0/Cached` for eligible short-lived reuse, and `P0/Uncached` for no request-content retention. This is not an extra sixth priority or a separate unbounded worker queue.
+- `UseRealtimeCache=false`: P0 may still read existing authorized, pre-approved dictionary translation memory, as previously agreed, but it must not save the request/result into any P0 memo. Define a separate cache-read policy if hosts require disabling even pre-approved reads.
+- `UseRealtimeCache=true`: P0 may use bounded TTL transient memoization **only within an authenticated and authorized isolation scope** (e.g. conversation/session); its content cannot be promoted to owner/community caches or persisted automatically. Same-language/text equivalence alone never permits cross-conversation reuse. Coalesce simultaneous equivalent work within the same permitted scope, including no-cache in-flight deduplication when it does not retain results afterward.
+- A caller cannot force caching of private content outside the server's allowed scope. The effective flag/policy is set on admission and must be propagated to every translation stage; no downgrade from uncached to cached via fallback, retry, event handlers, or provider adapter.
+- Never collect P0 phrase-frequency data for persistent translation memory by either lane. Aggregate content-free operational counters are acceptable. Repeated `Hello` benefits from temporary scope-local reuse when opted in, but repetition cannot authorize community publication.
+- The future API needs XML comments for `UseRealtimeCache` and clear names for scope/TTL/limits; tests must cover true/false, policy override, scoped hit/miss, eviction, burst traffic fairness, in-flight request merging, cancellation, fallback, and absence of durable/shared writes. No actual scheduler/queue implementation exists yet.
+
+Design update only. 
