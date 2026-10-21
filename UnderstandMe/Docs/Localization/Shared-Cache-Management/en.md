@@ -79,3 +79,18 @@ Design decision only: no cache runtime enforcement is implemented yet.
 - P0 **must never write** request content or results into any engine cache (application-private, owner-shared, community-shared), persistent translation memory, or phrase-level access statistics. No automatic insertion, promotion or warming caused by P0 misses.
 - P0 read lookups are side-effect-free with respect to entry storage and per-phrase statistics; aggregate content-free operational counters remain separate. Reads enforce cache scope permissions and source/target identity. A miss proceeds through transient translation without cache write-back.
 - Test P0 hit/miss, all cache scopes, blocked writes and bulk routes, zero per-entry hit-count changes, and permission checks. Implementation pending.
+
+
+## Proposed P0 performance refinement: isolated ephemeral memoization (2026-10-21)
+
+Repeated real-time phrases (e.g. `Hello` in a group chat) should not trigger the same provider work repeatedly. This **proposal refines** the earlier blanket no-cache language without weakening the prohibition on exporting private content to shared or durable translation memory.
+
+- P0 may read existing authorized dictionary/shared cache entries as already agreed.
+- On a miss, optionally coalesce in-flight equivalent requests and keep a bounded, short-TTL **conversation/tenant-scoped transient memo** in process memory; only authorized readers within that scope can reuse it. Never expose its contents via global cache enumeration, statistics, logs, or debug endpoints.
+- An optional hit threshold in the same isolated session can govern whether to retain a transient memo at all; do not require repeated expensive translations before single-flight deduplication. Use keyed request identity including source/target language and appropriate translation settings.
+- **Frequency does not confer publication consent**: no P0 text or translated result is promoted to community, owner-shared, or durable memory merely due to repetition, even 30+ occurrences.
+- Durable frequent-phrase catalogs must be populated from explicitly approved, nonprivate sources (e.g. curated greeting dictionaries) or independently consented workflows, not mined from P0 conversation content. Such entries may be read by P0.
+- Expire and clear transient payloads on TTL, session termination, revocation, and resource pressure. Do not persist transient content across restart or leak cross-chat. A durable application-owned authorized chat history is a separate system, not translation cache.
+- Tests needed: 30 identical messages coalesce/reuse without 30 provider requests; concurrent hits; two private chats cannot read each other's memo; expiry/revocation; no P0 durable writes or phrase telemetry; cache scope authorization; sensitive repeated text never automatically promoted.
+
+**Status: proposed design refinement, not yet implemented or finalized as an API contract.**
