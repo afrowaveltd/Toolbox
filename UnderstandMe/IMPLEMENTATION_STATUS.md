@@ -697,3 +697,8 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 
 - Accepted `UseRealtimeCache` as a request setting under administrator policy. Distinguish cached/uncached **logical** P0 lanes, not new priorities. Cached is bounded, ephemeral, scope-isolated, and never automatically durable or globally shared; uncached never retains result payloads. Both can read already-approved dictionary cache under separate authorization. Preserve one P0 priority and shared resource controls.
 - Documented security, fairness and edge-case requirements in [Shared Cache Management](Docs/Localization/Shared-Cache-Management/en.md). Design only; no runtime implementation/tests added.
+
+## 2026-10-21 — P0 five-minute sliding cache timeout (design)
+
+- Agreed short-lived P0 memo entries with configurable sliding inactivity expiry (baseline five minutes). Each authorized hit resets expiry; entries idle past deadline are logically expired and purged. Cache remains scope-isolated, memory-bounded and never persisted/promoted to shared memory. `UseRealtimeCache=false` bypasses inserts and sliding refresh.
+- Added design and precise fake-clock expiry, concurrency, authorization, failure and memory-pressure test cases to [Shared Cache Management](Docs/Localization/Shared-Cache-Management/en.md). **No runtime implementation yet.**
