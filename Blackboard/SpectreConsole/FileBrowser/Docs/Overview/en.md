@@ -39,3 +39,7 @@ Show the detected terminal input/output encoding and provide an explicit host-le
 ## File presentation and filters (implemented foundation)
 
 `FileBrowserKnownFolders` can assign recognizable folder icons **only from exact local paths**, e.g. `/home` or actual Windows `X:\Users`. `FileBrowserEntryPresentation` adds exactly one leading ASCII space to file rows but not directory rows; no icons are required. `FileBrowserFileFilter` accepts type/extension filters, preserving directory traversal by default. These are reusable library APIs, not yet active controls in a Spectre.Console picker. [Known Folders and Filters](../Known-Folders-and-Filters/en.md).
+
+## Directory tree and search data services
+
+The initial `FileBrowserLocalSource` and generic `IFileBrowserSource`, `FileBrowserDirectoryTree` (lazy expansion), `FileBrowserRecursiveSearch` (`*` and `?` wildcard matching with safe traversal bounds), `FileBrowserSearchResultsPresentation` (all matches as relative paths or pruned tree), and `FileBrowserNavigationSession` (explicit navigation only) are implemented in the reusable library. The eventual interactive Spectre.Console picker will consume these services; it is not implemented yet. See [Tree and Recursive Search](../Tree-and-Recursive-Search/en.md).
