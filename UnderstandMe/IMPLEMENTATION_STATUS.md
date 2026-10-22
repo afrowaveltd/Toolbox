@@ -757,3 +757,8 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 
 - All edits remain in a RAM-only draft until the user invokes displayed `Ctrl+S` (or equivalent menu action if intercepted by terminal). Workflow is: display redacted changes → request confirmation → validate complete configuration → conflict-check and safely save → report success. A rejected confirmation or validation/save failure does not discard the draft or touch persisted settings. No implicit saving on exit/SSH disconnect.
 - Added error and edge-case requirements to [Configurator TUI](Docs/Configurator-TUI/en.md). **Design only, no TUI/runtime code yet.**
+
+## 2026-10-22 — keyboard-first TUI validation (design)
+
+- Agreed persistent Nano/MC-like shortcut footer. Proposed `Ctrl+V` independently validates the current RAM-only draft without disk writes, service activation or external calls; `Ctrl+S` still reviews, confirms, revalidates and saves. Added context actions New/Edit/Delete, Undo/Redo, F1 help and Esc; future real connectivity tests are separate opt-in actions.
+- Documented shortcut conflicts, stale validation revisions and keyboard/SSH edge tests in [Configurator TUI](Docs/Configurator-TUI/en.md). **Design only; no TUI code or tests added.**
