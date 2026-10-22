@@ -31,3 +31,7 @@ The **base package contains local filesystem browsing only**; future FTP/FTPS su
 ## Automatic icon/Unicode compatibility
 
 The original Lutonet browser exposed `DisplayIcons` (default `true`). The modern component is planned to use **Auto / On / Off** icon policy with **Auto as default**. Spectre.Console's detected Unicode capability informs the default; uncertain/legacy/redirected terminals receive plain text instead of broken decorative glyphs. A Unicode-capable host is not guaranteed to render emoji, so Auto prefers conservative Unicode symbols and lets users force richer icons. Always keep meaningful navigation text, preserve Unicode filenames internally, and never globally change the console encoding. See [Terminal Compatibility](Docs/Terminal-Compatibility/en.md).
+
+## Legacy console encoding support
+
+Beyond icons and Unicode glyph support, the browser should show **detected input/output encodings** and allow an explicit host-configured encoding override for unusual legacy terminals. The regular default is Auto/UTF-8 where supported. The browser itself never changes the process-wide console code page. Where selected encodings cannot display a filename, render an ASCII-safe escaped label without altering its actual path. See [Encoding Support](Docs/Encoding-Support/en.md).
