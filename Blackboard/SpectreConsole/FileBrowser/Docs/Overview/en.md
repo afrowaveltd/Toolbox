@@ -35,3 +35,7 @@ The FileBrowser will support **Auto (default), On and Off** icon display. Unicod
 ## Non-Unicode terminal encodings
 
 Show the detected terminal input/output encoding and provide an explicit host-level override for CP852, Windows-1250 or ISO-8859-2, in addition to UTF-8. Avoid guessing from OS alone or globally changing codepages inside a reusable widget. The actual file selection always retains the original Unicode path even when a filename needs to be shown through ASCII escapes. See [Encoding Support](../Encoding-Support/en.md).
+
+## File presentation and filters (implemented foundation)
+
+`FileBrowserKnownFolders` can assign recognizable folder icons **only from exact local paths**, e.g. `/home` or actual Windows `X:\Users`. `FileBrowserEntryPresentation` adds exactly one leading ASCII space to file rows but not directory rows; no icons are required. `FileBrowserFileFilter` accepts type/extension filters, preserving directory traversal by default. These are reusable library APIs, not yet active controls in a Spectre.Console picker. [Known Folders and Filters](../Known-Folders-and-Filters/en.md).
