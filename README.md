@@ -112,3 +112,7 @@ Future community funding transparency will show **real gross contributions, one 
 ### Optional future bank-verified public funds view
 
 When services are running and voluntary support is useful, Afrowave intends to prefer a **dedicated bank account with officially supported public read-only transaction and balance data**. Any eventual public finance page should display bank-sourced incoming/outgoing postings, bank balance and last verified update alongside actual cost/purpose reconciliation—never bank credentials, write access or sensitive donor details. Bank data freshness and its direct public privacy implications must be clear. **Not implemented or accepting donations yet.** See [Community Funding](Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md).
+
+## Planned UI component family: Blackboard
+
+[Blackboard](Blackboard/README.md) is the documented proposed home for reusable keyboard-first TUI controls, starting with a Spectre.Console file browser. **No Blackboard runtime package or tests exist yet.** The suggested complementary future GUI family is called *Whiteboard* (name provisional), with Avalonia as a potential adapter. Complete utilities will continue to live under Toolroom, while UI component libraries remain independently reusable.
