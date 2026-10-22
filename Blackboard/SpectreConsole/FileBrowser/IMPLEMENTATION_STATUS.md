@@ -25,3 +25,9 @@ Create the standalone .NET project and xUnit project, implement the testable nav
 - Proposed **Auto/On/Off** display modes (default **Auto**): no decorative icons for non-Unicode, redirected or uncertain terminals; conservative narrow Unicode symbols for supported terminals; richer emoji only on explicit override. Unicode support **does not** imply glyph/font/emoji support.
 - Avoid modifying global output encoding, code page or process console profile. Keep Unicode filenames intact; suppress *only decorative icons*. Planned tests for Windows Terminal/legacy hosts, Linux/SSH/tmux, fallback, user override, redirected output and inaccessible glyphs.
 - Detailed specification: [Terminal Compatibility](Docs/Terminal-Compatibility/en.md). **No new C# code or CI tests added in this design commit.**
+
+## 2026-10-22 — terminal character encoding policy (design)
+
+- Extended the earlier icon/Unicode fallback proposal to distinguish **terminal byte encoding**, rendering support and font glyph coverage. Proposed Auto detection from current .NET console input/output encodings and renderer/locale hints; explicit application-level manual override (UTF-8, CP852, CP1250, ISO-8859-2 and supported others).
+- Library must not silently change global code pages/Console encoding. Unsupported glyphs or unrepresentable filenames get safe ASCII display escapes, while real file paths remain lossless. Optional `System.Text.Encoding.CodePages` compatibility adapter only where needed.
+- Added [Encoding Support](Docs/Encoding-Support/en.md) plus display diagnostics/testing plan. **Specification only; no new C# code or tests yet.**
