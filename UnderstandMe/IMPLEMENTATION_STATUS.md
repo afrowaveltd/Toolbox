@@ -717,3 +717,12 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 
 - Security priority clarified: secure durable dictionaries and exports; allow simple exact-key cache lookups while preventing production enumeration and cross-application disclosure. Avoid heavyweight per-conversation checks on every cached translation lookup unless an actual threat model requires them.
 - Added clarification in [Shared Cache Management](Docs/Localization/Shared-Cache-Management/en.md). Documentation-only; no runtime or tests added.
+
+
+## 2026-10-22 — strict automatic source dictionary validation slice
+
+- Added XML-documented `AutoSourceDictionaryValidator.ValidateAndPrune(store, sourceCulture)` returning inspected, invalid, removed and unresolved counts. For the **caller-confirmed strict automatic source dictionary only**, compare decoded key and value using ordinal equality; on mismatch conditionally remove the whole entry through the existing optional compare-and-remove store contract. No rewriting of either side, no edits of target dictionaries.
+- Added edge-case xUnit tests for conditional cleanup and next-use re-registration capability, preservation of valid/target entries, JSON escaped/literal Unicode and angle brackets, read-only stores, idempotent repeated scans, and invalid inputs.
+- Commits: [source](https://github.com/afrowaveltd/Toolbox/commit/1a74e3082193d2f9a99fecf5be841db2750144c3), [tests](https://github.com/afrowaveltd/Toolbox/commit/af3c1be7131413e4284926755b73c5d1cd452e85).
+- **Limitations**: standalone opt-in utility; no `SetValueFromKey` property has yet been added to the storage configuration, and the validator is not yet automatically invoked at cache admission. JSON store locking is per instance; distributed source cleanup and authoritative shared-cache gating remain outstanding. No claims that this alone guarantees cache safety.
+- Latest baseline `7f3ced37` was green; this feature's own CI is still pending at writing.
