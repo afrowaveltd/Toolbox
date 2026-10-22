@@ -726,3 +726,8 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Commits: [source](https://github.com/afrowaveltd/Toolbox/commit/1a74e3082193d2f9a99fecf5be841db2750144c3), [tests](https://github.com/afrowaveltd/Toolbox/commit/af3c1be7131413e4284926755b73c5d1cd452e85).
 - **Limitations**: standalone opt-in utility; no `SetValueFromKey` property has yet been added to the storage configuration, and the validator is not yet automatically invoked at cache admission. JSON store locking is per instance; distributed source cleanup and authoritative shared-cache gating remain outstanding. No claims that this alone guarantees cache safety.
 - Latest baseline `7f3ced37` was green; this feature's own CI is still pending at writing.
+
+## 2026-10-22 — central settings structure (design)
+
+- Proposed a host-facing `UnderstandMeSettings` root with `LocalizationSettings` and `TranslationSettings` typed groups, per-storage settings, providers, queues/worker FIFO capacity, P0 cache options and scope-specific cache configuration. Configuration is validated and normalized into immutable effective request snapshots, retaining admin security and billing limits.
+- Existing `LocalizationOptions` is the only implemented localization settings class; preserve it through migration, do not claim the proposed types exist. Recorded [Central Configuration](Docs/Central-Configuration/en.md) including future XML API docs and edge-case tests. **Documentation only; no runtime API/tests yet.**
