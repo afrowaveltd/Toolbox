@@ -27,3 +27,7 @@ FileBrowser 2.0 is planned around small pluggable storage sources. The base libr
 ## Accessible icon fallback
 
 The FileBrowser will support **Auto (default), On and Off** icon display. Unicode capability can be detected by Spectre.Console, but emoji font support is not reliably discoverable, so auto mode must use conservative glyphs or textual fallback. File/folder navigation and real Unicode path data must remain available even when decorative glyphs are hidden. See [Terminal Compatibility](../Terminal-Compatibility/en.md).
+
+## Non-Unicode terminal encodings
+
+Show the detected terminal input/output encoding and provide an explicit host-level override for CP852, Windows-1250 or ISO-8859-2, in addition to UTF-8. Avoid guessing from OS alone or globally changing codepages inside a reusable widget. The actual file selection always retains the original Unicode path even when a filename needs to be shown through ASCII escapes. See [Encoding Support](../Encoding-Support/en.md).
