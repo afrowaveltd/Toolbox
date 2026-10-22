@@ -34,3 +34,8 @@
 
 - Reviewed Lutonet FileBrowser's existing `DisplayIcons` boolean; modernized replacement will support **Auto (default), On and Off** with capability-aware graceful fallbacks. Spectre.Console can detect Unicode, but cannot guarantee emoji glyph coverage; avoid mojibake and preserve real Unicode filenames while suppressing unsupported decorations.
 - Published [Terminal Compatibility](SpectreConsole/FileBrowser/Docs/Terminal-Compatibility/en.md) and updated component README and status. **Design/documentation only**; FileBrowser runtime remains unimplemented.
+
+## 2026-10-22 — FileBrowser encoding compatibility (design)
+
+- Terminal fallback must address more than Unicode icons: distinguish host/terminal byte encodings (UTF-8 and legacy code pages), Unicode rendering and font glyphs. Proposed detection plus manual encoding override at the host boundary, avoiding implicit global `Console.OutputEncoding`/code page changes.
+- Preserve original Unicode file identities even when ASCII-escaped labels are needed. Prepared [Encoding Support](SpectreConsole/FileBrowser/Docs/Encoding-Support/en.md), including optional CP852/CP1250/ISO-8859-2 and tests. **Design/documentation only.**
