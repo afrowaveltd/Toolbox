@@ -202,7 +202,7 @@ public sealed class FileBrowserKnownFolders
             return segments.Any(s => s is "." or ".." or "") ? null : value;
         }
 
-        if (!path.StartsWith('/', StringComparison.Ordinal) ||
+        if (!path.StartsWith("/", StringComparison.Ordinal) ||
             path.StartsWith("//", StringComparison.Ordinal) || path.Contains('\\'))
             return null;
 
