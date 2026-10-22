@@ -736,3 +736,9 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 
 - Confirmed central settings register enabled storages, backends, schedulers and modules; each component owns typed authorization, error/retry, resource and behavior settings. System-wide policy cannot be bypassed by backend-specific settings. Distinguish immutable request configuration from dynamic health/paused/retry state and validate reload before activation.
 - Documented precedence and future XML documentation/security/edge-case tests in [Central Configuration](Docs/Central-Configuration/en.md). **Design only; no settings API implemented in this change.**
+
+## 2026-10-22 — JSON settings persistence and code documentation policy (design)
+
+- Agreed `UnderstandMeSettings.json` as standard UTF-8 `System.Text.Json` host configuration, reused by Afutrans. Planned schema versioning/migrations, safe validated load, atomic-or-safe replacement with last-known-good preservation, concurrency protection, secret references rather than credentials, and optional configuration-provider integration.
+- XML API docs are required for public surfaces; concise ordinary English `//` comments should also explain non-obvious implementation/configuration decisions. Canonical JSON is comment-free; explanations live in code, schema and Docs.
+- Updated [Central Configuration](Docs/Central-Configuration/en.md), including planned failure/edge-case tests. **Architecture only; no settings persistence code or test suite added yet.**
