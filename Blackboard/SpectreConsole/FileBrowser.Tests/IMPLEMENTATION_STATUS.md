@@ -8,3 +8,9 @@
 - No interactive UI navigation, terminal integration or network-provider tests are claimed: those will be added with their respective implementations.
 
 Next: add navigation and Spectre rendering test seams, then test actual terminal capability detection and SSH/legacy console behavior.
+
+## 2026-10-22 — lazy trees and recursive all-result search tests
+
+- Added `FileBrowserTreeSearchTests` for lazy expansion, same-name matches in multiple branches, pruned result trees, explicit selected-result navigation, no movement on misses, wildcard/filename matching, provider case sensitivity, JSON filters, inaccessible subtrees, cycles, depth/count limits, cancellation and a real local-directory listing/parent regression.
+- Initial GitHub Actions runs identified two **test-only defects**: a helper named `File` shadowed `System.IO.File` (`d97c957` fixed), and `config?.json` correctly matched both `config1.json` and `configs.json` (`cc1997a` fixed the expectation).
+- The latest CI for these fixes must complete before reporting final totals. The actual interactive Spectre.Console UI and FTP provider are still not part of the test suite.
