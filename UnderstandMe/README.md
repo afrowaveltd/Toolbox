@@ -173,3 +173,7 @@ The optional named-placeholder validator and its 19 new test cases passed in Git
 ## Settings model (initial implementation)
 
 `Afrowave.Toolbox.UnderstandMe.Settings.UnderstandMeSettings` now provides a typed configuration root with localization storage registrations, translation provider registrations and queue worker buffer defaults. Use `UnderstandMeSettingsValidator.Validate(settings)` for offline, side-effect-free field-path diagnostics; settings serialize with `System.Text.Json`. This is an initial model only: no JSON file save/load, provider activation, queue scheduling or TUI is implemented yet. The existing localization runtime continues to use `LocalizationOptions`. See [Central Configuration](Docs/Central-Configuration/en.md).
+
+### JSON settings file
+
+`UnderstandMeSettingsJsonStore.Save(path, settings)` creates a new validated `UnderstandMeSettings.json` file; pass the `Revision` returned by `Load(path)` for checked updates. A stale revision raises `UnderstandMeSettingsConflictException`; a semantically invalid draft raises `UnderstandMeSettingsValidationException` with field paths. Unknown JSON properties and unsupported schema versions are rejected rather than overwritten. This is a first offline implementation: coordinate simultaneous external writers; environment overlays, safe secret-reference fields and TUI are still planned.
