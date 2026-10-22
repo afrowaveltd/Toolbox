@@ -76,3 +76,18 @@ Effective request settings are immutable snapshots. Mutable operational state (h
 All public settings types, properties, validation results and exception paths require English XML comments. Test precedence, default values, isolated components, auth failures, retry/circuit edge cases, zero/negative settings, concurrent reload, disable/enable, multi-storage source-language isolation, human-only deployment and no secrets in telemetry.
 
 This section records architecture only; no runtime component settings classes exist yet.
+
+
+## JSON configuration persistence and in-code documentation (2026-10-22)
+
+- Default host configuration file: `UnderstandMeSettings.json`. Use standard UTF-8 JSON serialized with `System.Text.Json`, rooted in the typed `UnderstandMeSettings` configuration facade; Afutrans should consume the same settings contracts rather than implementing a parallel configuration model.
+- Include explicit `SchemaVersion` for versioned upgrades. Define migration and unknown-property policy before enabling persistent writes; on unsupported newer versions fail safely rather than overwriting settings with defaults. Preserve extension sections through a deliberately designed extension mechanism, not accidental lossy deserialization.
+- Loading: parse, migrate supported versions, validate global and individual component options, and only then activate a whole coherent immutable settings snapshot. Errors retain last known-good runtime config; missing initial file may produce clearly documented defaults but must not silently enable external services.
+- Saving: serialize validated settings to a temporary file in the same filesystem, flush, then perform an atomic replacement where supported. Account for platform-dependent replacement semantics and crashes; a backup/rollback strategy and read-modify-write/concurrent-update protection (revision or compare-and-swap) are required for multi-writer scenarios. Avoid advertising atomicity across remote/network filesystems without a proven guarantee.
+- Secrets: never serialize live API tokens, passwords or decrypted connection credentials; store secret references resolved through environment/host secret facilities at runtime. Sanitize logs, failures and any configuration export. Permission-limit the settings file where appropriate.
+- Optional IConfiguration integration should coexist with direct file load/save; define authoritative source and precedence so environment overrides are not inadvertently persisted or secrets leaked.
+- JSON itself remains standards-compliant and comment-free; code comments are in C# sources. If comments in user-edited config are desired later, consider a separately documented JSONC input mode rather than writing nonstandard comments into the canonical file.
+- Code documentation policy: English XML documentation for every exposed settings type, public field/property, method, enum member, parameter/return/exception as relevant; add concise ordinary `//` comments around non-obvious internal behavior or important configuration decisions (e.g. why a queue buffer capacity is bounded), not redundant narration of self-explanatory statements. Keep examples, README and topic documentation consistent.
+- Tests when implemented: missing/empty/corrupt file, UTF-8 and JSON escape equivalence, duplicate IDs, unknown/new schema, migration rollback, save interruption, read-only directory, concurrent writers, invalid module configuration, default security behavior, secret redaction, reload while jobs run and per-provider option serialization.
+
+This section specifies architecture and documentation standards only. No JSON settings load/save engine or settings models were implemented in this change.
