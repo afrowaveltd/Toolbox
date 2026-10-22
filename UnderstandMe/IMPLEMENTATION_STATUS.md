@@ -805,3 +805,8 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Decided to **adapt concepts in a separate optional TUI picker**, not import unchanged source into the core. Address global current-directory mutation, file filters, canceled selection, terminal layout, error paths, markup safety, Linux/SSH behavior and attribution if copying licensed code.
 - Planned bounded config discovery plus browse and optional direct path. JSON loading/saving stays in `UnderstandMeSettingsJsonStore` and edits remain RAM-only until confirmed `Ctrl+S`. See [Configuration File Browser](Docs/Configuration-File-Browser/en.md).
 - **Documentation/review only**: no new source code, build or tests in this step. Previous Toolbox Actions main-branch build was verified green before this documentation.
+
+## 2026-10-22 — reusable TUI widgets moved to planned Blackboard family
+
+- Established documentation scaffold for `Blackboard/` (README, architecture, implementation status, `SpectreConsole/FileBrowser` component outline) as a separate reusable TUI family. Possible complementary GUI name is `Whiteboard` (provisional).
+- The eventual UnderstandMe Configurator belongs to `Toolroom/UnderstandMe/Configurator`, consuming Blackboard widgets and UnderstandMe settings, not embedding a one-off FileBrowser. No new C# implementation or tests; this step is an architecture/documentation update.
