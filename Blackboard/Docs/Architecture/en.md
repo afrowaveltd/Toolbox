@@ -7,7 +7,7 @@
 - **Blackboard** — reusable keyboard-driven *terminal* UI controls.
 - **Whiteboard** — proposed symmetric family for future *graphical* UI components, beginning with an optional Avalonia adapter if adopted.
 - The names identify the interaction medium, not a prescribed dark/light color theme. Neither should bind users to Spectre.Console or Avalonia.
-- `SeeMe` remains presentation-specific output components; `Toolroom` remains complete utilities and editors. Avoid moving unrelated existing code solely to match a new name.
+- `SeeMe` remains presentation-specific output components; `Toolroom` continues to host existing utilities. Future domain-specific production editors belong logically to the projects they serve. Avoid moving unrelated existing code solely to match a new name.
 
 ## Project and dependency boundaries
 
@@ -18,23 +18,28 @@ Blackboard/
   README.md
   IMPLEMENTATION_STATUS.md
   Docs/Architecture/en.md
-  SpectreConsole/
+  SpectreConsole/                     # organization by technology; not an umbrella package
     README.md
-    FileBrowser/
+    FileBrowser/                      # independently packaged library
       README.md
-      [future source and tests]
-    [future generic prompts, tables, navigation]
+      IMPLEMENTATION_STATUS.md
+      Docs/Overview/en.md             # when component is implemented
+      Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.csproj  # future
+    [other independent UI component projects]
+  Samples/                             # future demonstration apps, not production utilities
 
-Whiteboard/                         # future, not created yet
-  Avalonia/
-    [future reusable GUI widgets]
+Whiteboard/                            # future family, not created yet
+  Avalonia/                            # individual packages, not mandatory whole-Avalonia bundle
+  Samples/                             # future GUI demonstrations
 
-Toolroom/UnderstandMe/Configurator/ # future complete TUI executable
+UnderstandMe/Tools/Configurator/       # proposed location of UnderstandMe-owned executable
 ```
 
-When implemented, the Spectre.Console adapter can become its own independently versioned assembly/NuGet package (proposed name `Afrowave.Toolbox.Blackboard.SpectreConsole`). This is not a hard requirement to create an empty `Blackboard` core DLL. Extract framework-neutral contracts only when shared by genuine multiple consumers; avoid needless abstractions.
+**Every independently useful control is its own project/NuGet unit** when shipped as a package. The first proposed package name is `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser`; later controls may have separate packages under the same technology folder. Do **not** ship a mandatory `Blackboard`, `Whiteboard`, `SpectreConsole` or `Avalonia` umbrella package: requesting a file picker must not bring an entire UI toolkit's unrelated controls. Dependencies are opt-in and minimal.
 
-The file picker must remain usable without UnderstandMe. The Configurator passes relevant English/localized text and receives an absolute path or cancellation outcome; only UnderstandMe's validated JSON settings store loads/saves `UnderstandMeSettings.json`.
+A shared framework-neutral contracts package should be introduced **only after real repeated usage demonstrates a need**. If a later convenience meta-package is useful, it must remain explicitly optional and must not replace component packages. A demo application can reference several tools but must never be an implicit dependency of any NuGet component.
+
+The file picker must remain usable without UnderstandMe. The UnderstandMe-owned Configurator passes relevant English/localized text and receives an absolute path or cancellation outcome; only UnderstandMe's validated JSON settings store loads/saves `UnderstandMeSettings.json`. Its source tree, executable and runtime configuration remain with UnderstandMe, not with Blackboard. Demos under Blackboard/Whiteboard show reusable widget usage without becoming actual configuration, administration or domain applications.
 
 ## Shared experience principles
 
@@ -54,4 +59,4 @@ Reuse the *ideas* (select directory/file, parent navigation, page size, icon mod
 
 ## Release discipline
 
-Each implemented change receives tests, a GitHub commit, an updated project `IMPLEMENTATION_STATUS.md`, an English README, and topic documentation under `Docs/<topic>/en.md`. Avoid claiming build/test success from documentation-only scaffolding.
+Each independently published component project receives tests, its own `IMPLEMENTATION_STATUS.md`, English root README, and topic documentation under its own `Docs/<topic>/en.md`; the Blackboard family-level implementation status also summarizes progress. Changes are committed to GitHub and CI-verified. Samples/executables have their own isolated project/test dependencies. Avoid claiming build/test success from documentation-only scaffolding.
