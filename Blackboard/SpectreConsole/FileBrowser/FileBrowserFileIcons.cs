@@ -299,11 +299,11 @@ public sealed class FileBrowserFileIcons
         foreach (var (key, kind) in source)
         {
             if (string.IsNullOrWhiteSpace(key) || !Enum.IsDefined(kind) ||
-                (extension && (!key.StartsWith('.', StringComparison.Ordinal) ||
+                (extension && (!key.StartsWith(".", StringComparison.Ordinal) ||
                                key.Length < 2 || key.Contains('/') || key.Contains('\\'))) ||
                 (!extension && (key.Contains('/') || key.Contains('\\'))))
                 throw new ArgumentException("File type override has an invalid key or category.",
-                    extension ? nameof(source) : nameof(source));
+                    nameof(source));
 
             target[key] = kind;
         }
