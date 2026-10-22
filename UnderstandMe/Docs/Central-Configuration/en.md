@@ -51,3 +51,28 @@ Use real strongly typed configuration and collection elements when implementing,
 - Explicitly distinguish `SetValueFromKey` strict source equality from the legacy `RegisterMissingSourceKeys` switch. Source mismatch on auto-source storage means conditional deletion of the whole bad entry, never guessing which side is correct.
 - Test per-storage default language and strict mode, invalid options, duplicate IDs, unknown providers, human-only operation, source-locale cache partition, tenant isolation, P0 cached/uncached, limits and buffer boundaries, effective snapshot immutability, config reload, secret redaction and concurrent requests.
 - Enforce validation at startup/admission and test error paths. XML-document all public types, settings, properties and enums.
+
+
+## Component-owned settings and precedence (2026-10-22)
+
+Each backend, storage, scheduler, and optional module owns a **strongly typed component settings object**. The central `UnderstandMeSettings` composition root declares which components are registered/enabled, references their identities, and provides common defaults and hard host policies. It must not become a giant bag of provider-specific options.
+
+- `TranslationSettings.Providers`: registered provider configurations with stable `ProviderId`, enabled flag, capabilities, languages, priorities, and per-provider `Authentication`, `Timeouts`, `Retry/Backoff`, `CircuitBreaker`, `Concurrency`, `HealthChecks`, and error/fallback handling. An HTTP LibreTranslate adapter can own API key references, endpoint and HTTP failures; a local AI provider can own model selection, memory and process recovery instead. Modules validate their own specific fields.
+- `LocalizationSettings.Storages`: each storage has stable identity, type/connection reference, authoritative source locale, strict `SetValueFromKey`, persistence/refresh settings, read/write capability and local cache participation rules. Storage credentials are secret references rather than plaintext diagnostics.
+- `TranslationSettings.Schedulers` and `Queues`: scheduler instances own job definitions, startup delay, interval, misfire behavior and concurrency; QueueMaster owns dispatch lanes/P0–P4 priorities and worker FIFO buffer defaults. They are distinct responsibilities.
+- Other components (`Cache`, `Messenger`, `SystemMonitor`, `Editor`, `DataAccess`, `TranslationPipes`) similarly receive their own typed settings and enabled/disabled registrations. An unused module should not require configuration or activation.
+
+### Precedence and lifecycle
+
+1. Host/system hard constraints: security, privacy, maximum cost, permitted provider classes, and global resource budgets.
+2. Component-local configuration: authentication, error classification, retry policies, health checks, storage parameters, and local capacity subject to hard constraints.
+3. Application/tenant policy and profile/pipe defaults, with explicit permissions.
+4. Individual request options, normalized at admission; a request preference never grants authority to an otherwise forbidden provider.
+
+Reject invalid component configuration before activation, including missing credential references, duplicate IDs, invalid retry intervals, impossible timeout/backoff combinations, incompatible language pairs, and contradictory privacy/cache scope. Distinguish **transient** provider failures (bounded retry), **permanent** failures (no blind retry), authentication failures (disable/reconfigure until repaired), throttling/quota (honor Retry-After and budget), and cancellation (do not retry). Error handling must not endlessly enqueue the same translation.
+
+Effective request settings are immutable snapshots. Mutable operational state (healthy/unhealthy, paused, retry budget, circuit open, credential rotated) stays separate from configuration. Hot reload of component settings must be validated and applied atomically to new requests; running work keeps its accepted policy unless revoked authorization or hard limits prevent execution. Never serialize resolved secrets into snapshots, monitoring, logs, or public OpenAPI documentation.
+
+All public settings types, properties, validation results and exception paths require English XML comments. Test precedence, default values, isolated components, auth failures, retry/circuit edge cases, zero/negative settings, concurrent reload, disable/enable, multi-storage source-language isolation, human-only deployment and no secrets in telemetry.
+
+This section records architecture only; no runtime component settings classes exist yet.
