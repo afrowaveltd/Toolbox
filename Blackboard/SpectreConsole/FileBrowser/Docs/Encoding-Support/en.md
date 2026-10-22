@@ -63,7 +63,7 @@ Provide an optional `Test display` command/page: show ASCII, Czech diacritics, b
 - Microsoft .NET: `Console.OutputEncoding` — https://learn.microsoft.com/dotnet/api/system.console.outputencoding
 - Microsoft .NET: `Encoding.RegisterProvider` — https://learn.microsoft.com/dotnet/api/system.text.encoding.registerprovider
 - Windows Console Code Pages — https://learn.microsoft.com/windows/console/console-code-pages
-- Related design: [Terminal Compatibility](Terminal-Compatibility/en.md).
+- Related design: [Terminal Compatibility](../Terminal-Compatibility/en.md).
 
 ## Scope
 
