@@ -16,6 +16,7 @@ Blackboard is the proposed home of reusable **terminal user interface (TUI)** co
 ## Planned layout
 
 - [Architecture](Docs/Architecture/en.md) — responsibilities, dependency boundaries and naming.
+- [Independent Packaging](Docs/Independent-Packaging/en.md) — one widget per NuGet, with separate examples and domain applications.
 - [SpectreConsole](SpectreConsole/README.md) — initial adapter family.
 - [FileBrowser](SpectreConsole/FileBrowser/README.md) — future **independently packaged** file/folder picker, informed by the author's earlier `Lutonet/SpectreConsoleFileBrowser` project.
 - `Samples/` (future) — one or more demonstration applications showing how Blackboard components are used, not production utilities.
