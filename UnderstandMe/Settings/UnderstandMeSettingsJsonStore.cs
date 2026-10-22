@@ -47,13 +47,14 @@ public static class UnderstandMeSettingsJsonStore
 
     /// <summary>Loads a settings file, enforcing JSON structure and shared semantic validation.</summary>
     /// <param name="path">Path of the JSON configuration file.</param>
+    /// <param name="descriptors">Registered component option schemas; omit for built-in adapters.</param>
     /// <returns>Validated settings and content revision.</returns>
-    public static UnderstandMeSettingsDocument Load(string path)
+    public static UnderstandMeSettingsDocument Load(string path, SettingsDescriptorRegistry? descriptors = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         var bytes = File.ReadAllBytes(path);
         var settings = JsonSerializer.Deserialize<UnderstandMeSettings>(bytes, JsonOptions);
-        Validate(settings);
+        Validate(settings, descriptors);
         return new UnderstandMeSettingsDocument(settings!, Hash(bytes));
     }
 
@@ -64,13 +65,15 @@ public static class UnderstandMeSettingsJsonStore
     /// <param name="path">Destination JSON file path.</param>
     /// <param name="settings">Candidate settings.</param>
     /// <param name="expectedRevision">Revision obtained from Load, or null for create-only.</param>
+    /// <param name="descriptors">Registered component option schemas; omit for built-in adapters.</param>
     /// <returns>The new persisted revision.</returns>
     /// <exception cref="UnderstandMeSettingsValidationException">The candidate is invalid.</exception>
     /// <exception cref="UnderstandMeSettingsConflictException">The file was changed or unexpectedly exists.</exception>
-    public static string Save(string path, UnderstandMeSettings settings, string? expectedRevision = null)
+    public static string Save(string path, UnderstandMeSettings settings,
+        string? expectedRevision = null, SettingsDescriptorRegistry? descriptors = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        Validate(settings);
+        Validate(settings, descriptors);
 
         // Serialize before touching the destination: a bad draft cannot corrupt the last good file.
         var bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(settings, JsonOptions) + "\n");
@@ -112,9 +115,9 @@ public static class UnderstandMeSettingsJsonStore
         }
     }
 
-    private static void Validate(UnderstandMeSettings? settings)
+    private static void Validate(UnderstandMeSettings? settings, SettingsDescriptorRegistry? descriptors)
     {
-        var issues = UnderstandMeSettingsValidator.Validate(settings);
+        var issues = UnderstandMeSettingsValidator.Validate(settings, descriptors);
         if (issues.Count != 0)
             throw new UnderstandMeSettingsValidationException(issues);
     }
