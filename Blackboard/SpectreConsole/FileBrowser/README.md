@@ -1,8 +1,12 @@
 # FileBrowser — future reusable Spectre.Console file picker
 
-**Status:** design placeholder, not implemented.
+**Status:** independent NuGet component planned, not yet implemented (no `.csproj`, binary or tests).
 
 Inspired by the author's original [Lutonet/SpectreConsoleFileBrowser](https://github.com/Lutonet/SpectreConsoleFileBrowser).
+
+**Planned NuGet ID:** `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser`. This must be an independently buildable, testable and versionable library, without references to other Blackboard widgets, UnderstandMe, demo applications or unnecessary GUI dependencies.
+
+This README serves the component project; [Implementation Status](IMPLEMENTATION_STATUS.md) tracks the future actual code separately from this design.
 
 Planned reusable contract:
 
@@ -18,4 +22,4 @@ Validation, backup and saving of a settings file stay outside the picker. No fil
 
 Planned tests include Windows/Linux navigation, Unicode and markup characters in names, empty directories, file filters, permissions, cancel, nonexistent paths, key interception over SSH, and verification that the process working directory remains unchanged.
 
-See [Blackboard architecture](../../Docs/Architecture/en.md) and the [UnderstandMe file picker analysis](../../../UnderstandMe/Docs/Configuration-File-Browser/en.md).
+See [Blackboard architecture](../../Docs/Architecture/en.md) and the [UnderstandMe file picker analysis](../../../UnderstandMe/Docs/Configuration-File-Browser/en.md). A future Blackboard `Samples` application may demonstrate this package, but will never be included in its dependencies.
