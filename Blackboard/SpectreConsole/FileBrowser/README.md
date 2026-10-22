@@ -23,3 +23,7 @@ Validation, backup and saving of a settings file stay outside the picker. No fil
 Planned tests include Windows/Linux navigation, Unicode and markup characters in names, empty directories, file filters, permissions, cancel, nonexistent paths, key interception over SSH, and verification that the process working directory remains unchanged.
 
 See [Blackboard architecture](../../Docs/Architecture/en.md) and the [UnderstandMe file picker analysis](../../../UnderstandMe/Docs/Configuration-File-Browser/en.md). A future Blackboard `Samples` application may demonstrate this package, but will never be included in its dependencies.
+
+## Planned multi-source navigation (FileBrowser 2.0)
+
+The **base package contains local filesystem browsing only**; future FTP/FTPS support will live in a separate opt-in adapter package (proposed `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.Ftp`). Source-qualified location/selection results will prevent remote paths being mistaken for local paths. A small source interface allows the same TUI to browse different storage types without adding dependencies for unused protocols. On .NET 10 use `OperatingSystem.IsWindows()` as needed rather than the old OS-name substring check. Browsing must not mutate process CWD, and network listings should remain read-only, cancellable and secure-by-default. [Source provider design](Docs/Storage-Providers/en.md).
