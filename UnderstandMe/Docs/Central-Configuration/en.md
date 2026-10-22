@@ -1,6 +1,6 @@
 # Central configuration: UnderstandMeSettings, LocalizationSettings and TranslationSettings
 
-Status: design direction (2026-10-22), **not yet implemented**. Keep existing `LocalizationOptions` runtime API compatible while introducing the new façade incrementally.
+Status: **partially implemented** (2026-10-22). Typed root settings, offline validation, strict JSON file loading/saving and initial component descriptors are implemented. Runtime adapter activation, queue scheduling and TUI remain design work. Existing `LocalizationOptions` remains compatible.
 
 ## One composition root, typed groups
 
@@ -75,7 +75,7 @@ Effective request settings are immutable snapshots. Mutable operational state (h
 
 All public settings types, properties, validation results and exception paths require English XML comments. Test precedence, default values, isolated components, auth failures, retry/circuit edge cases, zero/negative settings, concurrent reload, disable/enable, multi-storage source-language isolation, human-only deployment and no secrets in telemetry.
 
-This section records architecture only; no runtime component settings classes exist yet.
+Component settings models and descriptor validation are now available in `UnderstandMe/Settings`. Runtime provider adapters, scheduler integration and TUI remain unimplemented. See [Settings Descriptors](../Settings-Descriptors/en.md).
 
 
 ## JSON configuration persistence and in-code documentation (2026-10-22)
