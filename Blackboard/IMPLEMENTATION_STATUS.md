@@ -53,3 +53,7 @@
 - For multiple search matches, retained source-qualified results and directory breadcrumbs; the new presentation projection offers **all returned paths** (`FOLDER/SUBFOLDER/target.txt`, `ANOTHERFOLDER/target.txt`) and a pruned hierarchical tree with selectable match indices. Results limits and partial scans are explicit, not silently hidden.
 - Added extensive xUnit coverage and [Tree and Recursive Search](SpectreConsole/FileBrowser/Docs/Tree-and-Recursive-Search/en.md). CI caught one test-name conflict and a mistaken wildcard test expectation; both were corrected in commits. **Latest green status is not claimed until the subsequent workflow succeeds.**
 - Interactive Spectre.Console tree/results UI, paged choices, FTP source and full editor integration remain pending.
+
+### CI verification
+
+- GitHub Actions [39858309064](https://github.com/afrowaveltd/Toolbox/actions/runs/39858309064) **SUCCESS**, with **119 FileBrowser tests passed** and a green solution build. This proves the present library service/test slice, **not** an implemented keyboard-rendered browser or FTP adapter.
