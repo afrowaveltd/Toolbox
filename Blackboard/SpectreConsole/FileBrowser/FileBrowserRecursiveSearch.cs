@@ -12,7 +12,7 @@ public sealed record FileBrowserSearchOptions
     public int MaxDirectories { get; init; } = 10_000;
 
     /// <summary>Maximum number of matching entries to return.</summary>
-    public int MaxResults { get; init; } = 100;
+    public int MaxResults { get; init; } = 1_000;
 
     /// <summary>Maximum number of entries processed from one directory listing.</summary>
     public int MaxEntriesPerDirectory { get; init; } = 20_000;
@@ -51,8 +51,13 @@ public enum FileBrowserSearchStatus
 /// <param name="Entry">Matched file or directory.</param>
 /// <param name="ParentDirectory">Directory containing the entry.</param>
 /// <param name="Depth">Depth of the parent directory, relative to the search origin.</param>
+/// <param name="RelativeDirectories">
+/// Exact sequence of traversed directory names from the search origin to the parent.
+/// These are display segments, not an interpretation of provider-native paths.
+/// </param>
 public sealed record FileBrowserSearchMatch(
-    FileBrowserSourceEntry Entry, FileBrowserLocation ParentDirectory, int Depth);
+    FileBrowserSourceEntry Entry, FileBrowserLocation ParentDirectory, int Depth,
+    IReadOnlyList<string> RelativeDirectories);
 
 /// <summary>Search results and completeness diagnostics, without changing current navigation.</summary>
 /// <param name="Origin">Directory searched from.</param>
@@ -111,8 +116,8 @@ public sealed class FileBrowserRecursiveSearch
         options ??= new FileBrowserSearchOptions();
         options.Validate();
 
-        var queue = new Queue<(FileBrowserLocation Location, int Depth)>();
-        queue.Enqueue((origin, 0));
+        var queue = new Queue<(FileBrowserLocation Location, int Depth, string[] Directories)>();
+        queue.Enqueue((origin, 0, []));
 
         var visited = new HashSet<string>(_source.IsCaseSensitive
             ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
@@ -131,7 +136,7 @@ public sealed class FileBrowserRecursiveSearch
                 break;
             }
 
-            var (directory, depth) = queue.Dequeue();
+            var (directory, depth, segments) = queue.Dequeue();
             if (!visited.Add(directory.Value))
                 continue;
 
@@ -170,7 +175,8 @@ public sealed class FileBrowserRecursiveSearch
                     FileSystemName.MatchesSimpleExpression(
                         pattern, entry.Name, ignoreCase: !_source.IsCaseSensitive))
                 {
-                    matches.Add(new FileBrowserSearchMatch(entry, directory, depth));
+                    matches.Add(new FileBrowserSearchMatch(
+                        entry, directory, depth, Array.AsReadOnly(segments)));
                     if (matches.Count >= options.MaxResults)
                     {
                         truncated = true;
@@ -181,7 +187,7 @@ public sealed class FileBrowserRecursiveSearch
                 if (entry.IsDirectory && entry.CanTraverse)
                 {
                     if (depth < options.MaxDepth)
-                        queue.Enqueue((entry.Location, depth + 1));
+                        queue.Enqueue((entry.Location, depth + 1, [.. segments, entry.Name]));
                     else
                         truncated = true;
                 }
