@@ -29,3 +29,8 @@
 - Planned a minimal source-qualified browsing contract and default **local-only** FileBrowser with modern .NET OS detection and no process CWD changes.
 - FTP/FTPS will be an **optional separate NuGet extension**, not a dependency of basic navigation; SFTP is a distinct potential future adapter. Initial remote capability is read-only listing and selection. FTP insecure by default; recommend verified FTPS/TLS, externally resolved credentials and cancellable I/O.
 - Authored [Storage Providers](SpectreConsole/FileBrowser/Docs/Storage-Providers/en.md), based on the user's experience with the original Lutonet package and public .NET/FTP ecosystem guidance. **No C# code, runtime FTP integration, package or tests implemented in this change.**
+
+## 2026-10-22 — FileBrowser automatic icon fallback
+
+- Reviewed Lutonet FileBrowser's existing `DisplayIcons` boolean; modernized replacement will support **Auto (default), On and Off** with capability-aware graceful fallbacks. Spectre.Console can detect Unicode, but cannot guarantee emoji glyph coverage; avoid mojibake and preserve real Unicode filenames while suppressing unsupported decorations.
+- Published [Terminal Compatibility](SpectreConsole/FileBrowser/Docs/Terminal-Compatibility/en.md) and updated component README and status. **Design/documentation only**; FileBrowser runtime remains unimplemented.
