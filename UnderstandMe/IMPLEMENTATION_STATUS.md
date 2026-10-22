@@ -762,3 +762,9 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 
 - Agreed persistent Nano/MC-like shortcut footer. Proposed `Ctrl+V` independently validates the current RAM-only draft without disk writes, service activation or external calls; `Ctrl+S` still reviews, confirms, revalidates and saves. Added context actions New/Edit/Delete, Undo/Redo, F1 help and Esc; future real connectivity tests are separate opt-in actions.
 - Documented shortcut conflicts, stale validation revisions and keyboard/SSH edge tests in [Configurator TUI](Docs/Configurator-TUI/en.md). **Design only; no TUI code or tests added.**
+
+## 2026-10-22 — Dita-informed universal backend configurator (design)
+
+- Inspected Dita Shared LibreTranslate service, settings and HTTP client. Proposed separate backend execution/capability contracts from typed field metadata descriptors, with a single generic TUI editor for providers, storages and modules. Dynamic language discovery belongs to explicit network diagnostic actions, while `Ctrl+V` stays offline.
+- Dita `AutomaticTranslationSettings` mixes backend-specific and scheduling/localization parameters; new component-owned settings should separate them and store secret references rather than raw API keys.
+- Added [Configurator TUI](Docs/Configurator-TUI/en.md) details and planned metadata/security/edge-case tests. **Design only: no provider descriptor or TUI implementation yet.**
