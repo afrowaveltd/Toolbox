@@ -103,7 +103,8 @@ public sealed class FileBrowserTreeSearchTests
         var sensitive = new FileBrowserRecursiveSearch(new FakeSource(entries, true));
         var insensitive = new FileBrowserRecursiveSearch(new FakeSource(entries, false));
 
-        Assert.Single((await sensitive.FindAsync(At("/"), "config?.json")).Matches);
+        Assert.Equal(2, (await sensitive.FindAsync(At("/"), "config?.json")).Matches.Count);
+        Assert.Equal(2, (await sensitive.FindAsync(At("/"), "*.json")).Matches.Count);
         Assert.Equal(3, (await insensitive.FindAsync(At("/"), "config*.json")).Matches.Count);
         Assert.Single((await insensitive.FindAsync(At("/"), "config2.json")).Matches);
     }
