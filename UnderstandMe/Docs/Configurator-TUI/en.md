@@ -123,3 +123,7 @@ Suggested tests: descriptor completeness, generated form schema/JSON round-trip,
 Reviewed [Lutonet/SpectreConsoleFileBrowser](https://github.com/Lutonet/SpectreConsoleFileBrowser) as an early Spectre.Console file selector reference. The chosen direction is a modernized standalone picker inside the optional configurator, with safe working-directory-independent navigation, filtered JSON selection, localized text resources and no implicit writes. The settings file is selected before loading the edit draft; `Ctrl+V` and `Ctrl+S` continue to use the existing validation/persistence services. See the detailed [file picker review](../Configuration-File-Browser/en.md).
 
 **Reference review only; no implementation or tests added here.**
+
+## Reusable widget home: Blackboard (2026-10-22)
+
+The component family [Blackboard](../../../Blackboard/README.md) is now documented as the proposed location of reusable TUI controls. The modernized Spectre.Console FileBrowser belongs under `Blackboard/SpectreConsole/FileBrowser`, **not** inside UnderstandMe and not inside the complete Configurator application. The latter is proposed for `Toolroom/UnderstandMe/Configurator` and consumes both Blackboard widgets and UnderstandMe's core settings descriptors/validation/persistence. A corresponding *Whiteboard* GUI family is a naming proposal for future Avalonia components. No Blackboard executable or UI implementation exists yet.
