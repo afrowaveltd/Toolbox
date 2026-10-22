@@ -798,3 +798,10 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 ### Provider failure/retry metadata follow-up
 
 - Extended LibreTranslate descriptor with `RetryBackoffMs`, `OnFailure` (`Fail`/`Fallback`) and `MaxConcurrentRequests`, including invalid-value tests. These govern future adapters/orchestrator when implemented; no operational retry or fallback logic in this slice. Commits `e7242c2`, `9559701`. See [Settings Descriptors](Docs/Settings-Descriptors/en.md).
+
+## 2026-10-22 — Lutonet SpectreConsoleFileBrowser assessment
+
+- Inspected public `Lutonet/SpectreConsoleFileBrowser` at `568f7f3` (single `FileBrowser.cs`, README, project and license). It already offers Spectre.Console file/folder navigation and configurable text labels, but no integrated localization engine; source last pushed in 2022 and references an old Spectre.Console preview.
+- Decided to **adapt concepts in a separate optional TUI picker**, not import unchanged source into the core. Address global current-directory mutation, file filters, canceled selection, terminal layout, error paths, markup safety, Linux/SSH behavior and attribution if copying licensed code.
+- Planned bounded config discovery plus browse and optional direct path. JSON loading/saving stays in `UnderstandMeSettingsJsonStore` and edits remain RAM-only until confirmed `Ctrl+S`. See [Configuration File Browser](Docs/Configuration-File-Browser/en.md).
+- **Documentation/review only**: no new source code, build or tests in this step. Previous Toolbox Actions main-branch build was verified green before this documentation.
