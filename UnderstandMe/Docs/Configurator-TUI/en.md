@@ -44,3 +44,11 @@ The application edits the canonical `UnderstandMeSettings.json`, using the exact
 ## Delivery order
 
 First implement and test shared strongly typed settings plus validation and persistence. Then create the separate Spectre.Console TUI over those tested services. Add self-localization later without making the editor depend on a functioning translation backend.
+
+## Primary deployment scenario: SSH/headless servers (2026-10-22)
+
+- Treat **TUI as the primary configuration editor** because UnderstandMe often runs on a headless Linux server and must be manageable from an ordinary SSH terminal. Avalonia GUI is an optional later frontend sharing the same configuration service; never require a graphical session to administer the host.
+- Proposed entry point: `understandme config`, with `understandme config validate` for noninteractive validation. Final executable name and packaging are to be chosen during implementation.
+- Maintain an in-memory edit draft until explicit validated save; SSH hangup, terminal failure or Ctrl+C before save must leave the existing settings file untouched. Save uses checked revision and safe replacement, handles signals and narrow terminals, and must not echo secret values.
+- Support common terminal modes and basic keyboard-only use; provide a plain-text/no-color fallback. The editor must remain useful even if translation backends or UnderstandMe service are stopped.
+- Add automated tests for interrupted SSH-like sessions, no-save exit, read-only files, terminal-size fallback, and validated save after reconnection.
