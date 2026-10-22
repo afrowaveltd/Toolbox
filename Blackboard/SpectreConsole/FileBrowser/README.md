@@ -1,14 +1,16 @@
 # FileBrowser — future reusable Spectre.Console file picker
 
-**Status:** independent NuGet component planned, not yet implemented (no `.csproj`, binary or tests).
+**Status:** early implementation: .NET 10 component and test projects exist, with tested-in-CI file-type classification and icon-selection APIs; interactive Spectre.Console navigation, storage adapters and NuGet publication remain pending.
 
 Inspired by the author's original [Lutonet/SpectreConsoleFileBrowser](https://github.com/Lutonet/SpectreConsoleFileBrowser).
 
 **Planned NuGet ID:** `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser`. This must be an independently buildable, testable and versionable library, without references to other Blackboard widgets, UnderstandMe, demo applications or unnecessary GUI dependencies.
 
-This README serves the component project; [Implementation Status](IMPLEMENTATION_STATUS.md) tracks the future actual code separately from this design.
+This README serves the component project; [Implementation Status](IMPLEMENTATION_STATUS.md) tracks implemented code, verification and remaining navigation work.
 
-Planned reusable contract:
+The first reusable C# slice provides `FileBrowserFileIcons` with built-in mappings for text, code, JSON/configuration, images, audio, video, archives, PDF, office files and more. Decorative icons honor the `Auto`/`On`/`Off` terminal policy; names and paths are never changed. [File-type Icons](Docs/File-Type-Icons/en.md).
+
+Planned navigation contract:
 
 - Accept a starting directory, selection mode (existing file / existing directory / candidate new file), optional file-name/extension filter, a configurable page size, and injected UI labels.
 - Return a typed outcome: selected absolute path or explicit cancellation, with recoverable error diagnostics rather than an arbitrary path sentinel.
