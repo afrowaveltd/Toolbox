@@ -39,3 +39,7 @@ A `FileBrowser` .NET library project and xUnit test project are now in the solut
 ## FileBrowser presentation helpers
 
 The standalone FileBrowser project now also includes strict special-folder identification for a few well-known local paths, plain-text presentation with a one-space file indent, and reusable file filters (e.g. JSON-only while folders remain browsable). See [Known Folders and Filters](SpectreConsole/FileBrowser/Docs/Known-Folders-and-Filters/en.md). This is underlying library logic; an interactive Spectre.Console browser has not been released.
+
+## FileBrowser navigation foundation
+
+The independent FileBrowser project also now contains a read-only local storage adapter, storage-neutral lazy folder tree, bounded recursive wildcard search, and selection-preserving results as **both full relative paths and a tree of matching branches**. Real TUI rendering/keyboard selection remains future work. See [Tree and Recursive Search](SpectreConsole/FileBrowser/Docs/Tree-and-Recursive-Search/en.md).
