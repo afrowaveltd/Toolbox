@@ -53,6 +53,8 @@ Implemented in `UnderstandMe/Settings/SettingsDescriptorRegistry.cs`:
 }
 ```
 
+LibreTranslate metadata also describes per-instance `RetryBackoffMs` (initial delay), `OnFailure` (`Fail` or `Fallback`) and `MaxConcurrentRequests`. These are **configuration descriptions, not running retry/fallback logic yet**. Backoff is only for errors classified as retryable; the future orchestrator enforces global resource limits and allowed provider fallbacks.
+
 Fields with descriptor defaults are optional, so a missing `Endpoint` currently means the **metadata-defined default** (for displaying choices); no running provider consumes that default yet. A future adapter activation layer must resolve defaults and validate adapter-specific semantics. Do not interpret this as an already-working LibreTranslate connector.
 
 ## Security and extension rules
