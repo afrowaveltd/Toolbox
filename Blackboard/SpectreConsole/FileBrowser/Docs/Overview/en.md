@@ -23,3 +23,7 @@ The first actual source change should include a self-contained `.csproj`, automa
 ## Optional storage sources
 
 FileBrowser 2.0 is planned around small pluggable storage sources. The base library includes local navigation; FTP/FTPS is a separate opt-in package, and SFTP is a distinct protocol and separate possible future adapter. Never make FTP libraries transitive dependencies of the local picker. Source-qualified results distinguish local paths from remote locations, and the consumer decides whether and how to open selected content. [Storage Providers](../Storage-Providers/en.md).
+
+## Accessible icon fallback
+
+The FileBrowser will support **Auto (default), On and Off** icon display. Unicode capability can be detected by Spectre.Console, but emoji font support is not reliably discoverable, so auto mode must use conservative glyphs or textual fallback. File/folder navigation and real Unicode path data must remain available even when decorative glyphs are hidden. See [Terminal Compatibility](../Terminal-Compatibility/en.md).
