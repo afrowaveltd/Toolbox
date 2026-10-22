@@ -23,3 +23,9 @@
 - Planned one or more future sample/showcase executables under each UI family, strictly outside published component dependency graphs. Production helper applications remain with their **own domain projects** (proposed UnderstandMe `UnderstandMe/Tools/Configurator`); keep existing Toolroom/WhenItFails tools unchanged.
 - Added [Independent Packaging](Docs/Independent-Packaging/en.md), [FileBrowser overview](SpectreConsole/FileBrowser/Docs/Overview/en.md) and [per-component status](SpectreConsole/FileBrowser/IMPLEMENTATION_STATUS.md); reconciled root and UnderstandMe documentation.
 - **Documentation only**: no Blackboard DLL/NuGet, samples, component tests or TUI executable implemented. CI verification of these commits is tracked separately.
+
+## 2026-10-22 — FileBrowser 2.0 sources and optional FTP/FTPS (design)
+
+- Planned a minimal source-qualified browsing contract and default **local-only** FileBrowser with modern .NET OS detection and no process CWD changes.
+- FTP/FTPS will be an **optional separate NuGet extension**, not a dependency of basic navigation; SFTP is a distinct potential future adapter. Initial remote capability is read-only listing and selection. FTP insecure by default; recommend verified FTPS/TLS, externally resolved credentials and cancellable I/O.
+- Authored [Storage Providers](SpectreConsole/FileBrowser/Docs/Storage-Providers/en.md), based on the user's experience with the original Lutonet package and public .NET/FTP ecosystem guidance. **No C# code, runtime FTP integration, package or tests implemented in this change.**
