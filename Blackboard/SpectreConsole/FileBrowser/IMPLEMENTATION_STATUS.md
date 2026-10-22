@@ -18,3 +18,10 @@ Create the standalone .NET project and xUnit project, implement the testable nav
 - New [Storage Providers](Docs/Storage-Providers/en.md) design: source-qualified locations and a small async browse contract; local source bundled with picker and improved Windows/Unix detection using supported .NET APIs.
 - Separate optional FTP/FTPS adapter package is proposed for read-only navigation, no implicit transfers, safe credential handling and FTPS as recommended default. No FTP dependency in the base component; SFTP is a different protocol and remains optional future work.
 - Next implementation should prioritize small local browser, unit tests and package; remote connectors follow later. **Still documentation only, not implemented or tested.**
+
+## 2026-10-22 — terminal Unicode/emoji fallback design
+
+- Verified original Lutonet `FileBrowser.cs` already exposes `DisplayIcons = true`. Modern Spectre.Console exposes detected Unicode/legacy/interactive capabilities.
+- Proposed **Auto/On/Off** display modes (default **Auto**): no decorative icons for non-Unicode, redirected or uncertain terminals; conservative narrow Unicode symbols for supported terminals; richer emoji only on explicit override. Unicode support **does not** imply glyph/font/emoji support.
+- Avoid modifying global output encoding, code page or process console profile. Keep Unicode filenames intact; suppress *only decorative icons*. Planned tests for Windows Terminal/legacy hosts, Linux/SSH/tmux, fallback, user override, redirected output and inaccessible glyphs.
+- Detailed specification: [Terminal Compatibility](Docs/Terminal-Compatibility/en.md). **No new C# code or CI tests added in this design commit.**
