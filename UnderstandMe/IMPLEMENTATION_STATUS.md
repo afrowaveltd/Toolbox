@@ -768,3 +768,8 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Inspected Dita Shared LibreTranslate service, settings and HTTP client. Proposed separate backend execution/capability contracts from typed field metadata descriptors, with a single generic TUI editor for providers, storages and modules. Dynamic language discovery belongs to explicit network diagnostic actions, while `Ctrl+V` stays offline.
 - Dita `AutomaticTranslationSettings` mixes backend-specific and scheduling/localization parameters; new component-owned settings should separate them and store secret references rather than raw API keys.
 - Added [Configurator TUI](Docs/Configurator-TUI/en.md) details and planned metadata/security/edge-case tests. **Design only: no provider descriptor or TUI implementation yet.**
+
+## 2026-10-22 — HTML-protected placeholders with contextual sample values (design)
+
+- Confirmed Dita serves as a tested reference, not a source for wholesale copying. For HTML-capable backends such as LibreTranslate, plan to wrap representative placeholder samples in marked `translate="no"` spans, submit `format=html`, validate/parse returned markers, then rebuild and persist only the original named-placeholder template (never sample-filled text).
+- Internal marker identity, escaping, per-occurrence map, trust validation, source revision and conditional publication, privacy, contextual hint/cache identity and fallback scenarios recorded in [Placeholder HTML Translation](Docs/Localization/Placeholder-HTML-Translation/en.md). **Design only, no adapter or test implementation in this commit.**
