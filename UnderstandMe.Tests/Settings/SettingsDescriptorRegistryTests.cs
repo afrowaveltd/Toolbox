@@ -86,6 +86,9 @@ public sealed class SettingsDescriptorRegistryTests
                             ["AuthenticationMode"] = JsonSerializer.SerializeToElement("ApiKey"),
                             ["RequestTimeoutSeconds"] = JsonSerializer.SerializeToElement(0),
                             ["RequestThrottleMs"] = JsonSerializer.SerializeToElement("five"),
+                            ["RetryBackoffMs"] = JsonSerializer.SerializeToElement(-1),
+                            ["OnFailure"] = JsonSerializer.SerializeToElement("IgnoreEverything"),
+                            ["MaxConcurrentRequests"] = JsonSerializer.SerializeToElement(0),
                             ["Typo"] = JsonSerializer.SerializeToElement("ignored")
                         }
                     }
@@ -97,6 +100,9 @@ public sealed class SettingsDescriptorRegistryTests
         Assert.Contains(errors, x => x.Path.EndsWith("Options.ApiKeyReference"));
         Assert.Contains(errors, x => x.Path.EndsWith("Options.RequestTimeoutSeconds"));
         Assert.Contains(errors, x => x.Path.EndsWith("Options.RequestThrottleMs"));
+        Assert.Contains(errors, x => x.Path.EndsWith("Options.RetryBackoffMs"));
+        Assert.Contains(errors, x => x.Path.EndsWith("Options.OnFailure"));
+        Assert.Contains(errors, x => x.Path.EndsWith("Options.MaxConcurrentRequests"));
         Assert.Contains(errors, x => x.Path.EndsWith("Options.Typo"));
         Assert.DoesNotContain(errors, x => x.Message.Contains("password", StringComparison.OrdinalIgnoreCase));
     }
