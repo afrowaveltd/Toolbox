@@ -42,3 +42,7 @@ Display without icons must remain clear and accessible: directory names can have
 ## Delivery order
 
 Implement and test the small capability-policy decision independently of file enumeration and FTP adapters; then wire it to the FileBrowser renderer. The base package must remain lightweight and must not depend on external Unicode/emoji probing packages. All public APIs receive English XML comments and tricky fallbacks get focused C# comments.
+
+## Output character encoding (separate compatibility concern)
+
+**Do not equate Unicode rendering capability with the input/output character encoding** used by the host process and terminal channel. The file picker should read current input/output encoding hints and expose optional host-driven code-page selection, supporting UTF-8 and opt-in legacy CP852/Windows-1250/ISO-8859-2, without globally mutating console settings. If a filename cannot be rendered faithfully in the selected output encoding, use an unambiguous ASCII escape for display while preserving the original Unicode path internally. See [Encoding Support](../Encoding-Support/en.md).
