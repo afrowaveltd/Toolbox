@@ -748,3 +748,7 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Agreed an optional separate terminal settings editor using Spectre.Console to inspect, add, change, delete, validate and safely save configurations without hand-editing JSON or learning extensive CLI commands. It must reuse the **same settings/validation/persistence** as UnderstandMe/Afutrans, with no Spectre dependency in the core library.
 - Initially English and independent of running translation backends; later self-localized through UnderstandMe with safe built-in fallback. Include draft/revert, safe secret references, conflict detection and thorough edge-case/UI tests.
 - New design document: [Configurator TUI](Docs/Configurator-TUI/en.md). **No executable or runtime implementation yet.**
+
+## 2026-10-22 — SSH-first configuration editor
+
+- Confirmed the Spectre.Console TUI as the primary headless/SSH-friendly configurator. Optional Avalonia frontend may come later over shared configuration APIs. Draft edits must not touch disk until validated explicit save; SSH disconnect or cancellation leaves original config intact. See [Configurator TUI](Docs/Configurator-TUI/en.md). Design only.
