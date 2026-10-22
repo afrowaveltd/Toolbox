@@ -15,3 +15,7 @@ See [Implementation Status](IMPLEMENTATION_STATUS.md) and [File-type Icons](../F
 ## New navigation presentation tests
 
 `FileBrowserBrowsingPresentationTests` adds coverage for known local folders on Linux, Windows (including a non-C: drive), and macOS, unknown lookalikes, special icon fallbacks, per-type/extension JSON filtering, directory preservation, exact one-space file indentation and escaped terminal control characters. No external filesystem, terminal emulator or FTP server is needed.
+
+## Recursive search and tree tests
+
+`FileBrowserTreeSearchTests` adds verification for lazy folder expansion, multiple identical-named files in separate branches, path-relative result rows and pruned trees, wildcard case sensitivity, explicit result selection, unchanged navigation on miss/cancel, search safety budgets, permission-error reporting, source-qualified identities, cycle avoidance, and local filesystem browsing without working-directory mutation. See [Tree and Recursive Search](../FileBrowser/Docs/Tree-and-Recursive-Search/en.md).
