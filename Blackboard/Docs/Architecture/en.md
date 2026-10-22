@@ -64,3 +64,7 @@ Each independently published component project receives tests, its own `IMPLEMEN
 ## FileBrowser source extensions
 
 The default independently published FileBrowser package will include local filesystem navigation. Protocol extensions are optional **separate packages**; the proposed FTP/FTPS adapter depends on the FileBrowser source contract, not the reverse. The generic UI does not need to know FTP commands or remote login details. Never treat a remotely selected file as a local path, or require remote connection libraries for local-only selection. See [Storage Providers](../../SpectreConsole/FileBrowser/Docs/Storage-Providers/en.md).
+
+## Terminal capabilities
+
+UI components must respect detected interactive, Unicode and ANSI terminal capabilities. Decorative glyphs are optional, not a prerequisite for navigation or accessibility. A basic Unicode-capable console may still lack emoji glyphs; prefer conservative Auto fallback and explicit user overrides, without globally rewriting output encoding. FileBrowser's detailed design: [Terminal Compatibility](../SpectreConsole/FileBrowser/Docs/Terminal-Compatibility/en.md).
