@@ -323,7 +323,7 @@ public sealed class FileBrowserTreeSearchTests
         try
         {
             Directory.CreateDirectory(Path.Combine(tmp, "docs"));
-            File.WriteAllText(Path.Combine(tmp, "one.json"), "{}");
+            System.IO.File.WriteAllText(Path.Combine(tmp, "one.json"), "{}");
             var cwd = Environment.CurrentDirectory;
             var src = new FileBrowserLocalSource();
             var entries = await src.ListAsync(new FileBrowserLocation("local", tmp));
