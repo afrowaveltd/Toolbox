@@ -2,32 +2,34 @@
 
 **Status:** project family reserved / architecture documented. No runtime library or NuGet package has been implemented yet.
 
-Blackboard is the proposed home of reusable **terminal user interface (TUI)** components for Afrowave.Toolbox. The name complements **Whiteboard**, the proposed future graphical UI (GUI) family. The pairing is a naming/design direction, not a claim that either runtime toolkit has shipped.
+Blackboard is the proposed home of reusable **terminal user interface (TUI)** components for Afrowave.Toolbox. The name complements **Whiteboard**, the proposed future graphical UI (GUI) family. **These names describe project families, not umbrella NuGet packages.** The pairing is a naming/design direction, not a claim that either runtime toolkit has shipped.
 
 ## Goals
 
 - Make SSH/headless administration accessible without requiring a graphical environment.
 - Provide keyboard-first interactive elements with visible shortcuts, readable help, no-color fallback and localization-friendly English defaults.
 - Avoid mandatory dependencies on any single TUI framework in common application/domain services.
-- Allow multiple presentation implementations under distinct adapters, initially `SpectreConsole`.
+- Group technology-specific implementations in folders such as `SpectreConsole`, but **do not publish or require a large aggregate package** just because components share a renderer.
+- Each independently useful UI tool gets its own `.csproj`, independently versioned NuGet package, test project, README, topic documentation and implementation status. Dependencies must be limited to that tool's actual requirements.
 - Keep reusable components independent of UnderstandMe and other consumers; consumer applications inject texts, behavior and validation rather than embedding one application's rules.
 
 ## Planned layout
 
 - [Architecture](Docs/Architecture/en.md) — responsibilities, dependency boundaries and naming.
 - [SpectreConsole](SpectreConsole/README.md) — initial adapter family.
-- [FileBrowser](SpectreConsole/FileBrowser/README.md) — reusable file/folder picker, informed by the author's earlier `Lutonet/SpectreConsoleFileBrowser` project.
+- [FileBrowser](SpectreConsole/FileBrowser/README.md) — future **independently packaged** file/folder picker, informed by the author's earlier `Lutonet/SpectreConsoleFileBrowser` project.
+- `Samples/` (future) — one or more demonstration applications showing how Blackboard components are used, not production utilities.
 - [Implementation status](IMPLEMENTATION_STATUS.md) — verified milestones and outstanding tasks.
 
 ## Relationship to Toolbox
 
-`Blackboard` provides **widgets and terminal interaction**. `SeeMe` already has console presentation components; `Toolroom` is the home of complete utilities (for example the existing WhenItFails Setter). Avoid duplicating those projects' responsibilities.
+`Blackboard` provides **widgets and terminal interaction**. `SeeMe` already has console presentation components; `Toolroom` contains some existing complete utilities (for example the WhenItFails Setter). Do not move established projects just for naming consistency.
 
-The planned UnderstandMe settings configurator is an **application** that consumes the UnderstandMe configuration model/validator and Blackboard's TUI components. Its project should live with application tools (proposed `Toolroom/UnderstandMe/Configurator`), not inside reusable widgets.
+**Production/helper applications belong to their domain projects** rather than Blackboard/Whiteboard. The UnderstandMe Configurator, for instance, is owned by UnderstandMe (proposed location `UnderstandMe/Tools/Configurator`; exact location can be settled when the executable is created). Blackboard itself may later include one or more `Samples` apps, whose only responsibility is demonstrating reusable controls.
 
 ## Framework and localization policies
 
-Start with .NET 10 and a modern tested stable Spectre.Console version for the optional presentation package only. Do not reference Spectre.Console from UnderstandMe's configuration core.
+Start with .NET 10 and a modern tested stable Spectre.Console version **in each component package that actually needs it**. The folder `SpectreConsole` does not imply a mandatory shared framework wrapper. Do not reference Spectre.Console from UnderstandMe's configuration core.
 
 Every visible string must have a stable English default and optional caller override; no mandatory dependency on `UnderstandMe` is allowed to render help or recover from a broken translation service. Public C# APIs receive XML documentation and non-obvious logic receives short English comments.
 
