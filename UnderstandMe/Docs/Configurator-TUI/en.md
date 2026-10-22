@@ -68,3 +68,31 @@ On Ctrl+S:
 Ctrl+C, SSH disconnect, program failure or Exit before the successful Ctrl+S workflow must not save automatically. For a dirty draft on ordinary Exit, optionally warn and ask whether to discard/cancel exit, but do not save implicitly. A terminal which cannot forward Ctrl+S (e.g. flow-control interception) must offer a visible equivalent **Review & Save** menu action. Use keyboard-only interaction without requiring function keys.
 
 The change summary may be produced before validation as requested, but no unvalidated settings may be persisted. Tests must verify no writes before Ctrl+S, redacted diffs, declined confirmation, invalid draft retention, concurrent external changes, I/O failures, repeated Ctrl+S, no-op saving, interrupted terminal sessions and final successful save. XML-document public TUI interaction contracts and comment non-obvious input/transaction behavior in source.
+
+
+## Keyboard-first interaction and independent validation (2026-10-22)
+
+Adopt a persistent, context-sensitive shortcut footer inspired by Nano/Midnight Commander; shortcuts are always shown alongside their textual labels, with a complete F1 help screen. Initial proposed bindings:
+
+| Shortcut | Action |
+| --- | --- |
+| `Ctrl+V` | Validate the **in-RAM draft** without persisting or applying it |
+| `Ctrl+S` | Review changes -> confirm -> validate -> safe save |
+| `Ctrl+N` | New item in the current component collection |
+| `Ctrl+E` | Edit the selected item |
+| `Ctrl+D` | Delete selected item, with confirmation |
+| `Ctrl+Z` / `Ctrl+Y` | Undo / Redo changes to the draft |
+| `F1` | Context-sensitive help |
+| `Esc` | Back / cancel dialog without saving |
+
+Keyboard bindings are provisional and must be tested on common terminal emulators, SSH, tmux and shell/terminal flow-control configurations; reserve fallback menu actions when a chord is intercepted. Inside text editing controls, define unambiguous local shortcut behavior (e.g. terminal paste may also use Ctrl+V); do not silently eat text-edit actions.
+
+`Ctrl+V` runs pure, deterministic schema/semantic/cross-component validation on the **complete current draft**, reports errors/warnings with component and field paths, and **does not touch the settings file**, activate services, call remote backends, or discard edits. Validation results refer to a particular draft revision and become stale immediately after an edit. Validation errors are actionable and may be selected to navigate to the offending field.
+
+Keep optional `Test Connection` **distinct and opt-in**: it can contact external backends/databases, needs explicit authorization and timeouts, and is not a prerequisite to saving a syntactically and semantically valid configuration. Never transmit private text as a connectivity test.
+
+`Ctrl+S` retains the established order: show redacted changes -> explicit confirmation -> revalidate the exact latest draft -> check external file revision -> safely save. A previous successful `Ctrl+V` is informational, not a skip-validation token; race or changed draft must not bypass save-time validation.
+
+The footer should clearly indicate dirty/clean draft, latest validation status, selected context, and which shortcuts are available. Undo/Redo cannot mutate on-disk settings. Test input focus, shortcut conflicts, repeated validation, canceled validation, long/erroring validators, changed-draft result invalidation, SSH disconnect, keyboard-only recovery and small-screen layout.
+
+Documentation/design only; no TUI executable implemented yet.
