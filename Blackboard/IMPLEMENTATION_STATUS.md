@@ -39,3 +39,10 @@
 
 - Terminal fallback must address more than Unicode icons: distinguish host/terminal byte encodings (UTF-8 and legacy code pages), Unicode rendering and font glyphs. Proposed detection plus manual encoding override at the host boundary, avoiding implicit global `Console.OutputEncoding`/code page changes.
 - Preserve original Unicode file identities even when ASCII-escaped labels are needed. Prepared [Encoding Support](SpectreConsole/FileBrowser/Docs/Encoding-Support/en.md), including optional CP852/CP1250/ISO-8859-2 and tests. **Design/documentation only.**
+
+## 2026-10-22 — first Blackboard library code and tests
+
+- Added independent `Blackboard/SpectreConsole/FileBrowser` .NET 10 library and sibling `FileBrowser.Tests` xUnit project to `Toolbox.sln`.
+- Implemented file type classification, configurable custom filename/extension mappings, accessible type labels and capability-sensitive icons (emoji, narrow Unicode or no icons). [File-type Icons](SpectreConsole/FileBrowser/Docs/File-Type-Icons/en.md).
+- GitHub Actions [39853748075](https://github.com/afrowaveltd/Toolbox/actions/runs/39853748075) passed, including **37 FileBrowser tests**; project README, test docs and both per-project implementation-status files added.
+- **Not yet implemented**: actual interactive file/folder selection or Spectre.Console renderer, storage-source abstraction, terminal encoding integration, FTP/FTPS, example application and published NuGet. The new code is intentionally a small self-contained foundation.
