@@ -177,3 +177,7 @@ The optional named-placeholder validator and its 19 new test cases passed in Git
 ### JSON settings file
 
 `UnderstandMeSettingsJsonStore.Save(path, settings)` creates a new validated `UnderstandMeSettings.json` file; pass the `Revision` returned by `Load(path)` for checked updates. A stale revision raises `UnderstandMeSettingsConflictException`; a semantically invalid draft raises `UnderstandMeSettingsValidationException` with field paths. Unknown JSON properties and unsupported schema versions are rejected rather than overwritten. This is a first offline implementation: coordinate simultaneous external writers; environment overlays, safe secret-reference fields and TUI are still planned.
+
+### Extensible backend and storage option schemas
+
+`SettingsDescriptorRegistry.CreateDefault()` exposes field metadata for `LibreTranslate` providers and `FileJson` localization storages. Each registration keeps component-specific JSON `Options`; descriptors include help text, typed defaults, limits and conditional requirements. Pass a registry containing your plugin's descriptor to `UnderstandMeSettingsValidator.Validate(settings, registry)` and `UnderstandMeSettingsJsonStore.Load(path, registry)` / `Save(path, settings, revision, registry)` so custom components validate too. **These are configuration schemas only**, not running translation/storage adapters or a TUI. See [Settings Descriptors](Docs/Settings-Descriptors/en.md).
