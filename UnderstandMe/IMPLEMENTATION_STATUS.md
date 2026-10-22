@@ -810,3 +810,9 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 
 - Established documentation scaffold for `Blackboard/` (README, architecture, implementation status, `SpectreConsole/FileBrowser` component outline) as a separate reusable TUI family. Possible complementary GUI name is `Whiteboard` (provisional).
 - The eventual UnderstandMe Configurator belongs to `Toolroom/UnderstandMe/Configurator`, consuming Blackboard widgets and UnderstandMe settings, not embedding a one-off FileBrowser. No new C# implementation or tests; this step is an architecture/documentation update.
+
+## 2026-10-22 — domain-owned Configurator and minimal Blackboard dependencies
+
+- Refined the earlier proposed `Toolroom/UnderstandMe/Configurator` location: the production settings editor belongs to **UnderstandMe** as its own domain utility (proposed `UnderstandMe/Tools/Configurator`, to finalize at implementation). It consumes UnderstandMe settings APIs and only needed independently packaged Blackboard widgets.
+- Blackboard/Whiteboard own reusable TUI/GUI component NuGets and future `Samples` demonstrations, **not domain-specific applications**. FileBrowser's eventual package is `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser` with its own implementation status and Docs. See [Configurator TUI](Docs/Configurator-TUI/en.md) and [Blackboard packaging](../Blackboard/Docs/Independent-Packaging/en.md).
+- This supersedes the earlier Toolroom location proposal without moving existing Toolroom projects. **Design/docs only, no configurator or UI project implemented in this step.**
