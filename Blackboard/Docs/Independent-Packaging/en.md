@@ -38,3 +38,7 @@ Blackboard.Samples (future optional executable)
 Preserve minimal transitive NuGet references. Where an application needs generic forms or navigation in addition to file browsing, it references those packages **explicitly**, rather than importing a complete UI suite by default.
 
 See [Blackboard architecture](../Architecture/en.md), [FileBrowser](../../SpectreConsole/FileBrowser/README.md) and [Blackboard implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## FileBrowser plugin example: no unnecessary transitive dependencies
+
+The initial FileBrowser ships with the **local** source built in. A separate opt-in package may add FTP/FTPS browsing, without increasing dependencies or network/security attack surface for every local-only caller. SFTP, cloud storage and other connectors remain future independent choices. See [FileBrowser Storage Providers](../../SpectreConsole/FileBrowser/Docs/Storage-Providers/en.md).
