@@ -16,3 +16,10 @@
 3. Add CLI/SSH-friendly cancellation, filtering, safe markup, localization injection and error handling.
 4. Add automated tests and include real projects in `Toolbox.sln`; check GitHub Actions.
 5. Integrate the picker into the future UnderstandMe Configurator using the existing validated JSON settings store.
+
+## 2026-10-22 — component-level NuGet and sample/application separation
+
+- Confirmed Blackboard/Whiteboard are **project families**, not monolithic packages. Each independently useful TUI/GUI control gets a standalone .NET/NuGet project within its technology folder (e.g. `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser`), with minimal dependencies, its own tests, README, Docs and `IMPLEMENTATION_STATUS.md`.
+- Planned one or more future sample/showcase executables under each UI family, strictly outside published component dependency graphs. Production helper applications remain with their **own domain projects** (proposed UnderstandMe `UnderstandMe/Tools/Configurator`); keep existing Toolroom/WhenItFails tools unchanged.
+- Added [Independent Packaging](Docs/Independent-Packaging/en.md), [FileBrowser overview](SpectreConsole/FileBrowser/Docs/Overview/en.md) and [per-component status](SpectreConsole/FileBrowser/IMPLEMENTATION_STATUS.md); reconciled root and UnderstandMe documentation.
+- **Documentation only**: no Blackboard DLL/NuGet, samples, component tests or TUI executable implemented. CI verification of these commits is tracked separately.
