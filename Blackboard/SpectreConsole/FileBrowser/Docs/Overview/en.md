@@ -18,4 +18,4 @@ The future UnderstandMe Configurator will use this package to select `Understand
 
 ## Release requirements
 
-The first actual source change should include a self-contained `.csproj`, automated tests, documentation of public APIs (English XML comments), the updated [implementation status](../../IMPLEMENTATION_STATUS.md), plus integration in Toolbox CI. Validate behavior before declaring a release.
+The first actual source change should include a self-contained `.csproj`, automated tests, documentation of public APIs (English XML comments), the updated [implementation status](../IMPLEMENTATION_STATUS.md), plus integration in Toolbox CI. Validate behavior before declaring a release.
