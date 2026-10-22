@@ -731,3 +731,8 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 
 - Proposed a host-facing `UnderstandMeSettings` root with `LocalizationSettings` and `TranslationSettings` typed groups, per-storage settings, providers, queues/worker FIFO capacity, P0 cache options and scope-specific cache configuration. Configuration is validated and normalized into immutable effective request snapshots, retaining admin security and billing limits.
 - Existing `LocalizationOptions` is the only implemented localization settings class; preserve it through migration, do not claim the proposed types exist. Recorded [Central Configuration](Docs/Central-Configuration/en.md) including future XML API docs and edge-case tests. **Documentation only; no runtime API/tests yet.**
+
+## 2026-10-22 — component-owned configuration design
+
+- Confirmed central settings register enabled storages, backends, schedulers and modules; each component owns typed authorization, error/retry, resource and behavior settings. System-wide policy cannot be bypassed by backend-specific settings. Distinguish immutable request configuration from dynamic health/paused/retry state and validate reload before activation.
+- Documented precedence and future XML documentation/security/edge-case tests in [Central Configuration](Docs/Central-Configuration/en.md). **Design only; no settings API implemented in this change.**
