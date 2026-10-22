@@ -1,6 +1,6 @@
 # Blackboard — reusable terminal UI components
 
-**Status:** project family reserved / architecture documented. No runtime library or NuGet package has been implemented yet.
+**Status:** first independently packaged component project and tests created; file-type classification and icon-selection API implemented in FileBrowser. The interactive TUI browser and NuGet publication remain pending.
 
 Blackboard is the proposed home of reusable **terminal user interface (TUI)** components for Afrowave.Toolbox. The name complements **Whiteboard**, the proposed future graphical UI (GUI) family. **These names describe project families, not umbrella NuGet packages.** The pairing is a naming/design direction, not a claim that either runtime toolkit has shipped.
 
@@ -34,4 +34,4 @@ Start with .NET 10 and a modern tested stable Spectre.Console version **in each 
 
 Every visible string must have a stable English default and optional caller override; no mandatory dependency on `UnderstandMe` is allowed to render help or recover from a broken translation service. Public C# APIs receive XML documentation and non-obvious logic receives short English comments.
 
-No compiled Blackboard assembly, executable, shortcut handler, or picker exists in the Toolbox repository at this milestone.
+A `FileBrowser` .NET library project and xUnit test project are now in the solution, with file-type icon classification/terminal fallback logic. **No full file picker, Spectre.Console renderer, executable, downloadable NuGet release or published package exists yet.**
