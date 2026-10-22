@@ -96,3 +96,24 @@ Keep optional `Test Connection` **distinct and opt-in**: it can contact external
 The footer should clearly indicate dirty/clean draft, latest validation status, selected context, and which shortcuts are available. Undo/Redo cannot mutate on-disk settings. Test input focus, shortcut conflicts, repeated validation, canceled validation, long/erroring validators, changed-draft result invalidation, SSH disconnect, keyboard-only recovery and small-screen layout.
 
 Documentation/design only; no TUI executable implemented yet.
+
+
+## Universal metadata-driven backend configuration (Dita reference, 2026-10-22)
+
+Inspected the actual `afrowaveltd/Dita` sources: `Dita.Shared/Localization/Services/ILibreTranslateService.cs` declares text/file translation, language detection, supported languages and latency; `LibreTranslateService.cs` implements HTTP and retry/throttling behavior; `Dita.Shared/Localization/Models/AutomaticTranslationSettings.cs` contains LibreTranslate URL, API key fields, language, endpoint, throttle/timeout and also application/scheduling-specific options. `Dita.Server` consumes this Shared implementation. These are reference implementation assets, **not yet UnderstandMe public contracts**.
+
+The TUI must not ship a handwritten settings screen for each backend. Separate:
+
+1. **Execution contract**: translation / detection / file translation and capability discovery, implemented by an adapter. Keep backend-specific API models internally; normalize outputs and errors into UnderstandMe contracts.
+2. **Configuration descriptor contract**: a safe, typed manifest of the backend settings tree. Proposed interfaces/names (design, not current code): `ITranslationBackendDescriptor`, `BackendCapabilities`, `SettingDescriptor`, `IComponentSettingsValidator`, and optionally `IBackendDiagnostics`.
+3. **Generic editor**: render fields and nested groups based on manifest data (display names, stable property IDs, types, required/optional, help text, defaults, allowed ranges, choice provider, visibility/dependency rules, secure credential-reference semantics). Reuse for storage/scheduler/module manifests as well as translation backends.
+4. **Validation**: reusable generic schema validation + mandatory component-specific semantic validation; diagnostics return stable field paths for jumping from `Ctrl+V` errors to inputs. The editor is not a source of truth for validity.
+5. **Capabilities and live information**: distinguish *static declared* capabilities from *runtime-discovered* languages/models/health. Languages may be dynamically fetched from a backend on explicit `Refresh/Test Connection`, with offline manual entry and last-known nonsecret metadata; generic `Ctrl+V` never triggers network traffic.
+
+Suggested field kinds include string, URI, number, boolean, enum/choice, duration, collection, structured object and **secret reference** (never print plaintext secrets). A provider can expose custom UI extensions later if a field cannot be expressed in the generic metadata model, but the common path requires no provider-specific TUI code.
+
+Dita migration cautions: `AutomaticTranslationSettings` currently mixes provider-specific fields with app-wide scheduler and localization fields; distribute them into provider/localization/scheduler settings at the new boundary. Do not copy a literal `Key` into `UnderstandMeSettings.json`; replace with a secure credential reference. Normalize declared capabilities independently of `ILibreTranslateService` so that all providers are represented consistently. Support multiple instances of the same backend type under distinct provider IDs.
+
+Suggested tests: descriptor completeness, generated form schema/JSON round-trip, conditional fields, malformed or untrusted manifests, provider-specific validation, mixed providers, two LibreTranslate instances with distinct policies, offline language discovery, live metadata refresh opt-in, sensitive fields redacted, dynamic plugin registration/unregistration, unknown backend IDs and backward-compatible settings migration. Document provider extension authoring in English XML docs and topic docs; explain tricky mapping logic with ordinary C# comments.
+
+**Status: architecture proposal based on inspected Dita code; neither descriptors nor dynamic TUI rendering implemented yet.**
