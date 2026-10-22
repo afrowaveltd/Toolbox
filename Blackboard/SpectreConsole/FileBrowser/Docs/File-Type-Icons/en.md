@@ -58,4 +58,4 @@ The standalone package `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser` 
 - Accessible labels and unchanged Unicode names and process working directory.
 - Future integration tests must add actual Spectre rendering, markup safety, output encoding, terminal width, SSH sessions, and filenames unsupported by the output font.
 
-See [Terminal Compatibility](../Terminal-Compatibility/en.md), [Encoding Support](../Encoding-Support/en.md) and [Overview](Overview/en.md).
+See [Terminal Compatibility](../Terminal-Compatibility/en.md), [Encoding Support](../Encoding-Support/en.md) and [Overview](../Overview/en.md).
