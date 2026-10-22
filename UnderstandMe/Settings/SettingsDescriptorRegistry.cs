@@ -221,7 +221,15 @@ public sealed class SettingsDescriptorRegistry
             new("RequestThrottleMs", "Request throttle", "Minimum interval between requests in milliseconds.",
                 SettingsFieldKind.Integer, JsonSerializer.SerializeToElement(80), Minimum: 0, Maximum: 60000),
             new("MaxRetryAttempts", "Retry attempts", "Maximum additional retry attempts after the initial call.",
-                SettingsFieldKind.Integer, JsonSerializer.SerializeToElement(3), Minimum: 0, Maximum: 20)
+                SettingsFieldKind.Integer, JsonSerializer.SerializeToElement(3), Minimum: 0, Maximum: 20),
+            new("RetryBackoffMs", "Retry backoff", "Initial pause before retrying a transient error, in milliseconds.",
+                SettingsFieldKind.Integer, JsonSerializer.SerializeToElement(500), Minimum: 0, Maximum: 60000),
+            new("OnFailure", "Failure policy", "Fail the attempt or ask the orchestrator for an allowed fallback.",
+                SettingsFieldKind.Choice, JsonSerializer.SerializeToElement("Fallback"),
+                Choices: ["Fail", "Fallback"]),
+            new("MaxConcurrentRequests", "Concurrency limit",
+                "Maximum simultaneous requests to this backend instance.",
+                SettingsFieldKind.Integer, JsonSerializer.SerializeToElement(1), Minimum: 1, Maximum: 1024)
         ]));
         registry.Register(new(SettingsComponentKind.LocalizationStorage, "FileJson", "JSON dictionary files",
         [
