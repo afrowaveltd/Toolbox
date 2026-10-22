@@ -773,3 +773,10 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 
 - Confirmed Dita serves as a tested reference, not a source for wholesale copying. For HTML-capable backends such as LibreTranslate, plan to wrap representative placeholder samples in marked `translate="no"` spans, submit `format=html`, validate/parse returned markers, then rebuild and persist only the original named-placeholder template (never sample-filled text).
 - Internal marker identity, escaping, per-occurrence map, trust validation, source revision and conditional publication, privacy, contextual hint/cache identity and fallback scenarios recorded in [Placeholder HTML Translation](Docs/Localization/Placeholder-HTML-Translation/en.md). **Design only, no adapter or test implementation in this commit.**
+
+## 2026-10-22 — first implemented typed settings and pure validation
+
+- Implemented public XML-documented `UnderstandMeSettings`, `LocalizationSettings`, `LocalizationStorageSettings`, `TranslationSettings`, `TranslationBackendSettings`, `TranslationQueueSettings`, `SettingsValidationIssue` and `UnderstandMeSettingsValidator` in `UnderstandMe/Settings/UnderstandMeSettings.cs`.
+- Version-one root defaults: schema 1; localization default `en`; zero registered stores/backends; default worker buffer capacity 5. Basic validation checks missing/root sections, schema, required IDs/type/languages, case-insensitive duplicate IDs and positive buffer capacity; reports field paths without I/O. `System.Text.Json` round-trip test added.
+- Added xUnit tests for defaults, multiple instances of same adapter type, duplicate IDs, invalid fields/schema, null root and JSON round-trip. New code commits `e3dac3e` and `f7ff3e5`.
+- **Limitations**: this is only the foundation of the settings model and validator; no persisted `UnderstandMeSettings.json` loader/writer, backend-specific descriptors, runtime activation, TUI, queue implementation or adapter has been introduced. Current legacy `LocalizationOptions` remains independent/compatible. CI for new tests was pending when recorded.
