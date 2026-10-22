@@ -1,10 +1,14 @@
 # FileBrowser: independently packageable TUI file/folder picker
 
-Status: **design only**, 2026-10-22.
+Status: **partial implementation**, 2026-10-22: classification/icon APIs plus xUnit tests exist; interactive file picker and FTP modules are still designs.
 
-The FileBrowser component will become its own .NET project and NuGet package in `Blackboard/SpectreConsole/FileBrowser`. It is not the entire Blackboard or Spectre.Console toolkit.
+FileBrowser is now its own .NET 10 project under `Blackboard/SpectreConsole/FileBrowser`, intended for independent NuGet packaging. The first code slice is icon classification/selection; publication and the actual Spectre.Console picker have not happened. It is not the entire Blackboard or Spectre.Console toolkit.
 
-## Scope
+## Implemented file-type icon foundation
+
+`FileBrowserFileIcons` maps extensions and exact filenames to semantic categories and icon glyphs. Its output is chosen from emoji, small Unicode symbols or none according to terminal capability hints; it always offers English fallback labels and preserves original file paths. See [File-type Icons](../File-Type-Icons/en.md).
+
+## Planned scope
 
 - Allow applications to select files or folders, optionally filter by filename/extension, navigate parent directories and platform roots and cancel explicitly.
 - Work inside SSH terminals and local consoles without changing the host process's working directory or overwriting application-specific state.
