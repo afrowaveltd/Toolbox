@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace Afrowave.Toolbox.UnderstandMe.Settings;
 
 /// <summary>Root configuration for the localization and translation host.</summary>
@@ -33,6 +35,12 @@ public sealed class LocalizationStorageSettings
     /// <summary>Source language authoritative for this store.</summary>
     public string SourceLanguage { get; init; } = "en";
 
+    /// <summary>Registered storage adapter type. The built-in file adapter is FileJson.</summary>
+    public string Type { get; init; } = "FileJson";
+
+    /// <summary>Adapter-specific settings, validated through its registered schema.</summary>
+    public Dictionary<string, JsonElement> Options { get; init; } = [];
+
     /// <summary>When true, a source entry must have an exactly equal key and value.</summary>
     /// <remarks>Validation of existing source entries is a separate operation.</remarks>
     public bool SetValueFromKey { get; init; } = true;
@@ -57,6 +65,9 @@ public sealed class TranslationBackendSettings
     /// <summary>Backend adapter type, for example LibreTranslate.</summary>
     public string Type { get; init; } = "";
 
+    /// <summary>Adapter-specific settings, validated through its registered schema.</summary>
+    public Dictionary<string, JsonElement> Options { get; init; } = [];
+
     /// <summary>Whether this registration may be used.</summary>
     public bool Enabled { get; init; } = true;
 }
@@ -78,10 +89,13 @@ public static class UnderstandMeSettingsValidator
 {
     /// <summary>Validates a complete settings object without modifying it or contacting backends.</summary>
     /// <param name="settings">Configuration to validate.</param>
+    /// <param name="descriptors">Registered schemas for all component types, or built-in schemas if omitted.</param>
     /// <returns>All detected issues; an empty collection means structurally valid settings.</returns>
-    public static IReadOnlyList<SettingsValidationIssue> Validate(UnderstandMeSettings? settings)
+    public static IReadOnlyList<SettingsValidationIssue> Validate(
+        UnderstandMeSettings? settings, SettingsDescriptorRegistry? descriptors = null)
     {
         var errors = new List<SettingsValidationIssue>();
+        descriptors ??= SettingsDescriptorRegistry.CreateDefault();
         if (settings is null)
         {
             errors.Add(new("$", "Settings cannot be null."));
@@ -96,14 +110,14 @@ public static class UnderstandMeSettingsValidator
         {
             if (string.IsNullOrWhiteSpace(settings.Localization.DefaultSourceLanguage))
                 errors.Add(new("$.Localization.DefaultSourceLanguage", "Default source language is required."));
-            ValidateStorages(settings.Localization.Storages, errors);
+            ValidateStorages(settings.Localization.Storages, errors, descriptors);
         }
 
         if (settings.Translation is null)
             errors.Add(new("$.Translation", "Translation settings are required."));
         else
         {
-            ValidateProviders(settings.Translation.Providers, errors);
+            ValidateProviders(settings.Translation.Providers, errors, descriptors);
             if (settings.Translation.Queues is null)
                 errors.Add(new("$.Translation.Queues", "Queue settings are required."));
             else if (settings.Translation.Queues.DefaultWorkerBufferCapacity < 1)
@@ -112,7 +126,7 @@ public static class UnderstandMeSettingsValidator
         return errors;
     }
 
-    private static void ValidateStorages(List<LocalizationStorageSettings>? stores, List<SettingsValidationIssue> errors)
+    private static void ValidateStorages(List<LocalizationStorageSettings>? stores, List<SettingsValidationIssue> errors, SettingsDescriptorRegistry descriptors)
     {
         if (stores is null)
         {
@@ -135,10 +149,15 @@ public static class UnderstandMeSettingsValidator
                 errors.Add(new(path + ".Id", "Storage ID must be unique."));
             if (string.IsNullOrWhiteSpace(item.SourceLanguage))
                 errors.Add(new(path + ".SourceLanguage", "Source language is required."));
+            if (string.IsNullOrWhiteSpace(item.Type))
+                errors.Add(new(path + ".Type", "Storage type is required."));
+            else
+                errors.AddRange(descriptors.ValidateOptions(SettingsComponentKind.LocalizationStorage,
+                    item.Type, item.Options, path));
         }
     }
 
-    private static void ValidateProviders(List<TranslationBackendSettings>? providers, List<SettingsValidationIssue> errors)
+    private static void ValidateProviders(List<TranslationBackendSettings>? providers, List<SettingsValidationIssue> errors, SettingsDescriptorRegistry descriptors)
     {
         if (providers is null)
         {
@@ -161,6 +180,9 @@ public static class UnderstandMeSettingsValidator
                 errors.Add(new(path + ".Id", "Provider ID must be unique."));
             if (string.IsNullOrWhiteSpace(item.Type))
                 errors.Add(new(path + ".Type", "Provider type is required."));
+            else
+                errors.AddRange(descriptors.ValidateOptions(SettingsComponentKind.TranslationBackend,
+                    item.Type, item.Options, path));
         }
     }
 }
