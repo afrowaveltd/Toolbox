@@ -236,7 +236,7 @@ public sealed class FileBrowserBrowsingPresentationTests
         Assert.Equal(" appsettings.json", file);
         Assert.Equal("config/", directory);
         Assert.StartsWith(" ", file);
-        Assert.DoesNotStartWith(" ", directory);
+        Assert.False(directory.StartsWith(' '));
     }
 
     [Fact]
