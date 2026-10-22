@@ -66,6 +66,7 @@ public sealed class UnderstandMeSettingsJsonStoreTests
     {
         private readonly string folder = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "understandme-settings-" + Guid.NewGuid().ToString("N"));
         public string Path => System.IO.Path.Combine(folder, "UnderstandMeSettings.json");
+        public TempFile() => Directory.CreateDirectory(folder);
         public void Dispose()
         {
             if (Directory.Exists(folder))
