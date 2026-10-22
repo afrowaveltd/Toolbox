@@ -63,4 +63,4 @@ Each independently published component project receives tests, its own `IMPLEMEN
 
 ## FileBrowser source extensions
 
-The default independently published FileBrowser package will include local filesystem navigation. Protocol extensions are optional **separate packages**; the proposed FTP/FTPS adapter depends on the FileBrowser source contract, not the reverse. The generic UI does not need to know FTP commands or remote login details. Never treat a remotely selected file as a local path, or require remote connection libraries for local-only selection. See [Storage Providers](../SpectreConsole/FileBrowser/Docs/Storage-Providers/en.md).
+The default independently published FileBrowser package will include local filesystem navigation. Protocol extensions are optional **separate packages**; the proposed FTP/FTPS adapter depends on the FileBrowser source contract, not the reverse. The generic UI does not need to know FTP commands or remote login details. Never treat a remotely selected file as a local path, or require remote connection libraries for local-only selection. See [Storage Providers](../../SpectreConsole/FileBrowser/Docs/Storage-Providers/en.md).
