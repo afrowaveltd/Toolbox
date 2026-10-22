@@ -117,3 +117,9 @@ Dita migration cautions: `AutomaticTranslationSettings` currently mixes provider
 Suggested tests: descriptor completeness, generated form schema/JSON round-trip, conditional fields, malformed or untrusted manifests, provider-specific validation, mixed providers, two LibreTranslate instances with distinct policies, offline language discovery, live metadata refresh opt-in, sensitive fields redacted, dynamic plugin registration/unregistration, unknown backend IDs and backward-compatible settings migration. Document provider extension authoring in English XML docs and topic docs; explain tricky mapping logic with ordinary C# comments.
 
 **Status: architecture proposal based on inspected Dita code; neither descriptors nor dynamic TUI rendering implemented yet.**
+
+## Discover and browse settings files (2026-10-22)
+
+Reviewed [Lutonet/SpectreConsoleFileBrowser](https://github.com/Lutonet/SpectreConsoleFileBrowser) as an early Spectre.Console file selector reference. The chosen direction is a modernized standalone picker inside the optional configurator, with safe working-directory-independent navigation, filtered JSON selection, localized text resources and no implicit writes. The settings file is selected before loading the edit draft; `Ctrl+V` and `Ctrl+S` continue to use the existing validation/persistence services. See the detailed [file picker review](../Configuration-File-Browser/en.md).
+
+**Reference review only; no implementation or tests added here.**
