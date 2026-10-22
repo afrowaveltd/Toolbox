@@ -742,3 +742,9 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Agreed `UnderstandMeSettings.json` as standard UTF-8 `System.Text.Json` host configuration, reused by Afutrans. Planned schema versioning/migrations, safe validated load, atomic-or-safe replacement with last-known-good preservation, concurrency protection, secret references rather than credentials, and optional configuration-provider integration.
 - XML API docs are required for public surfaces; concise ordinary English `//` comments should also explain non-obvious implementation/configuration decisions. Canonical JSON is comment-free; explanations live in code, schema and Docs.
 - Updated [Central Configuration](Docs/Central-Configuration/en.md), including planned failure/edge-case tests. **Architecture only; no settings persistence code or test suite added yet.**
+
+## 2026-10-22 — Spectre.Console TUI configurator (design)
+
+- Agreed an optional separate terminal settings editor using Spectre.Console to inspect, add, change, delete, validate and safely save configurations without hand-editing JSON or learning extensive CLI commands. It must reuse the **same settings/validation/persistence** as UnderstandMe/Afutrans, with no Spectre dependency in the core library.
+- Initially English and independent of running translation backends; later self-localized through UnderstandMe with safe built-in fallback. Include draft/revert, safe secret references, conflict detection and thorough edge-case/UI tests.
+- New design document: [Configurator TUI](Docs/Configurator-TUI/en.md). **No executable or runtime implementation yet.**
