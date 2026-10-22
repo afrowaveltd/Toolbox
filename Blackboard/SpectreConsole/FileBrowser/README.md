@@ -37,3 +37,9 @@ The original Lutonet browser exposed `DisplayIcons` (default `true`). The modern
 ## Legacy console encoding support
 
 Beyond icons and Unicode glyph support, the browser should show **detected input/output encodings** and allow an explicit host-configured encoding override for unusual legacy terminals. The regular default is Auto/UTF-8 where supported. The browser itself never changes the process-wide console code page. Where selected encodings cannot display a filename, render an ASCII-safe escaped label without altering its actual path. See [Encoding Support](Docs/Encoding-Support/en.md).
+
+## Known folders, indentation and file-type filtering
+
+The new `FileBrowserKnownFolders` helper recognizes selected **local folders by full absolute path** (e.g. Linux `/home`, `/etc`, `/var/log`, `/tmp`; macOS `/Users`; Windows `X:\Users` derived from the real user profile), without treating unrelated directories with similar names as special. Each known role has a terminal-capability-aware icon and an English fallback label.
+
+`FileBrowserEntryPresentation` places files **one ASCII space farther right** than folders, optionally shows icons, adds a visible trailing `/` for directories and escapes terminal control characters for plain-text display; it never mutates filenames. `FileBrowserFileFilter` allows semantic type filters (e.g. JSON) and extension filters (e.g. `.json`), while keeping directories visible by default for navigation. These are testable helpers: the actual interactive picker/filter selection UI is still future work. See [Known Folders and Filters](Docs/Known-Folders-and-Filters/en.md).
