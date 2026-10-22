@@ -52,3 +52,19 @@ First implement and test shared strongly typed settings plus validation and pers
 - Maintain an in-memory edit draft until explicit validated save; SSH hangup, terminal failure or Ctrl+C before save must leave the existing settings file untouched. Save uses checked revision and safe replacement, handles signals and narrow terminals, and must not echo secret values.
 - Support common terminal modes and basic keyboard-only use; provide a plain-text/no-color fallback. The editor must remain useful even if translation backends or UnderstandMe service are stopped.
 - Add automated tests for interrupted SSH-like sessions, no-save exit, read-only files, terminal-size fallback, and validated save after reconnection.
+
+
+## Explicit Ctrl+S commit workflow (2026-10-22)
+
+The TUI must prominently display the keyboard shortcut **Ctrl+S — Review & Save** in its help/footer, and handle it through the terminal input loop where supported. The entire editing session operates on an isolated in-memory draft; navigation, Add/Edit/Delete/Enable/Disable never write configuration files or mutate active service configuration.
+
+On Ctrl+S:
+1. Compute and display a concise, redacted summary/diff of **all** pending edits (additions, removals, value changes). Do not reveal secrets or sensitive connection strings.
+2. Ask the user to **confirm** proceeding. Declining returns to the unchanged draft with no disk write.
+3. **After confirmation**, validate the complete candidate configuration with the shared core validators. On failure, display field-specific errors, retain the editable draft in RAM, and allow another Ctrl+S attempt after correction; original file stays untouched.
+4. On success, check for external modification since load, and persist via the shared safe/atomic save service. A conflict or I/O failure retains the draft and leaves the last-good persisted configuration intact.
+5. Only after confirmed successful write, refresh the baseline and mark the draft clean. Show a clear saved status; never claim success earlier.
+
+Ctrl+C, SSH disconnect, program failure or Exit before the successful Ctrl+S workflow must not save automatically. For a dirty draft on ordinary Exit, optionally warn and ask whether to discard/cancel exit, but do not save implicitly. A terminal which cannot forward Ctrl+S (e.g. flow-control interception) must offer a visible equivalent **Review & Save** menu action. Use keyboard-only interaction without requiring function keys.
+
+The change summary may be produced before validation as requested, but no unvalidated settings may be persisted. Tests must verify no writes before Ctrl+S, redacted diffs, declined confirmation, invalid draft retention, concurrent external changes, I/O failures, repeated Ctrl+S, no-op saving, interrupted terminal sessions and final successful save. XML-document public TUI interaction contracts and comment non-obvious input/transaction behavior in source.
