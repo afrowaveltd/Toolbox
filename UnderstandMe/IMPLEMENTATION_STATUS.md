@@ -752,3 +752,8 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 ## 2026-10-22 — SSH-first configuration editor
 
 - Confirmed the Spectre.Console TUI as the primary headless/SSH-friendly configurator. Optional Avalonia frontend may come later over shared configuration APIs. Draft edits must not touch disk until validated explicit save; SSH disconnect or cancellation leaves original config intact. See [Configurator TUI](Docs/Configurator-TUI/en.md). Design only.
+
+## 2026-10-22 — TUI explicit Ctrl+S save protocol
+
+- All edits remain in a RAM-only draft until the user invokes displayed `Ctrl+S` (or equivalent menu action if intercepted by terminal). Workflow is: display redacted changes → request confirmation → validate complete configuration → conflict-check and safely save → report success. A rejected confirmation or validation/save failure does not discard the draft or touch persisted settings. No implicit saving on exit/SSH disconnect.
+- Added error and edge-case requirements to [Configurator TUI](Docs/Configurator-TUI/en.md). **Design only, no TUI/runtime code yet.**
