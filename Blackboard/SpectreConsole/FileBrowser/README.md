@@ -27,3 +27,7 @@ See [Blackboard architecture](../../Docs/Architecture/en.md) and the [Understand
 ## Planned multi-source navigation (FileBrowser 2.0)
 
 The **base package contains local filesystem browsing only**; future FTP/FTPS support will live in a separate opt-in adapter package (proposed `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.Ftp`). Source-qualified location/selection results will prevent remote paths being mistaken for local paths. A small source interface allows the same TUI to browse different storage types without adding dependencies for unused protocols. On .NET 10 use `OperatingSystem.IsWindows()` as needed rather than the old OS-name substring check. Browsing must not mutate process CWD, and network listings should remain read-only, cancellable and secure-by-default. [Source provider design](Docs/Storage-Providers/en.md).
+
+## Automatic icon/Unicode compatibility
+
+The original Lutonet browser exposed `DisplayIcons` (default `true`). The modern component is planned to use **Auto / On / Off** icon policy with **Auto as default**. Spectre.Console's detected Unicode capability informs the default; uncertain/legacy/redirected terminals receive plain text instead of broken decorative glyphs. A Unicode-capable host is not guaranteed to render emoji, so Auto prefers conservative Unicode symbols and lets users force richer icons. Always keep meaningful navigation text, preserve Unicode filenames internally, and never globally change the console encoding. See [Terminal Compatibility](Docs/Terminal-Compatibility/en.md).
