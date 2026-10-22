@@ -60,3 +60,7 @@ Reuse the *ideas* (select directory/file, parent navigation, page size, icon mod
 ## Release discipline
 
 Each independently published component project receives tests, its own `IMPLEMENTATION_STATUS.md`, English root README, and topic documentation under its own `Docs/<topic>/en.md`; the Blackboard family-level implementation status also summarizes progress. Changes are committed to GitHub and CI-verified. Samples/executables have their own isolated project/test dependencies. Avoid claiming build/test success from documentation-only scaffolding.
+
+## FileBrowser source extensions
+
+The default independently published FileBrowser package will include local filesystem navigation. Protocol extensions are optional **separate packages**; the proposed FTP/FTPS adapter depends on the FileBrowser source contract, not the reverse. The generic UI does not need to know FTP commands or remote login details. Never treat a remotely selected file as a local path, or require remote connection libraries for local-only selection. See [Storage Providers](../SpectreConsole/FileBrowser/Docs/Storage-Providers/en.md).
