@@ -794,3 +794,7 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Added `Options: Dictionary<string, JsonElement>` to provider and storage registrations, `Type` to storage (default `FileJson`), plus descriptor-driven shared validation and optional descriptor registry parameter for JSON `Load`/`Save`, preserving existing call signatures and file schema version. Commits `a6ac0bb`, `b64c1c8`.
 - Added xUnit coverage for two same-type backends, field help, typed JSON round trip, invalid ranges/types, missing conditional secret reference, raw-key rejection, incorrect option casing, unknown backend without descriptor, duplicate/malformed manifest rejection and plugin registry supplied to JSON store (`443f996`). Documented [Settings Descriptors](Docs/Settings-Descriptors/en.md) and README.
 - **Limits**: this is a validated metadata model, not executable provider adapters, editor rendering, actual secret resolution or storage activation. Registries are intended to be set up before concurrent validation. Provider-specific semantic validation and runtime defaults resolution remain planned. The latest CI status must be checked after these commits.
+
+### Provider failure/retry metadata follow-up
+
+- Extended LibreTranslate descriptor with `RetryBackoffMs`, `OnFailure` (`Fail`/`Fallback`) and `MaxConcurrentRequests`, including invalid-value tests. These govern future adapters/orchestrator when implemented; no operational retry or fallback logic in this slice. Commits `e7242c2`, `9559701`. See [Settings Descriptors](Docs/Settings-Descriptors/en.md).
