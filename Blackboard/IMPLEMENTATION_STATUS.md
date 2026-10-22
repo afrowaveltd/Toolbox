@@ -46,3 +46,10 @@
 - Implemented file type classification, configurable custom filename/extension mappings, accessible type labels and capability-sensitive icons (emoji, narrow Unicode or no icons). [File-type Icons](SpectreConsole/FileBrowser/Docs/File-Type-Icons/en.md).
 - GitHub Actions [39853748075](https://github.com/afrowaveltd/Toolbox/actions/runs/39853748075) passed, including **37 FileBrowser tests**; project README, test docs and both per-project implementation-status files added.
 - **Not yet implemented**: actual interactive file/folder selection or Spectre.Console renderer, storage-source abstraction, terminal encoding integration, FTP/FTPS, example application and published NuGet. The new code is intentionally a small self-contained foundation.
+
+## 2026-10-22 — directory tree and recursive multi-result navigation foundation
+
+- Implemented storage-neutral read-only source types, initial local source, lazy tree expansion, bounded recursive file-name search, and a session that moves **only after explicit selection** of a result. Search and no-result/cancel leave the current folder unchanged.
+- For multiple search matches, retained source-qualified results and directory breadcrumbs; the new presentation projection offers **all returned paths** (`FOLDER/SUBFOLDER/target.txt`, `ANOTHERFOLDER/target.txt`) and a pruned hierarchical tree with selectable match indices. Results limits and partial scans are explicit, not silently hidden.
+- Added extensive xUnit coverage and [Tree and Recursive Search](SpectreConsole/FileBrowser/Docs/Tree-and-Recursive-Search/en.md). CI caught one test-name conflict and a mistaken wildcard test expectation; both were corrected in commits. **Latest green status is not claimed until the subsequent workflow succeeds.**
+- Interactive Spectre.Console tree/results UI, paged choices, FTP source and full editor integration remain pending.
