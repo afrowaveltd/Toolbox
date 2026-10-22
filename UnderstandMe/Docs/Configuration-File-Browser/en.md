@@ -39,10 +39,10 @@ Tests when implemented: Linux paths and symlinks; Windows drives; paths with spa
 
 ## Recommendation
 
-**Reuse the UX and configuration-string approach, not the unmodified 2022 implementation.** Implement the modernized picker as a small independent Spectre.Console component inside the Configurator project, and keep path discovery and JSON persistence outside it. Do not introduce a dependency on the old prerelease package or on Spectre.Console in the UnderstandMe core.
+**Reuse the UX and configuration-string approach, not the unmodified 2022 implementation.** Implement the modernized picker as a **standalone NuGet component** under `Blackboard/SpectreConsole/FileBrowser`, consumed by the separate UnderstandMe-owned Configurator. Keep project-specific discovery and JSON persistence outside the picker. Do not introduce a dependency on the old prerelease package or on Spectre.Console in the UnderstandMe core.
 
 See [Configurator TUI](../Configurator-TUI/en.md) and [Central Configuration](../Central-Configuration/en.md).
 
 ## Shared Blackboard home (2026-10-22)
 
-The reusable FileBrowser is now planned for [Blackboard/SpectreConsole/FileBrowser](../../../Blackboard/SpectreConsole/FileBrowser/README.md), independently of any particular consumer. The standalone UnderstandMe Configurator (suggested under `Toolroom/UnderstandMe/Configurator`) will use it through a picker contract and then call `UnderstandMeSettingsJsonStore`. `Blackboard` is a documentation/scaffold-only project family at this stage; no picker has been implemented.
+The reusable FileBrowser is now planned for [Blackboard/SpectreConsole/FileBrowser](../../../Blackboard/SpectreConsole/FileBrowser/README.md), independently of any particular consumer. The standalone UnderstandMe Configurator (proposed under `UnderstandMe/Tools/Configurator`) will use the independently packaged picker and then call `UnderstandMeSettingsJsonStore`. `Blackboard` is a documentation/scaffold-only project family at this stage; no picker has been implemented.
