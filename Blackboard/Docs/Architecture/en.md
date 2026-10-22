@@ -23,7 +23,7 @@ Blackboard/
     FileBrowser/                      # independently packaged library
       README.md
       IMPLEMENTATION_STATUS.md
-      Docs/Overview/en.md             # when component is implemented
+      Docs/Overview/en.md             # design docs now; code comes later
       Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.csproj  # future
     [other independent UI component projects]
   Samples/                             # future demonstration apps, not production utilities
