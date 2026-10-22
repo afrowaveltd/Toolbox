@@ -22,4 +22,4 @@ The first actual source change should include a self-contained `.csproj`, automa
 
 ## Optional storage sources
 
-FileBrowser 2.0 is planned around small pluggable storage sources. The base library includes local navigation; FTP/FTPS is a separate opt-in package, and SFTP is a distinct protocol and separate possible future adapter. Never make FTP libraries transitive dependencies of the local picker. Source-qualified results distinguish local paths from remote locations, and the consumer decides whether and how to open selected content. [Storage Providers](Storage-Providers/en.md).
+FileBrowser 2.0 is planned around small pluggable storage sources. The base library includes local navigation; FTP/FTPS is a separate opt-in package, and SFTP is a distinct protocol and separate possible future adapter. Never make FTP libraries transitive dependencies of the local picker. Source-qualified results distinguish local paths from remote locations, and the consumer decides whether and how to open selected content. [Storage Providers](../Storage-Providers/en.md).
