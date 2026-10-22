@@ -12,3 +12,9 @@
 ## Next step
 
 Create the standalone .NET project and xUnit project, implement the testable navigation/picker with a supported Spectre.Console version, check GitHub CI, document the public APIs and update this status after every commit.
+
+## 2026-10-22 — storage source modularity and platform detection (design)
+
+- New [Storage Providers](Docs/Storage-Providers/en.md) design: source-qualified locations and a small async browse contract; local source bundled with picker and improved Windows/Unix detection using supported .NET APIs.
+- Separate optional FTP/FTPS adapter package is proposed for read-only navigation, no implicit transfers, safe credential handling and FTPS as recommended default. No FTP dependency in the base component; SFTP is a different protocol and remains optional future work.
+- Next implementation should prioritize small local browser, unit tests and package; remote connectors follow later. **Still documentation only, not implemented or tested.**
