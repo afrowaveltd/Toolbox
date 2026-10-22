@@ -35,3 +35,7 @@ Start with .NET 10 and a modern tested stable Spectre.Console version **in each 
 Every visible string must have a stable English default and optional caller override; no mandatory dependency on `UnderstandMe` is allowed to render help or recover from a broken translation service. Public C# APIs receive XML documentation and non-obvious logic receives short English comments.
 
 A `FileBrowser` .NET library project and xUnit test project are now in the solution, with file-type icon classification/terminal fallback logic. **No full file picker, Spectre.Console renderer, executable, downloadable NuGet release or published package exists yet.**
+
+## FileBrowser presentation helpers
+
+The standalone FileBrowser project now also includes strict special-folder identification for a few well-known local paths, plain-text presentation with a one-space file indent, and reusable file filters (e.g. JSON-only while folders remain browsable). See [Known Folders and Filters](SpectreConsole/FileBrowser/Docs/Known-Folders-and-Filters/en.md). This is underlying library logic; an interactive Spectre.Console browser has not been released.
