@@ -11,13 +11,13 @@ Every component worth releasing has its own:
 - necessary dependencies only; no unrelated widgets, demos or production tools.
 - tests, root README, `IMPLEMENTATION_STATUS.md`, and English topic docs in `Docs/<topic>/en.md`.
 
-The first planned package is `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser`; installing it must not bring in other Blackboard widgets. Independent releases also let us stabilize components at different rates.
+The first independent package project is `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser`; it now contains a Spectre.Console picker, but no NuGet version has been published. Its project dependencies do not bring in other Blackboard widgets. Independent releases also let us stabilize components at different rates.
 
 Shared infrastructure may be extracted later **only when actual consumer reuse justifies it**; it must not create a mandatory heavyweight dependency graph. Optional convenience package bundles, if ever introduced, must never replace the individual packages.
 
 ## Applications and examples
 
-- The library families may later provide one or more **samples/showcase executables** inside `Blackboard/Samples` and `Whiteboard/Samples`, demonstrating how to consume the published components.
+- Blackboard now provides a **standalone runnable example** in [FileBrowser.Sample](../..//Samples/FileBrowser.Sample/README.md); Whiteboard may later provide its own samples. Samples showcase reusable components but are not NuGet dependencies.
 - **Domain-specific real tools** stay with their related domain project: for example an UnderstandMe configuration editor belongs to UnderstandMe; it consumes Blackboard's FileBrowser, settings metadata and validation from UnderstandMe. Proposed source directory: `UnderstandMe/Tools/Configurator`; confirm naming at implementation.
 - Existing `Toolroom/WhenItFails` tooling stays where it is. No large-scale file moves are required to enforce future ownership rules.
 - Samples may depend on multiple UI packages; **UI packages must never depend on samples**. A published library should not automatically depend on the domain application's executable.
