@@ -93,3 +93,10 @@ Create the standalone .NET project and xUnit project, implement the testable nav
 - `Auto` continues to select conservative Unicode symbols rather than emoji; forced `On` remains available for terminals with known emoji fonts. File paths and console encoding are untouched.
 - Added focused xUnit tests for common Linux UTF-8 locales, rejected contexts and conservative icon selection.
 - Commits: `ce48a03`, `688e906`, `4ac433c`. **CI and post-fix manual Debian verification are pending**; do not claim this is proven until they pass. Manual Windows CMD/PowerShell/Windows Terminal checks are still pending.
+
+### 2026-10-24 — Debian smoke test feedback
+
+- User's Debian terminal screenshot after pulling the Linux Auto detection fix shows the FileBrowser running with conservative Unicode `▸` directory icons in the default mode, confirming the expected visible result in that environment.
+- User ran the FileBrowser test project: **160 passed, 0 failed, 0 skipped**, .NET 10 build successful. One xUnit2006 warning from an unrelated existing assertion was observed.
+- Replaced the redundant `Assert.Equal(originalName, name)` with an explicit ordinal equality condition to silence xUnit2006 (`045c11a`); **this follow-up change still needs a fresh build/test run**.
+- Windows CMD/PowerShell/Windows Terminal smoke testing remains pending.
