@@ -816,3 +816,9 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Refined the earlier proposed `Toolroom/UnderstandMe/Configurator` location: the production settings editor belongs to **UnderstandMe** as its own domain utility (proposed `UnderstandMe/Tools/Configurator`, to finalize at implementation). It consumes UnderstandMe settings APIs and only needed independently packaged Blackboard widgets.
 - Blackboard/Whiteboard own reusable TUI/GUI component NuGets and future `Samples` demonstrations, **not domain-specific applications**. FileBrowser's eventual package is `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser` with its own implementation status and Docs. See [Configurator TUI](Docs/Configurator-TUI/en.md) and [Blackboard packaging](../Blackboard/Docs/Independent-Packaging/en.md).
 - This supersedes the earlier Toolroom location proposal without moving existing Toolroom projects. **Design/docs only, no configurator or UI project implemented in this step.**
+
+## 2026-10-24 — reusable Blackboard FileBrowser is available for future Configurator
+
+- The separate `Blackboard/SpectreConsole/FileBrowser` .NET 10 component has gained an independently buildable interactive Spectre.Console picker, lazy tree, full relative-path search results, local-source selection and **user-defined filename filters** (`*.ajis;*.json`, `*`, opt-in bounded regex). Separate `Blackboard/Samples/FileBrowser.Sample` demonstrates it.
+- GitHub Actions [40099579962](https://github.com/afrowaveltd/Toolbox/actions/runs/40099579962) green, **148 FileBrowser tests**. Use the existing independent NuGet project from the future UnderstandMe Configurator, choosing dictionary and config paths without manual typing.
+- **UnderstandMe's Configurator has not yet been implemented or connected.** Its settings loading/validation/safe-save contract remains with `UnderstandMeSettingsJsonStore`; the generic picker never edits or saves settings.
