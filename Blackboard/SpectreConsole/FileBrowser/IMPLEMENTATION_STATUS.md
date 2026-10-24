@@ -70,3 +70,12 @@ Create the standalone .NET project and xUnit project, implement the testable nav
 - Fixed the interactive directory-mode picker so it does not offer “Select current folder” if listing the current directory failed. On regular-expression timeout in a listing filter, the picker clears the filter and **rebuilds the entire listing** instead of leaving a half-filtered result (`9285d1c`).
 - Added `SpectreFileBrowserInteractionTests.Cannot_select_unreadable_current_directory` (`6622b4e`). GitHub Actions [40099579962](https://github.com/afrowaveltd/Toolbox/actions/runs/40099579962) **SUCCESS**: build and all existing solution test projects green; **148 FileBrowser tests passed**. This supersedes earlier counts of 145 and 147.
 - Manual cross-platform keyboard/terminal testing and NuGet publication remain outstanding; FTP/FTPS remains future optional connector work.
+
+## 2026-10-24 — NuGet documentation and metadata audit
+
+- Rewrote component README to describe the **implemented** interactive .NET 10 picker rather than a future-only design, including local package build, installation *after publication*, minimal C# usage, typed cancellation, filter masks/regex, navigation, search, showcase and current limitations.
+- Added NuGet-friendly absolute links to detailed English documentation and corrected the per-project test command. Showcase JSON preview remains clearly outside the independent FileBrowser package.
+- Updated project NuGet description, tags, project URL and preview release notes to reflect the actual capabilities without implying stable release or NuGet publication. Kept version `0.1.0-preview.1` and dependency `Spectre.Console 0.57.2` unchanged.
+- Documentation/metadata commits: `08cdfbb`, `187e3e2`, `4cd3b4b`. Previous verified result remains **148 FileBrowser tests**, GitHub Actions run `40099579962`. These documentation/metadata changes have **not** been independently compiled or packaged in this session: verify CI and inspect a generated `.nupkg` before publishing.
+
+**Next release gates:** run `dotnet test Blackboard/SpectreConsole/FileBrowser.Tests/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.Tests.csproj`, `dotnet pack Blackboard/SpectreConsole/FileBrowser/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.csproj -c Release`, inspect NuGet metadata/readme/license/dependency entries, and perform real-terminal smoke tests on target hosts. No claim of public publication.
