@@ -1,6 +1,6 @@
 # Blackboard — reusable terminal UI components
 
-**Status:** first independently packaged component project and tests created; file-type classification and icon-selection API implemented in FileBrowser. The interactive TUI browser and NuGet publication remain pending.
+**Status (2026-10-24):** the independent FileBrowser .NET 10 project now contains a first interactive Spectre.Console picker, reusable filename filters, local navigation, lazy tree and bounded recursive search; a runnable demo exists under `Samples/FileBrowser.Sample`. No stable NuGet has been published and terminal smoke testing remains pending.
 
 Blackboard is the proposed home of reusable **terminal user interface (TUI)** components for Afrowave.Toolbox. The name complements **Whiteboard**, the proposed future graphical UI (GUI) family. **These names describe project families, not umbrella NuGet packages.** The pairing is a naming/design direction, not a claim that either runtime toolkit has shipped.
 
@@ -34,12 +34,12 @@ Start with .NET 10 and a modern tested stable Spectre.Console version **in each 
 
 Every visible string must have a stable English default and optional caller override; no mandatory dependency on `UnderstandMe` is allowed to render help or recover from a broken translation service. Public C# APIs receive XML documentation and non-obvious logic receives short English comments.
 
-A `FileBrowser` .NET library project and xUnit test project are now in the solution, with file-type icon classification/terminal fallback logic. **No full file picker, Spectre.Console renderer, executable, downloadable NuGet release or published package exists yet.**
+The standalone `FileBrowser` library, xUnit project and executable `Samples/FileBrowser.Sample` are in `Toolbox.sln`. The Spectre.Console picker offers existing-file/folder selection, directory browsing, filename wildcard/regex filters, lazy tree navigation and multi-match recursive searching. **No NuGet package has been published yet**; not every terminal/SSH environment has been smoke-tested.
 
 ## FileBrowser presentation helpers
 
-The standalone FileBrowser project now also includes strict special-folder identification for a few well-known local paths, plain-text presentation with a one-space file indent, and reusable file filters (e.g. JSON-only while folders remain browsable). See [Known Folders and Filters](SpectreConsole/FileBrowser/Docs/Known-Folders-and-Filters/en.md). This is underlying library logic; an interactive Spectre.Console browser has not been released.
+The standalone FileBrowser project now also includes strict special-folder identification for a few well-known local paths, plain-text presentation with a one-space file indent, and reusable file filters (e.g. JSON-only while folders remain browsable). See [Known Folders and Filters](SpectreConsole/FileBrowser/Docs/Known-Folders-and-Filters/en.md). This logic is now consumed by the first interactive Spectre.Console picker; the library remains unpublished on NuGet.
 
 ## FileBrowser navigation foundation
 
-The independent FileBrowser project also now contains a read-only local storage adapter, storage-neutral lazy folder tree, bounded recursive wildcard search, and selection-preserving results as **both full relative paths and a tree of matching branches**. Real TUI rendering/keyboard selection remains future work. See [Tree and Recursive Search](SpectreConsole/FileBrowser/Docs/Tree-and-Recursive-Search/en.md).
+The independent FileBrowser project contains a read-only local source, storage-neutral lazy folder tree, bounded recursive wildcard/regex search and multi-match results as both relative paths and a matching-branches tree. A first interactive Spectre.Console adapter is now implemented, with a separately runnable [demonstration](Samples/FileBrowser.Sample/README.md). Further manual UI/terminal validation and source connectors remain future work. See [Tree and Recursive Search](SpectreConsole/FileBrowser/Docs/Tree-and-Recursive-Search/en.md).
