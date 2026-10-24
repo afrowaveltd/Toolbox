@@ -29,3 +29,17 @@ Spectre.Console 0.57.2 already publishes a netstandard2.0 asset. This potentiall
 ## Non-goals
 
 No legacy-specific fork, no dependency on UnderstandMe/Essentials/WhenItFails, no changes to test app target framework, no loss of safety limits or source-qualified paths. Prefer a single multi-consumer package rather than a separate legacy product.
+
+## Conditional compilation and multi-targeting policy (2026-10-24)
+
+Use the oldest compatible and maintainable API in shared source whenever it has equivalent behavior on modern runtimes. Do **not** add preprocessor branches merely because a newer API exists. For genuine platform-specific behavior, use multi-target builds from the same sources with framework constants (`NET8_0_OR_GREATER`, `NETSTANDARD2_0`, `NETFRAMEWORK`) and a small compatibility facade, rather than duplicating the entire browser.
+
+Possible project configuration **after the netstandard2.0 build is verified**:
+
+```xml
+<TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
+```
+
+Multi-target only when the net10.0 asset produces measurable benefit; otherwise use netstandard2.0 alone. Conditional compilation must preserve the same public contracts and cancellation/error behavior. Distinct frameworks need individual build/test/pack validation and a separate net48 consumer smoke test.
+
+Example principle: `RuntimeInformation.IsOSPlatform(OSPlatform.Windows)` can be shared across both targets; no `#if` required. Windows 7 and IE11 are not implied to be supported merely because a compatible binary can be produced. Legacy environments must be tested, and security-support status documented.
