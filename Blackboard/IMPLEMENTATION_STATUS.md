@@ -57,3 +57,11 @@
 ### CI verification
 
 - GitHub Actions [39858309064](https://github.com/afrowaveltd/Toolbox/actions/runs/39858309064) **SUCCESS**, with **119 FileBrowser tests passed** and a green solution build. This proves the present library service/test slice, **not** an implemented keyboard-rendered browser or FTP adapter.
+
+## 2026-10-24 — interactive FileBrowser and runnable showcase
+
+- First functional Spectre.Console 0.57.2 FileBrowser adapter implemented as independent component, with keyboard-first file/folder selection, lazy tree, recursive search showing all collected relative paths and configurable source-neutral file filters. Rich icons are capability aware and have ASCII/no-icon fallback. The optional rendering package remains limited to this component.
+- Custom listing/search criteria can be `*.ajis;*.json`, `*`, text/JSON/image categories, or an explicit bounded .NET regular expression. The same reusable matcher is used for filtering and searching. No separate FTP dependency introduced.
+- Separate demonstration application under [Blackboard/Samples/FileBrowser.Sample](Samples/FileBrowser.Sample/README.md), intentionally not part of any component NuGet. The application is registered in `Toolbox.sln`.
+- Added [Interactive Browser](SpectreConsole/FileBrowser/Docs/Interactive-Browser/en.md). Virtual Spectre.Console keyboard tests cover selection/cancellation/filtering, and GitHub Actions [40099094982](https://github.com/afrowaveltd/Toolbox/actions/runs/40099094982) confirmed **145 passing FileBrowser tests and green build**. Additional path-choice UI tests were committed later, with CI pending at time of this entry.
+- **Pending:** manual Windows/SSH/legacy-terminal smoke, advanced output encoding handling, FTP/FTPS adapter, consumer-side UnderstandMe Configurator integration and NuGet release. No binaries published.
