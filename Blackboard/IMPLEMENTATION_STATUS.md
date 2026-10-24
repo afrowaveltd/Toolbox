@@ -81,3 +81,9 @@
 - Initial demos: select any local file and show bounded readable text, select **only `*.json` files** and use `Spectre.Console.Json.JsonText` syntax highlighting for complete validated documents up to 64 KiB, and select a folder. The Spectre JSON renderer is a dependency of Showcase **only**, not FileBrowser.
 - CI [40108814777](https://github.com/afrowaveltd/Toolbox/actions/runs/40108814777) green: **18 Showcase tests + 148 FileBrowser tests** with successful full-solution build. Fixed an initial BOM byte-array compile error in `b86378f2` before the green result.
 - Still no published NuGet, no FTP/FTPS and no claims of real terminal compatibility beyond the CI virtual console tests. [Showcase documentation](Samples/Blackboard.Showcase/Docs/Showcase/en.md).
+
+### 2026-10-24 — Showcase full scenario tests
+
+- Added test coverage for every initial Showcase demo: general text preview, valid/invalid JSON syntax highlighting with JSON-only filter, directory selection and modular menu interactions.
+- [GitHub Actions 40109040501](https://github.com/afrowaveltd/Toolbox/actions/runs/40109040501) **SUCCESS**: **20 Showcase + 148 FileBrowser tests** and green solution build. This supersedes the initial 18-Showcase-test figure.
+- The shared Showcase has no NuGet publication and requires manual terminal smoke testing on the target Windows/Linux/SSH environments.
