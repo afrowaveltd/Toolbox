@@ -155,8 +155,19 @@ public sealed class SpectreFileBrowser
             throw new InvalidOperationException("An interactive terminal is required to pick a file.");
 
         var labels = options.Labels;
+        // Spectre's Unicode capability can be falsely negative on Linux UTF-8 shells.
+        // Supplement it only for the real console, never for injected/test consoles.
+        var isDefaultConsole = ReferenceEquals(_console, AnsiConsole.Console);
+        var supportsUnicode = FileBrowserTerminalDetection.SupportsUnicode(
+            _console.Profile.Capabilities.Unicode,
+            _console.Profile.Capabilities.Interactive,
+            isDefaultConsole && Console.IsOutputRedirected,
+            isDefaultConsole && !OperatingSystem.IsWindows() &&
+                !OperatingSystem.IsMacOS(),
+            isDefaultConsole ? Environment.GetEnvironmentVariable("TERM") : null,
+            isDefaultConsole ? FileBrowserTerminalDetection.GetEffectiveLocale() : null);
         var terminal = new FileBrowserTerminalCapabilities(
-            _console.Profile.Capabilities.Unicode, true, options.EmojiConfirmed);
+            supportsUnicode, true, options.EmojiConfirmed);
         var session = new FileBrowserNavigationSession(_source, start);
         var filter = options.FileFilter;
 
