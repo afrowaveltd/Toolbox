@@ -18,3 +18,9 @@ Next: add navigation and Spectre rendering test seams, then test actual terminal
 ### Verified
 
 - GitHub Actions [39858309064](https://github.com/afrowaveltd/Toolbox/actions/runs/39858309064) completed successfully: **119 FileBrowser tests passed**, including tree/search behaviors, and the full Toolbox build was successful.
+
+## 2026-10-24 — universal masks and interactive prompt verification
+
+- Added `FileBrowserNameMatcherTests` for OR-combined masks (`*.ajis;*.json`), all-file pattern, exact matches, source case sensitivity, regex alternatives, invalid regex/masks, bounded timeout, integration with listing and recursive search. The first CI exposed that `RegexParseException` is an `ArgumentException` subclass; corrected the test to accept the subtype in commit `a685bc7`.
+- Added `Spectre.Console.Testing 0.57.2` as a **test-project-only** dependency and `SpectreFileBrowserInteractionTests` using injected `TestConsole` to simulate Enter, Esc and mask-filtered selection; GitHub Actions [40099094982](https://github.com/afrowaveltd/Toolbox/actions/runs/40099094982) **SUCCESS with 145 passing FileBrowser tests**.
+- Further virtual-keyboard tests for selecting the second same-named file in a search result and cancelling a zero-result search were committed in `6821dba` and must be checked separately. Manual SSH/Windows keyboard behavior still requires real-terminal testing.
