@@ -29,3 +29,8 @@ Next: add navigation and Spectre rendering test seams, then test actual terminal
 
 - [GitHub Actions run 40099273392](https://github.com/afrowaveltd/Toolbox/actions/runs/40099273392) completed successfully with **147 FileBrowser tests**. Included end-to-end `TestConsole` search selecting the second matching filename from a different directory, and a no-result search followed by Esc with no selection.
 - This verifies the mocked terminal workflow on Linux CI; actual Windows/SSH/legacy console compatibility remains to be manually tested.
+
+### 2026-10-24 — 148 verified tests
+
+- Added a virtual-terminal regression ensuring a directory that cannot be enumerated is never offered as a successful current-folder selection.
+- [GitHub Actions run 40099579962](https://github.com/afrowaveltd/Toolbox/actions/runs/40099579962) **SUCCESS** with **148 FileBrowser tests** and green solution build. Test coverage includes injected Spectre keyboard input; it does not replace manual real-terminal testing.
