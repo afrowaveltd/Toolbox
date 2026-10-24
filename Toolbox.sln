@@ -43,6 +43,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Afrowave.Toolbox.Blackboard
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.Tests", "Blackboard\SpectreConsole\FileBrowser.Tests\Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.Tests.csproj", "{E9757689-DFFE-43A3-8764-15B6F264693A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{26FB820C-E584-4CA3-8D41-F45351DD3281}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileBrowser.Sample", "Blackboard\Samples\FileBrowser.Sample\FileBrowser.Sample.csproj", "{F16C8B02-4A37-4C21-AB59-01B6DE9A279C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -185,6 +189,18 @@ Global
 		{E9757689-DFFE-43A3-8764-15B6F264693A}.Release|x64.Build.0 = Release|Any CPU
 		{E9757689-DFFE-43A3-8764-15B6F264693A}.Release|x86.ActiveCfg = Release|Any CPU
 		{E9757689-DFFE-43A3-8764-15B6F264693A}.Release|x86.Build.0 = Release|Any CPU
+		{F16C8B02-4A37-4C21-AB59-01B6DE9A279C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F16C8B02-4A37-4C21-AB59-01B6DE9A279C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F16C8B02-4A37-4C21-AB59-01B6DE9A279C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F16C8B02-4A37-4C21-AB59-01B6DE9A279C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F16C8B02-4A37-4C21-AB59-01B6DE9A279C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F16C8B02-4A37-4C21-AB59-01B6DE9A279C}.Debug|x64.Build.0 = Debug|Any CPU
+		{F16C8B02-4A37-4C21-AB59-01B6DE9A279C}.Release|x64.ActiveCfg = Release|Any CPU
+		{F16C8B02-4A37-4C21-AB59-01B6DE9A279C}.Release|x64.Build.0 = Release|Any CPU
+		{F16C8B02-4A37-4C21-AB59-01B6DE9A279C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F16C8B02-4A37-4C21-AB59-01B6DE9A279C}.Debug|x86.Build.0 = Debug|Any CPU
+		{F16C8B02-4A37-4C21-AB59-01B6DE9A279C}.Release|x86.ActiveCfg = Release|Any CPU
+		{F16C8B02-4A37-4C21-AB59-01B6DE9A279C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -200,6 +216,8 @@ Global
 		{A82D9DEA-6BEA-4131-81AE-19F5A6896004} = {DF8CC481-1798-4A90-A654-013A1E1172B4}
 		{D1CF1D94-2A0D-472E-9F7A-8CB818550015} = {A82D9DEA-6BEA-4131-81AE-19F5A6896004}
 		{E9757689-DFFE-43A3-8764-15B6F264693A} = {A82D9DEA-6BEA-4131-81AE-19F5A6896004}
+		{26FB820C-E584-4CA3-8D41-F45351DD3281} = {DF8CC481-1798-4A90-A654-013A1E1172B4}
+		{F16C8B02-4A37-4C21-AB59-01B6DE9A279C} = {26FB820C-E584-4CA3-8D41-F45351DD3281}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AF356819-B30B-46A9-84C1-010450A5EFA7}
