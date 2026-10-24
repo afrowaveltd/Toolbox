@@ -8,7 +8,7 @@ Run these tests with:
 dotnet test Blackboard/SpectreConsole/FileBrowser.Tests/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.Tests.csproj
 ```
 
-The test project is part of `Toolbox.sln`. It does not require a running FTP service, graphical display or Spectre.Console input terminal. Future tests will cover the actual interactive picker, local filesystem navigation and remote extensions as they are implemented.
+The test project is part of `Toolbox.sln`. It does not require a running FTP service, graphical display or Spectre.Console input terminal. The code suite now also exercises local filesystem navigation, filename mask/regex matching and recursive search. Future terminal-integration tests will verify actual arrow/Enter/Esc interaction, terminal encoding and remote extensions.
 
 See [Implementation Status](IMPLEMENTATION_STATUS.md) and [File-type Icons](../FileBrowser/Docs/File-Type-Icons/en.md).
 
