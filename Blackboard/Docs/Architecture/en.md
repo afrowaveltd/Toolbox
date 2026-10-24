@@ -68,3 +68,7 @@ The default independently published FileBrowser package will include local files
 ## Terminal capabilities
 
 UI components must respect detected interactive, Unicode and ANSI terminal capabilities. Decorative glyphs are optional, not a prerequisite for navigation or accessibility. A basic Unicode-capable console may still lack emoji glyphs; prefer conservative Auto fallback and explicit user overrides, without globally rewriting output encoding. FileBrowser's detailed design: [Terminal Compatibility](../SpectreConsole/FileBrowser/Docs/Terminal-Compatibility/en.md).
+
+## Shared demonstration host
+
+A shared [Blackboard.Showcase](../../Samples/Blackboard.Showcase/README.md) executable under `Blackboard/Samples` now hosts demonstration modules via `IBlackboardShowcaseDemo`. This supersedes the idea of writing an independent full CLI for each new widget (existing focused samples may remain). Demos can reference individually published widget packages, and optional rendering extensions like `Spectre.Console.Json` **without imposing those dependencies on FileBrowser or domain applications**. Initial scenarios: local file selection with text preview, JSON filename filtering + colored JSON preview, and directory selection. Demo/test projects are registered in `Toolbox.sln` and have independent implementation status.
