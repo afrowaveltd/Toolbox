@@ -74,3 +74,10 @@
 
 - [GitHub Actions 40099579962](https://github.com/afrowaveltd/Toolbox/actions/runs/40099579962) succeeded: **148 FileBrowser tests**, full solution build. Interactive TUI picker, universal mask/regex filename filters, lazy tree, multi-result recursive search and isolated sample app are implemented. Follow-up prevents selecting unreadable directories and recovers from regex timeouts during listing.
 - No NuGet publication or live FTP/FTPS integration. Manual runtime verification in real Windows/Debian/SSH/tmux/legacy terminal remains the next release gate.
+
+## 2026-10-24 — shared Blackboard Showcase test application
+
+- Added reusable menu-based [Blackboard.Showcase](Samples/Blackboard.Showcase/README.md) application and independent [Showcase.Tests](Samples/Blackboard.Showcase.Tests/README.md), both included in `Toolbox.sln`. Modules use `IBlackboardShowcaseDemo`, making future tools easy to test without bundling their libraries.
+- Initial demos: select any local file and show bounded readable text, select **only `*.json` files** and use `Spectre.Console.Json.JsonText` syntax highlighting for complete validated documents up to 64 KiB, and select a folder. The Spectre JSON renderer is a dependency of Showcase **only**, not FileBrowser.
+- CI [40108814777](https://github.com/afrowaveltd/Toolbox/actions/runs/40108814777) green: **18 Showcase tests + 148 FileBrowser tests** with successful full-solution build. Fixed an initial BOM byte-array compile error in `b86378f2` before the green result.
+- Still no published NuGet, no FTP/FTPS and no claims of real terminal compatibility beyond the CI virtual console tests. [Showcase documentation](Samples/Blackboard.Showcase/Docs/Showcase/en.md).
