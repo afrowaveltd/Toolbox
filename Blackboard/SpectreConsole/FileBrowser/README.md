@@ -74,7 +74,7 @@ Wildcards support `*` and `?`; regular expressions are opt-in and constrained by
 - Source-qualified `FileBrowserLocation` and `IFileBrowserSource` support future independent storage adapters. The base package includes **only** `FileBrowserLocalSource`.
 - File-type icons, known-folder presentation, configurable `Auto`/`On`/`Off` icon policy, and injectable English UI labels via `SpectreFileBrowserLabels`. Unicode names are preserved internally.
 
-The picker does **not** parse or preview selected files. The optional [Blackboard Showcase](../../Samples/Blackboard.Showcase/README.md) demonstrates safe, bounded text preview and separately highlights JSON with `Spectre.Console.Json`; JSON rendering is **not** a FileBrowser dependency.
+The picker does **not** parse or preview selected files. The optional [Blackboard Showcase](https://github.com/afrowaveltd/Toolbox/blob/master/Blackboard/Samples/Blackboard.Showcase/README.md) demonstrates safe, bounded text preview and separately highlights JSON with `Spectre.Console.Json`; JSON rendering is **not** a FileBrowser dependency.
 
 ## Examples and verification
 
@@ -82,11 +82,11 @@ The picker does **not** parse or preview selected files. The optional [Blackboar
 dotnet run --project Blackboard/Samples/FileBrowser.Sample -- --filter "*.ajis;*.json"
 dotnet run --project Blackboard/Samples/FileBrowser.Sample -- --regex "\\.(ajis|json)$"
 dotnet run --project Blackboard/Samples/Blackboard.Showcase
-dotnet test Blackboard/SpectreConsole/FileBrowser.Tests
+dotnet test Blackboard/SpectreConsole/FileBrowser.Tests/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.Tests.csproj
 dotnet pack Blackboard/SpectreConsole/FileBrowser/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.csproj -c Release
 ```
 
-See the runnable [FileBrowser.Sample](../../Samples/FileBrowser.Sample/README.md) and [Blackboard.Showcase](../../Samples/Blackboard.Showcase/README.md). Verify the test project path in your checkout if running individual projects.
+See the runnable [FileBrowser.Sample](https://github.com/afrowaveltd/Toolbox/blob/master/Blackboard/Samples/FileBrowser.Sample/README.md) and [Blackboard.Showcase](https://github.com/afrowaveltd/Toolbox/blob/master/Blackboard/Samples/Blackboard.Showcase/README.md).
 
 ## Safety and current limits
 
@@ -96,13 +96,13 @@ The current picker selects **existing** files and folders only: creating a new f
 
 ## Further documentation
 
-- [Interactive Browser](Docs/Interactive-Browser/en.md)
-- [Known Folders and Filters](Docs/Known-Folders-and-Filters/en.md)
-- [Tree and Recursive Search](Docs/Tree-and-Recursive-Search/en.md)
-- [File-type Icons](Docs/File-Type-Icons/en.md)
-- [Terminal Compatibility](Docs/Terminal-Compatibility/en.md)
-- [Storage Providers](Docs/Storage-Providers/en.md) (future connectors)
-- [Encoding Support](Docs/Encoding-Support/en.md) (design/limitations)
-- [Implementation Status](IMPLEMENTATION_STATUS.md)
+- [Interactive Browser](https://github.com/afrowaveltd/Toolbox/blob/master/Blackboard/SpectreConsole/FileBrowser/Docs/Interactive-Browser/en.md)
+- [Known Folders and Filters](https://github.com/afrowaveltd/Toolbox/blob/master/Blackboard/SpectreConsole/FileBrowser/Docs/Known-Folders-and-Filters/en.md)
+- [Tree and Recursive Search](https://github.com/afrowaveltd/Toolbox/blob/master/Blackboard/SpectreConsole/FileBrowser/Docs/Tree-and-Recursive-Search/en.md)
+- [File-type Icons](https://github.com/afrowaveltd/Toolbox/blob/master/Blackboard/SpectreConsole/FileBrowser/Docs/File-Type-Icons/en.md)
+- [Terminal Compatibility](https://github.com/afrowaveltd/Toolbox/blob/master/Blackboard/SpectreConsole/FileBrowser/Docs/Terminal-Compatibility/en.md)
+- [Storage Providers](https://github.com/afrowaveltd/Toolbox/blob/master/Blackboard/SpectreConsole/FileBrowser/Docs/Storage-Providers/en.md) (future connectors)
+- [Encoding Support](https://github.com/afrowaveltd/Toolbox/blob/master/Blackboard/SpectreConsole/FileBrowser/Docs/Encoding-Support/en.md) (design/limitations)
+- [Implementation Status](https://github.com/afrowaveltd/Toolbox/blob/master/Blackboard/SpectreConsole/FileBrowser/IMPLEMENTATION_STATUS.md)
 
 Inspired by [Lutonet/SpectreConsoleFileBrowser](https://github.com/Lutonet/SpectreConsoleFileBrowser). Source: [Afrowave Toolbox](https://github.com/afrowaveltd/Toolbox).
