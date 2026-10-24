@@ -76,6 +76,77 @@ public sealed class SpectreFileBrowserInteractionTests
         }
     }
 
+
+    [Fact]
+    public async Task Search_displays_both_paths_and_opens_the_explicitly_selected_second_match()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "AfrowaveFB-Search-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(Path.Combine(root, "A"));
+        Directory.CreateDirectory(Path.Combine(root, "B"));
+        File.WriteAllText(Path.Combine(root, "A", "target.json"), "{}");
+        File.WriteAllText(Path.Combine(root, "B", "target.json"), "{}");
+        try
+        {
+            var console = ConsoleWithInput();
+
+            // Browse: A, B, Parent, Search. Then choose default Mask mode.
+            for (var i = 0; i < 3; i++)
+                console.Input.PushKey(ConsoleKey.DownArrow);
+            console.Input.PushKey(ConsoleKey.Enter);
+            console.Input.PushKey(ConsoleKey.Enter);
+            console.Input.PushTextWithEnter("target.json");
+
+            // The results menu contains A/target.json then B/target.json.
+            console.Input.PushKey(ConsoleKey.DownArrow);
+            console.Input.PushKey(ConsoleKey.Enter);
+
+            // The browser is now in B and highlights the matching file.
+            console.Input.PushKey(ConsoleKey.Enter);
+
+            var browser = new SpectreFileBrowser(new FileBrowserLocalSource(), console);
+            var result = await browser.PickAsync(new FileBrowserLocation("local", root),
+                options: new SpectreFileBrowserOptions { IconMode = FileBrowserIconMode.Off });
+
+            Assert.True(result.IsSelected);
+            Assert.Equal(Path.Combine(root, "B", "target.json"), result.Location!.Value);
+            Assert.Contains("A/target.json", console.Output);
+            Assert.Contains("B/target.json", console.Output);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Search_without_results_then_escape_leaves_navigation_untouched()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "AfrowaveFB-Miss-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var console = ConsoleWithInput();
+            // Browse in empty folder: Parent, Search, Tree, Filter, Back.
+            console.Input.PushKey(ConsoleKey.DownArrow);
+            console.Input.PushKey(ConsoleKey.Enter);
+            console.Input.PushKey(ConsoleKey.Enter);
+            console.Input.PushTextWithEnter("missing.json");
+            console.Input.PushKey(ConsoleKey.Escape);
+
+            var browser = new SpectreFileBrowser(new FileBrowserLocalSource(), console);
+            var result = await browser.PickAsync(new FileBrowserLocation("local", root),
+                options: new SpectreFileBrowserOptions { IconMode = FileBrowserIconMode.Off });
+
+            Assert.False(result.IsSelected);
+            Assert.Contains("Nothing found; original directory unchanged.", console.Output);
+            Assert.Contains(root, console.Output);
+        }
+        finally
+        {
+            Directory.Delete(root);
+        }
+    }
+
     private static TestConsole ConsoleWithInput()
     {
         var console = new TestConsole();
