@@ -28,7 +28,8 @@ Console.CancelKeyPress += (_, eventArgs) =>
 // No reflection, implicit dependencies, or loading untrusted modules is required.
 IBlackboardShowcaseDemo[] modules =
 [
-    new FileBrowserPreviewDemo()
+    new FileBrowserPreviewDemo(),
+    new FileBrowserDirectoryDemo()
 ];
 
 try
