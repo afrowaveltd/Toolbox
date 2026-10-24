@@ -42,3 +42,7 @@ See [Blackboard architecture](../Architecture/en.md), [FileBrowser](../../Spectr
 ## FileBrowser plugin example: no unnecessary transitive dependencies
 
 The initial FileBrowser ships with the **local** source built in. A separate opt-in package may add FTP/FTPS browsing, without increasing dependencies or network/security attack surface for every local-only caller. SFTP, cloud storage and other connectors remain future independent choices. See [FileBrowser Storage Providers](../../SpectreConsole/FileBrowser/Docs/Storage-Providers/en.md).
+
+## Shared multi-tool demonstration application
+
+The [Blackboard.Showcase](../../Samples/Blackboard.Showcase/README.md) is the expandable interactive demo host, with modules registered through `IBlackboardShowcaseDemo` and a separate xUnit test suite. It intentionally lives in `Blackboard/Samples`, not within any component package. The JSON-only selection and syntax-highlighting example installs `Spectre.Console.Json` only in this app. The [FileBrowser.Sample](../../Samples/FileBrowser.Sample/README.md) remains as a tiny focused sample and regression entry point; neither sample is a NuGet transitive dependency.
