@@ -166,6 +166,7 @@ public sealed class SpectreFileBrowser
             WriteLine(labels.Browse + " — " + session.CurrentDirectory.Value);
 
             IReadOnlyList<FileBrowserSourceEntry> entries;
+            var listingSucceeded = true;
             try
             {
                 entries = await _source.ListAsync(session.CurrentDirectory, cancellationToken)
@@ -175,9 +176,11 @@ public sealed class SpectreFileBrowser
             {
                 WriteLine(labels.ListingError + ": " + ex.Message);
                 entries = [];
+                listingSucceeded = false;
             }
 
             var actions = new List<MenuEntry>();
+            var retryWithoutFilter = false;
             foreach (var entry in entries)
             {
                 if (mode == FileBrowserPickMode.Directory && !entry.IsDirectory)
@@ -195,7 +198,8 @@ public sealed class SpectreFileBrowser
                         // Revert to an unfiltered listing and show a diagnostic.
                         WriteLine("File filter regular expression timed out; filter was cleared.");
                         filter = null;
-                        permitted = true;
+                        retryWithoutFilter = true;
+                        break;
                     }
 
                     if (!permitted)
@@ -209,11 +213,14 @@ public sealed class SpectreFileBrowser
                 actions.Add(new MenuEntry(BrowserAction.Entry, rendered, entry));
             }
 
+            if (retryWithoutFilter)
+                continue; // Re-list everything instead of displaying a half-filtered page.
+
             if (actions.Count == 0)
                 WriteLine(labels.Empty);
 
             actions.Add(new MenuEntry(BrowserAction.Parent, labels.Parent));
-            if (mode == FileBrowserPickMode.Directory)
+            if (mode == FileBrowserPickMode.Directory && listingSucceeded)
                 actions.Add(new MenuEntry(BrowserAction.SelectFolder, labels.SelectFolder));
             actions.Add(new MenuEntry(BrowserAction.Search, labels.Search));
             actions.Add(new MenuEntry(BrowserAction.Tree, labels.Tree));
