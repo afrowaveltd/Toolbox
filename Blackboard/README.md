@@ -43,3 +43,7 @@ The standalone FileBrowser project now also includes strict special-folder ident
 ## FileBrowser navigation foundation
 
 The independent FileBrowser project contains a read-only local source, storage-neutral lazy folder tree, bounded recursive wildcard/regex search and multi-match results as both relative paths and a matching-branches tree. A first interactive Spectre.Console adapter is now implemented, with a separately runnable [demonstration](Samples/FileBrowser.Sample/README.md). Further manual UI/terminal validation and source connectors remain future work. See [Tree and Recursive Search](SpectreConsole/FileBrowser/Docs/Tree-and-Recursive-Search/en.md).
+
+## Shared Showcase test application (2026-10-24)
+
+[Blackboard.Showcase](Samples/Blackboard.Showcase/README.md) is now the **central expandable TUI test/demo application**. It presents a menu of independently registered demos. Its initial FileBrowser scenarios include (1) choose a local file and preview safe UTF-8/16/32 text up to 16 KiB, (2) filter `*.json` and syntax-highlight a validated JSON document up to 64 KiB using Spectre.Console.Json, and (3) choose a directory. It is a separate executable with its own test project; neither the Showcase nor the Spectre.Console.Json extension is a dependency of the reusable FileBrowser NuGet project. The older [FileBrowser.Sample](Samples/FileBrowser.Sample/README.md) remains a focused, minimal example.
