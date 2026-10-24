@@ -119,7 +119,7 @@ public sealed class TextAndJsonPreviewTests
     [Fact]
     public async Task Oversized_json_is_not_partially_parsed_or_rendered()
     {
-        var json = """{"content":"""" + new string('x', 70 * 1024) + "\"}";
+        var json = "{\"content\":\"" + new string('x', 70 * 1024) + "\"}";
         await WithFileAsync(Encoding.UTF8.GetBytes(json), async path =>
         {
             var result = await JsonFilePreviewReader.ReadAsync(path);
