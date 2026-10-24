@@ -22,3 +22,9 @@
 - GitHub Actions [40108814777](https://github.com/afrowaveltd/Toolbox/actions/runs/40108814777) **SUCCESS** after fixing the explicit byte-array type for BOM detection in `TextFilePreviewReader` (commit `b86378f2`). `Blackboard.Showcase.Tests`: **18 passed**. `FileBrowser.Tests`: **148 passed**, and the full Toolbox solution built and tested green.
 - The virtual Spectre.Console JSON test selected a valid `dictionary.json` with `*.json` filter, confirmed a `.txt` file was absent from selection, and verified `JsonText` output. A second test rejects malformed JSON. Bounded UTF-8/16, binary/control, empty and oversized JSON cases also passed.
 - The shared Showcase currently registers three scenarios (safe text preview, syntax-highlighted JSON preview, folder selection) and remains independent of production utilities. No NuGet package was published. Live Debian/Windows/SSH manual testing remains outstanding.
+
+### 2026-10-24 — 20 Showcase tests green
+
+- Added direct virtual-terminal tests of the actual **text-preview demo** (readable Czech text chosen through FileBrowser) and **directory-selection demo** (choose current folder without modification), commit `7320d00b`.
+- GitHub Actions [40109040501](https://github.com/afrowaveltd/Toolbox/actions/runs/40109040501) **SUCCESS** with **20 Showcase tests**, **148 FileBrowser tests**, and the green full Toolbox build and all existing test projects. This supersedes the preceding 18-test result.
+- Existing focused `FileBrowser.Sample` continues alongside the expandable `Blackboard.Showcase`, with a menu that can accept future UI tools without changing their NuGet dependencies.
