@@ -1,6 +1,6 @@
 # FileBrowser — future reusable Spectre.Console file picker
 
-**Status:** early implementation: .NET 10 component and test projects exist, with tested-in-CI file-type classification and icon-selection APIs; interactive Spectre.Console navigation, storage adapters and NuGet publication remain pending.
+**Status (2026-10-24):** interactive Spectre.Console file picker implemented and compiled in CI, with local storage source, lazy tree view, bounded recursive search and custom multi-mask/regex filtering. Runnable sample and tests exist; no NuGet publication or cross-terminal manual smoke test yet.
 
 Inspired by the author's original [Lutonet/SpectreConsoleFileBrowser](https://github.com/Lutonet/SpectreConsoleFileBrowser).
 
@@ -10,7 +10,7 @@ This README serves the component project; [Implementation Status](IMPLEMENTATION
 
 The first reusable C# slice provides `FileBrowserFileIcons` with built-in mappings for text, code, JSON/configuration, images, audio, video, archives, PDF, office files and more. Decorative icons honor the `Auto`/`On`/`Off` terminal policy; names and paths are never changed. [File-type Icons](Docs/File-Type-Icons/en.md).
 
-Planned navigation contract:
+Implemented navigation contract (local filesystem and provider-neutral services):
 
 - Accept a starting directory, selection mode (existing file / existing directory / candidate new file), optional file-name/extension filter, a configurable page size, and injected UI labels.
 - Return a typed outcome: selected absolute path or explicit cancellation, with recoverable error diagnostics rather than an arbitrary path sentinel.
@@ -40,12 +40,12 @@ Beyond icons and Unicode glyph support, the browser should show **detected input
 
 ## Known folders, indentation and file-type filtering
 
-The new `FileBrowserKnownFolders` helper recognizes selected **local folders by full absolute path** (e.g. Linux `/home`, `/etc`, `/var/log`, `/tmp`; macOS `/Users`; Windows `X:\Users` derived from the real user profile), without treating unrelated directories with similar names as special. Each known role has a terminal-capability-aware icon and an English fallback label.
+The `FileBrowserKnownFolders` helper recognizes selected **local folders by full absolute path** (e.g. Linux `/home`, `/etc`, `/var/log`, `/tmp`; macOS `/Users`; Windows `X:\Users` derived from the real user profile), without treating unrelated directories with similar names as special. Each known role has a terminal-capability-aware icon and an English fallback label.
 
-`FileBrowserEntryPresentation` places files **one ASCII space farther right** than folders, optionally shows icons, adds a visible trailing `/` for directories and escapes terminal control characters for plain-text display; it never mutates filenames. `FileBrowserFileFilter` allows semantic type filters (e.g. JSON) and extension filters (e.g. `.json`), while keeping directories visible by default for navigation. These are testable helpers: the actual interactive picker/filter selection UI is still future work. See [Known Folders and Filters](Docs/Known-Folders-and-Filters/en.md).
+`FileBrowserEntryPresentation` places files **one ASCII space farther right** than folders, optionally shows icons, adds a visible trailing `/` for directories and escapes terminal control characters for plain-text display; it never mutates filenames. `FileBrowserFileFilter` allows semantic type filters (e.g. JSON) and extension filters (e.g. `.json`), while keeping directories visible by default for navigation. These tested helpers are connected to the initial interactive Spectre.Console picker; terminal/manual integration checks remain. See [Known Folders and Filters](Docs/Known-Folders-and-Filters/en.md).
 
 ## Directory tree and recursive wildcard search (initial services implemented)
 
 The new source-neutral browsing foundation includes `IFileBrowserSource` and `FileBrowserLocalSource`, a lazy `FileBrowserDirectoryTree`, and `FileBrowserRecursiveSearch` using exact names or `*` / `?` patterns. `FileBrowserSearchResultsPresentation` exposes **every returned match** as a selectable relative path and as a compact **pruned tree** containing only branches leading to matches. `FileBrowserNavigationSession` changes location **only after a user explicitly selects** a match; zero matches, cancellation and search execution do not move the browser. Search limits and partial results are explicit, and directory links are not followed by default. See [Tree and Recursive Search](Docs/Tree-and-Recursive-Search/en.md).
 
-This is currently a **library/data-layer implementation**, not the final Spectre.Console search prompt or keyboard navigation interface. The eventual TUI must show all returned results (paged/scrollable) and clearly flag truncated search results.
+The initial interactive picker now uses these services. It displays all collected matches in a paged choice list with relative paths, and shows an optional pruned-tree preview. Search caps and partial results are explicitly reported. The full cross-platform keyboard/SSH compatibility matrix still needs manual checking.
