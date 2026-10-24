@@ -64,3 +64,9 @@ Create the standalone .NET project and xUnit project, implement the testable nav
 
 - GitHub Actions [40099273392](https://github.com/afrowaveltd/Toolbox/actions/runs/40099273392) **SUCCESS**, full solution build green and **147 FileBrowser tests passed**. This includes actual `Spectre.Console.Testing` keyboard-sequence tests proving a multi-result search displays `A/target.json` and `B/target.json` and selects the explicitly chosen **second** match, plus that a failed search followed by Esc does not select or navigate.
 - This supersedes the earlier count of 145 tests, not the still-pending manual tests on physical/remote terminals.
+
+### 2026-10-24 — unreadable-folder handling, final verification
+
+- Fixed the interactive directory-mode picker so it does not offer “Select current folder” if listing the current directory failed. On regular-expression timeout in a listing filter, the picker clears the filter and **rebuilds the entire listing** instead of leaving a half-filtered result (`9285d1c`).
+- Added `SpectreFileBrowserInteractionTests.Cannot_select_unreadable_current_directory` (`6622b4e`). GitHub Actions [40099579962](https://github.com/afrowaveltd/Toolbox/actions/runs/40099579962) **SUCCESS**: build and all existing solution test projects green; **148 FileBrowser tests passed**. This supersedes earlier counts of 145 and 147.
+- Manual cross-platform keyboard/terminal testing and NuGet publication remain outstanding; FTP/FTPS remains future optional connector work.
