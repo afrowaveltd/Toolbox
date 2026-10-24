@@ -17,7 +17,7 @@ Shared infrastructure may be extracted later **only when actual consumer reuse j
 
 ## Applications and examples
 
-- Blackboard now provides a **standalone runnable example** in [FileBrowser.Sample](../..//Samples/FileBrowser.Sample/README.md); Whiteboard may later provide its own samples. Samples showcase reusable components but are not NuGet dependencies.
+- Blackboard now provides a **standalone runnable example** in [FileBrowser.Sample](../../Samples/FileBrowser.Sample/README.md); Whiteboard may later provide its own samples. Samples showcase reusable components but are not NuGet dependencies.
 - **Domain-specific real tools** stay with their related domain project: for example an UnderstandMe configuration editor belongs to UnderstandMe; it consumes Blackboard's FileBrowser, settings metadata and validation from UnderstandMe. Proposed source directory: `UnderstandMe/Tools/Configurator`; confirm naming at implementation.
 - Existing `Toolroom/WhenItFails` tooling stays where it is. No large-scale file moves are required to enforce future ownership rules.
 - Samples may depend on multiple UI packages; **UI packages must never depend on samples**. A published library should not automatically depend on the domain application's executable.
