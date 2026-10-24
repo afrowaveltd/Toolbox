@@ -1,51 +1,108 @@
-# FileBrowser — future reusable Spectre.Console file picker
+# Afrowave Toolbox — Spectre.Console FileBrowser
 
-**Status (2026-10-24):** interactive Spectre.Console file picker implemented and compiled in CI, with local storage source, lazy tree view, bounded recursive search and custom multi-mask/regex filtering. Runnable sample and tests exist; no NuGet publication or cross-terminal manual smoke test yet.
+Reusable, read-only, interactive file and directory picker for **.NET 10** applications using [Spectre.Console](https://spectreconsole.net/). Designed as an independent Blackboard TUI component: applications do not need to install UnderstandMe, Blackboard Showcase, or other Afrowave widgets.
 
-Inspired by the author's original [Lutonet/SpectreConsoleFileBrowser](https://github.com/Lutonet/SpectreConsoleFileBrowser).
+**Package ID:** `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser`  
+**Current project version:** `0.1.0-preview.1` (preview; not a claim of publication on nuget.org)  
+**Dependency:** `Spectre.Console 0.57.2`  
+**Status:** implemented, automated tests passing in GitHub CI; manual cross-terminal compatibility verification and public NuGet publication remain outstanding.
 
-**Planned NuGet ID:** `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser`. This must be an independently buildable, testable and versionable library, without references to other Blackboard widgets, UnderstandMe, demo applications or unnecessary GUI dependencies.
+## Installation
 
-This README serves the component project; [Implementation Status](IMPLEMENTATION_STATUS.md) tracks implemented code, verification and remaining navigation work.
+When published to your selected NuGet feed:
 
-The first reusable C# slice provides `FileBrowserFileIcons` with built-in mappings for text, code, JSON/configuration, images, audio, video, archives, PDF, office files and more. Decorative icons honor the `Auto`/`On`/`Off` terminal policy; names and paths are never changed. [File-type Icons](Docs/File-Type-Icons/en.md).
+```bash
+dotnet add package Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser --version 0.1.0-preview.1
+```
 
-Implemented navigation contract (local filesystem and provider-neutral services):
+Until publication, build a local package from this repository:
 
-- Accept a starting directory, selection mode (existing file / existing directory / candidate new file), optional file-name/extension filter, a configurable page size, and injected UI labels.
-- Return a typed outcome: selected absolute path or explicit cancellation, with recoverable error diagnostics rather than an arbitrary path sentinel.
-- Navigate roots and parent directories, Windows drive roots and Unix mounts without calling `Directory.SetCurrentDirectory`.
-- Filter `UnderstandMeSettings.json` or `*.json` when used by the UnderstandMe Configurator, without hardcoding any application filename into the generic picker.
-- Display breadcrumb/current folder, accessible keyboard shortcuts and terminal-width aware selections; escape filenames before rendering Spectre markup.
-- Handle inaccessible/disappearing directories and symlinks; directory creation is optional and disabled by default for safe config selection.
-- Preserve manual-label override support with built-in English defaults, allowing consumers to localize without mandatory application dependencies.
+```bash
+dotnet pack Blackboard/SpectreConsole/FileBrowser/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.csproj -c Release -o ./artifacts/nuget
+```
 
-Validation, backup and saving of a settings file stay outside the picker. No file operation is allowed merely by browsing, apart from explicit optional directory creation when enabled and confirmed.
+Reference the resulting `.nupkg` from a configured local NuGet source, or reference the project directly while developing. The package is not the Showcase sample application.
 
-Planned tests include Windows/Linux navigation, Unicode and markup characters in names, empty directories, file filters, permissions, cancel, nonexistent paths, key interception over SSH, and verification that the process working directory remains unchanged.
+## Quick start
 
-See [Blackboard architecture](../../Docs/Architecture/en.md) and the [UnderstandMe file picker analysis](../../../UnderstandMe/Docs/Configuration-File-Browser/en.md). A future Blackboard `Samples` application may demonstrate this package, but will never be included in its dependencies.
+Run in an **interactive terminal** (console input is required):
 
-## Planned multi-source navigation (FileBrowser 2.0)
+```csharp
+using Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser;
 
-The **base package contains local filesystem browsing only**; future FTP/FTPS support will live in a separate opt-in adapter package (proposed `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.Ftp`). Source-qualified location/selection results will prevent remote paths being mistaken for local paths. A small source interface allows the same TUI to browse different storage types without adding dependencies for unused protocols. On .NET 10 use `OperatingSystem.IsWindows()` as needed rather than the old OS-name substring check. Browsing must not mutate process CWD, and network listings should remain read-only, cancellable and secure-by-default. [Source provider design](Docs/Storage-Providers/en.md).
+var browser = new SpectreFileBrowser(new FileBrowserLocalSource());
+var result = await browser.PickAsync(
+    new FileBrowserLocation("local", Environment.CurrentDirectory),
+    FileBrowserPickMode.File,
+    new SpectreFileBrowserOptions
+    {
+        FileFilter = new FileBrowserFileFilter(
+            nameMatcher: new FileBrowserNameMatcher("*.ajis;*.json")),
+        PageSize = 12
+    });
 
-## Automatic icon/Unicode compatibility
+if (result.IsSelected)
+{
+    // Check SourceId before interpreting Value as a local filesystem path.
+    Console.WriteLine(result.Location!.Value);
+}
+else
+{
+    Console.WriteLine("Selection cancelled.");
+}
+```
 
-The original Lutonet browser exposed `DisplayIcons` (default `true`). The modern component is planned to use **Auto / On / Off** icon policy with **Auto as default**. Spectre.Console's detected Unicode capability informs the default; uncertain/legacy/redirected terminals receive plain text instead of broken decorative glyphs. A Unicode-capable host is not guaranteed to render emoji, so Auto prefers conservative Unicode symbols and lets users force richer icons. Always keep meaningful navigation text, preserve Unicode filenames internally, and never globally change the console encoding. See [Terminal Compatibility](Docs/Terminal-Compatibility/en.md).
+Select a directory by using `FileBrowserPickMode.Directory`. `FileBrowserPickResult` exposes `IsSelected`, `IsDirectory` and a provider-qualified `Location`; cancellation returns no location. `PickAsync` also accepts a cancellation token. An interactive console is required; a redirected/noninteractive terminal is not supported for selection.
 
-## Legacy console encoding support
+### Filename filters
 
-Beyond icons and Unicode glyph support, the browser should show **detected input/output encodings** and allow an explicit host-configured encoding override for unusual legacy terminals. The regular default is Auto/UTF-8 where supported. The browser itself never changes the process-wide console code page. Where selected encodings cannot display a filename, render an ASCII-safe escaped label without altering its actual path. See [Encoding Support](Docs/Encoding-Support/en.md).
+Use `FileBrowserNameMatcher` with `FileBrowserFileFilter`:
 
-## Known folders, indentation and file-type filtering
+- `*.json` — JSON files.
+- `*.ajis;*.json` — OR-combined masks.
+- `*` — all filenames.
+- `new FileBrowserNameMatcher(@"\.(ajis|json)$", FileBrowserPatternMode.RegularExpression)` — .NET regular expression.
 
-The `FileBrowserKnownFolders` helper recognizes selected **local folders by full absolute path** (e.g. Linux `/home`, `/etc`, `/var/log`, `/tmp`; macOS `/Users`; Windows `X:\Users` derived from the real user profile), without treating unrelated directories with similar names as special. Each known role has a terminal-capability-aware icon and an English fallback label.
+Wildcards support `*` and `?`; regular expressions are opt-in and constrained by validation/timeouts. The picker also offers an **interactive filter menu** (all, JSON, text, images, masks or regex). Directories remain navigable by default when filtering files.
 
-`FileBrowserEntryPresentation` places files **one ASCII space farther right** than folders, optionally shows icons, adds a visible trailing `/` for directories and escapes terminal control characters for plain-text display; it never mutates filenames. `FileBrowserFileFilter` allows semantic type filters (e.g. JSON) and extension filters (e.g. `.json`), while keeping directories visible by default for navigation. These tested helpers are connected to the initial interactive Spectre.Console picker; terminal/manual integration checks remain. See [Known Folders and Filters](Docs/Known-Folders-and-Filters/en.md).
+### Navigation and searching
 
-## Directory tree and recursive wildcard search (initial services implemented)
+- Local filesystem navigation without changing the process working directory.
+- Existing-file or existing-directory selection and explicit cancellation.
+- Parent navigation, lazy directory tree and bounded recursive search.
+- Search results show selectable relative paths; a pruned result tree can be previewed. A search does not navigate until the user explicitly chooses a match.
+- Source-qualified `FileBrowserLocation` and `IFileBrowserSource` support future independent storage adapters. The base package includes **only** `FileBrowserLocalSource`.
+- File-type icons, known-folder presentation, configurable `Auto`/`On`/`Off` icon policy, and injectable English UI labels via `SpectreFileBrowserLabels`. Unicode names are preserved internally.
 
-The new source-neutral browsing foundation includes `IFileBrowserSource` and `FileBrowserLocalSource`, a lazy `FileBrowserDirectoryTree`, and `FileBrowserRecursiveSearch` using exact names or `*` / `?` patterns. `FileBrowserSearchResultsPresentation` exposes **every returned match** as a selectable relative path and as a compact **pruned tree** containing only branches leading to matches. `FileBrowserNavigationSession` changes location **only after a user explicitly selects** a match; zero matches, cancellation and search execution do not move the browser. Search limits and partial results are explicit, and directory links are not followed by default. See [Tree and Recursive Search](Docs/Tree-and-Recursive-Search/en.md).
+The picker does **not** parse or preview selected files. The optional [Blackboard Showcase](../../Samples/Blackboard.Showcase/README.md) demonstrates safe, bounded text preview and separately highlights JSON with `Spectre.Console.Json`; JSON rendering is **not** a FileBrowser dependency.
 
-The initial interactive picker now uses these services. It displays all collected matches in a paged choice list with relative paths, and shows an optional pruned-tree preview. Search caps and partial results are explicitly reported. The full cross-platform keyboard/SSH compatibility matrix still needs manual checking.
+## Examples and verification
+
+```bash
+dotnet run --project Blackboard/Samples/FileBrowser.Sample -- --filter "*.ajis;*.json"
+dotnet run --project Blackboard/Samples/FileBrowser.Sample -- --regex "\\.(ajis|json)$"
+dotnet run --project Blackboard/Samples/Blackboard.Showcase
+dotnet test Blackboard/SpectreConsole/FileBrowser.Tests
+dotnet pack Blackboard/SpectreConsole/FileBrowser/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.csproj -c Release
+```
+
+See the runnable [FileBrowser.Sample](../../Samples/FileBrowser.Sample/README.md) and [Blackboard.Showcase](../../Samples/Blackboard.Showcase/README.md). Verify the test project path in your checkout if running individual projects.
+
+## Safety and current limits
+
+Browsing itself does not modify files or directories, change global console encoding or change CWD. Directory links are not followed during recursive search by default; search caps, inaccessible directories and incomplete results are surfaced. File names are escaped for Spectre markup.
+
+The current picker selects **existing** files and folders only: creating a new file, writing or uploading data, creating folders, and configuring FTP/FTPS/SFTP are **not implemented**. Legacy terminal encoding overrides, compatibility across Windows Terminal/cmd/Debian/SSH/tmux, and some Unicode/font scenarios still require real-terminal verification. The preview version is not a stability guarantee.
+
+## Further documentation
+
+- [Interactive Browser](Docs/Interactive-Browser/en.md)
+- [Known Folders and Filters](Docs/Known-Folders-and-Filters/en.md)
+- [Tree and Recursive Search](Docs/Tree-and-Recursive-Search/en.md)
+- [File-type Icons](Docs/File-Type-Icons/en.md)
+- [Terminal Compatibility](Docs/Terminal-Compatibility/en.md)
+- [Storage Providers](Docs/Storage-Providers/en.md) (future connectors)
+- [Encoding Support](Docs/Encoding-Support/en.md) (design/limitations)
+- [Implementation Status](IMPLEMENTATION_STATUS.md)
+
+Inspired by [Lutonet/SpectreConsoleFileBrowser](https://github.com/Lutonet/SpectreConsoleFileBrowser). Source: [Afrowave Toolbox](https://github.com/afrowaveltd/Toolbox).
