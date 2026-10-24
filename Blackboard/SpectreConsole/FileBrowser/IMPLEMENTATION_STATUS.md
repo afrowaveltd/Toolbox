@@ -85,3 +85,11 @@ Create the standalone .NET project and xUnit project, implement the testable nav
 - Captured an optional `UnderstandingFileBrowser` adapter that maps existing `SpectreFileBrowserLabels` to the host application's existing UnderstandMe context, without coupling the base FileBrowser to the translation system.
 - Preserve DictionaryLess fallback/registration, safe prompt-boundary updates, English fallback and optional separate offline dictionary packages. No implementation, new NuGet package or runtime tests were added.
 - Design: [UnderstandMe Localization Adapter](Docs/UnderstandMe-Localization-Adapter/en.md) (`40409e8`). Priorities remain manual cross-terminal FileBrowser verification and the UnderstandMe configuration workflow.
+
+## 2026-10-24 — Linux Auto icon detection after Debian manual smoke test
+
+- User reported Debian terminal navigation, file selection and Showcase text preview working; `--icons-on` displayed rich icons, while default `Auto` displayed none.
+- Added `FileBrowserTerminalDetection` to supplement a false-negative Spectre.Console Unicode flag **only** in a real interactive Linux/Unix UTF-8 terminal. Safety exclusions include noninteractive or redirected output, `TERM=dumb`, Windows hosts, and non-UTF-8/unknown Unix locales. Virtual/test consoles preserve their injected Spectre profile rather than using the host process environment.
+- `Auto` continues to select conservative Unicode symbols rather than emoji; forced `On` remains available for terminals with known emoji fonts. File paths and console encoding are untouched.
+- Added focused xUnit tests for common Linux UTF-8 locales, rejected contexts and conservative icon selection.
+- Commits: `ce48a03`, `688e906`, `4ac433c`. **CI and post-fix manual Debian verification are pending**; do not claim this is proven until they pass. Manual Windows CMD/PowerShell/Windows Terminal checks are still pending.
