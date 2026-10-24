@@ -106,19 +106,19 @@ public static class TextFilePreviewReader
 
     private static (Encoding Encoding, int Offset, string Name) DetectEncoding(ReadOnlySpan<byte> bytes)
     {
-        if (bytes.Length >= 4 && bytes[..4].SequenceEqual([0xFF, 0xFE, 0x00, 0x00]))
+        if (bytes.Length >= 4 && bytes[..4].SequenceEqual(new byte[] { 0xFF, 0xFE, 0x00, 0x00 }))
             return (new UTF32Encoding(false, true, true), 4, "UTF-32 LE");
 
-        if (bytes.Length >= 4 && bytes[..4].SequenceEqual([0x00, 0x00, 0xFE, 0xFF]))
+        if (bytes.Length >= 4 && bytes[..4].SequenceEqual(new byte[] { 0x00, 0x00, 0xFE, 0xFF }))
             return (new UTF32Encoding(true, true, true), 4, "UTF-32 BE");
 
-        if (bytes.Length >= 3 && bytes[..3].SequenceEqual([0xEF, 0xBB, 0xBF]))
+        if (bytes.Length >= 3 && bytes[..3].SequenceEqual(new byte[] { 0xEF, 0xBB, 0xBF }))
             return (new UTF8Encoding(true, true), 3, "UTF-8 BOM");
 
-        if (bytes.Length >= 2 && bytes[..2].SequenceEqual([0xFF, 0xFE]))
+        if (bytes.Length >= 2 && bytes[..2].SequenceEqual(new byte[] { 0xFF, 0xFE }))
             return (new UnicodeEncoding(false, true, true), 2, "UTF-16 LE");
 
-        if (bytes.Length >= 2 && bytes[..2].SequenceEqual([0xFE, 0xFF]))
+        if (bytes.Length >= 2 && bytes[..2].SequenceEqual(new byte[] { 0xFE, 0xFF }))
             return (new UnicodeEncoding(true, true, true), 2, "UTF-16 BE");
 
         return (new UTF8Encoding(false, true), 0, "UTF-8");
