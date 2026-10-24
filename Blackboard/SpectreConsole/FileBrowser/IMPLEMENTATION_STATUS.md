@@ -100,3 +100,10 @@ Create the standalone .NET project and xUnit project, implement the testable nav
 - User ran the FileBrowser test project: **160 passed, 0 failed, 0 skipped**, .NET 10 build successful. One xUnit2006 warning from an unrelated existing assertion was observed.
 - Replaced the redundant `Assert.Equal(originalName, name)` with an explicit ordinal equality condition to silence xUnit2006 (`045c11a`); **this follow-up change still needs a fresh build/test run**.
 - Windows CMD/PowerShell/Windows Terminal smoke testing remains pending.
+
+## 2026-10-24 — lowest-compatible framework strategy (design, pending build)
+
+- User requested the reusable FileBrowser library target the lowest practical .NET standard, rather than inherit .NET 10 merely from Toolbox. Keep test executables/Showcase on net10.0.
+- NuGet Spectre.Console 0.57.2 supplies netstandard2.0 assets, so a portable FileBrowser library is plausible. Reviewed actual code and found newer BCL calls (OperatingSystem.IsWindows/IsLinux/IsMacOS, Path.IsPathFullyQualified, ArgumentNullException.ThrowIfNull, generic Enum.IsDefined, span/string overloads) requiring compatible replacements; records/init may need support attributes.
+- Added [Target Framework Compatibility](Docs/Target-Framework-Compatibility/en.md) with migration audit and explicit net48 consumer, pack and terminal verification gates (`62103b9`).
+- **No target framework change was committed yet**: no local .NET SDK is available in this tool environment, so declaring netstandard2.0 without compilation would risk breaking the proven project. Existing FileBrowser remains net10.0 until compilation and regression tests pass.
