@@ -59,3 +59,8 @@ Create the standalone .NET project and xUnit project, implement the testable nav
 - [Interactive Browser](Docs/Interactive-Browser/en.md) documents the implemented UI, presets and custom masks/regex, limits and usage.
 
 **Remaining:** real/manual terminal testing on Windows Terminal, cmd/legacy console, Debian, SSH/tmux, narrow terminal, unsupported encodings and font glyphs; no FTP/FTPS provider, remote config editor integration, comprehensive ANSI/code-page fallback or stable NuGet publication. The current picker selects **existing** locations only. No claim of full production readiness.
+
+### Follow-up interactive path-choice CI verification
+
+- GitHub Actions [40099273392](https://github.com/afrowaveltd/Toolbox/actions/runs/40099273392) **SUCCESS**, full solution build green and **147 FileBrowser tests passed**. This includes actual `Spectre.Console.Testing` keyboard-sequence tests proving a multi-result search displays `A/target.json` and `B/target.json` and selects the explicitly chosen **second** match, plus that a failed search followed by Esc does not select or navigate.
+- This supersedes the earlier count of 145 tests, not the still-pending manual tests on physical/remote terminals.
