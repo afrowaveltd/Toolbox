@@ -16,3 +16,7 @@
 ### Library/UI integration CI
 
 - Latest relevant [GitHub Actions run 40099273392](https://github.com/afrowaveltd/Toolbox/actions/runs/40099273392): build green with sample in solution; FileBrowser library had 147 passing tests including virtual keyboard navigation. Manual demo smoke in a real terminal is still not verified.
+
+### 2026-10-24 — latest CI
+
+- [GitHub Actions 40099579962](https://github.com/afrowaveltd/Toolbox/actions/runs/40099579962): sample builds as part of the whole solution and FileBrowser passes **148 tests**. This still does not constitute a manual screenshot/terminal smoke test.
