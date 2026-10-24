@@ -12,3 +12,7 @@
 - Registered `FileBrowser.Sample.csproj` in `Toolbox.sln`, with only a project reference to independent FileBrowser; no translation/UnderstandMe/FTP dependency.
 - Offers `--directory`, `--icons-on`, `--icons-off`, `--filter "*.ajis;*.json"`, `--regex "\.(ajis|json)$"` and an optional start folder. Prompts delegate to the shared SpectreFileBrowser.
 - GitHub Actions [40099094982](https://github.com/afrowaveltd/Toolbox/actions/runs/40099094982) succeeded with demo included in the solution build. The sample has **not** been manually run in a real terminal in this session.
+
+### Library/UI integration CI
+
+- Latest relevant [GitHub Actions run 40099273392](https://github.com/afrowaveltd/Toolbox/actions/runs/40099273392): build green with sample in solution; FileBrowser library had 147 passing tests including virtual keyboard navigation. Manual demo smoke in a real terminal is still not verified.
