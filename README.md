@@ -116,3 +116,8 @@ When services are running and voluntary support is useful, Afrowave intends to p
 ## Blackboard TUI component family
 
 [Blackboard](Blackboard/README.md) contains an independently packaged .NET 10 Spectre.Console FileBrowser component, a keyboard-driven picker, lazy tree, bounded recursive search, universal filename masks/regex, tests and a separate executable [example](Blackboard/Samples/FileBrowser.Sample/README.md). The library has **not yet been published to NuGet**. The suggested complementary future GUI family is called *Whiteboard* (name provisional), with Avalonia as a potential adapter. Each useful widget will have **its own NuGet project**, not a mandatory full-family package; future sample apps can demonstrate multiple controls, while production helper apps stay with the domain project they configure. See [independent UI packaging](Blackboard/Docs/Independent-Packaging/en.md). Complete utilities will continue to live under Toolroom, while UI component libraries remain independently reusable.
+
+
+### Blackboard testing showcase
+
+A shared, extensible terminal test application is available at [Blackboard.Showcase](Blackboard/Samples/Blackboard.Showcase/README.md). It contains standalone demonstrations for FileBrowser text preview, JSON-only file selection and syntax-highlighted JSON rendering via the optional `Spectre.Console.Json` extension, and directory selection. The Showcase and its tests are in `Toolbox.sln` but **not part of any NuGet component**. Run `dotnet run --project Blackboard/Samples/Blackboard.Showcase` from the repository root; see [Blackboard/Samples](Blackboard/Samples/README.md) for the focused CLI sample.
