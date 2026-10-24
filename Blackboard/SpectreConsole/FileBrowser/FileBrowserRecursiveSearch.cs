@@ -236,6 +236,16 @@ public sealed class FileBrowserNavigationSession
     /// <summary>The selected entry to highlight after navigation, if any.</summary>
     public FileBrowserSourceEntry? HighlightedEntry { get; private set; }
 
+    /// <summary>Moves to an explicitly chosen directory without altering process CWD.</summary>
+    public void NavigateTo(FileBrowserLocation directory)
+    {
+        ArgumentNullException.ThrowIfNull(directory);
+        if (!string.Equals(directory.SourceId, _source.Id, StringComparison.Ordinal))
+            throw new ArgumentException("Navigation target belongs to another source.", nameof(directory));
+        CurrentDirectory = directory;
+        HighlightedEntry = null;
+    }
+
     /// <summary>Searches without changing current directory or highlighted selection.</summary>
     public Task<FileBrowserSearchResult> SearchAsync(
         string pattern, FileBrowserSearchOptions? options = null,
