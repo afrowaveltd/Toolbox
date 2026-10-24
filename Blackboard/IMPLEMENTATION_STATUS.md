@@ -65,3 +65,7 @@
 - Separate demonstration application under [Blackboard/Samples/FileBrowser.Sample](Samples/FileBrowser.Sample/README.md), intentionally not part of any component NuGet. The application is registered in `Toolbox.sln`.
 - Added [Interactive Browser](SpectreConsole/FileBrowser/Docs/Interactive-Browser/en.md). Virtual Spectre.Console keyboard tests cover selection/cancellation/filtering, and GitHub Actions [40099094982](https://github.com/afrowaveltd/Toolbox/actions/runs/40099094982) confirmed **145 passing FileBrowser tests and green build**. Additional path-choice UI tests were committed later, with CI pending at time of this entry.
 - **Pending:** manual Windows/SSH/legacy-terminal smoke, advanced output encoding handling, FTP/FTPS adapter, consumer-side UnderstandMe Configurator integration and NuGet release. No binaries published.
+
+### Verified current build
+
+- [GitHub Actions 40099273392](https://github.com/afrowaveltd/Toolbox/actions/runs/40099273392): **success, 147 FileBrowser tests, all solution projects built**. This supersedes the initial 145-case figure, and includes multi-match selected-path and no-result Esc tests.
