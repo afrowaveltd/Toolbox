@@ -63,7 +63,7 @@ public sealed class FileBrowserNameMatcherTests
     [Fact]
     public void Regex_syntax_and_timeout_are_checked()
     {
-        Assert.Throws<ArgumentException>(() =>
+        Assert.ThrowsAny<ArgumentException>(() =>
             new FileBrowserNameMatcher("(", FileBrowserPatternMode.RegularExpression));
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             new FileBrowserNameMatcher(".*", FileBrowserPatternMode.RegularExpression,
