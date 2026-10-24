@@ -183,8 +183,25 @@ public sealed class SpectreFileBrowser
             {
                 if (mode == FileBrowserPickMode.Directory && !entry.IsDirectory)
                     continue;
-                if (filter is not null && !filter.Allows(entry.Name, entry.IsDirectory))
-                    continue;
+                if (filter is not null)
+                {
+                    bool permitted;
+                    try
+                    {
+                        permitted = filter.Allows(entry.Name, entry.IsDirectory);
+                    }
+                    catch (RegexMatchTimeoutException)
+                    {
+                        // Invalid expensive regex must not make the picker unusable.
+                        // Revert to an unfiltered listing and show a diagnostic.
+                        WriteLine("File filter regular expression timed out; filter was cleared.");
+                        filter = null;
+                        permitted = true;
+                    }
+
+                    if (!permitted)
+                        continue;
+                }
                 var special = entry.IsDirectory
                     ? _knownFolders?.Classify(entry.Location.Value, true) ?? FileBrowserKnownFolderKind.None
                     : FileBrowserKnownFolderKind.None;
