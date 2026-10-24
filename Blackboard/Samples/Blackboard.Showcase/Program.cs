@@ -29,6 +29,7 @@ Console.CancelKeyPress += (_, eventArgs) =>
 IBlackboardShowcaseDemo[] modules =
 [
     new FileBrowserPreviewDemo(),
+    new FileBrowserJsonDemo(),
     new FileBrowserDirectoryDemo()
 ];
 
