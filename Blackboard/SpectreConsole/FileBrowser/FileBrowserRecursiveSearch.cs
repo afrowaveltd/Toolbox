@@ -1,5 +1,3 @@
-using System.IO.Enumeration;
-
 namespace Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser;
 
 /// <summary>Limits recursive file searches so large volumes and remote sources stay responsive.</summary>
@@ -17,6 +15,9 @@ public sealed record FileBrowserSearchOptions
     /// <summary>Maximum number of entries processed from one directory listing.</summary>
     public int MaxEntriesPerDirectory { get; init; } = 20_000;
 
+    /// <summary>Interpret the search expression as wildcard mask(s) or regex.</summary>
+    public FileBrowserPatternMode PatternMode { get; init; } = FileBrowserPatternMode.Wildcard;
+
     /// <summary>Also match directory names, rather than files only.</summary>
     public bool IncludeDirectories { get; init; }
 
@@ -25,6 +26,8 @@ public sealed record FileBrowserSearchOptions
 
     internal void Validate()
     {
+        if (!Enum.IsDefined(PatternMode))
+            throw new ArgumentOutOfRangeException(nameof(PatternMode));
         if (MaxDepth is < 0 or > 512)
             throw new ArgumentOutOfRangeException(nameof(MaxDepth));
         if (MaxDirectories is < 1 or > 1_000_000)
@@ -93,7 +96,8 @@ public sealed class FileBrowserRecursiveSearch
 
     /// <summary>
     /// Searches from one directory. Wildcards apply to a single file/folder name,
-    /// not to full paths; no wildcard means an exact name.
+    /// not to full paths; no wildcard means an exact name. Multiple masks may
+    /// be separated with semicolons; use PatternMode for an optional regex.
     /// </summary>
     /// <param name="origin">Source-qualified starting directory.</param>
     /// <param name="pattern">File name or simple glob such as "*.json" or "config?.xml".</param>
@@ -108,13 +112,10 @@ public sealed class FileBrowserRecursiveSearch
         ArgumentNullException.ThrowIfNull(origin);
         if (!string.Equals(origin.SourceId, _source.Id, StringComparison.Ordinal))
             throw new ArgumentException("Search origin belongs to another source.", nameof(origin));
-        if (string.IsNullOrWhiteSpace(pattern) || pattern.Contains('/') ||
-            pattern.Contains('\\') || pattern.IndexOfAny(['\0', '\r', '\n']) >= 0)
-            throw new ArgumentException("Search pattern must be one filename, optionally with '*' or '?'.",
-                nameof(pattern));
-
         options ??= new FileBrowserSearchOptions();
         options.Validate();
+        var matcher = new FileBrowserNameMatcher(
+            pattern, options.PatternMode, ignoreCase: !_source.IsCaseSensitive);
 
         var queue = new Queue<(FileBrowserLocation Location, int Depth, string[] Directories)>();
         queue.Enqueue((origin, 0, []));
@@ -172,8 +173,7 @@ public sealed class FileBrowserRecursiveSearch
                 var isCandidate = !entry.IsDirectory || options.IncludeDirectories;
                 if (isCandidate &&
                     (options.Filter is null || options.Filter.Allows(entry.Name, entry.IsDirectory)) &&
-                    FileSystemName.MatchesSimpleExpression(
-                        pattern, entry.Name, ignoreCase: !_source.IsCaseSensitive))
+                    matcher.Matches(entry.Name))
                 {
                     matches.Add(new FileBrowserSearchMatch(
                         entry, directory, depth, Array.AsReadOnly(segments)));
