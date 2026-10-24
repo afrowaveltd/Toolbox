@@ -93,6 +93,54 @@ public sealed class ShowcaseInteractionTests
         }
     }
 
+
+    [Fact]
+    public async Task General_text_preview_demo_displays_selected_readable_file()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ShowcaseText-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            await File.WriteAllTextAsync(Path.Combine(root, "README.txt"),
+                "Český text pro Blackboard");
+            var console = ConsoleWithInput();
+            console.Input.PushKey(ConsoleKey.Enter);
+
+            await new FileBrowserPreviewDemo().RunAsync(console, root, CancellationToken.None);
+
+            Assert.Contains("README.txt", console.Output);
+            Assert.Contains("Český text pro Blackboard", console.Output);
+            Assert.Contains("Text preview", console.Output);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Directory_demo_can_select_current_folder_without_modification()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "ShowcaseDirectory-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var console = ConsoleWithInput();
+            // Empty directory: Parent is first menu item, Select current folder second.
+            console.Input.PushKey(ConsoleKey.DownArrow);
+            console.Input.PushKey(ConsoleKey.Enter);
+
+            await new FileBrowserDirectoryDemo().RunAsync(console, root, CancellationToken.None);
+
+            Assert.Contains("Selected directory: " + root, console.Output);
+            Assert.True(Directory.Exists(root));
+        }
+        finally
+        {
+            Directory.Delete(root);
+        }
+    }
+
     private static TestConsole ConsoleWithInput()
     {
         var console = new TestConsole();
