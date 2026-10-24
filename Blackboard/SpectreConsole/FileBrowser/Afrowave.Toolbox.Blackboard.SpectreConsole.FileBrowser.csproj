@@ -4,8 +4,10 @@
     <PackageId>Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser</PackageId>
     <AssemblyName>Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser</AssemblyName>
     <RootNamespace>Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser</RootNamespace>
-    <Description>Lightweight file-browser components with file type icons and terminal-friendly display policies.</Description>
-    <PackageTags>afrowave;toolbox;blackboard;filebrowser;tui;files;icons</PackageTags>
+    <Description>Interactive, read-only Spectre.Console file and directory picker for .NET 10 with wildcard/regex filters, lazy folder tree and bounded recursive search.</Description>
+    <PackageTags>afrowave;toolbox;blackboard;filebrowser;tui;spectre-console;file-picker;directory-picker;filter;search</PackageTags>
+    <PackageProjectUrl>https://github.com/afrowaveltd/Toolbox/tree/master/Blackboard/SpectreConsole/FileBrowser</PackageProjectUrl>
+    <PackageReleaseNotes>First preview of the interactive local file/directory picker with customizable filename filters, lazy tree and bounded recursive search. Public NuGet publication and real-terminal compatibility testing remain pending.</PackageReleaseNotes>
     <Version>0.1.0-preview.1</Version>
   </PropertyGroup>
   <ItemGroup>
