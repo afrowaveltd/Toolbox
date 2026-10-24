@@ -69,3 +69,8 @@
 ### Verified current build
 
 - [GitHub Actions 40099273392](https://github.com/afrowaveltd/Toolbox/actions/runs/40099273392): **success, 147 FileBrowser tests, all solution projects built**. This supersedes the initial 145-case figure, and includes multi-match selected-path and no-result Esc tests.
+
+### 2026-10-24 — verified 148-test interactive picker milestone
+
+- [GitHub Actions 40099579962](https://github.com/afrowaveltd/Toolbox/actions/runs/40099579962) succeeded: **148 FileBrowser tests**, full solution build. Interactive TUI picker, universal mask/regex filename filters, lazy tree, multi-result recursive search and isolated sample app are implemented. Follow-up prevents selecting unreadable directories and recovers from regex timeouts during listing.
+- No NuGet publication or live FTP/FTPS integration. Manual runtime verification in real Windows/Debian/SSH/tmux/legacy terminal remains the next release gate.
