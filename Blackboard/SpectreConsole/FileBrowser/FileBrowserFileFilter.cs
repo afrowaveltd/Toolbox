@@ -14,17 +14,20 @@ public sealed class FileBrowserFileFilter
     private readonly HashSet<FileBrowserFileKind>? _kinds;
     private readonly string[]? _extensions;
     private readonly FileBrowserFileIcons _classifier;
+    private readonly FileBrowserNameMatcher? _nameMatcher;
 
     /// <summary>Creates a lightweight, reusable file type filter.</summary>
     /// <param name="includedKinds">Optional allowed semantic file kinds.</param>
     /// <param name="includedExtensions">Optional allowed extensions, e.g. ".json" or ".tar.gz".</param>
     /// <param name="includeDirectories">Keep directories visible for navigation (default true).</param>
     /// <param name="classifier">Optional customized file-kind classifier.</param>
+    /// <param name="nameMatcher">Optional wildcard-mask list or bounded regular expression.</param>
     public FileBrowserFileFilter(
         IEnumerable<FileBrowserFileKind>? includedKinds = null,
         IEnumerable<string>? includedExtensions = null,
         bool includeDirectories = true,
-        FileBrowserFileIcons? classifier = null)
+        FileBrowserFileIcons? classifier = null,
+        FileBrowserNameMatcher? nameMatcher = null)
     {
         if (includedKinds is not null)
         {
@@ -58,6 +61,7 @@ public sealed class FileBrowserFileFilter
 
         IncludeDirectories = includeDirectories;
         _classifier = classifier ?? new FileBrowserFileIcons();
+        _nameMatcher = nameMatcher;
     }
 
     /// <summary>Whether directories remain visible even when files are filtered.</summary>
@@ -72,6 +76,9 @@ public sealed class FileBrowserFileFilter
             return IncludeDirectories;
 
         if (string.IsNullOrEmpty(entryName))
+            return false;
+
+        if (_nameMatcher is not null && !_nameMatcher.Matches(entryName))
             return false;
 
         if (_kinds is not null && !_kinds.Contains(_classifier.Classify(entryName, false)))
