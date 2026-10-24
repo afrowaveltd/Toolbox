@@ -16,3 +16,9 @@
 1. Confirm green GitHub Actions for both new projects and fix compile/test issues if detected.
 2. Manually exercise menu, filename selection and JSON rendering on Debian and Windows consoles/SSH.
 3. Add new Blackboard widget modules here (do not couple them into FileBrowser).
+
+## 2026-10-24 — verified green CI and JSON preview
+
+- GitHub Actions [40108814777](https://github.com/afrowaveltd/Toolbox/actions/runs/40108814777) **SUCCESS** after fixing the explicit byte-array type for BOM detection in `TextFilePreviewReader` (commit `b86378f2`). `Blackboard.Showcase.Tests`: **18 passed**. `FileBrowser.Tests`: **148 passed**, and the full Toolbox solution built and tested green.
+- The virtual Spectre.Console JSON test selected a valid `dictionary.json` with `*.json` filter, confirmed a `.txt` file was absent from selection, and verified `JsonText` output. A second test rejects malformed JSON. Bounded UTF-8/16, binary/control, empty and oversized JSON cases also passed.
+- The shared Showcase currently registers three scenarios (safe text preview, syntax-highlighted JSON preview, folder selection) and remains independent of production utilities. No NuGet package was published. Live Debian/Windows/SSH manual testing remains outstanding.
