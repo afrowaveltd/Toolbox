@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.RegularExpressions;
 using Spectre.Console;
 
@@ -319,11 +318,12 @@ public sealed class SpectreFileBrowser
             // Display a pruned, read-only tree first, then let the user choose among
             // ALL returned paths. A group label can never become a navigation target.
             WriteLine(labels.Matches + ": " + rows.Count);
-            var text = new StringBuilder();
-            AppendTree(text,
+            var matches = new Tree(new Text(labels.Matches))
+                .Guide(terminal.SupportsUnicode ? TreeGuide.Line : TreeGuide.Ascii);
+            AddSearchTreeNodes(matches,
                 FileBrowserSearchResultsPresentation.CreateTree(result, _source.IsCaseSensitive),
-                0, terminal, options.IconMode);
-            _console.Write(new Text(text.ToString()));
+                terminal, options.IconMode);
+            _console.Write(matches);
         }
 
         var actions = rows.Select(row => new MenuEntry(
@@ -360,6 +360,14 @@ public sealed class SpectreFileBrowser
                 WriteLine(labels.ListingError + ": " + ex.Message);
                 children = [];
             }
+
+            // The actual Spectre tree is a noninteractive preview; the paged
+            // selection prompt below provides keyboard navigation and expansion.
+            var visual = new Tree(new Text(current.Value))
+                .Guide(terminal.SupportsUnicode ? TreeGuide.Line : TreeGuide.Ascii);
+            foreach (var child in children)
+                visual.AddNode(new Text(child.Name + "/"));
+            _console.Write(visual);
 
             var actions = children.Select(child => new MenuEntry(BrowserAction.TreeChild,
                 FileBrowserEntryPresentation.Format(
@@ -464,21 +472,33 @@ public sealed class SpectreFileBrowser
     private void WriteLine(string value)
         => _console.Write(new Text(value + Environment.NewLine));
 
-    private static void AppendTree(
-        StringBuilder output, IReadOnlyList<FileBrowserSearchTreeNode> nodes,
-        int depth, FileBrowserTerminalCapabilities terminal, FileBrowserIconMode iconMode)
+    private static void AddSearchTreeNodes(
+        Tree root, IReadOnlyList<FileBrowserSearchTreeNode> nodes,
+        FileBrowserTerminalCapabilities terminal, FileBrowserIconMode mode)
     {
         foreach (var node in nodes)
         {
-            // Indenting by ASCII spaces remains readable on legacy terminal code pages.
             var kind = node.IsDirectory ? FileBrowserFileKind.Directory : FileBrowserFileKind.Unknown;
-            var glyph = FileBrowserFileIcons.GetIcon(kind, iconMode, terminal);
-            output.Append(' ', depth * 2);
-            if (glyph.Length > 0)
-                output.Append(glyph).Append(' ');
-            output.Append(node.Name).Append(node.IsDirectory ? "/" : "")
-                .AppendLine();
-            AppendTree(output, node.Children, depth + 1, terminal, iconMode);
+            var glyph = FileBrowserFileIcons.GetIcon(kind, mode, terminal);
+            var label = (glyph.Length > 0 ? glyph + " " : "") +
+                node.Name + (node.IsDirectory ? "/" : "");
+            var child = root.AddNode(new Text(label));
+            AddSearchChildNodes(child, node.Children, terminal, mode);
+        }
+    }
+
+    private static void AddSearchChildNodes(
+        TreeNode parent, IReadOnlyList<FileBrowserSearchTreeNode> nodes,
+        FileBrowserTerminalCapabilities terminal, FileBrowserIconMode mode)
+    {
+        foreach (var node in nodes)
+        {
+            var kind = node.IsDirectory ? FileBrowserFileKind.Directory : FileBrowserFileKind.Unknown;
+            var glyph = FileBrowserFileIcons.GetIcon(kind, mode, terminal);
+            var label = (glyph.Length > 0 ? glyph + " " : "") +
+                node.Name + (node.IsDirectory ? "/" : "");
+            var child = parent.AddNode(new Text(label));
+            AddSearchChildNodes(child, node.Children, terminal, mode);
         }
     }
 
