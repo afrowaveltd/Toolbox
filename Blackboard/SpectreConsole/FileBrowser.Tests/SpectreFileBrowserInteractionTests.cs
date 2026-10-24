@@ -147,6 +147,35 @@ public sealed class SpectreFileBrowserInteractionTests
         }
     }
 
+
+    [Fact]
+    public async Task Cannot_select_unreadable_current_directory()
+    {
+        var console = ConsoleWithInput();
+        console.Input.PushKey(ConsoleKey.Escape);
+        var result = await new SpectreFileBrowser(new UnreadableSource(), console)
+            .PickAsync(new FileBrowserLocation("blocked", "/secret"),
+                FileBrowserPickMode.Directory,
+                new SpectreFileBrowserOptions { IconMode = FileBrowserIconMode.Off });
+
+        Assert.False(result.IsSelected);
+        Assert.Contains("Unable to list directory", console.Output);
+        Assert.DoesNotContain("Select current folder", console.Output);
+    }
+
+    private sealed class UnreadableSource : IFileBrowserSource
+    {
+        public string Id => "blocked";
+        public bool IsCaseSensitive => true;
+        public Task<IReadOnlyList<FileBrowserSourceEntry>> ListAsync(
+            FileBrowserLocation directory, CancellationToken cancellationToken = default)
+            => throw new UnauthorizedAccessException("Test-only permission error");
+
+        public Task<FileBrowserLocation?> GetParentAsync(
+            FileBrowserLocation directory, CancellationToken cancellationToken = default)
+            => Task.FromResult<FileBrowserLocation?>(null);
+    }
+
     private static TestConsole ConsoleWithInput()
     {
         var console = new TestConsole();
