@@ -34,3 +34,16 @@ The adapter should not ship mandatory dictionaries. Separate optional language-r
 - No navigation/input regression, no extra network dependency in the base package, and no uncontrolled terminal markup.
 
 See [FileBrowser README](../../README.md) and the [Implementation Status](../../IMPLEMENTATION_STATUS.md).
+
+## User-triggered translation refresh (design decision, 2026-10-24)
+
+When the host's UnderstandMe context reports that translations for the current view are pending, the adapter may show a subdued footer such as `Translation in progress — Refresh`. Refresh is an explicit UI action (potential shortcut subject to Spectre.Console input feasibility), not a timer-driven redraw.
+
+- Render immediately from current localized values or already-known default-dictionary values.
+- On user refresh, re-resolve visible labels from the existing localization context/cache. Do not instantiate a new dictionary, translation pipeline or picker session.
+- Preserve current location, active filters and selection/navigation state insofar as the underlying prompt API supports it; never mutate filesystem or start a new search as a side effect of refreshing labels.
+- Leave still-missing values at the default text. A refresh must not register duplicate keys or enqueue duplicate work beyond normal UnderstandMe idempotent semantics.
+- Display pending only when the host exposes a reliable pending state. Completed, failed or offline translations must not be misreported as actively in progress.
+- The base FileBrowser remains independent of translation status; the optional integration owns the footer and refresh behavior.
+
+This is a proposed UX contract, **not implemented**. Verify what Spectre.Console can preserve across a prompt refresh before promising a single-keystroke refresh.
