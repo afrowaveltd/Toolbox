@@ -1,8 +1,8 @@
 # FileBrowser: independently packageable TUI file/folder picker
 
-Status: **partial implementation**, 2026-10-22: classification/icon APIs plus xUnit tests exist; interactive file picker and FTP modules are still designs.
+Status: **first interactive implementation**, 2026-10-24: the local Spectre.Console file picker, type icons, tree, recursive search and universal filename filters are implemented. FTP/FTPS plugins and publication remain future work.
 
-FileBrowser is now its own .NET 10 project under `Blackboard/SpectreConsole/FileBrowser`, intended for independent NuGet packaging. The first code slice is icon classification/selection; publication and the actual Spectre.Console picker have not happened. It is not the entire Blackboard or Spectre.Console toolkit.
+FileBrowser is now its own .NET 10 project under `Blackboard/SpectreConsole/FileBrowser`, intended for independent NuGet packaging. The code now includes an interactive Spectre.Console picker as well as icon classification/selection; NuGet publication and full terminal smoke testing have not happened. It is not the entire Blackboard or Spectre.Console toolkit.
 
 ## Implemented file-type icon foundation
 
@@ -38,8 +38,8 @@ Show the detected terminal input/output encoding and provide an explicit host-le
 
 ## File presentation and filters (implemented foundation)
 
-`FileBrowserKnownFolders` can assign recognizable folder icons **only from exact local paths**, e.g. `/home` or actual Windows `X:\Users`. `FileBrowserEntryPresentation` adds exactly one leading ASCII space to file rows but not directory rows; no icons are required. `FileBrowserFileFilter` accepts type/extension filters, preserving directory traversal by default. These are reusable library APIs, not yet active controls in a Spectre.Console picker. [Known Folders and Filters](../Known-Folders-and-Filters/en.md).
+`FileBrowserKnownFolders` can assign recognizable folder icons **only from exact local paths**, e.g. `/home` or actual Windows `X:\Users`. `FileBrowserEntryPresentation` adds exactly one leading ASCII space to file rows but not directory rows; no icons are required. `FileBrowserFileFilter` accepts type/extension filters, preserving directory traversal by default. These reusable library APIs are also available through the interactive Spectre.Console picker. [Known Folders and Filters](../Known-Folders-and-Filters/en.md).
 
 ## Directory tree and search data services
 
-The initial `FileBrowserLocalSource` and generic `IFileBrowserSource`, `FileBrowserDirectoryTree` (lazy expansion), `FileBrowserRecursiveSearch` (`*` and `?` wildcard matching with safe traversal bounds), `FileBrowserSearchResultsPresentation` (all matches as relative paths or pruned tree), and `FileBrowserNavigationSession` (explicit navigation only) are implemented in the reusable library. The eventual interactive Spectre.Console picker will consume these services; it is not implemented yet. See [Tree and Recursive Search](../Tree-and-Recursive-Search/en.md).
+The initial `FileBrowserLocalSource` and generic `IFileBrowserSource`, `FileBrowserDirectoryTree` (lazy expansion), `FileBrowserRecursiveSearch` (`*` and `?` wildcard matching with safe traversal bounds), `FileBrowserSearchResultsPresentation` (all matches as relative paths or pruned tree), and `FileBrowserNavigationSession` (explicit navigation only) are implemented in the reusable library. The initial interactive Spectre.Console picker now consumes these services, including paged selection of all returned matches; deeper runtime terminal testing remains. See [Tree and Recursive Search](../Tree-and-Recursive-Search/en.md).
