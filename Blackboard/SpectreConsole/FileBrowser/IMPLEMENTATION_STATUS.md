@@ -79,3 +79,9 @@ Create the standalone .NET project and xUnit project, implement the testable nav
 - Documentation/metadata commits: `08cdfbb`, `187e3e2`, `4cd3b4b`. Previous verified result remains **148 FileBrowser tests**, GitHub Actions run `40099579962`. These documentation/metadata changes have **not** been independently compiled or packaged in this session: verify CI and inspect a generated `.nupkg` before publishing.
 
 **Next release gates:** run `dotnet test Blackboard/SpectreConsole/FileBrowser.Tests/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.Tests.csproj`, `dotnet pack Blackboard/SpectreConsole/FileBrowser/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.csproj -c Release`, inspect NuGet metadata/readme/license/dependency entries, and perform real-terminal smoke tests on target hosts. No claim of public publication.
+
+## 2026-10-24 — optional UnderstandMe localization adapter proposed (design only)
+
+- Captured an optional `UnderstandingFileBrowser` adapter that maps existing `SpectreFileBrowserLabels` to the host application's existing UnderstandMe context, without coupling the base FileBrowser to the translation system.
+- Preserve DictionaryLess fallback/registration, safe prompt-boundary updates, English fallback and optional separate offline dictionary packages. No implementation, new NuGet package or runtime tests were added.
+- Design: [UnderstandMe Localization Adapter](Docs/UnderstandMe-Localization-Adapter/en.md) (`40409e8`). Priorities remain manual cross-terminal FileBrowser verification and the UnderstandMe configuration workflow.
