@@ -8,3 +8,8 @@
 - GitHub Actions result must be verified after these files are committed; the tests have not been manually validated in real terminals.
 
 Next: confirm CI and add regression cases for any Windows/SSH differences that appear during live testing.
+
+## 2026-10-24 — first 18 tests verified
+
+- GitHub Actions [40108814777](https://github.com/afrowaveltd/Toolbox/actions/runs/40108814777) **SUCCESS**: all **18 Showcase tests** passed, all 148 FileBrowser tests stayed green, and the entire solution built successfully.
+- Coverage includes modular menu navigation, JSON-only filtering and colored JSON preview, invalid JSON rejection, safe text encoding and control-character rules, 16 KiB preview bounds and the 64 KiB JSON ceiling. Real-terminal manual testing is still needed.
