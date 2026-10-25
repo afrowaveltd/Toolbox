@@ -94,3 +94,9 @@
 - Earlier Debian smoke testing and FileBrowser's **160 locally reported passing tests** remain recorded in the component status. GitHub Actions [40121980599](https://github.com/afrowaveltd/Toolbox/actions/runs/40121980599) succeeded for the pre-documentation master.
 - The independent FileBrowser `0.1.0-preview.1` (`net10.0`) is now assessed as a **preview-release candidate**. Public NuGet publication is **not completed**; release build/pack, package contents and a clean consumer installation still need verification. SSH/tmux and some font/legacy-code-page cases remain separate follow-up checks. Optional `netstandard2.0` compatibility is design-only.
 - Updated the component README, Terminal Compatibility documentation and component/test/family status documents. No feature, API, source-code or automated-test modifications were introduced.
+
+## 2026-10-25 — Release pack confirmed by maintainer
+
+- The maintainer confirmed the FileBrowser project builds and that local Release NuGet packages were generated using `dotnet pack -c Release ...`.
+- The preceding manual terminal verification documentation commit `d87edbce` passed [GitHub Actions 40181152070](https://github.com/afrowaveltd/Toolbox/actions/runs/40181152070). No additional automated tests were introduced by this update.
+- FileBrowser is a **local-pack-verified preview candidate**, not a publicly published package. Generated `.nupkg` contents and a clean consumer installation remain to be checked. No library implementation changes.
