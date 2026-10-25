@@ -34,3 +34,7 @@
 - `BlackboardShowcaseHost.RunAsync` calls the Spectre.Console `IAnsiConsole.Clear()` extension once after its interactive guard and before the first menu, hiding command history above the TUI.
 - Returning from a demo does not clear its output. A virtual-terminal regression asserts the clear ANSI sequence occurs at the very beginning exactly once.
 - This changes only the Showcase host, **not** the separately published FileBrowser component.
+
+### Startup clear verified in CI (2026-10-25)
+
+- [GitHub Actions 40230127035](https://github.com/afrowaveltd/Toolbox/actions/runs/40230127035) **SUCCESS** for implementation commit `f46b80d9`, including the ANSI one-time clear assertion in the Showcase menu test and all **20 Showcase tests**. Full solution tests and final build succeeded.

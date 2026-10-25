@@ -33,3 +33,7 @@
 - Added a Spectre.Console.Testing assertion for the initial ANSI clear-screen sequence and its single occurrence.
 - Upcoming **design to discuss**: a standalone Configurator with its own per-user application preferences, separate from edited `UnderstandMeSettings.json`; initial manually maintained bundled languages `en` and `cs` and offline English fallback; self-localization through UnderstandMe later. No mandatory command-line parameters: main menu Create, Edit, Test, Configurator Settings and Exit. Optional version checks and downloadable language packs belong to later releases.
 - These menu and localization features are **not implemented by this change**. See [Localization and Preferences](Docs/Localization-and-Preferences/en.md).
+
+### Startup clear verified in CI (2026-10-25)
+
+- [GitHub Actions 40230127035](https://github.com/afrowaveltd/Toolbox/actions/runs/40230127035) **SUCCESS** for implementation commit `f46b80d9`. The Configurator's startup-clear test passed and all **8 Configurator tests** succeeded; full solution test suite and final build step succeeded with **0 warnings and 0 errors**. No headless-validate behavior was changed.
