@@ -192,6 +192,7 @@ public sealed class ConfiguratorSessionTests
         console.Input.PushKey(ConsoleKey.Enter);
         console.Input.PushKey(ConsoleKey.DownArrow); // Czech (English is first).
         console.Input.PushKey(ConsoleKey.Enter);
+        console.Input.PushKey(ConsoleKey.Enter); // Acknowledge saved-language message.
         console.Input.PushKey(ConsoleKey.Escape); // Exit main menu.
 
         await new ConfiguratorApp(console, Path.GetDirectoryName(temp.File), prefs).RunAsync();
@@ -218,11 +219,17 @@ public sealed class ConfiguratorSessionTests
         console.Input.PushKey(ConsoleKey.Enter); // Main: Test configuration.
         console.Input.PushKey(ConsoleKey.Enter); // Select: Browse JSON.
         console.Input.PushKey(ConsoleKey.Enter); // FileBrowser: select settings JSON.
+        console.Input.PushKey(ConsoleKey.Enter); // Read validation result, then return.
         console.Input.PushKey(ConsoleKey.Escape); // Exit main menu.
 
         await new ConfiguratorApp(console, Path.GetDirectoryName(temp.File),
             Path.Combine(Path.GetDirectoryName(temp.File)!, "prefs.json")).RunAsync();
         Assert.Contains("Configuration is valid (offline schema checks only).", console.Output);
+        var clearAfterResult = console.Output.IndexOf("\u001b[2J",
+            console.Output.IndexOf("Configuration is valid (offline schema checks only).", StringComparison.Ordinal),
+            StringComparison.Ordinal);
+        Assert.True(clearAfterResult > 0);
+        Assert.Equal(2, console.Output.Split("\u001b[2J").Length - 1);
         Assert.Equal(before, File.ReadAllBytes(temp.File));
     }
 
@@ -238,6 +245,99 @@ public sealed class ConfiguratorSessionTests
         Assert.Contains("Cannot read Configurator preferences", console.Output);
         Assert.Contains("Create configuration", console.Output);
         Assert.Equal("{invalid", File.ReadAllText(path));
+    }
+
+    [Fact]
+    public async Task Returning_from_editor_summary_clears_after_acknowledgement_not_before_result()
+    {
+        using var temp = new TempFolder();
+        UnderstandMeSettingsJsonStore.Save(temp.File, new());
+        var baseline = File.ReadAllBytes(temp.File);
+        var console = TestConsole();
+
+        console.Input.PushKey(ConsoleKey.DownArrow);
+        console.Input.PushKey(ConsoleKey.Enter); // Edit configuration.
+        console.Input.PushKey(ConsoleKey.Enter); // Browse.
+        console.Input.PushKey(ConsoleKey.Enter); // Select sole JSON.
+        console.Input.PushKey(ConsoleKey.Enter); // Editor: show summary.
+        console.Input.PushKey(ConsoleKey.Enter); // Acknowledge summary.
+        console.Input.PushKey(ConsoleKey.Escape); // Editor: back.
+        console.Input.PushKey(ConsoleKey.Escape); // Main: exit.
+
+        await new ConfiguratorApp(console, Path.GetDirectoryName(temp.File),
+            Path.Combine(Path.GetDirectoryName(temp.File)!, "ui.json")).RunAsync();
+
+        var summary = console.Output.IndexOf("Default source language: ", StringComparison.Ordinal);
+        var resume = console.Output.IndexOf("Result — press Enter", summary, StringComparison.Ordinal);
+        var cleared = console.Output.IndexOf("\u001b[2J", resume, StringComparison.Ordinal);
+        Assert.True(summary >= 0);
+        Assert.True(resume > summary);
+        Assert.True(cleared > resume); // Summary stays visible until acknowledged.
+        Assert.Equal(4, console.Output.Split("\u001b[2J").Length - 1);
+        Assert.Equal(baseline, File.ReadAllBytes(temp.File));
+    }
+
+    [Fact]
+    public async Task Cancelling_file_browser_clears_before_main_menu_without_writing()
+    {
+        using var temp = new TempFolder();
+        var console = TestConsole();
+        console.Input.PushKey(ConsoleKey.DownArrow);
+        console.Input.PushKey(ConsoleKey.Enter); // Edit.
+        console.Input.PushKey(ConsoleKey.Enter); // Browse.
+        console.Input.PushKey(ConsoleKey.Escape); // Cancel picker.
+        console.Input.PushKey(ConsoleKey.Escape); // Exit main menu.
+
+        await new ConfiguratorApp(console, Path.GetDirectoryName(temp.File),
+            Path.Combine(Path.GetDirectoryName(temp.File)!, "ui.json")).RunAsync();
+
+        Assert.Equal(2, console.Output.Split("\u001b[2J").Length - 1);
+        Assert.Equal(2, console.Output.Split("UnderstandMe Configurator").Length - 1);
+        Assert.False(File.Exists(temp.File));
+    }
+
+    [Fact]
+    public async Task Invalid_json_diagnostics_remain_visible_until_return()
+    {
+        using var temp = new TempFolder();
+        File.WriteAllText(temp.File, "{invalid");
+        var before = File.ReadAllBytes(temp.File);
+        var console = TestConsole();
+        console.Input.PushKey(ConsoleKey.DownArrow);
+        console.Input.PushKey(ConsoleKey.DownArrow);
+        console.Input.PushKey(ConsoleKey.Enter); // Test.
+        console.Input.PushKey(ConsoleKey.Enter); // Browse.
+        console.Input.PushKey(ConsoleKey.Enter); // JSON.
+        console.Input.PushKey(ConsoleKey.Enter); // Read diagnostic, return.
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new ConfiguratorApp(console, Path.GetDirectoryName(temp.File),
+            Path.Combine(Path.GetDirectoryName(temp.File)!, "ui.json")).RunAsync();
+
+        var diagnostic = console.Output.IndexOf("Invalid configuration:", StringComparison.Ordinal);
+        var resume = console.Output.IndexOf("Result — press Enter", diagnostic, StringComparison.Ordinal);
+        var clear = console.Output.IndexOf("\u001b[2J", resume, StringComparison.Ordinal);
+        Assert.True(diagnostic >= 0 && resume > diagnostic && clear > resume);
+        Assert.Equal(before, File.ReadAllBytes(temp.File));
+    }
+
+    [Fact]
+    public async Task Returning_from_preferences_without_edits_clears_main_screen()
+    {
+        using var temp = new TempFolder();
+        var console = TestConsole();
+        console.Input.PushKey(ConsoleKey.DownArrow);
+        console.Input.PushKey(ConsoleKey.DownArrow);
+        console.Input.PushKey(ConsoleKey.DownArrow);
+        console.Input.PushKey(ConsoleKey.Enter); // Preferences.
+        console.Input.PushKey(ConsoleKey.Escape); // Back without changing locale.
+        console.Input.PushKey(ConsoleKey.Escape); // Exit.
+
+        await new ConfiguratorApp(console, Path.GetDirectoryName(temp.File),
+            Path.Combine(Path.GetDirectoryName(temp.File)!, "ui.json")).RunAsync();
+        Assert.Equal(2, console.Output.Split("\u001b[2J").Length - 1);
+        Assert.Contains("Current UI language: en", console.Output);
+        Assert.False(File.Exists(temp.File));
     }
 
     private static Spectre.Console.Testing.TestConsole TestConsole()
