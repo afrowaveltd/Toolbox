@@ -213,7 +213,7 @@ public sealed partial class ConfiguratorApp
             Item(Action.Back, "menu.continue"),
             Item(Action.LiveProbe, "connection.action")
         };
-        var chosen = await Choose(choices, Action.Back, cancellationToken, "connection.after.offline");
+        var chosen = await Choose(choices, Action.Back, cancellationToken, "menu.result.heading");
         if (chosen == Action.LiveProbe)
         {
             try
