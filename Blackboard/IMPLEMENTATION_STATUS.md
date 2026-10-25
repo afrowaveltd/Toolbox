@@ -112,3 +112,9 @@
 - Maintainer-provided contents and NuGet manifest checks for `0.1.0-preview.1` show required .NET 10 assembly, XML documentation, README, license file, single `Spectre.Console 0.57.2` dependency and no bundled Showcase/tests; `unzip -t` found no archive errors.
 - Previous [GitHub CI 40204020685](https://github.com/afrowaveltd/Toolbox/actions/runs/40204020685) passed. Release build, local package creation and independent consumer smoke were also reported PASS.
 - Remaining final publication detail: **repack after current README/release-note updates** (the inspected archive bundled an older 7,009-byte README); recheck the final archive metadata and confirm the license mapping. No public upload yet. The tests and library runtime were not changed in this documentation commit.
+
+## 2026-10-25 — first Blackboard NuGet package published
+
+- [Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser 0.1.0-preview.1](https://www.nuget.org/packages/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser/0.1.0-preview.1) is now **published on NuGet.org**, confirmed by the maintainer's package-page screenshot. Search indexing was still pending at the time of the screenshot.
+- This is the first independently packaged/publicly distributed Blackboard control. Prior local package audits and a standalone `net10.0` consumer smoke test passed; remote NuGet.org restore remains to be checked after indexing.
+- The uploaded package's README contains a historical “not yet published” statement, which **cannot be updated in place** for the same version. The GitHub README has been corrected; the next version will carry updated package-embedded documentation. No package/source API changes or speculative git release tag were made in this documentation update.

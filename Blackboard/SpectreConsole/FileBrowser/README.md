@@ -3,13 +3,13 @@
 Reusable, read-only, interactive file and directory picker for **.NET 10** applications using [Spectre.Console](https://spectreconsole.net/). Designed as an independent Blackboard TUI component: applications do not need to install UnderstandMe, Blackboard Showcase, or other Afrowave widgets.
 
 **Package ID:** `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser`  
-**Current project version:** `0.1.0-preview.1` (preview; not a claim of publication on nuget.org)  
+**Published version:** [`0.1.0-preview.1`](https://www.nuget.org/packages/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser/0.1.0-preview.1) (prerelease; currently targets `net10.0`)  
 **Dependency:** `Spectre.Console 0.57.2`  
-**Status:** implemented, automated tests green in GitHub CI; manual Debian and Windows terminal checks (Windows Terminal shell profiles and direct legacy `conhost.exe`, including colors) reported PASS. SSH/tmux and additional legacy encoding/font combinations remain unverified. NuGet publication has not occurred.
+**Status:** implemented, automated tests green in GitHub CI; manual Debian and Windows terminal checks (Windows Terminal shell profiles and direct legacy `conhost.exe`, including colors) reported PASS. SSH/tmux and additional legacy encoding/font combinations remain unverified. **Version `0.1.0-preview.1` was published to NuGet.org on 2026-10-25; search indexing was still pending in the maintainer's publication screenshot.**
 
 ## Installation
 
-When published to your selected NuGet feed:
+Install the published prerelease package from NuGet.org (once indexing is complete):
 
 ```bash
 dotnet add package Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser --version 0.1.0-preview.1
@@ -94,11 +94,15 @@ Browsing itself does not modify files or directories, change global console enco
 
 The current picker selects **existing** files and folders only: creating a new file, writing or uploading data, creating folders, and configuring FTP/FTPS/SFTP are **not implemented**. Legacy terminal encoding overrides, SSH/tmux and some Unicode/font scenarios still require real-terminal verification. Debian, Windows Terminal shell profiles and legacy Windows Console Host (`conhost.exe`, including colors) were manually checked successfully on 2026-10-24/25. The preview version is not a stability guarantee.
 
-## Publication readiness (2026-10-25)
+## Publication and release verification (2026-10-25)
 
-The local FileBrowser foundation is a **preview-release candidate**, not a published package. The maintainer reported successful manual Windows terminal testing, including a directly launched legacy `conhost.exe` with colors, in addition to previous Debian results. The latest reviewed GitHub Actions run [40121980599](https://github.com/afrowaveltd/Toolbox/actions/runs/40121980599) succeeded on the existing code before this documentation update.
+**Published:** [FileBrowser 0.1.0-preview.1 on NuGet.org](https://www.nuget.org/packages/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser/0.1.0-preview.1). The maintainer supplied a screenshot of its public package page showing package identity, prerelease status, target framework (`net10.0`), README, license link, owner, and the NuGet.org message that search/indexing was still in progress. This confirms publication; completion of indexing and a fresh public-feed restore have **not yet** been independently verified.
 
-**Release build and local packing:** the maintainer reports the project builds successfully and local packages were generated with `dotnet pack -c Release ...` (2026-10-25). The preceding documentation commit passed [GitHub Actions 40181152070](https://github.com/afrowaveltd/Toolbox/actions/runs/40181152070). A separate Linux/PowerShell 7 `.NET 10` console consumer was subsequently restored against the locally built `0.1.0-preview.1` NuGet package instead of a source-project reference; the maintainer reports successful interactive file-filter and directory-picker smoke checks (2026-10-25). The prior documentation commit passed [GitHub Actions 40183371359](https://github.com/afrowaveltd/Toolbox/actions/runs/40183371359). **Before a public preview release:** inspect the actual `.nupkg` contents and metadata (bundled README/license, target framework and dependencies). The maintainer subsequently supplied an archive contents listing, `.nuspec` metadata summary and successful `unzip -t` integrity check: expected library DLL, XML API docs, `README.md`, `LICENSE.txt`, `net10.0` target and sole `Spectre.Console 0.57.2` dependency are present. The packaged README is 7,009 bytes, older than the current repository README; perform a fresh Release pack **after these documentation changes** and recheck the final package. Actual license text and exact `<license type="file">` mapping were not inspected in this audit. Re-run relevant tests against the release candidate if sources change. Remote SSH/tmux and legacy code-page/font coverage remain separate follow-up tests, not claims of failure. A lower common target framework (e.g. `netstandard2.0`) is under design review and has **not** been implemented or verified; the current package remains `net10.0`.
+Before release, the maintainer reported successful Release packing, local `.nupkg` installation in an independent .NET 10 consumer on Linux/PowerShell 7, file-filter and directory-picker smoke checks, and Windows Terminal / direct legacy `conhost.exe` checks. The provided archive listing and `unzip -t` check confirmed required DLL, XML documentation, README, license file, and the single `Spectre.Console 0.57.2` dependency. [GitHub Actions 40204454925](https://github.com/afrowaveltd/Toolbox/actions/runs/40204454925) passed for the last prepublication documentation commit.
+
+**Known release-documentation limitation:** the published NuGet.org README still says publication has not occurred. NuGet package versions are immutable; edits made to this repository's README do **not** replace the already-published `0.1.0-preview.1` archive. Correct package-embedded release wording in the **next version** (for example `0.1.0-preview.2`). Do not attempt to republish the same package ID and version. An exact source tag for `0.1.0-preview.1` should be created only after identifying the commit from which the uploaded package was built.
+
+Pending optional follow-ups: test a public NuGet.org restore after indexing, run SSH/tmux and legacy-font/code-page smoke cases, and separately evaluate the proposed `netstandard2.0` compatibility migration. These are not grounds to retract the successful first preview publication.
 
 ## Further documentation
 
