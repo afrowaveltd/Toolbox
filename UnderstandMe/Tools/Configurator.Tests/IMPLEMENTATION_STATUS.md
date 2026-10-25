@@ -26,3 +26,8 @@
 ### Final green run — 2026-10-25
 
 - [GitHub Actions #40232402628](https://github.com/afrowaveltd/Toolbox/actions/runs/40232402628) **SUCCESS**: 14/14 Configurator tests; 6,217 total tests across the workflow; build warnings/errors 0/0.
+
+## 2026-10-25 — menu clearing and acknowledged result screens
+
+- Expanded to **18** tests: verify ANSI screen-clear after main-menu return and editor-menu refresh, only after acknowledgement of readable summaries/validation findings, and for canceled file browsing and preferences navigation. Corrupted JSON does not get changed.
+- [GitHub Actions #40233060410](https://github.com/afrowaveltd/Toolbox/actions/runs/40233060410) **SUCCESS**, full test suite green and 0 build warnings/errors.

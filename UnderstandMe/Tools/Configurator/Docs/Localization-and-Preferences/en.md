@@ -10,7 +10,7 @@ Configurator does **not** require an AfuTrans installation, translation service 
 
 ## Parameterless main menu
 
-On interactive start, clear the active console once, read Configurator's own preferences and display:
+On interactive start, clear the active console, read Configurator's own preferences and display (later menu returns also clear the screen):
 1. Create configuration: user enters a new path; create a default in-memory draft without writing; edit, validate, confirm Save.
 2. Edit configuration: existing JSON through the published Blackboard FileBrowser (`*.json` filter) or manual path entry; edit draft through the shared core settings store.
 3. Test configuration (offline): select a JSON file and validate using the core schema and option descriptors, without saving or contacting a provider. This **does not** imply the actual translation provider is reachable.
@@ -52,3 +52,7 @@ The store validates the candidate, uses a same-directory temporary file flushed 
 - Expanded metadata-driven provider/storage forms, granular redacted diff, undo/redo, direct Ctrl+S/Ctrl+V and terminal/SSH manual smoke.
 
 See the [Configurator README](../README.md) and [Configurator-TUI](../../../Docs/Configurator-TUI/en.md).
+
+## Localized result acknowledgement (2026-10-25)
+
+Menu transitions now clear accumulated earlier output before the next menu appears. Results requiring inspection (especially validation diagnostics and failed/successful saves) are kept visible until the user explicitly chooses `Return to menu` with Enter/Esc. Both the action and prompt use the bundled `en`/`cs` resources; the core validator still produces its existing unmodified diagnostic message text. This user-facing pause is not used in noninteractive validation.

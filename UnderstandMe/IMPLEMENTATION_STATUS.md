@@ -851,3 +851,8 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 ### Latest CI status — 2026-10-25
 
 - [GitHub Actions #40232402628](https://github.com/afrowaveltd/Toolbox/actions/runs/40232402628) **SUCCESS** for the first bilingual Configurator launcher and its documentation: 6,217 tests passed across the solution, including 14 Configurator tests; clean build with 0 warnings and 0 errors.
+
+## 2026-10-25 — Configurator menu lifecycle polish
+
+- The standalone bilingual Configurator now clears the TUI screen when returning to its main or editor menus, while preserving validation/save/summary results until an explicit localized Enter/Esc acknowledgement. No changes to UnderstandMe core, other UIs, or the published Blackboard FileBrowser.
+- [GitHub Actions #40233060410](https://github.com/afrowaveltd/Toolbox/actions/runs/40233060410) **SUCCESS** with **18 Configurator tests**, the full Toolbox test workflow green and 0 build warnings/errors.

@@ -13,7 +13,7 @@ dotnet run --project UnderstandMe/Tools/Configurator -- validate --config /path/
 dotnet test UnderstandMe/Tools/Configurator.Tests/UnderstandMe.Configurator.Tests.csproj
 ```
 
-**No command-line arguments are required for interactive use.** The app clears the terminal once and presents this first-level menu:
+**No command-line arguments are required for interactive use.** The app clears the terminal at launch and on subsequent menu returns, and presents this first-level menu:
 
 | Action | Current behavior |
 | --- | --- |
@@ -42,3 +42,11 @@ The file is created **only after explicitly changing the UI language**. Invalid/
 As discussed, AfuTrans TUI (Terminal.GUI), GUI (Avalonia) and Web will eventually share **only genuinely reusable functions** with this Configurator, preferably via small UI-neutral libraries/NuGet packages when actual duplication emerges. Do not couple Configurator to AfuTrans or create a generic shared library prematurely.
 
 See [Localization and Preferences](Docs/Localization-and-Preferences/en.md), [First Integration](Docs/First-Integration/en.md), and [implementation status](IMPLEMENTATION_STATUS.md).
+
+## Clean menu transitions (2026-10-25)
+
+The Configurator clears its interactive terminal on startup **and whenever it returns to the main menu or refreshes the editor menu**. FileBrowser itself is unchanged and is not cleared during individual folder navigation. Editing and return-to-menu actions do not leave a stack of earlier menus on the screen.
+
+Results that need to be read (configuration summary, validation findings, save confirmation/errors or user-preference write errors) remain visible until you choose **Return to menu** using Enter or Esc; only then does the application clear the screen and render the next menu. The acknowledgement prompt is manually localized in `en` and `cs`. The noninteractive `validate` command does not clear output or require acknowledgement.
+
+[GitHub Actions #40233060410](https://github.com/afrowaveltd/Toolbox/actions/runs/40233060410) passed the initial change with **18/18 Configurator tests**, including targeted menu-clear and diagnostic-acknowledgement regressions.

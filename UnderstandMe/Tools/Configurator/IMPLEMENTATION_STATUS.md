@@ -52,3 +52,11 @@
 
 - [GitHub Actions #40232402628](https://github.com/afrowaveltd/Toolbox/actions/runs/40232402628) **SUCCESS** on commit `40cb24e7`. All 14 Configurator tests and every other solution test suite passed (6,217 tests total across the workflow); both build steps completed with **0 warnings, 0 errors**. This supersedes intermediate CI runs in this implementation session.
 - Parameterless localized launcher and per-user language selection are implemented and documented. Real terminal smoke on Debian/Windows, provider forms, structured core diagnostics, language downloads and online update checks remain future work.
+
+## 2026-10-25 — clean menu navigation and acknowledged results
+
+- Changed `ConfiguratorApp` to clear the Spectre.Console screen at startup, on every return to the main menu, and on every editor menu refresh, eliminating accumulated completed-operation output. No screen clear is performed during FileBrowser directory navigation or noninteractive `validate`.
+- Added a bilingual `en`/`cs` Return to menu result acknowledgement. Readable summaries, test/validation results, invalid data errors and save outcomes stay onscreen until Enter/Esc; then the next menu clears the display. Routine successful scalar edits refresh their screen without a separate acknowledgement.
+- Added regression coverage for canceling file browsing, returning from preferences, editor summary acknowledgement with ANSI clear position, malformed JSON diagnostics and localized menu/status behavior. The old 14 Configurator tests expanded to **18**.
+- [GitHub Actions #40233060410](https://github.com/afrowaveltd/Toolbox/actions/runs/40233060410) **SUCCESS**, 18/18 Configurator tests and the complete Toolbox test workflow passed. Both build steps reported 0 warnings and 0 errors.
+- Next: manual interactive Debian/Windows/SSH smoke; full provider/storage descriptor-based forms remain the next functional increment.
