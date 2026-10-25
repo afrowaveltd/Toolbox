@@ -7,7 +7,7 @@
     <Description>Interactive, read-only Spectre.Console file and directory picker for .NET 10 with wildcard/regex filters, lazy folder tree and bounded recursive search.</Description>
     <PackageTags>afrowave;toolbox;blackboard;filebrowser;tui;spectre-console;file-picker;directory-picker;filter;search</PackageTags>
     <PackageProjectUrl>https://github.com/afrowaveltd/Toolbox/tree/master/Blackboard/SpectreConsole/FileBrowser</PackageProjectUrl>
-    <PackageReleaseNotes>Preview interactive local file/directory picker with wildcard/regex filters, lazy tree and bounded recursive search. Manual Debian and Windows Terminal/legacy conhost smoke checks passed. SSH/tmux and package consumer verification remain pending; not yet published.</PackageReleaseNotes>
+    <PackageReleaseNotes>Preview interactive local file/directory picker with wildcard/regex filters, lazy tree and bounded recursive search. Manual Debian and Windows Terminal/legacy conhost checks, Release packaging and an independent NuGet consumer smoke test passed. SSH/tmux remains unverified; not yet published.</PackageReleaseNotes>
     <Version>0.1.0-preview.1</Version>
   </PropertyGroup>
   <ItemGroup>

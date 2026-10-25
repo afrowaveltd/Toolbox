@@ -132,3 +132,13 @@ Create the standalone .NET project and xUnit project, implement the testable nav
 - The previous documentation commit `d47522a7` has green [GitHub Actions 40183371359](https://github.com/afrowaveltd/Toolbox/actions/runs/40183371359).
 - **Remaining before a public preview release:** examine the actual generated `.nupkg` package contents/manifest (README, license, framework, dependency metadata) and make an explicit publication decision. Additional SSH/tmux, legacy encoding/font and `netstandard2.0` compatibility checks are separate follow-up work and are not implied to be verified.
 - No runtime/source/test-code change or NuGet publication in this commit.
+
+## 2026-10-25 — .nupkg manifest, contents and integrity audit PASS (maintainer report)
+
+- Maintainer supplied complete archive entry listing, NuGet `.nuspec` metadata summary and `unzip -t` output for `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.0.1.0-preview.1.nupkg` under `Blackboard/SpectreConsole/FileBrowser/bin/Release/`.
+- **PASS — essential files:** `lib/net10.0/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.dll` (85,504 bytes), accompanying XML documentation (60,185 bytes), root `README.md` (7,009 bytes) and `LICENSE.txt` (1,065 bytes). No Showcase or test assembly listed.
+- **PASS — `.nuspec` summary:** package ID `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser`, version `0.1.0-preview.1`, author `Afrowave`, expected description, README reference, `Spectre.Console 0.57.2` as the only declared dependency. A license element is present; exact license type/path attribute was not displayed in the summary, so do not imply that detail was independently inspected.
+- **PASS — archive integrity:** `unzip -t` reported every entry `OK` and `No errors detected in compressed data`.
+- **Packaging freshness:** the examined package contains the earlier 7,009-byte README; the current repository README already includes later smoke/pack audit notes and is longer. **Repack from the current git checkout before publication** to include current documentation and amended package release notes. Avoid treating a previously cached local package with the same version as proof that the newly packed archive was installed.
+- Prior GitHub CI [40204020685](https://github.com/afrowaveltd/Toolbox/actions/runs/40204020685) succeeded for commit `1c8f8d6e`. The independent NuGet consumer smoke test was already reported PASS. **Public NuGet publication has not been performed.**
+- Scope of this update: audit documentation and package release-note metadata; no C# runtime code or automated tests changed. Additional SSH/tmux, legacy encoding/font checks and any `netstandard2.0` migration are separate future work.

@@ -106,3 +106,9 @@
 - The maintainer successfully ran a separate `net10.0` console project on Linux/PowerShell 7 with a `PackageReference` to the local `0.1.0-preview.1` FileBrowser `.nupkg` instead of a Toolbox `ProjectReference`. The corrected package restore and interactive file-filter/directory selection workflow completed without errors.
 - Documentation-only commit `d47522a7` passed [GitHub Actions 40183371359](https://github.com/afrowaveltd/Toolbox/actions/runs/40183371359).
 - The separate-consumer NuGet smoke gate is now recorded as **PASS (maintainer report)**. Package contents/manifest inspection remains outstanding; nothing has been published to NuGet, and no source or automated tests were altered.
+
+## 2026-10-25 — FileBrowser package audit green
+
+- Maintainer-provided contents and NuGet manifest checks for `0.1.0-preview.1` show required .NET 10 assembly, XML documentation, README, license file, single `Spectre.Console 0.57.2` dependency and no bundled Showcase/tests; `unzip -t` found no archive errors.
+- Previous [GitHub CI 40204020685](https://github.com/afrowaveltd/Toolbox/actions/runs/40204020685) passed. Release build, local package creation and independent consumer smoke were also reported PASS.
+- Remaining final publication detail: **repack after current README/release-note updates** (the inspected archive bundled an older 7,009-byte README); recheck the final archive metadata and confirm the license mapping. No public upload yet. The tests and library runtime were not changed in this documentation commit.
