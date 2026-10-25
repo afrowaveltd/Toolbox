@@ -61,7 +61,7 @@ public sealed partial class ConfiguratorApp
             .PageSize(Math.Clamp(available.Length, 3, 15))
             .UseConverter(x => x is null ? Markup.Escape(T("menu.back")) : Markup.Escape(x.DisplayName))
             .AddChoices(available)
-            .AddCancelResult(null)
+            .AddCancelResult((SettingsComponentDescriptor?)null)
             .ShowAsync(_console, cancellationToken);
         if (schema is null)
             return;
