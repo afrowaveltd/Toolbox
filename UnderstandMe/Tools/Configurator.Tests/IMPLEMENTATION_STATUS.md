@@ -31,3 +31,9 @@
 
 - Expanded to **18** tests: verify ANSI screen-clear after main-menu return and editor-menu refresh, only after acknowledgement of readable summaries/validation findings, and for canceled file browsing and preferences navigation. Corrupted JSON does not get changed.
 - [GitHub Actions #40233060410](https://github.com/afrowaveltd/Toolbox/actions/runs/40233060410) **SUCCESS**, full test suite green and 0 build warnings/errors.
+
+## 2026-10-25 — provider/storage editing and optional live HTTP probe
+
+- New `ConfiguratorComponentsTests` cover built-in descriptors, complete-draft dirtiness, add/remove, type/limit validation, conditional secret-reference validation, revision conflicts and schema-safe persistence.
+- New `ConfiguratorConnectivityTests` use fake HTTP handlers and no real network to check GET /languages, JSON-model tolerance, rejection of non-2xx or non-JSON, credential-free requests, disabled/unsupported/invalid endpoints, failure never blocking save and optional TUI live test preserving the configuration file.
+- The existing localized TUI result acknowledgement is preserved for offline diagnostics and explicit online tests. Latest GitHub Actions verification pending after the last commit.

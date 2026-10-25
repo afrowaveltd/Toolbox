@@ -23,3 +23,7 @@ The sibling xUnit project covers draft creation/save, persistence conflict, unch
 ## CI results (2026-10-25)
 
 [GitHub Actions 40229277472](https://github.com/afrowaveltd/Toolbox/actions/runs/40229277472) passed with **8 new Configurator tests**, including choosing JSON through the actual published FileBrowser picker in a virtual terminal. The whole solution test workflow succeeded. Manual real-terminal verification is the next acceptance step; shortcut bindings and provider/storage editor are not yet implemented.
+
+## 2026-10-25 — superseded editor limitations
+
+The initial two-field-only limitation above was superseded by the [Descriptor-driven Provider/Storage Editor](../Provider-Storage-Editor/en.md). Add/edit/remove registrations and metadata-based option editing are now available. [Live Connection Diagnostics](../Live-Connection-Diagnostics/en.md) describes the optional read-only HTTP GET probe added separately; this does not change the authoritative offline validation or Save contract.

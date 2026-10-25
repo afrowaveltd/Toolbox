@@ -60,3 +60,12 @@
 - Added regression coverage for canceling file browsing, returning from preferences, editor summary acknowledgement with ANSI clear position, malformed JSON diagnostics and localized menu/status behavior. The old 14 Configurator tests expanded to **18**.
 - [GitHub Actions #40233060410](https://github.com/afrowaveltd/Toolbox/actions/runs/40233060410) **SUCCESS**, 18/18 Configurator tests and the complete Toolbox test workflow passed. Both build steps reported 0 warnings and 0 errors.
 - Next: manual interactive Debian/Windows/SSH smoke; full provider/storage descriptor-based forms remain the next functional increment.
+
+## 2026-10-25 — descriptor-based provider/storage editor + optional live checks
+
+- Added `ConfiguratorSession.Components.cs` using the **existing core** `SettingsDescriptorRegistry`: add/remove providers and storages, apply schema defaults, edit typed options, provider Enabled and storage SourceLanguage/SetValueFromKey. Complete-draft dirty tracking detects all component changes; unchanged core revision-safe Save remains authoritative.
+- Added TUI menus for provider/storage CRUD and all built-in descriptor fields, with Czech/English resource keys. Secret-reference values are redacted in displays and not used as visible prompt defaults. No additional NuGet shared package or Spectre dependency in UnderstandMe core.
+- Added an explicit **advisory** LibreTranslate live check in the Test configuration flow and against the editor's unsaved draft: bounded HTTP GET `/languages`, 2xx + arbitrary valid JSON counts as endpoint responding. No credential or translation data transmitted; failures do not block saving. Disabled/unsupported registrations do not receive requests. No live checks at startup or Save.
+- Added deterministic xUnit tests covering schema-default registration, typed validation, conditional secret references, duplicate IDs, deletion, revision conflicts, offline non-mutating live diagnostics and virtual-console navigation.
+- Documentation: [Provider/Storage Editor](Docs/Provider-Storage-Editor/en.md), [Live Connection Diagnostics](Docs/Live-Connection-Diagnostics/en.md). Live translation/authentication test and real Debian/Windows/SSH smoke remain future increments.
+- **CI verification in progress for the latest integration commit.** Do not claim a verified test count until a completed successful workflow has been inspected.

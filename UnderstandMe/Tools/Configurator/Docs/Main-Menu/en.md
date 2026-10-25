@@ -27,3 +27,7 @@ The main menu clears the terminal before each **return from an action**, and the
 Summary, validation and save results must not disappear immediately. The app presents an offline localized **Return to menu** action (Enter/Esc) that gives the user control over when results may be cleared. Ordinary prompts for changing scalar values can return straight to the refreshed editor menu; when a value is malformed, the error is acknowledged first. Failure to open/create settings is acknowledged before returning to the main menu. Canceling a file picker without diagnostics returns directly to a clean menu.
 
 The virtual-console test suite checks ANSI clear-screen positions, repeated editor menu transitions, cancellation, corrupted JSON and preservation of files when navigating. [GitHub Actions #40233060410](https://github.com/afrowaveltd/Toolbox/actions/runs/40233060410) passed 18/18 Configurator tests.
+
+## 2026-10-25 — optional live diagnostics
+
+Test configuration first performs the existing offline structural check. Its result screen now offers either Return or explicit **Test provider connections (live)**. Enabled LibreTranslate providers are tested with bounded GET `/languages`; a failed response is advisory and does not affect Save. The editor also exposes the same live action on a draft, alongside metadata-driven provider and storage registration editors. See [Live Connection Diagnostics](../Live-Connection-Diagnostics/en.md) and [Provider/Storage Editor](../Provider-Storage-Editor/en.md).
