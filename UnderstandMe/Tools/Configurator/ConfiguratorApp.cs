@@ -6,7 +6,7 @@ using Spectre.Console;
 namespace Afrowave.Toolbox.UnderstandMe.Configurator;
 
 /// <summary>Standalone offline TUI over UnderstandMe's shared configuration contracts.</summary>
-public sealed class ConfiguratorApp
+public sealed partial class ConfiguratorApp
 {
     private readonly IAnsiConsole _console;
     private readonly SpectreFileBrowser _picker;
@@ -279,6 +279,8 @@ public sealed class ConfiguratorApp
                 Item(Action.Summary, "editor.summary"),
                 Item(Action.Source, "editor.source"),
                 Item(Action.Buffer, "editor.buffer"),
+                Item(Action.Providers, "component.providers"),
+                Item(Action.Storages, "component.storages"),
                 Item(Action.Validate, "editor.validate"),
                 Item(Action.Save, "editor.save"),
                 Item(Action.Back, "menu.back")
@@ -290,7 +292,9 @@ public sealed class ConfiguratorApp
                     Write(T("editor.summary.source") + session.Draft.Localization.DefaultSourceLanguage + "\n" +
                           T("editor.summary.storages") + session.Draft.Localization.Storages.Count + "; " +
                           T("editor.summary.providers") + session.Draft.Translation.Providers.Count + "\n" +
-                          T("editor.summary.buffer") + session.Draft.Translation.Queues.DefaultWorkerBufferCapacity + "\n");
+                          T("editor.summary.buffer") + session.Draft.Translation.Queues.DefaultWorkerBufferCapacity + "\n" +
+              T("editor.summary.providers") + session.Draft.Translation.Providers.Count + "\n" +
+              T("editor.summary.storages") + session.Draft.Localization.Storages.Count + "\n");
                     await WaitForReturnAsync(cancellationToken);
                     break;
                 case Action.Source:
@@ -307,6 +311,12 @@ public sealed class ConfiguratorApp
                         Write(T("editor.expected.integer") + "\n");
                         await WaitForReturnAsync(cancellationToken);
                     }
+                    break;
+                case Action.Providers:
+                    await EditComponentsAsync(session, SettingsComponentKind.TranslationBackend, cancellationToken);
+                    break;
+                case Action.Storages:
+                    await EditComponentsAsync(session, SettingsComponentKind.LocalizationStorage, cancellationToken);
                     break;
                 case Action.Validate:
                     ShowIssues(session.Validate());
@@ -346,7 +356,7 @@ public sealed class ConfiguratorApp
             return;
         }
 
-        // Never reveal provider options/secrets; only the two nonsensitive editable fields.
+        // Never reveal provider options or secret references in the save overview.
         Write(T("editor.review") + "\n" +
               T("editor.target") + session.Path + "\n" +
               T("editor.summary.source") + session.Draft.Localization.DefaultSourceLanguage + "\n" +
@@ -428,6 +438,6 @@ public sealed class ConfiguratorApp
     {
         Create, Edit, Test, Preferences, Exit,
         Browse, Path, Back, English, Czech,
-        Summary, Source, Buffer, Validate, Save, Continue
+        Summary, Source, Buffer, Providers, Storages, Validate, Save, Continue
     }
 }
