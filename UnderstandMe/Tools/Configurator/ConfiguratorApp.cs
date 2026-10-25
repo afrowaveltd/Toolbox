@@ -33,20 +33,28 @@ public sealed class ConfiguratorApp
         if (!_console.Profile.Capabilities.Interactive)
             throw new InvalidOperationException("Configurator requires an interactive console.");
 
-        // Clear only the initial interactive screen. Keep FileBrowser and editor output intact.
+        // A clean startup screen, then a clean screen whenever we return to a menu.
+        // Do not clear validation or diagnostic output until the user has dismissed it.
         _console.Clear();
         LoadPreferences();
 
+        var clearBeforeMainMenu = false;
         if (!string.IsNullOrWhiteSpace(path))
         {
             var direct = TryOpen(path);
             if (direct is not null)
                 await EditAsync(direct, cancellationToken);
+            else
+                await WaitForReturnAsync(cancellationToken);
+            clearBeforeMainMenu = true;
         }
 
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            if (clearBeforeMainMenu)
+                _console.Clear();
+            clearBeforeMainMenu = true;
             Write(T("app.title") + "\n");
             var choice = await Choose(
             [
@@ -138,10 +146,12 @@ public sealed class ConfiguratorApp
             _preferences = new(candidate, revision);
             _strings = new ConfiguratorStrings(language);
             Write(T("prefs.saved") + "\n");
+            await WaitForReturnAsync(cancellationToken);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
         {
             Write(T("prefs.error") + ex.Message + "\n");
+            await WaitForReturnAsync(cancellationToken);
         }
     }
 
@@ -157,6 +167,7 @@ public sealed class ConfiguratorApp
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
         {
             Write(T("editor.create.error") + ex.Message + "\n");
+            await WaitForReturnAsync(cancellationToken);
         }
     }
 
@@ -168,6 +179,8 @@ public sealed class ConfiguratorApp
         var session = TryOpen(path);
         if (session is not null)
             await EditAsync(session, cancellationToken);
+        else
+            await WaitForReturnAsync(cancellationToken);
     }
 
     private async Task TestAsync(CancellationToken cancellationToken)
@@ -189,6 +202,9 @@ public sealed class ConfiguratorApp
         {
             Write(T("test.error") + ex.Message + "\n");
         }
+
+        // Validation results are useful until acknowledged, not after the next menu appears.
+        await WaitForReturnAsync(cancellationToken);
     }
 
     private async Task<string?> SelectFileAsync(CancellationToken cancellationToken)
@@ -253,6 +269,7 @@ public sealed class ConfiguratorApp
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            _console.Clear();
             Write((session.Revision is null ? T("editor.new") : T("editor.title")) +
                   session.Path + " [" +
                   T(session.IsDirty ? "editor.unsaved" : "editor.saved") + "]\n");
@@ -274,6 +291,7 @@ public sealed class ConfiguratorApp
                           T("editor.summary.storages") + session.Draft.Localization.Storages.Count + "; " +
                           T("editor.summary.providers") + session.Draft.Translation.Providers.Count + "\n" +
                           T("editor.summary.buffer") + session.Draft.Translation.Queues.DefaultWorkerBufferCapacity + "\n");
+                    await WaitForReturnAsync(cancellationToken);
                     break;
                 case Action.Source:
                     session.SetSourceLanguage(await Prompt("editor.language.prompt",
@@ -285,13 +303,18 @@ public sealed class ConfiguratorApp
                     if (int.TryParse(entered, out var capacity))
                         session.SetWorkerBufferCapacity(capacity);
                     else
+                    {
                         Write(T("editor.expected.integer") + "\n");
+                        await WaitForReturnAsync(cancellationToken);
+                    }
                     break;
                 case Action.Validate:
                     ShowIssues(session.Validate());
+                    await WaitForReturnAsync(cancellationToken);
                     break;
                 case Action.Save:
                     await ReviewAndSaveAsync(session, cancellationToken);
+                    await WaitForReturnAsync(cancellationToken);
                     break;
                 case Action.Back:
                     if (!session.IsDirty || await Confirm("editor.discard", cancellationToken))
@@ -353,6 +376,19 @@ public sealed class ConfiguratorApp
         }
     }
 
+    // Use an ordinary localized prompt rather than a key-binding: works over SSH,
+    // Spectre.Console.Testing, and terminals that intercept Ctrl or flow-control keys.
+    // The caller clears the screen only after this acknowledgement.
+    private async Task WaitForReturnAsync(CancellationToken cancellationToken)
+    {
+        var resume = Item(Action.Continue, "menu.continue");
+        await new SelectionPrompt<Choice>()
+            .Title(Markup.Escape(T("menu.result.heading")))
+            .AddChoices(resume)
+            .AddCancelResult(resume)
+            .ShowAsync(_console, cancellationToken);
+    }
+
     private Task<string> Prompt(string labelKey, string defaultValue, CancellationToken cancellationToken) =>
         new TextPrompt<string>(Markup.Escape(T(labelKey)))
             .DefaultValue(defaultValue)
@@ -392,6 +428,6 @@ public sealed class ConfiguratorApp
     {
         Create, Edit, Test, Preferences, Exit,
         Browse, Path, Back, English, Czech,
-        Summary, Source, Buffer, Validate, Save
+        Summary, Source, Buffer, Validate, Save, Continue
     }
 }
