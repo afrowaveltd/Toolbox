@@ -74,5 +74,7 @@
   "picker.partial": "Některé složky nebyly přístupné.",
   "picker.list.error": "Složku nelze načíst",
   "picker.empty": "V této složce nejsou viditelné položky.",
-  "picker.matches": "Odpovídající relativní cesty"
+  "picker.matches": "Odpovídající relativní cesty",
+  "menu.result.heading": "Výsledek — po přečtení stiskněte Enter nebo Esc",
+  "menu.continue": "Zpět do nabídky"
 }

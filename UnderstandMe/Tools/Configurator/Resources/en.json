@@ -74,5 +74,7 @@
   "picker.partial": "Some directories were inaccessible.",
   "picker.list.error": "Unable to list directory",
   "picker.empty": "No visible entries in this folder.",
-  "picker.matches": "Matching relative paths"
+  "picker.matches": "Matching relative paths",
+  "menu.result.heading": "Result — press Enter or Esc when finished reading",
+  "menu.continue": "Return to menu"
 }
