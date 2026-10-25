@@ -12,18 +12,21 @@ public sealed partial class ConfiguratorApp
     private readonly SpectreFileBrowser _picker;
     private readonly string _startingDirectory;
     private readonly ConfiguratorPreferencesStore _preferencesStore;
+    private readonly ConfiguratorConnectivityProbe _connectivityProbe;
     private ConfiguratorPreferencesDocument _preferences = new(new ConfiguratorPreferences(), null);
     private ConfiguratorStrings _strings = new("en");
 
     /// <summary>Create an editor; optional injected console, directory and preferences path support tests.</summary>
     public ConfiguratorApp(
-        IAnsiConsole? console = null, string? startingDirectory = null, string? preferencesPath = null)
+        IAnsiConsole? console = null, string? startingDirectory = null, string? preferencesPath = null,
+        ConfiguratorConnectivityProbe? connectivityProbe = null)
     {
         _console = console ?? AnsiConsole.Console;
         _startingDirectory = System.IO.Path.GetFullPath(startingDirectory ?? Environment.CurrentDirectory);
         _preferencesStore = new ConfiguratorPreferencesStore(
             preferencesPath ?? ConfiguratorPreferencesStore.DefaultFilePath());
         _picker = new SpectreFileBrowser(new FileBrowserLocalSource(), _console);
+        _connectivityProbe = connectivityProbe ?? new ConfiguratorConnectivityProbe();
     }
 
     /// <summary>Run the parameterless launcher, or open an optional explicit configuration path.</summary>
@@ -203,8 +206,29 @@ public sealed partial class ConfiguratorApp
             Write(T("test.error") + ex.Message + "\n");
         }
 
-        // Validation results are useful until acknowledged, not after the next menu appears.
-        await WaitForReturnAsync(cancellationToken);
+        // Offline results are retained while the user decides whether to perform an explicit live check.
+        // An unsuccessful live diagnostic never marks settings invalid or prevents a later save.
+        var choices = new[]
+        {
+            Item(Action.Back, "menu.continue"),
+            Item(Action.LiveProbe, "connection.action")
+        };
+        var chosen = await Choose(choices, Action.Back, cancellationToken, "connection.after.offline");
+        if (chosen == Action.LiveProbe)
+        {
+            try
+            {
+                var draft = UnderstandMeSettingsJsonStore.Load(path).Settings;
+                await ShowConnectivityAsync(draft, cancellationToken);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or
+                ArgumentException or JsonException or UnderstandMeSettingsValidationException)
+            {
+                // Still no network if an existing document cannot be parsed as a valid settings model.
+                Write(T("test.error") + ex.Message + "\n");
+                await WaitForReturnAsync(cancellationToken);
+            }
+        }
     }
 
     private async Task<string?> SelectFileAsync(CancellationToken cancellationToken)
@@ -282,6 +306,7 @@ public sealed partial class ConfiguratorApp
                 Item(Action.Providers, "component.providers"),
                 Item(Action.Storages, "component.storages"),
                 Item(Action.Validate, "editor.validate"),
+                Item(Action.LiveProbe, "connection.action"),
                 Item(Action.Save, "editor.save"),
                 Item(Action.Back, "menu.back")
             ], Action.Back, cancellationToken);
@@ -322,6 +347,9 @@ public sealed partial class ConfiguratorApp
                     ShowIssues(session.Validate());
                     await WaitForReturnAsync(cancellationToken);
                     break;
+                case Action.LiveProbe:
+                    await ShowConnectivityAsync(session.Draft, cancellationToken);
+                    break;
                 case Action.Save:
                     await ReviewAndSaveAsync(session, cancellationToken);
                     await WaitForReturnAsync(cancellationToken);
@@ -332,6 +360,39 @@ public sealed partial class ConfiguratorApp
                     break;
             }
         }
+    }
+
+    private async Task ShowConnectivityAsync(
+        UnderstandMeSettings draft, CancellationToken cancellationToken)
+    {
+        Write(T("connection.title") + "\n");
+        if (draft.Translation.Providers.Count == 0)
+        {
+            Write(T("connection.none") + "\n");
+            await WaitForReturnAsync(cancellationToken);
+            return;
+        }
+
+        Write(T("connection.info") + "\n");
+        var checkedProviders = new List<ProviderConnectivityResult>();
+        try
+        {
+            checkedProviders.AddRange(await _connectivityProbe.CheckAsync(draft, cancellationToken));
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // Preserve cancellation semantics; no background probe continues.
+            throw;
+        }
+
+        foreach (var result in checkedProviders)
+        {
+            // Only adapter ID/status and sanitized diagnostic text; never print options or secrets.
+            Write(result.Id + " (" + result.Type + "): " +
+                T("connection.status." + result.Status) + " — " + result.Detail + "\n");
+        }
+        Write(T("connection.nonblocking") + "\n");
+        await WaitForReturnAsync(cancellationToken);
     }
 
     private void ShowIssues(IReadOnlyList<SettingsValidationIssue> issues)
@@ -438,6 +499,6 @@ public sealed partial class ConfiguratorApp
     {
         Create, Edit, Test, Preferences, Exit,
         Browse, Path, Back, English, Czech,
-        Summary, Source, Buffer, Providers, Storages, Validate, Save, Continue
+        Summary, Source, Buffer, Providers, Storages, Validate, Save, Continue, LiveProbe
     }
 }
