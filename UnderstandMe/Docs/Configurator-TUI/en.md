@@ -131,3 +131,11 @@ The component family [Blackboard](../../../Blackboard/README.md) is now document
 ## 2026-10-25 — first executable Configurator slice
 
 The first UnderstandMe-owned executable now connects the independently published Blackboard FileBrowser picker to shared strict settings validation and revision-checked storage. See [First Integration](../../Tools/Configurator/Docs/First-Integration/en.md). Full descriptor forms and Ctrl+S/Ctrl+V keyboard chords remain planned; the initial editor offers visible menu equivalents for Validate and Review & Save.
+
+## 2026-10-25 — next design discussion: local standalone preferences and self-localization
+
+The Configurator should install and run as a **standalone TUI application** on the user's computer, without any mandatory startup parameters. Proposed primary menu: **Create configuration**, **Edit configuration**, **Test configuration**, **Configurator Settings**, **Exit**. CLI arguments such as `validate --config` remain optional automation conveniences. The specific meaning and scope of Test configuration (schema checks versus opt-in connection diagnostics) is **still to be designed** and must not be silently reduced to one category.
+
+The Configurator needs its **own per-user preferences**, including UI language, separate from whichever host's `UnderstandMeSettings.json` is currently being edited. Initially ship two bundled, manually maintained language resources, **English (`en`) and Czech (`cs`)**, to verify localization and language switching. English must remain an unconditional **offline bootstrap fallback**, so the editor can repair a broken UnderstandMe configuration without a working translator. Later migrate UI lookup to reusable UnderstandMe localization primitives without making startup depend on online translation services. Optional update checks and additional downloadable language packs are for subsequent versions, with explicit user control; none is implemented yet.
+
+Current implementation step only: clear the interactive terminal once at startup, not before every picker/menu action; preserve noninteractive output unmodified. See [Localization and Preferences](../../Tools/Configurator/Docs/Localization-and-Preferences/en.md).

@@ -26,3 +26,10 @@
 - **8 Configurator.Tests passed**, including a real FileBrowser JSON selection driven by Spectre.Console.Testing, unsaved/cancelled file safety, revision conflict and invalid draft rejection. Existing FileBrowser tests: **160 passed**. The final CI build step reported **0 warnings / 0 errors**.
 - Initial CI failures on early commits were resolved by excluding nested `Tools/**/*.cs` from the core's SDK glob and using Spectre.Console 0.57.2's supported confirmation API.
 - Real manual terminal interaction and complete metadata-driven provider editing remain outside this successful first slice.
+
+## 2026-10-25 — one-time startup clear and localization direction
+
+- On interactive launch, the Configurator now clears its injected Spectre.Console terminal exactly once before any UI output. Headless `validate` is untouched; FileBrowser navigation does not clear again.
+- Added a Spectre.Console.Testing assertion for the initial ANSI clear-screen sequence and its single occurrence.
+- Upcoming **design to discuss**: a standalone Configurator with its own per-user application preferences, separate from edited `UnderstandMeSettings.json`; initial manually maintained bundled languages `en` and `cs` and offline English fallback; self-localization through UnderstandMe later. No mandatory command-line parameters: main menu Create, Edit, Test, Configurator Settings and Exit. Optional version checks and downloadable language packs belong to later releases.
+- These menu and localization features are **not implemented by this change**. See [Localization and Preferences](Docs/Localization-and-Preferences/en.md).

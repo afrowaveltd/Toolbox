@@ -47,3 +47,7 @@ dotnet build Blackboard/Samples/Blackboard.Showcase/Blackboard.Showcase.csproj
 ```
 
 GitHub CI builds/tests the whole `Toolbox.sln`. Automated `Spectre.Console.Testing` tests check menu selection, JSON filtering and rendered output; **manual real-terminal smoke tests** are still required before considering terminal behavior fully verified.
+
+## Terminal startup
+
+The Showcase clears the terminal once when it enters the interactive main menu, so earlier command output is hidden. It **does not** clear after running each demonstration, preserving the demo result. This is an application-host behavior, not a change to the independent FileBrowser NuGet package.

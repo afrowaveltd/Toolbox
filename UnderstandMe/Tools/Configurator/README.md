@@ -20,3 +20,9 @@ The first editor supports displaying a non-sensitive summary, editing **DefaultS
 The headless `validate` command returns exit code 0 on valid settings, 1 on invalid/missing settings and 2 on malformed CLI syntax. No network call or translation service is started.
 
 **First-slice limitations:** This is not yet the full metadata-driven provider/storage editor. Ctrl+S / Ctrl+V shortcuts, rich field-by-field redacted diff, undo/redo, multi-location discovery, live SSH resizing and localized UI are future stages; their visible menu actions remain available for saving and validation. No code is added to the UnderstandMe core for Spectre.
+
+## Terminal display and planned preferences
+
+Interactive startup clears the console **once**, before loading a config file and rendering the first menu. Headless `validate` output is never cleared.
+
+**Planned, not yet implemented:** a parameterless main menu (Create / Edit / Test / Configurator Settings / Exit), per-user Configurator preferences distinct from edited settings, initially bundled manual `en` and `cs` translations with English offline fallback, and later optional language-pack downloads and version checks. See [Localization and Preferences](Docs/Localization-and-Preferences/en.md).

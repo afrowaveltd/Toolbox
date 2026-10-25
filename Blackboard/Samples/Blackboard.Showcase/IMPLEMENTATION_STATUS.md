@@ -28,3 +28,9 @@
 - Added direct virtual-terminal tests of the actual **text-preview demo** (readable Czech text chosen through FileBrowser) and **directory-selection demo** (choose current folder without modification), commit `7320d00b`.
 - GitHub Actions [40109040501](https://github.com/afrowaveltd/Toolbox/actions/runs/40109040501) **SUCCESS** with **20 Showcase tests**, **148 FileBrowser tests**, and the green full Toolbox build and all existing test projects. This supersedes the preceding 18-test result.
 - Existing focused `FileBrowser.Sample` continues alongside the expandable `Blackboard.Showcase`, with a menu that can accept future UI tools without changing their NuGet dependencies.
+
+## 2026-10-25 — clear Showcase terminal at launch
+
+- `BlackboardShowcaseHost.RunAsync` calls the Spectre.Console `IAnsiConsole.Clear()` extension once after its interactive guard and before the first menu, hiding command history above the TUI.
+- Returning from a demo does not clear its output. A virtual-terminal regression asserts the clear ANSI sequence occurs at the very beginning exactly once.
+- This changes only the Showcase host, **not** the separately published FileBrowser component.
