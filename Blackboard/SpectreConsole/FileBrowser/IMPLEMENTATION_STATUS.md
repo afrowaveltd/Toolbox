@@ -155,3 +155,7 @@ Create the standalone .NET project and xUnit project, implement the testable nav
 ## 2026-10-25 — test-only warning cleanup
 
 - Replaced a redundant `Assert.True(string.Equals(...))` in the FileBrowser presentation test with `Assert.Equal` to comply with xUnit2010. No FileBrowser production code, package API, or published NuGet bits were changed. CI verification pending on this commit.
+
+### xUnit2000 analyzer follow-up (2026-10-25)
+
+- The previous `Assert.Equal(originalName, name)` removed xUnit2010 but triggered xUnit2000 because the compiler recognized `name` as the compile-time constant. Put `name` first as the expected argument. No production source changes. GitHub CI verification to follow.
