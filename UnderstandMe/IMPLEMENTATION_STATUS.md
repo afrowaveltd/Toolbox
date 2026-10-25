@@ -834,3 +834,9 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 
 - CI on the initial executable commit detected MSBuild SDK default recursive compilation of `UnderstandMe/Tools/Configurator/*.cs` into `UnderstandMe.csproj`. This caused missing Spectre dependencies in the core build and violated UI separation.
 - Added `Compile Remove="Tools/**/*.cs"` to the core project, keeping tool implementations in their own explicitly registered projects. Re-run GitHub CI before declaring success.
+
+### 2026-10-25 — Configurator integration confirmed green
+
+- [GitHub Actions 40229277472](https://github.com/afrowaveltd/Toolbox/actions/runs/40229277472) **SUCCESS** for `087f5662`: first Configurator executable, package-based FileBrowser integration, strict settings read/validation/revision-save tests and virtual-terminal JSON browsing all compiled and passed. **8 Configurator tests** and **160 FileBrowser tests** passed alongside the established solution suites.
+- The core project excludes nested `Tools/**/*.cs` to ensure Spectre.Console dependencies stay in the independent executable; no change to UnderstandMe's public library API.
+- The initial editor supports two scalar settings plus browse/load/create/validate/confirmed-save; complete descriptor forms, shortcut input handling and real SSH/Windows smoke remain future work. Do not report them as already implemented.

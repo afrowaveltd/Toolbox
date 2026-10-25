@@ -19,3 +19,7 @@ Design-level features from [Configurator TUI](../../../Docs/Configurator-TUI/en.
 ## Verification
 
 The sibling xUnit project covers draft creation/save, persistence conflict, unchanged files on invalid/cancel, preserving existing registrations and virtual-terminal cancellation. CI must be inspected before marking the first milestone green.
+
+## CI results (2026-10-25)
+
+[GitHub Actions 40229277472](https://github.com/afrowaveltd/Toolbox/actions/runs/40229277472) passed with **8 new Configurator tests**, including choosing JSON through the actual published FileBrowser picker in a virtual terminal. The whole solution test workflow succeeded. Manual real-terminal verification is the next acceptance step; shortcut bindings and provider/storage editor are not yet implemented.

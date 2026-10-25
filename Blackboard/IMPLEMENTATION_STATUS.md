@@ -122,3 +122,7 @@
 ## 2026-10-25 — first UnderstandMe production consumer
 
 - UnderstandMe Configurator is now an independent consumer of published Blackboard FileBrowser 0.1.0-preview.1 via PackageReference. File selection is intentionally read-only; all JSON settings edits belong to UnderstandMe's core store. CI pending for this integration.
+
+### 2026-10-25 — published FileBrowser verified in first consumer CI
+
+- [GitHub Actions 40229277472](https://github.com/afrowaveltd/Toolbox/actions/runs/40229277472) succeeded after the UnderstandMe Configurator integrated the published FileBrowser `0.1.0-preview.1` via PackageReference. Virtual-terminal JSON selection test passed, in addition to 160 FileBrowser tests. The Blackboard library itself was not modified by the integration.

@@ -19,3 +19,10 @@
 - Added injectable initial browsing directory to the Configurator host. Tests can exercise the **real published FileBrowser picker** in an isolated temporary folder without changing process-wide current directory.
 - Added a virtual-terminal test that selects JSON through FileBrowser, loads it using the shared settings store and exits without changing the file. Switching to a different configuration now asks confirmation if there are unsaved edits.
 - CI verification of this follow-up is pending.
+
+### Verified GitHub CI (2026-10-25)
+
+- [GitHub Actions run 40229277472](https://github.com/afrowaveltd/Toolbox/actions/runs/40229277472) **SUCCESS** for integration commit `087f5662`. Entire solution build and test workflow completed; the new Configurator project compiled independently while `UnderstandMe.dll` did not require any Spectre UI dependency.
+- **8 Configurator.Tests passed**, including a real FileBrowser JSON selection driven by Spectre.Console.Testing, unsaved/cancelled file safety, revision conflict and invalid draft rejection. Existing FileBrowser tests: **160 passed**. The final CI build step reported **0 warnings / 0 errors**.
+- Initial CI failures on early commits were resolved by excluding nested `Tools/**/*.cs` from the core's SDK glob and using Spectre.Console 0.57.2's supported confirmation API.
+- Real manual terminal interaction and complete metadata-driven provider editing remain outside this successful first slice.
