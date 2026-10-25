@@ -34,3 +34,10 @@ Next: add navigation and Spectre rendering test seams, then test actual terminal
 
 - Added a virtual-terminal regression ensuring a directory that cannot be enumerated is never offered as a successful current-folder selection.
 - [GitHub Actions run 40099579962](https://github.com/afrowaveltd/Toolbox/actions/runs/40099579962) **SUCCESS** with **148 FileBrowser tests** and green solution build. Test coverage includes injected Spectre keyboard input; it does not replace manual real-terminal testing.
+
+## 2026-10-25 — real Windows terminal smoke report (manual, not xUnit)
+
+- After updating, the maintainer reported the current interactive FileBrowser scenarios passing in available Windows Terminal shell profiles (Command Prompt, PowerShell, Developer Command Prompt and Git shell).
+- The maintainer subsequently started legacy Windows Console Host (`conhost.exe`) directly and confirmed working behavior **including colors**. Running cmd within Windows Terminal alone would not have tested this older console host.
+- This is **manual compatibility evidence**, not an additional automated test or an increase in xUnit count. The last explicitly reported local FileBrowser unit-test run remains **160 passed, 0 failed, 0 skipped** (2026-10-24). The latest GitHub Actions run reviewed for the pre-documentation commit is [40121980599](https://github.com/afrowaveltd/Toolbox/actions/runs/40121980599), SUCCESS.
+- Debian interactive smoke was reported previously. Real SSH/tmux, edge-case fonts and legacy code pages remain outside this verified matrix. No test source changes in this documentation commit.

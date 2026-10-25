@@ -1,6 +1,6 @@
 # Terminal capabilities and icon fallback
 
-**Status: design direction, 2026-10-22. Not yet implemented.**
+**Status:** Original design notes from 2026-10-22. Capability-aware icon fallback is now implemented. Manual smoke tests reported on 2026-10-24/25 confirmed Debian and Windows terminal behavior, including the legacy Windows Console Host (`conhost.exe`). The remaining matrix entries below are not automatically implied to pass.
 
 ## Background
 
@@ -38,6 +38,21 @@ Display without icons must remain clear and accessible: directory names can have
 - Stubbed profile: Unicode true/false/unknown, interactive true/false, forced On/Off, font lacking emoji, no-color with Unicode enabled.
 - Verify no emoji escape sequences in ASCII/Auto fallback, correct names and selectable identity, unchanged process-wide output encoding, Unicode filenames not mutated, missing glyph fallback remains usable and no silent override of a user-selected policy.
 - Ensure the future Blackboard sample app demonstrates each mode and clearly labels current effective mode.
+
+## Manual terminal smoke verification (2026-10-25)
+
+These observations were reported by the maintainer after updating and running the current FileBrowser on real machines; they are **manual observations**, not new automated xUnit or CI tests.
+
+| Host / profile | Reported outcome | Notes |
+| --- | --- | --- |
+| Debian interactive terminal | PASS (2026-10-24) | Navigation and file preview worked; a subsequent check displayed the conservative Unicode directory symbol in Auto mode. |
+| Windows Terminal profiles | PASS (2026-10-25) | Available shell profiles (including Command Prompt, PowerShell, Developer Command Prompt and Git shell) were exercised successfully after the update. |
+| Legacy Windows Console Host | PASS (2026-10-25) | The maintainer launched `conhost.exe` directly; FileBrowser functionality and colors were reported working. |
+| SSH / tmux / screen, narrow consoles, specific legacy code pages | NOT VERIFIED by this report | Retain separate compatibility coverage for these cases. |
+
+**Shell vs host:** Opening `cmd.exe` in Windows Terminal does not test the old console renderer. The direct `conhost.exe` check above covers that distinct Windows host. No extra implementation change or forced icon/encoding setting was needed based on the reported result. This does not prove every font, Unicode glyph, encoding or remote terminal configuration is supported.
+
+Latest verified GitHub Actions workflow before this documentation update: [40121980599](https://github.com/afrowaveltd/Toolbox/actions/runs/40121980599) (SUCCESS on commit `85ac731e`). No new test execution is claimed from documentation updates.
 
 ## Delivery order
 

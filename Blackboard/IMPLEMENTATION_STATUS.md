@@ -87,3 +87,10 @@
 - Added test coverage for every initial Showcase demo: general text preview, valid/invalid JSON syntax highlighting with JSON-only filter, directory selection and modular menu interactions.
 - [GitHub Actions 40109040501](https://github.com/afrowaveltd/Toolbox/actions/runs/40109040501) **SUCCESS**: **20 Showcase + 148 FileBrowser tests** and green solution build. This supersedes the initial 18-Showcase-test figure.
 - The shared Showcase has no NuGet publication and requires manual terminal smoke testing on the target Windows/Linux/SSH environments.
+
+## 2026-10-25 — FileBrowser terminal verification and preview-release candidate
+
+- The maintainer confirmed FileBrowser interactive tests/scenarios worked after updating on available Windows Terminal shell profiles (Command Prompt, PowerShell, Developer Command Prompt and Git shell) and then by **launching legacy `conhost.exe` directly**, including correct color output. This closes the specifically outstanding Windows legacy console smoke check; it is a manual result, not a new CI test.
+- Earlier Debian smoke testing and FileBrowser's **160 locally reported passing tests** remain recorded in the component status. GitHub Actions [40121980599](https://github.com/afrowaveltd/Toolbox/actions/runs/40121980599) succeeded for the pre-documentation master.
+- The independent FileBrowser `0.1.0-preview.1` (`net10.0`) is now assessed as a **preview-release candidate**. Public NuGet publication is **not completed**; release build/pack, package contents and a clean consumer installation still need verification. SSH/tmux and some font/legacy-code-page cases remain separate follow-up checks. Optional `netstandard2.0` compatibility is design-only.
+- Updated the component README, Terminal Compatibility documentation and component/test/family status documents. No feature, API, source-code or automated-test modifications were introduced.

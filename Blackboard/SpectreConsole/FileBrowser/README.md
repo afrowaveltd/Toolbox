@@ -5,7 +5,7 @@ Reusable, read-only, interactive file and directory picker for **.NET 10** appli
 **Package ID:** `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser`  
 **Current project version:** `0.1.0-preview.1` (preview; not a claim of publication on nuget.org)  
 **Dependency:** `Spectre.Console 0.57.2`  
-**Status:** implemented, automated tests passing in GitHub CI; manual cross-terminal compatibility verification and public NuGet publication remain outstanding.
+**Status:** implemented, automated tests green in GitHub CI; manual Debian and Windows terminal checks (Windows Terminal shell profiles and direct legacy `conhost.exe`, including colors) reported PASS. SSH/tmux and additional legacy encoding/font combinations remain unverified. NuGet publication has not occurred.
 
 ## Installation
 
@@ -92,7 +92,13 @@ See the runnable [FileBrowser.Sample](https://github.com/afrowaveltd/Toolbox/blo
 
 Browsing itself does not modify files or directories, change global console encoding or change CWD. Directory links are not followed during recursive search by default; search caps, inaccessible directories and incomplete results are surfaced. File names are escaped for Spectre markup.
 
-The current picker selects **existing** files and folders only: creating a new file, writing or uploading data, creating folders, and configuring FTP/FTPS/SFTP are **not implemented**. Legacy terminal encoding overrides, compatibility across Windows Terminal/cmd/Debian/SSH/tmux, and some Unicode/font scenarios still require real-terminal verification. The preview version is not a stability guarantee.
+The current picker selects **existing** files and folders only: creating a new file, writing or uploading data, creating folders, and configuring FTP/FTPS/SFTP are **not implemented**. Legacy terminal encoding overrides, SSH/tmux and some Unicode/font scenarios still require real-terminal verification. Debian, Windows Terminal shell profiles and legacy Windows Console Host (`conhost.exe`, including colors) were manually checked successfully on 2026-10-24/25. The preview version is not a stability guarantee.
+
+## Publication readiness (2026-10-25)
+
+The local FileBrowser foundation is a **preview-release candidate**, not a published package. The maintainer reported successful manual Windows terminal testing, including a directly launched legacy `conhost.exe` with colors, in addition to previous Debian results. The latest reviewed GitHub Actions run [40121980599](https://github.com/afrowaveltd/Toolbox/actions/runs/40121980599) succeeded on the existing code before this documentation update.
+
+**Before a public preview release:** run the current FileBrowser/Showcase tests, produce a Release `.nupkg`, inspect bundled README/license/dependencies and install/test the resulting package in a clean consumer project. Remote SSH/tmux and legacy code-page/font coverage remain separate follow-up tests, not claims of failure. A lower common target framework (e.g. `netstandard2.0`) is under design review and has **not** been implemented or verified; the current package remains `net10.0`.
 
 ## Further documentation
 
