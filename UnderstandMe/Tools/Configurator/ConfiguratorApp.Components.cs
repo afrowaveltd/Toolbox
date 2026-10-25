@@ -10,6 +10,7 @@ public sealed partial class ConfiguratorApp
 {
     private sealed record ComponentMenuChoice(string Label, string? Id, bool IsNew = false);
     private sealed record OptionMenuChoice(string Label, SettingsFieldDescriptor? Field);
+    private sealed record ComponentTypeChoice(string Label, SettingsComponentDescriptor? Schema);
 
     private async Task EditComponentsAsync(
         ConfiguratorSession session, SettingsComponentKind kind, CancellationToken cancellationToken)
@@ -55,14 +56,17 @@ public sealed partial class ConfiguratorApp
             await WaitForReturnAsync(cancellationToken);
             return;
         }
-        var available = schemas.Cast<SettingsComponentDescriptor?>().Append(null).ToArray();
-        var schema = await new SelectionPrompt<SettingsComponentDescriptor?>()
+        var available = schemas
+            .Select(x => new ComponentTypeChoice(x.DisplayName, x))
+            .Append(new ComponentTypeChoice(T("menu.back"), null)).ToArray();
+        var selection = await new SelectionPrompt<ComponentTypeChoice>()
             .Title(Markup.Escape(T("component.type")))
             .PageSize(Math.Clamp(available.Length, 3, 15))
-            .UseConverter(x => x is null ? Markup.Escape(T("menu.back")) : Markup.Escape(x.DisplayName))
+            .UseConverter(x => Markup.Escape(x.Label))
             .AddChoices(available)
-            .AddCancelResult((SettingsComponentDescriptor?)null)
+            .AddCancelResult(available[^1])
             .ShowAsync(_console, cancellationToken);
+        var schema = selection.Schema;
         if (schema is null)
             return;
 
