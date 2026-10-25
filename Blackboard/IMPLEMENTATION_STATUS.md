@@ -118,3 +118,7 @@
 - [Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser 0.1.0-preview.1](https://www.nuget.org/packages/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser/0.1.0-preview.1) is now **published on NuGet.org**, confirmed by the maintainer's package-page screenshot. Search indexing was still pending at the time of the screenshot.
 - This is the first independently packaged/publicly distributed Blackboard control. Prior local package audits and a standalone `net10.0` consumer smoke test passed; remote NuGet.org restore remains to be checked after indexing.
 - The uploaded package's README contains a historical “not yet published” statement, which **cannot be updated in place** for the same version. The GitHub README has been corrected; the next version will carry updated package-embedded documentation. No package/source API changes or speculative git release tag were made in this documentation update.
+
+## 2026-10-25 — first UnderstandMe production consumer
+
+- UnderstandMe Configurator is now an independent consumer of published Blackboard FileBrowser 0.1.0-preview.1 via PackageReference. File selection is intentionally read-only; all JSON settings edits belong to UnderstandMe's core store. CI pending for this integration.

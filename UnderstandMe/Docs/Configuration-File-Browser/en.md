@@ -46,3 +46,7 @@ See [Configurator TUI](../Configurator-TUI/en.md) and [Central Configuration](..
 ## Shared Blackboard home (2026-10-22)
 
 The reusable FileBrowser is now planned for [Blackboard/SpectreConsole/FileBrowser](../../../Blackboard/SpectreConsole/FileBrowser/README.md), independently of any particular consumer. The standalone UnderstandMe Configurator (proposed under `UnderstandMe/Tools/Configurator`) will use the independently packaged picker and then call `UnderstandMeSettingsJsonStore`. `Blackboard` now has a compiled and CI-tested [Spectre.Console FileBrowser](../../../Blackboard/SpectreConsole/FileBrowser/README.md), including browse/tree/search, arbitrary masks such as `*.ajis;*.json`, and opt-in bounded regex. A standalone [example](../../../Blackboard/Samples/FileBrowser.Sample/README.md) exists. **The UnderstandMe Configurator still needs to be implemented and connected to it**, and FTP/FTPS remains unimplemented.
+
+## 2026-10-25 — first runtime integration
+
+`UnderstandMe/Tools/Configurator` now consumes the independently published `FileBrowser 0.1.0-preview.1` from NuGet to select existing JSON settings. FileBrowser does not save; the core settings store remains responsible for validated read/revision checked save. See [First Integration](../../Tools/Configurator/Docs/First-Integration/en.md). Broader discovery and creation-flow picker are deferred.

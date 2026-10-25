@@ -822,3 +822,10 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - The separate `Blackboard/SpectreConsole/FileBrowser` .NET 10 component has gained an independently buildable interactive Spectre.Console picker, lazy tree, full relative-path search results, local-source selection and **user-defined filename filters** (`*.ajis;*.json`, `*`, opt-in bounded regex). Separate `Blackboard/Samples/FileBrowser.Sample` demonstrates it.
 - GitHub Actions [40099579962](https://github.com/afrowaveltd/Toolbox/actions/runs/40099579962) green, **148 FileBrowser tests**. Use the existing independent NuGet project from the future UnderstandMe Configurator, choosing dictionary and config paths without manual typing.
 - **UnderstandMe's Configurator has not yet been implemented or connected.** Its settings loading/validation/safe-save contract remains with `UnderstandMeSettingsJsonStore`; the generic picker never edits or saves settings.
+
+## 2026-10-25 — first Configurator/FileBrowser implementation
+
+- Added separate `UnderstandMe/Tools/Configurator` net10.0 terminal executable using published Blackboard FileBrowser `0.1.0-preview.1`; core UnderstandMe remains UI-free.
+- Implemented file browsing, unsaved new draft, direct file open, source language/worker capacity editing, full validation, explicit confirmed save with SHA revision and headless validation.
+- Registered Configurator and xUnit virtual-terminal tests in `Toolbox.sln`, with README and English topic docs. **CI verification pending** at commit time; no green assertion before reviewing workflows.
+- Next: live interactive smoke; metadata-driven options editor and keyboard shortcut handlers.
