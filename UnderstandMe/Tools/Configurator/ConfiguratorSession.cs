@@ -1,17 +1,18 @@
 using Afrowave.Toolbox.UnderstandMe.Settings;
+using System.Text.Json;
 
 namespace Afrowave.Toolbox.UnderstandMe.Configurator;
 
 /// <summary>Offline settings draft with revision-checked persistence and no implicit writes.</summary>
-public sealed class ConfiguratorSession
+public sealed partial class ConfiguratorSession
 {
-    private UnderstandMeSettings _baseline;
+    private string _baselineJson;
 
     private ConfiguratorSession(string path, UnderstandMeSettings settings, string? revision)
     {
         Path = System.IO.Path.GetFullPath(path);
         Draft = settings;
-        _baseline = settings;
+        _baselineJson = JsonSerializer.Serialize(settings);
         Revision = revision;
     }
 
@@ -23,8 +24,7 @@ public sealed class ConfiguratorSession
     public string? Revision { get; private set; }
     /// <summary>Whether settings differ from the baseline or have never been saved.</summary>
     public bool IsDirty => Revision is null ||
-        Draft.Localization.DefaultSourceLanguage != _baseline.Localization.DefaultSourceLanguage ||
-        Draft.Translation.Queues.DefaultWorkerBufferCapacity != _baseline.Translation.Queues.DefaultWorkerBufferCapacity;
+        !string.Equals(JsonSerializer.Serialize(Draft), _baselineJson, StringComparison.Ordinal);
 
     /// <summary>Load an existing settings document using core validation.</summary>
     public static ConfiguratorSession Open(string path)
@@ -83,6 +83,6 @@ public sealed class ConfiguratorSession
     {
         var revision = UnderstandMeSettingsJsonStore.Save(Path, Draft, Revision);
         Revision = revision;
-        _baseline = Draft;
+        _baselineJson = JsonSerializer.Serialize(Draft);
     }
 }
