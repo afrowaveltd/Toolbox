@@ -37,3 +37,13 @@
 ### Startup clear verified in CI (2026-10-25)
 
 - [GitHub Actions 40230127035](https://github.com/afrowaveltd/Toolbox/actions/runs/40230127035) **SUCCESS** for implementation commit `f46b80d9`. The Configurator's startup-clear test passed and all **8 Configurator tests** succeeded; full solution test suite and final build step succeeded with **0 warnings and 0 errors**. No headless-validate behavior was changed.
+
+## 2026-10-25 — standalone bilingual launcher and preferences (verified)
+
+- Added a parameterless first-level menu: **Create / Edit / Test (offline) / Configurator Settings / Exit**. Interactive actions are selected by enum identity rather than translated strings. Optional direct `--config` and headless `validate` remain available.
+- Created `ConfiguratorPreferencesStore`, a **Configurator-only** per-user JSON preferences store, independent of host `UnderstandMeSettings.json`, with `Language: en|cs`, safe same-directory replacement, original SHA-256 revision checking, fail-closed handling of invalid preferences and English fallback for interactive startup.
+- Added manually maintained embedded `Resources/en.json` and `Resources/cs.json`, `ConfiguratorStrings` with English offline bootstrap fallback, and translated the consumer-provided Blackboard FileBrowser labels without modifying the published FileBrowser.
+- Main menu Create/Edit/Test work over the existing `ConfiguratorSession` and `UnderstandMeSettingsJsonStore`. Test is **offline structural validation only**, not network connectivity. Core validation message strings remain English until core exposes structured/localizable diagnostics.
+- **No new shared NuGet library was created**: share only specific identical functions with future AfuTrans, if/when a common capability exists.
+- [GitHub Actions #40231883535](https://github.com/afrowaveltd/Toolbox/actions/runs/40231883535) **SUCCESS**, including **14 Configurator tests** and the entire solution test workflow (final build 0 warnings/errors). Previous menu commit CI failures were from tests assuming the old initial menu; they were updated to exercise the new navigation paths.
+- Next: review UX on real Debian/Windows terminals; add metadata-generated storage/provider editor and structured validation diagnostics; discuss live test design separately; avoid prematurely implementing network update/language-pack features.

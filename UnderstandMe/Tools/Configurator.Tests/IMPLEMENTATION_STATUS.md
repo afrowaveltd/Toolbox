@@ -15,3 +15,10 @@
 
 - [GitHub Actions 40229277472](https://github.com/afrowaveltd/Toolbox/actions/runs/40229277472) **SUCCESS** with **8 Configurator tests**, including end-to-end virtual-terminal selection of a `settings.json` file through the published FileBrowser.
 - Previous `7`-test result was superseded by this integration check. No real SSH or remote provider connectivity testing is claimed.
+
+## 2026-10-25 — bilingual launcher and independent user preferences: 14 green
+
+- Added per-user preferences tests: missing file is not created by read, separate host settings, create-only write, revision conflict, malformed/unsupported settings fail closed.
+- Added bundled English/Czech resource parity and offline fallback tests.
+- Updated interaction tests for typed main-menu navigation; added UI language persistence/switching, offline Test configuration via real FileBrowser, corrupt preferences fallback and safe editor Back/Exit tests.
+- [GitHub Actions #40231883535](https://github.com/afrowaveltd/Toolbox/actions/runs/40231883535): **14/14 Configurator tests passed** and all existing solution test suites passed. Manual SSH/Windows smoke not yet claimed.

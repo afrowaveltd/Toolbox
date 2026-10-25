@@ -840,3 +840,10 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - [GitHub Actions 40229277472](https://github.com/afrowaveltd/Toolbox/actions/runs/40229277472) **SUCCESS** for `087f5662`: first Configurator executable, package-based FileBrowser integration, strict settings read/validation/revision-save tests and virtual-terminal JSON browsing all compiled and passed. **8 Configurator tests** and **160 FileBrowser tests** passed alongside the established solution suites.
 - The core project excludes nested `Tools/**/*.cs` to ensure Spectre.Console dependencies stay in the independent executable; no change to UnderstandMe's public library API.
 - The initial editor supports two scalar settings plus browse/load/create/validate/confirmed-save; complete descriptor forms, shortcut input handling and real SSH/Windows smoke remain future work. Do not report them as already implemented.
+
+## 2026-10-25 — Configurator bilingual parameterless startup and localized FileBrowser
+
+- Configurator now has a working five-option TUI main menu (Create/Edit/Test offline/Configurator Settings/Exit), two manually maintained bundled UI languages `en` and `cs` including FileBrowser labels, independent per-user preferences storage, offline English fallback and safe revision-checked saving of those preferences.
+- The UnderstandMe library remains independent of Spectre.Console and Configurator preferences; host settings continue using existing core schema/validation/persistence without duplication.
+- Confirmed on [GitHub Actions #40231883535](https://github.com/afrowaveltd/Toolbox/actions/runs/40231883535): **14 Configurator tests green**, full solution test workflow green, final build 0 warnings/errors. No real-server/SSH live smoke yet.
+- Architecture direction: AfuTrans TUI/GUI/Web will share **particular genuinely identical** logic with Configurator as small UI-agnostic components/NuGet packages when justified, rather than moving the entire Configurator business logic into a premature common library.

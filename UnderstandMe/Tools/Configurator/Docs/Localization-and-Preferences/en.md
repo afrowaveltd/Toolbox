@@ -1,29 +1,54 @@
-# Configurator localization, launcher and user preferences
+# Configurator launcher, localization and user preferences
 
-**2026-10-25 — design direction under discussion, not an implementation claim.** The existing Configurator is a first functional editor slice; the behaviors below remain future increments.
+**Status (2026-10-25): parameterless main menu, offline English/Czech localization and persistent user language preference implemented; network features remain future work.**
 
-## Independent application state
+## Product boundary
 
-The Configurator is a standalone user application, not the host whose `UnderstandMeSettings.json` it edits. Its UI language and future optional update preferences belong in a separate **per-user Configurator settings** document. Keep editing several host configurations independent from the app's own preferences. Use OS-appropriate user configuration directories (XDG-style location on Linux, AppData on Windows); exact precedence, schema and naming remain to be agreed. No write to the currently edited host settings just to change the editor's language.
+The standalone Configurator is a lightweight client for managing UnderstandMe configurations outside AfuTrans. AfuTrans itself remains the planned all-in-one product with TUI (Terminal.GUI), GUI (Avalonia) and Web frontends. Their business logic should share the **specific genuinely identical reusable functions**, without imposing the same UI toolkit or prematurely turning all editor behavior into a monolithic shared library. A small UI-neutral NuGet package is appropriate if a repeatable common function appears.
 
-## Two initial languages and self-localization
+Configurator does **not** require an AfuTrans installation, translation service or any remote connection. No mandatory CLI arguments are needed.
 
-Bundle **`en` and `cs`**, initially translated and maintained manually, to exercise real localization behavior, not a hardcoded English UI. Use stable UI message keys and preserve placeholder safety. The editor must always start offline with English strings, even when the target UnderstandMe installation, provider configuration, local dictionaries or network connection is broken. Later adapt the UI to UnderstandMe's own localization facilities with a small, safe bootstrap path rather than creating a second translation system inside the editor.
+## Parameterless main menu
 
-Future optional features: update checks and downloads of more language packs, subject to explicit user preferences and safe integrity verification. No network access should become a prerequisite to launch the editor.
+On interactive start, clear the active console once, read Configurator's own preferences and display:
+1. Create configuration: user enters a new path; create a default in-memory draft without writing; edit, validate, confirm Save.
+2. Edit configuration: existing JSON through the published Blackboard FileBrowser (`*.json` filter) or manual path entry; edit draft through the shared core settings store.
+3. Test configuration (offline): select a JSON file and validate using the core schema and option descriptors, without saving or contacting a provider. This **does not** imply the actual translation provider is reachable.
+4. Configurator settings: switch language between English and Czech and persist only the Configurator preference.
+5. Exit: no implicit write.
 
-## Parameterless startup
+Optional `config --config <path>` still jumps into an editor session; `validate --config <path>` remains an unmodified noninteractive CI/automation command. The editor asks before discarding unsaved changes. The TUI itself is not yet a full descriptor-driven provider/storage editor.
 
-The main TUI launcher should expose all functions without required command-line parameters. Proposed first-level entries:
+## Two hand-maintained embedded languages
 
-- **Create configuration**: prepare a new, validated draft and explicitly choose where to save.
-- **Edit configuration**: select existing settings with Blackboard FileBrowser, then use the shared revision-aware editor.
-- **Test configuration**: detailed workflow to be decided. Distinguish deterministic offline schema/semantic validation from optional authorized live provider tests.
-- **Configurator Settings**: user-local UI language, with other client preferences added when needed.
-- **Exit**: never silently persist a host configuration draft.
+The executable embeds `Resources/en.json` and `Resources/cs.json` using fixed manifest resource names. Each has stable key/value pairs, maintained by hand. `ConfiguratorStrings` uses a selected translation, then a built-in English fallback, and finally the key for unavailable messages. Tests ensure matching key sets, no empty translations, locale switching, and fallback.
 
-Optional CLI arguments remain useful for scripting and direct path selection, but are not necessary for ordinary use.
+The TUI menu, prompts, status messages and the **consumer-supplied FileBrowser labels** use the same resources. Neither the independent Blackboard FileBrowser package nor UnderstandMe core now depends on a Configurator language or resource file.
 
-## Already implemented in this increment
+This is the safe bootstrapping layer for eventually localizing the tool **with UnderstandMe itself**. A future integration may delegate to core localization contracts, but repairing broken host configuration must always work fully offline.
 
-The Configurator now clears the interactive terminal once at startup, before its first menu or configuration diagnostics. It does not clear during file browsing, and the existing noninteractive `validate` command does not clear the screen. The Blackboard Showcase applies the same startup-only policy. Menu redesign and bilingual dictionaries are separate future work.
+### Known incomplete translation areas
+
+The shared validator's English diagnostic messages are displayed unchanged, together with JSON property paths. This is deliberate: error identities are not yet available as localized message IDs. Full validation diagnostics localization needs a future structured error contract, not fragile string replacement. Errors from the operating system can also contain OS-localized or English text.
+
+## Separate per-user app settings
+
+`ConfiguratorPreferencesStore` manages only `SchemaVersion: 1` and `Language: "en"|"cs"` in the initial release; it neither reads nor modifies the edited host's `UnderstandMeSettings.json` as a side effect.
+
+Default location:
+- Linux: absolute `XDG_CONFIG_HOME` if set, otherwise user `~/.config`, then `afrowave/understandme-configurator/settings.json`.
+- Windows: user `ApplicationData` directory, then `afrowave/understandme-configurator/settings.json`.
+
+Tests inject a private preferences path. Loading when missing yields English in memory **without creating a file**. Invalid JSON, unsupported schema/locale or unknown settings fields are not normalized on load. In that case the Configurator still opens in English and displays an error; a subsequent write refuses to overwrite the invalid preexisting file.
+
+The store validates the candidate, uses a same-directory temporary file flushed before a move, and checks the original SHA-256 revision before replacement; this is **not** a transactional compare-and-swap against arbitrary simultaneous writers. No user secret is stored by these first preferences.
+
+## Future increments (not implemented)
+
+- Use UnderstandMe's localization primitives for higher-level UI translation while retaining bundled offline fallback.
+- Additional language packs, their formats, localization QA and integrity-checked optional download.
+- User-controlled application update checks, with no network activity required at startup.
+- Optional connection/remote integration tests with explicit timeouts and authorization, separate from deterministic offline validation.
+- Expanded metadata-driven provider/storage forms, granular redacted diff, undo/redo, direct Ctrl+S/Ctrl+V and terminal/SSH manual smoke.
+
+See the [Configurator README](../../README.md) and [Configurator-TUI](../../../Docs/Configurator-TUI/en.md).

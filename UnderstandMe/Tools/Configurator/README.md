@@ -1,10 +1,10 @@
 # UnderstandMe Configurator
 
-First executable **offline TUI settings editor** for UnderstandMe (`net10.0`), consuming the published [Blackboard FileBrowser](https://www.nuget.org/packages/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser/0.1.0-preview.1) from NuGet, separate from the core library.
+Standalone **.NET 10** offline TUI application for creating, editing and validating UnderstandMe JSON configuration files. Uses Spectre.Console and the published [Blackboard FileBrowser 0.1.0-preview.1](https://www.nuget.org/packages/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser/0.1.0-preview.1). The UnderstandMe core library is UI-independent.
 
-## Try it
+## Run
 
-Run from the Toolbox repository root:
+From the Toolbox repository root:
 
 ```bash
 dotnet run --project UnderstandMe/Tools/Configurator
@@ -13,16 +13,32 @@ dotnet run --project UnderstandMe/Tools/Configurator -- validate --config /path/
 dotnet test UnderstandMe/Tools/Configurator.Tests/UnderstandMe.Configurator.Tests.csproj
 ```
 
-Without an explicit `--config`, the editor loads an existing `UnderstandMeSettings.json` in the current working directory, or shows a menu to browse `*.json` using FileBrowser, open a path or create a new *unsaved* default configuration.
+**No command-line arguments are required for interactive use.** The app clears the terminal once and presents this first-level menu:
 
-The first editor supports displaying a non-sensitive summary, editing **DefaultSourceLanguage** and **DefaultWorkerBufferCapacity**, validation of the complete RAM draft and **Review & Save** with confirmation. Actual persistence delegates to the core `UnderstandMeSettingsJsonStore` and its SHA-256 revision check. Exit and cancellation never implicitly save. Bad JSON and unsupported schemas are not rewritten.
+| Action | Current behavior |
+| --- | --- |
+| Create configuration | Enter a new file path, create an unsaved in-RAM default, edit, validate and explicitly confirm Save |
+| Edit configuration | Browse existing JSON files with Blackboard FileBrowser or type a path, then edit a RAM draft |
+| Test configuration (offline) | Browse/type an existing path and run the **shared strict JSON/schema validation** without writing or contacting providers |
+| Configurator settings | Choose English or Czech; persist the UI preference independently from edited host configuration |
+| Exit | Quit without saving; the editor asks before discarding an unsaved draft |
 
-The headless `validate` command returns exit code 0 on valid settings, 1 on invalid/missing settings and 2 on malformed CLI syntax. No network call or translation service is started.
+The initial editor implements summary, default source-language editing and worker-buffer-capacity editing. It delegates authoritative validation and checked-revision saving to `UnderstandMeSettingsJsonStore`. Unknown configuration fields, unknown provider types, unsupported schemas and stale file revisions fail safely; the original file is not silently rewritten. Direct `--config` opens the editor before returning to the main menu. Noninteractive `validate` returns 0 for valid settings, 1 for missing/invalid files and 2 for malformed CLI arguments.
 
-**First-slice limitations:** This is not yet the full metadata-driven provider/storage editor. Ctrl+S / Ctrl+V shortcuts, rich field-by-field redacted diff, undo/redo, multi-location discovery, live SSH resizing and localized UI are future stages; their visible menu actions remain available for saving and validation. No code is added to the UnderstandMe core for Spectre.
+## UI language and independent preferences
 
-## Terminal display and planned preferences
+Two **bundled, manually maintained** resource dictionaries are compiled into the executable: [English](Resources/en.json) and [Czech](Resources/cs.json). Both the Configurator UI and the embedded FileBrowser's labels are localized. English remains the offline bootstrap fallback; neither startup nor translation requires a running UnderstandMe host or network.
 
-Interactive startup clears the console **once**, before loading a config file and rendering the first menu. Headless `validate` output is never cleared.
+The app stores its own versioned preferences separately from `UnderstandMeSettings.json`:
+- Linux: `$XDG_CONFIG_HOME/afrowave/understandme-configurator/settings.json` when XDG_CONFIG_HOME is absolute; otherwise `~/.config/afrowave/understandme-configurator/settings.json`
+- Windows: `%APPDATA%/afrowave/understandme-configurator/settings.json`
 
-**Planned, not yet implemented:** a parameterless main menu (Create / Edit / Test / Configurator Settings / Exit), per-user Configurator preferences distinct from edited settings, initially bundled manual `en` and `cs` translations with English offline fallback, and later optional language-pack downloads and version checks. See [Localization and Preferences](Docs/Localization-and-Preferences/en.md).
+The file is created **only after explicitly changing the UI language**. Invalid/unsupported preferences are not overwritten or auto-migrated; startup falls back to English. Writes are same-directory temporary-file replacements with a SHA-256 revision check (not a cross-process transaction).
+
+## Current boundaries and next work
+
+**Test configuration** currently means offline structural/semantic validation, **not** a network connectivity test or live provider diagnostic. Core validator messages/JSON paths remain in English; the Configurator's own captions, prompts and FileBrowser labels are bilingual. Full metadata-driven storage/provider editing, extensive redacted diffs, direct Ctrl+S / Ctrl+V, language package downloads, remote-target connectors and opt-in app update checks are future increments.
+
+As discussed, AfuTrans TUI (Terminal.GUI), GUI (Avalonia) and Web will eventually share **only genuinely reusable functions** with this Configurator, preferably via small UI-neutral libraries/NuGet packages when actual duplication emerges. Do not couple Configurator to AfuTrans or create a generic shared library prematurely.
+
+See [Localization and Preferences](Docs/Localization-and-Preferences/en.md), [First Integration](Docs/First-Integration/en.md), and [implementation status](IMPLEMENTATION_STATUS.md).
