@@ -829,3 +829,8 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Implemented file browsing, unsaved new draft, direct file open, source language/worker capacity editing, full validation, explicit confirmed save with SHA revision and headless validation.
 - Registered Configurator and xUnit virtual-terminal tests in `Toolbox.sln`, with README and English topic docs. **CI verification pending** at commit time; no green assertion before reviewing workflows.
 - Next: live interactive smoke; metadata-driven options editor and keyboard shortcut handlers.
+
+### 2026-10-25 — CI follow-up: exclude nested tools from core compilation
+
+- CI on the initial executable commit detected MSBuild SDK default recursive compilation of `UnderstandMe/Tools/Configurator/*.cs` into `UnderstandMe.csproj`. This caused missing Spectre dependencies in the core build and violated UI separation.
+- Added `Compile Remove="Tools/**/*.cs"` to the core project, keeping tool implementations in their own explicitly registered projects. Re-run GitHub CI before declaring success.

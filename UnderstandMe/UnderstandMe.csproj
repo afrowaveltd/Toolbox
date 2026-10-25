@@ -8,6 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Standalone TUI/tool applications live beneath Tools, but must not be compiled into UnderstandMe.dll. -->
+    <Compile Remove="Tools/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Afrowave.Toolbox.Essentials" Version="0.2.0" />
     <PackageReference Include="Afrowave.Toolbox.WhenItFails" Version="0.1.0" />
   </ItemGroup>
