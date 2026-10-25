@@ -123,3 +123,12 @@ Create the standalone .NET project and xUnit project, implement the testable nav
 - The documentation-only terminal verification commit `d87edbce` passed [GitHub Actions 40181152070](https://github.com/afrowaveltd/Toolbox/actions/runs/40181152070) (SUCCESS). This is CI evidence independent of the local pack report; do not infer that an installable NuGet package was downloaded and exercised from CI.
 - **Release gates now remaining:** inspect the generated `.nupkg` (target framework, NuGet metadata, README, license and package dependencies), install it from a local feed in a clean independent consumer and execute a basic file/folder selection smoke test. Public NuGet publication has **not** been performed. Current source `net10.0` and `0.1.0-preview.1` are unchanged; `netstandard2.0` is a separate future proposal.
 - Documentation/status-only milestone; no source, API, or automated tests were changed.
+
+## 2026-10-25 — independent local NuGet consumer smoke PASS (maintainer report)
+
+- The maintainer confirmed that the Linux/PowerShell 7 **independent smoke consumer** workflow finished without errors after correcting Windows-only temporary-directory assumptions in the initial commands.
+- A temporary **.NET 10 console application outside the Toolbox project graph** used the existing `Blackboard/Samples/FileBrowser.Sample/Program.cs` application source and a **NuGet PackageReference** to local package `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser` version `0.1.0-preview.1`, restored from the local package directory and nuget.org. This tests package-based consumption instead of the original `ProjectReference`.
+- The maintainer reported the full corrected test workflow passed, including the interactive file filter invocation (`--filter "*.ajis;*.json"`) and directory-picker invocation (`--directory`). These are **user-reported manual results**, not a test run performed by GitHub CI or this documentation update.
+- The previous documentation commit `d47522a7` has green [GitHub Actions 40183371359](https://github.com/afrowaveltd/Toolbox/actions/runs/40183371359).
+- **Remaining before a public preview release:** examine the actual generated `.nupkg` package contents/manifest (README, license, framework, dependency metadata) and make an explicit publication decision. Additional SSH/tmux, legacy encoding/font and `netstandard2.0` compatibility checks are separate follow-up work and are not implied to be verified.
+- No runtime/source/test-code change or NuGet publication in this commit.

@@ -100,3 +100,9 @@
 - The maintainer confirmed the FileBrowser project builds and that local Release NuGet packages were generated using `dotnet pack -c Release ...`.
 - The preceding manual terminal verification documentation commit `d87edbce` passed [GitHub Actions 40181152070](https://github.com/afrowaveltd/Toolbox/actions/runs/40181152070). No additional automated tests were introduced by this update.
 - FileBrowser is a **local-pack-verified preview candidate**, not a publicly published package. Generated `.nupkg` contents and a clean consumer installation remain to be checked. No library implementation changes.
+
+## 2026-10-25 — standalone FileBrowser package consumer verified
+
+- The maintainer successfully ran a separate `net10.0` console project on Linux/PowerShell 7 with a `PackageReference` to the local `0.1.0-preview.1` FileBrowser `.nupkg` instead of a Toolbox `ProjectReference`. The corrected package restore and interactive file-filter/directory selection workflow completed without errors.
+- Documentation-only commit `d47522a7` passed [GitHub Actions 40183371359](https://github.com/afrowaveltd/Toolbox/actions/runs/40183371359).
+- The separate-consumer NuGet smoke gate is now recorded as **PASS (maintainer report)**. Package contents/manifest inspection remains outstanding; nothing has been published to NuGet, and no source or automated tests were altered.
