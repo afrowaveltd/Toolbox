@@ -113,5 +113,18 @@
   "component.field.OnFailure": "Failure policy",
   "component.field.MaxConcurrentRequests": "Concurrent requests",
   "component.field.Directory": "Dictionary directory",
-  "component.field.ReadOnly": "Read-only storage"
+  "component.field.ReadOnly": "Read-only storage",
+  "connection.action": "Test provider connections (live)",
+  "connection.after.offline": "Offline check complete — optional next step",
+  "connection.title": "Live connection checks",
+  "connection.none": "No providers configured for testing.",
+  "connection.info": "Sending only GET /languages to each enabled LibreTranslate endpoint; no API keys or texts are sent.",
+  "connection.nonblocking": "Diagnostic only: connection failures do not block saving.",
+  "connection.status.Responding": "Responding",
+  "connection.status.Unsupported": "No test available",
+  "connection.status.Disabled": "Disabled (skipped)",
+  "connection.status.InvalidConfiguration": "Invalid endpoint",
+  "connection.status.UnexpectedResponse": "Unexpected response",
+  "connection.status.Unreachable": "Connection failed",
+  "connection.status.Cancelled": "Cancelled"
 }

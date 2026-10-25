@@ -113,5 +113,18 @@
   "component.field.OnFailure": "Postup při chybě",
   "component.field.MaxConcurrentRequests": "Souběžné požadavky",
   "component.field.Directory": "Složka slovníků",
-  "component.field.ReadOnly": "Úložiště pouze pro čtení"
+  "component.field.ReadOnly": "Úložiště pouze pro čtení",
+  "connection.action": "Otestovat spojení s poskytovateli (online)",
+  "connection.after.offline": "Offline kontrola dokončena — další nepovinný krok",
+  "connection.title": "Živé testy spojení",
+  "connection.none": "Nejsou nakonfigurováni žádní poskytovatelé.",
+  "connection.info": "Odesílá se pouze GET /languages na povolené servery LibreTranslate; bez klíčů API a překládaných textů.",
+  "connection.nonblocking": "Pouze diagnostika: chyby spojení nebrání uložení.",
+  "connection.status.Responding": "Odpovídá",
+  "connection.status.Unsupported": "Test není dostupný",
+  "connection.status.Disabled": "Vypnuto (přeskočeno)",
+  "connection.status.InvalidConfiguration": "Neplatná adresa serveru",
+  "connection.status.UnexpectedResponse": "Neočekávaná odpověď",
+  "connection.status.Unreachable": "Spojení selhalo",
+  "connection.status.Cancelled": "Zrušeno"
 }
