@@ -26,6 +26,10 @@ public sealed class ConfiguratorApp
         if (!_console.Profile.Capabilities.Interactive)
             throw new InvalidOperationException("Configurator requires an interactive console.");
 
+        // Clear once on interactive startup, before any application output.
+        // Noninteractive validation must not clear its caller's terminal.
+        _console.Clear();
+
         ConfiguratorSession? session = null;
         if (path is not null)
             session = TryOpen(path);

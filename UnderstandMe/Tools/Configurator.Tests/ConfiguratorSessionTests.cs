@@ -82,6 +82,8 @@ public sealed class ConfiguratorSessionTests
         var console = TestConsole();
         console.Input.PushKey(ConsoleKey.Escape);
         await new ConfiguratorApp(console).RunAsync();
+        Assert.StartsWith("\u001b[2J", console.Output);
+        Assert.Equal(1, console.Output.Split("\u001b[2J").Length - 1);
         Assert.Contains("Choose an action", console.Output);
     }
 

@@ -17,6 +17,8 @@ public sealed class ShowcaseInteractionTests
         await new BlackboardShowcaseHost([demo], console).RunAsync("/start");
 
         Assert.Equal(0, demo.Calls);
+        Assert.StartsWith("\u001b[2J", console.Output);
+        Assert.Equal(1, console.Output.Split("\u001b[2J").Length - 1);
         Assert.Contains("Choose a demonstration", console.Output);
     }
 

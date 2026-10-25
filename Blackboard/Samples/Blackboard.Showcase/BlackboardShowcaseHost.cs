@@ -36,6 +36,9 @@ public sealed class BlackboardShowcaseHost
         if (!_console.Profile.Capabilities.Interactive)
             throw new InvalidOperationException("Blackboard Showcase requires an interactive terminal.");
 
+        // Clear prior shell output once, not on every demo/menu navigation.
+        _console.Clear();
+
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
