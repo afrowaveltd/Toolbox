@@ -9,3 +9,7 @@
 - [README](README.md) and [First Integration](Docs/First-Integration/en.md) document commands, boundaries and incomplete advanced features.
 - **CI pending at commit time; do not assert successful compilation/test until verified.**
 - Next: verify CI, test live terminals, then implement descriptor-driven provider/storage editing, shortcut bindings and expanded recovery UI.
+
+### CI API compatibility fix
+
+- CI found that Spectre.Console 0.57.2 `ConfirmationPrompt` does not expose `DefaultValue(false)`. Removed that unsupported fluent call; the save prompt still requires explicit user confirmation. A new CI run must validate compilation and tests.

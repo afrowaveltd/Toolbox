@@ -173,7 +173,6 @@ public sealed class ConfiguratorApp
             $"Language: {session.Draft.Localization.DefaultSourceLanguage}\n" +
             $"Worker buffer capacity: {session.Draft.Translation.Queues.DefaultWorkerBufferCapacity}\n"));
         if (!await new ConfirmationPrompt("Save these settings?")
-            .DefaultValue(false)
             .ShowAsync(_console, cancellationToken))
         {
             _console.Write(new Text("Save cancelled; draft retained.\n"));
