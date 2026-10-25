@@ -13,3 +13,9 @@
 ### CI API compatibility fix
 
 - CI found that Spectre.Console 0.57.2 `ConfirmationPrompt` does not expose `DefaultValue(false)`. Removed that unsupported fluent call; the save prompt still requires explicit user confirmation. A new CI run must validate compilation and tests.
+
+### 2026-10-25 — targeted FileBrowser UI integration test
+
+- Added injectable initial browsing directory to the Configurator host. Tests can exercise the **real published FileBrowser picker** in an isolated temporary folder without changing process-wide current directory.
+- Added a virtual-terminal test that selects JSON through FileBrowser, loads it using the shared settings store and exits without changing the file. Switching to a different configuration now asks confirmation if there are unsaved edits.
+- CI verification of this follow-up is pending.

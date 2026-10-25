@@ -98,6 +98,24 @@ public sealed class ConfiguratorSessionTests
     }
 
     [Fact]
+    public async Task FileBrowser_selects_json_and_loads_existing_settings()
+    {
+        using var temp = new TempFolder();
+        var path = Path.Combine(Path.GetDirectoryName(temp.File)!, "settings.json");
+        File.WriteAllText(path, "{\"SchemaVersion\":1}");
+        var before = File.ReadAllBytes(path);
+        var console = TestConsole();
+        console.Input.PushKey(ConsoleKey.Enter); // Choose Browse JSON from the initial menu.
+        console.Input.PushKey(ConsoleKey.Enter); // Select the only *.json file.
+        console.Input.PushKey(ConsoleKey.Escape); // Exit the loaded settings menu.
+
+        await new ConfiguratorApp(console, Path.GetDirectoryName(path)).RunAsync();
+
+        Assert.Contains("Opened: " + path, console.Output);
+        Assert.Equal(before, File.ReadAllBytes(path));
+    }
+
+    [Fact]
     public async Task Cannot_start_interactive_editor_with_redirected_console()
     {
         var console = new Spectre.Console.Testing.TestConsole();

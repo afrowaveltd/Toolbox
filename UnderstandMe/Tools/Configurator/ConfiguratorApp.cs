@@ -10,11 +10,13 @@ public sealed class ConfiguratorApp
 {
     private readonly IAnsiConsole _console;
     private readonly SpectreFileBrowser _picker;
+    private readonly string _startingDirectory;
 
     /// <summary>Create the editor with an optional injected terminal for testing.</summary>
-    public ConfiguratorApp(IAnsiConsole? console = null)
+    public ConfiguratorApp(IAnsiConsole? console = null, string? startingDirectory = null)
     {
         _console = console ?? AnsiConsole.Console;
+        _startingDirectory = System.IO.Path.GetFullPath(startingDirectory ?? Environment.CurrentDirectory);
         _picker = new SpectreFileBrowser(new FileBrowserLocalSource(), _console);
     }
 
@@ -29,7 +31,7 @@ public sealed class ConfiguratorApp
             session = TryOpen(path);
         else
         {
-            var local = System.IO.Path.Combine(Environment.CurrentDirectory, "UnderstandMeSettings.json");
+            var local = System.IO.Path.Combine(_startingDirectory, "UnderstandMeSettings.json");
             if (File.Exists(local))
                 session = TryOpen(local);
         }
@@ -60,8 +62,10 @@ public sealed class ConfiguratorApp
             switch (action)
             {
                 case "Browse JSON":
+                    if (!await CanReplaceDraft(session, cancellationToken))
+                        break;
                     var picked = await _picker.PickAsync(
-                        new FileBrowserLocation("local", Environment.CurrentDirectory),
+                        new FileBrowserLocation("local", _startingDirectory),
                         FileBrowserPickMode.File,
                         new SpectreFileBrowserOptions
                         {
@@ -71,9 +75,13 @@ public sealed class ConfiguratorApp
                         session = TryOpen(picked.Location.Value) ?? session;
                     break;
                 case "Open path":
+                    if (!await CanReplaceDraft(session, cancellationToken))
+                        break;
                     session = TryOpen(await Prompt("Existing JSON path", "UnderstandMeSettings.json", cancellationToken)) ?? session;
                     break;
                 case "Create new":
+                    if (!await CanReplaceDraft(session, cancellationToken))
+                        break;
                     try
                     {
                         session = ConfiguratorSession.CreateNew(await Prompt("New JSON path", "UnderstandMeSettings.json", cancellationToken));
@@ -127,6 +135,15 @@ public sealed class ConfiguratorApp
         {
             return [new SettingsValidationIssue("$", "Invalid or unsupported JSON: " + e.Message)];
         }
+    }
+
+    // Do not silently lose an unsaved draft when selecting or creating another document.
+    private async Task<bool> CanReplaceDraft(ConfiguratorSession? session, CancellationToken cancellationToken)
+    {
+        if (session?.IsDirty != true)
+            return true;
+        return await new ConfirmationPrompt("Discard current unsaved changes?")
+            .ShowAsync(_console, cancellationToken);
     }
 
     private ConfiguratorSession? TryOpen(string path)
