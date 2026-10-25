@@ -151,3 +151,7 @@ Create the standalone .NET project and xUnit project, implement the testable nav
 - Previous GitHub CI [40204454925](https://github.com/afrowaveltd/Toolbox/actions/runs/40204454925) passed for commit `148f32b9`, before this post-release documentation commit.
 - **Next steps:** once indexing finishes, test `dotnet add package ... --version 0.1.0-preview.1` from public NuGet.org in a clean consumer; prepare a follow-up preview for any packaging documentation corrections. Do not create an official source tag until the exact source commit corresponding to the uploaded archive is verified.
 - This change records release status and fixes GitHub documentation; **no library runtime code, version, published archive or test implementation was changed**.
+
+## 2026-10-25 — test-only warning cleanup
+
+- Replaced a redundant `Assert.True(string.Equals(...))` in the FileBrowser presentation test with `Assert.Equal` to comply with xUnit2010. No FileBrowser production code, package API, or published NuGet bits were changed. CI verification pending on this commit.

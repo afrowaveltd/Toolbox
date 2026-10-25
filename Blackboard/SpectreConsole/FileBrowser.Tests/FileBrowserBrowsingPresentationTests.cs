@@ -267,7 +267,7 @@ public sealed class FileBrowserBrowsingPresentationTests
         var output = FileBrowserEntryPresentation.Format(
             name, false, Icons, FileBrowserIconMode.Off, default);
         Assert.Equal(@" bad\u001B[31m\u000Aname.json", output);
-        Assert.True(string.Equals(originalName, name, StringComparison.Ordinal));
+        Assert.Equal(originalName, name);
     }
 
     [Fact]
