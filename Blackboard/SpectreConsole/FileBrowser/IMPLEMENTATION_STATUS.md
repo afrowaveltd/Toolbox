@@ -159,3 +159,7 @@ Create the standalone .NET project and xUnit project, implement the testable nav
 ### xUnit2000 analyzer follow-up (2026-10-25)
 
 - The previous `Assert.Equal(originalName, name)` removed xUnit2010 but triggered xUnit2000 because the compiler recognized `name` as the compile-time constant. Put `name` first as the expected argument. No production source changes. GitHub CI verification to follow.
+
+### Warning cleanup verified — 2026-10-25
+
+- [GitHub Actions #40232402628](https://github.com/afrowaveltd/Toolbox/actions/runs/40232402628) **SUCCESS**, including all 160 FileBrowser tests and **0 C# build warnings/errors** after the test-only assertion change. Published FileBrowser NuGet remained unchanged.

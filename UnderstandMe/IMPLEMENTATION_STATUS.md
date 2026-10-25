@@ -847,3 +847,7 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - The UnderstandMe library remains independent of Spectre.Console and Configurator preferences; host settings continue using existing core schema/validation/persistence without duplication.
 - Confirmed on [GitHub Actions #40231883535](https://github.com/afrowaveltd/Toolbox/actions/runs/40231883535): **14 Configurator tests green**, full solution test workflow green, final build 0 warnings/errors. No real-server/SSH live smoke yet.
 - Architecture direction: AfuTrans TUI/GUI/Web will share **particular genuinely identical** logic with Configurator as small UI-agnostic components/NuGet packages when justified, rather than moving the entire Configurator business logic into a premature common library.
+
+### Latest CI status — 2026-10-25
+
+- [GitHub Actions #40232402628](https://github.com/afrowaveltd/Toolbox/actions/runs/40232402628) **SUCCESS** for the first bilingual Configurator launcher and its documentation: 6,217 tests passed across the solution, including 14 Configurator tests; clean build with 0 warnings and 0 errors.

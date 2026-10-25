@@ -47,3 +47,8 @@
 - **No new shared NuGet library was created**: share only specific identical functions with future AfuTrans, if/when a common capability exists.
 - [GitHub Actions #40231883535](https://github.com/afrowaveltd/Toolbox/actions/runs/40231883535) **SUCCESS**, including **14 Configurator tests** and the entire solution test workflow (final build 0 warnings/errors). Previous menu commit CI failures were from tests assuming the old initial menu; they were updated to exercise the new navigation paths.
 - Next: review UX on real Debian/Windows terminals; add metadata-generated storage/provider editor and structured validation diagnostics; discuss live test design separately; avoid prematurely implementing network update/language-pack features.
+
+### Final verification — 2026-10-25
+
+- [GitHub Actions #40232402628](https://github.com/afrowaveltd/Toolbox/actions/runs/40232402628) **SUCCESS** on commit `40cb24e7`. All 14 Configurator tests and every other solution test suite passed (6,217 tests total across the workflow); both build steps completed with **0 warnings, 0 errors**. This supersedes intermediate CI runs in this implementation session.
+- Parameterless localized launcher and per-user language selection are implemented and documented. Real terminal smoke on Debian/Windows, provider forms, structured core diagnostics, language downloads and online update checks remain future work.

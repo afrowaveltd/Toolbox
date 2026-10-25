@@ -22,3 +22,7 @@
 - Added bundled English/Czech resource parity and offline fallback tests.
 - Updated interaction tests for typed main-menu navigation; added UI language persistence/switching, offline Test configuration via real FileBrowser, corrupt preferences fallback and safe editor Back/Exit tests.
 - [GitHub Actions #40231883535](https://github.com/afrowaveltd/Toolbox/actions/runs/40231883535): **14/14 Configurator tests passed** and all existing solution test suites passed. Manual SSH/Windows smoke not yet claimed.
+
+### Final green run — 2026-10-25
+
+- [GitHub Actions #40232402628](https://github.com/afrowaveltd/Toolbox/actions/runs/40232402628) **SUCCESS**: 14/14 Configurator tests; 6,217 total tests across the workflow; build warnings/errors 0/0.
