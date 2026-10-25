@@ -24,3 +24,7 @@ Tests inject a fake `HttpMessageHandler` to verify HTTP method/URL, JSON shape t
 ## Planned extensions
 
 Provider-specific authenticated health checks, a real translation smoke request with explicitly chosen test content, remote target discovery, custom user-registered adapter probes, progress reporting for many providers, and richer localized error-code reporting. None is required to save a configuration.
+
+## CI verification (2026-10-25)
+
+[GitHub Actions #40235904784](https://github.com/afrowaveltd/Toolbox/actions/runs/40235904784) completed successfully on the first implementation, with 38 Configurator tests and a clean full solution build. All live network tests used injected fake HTTP handlers; no claims are made for a real remote LibreTranslate installation.

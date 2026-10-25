@@ -862,3 +862,7 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Configurator now uses existing shared UnderstandMe `SettingsDescriptorRegistry` for built-in LibreTranslate/FileJson option forms. Draft CRUD and full dirty tracking remain independent of core and the future AfuTrans UI stack; core validation and JSON store are unchanged.
 - Opt-in `GET /languages` check on configured LibreTranslate endpoints accepts HTTP 2xx and any parseable JSON, with bounded timeout, no sent credentials or texts, and no Save dependency. UI exposes the check in Test configuration and the in-memory editor. See `UnderstandMe/Tools/Configurator/Docs/Live-Connection-Diagnostics/en.md`.
 - Added xUnit and in-memory HTTP tests; latest GitHub Actions verification pending. Future more complete translation/authentication probes should remain separate from mandatory schema validation.
+
+### Configurator provider/connection diagnostics verification — 2026-10-25
+
+- [GitHub Actions #40235904784](https://github.com/afrowaveltd/Toolbox/actions/runs/40235904784) **SUCCESS** for descriptor-driven provider/storage options and explicitly requested, nonblocking LibreTranslate GET `/languages`: **38 Configurator tests**, full Toolbox **6,241 tests**, no compiler warnings/errors. Real-world server smoke remains to be performed manually.

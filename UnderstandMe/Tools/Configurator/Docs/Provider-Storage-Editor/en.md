@@ -17,3 +17,7 @@ The entire document is held in a `ConfiguratorSession` draft. Its dirty state no
 Currently bundled core descriptors only, no third-party adapter descriptor registration into the executable, no undo/redo, no granular redacted JSON diff, and no live translation requests. Descriptor labels have manually translated Czech/English UI overrides; descriptor help prose and core validator diagnostic messages remain English. Additional languages and rich provider help/localized validation diagnostics are future work.
 
 See [Live Connection Diagnostics](../Live-Connection-Diagnostics/en.md) for the separate, optional LibreTranslate reachability check.
+
+## CI verification (2026-10-25)
+
+[GitHub Actions #40235904784](https://github.com/afrowaveltd/Toolbox/actions/runs/40235904784): success, 38 Configurator tests, 0 build warnings or errors. Actual terminal/device smoke remains for Debian/Windows/SSH.

@@ -69,3 +69,10 @@
 - Added deterministic xUnit tests covering schema-default registration, typed validation, conditional secret references, duplicate IDs, deletion, revision conflicts, offline non-mutating live diagnostics and virtual-console navigation.
 - Documentation: [Provider/Storage Editor](Docs/Provider-Storage-Editor/en.md), [Live Connection Diagnostics](Docs/Live-Connection-Diagnostics/en.md). Live translation/authentication test and real Debian/Windows/SSH smoke remain future increments.
 - **CI verification in progress for the latest integration commit.** Do not claim a verified test count until a completed successful workflow has been inspected.
+
+### Verified integration — 2026-10-25
+
+- [GitHub Actions #40235904784](https://github.com/afrowaveltd/Toolbox/actions/runs/40235904784) **SUCCESS** for commit `f20f56e6`: all **38 Configurator tests**, all **160 Blackboard FileBrowser tests** and the entire solution test workflow passed (**6,241 tests total**). Both build stages reported **0 warnings and 0 errors**.
+- The transient CI compile warning in the new type picker was eliminated by replacing nullable `SelectionPrompt<SettingsComponentDescriptor?>` with a non-nullable `ComponentTypeChoice` whose optional schema distinguishes Back.
+- Prior CI failure from changing the legacy offline result heading was resolved by preserving its original localized acknowledgement while adding the explicit Live Probe action.
+- Real network/manual terminal smoke is **not** claimed; live HTTP behavior is verified with deterministic fake handlers.

@@ -37,3 +37,8 @@
 - New `ConfiguratorComponentsTests` cover built-in descriptors, complete-draft dirtiness, add/remove, type/limit validation, conditional secret-reference validation, revision conflicts and schema-safe persistence.
 - New `ConfiguratorConnectivityTests` use fake HTTP handlers and no real network to check GET /languages, JSON-model tolerance, rejection of non-2xx or non-JSON, credential-free requests, disabled/unsupported/invalid endpoints, failure never blocking save and optional TUI live test preserving the configuration file.
 - The existing localized TUI result acknowledgement is preserved for offline diagnostics and explicit online tests. Latest GitHub Actions verification pending after the last commit.
+
+### Integration verification — 2026-10-25
+
+- [GitHub Actions #40235904784](https://github.com/afrowaveltd/Toolbox/actions/runs/40235904784) **SUCCESS**: **38/38 Configurator tests**, including 6 new metadata-driven component tests and live GET diagnostics tests; entire solution **6,241/6,241** tests passed; **0 build warnings/errors**.
+- The probes in tests use only fake HTTP handlers and never require a real translator server.
