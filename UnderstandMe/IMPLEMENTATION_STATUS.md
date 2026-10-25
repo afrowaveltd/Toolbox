@@ -866,3 +866,11 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 ### Configurator provider/connection diagnostics verification — 2026-10-25
 
 - [GitHub Actions #40235904784](https://github.com/afrowaveltd/Toolbox/actions/runs/40235904784) **SUCCESS** for descriptor-driven provider/storage options and explicitly requested, nonblocking LibreTranslate GET `/languages`: **38 Configurator tests**, full Toolbox **6,241 tests**, no compiler warnings/errors. Real-world server smoke remains to be performed manually.
+
+
+## 2026-10-25 — Markdown translation, dual links and incremental documentation design
+
+- Recorded architecture and pending decisions in [Markdown translation, documentation references, and help delivery](Docs/Markdown-Translation-and-Documentation-Updates/en.md).
+- Decisions: own modular Markdown parser/writer inspired (not copied) from AfrowaveWebPublic/Id; contextual translation with protected URL/email/code nodes; original-vs-translated structural validation; managed reference registry; default dual links to both planned localized target and English original; never invent external localized URLs.
+- Configurator Help will begin with embedded offline documentation and existing renderer; future Afutrans Web REST/SignalR delivers compatible verified online help. Embedded help is immutable fallback, not a version archive.
+- Work is **design-only**, no production parser/help/update code or test results claimed. Implement in small reviewed, tested, documented commits; unresolved AST/anchor/manifest specifications remain open.
