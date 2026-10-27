@@ -25,9 +25,33 @@ AJIS text or native binary format
 **Responsibilities:**
 
 1. **Backpack core:** decoding/framing/semantic model — JSLinq should not be a required dependency.
-2. **AjisFS:** index lookup, seek/offset addressing, persistent iterators, bounded-memory buffering, paging, external sort/aggregation, disk spill and transaction rules. Offset for native binary object data is relative to the start of payload area after header, **not LBA**.
-3. **JSLinq:** developer-friendly *in-memory* and *streaming* query operations, ideally expanded with `AsyncIterable` and async terminal operations.
-4. **Optional bridge:** an adapter such as `@afrowave/ajis-jslinq`, or an AJIS query adapter built on `JSLinq`. A full AjisFS implementation must not silently switch all queries to `Array.from(file)`.
+2. **AjisFS:** minimal storage-native primitives useful to callers: seek/read by data-area offset, record scan, index lookup, projection where efficient, bounded buffering and optional temporary disk workspace. AjisFS owns persistence, indexing and transaction mechanics **but does not independently implement JSLinq operators** such as `where`, `groupBy`, `orderBy` or a second complete query planner. Offset is relative to the start of the native AJIS binary data area after the header, **not LBA**.
+3. **JSLinq:** owns the query vocabulary and execution semantics — filter, projection, grouping, sort, aggregation, joins, pagination — building on normal `Iterable` and future `AsyncIterable` streams. For large datasets its operators may optionally use a storage capability/index/scratch provider exposed by AjisFS, while preserving in-memory operation without AjisFS.
+4. **Optional bridge:** an adapter such as `@afrowave/ajis-jslinq` can connect the JSLinq query plan and AjisFS storage capabilities so an indexed restriction or an index-ordered scan is pushed to the storage side. Neither JSLinq nor ordinary AJIS parsing must depend on AjisFS. AjisFS should not become a duplicate database query engine or silently materialize entire files.
+
+## Design clarification: AjisFS goes only halfway (2026-10-27)
+
+**Direction from the architecture discussion:** AjisFS implements the small set of **storage capabilities** which make JSLinq better, but deliberately **does not implement operations that belong to JSLinq**. Never build two independently maintained LINQ engines.
+
+- **AjisFS answers:** “Where are those records physically, which index is available, how can I read only the required bytes, how can I enumerate them incrementally, can I use scratch space?”
+- **JSLinq answers:** “Which filter, ordering, projection, grouping, join or aggregation does the user want, and how should those operators compose?”
+- **An optional bridge** translates *structured/index-friendly parts* of a JSLinq query request into AjisFS capabilities. It does not parse arbitrary JavaScript lambda bodies as SQL.
+- **Only implement storage primitives on demand**, when a concrete JSLinq use case benefits. Do not preemptively add a generic SQL-like planner, JSLinq-specific query duplication or a large parallel abstraction stack to AjisFS.
+- **Disk-heavy algorithms** such as external sorting or grouping can be orchestrated by JSLinq or its provider using scratch/buffer capabilities AjisFS exposes. Deciding the minimal practical contract is a **separate design step**, not a promise that those algorithms already exist.
+
+Illustrative separation (not public API):
+
+```text
+JSLinq query (intent/operations)
+      |
+ optional AJIS query adapter
+      |
+ AjisFS primitives: index | scan | read | offsets | scratch
+      |
+        AJIS file
+```
+
+This approach keeps AJIS simple, JSLinq independently useful and AjisFS focused on what it uniquely knows about the physical data.
 
 ### Simple already-supported use case
 
@@ -53,7 +77,7 @@ const names = await JSLinq.fromAsync(source)          // proposed JSLinq extensi
   .toArray();
 ```
 
-AjisFS handles index/predicate pushdown and I/O; JSLinq handles the residual local filter and projection. If conditions must be completely optimized, consider a provider with field-aware expressions rather than introspecting JS lambda source.
+AjisFS exposes indexed access and I/O; an **optional adapter** selects those capabilities from structured query constraints; JSLinq owns remaining filter/projection and other query semantics. If conditions must be completely optimized, consider a provider with field-aware expressions rather than introspecting JS lambda source.
 
 ## JavaScript binary work is viable
 
@@ -67,7 +91,7 @@ AjisFS handles index/predicate pushdown and I/O; JSLinq handles the residual loc
 1. `JSLinq.from(AjisReader.records())` working over a synchronous small record stream; verify no entire-file buffering.
 2. `fromAsync` or an independent optional async adapter, with bounded backpressure, `AbortSignal`/cancellation, and guaranteed iterator cleanup.
 3. Indexed AJIS file query: compare `index lookup → async rows → local where/select` versus full scan; verify I/O counts and RAM.
-4. Test huge `orderBy`/`groupBy` with disk-backed AjisFS strategy, rather than assuming ordinary JSLinq can stream them with fixed RAM.
+4. Test huge `orderBy`/`groupBy` with JSLinq-managed algorithms and an optional AjisFS-provided scratch/index interface; **do not reimplement LINQ operators inside AjisFS**.
 5. Portability fixtures for Node and browser; same AJIS documents and semantics, different storage interfaces.
 6. Link JSLinq and JS SignalR as **optional integrations**, never mandatory dependencies for simple AJIS parsing.
 
