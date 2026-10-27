@@ -15,7 +15,7 @@
 9. **Repair:** FixAjis may stage on disk, normalize and reassemble; never silently discard unknown safely framed data.
 10. **Agents:** optional personal/shared whiteboard, public/private as social ownership not secrecy.
 11. **Logic:** only declarative conditions (if/elseIf/else), **no general language** (loops, try-catch or executable scripts).
-12. **Modules:** fluent `Use...` opt-ins principally affect serialization and interpretation; framing stays universal for AJIS's stable grammar.
+12. **Modules:** fluent `Use...` opt-ins principally affect serialization and interpretation; framing stays universal for AJIS's stable grammar. Fluent/DI chaining is an **optional extension**, not the only route. Basic AJIS 1-style operations must remain convenient without DI.
 13. **Backpack target:** .NET 11 / C# 15 direction to explore discriminated unions, not implemented yet.
 14. **Proof before promotion:** keep experimental proposals visibly separate from settled grammar.
 
@@ -35,7 +35,20 @@
 - **Object storage transacts:** shared writes without one giant lock, concurrent metadata/index serialization and crash safety.
 - **Tooling / compiler:** how to generate .NET models from untyped inputs, union and nullable inference, preserving unknown directives.
 - **Transport security:** sign/encrypt/compress order, streaming envelopes, key management and encrypted scratch behavior.
-- **Version compatibility:** guarantee old-to-new textual parsing where provable, but do not claim all old parsers can frame arbitrary new syntax.
+- **Version compatibility:** guarantee old-to-new textual parsing where provable, but do not claim all old parsers can frame arbitrary new syntax. Prefer preserving existing usage where inexpensive; migration and adapter decisions must reflect impact, not an absolute compatibility slogan.
+
+## Migration policy: compatibility proportional to real impact (2026-10-27)
+
+**Direction, explicit user clarification:** AJIS 1 was deliberately released without promotion, and its known use is limited; a few package downloads do not prove zero users. Backpack is free to introduce justified breaking changes in a new major version, but **not to break compatibility gratuitously**.
+
+1. **Existing AJIS 1 documents:** Backpack should accept and interpret them, insofar as they conform to the actual earlier format. Preserve original quoted field names and their casing during parsing/lossless edits. Basic AJIS text must not require optional DI or advanced modules. This is **data-format backward compatibility**, separately tested.
+2. **Existing AJIS 1 calling patterns:** keep simple `Ajis.Serialize(...)` / `Ajis.Deserialize<T>(...)`-style APIs practical (exact name/namespace still to decide). DI/fluent `.UseAjis().UsePointers()...` is an *additional convenience/composition* path, not mandatory infrastructure. Only remove old API behavior when there's a concrete architectural need.
+3. **Small consumer migration:** changed DI registration or naming configuration requiring a few lines in one composition root is acceptable. Provide clear **AJIS 1 → Backpack migration instructions** and an explicit `PascalCase` option for consumers that depend on prior output.
+4. **Large consumer migration:** if a difference forces widespread model, application, serialized data, storage or public API changes, investigate a compatibility adapter/facade, converter or migration tool before shipping the break. Compatibility effort should scale with real disruption, not with theoretical user count alone.
+5. **Default new output:** proposed `camelCase` is acceptable for new Backpack serialization. It need not automatically detect upgrades via NuGet; a consumer with casing-dependent downstream contracts explicitly selects PascalCase. It is **not accurate** to declare this categorically non-breaking for third-party exact-key consumers, even though standard AJIS reading tolerates both naming styles.
+6. **Source-to-source vs data compatibility:** keep separate test suites: (a) parse old files, (b) parse new files, (c) use legacy-style .NET API, (d) compare emitted property names as consumed by external exact-key integrations. A failure in one category is not automatically failure in another.
+
+**Design filter:** first ask *whether there is any practical reason to change the existing behavior*. Preserve it if easy. If not, estimate the migration cost; small localized source edits are acceptable, widespread consumer rewrites justify a bridge.
 
 ## How to record future ideas
 
