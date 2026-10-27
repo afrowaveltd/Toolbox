@@ -57,7 +57,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnderstandMe.Configurator.T
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backpack", "Backpack", "{16D1E14C-6ACE-445E-A22F-D528AF408902}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Afrowave.Toolbox.Backpack", "Backpack\\Afrowave.Toolbox.Backpack.csproj", "{D430D918-A6D1-4AC1-A9F2-232A0123B456}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Afrowave.Toolbox.Backpack", "Backpack\Afrowave.Toolbox.Backpack.csproj", "{D430D918-A6D1-4AC1-A9F2-232A0123B456}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

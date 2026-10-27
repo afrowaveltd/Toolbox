@@ -27,7 +27,7 @@ Backpack is the proposed **.NET 11** successor to AJIS 1.x, developed within [Af
 
 ## Scaffold
 
-`Afrowave.Toolbox.Backpack.csproj` is intentionally **empty and not packable**. No public parser, serializer, directives or pointer APIs have been implemented or promised. It targets `net11.0` to leave room for C# 15 discriminated unions after the SDK/toolchain is available. Since the rest of Toolbox currently targets `net10.0`, building the **entire solution** will require the .NET 11 SDK once the project is added. Packaging, CI and migration must be handled separately.
+`Afrowave.Toolbox.Backpack.csproj` is intentionally **empty and not packable**. No public parser, serializer, directives or pointer APIs have been implemented or promised. It targets `net11.0` to leave room for C# 15 discriminated unions after the SDK/toolchain is available. Since the rest of Toolbox targets `net10.0`, a full solution build also needs the .NET 11 SDK. GitHub Actions is configured to install both the stable .NET 10 SDK and the .NET 11 preview SDK while 11 is prerelease. Packaging and eventual implementation are separate decisions.
 
 ## Next work
 

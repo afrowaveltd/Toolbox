@@ -20,6 +20,12 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
+    # Backpack (AJIS 2) is a net11.0 design project; keep the existing net10.0 projects building too.
+    - name: Setup .NET 11 prerelease
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 11.0.x
+        dotnet-quality: preview
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
