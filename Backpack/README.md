@@ -7,6 +7,12 @@ Backpack is the proposed **.NET 11** successor to AJIS 1.x, developed within [Af
 
 **Philosophy:** A small JSON-familiar surface, a few composable rules, powerful optional capabilities, and no mandatory complexity for simple documents. AJIS is a portable smart data backpack, not a scripting language.
 
+## Engineering rule
+
+Use the [Toolbox-wide design philosophy](../Docs/Design-Philosophy/en.md): do not reject an idea simply because it is ambitious; first capture what it enables, then look for common mechanisms that make it simpler. Keep a JSON-simple path for ordinary users.
+
+**Language targets:** .NET 11 first; **vanilla JavaScript and TypeScript are important planned first-class implementations**, not incidental ports. The AJIS document contract stays common, while the JS API should feel like JavaScript (including model-local callback functions), not a literal C#-style DI translation. Our [JSLinq](https://github.com/afrowaveltd/JSLinq) and existing JavaScript SignalR work are potential complementary integrations, **not required dependencies** of the AJIS core.
+
 ## Start here
 
 - [AJIS 1 baseline and real sources](Docs/AJIS1_BASELINE.md) — what is implemented, what was designed, and where to look.

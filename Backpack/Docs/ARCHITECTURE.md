@@ -93,6 +93,36 @@ Serializer chooses optional capabilities. The structural reader must still frame
 
 One potential `AjisDirective` abstraction + target reference (root or specific element), not separate DocumentDirective/ObjectDirective class families. The `#` notation remains the same for both. Implementations may expose type-safe `AjisPointer<T>` and object-model APIs; these remain design proposals.
 
+## Model-owned conditional delegates and cross-language semantics
+
+A **model-local** callback/predicate is a planned first-class registration site, alongside global/application registration and optional DI. Conceptually (API not implemented):
+
+```csharp
+// Illustrative only: a model can register its own conditions without DI.
+model.When("hasPhoto", context => context.Has("photo"));
+model.Otherwise(context => Preserve(context.Element));
+```
+
+```js
+// Illustrative only: idiomatic JS API, not C# conventions copied verbatim.
+const profile = createAjisModel({
+  conditions: {
+    hasPhoto: ({ value }) => Boolean(value.photo)
+  },
+  fallback: ({ element }) => element
+});
+```
+
+**Portable data vs host functions:** AJIS documents store declarative condition names, arguments and alternatives; C# delegates/JS functions belong to the local model/runtime registration, **not serialized executable function bodies**. The same AJIS document can reference `hasPhoto`; its model-specific delegate is provided separately by each implementation. Missing registrations must have explicit fallback/preservation behavior.
+
+Local, operation, application and default delegate precedence, lifetimes and async support are OPEN. The common contract is **shared semantics and conformance cases**, not identical .NET, vanilla JS or TypeScript API shapes.
+
+### Web ecosystem direction
+
+Vanilla JS and TypeScript must be viable first-class consumers so Backpack can serve the largest web-development communities. Web usage should not mandate React, .NET-style DI, SignalR or JSLinq. However, complementary [JSLinq](https://github.com/afrowaveltd/JSLinq) query utilities and the existing JavaScript SignalR work can be offered via separate integration modules: make common tasks feel cohesive instead of forcing users to assemble unrelated libraries manually.
+
+The .NET 11 implementation is an initial reference implementation, **not the definition of the language-independent AJIS format**.
+
 ## Design test
 
 For every new proposed mechanism ask: **Can it be represented by composing existing generic rules without new grammar or cross-layer coupling?**

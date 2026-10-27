@@ -18,9 +18,14 @@
 12. **Modules:** fluent `Use...` opt-ins principally affect serialization and interpretation; framing stays universal for AJIS's stable grammar. Fluent/DI chaining is an **optional extension**, not the only route. Basic AJIS 1-style operations must remain convenient without DI.
 13. **Backpack target:** .NET 11 / C# 15 direction to explore discriminated unions, not implemented yet.
 14. **Proof before promotion:** keep experimental proposals visibly separate from settled grammar.
+15. **Explore broadly, simplify afterward:** a difficult-sounding idea is not excluded during design brainstorming. Gather needed capabilities; then remove overlapping mechanisms so the core gets simpler without losing useful functionality. See the [Toolbox-wide rule](../../Docs/Design-Philosophy/en.md).
+16. **Model-local delegates:** besides DI/global registrations, AJIS models should be able to supply their own condition predicates and processing delegates in the host language. A model should remain easy to use without a service container.
+17. **JavaScript as a first-class audience:** vanilla JS and TypeScript are planned, important targets for web developers. They should offer idiomatic JS/TS APIs and model-local callbacks, while matching AJIS's portable data semantics and tests. Optional integration with JSLinq and the existing JavaScript SignalR work may provide a more cohesive developer toolkit without becoming a dependency of basic AJIS.
 
 ## Open / conflicting points
 
+- **Model-local delegate resolution order:** precedence of a model's own predicate/handler vs operation-level registration, application/global registration and default fallback; binding by symbolic names when conditions appear in serialized AJIS; lifetime and async semantics in C#/JS.
+- **JS distribution and API:** idiomatic bare ES module/vanilla JS usage, TypeScript types/inference, browser vs Node streaming capabilities and optional adapter design; do not impose .NET DI patterns on JS.
 - **Precisely what is an "element"** for `#` attachment: key-value occurrence, value, root, or structural node? How many directives can precede one target?
 - **Legacy `#AJIS mode...` syntax:** how should old directive prototypes be interpreted in new strict vs tolerant readers?
 - **Unknown unquoted `#name` in Lex/Lax:** directive vs JS identifier when unregistered, preserving raw spelling and intent.
