@@ -24,6 +24,10 @@ Then continue with the more specific reference topics:
 - [Value Objects](../Value-Objects/en.md)
 - [API Reference](../API-Reference/en.md)
 
+## Project-wide design approach
+
+- [Afrowave design philosophy](../Design-Philosophy/en.md): explore all useful ideas first, then combine overlapping mechanisms to achieve a small, composable core. Cross-language libraries share semantics while exposing idiomatic APIs.
+
 ## Documentation structure
 
 The documentation follows the Afrowave localization-friendly structure:
