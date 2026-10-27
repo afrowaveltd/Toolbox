@@ -22,6 +22,7 @@ Use the [Toolbox-wide design philosophy](../Docs/Design-Philosophy/en.md): do no
 - [Czech conversation capture](Docs/IDEAS_2026-10-27.cs.md) — preserve the rationale and examples from the design session.
 - [Use cases](Docs/USE_CASES.md) — Hardware Revival, cross-environment data.
 - [JSLinq / JS AjisFS integration](Docs/JSLINQ_AJISFS_INTEGRATION.md) — source-based assessment of in-memory LINQ, async streams, disk-index pushdown and resource cleanup.
+- [JSignalR optional integration](Docs/JSIGNALR_INTEGRATION.md) — Node SignalR-compatible server, AJIS revision notifications, protocol boundaries and hardening review.
 - [Compatibility tests to write](Docs/COMPATIBILITY_TESTS.md).
 
 **Earlier discussion:** [../Ajis/DESIGN_NOTES.md](../Ajis/DESIGN_NOTES.md), captured September 2026, is retained untouched. It includes ideas on profiles, large-data processing, transport variants, security, A2FS, tooling and testing. Those ideas remain input to the review, not automatically accepted normative requirements. Note that it assumes a future separate A2 repository; the current decision is **to develop .NET Backpack inside Toolbox**.
