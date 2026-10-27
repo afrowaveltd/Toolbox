@@ -1,0 +1,41 @@
+# Backpack decision ledger
+
+**Status key:** **Direction** = explicitly discussed preference; **Proposal** = interesting but not chosen; **Open** = unanswered; **Legacy** = older spec/code, requires review. All directions remain subject to conformance tests.
+
+## Directions, 2026-10-27
+
+1. **Backpack** is the proposed name of AJIS 2 .NET project **inside Toolbox**; AJIS 1 remains separate.
+2. **Simple first:** ordinary JSON-style documents and tiny serialize/deserialize APIs must remain trivial; optional capabilities must not burden them.
+3. **Layer isolation:** parser/framer only frames data and hands off; handlers interpret or transform. Unknown well-framed data survive on lossless paths.
+4. **Single directive prefix `#`:** one directive attaches to the following element, possibly the root. Earlier `$` proposal was **withdrawn** in favor of reusing the AJIS 1 `#` symbol.
+5. **Pointers:** typed named `*symbol` references to any AJIS value; declarations appear in the **prolog before document body** for streaming.
+6. **Stream-first:** headers, byte lengths and other required parse info precede corresponding payloads.
+7. **Storage:** uncompressed native AjisFS and object-offset access; transport gzip for smaller distribution; avoid routine compressed editing.
+8. **Naming:** serializer defaults to camelCase (configurable), parser preserves source keys.
+9. **Repair:** FixAjis may stage on disk, normalize and reassemble; never silently discard unknown safely framed data.
+10. **Agents:** optional personal/shared whiteboard, public/private as social ownership not secrecy.
+11. **Logic:** only declarative conditions (if/elseIf/else), **no general language** (loops, try-catch or executable scripts).
+12. **Modules:** fluent `Use...` opt-ins principally affect serialization and interpretation; framing stays universal for AJIS's stable grammar.
+13. **Backpack target:** .NET 11 / C# 15 direction to explore discriminated unions, not implemented yet.
+14. **Proof before promotion:** keep experimental proposals visibly separate from settled grammar.
+
+## Open / conflicting points
+
+- **Precisely what is an "element"** for `#` attachment: key-value occurrence, value, root, or structural node? How many directives can precede one target?
+- **Legacy `#AJIS mode...` syntax:** how should old directive prototypes be interpreted in new strict vs tolerant readers?
+- **Unknown unquoted `#name` in Lex/Lax:** directive vs JS identifier when unregistered, preserving raw spelling and intent.
+- **Pointer semantics:** snapshot/reference identity vs mutable version head; aliasing; cycles; duplicate declaration; forward reference explicitly rejected for streaming unless staged repair.
+- **Exact condition syntax:** input metadata visibility, predicate registry, fallback ordering, deterministic evaluation and no execution in source.
+- **Bin framing / metadata:** split logical vs physical metadata; header counts, index location, trailer updates without shifting offsets, atomic journal/recovery; nonseekable-reader contract.
+- **Naming of compressed transport:** older `.tpg` vs discussion `.gtp`; extension is not authoritative.
+- **Strict/Smart/Preserve naming:** semantic handling may be independent of lexical Ajis/Json/Lex/Lax strictness; avoid conflict with "Strict AJIS" grammar.
+- **History:** `AddOnly`, revision provenance, parallel branching, tombstones, audit, authorized erasure and rekeying.
+- **Binary identity / dedup:** content hash, stable logical ID, time-stable offset? How to support repack safely.
+- **Object storage transacts:** shared writes without one giant lock, concurrent metadata/index serialization and crash safety.
+- **Tooling / compiler:** how to generate .NET models from untyped inputs, union and nullable inference, preserving unknown directives.
+- **Transport security:** sign/encrypt/compress order, streaming envelopes, key management and encrypted scratch behavior.
+- **Version compatibility:** guarantee old-to-new textual parsing where provable, but do not claim all old parsers can frame arbitrary new syntax.
+
+## How to record future ideas
+
+For each new feature capture: problem, minimal rule, example, interactions with streaming and other existing rules, AJIS 1 precedent, test fixture, status, and whether some earlier mechanism can be **removed**. Prefer replacing overlapping features over accumulating knobs.
