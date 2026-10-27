@@ -21,6 +21,7 @@
 15. **Explore broadly, simplify afterward:** a difficult-sounding idea is not excluded during design brainstorming. Gather needed capabilities; then remove overlapping mechanisms so the core gets simpler without losing useful functionality. See the [Toolbox-wide rule](../../Docs/Design-Philosophy/en.md).
 16. **Model-local delegates:** besides DI/global registrations, AJIS models should be able to supply their own condition predicates and processing delegates in the host language. A model should remain easy to use without a service container.
 17. **JavaScript as a first-class audience:** vanilla JS and TypeScript are planned, important targets for web developers. They should offer idiomatic JS/TS APIs and model-local callbacks, while matching AJIS's portable data semantics and tests. Optional integration with JSLinq and the existing JavaScript SignalR work may provide a more cohesive developer toolkit without becoming a dependency of basic AJIS.
+18. **AjisFS and JSLinq meet halfway:** AjisFS provides only storage-aware capabilities that improve JSLinq (index/seek/scan/paged or projected reads, optional scratch). JSLinq remains responsible for query operators and composition. A small optional bridge coordinates them; AjisFS must **not** grow a redundant JSLinq/SQL engine or carry methods the consumer does not need. See [JSLinq integration review](JSLINQ_AJISFS_INTEGRATION.md).
 
 ## Open / conflicting points
 
