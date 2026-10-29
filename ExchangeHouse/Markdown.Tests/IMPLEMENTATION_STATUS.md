@@ -10,3 +10,8 @@
 
 - Added a separate `MarkdownInlineParserTests` suite for conservative inline syntax and source-safe integration with existing blocks.
 - The suite is part of the same solution CI; verification for the latest implementation commit is pending.
+
+### Verified CI — 2026-10-29
+
+- [GitHub Actions #40848846720](https://github.com/afrowaveltd/Toolbox/actions/runs/40848846720) **SUCCESS** for inline parser commit `b566ad670bb58e52049c714b8dbba6d1f3838287` — full solution build and test passed.
+- This verifies the conservative supported syntax and regressions only. Full CommonMark, editable AST, conversion and UI rendering are not yet claimed.

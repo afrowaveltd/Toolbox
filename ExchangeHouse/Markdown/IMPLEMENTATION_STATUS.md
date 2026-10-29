@@ -23,3 +23,8 @@
 - Added targeted regression tests for escaped brackets, nested link destination parentheses, nested emphasis, absolute offsets, preserved URLs/email as code, and source-preserving write.
 - No reference-style links, images, link titles, full delimiter algorithm, editable writer or conversion API yet. Integration with the Configurator and Spectre theme remains a separate future increment.
 - CI verification pending at initial commit; do not assert success until the workflow finishes.
+
+### Verified CI — 2026-10-29
+
+- [GitHub Actions #40848846720](https://github.com/afrowaveltd/Toolbox/actions/runs/40848846720) **SUCCESS** for inline parser commit `b566ad670bb58e52049c714b8dbba6d1f3838287` — full solution build and test passed.
+- This verifies the conservative supported syntax and regressions only. Full CommonMark, editable AST, conversion and UI rendering are not yet claimed.
