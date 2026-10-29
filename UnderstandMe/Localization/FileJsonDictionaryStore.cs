@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace Afrowave.Toolbox.UnderstandMe.Localization;
@@ -6,7 +8,8 @@ namespace Afrowave.Toolbox.UnderstandMe.Localization;
 public sealed class FileJsonDictionaryStore : ILocalizationDictionaryStore, ILocalizationTranslationInvalidationStore, ILocalizationConditionalTranslationWriter
 {
     private readonly string _directory;
-    private readonly object _gate = new();
+    private readonly string _mutexName;
+    private const int MaxIoAttempts = 5;
 
     /// <summary>Opens a flat-JSON dictionary store rooted at the specified directory.</summary>
     /// <param name="directory">Root directory for locale JSON files.</param>
@@ -14,14 +17,20 @@ public sealed class FileJsonDictionaryStore : ILocalizationDictionaryStore, ILoc
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(directory);
         _directory = Path.GetFullPath(directory);
+        // Synchronize all cultures of this directory, including a TryPublish source/target pair.
+        // A stable named OS mutex protects separate store instances AND separate local processes.
+        string normalized = Path.TrimEndingDirectorySeparator(_directory);
+        if (OperatingSystem.IsWindows())
+            normalized = normalized.ToUpperInvariant();
+        _mutexName = "Afrowave.UnderstandMe.Dictionary." +
+            Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(normalized)));
     }
 
     /// <inheritdoc />
     public IReadOnlyDictionary<string, string> Load(string culture)
     {
         string path = GetPath(culture);
-        lock (_gate)
-            return ReadFile(path);
+        return WithDirectoryLock(() => ReadFile(path));
     }
 
     /// <inheritdoc />
@@ -31,7 +40,7 @@ public sealed class FileJsonDictionaryStore : ILocalizationDictionaryStore, ILoc
         ArgumentNullException.ThrowIfNull(value);
         string path = GetPath(culture);
 
-        lock (_gate)
+        return WithDirectoryLock(() =>
         {
             var entries = ReadFile(path).ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
             if (entries.ContainsKey(key))
@@ -40,7 +49,7 @@ public sealed class FileJsonDictionaryStore : ILocalizationDictionaryStore, ILoc
             entries.Add(key, value);
             WriteFile(path, entries);
             return true;
-        }
+        });
     }
 
     /// <inheritdoc />
@@ -50,7 +59,7 @@ public sealed class FileJsonDictionaryStore : ILocalizationDictionaryStore, ILoc
         ArgumentNullException.ThrowIfNull(expectedValue);
         string path = GetPath(culture);
 
-        lock (_gate)
+        return WithDirectoryLock(() =>
         {
             var entries = ReadFile(path).ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
             if (!entries.TryGetValue(key, out string? current) ||
@@ -60,7 +69,7 @@ public sealed class FileJsonDictionaryStore : ILocalizationDictionaryStore, ILoc
             entries.Remove(key);
             WriteFile(path, entries);
             return true;
-        }
+        });
     }
 
 
@@ -82,7 +91,7 @@ public sealed class FileJsonDictionaryStore : ILocalizationDictionaryStore, ILoc
         if (!LocalizationPlaceholderValidator.HasMatchingPlaceholders(expectedSourceTemplate, translation))
             return false;
 
-        lock (_gate)
+        return WithDirectoryLock(() =>
         {
             var source = ReadFile(sourcePath);
             if (!source.TryGetValue(key, out string? actualSource) ||
@@ -100,6 +109,49 @@ public sealed class FileJsonDictionaryStore : ILocalizationDictionaryStore, ILoc
             target[key] = translation;
             WriteFile(targetPath, target);
             return true;
+        });
+    }
+
+    private T WithDirectoryLock<T>(Func<T> operation)
+    {
+        // A process-local lock is insufficient: a different FileJsonDictionaryStore (or
+        // another application process) can otherwise read the same old snapshot and
+        // overwrite another writer's new keys. Named mutex avoids unbounded static locks.
+        using var mutex = new Mutex(initiallyOwned: false, name: _mutexName);
+        bool acquired = false;
+        try
+        {
+            try
+            {
+                acquired = mutex.WaitOne(TimeSpan.FromSeconds(30));
+            }
+            catch (AbandonedMutexException)
+            {
+                // An abandoned mutex is now owned by this thread; restart from disk.
+                acquired = true;
+            }
+
+            if (!acquired)
+                throw new IOException("Timed out waiting for the dictionary transaction lock.");
+
+            for (int attempt = 1; ; attempt++)
+            {
+                try
+                {
+                    return operation();
+                }
+                catch (IOException) when (attempt < MaxIoAttempts)
+                {
+                    // Antivirus/file indexers may briefly hold a replaced JSON file on Windows.
+                    // Retry the FULL read/modify/write transaction, never a stale snapshot.
+                    Thread.Sleep(10 * attempt * attempt);
+                }
+            }
+        }
+        finally
+        {
+            if (acquired)
+                mutex.ReleaseMutex();
         }
     }
 

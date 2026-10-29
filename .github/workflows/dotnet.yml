@@ -43,3 +43,5 @@ jobs:
       run: dotnet test UnderstandMe/Tools/Configurator.Tests/UnderstandMe.Configurator.Tests.csproj -c Release
     - name: Blackboard Showcase UI tests
       run: dotnet test Blackboard/Samples/Blackboard.Showcase.Tests/Blackboard.Showcase.Tests.csproj -c Release
+    - name: UnderstandMe localization concurrency tests
+      run: dotnet test UnderstandMe.Tests/UnderstandMe.Tests.csproj -c Release --filter "FullyQualifiedName~DictionaryTextLocalizerTests"

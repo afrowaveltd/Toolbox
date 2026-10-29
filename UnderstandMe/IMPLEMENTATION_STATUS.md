@@ -874,3 +874,11 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Decisions: own modular Markdown parser/writer inspired (not copied) from AfrowaveWebPublic/Id; contextual translation with protected URL/email/code nodes; original-vs-translated structural validation; managed reference registry; default dual links to both planned localized target and English original; never invent external localized URLs.
 - Configurator Help will begin with embedded offline documentation and existing renderer; future Afutrans Web REST/SignalR delivers compatible verified online help. Embedded help is immutable fallback, not a version archive.
 - Work is **design-only**, no production parser/help/update code or test results claimed. Implement in small reviewed, tested, documented commits; unresolved AST/anchor/manifest specifications remain open.
+
+## 2026-10-29 — Windows dictionaryless registration concurrency regression
+
+- The local Windows test `DictionaryTextLocalizerTests.Concurrent_registration_does_not_lose_keys` reported 24 of 25 expected source keys, while Linux CI had passed.
+- Root causes addressed: `FileJsonDictionaryStore` previously locked only a particular store instance (not another store or process using the same directory), while the localizer silently falls back on I/O failures. Store operations are now guarded by a shared named OS mutex per canonical directory, including conditional source+target publication, and bounded full-transaction retries on transient `IOException`.
+- Added tests for independent store instances and localizers writing unique phrases simultaneously. The existing 25-key test remains unchanged.
+- Added UnderstandMe localization tests to Windows GitHub Actions and documentation at [File JSON concurrency](Docs/Localization/File-Json-Concurrency/en.md).
+- CI verification for this change is pending; do not claim a Windows fix before confirmation. Permanent I/O failures still result in explicit best-effort fallback, not guaranteed persistence.
