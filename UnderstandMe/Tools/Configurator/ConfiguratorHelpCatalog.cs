@@ -17,6 +17,7 @@ public static class ConfiguratorHelpCatalog
         new("validation-and-saving", "help.topic.validation-and-saving")
     ];
 
+    /// <summary>Offline help topics identified by nonlocalized keys.</summary>
     public static IReadOnlyList<ConfiguratorHelpTopic> Topics => BundledTopics;
 
     /// <summary>Load a known topic from embedded resources; never follow an arbitrary caller-provided path.</summary>

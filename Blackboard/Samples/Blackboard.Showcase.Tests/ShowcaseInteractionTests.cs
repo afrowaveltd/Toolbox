@@ -128,6 +128,8 @@ public sealed class ShowcaseInteractionTests
         try
         {
             var console = ConsoleWithInput();
+            // This full-path UI assertion requires a wide virtual viewport for long Windows temp paths.
+            console.Profile.Width = 512;
             // Empty directory: Parent is first menu item, Select current folder second.
             console.Input.PushKey(ConsoleKey.DownArrow);
             console.Input.PushKey(ConsoleKey.Enter);

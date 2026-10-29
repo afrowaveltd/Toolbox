@@ -42,3 +42,9 @@
 
 - [GitHub Actions #40235904784](https://github.com/afrowaveltd/Toolbox/actions/runs/40235904784) **SUCCESS**: **38/38 Configurator tests**, including 6 new metadata-driven component tests and live GET diagnostics tests; entire solution **6,241/6,241** tests passed; **0 build warnings/errors**.
 - The probes in tests use only fake HTTP handlers and never require a real translator server.
+
+## 2026-10-29 — Windows path wrapping regression
+
+- A local Windows run on .NET 11 RC (projects target net10.0) reported failed UI assertions on long temporary paths. Spectre.Console.Testing wraps paths at the default virtual width; it does not imply selection/navigation failed.
+- The specific tests asserting an unbroken full path now set `console.Profile.Width = 512`; other default-width navigation tests remain unchanged.
+- Added a new `windows-ui` GitHub Actions job for FileBrowser, Configurator and Showcase tests. Windows CI verification pending at this commit; no PASS claim yet.

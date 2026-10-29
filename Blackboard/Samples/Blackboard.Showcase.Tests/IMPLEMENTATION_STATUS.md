@@ -19,3 +19,9 @@ Next: confirm CI and add regression cases for any Windows/SSH differences that a
 - Added two `Spectre.Console.Testing` tests of `FileBrowserPreviewDemo` and `FileBrowserDirectoryDemo`, including actual file selection via Enter, Unicode text output and no filesystem modification.
 - [GitHub Actions 40109040501](https://github.com/afrowaveltd/Toolbox/actions/runs/40109040501): **SUCCESS**, **20 Showcase tests**, **148 FileBrowser tests** and successful full Toolbox solution build. All Showcase scenarios now have direct virtual-terminal coverage.
 - Manual real Windows/SSH/legacy-terminal acceptance testing is still pending.
+
+## 2026-10-29 — Windows path wrapping regression
+
+- A local Windows run on .NET 11 RC (projects target net10.0) reported failed UI assertions on long temporary paths. Spectre.Console.Testing wraps paths at the default virtual width; it does not imply selection/navigation failed.
+- The specific tests asserting an unbroken full path now set `console.Profile.Width = 512`; other default-width navigation tests remain unchanged.
+- Added a new `windows-ui` GitHub Actions job for FileBrowser, Configurator and Showcase tests. Windows CI verification pending at this commit; no PASS claim yet.

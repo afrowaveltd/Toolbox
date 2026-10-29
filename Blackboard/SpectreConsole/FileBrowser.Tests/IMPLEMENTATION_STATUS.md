@@ -41,3 +41,9 @@ Next: add navigation and Spectre rendering test seams, then test actual terminal
 - The maintainer subsequently started legacy Windows Console Host (`conhost.exe`) directly and confirmed working behavior **including colors**. Running cmd within Windows Terminal alone would not have tested this older console host.
 - This is **manual compatibility evidence**, not an additional automated test or an increase in xUnit count. The last explicitly reported local FileBrowser unit-test run remains **160 passed, 0 failed, 0 skipped** (2026-10-24). The latest GitHub Actions run reviewed for the pre-documentation commit is [40121980599](https://github.com/afrowaveltd/Toolbox/actions/runs/40121980599), SUCCESS.
 - Debian interactive smoke was reported previously. Real SSH/tmux, edge-case fonts and legacy code pages remain outside this verified matrix. No test source changes in this documentation commit.
+
+## 2026-10-29 — Windows path wrapping regression
+
+- A local Windows run on .NET 11 RC (projects target net10.0) reported failed UI assertions on long temporary paths. Spectre.Console.Testing wraps paths at the default virtual width; it does not imply selection/navigation failed.
+- The specific tests asserting an unbroken full path now set `console.Profile.Width = 512`; other default-width navigation tests remain unchanged.
+- Added a new `windows-ui` GitHub Actions job for FileBrowser, Configurator and Showcase tests. Windows CI verification pending at this commit; no PASS claim yet.

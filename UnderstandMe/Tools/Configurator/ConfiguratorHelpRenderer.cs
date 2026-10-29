@@ -9,6 +9,7 @@ namespace Afrowave.Toolbox.UnderstandMe.Configurator;
 /// </summary>
 public static class ConfiguratorHelpRenderer
 {
+    /// <summary>Render the bundled basic Markdown safely in an injected terminal.</summary>
     public static void Render(IAnsiConsole console, string markdown)
     {
         ArgumentNullException.ThrowIfNull(console);

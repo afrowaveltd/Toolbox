@@ -14,13 +14,13 @@ public sealed class MarkdownInlineParserTests
         Assert.Equal(source, MarkdownWriter.Write(document));
         Assert.Equal(1, block.HeadingLevel);
 
-        var strong = Assert.Single(block.Inlines.Where(n => n.Kind == MarkdownInlineKind.Strong));
+        var strong = Assert.Single(block.Inlines, n => n.Kind == MarkdownInlineKind.Strong);
         Assert.Equal("the guide", strong.Text);
-        var link = Assert.Single(block.Inlines.Where(n => n.Kind == MarkdownInlineKind.Link));
+        var link = Assert.Single(block.Inlines, n => n.Kind == MarkdownInlineKind.Link);
         Assert.Equal("our *docs*", link.Text);
         Assert.Equal("../en/spec_(draft).md", link.Destination);
-        Assert.Equal("docs", Assert.Single(link.Children.Where(n => n.Kind == MarkdownInlineKind.Emphasis)).Text);
-        var code = Assert.Single(block.Inlines.Where(n => n.Kind == MarkdownInlineKind.Code));
+        Assert.Equal("docs", Assert.Single(link.Children, n => n.Kind == MarkdownInlineKind.Emphasis).Text);
+        var code = Assert.Single(block.Inlines, n => n.Kind == MarkdownInlineKind.Code);
         Assert.Equal("support@example.com", code.Text);
 
         foreach (var node in block.Inlines)
@@ -33,8 +33,8 @@ public sealed class MarkdownInlineParserTests
         const string source = "See **bold with *italic* here** and _more_.";
         var nodes = MarkdownInlineParser.Parse(source);
         Assert.Equal(source, string.Concat(nodes.Select(n => n.RawText)));
-        var strong = Assert.Single(nodes.Where(n => n.Kind == MarkdownInlineKind.Strong));
-        Assert.Equal("italic", Assert.Single(strong.Children.Where(n => n.Kind == MarkdownInlineKind.Emphasis)).Text);
+        var strong = Assert.Single(nodes, n => n.Kind == MarkdownInlineKind.Strong);
+        Assert.Equal("italic", Assert.Single(strong.Children, n => n.Kind == MarkdownInlineKind.Emphasis).Text);
         Assert.Contains(nodes, n => n.Kind == MarkdownInlineKind.Emphasis && n.Text == "more");
         foreach (var n in nodes)
             CheckRange(source, n);
@@ -45,7 +45,7 @@ public sealed class MarkdownInlineParserTests
     {
         const string source = @"\*literal\* then [a \] label](some_(folder).md) and file_name.md";
         var nodes = MarkdownInlineParser.Parse(source);
-        var link = Assert.Single(nodes.Where(n => n.Kind == MarkdownInlineKind.Link));
+        var link = Assert.Single(nodes, n => n.Kind == MarkdownInlineKind.Link);
         Assert.Equal(@"a \] label", link.Text);
         Assert.Equal("some_(folder).md", link.Destination);
         Assert.DoesNotContain(nodes, n => n.Kind == MarkdownInlineKind.Emphasis);
@@ -65,7 +65,7 @@ public sealed class MarkdownInlineParserTests
     public void Code_spans_do_not_parse_inner_markup_and_support_multiple_backticks()
     {
         const string source = "Before ``a *b* [x](y)`` after";
-        var code = Assert.Single(MarkdownInlineParser.Parse(source).Where(n => n.Kind == MarkdownInlineKind.Code));
+        var code = Assert.Single(MarkdownInlineParser.Parse(source), n => n.Kind == MarkdownInlineKind.Code);
         Assert.Equal("a *b* [x](y)", code.Text);
         Assert.Empty(code.Children);
     }

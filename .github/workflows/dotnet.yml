@@ -26,3 +26,20 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
+
+  windows-ui:
+    name: Windows UI regression tests
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+    - name: FileBrowser UI tests
+      run: dotnet test Blackboard/SpectreConsole/FileBrowser.Tests/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.Tests.csproj -c Release
+    - name: UnderstandMe Configurator UI tests
+      run: dotnet test UnderstandMe/Tools/Configurator.Tests/UnderstandMe.Configurator.Tests.csproj -c Release
+    - name: Blackboard Showcase UI tests
+      run: dotnet test Blackboard/Samples/Blackboard.Showcase.Tests/Blackboard.Showcase.Tests.csproj -c Release
