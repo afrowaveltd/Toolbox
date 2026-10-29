@@ -19,3 +19,9 @@
 ## 2026-10-29 — analyzer cleanup
 
 - Use xUnit `Assert.Single(collection, predicate)` instead of filtered LINQ `Where` to eliminate xUnit2031 without changing test semantics. CI pending.
+
+### Verified on both platforms — 2026-10-29
+
+- [GitHub Actions #40857564421](https://github.com/afrowaveltd/Toolbox/actions/runs/40857564421) **SUCCESS** for code/test commit `ae52a29345f0fcbef08cbf6cda41686461bc25bd`.
+- Ubuntu full solution restore/build/test **PASS**; new Windows runner's **FileBrowser**, **UnderstandMe Configurator**, and **Blackboard Showcase** project test steps all **PASS**.
+- The original Windows UI path-wrap failures are resolved in the automated Windows environment. Manual developer-local retest with the latest checkout remains distinct from Windows CI.

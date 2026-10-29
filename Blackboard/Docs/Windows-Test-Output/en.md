@@ -9,3 +9,9 @@ The three **specific** path-assertion tests now configure a 512-column test cons
 A new GitHub Actions `windows-ui` job will test FileBrowser, UnderstandMe Configurator and Blackboard Showcase on `windows-latest` using stable .NET 10. This supplements the existing Linux full-solution job. Verify this job before concluding that the Windows issue is fixed.
 
 Unrelated warning cleanup in the same change removes xUnit2031 from inline parser tests and adds XML API comments to Configurator Help. The local SDK preview advisory `NETSDK1057` is not itself a failed test.
+
+### Verified on both platforms — 2026-10-29
+
+- [GitHub Actions #40857564421](https://github.com/afrowaveltd/Toolbox/actions/runs/40857564421) **SUCCESS** for code/test commit `ae52a29345f0fcbef08cbf6cda41686461bc25bd`.
+- Ubuntu full solution restore/build/test **PASS**; new Windows runner's **FileBrowser**, **UnderstandMe Configurator**, and **Blackboard Showcase** project test steps all **PASS**.
+- The original Windows UI path-wrap failures are resolved in the automated Windows environment. Manual developer-local retest with the latest checkout remains distinct from Windows CI.
