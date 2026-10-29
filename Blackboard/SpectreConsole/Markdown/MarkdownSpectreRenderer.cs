@@ -26,6 +26,8 @@ public static class MarkdownSpectreRenderer
         theme ??= new MarkdownSpectreTheme();
         ArgumentNullException.ThrowIfNull(theme.ListBullet);
         ArgumentNullException.ThrowIfNull(theme.CodeIndent);
+        ArgumentNullException.ThrowIfNull(theme.ImagePrefix);
+        ArgumentNullException.ThrowIfNull(theme.ImageSuffix);
 
         foreach (var block in document.Blocks)
         {
@@ -99,6 +101,13 @@ public static class MarkdownSpectreRenderer
                     WriteInlines(console, node.Children, node.Text, theme.Link, theme);
                     if (theme.ShowLinkDestinations && node.Destination is not null)
                         WriteSafe(console, " (" + node.Destination + ")", theme.LinkDestination);
+                    break;
+                case MarkdownInlineKind.Image:
+                    WriteSafe(console, theme.ImagePrefix, theme.Image);
+                    WriteInlines(console, node.Children, node.Text, theme.Image, theme);
+                    WriteSafe(console, theme.ImageSuffix, theme.Image);
+                    if (theme.ShowImageDestinations && node.Destination is not null)
+                        WriteSafe(console, " (" + node.Destination + ")", theme.ImageDestination);
                     break;
             }
         }

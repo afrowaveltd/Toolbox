@@ -27,6 +27,17 @@ public sealed class MarkdownSpectreTheme
     public Style Code { get; init; } = new(foreground: Color.Yellow);
     /// <summary>Link label.</summary>
     public Style Link { get; init; } = new(foreground: Color.Blue, decoration: Decoration.Underline);
+    /// <summary>Style for an image alternative description in text-only terminals.</summary>
+    public Style Image { get; init; } = new(foreground: Color.Green, decoration: Decoration.Italic);
+    /// <summary>Style for the optional literal image destination.</summary>
+    public Style ImageDestination { get; init; } = Style.Plain;
+    /// <summary>Prefix used for accessible image descriptions.</summary>
+    public string ImagePrefix { get; init; } = "[Image: ";
+    /// <summary>Suffix used for accessible image descriptions.</summary>
+    public string ImageSuffix { get; init; } = "]";
+    /// <summary>Show image resource destinations as plain text, without opening them.</summary>
+    public bool ShowImageDestinations { get; init; }
+
     /// <summary>Optional link destination.</summary>
     public Style LinkDestination { get; init; } = Style.Plain;
     /// <summary>Bullet or ordered-list marker presentation.</summary>

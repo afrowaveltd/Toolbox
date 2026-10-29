@@ -29,3 +29,7 @@ Themes expose six heading styles, body, bold, emphasis, inline/fenced code, link
 ```bash
 dotnet test Blackboard/SpectreConsole/Markdown.Tests/Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Tests.csproj
 ```
+
+## Accessible images (2026-10-29)
+
+Images from ExchangeHouse Markdown are represented as readable text (default: [Image: alt text]) instead of attempting terminal image transfer. The theme exposes Image, ImageDestination, ImagePrefix, ImageSuffix and ShowImageDestinations independently of link settings. No file or network I/O is performed, and alt text is rendered as safe literal Spectre Text. See [Rendering and Themes](Docs/Rendering-and-Themes/en.md).

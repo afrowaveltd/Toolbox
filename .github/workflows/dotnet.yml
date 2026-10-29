@@ -45,3 +45,7 @@ jobs:
       run: dotnet test Blackboard/Samples/Blackboard.Showcase.Tests/Blackboard.Showcase.Tests.csproj -c Release
     - name: UnderstandMe localization concurrency tests
       run: dotnet test UnderstandMe.Tests/UnderstandMe.Tests.csproj -c Release --filter "FullyQualifiedName~DictionaryTextLocalizerTests"
+    - name: ExchangeHouse Markdown tests
+      run: dotnet test ExchangeHouse/Markdown.Tests/Afrowave.Toolbox.ExchangeHouse.Markdown.Tests.csproj -c Release
+    - name: Blackboard Markdown tests
+      run: dotnet test Blackboard/SpectreConsole/Markdown.Tests/Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Tests.csproj -c Release

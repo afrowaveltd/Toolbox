@@ -17,3 +17,7 @@
 
 - [GitHub Actions #40848846720](https://github.com/afrowaveltd/Toolbox/actions/runs/40848846720) **SUCCESS** for inline parser commit `b566ad670bb58e52049c714b8dbba6d1f3838287` — full solution build and test passed.
 - This verifies the conservative supported syntax and regressions only. Full CommonMark, editable AST, conversion and UI rendering are not yet claimed.
+
+## 2026-10-29 — image rendering reuse
+
+- Blackboard.SpectreConsole.Markdown displays ExchangeHouse Image nodes as styled text alternatives. No back dependency on UI in ExchangeHouse, no binary image or network operations. CI pending.

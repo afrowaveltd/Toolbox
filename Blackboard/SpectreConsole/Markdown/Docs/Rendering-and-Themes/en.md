@@ -16,3 +16,7 @@ The renderer currently uses the innermost inline style without combining all nes
 - Optional Blackboard.Showcase rendering/theme demo
 - Switch UnderstandMe Configurator Help to this reusable renderer with regression tests
 - Broaden ExchangeHouse syntax support before adding advanced rendering
+
+## 2026-10-29 — image alternative descriptions
+
+An image is rendered as readable alternative text with an image-specific style and configurable prefix/suffix. The optional image destination is displayed literally when ShowImageDestinations is enabled; it is never fetched, opened or activated. Link destination visibility is an independent setting. This does not support inline terminal graphics or file image conversion.

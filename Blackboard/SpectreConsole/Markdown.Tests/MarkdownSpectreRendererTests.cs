@@ -80,6 +80,47 @@ public sealed class MarkdownSpectreRendererTests
         Assert.Contains("\uFFFD[31mBAD", console.Output);
     }
 
+
+    [Fact]
+    public void Images_render_accessible_alt_text_without_opening_or_displaying_files()
+    {
+        const string source = "View ![Our **logo**](../img/logo.png \"Brand\") and [docs](../en.md)\n";
+        var parsed = MarkdownParser.Parse(source);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, parsed);
+
+        Assert.Contains("[Image: Our logo]", console.Output);
+        Assert.DoesNotContain("../img/logo.png", console.Output);
+        Assert.DoesNotContain("Brand", console.Output);
+        Assert.Contains("docs", console.Output);
+        Assert.Equal(source, MarkdownWriter.Write(parsed));
+    }
+
+    [Fact]
+    public void Image_label_and_original_destination_are_independently_themeable()
+    {
+        var theme = new MarkdownSpectreTheme
+        {
+            ImagePrefix = "Picture: ",
+            ImageSuffix = "!",
+            ShowImageDestinations = true,
+            Image = new Style(foreground: Color.Yellow, decoration: Decoration.Bold)
+        };
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, "![Logo](<../img/my logo.png> 'Brand')", theme);
+
+        Assert.Contains("Picture: Logo! (../img/my logo.png)", console.Output);
+        Assert.DoesNotContain("Brand", console.Output);
+    }
+
+    [Fact]
+    public void Image_text_is_literal_and_cannot_inject_spectre_markup()
+    {
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, "![danger [red]tag[/]](img.png)\n");
+        Assert.Contains("[Image: danger [red]tag[/]]", console.Output);
+    }
+
     [Fact]
     public void Rejects_null_input_and_invalid_heading_levels()
     {
