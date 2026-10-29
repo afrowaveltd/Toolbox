@@ -2,7 +2,7 @@ namespace Afrowave.Toolbox.ExchangeHouse.Markdown;
 
 /// <summary>
 /// Dependency-free, source-preserving first-pass Markdown block scanner.
-/// It deliberately does not claim full CommonMark support or perform inline tokenization.
+/// Includes conservative inline tokens for headings, paragraphs and list items. Not full CommonMark.
 /// </summary>
 public static class MarkdownParser
 {
@@ -68,7 +68,15 @@ public static class MarkdownParser
                 kind = MarkdownBlockKind.Paragraph;
             }
 
-            blocks.Add(new MarkdownBlock(kind, offset, next - offset, content, raw, level));
+            var inlines = kind is MarkdownBlockKind.Heading or MarkdownBlockKind.Paragraph
+                or MarkdownBlockKind.ListItem
+                ? MarkdownInlineParser.Parse(content, offset + line.Length - content.Length)
+                : [];
+
+            blocks.Add(new MarkdownBlock(kind, offset, next - offset, content, raw, level)
+            {
+                Inlines = inlines
+            });
             offset = next;
         }
 

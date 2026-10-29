@@ -8,8 +8,12 @@ The scanner recognizes Markdown headings with up to three leading spaces, unorde
 
 `MarkdownWriter.Write(document)` returns the unedited original content by concatenating raw token spans. It preserves CRLF, LF, CR and missing final newline exactly. This **does not yet support editing nodes and regenerating Markdown**; transformation contracts will be designed before implementing converters or translation segments.
 
-Protected values (URLs, emails, placeholders and code) and dual-language link policies belong to a later parser/analysis/resolver increment. See [UnderstandMe translation architecture](../../../UnderstandMe/Docs/Markdown-Translation-and-Documentation-Updates/en.md).
+Protected values (URLs, emails, placeholders and code) and dual-language link policies belong to a later parser/analysis/resolver increment. See [UnderstandMe translation architecture](../../../../UnderstandMe/Docs/Markdown-Translation-and-Documentation-Updates/en.md).
 
 ## Safety and next increments
 
 Keep the core UI-independent and side-effect free. Expand first with tests for inline structure, code and reference identity, then add a structured writer. The Spectre.Console renderer remains a separately packaged Blackboard component; it must depend on ExchangeHouse, never the reverse.
+
+## 2026-10-29 — inline token integration
+
+Recognized ordinary paragraph, heading and list-item lines now expose `MarkdownBlock.Inlines` with absolute source offsets. Fenced code is excluded. See [Inline Parsing](../Inline-Parsing/en.md). The unchanged-document writer still preserves the original Markdown exactly; editing and full CommonMark support remain future work.

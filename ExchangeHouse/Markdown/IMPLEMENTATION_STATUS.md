@@ -15,3 +15,11 @@
 2. Design/test proper inline nodes (emphasis, code spans, links including escaped delimiters and reference links) before rewriting.
 3. Implement editable writer plus loss-awareness for future text/HTML converters.
 4. Build independently packageable Blackboard Spectre.Console Markdown renderer with customizable theme.
+
+## 2026-10-29 — conservative inline tokens
+
+- Added `MarkdownInlineParser`, `MarkdownInlineNode` and `MarkdownInlineKind` with raw source spans, source offsets, nested children and separate link destinations.
+- `MarkdownParser` populates inline nodes on heading/list/paragraph lines and excludes fenced code completely. Conservative support for emphasis, strong text, backtick code spans, and simple inline links; malformed syntax is retained literally.
+- Added targeted regression tests for escaped brackets, nested link destination parentheses, nested emphasis, absolute offsets, preserved URLs/email as code, and source-preserving write.
+- No reference-style links, images, link titles, full delimiter algorithm, editable writer or conversion API yet. Integration with the Configurator and Spectre theme remains a separate future increment.
+- CI verification pending at initial commit; do not assert success until the workflow finishes.
