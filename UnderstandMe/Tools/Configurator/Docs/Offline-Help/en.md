@@ -1,6 +1,6 @@
 # Offline Markdown help in UnderstandMe.Configurator
 
-**Implementation:** first offline increment (2026-10-29). Online update service, document AST and full Markdown parsing remain planned.
+**Implementation:** embedded offline help + shared Blackboard renderer integration (2026-10-29). Online update service, full CommonMark AST and translation-aware Markdown editing remain planned.
 
 ## Topics and navigation
 
@@ -8,7 +8,7 @@ Help is accessible from the main menu and editor, and contextually from the **Tr
 
 Topics are authored in `Docs/Help/<topic>/en.md` and embedded into the Configurator executable. The catalog uses stable, nonlocalized IDs; English/Czech menus use the existing `ConfiguratorStrings` resources. Help content currently exists in English only, explicitly indicated in both UI languages.
 
-The initial lightweight, safe terminal presenter formats headings, bullet lists and fenced code. Other Markdown syntax is displayed literally (including inline formatting and links); it does **not** execute HTML or automatically open arbitrary links. A full owned Markdown parser/writer with translation-aware AST, URL protection, locale-aware dual links and structural validation is a separate follow-up. See [broader design](../../../Docs/Markdown-Translation-and-Documentation-Updates/en.md).
+The Configurator now delegates presentation through its small `ConfiguratorHelpRenderer` theme adapter to `Blackboard.SpectreConsole.Markdown`, which consumes `ExchangeHouse.Markdown`. Basic headings, lists, fenced/inline code, bold, italic and simple links are displayed as formatted Spectre text. The original link target is shown next to the label; **no URL is automatically opened**, and Spectre markup is not executed. Unsupported Markdown syntax remains literal. Full CommonMark conformance, translation-aware AST editing, URL protection, localized dual-link generation and structural validation remain separate follow-ups. See [broader design](../../../Docs/Markdown-Translation-and-Documentation-Updates/en.md).
 
 ## Safety and compatibility
 
@@ -20,4 +20,4 @@ The initial lightweight, safe terminal presenter formats headings, bullet lists 
 
 ## Testing
 
-Virtual terminal tests cover the main Help flow and context Help with an unsaved draft. Catalog tests ensure every declared topic has nonempty embedded Markdown and unknown IDs are rejected. Full CI status must be verified after the commit.
+Virtual terminal tests cover the main Help flow and context Help with an unsaved draft, together with shared inline Markdown presentation, original link destinations and literal code/markup safety. Catalog tests ensure every declared topic has nonempty embedded Markdown and unknown IDs are rejected. Full CI status must be verified after the commit.

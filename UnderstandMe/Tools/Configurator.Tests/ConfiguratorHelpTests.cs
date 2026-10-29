@@ -73,6 +73,43 @@ public sealed class ConfiguratorHelpTests
         }
     }
 
+    [Fact]
+    public void Help_renderer_uses_shared_markdown_inline_and_link_presentation()
+    {
+        var console = new TestConsole();
+        console.Profile.Capabilities.Unicode = true;
+        console.Profile.Width = 120;
+
+        ConfiguratorHelpRenderer.Render(console,
+            "# Help\nUse **bold** and *italic*, then `code`.\n- [Guide](../en.md)\n");
+
+        Assert.Contains("Help", console.Output);
+        Assert.Contains("Use bold and italic, then code.", console.Output);
+        Assert.Contains("Guide (../en.md)", console.Output);
+        Assert.DoesNotContain("**bold**", console.Output);
+        Assert.DoesNotContain("[Guide](../en.md)", console.Output);
+    }
+
+    [Fact]
+    public void Help_renderer_never_evaluates_spectre_markup_and_keeps_code_literal()
+    {
+        var console = new TestConsole();
+        console.Profile.Width = 120;
+
+        ConfiguratorHelpRenderer.Render(console,
+            "# [red]Literal[/]\n```md\n**not bold** [link](target)\n```\n");
+
+        Assert.Contains("[red]Literal[/]", console.Output);
+        Assert.Contains("**not bold** [link](target)", console.Output);
+    }
+
+    [Fact]
+    public void Help_renderer_rejects_null_inputs_without_side_effects()
+    {
+        Assert.Throws<ArgumentNullException>(() => ConfiguratorHelpRenderer.Render(null!, "# Help"));
+        Assert.Throws<ArgumentNullException>(() => ConfiguratorHelpRenderer.Render(new TestConsole(), null!));
+    }
+
     private static TestConsole InteractiveConsole()
     {
         var console = new TestConsole();

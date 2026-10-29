@@ -54,3 +54,8 @@
 - [GitHub Actions #40857564421](https://github.com/afrowaveltd/Toolbox/actions/runs/40857564421) **SUCCESS** for code/test commit `ae52a29345f0fcbef08cbf6cda41686461bc25bd`.
 - Ubuntu full solution restore/build/test **PASS**; new Windows runner's **FileBrowser**, **UnderstandMe Configurator**, and **Blackboard Showcase** project test steps all **PASS**.
 - The original Windows UI path-wrap failures are resolved in the automated Windows environment. Manual developer-local retest with the latest checkout remains distinct from Windows CI.
+
+## 2026-10-29 — shared Markdown rendering integration tests
+
+- Added regression tests for ConfiguratorHelpRenderer using independently packaged Blackboard.SpectreConsole.Markdown: inline styling, literal code, source link targets, raw markup protection and argument validation.
+- Existing Help navigation tests and storage safety tests remain unchanged. Windows UI test job and Linux solution CI pending on this increment.

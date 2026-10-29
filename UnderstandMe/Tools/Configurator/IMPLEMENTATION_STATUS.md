@@ -89,3 +89,10 @@
 - [GitHub Actions run #40840678123](https://github.com/afrowaveltd/Toolbox/actions/runs/40840678123) **SUCCESS** for implementation commit `f8dad587bf57ee890df0a0e62f306b5636c0cd03`.
 - The solution **Build** and **Test** steps both completed successfully, including the added ConfiguratorHelpTests. This verification is CI-based; manual interactive Debian/Windows/SSH testing remains pending.
 - Planned follow-up: validate UX on real terminals, improve Markdown presentation with the owned AST/parser increment, and later introduce compatible online documentation updates.
+
+## 2026-10-29 — reusable Blackboard Markdown renderer in offline Help
+
+- Replaced Configurator-specific Markdown line parsing with the reusable `Blackboard.SpectreConsole.Markdown` component (source-preserving ExchangeHouse parser underneath). `ConfiguratorHelpRenderer.Render` remains a thin, public-compatible theme adapter; the Configurator directly references the independent Markdown project, while its existing published FileBrowser NuGet remains unchanged.
+- Offline help still uses the five original embedded English Markdown files and existing bilingual topic menus, contextual Help, Back/Escape and unchanged unsaved draft. Link labels and inline emphasis/code now render via shared library, with original link targets displayed as text; no link execution, file writes or network calls.
+- Added virtual-terminal tests for shared inline presentation, preserved link target, literal code/Spectre markup and null inputs, without replacing existing navigation tests.
+- Linux full-solution and Windows Configurator CI verification **pending** for this commit; no full CommonMark parser or online documentation updates claimed.
