@@ -34,6 +34,10 @@ Core rules used across the package:
 - empty factories return safe empty instances
 - behavior is covered by unit tests
 
+## ExchangeHouse — format tools
+
+The independent [ExchangeHouse](ExchangeHouse/README.md) family is being introduced for parsing, writing and eventually converting Markdown, text, HTML, JSON, AJIS and XML. The first package is an intentionally limited [Markdown foundation](ExchangeHouse/Markdown/README.md); future converters will be separately packaged with explicit information-loss policies.
+
 ## Documentation
 
 Documentation is available in the `Docs` folder:
