@@ -59,3 +59,9 @@
 
 - Added regression tests for ConfiguratorHelpRenderer using independently packaged Blackboard.SpectreConsole.Markdown: inline styling, literal code, source link targets, raw markup protection and argument validation.
 - Existing Help navigation tests and storage safety tests remain unchanged. Windows UI test job and Linux solution CI pending on this increment.
+
+### Verified GitHub CI — 2026-10-29
+
+- [GitHub Actions #40880298677](https://github.com/afrowaveltd/Toolbox/actions/runs/40880298677) **SUCCESS** for consumer integration commit `18d0281ee232bdd8080f00923f91f5d8b34adb1b`.
+- Linux whole-solution restore/build/test **PASS**. Windows FileBrowser, UnderstandMe Configurator (including shared Markdown help tests), Blackboard Showcase and UnderstandMe localization concurrency suites **PASS**.
+- No release/published Markdown NuGet was created; Configurator references the in-repo library project. Windows real-terminal Markdown Help visuals and Debian manual acceptance remain to be checked by a person; virtual terminal tests prove the covered behavior only.

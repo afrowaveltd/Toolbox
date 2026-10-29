@@ -21,3 +21,9 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 - `UnderstandMe/Tools/Configurator` now references this independent renderer and uses its `MarkdownSpectreRenderer` via a small theme adapter instead of duplicating a Markdown parser/display loop.
 - Existing embedded offline Help and navigation semantics are preserved. This library still has no UnderstandMe dependency; the dependency is one-way from consumer to Blackboard to ExchangeHouse.
 - Windows and Linux CI verification pending for the consumer integration commit. Advanced CommonMark and live clickable link navigation are not implemented.
+
+### Verified GitHub CI — 2026-10-29
+
+- [GitHub Actions #40880298677](https://github.com/afrowaveltd/Toolbox/actions/runs/40880298677) **SUCCESS** for consumer integration commit `18d0281ee232bdd8080f00923f91f5d8b34adb1b`.
+- Linux whole-solution restore/build/test **PASS**. Windows FileBrowser, UnderstandMe Configurator (including shared Markdown help tests), Blackboard Showcase and UnderstandMe localization concurrency suites **PASS**.
+- No release/published Markdown NuGet was created; Configurator references the in-repo library project. Windows real-terminal Markdown Help visuals and Debian manual acceptance remain to be checked by a person; virtual terminal tests prove the covered behavior only.
