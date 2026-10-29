@@ -32,7 +32,7 @@ public static class MarkdownSpectreRenderer
             switch (block.Kind)
             {
                 case MarkdownBlockKind.Blank:
-                    console.Write(new Text("\n"));
+                    WriteNewline(console);
                     break;
                 case MarkdownBlockKind.CodeFence:
                     if (theme.ShowCodeFenceDelimiters)
@@ -45,11 +45,9 @@ public static class MarkdownSpectreRenderer
                     WriteInlineLine(console, block, theme.GetHeadingStyle(block.HeadingLevel), theme);
                     break;
                 case MarkdownBlockKind.ListItem:
-                    var list = new Text();
-                    AppendSafe(list, theme.ListBullet + " ", theme.ListMarker);
-                    AppendInlines(list, block.Inlines, block.Text, theme.Body, theme);
-                    list.Append("\n");
-                    console.Write(list);
+                    WriteSafe(console, theme.ListBullet + " ", theme.ListMarker);
+                    WriteInlines(console, block.Inlines, block.Text, theme.Body, theme);
+                    WriteNewline(console);
                     break;
                 case MarkdownBlockKind.Paragraph:
                     WriteInlineLine(console, block, theme.Body, theme);
@@ -61,26 +59,24 @@ public static class MarkdownSpectreRenderer
     private static void WriteInlineLine(
         IAnsiConsole console, MarkdownBlock block, Style inherited, MarkdownSpectreTheme theme)
     {
-        var line = new Text();
-        AppendInlines(line, block.Inlines, block.Text, inherited, theme);
-        line.Append("\n");
-        console.Write(line);
+        WriteInlines(console, block.Inlines, block.Text, inherited, theme);
+        WriteNewline(console);
     }
 
     private static void WriteLine(IAnsiConsole console, string raw, Style style)
     {
-        var line = new Text();
-        AppendSafe(line, raw, style);
-        line.Append("\n");
-        console.Write(line);
+        WriteSafe(console, raw, style);
+        WriteNewline(console);
     }
 
-    private static void AppendInlines(Text line, IReadOnlyList<MarkdownInlineNode> nodes,
+    private static void WriteNewline(IAnsiConsole console) => console.Write(new Text("\n"));
+
+    private static void WriteInlines(IAnsiConsole console, IReadOnlyList<MarkdownInlineNode> nodes,
         string fallback, Style inherited, MarkdownSpectreTheme theme)
     {
         if (nodes.Count == 0)
         {
-            AppendSafe(line, fallback, inherited);
+            WriteSafe(console, fallback, inherited);
             return;
         }
         foreach (var node in nodes)
@@ -88,29 +84,29 @@ public static class MarkdownSpectreRenderer
             switch (node.Kind)
             {
                 case MarkdownInlineKind.Text:
-                    AppendSafe(line, node.Text, inherited);
+                    WriteSafe(console, node.Text, inherited);
                     break;
                 case MarkdownInlineKind.Code:
-                    AppendSafe(line, node.Text, theme.Code);
+                    WriteSafe(console, node.Text, theme.Code);
                     break;
                 case MarkdownInlineKind.Strong:
-                    AppendInlines(line, node.Children, node.Text, theme.Strong, theme);
+                    WriteInlines(console, node.Children, node.Text, theme.Strong, theme);
                     break;
                 case MarkdownInlineKind.Emphasis:
-                    AppendInlines(line, node.Children, node.Text, theme.Emphasis, theme);
+                    WriteInlines(console, node.Children, node.Text, theme.Emphasis, theme);
                     break;
                 case MarkdownInlineKind.Link:
-                    AppendInlines(line, node.Children, node.Text, theme.Link, theme);
+                    WriteInlines(console, node.Children, node.Text, theme.Link, theme);
                     if (theme.ShowLinkDestinations && node.Destination is not null)
-                        AppendSafe(line, " (" + node.Destination + ")", theme.LinkDestination);
+                        WriteSafe(console, " (" + node.Destination + ")", theme.LinkDestination);
                     break;
             }
         }
     }
 
-    private static void AppendSafe(Text line, string content, Style style)
+    private static void WriteSafe(IAnsiConsole console, string content, Style style)
     {
-        // Spectre Text treats brackets literally; sanitize terminal control bytes as well.
+        // Render as literal Text, never Spectre markup. Sanitize terminal control sequences.
         StringBuilder? cleaned = null;
         for (var i = 0; i < content.Length; i++)
         {
@@ -119,6 +115,6 @@ public static class MarkdownSpectreRenderer
             cleaned ??= new StringBuilder(content);
             cleaned[i] = '\uFFFD';
         }
-        line.Append(cleaned?.ToString() ?? content, style);
+        console.Write(new Text(cleaned?.ToString() ?? content, style));
     }
 }
