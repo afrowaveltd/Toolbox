@@ -9,3 +9,7 @@ Initial planned component: [FileBrowser](FileBrowser/README.md).
 Other candidates, as actual reuse appears: separately packageable editable field groups, selection menus, status/footer shortcuts, validation-error navigation, and confirmation dialogs. Do not create a project or dependency solely to fill a category. Favor shared display conventions and independently injectable localized labels.
 
 See [Blackboard's architecture](../Docs/Architecture/en.md).
+
+## Markdown display
+
+The independent [SpectreConsole Markdown](Markdown/README.md) adapter renders ExchangeHouse Markdown documents with configurable Spectre styles. No aggregate Blackboard package or dependency on domain-specific applications is introduced. Initial implementation 2026-10-29; not yet published.

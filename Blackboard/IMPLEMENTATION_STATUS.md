@@ -126,3 +126,9 @@
 ### 2026-10-25 — published FileBrowser verified in first consumer CI
 
 - [GitHub Actions 40229277472](https://github.com/afrowaveltd/Toolbox/actions/runs/40229277472) succeeded after the UnderstandMe Configurator integrated the published FileBrowser `0.1.0-preview.1` via PackageReference. Virtual-terminal JSON selection test passed, in addition to 160 FileBrowser tests. The Blackboard library itself was not modified by the integration.
+
+## 2026-10-29 — independent Markdown renderer
+
+- New library `Blackboard/SpectreConsole/Markdown` and `Markdown.Tests`, registered in solution. Uses ExchangeHouse.Markdown without adding UI dependencies to format/parser libraries.
+- Configurable heading/inline/link/code styles; safe Spectre `Text` output, terminal controls sanitized. Existing Configurator Help unchanged.
+- CI pending. Full CommonMark and NuGet publication remain future work. See [component status](SpectreConsole/Markdown/IMPLEMENTATION_STATUS.md).

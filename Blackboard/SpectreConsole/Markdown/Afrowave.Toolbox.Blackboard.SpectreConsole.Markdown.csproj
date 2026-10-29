@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageId>Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown</PackageId>
+    <AssemblyName>Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown</AssemblyName>
+    <RootNamespace>Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown</RootNamespace>
+    <Description>Configurable Spectre.Console Markdown renderer backed by ExchangeHouse.Markdown.</Description>
+    <PackageTags>afrowave;toolbox;blackboard;spectre;markdown;renderer;tui</PackageTags>
+    <PackageProjectUrl>https://github.com/afrowaveltd/Toolbox/tree/master/Blackboard/SpectreConsole/Markdown</PackageProjectUrl>
+    <Version>0.1.0-preview.1</Version>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../ExchangeHouse/Markdown/Afrowave.Toolbox.ExchangeHouse.Markdown.csproj" />
+    <PackageReference Include="Spectre.Console" Version="0.57.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="README.md" />
+    <None Include="README.md" Pack="true" PackagePath="/" Visible="false" />
+  </ItemGroup>
+</Project>

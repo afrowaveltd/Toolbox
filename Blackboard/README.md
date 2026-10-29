@@ -47,3 +47,7 @@ The independent FileBrowser project contains a read-only local source, storage-n
 ## Shared Showcase test application (2026-10-24)
 
 [Blackboard.Showcase](Samples/Blackboard.Showcase/README.md) is now the **central expandable TUI test/demo application**. It presents a menu of independently registered demos. Its initial FileBrowser scenarios include (1) choose a local file and preview safe UTF-8/16/32 text up to 16 KiB, (2) filter `*.json` and syntax-highlight a validated JSON document up to 64 KiB using Spectre.Console.Json, and (3) choose a directory. It is a separate executable with its own test project; neither the Showcase nor the Spectre.Console.Json extension is a dependency of the reusable FileBrowser NuGet project. The older [FileBrowser.Sample](Samples/FileBrowser.Sample/README.md) remains a focused, minimal example.
+
+## Spectre.Console Markdown renderer (2026-10-29)
+
+An independent [Markdown renderer](SpectreConsole/Markdown/README.md) now consumes the source-preserving ExchangeHouse parser and offers configurable terminal themes. It is not yet published to NuGet or integrated with Configurator; see its dedicated tests and implementation status.
