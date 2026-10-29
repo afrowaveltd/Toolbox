@@ -83,3 +83,9 @@
 - Added Help to the main menu and editor and context Help to provider/storage registration lists. Navigation returns to the same unsaved draft. A deliberately limited, escaped terminal renderer displays headings, list items and code fences, leaving unsupported inline Markdown literal until the custom AST/parser/writer is implemented.
 - Added documentation [Offline Help](Docs/Offline-Help/en.md), updated README and main menu guide. Online help updates, SignalR, translated help content and own full Markdown parser remain unimplemented.
 - Build/CI verification and targeted tests are pending for this commit; do not claim green tests until confirmed.
+
+### Verified GitHub CI — 2026-10-29
+
+- [GitHub Actions run #40840678123](https://github.com/afrowaveltd/Toolbox/actions/runs/40840678123) **SUCCESS** for implementation commit `f8dad587bf57ee890df0a0e62f306b5636c0cd03`.
+- The solution **Build** and **Test** steps both completed successfully, including the added ConfiguratorHelpTests. This verification is CI-based; manual interactive Debian/Windows/SSH testing remains pending.
+- Planned follow-up: validate UX on real terminals, improve Markdown presentation with the owned AST/parser increment, and later introduce compatible online documentation updates.
