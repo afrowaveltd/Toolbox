@@ -1,7 +1,7 @@
 namespace Afrowave.Toolbox.ExchangeHouse.Markdown;
 
 /// <summary>
-/// Conservative inline scanner for Markdown emphasis, code spans and inline links.
+/// Conservative inline scanner for Markdown emphasis, code spans, inline links and images.
 /// Unsupported or malformed constructs remain literal; no HTML execution or link access occurs.
 /// Not yet a CommonMark-compliant delimiter algorithm.
 /// </summary>
@@ -11,7 +11,7 @@ public static class MarkdownInlineParser
 
     /// <summary>
     /// Parse an inline text fragment with optional absolute source offset.
-    /// Recognizes only simple inline links, strong/emphasis and single-line code spans.
+    /// Recognizes simple inline links/images (optionally titled), strong/emphasis and code spans.
     /// </summary>
     public static IReadOnlyList<MarkdownInlineNode> Parse(string text, int sourceOffset = 0)
     {

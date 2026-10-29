@@ -21,3 +21,9 @@
 ## 2026-10-29 — image rendering reuse
 
 - Blackboard.SpectreConsole.Markdown displays ExchangeHouse Image nodes as styled text alternatives. No back dependency on UI in ExchangeHouse, no binary image or network operations. CI pending.
+
+### Verified cross-platform CI — 2026-10-29
+
+- Parser implementation commit `fb7a8108`: [GitHub Actions #40881801829](https://github.com/afrowaveltd/Toolbox/actions/runs/40881801829) **SUCCESS** — full Linux solution build/tests and existing Windows regression job.
+- Image presentation implementation commit `7696fef8`: [GitHub Actions #40882016971](https://github.com/afrowaveltd/Toolbox/actions/runs/40882016971) **SUCCESS** — full Linux solution build/tests and Windows FileBrowser, Configurator, Showcase, localization **plus newly added focused ExchangeHouse Markdown and Blackboard Markdown tests**.
+- No direct manual Debian or Windows terminal test of this new image fallback has been reported. Full CommonMark, reference-style links, actual image drawing and translated document link routing are still not implemented.

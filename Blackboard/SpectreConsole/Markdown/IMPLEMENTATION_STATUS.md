@@ -31,3 +31,9 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 ## 2026-10-29 — image alternative rendering
 
 - Added safe text-only image rendering, configurable image theme and optional source text, without file/network access. Added renderer tests; Linux and Windows CI pending.
+
+### Verified cross-platform CI — 2026-10-29
+
+- Parser implementation commit `fb7a8108`: [GitHub Actions #40881801829](https://github.com/afrowaveltd/Toolbox/actions/runs/40881801829) **SUCCESS** — full Linux solution build/tests and existing Windows regression job.
+- Image presentation implementation commit `7696fef8`: [GitHub Actions #40882016971](https://github.com/afrowaveltd/Toolbox/actions/runs/40882016971) **SUCCESS** — full Linux solution build/tests and Windows FileBrowser, Configurator, Showcase, localization **plus newly added focused ExchangeHouse Markdown and Blackboard Markdown tests**.
+- No direct manual Debian or Windows terminal test of this new image fallback has been reported. Full CommonMark, reference-style links, actual image drawing and translated document link routing are still not implemented.

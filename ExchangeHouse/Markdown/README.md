@@ -18,8 +18,8 @@ var unchanged = MarkdownWriter.Write(document);
 - Recognizes ATX headings (1-6), simple list markers, blank lines, ordinary lines, fenced code delimiters and fenced code contents.
 - Retains exact original line text, offsets, whitespace and CRLF/LF/CR terminators.
 - Does not evaluate or execute Markdown, links or raw HTML; requires no UI, filesystem or networking.
-- Adds conservative inline nodes for simple emphasis, strong text, code spans and `[label](destination)` links (including nested parentheses). Nodes retain raw source spans; link destinations are preserved exactly. Fenced code remains uninterpreted.
-- Keeps physical lines separate: advanced nesting, multiline paragraphs, images, reference links, link titles, tables and full CommonMark conformance are future increments.
+- Adds conservative inline nodes for simple emphasis, strong text, code spans, links and inline images. Nodes retain raw source spans; link/image destinations are preserved exactly along with optional titles. Fenced code remains uninterpreted.
+- Keeps physical lines separate: advanced nesting, multiline paragraphs, reference-style links/images, multiline titles, tables and full CommonMark conformance are future increments.
 - Writing currently reconstructs the unchanged document; **no source-transforming writer or converters are claimed**.
 
 Documentation: [Inline parsing](Docs/Inline-Parsing/en.md), [Parser and writer](Docs/Parser-and-Writer/en.md), [ExchangeHouse architecture](../Docs/Architecture/en.md) and [implementation status](IMPLEMENTATION_STATUS.md).
