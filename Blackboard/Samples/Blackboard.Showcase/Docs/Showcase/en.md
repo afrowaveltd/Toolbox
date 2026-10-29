@@ -52,3 +52,7 @@ Another demo chooses an existing local directory to exercise `FileBrowserPickMod
 Every change is committed to the GitHub Toolbox source of truth, documented here and in the project's `IMPLEMENTATION_STATUS.md`. The Showcase and its tests belong to `Toolbox.sln` so the existing CI runs them. Unit/injected-terminal coverage is not a substitute for real terminal interaction tests on Debian, Windows, SSH, tmux, Unicode/legacy consoles.
 
 The Showcase must never be shipped as a dependency of the independent FileBrowser NuGet. It can depend on many individual widgets as future sample modules are registered, without affecting downstream consumer dependencies.
+
+## 2026-10-29 — interactive Markdown themes
+
+A fourth demo, `MarkdownThemeDemo`, previews the same pre-parsed ExchangeHouse Markdown document with Classic, Ocean, Forest and Monochrome styles (plus all-themes comparison) using the standalone Spectre Markdown renderer. This sample does not implement format parsing itself and does not change FileBrowser or UnderstandMe. Detailed instructions: [Markdown Themes](../Markdown-Themes/en.md).

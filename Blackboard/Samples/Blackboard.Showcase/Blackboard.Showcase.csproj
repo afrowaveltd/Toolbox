@@ -9,5 +9,6 @@
   <ItemGroup>
     <PackageReference Include="Spectre.Console.Json" Version="0.57.2" />
     <ProjectReference Include="../../SpectreConsole/FileBrowser/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.csproj" />
+    <ProjectReference Include="../../SpectreConsole/Markdown/Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.csproj" />
   </ItemGroup>
 </Project>

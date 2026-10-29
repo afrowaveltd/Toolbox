@@ -51,3 +51,9 @@ GitHub CI builds/tests the whole `Toolbox.sln`. Automated `Spectre.Console.Testi
 ## Terminal startup
 
 The Showcase clears the terminal once when it enters the interactive main menu, so earlier command output is hidden. It **does not** clear after running each demonstration, preserving the demo result. This is an application-host behavior, not a change to the independent FileBrowser NuGet package.
+
+## Markdown theme gallery (2026-10-29)
+
+The fourth Showcase scenario, **Markdown — preview and compare color themes**, demonstrates the standalone `Blackboard.SpectreConsole.Markdown` renderer. Choose Classic, Ocean, Forest or Monochrome, or compare all four. The gallery parses one embedded source document once with `ExchangeHouse.Markdown` and renders it with independently supplied `MarkdownSpectreTheme` instances. No files or network calls are involved. See [Markdown Themes](Docs/Markdown-Themes/en.md).
+
+Run `dotnet run --project Blackboard/Samples/Blackboard.Showcase` and select the new fourth scenario with arrows and Enter; Escape returns. The existing three FileBrowser demonstrations are unchanged.

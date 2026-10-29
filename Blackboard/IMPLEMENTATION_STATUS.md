@@ -137,3 +137,9 @@
 
 - [GitHub Actions #40851606376](https://github.com/afrowaveltd/Toolbox/actions/runs/40851606376) **SUCCESS** for commit `6f917928538f3e8342e9cd56f1b84be2feb8a104`: full solution restore, build and test passed, including Markdown renderer virtual-terminal tests.
 - The first attempt used unsupported mutable `Spectre.Console.Text.Append`; the next build revealed one overly broad ANSI test assertion. Both were corrected in commits `6c754fa0` and `6f917928` respectively, then confirmed green. No manual Debian/Windows terminal validation or NuGet publication claimed.
+
+## 2026-10-29 — sample Markdown theme gallery
+
+- Added the `Blackboard.Showcase` Markdown preview module with four themed variants and a comparison option. This is a **sample application change**, leaving independently published package boundaries untouched.
+- Documentation and virtual terminal tests are under `Blackboard/Samples/Blackboard.Showcase` and sibling `Blackboard.Showcase.Tests`.
+- CI verification pending; no Configurator Help migration or NuGet release in this increment.

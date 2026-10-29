@@ -38,3 +38,10 @@
 ### Startup clear verified in CI (2026-10-25)
 
 - [GitHub Actions 40230127035](https://github.com/afrowaveltd/Toolbox/actions/runs/40230127035) **SUCCESS** for implementation commit `f46b80d9`, including the ANSI one-time clear assertion in the Showcase menu test and all **20 Showcase tests**. Full solution tests and final build succeeded.
+
+## 2026-10-29 — Markdown gallery module
+
+- Registered the standalone `MarkdownThemeDemo` as fourth Showcase menu item; added a **direct project reference only in Showcase** to `Blackboard.SpectreConsole.Markdown`.
+- Interactive Classic/Ocean/Forest/Monochrome presets plus Compare all; all render one pre-parsed immutable ExchangeHouse document. No filesystem/network operations or changes to other demos/Configurator.
+- Added `MarkdownThemeDemoTests` (cancel, default, switching, compare, host integration, cancellation token), English README and `Docs/Markdown-Themes/en.md`.
+- CI status: **pending**, not yet verified. The next action is to confirm full Linux build/test and targeted Windows Showcase CI; real terminal acceptance still requires manual checking.
