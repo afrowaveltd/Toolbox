@@ -143,3 +143,10 @@
 - Added the `Blackboard.Showcase` Markdown preview module with four themed variants and a comparison option. This is a **sample application change**, leaving independently published package boundaries untouched.
 - Documentation and virtual terminal tests are under `Blackboard/Samples/Blackboard.Showcase` and sibling `Blackboard.Showcase.Tests`.
 - CI verification pending; no Configurator Help migration or NuGet release in this increment.
+
+### Cross-platform CI verification — 2026-10-29
+
+- [GitHub Actions #40876131365](https://github.com/afrowaveltd/Toolbox/actions/runs/40876131365) **SUCCESS** on implementation commit `f711e66538941118592ff6d1221bf5b7f0aff57d`.
+- Linux: full Toolbox solution restore, build, and test **passed** (includes the new Markdown theme-gallery unit/virtual-terminal tests).
+- Windows: FileBrowser, UnderstandMe Configurator, Blackboard Showcase (including the new gallery), and UnderstandMe localization concurrency suites **passed**.
+- Manual interactive visual confirmation on an actual Windows/Debian terminal is still outstanding; automatic tests do not certify terminal font/theme appearance.

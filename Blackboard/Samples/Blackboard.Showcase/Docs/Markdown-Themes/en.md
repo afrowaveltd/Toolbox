@@ -31,3 +31,10 @@ The actual appearance depends on terminal color and Unicode support; the sample 
 ## Automated checks
 
 `MarkdownThemeDemoTests` cover Back/Escape, one theme, switching, all-themes comparison, dispatch through the Showcase host and cancellation. Tests use `Spectre.Console.Testing` (virtual terminal) with no filesystem actions. Windows UI and Linux solution CI must both pass before declaring the increment verified.
+
+### Cross-platform CI verification — 2026-10-29
+
+- [GitHub Actions #40876131365](https://github.com/afrowaveltd/Toolbox/actions/runs/40876131365) **SUCCESS** on implementation commit `f711e66538941118592ff6d1221bf5b7f0aff57d`.
+- Linux: full Toolbox solution restore, build, and test **passed** (includes the new Markdown theme-gallery unit/virtual-terminal tests).
+- Windows: FileBrowser, UnderstandMe Configurator, Blackboard Showcase (including the new gallery), and UnderstandMe localization concurrency suites **passed**.
+- Manual interactive visual confirmation on an actual Windows/Debian terminal is still outstanding; automatic tests do not certify terminal font/theme appearance.

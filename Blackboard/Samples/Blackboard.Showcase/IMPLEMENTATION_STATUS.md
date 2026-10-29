@@ -45,3 +45,10 @@
 - Interactive Classic/Ocean/Forest/Monochrome presets plus Compare all; all render one pre-parsed immutable ExchangeHouse document. No filesystem/network operations or changes to other demos/Configurator.
 - Added `MarkdownThemeDemoTests` (cancel, default, switching, compare, host integration, cancellation token), English README and `Docs/Markdown-Themes/en.md`.
 - CI status: **pending**, not yet verified. The next action is to confirm full Linux build/test and targeted Windows Showcase CI; real terminal acceptance still requires manual checking.
+
+### Cross-platform CI verification — 2026-10-29
+
+- [GitHub Actions #40876131365](https://github.com/afrowaveltd/Toolbox/actions/runs/40876131365) **SUCCESS** on implementation commit `f711e66538941118592ff6d1221bf5b7f0aff57d`.
+- Linux: full Toolbox solution restore, build, and test **passed** (includes the new Markdown theme-gallery unit/virtual-terminal tests).
+- Windows: FileBrowser, UnderstandMe Configurator, Blackboard Showcase (including the new gallery), and UnderstandMe localization concurrency suites **passed**.
+- Manual interactive visual confirmation on an actual Windows/Debian terminal is still outstanding; automatic tests do not certify terminal font/theme appearance.

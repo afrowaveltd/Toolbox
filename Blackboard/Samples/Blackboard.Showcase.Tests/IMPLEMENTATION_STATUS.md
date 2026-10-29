@@ -37,3 +37,10 @@ Next: confirm CI and add regression cases for any Windows/SSH differences that a
 - Added six virtual terminal tests for `MarkdownThemeDemo` and host dispatch. Existing FileBrowser/JSON tests were not modified.
 - New demo uses the already verified `Blackboard.SpectreConsole.Markdown` API and a shared parsed document, not a replacement for ExchangeHouse.
 - Linux + Windows verification pending; do not report the new tests as green until CI completes.
+
+### Cross-platform CI verification — 2026-10-29
+
+- [GitHub Actions #40876131365](https://github.com/afrowaveltd/Toolbox/actions/runs/40876131365) **SUCCESS** on implementation commit `f711e66538941118592ff6d1221bf5b7f0aff57d`.
+- Linux: full Toolbox solution restore, build, and test **passed** (includes the new Markdown theme-gallery unit/virtual-terminal tests).
+- Windows: FileBrowser, UnderstandMe Configurator, Blackboard Showcase (including the new gallery), and UnderstandMe localization concurrency suites **passed**.
+- Manual interactive visual confirmation on an actual Windows/Debian terminal is still outstanding; automatic tests do not certify terminal font/theme appearance.
