@@ -195,3 +195,5 @@ The [Configurator](Tools/Configurator/README.md) now runs without CLI parameters
 ## Local JSON dictionary concurrency (2026-10-29)
 
 `FileJsonDictionaryStore` serializes directory-level read/modify/write transactions across store instances and local processes using a stable named OS mutex; this also protects conditional source/target publication. Atomic temporary-file replacement remains in place, with bounded whole-transaction retries for transient `IOException` (for example short-lived Windows filesystem sharing conflicts). Invalid JSON, read-only files and persistent I/O failure are not silently overwritten. `DictionaryTextLocalizer` continues to return the original string when storage is unavailable; successful disk persistence cannot be promised if the filesystem remains unavailable. See [File JSON concurrency](Docs/Localization/File-Json-Concurrency/en.md).
+
+**Cross-platform verification:** [GitHub Actions #40859339217](https://github.com/afrowaveltd/Toolbox/actions/runs/40859339217) passed the complete Linux test suite and targeted Windows dictionaryless concurrency regressions on 2026-10-29.

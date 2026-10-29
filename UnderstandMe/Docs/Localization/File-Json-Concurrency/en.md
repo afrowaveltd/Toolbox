@@ -23,3 +23,9 @@ On 2026-10-29, the Windows test `DictionaryTextLocalizerTests.Concurrent_registr
 - Existing validation for duplicate keys, malformed JSON, conditional invalidation, source template and target translation integrity.
 
 Linux solution CI and the targeted Windows UnderstandMe localization tests must both pass before this increment is marked verified.
+
+### Verified CI — 2026-10-29
+
+- [GitHub Actions #40859339217](https://github.com/afrowaveltd/Toolbox/actions/runs/40859339217) **SUCCESS** for implementation commit `9d8aac3e3469a56a7e6e150d7baf9e9f8031ba2d`.
+- Linux: full solution restore/build/test passed. Windows: FileBrowser, Configurator, Showcase and targeted `DictionaryTextLocalizerTests` passed, including the prior 25-key regression and the 60-/48-key independent-instance tests.
+- This establishes green CI for the current run, not a guarantee that permanent filesystem failures can never prevent persistence. Local user rerun on the original workstation remains a separate verification.

@@ -882,3 +882,9 @@ Source of truth: https://github.com/afrowaveltd/Toolbox (branch `master`).
 - Added tests for independent store instances and localizers writing unique phrases simultaneously. The existing 25-key test remains unchanged.
 - Added UnderstandMe localization tests to Windows GitHub Actions and documentation at [File JSON concurrency](Docs/Localization/File-Json-Concurrency/en.md).
 - CI verification for this change is pending; do not claim a Windows fix before confirmation. Permanent I/O failures still result in explicit best-effort fallback, not guaranteed persistence.
+
+### Verified CI — 2026-10-29
+
+- [GitHub Actions #40859339217](https://github.com/afrowaveltd/Toolbox/actions/runs/40859339217) **SUCCESS** for implementation commit `9d8aac3e3469a56a7e6e150d7baf9e9f8031ba2d`.
+- Linux: full solution restore/build/test passed. Windows: FileBrowser, Configurator, Showcase and targeted `DictionaryTextLocalizerTests` passed, including the prior 25-key regression and the 60-/48-key independent-instance tests.
+- This establishes green CI for the current run, not a guarantee that permanent filesystem failures can never prevent persistence. Local user rerun on the original workstation remains a separate verification.
