@@ -76,7 +76,8 @@ public sealed class MarkdownSpectreRendererTests
         var console = Console();
         MarkdownSpectreRenderer.Render(console, "Plain text \u001b[31mBAD\n");
         Assert.Contains("BAD", console.Output);
-        Assert.DoesNotContain("\u001b[31m", console.Output);
+        // Spectre may emit its own ANSI styling; verify the untrusted ESC was replaced.
+        Assert.Contains("\uFFFD[31mBAD", console.Output);
     }
 
     [Fact]
