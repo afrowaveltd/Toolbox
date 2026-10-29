@@ -8,7 +8,7 @@ namespace Afrowave.Toolbox.UnderstandMe.Configurator;
 /// <summary>Metadata-driven provider and storage registration screens.</summary>
 public sealed partial class ConfiguratorApp
 {
-    private sealed record ComponentMenuChoice(string Label, string? Id, bool IsNew = false);
+    private sealed record ComponentMenuChoice(string Label, string? Id, bool IsNew = false, bool IsHelp = false);
     private sealed record OptionMenuChoice(string Label, SettingsFieldDescriptor? Field);
     private sealed record ComponentTypeChoice(string Label, SettingsComponentDescriptor? Schema);
 
@@ -26,6 +26,7 @@ public sealed partial class ConfiguratorApp
                 .Select(x => new ComponentMenuChoice(x.Id + " (" + x.Type + ")", x.Id))
                 .ToList();
             entries.Add(new(T("component.add"), null, true));
+            entries.Add(new(T("help.context"), null, IsHelp: true));
             entries.Add(new(T("menu.back"), null));
             var selected = await new SelectionPrompt<ComponentMenuChoice>()
                 .Title(Markup.Escape(T("component.pick")))
@@ -38,6 +39,12 @@ public sealed partial class ConfiguratorApp
             if (selected.IsNew)
             {
                 await AddComponentAsync(session, kind, cancellationToken);
+                continue;
+            }
+            if (selected.IsHelp)
+            {
+                await ShowHelpAsync(kind == SettingsComponentKind.TranslationBackend
+                    ? "register-provider" : "configure-storage", cancellationToken);
                 continue;
             }
             if (selected.Id is null)

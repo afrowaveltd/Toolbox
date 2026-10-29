@@ -12,6 +12,11 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources/en.json" LogicalName="Configurator.en.json" />
     <EmbeddedResource Include="Resources/cs.json" LogicalName="Configurator.cs.json" />
+    <EmbeddedResource Include="Docs/Help/Getting-Started/en.md" LogicalName="Configurator.Help.getting-started.en.md" />
+    <EmbeddedResource Include="Docs/Help/Register-Provider/en.md" LogicalName="Configurator.Help.register-provider.en.md" />
+    <EmbeddedResource Include="Docs/Help/Configure-Storage/en.md" LogicalName="Configurator.Help.configure-storage.en.md" />
+    <EmbeddedResource Include="Docs/Help/Test-Connections/en.md" LogicalName="Configurator.Help.test-connections.en.md" />
+    <EmbeddedResource Include="Docs/Help/Validation-and-Saving/en.md" LogicalName="Configurator.Help.validation-and-saving.en.md" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser" Version="0.1.0-preview.1" />

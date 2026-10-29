@@ -76,3 +76,10 @@
 - The transient CI compile warning in the new type picker was eliminated by replacing nullable `SelectionPrompt<SettingsComponentDescriptor?>` with a non-nullable `ComponentTypeChoice` whose optional schema distinguishes Back.
 - Prior CI failure from changing the legacy offline result heading was resolved by preserving its original localized acknowledgement while adding the explicit Live Probe action.
 - Real network/manual terminal smoke is **not** claimed; live HTTP behavior is verified with deterministic fake handlers.
+
+## 2026-10-29 — embedded Markdown Help, first implementation
+
+- Added standalone offline Help catalog with five English `Docs/Help/<topic>/en.md` guides embedded in the Configurator assembly; the existing bilingual UI now has Help labels and topic titles.
+- Added Help to the main menu and editor and context Help to provider/storage registration lists. Navigation returns to the same unsaved draft. A deliberately limited, escaped terminal renderer displays headings, list items and code fences, leaving unsupported inline Markdown literal until the custom AST/parser/writer is implemented.
+- Added documentation [Offline Help](Docs/Offline-Help/en.md), updated README and main menu guide. Online help updates, SignalR, translated help content and own full Markdown parser remain unimplemented.
+- Build/CI verification and targeted tests are pending for this commit; do not claim green tests until confirmed.

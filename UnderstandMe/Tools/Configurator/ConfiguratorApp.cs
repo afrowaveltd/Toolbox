@@ -65,6 +65,7 @@ public sealed partial class ConfiguratorApp
                 Item(Action.Edit, "menu.edit"),
                 Item(Action.Test, "menu.test"),
                 Item(Action.Preferences, "menu.preferences"),
+                Item(Action.Help, "menu.help"),
                 Item(Action.Exit, "menu.exit")
             ], Action.Exit, cancellationToken);
 
@@ -81,6 +82,9 @@ public sealed partial class ConfiguratorApp
                     break;
                 case Action.Preferences:
                     await PreferencesAsync(cancellationToken);
+                    break;
+                case Action.Help:
+                    await ShowHelpAsync(null, cancellationToken);
                     break;
                 case Action.Exit:
                     return;
@@ -308,6 +312,7 @@ public sealed partial class ConfiguratorApp
                 Item(Action.Validate, "editor.validate"),
                 Item(Action.LiveProbe, "connection.action"),
                 Item(Action.Save, "editor.save"),
+                Item(Action.Help, "menu.help"),
                 Item(Action.Back, "menu.back")
             ], Action.Back, cancellationToken);
 
@@ -353,6 +358,9 @@ public sealed partial class ConfiguratorApp
                 case Action.Save:
                     await ReviewAndSaveAsync(session, cancellationToken);
                     await WaitForReturnAsync(cancellationToken);
+                    break;
+                case Action.Help:
+                    await ShowHelpAsync(null, cancellationToken);
                     break;
                 case Action.Back:
                     if (!session.IsDirty || await Confirm("editor.discard", cancellationToken))
@@ -499,6 +507,6 @@ public sealed partial class ConfiguratorApp
     {
         Create, Edit, Test, Preferences, Exit,
         Browse, Path, Back, English, Czech,
-        Summary, Source, Buffer, Providers, Storages, Validate, Save, Continue, LiveProbe
+        Summary, Source, Buffer, Providers, Storages, Validate, Save, Continue, LiveProbe, Help
     }
 }
