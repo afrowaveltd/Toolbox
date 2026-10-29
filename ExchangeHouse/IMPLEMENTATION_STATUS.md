@@ -6,4 +6,4 @@
 - Added first independent `Markdown` project plus tests; see [Markdown implementation status](Markdown/IMPLEMENTATION_STATUS.md).
 - Documented separation from `Blackboard.SpectreConsole.Markdown` and the future independent conversion helpers.
 - Planned conversions include Markdown/plain text, HTML/plain text, Markdown/HTML, JSON/AJIS, JSON/XML and AJIS/XML; these **do not yet exist**.
-- GitHub CI verification for the new commit is pending until a successful workflow has been inspected.
+- **Verified:** [GitHub Actions #40846902206](https://github.com/afrowaveltd/Toolbox/actions/runs/40846902206) SUCCESS for commit `3252650b` (restore, build and complete solution test workflow).

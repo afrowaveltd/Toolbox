@@ -7,7 +7,7 @@
 - Recognizes headings, list markers, blank lines and fenced code without interpreting protected code as markup. Preserves original line endings, source offsets and exact unmodified round trips.
 - Added xUnit tests in `../Markdown.Tests`; registered both projects in `Toolbox.sln`.
 - Does **not** implement inline parsing, editable AST, format conversion or full CommonMark behavior. Does not yet integrate with Configurator; existing Help renderer remains in place.
-- GitHub CI verification pending for the integration commit; release/publishing prohibited until verified and deliberately approved.
+- **Verified:** [GitHub Actions #40846902206](https://github.com/afrowaveltd/Toolbox/actions/runs/40846902206) SUCCESS for commit `3252650b`; whole solution build and test succeeded. NuGet publishing is still deferred until API scope and release readiness are explicitly reviewed.
 
 ### Next
 
