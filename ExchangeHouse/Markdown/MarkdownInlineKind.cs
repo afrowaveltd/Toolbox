@@ -12,5 +12,7 @@ public enum MarkdownInlineKind
     /// <summary>Literal inline code delimited by matching backtick runs.</summary>
     Code,
     /// <summary>A simple inline Markdown link: [label](destination).</summary>
-    Link
+    Link,
+    /// <summary>An image with alternative text and protected destination.</summary>
+    Image
 }

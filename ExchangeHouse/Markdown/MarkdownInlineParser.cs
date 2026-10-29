@@ -71,8 +71,12 @@ public static class MarkdownInlineParser
         if (source[index] == '`' && TryCode(source, index, end, baseOffset, out node, out next))
             return true;
 
+        if (source[index] == '!' && index + 1 < end && source[index + 1] == '[' &&
+            TryLinkOrImage(source, index, end, baseOffset, depth, true, out node, out next))
+            return true;
+
         if (allowLinks && source[index] == '[' &&
-            TryLink(source, index, end, baseOffset, depth, out node, out next))
+            TryLinkOrImage(source, index, end, baseOffset, depth, false, out node, out next))
             return true;
 
         if (source[index] is '*' or '_' &&
@@ -129,28 +133,30 @@ public static class MarkdownInlineParser
         return false;
     }
 
-    private static bool TryLink(
-        string source, int start, int end, int baseOffset, int depth,
+    private static bool TryLinkOrImage(
+        string source, int start, int end, int baseOffset, int depth, bool isImage,
         out MarkdownInlineNode node, out int next)
     {
         node = null!;
         next = start;
-        var labelEnd = FindLabelEnd(source, start + 1, end);
+        int labelStart = start + (isImage ? 2 : 1);
+        int labelEnd = FindLabelEnd(source, labelStart, end);
         if (labelEnd < 0 || labelEnd + 1 >= end || source[labelEnd + 1] != '(')
             return false;
 
-        var destinationStart = labelEnd + 2;
-        var destinationEnd = FindDestinationEnd(source, destinationStart, end);
-        if (destinationEnd < 0)
+        if (!TryDestination(source, labelEnd + 2, end,
+                out int destStart, out int destEnd, out string? title, out next))
             return false;
 
-        next = destinationEnd + 1;
-        var visible = source[(start + 1)..labelEnd];
         node = new MarkdownInlineNode(
-            MarkdownInlineKind.Link, baseOffset + start, next - start,
-            source[start..next], visible, source[destinationStart..destinationEnd])
+            isImage ? MarkdownInlineKind.Image : MarkdownInlineKind.Link,
+            baseOffset + start, next - start, source[start..next],
+            source[labelStart..labelEnd], source[destStart..destEnd])
         {
-            Children = ParseRange(source, start + 1, labelEnd, baseOffset, depth + 1, allowLinks: false)
+            Title = title,
+            DestinationStart = baseOffset + destStart,
+            DestinationLength = destEnd - destStart,
+            Children = ParseRange(source, labelStart, labelEnd, baseOffset, depth + 1, allowLinks: false)
         };
         return true;
     }
@@ -180,21 +186,107 @@ public static class MarkdownInlineParser
         return -1;
     }
 
-    private static int FindDestinationEnd(string source, int start, int end)
+    private static bool TryDestination(
+        string source, int start, int end,
+        out int destStart, out int destEnd, out string? title, out int next)
     {
-        var nesting = 1;
-        for (var i = start; i < end; i++)
+        destStart = destEnd = next = start;
+        title = null;
+        if (start >= end)
+            return false;
+        if (source[start] == '<')
         {
+            destStart = start + 1;
+            int i = destStart;
+            while (i < end)
+            {
+                if (source[i] is '\r' or '\n' or '<')
+                    return false;
+                if (source[i] == '>' && !IsEscaped(source, i, destStart))
+                    break;
+                i++;
+            }
+            if (i == end)
+                return false;
+            destEnd = i;
+            return TryFinish(source, i + 1, end, out title, out next);
+        }
+
+        destStart = start;
+        int nesting = 0;
+        for (int i = start; i < end; i++)
+        {
+            char c = source[i];
             if (IsEscaped(source, i, start))
                 continue;
-            if (char.IsWhiteSpace(source[i]) || source[i] == '<' || source[i] == '>')
-                return -1; // titles / angle destinations are a later increment
-            if (source[i] == '(')
-                nesting++;
-            else if (source[i] == ')' && --nesting == 0)
-                return i;
+            if (c is '<' or '>' or '\r' or '\n')
+                return false;
+            if (char.IsWhiteSpace(c))
+            {
+                if (nesting != 0)
+                    return false;
+                destEnd = i;
+                return TryFinish(source, i, end, out title, out next);
+            }
+            if (c == '(' && ++nesting > 32)
+                return false;
+            if (c == ')')
+            {
+                if (nesting == 0)
+                {
+                    destEnd = i;
+                    next = i + 1;
+                    return true;
+                }
+                nesting--;
+            }
         }
-        return -1;
+        return false;
+    }
+
+    private static bool TryFinish(string source, int pos, int end, out string? title, out int next)
+    {
+        title = null;
+        next = pos;
+        if (pos < end && source[pos] == ')')
+        {
+            next = pos + 1;
+            return true;
+        }
+        int i = pos;
+        while (i < end && source[i] is ' ' or '\t')
+            i++;
+        if (i == pos || i == end)
+            return false;
+        if (source[i] == ')')
+        {
+            next = i + 1;
+            return true;
+        }
+
+        char open = source[i];
+        if (open is not ('"' or '\'' or '('))
+            return false;
+        char close = open == '(' ? ')' : open;
+        int titleStart = ++i;
+        while (i < end)
+        {
+            if (source[i] is '\r' or '\n')
+                return false;
+            if (source[i] == close && !IsEscaped(source, i, titleStart))
+                break;
+            i++;
+        }
+        if (i == end)
+            return false;
+        title = source[titleStart..i];
+        i++;
+        while (i < end && source[i] is ' ' or '\t')
+            i++;
+        if (i == end || source[i] != ')')
+            return false;
+        next = i + 1;
+        return true;
     }
 
     private static bool TryEmphasis(

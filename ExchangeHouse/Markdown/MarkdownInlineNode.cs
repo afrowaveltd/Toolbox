@@ -20,4 +20,13 @@ public sealed record MarkdownInlineNode(
 {
     /// <summary>Nested label or emphasis elements; empty for literal text and inline code.</summary>
     public IReadOnlyList<MarkdownInlineNode> Children { get; init; } = [];
+
+    /// <summary>Optional original title without its quote delimiters.</summary>
+    public string? Title { get; init; }
+
+    /// <summary>Absolute start offset of the original destination text.</summary>
+    public int? DestinationStart { get; init; }
+
+    /// <summary>Character length of the original destination, excluding angle brackets.</summary>
+    public int DestinationLength { get; init; }
 }

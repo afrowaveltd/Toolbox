@@ -99,6 +99,73 @@ public sealed class MarkdownInlineParserTests
         Assert.Throws<ArgumentNullException>(() => MarkdownInlineParser.Parse(null!));
     }
 
+
+    [Fact]
+    public void Image_alt_destination_and_title_have_separate_source_preserving_spans()
+    {
+        const string source = "![Our *logo*](../assets/logo_(v2).png \"Brand image\")";
+        var image = Assert.Single(MarkdownInlineParser.Parse(source), n => n.Kind == MarkdownInlineKind.Image);
+        Assert.Equal("Our *logo*", image.Text);
+        Assert.Equal("../assets/logo_(v2).png", image.Destination);
+        Assert.Equal("Brand image", image.Title);
+        Assert.Equal("logo", Assert.Single(image.Children, n => n.Kind == MarkdownInlineKind.Emphasis).Text);
+        Assert.Equal(image.Destination, source.Substring(image.DestinationStart!.Value, image.DestinationLength));
+        CheckRange(source, image);
+    }
+
+    [Theory]
+    [InlineData("[Guide](<../docs/user guide.md> \"Help\")", "../docs/user guide.md", "Help")]
+    [InlineData("[Guide](../docs/setup.md 'Install')", "../docs/setup.md", "Install")]
+    [InlineData("[Guide](../docs/setup.md (Install))", "../docs/setup.md", "Install")]
+    [InlineData("[Guide](../docs/setup.md)", "../docs/setup.md", null)]
+    [InlineData("[Empty]()", "", null)]
+    [InlineData("[Nested](foo_(bar).md)", "foo_(bar).md", null)]
+    [InlineData("[Escaped](foo\\)bar.md)", "foo\\)bar.md", null)]
+    public void Inline_links_separate_unmodified_target_from_optional_title(
+        string source, string destination, string? title)
+    {
+        var link = Assert.Single(MarkdownInlineParser.Parse(source), n => n.Kind == MarkdownInlineKind.Link);
+        Assert.Equal(destination, link.Destination);
+        Assert.Equal(title, link.Title);
+        Assert.Equal(destination, source.Substring(link.DestinationStart!.Value, link.DestinationLength));
+        Assert.Equal(source, string.Concat(MarkdownInlineParser.Parse(source).Select(n => n.RawText)));
+    }
+
+    [Fact]
+    public void Link_with_nested_image_preserves_both_destinations()
+    {
+        const string source = "[![Logo](img/logo.png)](../index.md)";
+        var link = Assert.Single(MarkdownInlineParser.Parse(source));
+        Assert.Equal(MarkdownInlineKind.Link, link.Kind);
+        Assert.Equal("../index.md", link.Destination);
+        var image = Assert.Single(link.Children);
+        Assert.Equal(MarkdownInlineKind.Image, image.Kind);
+        Assert.Equal("img/logo.png", image.Destination);
+        CheckRange(source, link);
+    }
+
+    [Theory]
+    [InlineData("![bad](image.png \"unclosed)")]
+    [InlineData("[bad](<unterminated)")]
+    [InlineData("[bad](file.md \"title\" extra)")]
+    [InlineData("![bad](file(name.png)")]
+    public void Malformed_references_do_not_become_links_or_images(string source)
+    {
+        var nodes = MarkdownInlineParser.Parse(source);
+        Assert.DoesNotContain(nodes, n => n.Kind is MarkdownInlineKind.Link or MarkdownInlineKind.Image);
+        Assert.Equal(source, string.Concat(nodes.Select(n => n.RawText)));
+    }
+
+    [Fact]
+    public void Image_offsets_survive_whole_document_parsing_and_lossless_writing()
+    {
+        const string source = "# Illustration\r\n![Logo](../assets/logo.png)\r\n";
+        var doc = MarkdownParser.Parse(source);
+        var image = Assert.Single(doc.Blocks[1].Inlines, n => n.Kind == MarkdownInlineKind.Image);
+        Assert.Equal("../assets/logo.png", source.Substring(image.DestinationStart!.Value, image.DestinationLength));
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
     private static void CheckRange(string source, MarkdownInlineNode node)
     {
         Assert.Equal(node.RawText, source.Substring(node.Start, node.Length));
