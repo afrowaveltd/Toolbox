@@ -167,7 +167,7 @@ public static class MarkdownSpectreRenderer
         var previous = 0;
         foreach (var span in spans)
         {
-            if (span.Style is null || span.Length <= 0 || span.Start < previous ||
+            if (span.Length <= 0 || span.Start < previous ||
                 span.Start > length || span.Length > length - span.Start)
                 return false;
             previous = span.Start + span.Length;
