@@ -14,8 +14,8 @@
 | [WhenItFails](../WhenItFails/README.md) | Structured error catalogs, validation, runtime resolution, recovery and profiles | **Published on NuGet**, `1.0.0` |
 | [Blackboard FileBrowser](../Blackboard/SpectreConsole/FileBrowser/README.md) | Interactive Spectre.Console file/folder picker, filters, tree and search | **Published on NuGet**, `0.1.0-preview.1` |
 | [UnderstandMe](../UnderstandMe/README.md) | Offline localization, dictionaryless keys, JSON dictionaries and validation | Implemented offline core; broader translation service is planned |
-| [ExchangeHouse Markdown](../ExchangeHouse/Markdown/README.md) | UI-neutral Markdown parsing, source-preserving writer, links, images and nested-list metadata | Implemented preview project, **not yet published** |
-| [Blackboard Markdown](../Blackboard/SpectreConsole/Markdown/README.md) | Themeable Spectre.Console Markdown display, safe text alternatives for images | Implemented preview project, **not yet published** |
+| [ExchangeHouse Markdown](../ExchangeHouse/Markdown/README.md) | UI-neutral source-preserving Markdown parser, links/images, nested lists and paragraph continuations | Implemented preview project, **not yet published** |
+| [Blackboard Markdown](../Blackboard/SpectreConsole/Markdown/README.md) | Themeable Spectre.Console Markdown display, lazy list paragraph alignment and safe image alternatives | Implemented preview project, **not yet published** |
 | [SeeMe](../SeeMe/README.md) | Console presentation helpers for WhenItFails | Implemented source project |
 | [Toolroom](../Toolroom/README.md) | Runnable developer/maintenance tools including WhenItFails Setter | Implemented utilities |
 
