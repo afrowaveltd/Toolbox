@@ -51,7 +51,7 @@ The store validates the candidate, uses a same-directory temporary file flushed 
 - Optional connection/remote integration tests with explicit timeouts and authorization, separate from deterministic offline validation.
 - Expanded metadata-driven provider/storage forms, granular redacted diff, undo/redo, direct Ctrl+S/Ctrl+V and terminal/SSH manual smoke.
 
-See the [Configurator README](../README.md) and [Configurator-TUI](../../../Docs/Configurator-TUI/en.md).
+See the [Configurator README](../../README.md) and [Configurator-TUI](../../../../Docs/Configurator-TUI/en.md).
 
 ## Localized result acknowledgement (2026-10-25)
 

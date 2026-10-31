@@ -14,7 +14,7 @@
 
 ## Future
 
-Design-level features from [Configurator TUI](../../../Docs/Configurator-TUI/en.md) remain planned: metadata-driven backend/storage options, new/delete/enable, Ctrl+S / Ctrl+V shortcuts, undo/redo, rich contextual help and full draft diff, localized menu labels, discovery across bounded paths, SSH/tmux and legacy console testing.
+Design-level features from [Configurator TUI](../../../../Docs/Configurator-TUI/en.md) remain planned: metadata-driven backend/storage options, new/delete/enable, Ctrl+S / Ctrl+V shortcuts, undo/redo, rich contextual help and full draft diff, localized menu labels, discovery across bounded paths, SSH/tmux and legacy console testing.
 
 ## Verification
 

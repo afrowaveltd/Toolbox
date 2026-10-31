@@ -38,7 +38,7 @@ An application's active set of references and the shared store of reusable phras
 
 Keep the distinct Symbolic key mode's source revision detection and optional, independently configured project-level retirement policy if a host needs it. A symbolic source-value modification still invalidates translations tied to its previous source revision; it is not treated as key reuse without checks.
 
-For the canonical placeholder identity/signature matching, protected target-placeholder renaming, context constraints and planned tests, see [Shared translation reuse and placeholder signatures](Shared-Translation-Reuse-and-Placeholder-Signatures/en.md).
+For the canonical placeholder identity/signature matching, protected target-placeholder renaming, context constraints and planned tests, see [Shared translation reuse and placeholder signatures](../Shared-Translation-Reuse-and-Placeholder-Signatures/en.md).
 
 ## Planned tests
 

@@ -38,19 +38,19 @@ Core rules used across the package:
 
 Documentation is available in the `Docs` folder:
 
-- [Documentation Index](Docs/Documentation/en.md)
-- [Getting Started](Docs/Getting-Started/en.md)
-- [Essentials Overview](Docs/Essentials-Overview/en.md)
-- [Results and Responses](Docs/Results-and-Responses/en.md)
-- [Issues](Docs/Issues/en.md)
-- [Metadata](Docs/Metadata/en.md)
-- [Diagnostics](Docs/Diagnostics/en.md)
-- [Extensions](Docs/Extensions/en.md)
-- [Interfaces](Docs/Interfaces/en.md)
-- [Enums](Docs/Enums/en.md)
-- [Guards](Docs/Guards/en.md)
-- [Value Objects](Docs/Value-Objects/en.md)
-- [API Reference](Docs/API-Reference/en.md)
+- [Documentation Index](../Docs/Documentation/en.md)
+- [Getting Started](../Docs/Getting-Started/en.md)
+- [Essentials Overview](../Docs/Essentials-Overview/en.md)
+- [Results and Responses](../Docs/Results-and-Responses/en.md)
+- [Issues](../Docs/Issues/en.md)
+- [Metadata](../Docs/Metadata/en.md)
+- [Diagnostics](../Docs/Diagnostics/en.md)
+- [Extensions](../Docs/Extensions/en.md)
+- [Interfaces](../Docs/Interfaces/en.md)
+- [Enums](../Docs/Enums/en.md)
+- [Guards](../Docs/Guards/en.md)
+- [Value Objects](../Docs/Value-Objects/en.md)
+- [API Reference](../Docs/API-Reference/en.md)
 
 ## Target framework
 

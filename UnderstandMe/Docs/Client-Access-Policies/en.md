@@ -138,5 +138,5 @@ See [Capacity Lending and Backpressure](../Capacity-Lending-and-Backpressure/en.
 
 Donations are **entirely voluntary**, cannot buy privilege over non-donors, and must fund actual, evidence-backed Afrowave service costs without personal enrichment: one-time paid AI tokens, VPS/LibreTranslate, network/backup etc. Require a privacy-preserving public/community expense dashboard and private contributor accounting reconciling **gross, fees/taxes/FX, earmarks, actual expenses, credited compute, refunds and unspent balances down to the smallest currency unit**. Do not conflate a contribution with provisioning capacity or a prepayment with consumed provider tokens.
 
-See [Community-first funding principles](../../Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md) and [Afutrans operational charter](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Community-First-No-Profit-and-Transparent-Funding/en.md). Core UnderstandMe must not require an Id/payments subscription. **Design only.**
+See [Community-first funding principles](../../../Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md) and [Afutrans operational charter](https://github.com/afrowaveltd/Afutrans/blob/main/Docs/Community-First-No-Profit-and-Transparent-Funding/en.md). Core UnderstandMe must not require an Id/payments subscription. **Design only.**
 
