@@ -43,3 +43,11 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 - The renderer consumes ExchangeHouse `ListMarker` depth and original ordered numbers; theme exposes `ListIndent` and `PreserveUnorderedMarkers`, retaining `ListBullet` behavior for unordered items.
 - Added tests for real numbered markers, nested mixed lists, custom indentation/original bullet markers and code isolation. Showcase sample includes a nested ordered list. No source changes or parsing performed in Blackboard.
 - Full CI including Windows Markdown and Showcase tests pending for this commit.
+
+### Cross-platform CI verified — 2026-10-31
+
+- [GitHub Actions #41244480220](https://github.com/afrowaveltd/Toolbox/actions/runs/41244480220) **SUCCESS** for implementation up through commit `415065a4c272838f3bc0e4ed94ab8ea90003a295`.
+- Linux: full Toolbox solution **build and tests passed**; final build reported **0 warnings, 0 errors**.
+- Windows: **ExchangeHouse.Markdown.Tests 41/41**, **Blackboard.SpectreConsole.Markdown.Tests 13/13**, **Blackboard.Showcase.Tests 26/26**; FileBrowser 160/160, Configurator 44/44, and targeted localization tests 34/34 passed.
+- Intermediate runs on parser/renderer commits failed at **test compilation** due to literal `\\`` C# escape sequences mistakenly introduced when authoring Markdown code examples. Fixed in commits `e7b858aa` and `415065a4`; the final CI is green. Existing production source was not weakened to make tests pass.
+- Manual real-terminal testing of newly added nested-list visuals in Debian/Windows remains unreported. The current model does not claim CommonMark-compatible loose/multiline lists.

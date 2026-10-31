@@ -18,3 +18,11 @@ The Spectre adapter will present actual numbers for ordered items and indented b
 ## Tests
 
 Round trips with nested mixed lists, ordered delimiters/starting numbers, tab stops, code protection, interrupted list runs, unsupported syntax and exact inline offsets. Both CI and manual terminal checks are recorded in the projects' implementation status.
+
+### Cross-platform CI verified — 2026-10-31
+
+- [GitHub Actions #41244480220](https://github.com/afrowaveltd/Toolbox/actions/runs/41244480220) **SUCCESS** for implementation up through commit `415065a4c272838f3bc0e4ed94ab8ea90003a295`.
+- Linux: full Toolbox solution **build and tests passed**; final build reported **0 warnings, 0 errors**.
+- Windows: **ExchangeHouse.Markdown.Tests 41/41**, **Blackboard.SpectreConsole.Markdown.Tests 13/13**, **Blackboard.Showcase.Tests 26/26**; FileBrowser 160/160, Configurator 44/44, and targeted localization tests 34/34 passed.
+- Intermediate runs on parser/renderer commits failed at **test compilation** due to literal `\\`` C# escape sequences mistakenly introduced when authoring Markdown code examples. Fixed in commits `e7b858aa` and `415065a4`; the final CI is green. Existing production source was not weakened to make tests pass.
+- Manual real-terminal testing of newly added nested-list visuals in Debian/Windows remains unreported. The current model does not claim CommonMark-compatible loose/multiline lists.
