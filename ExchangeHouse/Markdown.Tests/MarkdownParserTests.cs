@@ -617,7 +617,7 @@ public sealed class MarkdownParserTests
         Assert.Empty(doc.ListRoots);
         var parent = Assert.Single(doc.QuoteListRoots);
         var child = Assert.Single(parent.Children);
-        Assert.Equal(5, child.EmbeddedBlocks.Count);
+        Assert.Equal(6, child.EmbeddedBlocks.Count);
         Assert.Equal(new[] { MarkdownBlockKind.CodeFence, MarkdownBlockKind.CodeLine,
             MarkdownBlockKind.CodeLine, MarkdownBlockKind.CodeLine, MarkdownBlockKind.CodeLine,
             MarkdownBlockKind.CodeFence }, doc.Blocks.Skip(2).Take(6).Select(b => b.Kind));
