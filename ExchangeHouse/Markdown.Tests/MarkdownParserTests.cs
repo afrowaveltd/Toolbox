@@ -154,6 +154,78 @@ public sealed class MarkdownParserTests
             Assert.Equal(node.RawText, markdown.Substring(node.Start, node.Length));
     }
 
+
+    [Fact]
+    public void Explicit_continuations_attach_to_item_with_original_offsets()
+    {
+        const string markdown = "- **Title**\r\n  Follow [the guide](../guide.md)\r\n  More information\r\n- Next\r\n";
+        var doc = MarkdownParser.Parse(markdown);
+        var first = doc.ListRoots[0];
+        Assert.Equal(2, doc.ListRoots.Count);
+        Assert.Equal(2, first.ContinuationBlocks.Count);
+        Assert.Equal("Follow [the guide](../guide.md)", first.ContinuationBlocks[0].Text);
+        Assert.Equal(first.Block.Start, first.ContinuationBlocks[0].ListContinuationOwnerStart);
+        Assert.Equal(first.Block.ListMarker, first.ContinuationBlocks[1].ListContinuationMarker);
+        Assert.Equal(2, first.Block.ListMarker!.ContentIndentColumns);
+        var link = Assert.Single(first.ContinuationBlocks[0].Inlines, n => n.Kind == MarkdownInlineKind.Link);
+        Assert.Equal("../guide.md", link.Destination);
+        Assert.Equal(link.RawText, markdown.Substring(link.Start, link.Length));
+        Assert.Equal(markdown, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Continuation_after_nested_child_can_belong_to_parent()
+    {
+        const string markdown = "- parent\n  - child\n    child text\n  parent text\n- sibling";
+        var doc = MarkdownParser.Parse(markdown);
+        var parent = doc.ListRoots[0];
+        var child = Assert.Single(parent.Children);
+        Assert.Equal("child text", Assert.Single(child.ContinuationBlocks).Text);
+        Assert.Equal("parent text", Assert.Single(parent.ContinuationBlocks).Text);
+        Assert.Equal(parent.Block.Start, parent.ContinuationBlocks[0].ListContinuationOwnerStart);
+        Assert.Equal(2, doc.ListRoots.Count);
+        Assert.Equal(markdown, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Ordered_markers_and_tab_stops_control_continuation_columns()
+    {
+        const string markdown = "12) numbered\r\n    line two\r\n\tline three\r\n13. next";
+        var doc = MarkdownParser.Parse(markdown);
+        Assert.Equal(4, doc.ListRoots[0].Block.ListMarker!.ContentIndentColumns);
+        Assert.Equal(2, doc.ListRoots[0].ContinuationBlocks.Count);
+        Assert.Equal("    line two\r\n", doc.ListRoots[0].ContinuationBlocks[0].RawText);
+        Assert.Equal("\tline three\r\n", doc.ListRoots[0].ContinuationBlocks[1].RawText);
+        Assert.Equal(2, doc.ListRoots.Count);
+        Assert.Equal(markdown, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Blank_and_unindented_paragraphs_end_list_continuations()
+    {
+        const string markdown = "- first\n  attached\n\n  not attached\n- second\nplain\n  also outside";
+        var doc = MarkdownParser.Parse(markdown);
+        Assert.Equal(2, doc.ListRoots.Count);
+        Assert.Single(doc.ListRoots[0].ContinuationBlocks);
+        Assert.Empty(doc.ListRoots[1].ContinuationBlocks);
+        Assert.All(doc.Blocks.Where(b => b.Text.Contains("outside") || b.Text.Contains("not attached")),
+            b => Assert.Null(b.ListContinuationMarker));
+        Assert.Equal(markdown, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Top_level_fences_do_not_attach_to_list_content()
+    {
+        const string markdown = "- first\n  continuation\n~~~md\n  [literal](not-a-link)\n~~~\n- second";
+        var doc = MarkdownParser.Parse(markdown);
+        Assert.Single(doc.ListRoots[0].ContinuationBlocks);
+        Assert.Equal(MarkdownBlockKind.CodeFence, doc.Blocks[2].Kind);
+        Assert.Equal(MarkdownBlockKind.CodeLine, doc.Blocks[3].Kind);
+        Assert.Null(doc.Blocks[3].ListContinuationMarker);
+        Assert.Empty(doc.Blocks[3].Inlines);
+        Assert.Equal(markdown, MarkdownWriter.Write(doc));
+    }
+
     [Fact]
     public void Null_arguments_fail_explicitly()
     {

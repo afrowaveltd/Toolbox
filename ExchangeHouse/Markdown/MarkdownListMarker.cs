@@ -12,6 +12,9 @@ public sealed record MarkdownListMarker(
     int Depth,
     int ContentStart)
 {
+    /// <summary>Original source column where the marker line's content begins, using four-column tab stops.</summary>
+    public int ContentIndentColumns { get; init; }
+
     /// <summary>Original ordered delimiter ('.' or ')'), or null for unordered markers.</summary>
     public char? Delimiter => IsOrdered ? OriginalMarker[^1] : null;
 }

@@ -39,3 +39,7 @@ The conservative scanner distinguishes images from links, retains their raw path
 ## Nested and ordered lists (2026-10-31)
 
 The scanner now retains original ordered/unordered markers, list nesting depth and exact content offsets while exposing immutable `MarkdownDocument.ListRoots` hierarchy. Writer round-trip is unchanged. This is single-line contiguous list item support, not CommonMark-complete lists. See [Nested Lists](Docs/Nested-Lists/en.md).
+
+## Explicitly indented list continuations (2026-10-31)
+
+Consecutive indented paragraph lines can now belong to their list item, with owner identity, exact source offsets and unmodified Markdown output. Blank-separated loose and lazy continuations remain future work. See [List continuations](Docs/List-Continuations/en.md).

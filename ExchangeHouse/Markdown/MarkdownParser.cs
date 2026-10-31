@@ -36,6 +36,7 @@ public static class MarkdownParser
             MarkdownBlockKind kind;
             string content = line;
             MarkdownListMarker? marker = null;
+            MutableListNode? continuationOwner = null;
 
             if (inCode)
             {
@@ -49,18 +50,9 @@ public static class MarkdownParser
                     kind = MarkdownBlockKind.CodeLine;
                 }
             }
-            else if (TryFence(line, out fenceMarker, out fenceLength))
-            {
-                kind = MarkdownBlockKind.CodeFence;
-                inCode = true;
-            }
             else if (string.IsNullOrWhiteSpace(line))
             {
                 kind = MarkdownBlockKind.Blank;
-            }
-            else if (TryHeading(line, out level, out content))
-            {
-                kind = MarkdownBlockKind.Heading;
             }
             else if (TryListItem(line, out var originalMarker, out var number,
                          out var indentColumns, out content) &&
@@ -76,7 +68,10 @@ public static class MarkdownParser
                     kind = MarkdownBlockKind.ListItem;
                     marker = new MarkdownListMarker(originalMarker, number.HasValue,
                         number, indentColumns, listStack.Count,
-                        offset + line.Length - content.Length);
+                        offset + line.Length - content.Length)
+                    {
+                        ContentIndentColumns = CountColumns(line, line.Length - content.Length)
+                    };
                 }
                 else
                 {
@@ -84,12 +79,26 @@ public static class MarkdownParser
                     content = line;
                 }
             }
+            else if (TryContinuation(line, listStack, out continuationOwner, out int contentIndex))
+            {
+                kind = MarkdownBlockKind.Paragraph;
+                content = line[contentIndex..];
+            }
+            else if (TryFence(line, out fenceMarker, out fenceLength))
+            {
+                kind = MarkdownBlockKind.CodeFence;
+                inCode = true;
+            }
+            else if (TryHeading(line, out level, out content))
+            {
+                kind = MarkdownBlockKind.Heading;
+            }
             else
             {
                 kind = MarkdownBlockKind.Paragraph;
             }
 
-            if (kind != MarkdownBlockKind.ListItem)
+            if (kind != MarkdownBlockKind.ListItem && continuationOwner is null)
                 listStack.Clear();
 
             var inlines = kind is MarkdownBlockKind.Heading or MarkdownBlockKind.Paragraph
@@ -100,7 +109,9 @@ public static class MarkdownParser
             var block = new MarkdownBlock(kind, offset, next - offset, content, raw, level)
             {
                 Inlines = inlines,
-                ListMarker = marker
+                ListMarker = marker,
+                ListContinuationMarker = continuationOwner?.Block.ListMarker,
+                ListContinuationOwnerStart = continuationOwner?.Block.Start
             };
             blocks.Add(block);
 
@@ -112,6 +123,10 @@ public static class MarkdownParser
                 else
                     listRoots.Add(item);
                 listStack.Add(item);
+            }
+            else if (continuationOwner is not null)
+            {
+                continuationOwner.ContinuationBlocks.Add(block);
             }
 
             offset = next;
@@ -229,13 +244,55 @@ public static class MarkdownParser
         return true;
     }
 
+    private static int CountColumns(string line, int prefixLength)
+    {
+        int columns = 0;
+        for (int index = 0; index < prefixLength; index++)
+            columns += line[index] == '\t' ? 4 - columns % 4 : 1;
+        return columns;
+    }
+
+    private static bool TryContinuation(string line, List<MutableListNode> stack,
+        out MutableListNode? owner, out int contentIndex)
+    {
+        owner = null;
+        contentIndex = 0;
+        if (stack.Count == 0)
+            return false;
+
+        int columns = 0;
+        while (contentIndex < line.Length && line[contentIndex] is ' ' or '\t')
+        {
+            columns += line[contentIndex] == '\t' ? 4 - columns % 4 : 1;
+            if (columns > 256)
+                return false;
+            contentIndex++;
+        }
+        if (contentIndex == 0 || contentIndex == line.Length)
+            return false;
+
+        for (int index = stack.Count - 1; index >= 0; index--)
+        {
+            if (columns < stack[index].ContentIndentColumns)
+                continue;
+            owner = stack[index];
+            if (index + 1 < stack.Count)
+                stack.RemoveRange(index + 1, stack.Count - index - 1);
+            return true;
+        }
+        return false;
+    }
+
     private static MarkdownListItemNode FreezeListNode(MutableListNode item) =>
-        new(item.Block, item.Children.Select(FreezeListNode).ToList().AsReadOnly());
+        new(item.Block, item.Children.Select(FreezeListNode).ToList().AsReadOnly(),
+            item.ContinuationBlocks.AsReadOnly());
 
     private sealed class MutableListNode(MarkdownBlock block, int indentColumns)
     {
         public MarkdownBlock Block { get; } = block;
         public int IndentColumns { get; } = indentColumns;
+        public int ContentIndentColumns { get; } = block.ListMarker!.ContentIndentColumns;
         public List<MutableListNode> Children { get; } = [];
+        public List<MarkdownBlock> ContinuationBlocks { get; } = [];
     }
 }

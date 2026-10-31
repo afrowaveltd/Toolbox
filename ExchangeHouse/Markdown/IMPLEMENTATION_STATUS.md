@@ -52,3 +52,9 @@
 - Windows: **ExchangeHouse.Markdown.Tests 41/41**, **Blackboard.SpectreConsole.Markdown.Tests 13/13**, **Blackboard.Showcase.Tests 26/26**; FileBrowser 160/160, Configurator 44/44, and targeted localization tests 34/34 passed.
 - Intermediate runs on parser/renderer commits failed at **test compilation** due to literal `\\`` C# escape sequences mistakenly introduced when authoring Markdown code examples. Fixed in commits `e7b858aa` and `415065a4`; the final CI is green. Existing production source was not weakened to make tests pass.
 - Manual real-terminal testing of newly added nested-list visuals in Debian/Windows remains unreported. The current model does not claim CommonMark-compatible loose/multiline lists.
+
+## 2026-10-31 — explicitly indented continuation model
+
+- Added additive source-aware metadata for list continuation lines, and read-only per-item continuation collections. Preserves flat Blocks, raw source, existing constructors and writer output.
+- Handles original numbered marker content columns, tabs and reattachment to an ancestor after nested content. Blank/unindented lines terminate attachment. No loose/lazy CommonMark claims.
+- Added five focused parser regression tests and [design/behavior notes](Docs/List-Continuations/en.md). **CI verification pending** for this increment.

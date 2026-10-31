@@ -23,4 +23,10 @@ public sealed record MarkdownBlock(
 
     /// <summary>Source-aware list marker, including nesting depth; null for non-list lines.</summary>
     public MarkdownListMarker? ListMarker { get; init; }
+
+    /// <summary>Source marker of the owning item for explicitly indented continuation paragraphs.</summary>
+    public MarkdownListMarker? ListContinuationMarker { get; init; }
+
+    /// <summary>Absolute source offset of the continuation's owning list item line.</summary>
+    public int? ListContinuationOwnerStart { get; init; }
 }

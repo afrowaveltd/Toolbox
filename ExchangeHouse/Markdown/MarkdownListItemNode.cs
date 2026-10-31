@@ -7,10 +7,12 @@ namespace Afrowave.Toolbox.ExchangeHouse.Markdown;
 public sealed class MarkdownListItemNode
 {
     internal MarkdownListItemNode(
-        MarkdownBlock block, IReadOnlyList<MarkdownListItemNode> children)
+        MarkdownBlock block, IReadOnlyList<MarkdownListItemNode> children,
+        IReadOnlyList<MarkdownBlock> continuationBlocks)
     {
         Block = block;
         Children = children;
+        ContinuationBlocks = continuationBlocks;
     }
 
     /// <summary>Original line, source span, inline nodes and its list marker metadata.</summary>
@@ -18,4 +20,7 @@ public sealed class MarkdownListItemNode
 
     /// <summary>Nested list items belonging to this preceding item.</summary>
     public IReadOnlyList<MarkdownListItemNode> Children { get; }
+
+    /// <summary>Explicitly indented continuation paragraph lines owned by this item, in source order.</summary>
+    public IReadOnlyList<MarkdownBlock> ContinuationBlocks { get; }
 }
