@@ -254,7 +254,7 @@ public sealed class MarkdownSpectreRendererTests
         MarkdownSpectreRenderer.Render(console, doc, theme);
         var numbered = Assert.Single(doc.ListRoots[0].Children);
         Assert.True(numbered.IsLoose);
-        Assert.Contains("....12) Numbered\n\n........After gap", console.Output);
+        Assert.Contains("....12) Numbered\n\n....    After gap", console.Output);
         Assert.Contains("+ End", console.Output);
         Assert.Equal(markdown, MarkdownWriter.Write(doc));
     }
