@@ -15,7 +15,7 @@ For example:
 
 The default terminal output displays `• Parent`, then indented `3) Step`, then further-indented `• Note`, and indented `4. Step`. Source numbering and whitespace remain unchanged in ExchangeHouse's document and writer. No terminal conversion writes back to the source.
 
-This is a **simple contiguous single-line list** model. Multi-paragraph list items, loose lists, proper CommonMark list containers, nested code blocks, task list checkboxes and multi-line continuation are future work.
+The initial **single-line list** model now also supports **explicitly indented continuation paragraphs**, aligned beneath the content of the owning list item. Blank-separated loose lists, lazy continuations, proper CommonMark list containers, nested code blocks and task list checkboxes remain future work. See [list continuation presentation](../List-Continuation-Presentation/en.md).
 
 Regression tests verify mixed nested lists, ordered numbering, custom original markers, custom indentation and fenced code isolation. Linux and Windows CI verification is documented separately.
 

@@ -1,8 +1,9 @@
 namespace Afrowave.Toolbox.ExchangeHouse.Markdown;
 
 /// <summary>
-/// Immutable hierarchy of physically adjacent list-item lines. A document may contain
-/// several root nodes from separate list runs; it is not yet a full CommonMark list AST.
+/// Immutable hierarchy of source-aware list item marker lines and their explicitly
+/// indented continuation paragraphs. Blank-separated loose lists and compound CommonMark
+/// block structures are not yet represented.
 /// </summary>
 public sealed class MarkdownListItemNode
 {

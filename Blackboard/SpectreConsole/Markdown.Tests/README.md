@@ -13,3 +13,5 @@ Covers headings, lists, inline text, fenced-code isolation, link destinations, t
 Image regressions (2026-10-29): accessible alternative text, configurable image labels and literal destinations, preserved source and markup safety.
 
 Nested list regressions (2026-10-31): preserve actual numbering/delimiters, nesting indentation, custom source-marker mode and code isolation.
+
+2026-10-31: Continuation display tests cover inline styling, numbered and nested alignment under custom list indentation and blank-line boundaries.
