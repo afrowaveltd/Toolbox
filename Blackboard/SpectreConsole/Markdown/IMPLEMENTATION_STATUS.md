@@ -107,3 +107,10 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 
 - Render explicit quote prefixes before list marker and owner-aligned paragraph continuation while preserving original ordered numbers.
 - Two virtual-console regressions for mixed nested lists and quoted paragraph alignment with custom quote/list theme. [Presentation guide](Docs/Quoted-List-Presentation/en.md). CI pending, not published.
+
+### Verified cross-platform quoted-list milestone — 2026-11-01
+
+- [GitHub Actions #41251673070](https://github.com/afrowaveltd/Toolbox/actions/runs/41251673070) **SUCCESS** for feature commit `aa3ec1246fc3125f17d1a506e415cc3ad7db418b`: Linux full solution build/test, Windows targeted UI tests and documentation-link job passed.
+- Windows results: ExchangeHouse Markdown **71/71**, Blackboard Markdown **26/26**, optional TextMate **6/6**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
+- The subsequent documentation commit introduced one incorrect cross-family relative link, fixed in `1e89cf7532c03737a0599d51c26b54cd57bb345a`. Link verification on the fix run passed; final complete CI for the documentation state is tracked independently.
+- No new NuGet publication, full CommonMark conformance, or real-terminal acceptance is claimed. This feature intentionally does not tokenize fenced code inside explicitly quote-prefixed containers.
