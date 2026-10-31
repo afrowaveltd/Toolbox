@@ -116,7 +116,7 @@ public sealed class MarkdownParserTests
     [Fact]
     public void Non_list_lines_and_fences_break_the_previous_list_hierarchy()
     {
-        const string source = "- first\n  - child\n\n  - separate\nplain\n  - another\n\`\`\`\n  - protected\n\`\`\`\n- final";
+        const string source = "- first\n  - child\n\n  - separate\nplain\n  - another\n```\n  - protected\n```\n- final";
         var doc = MarkdownParser.Parse(source);
         // Blank/paragraph/fence boundaries create four separate list runs.
         Assert.Equal(4, doc.ListRoots.Count);
@@ -144,12 +144,12 @@ public sealed class MarkdownParserTests
     [Fact]
     public void Inline_nodes_keep_absolute_offsets_after_indented_list_marker()
     {
-        const string markdown = "- parent\n    12. [Manual](../Docs/en.md) and \`code\`";
+        const string markdown = "- parent\n    12. [Manual](../Docs/en.md) and `code`";
         var doc = MarkdownParser.Parse(markdown);
         var nested = doc.Blocks[1];
         Assert.Equal("12.", nested.ListMarker!.OriginalMarker);
         Assert.Equal(1, nested.ListMarker.Depth);
-        Assert.Equal("[Manual](../Docs/en.md) and \`code\`", nested.Text);
+        Assert.Equal("[Manual](../Docs/en.md) and `code`", nested.Text);
         foreach (var node in nested.Inlines)
             Assert.Equal(node.RawText, markdown.Substring(node.Start, node.Length));
     }
