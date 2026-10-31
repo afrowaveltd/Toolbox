@@ -20,6 +20,6 @@ This bounded extension retains original text, CRLF/LF/CR line breaks and source 
 
 ## Boundaries
 
-This is not a full CommonMark block-container parser. Quoted lists, nested quote-level block ASTs, arbitrary indented code blocks and HTML blocks are not yet supported. Outdented top-level quote/fence markers are not forced into the preceding list item. Long/unknown language hints are handled as literal source.
+This is not a full CommonMark block-container parser. Arbitrary nested quote-level block ASTs, unfenced indented code blocks and HTML blocks are still unsupported. Conservative quoted lists and explicit same-depth quoted fences are now supported: see [quoted lists](../Quoted-Lists/en.md) and [quoted code](../Quoted-Code-Fences/en.md). Outdented top-level quote/fence markers are not forced into the preceding list item. Long/unknown language hints are handled as literal source.
 
 [Parser status](../../IMPLEMENTATION_STATUS.md) · [Markdown README](../../README.md).

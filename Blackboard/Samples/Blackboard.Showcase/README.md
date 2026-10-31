@@ -78,3 +78,7 @@ TextMate syntax colors, brace nesting and **source-preserved indentation**.
 This is an embedded demonstration of .NET Core 3.1-era syntax, **not** a
 change to Toolbox's net10.0 target framework. All four gallery themes
 reuse the same parsed Markdown; Monochrome remains uncolored.
+
+## Quote-nested code example (2026-11-01)
+
+The Markdown theme gallery now includes an indented `csharp` fence beneath a numbered list item **inside a blockquote**, in addition to the classic .NET Core 3.1 `Program.Main` sample. Colored themes demonstrate optional TextMate highlighting in both places; Monochrome remains uncolored. [Gallery documentation](Docs/Markdown-Themes/en.md).

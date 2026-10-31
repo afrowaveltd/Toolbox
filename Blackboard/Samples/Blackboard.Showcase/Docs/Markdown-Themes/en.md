@@ -62,3 +62,7 @@ C# syntax highlighting and indentation over several nesting levels; no
 The gallery still parses a single immutable source document and renders
 it with Classic, Ocean, Forest and Monochrome themes. Tests check that the
 rendered method signature and indentation are preserved. Code is never executed.
+
+## 2026-11-01 — quoted list with fenced C#
+
+The single parsed Markdown fixture now also includes `public static int Double(int value)` inside an indented `csharp` fence attached to a numbered item in a blockquote. This shows combined quote/list/code indentation and optional TextMate coloring in Classic, Ocean and Forest. Monochrome stays literal, and no code is executed. [Quoted code renderer](../../../SpectreConsole/Markdown/Docs/Quoted-Code-Presentation/en.md).

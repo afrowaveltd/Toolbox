@@ -32,7 +32,7 @@ unmodified input string.
 
 Unquoted lines, a quote-depth change, quote-prefixed headings and blank quote lines
 interrupt the active list container. Blank-separated quoted list paragraphs,
-fenced code within quote containers and arbitrary nested blocks remain unsupported.
+arbitrary nested blocks remain unsupported. Same-depth explicit fenced code inside quoted lists is now supported as a bounded extension; see [quoted code](../Quoted-Code-Fences/en.md).
 No grammar coloring or executable code is required in ExchangeHouse.
 
 [Earlier code/quote support](../Code-and-Quote-Containers/en.md) ·

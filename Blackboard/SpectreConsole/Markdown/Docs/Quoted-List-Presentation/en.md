@@ -11,8 +11,7 @@ metadata to render quote-contained nested items and their paragraphs:
 - Inline links and emphasized text remain safe, literal Spectre text.
 
 The source parser stays UI-independent; the renderer does not rewrite Markdown,
-load remote content or execute code. Full CommonMark nesting and code fences
-inside explicitly quote-prefixed containers remain future increments.
+load remote content or execute code. Full CommonMark nesting remains future work. Explicit quote-prefixed code fences now render within quoted lists; see [quote-code rendering](../Quoted-Code-Presentation/en.md).
 
 [Quoted-list parser design](../../../../../ExchangeHouse/Markdown/Docs/Quoted-Lists/en.md) ·
 [Renderer status](../../IMPLEMENTATION_STATUS.md).

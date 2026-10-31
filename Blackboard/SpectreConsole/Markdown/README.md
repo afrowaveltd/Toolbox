@@ -53,3 +53,7 @@ Indented list-embedded quotes and fenced code now render beneath their list item
 ## Quoted list rendering (2026-11-01)
 
 Quote-contained lists render with configurable quote prefix outside the list indentation, preserving original ordered numbers and source-aware continuation alignment. [Presentation documentation](Docs/Quoted-List-Presentation/en.md). More complex quoted code containers remain future work.
+
+## Quoted code and syntax highlighting (2026-11-01)
+
+The renderer can display syntax-colored fenced source inside quoted lists, drawing themed quote prefixes outside the code/list indentation. An optional per-fence TextMate highlighting session is disposed on closure or interruption. Code remains safe literal text; see [quote-code rendering](Docs/Quoted-Code-Presentation/en.md).
