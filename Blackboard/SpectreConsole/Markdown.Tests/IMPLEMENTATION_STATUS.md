@@ -76,3 +76,7 @@ New virtual-terminal tests cover quote depth, nested numbered-list code indentat
 - Windows: **ExchangeHouse Markdown 66/66**, **Blackboard Markdown 24/24**, **TextMate adapter 6/6**, **Showcase 26/26**, **FileBrowser 160/160**, **Configurator 44/44**, **UnderstandMe localization 34/34**.
 - The documentation link audit examined **280 Markdown files and 1,423 local targets** with no missing targets. A later docs-only commit clarified a nested-fence illustration; final docs CI is tracked separately.
 - Real TextMate C# tokenization was exercised under Linux and Windows CI, including platform-specific Oniguruma dependencies. This does **not** establish manual SSH/tmux or Debian terminal acceptance, complete CommonMark support, NuGet publication, or a completed third-party transitive-license review.
+
+## 2026-11-01 — quoted-list terminal regressions
+
+- Two new terminal tests cover independent quote nesting, original ordered numbers, custom list indent and explicit/lazy quoted paragraph continuation. CI pending; prior independently verified renderer count 24.

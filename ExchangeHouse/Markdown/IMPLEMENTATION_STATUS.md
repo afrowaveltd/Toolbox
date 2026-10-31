@@ -107,3 +107,10 @@
 - Windows: **ExchangeHouse Markdown 66/66**, **Blackboard Markdown 24/24**, **TextMate adapter 6/6**, **Showcase 26/26**, **FileBrowser 160/160**, **Configurator 44/44**, **UnderstandMe localization 34/34**.
 - The documentation link audit examined **280 Markdown files and 1,423 local targets** with no missing targets. A later docs-only commit clarified a nested-fence illustration; final docs CI is tracked separately.
 - Real TextMate C# tokenization was exercised under Linux and Windows CI, including platform-specific Oniguruma dependencies. This does **not** establish manual SSH/tmux or Debian terminal acceptance, complete CommonMark support, NuGet publication, or a completed third-party transitive-license review.
+
+## 2026-11-01 — source-aware quoted list containers
+
+- Additive `MarkdownDocument.QuoteListRoots` contains quoted list roots in source order without mixing them with `ListRoots` outside blockquotes.
+- Recognizes ordered/unordered list markers after explicit quote prefixes, preserving quote depth, original marker/number, nested list depth, indented and lazy continuation ownership and inline offsets.
+- Quote depth changes, unquoted lines, quote-prefixed headings and empty quote lines interrupt active quoted-list hierarchy.
+- Five focused parser tests plus [quoted lists guide](Docs/Quoted-Lists/en.md). Fenced code *inside* quoted containers and full CommonMark remain future work. CI pending; no new NuGet release.

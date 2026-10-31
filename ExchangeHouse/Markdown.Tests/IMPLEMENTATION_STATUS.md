@@ -92,3 +92,7 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 - Windows: **ExchangeHouse Markdown 66/66**, **Blackboard Markdown 24/24**, **TextMate adapter 6/6**, **Showcase 26/26**, **FileBrowser 160/160**, **Configurator 44/44**, **UnderstandMe localization 34/34**.
 - The documentation link audit examined **280 Markdown files and 1,423 local targets** with no missing targets. A later docs-only commit clarified a nested-fence illustration; final docs CI is tracked separately.
 - Real TextMate C# tokenization was exercised under Linux and Windows CI, including platform-specific Oniguruma dependencies. This does **not** establish manual SSH/tmux or Debian terminal acceptance, complete CommonMark support, NuGet publication, or a completed third-party transitive-license review.
+
+## 2026-11-01 — quoted list parser regressions
+
+- Five new tests for nested ordered/regular quoted lists, exact source roundtrip and offsets, explicit/lazy continuation ownership, quote-depth/list boundaries, heading/blank interruption and conservative quote-prefixed fenced-code fallback. CI pending; prior independently verified parser count 66.

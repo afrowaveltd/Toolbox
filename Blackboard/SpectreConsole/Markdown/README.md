@@ -49,3 +49,7 @@ Blank-separated paragraphs owned by an ExchangeHouse list item remain aligned be
 ## Code, blockquotes and optional syntax highlighting (2026-10-31)
 
 Indented list-embedded quotes and fenced code now render beneath their list item, with optional code language labels. A session-based `SyntaxHighlighter` theme property accepts independent coloring providers; the base Markdown renderer retains plain-text fallback. The new optional [TextMate adapter](../Markdown.TextMate/README.md) integrates TextMateSharp grammar coloring without forcing native assets on normal Markdown consumers. See [Code and Quote Presentation](Docs/Code-Quote-Presentation/en.md). Not publicly published on NuGet.
+
+## Quoted list rendering (2026-11-01)
+
+Quote-contained lists render with configurable quote prefix outside the list indentation, preserving original ordered numbers and source-aware continuation alignment. [Presentation documentation](Docs/Quoted-List-Presentation/en.md). More complex quoted code containers remain future work.

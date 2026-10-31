@@ -108,3 +108,9 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Windows: **ExchangeHouse Markdown 66/66**, **Blackboard Markdown 24/24**, **TextMate adapter 6/6**, **Showcase 26/26**, **FileBrowser 160/160**, **Configurator 44/44**, **UnderstandMe localization 34/34**.
 - The documentation link audit examined **280 Markdown files and 1,423 local targets** with no missing targets. A later docs-only commit clarified a nested-fence illustration; final docs CI is tracked separately.
 - Real TextMate C# tokenization was exercised under Linux and Windows CI, including platform-specific Oniguruma dependencies. This does **not** establish manual SSH/tmux or Debian terminal acceptance, complete CommonMark support, NuGet publication, or a completed third-party transitive-license review.
+
+## 2026-11-01 — independent lists inside blockquotes
+
+- ExchangeHouse Markdown recognizes mixed/nested list items on consecutive explicit quote-prefix lines, retaining original marker numbers, quote depth and inline source offsets. Quoted items are exposed in additive `MarkdownDocument.QuoteListRoots` without changing ordinary `ListRoots` or the lossless writer.
+- Blackboard Markdown renders quoted list markers/continuations with the quote prefix outside list indentation; Showcase gallery has an example.
+- New parser/renderer regressions and English topic guides. CI validation pending for this increment; no NuGet release or full CommonMark nested-container claim.
