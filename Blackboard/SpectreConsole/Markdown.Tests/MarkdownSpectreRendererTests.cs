@@ -402,6 +402,61 @@ public sealed class MarkdownSpectreRendererTests
         Assert.Equal(source, MarkdownWriter.Write(doc));
     }
 
+
+    [Fact]
+    public void Highlighted_quoted_code_tracks_quote_prefix_and_disposes_session()
+    {
+        const string source = "> ```csharp\n> public class Program {}\n> - not a list\n> ```\n> - After";
+        var highlighter = new TestHighlighter();
+        var doc = MarkdownParser.Parse(source);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc, new MarkdownSpectreTheme
+        {
+            SyntaxHighlighter = highlighter, QuotePrefix = "> ", ShowCodeLanguage = true
+        });
+        Assert.Contains(">     [csharp]", console.Output);
+        Assert.Contains(">     public class Program {}", console.Output);
+        Assert.Contains(">     - not a list", console.Output);
+        Assert.Contains("> • After", console.Output);
+        Assert.Equal(new[] { "csharp" }, highlighter.Requests);
+        Assert.Equal(1, highlighter.Disposals);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Quoted_list_code_preserves_spacing_with_custom_theme_and_safe_markup()
+    {
+        const string source = "> 12) Child\n>     ```csharp\n>     if (true)\n>     {\n>         Console.WriteLine(\"[red]literal[/]\");\n>     }\n>     ```\n>     After";
+        var doc = MarkdownParser.Parse(source);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc, new MarkdownSpectreTheme
+        {
+            QuotePrefix = "| ", ListIndent = "....", CodeIndent = "-- ",
+            ShowCodeFenceDelimiters = true
+        });
+        Assert.Contains("| 12) Child", console.Output);
+        Assert.Contains("|     ```csharp", console.Output);
+        Assert.Contains("|     -- if (true)", console.Output);
+        Assert.Contains("|     --     Console.WriteLine(\"[red]literal[/]\");", console.Output);
+        Assert.Contains("|     ```", console.Output);
+        Assert.Contains("|     After", console.Output);
+        Assert.DoesNotContain(">     ```csharp", console.Output);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Interrupted_quoted_code_does_not_leak_highlighter_into_next_block()
+    {
+        const string source = "> ```csharp\n> public class Before {}\nPlain paragraph\n```csharp\npublic class After {}\n```";
+        var highlighter = new TestHighlighter();
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, source,
+            new MarkdownSpectreTheme { SyntaxHighlighter = highlighter });
+        Assert.Contains("Plain paragraph", console.Output);
+        Assert.Contains("public class After {}", console.Output);
+        Assert.Equal(new[] { "csharp", "csharp" }, highlighter.Requests);
+        Assert.Equal(2, highlighter.Disposals);
+    }
     [Fact]
     public void Rejects_null_input_and_invalid_heading_levels()
     {

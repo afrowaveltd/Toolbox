@@ -36,6 +36,15 @@ public static class MarkdownSpectreRenderer
         {
         foreach (var block in document.Blocks)
         {
+            // An interrupted quote-owned fence has no physical closing delimiter.
+            // Never carry its highlighter state into the following prose or list.
+            if (highlightSession is not null &&
+                block.Kind is not (MarkdownBlockKind.CodeFence or MarkdownBlockKind.CodeLine))
+            {
+                highlightSession.Dispose();
+                highlightSession = null;
+            }
+
             switch (block.Kind)
             {
                 case MarkdownBlockKind.Blank:
@@ -65,15 +74,19 @@ public static class MarkdownSpectreRenderer
                         }
                     }
                     if (theme.ShowCodeFenceDelimiters)
-                        WriteLine(console, ListContainerIndent(block, theme) +
-                            (block.ListContinuationMarker is null
-                                ? block.RawText.TrimEnd('\r', '\n') : block.Text), theme.Code);
+                        WriteLine(console, QuoteContainerPrefix(block, theme) +
+                            ListContainerIndent(block, theme) +
+                            (block.QuoteDepth > 0 || block.ListContinuationMarker is not null
+                                ? block.Text : block.RawText.TrimEnd('\r', '\n')), theme.Code);
                     else if (!block.IsClosingCodeFence && theme.ShowCodeLanguage &&
                              block.CodeLanguage is { Length: > 0 } codeLanguage)
-                        WriteLine(console, ListContainerIndent(block, theme) +
+                        WriteLine(console, QuoteContainerPrefix(block, theme) +
+                            ListContainerIndent(block, theme) +
                             theme.CodeIndent + "[" + codeLanguage + "]", theme.CodeLanguageStyle);
                     break;
                 case MarkdownBlockKind.CodeLine:
+                    if (block.QuoteDepth > 0)
+                        WriteSafe(console, QuoteContainerPrefix(block, theme), theme.QuoteMarker);
                     WriteSafe(console, ListContainerIndent(block, theme) + theme.CodeIndent, theme.Code);
                     WriteHighlightedCode(console, block.Text, block.CodeLanguage, theme, ref highlightSession);
                     WriteNewline(console);

@@ -563,18 +563,107 @@ public sealed class MarkdownParserTests
     }
 
     [Fact]
-    public void Quote_prefixed_code_fence_is_not_misclassified_as_executable_or_plain_list()
+    public void Quote_prefixed_fence_is_a_separate_block_and_never_executes_or_parses_code()
     {
-        const string source = "> - Item\n> ```bash\n> echo \"literal\"\n> ```\n- Outside";
+        const string source = "> - Item\n> ```bash\n> echo \"literal\"\n> - code, not a list\n> ```\n- Outside";
         var doc = MarkdownParser.Parse(source);
         Assert.Single(doc.QuoteListRoots);
         Assert.Single(doc.ListRoots);
-        Assert.Equal(MarkdownBlockKind.BlockQuote, doc.Blocks[1].Kind);
-        Assert.Null(doc.Blocks[1].CodeLanguage);
-        Assert.Null(doc.Blocks[2].ListContinuationOwnerStart);
+        Assert.Equal(new[] { MarkdownBlockKind.ListItem, MarkdownBlockKind.CodeFence,
+            MarkdownBlockKind.CodeLine, MarkdownBlockKind.CodeLine, MarkdownBlockKind.CodeFence,
+            MarkdownBlockKind.ListItem }, doc.Blocks.Select(b => b.Kind));
+        Assert.Equal("bash", doc.Blocks[1].CodeLanguage);
+        Assert.All(doc.Blocks.Skip(1).Take(4), b =>
+        {
+            Assert.Equal(1, b.QuoteDepth);
+            Assert.Null(b.ListContinuationOwnerStart);
+            Assert.Equal(doc.Blocks[1].Start, b.CodeFenceStart);
+        });
+        Assert.True(doc.Blocks[4].IsClosingCodeFence);
+        Assert.Empty(doc.Blocks[3].Inlines);
         Assert.Equal(source, MarkdownWriter.Write(doc));
     }
 
+
+    [Fact]
+    public void Quoted_fence_preserves_literal_markers_CRLF_blank_and_nested_quote_levels()
+    {
+        const string source = ">> ~~~~csharp title=Example\r\n>> using System;\r\n>> \r\n>> # not heading\r\n>> - not a list\r\n>> ``` not another fence\r\n>> ~~~~\r\n>> - Actual list";
+        var doc = MarkdownParser.Parse(source);
+        Assert.Empty(doc.ListRoots);
+        Assert.Single(doc.QuoteListRoots);
+        Assert.Equal(new[] { MarkdownBlockKind.CodeFence, MarkdownBlockKind.CodeLine,
+            MarkdownBlockKind.CodeLine, MarkdownBlockKind.CodeLine, MarkdownBlockKind.CodeLine,
+            MarkdownBlockKind.CodeLine, MarkdownBlockKind.CodeFence, MarkdownBlockKind.ListItem },
+            doc.Blocks.Select(b => b.Kind));
+        Assert.Equal("csharp", doc.Blocks[0].CodeLanguage);
+        Assert.Equal("csharp title=Example", doc.Blocks[0].CodeFenceInfo);
+        Assert.Equal("", doc.Blocks[2].Text);
+        Assert.All(doc.Blocks, b => Assert.Equal(2, b.QuoteDepth));
+        Assert.All(doc.Blocks.Take(7), b =>
+        {
+            Assert.Equal(doc.Blocks[0].Start, b.CodeFenceStart);
+            Assert.Equal(b.RawText, source.Substring(b.Start, b.Length));
+        });
+        Assert.True(doc.Blocks[6].IsClosingCodeFence);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Quoted_numbered_list_owns_its_fence_and_preserves_code_indentation()
+    {
+        const string source = "> - Parent\n>   12) C# example\n>       ```csharp\n>       if (true)\n>       {\n>           Console.WriteLine(\"[red]literal[/]\");\n>       }\n>       ```\n>       After code\n>   Parent detail";
+        var doc = MarkdownParser.Parse(source);
+        Assert.Empty(doc.ListRoots);
+        var parent = Assert.Single(doc.QuoteListRoots);
+        var child = Assert.Single(parent.Children);
+        Assert.Equal(5, child.EmbeddedBlocks.Count);
+        Assert.Equal(new[] { MarkdownBlockKind.CodeFence, MarkdownBlockKind.CodeLine,
+            MarkdownBlockKind.CodeLine, MarkdownBlockKind.CodeLine, MarkdownBlockKind.CodeLine,
+            MarkdownBlockKind.CodeFence }, doc.Blocks.Skip(2).Take(6).Select(b => b.Kind));
+        Assert.Equal("csharp", doc.Blocks[2].CodeLanguage);
+        Assert.Equal("    Console.WriteLine(\"[red]literal[/]\");", doc.Blocks[5].Text);
+        Assert.All(child.EmbeddedBlocks, b => Assert.Equal(child.Block.Start, b.ListContinuationOwnerStart));
+        Assert.Equal("After code", doc.Blocks[8].Text);
+        Assert.Equal(child.Block.Start, doc.Blocks[8].ListContinuationOwnerStart);
+        Assert.Equal("Parent detail", doc.Blocks[9].Text);
+        Assert.Equal(parent.Block.Start, doc.Blocks[9].ListContinuationOwnerStart);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Quoted_fence_interruption_reclassifies_unquoted_and_differently_nested_lines()
+    {
+        const string source = "> ```csharp\n> - literal code\nunquoted paragraph\n- outside list\n>> - other quote list";
+        var doc = MarkdownParser.Parse(source);
+        Assert.Equal(MarkdownBlockKind.CodeFence, doc.Blocks[0].Kind);
+        Assert.Equal(MarkdownBlockKind.CodeLine, doc.Blocks[1].Kind);
+        Assert.Equal(MarkdownBlockKind.Paragraph, doc.Blocks[2].Kind);
+        Assert.Null(doc.Blocks[2].CodeFenceStart);
+        Assert.Equal(MarkdownBlockKind.ListItem, doc.Blocks[3].Kind);
+        Assert.Equal(1, doc.ListRoots.Count);
+        Assert.Equal(1, doc.QuoteListRoots.Count);
+        Assert.Equal(2, doc.QuoteListRoots[0].Block.QuoteDepth);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+
+        var differentDepth = MarkdownParser.Parse("> ```csharp\n>> not code\n>> - actual quoted item");
+        Assert.Equal(MarkdownBlockKind.BlockQuote, differentDepth.Blocks[1].Kind);
+        Assert.Equal(MarkdownBlockKind.ListItem, differentDepth.Blocks[2].Kind);
+        Assert.Null(differentDepth.Blocks[1].CodeFenceStart);
+        Assert.Single(differentDepth.QuoteListRoots);
+    }
+
+    [Fact]
+    public void Quoted_tilde_fence_only_closes_with_matching_marker_and_length()
+    {
+        const string source = "> ~~~~js\n> ~~~\n> ````\n> ~~~~\n> - next";
+        var doc = MarkdownParser.Parse(source);
+        Assert.Equal(MarkdownBlockKind.CodeLine, doc.Blocks[1].Kind);
+        Assert.Equal(MarkdownBlockKind.CodeLine, doc.Blocks[2].Kind);
+        Assert.True(doc.Blocks[3].IsClosingCodeFence);
+        Assert.Equal(MarkdownBlockKind.ListItem, doc.Blocks[4].Kind);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
     [Fact]
     public void Null_arguments_fail_explicitly()
     {

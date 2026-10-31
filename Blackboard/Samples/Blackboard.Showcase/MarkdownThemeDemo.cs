@@ -35,6 +35,12 @@ public sealed class MarkdownThemeDemo : IBlackboardShowcaseDemo
         >   12) First quoted step
         >     - A nested bullet under the step
         >   13) Second quoted step
+        >       ```csharp
+        >       public static int Double(int value)
+        >       {
+        >           return value * 2;
+        >       }
+        >       ```
         >> - A different quote level stays separate
 
         - Source code can live **inside a list**:
