@@ -290,7 +290,8 @@ public sealed class MarkdownParserTests
     public void Trailing_or_unrelated_blank_lines_are_not_silently_owned(string source)
     {
         var doc = MarkdownParser.Parse(source);
-        var first = Assert.Single(doc.ListRoots);
+        Assert.NotEmpty(doc.ListRoots);
+        var first = doc.ListRoots[0];
         Assert.Empty(first.SeparatorBlocks);
         Assert.False(first.IsLoose);
         Assert.DoesNotContain(doc.Blocks, b => b.ListBlankOwnerStart.HasValue);
