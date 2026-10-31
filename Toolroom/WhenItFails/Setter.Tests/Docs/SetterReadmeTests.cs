@@ -14,7 +14,7 @@ public sealed class SetterReadmeTests
         Assert.Contains("--plain\\|--json", readme, StringComparison.Ordinal);
         Assert.Contains("The command is read-only.", readme, StringComparison.Ordinal);
         Assert.Contains(
-            "[Adding errors](Docs/Adding%20Errors/en.md)",
+            "[Adding errors](https://github.com/afrowaveltd/Toolbox/blob/master/Toolroom/WhenItFails/Setter/Docs/Adding%20Errors/en.md)",
             readme,
             StringComparison.Ordinal);
     }
