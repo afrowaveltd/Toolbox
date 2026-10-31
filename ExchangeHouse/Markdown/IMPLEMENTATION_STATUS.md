@@ -71,3 +71,10 @@
 - Added deferred blank-line ownership for explicitly indented continuation paragraphs without scanning ahead repeatedly. New additive `ListBlankOwnerStart`, `SeparatorBlocks`, `ContentBlocks` and `IsLoose` preserve existing public record construction and unchanged-source writing.
 - Supports multiple blank separators, nested-child to parent continuation ownership, tabs and original link offsets. Trailing blanks, unindented text and blank-before-list-marker are not attached. No full CommonMark or nested loose list container semantics claimed.
 - Added six focused tests and documentation in `Docs/Loose-List-Paragraphs/en.md`. CI pending for this source commit.
+
+### Verified CI — 2026-10-31 loose-list paragraph milestone
+
+- [GitHub Actions #41249127101](https://github.com/afrowaveltd/Toolbox/actions/runs/41249127101) **SUCCESS** on source/docs commit `df4da1b285d280cbe1d17dee0fded388f178d0b8`: full Linux solution build/tests and Windows UI/Markdown regressions passed.
+- Windows focused test results: ExchangeHouse Markdown **55/55**, Blackboard Markdown **19/19**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**. Earlier linked documentation job verified **271 Markdown files and 1,388 local links** with no missing local targets; the final run's link job also passed.
+- Added source-preserving `IsLoose`, blank separator/content collections and source owner metadata for explicitly indented blank-separated list paragraphs. Safe terminal rendering aligns subsequent paragraphs beneath the original marker; Showcase updated. No source rewrite, full CommonMark grammar or NuGet publication.
+- Interim #41249032554 failed one incorrect custom-indent **test expectation**, corrected in `2b34cb46`, without production renderer change. Later CI is green. Manual acceptance of new visuals in real Debian/Windows terminals remains pending.
