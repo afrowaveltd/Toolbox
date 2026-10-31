@@ -29,6 +29,7 @@ public sealed class MarkdownThemeDemo : IBlackboardShowcaseDemo
           The source is never modified.
 
           A second paragraph stays inside the same list item.
+          It can be followed by a lazy line without repeating indentation.
 
         ```csharp
         var document = MarkdownParser.Parse(markdown);

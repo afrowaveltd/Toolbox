@@ -75,3 +75,9 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 - Windows focused test results: ExchangeHouse Markdown **55/55**, Blackboard Markdown **19/19**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**. Earlier linked documentation job verified **271 Markdown files and 1,388 local links** with no missing local targets; the final run's link job also passed.
 - Added source-preserving `IsLoose`, blank separator/content collections and source owner metadata for explicitly indented blank-separated list paragraphs. Safe terminal rendering aligns subsequent paragraphs beneath the original marker; Showcase updated. No source rewrite, full CommonMark grammar or NuGet publication.
 - Interim #41249032554 failed one incorrect custom-indent **test expectation**, corrected in `2b34cb46`, without production renderer change. Later CI is green. Manual acceptance of new visuals in real Debian/Windows terminals remains pending.
+
+## 2026-10-31 — rendering lazy paragraph continuations
+
+- Reused existing list-owner alignment for newly recognized unindented lazy paragraph lines; no renderer source changes or new runtime dependencies.
+- Added virtual-terminal checks for bullet and custom nested-numbered alignment; Showcase gallery includes a lazy line.
+- [Presentation details](Docs/Lazy-List-Presentation/en.md). **CI pending** for new parser and renderer tests; no NuGet release.

@@ -271,6 +271,32 @@ public sealed class MarkdownSpectreRendererTests
         Assert.Null(doc.Blocks[1].ListBlankOwnerStart);
     }
 
+
+    [Fact]
+    public void Lazy_paragraphs_align_with_their_bullet_and_do_not_create_extra_markers()
+    {
+        const string source = "- First\nLazy **text**\n- Second";
+        var doc = MarkdownParser.Parse(source);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc);
+        Assert.True(doc.Blocks[1].IsLazyListContinuation);
+        Assert.Contains("• First\n  Lazy text\n• Second", console.Output);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Lazy_nested_numbered_content_uses_the_original_marker_width()
+    {
+        const string source = "- Parent\n  12) Child\nLazy child detail\n  Parent detail";
+        var doc = MarkdownParser.Parse(source);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc,
+            new MarkdownSpectreTheme { ListIndent = "....", ListBullet = "+" });
+        Assert.Contains("....12) Child\n....    Lazy child detail", console.Output);
+        Assert.Contains("  Parent detail", console.Output);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
     [Fact]
     public void Rejects_null_input_and_invalid_heading_levels()
     {

@@ -38,6 +38,7 @@ public static class MarkdownParser
             string content = line;
             MarkdownListMarker? marker = null;
             MutableListNode? continuationOwner = null;
+            var lazyContinuation = false;
 
             // Defer classification of blank separators until the next nonblank line.
             // Only a sufficiently indented paragraph can turn those blanks into list content.
@@ -113,6 +114,13 @@ public static class MarkdownParser
                 kind = MarkdownBlockKind.Paragraph;
                 content = line[contentIndex..];
             }
+            else if (TryLazyContinuation(line, listStack, out continuationOwner))
+            {
+                // A non-blank paragraph immediately after list content may continue
+                // without indentation. Never cross a pending blank or a block starter.
+                kind = MarkdownBlockKind.Paragraph;
+                lazyContinuation = true;
+            }
             else if (TryFence(line, out fenceMarker, out fenceLength))
             {
                 kind = MarkdownBlockKind.CodeFence;
@@ -141,7 +149,8 @@ public static class MarkdownParser
                 Inlines = inlines,
                 ListMarker = marker,
                 ListContinuationMarker = continuationOwner?.Block.ListMarker,
-                ListContinuationOwnerStart = continuationOwner?.Block.Start
+                ListContinuationOwnerStart = continuationOwner?.Block.Start,
+                IsLazyListContinuation = lazyContinuation
             };
             blocks.Add(block);
 
@@ -316,6 +325,51 @@ public static class MarkdownParser
             return true;
         }
         return false;
+    }
+
+    // Conservative paragraph-only lazy continuation: no preceding blank and no
+    // new block marker. Indented continuations and ancestor selection are handled
+    // by TryContinuation before this method is called.
+    private static bool TryLazyContinuation(string line, List<MutableListNode> stack,
+        out MutableListNode? owner)
+    {
+        owner = null;
+        if (stack.Count == 0 || string.IsNullOrWhiteSpace(line))
+            return false;
+
+        if (TryListItem(line, out _, out _, out _, out _) ||
+            TryHeading(line, out _, out _) ||
+            TryFence(line, out _, out _) ||
+            IsThematicBreak(line))
+            return false;
+
+        var indent = Indent(line);
+        if (indent < line.Length && line[indent] == '>')
+            return false;
+
+        // A lazy line belongs to the last active item, including a nested item.
+        // Pending blank separators clear the stack before this branch is reached.
+        owner = stack[^1];
+        return true;
+    }
+
+    private static bool IsThematicBreak(string line)
+    {
+        var indent = Indent(line);
+        if (indent > 3 || indent >= line.Length ||
+            line[indent] is not ('-' or '*' or '_'))
+            return false;
+
+        var marker = line[indent];
+        var count = 0;
+        for (var i = indent; i < line.Length; i++)
+        {
+            if (line[i] == marker)
+                count++;
+            else if (line[i] is not (' ' or '\t'))
+                return false;
+        }
+        return count >= 3;
     }
 
     private static MarkdownListItemNode FreezeListNode(MutableListNode item) =>

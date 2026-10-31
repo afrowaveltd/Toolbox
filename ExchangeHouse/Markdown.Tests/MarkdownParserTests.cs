@@ -203,7 +203,7 @@ public sealed class MarkdownParserTests
     [Fact]
     public void Blank_and_unindented_paragraphs_end_list_continuations()
     {
-        const string markdown = "- first\n  attached\n\nnot attached\n- second\nplain\n  also outside";
+        const string markdown = "- first\n  attached\n\nnot attached\n- second\n\nplain\n  also outside";
         var doc = MarkdownParser.Parse(markdown);
         Assert.Equal(2, doc.ListRoots.Count);
         Assert.Single(doc.ListRoots[0].ContinuationBlocks);
@@ -319,6 +319,90 @@ public sealed class MarkdownParserTests
         Assert.Equal(MarkdownBlockKind.CodeLine, doc.Blocks[5].Kind);
         Assert.Empty(doc.Blocks[4].Inlines);
         Assert.Null(doc.Blocks[5].ListBlankOwnerStart);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+
+    [Fact]
+    public void Lazy_paragraph_lines_attach_without_indent_and_keep_inline_offsets()
+    {
+        const string source = "- First\r\nContinues with **bold**\r\nMore [docs](../docs/en.md)\r\n- Second";
+        var doc = MarkdownParser.Parse(source);
+        var first = doc.ListRoots[0];
+        Assert.Equal(2, doc.ListRoots.Count);
+        Assert.Equal(2, first.ContinuationBlocks.Count);
+        Assert.All(first.ContinuationBlocks, b =>
+        {
+            Assert.True(b.IsLazyListContinuation);
+            Assert.Equal(first.Block.Start, b.ListContinuationOwnerStart);
+            Assert.Equal(b.RawText, source.Substring(b.Start, b.Length));
+        });
+        Assert.Equal("Continues with **bold**", first.ContinuationBlocks[0].Text);
+        var link = Assert.Single(first.ContinuationBlocks[1].Inlines,
+            n => n.Kind == MarkdownInlineKind.Link);
+        Assert.Equal("../docs/en.md", link.Destination);
+        Assert.Equal(link.RawText, source.Substring(link.Start, link.Length));
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Nested_lazy_line_belongs_to_current_child_until_parent_resumes()
+    {
+        const string source = "- Parent\n  12) Child\nChild is still here\n  Parent resumes\n- Next";
+        var doc = MarkdownParser.Parse(source);
+        var parent = doc.ListRoots[0];
+        var child = Assert.Single(parent.Children);
+        var lazy = Assert.Single(child.ContinuationBlocks);
+        Assert.True(lazy.IsLazyListContinuation);
+        Assert.Equal(child.Block.Start, lazy.ListContinuationOwnerStart);
+        var explicitLine = Assert.Single(parent.ContinuationBlocks);
+        Assert.False(explicitLine.IsLazyListContinuation);
+        Assert.Equal("Parent resumes", explicitLine.Text);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Blank_before_unindented_text_prevents_lazy_ownership()
+    {
+        const string source = "- First\nFirst continues\n\nOutside\n- Second\n\nStill outside";
+        var doc = MarkdownParser.Parse(source);
+        Assert.Single(doc.ListRoots[0].ContinuationBlocks);
+        Assert.True(doc.Blocks[1].IsLazyListContinuation);
+        Assert.Null(doc.Blocks[3].ListContinuationOwnerStart);
+        Assert.Null(doc.Blocks[6].ListContinuationOwnerStart);
+        Assert.All(doc.ListRoots, item => Assert.False(item.IsLoose));
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Heading_fence_quote_and_thematic_break_interrupt_lazy_paragraphs()
+    {
+        const string source = "- A\n# Heading\n- B\n~~~md\nprotected\n~~~\n- C\n> quote\n- D\n---\n- E";
+        var doc = MarkdownParser.Parse(source);
+        Assert.Equal(5, doc.ListRoots.Count);
+        Assert.All(doc.ListRoots, item => Assert.Empty(item.ContinuationBlocks));
+        Assert.Equal(MarkdownBlockKind.Heading, doc.Blocks[1].Kind);
+        Assert.Equal(MarkdownBlockKind.CodeFence, doc.Blocks[3].Kind);
+        Assert.Equal(MarkdownBlockKind.CodeLine, doc.Blocks[4].Kind);
+        Assert.Equal(MarkdownBlockKind.Paragraph, doc.Blocks[7].Kind);
+        Assert.Null(doc.Blocks[7].ListContinuationMarker);
+        Assert.Null(doc.Blocks[9].ListContinuationMarker);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Explicit_then_lazy_then_blank_separated_indented_paragraph_preserve_ownership()
+    {
+        const string source = "12) Start\n    Explicit\nLazy text\n\n    Another paragraph\n13) Next";
+        var doc = MarkdownParser.Parse(source);
+        var first = doc.ListRoots[0];
+        Assert.True(first.IsLoose);
+        Assert.Equal(3, first.ContinuationBlocks.Count);
+        Assert.False(first.ContinuationBlocks[0].IsLazyListContinuation);
+        Assert.True(first.ContinuationBlocks[1].IsLazyListContinuation);
+        Assert.False(first.ContinuationBlocks[2].IsLazyListContinuation);
+        Assert.Single(first.SeparatorBlocks);
+        Assert.Equal(4, first.ContentBlocks.Count);
         Assert.Equal(source, MarkdownWriter.Write(doc));
     }
 

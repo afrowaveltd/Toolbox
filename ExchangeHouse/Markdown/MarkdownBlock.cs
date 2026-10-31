@@ -27,6 +27,12 @@ public sealed record MarkdownBlock(
     /// <summary>Source marker of the owning item for explicitly indented continuation paragraphs.</summary>
     public MarkdownListMarker? ListContinuationMarker { get; init; }
 
+    /// <summary>
+    /// True only for a paragraph continuation accepted without sufficient indentation.
+    /// False for explicitly indented lines and all non-continuations.
+    /// </summary>
+    public bool IsLazyListContinuation { get; init; }
+
     /// <summary>Absolute source offset of the continuation's owning list item line.</summary>
     public int? ListContinuationOwnerStart { get; init; }
 

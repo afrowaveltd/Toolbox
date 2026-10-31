@@ -80,3 +80,9 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Windows focused test results: ExchangeHouse Markdown **55/55**, Blackboard Markdown **19/19**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**. Earlier linked documentation job verified **271 Markdown files and 1,388 local links** with no missing local targets; the final run's link job also passed.
 - Added source-preserving `IsLoose`, blank separator/content collections and source owner metadata for explicitly indented blank-separated list paragraphs. Safe terminal rendering aligns subsequent paragraphs beneath the original marker; Showcase updated. No source rewrite, full CommonMark grammar or NuGet publication.
 - Interim #41249032554 failed one incorrect custom-indent **test expectation**, corrected in `2b34cb46`, without production renderer change. Later CI is green. Manual acceptance of new visuals in real Debian/Windows terminals remains pending.
+
+## 2026-10-31 — bounded lazy list paragraph source support
+
+- ExchangeHouse Markdown recognizes unindented paragraph-only continuation immediately after an active list item/continuation, without traversing blank boundaries or treating headings, fences, quotes or thematic rules as lazy text.
+- Blackboard Markdown already aligns owner-aware paragraphs; parser/renderer regressions, localized topic docs and Showcase theme sample added.
+- **CI pending** for this commit. No full CommonMark conformance or new NuGet package publication claimed; implementation specifics in [Markdown status](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.md).

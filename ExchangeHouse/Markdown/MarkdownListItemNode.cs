@@ -2,7 +2,7 @@ namespace Afrowave.Toolbox.ExchangeHouse.Markdown;
 
 /// <summary>
 /// Immutable hierarchy of source-aware list item marker lines and their explicitly
-/// indented continuation paragraphs and their supported blank separators. Full CommonMark
+/// indented or paragraph-only lazy continuation lines and their supported blank separators. Full CommonMark
 /// loose lists, list containers and embedded compound blocks remain out of scope.
 /// </summary>
 public sealed class MarkdownListItemNode
@@ -26,7 +26,7 @@ public sealed class MarkdownListItemNode
     /// <summary>Nested list items belonging to this preceding item.</summary>
     public IReadOnlyList<MarkdownListItemNode> Children { get; }
 
-    /// <summary>Explicitly indented continuation paragraph lines owned by this item, in source order.</summary>
+    /// <summary>Indented and lazy continuation paragraph lines owned by this item, in source order.</summary>
     public IReadOnlyList<MarkdownBlock> ContinuationBlocks { get; }
 
     /// <summary>Blank separator lines that belong to this item and precede a valid continuation.</summary>
