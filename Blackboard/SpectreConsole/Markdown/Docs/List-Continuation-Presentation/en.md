@@ -14,4 +14,4 @@ Default output shows a single bullet for First and the following text directly b
 
 **Scope:** only explicitly indented lines are attached; loose lists separated by blank lines, lazy continuations, nested code/heading blocks and full CommonMark are not yet supported. Rendering does not edit the Markdown document, follow links or access files.
 
-[Parser contract](../../../../ExchangeHouse/Markdown/Docs/List-Continuations/en.md) · [Renderer implementation status](../../IMPLEMENTATION_STATUS.md).
+[Parser contract](../../../../../ExchangeHouse/Markdown/Docs/List-Continuations/en.md) · [Renderer implementation status](../../IMPLEMENTATION_STATUS.md).
