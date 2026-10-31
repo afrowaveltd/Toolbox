@@ -183,3 +183,9 @@
 ## 2026-10-31 — loose-list paragraph rendering
 
 - Blackboard Markdown already handles blank lines and source-aware indented continuation ownership; explicit renderer regression tests and Showcase example now cover this subset. No new UI dependency in ExchangeHouse. CI pending.
+
+### Cross-platform verification — 2026-10-31
+
+- [GitHub Actions #41249127101](https://github.com/afrowaveltd/Toolbox/actions/runs/41249127101) **SUCCESS** for source/docs commit `df4da1b285d280cbe1d17dee0fded388f178d0b8`. Linux full solution built/tested; Windows ExchangeHouse Markdown **55/55**, Blackboard Markdown **19/19**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localized tests **34/34**.
+- Blank-separated explicitly indented list paragraphs now have source-preserving ownership and terminal alignment. Interim custom-indent test assertion was fixed in `2b34cb46`, with no production rendering change.
+- Markdown docs link job passed. No public package release, full CommonMark claim or manual Debian visual acceptance made.
