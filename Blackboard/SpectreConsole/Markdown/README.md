@@ -41,3 +41,7 @@ Numbered items now display their original number and `.` / `)` delimiter rather 
 ## Multiline list text (2026-10-31)
 
 The renderer now aligns explicitly indented continuation paragraphs under their owning list item's visible content without repeating the bullet or number. This uses source-aware ExchangeHouse metadata, respects theme indentation and leaves original Markdown untouched. See [Continuation presentation](Docs/List-Continuation-Presentation/en.md).
+
+## Loose-list paragraph display (2026-10-31)
+
+Blank-separated paragraphs owned by an ExchangeHouse list item remain aligned beneath its visible bullet or number. The renderer preserves a blank line without duplicating the marker or changing the document. See [Loose list presentation](Docs/Loose-List-Presentation/en.md).

@@ -26,6 +26,9 @@ public sealed class MarkdownThemeDemo : IBlackboardShowcaseDemo
               This line belongs to the nested bullet.
         - *Lists*, links, and literal code keep their original meaning
         - Markdown source is parsed once, independent of terminal colors
+          The source is never modified.
+
+          A second paragraph stays inside the same list item.
 
         ```csharp
         var document = MarkdownParser.Parse(markdown);

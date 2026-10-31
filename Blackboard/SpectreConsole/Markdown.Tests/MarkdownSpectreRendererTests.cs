@@ -228,6 +228,49 @@ public sealed class MarkdownSpectreRendererTests
         Assert.Null(doc.Blocks[4].ListContinuationMarker);
     }
 
+
+    [Fact]
+    public void Loose_list_item_has_blank_separator_and_paragraph_without_repeated_bullet()
+    {
+        const string markdown = "- First\n  Intro\n\n  **Later** [guide](../guide.md)\n- Second";
+        var doc = MarkdownParser.Parse(markdown);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc,
+            new MarkdownSpectreTheme { ShowLinkDestinations = true });
+        Assert.True(doc.ListRoots[0].IsLoose);
+        Assert.Contains("• First\n  Intro\n\n  Later guide (../guide.md)", console.Output);
+        Assert.Contains("• Second", console.Output);
+        Assert.DoesNotContain("• Later", console.Output);
+        Assert.Equal(markdown, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Loose_nested_numbered_item_uses_original_number_and_custom_theme_indent()
+    {
+        const string markdown = "- Root\n  12) Numbered\n\n      After gap\n- End";
+        var doc = MarkdownParser.Parse(markdown);
+        var theme = new MarkdownSpectreTheme { ListIndent = "....", ListBullet = "+" };
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc, theme);
+        var numbered = Assert.Single(doc.ListRoots[0].Children);
+        Assert.True(numbered.IsLoose);
+        Assert.Contains("....12) Numbered\n\n........After gap", console.Output);
+        Assert.Contains("+ End", console.Output);
+        Assert.Equal(markdown, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Blank_before_unrelated_paragraph_does_not_create_loose_item()
+    {
+        const string markdown = "- Item\n\nOutside";
+        var doc = MarkdownParser.Parse(markdown);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc);
+        Assert.False(Assert.Single(doc.ListRoots).IsLoose);
+        Assert.Contains("• Item\n\nOutside", console.Output);
+        Assert.Null(doc.Blocks[1].ListBlankOwnerStart);
+    }
+
     [Fact]
     public void Rejects_null_input_and_invalid_heading_levels()
     {

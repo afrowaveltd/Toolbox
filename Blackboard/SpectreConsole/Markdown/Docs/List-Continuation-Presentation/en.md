@@ -12,6 +12,6 @@ Example input:
 
 Default output shows a single bullet for First and the following text directly below the item's content. Blank and unindented lines become normal paragraphs.
 
-**Scope:** only explicitly indented lines are attached; loose lists separated by blank lines, lazy continuations, nested code/heading blocks and full CommonMark are not yet supported. Rendering does not edit the Markdown document, follow links or access files.
+**Scope (updated 2026-10-31):** explicitly indented continuation paragraphs can now remain inside an item **across blank separators**. The blank line is rendered as an empty line, and the next paragraph remains aligned beneath the owner's text. Unindented lazy continuations, loose list containers with nested marker blocks, nested code/heading blocks and full CommonMark are not yet supported. See [Loose list paragraph parsing](../../../../../ExchangeHouse/Markdown/Docs/Loose-List-Paragraphs/en.md). Rendering does not edit the Markdown document, follow links or access files.
 
 [Parser contract](../../../../../ExchangeHouse/Markdown/Docs/List-Continuations/en.md) · [Renderer implementation status](../../IMPLEMENTATION_STATUS.md).

@@ -63,3 +63,8 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 - Markdown local link job **PASS**: 269 Markdown files, 1,374 local file targets checked with none missing. Source-aware continuation behavior also tested on Windows; manual Debian and real-terminal visual checks remain separate.
 - Initial renderer integration CI failed **one incorrect test expectation** (custom indent `....` erroneously checked as six literal spaces). Fixed the assertion in `35efe934`, retaining custom-indent coverage. The failed earlier CI runs are not counted as successes.
 - This milestone handles only **explicitly indented** continuation lines. Loose lists, lazy continuation and nested CommonMark block containers remain unsupported. No public NuGet release was made.
+
+## 2026-10-31 — blank-separated list paragraph presentation
+
+- Added regression coverage for blank line display, nested numbered list alignment under custom theme, and unrelated paragraphs. No runtime changes needed in the reusable renderer; it already reads continuation metadata and renders blank blocks correctly.
+- Docs and Showcase sample updated. CI pending for this commit.

@@ -46,3 +46,7 @@ The built-in sample now includes a numbered sublist and a nested bullet for test
 ## 2026-10-31 — list continuation demo
 
 The same pre-parsed document now includes indented continuation lines under ordered steps and nested list items. Their text is displayed aligned beneath the owner rather than acquiring an extra bullet. See [renderer continuation behavior](../../../../SpectreConsole/Markdown/Docs/List-Continuation-Presentation/en.md).
+
+## 2026-10-31 — loose-list paragraph preview
+
+The embedded Markdown gallery includes an item with two paragraphs separated by a blank line. In every theme, the second paragraph remains aligned beneath the same item's text without an extra bullet. This is still a controlled subset of Markdown; see [renderer notes](../../../../SpectreConsole/Markdown/Docs/Loose-List-Presentation/en.md).
