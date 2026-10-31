@@ -711,10 +711,10 @@ These operations must remain explicit.
 
 After completing this guide, continue with:
 
-* [Commands](../Commands/en.md)
-* [Safe Writes](../Safe%20Writes/en.md)
-* [Plain Output](../Plain%20Output/en.md)
-* [Setting Title](../Setting%20Title/en.md)
+* [Commands](../../Setter/Docs/Commands/en.md)
+* [Safe Writes](../../Setter/Docs/Safe%20Writes/en.md)
+* [Plain Output](../../Setter/Docs/Plain%20Output/en.md)
+* [Setting Title](../../Setter/Docs/Setting%20Title/en.md)
 
 ## Central principle
 

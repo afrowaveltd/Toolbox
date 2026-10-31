@@ -1,150 +1,56 @@
-# Afrowave.Toolbox Documentation
+# Afrowave.Toolbox — documentation index
 
-This section is the documentation entry point for the current Afrowave.Toolbox generation.
+This is the main documentation entry point for **the entire Toolbox**, not only Essentials. The localized English root [README](../../README/en.md) follows the primary repository [README](../../README.md) with adjusted relative links. Implemented code, published packages and future designs are explicitly distinguished. Each topic starts with an English `Docs/<Topic>/en.md`.
 
-The documentation is organized by topic. Each topic has its own directory and the default English document is always named `en.md`.
+## Begin here
 
-## Recommended reading order
+1. [Toolbox overview](../Toolbox-Overview/en.md) — actual libraries, executables, demos and future areas
+2. [Repository getting started](../Toolbox-Getting-Started/en.md) — install, build and run examples
+3. [Architecture](../Architecture/en.md) — ownership and dependency direction
+4. [Development and verification](../Development-and-Verification/en.md) — testing, docs, GitHub and CI
+5. [Release and package status](../Release-Status/en.md) — three published NuGet packages vs unpublished source projects
 
-Start here if you are new to the package:
+## Libraries, tools and project documentation
 
-1. [Getting Started](../Getting-Started/en.md)
-2. [Essentials Overview](../Essentials-Overview/en.md)
-3. [Results and Responses](../Results-and-Responses/en.md)
-4. [Issues](../Issues/en.md)
-5. [Metadata](../Metadata/en.md)
+| Project | Documentation |
+|---|---|
+| **Essentials** | [README](../../Essentials/README.md) · [Overview](../Essentials-Overview/en.md) · [Getting started](../Getting-Started/en.md) |
+| **WhenItFails** | [README](../../WhenItFails/README.md) · [Getting started](../../WhenItFails/Docs/Getting-Started/en.md) |
+| **UnderstandMe** | [README](../../UnderstandMe/README.md) · [Offline localization](../../UnderstandMe/Docs/Localization/First-Implementation/en.md) |
+| **UnderstandMe Configurator** | [README](../../UnderstandMe/Tools/Configurator/README.md) · [Offline help](../../UnderstandMe/Tools/Configurator/Docs/Offline-Help/en.md) |
+| **Blackboard** | [Family overview](../../Blackboard/README.md) · [Architecture](../../Blackboard/Docs/Architecture/en.md) |
+| **FileBrowser** | [README](../../Blackboard/SpectreConsole/FileBrowser/README.md) · [Interactive browser](../../Blackboard/SpectreConsole/FileBrowser/Docs/Interactive-Browser/en.md) |
+| **Blackboard Markdown** | [README](../../Blackboard/SpectreConsole/Markdown/README.md) · [Themes](../../Blackboard/SpectreConsole/Markdown/Docs/Rendering-and-Themes/en.md) · [Nested lists](../../Blackboard/SpectreConsole/Markdown/Docs/Nested-List-Presentation/en.md) · [Loose list display](../../Blackboard/SpectreConsole/Markdown/Docs/Loose-List-Presentation/en.md) |
+| **ExchangeHouse** | [Family overview](../../ExchangeHouse/README.md) · [Conversion roadmap](../../ExchangeHouse/Docs/Converters/en.md) |
+| **ExchangeHouse Markdown** | [README](../../ExchangeHouse/Markdown/README.md) · [Links/images](../../ExchangeHouse/Markdown/Docs/Images-and-Links/en.md) · [Nested lists](../../ExchangeHouse/Markdown/Docs/Nested-Lists/en.md) · [Loose list paragraphs](../../ExchangeHouse/Markdown/Docs/Loose-List-Paragraphs/en.md) |
+| **Showcase** | [README](../../Blackboard/Samples/Blackboard.Showcase/README.md) · [Theme gallery](../../Blackboard/Samples/Blackboard.Showcase/Docs/Markdown-Themes/en.md) |
+| **SeeMe** | [README](../../SeeMe/README.md) · [Console adapter](../../SeeMe/WhenItFails/Console/README.md) |
+| **Toolroom** | [README](../../Toolroom/README.md) · [Setter](../../Toolroom/WhenItFails/Setter/README.md) |
 
-Then continue with the more specific reference topics:
+## Essentials reference documentation
 
+These existing pages cover **Essentials specifically**, not the public API of every Toolbox library:
+
+- [Results and Responses](../Results-and-Responses/en.md)
+- [Issues](../Issues/en.md)
+- [Metadata](../Metadata/en.md)
 - [Diagnostics](../Diagnostics/en.md)
 - [Extensions](../Extensions/en.md)
 - [Interfaces](../Interfaces/en.md)
 - [Enums](../Enums/en.md)
 - [Guards](../Guards/en.md)
 - [Value Objects](../Value-Objects/en.md)
-- [API Reference](../API-Reference/en.md)
+- [Essentials API Reference](../API-Reference/en.md)
 
-## Project-wide design approach
+## Architecture and future designs
 
-- [Afrowave design philosophy](../Design-Philosophy/en.md): explore all useful ideas first, then combine overlapping mechanisms to achieve a small, composable core. Cross-language libraries share semantics while exposing idiomatic APIs.
+- [Afrowave design philosophy](../Design-Philosophy/en.md): explore useful ideas before combining overlapping mechanisms into a small, composable core; share cross-language semantics through idiomatic APIs.
+- [AJIS / A2 design notes](../../Ajis/README.md) — design, no AJIS 2 runtime in this solution.
+- [Id rebuild](../Id-Rebuild-Review/en.md) · [High availability](../Id-High-Availability-and-Replication/en.md) · [Observer/Uplink](../Id-Observer-and-Uplink/en.md) · [Regional routing](../Id-Autodiscovery-and-Regional-Routing/en.md) — design/reference material only.
+- [Community and transparent operating funds](../Afrowave-Community-Access-and-Transparent-Funding/en.md) — policy/planning, not implemented financial infrastructure.
 
-## Documentation structure
+## Maintenance and release trail
 
-The documentation follows the Afrowave localization-friendly structure:
+[Root implementation status](../../IMPLEMENTATION_STATUS.md) · [Release notes](../../RELEASE_NOTES.md) · [GitHub repository](https://github.com/afrowaveltd/Toolbox)
 
-```text
-Docs/
-  Topic-Name/
-    en.md
-```
-
-Each directory name describes the topic. The `en.md` file is the default English source document for that topic.
-
-Future translation tools can generate additional localized files next to `en.md`, for example:
-
-```text
-Docs/
-  Results-and-Responses/
-    en.md
-    cs.md
-    fr.md
-```
-
-## Current package
-
-The current documented package is:
-
-```text
-Afrowave.Toolbox.Essentials
-```
-
-It provides foundational building blocks for .NET applications:
-
-- result and response models
-- issue and diagnostic models
-- metadata helpers
-- common interfaces
-- guard helpers
-- enum and model extension methods
-- value objects for common validated strings
-
-## Important behavior rules
-
-Several behavior rules are used consistently across the package.
-
-### Null root objects
-
-Public helper methods generally reject a null root object.
-
-For example, extension methods and copy helpers throw `ArgumentNullException` when the object being operated on is null.
-
-### Invalid arguments
-
-Invalid required values are rejected.
-
-Common examples:
-
-- null, empty, or whitespace keys
-- null, empty, or whitespace codes
-- null, empty, or whitespace messages
-- null required collections
-- null metadata values where metadata values are required
-
-### Nullable model properties
-
-Some model properties are intentionally handled defensively.
-
-For example, issue collections on result and response models may be normalized to an empty read-only list when a method creates a copy.
-
-This protects callers from broken or manually constructed objects where a property was set to `null!`.
-
-### Metadata copying
-
-`MetadataBag` is mutable.
-
-For this reason, copy and conversion methods for result and response models create a copy of metadata instead of sharing the same mutable metadata instance.
-
-This rule is important for predictable behavior:
-
-```text
-changing metadata on a copied result or response
-  must not unexpectedly change the original object
-```
-
-### Issue list handling
-
-Issue lists are exposed as read-only lists.
-
-When copying result and response models, existing non-null issue lists are usually kept as references. Null issue lists are normalized to safe empty lists.
-
-This keeps copying lightweight while still preventing null collection failures.
-
-## Documentation quality rules
-
-Documentation should describe the actual public behavior of the package.
-
-Avoid documenting planned APIs as if they already exist.
-
-Especially avoid:
-
-- invented method names
-- old type names
-- outdated examples
-- overly broad serialization claims
-- marketing language that does not describe real behavior
-
-## Known naming note
-
-The generic response type is named:
-
-```csharp
-Response<T>
-```
-
-The source file may be named `ResponseOfT.cs`, but documentation and examples should always use the real public type name:
-
-```csharp
-Response<User>
-```
-
-Do not document it as `ResponseOfT<User>`.
+Documentation should describe what the source and tests actually implement. Planned APIs must never be presented as shipped; record each relevant CI run in the owning project's status file.

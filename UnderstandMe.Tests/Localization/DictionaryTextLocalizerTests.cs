@@ -140,6 +140,37 @@ public sealed class DictionaryTextLocalizerTests : IDisposable
 
 
     [Fact]
+    public void Concurrent_independent_store_instances_never_lose_distinct_keys()
+    {
+        // A localizer-level lock does not protect separate store instances or processes.
+        Parallel.For(0, 60, i =>
+        {
+            var store = new FileJsonDictionaryStore(_root);
+            Assert.True(store.TryAdd("en", "Independent " + i, "Independent " + i));
+        });
+
+        var saved = Store.Load("en");
+        Assert.Equal(60, saved.Count);
+        for (int i = 0; i < 60; i++)
+            Assert.Equal("Independent " + i, saved["Independent " + i]);
+    }
+
+    [Fact]
+    public void Concurrent_independent_localizers_preserve_all_registered_phrases()
+    {
+        var localizers = Enumerable.Range(0, 4).Select(_ => Create()).ToArray();
+        Parallel.For(0, 48, i =>
+        {
+            Assert.Equal("Phrase " + i, localizers[i % localizers.Length].Get("Phrase " + i, "sw"));
+        });
+
+        var saved = Store.Load("en");
+        Assert.Equal(48, saved.Count);
+        for (int i = 0; i < 48; i++)
+            Assert.Equal("Phrase " + i, saved["Phrase " + i]);
+    }
+
+    [Fact]
     public void Memory_store_works_without_json_files_or_translation_engines()
     {
         var store = new MemoryStore();

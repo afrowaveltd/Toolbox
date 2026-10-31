@@ -14,3 +14,7 @@ dotnet test Blackboard/Samples/Blackboard.Showcase.Tests/Blackboard.Showcase.Tes
 The tests operate on temporary local files and do **not** require GUI, network, FTP or a real terminal. Actual Windows/Debian/SSH keyboard and font behavior needs manual validation.
 
 See [Showcase README](../Blackboard.Showcase/README.md) and [Implementation Status](IMPLEMENTATION_STATUS.md).
+
+## Markdown gallery interaction tests
+
+`MarkdownThemeDemoTests` exercise theme navigation, Classic/Ocean/Forest/Monochrome previews, compare-all, returning to the Showcase host and cancellation. The sample uses an embedded source: no file writes, network calls or host settings are needed. Runs in Windows UI CI and whole-solution Linux CI.

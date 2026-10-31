@@ -42,3 +42,26 @@
 
 - [GitHub Actions #40235904784](https://github.com/afrowaveltd/Toolbox/actions/runs/40235904784) **SUCCESS**: **38/38 Configurator tests**, including 6 new metadata-driven component tests and live GET diagnostics tests; entire solution **6,241/6,241** tests passed; **0 build warnings/errors**.
 - The probes in tests use only fake HTTP handlers and never require a real translator server.
+
+## 2026-10-29 — Windows path wrapping regression
+
+- A local Windows run on .NET 11 RC (projects target net10.0) reported failed UI assertions on long temporary paths. Spectre.Console.Testing wraps paths at the default virtual width; it does not imply selection/navigation failed.
+- The specific tests asserting an unbroken full path now set `console.Profile.Width = 512`; other default-width navigation tests remain unchanged.
+- Added a new `windows-ui` GitHub Actions job for FileBrowser, Configurator and Showcase tests. Windows CI verification pending at this commit; no PASS claim yet.
+
+### Verified on both platforms — 2026-10-29
+
+- [GitHub Actions #40857564421](https://github.com/afrowaveltd/Toolbox/actions/runs/40857564421) **SUCCESS** for code/test commit `ae52a29345f0fcbef08cbf6cda41686461bc25bd`.
+- Ubuntu full solution restore/build/test **PASS**; new Windows runner's **FileBrowser**, **UnderstandMe Configurator**, and **Blackboard Showcase** project test steps all **PASS**.
+- The original Windows UI path-wrap failures are resolved in the automated Windows environment. Manual developer-local retest with the latest checkout remains distinct from Windows CI.
+
+## 2026-10-29 — shared Markdown rendering integration tests
+
+- Added regression tests for ConfiguratorHelpRenderer using independently packaged Blackboard.SpectreConsole.Markdown: inline styling, literal code, source link targets, raw markup protection and argument validation.
+- Existing Help navigation tests and storage safety tests remain unchanged. Windows UI test job and Linux solution CI pending on this increment.
+
+### Verified GitHub CI — 2026-10-29
+
+- [GitHub Actions #40880298677](https://github.com/afrowaveltd/Toolbox/actions/runs/40880298677) **SUCCESS** for consumer integration commit `18d0281ee232bdd8080f00923f91f5d8b34adb1b`.
+- Linux whole-solution restore/build/test **PASS**. Windows FileBrowser, UnderstandMe Configurator (including shared Markdown help tests), Blackboard Showcase and UnderstandMe localization concurrency suites **PASS**.
+- No release/published Markdown NuGet was created; Configurator references the in-repo library project. Windows real-terminal Markdown Help visuals and Debian manual acceptance remain to be checked by a person; virtual terminal tests prove the covered behavior only.

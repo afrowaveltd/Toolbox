@@ -126,5 +126,15 @@
   "connection.status.InvalidConfiguration": "Invalid endpoint",
   "connection.status.UnexpectedResponse": "Unexpected response",
   "connection.status.Unreachable": "Connection failed",
-  "connection.status.Cancelled": "Cancelled"
+  "connection.status.Cancelled": "Cancelled",
+  "menu.help": "Help",
+  "help.title": "Help topics",
+  "help.context": "Help — this section",
+  "help.return": "Return to help topics / previous screen",
+  "help.english.note": "Documentation is currently available in English (offline copy).",
+  "help.topic.getting-started": "Getting started",
+  "help.topic.register-provider": "Register a translation provider",
+  "help.topic.configure-storage": "Configure dictionary storage",
+  "help.topic.test-connections": "Test provider connections",
+  "help.topic.validation-and-saving": "Validation and saving"
 }

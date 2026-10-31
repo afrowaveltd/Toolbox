@@ -20,6 +20,7 @@ The optional first positional argument is an existing starting directory, otherw
 1. **FileBrowser — choose file and preview readable text:** use the shared Spectre.Console FileBrowser to pick a local file. If the file is UTF-8, UTF-16 or UTF-32 text, its first **16 KiB** are shown as plain text. Binary data, invalid Unicode and unsafe terminal controls are not printed. The preview explicitly marks truncation. No selected file is modified.
 2. **FileBrowser — filter JSON and show colored JSON preview:** FileBrowser initially shows **only `*.json` files**, but keeps directories navigable. Once selected, an entire valid JSON document up to **64 KiB** is syntax-highlighted by `Spectre.Console.Json` using `JsonText`. Malformed, binary, oversized or unsupported-encoding files receive a diagnostic and are not dumped raw.
 3. **FileBrowser — choose a directory:** demonstrates local folder selection without reading or modifying files.
+4. **Markdown — preview and compare color themes:** displays the same source-preserved ExchangeHouse Markdown document with Classic, Ocean, Forest or Monochrome themes. Includes links, image alternatives and nested/ordered lists; a Compare all option displays every theme.
 
 The picker itself also contains its own interactive filename-filter menu (All, JSON, text, image, `*.ajis;*.json` masks or regex), lazy tree navigation and recursive searching. The JSON demo uses its **public generic filter API**, not a custom JSON-only browser implementation.
 
@@ -51,3 +52,19 @@ GitHub CI builds/tests the whole `Toolbox.sln`. Automated `Spectre.Console.Testi
 ## Terminal startup
 
 The Showcase clears the terminal once when it enters the interactive main menu, so earlier command output is hidden. It **does not** clear after running each demonstration, preserving the demo result. This is an application-host behavior, not a change to the independent FileBrowser NuGet package.
+
+## Markdown theme gallery (2026-10-29)
+
+The fourth Showcase scenario, **Markdown — preview and compare color themes**, demonstrates the standalone `Blackboard.SpectreConsole.Markdown` renderer. Choose Classic, Ocean, Forest or Monochrome, or compare all four. The gallery parses one embedded source document once with `ExchangeHouse.Markdown` and renders it with independently supplied `MarkdownSpectreTheme` instances. No files or network calls are involved. See [Markdown Themes](Docs/Markdown-Themes/en.md).
+
+Run `dotnet run --project Blackboard/Samples/Blackboard.Showcase` and select the new fourth scenario with arrows and Enter; Escape returns. The existing three FileBrowser demonstrations are unchanged.
+
+## Syntax-colored Markdown preview (2026-10-31)
+
+The Markdown gallery can now opt into the independent TextMate grammar adapter for its
+Classic/Ocean/Forest themes. This colors recognized `csharp` and `bash` fenced code,
+including indented code nested in a list. Monochrome deliberately stays plain.
+The adapter is a **Showcase-only dependency**, not required by the base Markdown renderer.
+If native grammar support is unavailable, the gallery retains safe literal code.
+
+[Adapter documentation](../../SpectreConsole/Markdown.TextMate/README.md).

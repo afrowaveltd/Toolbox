@@ -31,3 +31,7 @@ The virtual-console test suite checks ANSI clear-screen positions, repeated edit
 ## 2026-10-25 — optional live diagnostics
 
 Test configuration first performs the existing offline structural check. Its result screen now offers either Return or explicit **Test provider connections (live)**. Enabled LibreTranslate providers are tested with bounded GET `/languages`; a failed response is advisory and does not affect Save. The editor also exposes the same live action on a draft, alongside metadata-driven provider and storage registration editors. See [Live Connection Diagnostics](../Live-Connection-Diagnostics/en.md) and [Provider/Storage Editor](../Provider-Storage-Editor/en.md).
+
+## 2026-10-29 — built-in offline Help
+
+The main menu and editing screen now include Help. Help topics are selected by stable IDs and displayed from English Markdown embedded resources; labels are localized. Translation-provider and dictionary-storage registration menus also have a contextual Help entry. Navigation through help does not change draft settings. See [Offline Help](../Offline-Help/en.md). No network documentation updater or general-purpose Markdown AST is implemented in this increment.

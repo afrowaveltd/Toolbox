@@ -126,6 +126,8 @@ public sealed class SpectreFileBrowserInteractionTests
         try
         {
             var console = ConsoleWithInput();
+            // This full-path UI assertion requires a wide virtual viewport for long Windows temp paths.
+            console.Profile.Width = 512;
             // Browse in empty folder: Parent, Search, Tree, Filter, Back.
             console.Input.PushKey(ConsoleKey.DownArrow);
             console.Input.PushKey(ConsoleKey.Enter);

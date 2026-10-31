@@ -109,6 +109,8 @@ public sealed class ConfiguratorSessionTests
         File.WriteAllText(path, "{\"SchemaVersion\":1}");
         var before = File.ReadAllBytes(path);
         var console = TestConsole();
+        // This full-path UI assertion requires a wide virtual viewport for long Windows temp paths.
+        console.Profile.Width = 512;
         console.Input.PushKey(ConsoleKey.DownArrow); // Main: Edit configuration.
         console.Input.PushKey(ConsoleKey.Enter);
         console.Input.PushKey(ConsoleKey.Enter); // File selector: Browse JSON.

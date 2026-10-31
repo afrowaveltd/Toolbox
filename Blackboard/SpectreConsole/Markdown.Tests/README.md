@@ -1,0 +1,19 @@
+# Blackboard.SpectreConsole.Markdown.Tests
+
+Virtual-terminal tests for the independent themeable Markdown renderer, using xUnit and Spectre.Console.Testing.
+
+Run:
+
+```bash
+dotnet test Blackboard/SpectreConsole/Markdown.Tests/Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Tests.csproj
+```
+
+Covers headings, lists, inline text, fenced-code isolation, link destinations, themes, terminal-control filtering and source immutability. Real terminal smoke and advanced CommonMark coverage are out of scope. See [Testing](Docs/Testing/en.md) and [Implementation status](IMPLEMENTATION_STATUS.md).
+
+Image regressions (2026-10-29): accessible alternative text, configurable image labels and literal destinations, preserved source and markup safety.
+
+Nested list regressions (2026-10-31): preserve actual numbering/delimiters, nesting indentation, custom source-marker mode and code isolation.
+
+2026-10-31: Continuation display tests cover inline styling, numbered and nested alignment under custom list indentation and blank-line boundaries.
+
+2026-10-31: Loose list UI tests verify blank line and subsequent paragraph alignment, nested ordered marker preservation with custom theme, and unrelated paragraph boundaries.

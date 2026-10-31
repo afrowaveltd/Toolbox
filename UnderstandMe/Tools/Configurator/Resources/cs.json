@@ -126,5 +126,15 @@
   "connection.status.InvalidConfiguration": "Neplatná adresa serveru",
   "connection.status.UnexpectedResponse": "Neočekávaná odpověď",
   "connection.status.Unreachable": "Spojení selhalo",
-  "connection.status.Cancelled": "Zrušeno"
+  "connection.status.Cancelled": "Zrušeno",
+  "menu.help": "Nápověda",
+  "help.title": "Témata nápovědy",
+  "help.context": "Nápověda k této části",
+  "help.return": "Zpět na témata / předchozí obrazovku",
+  "help.english.note": "Dokumentace je zatím dostupná anglicky (offline kopie).",
+  "help.topic.getting-started": "První kroky",
+  "help.topic.register-provider": "Přidání překladového poskytovatele",
+  "help.topic.configure-storage": "Nastavení úložiště slovníků",
+  "help.topic.test-connections": "Testování spojení",
+  "help.topic.validation-and-saving": "Validace a ukládání"
 }

@@ -1,8 +1,8 @@
 # Afrowave.Toolbox.UnderstandMe
 
-UnderstandMe is a planned, modular localization, globalization, translation, and translation-workflow toolkit for .NET applications. It belongs to [Afrowave Toolbox](https://github.com/afrowaveltd/Toolbox).
+UnderstandMe is a modular localization and translation-workflow toolkit under active implementation for .NET applications. Its offline localization core and Configurator already exist; full translation orchestration remains in design and incremental development. It belongs to [Afrowave Toolbox](https://github.com/afrowaveltd/Toolbox).
 
-> **Status: first offline localization core committed; translation and orchestration remain design-stage.** The .NET 10 project now contains standalone JSON localization code and a separate test project. GitHub Actions [run #39407132671](https://github.com/afrowaveltd/Toolbox/actions/runs/39407132671) passed **5,957 solution tests** (including **43 UnderstandMe tests**), with **zero build warnings/errors**, after adding standalone placeholder validation. See [first implementation](Docs/Localization/First-Implementation/en.md).
+> **Status (2026-10-31):** the .NET 10 offline core, dictionaryless JSON localization, placeholder validation and a separate [Configurator](Tools/Configurator/README.md) are implemented and tested. Provider orchestration, advanced translation queues and the full Afutrans service remain incremental/design work. The earlier [first implementation](Docs/Localization/First-Implementation/en.md) and its historical CI numbers are retained for context, not presented as the latest test count. The current verified Linux/Windows regression checkpoint is documented in [Toolbox implementation status](../IMPLEMENTATION_STATUS.md).
 
 ## Latest implementation: target locale repair scanning
 
@@ -191,3 +191,9 @@ The optional named-placeholder validator and its 19 new test cases passed in Git
 ## Update 2026-10-25 — standalone Configurator launcher
 
 The [Configurator](Tools/Configurator/README.md) now runs without CLI parameters: Create, Edit (FileBrowser or manual path), Test (offline schema validation), Configurator Settings (switch English/Czech), or Exit. It embeds two manually maintained `en`/`cs` language resources and maintains its own versioned user preferences, independent of `UnderstandMeSettings.json`. Its startup remains offline-safe and its underlying core settings validation/persistence stays shared. Optional CLI `--config` and noninteractive `validate` still work. [CI #40231883535](https://github.com/afrowaveltd/Toolbox/actions/runs/40231883535) **SUCCESS**, with 14 Configurator tests passed. No running translator, full provider editor or remote health diagnostics are implied by this first UI milestone.
+
+## Local JSON dictionary concurrency (2026-10-29)
+
+`FileJsonDictionaryStore` serializes directory-level read/modify/write transactions across store instances and local processes using a stable named OS mutex; this also protects conditional source/target publication. Atomic temporary-file replacement remains in place, with bounded whole-transaction retries for transient `IOException` (for example short-lived Windows filesystem sharing conflicts). Invalid JSON, read-only files and persistent I/O failure are not silently overwritten. `DictionaryTextLocalizer` continues to return the original string when storage is unavailable; successful disk persistence cannot be promised if the filesystem remains unavailable. See [File JSON concurrency](Docs/Localization/File-Json-Concurrency/en.md).
+
+**Cross-platform verification:** [GitHub Actions #40859339217](https://github.com/afrowaveltd/Toolbox/actions/runs/40859339217) passed the complete Linux test suite and targeted Windows dictionaryless concurrency regressions on 2026-10-29.

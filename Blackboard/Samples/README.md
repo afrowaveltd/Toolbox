@@ -4,7 +4,7 @@ This folder contains **optional, runnable demonstration executables** for Afrowa
 
 ## Shared showcase (recommended)
 
-[Blackboard.Showcase](Blackboard.Showcase/README.md) is the main **extensible test application** with one menu and independently registered test modules. Current modules demonstrate FileBrowser selection of a text file (bounded Unicode text preview), JSON-only filter plus syntax-highlighted valid JSON, and folder selection.
+[Blackboard.Showcase](Blackboard.Showcase/README.md) is the main **extensible test application** with one menu and independently registered test modules. Current modules demonstrate FileBrowser text-file preview, JSON-only selection plus syntax-highlighted JSON, folder selection, and a four-theme Markdown gallery (Classic/Ocean/Forest/Monochrome) with images, links and nested lists.
 
 ```bash
 dotnet run --project Blackboard/Samples/Blackboard.Showcase

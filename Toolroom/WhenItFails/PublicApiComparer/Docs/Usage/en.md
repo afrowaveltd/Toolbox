@@ -46,7 +46,7 @@ The separate `Test-PublishedConsumerBinary.ps1` script builds a .NET 10 consumer
 & .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-binary-smoke.md')
 ```
 
-The maintainer reported **PASS on 2026-09-25** for the package-consumer execution and the same executable after source DLL substitution; the script adds no xUnit tests. The observed PASS is evidence only for the exercised old consumer and its retained dependency graph, not a full ABI/behavior guarantee. Use `-Feed` to select a specific package source, otherwise configured sources/cache are used. See [binary smoke scope and steps](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
+The maintainer reported **PASS on 2026-09-25** for the package-consumer execution and the same executable after source DLL substitution; the script adds no xUnit tests. The observed PASS is evidence only for the exercised old consumer and its retained dependency graph, not a full ABI/behavior guarantee. Use `-Feed` to select a specific package source, otherwise configured sources/cache are used. See [binary smoke scope and steps](../../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
 
 
 ## Optional bundled-default activation and descriptor resolution
@@ -57,7 +57,7 @@ Pass `-ExerciseInitialization` to the existing binary smoke script to compile th
 & .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseInitialization -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-binary-initialization.md')
 ```
 
-See [opt-in initialization smoke details](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
+See [opt-in initialization smoke details](../../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
 
 
 ## Optional isolated project catalog initialization
@@ -68,7 +68,7 @@ Use `-ExerciseProjectInitialization` to compile a disposable consumer once again
 & .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseProjectInitialization -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-project-initialization.md')
 ```
 
-See [project workspace smoke details](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
+See [project workspace smoke details](../../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
 
 
 ## Optional malformed project catalog recovery
@@ -79,7 +79,7 @@ After the successful isolated project initialization check, use both `-ExerciseP
 & .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseProjectInitialization -ExerciseProjectRecovery -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-project-recovery.md')
 ```
 
-See [previous-context recovery smoke](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
+See [previous-context recovery smoke](../../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
 
 
 ## Optional first-start built-in fallback from malformed project JSON
@@ -90,7 +90,7 @@ Use the separate `-ExerciseFirstStartFallback` switch. The unchanged consumer, c
 & .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseFirstStartFallback -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-first-start-fallback.md')
 ```
 
-See [first-start fallback smoke details](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
+See [first-start fallback smoke details](../../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
 
 
 ## Optional Strict first-start rejection of malformed project JSON
@@ -101,7 +101,7 @@ Use `-ExerciseStrictFirstStart` alone. A consumer compiled once against package 
 & .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseStrictFirstStart -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-strict-first-start.md')
 ```
 
-See [Strict first-start compatibility smoke](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
+See [Strict first-start compatibility smoke](../../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
 
 
 ## Optional Strict reinitialization failure after valid project activation
@@ -112,7 +112,7 @@ Use `-ExerciseStrictReinitialization` **alone**. It configures the original cons
 & .\Toolroom\WhenItFails\PublicApiComparer\Test-PublishedConsumerBinary.ps1 -ExerciseStrictReinitialization -ReportPath (Join-Path $env:TEMP 'WhenItFails-0.1.0-strict-reinitialization.md')
 ```
 
-See [strict reinitialization smoke](../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
+See [strict reinitialization smoke](../../../../../WhenItFails/Docs/Published-Binary-Consumer-Smoke/en.md).
 
 
 ## Optional pre-cancelled activation against a precompiled 0.1.0 consumer

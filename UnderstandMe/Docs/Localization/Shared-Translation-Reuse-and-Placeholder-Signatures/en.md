@@ -67,7 +67,7 @@ Cross-project reuse must account for **the full metadata and grammar signature**
 
 Recommended shared UI lookup semantics: exact project key/override first; subsequently an optional **Smart case-insensitive candidate** and placeholder-normalized lookup, with ambiguity/context checks. Case-only distinctions can carry different meaning (`US` vs `us`); do not collapse original stored key identities. Casing of translated presentation is **independent of case-insensitive lookup** and must honor target-language rules and explicit overrides rather than blind title-casing.
 
-Flat JSON stores should remain deterministically alphabetically sorted **on write**, while runtime indexes are hash-based. `Dictionary<TKey,TValue>` already provides hash lookup. Optional central SQL signature/case indices and bounded local remote-result caches can support many apps; benchmark 60k keys under actual locale/metadata/workload mixes. See [Shared dictionary indexing and casing](Shared-Dictionary-Indexing-and-Casing/en.md). **Design only, not implemented.**
+Flat JSON stores should remain deterministically alphabetically sorted **on write**, while runtime indexes are hash-based. `Dictionary<TKey,TValue>` already provides hash lookup. Optional central SQL signature/case indices and bounded local remote-result caches can support many apps; benchmark 60k keys under actual locale/metadata/workload mixes. See [Shared dictionary indexing and casing](../Shared-Dictionary-Indexing-and-Casing/en.md). **Design only, not implemented.**
 
 ## Community-wide phrase corpus requires explicit publication consent (2026-10-20)
 

@@ -11,7 +11,7 @@ Every component worth releasing has its own:
 - necessary dependencies only; no unrelated widgets, demos or production tools.
 - tests, root README, `IMPLEMENTATION_STATUS.md`, and English topic docs in `Docs/<topic>/en.md`.
 
-The first independent package project is `Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser`; it now contains a Spectre.Console picker, but no NuGet version has been published. Its project dependencies do not bring in other Blackboard widgets. Independent releases also let us stabilize components at different rates.
+Two independent packages have implemented projects: **FileBrowser `0.1.0-preview.1`, already published on NuGet**, and **Markdown `0.1.0-preview.1`, implemented but not published**. They are independently consumable and neither pulls in Showcase as a transitive dependency. Its project dependencies do not bring in other Blackboard widgets. Independent releases also let us stabilize components at different rates.
 
 Shared infrastructure may be extracted later **only when actual consumer reuse justifies it**; it must not create a mandatory heavyweight dependency graph. Optional convenience package bundles, if ever introduced, must never replace the individual packages.
 

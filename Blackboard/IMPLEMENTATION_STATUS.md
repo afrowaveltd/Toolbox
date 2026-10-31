@@ -126,3 +126,77 @@
 ### 2026-10-25 — published FileBrowser verified in first consumer CI
 
 - [GitHub Actions 40229277472](https://github.com/afrowaveltd/Toolbox/actions/runs/40229277472) succeeded after the UnderstandMe Configurator integrated the published FileBrowser `0.1.0-preview.1` via PackageReference. Virtual-terminal JSON selection test passed, in addition to 160 FileBrowser tests. The Blackboard library itself was not modified by the integration.
+
+## 2026-10-29 — independent Markdown renderer
+
+- New library `Blackboard/SpectreConsole/Markdown` and `Markdown.Tests`, registered in solution. Uses ExchangeHouse.Markdown without adding UI dependencies to format/parser libraries.
+- Configurable heading/inline/link/code styles; safe Spectre `Text` output, terminal controls sanitized. Existing Configurator Help unchanged.
+- CI pending. Full CommonMark and NuGet publication remain future work. See [component status](SpectreConsole/Markdown/IMPLEMENTATION_STATUS.md).
+
+### Verified CI — 2026-10-29
+
+- [GitHub Actions #40851606376](https://github.com/afrowaveltd/Toolbox/actions/runs/40851606376) **SUCCESS** for commit `6f917928538f3e8342e9cd56f1b84be2feb8a104`: full solution restore, build and test passed, including Markdown renderer virtual-terminal tests.
+- The first attempt used unsupported mutable `Spectre.Console.Text.Append`; the next build revealed one overly broad ANSI test assertion. Both were corrected in commits `6c754fa0` and `6f917928` respectively, then confirmed green. No manual Debian/Windows terminal validation or NuGet publication claimed.
+
+## 2026-10-29 — sample Markdown theme gallery
+
+- Added the `Blackboard.Showcase` Markdown preview module with four themed variants and a comparison option. This is a **sample application change**, leaving independently published package boundaries untouched.
+- Documentation and virtual terminal tests are under `Blackboard/Samples/Blackboard.Showcase` and sibling `Blackboard.Showcase.Tests`.
+- CI verification pending; no Configurator Help migration or NuGet release in this increment.
+
+### Cross-platform CI verification — 2026-10-29
+
+- [GitHub Actions #40876131365](https://github.com/afrowaveltd/Toolbox/actions/runs/40876131365) **SUCCESS** on implementation commit `f711e66538941118592ff6d1221bf5b7f0aff57d`.
+- Linux: full Toolbox solution restore, build, and test **passed** (includes the new Markdown theme-gallery unit/virtual-terminal tests).
+- Windows: FileBrowser, UnderstandMe Configurator, Blackboard Showcase (including the new gallery), and UnderstandMe localization concurrency suites **passed**.
+- Manual interactive visual confirmation on an actual Windows/Debian terminal is still outstanding; automatic tests do not certify terminal font/theme appearance.
+
+### Verified cross-platform CI — 2026-10-29
+
+- Parser implementation commit `fb7a8108`: [GitHub Actions #40881801829](https://github.com/afrowaveltd/Toolbox/actions/runs/40881801829) **SUCCESS** — full Linux solution build/tests and existing Windows regression job.
+- Image presentation implementation commit `7696fef8`: [GitHub Actions #40882016971](https://github.com/afrowaveltd/Toolbox/actions/runs/40882016971) **SUCCESS** — full Linux solution build/tests and Windows FileBrowser, Configurator, Showcase, localization **plus newly added focused ExchangeHouse Markdown and Blackboard Markdown tests**.
+- No direct manual Debian or Windows terminal test of this new image fallback has been reported. Full CommonMark, reference-style links, actual image drawing and translated document link routing are still not implemented.
+
+## 2026-10-31 — reusable nested list presentation
+
+- Blackboard Markdown uses ExchangeHouse source-aware list markers for original ordered numbering and nested terminal indentation. Sample gallery demonstrates it, reusable component boundary unchanged. CI pending.
+
+### Cross-platform CI verified — 2026-10-31
+
+- [GitHub Actions #41244480220](https://github.com/afrowaveltd/Toolbox/actions/runs/41244480220) **SUCCESS** for implementation up through commit `415065a4c272838f3bc0e4ed94ab8ea90003a295`.
+- Linux: full Toolbox solution **build and tests passed**; final build reported **0 warnings, 0 errors**.
+- Windows: **ExchangeHouse.Markdown.Tests 41/41**, **Blackboard.SpectreConsole.Markdown.Tests 13/13**, **Blackboard.Showcase.Tests 26/26**; FileBrowser 160/160, Configurator 44/44, and targeted localization tests 34/34 passed.
+- Intermediate runs on parser/renderer commits failed at **test compilation** due to literal `\\`` C# escape sequences mistakenly introduced when authoring Markdown code examples. Fixed in commits `e7b858aa` and `415065a4`; the final CI is green. Existing production source was not weakened to make tests pass.
+- Manual real-terminal testing of newly added nested-list visuals in Debian/Windows remains unreported. The current model does not claim CommonMark-compatible loose/multiline lists.
+
+## 2026-10-31 — Markdown continuation rendering
+
+- The independent Blackboard Markdown component displays source-aware continuation paragraphs, including visual alignment for ordered and nested items. Showcase demonstrates this; ExchangeHouse owns the parser. CI pending.
+
+### Verified CI — 2026-10-31 list continuation increment
+
+- [GitHub Actions #41248289922](https://github.com/afrowaveltd/Toolbox/actions/runs/41248289922) **SUCCESS**, source through commit `35efe934031a99a5407550f6624d96656b9c03a3`: Linux full solution build/tests passed; Windows ExchangeHouse Markdown **46/46**, Blackboard Markdown **16/16**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
+- Markdown local link job **PASS**: 269 Markdown files, 1,374 local file targets checked with none missing. Source-aware continuation behavior also tested on Windows; manual Debian and real-terminal visual checks remain separate.
+- Initial renderer integration CI failed **one incorrect test expectation** (custom indent `....` erroneously checked as six literal spaces). Fixed the assertion in `35efe934`, retaining custom-indent coverage. The failed earlier CI runs are not counted as successes.
+- This milestone handles only **explicitly indented** continuation lines. Loose lists, lazy continuation and nested CommonMark block containers remain unsupported. No public NuGet release was made.
+
+## 2026-10-31 — loose-list paragraph rendering
+
+- Blackboard Markdown already handles blank lines and source-aware indented continuation ownership; explicit renderer regression tests and Showcase example now cover this subset. No new UI dependency in ExchangeHouse. CI pending.
+
+### Cross-platform verification — 2026-10-31
+
+- [GitHub Actions #41249127101](https://github.com/afrowaveltd/Toolbox/actions/runs/41249127101) **SUCCESS** for source/docs commit `df4da1b285d280cbe1d17dee0fded388f178d0b8`. Linux full solution built/tested; Windows ExchangeHouse Markdown **55/55**, Blackboard Markdown **19/19**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localized tests **34/34**.
+- Blank-separated explicitly indented list paragraphs now have source-preserving ownership and terminal alignment. Interim custom-indent test assertion was fixed in `2b34cb46`, with no production rendering change.
+- Markdown docs link job passed. No public package release, full CommonMark claim or manual Debian visual acceptance made.
+
+### Final green lazy-paragraph checkpoint — 2026-10-31
+
+- [GitHub Actions #41250061417](https://github.com/afrowaveltd/Toolbox/actions/runs/41250061417) **SUCCESS** for commit `f6b7fc555c76d964ec12a27f86accc1beab3e9f8`: Linux full solution build and tests passed, Windows targeted UI/Markdown suites passed and local Markdown documentation-link check passed.
+- Windows counts: **ExchangeHouse Markdown 60/60**, **Blackboard Markdown 21/21**, **Showcase 26/26**, **FileBrowser 160/160**, **Configurator 44/44**, **UnderstandMe localization 34/34**.
+- Documentation audit: **273 Markdown files, 1,399 local targets checked**, zero missing links. Cross-family link typo from the first commit was fixed in `2c8c3fa`; the final gallery sample now uses an actually unindented lazy line.
+- No public Markdown NuGet publication, no full CommonMark or real-terminal Debian acceptance is implied by CI.
+
+## 2026-10-31 — optional real syntax highlighting
+
+Blackboard Markdown now renders quoted and fenced code lines within list items, and exposes an optional grammar session interface. A new independently opt-in `SpectreConsole/Markdown.TextMate` adapter uses TextMateSharp 2.0.4 and has its own tests/Docs/status. Neither base renderer nor ExchangeHouse depends on TextMateSharp. [Adapter](SpectreConsole/Markdown.TextMate/README.md). CI pending, no NuGet publication.

@@ -13,3 +13,7 @@ The suite now also verifies parameterless Create/Edit/Test/Preferences navigatio
 The tests also cover descriptor-backed LibreTranslate/FileJson registration/option edits, safe redaction of API key references in design, no implicit writes, revision conflicts, live provider probes with injected in-memory HTTP handlers, JSON/HTTP failure cases and an explicitly selected online test from the TUI. No external translation endpoint is contacted by the test suite.
 
 `dotnet test UnderstandMe/Tools/Configurator.Tests/UnderstandMe.Configurator.Tests.csproj`
+
+## 2026-10-29 — shared Markdown Help rendering
+
+`ConfiguratorHelpTests` now additionally checks that the embedded Help adapter delegates inline strong/emphasis/code and links to the shared Blackboard renderer, displays original link targets as text, and safely preserves raw Spectre markup and fenced code. Existing Help navigation and unsaved-config checks remain in place.

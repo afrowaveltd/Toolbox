@@ -76,3 +76,29 @@
 - The transient CI compile warning in the new type picker was eliminated by replacing nullable `SelectionPrompt<SettingsComponentDescriptor?>` with a non-nullable `ComponentTypeChoice` whose optional schema distinguishes Back.
 - Prior CI failure from changing the legacy offline result heading was resolved by preserving its original localized acknowledgement while adding the explicit Live Probe action.
 - Real network/manual terminal smoke is **not** claimed; live HTTP behavior is verified with deterministic fake handlers.
+
+## 2026-10-29 — embedded Markdown Help, first implementation
+
+- Added standalone offline Help catalog with five English `Docs/Help/<topic>/en.md` guides embedded in the Configurator assembly; the existing bilingual UI now has Help labels and topic titles.
+- Added Help to the main menu and editor and context Help to provider/storage registration lists. Navigation returns to the same unsaved draft. A deliberately limited, escaped terminal renderer displays headings, list items and code fences, leaving unsupported inline Markdown literal until the custom AST/parser/writer is implemented.
+- Added documentation [Offline Help](Docs/Offline-Help/en.md), updated README and main menu guide. Online help updates, SignalR, translated help content and own full Markdown parser remain unimplemented.
+- Build/CI verification and targeted tests are pending for this commit; do not claim green tests until confirmed.
+
+### Verified GitHub CI — 2026-10-29
+
+- [GitHub Actions run #40840678123](https://github.com/afrowaveltd/Toolbox/actions/runs/40840678123) **SUCCESS** for implementation commit `f8dad587bf57ee890df0a0e62f306b5636c0cd03`.
+- The solution **Build** and **Test** steps both completed successfully, including the added ConfiguratorHelpTests. This verification is CI-based; manual interactive Debian/Windows/SSH testing remains pending.
+- Planned follow-up: validate UX on real terminals, improve Markdown presentation with the owned AST/parser increment, and later introduce compatible online documentation updates.
+
+## 2026-10-29 — reusable Blackboard Markdown renderer in offline Help
+
+- Replaced Configurator-specific Markdown line parsing with the reusable `Blackboard.SpectreConsole.Markdown` component (source-preserving ExchangeHouse parser underneath). `ConfiguratorHelpRenderer.Render` remains a thin, public-compatible theme adapter; the Configurator directly references the independent Markdown project, while its existing published FileBrowser NuGet remains unchanged.
+- Offline help still uses the five original embedded English Markdown files and existing bilingual topic menus, contextual Help, Back/Escape and unchanged unsaved draft. Link labels and inline emphasis/code now render via shared library, with original link targets displayed as text; no link execution, file writes or network calls.
+- Added virtual-terminal tests for shared inline presentation, preserved link target, literal code/Spectre markup and null inputs, without replacing existing navigation tests.
+- Linux full-solution and Windows Configurator CI verification **pending** for this commit; no full CommonMark parser or online documentation updates claimed.
+
+### Verified GitHub CI — 2026-10-29
+
+- [GitHub Actions #40880298677](https://github.com/afrowaveltd/Toolbox/actions/runs/40880298677) **SUCCESS** for consumer integration commit `18d0281ee232bdd8080f00923f91f5d8b34adb1b`.
+- Linux whole-solution restore/build/test **PASS**. Windows FileBrowser, UnderstandMe Configurator (including shared Markdown help tests), Blackboard Showcase and UnderstandMe localization concurrency suites **PASS**.
+- No release/published Markdown NuGet was created; Configurator references the in-repo library project. Windows real-terminal Markdown Help visuals and Debian manual acceptance remain to be checked by a person; virtual terminal tests prove the covered behavior only.

@@ -78,7 +78,7 @@ The `SetterUtilityPublicApiContractTests` group contains five focused tests for 
 
 ## 5. Isolated local-package-versus-source comparison workflow (historical diagnostics)
 
-[PublicApiComparer](../../Toolroom/WhenItFails/PublicApiComparer/Docs/Usage/en.md) builds independent temporary consumers against the current project and the exact maintainer-held local NuGet `[0.1.0]` artifact. Separate reflection inspections record DLL paths, SHA-256 hashes and public signature differences. That artifact was never publicly published, so feed provenance is not a release requirement; these comparisons are retained only as historical diagnostics.
+[PublicApiComparer](../../../Toolroom/WhenItFails/PublicApiComparer/Docs/Usage/en.md) builds independent temporary consumers against the current project and the exact maintainer-held local NuGet `[0.1.0]` artifact. Separate reflection inspections record DLL paths, SHA-256 hashes and public signature differences. That artifact was never publicly published, so feed provenance is not a release requirement; these comparisons are retained only as historical diagnostics.
 
 ## 6. Actual package-consumer comparison (611 vs 611 entries)
 
