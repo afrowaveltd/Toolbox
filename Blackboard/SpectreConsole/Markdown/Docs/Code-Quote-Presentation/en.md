@@ -7,7 +7,7 @@ The independent Blackboard Markdown renderer consumes ExchangeHouse's source own
 - `MarkdownSpectreTheme.SyntaxHighlighter` optionally supplies one `IMarkdownHighlightSession` per code fence. Spans must be ordered, non-overlapping and within source-line bounds.
 - Bad spans or provider failures use plain safe code styling; terminal controls are sanitized and Spectre markup is never parsed from source strings.
 
-For real TextMate-based coloring, opt in to the sibling [Markdown.TextMate adapter](../../Markdown.TextMate/README.md) and see its [integration guide](../../Markdown.TextMate/Docs/Grammar-Adapter/en.md).
+For real TextMate-based coloring, opt in to the sibling [Markdown.TextMate adapter](../../../Markdown.TextMate/README.md) and see its [integration guide](../../../Markdown.TextMate/Docs/Grammar-Adapter/en.md).
 No code is executed, and no full CommonMark quote nesting is claimed.
 
 [Renderer status](../../IMPLEMENTATION_STATUS.md).
