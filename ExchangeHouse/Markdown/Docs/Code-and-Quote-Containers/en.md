@@ -2,14 +2,14 @@
 
 This bounded extension retains original text, CRLF/LF/CR line breaks and source offsets while associating indented fenced code and blockquotes with a preceding Markdown list item.
 
-```markdown
+~~~~markdown
 - Build
   > Keep the following command literal.
 
   ```sh
   echo "hello"
   ```
-```
+~~~~
 
 ## Model
 
