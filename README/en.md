@@ -1,102 +1,96 @@
 # Afrowave.Toolbox
 
-Afrowave.Toolbox is a .NET 10 package family that provides small, reusable building blocks for Afrowave applications and related tools.
+**Afrowave.Toolbox** is a collection of small, reusable **.NET 10** libraries, console utilities, test projects and examples. It is **not** one mandatory all-in-one package: each family and useful UI control has its own responsibilities and dependencies.
 
-This repository currently contains the `Afrowave.Toolbox.Essentials` package, which provides foundational contracts, result and response models, issue handling, metadata helpers, diagnostics, value objects, enums, guards, and extension methods.
+**GitHub is the source of truth:** [afrowaveltd/Toolbox](https://github.com/afrowaveltd/Toolbox) (branch `master`).
 
-## Current package
+[Documentation index](../Docs/Documentation/en.md) · [Repository overview](../Docs/Toolbox-Overview/en.md) · [Architecture](../Docs/Architecture/en.md) · [Build and verification](../Docs/Development-and-Verification/en.md) · [Implementation status](../IMPLEMENTATION_STATUS.md)
 
-### Afrowave.Toolbox.Essentials
+## Package and project directory
 
-`Afrowave.Toolbox.Essentials` is the base package for common application infrastructure.
+| Library / family | What it does | Status |
+|---|---|---|
+| [Essentials](../Essentials/README.md) | `Result`, `Response<T>`, issues, metadata, guards and shared contracts | **Published on NuGet**, `0.2.0` |
+| [WhenItFails](../WhenItFails/README.md) | Structured error catalogs, validation, runtime resolution, recovery and profiles | **Published on NuGet**, `1.0.0` |
+| [Blackboard FileBrowser](../Blackboard/SpectreConsole/FileBrowser/README.md) | Interactive Spectre.Console file/folder picker, filters, tree and search | **Published on NuGet**, `0.1.0-preview.1` |
+| [UnderstandMe](../UnderstandMe/README.md) | Offline localization, dictionaryless keys, JSON dictionaries and validation | Implemented offline core; broader translation service is planned |
+| [ExchangeHouse Markdown](../ExchangeHouse/Markdown/README.md) | UI-neutral Markdown parsing, source-preserving writer, links, images and nested-list metadata | Implemented preview project, **not yet published** |
+| [Blackboard Markdown](../Blackboard/SpectreConsole/Markdown/README.md) | Themeable Spectre.Console Markdown display, safe text alternatives for images | Implemented preview project, **not yet published** |
+| [SeeMe](../SeeMe/README.md) | Console presentation helpers for WhenItFails | Implemented source project |
+| [Toolroom](../Toolroom/README.md) | Runnable developer/maintenance tools including WhenItFails Setter | Implemented utilities |
 
-It includes:
+The three NuGet publications above are **maintainer-confirmed**; the package IDs/versions match repository project metadata. Do not confuse a project `Version` with public publication. Details: [Release status](../Docs/Release-Status/en.md).
 
-- result and response models
-- issue and diagnostic models
-- metadata containers
-- common interfaces
-- enum helper extensions
-- value objects such as culture codes and provider names
-- guard helpers
-- null-safe and consistency-focused extension methods
+## Applications and examples
 
-## Design principles
+- [Blackboard.Showcase](../Blackboard/Samples/Blackboard.Showcase/README.md): interactive demonstrations of FileBrowser text and JSON previews, directory selection, and four Markdown themes (Classic, Ocean, Forest, Monochrome), with links, images and nested/ordered lists.
+- [FileBrowser.Sample](../Blackboard/Samples/FileBrowser.Sample/README.md): focused file picker example.
+- [UnderstandMe Configurator](../UnderstandMe/Tools/Configurator/README.md): JSON settings editing and validation, provider checks and offline help rendered by Blackboard Markdown.
+- [WhenItFails Setter](../Toolroom/WhenItFails/Setter/README.md): error catalog authoring, inspection and validation.
 
-The Essentials package is intentionally small and dependency-light.
-
-Core rules used across the package:
-
-- public helper methods validate null root objects and invalid arguments
-- nullable model properties are handled defensively where appropriate
-- `MetadataBag` is mutable, so copying APIs create metadata copies instead of sharing mutable references
-- issue lists are treated as read-only snapshots or read-only references
-- empty factories return safe empty instances
-- behavior is covered by unit tests
-
-## Documentation
-
-Documentation is available in the `Docs` folder:
-
-- [Documentation Index](../Docs/Documentation/en.md)
-- [Getting Started](../Docs/Getting-Started/en.md)
-- [Essentials Overview](../Docs/Essentials-Overview/en.md)
-- [Results and Responses](../Docs/Results-and-Responses/en.md)
-- [Issues](../Docs/Issues/en.md)
-- [Metadata](../Docs/Metadata/en.md)
-- [Diagnostics](../Docs/Diagnostics/en.md)
-- [Extensions](../Docs/Extensions/en.md)
-- [Interfaces](../Docs/Interfaces/en.md)
-- [Enums](../Docs/Enums/en.md)
-- [Guards](../Docs/Guards/en.md)
-- [Value Objects](../Docs/Value-Objects/en.md)
-- [API Reference](../Docs/API-Reference/en.md)
-
-## Target framework
-
-The current Toolbox generation targets:
+## Architecture
 
 ```text
-net10.0
+Essentials
+    +-- WhenItFails
+    |     +-- SeeMe / WhenItFails Console
+    |     +-- Toolroom / Setter
+    +-- shared infrastructure consumed by other projects
+
+ExchangeHouse.Markdown --(document model)--> Blackboard.SpectreConsole.Markdown
+                                                 +-- Blackboard.Showcase
+                                                 +-- UnderstandMe Configurator
+
+Blackboard.SpectreConsole.FileBrowser
+    +-- FileBrowser.Sample / Blackboard.Showcase
+    +-- UnderstandMe Configurator
+
+UnderstandMe -- offline localization core; broader service in design
 ```
 
-Older compatibility targets are intentionally not part of this generation. The goal is to keep the package clean, modern, and free from historical compatibility constraints.
+The diagram is conceptual; for exact package vs project references, see the `.csproj` files and [architecture](../Docs/Architecture/en.md). ExchangeHouse never needs a UI renderer; Blackboard components are independent of their consumers.
 
-## Packaging
+## Getting started
 
-The repository uses central package configuration in `Directory.Build.props`.
-
-Project files should usually contain only package-specific values such as:
-
-- `PackageId`
-- `Description`
-- `PackageTags`
-- `Version`
-- optionally `AssemblyName`
-- optionally `RootNamespace`
-
-To create a release package:
+Install a supported **.NET 10 SDK**. From the repository root:
 
 ```bash
-dotnet pack Essentials/Essentials.csproj -c Release
+dotnet restore Toolbox.sln
+dotnet build Toolbox.sln -c Release
+dotnet test Toolbox.sln -c Release
 ```
 
-## Testing
-
-Run all tests with:
+Try the Markdown theme gallery and FileBrowser demos:
 
 ```bash
-dotnet test
+dotnet run --project Blackboard/Samples/Blackboard.Showcase
 ```
 
-Before release, prefer a clean build:
+Or try the offline localization configurator:
 
 ```bash
-dotnet clean
-dotnet build
-dotnet test
+dotnet run --project UnderstandMe/Tools/Configurator
 ```
 
-## Status
+[Repository getting started](../Docs/Toolbox-Getting-Started/en.md) includes per-project testing and examples of adding a published NuGet package.
 
-This package is under active development. Public behavior is being documented and stabilized step by step.
+## Documentation and development rules
+
+- [Main index](../Docs/Documentation/en.md), [architecture](../Docs/Architecture/en.md), [release status](../Docs/Release-Status/en.md), [verification](../Docs/Development-and-Verification/en.md).
+- Every library/app should maintain an English root `README.md`, topic-level `Docs/<Topic>/en.md` and `IMPLEMENTATION_STATUS.md`. English is the source for later automatic translations.
+- Each functional step is tested, documented and committed on GitHub; Windows-focused CI complements the full Linux solution build.
+- Latest verified nested-list regression: [GitHub Actions #41244480220](https://github.com/afrowaveltd/Toolbox/actions/runs/41244480220). See the [status files](../IMPLEMENTATION_STATUS.md) for subsequent changes.
+
+## Design-only and future work
+
+- [AJIS / A2 notes](../Ajis/README.md) are **design notes**, not a shipped AJIS 2.0 Toolbox runtime; the historic project is [Ajis.Dotnet](https://github.com/afrowaveltd/Ajis.Dotnet).
+- Suitcase, GetConnected, SemTam/TamTam, TalkToMe and future ExchangeHouse converters are separate future work; this listing does **not** imply completed projects.
+- The repository's [Afrowave Id rebuild](../Docs/Id-Rebuild-Review/en.md), [high-availability](../Docs/Id-High-Availability-and-Replication/en.md), [regional routing](../Docs/Id-Autodiscovery-and-Regional-Routing/en.md) and [Observer](../Docs/Id-Observer-and-Uplink/en.md) documents are exploratory designs, not implemented Id services in Toolbox.
+
+## Community-first service and transparent infrastructure funding
+
+Afrowave intends to give everyone the maximum feasible access to useful hosted services, with no artificial paywalls or personal enrichment. Community support, when needed, is intended for transparent, verifiable real operating costs. Those future hosted-service policies **do not impose payment requirements on Toolbox libraries**. No donations or bank-backed funding dashboard are implemented by these repository projects. See [Community access and transparent funding](../Docs/Afrowave-Community-Access-and-Transparent-Funding/en.md).
+
+## License
+
+See [LICENSE.txt](../LICENSE.txt).

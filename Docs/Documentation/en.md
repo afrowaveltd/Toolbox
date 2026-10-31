@@ -1,6 +1,6 @@
 # Afrowave.Toolbox — documentation index
 
-This is the main documentation entry point for **the entire Toolbox**, not only Essentials. Implemented code, published packages and future designs are explicitly distinguished. Each topic starts with an English `Docs/<Topic>/en.md`.
+This is the main documentation entry point for **the entire Toolbox**, not only Essentials. The localized English root [README](../../README/en.md) follows the primary repository [README](../../README.md) with adjusted relative links. Implemented code, published packages and future designs are explicitly distinguished. Each topic starts with an English `Docs/<Topic>/en.md`.
 
 ## Begin here
 

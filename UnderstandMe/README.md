@@ -1,8 +1,8 @@
 # Afrowave.Toolbox.UnderstandMe
 
-UnderstandMe is a planned, modular localization, globalization, translation, and translation-workflow toolkit for .NET applications. It belongs to [Afrowave Toolbox](https://github.com/afrowaveltd/Toolbox).
+UnderstandMe is a modular localization and translation-workflow toolkit under active implementation for .NET applications. Its offline localization core and Configurator already exist; full translation orchestration remains in design and incremental development. It belongs to [Afrowave Toolbox](https://github.com/afrowaveltd/Toolbox).
 
-> **Status: first offline localization core committed; translation and orchestration remain design-stage.** The .NET 10 project now contains standalone JSON localization code and a separate test project. GitHub Actions [run #39407132671](https://github.com/afrowaveltd/Toolbox/actions/runs/39407132671) passed **5,957 solution tests** (including **43 UnderstandMe tests**), with **zero build warnings/errors**, after adding standalone placeholder validation. See [first implementation](Docs/Localization/First-Implementation/en.md).
+> **Status (2026-10-31):** the .NET 10 offline core, dictionaryless JSON localization, placeholder validation and a separate [Configurator](Tools/Configurator/README.md) are implemented and tested. Provider orchestration, advanced translation queues and the full Afutrans service remain incremental/design work. The earlier [first implementation](Docs/Localization/First-Implementation/en.md) and its historical CI numbers are retained for context, not presented as the latest test count. The current verified Linux/Windows regression checkpoint is documented in [Toolbox implementation status](../IMPLEMENTATION_STATUS.md).
 
 ## Latest implementation: target locale repair scanning
 
