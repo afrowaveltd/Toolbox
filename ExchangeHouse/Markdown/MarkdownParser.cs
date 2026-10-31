@@ -13,6 +13,7 @@ public static class MarkdownParser
         var blocks = new List<MarkdownBlock>();
         var listRoots = new List<MutableListNode>();
         var listStack = new List<MutableListNode>();
+        var pendingBlankIndices = new List<int>();
         var offset = 0;
         var inCode = false;
         var fenceMarker = '\0';
@@ -37,6 +38,34 @@ public static class MarkdownParser
             string content = line;
             MarkdownListMarker? marker = null;
             MutableListNode? continuationOwner = null;
+
+            // Defer classification of blank separators until the next nonblank line.
+            // Only a sufficiently indented paragraph can turn those blanks into list content.
+            // Keeping the pending indices (not copying source strings) avoids repeated lookahead.
+            if (!inCode && pendingBlankIndices.Count > 0 && !string.IsNullOrWhiteSpace(line))
+            {
+                var probe = new List<MutableListNode>(listStack);
+                var isMarker = TryListItem(line, out _, out _, out _, out _);
+                if (!isMarker && TryContinuation(line, probe, out var blankOwner, out _)
+                    && blankOwner is not null)
+                {
+                    foreach (int blankIndex in pendingBlankIndices)
+                    {
+                        var ownedBlank = blocks[blankIndex] with
+                        {
+                            ListBlankOwnerStart = blankOwner.Block.Start
+                        };
+                        blocks[blankIndex] = ownedBlank;
+                        blankOwner.SeparatorBlocks.Add(ownedBlank);
+                        blankOwner.ContentBlocks.Add(ownedBlank);
+                    }
+                }
+                else
+                {
+                    listStack.Clear();
+                }
+                pendingBlankIndices.Clear();
+            }
 
             if (inCode)
             {
@@ -98,7 +127,8 @@ public static class MarkdownParser
                 kind = MarkdownBlockKind.Paragraph;
             }
 
-            if (kind != MarkdownBlockKind.ListItem && continuationOwner is null)
+            if (kind is not (MarkdownBlockKind.ListItem or MarkdownBlockKind.Blank)
+                && continuationOwner is null)
                 listStack.Clear();
 
             var inlines = kind is MarkdownBlockKind.Heading or MarkdownBlockKind.Paragraph
@@ -127,6 +157,11 @@ public static class MarkdownParser
             else if (continuationOwner is not null)
             {
                 continuationOwner.ContinuationBlocks.Add(block);
+                continuationOwner.ContentBlocks.Add(block);
+            }
+            else if (kind == MarkdownBlockKind.Blank && listStack.Count > 0)
+            {
+                pendingBlankIndices.Add(blocks.Count - 1);
             }
 
             offset = next;
@@ -285,7 +320,9 @@ public static class MarkdownParser
 
     private static MarkdownListItemNode FreezeListNode(MutableListNode item) =>
         new(item.Block, item.Children.Select(FreezeListNode).ToList().AsReadOnly(),
-            item.ContinuationBlocks.AsReadOnly());
+            item.ContinuationBlocks.AsReadOnly(),
+            item.SeparatorBlocks.AsReadOnly(),
+            item.ContentBlocks.AsReadOnly());
 
     private sealed class MutableListNode(MarkdownBlock block, int indentColumns)
     {
@@ -294,5 +331,7 @@ public static class MarkdownParser
         public int ContentIndentColumns { get; } = block.ListMarker!.ContentIndentColumns;
         public List<MutableListNode> Children { get; } = [];
         public List<MarkdownBlock> ContinuationBlocks { get; } = [];
+        public List<MarkdownBlock> SeparatorBlocks { get; } = [];
+        public List<MarkdownBlock> ContentBlocks { get; } = [];
     }
 }

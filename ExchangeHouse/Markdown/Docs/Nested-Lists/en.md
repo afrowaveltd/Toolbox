@@ -8,7 +8,7 @@ Ordered items recognize 1–9 ASCII digits followed by `.` or `)`; unordered mar
 
 ## Non-goals and limits
 
-- Marker items occupy one physical source line, but explicitly indented continuation paragraphs now attach to their owner. Lazy continuation, blank-separated loose lists, and nested fenced code blocks inside list items are still unsupported; see [List continuations](../List-Continuations/en.md).
+- Marker items occupy one physical source line, but explicitly indented continuation paragraphs now attach to their owner. Lazy continuation, full CommonMark loose-list containers (beyond indented blank-separated paragraphs), and nested fenced code blocks inside list items are still unsupported; see [List continuations](../List-Continuations/en.md).
 - Nesting is based on relative indentation in contiguous item lines, not CommonMark content-indentation/flanking rules. Mixed ordered and unordered markers remain distinct metadata; a full typed list-container AST is future work.
 - Maximum supported hierarchy depth is 32 and prefix indentation 256 columns to bound pathological input. Anything beyond supported semantics stays ordinary text.
 - Exact input including CRLF/CR/LF, tabs and original numbering stays unchanged in the writer. Consumers should not renumber source documents as a presentation side effect.

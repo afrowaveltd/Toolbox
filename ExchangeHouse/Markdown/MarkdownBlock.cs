@@ -29,4 +29,10 @@ public sealed record MarkdownBlock(
 
     /// <summary>Absolute source offset of the continuation's owning list item line.</summary>
     public int? ListContinuationOwnerStart { get; init; }
+
+    /// <summary>
+    /// Owner's list-marker source offset when this blank line separates explicitly indented
+    /// paragraphs within a loose list item. Null for unrelated blank lines.
+    /// </summary>
+    public int? ListBlankOwnerStart { get; init; }
 }

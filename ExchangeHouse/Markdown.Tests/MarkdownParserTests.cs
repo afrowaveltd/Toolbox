@@ -203,7 +203,7 @@ public sealed class MarkdownParserTests
     [Fact]
     public void Blank_and_unindented_paragraphs_end_list_continuations()
     {
-        const string markdown = "- first\n  attached\n\n  not attached\n- second\nplain\n  also outside";
+        const string markdown = "- first\n  attached\n\nnot attached\n- second\nplain\n  also outside";
         var doc = MarkdownParser.Parse(markdown);
         Assert.Equal(2, doc.ListRoots.Count);
         Assert.Single(doc.ListRoots[0].ContinuationBlocks);
@@ -224,6 +224,101 @@ public sealed class MarkdownParserTests
         Assert.Null(doc.Blocks[3].ListContinuationMarker);
         Assert.Empty(doc.Blocks[3].Inlines);
         Assert.Equal(markdown, MarkdownWriter.Write(doc));
+    }
+
+
+    [Fact]
+    public void Loose_item_owns_blank_separator_and_later_indented_paragraphs()
+    {
+        const string source = "- First\r\n  Initial **text**\r\n\r\n  Another [guide](../Docs/en.md)\r\n- Second\r\n";
+        var doc = MarkdownParser.Parse(source);
+        var item = doc.ListRoots[0];
+        Assert.True(item.IsLoose);
+        Assert.Single(item.SeparatorBlocks);
+        Assert.Equal(2, item.ContinuationBlocks.Count);
+        Assert.Equal(3, item.ContentBlocks.Count);
+        Assert.Equal(new[] { "  Initial **text**\r\n", "\r\n", "  Another [guide](../Docs/en.md)\r\n" },
+            item.ContentBlocks.Select(block => block.RawText));
+        var separator = item.SeparatorBlocks[0];
+        Assert.Equal(MarkdownBlockKind.Blank, separator.Kind);
+        Assert.Equal(item.Block.Start, separator.ListBlankOwnerStart);
+        Assert.Equal(separator, doc.Blocks[2]);
+        var link = Assert.Single(item.ContinuationBlocks[1].Inlines,
+            n => n.Kind == MarkdownInlineKind.Link);
+        Assert.Equal(link.RawText, source.Substring(link.Start, link.Length));
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Multiple_blanks_and_tabs_preserve_positions_and_source_exactly()
+    {
+        const string source = "12) Entry\r\n\r\n \t\r\n\tMore details\r\n";
+        var doc = MarkdownParser.Parse(source);
+        var item = Assert.Single(doc.ListRoots);
+        Assert.Equal(4, item.Block.ListMarker!.ContentIndentColumns);
+        Assert.Equal(2, item.SeparatorBlocks.Count);
+        Assert.Equal(3, item.ContentBlocks.Count);
+        Assert.Equal("More details", Assert.Single(item.ContinuationBlocks).Text);
+        Assert.All(item.SeparatorBlocks, b => Assert.Equal(item.Block.Start, b.ListBlankOwnerStart));
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+        foreach (var block in doc.Blocks)
+            Assert.Equal(block.RawText, source.Substring(block.Start, block.Length));
+    }
+
+    [Fact]
+    public void Blank_after_nested_child_reattaches_to_eligible_ancestor()
+    {
+        const string source = "- Parent\n  - Child\n    Child text\n\n  Parent after gap\n- End";
+        var doc = MarkdownParser.Parse(source);
+        var parent = doc.ListRoots[0];
+        var child = Assert.Single(parent.Children);
+        Assert.False(child.IsLoose);
+        Assert.Equal("Child text", Assert.Single(child.ContinuationBlocks).Text);
+        Assert.True(parent.IsLoose);
+        Assert.Single(parent.SeparatorBlocks);
+        Assert.Equal("Parent after gap", Assert.Single(parent.ContinuationBlocks).Text);
+        Assert.Equal(parent.Block.Start, doc.Blocks[3].ListBlankOwnerStart);
+        Assert.Equal(parent.Block.Start, doc.Blocks[4].ListContinuationOwnerStart);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Theory]
+    [InlineData("- First\n\n")]
+    [InlineData("- First\n\nUnindented text")]
+    [InlineData("- First\n\n  - New child")]
+    [InlineData("- First\n\n   ")]
+    public void Trailing_or_unrelated_blank_lines_are_not_silently_owned(string source)
+    {
+        var doc = MarkdownParser.Parse(source);
+        var first = Assert.Single(doc.ListRoots);
+        Assert.Empty(first.SeparatorBlocks);
+        Assert.False(first.IsLoose);
+        Assert.DoesNotContain(doc.Blocks, b => b.ListBlankOwnerStart.HasValue);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Blank_before_an_unrelated_marker_must_not_join_lists()
+    {
+        const string source = "- First\n\n  - Child-looking marker\n- Second";
+        var doc = MarkdownParser.Parse(source);
+        Assert.Equal(3, doc.ListRoots.Count);
+        Assert.All(doc.ListRoots, item => Assert.False(item.IsLoose));
+        Assert.Equal(0, doc.Blocks[2].ListMarker!.Depth);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Loose_list_syntax_inside_fences_is_not_interpreted()
+    {
+        const string source = "- First\n\n  Included\n~~~md\n- protected\n\n  protected\n~~~\n- Second";
+        var doc = MarkdownParser.Parse(source);
+        Assert.True(doc.ListRoots[0].IsLoose);
+        Assert.Equal(MarkdownBlockKind.CodeLine, doc.Blocks[4].Kind);
+        Assert.Equal(MarkdownBlockKind.CodeLine, doc.Blocks[5].Kind);
+        Assert.Empty(doc.Blocks[4].Inlines);
+        Assert.Null(doc.Blocks[5].ListBlankOwnerStart);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
     }
 
     [Fact]

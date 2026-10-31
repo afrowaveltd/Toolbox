@@ -65,3 +65,9 @@
 - Markdown local link job **PASS**: 269 Markdown files, 1,374 local file targets checked with none missing. Source-aware continuation behavior also tested on Windows; manual Debian and real-terminal visual checks remain separate.
 - Initial renderer integration CI failed **one incorrect test expectation** (custom indent `....` erroneously checked as six literal spaces). Fixed the assertion in `35efe934`, retaining custom-indent coverage. The failed earlier CI runs are not counted as successes.
 - This milestone handles only **explicitly indented** continuation lines. Loose lists, lazy continuation and nested CommonMark block containers remain unsupported. No public NuGet release was made.
+
+## 2026-10-31 — bounded loose-list paragraph recognition
+
+- Added deferred blank-line ownership for explicitly indented continuation paragraphs without scanning ahead repeatedly. New additive `ListBlankOwnerStart`, `SeparatorBlocks`, `ContentBlocks` and `IsLoose` preserve existing public record construction and unchanged-source writing.
+- Supports multiple blank separators, nested-child to parent continuation ownership, tabs and original link offsets. Trailing blanks, unindented text and blank-before-list-marker are not attached. No full CommonMark or nested loose list container semantics claimed.
+- Added six focused tests and documentation in `Docs/Loose-List-Paragraphs/en.md`. CI pending for this source commit.

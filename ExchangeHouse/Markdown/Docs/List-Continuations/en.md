@@ -8,6 +8,6 @@ The public additions are `MarkdownListItemNode.ContinuationBlocks`, `MarkdownBlo
 
 Example: an item `- Title` followed by `  Additional text` and `  [Guide](../manual.md)` owns both indented paragraphs.
 
-**Limits:** blank lines end the current list run. Lazy unindented continuations, loose list items, compound blocks, nested code fences and complete CommonMark rules are still unsupported. Some indented heading/fence-like text is treated as literal continuation content. This is intentional to preserve old parsing boundaries and avoid speculative semantics.
+**Limits (updated 2026-10-31):** blank lines can now remain inside a list item when followed by an explicitly indented continuation paragraph; see [Loose list paragraphs](../Loose-List-Paragraphs/en.md). Trailing blanks, blank-before-marker boundaries, lazy unindented continuations, compound blocks, nested code fences and complete CommonMark rules remain unsupported. Some indented heading/fence-like text is treated as literal continuation content. This is intentional to preserve old parsing boundaries and avoid speculative semantics.
 
 [Earlier nested-list model](../Nested-Lists/en.md) · [Implementation status](../../IMPLEMENTATION_STATUS.md).
