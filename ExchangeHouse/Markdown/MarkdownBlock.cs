@@ -24,7 +24,7 @@ public sealed record MarkdownBlock(
     /// <summary>Source-aware list marker, including nesting depth; null for non-list lines.</summary>
     public MarkdownListMarker? ListMarker { get; init; }
 
-    /// <summary>Source marker of the owning item for explicitly indented continuation paragraphs.</summary>
+    /// <summary>Source marker of the owning item for attached paragraphs, quotes or code.</summary>
     public MarkdownListMarker? ListContinuationMarker { get; init; }
 
     /// <summary>
@@ -33,7 +33,25 @@ public sealed record MarkdownBlock(
     /// </summary>
     public bool IsLazyListContinuation { get; init; }
 
-    /// <summary>Absolute source offset of the continuation's owning list item line.</summary>
+    /// <summary>Quote marker depth, zero for non-quote lines.</summary>
+    public int QuoteDepth { get; init; }
+
+    /// <summary>Absolute source offset of the opening code fence, for opener/body/closer.</summary>
+    public int? CodeFenceStart { get; init; }
+
+    /// <summary>Unmodified opening fence information string (if recognized).</summary>
+    public string? CodeFenceInfo { get; init; }
+
+    /// <summary>First token of the fence information string, not an inferred language.</summary>
+    public string? CodeLanguage { get; init; }
+
+    /// <summary>True only on the matched closing delimiter of a fenced code block.</summary>
+    public bool IsClosingCodeFence { get; init; }
+
+    /// <summary>
+    /// Absolute source offset of the owning list item for paragraph, quote or fenced-code
+    /// content attached to a list item; null for top-level blocks.
+    /// </summary>
     public int? ListContinuationOwnerStart { get; init; }
 
     /// <summary>

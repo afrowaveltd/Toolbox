@@ -18,6 +18,10 @@ public static class MarkdownParser
         var inCode = false;
         var fenceMarker = '\0';
         var fenceLength = 0;
+        var fenceStart = -1;
+        string? fenceLanguage = null;
+        string? fenceInfo = null;
+        MutableListNode? fenceOwner = null;
 
         while (offset < source.Length)
         {
@@ -39,6 +43,11 @@ public static class MarkdownParser
             MarkdownListMarker? marker = null;
             MutableListNode? continuationOwner = null;
             var lazyContinuation = false;
+            var codeClosing = false;
+            var quoteDepth = 0;
+            var currentFenceStart = -1;
+            string? currentLanguage = null;
+            string? currentInfo = null;
 
             // Defer classification of blank separators until the next nonblank line.
             // Only a sufficiently indented paragraph can turn those blanks into list content.
@@ -70,15 +79,18 @@ public static class MarkdownParser
 
             if (inCode)
             {
-                if (IsClosingFence(line, fenceMarker, fenceLength))
-                {
-                    kind = MarkdownBlockKind.CodeFence;
+                // Retain the list owner while scanning literal code: Markdown markers
+                // inside a fence must never create list items, headings or quotes.
+                continuationOwner = fenceOwner;
+                if (fenceOwner is not null)
+                    content = StripIndentUpTo(line, fenceOwner.ContentIndentColumns);
+                currentFenceStart = fenceStart;
+                currentLanguage = fenceLanguage;
+                currentInfo = fenceInfo;
+                codeClosing = IsClosingFence(content, fenceMarker, fenceLength);
+                kind = codeClosing ? MarkdownBlockKind.CodeFence : MarkdownBlockKind.CodeLine;
+                if (codeClosing)
                     inCode = false;
-                }
-                else
-                {
-                    kind = MarkdownBlockKind.CodeLine;
-                }
             }
             else if (string.IsNullOrWhiteSpace(line))
             {
@@ -111,8 +123,26 @@ public static class MarkdownParser
             }
             else if (TryContinuation(line, listStack, out continuationOwner, out int contentIndex))
             {
-                kind = MarkdownBlockKind.Paragraph;
                 content = line[contentIndex..];
+                if (TryFence(content, out fenceMarker, out fenceLength))
+                {
+                    kind = MarkdownBlockKind.CodeFence;
+                    inCode = true;
+                    fenceStart = offset;
+                    fenceOwner = continuationOwner;
+                    fenceInfo = ReadFenceInfo(content, fenceMarker, fenceLength);
+                    fenceLanguage = ReadFenceLanguage(fenceInfo);
+                    currentFenceStart = fenceStart;
+                    currentLanguage = fenceLanguage;
+                    currentInfo = fenceInfo;
+                }
+                else if (TryQuote(content, out quoteDepth, out var quoteContent))
+                {
+                    kind = MarkdownBlockKind.BlockQuote;
+                    content = quoteContent;
+                }
+                else
+                    kind = MarkdownBlockKind.Paragraph;
             }
             else if (TryLazyContinuation(line, listStack, out continuationOwner))
             {
@@ -125,6 +155,17 @@ public static class MarkdownParser
             {
                 kind = MarkdownBlockKind.CodeFence;
                 inCode = true;
+                fenceStart = offset;
+                fenceOwner = null;
+                fenceInfo = ReadFenceInfo(line, fenceMarker, fenceLength);
+                fenceLanguage = ReadFenceLanguage(fenceInfo);
+                currentFenceStart = fenceStart;
+                currentLanguage = fenceLanguage;
+                currentInfo = fenceInfo;
+            }
+            else if (TryQuote(line, out quoteDepth, out content))
+            {
+                kind = MarkdownBlockKind.BlockQuote;
             }
             else if (TryHeading(line, out level, out content))
             {
@@ -140,7 +181,7 @@ public static class MarkdownParser
                 listStack.Clear();
 
             var inlines = kind is MarkdownBlockKind.Heading or MarkdownBlockKind.Paragraph
-                or MarkdownBlockKind.ListItem
+                or MarkdownBlockKind.ListItem or MarkdownBlockKind.BlockQuote
                 ? MarkdownInlineParser.Parse(content, offset + line.Length - content.Length)
                 : [];
 
@@ -150,7 +191,12 @@ public static class MarkdownParser
                 ListMarker = marker,
                 ListContinuationMarker = continuationOwner?.Block.ListMarker,
                 ListContinuationOwnerStart = continuationOwner?.Block.Start,
-                IsLazyListContinuation = lazyContinuation
+                IsLazyListContinuation = lazyContinuation,
+                QuoteDepth = quoteDepth,
+                CodeFenceStart = currentFenceStart >= 0 ? currentFenceStart : null,
+                CodeFenceInfo = currentInfo,
+                CodeLanguage = currentLanguage,
+                IsClosingCodeFence = codeClosing
             };
             blocks.Add(block);
 
@@ -165,7 +211,10 @@ public static class MarkdownParser
             }
             else if (continuationOwner is not null)
             {
-                continuationOwner.ContinuationBlocks.Add(block);
+                if (kind == MarkdownBlockKind.Paragraph)
+                    continuationOwner.ContinuationBlocks.Add(block);
+                else
+                    continuationOwner.EmbeddedBlocks.Add(block);
                 continuationOwner.ContentBlocks.Add(block);
             }
             else if (kind == MarkdownBlockKind.Blank && listStack.Count > 0)
@@ -173,11 +222,74 @@ public static class MarkdownParser
                 pendingBlankIndices.Add(blocks.Count - 1);
             }
 
+            if (codeClosing)
+            {
+                fenceOwner = null;
+                fenceLanguage = null;
+                fenceInfo = null;
+                fenceStart = -1;
+            }
             offset = next;
         }
 
         return new MarkdownDocument(source, blocks.AsReadOnly(),
             listRoots.Select(FreezeListNode).ToList().AsReadOnly());
+    }
+
+    private static string StripIndentUpTo(string line, int requiredColumns)
+    {
+        var columns = 0;
+        var index = 0;
+        while (index < line.Length && line[index] is ' ' or '\t' &&
+               columns < requiredColumns)
+        {
+            columns += line[index] == '\t' ? 4 - columns % 4 : 1;
+            index++;
+        }
+        // Lines that outdent the owning item are protected, not reclassified.
+        return columns >= requiredColumns ? line[index..] : line;
+    }
+
+    private static string? ReadFenceInfo(string line, char marker, int length)
+    {
+        var info = line[(Indent(line) + length)..].Trim();
+        // Backticks are forbidden in a backtick fence information string.
+        // Retain the fence and its literal payload even if the hint is invalid.
+        return info.Length > 0 && (marker != '`' || !info.Contains('`')) ? info : null;
+    }
+
+    private static string? ReadFenceLanguage(string? info)
+    {
+        if (info is null)
+            return null;
+        var length = 0;
+        while (length < info.Length && !char.IsWhiteSpace(info[length]))
+            length++;
+        var hint = info[..length];
+        // The source is kept verbatim; this bound applies only to the display hint.
+        return hint.Length is > 0 and <= 64 ? hint : null;
+    }
+
+    private static bool TryQuote(string line, out int depth, out string text)
+    {
+        depth = 0;
+        text = line;
+        var index = Indent(line);
+        if (index > 3 || index == line.Length || line[index] != '>')
+            return false;
+        while (index < line.Length && line[index] == '>' && depth < 32)
+        {
+            depth++;
+            index++;
+            if (index < line.Length && line[index] is ' ' or '\t')
+                index++;
+            // A nested quote may use > > or >>.
+            if (index < line.Length && line[index] == '>')
+                continue;
+            break;
+        }
+        text = line[index..];
+        return true;
     }
 
     private static int Indent(string line)
@@ -376,7 +488,8 @@ public static class MarkdownParser
         new(item.Block, item.Children.Select(FreezeListNode).ToList().AsReadOnly(),
             item.ContinuationBlocks.AsReadOnly(),
             item.SeparatorBlocks.AsReadOnly(),
-            item.ContentBlocks.AsReadOnly());
+            item.ContentBlocks.AsReadOnly(),
+            item.EmbeddedBlocks.AsReadOnly());
 
     private sealed class MutableListNode(MarkdownBlock block, int indentColumns)
     {
@@ -387,5 +500,6 @@ public static class MarkdownParser
         public List<MarkdownBlock> ContinuationBlocks { get; } = [];
         public List<MarkdownBlock> SeparatorBlocks { get; } = [];
         public List<MarkdownBlock> ContentBlocks { get; } = [];
+        public List<MarkdownBlock> EmbeddedBlocks { get; } = [];
     }
 }

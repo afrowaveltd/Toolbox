@@ -406,6 +406,97 @@ public sealed class MarkdownParserTests
         Assert.Equal(source, MarkdownWriter.Write(doc));
     }
 
+
+    [Fact]
+    public void Fence_language_and_literal_code_are_source_aware()
+    {
+        const string source = "~~~csharp title=Demo\r\n# not a heading\r\n- not a list\r\n~~~\r\n# outside";
+        var doc = MarkdownParser.Parse(source);
+        Assert.Equal(new[] { MarkdownBlockKind.CodeFence, MarkdownBlockKind.CodeLine,
+            MarkdownBlockKind.CodeLine, MarkdownBlockKind.CodeFence, MarkdownBlockKind.Heading },
+            doc.Blocks.Select(b => b.Kind));
+        Assert.Equal("csharp", doc.Blocks[0].CodeLanguage);
+        Assert.Equal("csharp title=Demo", doc.Blocks[0].CodeFenceInfo);
+        Assert.Equal("csharp", doc.Blocks[1].CodeLanguage);
+        Assert.Equal(doc.Blocks[0].Start, doc.Blocks[2].CodeFenceStart);
+        Assert.True(doc.Blocks[3].IsClosingCodeFence);
+        Assert.Empty(doc.Blocks[1].Inlines);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Indented_fences_belong_to_list_and_hide_markdown_inside_code()
+    {
+        const string source = "- First\r\n  \u0060\u0060\u0060bash\r\n  echo '[red] literal'\r\n  - not a new list\r\n  \u0060\u0060\u0060\r\n  > After code\r\n- Next";
+        var doc = MarkdownParser.Parse(source);
+        var owner = doc.ListRoots[0];
+        Assert.Equal(2, doc.ListRoots.Count);
+        Assert.Equal(5, owner.EmbeddedBlocks.Count);
+        Assert.Equal(new[] { MarkdownBlockKind.CodeFence, MarkdownBlockKind.CodeLine,
+            MarkdownBlockKind.CodeLine, MarkdownBlockKind.CodeFence, MarkdownBlockKind.BlockQuote },
+            owner.EmbeddedBlocks.Select(b => b.Kind));
+        Assert.All(owner.EmbeddedBlocks, b => Assert.Equal(owner.Block.Start, b.ListContinuationOwnerStart));
+        Assert.Equal("bash", doc.Blocks[1].CodeLanguage);
+        Assert.Equal("echo '[red] literal'", doc.Blocks[2].Text);
+        Assert.True(doc.Blocks[4].IsClosingCodeFence);
+        Assert.Equal("After code", doc.Blocks[5].Text);
+        Assert.Equal(1, doc.Blocks[5].QuoteDepth);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Nested_numbered_list_owns_indented_fence_and_resumes_parent()
+    {
+        const string source = "- Parent\n  12) Child\n      ~~~python\n      print('hello')\n      ~~~\n  Parent again";
+        var doc = MarkdownParser.Parse(source);
+        var parent = Assert.Single(doc.ListRoots);
+        var child = Assert.Single(parent.Children);
+        Assert.Equal(3, child.EmbeddedBlocks.Count);
+        Assert.Equal("python", child.EmbeddedBlocks[0].CodeLanguage);
+        Assert.Equal("print('hello')", child.EmbeddedBlocks[1].Text);
+        Assert.Equal("Parent again", Assert.Single(parent.ContinuationBlocks).Text);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Quotes_are_source_preserving_and_have_inline_offsets()
+    {
+        const string source = "> **strong** [guide](../en.md)\r\n>> Nested quote\r\n> Last";
+        var doc = MarkdownParser.Parse(source);
+        Assert.All(doc.Blocks, b => Assert.Equal(MarkdownBlockKind.BlockQuote, b.Kind));
+        Assert.Equal(new[] { 1, 2, 1 }, doc.Blocks.Select(b => b.QuoteDepth));
+        var link = Assert.Single(doc.Blocks[0].Inlines, n => n.Kind == MarkdownInlineKind.Link);
+        Assert.Equal(link.RawText, source.Substring(link.Start, link.Length));
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Unindented_quote_interrupts_list_while_indented_quote_belongs_to_item()
+    {
+        const string source = "- First\n  > Inside\n> Outside\n- Second";
+        var doc = MarkdownParser.Parse(source);
+        Assert.Equal(2, doc.ListRoots.Count);
+        Assert.Single(doc.ListRoots[0].EmbeddedBlocks);
+        Assert.Equal(doc.ListRoots[0].Block.Start, doc.Blocks[1].ListContinuationOwnerStart);
+        Assert.Null(doc.Blocks[2].ListContinuationOwnerStart);
+        Assert.Equal(MarkdownBlockKind.BlockQuote, doc.Blocks[2].Kind);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Code_and_quotes_after_blank_separator_do_not_turn_code_into_markdown()
+    {
+        const string source = "- Item\n\n  \u0060\u0060\u0060json\n  {\"key\":\"# literal\"}\n  \u0060\u0060\u0060\n\n  > Follow-up";
+        var doc = MarkdownParser.Parse(source);
+        var owner = Assert.Single(doc.ListRoots);
+        Assert.True(owner.IsLoose);
+        Assert.Equal(2, owner.SeparatorBlocks.Count);
+        Assert.Equal(4, owner.EmbeddedBlocks.Count);
+        Assert.Equal(MarkdownBlockKind.CodeLine, doc.Blocks[3].Kind);
+        Assert.Equal("json", doc.Blocks[2].CodeLanguage);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
     [Fact]
     public void Null_arguments_fail_explicitly()
     {

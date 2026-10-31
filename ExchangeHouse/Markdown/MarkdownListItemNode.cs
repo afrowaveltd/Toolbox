@@ -11,13 +11,15 @@ public sealed class MarkdownListItemNode
         MarkdownBlock block, IReadOnlyList<MarkdownListItemNode> children,
         IReadOnlyList<MarkdownBlock> continuationBlocks,
         IReadOnlyList<MarkdownBlock> separatorBlocks,
-        IReadOnlyList<MarkdownBlock> contentBlocks)
+        IReadOnlyList<MarkdownBlock> contentBlocks,
+        IReadOnlyList<MarkdownBlock> embeddedBlocks)
     {
         Block = block;
         Children = children;
         ContinuationBlocks = continuationBlocks;
         SeparatorBlocks = separatorBlocks;
         ContentBlocks = contentBlocks;
+        EmbeddedBlocks = embeddedBlocks;
     }
 
     /// <summary>Original line, source span, inline nodes and its list marker metadata.</summary>
@@ -34,6 +36,9 @@ public sealed class MarkdownListItemNode
 
     /// <summary>Owned continuation and separator lines together, in original source order.</summary>
     public IReadOnlyList<MarkdownBlock> ContentBlocks { get; }
+
+    /// <summary>Attached quote and fenced-code lines in original source order.</summary>
+    public IReadOnlyList<MarkdownBlock> EmbeddedBlocks { get; }
 
     /// <summary>Whether the item has at least one owned blank separator between content blocks.</summary>
     public bool IsLoose => SeparatorBlocks.Count > 0;

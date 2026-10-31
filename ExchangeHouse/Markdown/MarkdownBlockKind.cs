@@ -14,5 +14,7 @@ public enum MarkdownBlockKind
     /// <summary>Opening or closing fenced code delimiter.</summary>
     CodeFence,
     /// <summary>A line inside a fenced code block.</summary>
-    CodeLine
+    CodeLine,
+    /// <summary>A conservatively recognized blockquote line (no nested block AST).</summary>
+    BlockQuote
 }
