@@ -27,3 +27,7 @@ Maintainer-confirmed NuGet publications: Essentials 0.2.0, WhenItFails 1.0.0, Bl
 ## Further reading
 
 [Architecture](../Architecture/en.md) · [Getting started](../Toolbox-Getting-Started/en.md) · [Documentation index](../Documentation/en.md).
+
+## 2026-10-31 — list continuation increment
+
+ExchangeHouse Markdown now attaches explicitly indented paragraphs to list items with exact source offsets and original marker widths; Blackboard renders them beneath the owning item. The library boundaries remain unchanged. [Parser behavior](../../ExchangeHouse/Markdown/Docs/List-Continuations/en.md) · [Renderer behavior](../../Blackboard/SpectreConsole/Markdown/Docs/List-Continuation-Presentation/en.md) · [CI verification](https://github.com/afrowaveltd/Toolbox/actions/runs/41248289922). This is not full CommonMark or an external package publication.
