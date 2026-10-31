@@ -174,7 +174,7 @@ public sealed class MarkdownSpectreRendererTests
     {
         var console = Console();
         MarkdownSpectreRenderer.Render(console,
-            "- root\n\`\`\`md\n  42) literally code\n\`\`\`\n- new root\n");
+            "- root\n```md\n  42) literally code\n```\n- new root\n");
         Assert.Contains("    42) literally code", console.Output);
         Assert.DoesNotContain("    • literally code", console.Output);
     }
