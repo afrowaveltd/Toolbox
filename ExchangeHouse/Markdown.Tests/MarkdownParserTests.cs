@@ -118,7 +118,8 @@ public sealed class MarkdownParserTests
     {
         const string source = "- first\n  - child\n\n  - separate\nplain\n  - another\n\`\`\`\n  - protected\n\`\`\`\n- final";
         var doc = MarkdownParser.Parse(source);
-        Assert.Equal(3, doc.ListRoots.Count);
+        // Blank/paragraph/fence boundaries create four separate list runs.
+        Assert.Equal(4, doc.ListRoots.Count);
         Assert.Single(doc.ListRoots[0].Children);
         Assert.Equal(MarkdownBlockKind.ListItem, doc.Blocks[3].Kind);
         Assert.Equal(0, doc.Blocks[3].ListMarker!.Depth);
