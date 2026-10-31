@@ -58,3 +58,10 @@
 
 - Two new virtual-console regressions: bullet-aligned lazy continuation and nested numbered-list custom-theme alignment.
 - **CI pending**; existing 19/19 pass was recorded before these tests.
+
+### Final green lazy-paragraph checkpoint — 2026-10-31
+
+- [GitHub Actions #41250061417](https://github.com/afrowaveltd/Toolbox/actions/runs/41250061417) **SUCCESS** for commit `f6b7fc555c76d964ec12a27f86accc1beab3e9f8`: Linux full solution build and tests passed, Windows targeted UI/Markdown suites passed and local Markdown documentation-link check passed.
+- Windows counts: **ExchangeHouse Markdown 60/60**, **Blackboard Markdown 21/21**, **Showcase 26/26**, **FileBrowser 160/160**, **Configurator 44/44**, **UnderstandMe localization 34/34**.
+- Documentation audit: **273 Markdown files, 1,399 local targets checked**, zero missing links. Cross-family link typo from the first commit was fixed in `2c8c3fa`; the final gallery sample now uses an actually unindented lazy line.
+- No public Markdown NuGet publication, no full CommonMark or real-terminal Debian acceptance is implied by CI.

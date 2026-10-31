@@ -74,3 +74,10 @@
 - Added five focused cases for unindented inline/source offsets, nested ownership, blank boundaries, block-starter interruptions and mixed explicit/lazy/loose paragraphs.
 - Previous no-lazy fixture was adjusted to include a blank paragraph boundary, retaining its intended non-attachment guarantee.
 - **CI pending**; prior 55/55 suite remains the last independently verified parser result.
+
+### Final green lazy-paragraph checkpoint — 2026-10-31
+
+- [GitHub Actions #41250061417](https://github.com/afrowaveltd/Toolbox/actions/runs/41250061417) **SUCCESS** for commit `f6b7fc555c76d964ec12a27f86accc1beab3e9f8`: Linux full solution build and tests passed, Windows targeted UI/Markdown suites passed and local Markdown documentation-link check passed.
+- Windows counts: **ExchangeHouse Markdown 60/60**, **Blackboard Markdown 21/21**, **Showcase 26/26**, **FileBrowser 160/160**, **Configurator 44/44**, **UnderstandMe localization 34/34**.
+- Documentation audit: **273 Markdown files, 1,399 local targets checked**, zero missing links. Cross-family link typo from the first commit was fixed in `2c8c3fa`; the final gallery sample now uses an actually unindented lazy line.
+- No public Markdown NuGet publication, no full CommonMark or real-terminal Debian acceptance is implied by CI.

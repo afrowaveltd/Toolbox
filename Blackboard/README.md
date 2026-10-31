@@ -1,6 +1,6 @@
 # Blackboard — reusable terminal UI components
 
-**Current status (2026-10-31):** independent .NET 10 FileBrowser is **published to NuGet.org as `0.1.0-preview.1`** and has Windows/Debian manual smoke coverage (SSH/tmux remains open). A second independent, **unpublished** Markdown renderer is implemented, tested on Linux/Windows CI, used by Blackboard.Showcase and UnderstandMe Configurator, and supports themes, links/images and nested lists.
+**Current status (2026-10-31):** independent .NET 10 FileBrowser is **published to NuGet.org as `0.1.0-preview.1`** and has Windows/Debian manual smoke coverage (SSH/tmux remains open). A second independent, **unpublished** Markdown renderer is implemented, tested on Linux/Windows CI, used by Blackboard.Showcase and UnderstandMe Configurator, and supports themes, links/images, nested lists and lazy paragraph continuations.
 
 Blackboard is the implemented home of reusable **terminal user interface (TUI)** components for Afrowave.Toolbox. The name complements **Whiteboard**, the proposed future graphical UI (GUI) family. **These names describe project families, not umbrella NuGet packages.** The pairing is a naming/design direction, not a claim that either runtime toolkit has shipped.
 

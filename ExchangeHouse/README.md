@@ -6,7 +6,7 @@ The name communicates the purpose: content passes between formats without forcin
 
 ## First independent component
 
-- [Markdown](Markdown/README.md) — implemented .NET 10 source-preserving block and inline parser, exact links/image destinations and titles, nested/numbered-list hierarchy, and lossless unchanged-source writer; **not full CommonMark**.
+- [Markdown](Markdown/README.md) — implemented .NET 10 source-preserving block and inline parser, exact links/image destinations and titles, nested/numbered lists, loose/lazy paragraph continuations, and lossless unchanged-source writer; **not full CommonMark**.
 - [Architecture](Docs/Architecture/en.md) — dependency boundaries, format adapters and conversion principles.
 - [Conversion roadmap](Docs/Converters/en.md) — possible Markdown, plain text, HTML, JSON, AJIS and XML conversion paths.
 - [Implementation status](IMPLEMENTATION_STATUS.md) — verified state and next steps.
