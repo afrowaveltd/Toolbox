@@ -11,6 +11,8 @@ public static class MarkdownParser
     {
         ArgumentNullException.ThrowIfNull(source);
         var blocks = new List<MarkdownBlock>();
+        var listRoots = new List<MutableListNode>();
+        var listStack = new List<MutableListNode>();
         var offset = 0;
         var inCode = false;
         var fenceMarker = '\0';
@@ -33,6 +35,7 @@ public static class MarkdownParser
             var level = 0;
             MarkdownBlockKind kind;
             string content = line;
+            MarkdownListMarker? marker = null;
 
             if (inCode)
             {
@@ -59,28 +62,63 @@ public static class MarkdownParser
             {
                 kind = MarkdownBlockKind.Heading;
             }
-            else if (TryListItem(line, out content))
+            else if (TryListItem(line, out var originalMarker, out var number,
+                         out var indentColumns, out content) &&
+                     (indentColumns <= 3 ||
+                      (listStack.Count > 0 && indentColumns >= listStack[0].IndentColumns)))
             {
-                kind = MarkdownBlockKind.ListItem;
+                while (listStack.Count > 0 && listStack[^1].IndentColumns >= indentColumns)
+                    listStack.RemoveAt(listStack.Count - 1);
+
+                // Keep hierarchy depth bounded for malformed/untrusted huge Markdown files.
+                if (listStack.Count < 32)
+                {
+                    kind = MarkdownBlockKind.ListItem;
+                    marker = new MarkdownListMarker(originalMarker, number.HasValue,
+                        number, indentColumns, listStack.Count,
+                        offset + line.Length - content.Length);
+                }
+                else
+                {
+                    kind = MarkdownBlockKind.Paragraph;
+                    content = line;
+                }
             }
             else
             {
                 kind = MarkdownBlockKind.Paragraph;
             }
 
+            if (kind != MarkdownBlockKind.ListItem)
+                listStack.Clear();
+
             var inlines = kind is MarkdownBlockKind.Heading or MarkdownBlockKind.Paragraph
                 or MarkdownBlockKind.ListItem
                 ? MarkdownInlineParser.Parse(content, offset + line.Length - content.Length)
                 : [];
 
-            blocks.Add(new MarkdownBlock(kind, offset, next - offset, content, raw, level)
+            var block = new MarkdownBlock(kind, offset, next - offset, content, raw, level)
             {
-                Inlines = inlines
-            });
+                Inlines = inlines,
+                ListMarker = marker
+            };
+            blocks.Add(block);
+
+            if (marker is not null)
+            {
+                var item = new MutableListNode(block, marker.IndentColumns);
+                if (listStack.Count > 0)
+                    listStack[^1].Children.Add(item);
+                else
+                    listRoots.Add(item);
+                listStack.Add(item);
+            }
+
             offset = next;
         }
 
-        return new MarkdownDocument(source, blocks.AsReadOnly());
+        return new MarkdownDocument(source, blocks.AsReadOnly(),
+            listRoots.Select(FreezeListNode).ToList().AsReadOnly());
     }
 
     private static int Indent(string line)
@@ -141,23 +179,41 @@ public static class MarkdownParser
         return true;
     }
 
-    private static bool TryListItem(string line, out string content)
+    private static bool TryListItem(
+        string line, out string originalMarker, out int? number,
+        out int indentColumns, out string content)
     {
+        originalMarker = string.Empty;
+        number = null;
         content = line;
-        var index = Indent(line);
-        if (index > 3 || index >= line.Length)
+        indentColumns = 0;
+        int index = 0;
+
+        // Tabs advance to the next four-column stop. The physical source is untouched.
+        while (index < line.Length && line[index] is ' ' or '\t')
+        {
+            indentColumns += line[index] == '\t' ? 4 - indentColumns % 4 : 1;
+            if (indentColumns > 256)
+                return false;
+            index++;
+        }
+        if (index >= line.Length)
             return false;
 
-        var marker = line[index];
-        if (marker is '-' or '*' or '+')
+        int markerStart = index;
+        if (line[index] is '-' or '+' or '*')
             index++;
-        else if (char.IsAsciiDigit(marker))
+        else if (char.IsAsciiDigit(line[index]))
         {
-            var start = index;
-            while (index < line.Length && char.IsAsciiDigit(line[index]) && index - start < 10)
+            int digitStart = index;
+            while (index < line.Length && char.IsAsciiDigit(line[index]) && index - digitStart < 10)
                 index++;
-            if (index - start > 9 || index >= line.Length || line[index] is not ('.' or ')'))
+            int digits = index - digitStart;
+            if (digits is < 1 or > 9 || index >= line.Length ||
+                line[index] is not ('.' or ')') ||
+                !int.TryParse(line[digitStart..index], out int parsed))
                 return false;
+            number = parsed;
             index++;
         }
         else
@@ -165,8 +221,21 @@ public static class MarkdownParser
 
         if (index < line.Length && line[index] is not (' ' or '\t'))
             return false;
+        originalMarker = line[markerStart..index];
 
-        content = line[index..].TrimStart(' ', '\t');
+        while (index < line.Length && line[index] is ' ' or '\t')
+            index++;
+        content = line[index..];
         return true;
+    }
+
+    private static MarkdownListItemNode FreezeListNode(MutableListNode item) =>
+        new(item.Block, item.Children.Select(FreezeListNode).ToList().AsReadOnly());
+
+    private sealed class MutableListNode(MarkdownBlock block, int indentColumns)
+    {
+        public MarkdownBlock Block { get; } = block;
+        public int IndentColumns { get; } = indentColumns;
+        public List<MutableListNode> Children { get; } = [];
     }
 }

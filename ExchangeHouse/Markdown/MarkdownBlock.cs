@@ -20,4 +20,7 @@ public sealed record MarkdownBlock(
 {
     /// <summary>Source-offset-aware inline tokens. Empty for blank lines and fenced code.</summary>
     public IReadOnlyList<MarkdownInlineNode> Inlines { get; init; } = [];
+
+    /// <summary>Source-aware list marker, including nesting depth; null for non-list lines.</summary>
+    public MarkdownListMarker? ListMarker { get; init; }
 }

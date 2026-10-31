@@ -17,3 +17,7 @@ Keep the core UI-independent and side-effect free. Expand first with tests for i
 ## 2026-10-29 — inline token integration
 
 Recognized ordinary paragraph, heading and list-item lines now expose `MarkdownBlock.Inlines` with absolute source offsets. Fenced code is excluded. See [Inline Parsing](../Inline-Parsing/en.md). The unchanged-document writer still preserves the original Markdown exactly; editing and full CommonMark support remain future work.
+
+## 2026-10-31 — list hierarchy
+
+The flat line scanner now additionally exposes a source-preserving list item marker and document-level `ListRoots` hierarchy for contiguous nested/numbered list lines. Read the limitations in [Nested Lists](../Nested-Lists/en.md); the writer still reconstructs original content without editing or renumbering.

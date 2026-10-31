@@ -73,6 +73,86 @@ public sealed class MarkdownParserTests
         Assert.Equal(MarkdownBlockKind.Paragraph, blocks[3].Kind);
     }
 
+
+    [Fact]
+    public void Nested_and_mixed_lists_expose_depth_marker_and_parent_child_hierarchy()
+    {
+        const string source = "- parent\r\n  7) step\n    * **nested**\n  8) next\n- end";
+        var document = MarkdownParser.Parse(source);
+        Assert.Equal(source, MarkdownWriter.Write(document));
+        Assert.Equal(5, document.Blocks.Count);
+        Assert.Equal(new[] { 0, 1, 2, 1, 0 },
+            document.Blocks.Select(b => b.ListMarker!.Depth));
+        Assert.Equal(new[] { "-", "7)", "*", "8)", "-" },
+            document.Blocks.Select(b => b.ListMarker!.OriginalMarker));
+        Assert.Equal(7, document.Blocks[1].ListMarker!.Number);
+        Assert.Equal(')', document.Blocks[1].ListMarker!.Delimiter);
+        Assert.Equal(8, document.Blocks[3].ListMarker!.Number);
+        Assert.Equal(2, document.ListRoots.Count);
+        Assert.Equal(2, document.ListRoots[0].Children.Count);
+        Assert.Single(document.ListRoots[0].Children[0].Children);
+        Assert.Equal("nested", Assert.Single(document.Blocks[2].Inlines,
+            n => n.Kind == MarkdownInlineKind.Strong).Text);
+        foreach (var block in document.Blocks)
+        {
+            var marker = block.ListMarker!;
+            Assert.Equal(block.Text, source[marker.ContentStart..(block.Start + block.Length)]
+                .TrimEnd('\r', '\n'));
+        }
+    }
+
+    [Fact]
+    public void Tabs_are_measured_as_columns_but_raw_source_spans_are_unchanged()
+    {
+        const string source = "1. first\r\n\t- child\r\n\t\t2. grandchild\r\n2. second";
+        var document = MarkdownParser.Parse(source);
+        Assert.Equal(new[] { 0, 1, 2, 0 },
+            document.Blocks.Select(b => b.ListMarker!.Depth));
+        Assert.Equal(new[] { 0, 4, 8, 0 },
+            document.Blocks.Select(b => b.ListMarker!.IndentColumns));
+        Assert.Equal(source, MarkdownWriter.Write(document));
+    }
+
+    [Fact]
+    public void Non_list_lines_and_fences_break_the_previous_list_hierarchy()
+    {
+        const string source = "- first\n  - child\n\n  - separate\nplain\n  - another\n\`\`\`\n  - protected\n\`\`\`\n- final";
+        var doc = MarkdownParser.Parse(source);
+        Assert.Equal(3, doc.ListRoots.Count);
+        Assert.Single(doc.ListRoots[0].Children);
+        Assert.Equal(MarkdownBlockKind.ListItem, doc.Blocks[3].Kind);
+        Assert.Equal(0, doc.Blocks[3].ListMarker!.Depth);
+        Assert.Equal(MarkdownBlockKind.CodeLine, doc.Blocks[7].Kind);
+        Assert.Null(doc.Blocks[7].ListMarker);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Theory]
+    [InlineData("0000000001. too many digits")]
+    [InlineData("-not a marker")]
+    [InlineData("1.not a marker")]
+    [InlineData("    - not a root list item")]
+    public void Unsupported_or_indented_root_markers_remain_plain_text(string input)
+    {
+        var document = MarkdownParser.Parse(input);
+        Assert.Equal(MarkdownBlockKind.Paragraph, Assert.Single(document.Blocks).Kind);
+        Assert.Empty(document.ListRoots);
+        Assert.Equal(input, MarkdownWriter.Write(document));
+    }
+
+    [Fact]
+    public void Inline_nodes_keep_absolute_offsets_after_indented_list_marker()
+    {
+        const string markdown = "- parent\n    12. [Manual](../Docs/en.md) and \`code\`";
+        var doc = MarkdownParser.Parse(markdown);
+        var nested = doc.Blocks[1];
+        Assert.Equal("12.", nested.ListMarker!.OriginalMarker);
+        Assert.Equal(1, nested.ListMarker.Depth);
+        Assert.Equal("[Manual](../Docs/en.md) and \`code\`", nested.Text);
+        foreach (var node in nested.Inlines)
+            Assert.Equal(node.RawText, markdown.Substring(node.Start, node.Length));
+    }
+
     [Fact]
     public void Null_arguments_fail_explicitly()
     {
