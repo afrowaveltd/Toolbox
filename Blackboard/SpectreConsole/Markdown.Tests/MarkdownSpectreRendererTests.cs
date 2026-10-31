@@ -366,6 +366,42 @@ public sealed class MarkdownSpectreRendererTests
         }
     }
 
+
+    [Fact]
+    public void Nested_quoted_lists_render_quote_levels_and_original_ordered_markers()
+    {
+        const string source = "> - Parent\n>   12) **Child**\n>     * Detail\n>   13) Next\n>> - Other quote level\n- Outside";
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, source, new MarkdownSpectreTheme
+        {
+            QuotePrefix = "| ", ListIndent = "....", ListBullet = "+"
+        });
+        Assert.Contains("| + Parent", console.Output);
+        Assert.Contains("| ....12) Child", console.Output);
+        Assert.Contains("| ........+ Detail", console.Output);
+        Assert.Contains("| ....13) Next", console.Output);
+        Assert.Contains("| | + Other quote level", console.Output);
+        Assert.Contains("+ Outside", console.Output);
+        Assert.DoesNotContain("**Child**", console.Output);
+    }
+
+    [Fact]
+    public void Quoted_lazy_and_explicit_paragraphs_align_under_quoted_item_marker()
+    {
+        const string source = "> 12) First\n>     Explicit **strong**\n> Lazy [guide](../guide.md)\n> 13) Second";
+        var doc = MarkdownParser.Parse(source);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc, new MarkdownSpectreTheme
+        {
+            QuotePrefix = "> ", ShowLinkDestinations = true
+        });
+        Assert.Contains("> 12) First", console.Output);
+        Assert.Contains(">     Explicit strong", console.Output);
+        Assert.Contains(">     Lazy guide (../guide.md)", console.Output);
+        Assert.Contains("> 13) Second", console.Output);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
     [Fact]
     public void Rejects_null_input_and_invalid_heading_levels()
     {

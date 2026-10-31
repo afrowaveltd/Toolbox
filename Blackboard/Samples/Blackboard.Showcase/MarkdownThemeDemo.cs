@@ -31,6 +31,11 @@ public sealed class MarkdownThemeDemo : IBlackboardShowcaseDemo
 
         ### Quotes and source code
         > A quote can contain **emphasis** without injecting terminal markup.
+        > - **Quoted lists** retain their own numbering
+        >   12) First quoted step
+        >     - A nested bullet under the step
+        >   13) Second quoted step
+        >> - A different quote level stays separate
 
         - Source code can live **inside a list**:
           > This is a nested quote.

@@ -88,6 +88,8 @@ public static class MarkdownSpectreRenderer
                     WriteInlineLine(console, block, theme.GetHeadingStyle(block.HeadingLevel), theme);
                     break;
                 case MarkdownBlockKind.ListItem:
+                    if (block.QuoteDepth > 0)
+                        WriteSafe(console, QuoteContainerPrefix(block, theme), theme.QuoteMarker);
                     var marker = block.ListMarker;
                     var depth = Math.Clamp(marker?.Depth ?? 0, 0, 32);
                     var prefix = ListPrefix(marker, theme);
@@ -97,6 +99,8 @@ public static class MarkdownSpectreRenderer
                     WriteNewline(console);
                     break;
                 case MarkdownBlockKind.Paragraph:
+                    if (block.QuoteDepth > 0)
+                        WriteSafe(console, QuoteContainerPrefix(block, theme), theme.QuoteMarker);
                     if (block.ListContinuationMarker is not null)
                         WriteSafe(console, ListContainerIndent(block, theme), theme.Body);
                     WriteInlineLine(console, block, theme.Body, theme);
@@ -109,6 +113,12 @@ public static class MarkdownSpectreRenderer
             highlightSession?.Dispose();
         }
     }
+
+    // Quote prefixes are rendered separately from list indentation so callers
+    // can style nesting markers without changing source-relative list depths.
+    private static string QuoteContainerPrefix(MarkdownBlock block, MarkdownSpectreTheme theme) =>
+        string.Concat(Enumerable.Repeat(theme.QuotePrefix,
+            Math.Clamp(block.QuoteDepth, 0, 32)));
 
     private static string ListContainerIndent(MarkdownBlock block, MarkdownSpectreTheme theme)
     {

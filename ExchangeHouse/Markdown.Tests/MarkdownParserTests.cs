@@ -497,6 +497,84 @@ public sealed class MarkdownParserTests
         Assert.Equal(source, MarkdownWriter.Write(doc));
     }
 
+
+    [Fact]
+    public void Quoted_nested_lists_get_independent_hierarchy_and_keep_exact_offsets()
+    {
+        const string source = "> - **First** [guide](../docs/en.md)\r\n>   12) Child\r\n>     * Grandchild\r\n>   13) Next\r\n> - Second\r\n";
+        var doc = MarkdownParser.Parse(source);
+        Assert.Empty(doc.ListRoots);
+        Assert.Equal(2, doc.QuoteListRoots.Count);
+        Assert.Equal(2, doc.QuoteListRoots[0].Children.Count);
+        Assert.Single(doc.QuoteListRoots[0].Children[0].Children);
+        Assert.Equal(new[] { 0, 1, 2, 1, 0 },
+            doc.Blocks.Select(b => b.ListMarker!.Depth));
+        Assert.All(doc.Blocks, b => Assert.Equal(1, b.QuoteDepth));
+        Assert.Equal(12, doc.Blocks[1].ListMarker!.Number);
+        var link = Assert.Single(doc.Blocks[0].Inlines, n => n.Kind == MarkdownInlineKind.Link);
+        Assert.Equal("../docs/en.md", link.Destination);
+        Assert.Equal(link.RawText, source.Substring(link.Start, link.Length));
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+        Assert.All(doc.Blocks, b => Assert.Equal(b.RawText, source.Substring(b.Start, b.Length)));
+    }
+
+    [Fact]
+    public void Consecutive_quoted_list_paragraphs_keep_the_same_owner()
+    {
+        const string source = "> 7) Entry\n>    Explicit detail\n> Lazy detail\n> 8) Next";
+        var doc = MarkdownParser.Parse(source);
+        var first = doc.QuoteListRoots[0];
+        Assert.Equal("7)", first.Block.ListMarker!.OriginalMarker);
+        Assert.Equal(2, first.ContinuationBlocks.Count);
+        Assert.All(first.ContinuationBlocks, b =>
+        {
+            Assert.Equal(1, b.QuoteDepth);
+            Assert.Equal(first.Block.Start, b.ListContinuationOwnerStart);
+        });
+        Assert.False(first.ContinuationBlocks[0].IsLazyListContinuation);
+        Assert.True(first.ContinuationBlocks[1].IsLazyListContinuation);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Quoted_lists_do_not_join_normal_lists_or_other_quote_levels()
+    {
+        const string source = "- Outside\n> - First\n>> - Inner level\n> - New first level\n- Outside again\n> - New quoted run";
+        var doc = MarkdownParser.Parse(source);
+        Assert.Equal(2, doc.ListRoots.Count);
+        Assert.Equal(4, doc.QuoteListRoots.Count);
+        Assert.All(doc.QuoteListRoots, item => Assert.Empty(item.Children));
+        Assert.Equal(new[] { 0, 1, 2, 1, 0, 1 }, doc.Blocks.Select(b => b.QuoteDepth));
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Quote_text_after_list_boundary_stays_a_quote_not_an_unrelated_list_child()
+    {
+        const string source = "> - Item\n> Still attached\n> # Heading breaks lazy list\n> - New item\n> \n> Outside quote paragraph";
+        var doc = MarkdownParser.Parse(source);
+        Assert.Equal(2, doc.QuoteListRoots.Count);
+        Assert.Single(doc.QuoteListRoots[0].ContinuationBlocks);
+        Assert.Equal(MarkdownBlockKind.BlockQuote, doc.Blocks[2].Kind);
+        Assert.Equal(MarkdownBlockKind.BlockQuote, doc.Blocks[4].Kind);
+        Assert.Equal(MarkdownBlockKind.BlockQuote, doc.Blocks[5].Kind);
+        Assert.Null(doc.Blocks[5].ListContinuationOwnerStart);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Quote_prefixed_code_fence_is_not_misclassified_as_executable_or_plain_list()
+    {
+        const string source = "> - Item\n> ```bash\n> echo \"literal\"\n> ```\n- Outside";
+        var doc = MarkdownParser.Parse(source);
+        Assert.Single(doc.QuoteListRoots);
+        Assert.Single(doc.ListRoots);
+        Assert.Equal(MarkdownBlockKind.BlockQuote, doc.Blocks[1].Kind);
+        Assert.Null(doc.Blocks[1].CodeLanguage);
+        Assert.Null(doc.Blocks[2].ListContinuationOwnerStart);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
     [Fact]
     public void Null_arguments_fail_explicitly()
     {

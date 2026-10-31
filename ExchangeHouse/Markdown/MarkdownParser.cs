@@ -13,6 +13,11 @@ public static class MarkdownParser
         var blocks = new List<MarkdownBlock>();
         var listRoots = new List<MutableListNode>();
         var listStack = new List<MutableListNode>();
+        // Quoted lists have their own hierarchy and never become descendants
+        // of an unrelated list outside the quote container.
+        var quoteListRoots = new List<MutableListNode>();
+        var quoteListStack = new List<MutableListNode>();
+        var previousQuoteDepth = 0;
         var pendingBlankIndices = new List<int>();
         var offset = 0;
         var inCode = false;
@@ -45,6 +50,7 @@ public static class MarkdownParser
             var lazyContinuation = false;
             var codeClosing = false;
             var quoteDepth = 0;
+            var isQuotedListLine = false;
             var currentFenceStart = -1;
             string? currentLanguage = null;
             string? currentInfo = null;
@@ -163,9 +169,64 @@ public static class MarkdownParser
                 currentLanguage = fenceLanguage;
                 currentInfo = fenceInfo;
             }
-            else if (TryQuote(line, out quoteDepth, out content))
+            else if (TryQuote(line, out quoteDepth, out var quotedContent))
             {
-                kind = MarkdownBlockKind.BlockQuote;
+                isQuotedListLine = true;
+                // Quote-prefixed lines form a separate container; only consecutive
+                // physical lines with the same quote depth can share list ownership.
+                listStack.Clear();
+                if (previousQuoteDepth != quoteDepth)
+                    quoteListStack.Clear();
+                previousQuoteDepth = quoteDepth;
+
+                if (TryListItem(quotedContent, out var quoteMarker, out var quoteNumber,
+                        out var quoteIndent, out var quoteItemContent) &&
+                    (quoteIndent <= 3 || (quoteListStack.Count > 0 &&
+                                          quoteIndent >= quoteListStack[0].IndentColumns)))
+                {
+                    while (quoteListStack.Count > 0 &&
+                           quoteListStack[^1].IndentColumns >= quoteIndent)
+                        quoteListStack.RemoveAt(quoteListStack.Count - 1);
+
+                    if (quoteListStack.Count < 32)
+                    {
+                        kind = MarkdownBlockKind.ListItem;
+                        content = quoteItemContent;
+                        marker = new MarkdownListMarker(quoteMarker, quoteNumber.HasValue,
+                            quoteNumber, quoteIndent, quoteListStack.Count,
+                            offset + line.Length - content.Length)
+                        {
+                            ContentIndentColumns = CountColumns(quotedContent,
+                                quotedContent.Length - content.Length)
+                        };
+                    }
+                    else
+                    {
+                        kind = MarkdownBlockKind.BlockQuote;
+                        content = quotedContent;
+                    }
+                }
+                else if (TryContinuation(quotedContent, quoteListStack,
+                             out continuationOwner, out var quoteContentIndex))
+                {
+                    kind = MarkdownBlockKind.Paragraph;
+                    content = quotedContent[quoteContentIndex..];
+                }
+                else if (TryLazyContinuation(quotedContent, quoteListStack,
+                             out continuationOwner))
+                {
+                    kind = MarkdownBlockKind.Paragraph;
+                    content = quotedContent;
+                    lazyContinuation = true;
+                }
+                else
+                {
+                    kind = MarkdownBlockKind.BlockQuote;
+                    content = quotedContent;
+                }
+
+                if (kind == MarkdownBlockKind.BlockQuote)
+                    quoteListStack.Clear();
             }
             else if (TryHeading(line, out level, out content))
             {
@@ -174,6 +235,12 @@ public static class MarkdownParser
             else
             {
                 kind = MarkdownBlockKind.Paragraph;
+            }
+
+            if (!isQuotedListLine)
+            {
+                quoteListStack.Clear();
+                previousQuoteDepth = 0;
             }
 
             if (kind is not (MarkdownBlockKind.ListItem or MarkdownBlockKind.Blank)
@@ -203,11 +270,13 @@ public static class MarkdownParser
             if (marker is not null)
             {
                 var item = new MutableListNode(block, marker.IndentColumns);
-                if (listStack.Count > 0)
-                    listStack[^1].Children.Add(item);
+                var owningStack = isQuotedListLine ? quoteListStack : listStack;
+                var owningRoots = isQuotedListLine ? quoteListRoots : listRoots;
+                if (owningStack.Count > 0)
+                    owningStack[^1].Children.Add(item);
                 else
-                    listRoots.Add(item);
-                listStack.Add(item);
+                    owningRoots.Add(item);
+                owningStack.Add(item);
             }
             else if (continuationOwner is not null)
             {
@@ -233,7 +302,8 @@ public static class MarkdownParser
         }
 
         return new MarkdownDocument(source, blocks.AsReadOnly(),
-            listRoots.Select(FreezeListNode).ToList().AsReadOnly());
+            listRoots.Select(FreezeListNode).ToList().AsReadOnly(),
+            quoteListRoots.Select(FreezeListNode).ToList().AsReadOnly());
     }
 
     private static string StripIndentUpTo(string line, int requiredColumns)
