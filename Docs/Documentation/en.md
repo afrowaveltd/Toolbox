@@ -20,9 +20,9 @@ This is the main documentation entry point for **the entire Toolbox**, not only 
 | **UnderstandMe Configurator** | [README](../../UnderstandMe/Tools/Configurator/README.md) · [Offline help](../../UnderstandMe/Tools/Configurator/Docs/Offline-Help/en.md) |
 | **Blackboard** | [Family overview](../../Blackboard/README.md) · [Architecture](../../Blackboard/Docs/Architecture/en.md) |
 | **FileBrowser** | [README](../../Blackboard/SpectreConsole/FileBrowser/README.md) · [Interactive browser](../../Blackboard/SpectreConsole/FileBrowser/Docs/Interactive-Browser/en.md) |
-| **Blackboard Markdown** | [README](../../Blackboard/SpectreConsole/Markdown/README.md) · [Themes](../../Blackboard/SpectreConsole/Markdown/Docs/Rendering-and-Themes/en.md) · [Nested lists](../../Blackboard/SpectreConsole/Markdown/Docs/Nested-List-Presentation/en.md) |
+| **Blackboard Markdown** | [README](../../Blackboard/SpectreConsole/Markdown/README.md) · [Themes](../../Blackboard/SpectreConsole/Markdown/Docs/Rendering-and-Themes/en.md) · [Nested lists](../../Blackboard/SpectreConsole/Markdown/Docs/Nested-List-Presentation/en.md) · [Loose list display](../../Blackboard/SpectreConsole/Markdown/Docs/Loose-List-Presentation/en.md) |
 | **ExchangeHouse** | [Family overview](../../ExchangeHouse/README.md) · [Conversion roadmap](../../ExchangeHouse/Docs/Converters/en.md) |
-| **ExchangeHouse Markdown** | [README](../../ExchangeHouse/Markdown/README.md) · [Links/images](../../ExchangeHouse/Markdown/Docs/Images-and-Links/en.md) · [Nested lists](../../ExchangeHouse/Markdown/Docs/Nested-Lists/en.md) |
+| **ExchangeHouse Markdown** | [README](../../ExchangeHouse/Markdown/README.md) · [Links/images](../../ExchangeHouse/Markdown/Docs/Images-and-Links/en.md) · [Nested lists](../../ExchangeHouse/Markdown/Docs/Nested-Lists/en.md) · [Loose list paragraphs](../../ExchangeHouse/Markdown/Docs/Loose-List-Paragraphs/en.md) |
 | **Showcase** | [README](../../Blackboard/Samples/Blackboard.Showcase/README.md) · [Theme gallery](../../Blackboard/Samples/Blackboard.Showcase/Docs/Markdown-Themes/en.md) |
 | **SeeMe** | [README](../../SeeMe/README.md) · [Console adapter](../../SeeMe/WhenItFails/Console/README.md) |
 | **Toolroom** | [README](../../Toolroom/README.md) · [Setter](../../Toolroom/WhenItFails/Setter/README.md) |

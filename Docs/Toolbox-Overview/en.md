@@ -8,7 +8,7 @@ Toolbox is a repository of **independently reusable .NET 10 libraries**, support
 - [WhenItFails](../../WhenItFails/README.md): structured and validated error catalogs, runtime error resolution and recovery.
 - [UnderstandMe](../../UnderstandMe/README.md): offline localization core, dictionaryless registration, placeholder validation and JSON dictionary tooling; broader queues/providers/translations are still in design/increments.
 - [Blackboard](../../Blackboard/README.md): TUI components, currently a published preview FileBrowser and an unpublished Spectre.Console Markdown renderer.
-- [ExchangeHouse](../../ExchangeHouse/README.md): UI-independent formats; Markdown scanner, source-preserving writer, inline links/images and nested-list models with explicitly indented paragraph continuations exist; converters do not.
+- [ExchangeHouse](../../ExchangeHouse/README.md): UI-independent formats; Markdown scanner, source-preserving writer, inline links/images and nested-list models with explicitly indented and blank-separated continuation paragraphs exist; converters do not.
 - [SeeMe](../../SeeMe/README.md): console presentation of WhenItFails data.
 - [Toolroom](../../Toolroom/README.md): utility executables, especially [Setter](../../Toolroom/WhenItFails/Setter/README.md).
 
