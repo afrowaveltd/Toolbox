@@ -42,3 +42,7 @@ The actual appearance depends on terminal color and Unicode support; the sample 
 ## 2026-10-31 — nested lists in the sample
 
 The built-in sample now includes a numbered sublist and a nested bullet for testing list indentation and preservation of original numbering with every theme. The rest of the gallery and FileBrowser demos remain unchanged.
+
+## 2026-10-31 — list continuation demo
+
+The same pre-parsed document now includes indented continuation lines under ordered steps and nested list items. Their text is displayed aligned beneath the owner rather than acquiring an extra bullet. See [renderer continuation behavior](../../../../SpectreConsole/Markdown/Docs/List-Continuation-Presentation/en.md).

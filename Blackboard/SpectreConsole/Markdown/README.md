@@ -37,3 +37,7 @@ Images from ExchangeHouse Markdown are represented as readable text (default: [I
 ## Nested lists and original numbering (2026-10-31)
 
 Numbered items now display their original number and `.` / `)` delimiter rather than a generic bullet. Nested items use the ExchangeHouse tree depth. Themes can set `ListIndent` and `PreserveUnorderedMarkers` while retaining their existing `ListBullet`. See [Nested list presentation](Docs/Nested-List-Presentation/en.md).
+
+## Multiline list text (2026-10-31)
+
+The renderer now aligns explicitly indented continuation paragraphs under their owning list item's visible content without repeating the bullet or number. This uses source-aware ExchangeHouse metadata, respects theme indentation and leaves original Markdown untouched. See [Continuation presentation](Docs/List-Continuation-Presentation/en.md).

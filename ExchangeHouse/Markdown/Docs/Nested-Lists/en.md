@@ -26,3 +26,7 @@ Round trips with nested mixed lists, ordered delimiters/starting numbers, tab st
 - Windows: **ExchangeHouse.Markdown.Tests 41/41**, **Blackboard.SpectreConsole.Markdown.Tests 13/13**, **Blackboard.Showcase.Tests 26/26**; FileBrowser 160/160, Configurator 44/44, and targeted localization tests 34/34 passed.
 - Intermediate runs on parser/renderer commits failed at **test compilation** due to literal `\\`` C# escape sequences mistakenly introduced when authoring Markdown code examples. Fixed in commits `e7b858aa` and `415065a4`; the final CI is green. Existing production source was not weakened to make tests pass.
 - Manual real-terminal testing of newly added nested-list visuals in Debian/Windows remains unreported. The current model does not claim CommonMark-compatible loose/multiline lists.
+
+## 2026-10-31 — subsequent continuation extension
+
+This document describes the earlier single-line list baseline. Explicitly indented paragraph continuations are now supported; see [List continuations](../List-Continuations/en.md). Blank-separated loose lists and CommonMark-complete behavior remain unsupported.

@@ -50,22 +50,31 @@ public static class MarkdownSpectreRenderer
                 case MarkdownBlockKind.ListItem:
                     var marker = block.ListMarker;
                     var depth = Math.Clamp(marker?.Depth ?? 0, 0, 32);
-                    var prefix = marker is { IsOrdered: true }
-                        ? marker.OriginalMarker
-                        : theme.PreserveUnorderedMarkers && marker is not null
-                            ? marker.OriginalMarker
-                            : theme.ListBullet;
+                    var prefix = ListPrefix(marker, theme);
                     WriteSafe(console, string.Concat(Enumerable.Repeat(theme.ListIndent, depth)) +
                         prefix + " ", theme.ListMarker);
                     WriteInlines(console, block.Inlines, block.Text, theme.Body, theme);
                     WriteNewline(console);
                     break;
                 case MarkdownBlockKind.Paragraph:
+                    if (block.ListContinuationMarker is { } ownerMarker)
+                    {
+                        // Align under the displayed content, not under the source bullet.
+                        var ownerPrefix = ListPrefix(ownerMarker, theme);
+                        var indentation = string.Concat(Enumerable.Repeat(theme.ListIndent,
+                            Math.Clamp(ownerMarker.Depth, 0, 32)));
+                        WriteSafe(console, indentation + new string(' ', ownerPrefix.Length + 1), theme.Body);
+                    }
                     WriteInlineLine(console, block, theme.Body, theme);
                     break;
             }
         }
     }
+
+    private static string ListPrefix(MarkdownListMarker? marker, MarkdownSpectreTheme theme) =>
+        marker is { IsOrdered: true } ? marker.OriginalMarker :
+        theme.PreserveUnorderedMarkers && marker is not null ? marker.OriginalMarker :
+        theme.ListBullet;
 
     private static void WriteInlineLine(
         IAnsiConsole console, MarkdownBlock block, Style inherited, MarkdownSpectreTheme theme)

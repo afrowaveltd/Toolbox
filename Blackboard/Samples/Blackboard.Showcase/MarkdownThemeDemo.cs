@@ -21,7 +21,9 @@ public sealed class MarkdownThemeDemo : IBlackboardShowcaseDemo
         - **Headings** have six individually configurable styles
           1. Read the document
           2. Try a theme
+             Continue with the same numbered step.
             - Compare a nested bullet with the ordered steps
+              This line belongs to the nested bullet.
         - *Lists*, links, and literal code keep their original meaning
         - Markdown source is parsed once, independent of terminal colors
 

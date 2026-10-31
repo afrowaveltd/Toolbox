@@ -179,6 +179,55 @@ public sealed class MarkdownSpectreRendererTests
         Assert.DoesNotContain("    • literally code", console.Output);
     }
 
+
+    [Fact]
+    public void Indented_continuations_align_with_list_content_without_new_bullets()
+    {
+        const string markdown = "- First\n  Continued **strong** text\n  [Manual](../manual.md)\n- Second";
+        var doc = MarkdownParser.Parse(markdown);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc, new MarkdownSpectreTheme { ShowLinkDestinations = true });
+
+        Assert.Contains("• First", console.Output);
+        Assert.Contains("  Continued strong text", console.Output);
+        Assert.Contains("  Manual (../manual.md)", console.Output);
+        Assert.Contains("• Second", console.Output);
+        Assert.DoesNotContain("• Continued", console.Output);
+        Assert.Equal(markdown, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Ordered_and_nested_continuations_follow_marker_width_and_theme_indent()
+    {
+        const string markdown = "12) Numbered\n    Next line\n    - Child\n      Child detail\n    Parent detail";
+        var doc = MarkdownParser.Parse(markdown);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc, new MarkdownSpectreTheme
+        {
+            ListIndent = "....", ListBullet = "+"
+        });
+
+        Assert.Contains("12) Numbered", console.Output);
+        Assert.Contains("    Next line", console.Output);
+        Assert.Contains("....+ Child", console.Output);
+        Assert.Contains("......Child detail", console.Output);
+        Assert.Contains("    Parent detail", console.Output);
+        Assert.Equal(markdown, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Blank_and_unindented_paragraphs_remain_separate_from_list_content()
+    {
+        const string markdown = "- Item\n  attached\n\nOutside\n  still outside";
+        var doc = MarkdownParser.Parse(markdown);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc);
+        Assert.Contains("  attached", console.Output);
+        Assert.Contains("Outside\n", console.Output);
+        Assert.Contains("still outside", console.Output);
+        Assert.Null(doc.Blocks[4].ListContinuationMarker);
+    }
+
     [Fact]
     public void Rejects_null_input_and_invalid_heading_levels()
     {
