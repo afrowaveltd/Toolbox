@@ -137,3 +137,8 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
   parser/renderer, compiled target frameworks, runtime dependencies or NuGet packages.
 - Existing virtual-console gallery test now checks the full syntax markers
   and indentation. Linux/Windows CI **pending** for this commit.
+
+### Verification — 2026-11-01
+
+- [GitHub Actions #41252295483](https://github.com/afrowaveltd/Toolbox/actions/runs/41252295483) **SUCCESS** on implementation commit `2c316b53330e34424688368607f250479af538a5`: full Linux solution build/tests, Windows UI/Markdown regressions and documentation links passed.
+- Windows suites: Showcase **26/26** (including the expanded classic `Main`/indentation assertion), Markdown parser **71/71**, Markdown renderer **26/26**, TextMate adapter **6/6**. The change is sample-only and needs no NuGet publication or old .NET Core runtime.
