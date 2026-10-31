@@ -68,3 +68,13 @@ The adapter is a **Showcase-only dependency**, not required by the base Markdown
 If native grammar support is unavailable, the gallery retains safe literal code.
 
 [Adapter documentation](../../SpectreConsole/Markdown.TextMate/README.md).
+
+## Classic .NET Core 3.1 code sample (2026-11-01)
+
+The Markdown theme gallery uses a longer, historically typical C# console entry point:
+`using System`, a named namespace, `Program`, `private static void Main(string[] args)`,
+a conditional branch and a `for` loop. Its declared `csharp` fence exercises
+TextMate syntax colors, brace nesting and **source-preserved indentation**.
+This is an embedded demonstration of .NET Core 3.1-era syntax, **not** a
+change to Toolbox's net10.0 target framework. All four gallery themes
+reuse the same parsed Markdown; Monochrome remains uncolored.

@@ -45,9 +45,36 @@ public sealed class MarkdownThemeDemo : IBlackboardShowcaseDemo
           This paragraph belongs to the same item.
         The next line continues lazily without indentation.
 
+        ### .NET Core 3.1 console application (classic Main entry point)
+        The older project template makes C# namespaces, classes and nested code indentation visible.
+
         ```csharp
-        var document = MarkdownParser.Parse(markdown);
-        MarkdownSpectreRenderer.Render(console, document, theme);
+        using System;
+
+        namespace HelloCore31
+        {
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    Console.WriteLine("Hello from .NET Core 3.1!");
+
+                    if (args.Length > 0)
+                    {
+                        Console.WriteLine($"First argument: {args[0]}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("No arguments were supplied.");
+                    }
+
+                    for (int i = 0; i < 3; i++)
+                    {
+                        Console.WriteLine($"Step {i + 1}");
+                    }
+                }
+            }
+        }
         ```
         """);
 

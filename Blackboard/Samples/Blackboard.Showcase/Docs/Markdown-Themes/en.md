@@ -50,3 +50,15 @@ The same pre-parsed document now includes indented continuation lines under orde
 ## 2026-10-31 — loose-list paragraph preview
 
 The embedded Markdown gallery includes an item with two paragraphs separated by a blank line. In every theme, the second paragraph remains aligned beneath the same item's text without an extra bullet. This is still a controlled subset of Markdown; see [renderer notes](../../../../SpectreConsole/Markdown/Docs/Loose-List-Presentation/en.md).
+
+## 2026-11-01 — larger legacy console application code fence
+
+The top-level `csharp` example is now a classic .NET Core 3.1-era
+`Program.Main(string[] args)` console application with a named namespace,
+nested braces, an `if/else` and a `for` loop. It deliberately illustrates
+C# syntax highlighting and indentation over several nesting levels; no
+.NET Core 3.1 runtime or SDK is used or required.
+
+The gallery still parses a single immutable source document and renders
+it with Classic, Ocean, Forest and Monochrome themes. Tests check that the
+rendered method signature and indentation are preserved. Code is never executed.

@@ -58,3 +58,13 @@ Next: confirm CI and add regression cases for any Windows/SSH differences that a
 - [GitHub Actions #41249127101](https://github.com/afrowaveltd/Toolbox/actions/runs/41249127101) **SUCCESS** for source/docs commit `df4da1b285d280cbe1d17dee0fded388f178d0b8`. Linux full solution built/tested; Windows ExchangeHouse Markdown **55/55**, Blackboard Markdown **19/19**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localized tests **34/34**.
 - Blank-separated explicitly indented list paragraphs now have source-preserving ownership and terminal alignment. Interim custom-indent test assertion was fixed in `2b34cb46`, with no production rendering change.
 - Markdown docs link job passed. No public package release, full CommonMark claim or manual Debian visual acceptance made.
+
+## 2026-11-01 — expanded Markdown C# code sample test
+
+- The existing default-theme virtual-terminal test now asserts the
+  `Program.Main` signature, named namespace, nested conditional/loop
+  indentation, and preserved C# interpolation content.
+- The embedded sample demonstrates C# 8 / .NET Core 3.1-era source code,
+  without installing an obsolete runtime or executing the sample.
+- **CI pending** at the implementation commit; previous verified Showcase
+  baseline was 26/26.

@@ -126,3 +126,14 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 - Windows results: ExchangeHouse Markdown **71/71**, Blackboard Markdown **26/26**, optional TextMate **6/6**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
 - The subsequent documentation commit introduced one incorrect cross-family relative link, fixed in `1e89cf7532c03737a0599d51c26b54cd57bb345a`. Link verification on the fix run passed; final complete CI for the documentation state is tracked independently.
 - No new NuGet publication, full CommonMark conformance, or real-terminal acceptance is claimed. This feature intentionally does not tokenize fenced code inside explicitly quote-prefixed containers.
+
+## 2026-11-01 — expanded classic Main code example
+
+- Replaced the tiny top-level `csharp` fence with a .NET Core 3.1-style
+  console template using `using System;`, `namespace HelloCore31`,
+  `Program.Main(string[] args)`, `if/else` and `for` with visible nested indentation.
+- Preserves the preceding Bash/list, quoted-list and Markdown examples.
+  It changes only the Showcase demonstration, **not** the production
+  parser/renderer, compiled target frameworks, runtime dependencies or NuGet packages.
+- Existing virtual-console gallery test now checks the full syntax markers
+  and indentation. Linux/Windows CI **pending** for this commit.
