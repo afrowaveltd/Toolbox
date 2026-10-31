@@ -19,3 +19,7 @@ dotnet run --project Toolroom/WhenItFails/Setter -- --help
 If the Setter's CLI expects different arguments, see the [Setter README](WhenItFails/Setter/README.md) for the authoritative command syntax. For PowerShell release tools, follow their respective READMEs.
 
 See [tool ownership and documentation](Docs/Utilities/en.md) and [implementation status](IMPLEMENTATION_STATUS.md).
+
+## Documentation maintenance
+
+[Markdown link validator](Documentation/README.md) scans repository-local documentation links without bringing in a package dependency. It is also run by GitHub Actions.

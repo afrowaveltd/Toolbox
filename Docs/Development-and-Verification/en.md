@@ -40,3 +40,7 @@ Check [GitHub Actions](https://github.com/afrowaveltd/Toolbox/actions) for real 
 Start with the [root status](../../IMPLEMENTATION_STATUS.md), then the owning project's status, README and topic docs; inspect source/tests and latest CI before implementing the next step. If a project has no status file, add one based on actual source inspection and record what remains unverified.
 
 [Architecture](../Architecture/en.md) · [Release status](../Release-Status/en.md).
+
+## Repository-wide local Markdown link checks
+
+Run `python3 Toolroom/Documentation/Check-Markdown-Links.py` for a quick relative file-path audit across the repository's Markdown docs. It checks file targets rather than external sites or heading anchors. A dedicated CI job runs this checker on push/PR. See [usage](../../Toolroom/Documentation/Docs/Usage/en.md).

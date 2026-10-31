@@ -49,3 +49,11 @@ jobs:
       run: dotnet test ExchangeHouse/Markdown.Tests/Afrowave.Toolbox.ExchangeHouse.Markdown.Tests.csproj -c Release
     - name: Blackboard Markdown tests
       run: dotnet test Blackboard/SpectreConsole/Markdown.Tests/Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Tests.csproj -c Release
+
+  documentation-links:
+    name: Markdown local documentation links
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Check local Markdown links
+      run: python3 Toolroom/Documentation/Check-Markdown-Links.py
