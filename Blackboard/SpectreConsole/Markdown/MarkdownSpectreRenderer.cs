@@ -27,9 +27,13 @@ public static class MarkdownSpectreRenderer
         ArgumentNullException.ThrowIfNull(theme.ListBullet);
         ArgumentNullException.ThrowIfNull(theme.ListIndent);
         ArgumentNullException.ThrowIfNull(theme.CodeIndent);
+        ArgumentNullException.ThrowIfNull(theme.QuotePrefix);
         ArgumentNullException.ThrowIfNull(theme.ImagePrefix);
         ArgumentNullException.ThrowIfNull(theme.ImageSuffix);
 
+        IMarkdownHighlightSession? highlightSession = null;
+        try
+        {
         foreach (var block in document.Blocks)
         {
             switch (block.Kind)
@@ -38,11 +42,47 @@ public static class MarkdownSpectreRenderer
                     WriteNewline(console);
                     break;
                 case MarkdownBlockKind.CodeFence:
+                    if (block.IsClosingCodeFence)
+                    {
+                        highlightSession?.Dispose();
+                        highlightSession = null;
+                    }
+                    else
+                    {
+                        highlightSession?.Dispose();
+                        highlightSession = null;
+                        if (block.CodeLanguage is { Length: > 0 } language &&
+                            theme.SyntaxHighlighter is not null)
+                        {
+                            try
+                            {
+                                highlightSession = theme.SyntaxHighlighter.CreateSession(language);
+                            }
+                            catch (Exception ex) when (ex is not OutOfMemoryException)
+                            {
+                                // An optional highlighting provider must not make help unreadable.
+                            }
+                        }
+                    }
                     if (theme.ShowCodeFenceDelimiters)
-                        WriteLine(console, block.RawText.TrimEnd('\r', '\n'), theme.Code);
+                        WriteLine(console, ListContainerIndent(block, theme) +
+                            (block.ListContinuationMarker is null
+                                ? block.RawText.TrimEnd('\r', '\n') : block.Text), theme.Code);
+                    else if (!block.IsClosingCodeFence && theme.ShowCodeLanguage &&
+                             block.CodeLanguage is { Length: > 0 } codeLanguage)
+                        WriteLine(console, ListContainerIndent(block, theme) +
+                            theme.CodeIndent + "[" + codeLanguage + "]", theme.CodeLanguageStyle);
                     break;
                 case MarkdownBlockKind.CodeLine:
-                    WriteLine(console, theme.CodeIndent + block.Text, theme.Code);
+                    WriteSafe(console, ListContainerIndent(block, theme) + theme.CodeIndent, theme.Code);
+                    WriteHighlightedCode(console, block.Text, block.CodeLanguage, theme, ref highlightSession);
+                    WriteNewline(console);
+                    break;
+                case MarkdownBlockKind.BlockQuote:
+                    WriteSafe(console, ListContainerIndent(block, theme) +
+                        string.Concat(Enumerable.Repeat(theme.QuotePrefix,
+                            Math.Clamp(block.QuoteDepth, 0, 32))), theme.QuoteMarker);
+                    WriteInlineLine(console, block, theme.Quote, theme);
                     break;
                 case MarkdownBlockKind.Heading:
                     WriteInlineLine(console, block, theme.GetHeadingStyle(block.HeadingLevel), theme);
@@ -57,18 +97,82 @@ public static class MarkdownSpectreRenderer
                     WriteNewline(console);
                     break;
                 case MarkdownBlockKind.Paragraph:
-                    if (block.ListContinuationMarker is { } ownerMarker)
-                    {
-                        // Align under the displayed content, not under the source bullet.
-                        var ownerPrefix = ListPrefix(ownerMarker, theme);
-                        var indentation = string.Concat(Enumerable.Repeat(theme.ListIndent,
-                            Math.Clamp(ownerMarker.Depth, 0, 32)));
-                        WriteSafe(console, indentation + new string(' ', ownerPrefix.Length + 1), theme.Body);
-                    }
+                    if (block.ListContinuationMarker is not null)
+                        WriteSafe(console, ListContainerIndent(block, theme), theme.Body);
                     WriteInlineLine(console, block, theme.Body, theme);
                     break;
             }
         }
+        }
+        finally
+        {
+            highlightSession?.Dispose();
+        }
+    }
+
+    private static string ListContainerIndent(MarkdownBlock block, MarkdownSpectreTheme theme)
+    {
+        if (block.ListContinuationMarker is not { } marker)
+            return string.Empty;
+        var markerPrefix = ListPrefix(marker, theme);
+        var level = string.Concat(Enumerable.Repeat(theme.ListIndent,
+            Math.Clamp(marker.Depth, 0, 32)));
+        return level + new string(' ', markerPrefix.Length + 1);
+    }
+
+    private static void WriteHighlightedCode(
+        IAnsiConsole console, string line, string? language, MarkdownSpectreTheme theme,
+        ref IMarkdownHighlightSession? session)
+    {
+        if (session is null || language is null || line.Length > 16384)
+        {
+            WriteSafe(console, line, theme.Code);
+            return;
+        }
+
+        IReadOnlyList<MarkdownHighlightSpan>? spans;
+        try
+        {
+            spans = session.HighlightLine(line);
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            session.Dispose();
+            session = null;
+            WriteSafe(console, line, theme.Code);
+            return;
+        }
+
+        if (spans is null || spans.Count > line.Length ||
+            !AreSafeSpans(spans, line.Length))
+        {
+            WriteSafe(console, line, theme.Code);
+            return;
+        }
+
+        var previous = 0;
+        foreach (var span in spans)
+        {
+            if (span.Start > previous)
+                WriteSafe(console, line[previous..span.Start], theme.Code);
+            WriteSafe(console, line.Substring(span.Start, span.Length), span.Style);
+            previous = span.Start + span.Length;
+        }
+        if (previous < line.Length)
+            WriteSafe(console, line[previous..], theme.Code);
+    }
+
+    private static bool AreSafeSpans(IReadOnlyList<MarkdownHighlightSpan> spans, int length)
+    {
+        var previous = 0;
+        foreach (var span in spans)
+        {
+            if (span.Style is null || span.Length <= 0 || span.Start < previous ||
+                span.Start > length || span.Length > length - span.Start)
+                return false;
+            previous = span.Start + span.Length;
+        }
+        return true;
     }
 
     private static string ListPrefix(MarkdownListMarker? marker, MarkdownSpectreTheme theme) =>

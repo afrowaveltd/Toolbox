@@ -28,6 +28,13 @@ public sealed class MarkdownThemeDemo : IBlackboardShowcaseDemo
         - Markdown source is parsed once, independent of terminal colors
           The source is never modified.
 
+        ### Quotes and source code
+        > A quote can contain **emphasis** without injecting terminal markup.
+
+        ```csharp
+        var output = "Hello from Markdown!";
+        ```
+
           A second paragraph stays inside the same list item.
         It can be followed by a lazy line without repeating indentation.
 

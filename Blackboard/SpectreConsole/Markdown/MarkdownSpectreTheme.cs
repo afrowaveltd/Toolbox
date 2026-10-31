@@ -23,6 +23,18 @@ public sealed class MarkdownSpectreTheme
     public Style Strong { get; init; } = new(decoration: Decoration.Bold);
     /// <summary>Emphasized inline text.</summary>
     public Style Emphasis { get; init; } = new(decoration: Decoration.Italic);
+    /// <summary>Source code is never executed; this optional provider only decorates it.</summary>
+    public IMarkdownSyntaxHighlighter? SyntaxHighlighter { get; init; }
+    /// <summary>Show the declared language above a fence if delimiters are hidden.</summary>
+    public bool ShowCodeLanguage { get; init; } = true;
+    /// <summary>Fence language-label appearance.</summary>
+    public Style CodeLanguageStyle { get; init; } = new(foreground: Color.Grey);
+    /// <summary>Blockquote text appearance.</summary>
+    public Style Quote { get; init; } = new(foreground: Color.Grey);
+    /// <summary>Visible prefix for each blockquote nesting level.</summary>
+    public string QuotePrefix { get; init; } = "│ ";
+    /// <summary>Blockquote prefix appearance.</summary>
+    public Style QuoteMarker { get; init; } = new(foreground: Color.Grey);
     /// <summary>Fenced and inline code.</summary>
     public Style Code { get; init; } = new(foreground: Color.Yellow);
     /// <summary>Link label.</summary>

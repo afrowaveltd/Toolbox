@@ -297,6 +297,75 @@ public sealed class MarkdownSpectreRendererTests
         Assert.Equal(source, MarkdownWriter.Write(doc));
     }
 
+
+    [Fact]
+    public void Indented_code_and_quotes_render_inside_ordered_list_without_source_markup()
+    {
+        const string markdown = "- Parent\n  12) Code\n      \u0060\u0060\u0060bash\n      echo '[red]literal[/]'\n      \u0060\u0060\u0060\n      > **Important**\n- End";
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, markdown, new MarkdownSpectreTheme
+        {
+            ListIndent = "....", ListBullet = "+", ShowCodeLanguage = true
+        });
+        Assert.Contains("....12) Code", console.Output);
+        Assert.Contains("....    [bash]", console.Output);
+        Assert.Contains("....        echo '[red]literal[/]'", console.Output);
+        Assert.Contains("....    │ Important", console.Output);
+        Assert.DoesNotContain("**Important**", console.Output);
+        Assert.Contains("+ End", console.Output);
+    }
+
+    [Fact]
+    public void Quote_levels_are_rendered_as_safe_literal_text()
+    {
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, "> one\n>> **two**\n", new MarkdownSpectreTheme
+        {
+            QuotePrefix = "> "
+        });
+        Assert.Contains("> one", console.Output);
+        Assert.Contains("> > two", console.Output);
+        Assert.DoesNotContain("**two**", console.Output);
+    }
+
+    [Fact]
+    public void External_highlighter_sessions_are_scoped_to_each_fence_and_source_is_unchanged()
+    {
+        const string markdown = "\u0060\u0060\u0060csharp\npublic class Hello {}\n\u0060\u0060\u0060\n\u0060\u0060\u0060unknown\nliteral\n\u0060\u0060\u0060";
+        var backend = new TestHighlighter();
+        var parsed = MarkdownParser.Parse(markdown);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, parsed, new MarkdownSpectreTheme
+        {
+            SyntaxHighlighter = backend
+        });
+        Assert.Contains("public class Hello {}", console.Output);
+        Assert.Contains("literal", console.Output);
+        Assert.Equal(new[] { "csharp", "unknown" }, backend.Requests);
+        Assert.Equal(1, backend.Disposals);
+        Assert.Equal(markdown, MarkdownWriter.Write(parsed));
+    }
+
+    private sealed class TestHighlighter : IMarkdownSyntaxHighlighter
+    {
+        public List<string> Requests { get; } = [];
+        public int Disposals { get; private set; }
+        public IMarkdownHighlightSession? CreateSession(string language)
+        {
+            Requests.Add(language);
+            return language == "csharp" ? new Session(this) : null;
+        }
+
+        private sealed class Session(TestHighlighter owner) : IMarkdownHighlightSession
+        {
+            public IReadOnlyList<MarkdownHighlightSpan> HighlightLine(string line) =>
+                line.StartsWith("public", StringComparison.Ordinal)
+                    ? [new MarkdownHighlightSpan(0, 6, new Style(foreground: Color.Green))]
+                    : [];
+            public void Dispose() => owner.Disposals++;
+        }
+    }
+
     [Fact]
     public void Rejects_null_input_and_invalid_heading_levels()
     {
