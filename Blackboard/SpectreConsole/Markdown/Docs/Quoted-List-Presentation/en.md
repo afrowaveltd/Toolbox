@@ -14,5 +14,5 @@ The source parser stays UI-independent; the renderer does not rewrite Markdown,
 load remote content or execute code. Full CommonMark nesting and code fences
 inside explicitly quote-prefixed containers remain future increments.
 
-[Quoted-list parser design](../../../../ExchangeHouse/Markdown/Docs/Quoted-Lists/en.md) ·
+[Quoted-list parser design](../../../../../ExchangeHouse/Markdown/Docs/Quoted-Lists/en.md) ·
 [Renderer status](../../IMPLEMENTATION_STATUS.md).
