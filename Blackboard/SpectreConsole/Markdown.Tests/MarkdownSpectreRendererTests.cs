@@ -210,7 +210,7 @@ public sealed class MarkdownSpectreRendererTests
         Assert.Contains("12) Numbered", console.Output);
         Assert.Contains("    Next line", console.Output);
         Assert.Contains("....+ Child", console.Output);
-        Assert.Contains("......Child detail", console.Output);
+        Assert.Contains("....  Child detail", console.Output);
         Assert.Contains("    Parent detail", console.Output);
         Assert.Equal(markdown, MarkdownWriter.Write(doc));
     }
