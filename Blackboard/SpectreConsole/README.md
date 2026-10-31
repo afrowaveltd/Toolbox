@@ -1,15 +1,14 @@
-# Blackboard — Spectre.Console adapter
+# Blackboard — Spectre.Console components
 
-**Status:** technology-oriented folder only; no Spectre.Console dependency or runtime package has yet been added.
+This folder groups **implemented, independent UI component projects**, not a single `Blackboard.SpectreConsole` NuGet package. Each consumer references only the component it needs.
 
-This folder groups **independent component projects** rendered through Spectre.Console; it is not itself an aggregate project or required NuGet package. For example, the future `FileBrowser` project may depend on Spectre.Console while an application can install **only that one component**. It should not include the overall UnderstandMe settings application or expose translation-provider internals.
+| Component | Status | Documentation |
+|---|---|---|
+| FileBrowser | Published `0.1.0-preview.1` on NuGet | [README](FileBrowser/README.md) |
+| Markdown | Implemented source package `0.1.0-preview.1`, not published | [README](Markdown/README.md) |
 
-Initial planned component: [FileBrowser](FileBrowser/README.md).
+FileBrowser is a file/folder picker with wildcard/regex filters, tree/search and testable navigation. Markdown consumes a UI-independent ExchangeHouse document model and renders it using Spectre.Console themes, with text alternatives for images and preservation of original ordered list markers.
 
-Other candidates, as actual reuse appears: separately packageable editable field groups, selection menus, status/footer shortcuts, validation-error navigation, and confirmation dialogs. Do not create a project or dependency solely to fill a category. Favor shared display conventions and independently injectable localized labels.
+Both are demonstrated in [Blackboard.Showcase](../Samples/Blackboard.Showcase/README.md). The Markdown component also powers [UnderstandMe Configurator Help](../../UnderstandMe/Tools/Configurator/README.md). Neither library depends on its applications.
 
-See [Blackboard's architecture](../Docs/Architecture/en.md).
-
-## Markdown display
-
-The independent [SpectreConsole Markdown](Markdown/README.md) adapter renders ExchangeHouse Markdown documents with configurable Spectre styles. No aggregate Blackboard package or dependency on domain-specific applications is introduced. Initial implementation 2026-10-29; not yet published.
+Other widgets (editable forms, status bars and reusable confirmation dialogs) are future possibilities, not existing projects. See [Blackboard architecture](../Docs/Architecture/en.md) and [component packaging](../Docs/Independent-Packaging/en.md).

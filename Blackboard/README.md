@@ -1,8 +1,8 @@
 # Blackboard — reusable terminal UI components
 
-**Status (2026-10-24):** the independent FileBrowser .NET 10 project now contains a first interactive Spectre.Console picker, reusable filename filters, local navigation, lazy tree and bounded recursive search; a runnable demo exists under `Samples/FileBrowser.Sample`. No stable NuGet has been published and terminal smoke testing remains pending.
+**Current status (2026-10-31):** independent .NET 10 FileBrowser is **published to NuGet.org as `0.1.0-preview.1`** and has Windows/Debian manual smoke coverage (SSH/tmux remains open). A second independent, **unpublished** Markdown renderer is implemented, tested on Linux/Windows CI, used by Blackboard.Showcase and UnderstandMe Configurator, and supports themes, links/images and nested lists.
 
-Blackboard is the proposed home of reusable **terminal user interface (TUI)** components for Afrowave.Toolbox. The name complements **Whiteboard**, the proposed future graphical UI (GUI) family. **These names describe project families, not umbrella NuGet packages.** The pairing is a naming/design direction, not a claim that either runtime toolkit has shipped.
+Blackboard is the implemented home of reusable **terminal user interface (TUI)** components for Afrowave.Toolbox. The name complements **Whiteboard**, the proposed future graphical UI (GUI) family. **These names describe project families, not umbrella NuGet packages.** The pairing is a naming/design direction, not a claim that either runtime toolkit has shipped.
 
 ## Goals
 
@@ -18,15 +18,16 @@ Blackboard is the proposed home of reusable **terminal user interface (TUI)** co
 - [Architecture](Docs/Architecture/en.md) — responsibilities, dependency boundaries and naming.
 - [Independent Packaging](Docs/Independent-Packaging/en.md) — one widget per NuGet, with separate examples and domain applications.
 - [SpectreConsole](SpectreConsole/README.md) — initial adapter family.
-- [FileBrowser](SpectreConsole/FileBrowser/README.md) — future **independently packaged** file/folder picker, informed by the author's earlier `Lutonet/SpectreConsoleFileBrowser` project.
-- `Samples/` (future) — one or more demonstration applications showing how Blackboard components are used, not production utilities.
+- [FileBrowser](SpectreConsole/FileBrowser/README.md) — implemented/published independent file and folder picker.
+- [Markdown](SpectreConsole/Markdown/README.md) — implemented, unpublished independent terminal Markdown renderer consuming ExchangeHouse.
+- [Samples](Samples/README.md) — implemented Showcase and focused FileBrowser sample executables, not production utilities.
 - [Implementation status](IMPLEMENTATION_STATUS.md) — verified milestones and outstanding tasks.
 
 ## Relationship to Toolbox
 
 `Blackboard` provides **widgets and terminal interaction**. `SeeMe` already has console presentation components; `Toolroom` contains some existing complete utilities (for example the WhenItFails Setter). Do not move established projects just for naming consistency.
 
-**Production/helper applications belong to their domain projects** rather than Blackboard/Whiteboard. The UnderstandMe Configurator, for instance, is owned by UnderstandMe (proposed location `UnderstandMe/Tools/Configurator`; exact location can be settled when the executable is created). Blackboard itself may later include one or more `Samples` apps, whose only responsibility is demonstrating reusable controls.
+**Production/helper applications belong to their domain projects** rather than Blackboard/Whiteboard. The UnderstandMe Configurator is implemented at [UnderstandMe/Tools/Configurator](../UnderstandMe/Tools/Configurator/README.md), and consumes independent Blackboard controls. Blackboard itself may later include one or more `Samples` apps, whose only responsibility is demonstrating reusable controls.
 
 ## Framework and localization policies
 
@@ -34,7 +35,7 @@ Start with .NET 10 and a modern tested stable Spectre.Console version **in each 
 
 Every visible string must have a stable English default and optional caller override; no mandatory dependency on `UnderstandMe` is allowed to render help or recover from a broken translation service. Public C# APIs receive XML documentation and non-obvious logic receives short English comments.
 
-The standalone `FileBrowser` library, xUnit project and executable `Samples/FileBrowser.Sample` are in `Toolbox.sln`. The Spectre.Console picker offers existing-file/folder selection, directory browsing, filename wildcard/regex filters, lazy tree navigation and multi-match recursive searching. **No NuGet package has been published yet**; not every terminal/SSH environment has been smoke-tested.
+The standalone `FileBrowser` library, xUnit project and executable `Samples/FileBrowser.Sample` are in `Toolbox.sln`. The Spectre.Console picker offers existing-file/folder selection, directory browsing, filename wildcard/regex filters, lazy tree navigation and multi-match recursive searching. **FileBrowser 0.1.0-preview.1 is published on NuGet**; Markdown is implemented in source but not yet published. SSH/tmux remains unverified.
 
 ## FileBrowser presentation helpers
 
@@ -50,4 +51,4 @@ The independent FileBrowser project contains a read-only local source, storage-n
 
 ## Spectre.Console Markdown renderer (2026-10-29)
 
-An independent [Markdown renderer](SpectreConsole/Markdown/README.md) now consumes the source-preserving ExchangeHouse parser and offers configurable terminal themes. It is not yet published to NuGet or integrated with Configurator; see its dedicated tests and implementation status.
+The independent [Markdown renderer](SpectreConsole/Markdown/README.md) consumes the ExchangeHouse source model and offers configurable themes, link/image alternatives and nested ordered/unordered lists. It is **integrated into UnderstandMe Configurator Help and Blackboard.Showcase**, tested on Linux and Windows CI, and not yet published to NuGet.

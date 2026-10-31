@@ -1,11 +1,11 @@
 # ExchangeHouse architecture and dependency boundaries
 
-**Status: first Markdown block-scanning foundation; extended formats/converters are planned.**
+**Current status (2026-10-31):** Markdown parsing, unchanged writing, links/images and nested-list metadata are implemented; other format parsers and cross-format converters remain planned.
 
 ## Ownership
 
 - `ExchangeHouse.Markdown`: parse/inspect/write Markdown, document structure and source preservation. No UI framework.
-- `Blackboard.SpectreConsole.Markdown` (planned): render parsed Markdown in an `IAnsiConsole` with injectable heading, emphasis, code and link themes. It references ExchangeHouse.Markdown, never the reverse.
+- `Blackboard.SpectreConsole.Markdown` (**implemented, not yet published**): renders parsed Markdown using themeable headings, emphasis, links/images, code and numbered/nested lists. It references ExchangeHouse.Markdown, never the reverse, and serves Showcase and Configurator Help.
 - `UnderstandMe/Afutrans`: own translation workflow, preservation of URLs/emails/code, language-aware links, dual English/original references, structural validation and publication decisions. Reusable format-neutral logic may later move here only when reuse warrants it.
 - Converters: independent packages as needed, depending only on source and destination format components. No generic `IConverter` or shared AST unless actual usage demonstrates a stable contract.
 

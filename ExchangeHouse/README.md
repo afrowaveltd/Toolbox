@@ -6,14 +6,14 @@ The name communicates the purpose: content passes between formats without forcin
 
 ## First independent component
 
-- [Markdown](Markdown/README.md) — initial .NET 10 Markdown block scanner and lossless writer foundation.
+- [Markdown](Markdown/README.md) — implemented .NET 10 source-preserving block and inline parser, exact links/image destinations and titles, nested/numbered-list hierarchy, and lossless unchanged-source writer; **not full CommonMark**.
 - [Architecture](Docs/Architecture/en.md) — dependency boundaries, format adapters and conversion principles.
 - [Conversion roadmap](Docs/Converters/en.md) — possible Markdown, plain text, HTML, JSON, AJIS and XML conversion paths.
 - [Implementation status](IMPLEMENTATION_STATUS.md) — verified state and next steps.
 
 Each format parser retains its own format-aware model; no universal AST is imposed. Converters reference only the necessary format components. A conversion may be lossy: the API must eventually report fidelity, dropped structures and failures instead of silently implying reversibility.
 
-The Spectre.Console Markdown renderer belongs separately under `Blackboard/SpectreConsole/Markdown` and will consume this library. ExchangeHouse must **not** reference Spectre.Console, Blackboard, Afutrans or UnderstandMe.
+The already implemented [Spectre.Console Markdown renderer](../Blackboard/SpectreConsole/Markdown/README.md) belongs separately to Blackboard and **consumes** this library; it powers Showcase and UnderstandMe Configurator Help. ExchangeHouse must **not** reference Spectre.Console, Blackboard, Afutrans or UnderstandMe.
 
 The source in `afrowaveltd/AfrowaveWebPublic`, particularly `Id`'s Markdown tools, is useful design inspiration but is **not blindly copied**.
 

@@ -22,7 +22,7 @@ You may also parse once with `MarkdownParser.Parse` and pass the `MarkdownDocume
 
 Themes expose six heading styles, body, bold, emphasis, inline/fenced code, link label, link destination and list marker styles, a list bullet, code indentation, and optional fence/destination display. Input is rendered as literal Spectre `Text`, with terminal control characters sanitized. No link is opened or converted. The renderer does not clear the terminal.
 
-**Limitations:** the underlying ExchangeHouse scanner is not full CommonMark. No tables, images, complex nested lists or full link syntax yet. Nested style decorations are not combined; most specific tokens take precedence. The UnderstandMe Configurator's offline Help now delegates to this library through a tiny application-specific theme adapter (the previously separate integration increment).
+**Limitations:** the underlying ExchangeHouse scanner is not full CommonMark. It supports inline images (text alternatives) and simple contiguous nested/numbered lists, but **not** tables, multiline/loose list items, reference-style links or complete CommonMark syntax. Nested style decorations are not combined; most specific tokens take precedence. The UnderstandMe Configurator's offline Help now delegates to this library through a tiny application-specific theme adapter (the previously separate integration increment).
 
 [Rendering and theming](Docs/Rendering-and-Themes/en.md) · [Implementation status](IMPLEMENTATION_STATUS.md)
 

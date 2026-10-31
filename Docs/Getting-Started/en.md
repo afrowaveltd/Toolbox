@@ -14,10 +14,10 @@ It provides small, reusable building blocks for .NET 10 applications:
 
 ## Installation
 
-When the package is published, install it through NuGet:
+Essentials **0.2.0 is published on NuGet**. From your consuming project's directory, install it with:
 
 ```bash
-dotnet add package Afrowave.Toolbox.Essentials
+dotnet add package Afrowave.Toolbox.Essentials --version 0.2.0
 ```
 
 For local development inside the Toolbox solution, reference the project directly.

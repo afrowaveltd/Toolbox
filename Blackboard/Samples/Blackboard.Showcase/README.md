@@ -20,6 +20,7 @@ The optional first positional argument is an existing starting directory, otherw
 1. **FileBrowser — choose file and preview readable text:** use the shared Spectre.Console FileBrowser to pick a local file. If the file is UTF-8, UTF-16 or UTF-32 text, its first **16 KiB** are shown as plain text. Binary data, invalid Unicode and unsafe terminal controls are not printed. The preview explicitly marks truncation. No selected file is modified.
 2. **FileBrowser — filter JSON and show colored JSON preview:** FileBrowser initially shows **only `*.json` files**, but keeps directories navigable. Once selected, an entire valid JSON document up to **64 KiB** is syntax-highlighted by `Spectre.Console.Json` using `JsonText`. Malformed, binary, oversized or unsupported-encoding files receive a diagnostic and are not dumped raw.
 3. **FileBrowser — choose a directory:** demonstrates local folder selection without reading or modifying files.
+4. **Markdown — preview and compare color themes:** displays the same source-preserved ExchangeHouse Markdown document with Classic, Ocean, Forest or Monochrome themes. Includes links, image alternatives and nested/ordered lists; a Compare all option displays every theme.
 
 The picker itself also contains its own interactive filename-filter menu (All, JSON, text, image, `*.ajis;*.json` masks or regex), lazy tree navigation and recursive searching. The JSON demo uses its **public generic filter API**, not a custom JSON-only browser implementation.
 
