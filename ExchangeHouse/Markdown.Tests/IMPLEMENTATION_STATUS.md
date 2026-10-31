@@ -103,3 +103,8 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 - Windows results: ExchangeHouse Markdown **71/71**, Blackboard Markdown **26/26**, optional TextMate **6/6**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
 - The subsequent documentation commit introduced one incorrect cross-family relative link, fixed in `1e89cf7532c03737a0599d51c26b54cd57bb345a`. Link verification on the fix run passed; final complete CI for the documentation state is tracked independently.
 - No new NuGet publication, full CommonMark conformance, or real-terminal acceptance is claimed. This feature intentionally does not tokenize fenced code inside explicitly quote-prefixed containers.
+
+## 2026-11-01 — quoted fenced code coverage
+
+- Tests for literal Markdown markers inside code, root and numbered-list quote ownership, multiline CRLF preservation, closer marker length and conservative quote interruption.
+- The first CI run failed an incorrect test count (expected 5 instead of actual six opener/body/closer blocks), fixed in `836914ba`. [Verified implementation CI #41254427784](https://github.com/afrowaveltd/Toolbox/actions/runs/41254427784) **SUCCESS**.

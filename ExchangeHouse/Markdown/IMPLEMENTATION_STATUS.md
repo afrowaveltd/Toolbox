@@ -121,3 +121,9 @@
 - Windows results: ExchangeHouse Markdown **71/71**, Blackboard Markdown **26/26**, optional TextMate **6/6**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
 - The subsequent documentation commit introduced one incorrect cross-family relative link, fixed in `1e89cf7532c03737a0599d51c26b54cd57bb345a`. Link verification on the fix run passed; final complete CI for the documentation state is tracked independently.
 - No new NuGet publication, full CommonMark conformance, or real-terminal acceptance is claimed. This feature intentionally does not tokenize fenced code inside explicitly quote-prefixed containers.
+
+## 2026-11-01 — explicit quoted code fencing
+
+- Same-depth quote-prefixed backtick/tilde code fences now retain literal body, language metadata, source spans/CRLF, nested quoted-list owner, matched closer and uninterrupted writer output.
+- A missing/differently deep quote prefix terminates that fence and reclassifies the boundary line normally. No unmarked lazy quote continuation/full CommonMark claim.
+- Parser regression suite passed on [CI #41254427784](https://github.com/afrowaveltd/Toolbox/actions/runs/41254427784). [Design](Docs/Quoted-Code-Fences/en.md). No public package release.

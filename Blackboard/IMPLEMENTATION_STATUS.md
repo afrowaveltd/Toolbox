@@ -218,3 +218,8 @@ Blackboard Markdown now renders quoted and fenced code lines within list items, 
 - Windows results: ExchangeHouse Markdown **71/71**, Blackboard Markdown **26/26**, optional TextMate **6/6**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
 - The subsequent documentation commit introduced one incorrect cross-family relative link, fixed in `1e89cf7532c03737a0599d51c26b54cd57bb345a`. Link verification on the fix run passed; final complete CI for the documentation state is tracked independently.
 - No new NuGet publication, full CommonMark conformance, or real-terminal acceptance is claimed. This feature intentionally does not tokenize fenced code inside explicitly quote-prefixed containers.
+
+## 2026-11-01 — quoted code display
+
+- Markdown renderer now draws themed quote prefixes around code labels, bodies and optional delimiters, with list indentation independent and safe TextMate session cleanup.
+- Showcase embeds quoted list-nested C# code. [Renderer guide](SpectreConsole/Markdown/Docs/Quoted-Code-Presentation/en.md). Implementation [CI #41254427784](https://github.com/afrowaveltd/Toolbox/actions/runs/41254427784) **SUCCESS**.

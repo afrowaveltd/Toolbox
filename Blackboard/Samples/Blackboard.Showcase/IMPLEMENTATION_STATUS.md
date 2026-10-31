@@ -142,3 +142,8 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 
 - [GitHub Actions #41252295483](https://github.com/afrowaveltd/Toolbox/actions/runs/41252295483) **SUCCESS** on implementation commit `2c316b53330e34424688368607f250479af538a5`: full Linux solution build/tests, Windows UI/Markdown regressions and documentation links passed.
 - Windows suites: Showcase **26/26** (including the expanded classic `Main`/indentation assertion), Markdown parser **71/71**, Markdown renderer **26/26**, TextMate adapter **6/6**. The change is sample-only and needs no NuGet publication or old .NET Core runtime.
+
+## 2026-11-01 — nested quoted-list C# fence
+
+- Theme-gallery fixture now exercises an actual `csharp` method fenced inside a quoted numbered-list item, alongside the earlier .NET Core 3.1 console Main sample.
+- Verified implementation and Windows UI CI [#41254427784](https://github.com/afrowaveltd/Toolbox/actions/runs/41254427784) **SUCCESS**; latest documentation build separately pending.

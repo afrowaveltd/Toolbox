@@ -73,3 +73,8 @@ Next: confirm CI and add regression cases for any Windows/SSH differences that a
 
 - [GitHub Actions #41252295483](https://github.com/afrowaveltd/Toolbox/actions/runs/41252295483) **SUCCESS** on implementation commit `2c316b53330e34424688368607f250479af538a5`: full Linux solution build/tests, Windows UI/Markdown regressions and documentation links passed.
 - Windows suites: Showcase **26/26** (including the expanded classic `Main`/indentation assertion), Markdown parser **71/71**, Markdown renderer **26/26**, TextMate adapter **6/6**. The change is sample-only and needs no NuGet publication or old .NET Core runtime.
+
+## 2026-11-01 — quoted code in gallery verification
+
+- Existing Classic-theme virtual-console test now checks the C# `Double(int value)` nested quoted-list code example.
+- [Implementation CI #41254427784](https://github.com/afrowaveltd/Toolbox/actions/runs/41254427784) **SUCCESS**.
