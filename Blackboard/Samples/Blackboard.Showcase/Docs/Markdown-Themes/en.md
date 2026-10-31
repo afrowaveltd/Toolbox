@@ -38,3 +38,7 @@ The actual appearance depends on terminal color and Unicode support; the sample 
 - Linux: full Toolbox solution restore, build, and test **passed** (includes the new Markdown theme-gallery unit/virtual-terminal tests).
 - Windows: FileBrowser, UnderstandMe Configurator, Blackboard Showcase (including the new gallery), and UnderstandMe localization concurrency suites **passed**.
 - Manual interactive visual confirmation on an actual Windows/Debian terminal is still outstanding; automatic tests do not certify terminal font/theme appearance.
+
+## 2026-10-31 — nested lists in the sample
+
+The built-in sample now includes a numbered sublist and a nested bullet for testing list indentation and preservation of original numbering with every theme. The rest of the gallery and FileBrowser demos remain unchanged.

@@ -33,3 +33,7 @@ dotnet test Blackboard/SpectreConsole/Markdown.Tests/Afrowave.Toolbox.Blackboard
 ## Accessible images (2026-10-29)
 
 Images from ExchangeHouse Markdown are represented as readable text (default: [Image: alt text]) instead of attempting terminal image transfer. The theme exposes Image, ImageDestination, ImagePrefix, ImageSuffix and ShowImageDestinations independently of link settings. No file or network I/O is performed, and alt text is rendered as safe literal Spectre Text. See [Rendering and Themes](Docs/Rendering-and-Themes/en.md).
+
+## Nested lists and original numbering (2026-10-31)
+
+Numbered items now display their original number and `.` / `)` delimiter rather than a generic bullet. Nested items use the ExchangeHouse tree depth. Themes can set `ListIndent` and `PreserveUnorderedMarkers` while retaining their existing `ListBullet`. See [Nested list presentation](Docs/Nested-List-Presentation/en.md).

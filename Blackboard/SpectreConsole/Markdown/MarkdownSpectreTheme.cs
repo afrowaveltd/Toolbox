@@ -42,8 +42,14 @@ public sealed class MarkdownSpectreTheme
     public Style LinkDestination { get; init; } = Style.Plain;
     /// <summary>Bullet or ordered-list marker presentation.</summary>
     public Style ListMarker { get; init; } = new(foreground: Color.Green);
-    /// <summary>Replacement marker for list items.</summary>
+    /// <summary>Replacement marker for unordered items, unless original markers are enabled.</summary>
     public string ListBullet { get; init; } = "•";
+
+    /// <summary>Indentation per list nesting level, by default two spaces.</summary>
+    public string ListIndent { get; init; } = "  ";
+
+    /// <summary>Display exact source markers (-, + or *) rather than ListBullet for unordered items.</summary>
+    public bool PreserveUnorderedMarkers { get; init; }
     /// <summary>Prefix for fenced code lines.</summary>
     public string CodeIndent { get; init; } = "    ";
     /// <summary>Show code fence delimiters as well as their contents.</summary>

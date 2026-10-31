@@ -25,6 +25,7 @@ public static class MarkdownSpectreRenderer
         ArgumentNullException.ThrowIfNull(document);
         theme ??= new MarkdownSpectreTheme();
         ArgumentNullException.ThrowIfNull(theme.ListBullet);
+        ArgumentNullException.ThrowIfNull(theme.ListIndent);
         ArgumentNullException.ThrowIfNull(theme.CodeIndent);
         ArgumentNullException.ThrowIfNull(theme.ImagePrefix);
         ArgumentNullException.ThrowIfNull(theme.ImageSuffix);
@@ -47,7 +48,15 @@ public static class MarkdownSpectreRenderer
                     WriteInlineLine(console, block, theme.GetHeadingStyle(block.HeadingLevel), theme);
                     break;
                 case MarkdownBlockKind.ListItem:
-                    WriteSafe(console, theme.ListBullet + " ", theme.ListMarker);
+                    var marker = block.ListMarker;
+                    var depth = Math.Clamp(marker?.Depth ?? 0, 0, 32);
+                    var prefix = marker is { IsOrdered: true }
+                        ? marker.OriginalMarker
+                        : theme.PreserveUnorderedMarkers && marker is not null
+                            ? marker.OriginalMarker
+                            : theme.ListBullet;
+                    WriteSafe(console, string.Concat(Enumerable.Repeat(theme.ListIndent, depth)) +
+                        prefix + " ", theme.ListMarker);
                     WriteInlines(console, block.Inlines, block.Text, theme.Body, theme);
                     WriteNewline(console);
                     break;

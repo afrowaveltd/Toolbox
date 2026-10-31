@@ -52,3 +52,7 @@
 - Linux: full Toolbox solution restore, build, and test **passed** (includes the new Markdown theme-gallery unit/virtual-terminal tests).
 - Windows: FileBrowser, UnderstandMe Configurator, Blackboard Showcase (including the new gallery), and UnderstandMe localization concurrency suites **passed**.
 - Manual interactive visual confirmation on an actual Windows/Debian terminal is still outstanding; automatic tests do not certify terminal font/theme appearance.
+
+## 2026-10-31 — nested list sample
+
+- Expanded the embedded Markdown showcase sample with ordered steps and a nested unordered item to demonstrate list indentation in all four themes; no new prompt/menu. CI pending.

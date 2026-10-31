@@ -20,3 +20,7 @@ The renderer currently uses the innermost inline style without combining all nes
 ## 2026-10-29 — image alternative descriptions
 
 An image is rendered as readable alternative text with an image-specific style and configurable prefix/suffix. The optional image destination is displayed literally when ShowImageDestinations is enabled; it is never fetched, opened or activated. Link destination visibility is an independent setting. This does not support inline terminal graphics or file image conversion.
+
+## 2026-10-31 — list indentation and numbering
+
+Original ordered list markers are preserved in terminal output. Unordered bullets remain themeable and can optionally show source markers. `ListIndent` controls indentation per nesting depth. See [Nested list presentation](../Nested-List-Presentation/en.md).

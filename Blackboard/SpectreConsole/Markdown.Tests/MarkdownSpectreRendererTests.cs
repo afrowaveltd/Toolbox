@@ -121,6 +121,64 @@ public sealed class MarkdownSpectreRendererTests
         Assert.Contains("[Image: danger [red]tag[/]]", console.Output);
     }
 
+
+    [Fact]
+    public void Mixed_nested_lists_keep_real_ordered_numbers_and_indentation()
+    {
+        const string source = "- parent\n  7) first\n    * **detail**\n  8. second\n- end\n";
+        var doc = MarkdownParser.Parse(source);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc);
+
+        Assert.Contains("• parent", console.Output);
+        Assert.Contains("  7) first", console.Output);
+        Assert.Contains("    • detail", console.Output);
+        Assert.Contains("  8. second", console.Output);
+        Assert.Contains("• end", console.Output);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+        Assert.Equal(2, doc.ListRoots.Count);
+    }
+
+    [Fact]
+    public void List_theme_can_preserve_original_unordered_markers_and_change_indent()
+    {
+        var console = Console();
+        var theme = new MarkdownSpectreTheme
+        {
+            PreserveUnorderedMarkers = true,
+            ListIndent = "....",
+            ListBullet = "unused"
+        };
+        MarkdownSpectreRenderer.Render(console, "+ root\n  - child\n    * grandchild\n", theme);
+
+        Assert.Contains("+ root", console.Output);
+        Assert.Contains("....- child", console.Output);
+        Assert.Contains("........* grandchild", console.Output);
+        Assert.DoesNotContain("unused", console.Output);
+    }
+
+    [Fact]
+    public void Ordered_markers_are_not_replaced_by_configured_unordered_bullet()
+    {
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, "14) start\n15. next\n- plain\n",
+            new MarkdownSpectreTheme { ListBullet = "+" });
+
+        Assert.Contains("14) start", console.Output);
+        Assert.Contains("15. next", console.Output);
+        Assert.Contains("+ plain", console.Output);
+    }
+
+    [Fact]
+    public void Fenced_code_is_not_treated_as_nested_list()
+    {
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console,
+            "- root\n\`\`\`md\n  42) literally code\n\`\`\`\n- new root\n");
+        Assert.Contains("    42) literally code", console.Output);
+        Assert.DoesNotContain("    • literally code", console.Output);
+    }
+
     [Fact]
     public void Rejects_null_input_and_invalid_heading_levels()
     {

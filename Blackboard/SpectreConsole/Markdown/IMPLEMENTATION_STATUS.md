@@ -37,3 +37,9 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 - Parser implementation commit `fb7a8108`: [GitHub Actions #40881801829](https://github.com/afrowaveltd/Toolbox/actions/runs/40881801829) **SUCCESS** — full Linux solution build/tests and existing Windows regression job.
 - Image presentation implementation commit `7696fef8`: [GitHub Actions #40882016971](https://github.com/afrowaveltd/Toolbox/actions/runs/40882016971) **SUCCESS** — full Linux solution build/tests and Windows FileBrowser, Configurator, Showcase, localization **plus newly added focused ExchangeHouse Markdown and Blackboard Markdown tests**.
 - No direct manual Debian or Windows terminal test of this new image fallback has been reported. Full CommonMark, reference-style links, actual image drawing and translated document link routing are still not implemented.
+
+## 2026-10-31 — numbered and nested list presentation
+
+- The renderer consumes ExchangeHouse `ListMarker` depth and original ordered numbers; theme exposes `ListIndent` and `PreserveUnorderedMarkers`, retaining `ListBullet` behavior for unordered items.
+- Added tests for real numbered markers, nested mixed lists, custom indentation/original bullet markers and code isolation. Showcase sample includes a nested ordered list. No source changes or parsing performed in Blackboard.
+- Full CI including Windows Markdown and Showcase tests pending for this commit.
