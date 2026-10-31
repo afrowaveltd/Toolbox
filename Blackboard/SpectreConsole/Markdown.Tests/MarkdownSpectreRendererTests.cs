@@ -309,7 +309,7 @@ public sealed class MarkdownSpectreRendererTests
         });
         Assert.Contains("....12) Code", console.Output);
         Assert.Contains("....        [bash]", console.Output);
-        Assert.Contains("....            echo '[red]literal[/]'", console.Output);
+        Assert.Contains("....        echo '[red]literal[/]'", console.Output);
         Assert.Contains("....    │ Important", console.Output);
         Assert.DoesNotContain("**Important**", console.Output);
         Assert.Contains("+ End", console.Output);
