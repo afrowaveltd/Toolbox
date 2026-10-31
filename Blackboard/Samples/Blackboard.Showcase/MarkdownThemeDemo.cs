@@ -1,4 +1,5 @@
 using Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown;
+using Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.TextMate;
 using Afrowave.Toolbox.ExchangeHouse.Markdown;
 using Spectre.Console;
 
@@ -31,12 +32,13 @@ public sealed class MarkdownThemeDemo : IBlackboardShowcaseDemo
         ### Quotes and source code
         > A quote can contain **emphasis** without injecting terminal markup.
 
-        ```csharp
-        var output = "Hello from Markdown!";
-        ```
-
-          A second paragraph stays inside the same list item.
-        It can be followed by a lazy line without repeating indentation.
+        - Source code can live **inside a list**:
+          > This is a nested quote.
+          ```bash
+          echo "Hello from Markdown!"
+          ```
+          This paragraph belongs to the same item.
+        The next line continues lazily without indentation.
 
         ```csharp
         var document = MarkdownParser.Parse(markdown);
@@ -44,11 +46,31 @@ public sealed class MarkdownThemeDemo : IBlackboardShowcaseDemo
         ```
         """);
 
+    // One optional grammar registry shared across theme previews; the FileBrowser and
+    // base renderer remain independent of syntax highlighting/native assets.
+    private static readonly IMarkdownSyntaxHighlighter? OptionalSyntax = CreateSyntax();
+
+    private static IMarkdownSyntaxHighlighter? CreateSyntax()
+    {
+        try
+        {
+            return new MarkdownTextMateHighlighter();
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            return null; // Present plain code when a platform lacks native grammar support.
+        }
+    }
+
     private static readonly IReadOnlyList<ThemeChoice> Themes =
     [
-        new("classic", "Classic — default", new MarkdownSpectreTheme { ShowLinkDestinations = true }),
+        new("classic", "Classic — default", new MarkdownSpectreTheme
+        {
+            ShowLinkDestinations = true, SyntaxHighlighter = OptionalSyntax
+        }),
         new("ocean", "Ocean — blue emphasis", new MarkdownSpectreTheme
         {
+            SyntaxHighlighter = OptionalSyntax,
             Heading1 = new Style(foreground: Color.Blue, decoration: Decoration.Bold),
             Heading2 = new Style(foreground: Color.Blue, decoration: Decoration.Underline),
             Heading3 = new Style(foreground: Color.White, decoration: Decoration.Bold),
@@ -61,6 +83,7 @@ public sealed class MarkdownThemeDemo : IBlackboardShowcaseDemo
         }),
         new("forest", "Forest — green accents", new MarkdownSpectreTheme
         {
+            SyntaxHighlighter = OptionalSyntax,
             Heading1 = new Style(foreground: Color.Green, decoration: Decoration.Bold),
             Heading2 = new Style(foreground: Color.Green, decoration: Decoration.Underline),
             Heading3 = new Style(foreground: Color.Yellow, decoration: Decoration.Bold),

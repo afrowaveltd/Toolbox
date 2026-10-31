@@ -58,3 +58,13 @@ The Showcase clears the terminal once when it enters the interactive main menu, 
 The fourth Showcase scenario, **Markdown — preview and compare color themes**, demonstrates the standalone `Blackboard.SpectreConsole.Markdown` renderer. Choose Classic, Ocean, Forest or Monochrome, or compare all four. The gallery parses one embedded source document once with `ExchangeHouse.Markdown` and renders it with independently supplied `MarkdownSpectreTheme` instances. No files or network calls are involved. See [Markdown Themes](Docs/Markdown-Themes/en.md).
 
 Run `dotnet run --project Blackboard/Samples/Blackboard.Showcase` and select the new fourth scenario with arrows and Enter; Escape returns. The existing three FileBrowser demonstrations are unchanged.
+
+## Syntax-colored Markdown preview (2026-10-31)
+
+The Markdown gallery can now opt into the independent TextMate grammar adapter for its
+Classic/Ocean/Forest themes. This colors recognized `csharp` and `bash` fenced code,
+including indented code nested in a list. Monochrome deliberately stays plain.
+The adapter is a **Showcase-only dependency**, not required by the base Markdown renderer.
+If native grammar support is unavailable, the gallery retains safe literal code.
+
+[Adapter documentation](../../SpectreConsole/Markdown.TextMate/README.md).

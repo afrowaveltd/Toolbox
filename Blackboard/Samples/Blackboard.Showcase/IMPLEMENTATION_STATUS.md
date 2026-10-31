@@ -102,3 +102,9 @@
 ## 2026-10-31 — code and quotation gallery sample
 
 Existing Markdown-theme sample now includes a quote and a declared-language `csharp` code fence (rendered as literal text by the base renderer). The optional TextMate adapter is a separate package and not yet connected to the Showcase sample. CI pending.
+
+## 2026-10-31 — TextMate code sample integration
+
+- Showcase now references the **optional** Markdown.TextMate project and reuses one grammar registry for three colored themes; monochrome deliberately disables it.
+- The gallery sample includes a nested quote and `bash` fence under a list item plus a top-level `csharp` block.
+- The base Blackboard Markdown and ExchangeHouse projects retain zero TextMate dependency. CI pending at this commit.
