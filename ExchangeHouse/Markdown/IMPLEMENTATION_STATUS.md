@@ -92,3 +92,11 @@
 - Windows counts: **ExchangeHouse Markdown 60/60**, **Blackboard Markdown 21/21**, **Showcase 26/26**, **FileBrowser 160/160**, **Configurator 44/44**, **UnderstandMe localization 34/34**.
 - Documentation audit: **273 Markdown files, 1,399 local targets checked**, zero missing links. Cross-family link typo from the first commit was fixed in `2c8c3fa`; the final gallery sample now uses an actually unindented lazy line.
 - No public Markdown NuGet publication, no full CommonMark or real-terminal Debian acceptance is implied by CI.
+
+## 2026-10-31 — code fence and quote list containers
+
+- Added `MarkdownBlockKind.BlockQuote` and source-aware quote depth with inline offsets.
+- Added fence info/language/closing metadata on opening, code and closing lines, and retained attached list owner on indented fences, their code lines and quotes.
+- `MarkdownListItemNode.EmbeddedBlocks` exposes attached code fences/code lines/quotes without redefining `ContinuationBlocks` (paragraphs only); `ContentBlocks` preserves all attached content in source order.
+- New regression tests include literal code, nested numbered list ownership, blank separators, quote nesting and verbatim writer. Conservative scope; no nested arbitrary quote AST or full CommonMark.
+- [Code and quote containers](Docs/Code-and-Quote-Containers/en.md). CI pending for final implementation.

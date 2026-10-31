@@ -93,3 +93,11 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Windows counts: **ExchangeHouse Markdown 60/60**, **Blackboard Markdown 21/21**, **Showcase 26/26**, **FileBrowser 160/160**, **Configurator 44/44**, **UnderstandMe localization 34/34**.
 - Documentation audit: **273 Markdown files, 1,399 local targets checked**, zero missing links. Cross-family link typo from the first commit was fixed in `2c8c3fa`; the final gallery sample now uses an actually unindented lazy line.
 - No public Markdown NuGet publication, no full CommonMark or real-terminal Debian acceptance is implied by CI.
+
+## 2026-10-31 — fenced code, quotes and optional grammar highlighting
+
+- ExchangeHouse Markdown recognizes conservative quote lines and fenced code nested beneath indented list items. `MarkdownBlock.CodeFenceInfo`, `CodeLanguage`, `CodeFenceStart`, `IsClosingCodeFence`, `QuoteDepth` and per-item `EmbeddedBlocks` preserve source/owner metadata. Unchanged Markdown still round-trips byte-for-byte at the character level.
+- Blackboard Markdown renders quote nesting and code beneath the list content, with optional language labels and an `IMarkdownSyntaxHighlighter` session contract. Code is not evaluated and terminal escape/markup controls remain sanitized.
+- A **separate optional** `Blackboard/SpectreConsole/Markdown.TextMate` project implements the contract using TextMateSharp.Grammars 2.0.4, without adding native grammar dependencies to ExchangeHouse or the base Blackboard Markdown renderer. Standalone .NET 10 xUnit tests and Windows CI step were added; optional package **not published**.
+- Full CommonMark blockquote/list nesting and executable code remain out of scope. [Grammar integration](Blackboard/SpectreConsole/Markdown.TextMate/Docs/Grammar-Adapter/en.md).
+- **CI pending** for the latest adapter/registration commits; older code/test commits contain a corrected test expectation and a fixed `Style` validation compile error. Do not claim this milestone green until its final Linux + Windows workflow succeeds.

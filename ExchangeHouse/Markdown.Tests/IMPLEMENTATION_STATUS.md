@@ -81,3 +81,7 @@
 - Windows counts: **ExchangeHouse Markdown 60/60**, **Blackboard Markdown 21/21**, **Showcase 26/26**, **FileBrowser 160/160**, **Configurator 44/44**, **UnderstandMe localization 34/34**.
 - Documentation audit: **273 Markdown files, 1,399 local targets checked**, zero missing links. Cross-family link typo from the first commit was fixed in `2c8c3fa`; the final gallery sample now uses an actually unindented lazy line.
 - No public Markdown NuGet publication, no full CommonMark or real-terminal Debian acceptance is implied by CI.
+
+## 2026-10-31 — code/quote regression cases
+
+Added parser tests for source-aware language hints, fenced-code isolation from Markdown, nested list parent/child ownership, quotes/inline offsets and blank-separated containers. An older top-level quote expectation was updated to `BlockQuote`. CI pending for final implementation.

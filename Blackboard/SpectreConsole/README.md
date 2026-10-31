@@ -12,3 +12,7 @@ FileBrowser is a file/folder picker with wildcard/regex filters, tree/search and
 Both are demonstrated in [Blackboard.Showcase](../Samples/Blackboard.Showcase/README.md). The Markdown component also powers [UnderstandMe Configurator Help](../../UnderstandMe/Tools/Configurator/README.md). Neither library depends on its applications.
 
 Other widgets (editable forms, status bars and reusable confirmation dialogs) are future possibilities, not existing projects. See [Blackboard architecture](../Docs/Architecture/en.md) and [component packaging](../Docs/Independent-Packaging/en.md).
+
+## Optional Markdown code highlighting (2026-10-31)
+
+The new [Markdown.TextMate adapter](Markdown.TextMate/README.md) is an opt-in source project for real TextMate syntax coloring. The [base Markdown renderer](Markdown/README.md) stays free of the adapter's native grammar dependencies.

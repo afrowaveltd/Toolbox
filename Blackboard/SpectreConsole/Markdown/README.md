@@ -45,3 +45,7 @@ The renderer now aligns explicitly indented continuation paragraphs under their 
 ## Loose-list paragraph display (2026-10-31)
 
 Blank-separated paragraphs owned by an ExchangeHouse list item remain aligned beneath its visible bullet or number. The renderer preserves a blank line without duplicating the marker or changing the document. See [Loose list presentation](Docs/Loose-List-Presentation/en.md).
+
+## Code, blockquotes and optional syntax highlighting (2026-10-31)
+
+Indented list-embedded quotes and fenced code now render beneath their list item, with optional code language labels. A session-based `SyntaxHighlighter` theme property accepts independent coloring providers; the base Markdown renderer retains plain-text fallback. The new optional [TextMate adapter](../Markdown.TextMate/README.md) integrates TextMateSharp grammar coloring without forcing native assets on normal Markdown consumers. See [Code and Quote Presentation](Docs/Code-Quote-Presentation/en.md). Not publicly published on NuGet.

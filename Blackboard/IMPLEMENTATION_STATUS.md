@@ -196,3 +196,7 @@
 - Windows counts: **ExchangeHouse Markdown 60/60**, **Blackboard Markdown 21/21**, **Showcase 26/26**, **FileBrowser 160/160**, **Configurator 44/44**, **UnderstandMe localization 34/34**.
 - Documentation audit: **273 Markdown files, 1,399 local targets checked**, zero missing links. Cross-family link typo from the first commit was fixed in `2c8c3fa`; the final gallery sample now uses an actually unindented lazy line.
 - No public Markdown NuGet publication, no full CommonMark or real-terminal Debian acceptance is implied by CI.
+
+## 2026-10-31 — optional real syntax highlighting
+
+Blackboard Markdown now renders quoted and fenced code lines within list items, and exposes an optional grammar session interface. A new independently opt-in `SpectreConsole/Markdown.TextMate` adapter uses TextMateSharp 2.0.4 and has its own tests/Docs/status. Neither base renderer nor ExchangeHouse depends on TextMateSharp. [Adapter](SpectreConsole/Markdown.TextMate/README.md). CI pending, no NuGet publication.

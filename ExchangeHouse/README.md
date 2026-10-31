@@ -20,3 +20,7 @@ The source in `afrowaveltd/AfrowaveWebPublic`, particularly `Id`'s Markdown tool
 ## Development discipline
 
 Commit each small, testable increment to Toolbox; keep each project's English `README.md`, topic-level `Docs/<topic>/en.md`, tests and `IMPLEMENTATION_STATUS.md` current. New packages are opt-in; do not publish a partially implemented parser as full CommonMark support.
+
+## Blockquote and code metadata (2026-10-31)
+
+The independent [Markdown parser](Markdown/README.md) now retains source-language hints for fenced code and conservative quote/code blocks within list items. It does not perform coloring itself; a separate optional Blackboard TextMate adapter handles terminal syntax highlighting.

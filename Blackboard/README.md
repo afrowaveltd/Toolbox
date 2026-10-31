@@ -52,3 +52,7 @@ The independent FileBrowser project contains a read-only local source, storage-n
 ## Spectre.Console Markdown renderer (2026-10-29)
 
 The independent [Markdown renderer](SpectreConsole/Markdown/README.md) consumes the ExchangeHouse source model and offers configurable themes, link/image alternatives and nested ordered/unordered lists. It is **integrated into UnderstandMe Configurator Help and Blackboard.Showcase**, tested on Linux and Windows CI, and not yet published to NuGet.
+
+## Optional grammar-driven Markdown syntax highlighting (2026-10-31)
+
+The independent [Markdown.TextMate](SpectreConsole/Markdown.TextMate/README.md) adapter provides optional bundled TextMate grammar support for fenced code. It is **not** a required dependency of the [base Markdown renderer](SpectreConsole/Markdown/README.md) and is **not yet published**. The base renderer additionally supports bounded list-embedded code/quotes and language-label presentation.

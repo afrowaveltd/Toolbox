@@ -88,3 +88,10 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 - Windows counts: **ExchangeHouse Markdown 60/60**, **Blackboard Markdown 21/21**, **Showcase 26/26**, **FileBrowser 160/160**, **Configurator 44/44**, **UnderstandMe localization 34/34**.
 - Documentation audit: **273 Markdown files, 1,399 local targets checked**, zero missing links. Cross-family link typo from the first commit was fixed in `2c8c3fa`; the final gallery sample now uses an actually unindented lazy line.
 - No public Markdown NuGet publication, no full CommonMark or real-terminal Debian acceptance is implied by CI.
+
+## 2026-10-31 — quoted code containers and optional highlighter contract
+
+- Render quote nesting and fenced code as attached list content; preserve literal code and optionally display declared language names.
+- Added session-based `IMarkdownSyntaxHighlighter`/`IMarkdownHighlightSession` contract and defensive source-span validation; providers are optional, never supplied with executable code.
+- A separate TextMate adapter lives in sibling `Markdown.TextMate`, not inside this base renderer.
+- [Code presentation](Docs/Code-Quote-Presentation/en.md). CI pending for the finalized tests.
