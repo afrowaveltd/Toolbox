@@ -492,6 +492,58 @@ public sealed class MarkdownSpectreRendererTests
         Assert.Equal(source, MarkdownWriter.Write(doc));
     }
 
+
+    [Fact]
+    public void List_nested_quoted_lists_render_both_theme_indent_levels()
+    {
+        const string source = "- Install\n  > - **Warning**\n  >   12) Risk\n  >     Note\n  Continue\n- Finish";
+        var doc = MarkdownParser.Parse(source);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc, new MarkdownSpectreTheme
+        {
+            QuotePrefix = "| ", ListIndent = "....", ListBullet = "+"
+        });
+        Assert.Contains("+ Install", console.Output);
+        Assert.Contains("  | + Warning", console.Output);
+        Assert.Contains("  | ....12) Risk", console.Output);
+        Assert.Contains("  | ....    Note", console.Output);
+        Assert.Contains("  Continue", console.Output);
+        Assert.Contains("+ Finish", console.Output);
+        Assert.DoesNotContain("**Warning**", console.Output);
+    }
+
+    [Fact]
+    public void Quoted_fence_inside_ordinary_list_keeps_syntax_highlighter_scoped()
+    {
+        const string source = "- Step\n  > - Code\n  >   ```csharp\n  >   public class Hello {}\n  >   [red]literal[/]\n  >   ```\n- Next";
+        var doc = MarkdownParser.Parse(source);
+        var console = Console();
+        var backend = new TestHighlighter();
+        MarkdownSpectreRenderer.Render(console, doc, new MarkdownSpectreTheme
+        {
+            SyntaxHighlighter = backend, QuotePrefix = "| "
+        });
+        Assert.Contains("  |     [csharp]", console.Output);
+        Assert.Contains("  |     public class Hello {}", console.Output);
+        Assert.Contains("  |     [red]literal[/]", console.Output);
+        Assert.Equal(new[] { "csharp" }, backend.Requests);
+        Assert.Equal(1, backend.Disposals);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Plain_quote_after_list_nested_quote_does_not_double_outer_indent()
+    {
+        const string source = "- Outer\n  > - One\n  > Ordinary **text**\n  Resume";
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, source,
+            new MarkdownSpectreTheme { QuotePrefix = "> " });
+        Assert.Contains("  > • One", console.Output);
+        Assert.Contains("  > Ordinary text", console.Output);
+        Assert.DoesNotContain("    > Ordinary text", console.Output);
+        Assert.Contains("  Resume", console.Output);
+    }
+
     [Fact]
     public void Rejects_null_input_and_invalid_heading_levels()
     {

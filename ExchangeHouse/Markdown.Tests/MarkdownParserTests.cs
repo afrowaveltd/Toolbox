@@ -763,6 +763,112 @@ public sealed class MarkdownParserTests
         Assert.Equal(source, MarkdownWriter.Write(doc));
     }
 
+
+    [Fact]
+    public void Quoted_list_inside_ordinary_list_preserves_independent_owners_and_offsets()
+    {
+        const string source = "- Install\r\n  > - **Caution** [guide](../en.md)\r\n  >   12) Risk\r\n  >     Note\r\n  > - Second risk\r\n  Continue install\r\n- Finish";
+        var doc = MarkdownParser.Parse(source);
+        Assert.Equal(2, doc.ListRoots.Count);
+        Assert.Equal(2, doc.QuoteListRoots.Count);
+        var outer = doc.ListRoots[0];
+        var quoted = doc.QuoteListRoots[0];
+        Assert.Single(quoted.Children);
+        Assert.Equal(4, outer.EmbeddedBlocks.Count);
+        Assert.Equal(new[] { 0, 1, 0 },
+            doc.Blocks.Skip(1).Take(4).Where(b => b.ListMarker is not null)
+                .Select(b => b.ListMarker!.Depth));
+        Assert.All(doc.Blocks.Skip(1).Take(4), b =>
+        {
+            Assert.Equal(outer.Block.Start, b.QuoteContainerListOwnerStart);
+            Assert.Equal(1, b.QuoteDepth);
+            Assert.Equal(b.RawText, source.Substring(b.Start, b.Length));
+        });
+        Assert.Equal(quoted.Children[0].Block.Start, doc.Blocks[3].ListContinuationOwnerStart);
+        Assert.Equal(outer.Block.Start, doc.Blocks[5].ListContinuationOwnerStart);
+        var link = Assert.Single(doc.Blocks[1].Inlines, n => n.Kind == MarkdownInlineKind.Link);
+        Assert.Equal(link.RawText, source.Substring(link.Start, link.Length));
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Quoted_list_runs_do_not_merge_across_outer_item_boundaries()
+    {
+        const string source = "- First\n  > - Child A\n- Second\n  > - Child B\n> - Standalone";
+        var doc = MarkdownParser.Parse(source);
+        Assert.Equal(2, doc.ListRoots.Count);
+        Assert.Equal(3, doc.QuoteListRoots.Count);
+        Assert.All(doc.QuoteListRoots, node => Assert.Empty(node.Children));
+        Assert.Equal(doc.ListRoots[0].Block.Start, doc.QuoteListRoots[0].Block.QuoteContainerListOwnerStart);
+        Assert.Equal(doc.ListRoots[1].Block.Start, doc.QuoteListRoots[1].Block.QuoteContainerListOwnerStart);
+        Assert.Null(doc.QuoteListRoots[2].Block.QuoteContainerListOwnerStart);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Nested_ordinary_numbered_item_owns_its_quoted_sublist()
+    {
+        const string source = "- Parent\n  12) Nested\n      > - **Note**\n      >   Extra detail\n  Parent resumes";
+        var doc = MarkdownParser.Parse(source);
+        var root = Assert.Single(doc.ListRoots);
+        var child = Assert.Single(root.Children);
+        var quoted = Assert.Single(doc.QuoteListRoots);
+        Assert.Equal(child.Block.Start, quoted.Block.QuoteContainerListOwnerStart);
+        Assert.Equal(child.Block.Start, doc.Blocks[3].QuoteContainerListOwnerStart);
+        Assert.Equal(quoted.Block.Start, doc.Blocks[3].ListContinuationOwnerStart);
+        Assert.Equal(root.Block.Start, doc.Blocks[4].ListContinuationOwnerStart);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Quoted_fence_in_ordinary_list_quoted_sublist_protects_literal_lines()
+    {
+        const string source = "- Step\n  > - Example\n  >   ~~~csharp\n  >   # not heading\n  >   - not a list\n  >   Console.WriteLine(\"[red]literal[/]\");\n  >   ~~~\n  Continue";
+        var doc = MarkdownParser.Parse(source);
+        var root = Assert.Single(doc.ListRoots);
+        var quoted = Assert.Single(doc.QuoteListRoots);
+        Assert.Equal(5, quoted.EmbeddedBlocks.Count);
+        Assert.Equal(new[] { MarkdownBlockKind.CodeFence, MarkdownBlockKind.CodeLine,
+            MarkdownBlockKind.CodeLine, MarkdownBlockKind.CodeLine, MarkdownBlockKind.CodeFence },
+            doc.Blocks.Skip(2).Take(5).Select(b => b.Kind));
+        Assert.All(doc.Blocks.Skip(2).Take(5), b =>
+        {
+            Assert.Equal(root.Block.Start, b.QuoteContainerListOwnerStart);
+            Assert.Equal(quoted.Block.Start, b.ListContinuationOwnerStart);
+        });
+        Assert.Empty(doc.Blocks[3].Inlines);
+        Assert.True(doc.Blocks[6].IsClosingCodeFence);
+        Assert.Equal(root.Block.Start, doc.Blocks[7].ListContinuationOwnerStart);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Quote_blank_in_outer_list_is_owned_by_inner_quoted_item()
+    {
+        const string source = "- Step\n  > 12) Warning\n  >\n  >     More **detail**\n- Next";
+        var doc = MarkdownParser.Parse(source);
+        var outer = doc.ListRoots[0];
+        var quoted = Assert.Single(doc.QuoteListRoots);
+        Assert.True(quoted.IsLoose);
+        Assert.Equal(quoted.Block.Start, doc.Blocks[2].ListBlankOwnerStart);
+        Assert.Equal(quoted.Block.Start, doc.Blocks[3].ListContinuationOwnerStart);
+        Assert.Equal(outer.Block.Start, doc.Blocks[3].QuoteContainerListOwnerStart);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Existing_plain_indented_quote_keeps_ordinary_owner()
+    {
+        const string source = "- Step\n  > Plain **note**\n  Continue";
+        var doc = MarkdownParser.Parse(source);
+        var outer = Assert.Single(doc.ListRoots);
+        Assert.Empty(doc.QuoteListRoots);
+        Assert.Equal(MarkdownBlockKind.BlockQuote, doc.Blocks[1].Kind);
+        Assert.Equal(outer.Block.Start, doc.Blocks[1].ListContinuationOwnerStart);
+        Assert.Equal(outer.Block.Start, doc.Blocks[1].QuoteContainerListOwnerStart);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
     [Fact]
     public void Null_arguments_fail_explicitly()
     {

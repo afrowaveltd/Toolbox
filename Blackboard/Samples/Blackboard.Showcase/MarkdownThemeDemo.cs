@@ -53,6 +53,15 @@ public sealed class MarkdownThemeDemo : IBlackboardShowcaseDemo
           This paragraph belongs to the same item.
         The next line continues lazily without indentation.
 
+        ### Quote nested inside an ordinary list
+        - Check the deployment requirements:
+          > - **Important:** Verify the runtime.
+          >   12) Review the dependency versions.
+          >       ```bash
+          >       dotnet --list-runtimes
+          >       ```
+          Continue with the remaining deployment steps.
+
         ### .NET Core 3.1 console application (classic Main entry point)
         The older project template makes C# namespaces, classes and nested code indentation visible.
 

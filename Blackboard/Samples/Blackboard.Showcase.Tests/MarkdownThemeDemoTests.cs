@@ -35,6 +35,8 @@ public sealed class MarkdownThemeDemoTests
         // source-preserved indentation through the Markdown/Spectre pipeline.
         Assert.Contains("using System;", console.Output);
         Assert.Contains("namespace HelloCore31", console.Output);
+        Assert.Contains("Review the dependency versions.", console.Output);
+        Assert.Contains("dotnet --list-runtimes", console.Output);
         Assert.Contains("public static int Double(int value)", console.Output);
         Assert.Contains("Its second paragraph stays under the same numbered item.", console.Output);
         Assert.Contains("return value * 2;", console.Output);
