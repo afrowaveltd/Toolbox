@@ -36,6 +36,18 @@ public sealed record MarkdownBlock(
     /// <summary>Quote marker depth, zero for non-quote lines.</summary>
     public int QuoteDepth { get; init; }
 
+    /// <summary>
+    /// Absolute source offset of the ordinary list item enclosing this
+    /// explicitly quoted line. Independent from inner quoted-list ownership.
+    /// </summary>
+    public int? QuoteContainerListOwnerStart { get; init; }
+
+    /// <summary>
+    /// Marker of the enclosing ordinary list item, if any. Used by terminal
+    /// renderers for the outer indent before a quoted list or code fence.
+    /// </summary>
+    public MarkdownListMarker? QuoteContainerListMarker { get; init; }
+
     /// <summary>Absolute source offset of the opening code fence, for opener/body/closer.</summary>
     public int? CodeFenceStart { get; init; }
 

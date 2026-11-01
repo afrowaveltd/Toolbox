@@ -74,7 +74,8 @@ public static class MarkdownSpectreRenderer
                         }
                     }
                     if (theme.ShowCodeFenceDelimiters)
-                        WriteLine(console, QuoteContainerPrefix(block, theme) +
+                        WriteLine(console, OuterQuoteListIndent(block, theme) +
+                            QuoteContainerPrefix(block, theme) +
                             ListContainerIndent(block, theme) +
                             (block.QuoteDepth > 0 || block.ListContinuationMarker is not null
                                 ? block.Text : block.RawText.TrimEnd('\r', '\n')), theme.Code);
@@ -86,13 +87,15 @@ public static class MarkdownSpectreRenderer
                     break;
                 case MarkdownBlockKind.CodeLine:
                     if (block.QuoteDepth > 0)
-                        WriteSafe(console, QuoteContainerPrefix(block, theme), theme.QuoteMarker);
+                        WriteSafe(console, OuterQuoteListIndent(block, theme) +
+                            QuoteContainerPrefix(block, theme), theme.QuoteMarker);
                     WriteSafe(console, ListContainerIndent(block, theme) + theme.CodeIndent, theme.Code);
                     WriteHighlightedCode(console, block.Text, block.CodeLanguage, theme, ref highlightSession);
                     WriteNewline(console);
                     break;
                 case MarkdownBlockKind.BlockQuote:
-                    WriteSafe(console, ListContainerIndent(block, theme) +
+                    WriteSafe(console, OuterQuoteListIndent(block, theme) +
+                        ListContainerIndent(block, theme) +
                         string.Concat(Enumerable.Repeat(theme.QuotePrefix,
                             Math.Clamp(block.QuoteDepth, 0, 32))), theme.QuoteMarker);
                     WriteInlineLine(console, block, theme.Quote, theme);
@@ -102,7 +105,8 @@ public static class MarkdownSpectreRenderer
                     break;
                 case MarkdownBlockKind.ListItem:
                     if (block.QuoteDepth > 0)
-                        WriteSafe(console, QuoteContainerPrefix(block, theme), theme.QuoteMarker);
+                        WriteSafe(console, OuterQuoteListIndent(block, theme) +
+                            QuoteContainerPrefix(block, theme), theme.QuoteMarker);
                     var marker = block.ListMarker;
                     var depth = Math.Clamp(marker?.Depth ?? 0, 0, 32);
                     var prefix = ListPrefix(marker, theme);
@@ -113,7 +117,8 @@ public static class MarkdownSpectreRenderer
                     break;
                 case MarkdownBlockKind.Paragraph:
                     if (block.QuoteDepth > 0)
-                        WriteSafe(console, QuoteContainerPrefix(block, theme), theme.QuoteMarker);
+                        WriteSafe(console, OuterQuoteListIndent(block, theme) +
+                            QuoteContainerPrefix(block, theme), theme.QuoteMarker);
                     if (block.ListContinuationMarker is not null)
                         WriteSafe(console, ListContainerIndent(block, theme), theme.Body);
                     WriteInlineLine(console, block, theme.Body, theme);
@@ -133,14 +138,27 @@ public static class MarkdownSpectreRenderer
         string.Concat(Enumerable.Repeat(theme.QuotePrefix,
             Math.Clamp(block.QuoteDepth, 0, 32)));
 
+    private static string OuterQuoteListIndent(MarkdownBlock block, MarkdownSpectreTheme theme)
+    {
+        // For plain quoted text the regular ListContinuationMarker already
+        // produces the outer indent. Avoid rendering it twice.
+        if (block.QuoteContainerListMarker is not { } outer ||
+            block.ListContinuationOwnerStart == block.QuoteContainerListOwnerStart)
+            return string.Empty;
+        return ListIndentForMarker(outer, theme);
+    }
+
+    private static string ListIndentForMarker(MarkdownListMarker marker,
+        MarkdownSpectreTheme theme) =>
+        string.Concat(Enumerable.Repeat(theme.ListIndent,
+            Math.Clamp(marker.Depth, 0, 32))) +
+        new string(' ', ListPrefix(marker, theme).Length + 1);
+
     private static string ListContainerIndent(MarkdownBlock block, MarkdownSpectreTheme theme)
     {
         if (block.ListContinuationMarker is not { } marker)
             return string.Empty;
-        var markerPrefix = ListPrefix(marker, theme);
-        var level = string.Concat(Enumerable.Repeat(theme.ListIndent,
-            Math.Clamp(marker.Depth, 0, 32)));
-        return level + new string(' ', markerPrefix.Length + 1);
+        return ListIndentForMarker(marker, theme);
     }
 
     private static void WriteHighlightedCode(

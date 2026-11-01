@@ -18,6 +18,7 @@ public static class MarkdownParser
         var quoteListRoots = new List<MutableListNode>();
         var quoteListStack = new List<MutableListNode>();
         var previousQuoteDepth = 0;
+        int? previousQuoteOuterOwnerStart = null;
         var pendingBlankIndices = new List<int>();
         // Physical quote-prefix blank lines are deferred until a following
         // explicitly indented line proves ownership (never lazy across blanks).
@@ -30,6 +31,7 @@ public static class MarkdownParser
         string? fenceLanguage = null;
         string? fenceInfo = null;
         MutableListNode? fenceOwner = null;
+        MutableListNode? fenceOuterOwner = null;
         // Zero means a normal Markdown fence. Positive depth means every code
         // line must explicitly retain that same blockquote prefix.
         var fenceQuoteDepth = 0;
@@ -57,6 +59,8 @@ public static class MarkdownParser
             var codeClosing = false;
             var quoteDepth = 0;
             var isQuotedListLine = false;
+            var protectedCodeLine = false;
+            MutableListNode? quoteOuterOwner = null;
             var currentFenceStart = -1;
             string? currentLanguage = null;
             string? currentInfo = null;
@@ -65,11 +69,14 @@ public static class MarkdownParser
             // or from the surrounding document. Reclassify the first such line
             // normally, rather than hiding all following Markdown as code.
             if (inCode && fenceQuoteDepth > 0 &&
-                (!TryQuote(line, out var observedQuoteDepth, out _) ||
-                 observedQuoteDepth != fenceQuoteDepth))
+                (!TryQuotedContainerLine(line, listStack, out var observedOuter,
+                    out var observedQuoteDepth, out _) ||
+                 observedQuoteDepth != fenceQuoteDepth ||
+                 observedOuter?.Block.Start != fenceOuterOwner?.Block.Start))
             {
                 inCode = false;
                 fenceOwner = null;
+                fenceOuterOwner = null;
                 fenceStart = -1;
                 fenceInfo = null;
                 fenceLanguage = null;
@@ -81,8 +88,11 @@ public static class MarkdownParser
             // the same quote depth can claim the pending separators.
             if (!inCode && pendingQuoteBlankIndices.Count > 0)
             {
-                var sameQuote = TryQuote(line, out var candidateDepth,
-                    out var candidateQuoteContent) && candidateDepth == previousQuoteDepth;
+                var sameQuote = TryQuotedContainerLine(line, listStack,
+                    out var candidateOuter, out var candidateDepth,
+                    out var candidateQuoteContent) &&
+                    candidateDepth == previousQuoteDepth &&
+                    candidateOuter?.Block.Start == previousQuoteOuterOwnerStart;
                 if (!sameQuote || !string.IsNullOrWhiteSpace(candidateQuoteContent))
                 {
                     var probe = new List<MutableListNode>(quoteListStack);
@@ -141,6 +151,7 @@ public static class MarkdownParser
 
             if (inCode)
             {
+                protectedCodeLine = true;
                 // Retain the list owner while scanning literal code: Markdown markers
                 // inside a fence must never create list items, headings or quotes.
                 continuationOwner = fenceOwner;
@@ -149,7 +160,8 @@ public static class MarkdownParser
                     // The depth was validated before the scan. Remove only the
                     // quote container and the owning list's content indentation;
                     // preserve all remaining literal code whitespace.
-                    TryQuote(line, out quoteDepth, out content);
+                    TryQuotedContainerLine(line, listStack, out quoteOuterOwner,
+                        out quoteDepth, out content);
                     isQuotedListLine = true;
                     if (fenceOwner is not null)
                         content = StripIndentUpTo(content, fenceOwner.ContentIndentColumns);
@@ -202,6 +214,7 @@ public static class MarkdownParser
                     inCode = true;
                     fenceStart = offset;
                     fenceOwner = continuationOwner;
+                    fenceOuterOwner = null;
                     fenceQuoteDepth = 0;
                     fenceInfo = ReadFenceInfo(content, fenceMarker, fenceLength);
                     fenceLanguage = ReadFenceLanguage(fenceInfo);
@@ -213,6 +226,9 @@ public static class MarkdownParser
                 {
                     kind = MarkdownBlockKind.BlockQuote;
                     content = quoteContent;
+                    quoteOuterOwner = continuationOwner;
+                    continuationOwner = null;
+                    isQuotedListLine = true;
                 }
                 else
                     kind = MarkdownBlockKind.Paragraph;
@@ -230,6 +246,7 @@ public static class MarkdownParser
                 inCode = true;
                 fenceStart = offset;
                 fenceOwner = null;
+                fenceOuterOwner = null;
                 fenceQuoteDepth = 0;
                 fenceInfo = ReadFenceInfo(line, fenceMarker, fenceLength);
                 fenceLanguage = ReadFenceLanguage(fenceInfo);
@@ -239,13 +256,28 @@ public static class MarkdownParser
             }
             else if (TryQuote(line, out quoteDepth, out var quotedContent))
             {
+                kind = MarkdownBlockKind.BlockQuote;
+                content = quotedContent;
                 isQuotedListLine = true;
-                // Quote-prefixed lines form a separate container; only consecutive
-                // physical lines with the same quote depth can share list ownership.
-                listStack.Clear();
-                if (previousQuoteDepth != quoteDepth)
+            }
+            else if (TryHeading(line, out level, out content))
+            {
+                kind = MarkdownBlockKind.Heading;
+            }
+            else
+            {
+                kind = MarkdownBlockKind.Paragraph;
+            }
+
+            if (isQuotedListLine && !protectedCodeLine)
+            {
+                // A quoted run is scoped to its particular outer list item.
+                if (previousQuoteDepth != quoteDepth ||
+                    previousQuoteOuterOwnerStart != quoteOuterOwner?.Block.Start)
                     quoteListStack.Clear();
                 previousQuoteDepth = quoteDepth;
+                previousQuoteOuterOwnerStart = quoteOuterOwner?.Block.Start;
+                var quotedContent = content;
 
                 if (TryListItem(quotedContent, out var quoteMarker, out var quoteNumber,
                         out var quoteIndent, out var quoteItemContent) &&
@@ -285,6 +317,7 @@ public static class MarkdownParser
                         fenceStart = offset;
                         fenceQuoteDepth = quoteDepth;
                         fenceOwner = continuationOwner;
+                        fenceOuterOwner = quoteOuterOwner;
                         fenceInfo = ReadFenceInfo(content, fenceMarker, fenceLength);
                         fenceLanguage = ReadFenceLanguage(fenceInfo);
                         currentFenceStart = fenceStart;
@@ -305,6 +338,7 @@ public static class MarkdownParser
                     fenceStart = offset;
                     fenceQuoteDepth = quoteDepth;
                     fenceOwner = null;
+                    fenceOuterOwner = quoteOuterOwner;
                     fenceInfo = ReadFenceInfo(content, fenceMarker, fenceLength);
                     fenceLanguage = ReadFenceLanguage(fenceInfo);
                     currentFenceStart = fenceStart;
@@ -330,24 +364,22 @@ public static class MarkdownParser
                 if (kind == MarkdownBlockKind.BlockQuote &&
                     !string.IsNullOrWhiteSpace(content))
                     quoteListStack.Clear();
-            }
-            else if (TryHeading(line, out level, out content))
-            {
-                kind = MarkdownBlockKind.Heading;
-            }
-            else
-            {
-                kind = MarkdownBlockKind.Paragraph;
+                // Ordinary quote prose remains an owned embedded block of
+                // the outer item. An inner list retains its own owner metadata.
+                if (kind == MarkdownBlockKind.BlockQuote &&
+                    !string.IsNullOrWhiteSpace(content) && quoteOuterOwner is not null)
+                    continuationOwner = quoteOuterOwner;
             }
 
             if (!isQuotedListLine)
             {
                 quoteListStack.Clear();
                 previousQuoteDepth = 0;
+                previousQuoteOuterOwnerStart = null;
             }
 
             if (kind is not (MarkdownBlockKind.ListItem or MarkdownBlockKind.Blank)
-                && continuationOwner is null)
+                && continuationOwner is null && quoteOuterOwner is null)
                 listStack.Clear();
 
             var inlines = kind is MarkdownBlockKind.Heading or MarkdownBlockKind.Paragraph
@@ -363,12 +395,23 @@ public static class MarkdownParser
                 ListContinuationOwnerStart = continuationOwner?.Block.Start,
                 IsLazyListContinuation = lazyContinuation,
                 QuoteDepth = quoteDepth,
+                QuoteContainerListOwnerStart = quoteOuterOwner?.Block.Start,
+                QuoteContainerListMarker = quoteOuterOwner?.Block.ListMarker,
                 CodeFenceStart = currentFenceStart >= 0 ? currentFenceStart : null,
                 CodeFenceInfo = currentInfo,
                 CodeLanguage = currentLanguage,
                 IsClosingCodeFence = codeClosing
             };
             blocks.Add(block);
+
+            // The outer item retains an ordered flat view of its quoted
+            // subtree, while QuoteListRoots exposes the quoted hierarchy.
+            if (isQuotedListLine && quoteOuterOwner is not null &&
+                continuationOwner != quoteOuterOwner)
+            {
+                quoteOuterOwner.EmbeddedBlocks.Add(block);
+                quoteOuterOwner.ContentBlocks.Add(block);
+            }
 
             if (marker is not null)
             {
@@ -403,6 +446,7 @@ public static class MarkdownParser
             if (codeClosing)
             {
                 fenceOwner = null;
+                fenceOuterOwner = null;
                 fenceLanguage = null;
                 fenceInfo = null;
                 fenceStart = -1;
@@ -414,6 +458,30 @@ public static class MarkdownParser
         return new MarkdownDocument(source, blocks.AsReadOnly(),
             listRoots.Select(FreezeListNode).ToList().AsReadOnly(),
             quoteListRoots.Select(FreezeListNode).ToList().AsReadOnly());
+    }
+
+    // Normalize an explicit quote prefix that may follow the content indent
+    // of a regular list item. Probe a stack copy to avoid changing ownership
+    // while checking a candidate (including quoted code lines).
+    private static bool TryQuotedContainerLine(string line,
+        List<MutableListNode> outerStack, out MutableListNode? outerOwner,
+        out int quoteDepth, out string content)
+    {
+        outerOwner = null;
+        if (TryQuote(line, out quoteDepth, out content))
+            return true;
+
+        var probe = new List<MutableListNode>(outerStack);
+        if (TryContinuation(line, probe, out var owner, out var index) &&
+            TryQuote(line[index..], out quoteDepth, out content))
+        {
+            outerOwner = owner;
+            return true;
+        }
+
+        quoteDepth = 0;
+        content = line;
+        return false;
     }
 
     private static string StripIndentUpTo(string line, int requiredColumns)
