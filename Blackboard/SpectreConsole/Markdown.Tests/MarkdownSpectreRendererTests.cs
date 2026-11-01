@@ -523,9 +523,9 @@ public sealed class MarkdownSpectreRendererTests
         {
             SyntaxHighlighter = backend, QuotePrefix = "| "
         });
-        Assert.Contains("  |     [csharp]", console.Output);
-        Assert.Contains("  |     public class Hello {}", console.Output);
-        Assert.Contains("  |     [red]literal[/]", console.Output);
+        Assert.Contains("  |       [csharp]", console.Output);
+        Assert.Contains("  |       public class Hello {}", console.Output);
+        Assert.Contains("  |       [red]literal[/]", console.Output);
         Assert.Equal(new[] { "csharp" }, backend.Requests);
         Assert.Equal(1, backend.Disposals);
         Assert.Equal(source, MarkdownWriter.Write(doc));

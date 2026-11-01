@@ -81,7 +81,8 @@ public static class MarkdownSpectreRenderer
                                 ? block.Text : block.RawText.TrimEnd('\r', '\n')), theme.Code);
                     else if (!block.IsClosingCodeFence && theme.ShowCodeLanguage &&
                              block.CodeLanguage is { Length: > 0 } codeLanguage)
-                        WriteLine(console, QuoteContainerPrefix(block, theme) +
+                        WriteLine(console, OuterQuoteListIndent(block, theme) +
+                            QuoteContainerPrefix(block, theme) +
                             ListContainerIndent(block, theme) +
                             theme.CodeIndent + "[" + codeLanguage + "]", theme.CodeLanguageStyle);
                     break;
