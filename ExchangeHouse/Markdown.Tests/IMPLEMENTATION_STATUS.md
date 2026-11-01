@@ -115,3 +115,8 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 - Windows focused tests: ExchangeHouse Markdown **75/75**, Blackboard Markdown **29/29**, Markdown.TextMate **6/6**, Blackboard Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, UnderstandMe localization **34/34**.
 - Markdown local-link checker verified **284 files / 1,452 local targets**, zero broken links. An earlier documentation-only CI failed one wrong Showcase-to-renderer relative path, fixed in `8f25d8e`; the final checkpoint above is green.
 - No new NuGet release or manual real-terminal Windows/Debian acceptance claimed.
+
+## 2026-11-01 — loose quoted list parser regressions
+
+- Test multi-blank CRLF ownership and exact inline links, nested-child to parent resumption, quoted paragraph/list boundaries, quote-depth/unquoted boundaries and distinction between quote separators and code-fence literal blank lines.
+- CI pending. Previous verified parser count was 75/75.

@@ -136,3 +136,11 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Windows focused tests: ExchangeHouse Markdown **75/75**, Blackboard Markdown **29/29**, Markdown.TextMate **6/6**, Blackboard Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, UnderstandMe localization **34/34**.
 - Markdown local-link checker verified **284 files / 1,452 local targets**, zero broken links. An earlier documentation-only CI failed one wrong Showcase-to-renderer relative path, fixed in `8f25d8e`; the final checkpoint above is green.
 - No new NuGet release or manual real-terminal Windows/Debian acceptance claimed.
+
+## 2026-11-01 — deferred blank separators in quoted lists
+
+- ExchangeHouse Markdown recognizes **loose quoted list paragraphs**: one or more explicitly quote-prefixed blank lines are owned only when followed by a sufficiently indented continuation at the **same quote depth**. Quoted nested numbered items can return ownership to a parent. A new marker, unindented paragraph, different quote depth or unquoted boundary never steals pending separators.
+- This extends existing `MarkdownListItemNode.SeparatorBlocks` / `ContentBlocks` and `MarkdownBlock.ListBlankOwnerStart` without breaking `ListRoots`, `QuoteListRoots`, original character offsets or unchanged-source writing. Quoted blank lines retain `BlockQuote` kind and their visible quote prefix.
+- Blackboard's existing owner-aware renderer displays the blank quote markers and aligned paragraphs; Showcase has a concrete quoted numbered-list example. No new renderer production dependency or NuGet release.
+- Parser, terminal and Showcase regressions plus English topic docs: [parser](ExchangeHouse/Markdown/Docs/Quoted-Loose-Paragraphs/en.md), [renderer](Blackboard/SpectreConsole/Markdown/Docs/Quoted-Loose-Presentation/en.md).
+- Full cross-platform GitHub Actions validation **pending** for this increment. Full CommonMark or lazy continuation *across* blank boundaries is not claimed.

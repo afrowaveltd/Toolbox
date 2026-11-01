@@ -65,3 +65,7 @@ Conservative indented blockquotes and fenced code can be associated with their c
 ## Explicit quote-prefixed fenced code (2026-11-01)
 
 The parser recognizes fenced code within blockquotes and sufficiently indented quoted-list items (for example, `> ~~~csharp`). Every code line needs an explicit matching quote depth. A missing or different quote prefix ends the quoted fence and does not swallow the next Markdown block. Exact source positions, delimiters, language hints, and whitespace remain intact. [Quoted-code behavior](Docs/Quoted-Code-Fences/en.md). This is a conservative subset of CommonMark.
+
+## Blank-separated paragraphs inside quoted lists (2026-11-01)
+
+A quoted list item may now own one or more physical quote-prefixed blank lines (`> ` / `>`) **only when** the following line belongs to that item's explicitly indented continuation at the same quote depth. The immutable separator/owner fields work for quoted and ordinary lists; raw source and quoted marker styling are retained. Unrelated paragraphs, nested quote levels and list markers cannot steal those separators. [Quoted loose paragraphs](Docs/Quoted-Loose-Paragraphs/en.md). This is not full CommonMark.

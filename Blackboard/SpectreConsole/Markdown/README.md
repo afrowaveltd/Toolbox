@@ -57,3 +57,7 @@ Quote-contained lists render with configurable quote prefix outside the list ind
 ## Quoted code and syntax highlighting (2026-11-01)
 
 The renderer can display syntax-colored fenced source inside quoted lists, drawing themed quote prefixes outside the code/list indentation. An optional per-fence TextMate highlighting session is disposed on closure or interruption. Code remains safe literal text; see [quote-code rendering](Docs/Quoted-Code-Presentation/en.md).
+
+## Loose quoted list paragraphs (2026-11-01)
+
+The quote-prefix styling and list-content alignment now handle quoted list items with blank-separated, explicitly indented paragraphs. The parser decides ownership; the existing renderer shows preserved quote blank lines and resumes beneath the original numbered marker without duplicating it. [Presentation details](Docs/Quoted-Loose-Presentation/en.md).

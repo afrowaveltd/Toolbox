@@ -82,3 +82,7 @@ reuse the same parsed Markdown; Monochrome remains uncolored.
 ## Quote-nested code example (2026-11-01)
 
 The Markdown theme gallery now includes an indented `csharp` fence beneath a numbered list item **inside a blockquote**, in addition to the classic .NET Core 3.1 `Program.Main` sample. Colored themes demonstrate optional TextMate highlighting in both places; Monochrome remains uncolored. [Gallery documentation](Docs/Markdown-Themes/en.md).
+
+## Quote-list second paragraph (2026-11-01)
+
+The Markdown gallery's numbered quoted-list sample includes a blank quote line followed by a second indented paragraph and a C# fence, illustrating loose quote lists alongside ordinary lists and .NET Core 3.1 syntax highlighting. [Markdown themes](Docs/Markdown-Themes/en.md).

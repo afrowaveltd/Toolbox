@@ -154,3 +154,7 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 - Windows focused tests: ExchangeHouse Markdown **75/75**, Blackboard Markdown **29/29**, Markdown.TextMate **6/6**, Blackboard Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, UnderstandMe localization **34/34**.
 - Markdown local-link checker verified **284 files / 1,452 local targets**, zero broken links. An earlier documentation-only CI failed one wrong Showcase-to-renderer relative path, fixed in `8f25d8e`; the final checkpoint above is green.
 - No new NuGet release or manual real-terminal Windows/Debian acceptance claimed.
+
+## 2026-11-01 — quote-list blank-separated paragraph gallery
+
+- Added an explicitly quote-prefixed blank line and a second sufficiently indented paragraph under the quoted `13)` list item, preceding its existing C# fence. Keeps all four theme presets and .NET Core 3.1 `Program.Main` sample. CI pending.

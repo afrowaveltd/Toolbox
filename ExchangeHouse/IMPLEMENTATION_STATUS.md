@@ -101,3 +101,7 @@ ExchangeHouse Markdown now records fenced-code language metadata, quote depth, a
 - Windows focused tests: ExchangeHouse Markdown **75/75**, Blackboard Markdown **29/29**, Markdown.TextMate **6/6**, Blackboard Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, UnderstandMe localization **34/34**.
 - Markdown local-link checker verified **284 files / 1,452 local targets**, zero broken links. An earlier documentation-only CI failed one wrong Showcase-to-renderer relative path, fixed in `8f25d8e`; the final checkpoint above is green.
 - No new NuGet release or manual real-terminal Windows/Debian acceptance claimed.
+
+## 2026-11-01 — quoted loose paragraphs
+
+- Markdown parser defers quote-marked blanks until a same-depth, explicitly indented list continuation establishes owner; it preserves untouched source and independent quote/unquoted list hierarchies. [Technical guide](Markdown/Docs/Quoted-Loose-Paragraphs/en.md); [project status](Markdown/IMPLEMENTATION_STATUS.md). CI pending.
