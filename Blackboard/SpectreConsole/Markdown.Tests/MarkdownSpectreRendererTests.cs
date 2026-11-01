@@ -534,7 +534,7 @@ public sealed class MarkdownSpectreRendererTests
     [Fact]
     public void Plain_quote_after_list_nested_quote_does_not_double_outer_indent()
     {
-        const string source = "- Outer\n  > - One\n  > Ordinary **text**\n  Resume";
+        const string source = "- Outer\n  > - One\n  > # Heading breaks the inner list\n  > Ordinary **text**\n  Resume";
         var console = Console();
         MarkdownSpectreRenderer.Render(console, source,
             new MarkdownSpectreTheme { QuotePrefix = "> " });
