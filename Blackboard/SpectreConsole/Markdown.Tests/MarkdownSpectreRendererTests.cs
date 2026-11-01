@@ -496,7 +496,7 @@ public sealed class MarkdownSpectreRendererTests
     [Fact]
     public void List_nested_quoted_lists_render_both_theme_indent_levels()
     {
-        const string source = "- Install\n  > - **Warning**\n  >   12) Risk\n  >     Note\n  Continue\n- Finish";
+        const string source = "- Install\n  > - **Warning**\n  >   12) Risk\n  >       Note\n  Continue\n- Finish";
         var doc = MarkdownParser.Parse(source);
         var console = Console();
         MarkdownSpectreRenderer.Render(console, doc, new MarkdownSpectreTheme

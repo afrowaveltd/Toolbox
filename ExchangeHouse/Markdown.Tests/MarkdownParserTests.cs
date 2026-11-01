@@ -767,7 +767,7 @@ public sealed class MarkdownParserTests
     [Fact]
     public void Quoted_list_inside_ordinary_list_preserves_independent_owners_and_offsets()
     {
-        const string source = "- Install\r\n  > - **Caution** [guide](../en.md)\r\n  >   12) Risk\r\n  >     Note\r\n  > - Second risk\r\n  Continue install\r\n- Finish";
+        const string source = "- Install\r\n  > - **Caution** [guide](../en.md)\r\n  >   12) Risk\r\n  >       Note\r\n  > - Second risk\r\n  Continue install\r\n- Finish";
         var doc = MarkdownParser.Parse(source);
         Assert.Equal(2, doc.ListRoots.Count);
         Assert.Equal(2, doc.QuoteListRoots.Count);

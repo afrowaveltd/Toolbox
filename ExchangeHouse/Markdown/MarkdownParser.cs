@@ -467,10 +467,9 @@ public static class MarkdownParser
         List<MutableListNode> outerStack, out MutableListNode? outerOwner,
         out int quoteDepth, out string content)
     {
-        outerOwner = null;
-        if (TryQuote(line, out quoteDepth, out content))
-            return true;
-
+        // An indented quote belongs to a surrounding list when its content
+        // indentation matches. Probe that owner BEFORE accepting a standalone
+        // quote with up to three source spaces (which would lose its owner).
         var probe = new List<MutableListNode>(outerStack);
         if (TryContinuation(line, probe, out var owner, out var index) &&
             TryQuote(line[index..], out quoteDepth, out content))
@@ -478,6 +477,10 @@ public static class MarkdownParser
             outerOwner = owner;
             return true;
         }
+
+        outerOwner = null;
+        if (TryQuote(line, out quoteDepth, out content))
+            return true;
 
         quoteDepth = 0;
         content = line;
