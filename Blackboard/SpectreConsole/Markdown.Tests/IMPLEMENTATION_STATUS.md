@@ -111,3 +111,8 @@ New virtual-terminal tests cover quote depth, nested numbered-list code indentat
 - Windows tests: ExchangeHouse Markdown **82/82**, Blackboard Markdown **31/31**, TextMate adapter **6/6**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
 - Markdown checker processed **286 files / 1,470 local targets**, with zero missing local links.
 - The test-preserving increment has not been published to NuGet and has not undergone manual Debian/Windows/SSH visual acceptance; full CommonMark nesting remains outside this milestone.
+
+## 2026-11-01 — nested quoted list UI tests
+
+- Three new tests check custom bullet/quote/list indentation, literal C# code with session lifecycle, and correctly interrupted plain quote prose. The language-label missing outer indent was fixed as part of this milestone.
+- [CI #41257477307](https://github.com/afrowaveltd/Toolbox/actions/runs/41257477307): **34/34 renderer tests green**.

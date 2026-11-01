@@ -241,3 +241,8 @@ Blackboard Markdown now renders quoted and fenced code lines within list items, 
 - Windows tests: ExchangeHouse Markdown **82/82**, Blackboard Markdown **31/31**, TextMate adapter **6/6**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
 - Markdown checker processed **286 files / 1,470 local targets**, with zero missing local links.
 - The test-preserving increment has not been published to NuGet and has not undergone manual Debian/Windows/SSH visual acceptance; full CommonMark nesting remains outside this milestone.
+
+## 2026-11-01 — outer list / quote / inner list terminal layout
+
+- Markdown renderer draws separate outer/quote/inner indentation, including optional code-fence language label and literal code. Showcase demonstrates a quoted deployment checklist. [Presentation guide](SpectreConsole/Markdown/Docs/Quoted-List-Containers/en.md).
+- [CI #41257477307](https://github.com/afrowaveltd/Toolbox/actions/runs/41257477307) **SUCCESS**; renderer 34/34, Showcase 26/26. No new dependencies.

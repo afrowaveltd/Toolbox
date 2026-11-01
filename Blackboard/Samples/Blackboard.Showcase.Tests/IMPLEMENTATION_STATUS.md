@@ -96,3 +96,8 @@ Next: confirm CI and add regression cases for any Windows/SSH differences that a
 - Windows tests: ExchangeHouse Markdown **82/82**, Blackboard Markdown **31/31**, TextMate adapter **6/6**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
 - Markdown checker processed **286 files / 1,470 local targets**, with zero missing local links.
 - The test-preserving increment has not been published to NuGet and has not undergone manual Debian/Windows/SSH visual acceptance; full CommonMark nesting remains outside this milestone.
+
+## 2026-11-01 — deployment quote/list gallery assertion
+
+- The existing Classic theme preview test also asserts the quoted numbered deployment text and literal `dotnet --list-runtimes`.
+- [CI #41257477307](https://github.com/afrowaveltd/Toolbox/actions/runs/41257477307): **26/26 Showcase tests passed**.
