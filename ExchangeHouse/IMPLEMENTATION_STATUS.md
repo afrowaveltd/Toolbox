@@ -94,3 +94,10 @@ ExchangeHouse Markdown now records fenced-code language metadata, quote depth, a
 
 - Parser recognizes source-aware literal quoted code fences and quoted numbered-list ownership with conservative interruption on changed/missing quote prefixes.
 - [Quoted code behavior](Markdown/Docs/Quoted-Code-Fences/en.md). Core tests passed on implementation CI [#41254427784](https://github.com/afrowaveltd/Toolbox/actions/runs/41254427784); final docs CI separate.
+
+### Full cross-platform CI checkpoint — 2026-11-01
+
+- [GitHub Actions #41254717060](https://github.com/afrowaveltd/Toolbox/actions/runs/41254717060) **SUCCESS** for final code/English-docs fix commit `8f25d8e2a72df6ffe915362ef11d64dbd6c89d6a`: Linux complete solution build/tests, Windows targeted UI/Markdown tests and repository local documentation-link validation passed.
+- Windows focused tests: ExchangeHouse Markdown **75/75**, Blackboard Markdown **29/29**, Markdown.TextMate **6/6**, Blackboard Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, UnderstandMe localization **34/34**.
+- Markdown local-link checker verified **284 files / 1,452 local targets**, zero broken links. An earlier documentation-only CI failed one wrong Showcase-to-renderer relative path, fixed in `8f25d8e`; the final checkpoint above is green.
+- No new NuGet release or manual real-terminal Windows/Debian acceptance claimed.

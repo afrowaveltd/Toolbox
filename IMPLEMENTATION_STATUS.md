@@ -129,3 +129,10 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Parser, virtual-terminal and Showcase regressions were added, alongside English [parser guide](ExchangeHouse/Markdown/Docs/Quoted-Code-Fences/en.md) and [renderer guide](Blackboard/SpectreConsole/Markdown/Docs/Quoted-Code-Presentation/en.md).
 - Implementation CI [#41254427784](https://github.com/afrowaveltd/Toolbox/actions/runs/41254427784) **SUCCESS** on corrected source/test commit `836914ba5fbb0358029b5b296af0c4eed4abca32`; the earlier `fdc1b17a` CI failed one incorrect expected count of embedded blocks, corrected without changing production code.
 - Full CI for the latest **documentation/status** commit is tracked separately. This is not complete CommonMark, a new NuGet publication or a manual terminal acceptance result.
+
+### Full cross-platform CI checkpoint — 2026-11-01
+
+- [GitHub Actions #41254717060](https://github.com/afrowaveltd/Toolbox/actions/runs/41254717060) **SUCCESS** for final code/English-docs fix commit `8f25d8e2a72df6ffe915362ef11d64dbd6c89d6a`: Linux complete solution build/tests, Windows targeted UI/Markdown tests and repository local documentation-link validation passed.
+- Windows focused tests: ExchangeHouse Markdown **75/75**, Blackboard Markdown **29/29**, Markdown.TextMate **6/6**, Blackboard Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, UnderstandMe localization **34/34**.
+- Markdown local-link checker verified **284 files / 1,452 local targets**, zero broken links. An earlier documentation-only CI failed one wrong Showcase-to-renderer relative path, fixed in `8f25d8e`; the final checkpoint above is green.
+- No new NuGet release or manual real-terminal Windows/Debian acceptance claimed.
