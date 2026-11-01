@@ -35,6 +35,8 @@ public sealed class MarkdownThemeDemo : IBlackboardShowcaseDemo
         >   12) First quoted step
         >     - A nested bullet under the step
         >   13) Second quoted step
+        >
+        >       Its second paragraph stays under the same numbered item.
         >       ```csharp
         >       public static int Double(int value)
         >       {

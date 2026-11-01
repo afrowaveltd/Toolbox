@@ -31,7 +31,7 @@ public sealed class MarkdownListItemNode
     /// <summary>Indented and lazy continuation paragraph lines owned by this item, in source order.</summary>
     public IReadOnlyList<MarkdownBlock> ContinuationBlocks { get; }
 
-    /// <summary>Blank separator lines that belong to this item and precede a valid continuation.</summary>
+    /// <summary>Blank and quote-prefixed blank separator lines preceding an explicitly indented owned continuation.</summary>
     public IReadOnlyList<MarkdownBlock> SeparatorBlocks { get; }
 
     /// <summary>Owned continuation and separator lines together, in original source order.</summary>

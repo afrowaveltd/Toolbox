@@ -19,6 +19,9 @@ public static class MarkdownParser
         var quoteListStack = new List<MutableListNode>();
         var previousQuoteDepth = 0;
         var pendingBlankIndices = new List<int>();
+        // Physical quote-prefix blank lines are deferred until a following
+        // explicitly indented line proves ownership (never lazy across blanks).
+        var pendingQuoteBlankIndices = new List<int>();
         var offset = 0;
         var inCode = false;
         var fenceMarker = '\0';
@@ -71,6 +74,41 @@ public static class MarkdownParser
                 fenceInfo = null;
                 fenceLanguage = null;
                 fenceQuoteDepth = 0;
+            }
+
+            // A quote blank keeps the visible '>' marker and quote depth. Do not
+            // attach it eagerly: only an explicitly indented continuation at
+            // the same quote depth can claim the pending separators.
+            if (!inCode && pendingQuoteBlankIndices.Count > 0)
+            {
+                var sameQuote = TryQuote(line, out var candidateDepth,
+                    out var candidateQuoteContent) && candidateDepth == previousQuoteDepth;
+                if (!sameQuote || !string.IsNullOrWhiteSpace(candidateQuoteContent))
+                {
+                    var probe = new List<MutableListNode>(quoteListStack);
+                    var startsNewItem = TryListItem(candidateQuoteContent,
+                        out _, out _, out _, out _);
+                    if (sameQuote && !startsNewItem &&
+                        TryContinuation(candidateQuoteContent, probe,
+                            out var quoteBlankOwner, out _) && quoteBlankOwner is not null)
+                    {
+                        foreach (var blankIndex in pendingQuoteBlankIndices)
+                        {
+                            var ownedBlank = blocks[blankIndex] with
+                            {
+                                ListBlankOwnerStart = quoteBlankOwner.Block.Start
+                            };
+                            blocks[blankIndex] = ownedBlank;
+                            quoteBlankOwner.SeparatorBlocks.Add(ownedBlank);
+                            quoteBlankOwner.ContentBlocks.Add(ownedBlank);
+                        }
+                    }
+                    else
+                    {
+                        quoteListStack.Clear();
+                    }
+                    pendingQuoteBlankIndices.Clear();
+                }
             }
 
             // Defer classification of blank separators until the next nonblank line.
@@ -286,7 +324,11 @@ public static class MarkdownParser
                     content = quotedContent;
                 }
 
-                if (kind == MarkdownBlockKind.BlockQuote)
+                // Unlike prose, a quote-prefixed blank can be a deferred list
+                // separator. Keep the candidate stack only until the next
+                // nonblank line decides if it belongs to this same quote level.
+                if (kind == MarkdownBlockKind.BlockQuote &&
+                    !string.IsNullOrWhiteSpace(content))
                     quoteListStack.Clear();
             }
             else if (TryHeading(line, out level, out content))
@@ -350,6 +392,12 @@ public static class MarkdownParser
             else if (kind == MarkdownBlockKind.Blank && listStack.Count > 0)
             {
                 pendingBlankIndices.Add(blocks.Count - 1);
+            }
+            else if (kind == MarkdownBlockKind.BlockQuote &&
+                     isQuotedListLine && quoteListStack.Count > 0 &&
+                     string.IsNullOrWhiteSpace(content))
+            {
+                pendingQuoteBlankIndices.Add(blocks.Count - 1);
             }
 
             if (codeClosing)

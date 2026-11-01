@@ -36,6 +36,7 @@ public sealed class MarkdownThemeDemoTests
         Assert.Contains("using System;", console.Output);
         Assert.Contains("namespace HelloCore31", console.Output);
         Assert.Contains("public static int Double(int value)", console.Output);
+        Assert.Contains("Its second paragraph stays under the same numbered item.", console.Output);
         Assert.Contains("return value * 2;", console.Output);
         Assert.Contains("            private static void Main(string[] args)", console.Output);
         Assert.Contains("                if (args.Length > 0)", console.Output);

@@ -457,6 +457,41 @@ public sealed class MarkdownSpectreRendererTests
         Assert.Equal(new[] { "csharp", "csharp" }, highlighter.Requests);
         Assert.Equal(2, highlighter.Disposals);
     }
+
+    [Fact]
+    public void Loose_quoted_numbered_item_preserves_blank_quote_markers_and_aligned_paragraph()
+    {
+        const string source = "> 12) First\n> \n>\n>     Second **important**\n> 13) Next";
+        var doc = MarkdownParser.Parse(source);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc, new MarkdownSpectreTheme
+        {
+            QuotePrefix = "| ", ListIndent = "...."
+        });
+        Assert.Contains("| 12) First\n| \n| \n|     Second important\n| 13) Next",
+            console.Output);
+        Assert.DoesNotContain("**important**", console.Output);
+        Assert.True(doc.QuoteListRoots[0].IsLoose);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Quoted_loose_parent_resumes_below_nested_child_without_extra_marker()
+    {
+        const string source = "> - Parent\n>   12) Child\n> \n>   Parent detail\n> - End";
+        var doc = MarkdownParser.Parse(source);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc, new MarkdownSpectreTheme
+        {
+            QuotePrefix = "> ", ListBullet = "+", ListIndent = "...."
+        });
+        Assert.Contains("> + Parent", console.Output);
+        Assert.Contains("> ....12) Child", console.Output);
+        Assert.Contains("> \n>   Parent detail", console.Output);
+        Assert.DoesNotContain("> + Parent detail", console.Output);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
     [Fact]
     public void Rejects_null_input_and_invalid_heading_levels()
     {

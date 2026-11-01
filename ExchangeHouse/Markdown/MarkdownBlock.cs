@@ -55,8 +55,10 @@ public sealed record MarkdownBlock(
     public int? ListContinuationOwnerStart { get; init; }
 
     /// <summary>
-    /// Owner's list-marker source offset when this blank line separates explicitly indented
-    /// paragraphs within a loose list item. Null for unrelated blank lines.
+    /// Owner's list-marker source offset when a physical blank or quote-prefixed
+    /// blank separates explicitly indented content of a loose list item.
+    /// Null for unrelated blanks. Quote-prefixed separators retain their
+    /// BlockQuote kind and QuoteDepth so their visible markers are preserved.
     /// </summary>
     public int? ListBlankOwnerStart { get; init; }
 }
