@@ -70,3 +70,7 @@ The single parsed Markdown fixture now also includes `public static int Double(i
 ## 2026-11-01 — blank-separated paragraphs in a quoted list
 
 The numbered `13)` quoted item now has an explicit quote-prefixed blank line before its second indented paragraph. The same item then contains the C# fence. This demonstrates loose quoted-list ownership, retained quote prefix, original numbering and source-preserving alignment across every preset. [Quoted loose list renderer](../../../../SpectreConsole/Markdown/Docs/Quoted-Loose-Presentation/en.md).
+
+## 2026-11-01 — list → quote → list → code
+
+The gallery demonstrates a deployment step containing a quoted warning, numbered substep and literal `bash` fence. Its source is parsed once and rendered with three independent indentation layers in all four themes. TextMate remains optional and Monochrome remains plain. [Layout guide](../../../../SpectreConsole/Markdown/Docs/Quoted-List-Containers/en.md).

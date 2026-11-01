@@ -56,3 +56,7 @@ The independent [Markdown renderer](SpectreConsole/Markdown/README.md) consumes 
 ## Optional grammar-driven Markdown syntax highlighting (2026-10-31)
 
 The independent [Markdown.TextMate](SpectreConsole/Markdown.TextMate/README.md) adapter provides optional bundled TextMate grammar support for fenced code. It is **not** a required dependency of the [base Markdown renderer](SpectreConsole/Markdown/README.md) and is **not yet published**. The base renderer additionally supports bounded list-embedded code/quotes and language-label presentation.
+
+## Ordinary list → quote → quoted sublist (2026-11-01)
+
+The Markdown renderer composes the outer item's indentation, themed quote markers, quoted list nesting and optional fenced-code highlighting without evaluating source text. [Nested quote list rendering](SpectreConsole/Markdown/Docs/Quoted-List-Containers/en.md).

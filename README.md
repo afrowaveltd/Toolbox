@@ -95,3 +95,7 @@ Afrowave intends to give everyone the maximum feasible access to useful hosted s
 ## License
 
 See [LICENSE.txt](LICENSE.txt).
+
+## Quoted sublists inside ordinary list items (2026-11-01)
+
+Markdown parsing and Spectre presentation now support **ordinary list → explicitly indented quote → nested list → fenced code**, preserving the enclosing ordinary item and the independent quoted-list hierarchy. See the [ExchangeHouse parser guide](ExchangeHouse/Markdown/Docs/Quoted-Lists-Inside-Lists/en.md) and [Blackboard presentation guide](Blackboard/SpectreConsole/Markdown/Docs/Quoted-List-Containers/en.md). No new NuGet release.

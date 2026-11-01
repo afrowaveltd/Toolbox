@@ -61,3 +61,7 @@ The renderer can display syntax-colored fenced source inside quoted lists, drawi
 ## Loose quoted list paragraphs (2026-11-01)
 
 The quote-prefix styling and list-content alignment now handle quoted list items with blank-separated, explicitly indented paragraphs. The parser decides ownership; the existing renderer shows preserved quote blank lines and resumes beneath the original numbered marker without duplicating it. [Presentation details](Docs/Quoted-Loose-Presentation/en.md).
+
+## Outer and inner list indentation (2026-11-01)
+
+Quoted lists embedded beneath ordinary list items draw the **outer list indentation before the quote prefix**, then the inner quote-list nesting. Code-fence language labels, delimiters and bodies use that same layout; plain quoted prose owned by the outer item is not double-indented. [Quoted list container presentation](Docs/Quoted-List-Containers/en.md).

@@ -35,3 +35,7 @@ No grammar coloring or executable code is required in ExchangeHouse.
 
 [Earlier code/quote support](../Code-and-Quote-Containers/en.md) ·
 [Implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## Nested under an ordinary list item
+
+A quoted list can itself be embedded in an ordinary list's content indentation. Its quote depth and outer ordinary-item source offset identify the correct container; equally deep quotes belonging to different ordinary list items remain separate. See [quoted sublists in ordinary lists](../Quoted-Lists-Inside-Lists/en.md).

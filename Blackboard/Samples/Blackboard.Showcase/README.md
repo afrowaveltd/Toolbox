@@ -86,3 +86,7 @@ The Markdown theme gallery now includes an indented `csharp` fence beneath a num
 ## Quote-list second paragraph (2026-11-01)
 
 The Markdown gallery's numbered quoted-list sample includes a blank quote line followed by a second indented paragraph and a C# fence, illustrating loose quote lists alongside ordinary lists and .NET Core 3.1 syntax highlighting. [Markdown themes](Docs/Markdown-Themes/en.md).
+
+## Quote nested under a deployment step (2026-11-01)
+
+The Markdown theme gallery now includes an ordinary deployment item containing a quoted warning, numbered dependency checks and a `bash` fence with `dotnet --list-runtimes`. This adds no project dependencies and does not execute the command. [Theme guide](Docs/Markdown-Themes/en.md).
