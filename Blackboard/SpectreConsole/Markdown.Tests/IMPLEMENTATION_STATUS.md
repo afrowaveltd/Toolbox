@@ -104,3 +104,10 @@ New virtual-terminal tests cover quote depth, nested numbered-list code indentat
 
 - Added two theme-aware terminal tests for blank quote prefixes, preserved ordered markers and nested list parent continuation without duplicate bullet.
 - CI pending; previous verified renderer count 29/29.
+
+### Verified cross-platform milestone — 2026-11-01
+
+- [GitHub Actions #41256065289](https://github.com/afrowaveltd/Toolbox/actions/runs/41256065289) **SUCCESS** on source/documentation commit `882f15862d89214e8cc1204d8b5b7baaedd6d18a`: Linux complete solution build and tests, Windows UI/Markdown targeted tests and local Markdown documentation links all passed.
+- Windows tests: ExchangeHouse Markdown **82/82**, Blackboard Markdown **31/31**, TextMate adapter **6/6**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
+- Markdown checker processed **286 files / 1,470 local targets**, with zero missing local links.
+- The test-preserving increment has not been published to NuGet and has not undergone manual Debian/Windows/SSH visual acceptance; full CommonMark nesting remains outside this milestone.
