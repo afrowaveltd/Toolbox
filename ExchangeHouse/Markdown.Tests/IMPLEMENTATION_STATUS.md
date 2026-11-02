@@ -140,3 +140,15 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 - Stress runner: Toolroom/Markdown/Stress, with deterministic virtual Markdown for 10M, 100M, 1G and 10G; optional Spectre render to null output; 50k-line open-fence regression.
 - Existing full-document parser and normal Showcase viewer remain unchanged. Full CommonMark-equivalent streaming state, deferred references and paged terminal navigation are not yet supported.
 - **CI and large stress execution pending**; the change is on a review branch, not asserted merged to master.
+
+## 2026-11-02 — temporary disk-backed paging regression suite (draft PR #3)
+
+- Added `MarkdownDiskPageIndexTests` covering random page navigation,
+  raw UTF-8 source/byte offsets including emoji, BOM handling, CRLF/LF/CR,
+  EOF boundaries, empty file, invalid UTF-8 and terminal controls, maximum
+  physical line size, temporary index size quota/cleanup, mutable source,
+  invalid options and a 25,000-line / 500-page on-disk index.
+- This verifies **source pagination**, not multi-page Markdown semantic
+  rendering or 1 GiB/10 GiB interactive acceptance. Test artifacts are
+  isolated under unique temporary directories and deleted after use.
+- Relevant .NET Linux/Windows CI: [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
