@@ -105,3 +105,7 @@ dotnet run --project Blackboard/Samples/Blackboard.Showcase
 ```
 
 Then choose the Markdown file viewer and open the root `README.md`. This is an independent Showcase feature, not a new FileBrowser/Markdown NuGet dependency. [Full viewer guide](Docs/Markdown-File-Viewer/en.md).
+
+## Remote Markdown temp-file spooling (experimental, 2026-11-02)
+
+The new reusable-in-sample `RemoteMarkdownTempDocument` downloads a trusted HTTPS Markdown document with bounded memory into a disposable uniquely named temporary file. `OpenRead()` provides independent seekable paging streams after the network request has completed. Disposal deletes the temp file. This helper is **not yet wired into the interactive viewer**; only local selection is available in the menu. See [remote cache](Docs/Remote-Markdown-Cache/en.md), [future live translation proposal](Docs/Live-Markdown-Translation/en.md) and [implementation status](IMPLEMENTATION_STATUS.md).
