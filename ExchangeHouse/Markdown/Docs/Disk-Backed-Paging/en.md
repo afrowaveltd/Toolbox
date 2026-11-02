@@ -18,7 +18,10 @@ Markdown text, the complete index or the entire syntax tree into RAM.
 
 The default page contains 40 physical lines; a physical line has a configurable
 64 KiB maximum in UTF-8 bytes, with hard configuration bounds (up to 128 lines
-and 1 MiB per physical line). Temporary index storage is also capped\n(default 256 MiB, configurable with `MaxIndexBytes`) so an adversarial\nfile containing billions of one-byte lines cannot exhaust disk unchecked.\nA page is bounded by those limits, even if the
+and 1 MiB per physical line). Temporary index storage is also capped
+(default 256 MiB, configurable with `MaxIndexBytes`) so an adversarial
+file containing billions of one-byte lines cannot exhaust disk unchecked.
+A page is bounded by those limits, even if the
 source is several gigabytes long. The index space is proportional to **number
 of pages**, not byte length; e.g. 1,000,000 lines at 40 lines/page yields
 25,000 eight-byte offsets, about 200 KiB on temporary disk.
@@ -33,7 +36,8 @@ await using var pager = await MarkdownDiskPageIndex.BuildAsync(
     new MarkdownDiskPageOptions
     {
         LinesPerPage = 40,
-        MaxLineBytes = 64 * 1024,\n        MaxIndexBytes = 256L * 1024 * 1024
+        MaxLineBytes = 64 * 1024,
+        MaxIndexBytes = 256L * 1024 * 1024
     },
     cancellationToken);
 
@@ -81,6 +85,13 @@ The disk index presently supports UTF-8 only; BOM-marked UTF-16/32 are still
 supported by the existing **in-memory Showcase file viewer**, but are not
 yet indexed by this API. A future encoding-aware source adapter can bridge
 them without changing the indexing contract.
+
+The raw-source index remains independently useful. To persist only
+the active code-fence state at page boundaries, use the optional
+[96-byte fence checkpoint index](../Fence-Checkpoints/en.md) and call
+`ReadPageAsync` on that companion index. Its resumed scanner recognizes
+code content when the opener is on a preceding page; it does **not**
+reconstruct all CommonMark list, quote or reference semantics.
 
 ## Remote document integration (future)
 
