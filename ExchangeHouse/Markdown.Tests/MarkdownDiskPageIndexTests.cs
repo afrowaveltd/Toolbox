@@ -87,17 +87,11 @@ public sealed class MarkdownDiskPageIndexTests
     {
         await WithFileAsync(bytes, async (path, temp) =>
         {
-            await Assert.ThrowsAnyAsync<Exception>(async () =>
-            {
-                try
-                {
-                    await MarkdownDiskPageIndex.BuildAsync(path, tempDirectory: temp);
-                }
-                catch (Exception ex) when (ex is DecoderFallbackException or InvalidDataException)
-                {
-                    throw;
-                }
-            });
+            var failure = await Record.ExceptionAsync(() =>
+                MarkdownDiskPageIndex.BuildAsync(path, tempDirectory: temp));
+            Assert.True(failure is DecoderFallbackException or InvalidDataException,
+                "Expected a strict UTF-8 or terminal-control validation failure; got " +
+                failure?.GetType().Name);
             Assert.Empty(Directory.GetFiles(temp, "afrowave-markdown-index-*.tmp"));
         });
     }
