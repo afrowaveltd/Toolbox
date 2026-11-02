@@ -1,6 +1,6 @@
 # Afrowave.Toolbox — repository implementation status
 
-**Updated 2026-10-31. Source of truth:** [GitHub master](https://github.com/afrowaveltd/Toolbox/tree/master). This file is a **cross-project continuation overview**; authoritative technical details remain in each component's `IMPLEMENTATION_STATUS.md`.
+**Updated 2026-11-02. Source of truth:** [GitHub master](https://github.com/afrowaveltd/Toolbox/tree/master). This file is a **cross-project continuation overview**; authoritative technical details remain in each component's `IMPLEMENTATION_STATUS.md`.
 
 ## Completed implementations and owned status
 
@@ -192,3 +192,12 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Verified through official GitHub REST docs that **owner/repo are already case-insensitive**. No capitalization-guessing request loops; use one README API request and canonical repo metadata if necessary. Local Linux paths, branch/ref names and repository file paths are not assumed case-insensitive.
 - Recorded a separate prospective `IAsyncEnumerable` incremental block parser and Unix-`less`-style pager as a **research track**: quote/list/fence state and bounded lookahead, late reference definitions, optional two-pass/disk-backed spooling, terminal-width aware visual lines, keybindings, cache/index for reverse navigation and 1 GB benchmark targets. Distinguish chunked file decoding from full in-memory parsing.
 - Retain strict source validation and no silent help truncation. **Design/documentation only**; no parser API, CLI app, pager, tests, NuGet publication or 1 GB streaming claim has been implemented. [Detailed proposal](Blackboard/SpectreConsole/Markdown/Docs/Standalone-Markdown-Viewer-Proposal/en.md).
+
+## 2026-11-02 — experimental indexed streaming, virtual stress and remote temp caching (draft PR #3)
+
+- ExchangeHouse: additive `MarkdownStreamingReader.ScanAsync(TextReader)` preserves original lines and 64-bit UTF-16 offsets, indexes open code-fence state and bounded list indentation instead of collecting entire logical blocks. Not a full incremental CommonMark AST.
+- Blackboard: separate `RenderStreamingLine` entry point; existing whole-document renderer remains intact.
+- Toolroom: deterministic virtual Markdown generator with opt-in 10M, 100M, 1G, 10G stress runner, reporting wall time, managed-heap samples and RSS. Small 10M workflow passed; larger sizes not yet tested.
+- Showcase: experimental trusted HTTPS download-to-OS-Temp utility, 64-KiB network/file buffer, configurable byte limit, independent seekable reads, error cleanup and delete-on-dispose. Not yet wired into the interactive menu.
+- Future UnderstandMe integration, concurrent growing-file translation, full semantic Markdown block segmentation and paged UI documented as design only; do not claim deployed translation.
+- GitHub PR: [#3](https://github.com/afrowaveltd/Toolbox/pull/3), draft, not yet merged. Each relevant project README/Docs/en.md/status is updated.
