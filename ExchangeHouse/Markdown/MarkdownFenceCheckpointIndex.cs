@@ -207,7 +207,7 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
         destination[21] = checked((byte)state.FenceQuoteDepth);
         // Preserve a short language hint. Extremely long/unusual info strings
         // intentionally have no hint; code-vs-Markdown classification remains.
-        if (state.CodeLanguage is { } language)
+        if (state.CodeLanguage is { Length: <= LanguageMaxBytes } language)
         {
             var bytes = StrictUtf8.GetBytes(language);
             if (bytes.Length <= LanguageMaxBytes)
