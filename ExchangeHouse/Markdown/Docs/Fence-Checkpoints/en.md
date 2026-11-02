@@ -12,7 +12,7 @@ loading the complete source or a page index into memory.
 
 ## What it stores
 
-A second disposable OS Temp file holds a **fixed 128-byte record for each
+A second disposable OS Temp file holds a **fixed 512-byte record for each
 physical-line page**. Each record contains the global UTF-16 character offset
 of its page boundary and, when a fenced block is open:
 
@@ -68,7 +68,7 @@ survives arbitrary page jumps.
 
 ## Bounded list, quote and paragraph candidates (2026-11-02)
 
-Each 128-byte record now additionally stores **up to 32 list indentation
+Each 512-byte record now additionally stores **up to 32 list indentation
 columns** (one byte per candidate), the previous physical line's quote
 depth, and whether that line might belong to an unfinished prose paragraph.
 
@@ -104,3 +104,32 @@ No live HTTP-growing-file pager or translation implementation is claimed.
 See [source byte-offset paging](../Disk-Backed-Paging/en.md),
 [streaming scanner](../Streaming-Scanner/en.md) and
 [Showcase pager](../../../../Blackboard/Samples/Blackboard.Showcase/Docs/Markdown-Paged-Source-Viewer/en.md).
+
+
+## List item owner offsets and prose continuation (2026-11-02)
+
+The fixed **512-byte checkpoint** is still bounded, but now also stores a
+stack of at most **32 list owner descriptors**. Each descriptor contains a
+64-bit **global UTF-16 source offset** of the list marker and its indentation
+and content-indentation columns. A page can thus resume a nested list
+without retaining its preceding items or copying their text.
+
+`MarkdownStreamLine.ListOwnerStart` identifies the conservatively recognized
+owner; `IsListContinuationCandidate` differentiates an earlier item's
+continuation from a newly declared marker. Explicitly indented paragraphs
+may return to a parent list item after a nested child. Immediate unindented
+**lazy** continuation is a candidate only without intervening blank/fence
+or quote-container transition. Blank-separated continuation requires
+sufficient explicit indentation.
+
+The scanner and disk index compute owner transitions through the same
+`MarkdownStreamingReader.AdvanceCheckpoint` routine. Reverse-page
+regression tests compare these owner offsets to an uninterrupted scan.
+
+**Important:** these are conservative Markdown *ownership candidates*, not
+a complete CommonMark list AST, lazy block quote parser, or syntax-perfect
+renderer. The old 128-byte experimental record format was temporary and
+has no compatibility promise; each index is regenerated on startup. A file
+with extremely many short lines may exhaust the independent checkpoint
+disk quota before reaching EOF, even though reading individual pages is
+bounded. List nesting beyond 32 candidates is not preserved.
