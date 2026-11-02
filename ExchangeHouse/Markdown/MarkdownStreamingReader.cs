@@ -53,7 +53,17 @@ public sealed record MarkdownStreamLine(
     /// line/page boundary. This is not full CommonMark paragraph ownership.
     /// </summary>
     public bool IsParagraphContinuationCandidate { get; init; }
+
+    /// <summary>The absolute UTF-16 start of the owning list marker, if recognized.</summary>
+    public long? ListOwnerStart { get; init; }
+
+    /// <summary>Whether this physical prose line is conservatively owned by an earlier list item.</summary>
+    public bool IsListContinuationCandidate { get; init; }
 }
+
+/// <summary>A bounded active list-item candidate, without its source text.</summary>
+public sealed record MarkdownListOwner(long Start, int Indent, int ContentIndent);
+
 
 /// <summary>
 /// Structural state immediately before one physical Markdown line. The start
@@ -78,6 +88,16 @@ public sealed record MarkdownStreamCheckpoint(
 
     /// <summary>Whether the previous line may be an open prose paragraph.</summary>
     public bool PreviousParagraphCandidate { get; init; }
+
+    /// <summary>Recognized list-item owners, outermost first, at most 32.</summary>
+    public IReadOnlyList<MarkdownListOwner> ListOwners { get; init; } =
+        Array.Empty<MarkdownListOwner>();
+
+    /// <summary>Whether the previous line was a list item or owned prose.</summary>
+    public bool PreviousOwnedText { get; init; }
+
+    /// <summary>Whether the preceding physical line was blank.</summary>
+    public bool PreviousWasBlank { get; init; }
 }
 
 /// <summary>
@@ -139,6 +159,7 @@ public static class MarkdownStreamingReader
         var openLists = checkpoint?.ListIndents.ToList() ?? new List<int>(32);
         var priorQuoteDepth = checkpoint?.PreviousQuoteDepth ?? 0;
         var priorParagraphCandidate = checkpoint?.PreviousParagraphCandidate ?? false;
+        var ownershipState = checkpoint ?? new MarkdownStreamCheckpoint(0);
 
         await foreach (var raw in ReadLinesAsync(reader, options, cancellationToken))
         {
@@ -173,8 +194,11 @@ public static class MarkdownStreamingReader
                 {
                     kind = MarkdownStreamLineKind.CodeFenceClose;
                     activeFence = null;
-                    yield return new MarkdownStreamLine(kind, offset, raw, body, quoteDepth,
-                        openLists.Count, fenceStart, language);
+                    var ownedLine = AttachOwnership(ownershipState,
+                        new MarkdownStreamLine(kind, offset, raw, body, quoteDepth,
+                            openLists.Count, fenceStart, language));
+                    ownershipState = AdvanceCheckpoint(ownershipState, ownedLine);
+                    yield return ownedLine;
                     priorQuoteDepth = quoteDepth;
                     priorParagraphCandidate = false;
                     offset = checked(offset + raw.Length);
@@ -183,8 +207,11 @@ public static class MarkdownStreamingReader
                 else
                 {
                     kind = MarkdownStreamLineKind.CodeContent;
-                    yield return new MarkdownStreamLine(kind, offset, raw, body, quoteDepth,
-                        openLists.Count, fenceStart, language);
+                    var ownedLine = AttachOwnership(ownershipState,
+                        new MarkdownStreamLine(kind, offset, raw, body, quoteDepth,
+                            openLists.Count, fenceStart, language));
+                    ownershipState = AdvanceCheckpoint(ownershipState, ownedLine);
+                    yield return ownedLine;
                     priorQuoteDepth = quoteDepth;
                     priorParagraphCandidate = false;
                     offset = checked(offset + raw.Length);
@@ -217,11 +244,14 @@ public static class MarkdownStreamingReader
                 LooksLikeParagraph(body.AsSpan());
             priorQuoteDepth = quoteDepth;
 
-            yield return new MarkdownStreamLine(kind, offset, raw, body, quoteDepth,
-                openLists.Count, fenceStart, language)
-            {
-                IsParagraphContinuationCandidate = continuingParagraph
-            };
+            var classified = AttachOwnership(ownershipState,
+                new MarkdownStreamLine(kind, offset, raw, body, quoteDepth,
+                    openLists.Count, fenceStart, language)
+                {
+                    IsParagraphContinuationCandidate = continuingParagraph
+                });
+            ownershipState = AdvanceCheckpoint(ownershipState, classified);
+            yield return classified;
             offset = checked(offset + raw.Length);
         }
     }
@@ -230,7 +260,11 @@ public static class MarkdownStreamingReader
     {
         if (c.Start < 0 || c.PreviousQuoteDepth is < 0 or > 32 ||
             c.ListIndents is null || c.ListIndents.Count > 32 ||
-            c.ListIndents.Any(n => n is < 0 or > 32))
+            c.ListIndents.Any(n => n is < 0 or > 32) ||
+            c.ListOwners is null || c.ListOwners.Count > 32 ||
+            c.ListOwners.Any(n => n.Start < 0 || n.Start > c.Start ||
+                n.Indent is < 0 or > 32 || n.ContentIndent < n.Indent ||
+                n.ContentIndent > 128))
             return false;
         if (c.FenceMarker == '\0')
             return c.FenceLength == 0 && c.FenceStart == -1 &&
@@ -252,10 +286,8 @@ public static class MarkdownStreamingReader
         if (line.Start != current.Start)
             throw new ArgumentException("Checkpoint and line offsets disagree.", nameof(line));
 
-        var lists = current.ListIndents.ToList();
-        if (line.QuoteDepth != current.PreviousQuoteDepth)
-            lists.Clear();
-        UpdateListStack(lists, line.Kind, line.Content.AsSpan());
+        var owners = UpdateOwners(current, line);
+        var lists = owners.Select(x => x.Indent).ToArray();
 
         var next = line.Kind switch
         {
@@ -271,11 +303,138 @@ public static class MarkdownStreamingReader
         };
         return next with
         {
-            ListIndents = lists.ToArray(),
+            ListIndents = lists,
+            ListOwners = owners,
+            PreviousOwnedText = line.Kind == MarkdownStreamLineKind.Markdown &&
+                line.ListOwnerStart.HasValue,
+            PreviousWasBlank = line.Kind == MarkdownStreamLineKind.Blank,
             PreviousQuoteDepth = line.QuoteDepth,
             PreviousParagraphCandidate = line.Kind == MarkdownStreamLineKind.Markdown &&
                 LooksLikeParagraph(line.Content.AsSpan())
         };
+    }
+
+    /// <summary>
+    /// Attach conservatively recognized list-item identity and continuation
+    /// ownership without allocating the preceding list or paragraph text.
+    /// </summary>
+    public static MarkdownStreamLine AttachOwnership(
+        MarkdownStreamCheckpoint previous, MarkdownStreamLine line)
+    {
+        ArgumentNullException.ThrowIfNull(previous);
+        ArgumentNullException.ThrowIfNull(line);
+        if (previous.Start != line.Start)
+            throw new ArgumentException("Checkpoint and line offsets disagree.", nameof(line));
+
+        var owners = UpdateOwners(previous, line);
+        if (line.Kind != MarkdownStreamLineKind.Markdown)
+            return line with { ListDepth = owners.Count };
+
+        if (TryListMarker(line.Content.AsSpan(), out _, out _))
+            return line with
+            {
+                ListOwnerStart = line.Start,
+                ListDepth = owners.Count
+            };
+
+        var owner = owners.Count == 0 ? null : owners[^1];
+        return line with
+        {
+            ListDepth = owners.Count,
+            ListOwnerStart = owner?.Start,
+            IsListContinuationCandidate = owner is not null
+        };
+    }
+
+    private static MarkdownListOwner[] UpdateOwners(
+        MarkdownStreamCheckpoint previous, MarkdownStreamLine line)
+    {
+        var stack = previous.ListOwners.ToList();
+        if (line.QuoteDepth != previous.PreviousQuoteDepth)
+            stack.Clear();
+        if (line.Kind != MarkdownStreamLineKind.Markdown)
+            return stack.ToArray();
+
+        var content = line.Content.AsSpan();
+        if (TryListMarker(content, out var indent, out var contentIndent))
+        {
+            while (stack.Count > 0 && stack[^1].Indent >= indent)
+                stack.RemoveAt(stack.Count - 1);
+            // An unexpected shallower indent cannot retain a child owner.
+            while (stack.Count > 0 && indent < stack[^1].ContentIndent)
+                stack.RemoveAt(stack.Count - 1);
+            if (stack.Count < 32)
+                stack.Add(new MarkdownListOwner(line.Start, indent, contentIndent));
+            return stack.ToArray();
+        }
+
+        if (!LooksLikeParagraph(content))
+        {
+            stack.Clear();
+            return stack.ToArray();
+        }
+
+        var indentation = MeasureColumns(content);
+        while (stack.Count > 0 && indentation < stack[^1].ContentIndent)
+            stack.RemoveAt(stack.Count - 1);
+        if (stack.Count > 0)
+            return stack.ToArray();
+
+        // Lazy unindented continuation is only a candidate when directly
+        // following owned prose/list text with no intervening blank or fence.
+        if (!previous.PreviousWasBlank && previous.PreviousOwnedText &&
+            line.QuoteDepth == previous.PreviousQuoteDepth &&
+            previous.ListOwners.Count > 0)
+            return previous.ListOwners.ToArray();
+        return Array.Empty<MarkdownListOwner>();
+    }
+
+    private static int MeasureColumns(ReadOnlySpan<char> value)
+    {
+        var columns = 0;
+        foreach (var ch in value)
+        {
+            if (ch == ' ')
+                columns++;
+            else if (ch == '\t')
+                columns += 4 - columns % 4;
+            else
+                break;
+        }
+        return columns;
+    }
+
+    private static bool TryListMarker(ReadOnlySpan<char> value,
+        out int indent, out int contentIndent)
+    {
+        contentIndent = 0;
+        if (!TryListIndent(value, out indent))
+            return false;
+
+        var pos = 0;
+        var columns = 0;
+        while (pos < value.Length && columns < indent)
+        {
+            columns += value[pos] == '\t' ? 4 - columns % 4 : 1;
+            pos++;
+        }
+
+        if (value[pos] is '-' or '*' or '+')
+            pos++;
+        else
+        {
+            while (pos < value.Length && char.IsDigit(value[pos]))
+                pos++;
+            pos++;
+        }
+
+        // The first whitespace after the marker is mandatory; count its
+        // display width but conservatively treat extra spaces as content.
+        var markerColumns = pos - (value.Length - value.TrimStart(' ', '\t').Length);
+        var currentColumn = indent + markerColumns;
+        var advance = value[pos] == '\t' ? 4 - currentColumn % 4 : 1;
+        contentIndent = Math.Min(128, currentColumn + advance);
+        return true;
     }
 
     private static char ExtractMarker(string content) => content.AsSpan().TrimStart(' ')[0];
