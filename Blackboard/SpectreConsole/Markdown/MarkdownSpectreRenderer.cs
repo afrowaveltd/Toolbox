@@ -18,6 +18,42 @@ public static class MarkdownSpectreRenderer
         Render(console, MarkdownParser.Parse(markdown), theme);
     }
 
+    /// <summary>
+    /// Render a completed line from the stateful streaming scanner without
+    /// retaining its parent document or re-parsing open code fences.
+    /// The scanner owns open-construct state; non-code lines still use the
+    /// conservative source-preserving Markdown parser individually.
+    /// Cross-line CommonMark layout is not fully equivalent to Render(document).
+    /// </summary>
+    public static void RenderStreamingLine(
+        IAnsiConsole console, MarkdownStreamLine line, MarkdownSpectreTheme? theme = null)
+    {
+        ArgumentNullException.ThrowIfNull(console);
+        ArgumentNullException.ThrowIfNull(line);
+        theme ??= new MarkdownSpectreTheme();
+
+        switch (line.Kind)
+        {
+            case MarkdownStreamLineKind.CodeFenceOpen:
+            case MarkdownStreamLineKind.CodeFenceClose:
+                if (theme.ShowCodeFenceDelimiters)
+                    WriteLine(console, QuoteContainerPrefix(line, theme) + line.Content, theme.Code);
+                break;
+            case MarkdownStreamLineKind.CodeContent:
+                WriteLine(console, QuoteContainerPrefix(line, theme) +
+                    theme.CodeIndent + line.Content, theme.Code);
+                break;
+            default:
+                Render(console, MarkdownParser.Parse(line.RawText), theme);
+                break;
+        }
+    }
+
+    private static string QuoteContainerPrefix(
+        MarkdownStreamLine line, MarkdownSpectreTheme theme) =>
+        string.Concat(Enumerable.Repeat(theme.QuotePrefix,
+            Math.Clamp(line.QuoteDepth, 0, 32)));
+
     /// <summary>Render an already parsed Markdown document without parsing it again.</summary>
     public static void Render(IAnsiConsole console, MarkdownDocument document, MarkdownSpectreTheme? theme = null)
     {
