@@ -73,3 +73,18 @@ After this parser/renderer has matured, a separate terminal app could open local
 ## Experimental indexed streaming scanner and diskless stress (2026-11-02)
 
 The additive MarkdownStreamingReader.ScanAsync supports bounded-memory line-wise source scanning, 64-bit offsets and open code fence metadata without buffering a large logical block. Blackboard Markdown includes a streaming-line renderer; the standalone Toolroom/Markdown/Stress app can test generated 10 MiB, 100 MiB, 1 GiB and 10 GiB Markdown without a giant file. **Not a full streaming CommonMark parser or replacement for the Showcase full-document viewer.** See [scanner details](../../../ExchangeHouse/Markdown/Docs/Streaming-Scanner/en.md) and [stress tool](../../../Toolroom/Markdown/Stress/README.md).
+
+
+## Owner-aware streaming list preview (experimental, 2026-11-02)
+
+`MarkdownSpectreRenderer.RenderStreamingLine` now uses conservative
+`ListOwnerStart` and `IsListContinuationCandidate` metadata from
+ExchangeHouse. It prefixes nested list-marker lines and explicitly or
+lazily owned prose according to restored list depth, while routing
+individual list markers/inline text through the existing safe renderer.
+This improves page-local rendering after arbitrary seeks without
+building a complete Markdown document tree. **It is not CommonMark
+equivalent**: list ownership is still conservative, multi-line reference
+links and full paragraph layout require further work. Source view in
+Showcase remains available and is the default. No NuGet publication.
+[Streaming ownership specification](../../../ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
