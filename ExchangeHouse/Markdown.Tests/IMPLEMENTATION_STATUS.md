@@ -169,3 +169,14 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
   128-byte checkpoint records/quotas.
 - Candidate labels intentionally do not imply CommonMark AST equivalence.
   See [PR #3](https://github.com/afrowaveltd/Toolbox/pull/3) for exact CI.
+
+## 2026-11-02 — reverse-order parity against uninterrupted source scanning
+
+- Added `Random_access_pages_match_uninterrupted_scan_for_bounded_structure`:
+  read UTF-8 source pages in **reverse order**, then compare every line
+  against the one-pass scanner's kind, UTF-16 start, raw bytes-as-text,
+  quote depth, list candidate depth, fence start/language and paragraph
+  continuation candidate. The fixture covers nested lists, quoted code,
+  headings, blank lines and CRLF.
+- This verifies parity for the defined conservative scanner **only**, not
+  CommonMark rendering equivalence. Exact CI evidence follows the PR.
