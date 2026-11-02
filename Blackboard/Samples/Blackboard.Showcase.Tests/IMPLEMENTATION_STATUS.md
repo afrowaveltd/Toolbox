@@ -116,3 +116,8 @@ Next: confirm CI and add regression cases for any Windows/SSH differences that a
 - During implementation initial CI failed on a test referencing a nonpublic file-extension helper; source was corrected to expose the simple reusable validation helper before final green CI. This does not affect the reusable FileBrowser package.
 - The reader has **no arbitrary 64 KiB Markdown cut-off**; the size warning is informational. Whole-file Unicode/control validation precedes rendering. Current renderer still materializes full text and model in RAM; true out-of-core/paged help is future work.
 - The previous embedded theme gallery was visually confirmed by user screenshots in Windows Terminal. Actual Windows/Debian manual UI verification of the **new file-backed viewer** remains pending; no Markdown NuGet release.
+
+## 2026-11-02 — remote Markdown temp-cache tests
+
+- Added HTTP-stubbed tests for streamed temp-file download, byte-for-byte fidelity, seekability, disposal, error responses, quotas and cancellation.
+- Scope is only the new experimental helper; UI menu integration and live UnderstandMe translation remain future work. Cross-platform CI confirmation pending at commit.
