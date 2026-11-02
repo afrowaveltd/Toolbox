@@ -201,3 +201,13 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
   Added saved-record quota and invalid stride (0/257) tests.
 - Source and checkpoint index remain bounded; regression tests are
   synthetic, not 1/10-GiB interactive proof. See PR #3 CI.
+
+
+## 2026-11-02 — paragraph source-offset checkpoint regressions
+
+- `MarkdownFenceCheckpointIndexTests` now compares `ParagraphStart`
+  between uninterrupted scans and sparse page replay.
+- New fixtures cover child/parent list ownership changes without a blank
+  separator, continued prose in the same owner, a blank before independent
+  prose, explicit quote transitions, and fence start/close resets.
+- Verifies source-position identity, not full CommonMark layout equivalence.
