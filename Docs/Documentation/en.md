@@ -8,7 +8,8 @@ This is the main documentation entry point for **the entire Toolbox**, not only 
 2. [Repository getting started](../Toolbox-Getting-Started/en.md) — install, build and run examples
 3. [Architecture](../Architecture/en.md) — ownership and dependency direction
 4. [Development and verification](../Development-and-Verification/en.md) — testing, docs, GitHub and CI
-5. [Release and package status](../Release-Status/en.md) — three published NuGet packages vs unpublished source projects
+5. [Release and package status](../Release-Status/en.md) — confirmed NuGet packages vs unpublished source projects
+6. [NuGet-first preview release policy](../NuGet-Release-Policy/en.md) — publish useful components early, version safely and update external consumers
 
 ## Libraries, tools and project documentation
 
