@@ -164,3 +164,19 @@ reconstructed through sparse checkpoint replay using existing metadata
 without enlarging the 512-byte record. **This is not a whole-list
 CommonMark tight/loose verdict**; later global list rendering must
 resolve final spacing. See [checkpoint details](Docs/Fence-Checkpoints/en.md).
+
+## Optional list-wide spacing summary on disk (2026-11-02)
+
+`MarkdownListSpacingIndex.BuildAsync(pages)` performs an **opt-in** bounded
+third source scan (the raw UTF-8 source index and sparse checkpoint index
+remain independently usable). It stores only list-group summaries
+(**24 bytes/group**) and sorted list-marker offsets (**16 bytes/item**)
+in two disposable temporary files, with a combined 256 MiB default disk
+quota. The active group stack remains bounded at 32 descriptors.
+
+After completing the scan, `FindForItemAsync(markerStart)` can retrieve a
+retroactive `IsLooseCandidate` result for an earlier item by binary
+search without loading the groups or item records into RAM. Conservative
+nested/quoted/type-separated groups are not a complete CommonMark list
+model, and no automatic TUI integration or NuGet release is implied.
+[Read the full API and limitation guide](Docs/List-Spacing-Index/en.md).
