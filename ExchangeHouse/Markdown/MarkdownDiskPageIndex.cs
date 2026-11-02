@@ -13,11 +13,15 @@ public sealed class MarkdownDiskPageOptions
     /// <summary>Maximum physical line size in UTF-8 bytes (1..1 MiB).</summary>
     public int MaxLineBytes { get; init; } = 64 * 1024;
 
+    /// <summary>Maximum temporary index size (at least 8 bytes, default 256 MiB).</summary>
+    public long MaxIndexBytes { get; init; } = 256L * 1024 * 1024;
+
     internal void Validate()
     {
-        if (LinesPerPage is < 1 or > 128 || MaxLineBytes is < 1 or > 1024 * 1024)
+        if (LinesPerPage is < 1 or > 128 || MaxLineBytes is < 1 or > 1024 * 1024 ||
+            MaxIndexBytes < sizeof(long))
             throw new ArgumentOutOfRangeException(nameof(MarkdownDiskPageOptions),
-                "LinesPerPage must be 1..128 and MaxLineBytes must be 1..1 MiB.");
+                "LinesPerPage must be 1..128, MaxLineBytes 1..1 MiB and MaxIndexBytes >= 8.");
     }
 }
 
@@ -109,6 +113,9 @@ public sealed class MarkdownDiskPageIndex : IDisposable, IAsyncDisposable
             var offsetBytes = new byte[sizeof(long)];
             async Task WriteOffsetAsync(long value)
             {
+                if (index.Position > options.MaxIndexBytes - sizeof(long))
+                    throw new InvalidDataException(
+                        "The temporary Markdown page index exceeded MaxIndexBytes.");
                 BinaryPrimitives.WriteInt64LittleEndian(offsetBytes, value);
                 await index.WriteAsync(offsetBytes, cancellationToken);
             }
