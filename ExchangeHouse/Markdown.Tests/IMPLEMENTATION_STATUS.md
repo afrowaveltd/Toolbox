@@ -220,3 +220,14 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
   a list. Compare reverse sparse-page views with uninterrupted scanning.
 - Checked that multiple blank lines restart paragraph identity and
   retain bounded list-state semantics; no full CommonMark guarantee.
+
+## 2026-11-02 — disk-backed retroactive list-group regression suite
+
+- Added `MarkdownListSpacingIndexTests` exercising retroactive
+  list-wide loose candidates after later blank-separated siblings,
+  multi-paragraph items, tight candidates, nested/quoted list grouping,
+  bullet/numbered type switches, fenced-code membership, quota failure
+  cleanup, disposal, no-list sources and 2,000 sequential item markers.
+- Checks 16-byte marker records, 24-byte group records and exact source
+  preservation. Deliberately does not claim full CommonMark list
+  equivalence or acceptance on 1-vCPU/2-GiB VM.
