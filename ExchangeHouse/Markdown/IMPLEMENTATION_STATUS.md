@@ -154,3 +154,10 @@
 - Explicitly indented quotes, children/paragraphs, blank separators and quoted fences remain owner-aware. Equal quote depths in different outer items do not merge. The parser prioritizes checking active list content indentation before accepting a standalone quote.
 - Six new parser regression cases, including code literal safety, CRLF/link offset and nested owner boundary checks. [Parser docs](Docs/Quoted-Lists-Inside-Lists/en.md).
 - [CI #41257477307](https://github.com/afrowaveltd/Toolbox/actions/runs/41257477307) **SUCCESS**, parser **88/88**. No NuGet publication.
+
+## 2026-11-02 — experimental indexed streaming scanner and diskless stress harness
+
+- Introduced forward-only MarkdownStreamingReader.ScanAsync with 64-bit source character offsets, bounded input-line buffer and minimal open-fence/list index state. Long code fences do not accumulate in memory.
+- Stress runner: Toolroom/Markdown/Stress, with deterministic virtual Markdown for 10M, 100M, 1G and 10G; optional Spectre render to null output; 50k-line open-fence regression.
+- Existing full-document parser and normal Showcase viewer remain unchanged. Full CommonMark-equivalent streaming state, deferred references and paged terminal navigation are not yet supported.
+- **CI and large stress execution pending**; the change is on a review branch, not asserted merged to master.
