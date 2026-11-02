@@ -205,3 +205,23 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 2. Implement strict incremental text decoding and controlled growing-file producer/consumer protocol.
 3. Add a real standalone pager and remote URL selector, then wire the current temp cache into it.
 4. Integrate a privacy-conscious UnderstandMe translation adapter only after semantic Markdown segmentation and robust ordering.
+
+## 2026-11-02 — experimental source pager registered (draft PR #3)
+
+- Registered sixth `MarkdownPagedSourceDemo` using existing FileBrowser
+  with `*.md;*.markdown` mask and extension revalidation.
+- ExchangeHouse disk index scans/validates strict UTF-8 once; only the
+  current 40-line source page is read, with interactive Next/Previous/
+  Close actions and literal Spectre.Text output (no unsafe Markup).
+  User-selected filename is terminal-control-sanitized. Index cleanup
+  is automatic and original document stays read-only.
+- Unit tests cover stepping forward/backward, Unicode, rejected unsafe
+  file, empty file and cancelled picker.
+- This is **raw source paging only**, not yet formatted multi-page Markdown
+  reading, incremental HTTP/translation or standalone mdview.
+  The existing fifth complete rendered viewer is unchanged.
+  Manual Windows/Debian terminal acceptance and giant-file viewer
+  benchmarks are outstanding. No new NuGet publication.
+- [Instructions](Docs/Markdown-Paged-Source-Viewer/en.md);
+  [disk index API](../../../ExchangeHouse/Markdown/Docs/Disk-Backed-Paging/en.md).
+- CI for draft PR: [#3](https://github.com/afrowaveltd/Toolbox/pull/3).
