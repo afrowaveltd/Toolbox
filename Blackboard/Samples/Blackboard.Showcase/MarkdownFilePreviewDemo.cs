@@ -101,7 +101,7 @@ public sealed class MarkdownFilePreviewDemo : IBlackboardShowcaseDemo
     }
 
     /// <summary>Recognize the two file extensions supported by this demo.</summary>
-    internal static bool IsMarkdownPath(string path) =>
+    public static bool IsMarkdownPath(string path) =>
         Path.GetExtension(path) is { } extension &&
         (extension.Equals(".md", StringComparison.OrdinalIgnoreCase) ||
          extension.Equals(".markdown", StringComparison.OrdinalIgnoreCase));
