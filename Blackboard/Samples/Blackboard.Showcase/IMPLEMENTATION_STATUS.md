@@ -278,3 +278,13 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
   identity without buffering the whole document.
 - Read latency depends on stride and physical line sizes; full
   CommonMark rendering and manual giant-document acceptance remain open.
+
+
+## 2026-11-02 — paragraph identity available during page navigation
+
+- `MarkdownContextPage.Lines` returned by the existing sixth Showcase
+  option now carries conservative `ParagraphStart` source offsets,
+  restored from the unchanged-size sparse checkpoint.
+- This reduces false positive continuation across parent/child list
+  ownership; no new menu option or full Markdown paragraph renderer
+  is claimed. Literal source is still the default.
