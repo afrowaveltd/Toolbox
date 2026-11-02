@@ -288,3 +288,10 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 - This reduces false positive continuation across parent/child list
   ownership; no new menu option or full Markdown paragraph renderer
   is claimed. Literal source is still the default.
+
+## 2026-11-02 — list spacing hints available to paged renderer
+
+- The paged source/preview backend now carries per-line conservative
+  `ListSpacingHint` via ExchangeHouse. Existing source navigation and
+  preview layout are unchanged: no incorrect whole-list loose/tight
+  rendering claim. Literal source remains default.
