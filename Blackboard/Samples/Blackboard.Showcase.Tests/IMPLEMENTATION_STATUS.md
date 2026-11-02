@@ -121,3 +121,14 @@ Next: confirm CI and add regression cases for any Windows/SSH differences that a
 
 - Added HTTP-stubbed tests for streamed temp-file download, byte-for-byte fidelity, seekability, disposal, error responses, quotas and cancellation.
 - Scope is only the new experimental helper; UI menu integration and live UnderstandMe translation remain future work. Cross-platform CI confirmation pending at commit.
+
+## 2026-11-02 — indexed Markdown source demo regressions (draft PR #3)
+
+- Added `MarkdownPagedSourceDemoTests` with Spectre virtual-terminal
+  navigation through first/second/previous pages; literal rendering,
+  multilingual UTF-8 content, invalid input refusal, empty source
+  and canceled FileBrowser picker.
+- Existing full-document rendering tests are preserved; this sixth
+  mode reads literal source, not independent CommonMark block context.
+- Linux/Windows CI at [PR #3](https://github.com/afrowaveltd/Toolbox/pull/3);
+  actual human Debian/Windows terminal acceptance outstanding.
