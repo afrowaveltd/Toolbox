@@ -246,3 +246,10 @@ Blackboard Markdown now renders quoted and fenced code lines within list items, 
 
 - Markdown renderer draws separate outer/quote/inner indentation, including optional code-fence language label and literal code. Showcase demonstrates a quoted deployment checklist. [Presentation guide](SpectreConsole/Markdown/Docs/Quoted-List-Containers/en.md).
 - [CI #41257477307](https://github.com/afrowaveltd/Toolbox/actions/runs/41257477307) **SUCCESS**; renderer 34/34, Showcase 26/26. No new dependencies.
+
+## 2026-11-02 — full local Markdown file display
+
+- Showcase-only fifth menu module joins local FileBrowser, strict all-file text decoding and existing Markdown renderer. Selected file path is extension-checked even if the picker filter changes.
+- No arbitrary Markdown filesize cutoff: full source is displayed, with a notice beyond 64 KiB. Unsafe terminal controls, NUL/binary data, invalid UTF-8/16/32, and unsupported legacy encodings are refused before rendering, including if corruption is near EOF.
+- `ReadCompleteAsync` uses fixed-size async buffers and incremental decoding but materializes the entire string for the existing parser, so memory/terminal scrollback remain real resource limits; the existing short text preview remains bounded.
+- [Viewer documentation](Samples/Blackboard.Showcase/Docs/Markdown-File-Viewer/en.md). Final CI pending; not a new NuGet package.

@@ -101,3 +101,9 @@ Next: confirm CI and add regression cases for any Windows/SSH differences that a
 
 - The existing Classic theme preview test also asserts the quoted numbered deployment text and literal `dotnet --list-runtimes`.
 - [CI #41257477307](https://github.com/afrowaveltd/Toolbox/actions/runs/41257477307): **26/26 Showcase tests passed**.
+
+## 2026-11-02 — full Markdown viewer tests
+
+- New `MarkdownFilePreviewDemoTests` cover real README selection, extension filtering and independent revalidation, source-preserved C# fence text, UTF-16 BOM/uppercase extension, empty/cancellation, invalid or unsafe input, and a document ending well beyond the former 64 KiB cutoff.
+- New `TextAndJsonPreviewTests` cases cover complete 512 KiB+ reads, strict Unicode crossing chunk boundaries (UTF-8/UTF-16), unsafe control or malformed byte sequence after 128 KiB and empty/BOM-only input. Existing bounded 16 KiB generic preview and 64 KiB JSON-validation contracts remain unchanged.
+- CI pending for source/docs increment. No NuGet package or real-terminal file-viewer acceptance claimed.

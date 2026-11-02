@@ -90,3 +90,18 @@ The Markdown gallery's numbered quoted-list sample includes a blank quote line f
 ## Quote nested under a deployment step (2026-11-01)
 
 The Markdown theme gallery now includes an ordinary deployment item containing a quoted warning, numbered dependency checks and a `bash` fence with `dotnet --list-runtimes`. This adds no project dependencies and does not execute the command. [Theme guide](Docs/Markdown-Themes/en.md).
+
+## Open a complete README.md through FileBrowser (2026-11-02)
+
+Choose the fifth Showcase item **Markdown — open local README or .md file**, navigate folders and select `*.md` or `*.markdown`. The app validates the extension again after selection, because FileBrowser permits interactive filter changes. It then performs a **complete, read-only** decode, parses Markdown and renders all blocks in the Classic theme with optional TextMate code syntax coloring. **There is no 64 KiB display cutoff:** files above 64 KiB merely show an informational warning and continue rendering the entire contents.
+
+Encoding and safety checks cover **the entire file**, not only a prefix. Supported input is strict UTF-8 or BOM-marked UTF-16/UTF-32. Invalid Unicode, NUL/binary text and forbidden terminal control characters cause an explanatory refusal rather than partial unsafe output. An empty file or cancelled picker returns cleanly. The scanner reads in bounded 8 KiB chunks, but the source and parse tree are materialized into RAM; extremely large files therefore still depend on available memory and terminal scrollback. Markdown grammar is tolerant: valid encoding and safe output are *not* a guarantee of strict CommonMark conformance. Code fences are displayed, never executed.
+
+Run from the Toolbox repository root:
+
+```bash
+git pull
+dotnet run --project Blackboard/Samples/Blackboard.Showcase
+```
+
+Then choose the Markdown file viewer and open the root `README.md`. This is an independent Showcase feature, not a new FileBrowser/Markdown NuGet dependency. [Full viewer guide](Docs/Markdown-File-Viewer/en.md).

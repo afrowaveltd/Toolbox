@@ -170,3 +170,10 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 
 - Added an ordinary installation item containing a quoted warning, nested numbered dependency review and `bash` code fence (`dotnet --list-runtimes`). Existing .NET Core 3.1 `Main` sample and theme presets remain.
 - [CI #41257477307](https://github.com/afrowaveltd/Toolbox/actions/runs/41257477307): **26/26 Showcase tests green**, plus full Linux/Windows checks.
+
+## 2026-11-02 — full local README reader, no length cutoff
+
+- Registered fifth `MarkdownFilePreviewDemo` with existing FileBrowser `*.md;*.markdown` filter, independent extension check, shared Classic/optional TextMate theme and full ExchangeHouse parser/Blackboard renderer. No change to the original four demos.
+- New `TextFilePreviewReader.ReadCompleteAsync` implements strict streamed whole-file UTF-8/16/32 decode and chunkwise control character check, rejecting unsafe/invalid data anywhere. **No 64 KiB read cap**: 64 KiB is only a notice threshold. `ReadAsync` remains a bounded generic preview.
+- Whole-document parse/render consumes RAM/terminal output proportional to document length; future indexed/paged rendering may be appropriate for exceptionally large help, but it is not part of this increment. No file modification or code execution.
+- Added file-based UI tests, large full render/reader cases, Unicode chunk boundaries and corrupt tail checks. [Design and usage](Docs/Markdown-File-Viewer/en.md). CI pending for this revision; new viewer not yet visually accepted on an actual Windows/Debian terminal.

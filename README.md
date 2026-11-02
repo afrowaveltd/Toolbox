@@ -99,3 +99,7 @@ See [LICENSE.txt](LICENSE.txt).
 ## Quoted sublists inside ordinary list items (2026-11-01)
 
 Markdown parsing and Spectre presentation now support **ordinary list → explicitly indented quote → nested list → fenced code**, preserving the enclosing ordinary item and the independent quoted-list hierarchy. See the [ExchangeHouse parser guide](ExchangeHouse/Markdown/Docs/Quoted-Lists-Inside-Lists/en.md) and [Blackboard presentation guide](Blackboard/SpectreConsole/Markdown/Docs/Quoted-List-Containers/en.md). No new NuGet release.
+
+## View actual Markdown README files in the Showcase (2026-11-02)
+
+The fifth [Blackboard Showcase](Blackboard/Samples/Blackboard.Showcase/README.md) module uses the existing FileBrowser to select local `*.md;*.markdown` files and displays their **entire validated document**, including C# / Bash grammar coloring through the optional TextMate adapter. Files larger than 64 KiB receive only an informational notice; they are **not truncated or rejected by size**. Strict UTF-8 or BOM-marked UTF-16/32 decoding, terminal-control screening and read-only access apply to the whole file. [File-viewer guide](Blackboard/Samples/Blackboard.Showcase/Docs/Markdown-File-Viewer/en.md). Large documents still require memory for the full parsed Markdown model.

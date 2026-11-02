@@ -60,3 +60,7 @@ The independent [Markdown.TextMate](SpectreConsole/Markdown.TextMate/README.md) 
 ## Ordinary list → quote → quoted sublist (2026-11-01)
 
 The Markdown renderer composes the outer item's indentation, themed quote markers, quoted list nesting and optional fenced-code highlighting without evaluating source text. [Nested quote list rendering](SpectreConsole/Markdown/Docs/Quoted-List-Containers/en.md).
+
+## Local Markdown file viewer (2026-11-02)
+
+Blackboard.Showcase's fifth scenario opens a user-selected `*.md` or `*.markdown` using the existing FileBrowser and renders the **whole** document with the Classic Markdown theme. Files beyond 64 KiB produce an informational size notice, without truncation. Strict streamed text decoding rejects invalid Unicode and terminal controls anywhere in the file. Memory use still grows with full document size because the current parser builds an in-memory model. [Viewer guide](Samples/Blackboard.Showcase/Docs/Markdown-File-Viewer/en.md). Reusable FileBrowser and Markdown library dependencies do not change.
