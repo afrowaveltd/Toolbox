@@ -55,3 +55,12 @@ quoted fences and mismatched closure lengths. The preview is still incomplete
 for paragraph/list/reference semantics. Use the default literal source
 mode whenever exact raw text matters. See
 [checkpoint design](../../../../../ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
+
+## Restored list/quote/paragraph hints (2026-11-02)
+
+The conservative preview receives list indentation candidates plus
+previous-line quote depth and plain-paragraph continuity from a fixed-size
+128-byte checkpoint per page. This reduces loss of context when seeking
+into a long list or a repeated quote, but **does not guarantee** correct
+nested-list formatting or CommonMark paragraph ownership. Literal-source
+mode remains the default and the authoritative fallback.
