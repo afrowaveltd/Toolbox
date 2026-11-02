@@ -12,7 +12,7 @@ loading the complete source or a page index into memory.
 
 ## What it stores
 
-A second disposable OS Temp file holds a **fixed 96-byte record for each
+A second disposable OS Temp file holds a **fixed 128-byte record for each
 physical-line page**. Each record contains the global UTF-16 character offset
 of its page boundary and, when a fenced block is open:
 
@@ -66,10 +66,32 @@ and Close. The optional preview uses the resumed scanner and the existing
 Blackboard Spectre renderer. Unlike page-local parsing, code fence state
 survives arbitrary page jumps.
 
+## Bounded list, quote and paragraph candidates (2026-11-02)
+
+Each 128-byte record now additionally stores **up to 32 list indentation
+columns** (one byte per candidate), the previous physical line's quote
+depth, and whether that line might belong to an unfinished prose paragraph.
+
+The scanner and checkpoint writer share one `AdvanceCheckpoint` state
+transition, avoiding a second independently implemented list grammar.
+After a seek, `MarkdownStreamLine.ListDepth` is restored from this bounded
+candidate stack. The new `IsParagraphContinuationCandidate` flag is true
+when consecutive prose lines share the same explicit quote depth, including
+at a page boundary. An intervening blank line, fenced code or a change of
+quote depth interrupts that candidate continuity. The name **candidate**
+is deliberate: Markdown permits lazy list and quote continuations,
+setext headings and other constructs requiring richer block parsing.
+
+This does not preserve a complete logical paragraph or a full list/tree
+AST. The streaming Spectre renderer has no guarantee of visually identical
+list indentation compared with whole-document parsing. For exact input,
+use source mode; for fully modeled small documents use the existing
+`MarkdownParser.Parse` path.
+
 ## What is not yet solved
 
 This is a **fence checkpoint**, not a complete CommonMark block-container
-checkpoint. List continuation ownership, non-fenced blockquote structure,
+checkpoint. Complete list continuation ownership, non-fenced blockquote structure,
 paragraph merging, reference-style link resolution, syntax-highlighter
 session state and terminal-width-aware page breaks remain incomplete.
 The preview can still differ from full-document Markdown rendering.
