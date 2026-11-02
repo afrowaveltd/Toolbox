@@ -358,3 +358,18 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - [Index design](ExchangeHouse/Markdown/Docs/List-Spacing-Index/en.md)
   and [low-RAM VM protocol](Docs/Low-Memory-Linux-Acceptance/en.md).
   PR #3 remains draft; no NuGet package released.
+
+## 2026-11-02 — 1-GiB rotational-HDD Debian acceptance baseline
+
+- User-selected field target: **1 virtual CPU, 1 GiB RAM, Debian minimal
+  terminal-only and a real rotational HDD-backed virtual disk**.
+  Escalate to 2 GiB RAM only if measured limits require it, keeping
+  disk, controller, CPU and source workload constant.
+- Updated [low-memory test protocol](Docs/Low-Memory-Linux-Acceptance/en.md)
+  and Markdown Stress README to separate Release build from runtime
+  RSS, measure swap and HDD latency, and compare sparse checkpoint
+  strides 1/4/16 in later real-source pager tests.
+- Important distinction: a guest `ROTA=1` device hint cannot prove
+  the VM disk image resides on a physical rotating HDD. No 1-GiB VM
+  runtime or real-HDD acceptance has yet been performed or claimed.
+  Changes are documentation-only, PR #3 stays draft.
