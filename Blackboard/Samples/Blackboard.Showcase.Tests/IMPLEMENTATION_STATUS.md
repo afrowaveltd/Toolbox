@@ -107,3 +107,12 @@ Next: confirm CI and add regression cases for any Windows/SSH differences that a
 - New `MarkdownFilePreviewDemoTests` cover real README selection, extension filtering and independent revalidation, source-preserved C# fence text, UTF-16 BOM/uppercase extension, empty/cancellation, invalid or unsafe input, and a document ending well beyond the former 64 KiB cutoff.
 - New `TextAndJsonPreviewTests` cases cover complete 512 KiB+ reads, strict Unicode crossing chunk boundaries (UTF-8/UTF-16), unsafe control or malformed byte sequence after 128 KiB and empty/BOM-only input. Existing bounded 16 KiB generic preview and 64 KiB JSON-validation contracts remain unchanged.
 - CI pending for source/docs increment. No NuGet package or real-terminal file-viewer acceptance claimed.
+
+### Verified full-document Markdown viewer checkpoint — 2026-11-02
+
+- [GitHub Actions #41401243770](https://github.com/afrowaveltd/Toolbox/actions/runs/41401243770) **SUCCESS** on source + English documentation commit `4f0cf18f4367bd436416610af2419fe0d23d5605`. Linux full-solution build/test, Windows UI regression suites and Markdown local link validation passed.
+- Windows: Blackboard Showcase **39/39** (includes complete file viewer), ExchangeHouse Markdown **88/88**, Blackboard Markdown **34/34**, TextMate **6/6**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
+- Documentation check: **289 Markdown files, 1,502 local links**, none missing.
+- During implementation initial CI failed on a test referencing a nonpublic file-extension helper; source was corrected to expose the simple reusable validation helper before final green CI. This does not affect the reusable FileBrowser package.
+- The reader has **no arbitrary 64 KiB Markdown cut-off**; the size warning is informational. Whole-file Unicode/control validation precedes rendering. Current renderer still materializes full text and model in RAM; true out-of-core/paged help is future work.
+- The previous embedded theme gallery was visually confirmed by user screenshots in Windows Terminal. Actual Windows/Debian manual UI verification of the **new file-backed viewer** remains pending; no Markdown NuGet release.

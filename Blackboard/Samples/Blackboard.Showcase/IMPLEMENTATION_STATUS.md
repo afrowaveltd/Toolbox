@@ -177,3 +177,12 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 - New `TextFilePreviewReader.ReadCompleteAsync` implements strict streamed whole-file UTF-8/16/32 decode and chunkwise control character check, rejecting unsafe/invalid data anywhere. **No 64 KiB read cap**: 64 KiB is only a notice threshold. `ReadAsync` remains a bounded generic preview.
 - Whole-document parse/render consumes RAM/terminal output proportional to document length; future indexed/paged rendering may be appropriate for exceptionally large help, but it is not part of this increment. No file modification or code execution.
 - Added file-based UI tests, large full render/reader cases, Unicode chunk boundaries and corrupt tail checks. [Design and usage](Docs/Markdown-File-Viewer/en.md). CI pending for this revision; new viewer not yet visually accepted on an actual Windows/Debian terminal.
+
+### Verified full-document Markdown viewer checkpoint — 2026-11-02
+
+- [GitHub Actions #41401243770](https://github.com/afrowaveltd/Toolbox/actions/runs/41401243770) **SUCCESS** on source + English documentation commit `4f0cf18f4367bd436416610af2419fe0d23d5605`. Linux full-solution build/test, Windows UI regression suites and Markdown local link validation passed.
+- Windows: Blackboard Showcase **39/39** (includes complete file viewer), ExchangeHouse Markdown **88/88**, Blackboard Markdown **34/34**, TextMate **6/6**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
+- Documentation check: **289 Markdown files, 1,502 local links**, none missing.
+- During implementation initial CI failed on a test referencing a nonpublic file-extension helper; source was corrected to expose the simple reusable validation helper before final green CI. This does not affect the reusable FileBrowser package.
+- The reader has **no arbitrary 64 KiB Markdown cut-off**; the size warning is informational. Whole-file Unicode/control validation precedes rendering. Current renderer still materializes full text and model in RAM; true out-of-core/paged help is future work.
+- The previous embedded theme gallery was visually confirmed by user screenshots in Windows Terminal. Actual Windows/Debian manual UI verification of the **new file-backed viewer** remains pending; no Markdown NuGet release.

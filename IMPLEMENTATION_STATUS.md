@@ -169,3 +169,12 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Complete Markdown source is materialized as a string for the current non-streaming parser and renderer; practical max size depends on available memory and terminal output, not an arbitrary file-size check. This is a **Showcase** convenience viewer, not a streaming Markdown document engine or a new NuGet dependency.
 - Added tests for real README, Unicode BOM, cancellation/empty and malicious content, 64 KiB+ full rendering, 512 KiB complete reader, multibyte Unicode boundaries and invalid/control bytes appearing far into large files.
 - [Usage, validation and limitations](Blackboard/Samples/Blackboard.Showcase/Docs/Markdown-File-Viewer/en.md). CI **pending** for this change; manual test of the new file-backed viewer in Windows/Debian still open. User-provided Windows Terminal screenshots confirm the **previous embedded theme gallery** visually works, but are not file-viewer acceptance evidence.
+
+### Verified full-document Markdown viewer checkpoint — 2026-11-02
+
+- [GitHub Actions #41401243770](https://github.com/afrowaveltd/Toolbox/actions/runs/41401243770) **SUCCESS** on source + English documentation commit `4f0cf18f4367bd436416610af2419fe0d23d5605`. Linux full-solution build/test, Windows UI regression suites and Markdown local link validation passed.
+- Windows: Blackboard Showcase **39/39** (includes complete file viewer), ExchangeHouse Markdown **88/88**, Blackboard Markdown **34/34**, TextMate **6/6**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
+- Documentation check: **289 Markdown files, 1,502 local links**, none missing.
+- During implementation initial CI failed on a test referencing a nonpublic file-extension helper; source was corrected to expose the simple reusable validation helper before final green CI. This does not affect the reusable FileBrowser package.
+- The reader has **no arbitrary 64 KiB Markdown cut-off**; the size warning is informational. Whole-file Unicode/control validation precedes rendering. Current renderer still materializes full text and model in RAM; true out-of-core/paged help is future work.
+- The previous embedded theme gallery was visually confirmed by user screenshots in Windows Terminal. Actual Windows/Debian manual UI verification of the **new file-backed viewer** remains pending; no Markdown NuGet release.
