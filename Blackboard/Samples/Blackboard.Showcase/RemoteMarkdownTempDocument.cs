@@ -88,6 +88,12 @@ public sealed class RemoteMarkdownTempDocument : IDisposable, IAsyncDisposable
                 bufferSize: 64 * 1024,
                 options: FileOptions.Asynchronous | FileOptions.SequentialScan);
 
+            // OS Temp may be shared; prevent other Unix accounts from
+            // reading a downloaded private document. Fail closed if the
+            // filesystem cannot enforce owner-only permissions.
+            if (!OperatingSystem.IsWindows())
+                File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+
             var buffer = ArrayPool<byte>.Shared.Rent(64 * 1024);
             long total = 0;
             try
