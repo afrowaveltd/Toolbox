@@ -88,7 +88,7 @@ them without changing the indexing contract.
 
 The raw-source index remains independently useful. To persist only
 the bounded fence/list/quote/paragraph candidate state at page boundaries, use the optional
-[128-byte bounded structural checkpoint index](../Fence-Checkpoints/en.md) and call
+[512-byte bounded ownership checkpoint index](../Fence-Checkpoints/en.md) and call
 `ReadPageAsync` on that companion index. Its resumed scanner recognizes
 code content when the opener is on a preceding page; it does **not**
 reconstruct all CommonMark list, quote or reference semantics.
