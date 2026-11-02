@@ -2,6 +2,27 @@
 
 **Updated 2026-10-31. Source of truth:** [GitHub master](https://github.com/afrowaveltd/Toolbox/tree/master). This file is a **cross-project continuation overview**; authoritative technical details remain in each component's `IMPLEMENTATION_STATUS.md`.
 
+## 2026-11-02 — repository-wide NuGet-first release decision
+
+- **Agreed policy, not a new package publication:** independently usable,
+  tested and documented reusable libraries should be published on NuGet
+  promptly, even as prereleases. Repeated `preview.N` revisions are
+  welcome; don't wait for a complete family or a stable 1.0.0.
+- External consumers depend on stable package IDs and intentionally chosen
+  versions instead of cross-repository source paths. Keep source project
+  references for local integration when useful.
+- Every published version must have a validated `.nupkg`, passing relevant
+  tests, working independent consumer restore, documentation, a unique
+  version and recorded publish confirmation. NuGet consumers must opt into
+  preview updates where applicable; no automatic upgrade is promised.
+- Record package releases and their concrete URLs in the owning project's
+  `IMPLEMENTATION_STATUS.md`; don't confuse version metadata with actual
+  publication. No additional package was published as part of this
+  documentation-only decision.
+- Policy: [NuGet-first preview releases](Docs/NuGet-Release-Policy/en.md).
+  Current published/unpublished snapshot:
+  [Release status](Docs/Release-Status/en.md).
+
 ## Completed implementations and owned status
 
 | Area | Current implementation | Continue here |
