@@ -64,13 +64,17 @@ public sealed class MarkdownPagedSourceDemo : IBlackboardShowcaseDemo
                 return;
             }
 
+            // Filenames are untrusted terminal input, even when the Markdown
+            // bytes have been validated separately.
+            var displayName = new string(Path.GetFileName(path)
+                .Select(c => char.IsControl(c) ? '\uFFFD' : c).ToArray());
             long pageNumber = 0;
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var page = await index.ReadPageAsync(pageNumber, cancellationToken);
                 console.Write(new Text(Environment.NewLine +
-                    "Markdown source: " + Path.GetFileName(path) +
+                    "Markdown source: " + displayName +
                     " — page " + (pageNumber + 1) + "/" + index.PageCount +
                     ", lines " + page.FirstLine + "–" +
                     (page.FirstLine + page.LineCount - 1) + Environment.NewLine));
