@@ -186,3 +186,8 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 - During implementation initial CI failed on a test referencing a nonpublic file-extension helper; source was corrected to expose the simple reusable validation helper before final green CI. This does not affect the reusable FileBrowser package.
 - The reader has **no arbitrary 64 KiB Markdown cut-off**; the size warning is informational. Whole-file Unicode/control validation precedes rendering. Current renderer still materializes full text and model in RAM; true out-of-core/paged help is future work.
 - The previous embedded theme gallery was visually confirmed by user screenshots in Windows Terminal. Actual Windows/Debian manual UI verification of the **new file-backed viewer** remains pending; no Markdown NuGet release.
+
+## 2026-11-02 — future viewer relationship (proposal only)
+
+- Current read-only full local Markdown FileBrowser demo remains the working prototype. A possible future standalone command-line/TUI Markdown document viewer would add HTTP(S) and GitHub README source providers while reusing the parser/renderer; it is not yet created.
+- [Standalone viewer concept](../../SpectreConsole/Markdown/Docs/Standalone-Markdown-Viewer-Proposal/en.md). No behavior changed in Showcase.

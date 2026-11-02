@@ -262,3 +262,9 @@ Blackboard Markdown now renders quoted and fenced code lines within list items, 
 - During implementation initial CI failed on a test referencing a nonpublic file-extension helper; source was corrected to expose the simple reusable validation helper before final green CI. This does not affect the reusable FileBrowser package.
 - The reader has **no arbitrary 64 KiB Markdown cut-off**; the size warning is informational. Whole-file Unicode/control validation precedes rendering. Current renderer still materializes full text and model in RAM; true out-of-core/paged help is future work.
 - The previous embedded theme gallery was visually confirmed by user screenshots in Windows Terminal. Actual Windows/Debian manual UI verification of the **new file-backed viewer** remains pending; no Markdown NuGet release.
+
+## 2026-11-02 — future standalone Markdown viewer proposal
+
+- Documented a source-agnostic read-only terminal viewer with Local, HTTP(S), and GitHub preferred README providers, proposed after the Markdown parser completion milestone.
+- No implementation or new project exists; it reuses the current FileBrowser, Markdown parser, Spectre renderer, syntax highlighter, and full-file reader only as prospective components.
+- [Design, sample invocations, safety, milestones](SpectreConsole/Markdown/Docs/Standalone-Markdown-Viewer-Proposal/en.md).

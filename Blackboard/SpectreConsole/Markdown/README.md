@@ -65,3 +65,7 @@ The quote-prefix styling and list-content alignment now handle quoted list items
 ## Outer and inner list indentation (2026-11-01)
 
 Quoted lists embedded beneath ordinary list items draw the **outer list indentation before the quote prefix**, then the inner quote-list nesting. Code-fence language labels, delimiters and bodies use that same layout; plain quoted prose owned by the outer item is not double-indented. [Quoted list container presentation](Docs/Quoted-List-Containers/en.md).
+
+## Future standalone Markdown viewer — design proposal (2026-11-02)
+
+After this parser/renderer has matured, a separate terminal app could open local Markdown, HTTP(S) documents and GitHub repository README files by `github:owner/repo`. No-argument mode would expose an interactive source picker. The reader would reuse this library rather than embedding fetch/navigation concerns into the renderer. [Proposal and non-goals](Docs/Standalone-Markdown-Viewer-Proposal/en.md). **Not implemented.**

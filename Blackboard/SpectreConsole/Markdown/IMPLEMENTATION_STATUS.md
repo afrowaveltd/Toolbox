@@ -145,3 +145,9 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 - Separate outer list content indent, theme quote prefix and quoted-list marker/paragraph indent. Optional language-label rendering now also receives the outer indent; no double indent for directly owned plain quoted text.
 - Three new virtual-terminal tests, plus [renderer guide](Docs/Quoted-List-Containers/en.md).
 - [CI #41257477307](https://github.com/afrowaveltd/Toolbox/actions/runs/41257477307) **SUCCESS**, renderer **34/34**; TextMate **6/6**.
+
+## 2026-11-02 — future standalone TUI viewer design, not implemented
+
+- A future standalone viewer would wrap the Markdown renderer with document-source adapters (Local, HTTP(S), GitHub README), navigation for relative links, themes and readable errors; it must not duplicate Markdown parsing.
+- GitHub provider should use `/repos/{owner}/{repo}/readme` rather than probing guessed branch/file paths. Maintain independent cache, credentials, and transport concerns outside the renderer.
+- Design deferred until the current parser is judged ready. [Proposed architecture](Docs/Standalone-Markdown-Viewer-Proposal/en.md). No new code, tests or release.

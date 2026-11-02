@@ -178,3 +178,10 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - During implementation initial CI failed on a test referencing a nonpublic file-extension helper; source was corrected to expose the simple reusable validation helper before final green CI. This does not affect the reusable FileBrowser package.
 - The reader has **no arbitrary 64 KiB Markdown cut-off**; the size warning is informational. Whole-file Unicode/control validation precedes rendering. Current renderer still materializes full text and model in RAM; true out-of-core/paged help is future work.
 - The previous embedded theme gallery was visually confirmed by user screenshots in Windows Terminal. Actual Windows/Debian manual UI verification of the **new file-backed viewer** remains pending; no Markdown NuGet release.
+
+## 2026-11-02 — proposed standalone Markdown terminal viewer (design only)
+
+- Captured a future **standalone** TUI application concept for after the Markdown parser/renderer reaches an agreed completion milestone. It will accept no arguments (interactive Local / HTTP(S) / GitHub source picker) or a direct Markdown path, URL, or `github:owner/repository` shortcut.
+- The proposed GitHub adapter uses the official preferred README endpoint, `GET /repos/{owner}/{repo}/readme`, on the repository's default ref rather than guessing `main`, `master`, or filename locations. Optional branch/ref overrides and private-repo credentials are deferred.
+- Reuse existing ExchangeHouse Markdown, Blackboard Spectre renderer, FileBrowser and strict full-file source validation. Keep source providers modular, resolve relative Markdown links against the correct repository file/ref, and design for full large-document access without silent byte truncation (disk cache/index or paging when needed).
+- **Design only: no executable, new project, implementation, tests, or NuGet package created.** See [viewer proposal](Blackboard/SpectreConsole/Markdown/Docs/Standalone-Markdown-Viewer-Proposal/en.md). Existing full local Markdown Showcase remains the prototype, not the proposed standalone app.
