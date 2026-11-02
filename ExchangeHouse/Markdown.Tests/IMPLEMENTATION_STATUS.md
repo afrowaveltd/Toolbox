@@ -152,3 +152,11 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
   rendering or 1 GiB/10 GiB interactive acceptance. Test artifacts are
   isolated under unique temporary directories and deleted after use.
 - Relevant .NET Linux/Windows CI: [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
+
+## 2026-11-02 — fence checkpoint regression coverage
+
+- Added `MarkdownFenceCheckpointIndexTests` for restartable classification
+  of code fences across arbitrary page boundaries; opening length and
+  quote-depth constraints; UTF-8/BOM and UTF-16 source offsets; 96-byte
+  per-page index, quota and disposal; empty and BOM-only documents.
+- CI validates the exact commits in [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
