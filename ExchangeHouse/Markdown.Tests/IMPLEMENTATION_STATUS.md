@@ -180,3 +180,13 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
   headings, blank lines and CRLF.
 - This verifies parity for the defined conservative scanner **only**, not
   CommonMark rendering equivalence. Exact CI evidence follows the PR.
+
+
+## 2026-11-02 — persisted owner offset regression coverage
+
+- `MarkdownFenceCheckpointIndexTests` now checks 512-byte per-page
+  state, owner marker offsets across nested/parent continuations,
+  unindented lazy candidates, blank and quote interruptions and parity
+  against an uninterrupted scanner in reverse page order.
+- Tests validate conservative owner identities rather than claiming
+  full CommonMark container parsing. CI: draft PR #3.
