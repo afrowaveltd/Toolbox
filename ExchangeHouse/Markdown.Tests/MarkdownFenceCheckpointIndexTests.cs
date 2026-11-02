@@ -155,6 +155,21 @@ public sealed class MarkdownFenceCheckpointIndexTests
     }
 
     [Fact]
+    public async Task Utf8_bom_only_document_has_no_phantom_line_or_checkpoint()
+    {
+        await WithBytesAsync([0xEF, 0xBB, 0xBF], async (path, temp) =>
+        {
+            await using var pages = await MarkdownDiskPageIndex.BuildAsync(path,
+                tempDirectory: temp);
+            Assert.Equal(0, pages.LineCount);
+            Assert.Equal(0, pages.PageCount);
+            await using var fences = await MarkdownFenceCheckpointIndex.BuildAsync(
+                pages, tempDirectory: temp);
+            Assert.Equal(0, fences.PageCount);
+        });
+    }
+
+    [Fact]
     public async Task An_empty_document_has_no_checkpoint_records()
     {
         await WithMarkdownAsync("", async (path, temp) =>
