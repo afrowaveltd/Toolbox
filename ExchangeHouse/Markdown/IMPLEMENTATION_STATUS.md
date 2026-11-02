@@ -258,3 +258,22 @@
 - Does not add full CommonMark equivalence, 1/10-GiB interactive
   acceptance or a NuGet release.
 - [Technical guide](Docs/Fence-Checkpoints/en.md).
+
+
+## 2026-11-02 — paragraph identity and list-owner boundary checking
+
+- Added optional `MarkdownStreamLine.ParagraphStart` and checkpoint
+  `OpenParagraphStart` / `ParagraphListOwnerStart`.
+- The scanner attaches paragraph identity after list ownership.
+  Same-quote prose can continue only when its list item owner remains
+  identical; unindenting from a child back to a parent starts a new
+  paragraph even without a blank physical line.
+- Existing sparse 512-byte state snapshots store two additional signed
+  64-bit optional offsets in reserved record bytes. No size/disk
+  budget increase and no previous prose text stored.
+- Regression coverage includes paragraph start preservation under
+  random page reads, child/parent transitions, blank boundaries,
+  code fences, quote changes and parity with uninterrupted scanning.
+- This is *conservative paragraph identity*, not a full CommonMark
+  paragraph AST or finished visual layout. No NuGet release.
+- [Specification](Docs/Fence-Checkpoints/en.md).
