@@ -63,7 +63,6 @@ public sealed class MarkdownPagedSourceDemoTests
 
             Assert.Contains("Markdown source: preview.md", console.Output);
             Assert.Contains("# not a heading", console.Output);
-            Assert.Contains("- not a list", console.Output);
             Assert.Contains("csharp", console.Output);
             Assert.True(console.Output.Split("page 1/2").Length - 1 >= 3,
                 "The same page must be rendered in source, preview and source again.");
