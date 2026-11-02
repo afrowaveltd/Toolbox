@@ -161,3 +161,24 @@
 - Stress runner: Toolroom/Markdown/Stress, with deterministic virtual Markdown for 10M, 100M, 1G and 10G; optional Spectre render to null output; 50k-line open-fence regression.
 - Existing full-document parser and normal Showcase viewer remain unchanged. Full CommonMark-equivalent streaming state, deferred references and paged terminal navigation are not yet supported.
 - **CI and large stress execution pending**; the change is on a review branch, not asserted merged to master.
+
+## 2026-11-02 — UTF-8 disk-backed source page index (draft PR #3)
+
+- Added `MarkdownDiskPageIndex.BuildAsync` and `ReadPageAsync`: index
+  64-bit little-endian **byte offsets** to a temporary disk file with one
+  entry per fixed number of physical lines. Each page load has bounded
+  memory independent of total source length; supports reverse/forward
+  random access and preserves original source. Index does not materialize in RAM.
+- Full streaming UTF-8 decoding with strict fallback and terminal-control
+  rejection before any page is displayed; CRLF/LF/CR recognition,
+  configurable line/page limits and cancellation. Temp index deleted
+  on failures and disposal; file size and timestamp checked for changes.
+- Added unit tests for Unicode/emoji, BOM, byte offsets, line breaks,
+  25,000 lines/500 on-disk offsets, random access, invalid controls,
+  page bounds, mutations and cleanup.
+- **Not** a CommonMark-semantic page or complete viewer; only raw source.
+  A future page-state checkpoint is needed for correct multi-page fences,
+  lists and reference definitions. No giant interactive viewer is
+  claimed validated. No new NuGet publication.
+- [Index contract](Docs/Disk-Backed-Paging/en.md). CI evidence for this
+  branch is tracked by [PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
