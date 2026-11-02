@@ -69,3 +69,7 @@ Quoted lists embedded beneath ordinary list items draw the **outer list indentat
 ## Future standalone Markdown viewer — design proposal (2026-11-02)
 
 After this parser/renderer has matured, a separate terminal app could open local Markdown, HTTP(S) documents and GitHub repository README files by `github:owner/repo`. No-argument mode would expose an interactive source picker. The reader would reuse this library rather than embedding fetch/navigation concerns into the renderer. [Proposal and non-goals](Docs/Standalone-Markdown-Viewer-Proposal/en.md). **Not implemented.**
+
+## Experimental indexed streaming scanner and diskless stress (2026-11-02)
+
+The additive MarkdownStreamingReader.ScanAsync supports bounded-memory line-wise source scanning, 64-bit offsets and open code fence metadata without buffering a large logical block. Blackboard Markdown includes a streaming-line renderer; the standalone Toolroom/Markdown/Stress app can test generated 10 MiB, 100 MiB, 1 GiB and 10 GiB Markdown without a giant file. **Not a full streaming CommonMark parser or replacement for the Showcase full-document viewer.** See [scanner details](../../../ExchangeHouse/Markdown/Docs/Streaming-Scanner/en.md) and [stress tool](../../../Toolroom/Markdown/Stress/README.md).
