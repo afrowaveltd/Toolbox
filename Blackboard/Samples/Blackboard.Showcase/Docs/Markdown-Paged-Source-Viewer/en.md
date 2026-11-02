@@ -45,3 +45,13 @@ The underlying UI-neutral API is
 The remote spool already produces a seekable Temp file and can be indexed
 **after** download, but this menu still selects local files only.
 See [remote caching](../Remote-Markdown-Cache/en.md).
+
+## New fenced-code-aware preview
+
+The source page demo also builds a separate on-disk fence checkpoint index
+and provides a reversible **Show conservative Markdown preview** toggle.
+It preserves fenced-code classification across page boundaries, including
+quoted fences and mismatched closure lengths. The preview is still incomplete
+for paragraph/list/reference semantics. Use the default literal source
+mode whenever exact raw text matters. See
+[checkpoint design](../../../../../ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
