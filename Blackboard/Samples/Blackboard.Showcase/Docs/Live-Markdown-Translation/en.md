@@ -13,11 +13,13 @@ This is a proposal, not a claim that live translated rendering exists.
 
 ## Pipeline
 
-1. HTTP response -> bounded binary chunks -> original temporary file.
-2. Strict incremental decoding (BOM/encoding state across chunk boundaries,
-   no lossy replacement of invalid bytes) -> Markdown structural scanner.
-3. Scanner -> small bounded queue of translatable segments, with stable
-   long-valued source offsets, sequence IDs and language context.
+1. HTTP response -> bounded binary chunks -> original temporary file; the
+   writer publishes only *durably completed* byte ranges to a progress index.
+2. A separate concurrent consumer reads those published ranges from the
+   growing local file, decodes strictly with state retained across incomplete
+   UTF sequences/BOM/line boundaries, and scans Markdown structure.
+3. Scanner -> small bounded queue or disk-backed checkpoint of translatable
+   semantic segments, with source offsets, sequence IDs and language context.
 4. UnderstandMe adapter translates prose and supported image alt/title text.
    Code fences, inline code, URLs, paths, link destinations and raw syntax are
    not sent to the translator.
@@ -37,6 +39,11 @@ This is a proposal, not a claim that live translated rendering exists.
 - Preserve order even if translation calls complete out of order, with a
   bounded reordering queue and backpressure. Do not accumulate unlimited
   text in RAM while a provider is slow or offline.
+- **Never block the HTTP download on translation**. The disk spool decouples
+  network throughput from provider latency; the translation consumer catches
+  up using source offsets and durable checkpoints. If translation lags, the
+  HTTP producer finishes first and closes normally. If the network pauses,
+  the translator can continue consuming already published ranges.
 - Reuse UnderstandMe's queues, priority rules and dictionaryless fallback,
   rather than inventing a second translation platform. Avoid per-line remote
   requests if batching whole short paragraphs reduces latency and cost.
