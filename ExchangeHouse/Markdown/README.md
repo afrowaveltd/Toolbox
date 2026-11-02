@@ -89,3 +89,15 @@ configurable line/page bounds. **Only raw source paging is implemented**:
 a page-local parse can misinterpret a fence crossing the boundary.
 No 1 GiB/10 GiB end-to-end pager acceptance or NuGet publication is
 claimed. See [disk-backed paging](Docs/Disk-Backed-Paging/en.md).
+
+## Restartable code-fence scanning across disk pages (2026-11-02)
+
+The experimental `MarkdownFenceCheckpointIndex` builds a second small,
+disposable **96-byte-per-page** index. At each page boundary it records the
+current fenced-code marker, opening offset, quote depth and optional short
+language hint. `ReadPageAsync(number)` reconstructs line events with
+`MarkdownStreamingReader.ScanAsync(reader, checkpoint)`, even if the opener
+is far away. The state index is disk-backed and quota-limited; source text
+is not retained. This is **fence-safe classification**, not full resumable
+CommonMark semantics or a stable NuGet API. See
+[fence checkpoints](Docs/Fence-Checkpoints/en.md).
