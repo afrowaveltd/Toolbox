@@ -329,3 +329,14 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   for full CommonMark lazy containers, paragraph fusion and references.
   No NuGet package release.
 - [Checkpoint guide](ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
+
+## 2026-11-02 — blank-separated Markdown list evidence (draft PR #3)
+
+- Streaming Markdown emits `ListSpacingHint` for new paragraphs of
+  existing list items and blank-separated new sibling items, preserving
+  quote and ownership boundaries after sparse page seeks.
+- This is a bounded per-line observation, **not** definitive CommonMark
+  tight/loose list classification; full rendering remains a future task.
+  The temporary 512-byte checkpoint and raw 8-byte/page index are
+  unchanged. Tests and documentation updated; no new NuGet release.
+- [Details](ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
