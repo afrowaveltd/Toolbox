@@ -59,6 +59,12 @@ public sealed record MarkdownStreamLine(
 
     /// <summary>Whether this physical prose line is conservatively owned by an earlier list item.</summary>
     public bool IsListContinuationCandidate { get; init; }
+
+    /// <summary>
+    /// UTF-16 start of the conservatively recognized prose paragraph. Null
+    /// for markers, blanks and fenced code. Not a complete CommonMark AST.
+    /// </summary>
+    public long? ParagraphStart { get; init; }
 }
 
 /// <summary>A bounded active list-item candidate, without its source text.</summary>
@@ -98,6 +104,12 @@ public sealed record MarkdownStreamCheckpoint(
 
     /// <summary>Whether the preceding physical line was blank.</summary>
     public bool PreviousWasBlank { get; init; }
+
+    /// <summary>Start of the preceding open prose paragraph, if any.</summary>
+    public long? OpenParagraphStart { get; init; }
+
+    /// <summary>List-item owner of that paragraph, or null for unowned prose.</summary>
+    public long? ParagraphListOwnerStart { get; init; }
 }
 
 /// <summary>
@@ -158,7 +170,6 @@ public static class MarkdownStreamingReader
             : null;
         var openLists = checkpoint?.ListIndents.ToList() ?? new List<int>(32);
         var priorQuoteDepth = checkpoint?.PreviousQuoteDepth ?? 0;
-        var priorParagraphCandidate = checkpoint?.PreviousParagraphCandidate ?? false;
         var ownershipState = checkpoint ?? new MarkdownStreamCheckpoint(0);
 
         await foreach (var raw in ReadLinesAsync(reader, options, cancellationToken))
@@ -200,7 +211,6 @@ public static class MarkdownStreamingReader
                     ownershipState = AdvanceCheckpoint(ownershipState, ownedLine);
                     yield return ownedLine;
                     priorQuoteDepth = quoteDepth;
-                    priorParagraphCandidate = false;
                     offset = checked(offset + raw.Length);
                     continue;
                 }
@@ -213,7 +223,6 @@ public static class MarkdownStreamingReader
                     ownershipState = AdvanceCheckpoint(ownershipState, ownedLine);
                     yield return ownedLine;
                     priorQuoteDepth = quoteDepth;
-                    priorParagraphCandidate = false;
                     offset = checked(offset + raw.Length);
                     continue;
                 }
@@ -236,20 +245,13 @@ public static class MarkdownStreamingReader
                 kind = MarkdownStreamLineKind.Markdown;
             }
 
-            var continuingParagraph = kind == MarkdownStreamLineKind.Markdown &&
-                priorParagraphCandidate && quoteDepth == priorQuoteDepth &&
-                LooksLikeParagraph(body.AsSpan());
             UpdateListStack(openLists, kind, body.AsSpan());
-            priorParagraphCandidate = kind == MarkdownStreamLineKind.Markdown &&
-                LooksLikeParagraph(body.AsSpan());
             priorQuoteDepth = quoteDepth;
 
-            var classified = AttachOwnership(ownershipState,
-                new MarkdownStreamLine(kind, offset, raw, body, quoteDepth,
-                    openLists.Count, fenceStart, language)
-                {
-                    IsParagraphContinuationCandidate = continuingParagraph
-                });
+            var classified = AttachParagraph(ownershipState,
+                AttachOwnership(ownershipState,
+                    new MarkdownStreamLine(kind, offset, raw, body, quoteDepth,
+                        openLists.Count, fenceStart, language)));
             ownershipState = AdvanceCheckpoint(ownershipState, classified);
             yield return classified;
             offset = checked(offset + raw.Length);
@@ -259,6 +261,12 @@ public static class MarkdownStreamingReader
     private static bool IsValidCheckpoint(MarkdownStreamCheckpoint c)
     {
         if (c.Start < 0 || c.PreviousQuoteDepth is < 0 or > 32 ||
+            (c.OpenParagraphStart is long paragraphStart &&
+                (paragraphStart < 0 || paragraphStart >= c.Start)) ||
+            (c.ParagraphListOwnerStart is long ownerStart &&
+                (ownerStart < 0 || ownerStart >= c.Start ||
+                 c.OpenParagraphStart is null)) ||
+            (c.PreviousParagraphCandidate != c.OpenParagraphStart.HasValue) ||
             c.ListIndents is null || c.ListIndents.Count > 32 ||
             c.ListIndents.Any(n => n is < 0 or > 32) ||
             c.ListOwners is null || c.ListOwners.Count > 32 ||
@@ -309,8 +317,40 @@ public static class MarkdownStreamingReader
                 line.ListOwnerStart.HasValue,
             PreviousWasBlank = line.Kind == MarkdownStreamLineKind.Blank,
             PreviousQuoteDepth = line.QuoteDepth,
-            PreviousParagraphCandidate = line.Kind == MarkdownStreamLineKind.Markdown &&
-                LooksLikeParagraph(line.Content.AsSpan())
+            PreviousParagraphCandidate = line.ParagraphStart.HasValue,
+            OpenParagraphStart = line.ParagraphStart,
+            ParagraphListOwnerStart = line.ParagraphStart.HasValue ?
+                line.ListOwnerStart : null
+        };
+    }
+
+    /// <summary>
+    /// Identify the current prose paragraph without holding earlier text.
+    /// A different quote depth or list-item owner starts a fresh paragraph,
+    /// even if the physical lines are directly adjacent.
+    /// </summary>
+    public static MarkdownStreamLine AttachParagraph(
+        MarkdownStreamCheckpoint previous, MarkdownStreamLine line)
+    {
+        ArgumentNullException.ThrowIfNull(previous);
+        ArgumentNullException.ThrowIfNull(line);
+        if (previous.Start != line.Start)
+            throw new ArgumentException("Checkpoint and line offsets disagree.", nameof(line));
+
+        if (line.Kind != MarkdownStreamLineKind.Markdown ||
+            !LooksLikeParagraph(line.Content.AsSpan()))
+            return line with { ParagraphStart = null,
+                IsParagraphContinuationCandidate = false };
+
+        var continues = previous.PreviousParagraphCandidate &&
+            previous.OpenParagraphStart.HasValue &&
+            previous.PreviousQuoteDepth == line.QuoteDepth &&
+            previous.ParagraphListOwnerStart == line.ListOwnerStart;
+
+        return line with
+        {
+            ParagraphStart = continues ? previous.OpenParagraphStart : line.Start,
+            IsParagraphContinuationCandidate = continues
         };
     }
 
