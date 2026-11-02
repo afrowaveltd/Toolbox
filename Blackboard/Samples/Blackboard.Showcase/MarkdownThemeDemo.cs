@@ -165,6 +165,10 @@ public sealed class MarkdownThemeDemo : IBlackboardShowcaseDemo
         })
     ];
 
+    // Reuse the exact same Classic style for file previews; only the Showcase
+    // knows about this optional native TextMate backend.
+    internal static MarkdownSpectreTheme ClassicPreviewTheme => Themes[0].Theme;
+
     /// <inheritdoc/>
     public string Id => "markdown-themes";
 
