@@ -129,7 +129,7 @@ public sealed class MarkdownFenceCheckpointIndexTests
                 pages, tempDirectory: temp);
             var checkpoint = Assert.Single(Directory.GetFiles(temp,
                 "afrowave-markdown-fences-*.tmp"));
-            Assert.Equal(pages.PageCount * 96, new FileInfo(checkpoint).Length);
+            Assert.Equal(pages.PageCount * 128, new FileInfo(checkpoint).Length);
             Assert.Equal(MarkdownStreamLineKind.CodeContent,
                 (await fences.ReadPageAsync(150)).Lines[0].Kind);
             await fences.DisposeAsync();
@@ -137,6 +137,96 @@ public sealed class MarkdownFenceCheckpointIndexTests
             Assert.True(File.Exists(path));
             await Assert.ThrowsAsync<ObjectDisposedException>(
                 () => fences.ReadCheckpointAsync(0));
+        });
+    }
+
+    [Fact]
+    public async Task Nested_list_candidates_survive_page_seeks_and_keep_original_depth()
+    {
+        const string markdown =
+            "- Parent\n" +
+            "  - Child\n" +
+            "    long paragraph\n" +
+            "    continues\n" +
+            "  - Sibling\n" +
+            "- Root\n";
+        await WithMarkdownAsync(markdown, async (path, temp) =>
+        {
+            await using var pages = await MarkdownDiskPageIndex.BuildAsync(path,
+                new MarkdownDiskPageOptions { LinesPerPage = 2 }, tempDirectory: temp);
+            await using var snapshots = await MarkdownFenceCheckpointIndex.BuildAsync(
+                pages, tempDirectory: temp);
+
+            var last = await snapshots.ReadPageAsync(2);
+            var middle = await snapshots.ReadPageAsync(1);
+            var checkpoint = await snapshots.ReadCheckpointAsync(1);
+
+            Assert.Equal(new[] { 0, 2 }, checkpoint.ListIndents);
+            Assert.Equal(new[] { 2, 2 }, middle.Lines.Select(x => x.ListDepth));
+            Assert.False(middle.Lines[0].IsParagraphContinuationCandidate);
+            Assert.True(middle.Lines[1].IsParagraphContinuationCandidate);
+            Assert.Equal(new[] { 2, 1 }, last.Lines.Select(x => x.ListDepth));
+            Assert.Equal(markdown, (await snapshots.ReadPageAsync(0)).Source.Content +
+                middle.Source.Content + last.Source.Content);
+        });
+    }
+
+    [Fact]
+    public async Task Quote_depth_and_contiguous_paragraph_candidate_resume_across_page()
+    {
+        const string markdown =
+            "> A paragraph\n" +
+            "> another line\n" +
+            "> still the same quote\n" +
+            "outside quote\n" +
+            "outside again\n";
+        await WithMarkdownAsync(markdown, async (path, temp) =>
+        {
+            await using var pages = await MarkdownDiskPageIndex.BuildAsync(path,
+                new MarkdownDiskPageOptions { LinesPerPage = 2 }, tempDirectory: temp);
+            await using var snapshots = await MarkdownFenceCheckpointIndex.BuildAsync(
+                pages, tempDirectory: temp);
+
+            var checkpoint = await snapshots.ReadCheckpointAsync(1);
+            Assert.Equal(1, checkpoint.PreviousQuoteDepth);
+            Assert.True(checkpoint.PreviousParagraphCandidate);
+            var second = await snapshots.ReadPageAsync(1);
+            Assert.Equal(1, second.Lines[0].QuoteDepth);
+            Assert.True(second.Lines[0].IsParagraphContinuationCandidate);
+            Assert.Equal(0, second.Lines[1].QuoteDepth);
+            Assert.False(second.Lines[1].IsParagraphContinuationCandidate);
+            var third = await snapshots.ReadPageAsync(2);
+            Assert.True(third.Lines[0].IsParagraphContinuationCandidate);
+        });
+    }
+
+    [Fact]
+    public async Task Blank_and_fence_boundaries_reset_paragraph_candidate()
+    {
+        const string markdown =
+            "prose one\n" +
+            "prose two\n" +
+            "\n" +
+            "new paragraph\n" +
+            "~~~\n" +
+            "code line\n" +
+            "~~~\n" +
+            "after code\n";
+        await WithMarkdownAsync(markdown, async (path, temp) =>
+        {
+            await using var pages = await MarkdownDiskPageIndex.BuildAsync(path,
+                new MarkdownDiskPageOptions { LinesPerPage = 1 }, tempDirectory: temp);
+            await using var snapshots = await MarkdownFenceCheckpointIndex.BuildAsync(
+                pages, tempDirectory: temp);
+
+            Assert.True(Assert.Single((await snapshots.ReadPageAsync(1)).Lines)
+                .IsParagraphContinuationCandidate);
+            Assert.False(Assert.Single((await snapshots.ReadPageAsync(3)).Lines)
+                .IsParagraphContinuationCandidate);
+            Assert.Equal(MarkdownStreamLineKind.CodeContent,
+                Assert.Single((await snapshots.ReadPageAsync(5)).Lines).Kind);
+            Assert.False(Assert.Single((await snapshots.ReadPageAsync(7)).Lines)
+                .IsParagraphContinuationCandidate);
         });
     }
 
@@ -149,7 +239,7 @@ public sealed class MarkdownFenceCheckpointIndexTests
                 new MarkdownDiskPageOptions { LinesPerPage = 1 }, tempDirectory: temp);
             await Assert.ThrowsAsync<InvalidDataException>(() =>
                 MarkdownFenceCheckpointIndex.BuildAsync(
-                    pages, tempDirectory: temp, maxIndexBytes: 96));
+                    pages, tempDirectory: temp, maxIndexBytes: 128));
             Assert.Empty(Directory.GetFiles(temp, "afrowave-markdown-fences-*.tmp"));
         });
     }
