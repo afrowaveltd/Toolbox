@@ -201,3 +201,25 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Showcase: experimental trusted HTTPS download-to-OS-Temp utility, 64-KiB network/file buffer, configurable byte limit, independent seekable reads, error cleanup and delete-on-dispose. Not yet wired into the interactive menu.
 - Future UnderstandMe integration, concurrent growing-file translation, full semantic Markdown block segmentation and paged UI documented as design only; do not claim deployed translation.
 - GitHub PR: [#3](https://github.com/afrowaveltd/Toolbox/pull/3), draft, not yet merged. Each relevant project README/Docs/en.md/status is updated.
+
+## 2026-11-02 — disk-backed Markdown source paging and Showcase navigation (draft PR #3)
+
+- `ExchangeHouse.MarkdownDiskPageIndex`: strict UTF-8 full-file validation,
+  fixed-size 64-bit **byte-offset** disk index with 256 MiB default index
+  quota, bounded page reading and arbitrary page access without retaining
+  previous page contents in RAM. Temporary index removed on failure/disposal.
+- `Blackboard.Showcase` sixth demo: FileBrowser local Markdown selection,
+  40-line raw-source pages, Next/Previous/Close selection and safe literal
+  console display. The pre-existing fifth **fully rendered** viewer remains
+  unchanged. HTTP and GitHub source choices are not yet wired in.
+- Regression coverage for UTF-8/emoji/BOM, bad encoding/controls, offset
+  correctness, CRLF/LF/CR, index size/line limits, random page navigation,
+  file changes and cleanup. [Source index guide](ExchangeHouse/Markdown/Docs/Disk-Backed-Paging/en.md)
+  · [Showcase pager guide](Blackboard/Samples/Blackboard.Showcase/Docs/Markdown-Paged-Source-Viewer/en.md).
+- **Limitations:** indexing currently scans the whole UTF-8 file once,
+  page contents are unformatted Markdown **source**. Contextual semantics,
+  page-spanning fence/list state, incremental downloader integration,
+  translations and 1 GiB/10 GiB end-to-end viewer validation remain future.
+  No NuGet release by these commits.
+- Work remains in [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3)
+  on `feature/markdown-streaming-stress-20261102`; not merged into master.
