@@ -117,7 +117,7 @@ public sealed class MarkdownFenceCheckpointIndexTests
     }
 
     [Fact]
-    public async Task Index_file_is_constant_size_per_page_and_is_deleted_on_dispose()
+    public async Task Index_uses_sparse_fixed_size_snapshots_and_is_deleted_on_dispose()
     {
         var markdown = "~~~bash\n" +
             string.Concat(Enumerable.Repeat("some code\n", 2_000)) + "~~~\n";
@@ -129,7 +129,10 @@ public sealed class MarkdownFenceCheckpointIndexTests
                 pages, tempDirectory: temp);
             var checkpoint = Assert.Single(Directory.GetFiles(temp,
                 "afrowave-markdown-fences-*.tmp"));
-            Assert.Equal(pages.PageCount * 512, new FileInfo(checkpoint).Length);
+            Assert.Equal(16, fences.CheckpointStride);
+            Assert.Equal(13, fences.SavedCheckpointCount);
+            Assert.Equal(fences.SavedCheckpointCount * 512,
+                new FileInfo(checkpoint).Length);
             Assert.Equal(MarkdownStreamLineKind.CodeContent,
                 (await fences.ReadPageAsync(150)).Lines[0].Kind);
             await fences.DisposeAsync();
@@ -377,7 +380,105 @@ public sealed class MarkdownFenceCheckpointIndexTests
                 new MarkdownDiskPageOptions { LinesPerPage = 1 }, tempDirectory: temp);
             await Assert.ThrowsAsync<InvalidDataException>(() =>
                 MarkdownFenceCheckpointIndex.BuildAsync(
-                    pages, tempDirectory: temp, maxIndexBytes: 512));
+                    pages, tempDirectory: temp, maxIndexBytes: 512, checkpointStride: 1));
+            Assert.Empty(Directory.GetFiles(temp, "afrowave-markdown-fences-*.tmp"));
+        });
+    }
+
+    [Fact]
+    public async Task Sparse_checkpoints_replay_owner_and_fence_state_on_either_side_of_boundaries()
+    {
+        var markdown = "- Root\n" +
+            string.Concat(Enumerable.Repeat("  lazy owned continuation\n", 30)) +
+            "  - Child\n" +
+            string.Concat(Enumerable.Repeat("    nested continuation\n", 24)) +
+            "  - Sibling\n" +
+            "  ~~~cs\n" +
+            string.Concat(Enumerable.Repeat("  # literal code\n", 16)) +
+            "  ~~~\n" +
+            "  back to root\n";
+
+        await WithMarkdownAsync(markdown, async (path, temp) =>
+        {
+            var expected = new List<MarkdownStreamLine>();
+            using (var full = new StringReader(markdown))
+                await foreach (var line in MarkdownStreamingReader.ScanAsync(full))
+                    expected.Add(line);
+
+            await using var pages = await MarkdownDiskPageIndex.BuildAsync(path,
+                new MarkdownDiskPageOptions { LinesPerPage = 2 }, tempDirectory: temp);
+            await using var index = await MarkdownFenceCheckpointIndex.BuildAsync(
+                pages, tempDirectory: temp, checkpointStride: 4);
+
+            Assert.Equal(4, index.CheckpointStride);
+            Assert.Equal(1 + (pages.PageCount - 1) / 4,
+                index.SavedCheckpointCount);
+            var file = Assert.Single(Directory.GetFiles(temp,
+                "afrowave-markdown-fences-*.tmp"));
+            Assert.Equal(index.SavedCheckpointCount * 512,
+                new FileInfo(file).Length);
+
+            var actual = new MarkdownStreamLine[expected.Count];
+            for (long page = index.PageCount; page-- > 0;)
+            {
+                var snapshot = await index.ReadPageAsync(page);
+                Assert.Equal(snapshot.Checkpoint.Start,
+                    snapshot.Lines[0].Start);
+                for (var i = 0; i < snapshot.Lines.Count; i++)
+                    actual[checked((int)(snapshot.Source.FirstLine - 1 + i))] =
+                        snapshot.Lines[i];
+            }
+
+            for (var i = 0; i < expected.Count; i++)
+            {
+                Assert.Equal(expected[i].Start, actual[i].Start);
+                Assert.Equal(expected[i].Kind, actual[i].Kind);
+                Assert.Equal(expected[i].RawText, actual[i].RawText);
+                Assert.Equal(expected[i].QuoteDepth, actual[i].QuoteDepth);
+                Assert.Equal(expected[i].ListDepth, actual[i].ListDepth);
+                Assert.Equal(expected[i].ListOwnerStart, actual[i].ListOwnerStart);
+                Assert.Equal(expected[i].IsListContinuationCandidate,
+                    actual[i].IsListContinuationCandidate);
+                Assert.Equal(expected[i].IsParagraphContinuationCandidate,
+                    actual[i].IsParagraphContinuationCandidate);
+                Assert.Equal(expected[i].OpenFenceStart, actual[i].OpenFenceStart);
+            }
+        });
+    }
+
+    [Fact]
+    public async Task Sparse_quota_is_evaluated_on_record_count_not_page_count()
+    {
+        await WithMarkdownAsync(string.Concat(Enumerable.Repeat("word\n", 17)),
+            async (path, temp) =>
+            {
+                await using var pages = await MarkdownDiskPageIndex.BuildAsync(path,
+                    new MarkdownDiskPageOptions { LinesPerPage = 1 }, tempDirectory: temp);
+                await using var index = await MarkdownFenceCheckpointIndex.BuildAsync(
+                    pages, tempDirectory: temp,
+                    maxIndexBytes: 2 * 512, checkpointStride: 16);
+                Assert.Equal(2, index.SavedCheckpointCount);
+                await Assert.ThrowsAsync<InvalidDataException>(() =>
+                    MarkdownFenceCheckpointIndex.BuildAsync(pages,
+                        tempDirectory: temp, maxIndexBytes: 512,
+                        checkpointStride: 16));
+                Assert.Single(Directory.GetFiles(temp,
+                    "afrowave-markdown-fences-*.tmp"));
+            });
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(257)]
+    public async Task Sparse_stride_outside_valid_range_is_rejected(int stride)
+    {
+        await WithMarkdownAsync("line\n", async (path, temp) =>
+        {
+            await using var pages = await MarkdownDiskPageIndex.BuildAsync(
+                path, tempDirectory: temp);
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+                MarkdownFenceCheckpointIndex.BuildAsync(pages, tempDirectory: temp,
+                    checkpointStride: stride));
             Assert.Empty(Directory.GetFiles(temp, "afrowave-markdown-fences-*.tmp"));
         });
     }
