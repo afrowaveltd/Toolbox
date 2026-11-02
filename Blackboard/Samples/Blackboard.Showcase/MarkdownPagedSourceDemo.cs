@@ -1,5 +1,6 @@
 using Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser;
 using Afrowave.Toolbox.ExchangeHouse.Markdown;
+using Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown;
 using Spectre.Console;
 using System.Text;
 
@@ -68,27 +69,44 @@ public sealed class MarkdownPagedSourceDemo : IBlackboardShowcaseDemo
             // bytes have been validated separately.
             var displayName = new string(Path.GetFileName(path)
                 .Select(c => char.IsControl(c) ? '\uFFFD' : c).ToArray());
+            await using var fences = await MarkdownFenceCheckpointIndex.BuildAsync(
+                index, cancellationToken);
             long pageNumber = 0;
+            var showConservativePreview = false;
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var page = await index.ReadPageAsync(pageNumber, cancellationToken);
+                var contextual = await fences.ReadPageAsync(pageNumber, cancellationToken);
+                var page = contextual.Source;
                 console.Write(new Text(Environment.NewLine +
                     "Markdown source: " + displayName +
                     " — page " + (pageNumber + 1) + "/" + index.PageCount +
                     ", lines " + page.FirstLine + "–" +
                     (page.FirstLine + page.LineCount - 1) + Environment.NewLine));
-                // The entire file has been strictly validated; Spectre.Text
-                // is literal, never interpolated markup or terminal commands.
-                console.Write(new Text(page.Content));
-                if (!page.Content.EndsWith('\n') && !page.Content.EndsWith('\r'))
-                    console.Write(new Text(Environment.NewLine));
+                if (showConservativePreview)
+                {
+                    // A code fence started on a previous page remains code on
+                    // this page. Other multiline Markdown semantics are still
+                    // conservative; this is NOT the complete document renderer.
+                    foreach (var line in contextual.Lines)
+                        MarkdownSpectreRenderer.RenderStreamingLine(
+                            console, line, MarkdownThemeDemo.ClassicPreviewTheme);
+                }
+                else
+                {
+                    // Strictly validated literal source, not Spectre markup.
+                    console.Write(new Text(page.Content));
+                    if (!page.Content.EndsWith('\n') && !page.Content.EndsWith('\r'))
+                        console.Write(new Text(Environment.NewLine));
+                }
 
                 var actions = new List<string>(3);
                 if (pageNumber + 1 < index.PageCount)
                     actions.Add("Next page");
                 if (pageNumber > 0)
                     actions.Add("Previous page");
+                actions.Add(showConservativePreview ?
+                    "Show literal source" : "Show conservative Markdown preview");
                 actions.Add("Close pager");
 
                 var choice = await new SelectionPrompt<string>()
@@ -99,6 +117,11 @@ public sealed class MarkdownPagedSourceDemo : IBlackboardShowcaseDemo
                     .ShowAsync(console, cancellationToken);
                 if (choice == "Close pager")
                     return;
+                if (choice is "Show literal source" or "Show conservative Markdown preview")
+                {
+                    showConservativePreview = !showConservativePreview;
+                    continue;
+                }
                 pageNumber += choice == "Next page" ? 1 : -1;
             }
         }
