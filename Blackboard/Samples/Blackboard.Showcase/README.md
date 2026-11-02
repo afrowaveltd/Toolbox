@@ -122,3 +122,14 @@ intentionally displays **literal source**, not context-dependent Markdown
 rendering: code fences and lists could cross page boundaries. It is a
 low-memory navigation experiment rather than the final `mdview`.
 [Usage and limitations](Docs/Markdown-Paged-Source-Viewer/en.md).
+
+## Context-aware code-fence preview toggle (experimental, 2026-11-02)
+
+The sixth source pager now creates an additional disposable fenced-code
+checkpoint index. Its navigation menu offers **Show conservative Markdown
+preview** / **Show literal source**. Preview mode reuses the existing
+streaming-line Spectre renderer; it can correctly classify code lines on
+page N even when their fence opened on an earlier page. This still does
+**not** guarantee CommonMark-correct rendering of lists, reference links,
+multiline paragraphs or quotes. Source view remains the default.
+[Technical contract](../../../ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
