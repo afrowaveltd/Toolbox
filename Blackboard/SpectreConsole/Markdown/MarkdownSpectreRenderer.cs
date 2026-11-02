@@ -43,6 +43,28 @@ public static class MarkdownSpectreRenderer
                 WriteLine(console, QuoteContainerPrefix(line, theme) +
                     theme.CodeIndent + line.Content, theme.Code);
                 break;
+            case MarkdownStreamLineKind.Markdown
+                when line.ListOwnerStart == line.Start:
+                // The page may begin in a nested list. Render the marker
+                // through the existing inline/list renderer but preserve
+                // its document-level depth as a separate safe prefix.
+                WriteSafe(console, QuoteContainerPrefix(line, theme) +
+                    string.Concat(Enumerable.Repeat(theme.ListIndent,
+                        Math.Clamp(line.ListDepth - 1, 0, 31))), theme.ListMarker);
+                Render(console, MarkdownParser.Parse(
+                    line.Content.TrimStart(' ', '\t')), theme);
+                break;
+            case MarkdownStreamLineKind.Markdown
+                when line.IsListContinuationCandidate:
+                // Only owner-aware conservative prose is indented here;
+                // never pretend this reconstructs full CommonMark blocks.
+                WriteSafe(console, QuoteContainerPrefix(line, theme) +
+                    string.Concat(Enumerable.Repeat(theme.ListIndent,
+                        Math.Clamp(line.ListDepth - 1, 0, 31))) +
+                    new string(' ', 2), theme.Body);
+                Render(console, MarkdownParser.Parse(
+                    line.Content.TrimStart(' ', '\t')), theme);
+                break;
             default:
                 Render(console, MarkdownParser.Parse(line.RawText), theme);
                 break;
