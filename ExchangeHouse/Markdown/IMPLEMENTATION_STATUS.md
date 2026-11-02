@@ -218,3 +218,22 @@
   continuation and link reference resolution remain future. Not published.
 - [Documentation](Docs/Fence-Checkpoints/en.md) and
   [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
+
+
+## 2026-11-02 — actual list-marker ownership across indexed pages
+
+- `MarkdownListOwner(Start, Indent, ContentIndent)` stores lightweight
+  64-bit UTF-16 identities of up to 32 active list markers.
+- `MarkdownStreamLine.ListOwnerStart` and
+  `IsListContinuationCandidate` annotate indented and simple lazy prose,
+  parent returns and quoted-container boundaries, in both uninterrupted
+  streaming scans and reversed-order disk-page reads.
+- The second disposable index uses fixed **512-byte records** to save
+  owner descriptors alongside fence and previous quote/paragraph hints;
+  formerly 128 bytes. Underlying source index remains eight bytes/page.
+- Added tests for explicit nested/parent owner reassociation, lazy
+  continuation, blank-separated reset, quote-depth isolation and
+  owner metadata parity under reverse paging.
+- This is conservative ownership, **not** complete CommonMark logical
+  list tree or a published NuGet API. PR #3 remains draft.
+- [Detail](Docs/Fence-Checkpoints/en.md).
