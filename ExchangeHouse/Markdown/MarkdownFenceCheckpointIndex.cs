@@ -224,7 +224,6 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
         var length = record[22];
         if (length > LanguageMaxBytes || record[88] > 32 ||
             record[89] > 32 || record[90] > 1 ||
-            record.AsSpan(91, record[88]).IndexOfAnyExceptInRange((byte)0, (byte)32) >= 0 ||
             (marker == '\0' && (length != 0 || record[21] != 0 ||
                 BinaryPrimitives.ReadInt32LittleEndian(record.AsSpan(16, 4)) != 0)))
             throw new InvalidDataException("Invalid fenced-code checkpoint.");
@@ -234,7 +233,11 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
 
         var lists = new int[record[88]];
         for (var i = 0; i < lists.Length; i++)
+        {
+            if (record[91 + i] > 32)
+                throw new InvalidDataException("Invalid list indent checkpoint.");
             lists[i] = record[91 + i];
+        }
 
         return new MarkdownStreamCheckpoint(
             BinaryPrimitives.ReadInt64LittleEndian(record.AsSpan(0, 8)),
