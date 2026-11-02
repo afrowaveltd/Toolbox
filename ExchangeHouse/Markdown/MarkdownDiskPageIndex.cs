@@ -192,6 +192,18 @@ public sealed class MarkdownDiskPageIndex : IDisposable, IAsyncDisposable
                 else if (position > lineStart)
                     completeLines = checked(completeLines + 1);
 
+                // A UTF-8 BOM without content is an empty logical document,
+                // just like the existing complete-file viewer. Do not create
+                // a phantom page that the BOM-skipping scanner cannot replay.
+                if (position == 3 && completeLines == 1)
+                {
+                    source.Position = 0;
+                    var bom = new byte[3];
+                    await source.ReadExactlyAsync(bom, cancellationToken);
+                    if (bom.AsSpan().SequenceEqual(new byte[] { 0xEF, 0xBB, 0xBF }))
+                        completeLines = 0;
+                }
+
                 // A page boundary coinciding with EOF is NOT an empty extra page.
                 var actualPages = (completeLines + options.LinesPerPage - 1) /
                     options.LinesPerPage;
