@@ -77,3 +77,15 @@ A quoted list item may now own one or more physical quote-prefixed blank lines (
 ## Experimental indexed streaming scanner and diskless stress (2026-11-02)
 
 The additive MarkdownStreamingReader.ScanAsync supports bounded-memory line-wise source scanning, 64-bit offsets and open code fence metadata without buffering a large logical block. Blackboard Markdown includes a streaming-line renderer; the standalone Toolroom/Markdown/Stress app can test generated 10 MiB, 100 MiB, 1 GiB and 10 GiB Markdown without a giant file. **Not a full streaming CommonMark parser or replacement for the Showcase full-document viewer.** See [scanner details](Docs/Streaming-Scanner/en.md) and [stress tool](../../Toolroom/Markdown/Stress/README.md).
+
+## Experimental on-disk Markdown source pager (2026-11-02)
+
+`MarkdownDiskPageIndex.BuildAsync(path)` validates UTF-8 source and
+builds an 8-byte-per-page Temp-file index. `ReadPageAsync(number)`
+seeks a bounded page without retaining the full document or the whole
+index in RAM. The source is never modified and the temporary index is
+deleted on disposal. Supports strict UTF-8, LF/CRLF/CR and independently
+configurable line/page bounds. **Only raw source paging is implemented**:
+a page-local parse can misinterpret a fence crossing the boundary.
+No 1 GiB/10 GiB end-to-end pager acceptance or NuGet publication is
+claimed. See [disk-backed paging](Docs/Disk-Backed-Paging/en.md).
