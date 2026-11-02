@@ -1,6 +1,7 @@
 using Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser;
 using Afrowave.Toolbox.ExchangeHouse.Markdown;
 using Spectre.Console;
+using System.Text;
 
 namespace Afrowave.Toolbox.Blackboard.Showcase;
 
