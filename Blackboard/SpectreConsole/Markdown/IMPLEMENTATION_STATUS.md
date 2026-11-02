@@ -156,3 +156,10 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 
 - The future viewer proposal now covers case-insensitive GitHub owner/repo arguments (one API request), and a separate block-event parser/terminal pager research track using `IAsyncEnumerable` with bounded lookahead, optional disk spooling and full-document fidelity.
 - Current parser still materializes the entire document. No 1 GB runtime capacity is claimed. [Design details](Docs/Standalone-Markdown-Viewer-Proposal/en.md).
+
+## 2026-11-02 — experimental indexed streaming scanner and diskless stress harness
+
+- Introduced forward-only MarkdownStreamingReader.ScanAsync with 64-bit source character offsets, bounded input-line buffer and minimal open-fence/list index state. Long code fences do not accumulate in memory.
+- Stress runner: Toolroom/Markdown/Stress, with deterministic virtual Markdown for 10M, 100M, 1G and 10G; optional Spectre render to null output; 50k-line open-fence regression.
+- Existing full-document parser and normal Showcase viewer remain unchanged. Full CommonMark-equivalent streaming state, deferred references and paged terminal navigation are not yet supported.
+- **CI and large stress execution pending**; the change is on a review branch, not asserted merged to master.
