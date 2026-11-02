@@ -168,6 +168,58 @@ public sealed class MarkdownListSpacingIndexTests
     }
 
     [Fact]
+    public async Task Owned_code_fence_keeps_list_group_open_without_false_spacing()
+    {
+        const string markdown =
+            "- Item A\n" +
+            "  ~~~md\n" +
+            "  - this is code\n" +
+            "  ~~~\n" +
+            "- Item B\n";
+        await WithMarkdownAsync(markdown, async (path, temp) =>
+        {
+            await using var pages = await MarkdownDiskPageIndex.BuildAsync(path,
+                new MarkdownDiskPageOptions { LinesPerPage = 1 }, tempDirectory: temp);
+            await using var index = await MarkdownListSpacingIndex.BuildAsync(
+                pages, tempDirectory: temp);
+            Assert.Equal(1, index.GroupCount);
+            Assert.Equal(2, index.ItemCount);
+            var first = await index.FindForItemAsync(0);
+            var second = await index.FindForItemAsync(
+                markdown.IndexOf("- Item B", StringComparison.Ordinal));
+            Assert.NotNull(first);
+            Assert.Equal(first, second);
+            Assert.False(first.IsLooseCandidate);
+            Assert.Null(await index.FindForItemAsync(
+                markdown.IndexOf("  - this is code", StringComparison.Ordinal)));
+        });
+    }
+
+    [Fact]
+    public async Task Thousands_of_items_use_fixed_size_disk_records_and_no_source_copy()
+    {
+        var markdown = string.Concat(Enumerable.Repeat("- entry\n", 2_000));
+        await WithMarkdownAsync(markdown, async (path, temp) =>
+        {
+            await using var pages = await MarkdownDiskPageIndex.BuildAsync(path,
+                new MarkdownDiskPageOptions { LinesPerPage = 16 }, tempDirectory: temp);
+            await using var index = await MarkdownListSpacingIndex.BuildAsync(
+                pages, tempDirectory: temp);
+            Assert.Equal(1, index.GroupCount);
+            Assert.Equal(2_000, index.ItemCount);
+            var items = Assert.Single(Directory.GetFiles(temp,
+                "afrowave-markdown-list-items-*.tmp"));
+            var groups = Assert.Single(Directory.GetFiles(temp,
+                "afrowave-markdown-list-groups-*.tmp"));
+            Assert.Equal(2_000 * 16L, new FileInfo(items).Length);
+            Assert.Equal(24L, new FileInfo(groups).Length);
+            Assert.NotNull(await index.FindForItemAsync(0));
+            Assert.NotNull(await index.FindForItemAsync((2_000 - 1) * 8L));
+            Assert.Equal(markdown, await File.ReadAllTextAsync(path));
+        });
+    }
+
+    [Fact]
     public async Task No_list_creates_no_entries_and_does_not_change_source()
     {
         const string markdown = "# Heading\nPlain prose\n";
