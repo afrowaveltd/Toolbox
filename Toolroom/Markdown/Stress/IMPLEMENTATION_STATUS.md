@@ -22,3 +22,15 @@
 2. Run 100M and 1G, then 10G under an OS memory constraint.
 3. Evolve streaming AST ownership, indexes and terminal paging.
 4. Validate Windows/Debian interactive formatting separately.
+
+## 2026-11-02 — 1-GiB low-end rotational HDD acceptance target
+
+- Prepared dedicated terminal-only Debian 13 field protocol with
+  one virtual CPU, 1 GiB guest RAM and physical rotational-HDD backing.
+  Build/publish outside the guest where practical, then measure the
+  Release runner under `/usr/bin/time -v` and monitor disk wait,
+  swap activity and CPU. Increase only RAM (to 2 GiB) if needed;
+  preserve same disk, controller and workloads.
+- The virtual stream runner is not an end-to-end disk paging benchmark.
+  The VM is planned, **not yet tested**. Reference:
+  [low-memory acceptance](../../../Docs/Low-Memory-Linux-Acceptance/en.md).
