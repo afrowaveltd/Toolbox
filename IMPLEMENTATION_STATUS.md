@@ -240,3 +240,18 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   consistently empty. No NuGet package published or stable release declared.
 - [Checkpoint docs](ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md),
   [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
+
+## 2026-11-02 — bounded list/quote/paragraph checkpoints (draft PR #3)
+
+- Expanded the experimental page checkpoint from 96 to **128 bytes**
+  without storing source lines: maximum 32 list indentation candidates,
+  prior quote depth and prior paragraph-continuation candidate now join
+  active fenced-code state and UTF-16 offset. Scanner and index share
+  `AdvanceCheckpoint` to minimize grammar divergence.
+- Added tests of page-order independence, quote-depth transitions,
+  nested-list candidate depth and paragraph interruption boundaries.
+- **Not** a CommonMark-complete resumable AST, nor a NuGet release.
+  Future work: true list ownership, lazy paragraphs, reference resolution
+  and contextually accurate Spectre paging.
+- [Docs](ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md) /
+  [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
