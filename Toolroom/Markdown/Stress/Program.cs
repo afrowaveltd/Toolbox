@@ -41,22 +41,32 @@ internal static class Program
             var timer = Stopwatch.StartNew();
             long chunks = 0;
             long parsedChars = 0;
+            long validatedUtf8Bytes = 0;
+            long openedFences = 0;
+            long closedFences = 0;
+            long codeLines = 0;
+            long expectedOffset = 0;
             var baselineHeap = GC.GetTotalMemory(true);
             var sampledMaxHeap = baselineHeap;
             var sampledMaxWorkingSet = Process.GetCurrentProcess().WorkingSet64;
 
-            await foreach (var document in MarkdownStreamingReader.ParseAsync(reader, options))
+            await foreach (var line in MarkdownStreamingReader.ScanAsync(reader, options))
             {
                 chunks++;
-                parsedChars += document.Source.Length;
+                if (line.Start != expectedOffset)
+                    throw new InvalidDataException("Incorrect global source offset.");
+                expectedOffset = checked(expectedOffset + line.RawText.Length);
+                parsedChars += line.RawText.Length;
+                validatedUtf8Bytes = checked(validatedUtf8Bytes +
+                    System.Text.Encoding.UTF8.GetByteCount(line.RawText));
+                if (line.Kind == MarkdownStreamLineKind.CodeFenceOpen) openedFences++;
+                if (line.Kind == MarkdownStreamLineKind.CodeFenceClose) closedFences++;
+                if (line.Kind == MarkdownStreamLineKind.CodeContent) codeLines++;
 
-                // Verify the same parsed data that the renderer receives.
-                if (!string.Equals(MarkdownWriter.Write(document), document.Source,
-                        StringComparison.Ordinal))
-                    throw new InvalidDataException("Source-preserving writer mismatch.");
-
+                // Each output event carries only one physical line, not the
+                // whole enclosing Markdown construct or original document.
                 if (render)
-                    MarkdownSpectreRenderer.Render(output, document);
+                    MarkdownSpectreRenderer.RenderStreamingLine(output, line);
 
                 if (chunks % 32 == 0)
                 {
@@ -73,6 +83,10 @@ internal static class Program
             timer.Stop();
             if (reader.GeneratedUtf8Bytes < size)
                 throw new InvalidDataException("Generator ended before its byte target.");
+            if (validatedUtf8Bytes != reader.GeneratedUtf8Bytes)
+                throw new InvalidDataException("UTF-8 byte count differs from generated input.");
+            if (openedFences != closedFences)
+                throw new InvalidDataException("Generated corpus left a code fence open.");
             if (chunks == 0 || parsedChars == 0)
                 throw new InvalidDataException("No Markdown was parsed.");
 
@@ -80,8 +94,11 @@ internal static class Program
             Console.WriteLine($"Target UTF-8 bytes:     {size:N0}");
             Console.WriteLine($"Generated UTF-8 bytes:  {reader.GeneratedUtf8Bytes:N0}");
             Console.WriteLine($"Generated blocks:       {reader.BlockCount:N0}");
-            Console.WriteLine($"Parsed chunks:          {chunks:N0}");
+            Console.WriteLine($"Parsed physical lines:  {chunks:N0}");
             Console.WriteLine($"Parsed UTF-16 chars:    {parsedChars:N0}");
+            Console.WriteLine($"Validated UTF-8 bytes:  {validatedUtf8Bytes:N0}");
+            Console.WriteLine($"Matched code fences:    {closedFences:N0}");
+            Console.WriteLine($"Code-content lines:     {codeLines:N0}");
             Console.WriteLine($"Seed:                   {seed}");
             Console.WriteLine($"Renderer exercised:     {render} (output -> TextWriter.Null)");
             Console.WriteLine($"Elapsed:                {timer.Elapsed}");
