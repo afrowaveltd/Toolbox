@@ -47,6 +47,12 @@ public sealed record MarkdownStreamLine(
 {
     /// <summary>The full UTF-16 character length including line ending.</summary>
     public int Length => RawText.Length;
+
+    /// <summary>
+    /// True when this ordinary line may continue a prose paragraph across a
+    /// line/page boundary. This is not full CommonMark paragraph ownership.
+    /// </summary>
+    public bool IsParagraphContinuationCandidate { get; init; }
 }
 
 /// <summary>
@@ -62,7 +68,17 @@ public sealed record MarkdownStreamLine(
 public sealed record MarkdownStreamCheckpoint(
     long Start, char FenceMarker = '\0', int FenceLength = 0,
     long FenceStart = -1, int FenceQuoteDepth = 0,
-    string? CodeLanguage = null);
+    string? CodeLanguage = null)
+{
+    /// <summary>Bounded list indentation candidates before the next line (max 32).</summary>
+    public IReadOnlyList<int> ListIndents { get; init; } = Array.Empty<int>();
+
+    /// <summary>Quote depth of the preceding physical line, 0..32.</summary>
+    public int PreviousQuoteDepth { get; init; }
+
+    /// <summary>Whether the previous line may be an open prose paragraph.</summary>
+    public bool PreviousParagraphCandidate { get; init; }
+}
 
 /// <summary>
 /// Memory-bounded Markdown input scanner. Unlike Parse(string), this scanner
@@ -92,7 +108,8 @@ public static class MarkdownStreamingReader
     /// <summary>
     /// Continue a physical-line scan from a previously indexed fence
     /// checkpoint. Raw input must begin at the checkpoint's line boundary.
-    /// The open list stack is not reconstructed by this experimental API.
+    /// The bounded list-candidate stack and previous quote/paragraph hints
+    /// are also restored. This is not CommonMark-complete ownership.
     /// </summary>
     public static IAsyncEnumerable<MarkdownStreamLine> ScanAsync(
         TextReader reader,
@@ -119,7 +136,10 @@ public static class MarkdownStreamingReader
               ((checkpoint.FenceMarker is not ('~' or '`')) ||
                checkpoint.FenceLength < 3 || checkpoint.FenceStart < 0 ||
                checkpoint.FenceStart > checkpoint.Start ||
-               checkpoint.FenceQuoteDepth is < 0 or > 32))))
+               checkpoint.FenceQuoteDepth is < 0 or > 32))) ||
+             checkpoint.PreviousQuoteDepth is < 0 or > 32 ||
+             checkpoint.ListIndents is null || checkpoint.ListIndents.Count > 32 ||
+             checkpoint.ListIndents.Any(n => n is < 0 or > 32)))
             throw new ArgumentException("Invalid Markdown checkpoint.", nameof(checkpoint));
 
         long offset = checkpoint?.Start ?? 0;
@@ -128,7 +148,9 @@ public static class MarkdownStreamingReader
                 checkpoint.FenceStart, checkpoint.FenceQuoteDepth,
                 checkpoint.CodeLanguage)
             : null;
-        var openLists = new List<int>(32);
+        var openLists = checkpoint?.ListIndents.ToList() ?? new List<int>(32);
+        var priorQuoteDepth = checkpoint?.PreviousQuoteDepth ?? 0;
+        var priorParagraphCandidate = checkpoint?.PreviousParagraphCandidate ?? false;
 
         await foreach (var raw in ReadLinesAsync(reader, options, cancellationToken))
         {
@@ -139,6 +161,8 @@ public static class MarkdownStreamingReader
                 ? CountQuoteDepth(content.AsSpan(), out quoteBody)
                 : 0;
             var body = quoteDepth > 0 ? quoteBody.ToString() : content;
+            if (quoteDepth != priorQuoteDepth)
+                openLists.Clear();
             MarkdownStreamLineKind kind;
             long? fenceStart = null;
             string? language = null;
@@ -163,6 +187,8 @@ public static class MarkdownStreamingReader
                     activeFence = null;
                     yield return new MarkdownStreamLine(kind, offset, raw, body, quoteDepth,
                         openLists.Count, fenceStart, language);
+                    priorQuoteDepth = quoteDepth;
+                    priorParagraphCandidate = false;
                     offset = checked(offset + raw.Length);
                     continue;
                 }
@@ -171,6 +197,8 @@ public static class MarkdownStreamingReader
                     kind = MarkdownStreamLineKind.CodeContent;
                     yield return new MarkdownStreamLine(kind, offset, raw, body, quoteDepth,
                         openLists.Count, fenceStart, language);
+                    priorQuoteDepth = quoteDepth;
+                    priorParagraphCandidate = false;
                     offset = checked(offset + raw.Length);
                     continue;
                 }
@@ -191,24 +219,103 @@ public static class MarkdownStreamingReader
             else
             {
                 kind = MarkdownStreamLineKind.Markdown;
-                // Only list *openers* update the index. This does not claim
-                // complete CommonMark lazy/loose continuation semantics.
-                if (TryListIndent(body.AsSpan(), out var indent))
-                {
-                    while (openLists.Count > 0 && openLists[^1] >= indent)
-                        openLists.RemoveAt(openLists.Count - 1);
-                    if (openLists.Count < 32)
-                        openLists.Add(indent);
-                }
-                else if (!char.IsWhiteSpace(body[0]))
-                {
-                    openLists.Clear();
-                }
             }
 
+            var continuingParagraph = kind == MarkdownStreamLineKind.Markdown &&
+                priorParagraphCandidate && quoteDepth == priorQuoteDepth &&
+                LooksLikeParagraph(body.AsSpan());
+            UpdateListStack(openLists, kind, body.AsSpan());
+            priorParagraphCandidate = kind == MarkdownStreamLineKind.Markdown &&
+                LooksLikeParagraph(body.AsSpan());
+            priorQuoteDepth = quoteDepth;
+
             yield return new MarkdownStreamLine(kind, offset, raw, body, quoteDepth,
-                openLists.Count, fenceStart, language);
+                openLists.Count, fenceStart, language)
+            {
+                IsParagraphContinuationCandidate = continuingParagraph
+            };
             offset = checked(offset + raw.Length);
+        }
+    }
+
+    /// <summary>
+    /// Advance only bounded scanner state from a classified line. This is the
+    /// shared state transition used when persisting page checkpoints.
+    /// </summary>
+    public static MarkdownStreamCheckpoint AdvanceCheckpoint(
+        MarkdownStreamCheckpoint current, MarkdownStreamLine line)
+    {
+        ArgumentNullException.ThrowIfNull(current);
+        ArgumentNullException.ThrowIfNull(line);
+        if (line.Start != current.Start)
+            throw new ArgumentException("Checkpoint and line offsets disagree.", nameof(line));
+
+        var lists = current.ListIndents.ToList();
+        if (line.QuoteDepth != current.PreviousQuoteDepth)
+            lists.Clear();
+        UpdateListStack(lists, line.Kind, line.Content.AsSpan());
+
+        var next = line.Kind switch
+        {
+            MarkdownStreamLineKind.CodeFenceOpen => new MarkdownStreamCheckpoint(
+                checked(line.Start + line.Length),
+                ExtractMarker(line.Content), ExtractRunLength(line.Content),
+                line.Start, line.QuoteDepth, line.CodeLanguage),
+            MarkdownStreamLineKind.CodeContent => current with
+            {
+                Start = checked(line.Start + line.Length)
+            },
+            _ => new MarkdownStreamCheckpoint(checked(line.Start + line.Length))
+        };
+        return next with
+        {
+            ListIndents = lists.ToArray(),
+            PreviousQuoteDepth = line.QuoteDepth,
+            PreviousParagraphCandidate = line.Kind == MarkdownStreamLineKind.Markdown &&
+                LooksLikeParagraph(line.Content.AsSpan())
+        };
+    }
+
+    private static char ExtractMarker(string content) => content.AsSpan().TrimStart(' ')[0];
+
+    private static int ExtractRunLength(string content)
+    {
+        var span = content.AsSpan().TrimStart(' ');
+        var count = 0;
+        while (count < span.Length && span[count] == span[0])
+            count++;
+        return count;
+    }
+
+    private static bool LooksLikeParagraph(ReadOnlySpan<char> body)
+    {
+        var value = body.TrimStart();
+        if (value.IsEmpty || TryListIndent(body, out _))
+            return false;
+        if (value[0] == '#' &&
+            (value.Length == 1 || char.IsWhiteSpace(value[1])))
+            return false;
+        if (value.SequenceEqual("---") || value.SequenceEqual("***") ||
+            value.SequenceEqual("___") || value.StartsWith("<"))
+            return false;
+        return true;
+    }
+
+    private static void UpdateListStack(List<int> stack, MarkdownStreamLineKind kind,
+        ReadOnlySpan<char> body)
+    {
+        if (kind != MarkdownStreamLineKind.Markdown)
+            return;
+        if (TryListIndent(body, out var indent))
+        {
+            while (stack.Count > 0 && stack[^1] >= indent)
+                stack.RemoveAt(stack.Count - 1);
+            if (stack.Count < 32)
+                stack.Add(indent);
+        }
+        else if (!body.IsEmpty && !char.IsWhiteSpace(body[0]))
+        {
+            stack.Clear();
         }
     }
 
