@@ -40,6 +40,34 @@ public sealed class MarkdownPagedSourceDemoTests
     }
 
     [Fact]
+    public async Task Can_toggle_conservative_fence_aware_preview_and_return_to_literal_source()
+    {
+        var directory = CreateDirectory();
+        try
+        {
+            const string source = "~~~csharp\n# not a heading\n- not a list\n~~~\n";
+            await File.WriteAllTextAsync(Path.Combine(directory, "preview.md"),
+                source, new UTF8Encoding(false));
+            var console = InteractiveConsole();
+            console.Input.PushKey(ConsoleKey.Enter);      // pick Markdown
+            console.Input.PushKey(ConsoleKey.DownArrow);  // select preview toggle
+            console.Input.PushKey(ConsoleKey.Enter);      // preview on
+            console.Input.PushKey(ConsoleKey.DownArrow);  // select source toggle
+            console.Input.PushKey(ConsoleKey.Enter);      // preview off
+            console.Input.PushKey(ConsoleKey.Escape);     // close
+
+            await new MarkdownPagedSourceDemo().RunAsync(
+                console, directory, CancellationToken.None);
+
+            Assert.Contains("Markdown source: preview.md", console.Output);
+            Assert.Contains("# not a heading", console.Output);
+            Assert.Contains("- not a list", console.Output);
+            Assert.Contains("csharp", console.Output);
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    [Fact]
     public async Task Invalid_utf8_source_is_refused_without_rendering_its_content()
     {
         var directory = CreateDirectory();
