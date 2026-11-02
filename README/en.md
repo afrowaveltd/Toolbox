@@ -22,6 +22,18 @@
 
 The three NuGet publications above are **maintainer-confirmed**; the package IDs/versions match repository project metadata. Do not confuse a project `Version` with public publication. Details: [Release status](../Docs/Release-Status/en.md).
 
+## NuGet-first reusable component policy
+
+As soon as a self-contained .NET library is useful, documented, tested and
+installable, we publish a **NuGet prerelease** rather than waiting for a full
+`1.0.0`. Frequent preview releases are welcome; downstream projects consume
+stable package IDs and may opt into updates without changing shared source
+paths. Published versions are immutable and consumers must explicitly enable
+prerelease updates where their package manager requires it. This is a
+**publication policy**, not a claim that every preview project has already
+been released. See [NuGet release policy](../Docs/NuGet-Release-Policy/en.md)
+and [current package status](../Docs/Release-Status/en.md).
+
 ## Applications and examples
 
 - [Blackboard.Showcase](../Blackboard/Samples/Blackboard.Showcase/README.md): interactive demonstrations of FileBrowser text and JSON previews, directory selection, and four Markdown themes (Classic, Ocean, Forest, Monochrome), with links, images and nested/ordered lists.
