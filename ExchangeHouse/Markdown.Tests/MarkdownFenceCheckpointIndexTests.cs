@@ -129,7 +129,7 @@ public sealed class MarkdownFenceCheckpointIndexTests
                 pages, tempDirectory: temp);
             var checkpoint = Assert.Single(Directory.GetFiles(temp,
                 "afrowave-markdown-fences-*.tmp"));
-            Assert.Equal(pages.PageCount * 128, new FileInfo(checkpoint).Length);
+            Assert.Equal(pages.PageCount * 512, new FileInfo(checkpoint).Length);
             Assert.Equal(MarkdownStreamLineKind.CodeContent,
                 (await fences.ReadPageAsync(150)).Lines[0].Kind);
             await fences.DisposeAsync();
@@ -231,6 +231,93 @@ public sealed class MarkdownFenceCheckpointIndexTests
     }
 
     [Fact]
+    public async Task Explicit_nested_list_continuations_keep_their_actual_owner_after_reverse_seek()
+    {
+        const string markdown =
+            "- Parent\n" +
+            "  - Child\n" +
+            "    child details\n" +
+            "  parent continuation\n" +
+            "  - Sibling\n" +
+            "    sibling details\n" +
+            "- Last\n";
+        await WithMarkdownAsync(markdown, async (path, temp) =>
+        {
+            await using var pages = await MarkdownDiskPageIndex.BuildAsync(path,
+                new MarkdownDiskPageOptions { LinesPerPage = 2 }, tempDirectory: temp);
+            await using var index = await MarkdownFenceCheckpointIndex.BuildAsync(
+                pages, tempDirectory: temp);
+
+            var last = await index.ReadPageAsync(3);
+            var second = await index.ReadPageAsync(1);
+            var third = await index.ReadPageAsync(2);
+            var first = await index.ReadPageAsync(0);
+
+            Assert.Equal(markdown.IndexOf("- Last", StringComparison.Ordinal),
+                last.Lines[0].ListOwnerStart);
+            Assert.Equal(markdown.IndexOf("  - Child", StringComparison.Ordinal),
+                second.Lines[0].ListOwnerStart);
+            Assert.True(second.Lines[0].IsListContinuationCandidate);
+            Assert.Equal(0L, second.Lines[1].ListOwnerStart);
+            Assert.True(second.Lines[1].IsListContinuationCandidate);
+            Assert.Equal(markdown.IndexOf("  - Sibling", StringComparison.Ordinal),
+                third.Lines[1].ListOwnerStart);
+            Assert.True(third.Lines[1].IsListContinuationCandidate);
+            Assert.Equal(0L, first.Lines[0].ListOwnerStart);
+            Assert.False(first.Lines[0].IsListContinuationCandidate);
+            Assert.Equal(new[] { 0, 2 }, (await index.ReadCheckpointAsync(1))
+                .ListOwners.Select(x => x.Indent));
+        });
+    }
+
+    [Fact]
+    public async Task Lazy_list_continuation_is_tentative_and_blank_breaks_it()
+    {
+        const string markdown =
+            "- item\n" +
+            "lazy prose\n" +
+            "still lazy\n" +
+            "\n" +
+            "not owned\n";
+        await WithMarkdownAsync(markdown, async (path, temp) =>
+        {
+            await using var pages = await MarkdownDiskPageIndex.BuildAsync(path,
+                new MarkdownDiskPageOptions { LinesPerPage = 1 }, tempDirectory: temp);
+            await using var index = await MarkdownFenceCheckpointIndex.BuildAsync(
+                pages, tempDirectory: temp);
+
+            Assert.True(Assert.Single((await index.ReadPageAsync(1)).Lines)
+                .IsListContinuationCandidate);
+            Assert.True(Assert.Single((await index.ReadPageAsync(2)).Lines)
+                .IsListContinuationCandidate);
+            var plain = Assert.Single((await index.ReadPageAsync(4)).Lines);
+            Assert.Null(plain.ListOwnerStart);
+            Assert.False(plain.IsListContinuationCandidate);
+        });
+    }
+
+    [Fact]
+    public async Task Quote_depth_change_prevents_stealing_other_list_owners()
+    {
+        const string markdown =
+            "> - quoted\n" +
+            ">   continuation\n" +
+            "- outside\n" +
+            "  outside continuation\n";
+        await WithMarkdownAsync(markdown, async (path, temp) =>
+        {
+            await using var pages = await MarkdownDiskPageIndex.BuildAsync(path,
+                new MarkdownDiskPageOptions { LinesPerPage = 1 }, tempDirectory: temp);
+            await using var index = await MarkdownFenceCheckpointIndex.BuildAsync(
+                pages, tempDirectory: temp);
+
+            Assert.Equal(0L, (await index.ReadPageAsync(1)).Lines[0].ListOwnerStart);
+            Assert.Equal(markdown.IndexOf("- outside", StringComparison.Ordinal),
+                (await index.ReadPageAsync(3)).Lines[0].ListOwnerStart);
+        });
+    }
+
+    [Fact]
     public async Task Random_access_pages_match_uninterrupted_scan_for_bounded_structure()
     {
         const string markdown =
@@ -274,6 +361,9 @@ public sealed class MarkdownFenceCheckpointIndexTests
                 Assert.Equal(expected[i].CodeLanguage, actual[i].CodeLanguage);
                 Assert.Equal(expected[i].IsParagraphContinuationCandidate,
                     actual[i].IsParagraphContinuationCandidate);
+                Assert.Equal(expected[i].ListOwnerStart, actual[i].ListOwnerStart);
+                Assert.Equal(expected[i].IsListContinuationCandidate,
+                    actual[i].IsListContinuationCandidate);
             }
         });
     }
@@ -287,7 +377,7 @@ public sealed class MarkdownFenceCheckpointIndexTests
                 new MarkdownDiskPageOptions { LinesPerPage = 1 }, tempDirectory: temp);
             await Assert.ThrowsAsync<InvalidDataException>(() =>
                 MarkdownFenceCheckpointIndex.BuildAsync(
-                    pages, tempDirectory: temp, maxIndexBytes: 128));
+                    pages, tempDirectory: temp, maxIndexBytes: 512));
             Assert.Empty(Directory.GetFiles(temp, "afrowave-markdown-fences-*.tmp"));
         });
     }
