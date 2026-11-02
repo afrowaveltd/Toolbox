@@ -293,3 +293,22 @@
   higher-level list-wide context and possibly retroactive formatting.
   No NuGet publication.
 - [Detailed documentation](Docs/Fence-Checkpoints/en.md).
+
+## 2026-11-02 — optional disk-backed completed-list spacing summaries (draft PR #3)
+
+- Added `MarkdownListSpacingIndex` and `MarkdownListSpacingGroup`.
+  An optional third sequential source pass uses the existing bounded
+  Markdown scanner to record source-ordered marker offsets and compact
+  completed list-group summaries in two disposable Temp files.
+- Exact record sizes are 16 bytes/item and 24 bytes/group; combined
+  default disk quota 256 MiB, bounded 32-entry active group stack.
+  Binary search resolves `FindForItemAsync(markerStart)` without reading
+  all groups into RAM. A late blank-separated item/paragraph can mark
+  earlier items of the same group as `IsLooseCandidate`.
+- Added tests for retroactive spacing, nested groups, quoted/marker-type
+  separation, owned fenced code, zero-list files, per-record scaling,
+  quota failure cleanup and disposal.
+- The index is deliberately **optional**; no sixth Showcase integration,
+  no full CommonMark list-wide tight/loose guarantee, no confirmed
+  2-GiB RAM VM measurement and no NuGet release.
+- [API and limits](Docs/List-Spacing-Index/en.md).
