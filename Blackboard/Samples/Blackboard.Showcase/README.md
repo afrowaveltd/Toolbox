@@ -109,3 +109,16 @@ Then choose the Markdown file viewer and open the root `README.md`. This is an i
 ## Remote Markdown temp-file spooling (experimental, 2026-11-02)
 
 The new reusable-in-sample `RemoteMarkdownTempDocument` downloads a trusted HTTPS Markdown document with bounded memory into a disposable uniquely named temporary file. `OpenRead()` provides independent seekable paging streams after the network request has completed. Disposal deletes the temp file. This helper is **not yet wired into the interactive viewer**; only local selection is available in the menu. See [remote cache](Docs/Remote-Markdown-Cache/en.md), [future live translation proposal](Docs/Live-Markdown-Translation/en.md) and [implementation status](IMPLEMENTATION_STATUS.md).
+
+## Indexed source-page navigation (experimental, 2026-11-02)
+
+The sixth Showcase menu option, **Markdown — disk-indexed source pages**,
+uses ExchangeHouse's new temporary byte-offset page index to display
+one page of local UTF-8 Markdown source at a time. Navigate **Next** and
+**Previous** in either direction, or Escape to close; only the requested
+page is held in memory. The entire file is scanned and validated before
+paging. Unlike the fifth (fully rendered, in-memory) viewer, this one
+intentionally displays **literal source**, not context-dependent Markdown
+rendering: code fences and lists could cross page boundaries. It is a
+low-memory navigation experiment rather than the final `mdview`.
+[Usage and limitations](Docs/Markdown-Paged-Source-Viewer/en.md).
