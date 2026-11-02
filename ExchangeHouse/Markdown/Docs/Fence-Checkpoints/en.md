@@ -133,3 +133,35 @@ has no compatibility promise; each index is regenerated on startup. A file
 with extremely many short lines may exhaust the independent checkpoint
 disk quota before reaching EOF, even though reading individual pages is
 bounded. List nesting beyond 32 candidates is not preserved.
+
+
+## Sparse checkpoints and bounded replay (2026-11-02)
+
+The **current** default is now one persisted **512-byte record per 16
+source pages**, rather than one record per page. `CheckpointStride` is
+configurable from 1 (the original dense behavior) to 256 pages through
+`MarkdownFenceCheckpointIndex.BuildAsync(..., checkpointStride: 16)`.
+`PageCount` remains the total source-page count;
+`SavedCheckpointCount` counts records physically stored on disk.
+
+To visit page N, `ReadCheckpointAsync(N)` reads the record at
+`floor(N / stride) * stride`, then **replays at most stride - 1 earlier
+source pages** using the same streaming scanner and
+`AdvanceCheckpoint`. The reader holds one bounded page's text at a time;
+nothing from an earlier page needs to stay allocated after replay.
+`ReadPageAsync(N)` then classifies exactly the requested source page.
+
+This is a disk-space / random-seek-CPU tradeoff, **not free constant-time
+random access**. Large strides reduce temporary disk usage, but increase
+source I/O and reclassification work at arbitrary seeks. For 1,000,000
+physical lines with 40 lines per page, the default saves just 1,563
+checkpoint records (800,256 bytes), compared with 25,000 records
+(12,800,000 bytes) at stride 1. The underlying **8-byte/page byte offset
+index is unchanged**.
+
+The checkpoint disk quota (default 256 MiB) applies to the number of
+**stored** records, not the total number of pages. The full source is
+still validated and scanned twice during index creation; sparse state
+does not skip that validation. Replay also checks that the source has
+not changed via the underlying source index; cancellation and errors
+are propagated. No persistent cross-session index is introduced.
