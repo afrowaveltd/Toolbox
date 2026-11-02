@@ -44,3 +44,26 @@ fully modeled small documents. Do not claim equivalent output for all MD.
 
 For stress testing and constraints see the tool at
 Toolroom/Markdown/Stress/README.md.
+
+## List spacing and paragraph identity (2026-11-02)
+
+Recent experimental line events also expose:
+`ListOwnerStart`, `IsListContinuationCandidate`, `ParagraphStart`,
+`IsParagraphContinuationCandidate` and `ListSpacingHint`.
+
+The last property is a `MarkdownListSpacingHint` enum with `None`,
+`BlankSeparatedParagraph` and `BlankSeparatedItem`. The scanner can
+observe a blank line separating an indented new paragraph belonging to
+an existing list item, or a newly opened sibling list item. It uses
+previous line blankness, prior list-item owner offsets and explicit
+quote depth. The same information is reproducible from sparse page
+checkpoints without storing preceding text.
+
+**This is not a CommonMark whole-list `tight`/`loose` result.** A
+list's final spacing semantics may require seeing later items and
+applying the decision retroactively. The current scanner yields
+conservative evidence only; the complete document parser and further
+container modeling will determine eventual rendering behavior.
+
+See [structural checkpoints](../Fence-Checkpoints/en.md) for sparse
+random-access recovery, offsets, limitations and disk quotas.
