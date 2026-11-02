@@ -94,22 +94,25 @@ public sealed class MarkdownFilePreviewDemoTests
     }
 
     [Fact]
-    public async Task Oversize_file_is_marked_partial_and_read_is_bounded()
+    public async Task Large_file_is_fully_rendered_and_warning_is_informational()
     {
         var root = NewTempDirectory();
         try
         {
             var path = Path.Combine(root, "long.markdown");
-            var source = "# Header\n" + new string('x', MarkdownFilePreviewDemo.MaxPreviewBytes + 256);
+            var source = "# Header\n" + new string('x', MarkdownFilePreviewDemo.LargeFileNoticeBytes + 256) +
+                "\n## The actual end of this document\nLast paragraph is visible.";
             await File.WriteAllTextAsync(path, source);
 
             var console = InteractiveConsole();
             console.Input.PushKey(ConsoleKey.Enter);
             await new MarkdownFilePreviewDemo().RunAsync(console, root, CancellationToken.None);
 
-            Assert.Contains("[Partial preview: only the first 64 KiB", console.Output);
+            Assert.Contains("[Large Markdown document: the full file is being shown", console.Output);
             Assert.Contains("Header", console.Output);
-            Assert.DoesNotContain("[Preview truncated at byte limit]", console.Output);
+            Assert.Contains("The actual end of this document", console.Output);
+            Assert.Contains("Last paragraph is visible.", console.Output);
+            Assert.DoesNotContain("Partial preview", console.Output);
             Assert.Equal(source, await File.ReadAllTextAsync(path));
         }
         finally { Directory.Delete(root, recursive: true); }

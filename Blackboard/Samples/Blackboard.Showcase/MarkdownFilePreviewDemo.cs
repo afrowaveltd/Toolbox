@@ -6,13 +6,13 @@ using Spectre.Console;
 namespace Afrowave.Toolbox.Blackboard.Showcase;
 
 /// <summary>
-/// A read-only, bounded local Markdown file preview. Uses existing FileBrowser,
-/// text-decoding and Markdown rendering components without new dependencies.
+/// A read-only, complete local Markdown file viewer. Uses existing FileBrowser,
+/// strict streaming text decoding and Markdown rendering without new dependencies.
 /// </summary>
 public sealed class MarkdownFilePreviewDemo : IBlackboardShowcaseDemo
 {
-    /// <summary>Maximum bytes read from a selected file (64 KiB).</summary>
-    public const int MaxPreviewBytes = 64 * 1024;
+    /// <summary>Informational size warning threshold (64 KiB), never a read limit.</summary>
+    public const int LargeFileNoticeBytes = 64 * 1024;
 
     /// <inheritdoc/>
     public string Id => "markdown-file";
@@ -28,7 +28,7 @@ public sealed class MarkdownFilePreviewDemo : IBlackboardShowcaseDemo
         ArgumentException.ThrowIfNullOrWhiteSpace(startingDirectory);
 
         console.Write(new Text(
-            "Select a local .md or .markdown file (read-only; first 64 KiB maximum)." +
+            "Select a local .md or .markdown file (read-only; complete document)." +
             Environment.NewLine));
 
         var picker = new SpectreFileBrowser(new FileBrowserLocalSource(), console);
@@ -60,8 +60,8 @@ public sealed class MarkdownFilePreviewDemo : IBlackboardShowcaseDemo
 
         try
         {
-            var preview = await TextFilePreviewReader.ReadAsync(
-                path, MaxPreviewBytes, cancellationToken);
+            var preview = await TextFilePreviewReader.ReadCompleteAsync(
+                path, cancellationToken);
             if (preview.Kind == TextPreviewKind.Empty)
             {
                 console.Write(new Text("The Markdown file is empty." + Environment.NewLine));
@@ -80,10 +80,11 @@ public sealed class MarkdownFilePreviewDemo : IBlackboardShowcaseDemo
             console.Write(new Text("Markdown preview: " + Path.GetFileName(path) +
                 " (" + preview.EncodingName + ", " + preview.TotalBytes + " bytes)" +
                 Environment.NewLine));
-            if (preview.Truncated)
+            if (preview.TotalBytes > LargeFileNoticeBytes)
                 console.Write(new Text(
-                    "[Partial preview: only the first 64 KiB was read; " +
-                    "Markdown blocks may be incomplete.]" + Environment.NewLine));
+                    "[Large Markdown document: the full file is being shown (" +
+                    preview.TotalBytes + " bytes); terminal output may be lengthy.]" +
+                    Environment.NewLine));
 
             // The renderer uses literal Spectre text, never interpolated Markup.
             // The sample and file-preview modes share one optional Classic theme.
