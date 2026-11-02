@@ -30,7 +30,7 @@ Documentation: [Inline parsing](Docs/Inline-Parsing/en.md), [Parser and writer](
 dotnet test ExchangeHouse/Markdown.Tests/Afrowave.Toolbox.ExchangeHouse.Markdown.Tests.csproj
 ```
 
-NuGet release is deferred until the model/API matures and CI passes.
+NuGet prerelease publication is intended once a useful standalone API, test coverage and independent packed-consumer restore are verified. The presence of a source version alone is not evidence of publication.
 
 ## Inline images and richer link destinations (2026-10-29)
 
