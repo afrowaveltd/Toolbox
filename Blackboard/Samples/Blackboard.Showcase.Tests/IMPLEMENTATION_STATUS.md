@@ -132,3 +132,10 @@ Next: confirm CI and add regression cases for any Windows/SSH differences that a
   mode reads literal source, not independent CommonMark block context.
 - Linux/Windows CI at [PR #3](https://github.com/afrowaveltd/Toolbox/pull/3);
   actual human Debian/Windows terminal acceptance outstanding.
+
+## 2026-11-02 — preview-mode regression
+
+- Added a Spectre TestConsole scenario selecting the reversible
+  conservative preview toggle and switching back to literal Markdown.
+  Existing page navigation, cancellation and unsafe-input tests remain.
+- Preview does not promise CommonMark-equivalent nested-list rendering.
