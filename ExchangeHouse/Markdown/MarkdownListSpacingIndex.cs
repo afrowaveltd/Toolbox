@@ -128,7 +128,16 @@ public sealed class MarkdownListSpacingIndex : IDisposable, IAsyncDisposable
                 if (line.Kind == MarkdownStreamLineKind.Blank)
                     continue; // A later line decides whether the list continues.
 
-                var depth = line.ListOwnerStart.HasValue ? line.ListDepth : 0;
+                var depth = line.Kind switch
+                {
+                    // An owned fenced-code block does not by itself close
+                    // the surrounding list, even though code lines have no
+                    // prose ListOwnerStart.
+                    MarkdownStreamLineKind.CodeFenceOpen or
+                    MarkdownStreamLineKind.CodeContent or
+                    MarkdownStreamLineKind.CodeFenceClose => line.ListDepth,
+                    _ => line.ListOwnerStart.HasValue ? line.ListDepth : 0
+                };
                 if (depth > 32)
                     throw new InvalidDataException(
                         "List group depth exceeds 32 entries.");
