@@ -24,7 +24,7 @@ public sealed record MarkdownContextPage(
 /// </remarks>
 public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
 {
-    private const int RecordBytes = 96;
+    private const int RecordBytes = 128;
     private const int LanguageMaxBytes = 64;
     private const long DefaultMaxIndexBytes = 256L * 1024 * 1024;
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);
@@ -103,28 +103,9 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
                     await output.WriteAsync(record, cancellationToken);
                 }
 
-                // The scanner is the sole source of classification truth.
-                // A quote-depth change automatically interrupts an owned fence.
-                if (line.Kind == MarkdownStreamLineKind.CodeFenceOpen)
-                {
-                    var markerLine = line.Content.AsSpan().TrimStart(' ');
-                    var marker = markerLine[0];
-                    var count = 0;
-                    while (count < markerLine.Length && markerLine[count] == marker)
-                        count++;
-                    state = new MarkdownStreamCheckpoint(
-                        checked(line.Start + line.Length), marker, count,
-                        line.Start, line.QuoteDepth, line.CodeLanguage);
-                }
-                else if (line.Kind is MarkdownStreamLineKind.CodeFenceClose or
-                         MarkdownStreamLineKind.Markdown or MarkdownStreamLineKind.Blank)
-                {
-                    state = new MarkdownStreamCheckpoint(checked(line.Start + line.Length));
-                }
-                else
-                {
-                    state = state with { Start = checked(line.Start + line.Length) };
-                }
+                // Use the SAME bounded state-transition logic as the
+                // public line scanner: no independently implemented grammar.
+                state = MarkdownStreamingReader.AdvanceCheckpoint(state, line);
 
                 lines = checked(lines + 1);
             }
@@ -216,6 +197,19 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
                 bytes.CopyTo(destination.AsSpan(24, LanguageMaxBytes));
             }
         }
+
+        var lists = state.ListIndents;
+        if (lists.Count > 32 || state.PreviousQuoteDepth is < 0 or > 32)
+            throw new InvalidDataException("Invalid bounded container checkpoint.");
+        destination[88] = (byte)lists.Count;
+        destination[89] = (byte)state.PreviousQuoteDepth;
+        destination[90] = state.PreviousParagraphCandidate ? (byte)1 : (byte)0;
+        for (var i = 0; i < lists.Count; i++)
+        {
+            if (lists[i] is < 0 or > 32)
+                throw new InvalidDataException("Invalid list indent checkpoint.");
+            destination[91 + i] = (byte)lists[i];
+        }
     }
 
     private static MarkdownStreamCheckpoint Decode(byte[] record)
@@ -228,7 +222,9 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
             _ => throw new InvalidDataException("Invalid fence checkpoint marker.")
         };
         var length = record[22];
-        if (length > LanguageMaxBytes ||
+        if (length > LanguageMaxBytes || record[88] > 32 ||
+            record[89] > 32 || record[90] > 1 ||
+            record.AsSpan(91, record[88]).IndexOfAnyExceptInRange((byte)0, (byte)32) >= 0 ||
             (marker == '\0' && (length != 0 || record[21] != 0 ||
                 BinaryPrimitives.ReadInt32LittleEndian(record.AsSpan(16, 4)) != 0)))
             throw new InvalidDataException("Invalid fenced-code checkpoint.");
@@ -236,12 +232,21 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
         var language = length == 0 ? null :
             StrictUtf8.GetString(record, 24, length);
 
+        var lists = new int[record[88]];
+        for (var i = 0; i < lists.Length; i++)
+            lists[i] = record[91 + i];
+
         return new MarkdownStreamCheckpoint(
             BinaryPrimitives.ReadInt64LittleEndian(record.AsSpan(0, 8)),
             marker,
             BinaryPrimitives.ReadInt32LittleEndian(record.AsSpan(16, 4)),
             BinaryPrimitives.ReadInt64LittleEndian(record.AsSpan(8, 8)),
-            record[21], language);
+            record[21], language)
+        {
+            ListIndents = lists,
+            PreviousQuoteDepth = record[89],
+            PreviousParagraphCandidate = record[90] == 1
+        };
     }
 
     /// <inheritdoc/>
