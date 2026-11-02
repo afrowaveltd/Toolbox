@@ -544,6 +544,121 @@ public sealed class MarkdownFenceCheckpointIndexTests
     }
 
     [Fact]
+    public async Task Blank_separated_list_paragraphs_and_siblings_keep_distinct_spacing_hints()
+    {
+        const string markdown =
+            "- first item\n" +
+            "  same paragraph\n" +
+            "\n" +
+            "  second paragraph\n" +
+            "  continued paragraph\n" +
+            "- second item\n" +
+            "\n" +
+            "- third item\n" +
+            "\n" +
+            "outside the list\n";
+
+        await WithMarkdownAsync(markdown, async (path, temp) =>
+        {
+            await using var sourcePages = await MarkdownDiskPageIndex.BuildAsync(path,
+                new MarkdownDiskPageOptions { LinesPerPage = 1 }, tempDirectory: temp);
+            await using var snapshots = await MarkdownFenceCheckpointIndex.BuildAsync(
+                sourcePages, tempDirectory: temp, checkpointStride: 3);
+
+            var expected = new List<MarkdownStreamLine>();
+            using (var complete = new StringReader(markdown))
+                await foreach (var line in MarkdownStreamingReader.ScanAsync(complete))
+                    expected.Add(line);
+
+            var actual = new MarkdownStreamLine[expected.Count];
+            for (long page = snapshots.PageCount; page-- > 0;)
+            {
+                var current = await snapshots.ReadPageAsync(page);
+                actual[checked((int)page)] = Assert.Single(current.Lines);
+            }
+
+            Assert.Equal(MarkdownListSpacingHint.None, actual[0].ListSpacingHint);
+            Assert.Equal(MarkdownListSpacingHint.None, actual[1].ListSpacingHint);
+            Assert.Equal(MarkdownListSpacingHint.BlankSeparatedParagraph,
+                actual[3].ListSpacingHint);
+            Assert.Equal(0L, actual[3].ListOwnerStart);
+            Assert.False(actual[3].IsParagraphContinuationCandidate);
+            Assert.Equal(actual[3].Start, actual[3].ParagraphStart);
+            Assert.Equal(MarkdownListSpacingHint.None, actual[4].ListSpacingHint);
+            Assert.True(actual[4].IsParagraphContinuationCandidate);
+            Assert.Equal(MarkdownListSpacingHint.None, actual[5].ListSpacingHint);
+            Assert.Equal(MarkdownListSpacingHint.BlankSeparatedItem,
+                actual[7].ListSpacingHint);
+            Assert.Equal(MarkdownListSpacingHint.None, actual[9].ListSpacingHint);
+            Assert.Null(actual[9].ListOwnerStart);
+
+            for (var i = 0; i < expected.Count; i++)
+            {
+                Assert.Equal(expected[i].ListSpacingHint, actual[i].ListSpacingHint);
+                Assert.Equal(expected[i].ListOwnerStart, actual[i].ListOwnerStart);
+                Assert.Equal(expected[i].ParagraphStart, actual[i].ParagraphStart);
+            }
+        });
+    }
+
+    [Fact]
+    public async Task Quoted_blank_continuation_is_tracked_without_crossing_quote_depth()
+    {
+        const string markdown =
+            "> - quoted item\n" +
+            ">\n" +
+            ">   new quoted paragraph\n" +
+            "\n" +
+            "ordinary paragraph\n" +
+            "\n" +
+            "- new standalone item\n";
+        await WithMarkdownAsync(markdown, async (path, temp) =>
+        {
+            await using var pages = await MarkdownDiskPageIndex.BuildAsync(path,
+                new MarkdownDiskPageOptions { LinesPerPage = 1 }, tempDirectory: temp);
+            await using var index = await MarkdownFenceCheckpointIndex.BuildAsync(
+                pages, tempDirectory: temp, checkpointStride: 2);
+            var quoted = Assert.Single((await index.ReadPageAsync(2)).Lines);
+            var outside = Assert.Single((await index.ReadPageAsync(4)).Lines);
+            var standalone = Assert.Single((await index.ReadPageAsync(6)).Lines);
+            Assert.Equal(MarkdownListSpacingHint.BlankSeparatedParagraph,
+                quoted.ListSpacingHint);
+            Assert.Equal(0L, quoted.ListOwnerStart);
+            Assert.Equal(MarkdownListSpacingHint.None, outside.ListSpacingHint);
+            Assert.Null(outside.ListOwnerStart);
+            Assert.Equal(MarkdownListSpacingHint.None, standalone.ListSpacingHint);
+        });
+    }
+
+    [Fact]
+    public async Task Consecutive_blank_lines_are_not_mistaken_for_contiguous_prose()
+    {
+        const string markdown =
+            "- item\n" +
+            "  first paragraph\n" +
+            "\n" +
+            "\n" +
+            "  indented paragraph after blank lines\n" +
+            "\n" +
+            "unindented outside\n";
+        await WithMarkdownAsync(markdown, async (path, temp) =>
+        {
+            await using var pages = await MarkdownDiskPageIndex.BuildAsync(path,
+                new MarkdownDiskPageOptions { LinesPerPage = 1 }, tempDirectory: temp);
+            await using var index = await MarkdownFenceCheckpointIndex.BuildAsync(
+                pages, tempDirectory: temp, checkpointStride: 4);
+            var indented = Assert.Single((await index.ReadPageAsync(4)).Lines);
+            var outside = Assert.Single((await index.ReadPageAsync(6)).Lines);
+            Assert.Equal(MarkdownListSpacingHint.BlankSeparatedParagraph,
+                indented.ListSpacingHint);
+            Assert.False(indented.IsParagraphContinuationCandidate);
+            Assert.Equal(indented.Start, indented.ParagraphStart);
+            Assert.Equal(MarkdownListSpacingHint.None, outside.ListSpacingHint);
+            Assert.Null(outside.ListOwnerStart);
+        });
+    }
+
+    [Fact]
     public async Task Sparse_quota_is_evaluated_on_record_count_not_page_count()
     {
         await WithMarkdownAsync(string.Concat(Enumerable.Repeat("word\n", 17)),
