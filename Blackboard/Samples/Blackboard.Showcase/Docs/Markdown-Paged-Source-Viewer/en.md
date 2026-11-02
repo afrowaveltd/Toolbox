@@ -74,3 +74,15 @@ checkpoint, a later page can distinguish the containing parent from a
 child list item. The source-preview menu is unchanged; the renderer has
 not yet reached complete contextual CommonMark formatting. Literal
 source remains the safe default.
+
+
+## Sparse checkpoint replay (2026-11-02)
+
+Instead of persisting a full 512-byte structural record on every page,
+the preview now uses an index with default **16-page spacing**.
+Requested pages in between recover their context by replaying only the
+intervening pages, one at a time. The original 8-byte/page raw-source
+offset index and the Next/Previous menu are unchanged. Replay is
+bounded (maximum 15 source pages for the default), not instantaneous;
+small strides may be preferable for very large physical lines or
+high-frequency random seeks. [Technical details](../../../../../ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
