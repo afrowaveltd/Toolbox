@@ -45,7 +45,9 @@ public sealed class MarkdownPagedSourceDemoTests
         var directory = CreateDirectory();
         try
         {
-            const string source = "~~~csharp\n# not a heading\n- not a list\n~~~\n";
+            var source = "~~~csharp\n" +
+                string.Concat(Enumerable.Repeat("# not a heading\n", 41)) +
+                "~~~\n";
             await File.WriteAllTextAsync(Path.Combine(directory, "preview.md"),
                 source, new UTF8Encoding(false));
             var console = InteractiveConsole();
@@ -63,6 +65,8 @@ public sealed class MarkdownPagedSourceDemoTests
             Assert.Contains("# not a heading", console.Output);
             Assert.Contains("- not a list", console.Output);
             Assert.Contains("csharp", console.Output);
+            Assert.True(console.Output.Split("page 1/2").Length - 1 >= 3,
+                "The same page must be rendered in source, preview and source again.");
         }
         finally { Directory.Delete(directory, recursive: true); }
     }
