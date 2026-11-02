@@ -143,3 +143,13 @@ nested markers and indented child/parent continuation lines using the
 restored list depth across page boundaries. It still does not promise
 full CommonMark layout; literal source remains the default and the
 original complete document renderer remains unchanged.
+
+
+## Sparse checkpoint storage (2026-11-02)
+
+The sixth Showcase reader automatically uses the ExchangeHouse
+checkpoint index with its default 16-page stride. Visiting a page
+between stored checkpoints transparently replays up to 15 earlier
+source pages to reconstruct the same conservative Markdown context.
+No UI change or full-document buffering; the literal source remains
+the default display. The tradeoff is disk space versus seek I/O.
