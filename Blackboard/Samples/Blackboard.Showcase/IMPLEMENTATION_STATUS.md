@@ -225,3 +225,15 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 - [Instructions](Docs/Markdown-Paged-Source-Viewer/en.md);
   [disk index API](../../../ExchangeHouse/Markdown/Docs/Disk-Backed-Paging/en.md).
 - CI for draft PR: [#3](https://github.com/afrowaveltd/Toolbox/pull/3).
+
+## 2026-11-02 — conservative formatted preview across source pages
+
+- Sixth Showcase demo now builds a disposable fence checkpoint index in
+  addition to the raw source offset index, with a reversible literal /
+  streaming-renderer preview toggle.
+- Code fences opened on previous pages retain `CodeContent` semantics
+  on a later page; other CommonMark multi-line structures are not
+  fully resumable. Literal source remains the default.
+- New virtual-console regression exercises preview/source toggle.
+  Manual visual terminal test and 1/10 GiB end-to-end pager remain
+  outstanding. [Docs](Docs/Markdown-Paged-Source-Viewer/en.md).
