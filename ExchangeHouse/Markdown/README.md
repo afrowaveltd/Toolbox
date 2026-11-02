@@ -73,3 +73,7 @@ A quoted list item may now own one or more physical quote-prefixed blank lines (
 ## Nested quoted sublists under ordinary list items (2026-11-01)
 
 `- Step` followed by `  > - Warning` now retains both independent owners: `QuoteContainerListOwnerStart` and `QuoteContainerListMarker` describe the ordinary outer item, while `QuoteListRoots` and the existing continuation owner describe the inner quoted list. Numbered children, sufficiently indented paragraphs, quote blank separators and literal same-depth code fences are supported. Original source offsets, links and line endings are unchanged. [Examples and limits](Docs/Quoted-Lists-Inside-Lists/en.md).
+
+## Experimental indexed streaming scanner and diskless stress (2026-11-02)
+
+The additive MarkdownStreamingReader.ScanAsync supports bounded-memory line-wise source scanning, 64-bit offsets and open code fence metadata without buffering a large logical block. Blackboard Markdown includes a streaming-line renderer; the standalone Toolroom/Markdown/Stress app can test generated 10 MiB, 100 MiB, 1 GiB and 10 GiB Markdown without a giant file. **Not a full streaming CommonMark parser or replacement for the Showcase full-document viewer.** See [scanner details](Docs/Streaming-Scanner/en.md) and [stress tool](../../Toolroom/Markdown/Stress/README.md).
