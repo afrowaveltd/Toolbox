@@ -247,3 +247,13 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 - Do not describe the conservative preview as full CommonMark rendering;
   literal source remains the default. Manual terminal acceptance pending.
 - [Source documentation](../../../ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
+
+
+## 2026-11-02 — list owner identities available to paged preview
+
+- The sixth Showcase pager consumes the same bounded checkpoint source;
+  page line events now include list owner offsets and continuation flags.
+  The preview UI itself is intentionally unchanged; renderer integration
+  and complete list formatting are still future work.
+- Checkpoint size is 512 bytes/page and disk quotas remain enabled.
+  Neither a stable NuGet release nor manual 10-GiB acceptance is claimed.
