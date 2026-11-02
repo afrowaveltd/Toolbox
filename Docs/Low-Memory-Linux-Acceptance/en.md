@@ -1,23 +1,43 @@
-# Minimal Debian / 2 GiB RAM Markdown acceptance (planned field test)
+# Minimal Debian / 1 GiB RAM + rotational disk Markdown acceptance (planned field test)
 
-**Status:** protocol prepared on 2026-11-02; **not yet run on the proposed
-1-vCPU / 2-GiB Debian virtual machine**. This is an acceptance procedure,
+**Status:** protocol updated on 2026-11-02; **not yet run on the proposed
+1-vCPU / 1-GiB Debian virtual machine with rotational-disk backing**. This is an acceptance procedure,
 not benchmark evidence. Keep all measurements, versions and exceptions.
 
 ## Suggested virtual machine
 
 - Debian 13 minimal installation, terminal-only, no desktop environment.
-- One virtual CPU, 2 GiB assigned memory, a regular virtual disk with
-  enough free space for repository, NuGet packages and temporary indexes.
-- .NET 10 SDK + runtime for source builds. The user should install these
-  from the configured approved .NET package source; check `dotnet --info`.
-- `git`, `/usr/bin/time` (Debian `time` package), and basic tools.
-- Prefer a snapshot before running the tests. Do not disable swap or
-  modify production system settings merely to improve benchmark numbers.
+- **One virtual CPU and 1 GiB of guest RAM** for the first baseline.
+  Increase memory to 2 GiB only if the initial configuration cannot
+  complete the chosen workload; keep all other settings unchanged.
+- A virtual disk backed by an actual **rotational HDD** where possible,
+  with enough free space for sources and temporary indexes. Preserve
+  the rotational backing across all RAM comparisons.
+- Disk type matters: a guest disk merely advertising `ROTA=1` does
+  **not** establish physical HDD latency when the host stores its
+  virtual-disk image on SSD. Record host disk backing; if physical HDD
+  is unavailable, record any explicit host IOPS/latency throttling
+  as a *simulation*, not a physical HDD test.
+- Prefer a **.NET 10 runtime-only guest** and a Release build produced
+  separately on a more capable compatible Linux machine. Installing
+  the SDK and building in the small guest is a different, much heavier
+  workload; do not mix it with the reader runtime baseline.
+- `git`, GNU `/usr/bin/time` (Debian `time` package), and basic tools.
+  `vmstat` (procps) and optional `iostat` (sysstat) help observe
+  RAM, swap, and disk performance.
+- Prefer a snapshot before running the tests. Preserve swap settings
+  during comparable runs; record swap-in/out to identify cases where
+  slow disk paging masks a memory bottleneck.
 
-Record `uname -a`, `free -h`, `dotnet --info` and available disk space
-(`df -h`) before the first run. Do not confuse target .NET version with
-a demand for a desktop GUI.
+Record `uname -a`, `free -h`, `dotnet --info`, available disk space
+(`df -h`), `lsblk -o NAME,TYPE,ROTA,SIZE,MODEL` and the host's real
+storage backing before the first run. In the guest, `ROTA` is only
+a device hint, not proof of physical HDD storage.
+
+Before changing RAM, record the exact VM configuration, attached
+virtual-disk controller, disk cache policy and swap configuration.
+**Change one variable at a time**: 1 GiB -> 2 GiB RAM only if needed,
+same disk, guest OS, CPU count, seed, source and application revision.
 
 ## Obtain the exact review branch
 
@@ -39,22 +59,41 @@ the resolved commit SHA with every test report to identify the exact code.
 ## Build separately, then measure only execution
 
 Compilation, NuGet restore and test hosts may use much more memory than
-the standalone reader. Measure reader runtime separately:
+the standalone reader. Ideally, publish a Linux x64 Release build on a
+more capable machine and copy the resulting output directory to the VM:
 
 ```bash
-dotnet build -c Release \
-  Toolroom/Markdown/Stress/Afrowave.Toolbox.Toolroom.Markdown.Stress.csproj
+# On a stronger compatible build machine, from Toolbox root:
+dotnet publish -c Release \
+  Toolroom/Markdown/Stress/Afrowave.Toolbox.Toolroom.Markdown.Stress.csproj \
+  -r linux-x64 --self-contained false -o ./artifacts/markdown-stress-linux-x64
+```
 
+Copy the entire publish directory to the guest (for example via SSH).
+Install the compatible .NET 10 runtime on the guest and verify with
+`dotnet --info`. Use the equivalent guest path below:
+
+```bash
+# On the 1-GiB Debian guest:
+vmstat 1
+# In a separate terminal, from the copied publish directory:
 /usr/bin/time -v dotnet \
-  Toolroom/Markdown/Stress/bin/Release/net10.0/Afrowave.Toolbox.Toolroom.Markdown.Stress.dll \
+  ./Afrowave.Toolbox.Toolroom.Markdown.Stress.dll \
   --size 10M --seed 42 --max-heap-mib 128
 ```
+
+`vmstat 1` is a foreground monitoring command: keep it in a separate
+SSH session and stop it after the measured run. If there is no other
+build machine, it is acceptable to build on the guest with the
+.NET 10 SDK, but **measure the compiled Release app separately** and
+report SDK/restore RAM as a separate test. This first phase exercises
+virtual stream classification and safe rendering, not disk paging.
 
 If the first run is successful, try a 100 MiB virtual Markdown stream:
 
 ```bash
 /usr/bin/time -v dotnet \
-  Toolroom/Markdown/Stress/bin/Release/net10.0/Afrowave.Toolbox.Toolroom.Markdown.Stress.dll \
+  ./Afrowave.Toolbox.Toolroom.Markdown.Stress.dll \
   --size 100M --seed 42 --max-heap-mib 128
 ```
 
@@ -70,6 +109,12 @@ Only after both complete and metrics are reviewed, opt into `--size 1G`
 and later `--size 10G --no-render`, as time and storage allow.
 These options have not yet been accepted on the low-memory VM.
 
+If a workload fails, determine whether it was a managed heap budget
+failure, an OS out-of-memory kill, severe swapping, storage exhaustion,
+or simply a slow HDD. **Keep the HDD and CPU configuration unchanged**
+when repeating at 2 GiB. Compare identical command lines and seeds.
+No unmeasured 1-GiB success claim should be made.
+
 ## Smaller regression tests
 
 ```bash
@@ -83,6 +128,23 @@ The test runner and SDK are deliberately excluded from reader-runtime
 RSS comparisons. If terminal tests time out or are killed, record the
 exit code, which test failed, swap usage, and whether the kernel
 reported an out-of-memory kill.
+
+## Rotational-disk metrics and end-to-end pager follow-up (not yet covered)
+
+The guest should record `vmstat 1` swap-in/swap-out (`si`/`so`),
+block I/O and CPU wait (`wa`) during runtime. Where available, capture
+`iostat -xz 1` for queue, utilization and per-request latency; be
+careful that virtual storage metrics may not expose the underlying
+physical HDD's queue. The interactive pager will be especially
+sensitive to seek latency when reconstructing sparse checkpoints
+or binary-searching the optional list-group index.
+
+For a later physically stored Markdown corpus, compare repeated
+backward/middle/end page seeks using identical sources and the same
+guest configuration. Evaluate checkpoint strides **1, 4 and 16**:
+smaller stride uses more temporary index bytes but can reduce replay
+I/O on a rotational disk. This parameter comparison is **planned**;
+the current virtual stress runner does not measure it.
 
 ## End-to-end pager follow-up (not yet covered)
 
@@ -106,8 +168,10 @@ RSS from `time`, runner-reported sampled managed heap, free RAM/swap,
 Linux kernel, .NET runtime, and any error log. Compare repeated
 identical runs rather than relying on one datapoint.
 
-The engineering goal is steady low-memory operation on a 2-GiB
-terminal-only VM, with a 1-vCPU throughput tradeoff. A successful
-test will be documented as a *specific measured workload*; do not
-generalize that every supported Markdown page or giant document can
-run under a fixed 128-MiB or 2-GiB ceiling.
+The engineering goal is to establish whether the selected reader
+workloads remain usable on a **1-GiB / 1-vCPU / physically rotational
+HDD** Debian VM; if not, identify a measured minimum RAM setting
+while keeping the HDD unchanged. A successful test will be documented
+as a *specific measured workload*. Do not generalize that every
+supported Markdown page or giant document runs within 1 GiB, and do
+not equate a virtual streaming pass with end-to-end HDD acceptance.
