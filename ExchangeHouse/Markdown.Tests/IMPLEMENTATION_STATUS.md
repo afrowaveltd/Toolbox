@@ -160,3 +160,12 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
   quote-depth constraints; UTF-8/BOM and UTF-16 source offsets; 96-byte
   per-page index, quota and disposal; empty and BOM-only documents.
 - CI validates the exact commits in [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
+
+## 2026-11-02 — bounded structural checkpoint regressions
+
+- Extended `MarkdownFenceCheckpointIndexTests` for list-depth restoration
+  across arbitrary page reads, same-depth quoted prose continuity,
+  quote-depth interruption, blank/fence paragraph resets and updated
+  128-byte checkpoint records/quotas.
+- Candidate labels intentionally do not imply CommonMark AST equivalence.
+  See [PR #3](https://github.com/afrowaveltd/Toolbox/pull/3) for exact CI.
