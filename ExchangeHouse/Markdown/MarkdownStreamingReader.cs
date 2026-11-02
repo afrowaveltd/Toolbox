@@ -419,6 +419,7 @@ public static class MarkdownStreamingReader
             pos++;
         }
 
+        var markerStart = pos;
         if (value[pos] is '-' or '*' or '+')
             pos++;
         else
@@ -430,7 +431,7 @@ public static class MarkdownStreamingReader
 
         // The first whitespace after the marker is mandatory; count its
         // display width but conservatively treat extra spaces as content.
-        var markerColumns = pos - (value.Length - value.TrimStart(' ', '\t').Length);
+        var markerColumns = pos - markerStart;
         var currentColumn = indent + markerColumns;
         var advance = value[pos] == '\t' ? 4 - currentColumn % 4 : 1;
         contentIndent = Math.Min(128, currentColumn + advance);
