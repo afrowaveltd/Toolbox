@@ -151,3 +151,8 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 - A future standalone viewer would wrap the Markdown renderer with document-source adapters (Local, HTTP(S), GitHub README), navigation for relative links, themes and readable errors; it must not duplicate Markdown parsing.
 - GitHub provider should use `/repos/{owner}/{repo}/readme` rather than probing guessed branch/file paths. Maintain independent cache, credentials, and transport concerns outside the renderer.
 - Design deferred until the current parser is judged ready. [Proposed architecture](Docs/Standalone-Markdown-Viewer-Proposal/en.md). No new code, tests or release.
+
+## 2026-11-02 — streaming/pager research noted (no implementation)
+
+- The future viewer proposal now covers case-insensitive GitHub owner/repo arguments (one API request), and a separate block-event parser/terminal pager research track using `IAsyncEnumerable` with bounded lookahead, optional disk spooling and full-document fidelity.
+- Current parser still materializes the entire document. No 1 GB runtime capacity is claimed. [Design details](Docs/Standalone-Markdown-Viewer-Proposal/en.md).

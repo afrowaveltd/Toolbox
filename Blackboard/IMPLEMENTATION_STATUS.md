@@ -268,3 +268,9 @@ Blackboard Markdown now renders quoted and fenced code lines within list items, 
 - Documented a source-agnostic read-only terminal viewer with Local, HTTP(S), and GitHub preferred README providers, proposed after the Markdown parser completion milestone.
 - No implementation or new project exists; it reuses the current FileBrowser, Markdown parser, Spectre renderer, syntax highlighter, and full-file reader only as prospective components.
 - [Design, sample invocations, safety, milestones](SpectreConsole/Markdown/Docs/Standalone-Markdown-Viewer-Proposal/en.md).
+
+## 2026-11-02 — viewer CLI ergonomics and incremental Markdown paging (proposal)
+
+- Explicit `mdview git OWNER REPO` shorthand and Local / URL / GitHub no-args menu proposed. GitHub owner/repo case-insensitivity is native to the REST API; do not try casing permutations.
+- Proposed future incremental `IAsyncEnumerable` block pipeline plus `less`-style terminal pager with bounded resident memory and optional disk index; document cross-block links and backtracking constraints.
+- [Updated standalone viewer design](SpectreConsole/Markdown/Docs/Standalone-Markdown-Viewer-Proposal/en.md). No new code or package.
