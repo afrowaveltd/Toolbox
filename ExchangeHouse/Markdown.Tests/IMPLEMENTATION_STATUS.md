@@ -190,3 +190,14 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
   against an uninterrupted scanner in reverse page order.
 - Tests validate conservative owner identities rather than claiming
   full CommonMark container parsing. CI: draft PR #3.
+
+
+## 2026-11-02 — sparse checkpoint replay tests (draft PR #3)
+
+- Verified default 16-page spacing/512-byte records and deletion on
+  disposal; configurable 1/4/16 stride behavior.
+- Added reverse-order read parity across sparse boundaries for list
+  owner offsets, quote depth, paragraph candidates and code fence state.
+  Added saved-record quota and invalid stride (0/257) tests.
+- Source and checkpoint index remain bounded; regression tests are
+  synthetic, not 1/10-GiB interactive proof. See PR #3 CI.
