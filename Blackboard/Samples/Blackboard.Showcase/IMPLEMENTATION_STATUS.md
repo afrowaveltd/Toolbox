@@ -257,3 +257,13 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
   and complete list formatting are still future work.
 - Checkpoint size is 512 bytes/page and disk quotas remain enabled.
   Neither a stable NuGet release nor manual 10-GiB acceptance is claimed.
+
+
+## 2026-11-02 — owner-aware renderer integration
+
+- Existing conservative page-preview toggle now routes real
+  `ListOwnerStart` and `IsListContinuationCandidate` metadata to
+  Blackboard Markdown's safe streaming renderer.
+- Indents simple nested markers and their owned prose, including page
+  jumps from child back to parent. No different preview menu or new
+  library dependencies. Full CommonMark fidelity still incomplete.
