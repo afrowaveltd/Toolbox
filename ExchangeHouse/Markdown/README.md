@@ -125,3 +125,18 @@ lazy continuation. This is backed by **512 bytes per page on disk**,
 not previous-page source buffers. Fully faithful CommonMark nested
 containers and visual layout remain future work.
 [Details](Docs/Fence-Checkpoints/en.md).
+
+
+## Sparse 512-byte state snapshots (2026-11-02)
+
+`MarkdownFenceCheckpointIndex.BuildAsync` now defaults to **one
+checkpoint every 16 pages**; `checkpointStride` accepts 1..256.
+`ReadCheckpointAsync(page)` replays at most 15 preceding pages to
+restore fence, list-owner, quote and paragraph candidates, holding
+only one replay page in memory at a time. The original raw-source
+offset index stays 8 bytes/page. `SavedCheckpointCount` exposes the
+number of 512-byte records stored on disk, while `PageCount`
+continues to report all source pages. This saves disk at the cost
+of bounded replay CPU/I/O, **not** constant-time seeking. The entire
+source still needs two initial sequential scans.
+[Disk/CPU tradeoff](Docs/Fence-Checkpoints/en.md).
