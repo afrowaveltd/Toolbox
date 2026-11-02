@@ -60,7 +60,7 @@ public static class MarkdownStreamingReader
 
             if (TryFence(line, out var marker, out var length, out var isCloser))
             {
-                if (openFence == '\0' && !isCloser)
+                if (openFence == '\0')
                 {
                     openFence = marker;
                     fenceLength = length;
@@ -79,7 +79,7 @@ public static class MarkdownStreamingReader
 
             chunk.Append(raw);
 
-            if (openFence == '\0' && line.Length == 0 &&
+            if (openFence == '\0' && string.IsNullOrWhiteSpace(line) &&
                 chunk.Length >= options.PreferredChunkChars)
             {
                 yield return MarkdownParser.Parse(chunk.ToString());
