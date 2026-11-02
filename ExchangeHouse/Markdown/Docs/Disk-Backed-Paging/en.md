@@ -18,7 +18,7 @@ Markdown text, the complete index or the entire syntax tree into RAM.
 
 The default page contains 40 physical lines; a physical line has a configurable
 64 KiB maximum in UTF-8 bytes, with hard configuration bounds (up to 128 lines
-and 1 MiB per physical line). A page is bounded by those limits, even if the
+and 1 MiB per physical line). Temporary index storage is also capped\n(default 256 MiB, configurable with `MaxIndexBytes`) so an adversarial\nfile containing billions of one-byte lines cannot exhaust disk unchecked.\nA page is bounded by those limits, even if the
 source is several gigabytes long. The index space is proportional to **number
 of pages**, not byte length; e.g. 1,000,000 lines at 40 lines/page yields
 25,000 eight-byte offsets, about 200 KiB on temporary disk.
@@ -33,7 +33,7 @@ await using var pager = await MarkdownDiskPageIndex.BuildAsync(
     new MarkdownDiskPageOptions
     {
         LinesPerPage = 40,
-        MaxLineBytes = 64 * 1024
+        MaxLineBytes = 64 * 1024,\n        MaxIndexBytes = 256L * 1024 * 1024
     },
     cancellationToken);
 
