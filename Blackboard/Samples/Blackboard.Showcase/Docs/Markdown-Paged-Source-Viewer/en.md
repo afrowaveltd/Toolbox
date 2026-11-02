@@ -60,7 +60,17 @@ mode whenever exact raw text matters. See
 
 The conservative preview receives list indentation candidates plus
 previous-line quote depth and plain-paragraph continuity from a fixed-size
-128-byte checkpoint per page. This reduces loss of context when seeking
+512-byte checkpoint per page. This reduces loss of context when seeking
 into a long list or a repeated quote, but **does not guarantee** correct
 nested-list formatting or CommonMark paragraph ownership. Literal-source
 mode remains the default and the authoritative fallback.
+
+
+## Actual list-owner offsets (2026-11-02)
+
+Indexed source lines now expose a conservative **owner source offset** for
+nested and continuing list paragraphs. Unlike the earlier depth-only
+checkpoint, a later page can distinguish the containing parent from a
+child list item. The source-preview menu is unchanged; the renderer has
+not yet reached complete contextual CommonMark formatting. Literal
+source remains the safe default.
