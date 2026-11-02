@@ -267,3 +267,14 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 - Indents simple nested markers and their owned prose, including page
   jumps from child back to parent. No different preview menu or new
   library dependencies. Full CommonMark fidelity still incomplete.
+
+
+## 2026-11-02 — sparse source-context checkpoints in sixth viewer
+
+- `MarkdownPagedSourceDemo` consumes ExchangeHouse's default sparse
+  16-page state index without menu changes. Source mode remains default.
+- Missing page-boundary state is replayed from the closest earlier
+  checkpoint (up to 15 pages), preserving conservative fence/list
+  identity without buffering the whole document.
+- Read latency depends on stride and physical line sizes; full
+  CommonMark rendering and manual giant-document acceptance remain open.
