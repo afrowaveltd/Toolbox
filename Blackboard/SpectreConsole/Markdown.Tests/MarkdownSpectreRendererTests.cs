@@ -24,6 +24,37 @@ public sealed class MarkdownSpectreRendererTests
     }
 
     [Fact]
+    public async Task Streaming_list_preview_preserves_nested_and_parent_continuation_indentation()
+    {
+        const string markdown =
+            "- Parent\n" +
+            "  - Child\n" +
+            "    child details\n" +
+            "  parent details\n" +
+            "- Sibling\n";
+        var lines = new List<MarkdownStreamLine>();
+        using (var source = new StringReader(markdown))
+            await foreach (var line in MarkdownStreamingReader.ScanAsync(source))
+                lines.Add(line);
+
+        Assert.Equal(lines[1].Start, lines[2].ListOwnerStart);
+        Assert.Equal(lines[0].Start, lines[3].ListOwnerStart);
+
+        var console = new TestConsole();
+        console.Profile.Width = 200;
+        var theme = new MarkdownSpectreTheme { ListIndent = "~~" };
+        foreach (var line in lines)
+            MarkdownSpectreRenderer.RenderStreamingLine(console, line, theme);
+
+        Assert.Contains("~~", console.Output);
+        Assert.Contains("Child", console.Output);
+        Assert.Contains("child details", console.Output);
+        Assert.Contains("parent details", console.Output);
+        Assert.Contains("Sibling", console.Output);
+        Assert.DoesNotContain("\\u001b[", console.Output);
+    }
+
+    [Fact]
     public void Protects_code_block_and_does_not_interpret_spectre_markup()
     {
         var console = Console();
