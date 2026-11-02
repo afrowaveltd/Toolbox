@@ -211,3 +211,12 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
   separator, continued prose in the same owner, a blank before independent
   prose, explicit quote transitions, and fence start/close resets.
 - Verifies source-position identity, not full CommonMark layout equivalence.
+
+## 2026-11-02 — blank-separated list evidence regressions (draft PR #3)
+
+- Added tests for `MarkdownListSpacingHint` on a new paragraph of an
+  existing list item, a new sibling marker after a blank, uninterrupted
+  tight candidates, quote-depth isolation and unindented prose outside
+  a list. Compare reverse sparse-page views with uninterrupted scanning.
+- Checked that multiple blank lines restart paragraph identity and
+  retain bounded list-state semantics; no full CommonMark guarantee.
