@@ -283,3 +283,20 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Separate Blackboard renderer and regression suite updated; no
   source-level dependence on Showcase. Full-formatted CommonMark
   semantics still future, and no preview NuGet has been published.
+
+
+## 2026-11-02 — sparse Markdown page checkpoints (draft PR #3)
+
+- Instead of writing a 512-byte structural record per source page,
+  `MarkdownFenceCheckpointIndex` now defaults to one every **16 pages**
+  (configurable stride 1..256). `SavedCheckpointCount` reports the
+  physical record count. The raw source byte-offset index stays 8 bytes
+  **per page**.
+- Arbitrary page reads replay at most stride-1 previous pages to
+  reconstruct conservative fences, list owners and quote/paragraph
+  candidates with bounded RAM. Disk footprint shrinks at the cost of
+  additional replay I/O and CPU. Tested sparse crossing boundaries,
+  reverse-order parity, index quotas and invalid configuration.
+- The sixth Showcase reader uses the new default transparently.
+  No new NuGet or production-complete CommonMark viewer claimed.
+- [Checkpoint guide](ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
