@@ -463,6 +463,7 @@ public sealed class MarkdownFenceCheckpointIndexTests
             "\n" +
             "  fresh paragraph after blank\n" +
             "  continuation after blank\n" +
+            "\n" +
             "outside\n";
 
         await WithMarkdownAsync(markdown, async (path, temp) =>
@@ -479,7 +480,7 @@ public sealed class MarkdownFenceCheckpointIndexTests
             var parentContinued = Assert.Single((await index.ReadPageAsync(7)).Lines);
             var fresh = Assert.Single((await index.ReadPageAsync(9)).Lines);
             var afterFresh = Assert.Single((await index.ReadPageAsync(10)).Lines);
-            var outside = Assert.Single((await index.ReadPageAsync(11)).Lines);
+            var outside = Assert.Single((await index.ReadPageAsync(12)).Lines);
             var parentFirst = Assert.Single((await index.ReadPageAsync(1)).Lines);
             var parentSecond = Assert.Single((await index.ReadPageAsync(2)).Lines);
 
