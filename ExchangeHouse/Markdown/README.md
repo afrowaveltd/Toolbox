@@ -153,3 +153,14 @@ interrupts paragraph continuity. Seeking with sparse checkpoints
 recovers the same identity without retaining previous text.
 Complete CommonMark paragraphs and multi-line layout are not yet
 implemented. [Context rules](Docs/Fence-Checkpoints/en.md).
+
+## Blank-separated list hints (2026-11-02)
+
+`MarkdownStreamLine.ListSpacingHint` now distinguishes a new, explicitly
+indented paragraph of an existing item from a newly started sibling item
+after a blank source line. The enum values are `None`,
+`BlankSeparatedParagraph` and `BlankSeparatedItem`. This data can be
+reconstructed through sparse checkpoint replay using existing metadata
+without enlarging the 512-byte record. **This is not a whole-list
+CommonMark tight/loose verdict**; later global list rendering must
+resolve final spacing. See [checkpoint details](Docs/Fence-Checkpoints/en.md).
