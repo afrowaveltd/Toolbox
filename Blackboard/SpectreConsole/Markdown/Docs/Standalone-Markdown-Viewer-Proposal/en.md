@@ -175,3 +175,9 @@ Actual naming, assembly placement, public API, package policy and exact keybindi
 - [Blackboard Showcase](../../../../Samples/Blackboard.Showcase/README.md), which already opens whole local Markdown files in read-only mode.
 
 [Markdown implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## Local temp spooling and translation pipeline update (2026-11-02)
+
+The Showcase now contains an **experimental** `RemoteMarkdownTempDocument` helper for downloading a trusted HTTPS URL to a unique, disposable file in the OS temporary directory. The fully downloaded source can be paged without retaining an HTTP connection. This is not yet connected to a standalone viewer and leaves the ExchangeHouse parser network-free.
+
+For future live translation, fan out incoming bytes into both the raw temporary file and a bounded incremental decoder/Markdown semantic segmenter. Feed only translatable source text to the existing UnderstandMe/Afutrans pipeline; preserve code fences, URLs and Markdown syntax. Persist ordered translated segments separately with source/target offset mapping, support reading completed pages before download finishes, and clean up both derived and original temporary files. The translation pipeline and growing-file coordination are **not implemented**. See [cache details](../../../../Samples/Blackboard.Showcase/Docs/Remote-Markdown-Cache/en.md) and [live translation design](../../../../Samples/Blackboard.Showcase/Docs/Live-Markdown-Translation/en.md).
