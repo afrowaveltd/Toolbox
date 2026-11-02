@@ -255,3 +255,20 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   and contextually accurate Spectre paging.
 - [Docs](ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md) /
   [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
+
+
+## 2026-11-02 — owner-aware list continuation checkpoints (draft PR #3)
+
+- Extended disk-backed Markdown checkpoint from 128 to **512 bytes/page**,
+  retaining up to 32 active list-item marker offsets (64-bit UTF-16),
+  marker and content indentation, fences, quote/paragraph hints.
+- Added `ListOwnerStart` and `IsListContinuationCandidate` to
+  streaming line events and tested nested, parent, lazy and quoted
+  continuation across arbitrary page reads; content remains bounded.
+- The old 128-byte snapshot is superseded inside this unpublished draft.
+  Source offset index remains 8 bytes/page. No new NuGet release.
+- Conservative ownership is not equivalent to full CommonMark
+  rendering. Next: contextual rendering of list continuations and more
+  complete paragraph/list container parsing.
+- [Architecture](ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md)
+  and [PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
