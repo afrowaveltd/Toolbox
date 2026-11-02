@@ -272,3 +272,14 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   complete paragraph/list container parsing.
 - [Architecture](ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md)
   and [PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
+
+
+## 2026-11-02 — owner-aware Markdown Spectre rendering (draft PR #3)
+
+- The existing paged preview now uses safe owner-aware list indentation
+  through `MarkdownSpectreRenderer.RenderStreamingLine`; nested items
+  and conservatively owned prose no longer lose all list context on
+  a page jump. Custom theme and inline styles remain supported.
+- Separate Blackboard renderer and regression suite updated; no
+  source-level dependence on Showcase. Full-formatted CommonMark
+  semantics still future, and no preview NuGet has been published.
