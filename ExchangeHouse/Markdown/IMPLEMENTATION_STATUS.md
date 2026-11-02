@@ -182,3 +182,22 @@
   claimed validated. No new NuGet publication.
 - [Index contract](Docs/Disk-Backed-Paging/en.md). CI evidence for this
   branch is tracked by [PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
+
+## 2026-11-02 — resumable fenced-code page checkpoints (draft PR #3)
+
+- `MarkdownStreamCheckpoint` and a second `MarkdownStreamingReader.ScanAsync`
+  overload resume physical-line scanning from an explicit UTF-16 offset
+  and active fence marker/length/start/quote-depth/language.
+- `MarkdownFenceCheckpointIndex.BuildAsync(MarkdownDiskPageIndex)`
+  writes a fixed **96-byte** state record to temporary disk for each source
+  page (configurable default max 256 MiB), then
+  `ReadPageAsync(number)` returns the raw source and resumed classified
+  lines. The source is validated by the underlying index; indexing runs
+  a second bounded sequential pass.
+- Regression tests for arbitrary page jumps, four-backtick fences,
+  quote interruption, language hints, UTF-8 BOM and emoji offsets,
+  index quota/cleanup, 2,000-line fence, empty/BOM-only files.
+- **Limits:** no full CommonMark list/paragraph/reference checkpoints,
+  highlighter session snapshots, live-growing file or giant-pager
+  acceptance. No new NuGet release.
+- [Detailed docs](Docs/Fence-Checkpoints/en.md).
