@@ -24,7 +24,7 @@ public sealed record MarkdownContextPage(
 /// </remarks>
 public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
 {
-    private const int RecordBytes = 128;
+    private const int RecordBytes = 512;
     private const int LanguageMaxBytes = 64;
     private const long DefaultMaxIndexBytes = 256L * 1024 * 1024;
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);
@@ -204,11 +204,25 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
         destination[88] = (byte)lists.Count;
         destination[89] = (byte)state.PreviousQuoteDepth;
         destination[90] = state.PreviousParagraphCandidate ? (byte)1 : (byte)0;
-        for (var i = 0; i < lists.Count; i++)
+        var owners = state.ListOwners;
+        if (owners.Count > 32 || owners.Count != lists.Count)
+            throw new InvalidDataException("Invalid list owner checkpoint.");
+        destination[91] = (byte)owners.Count;
+        destination[92] = state.PreviousOwnedText ? (byte)1 : (byte)0;
+        destination[93] = state.PreviousWasBlank ? (byte)1 : (byte)0;
+        for (var i = 0; i < owners.Count; i++)
         {
-            if (lists[i] is < 0 or > 32)
-                throw new InvalidDataException("Invalid list indent checkpoint.");
-            destination[91 + i] = (byte)lists[i];
+            var owner = owners[i];
+            if (owner.Start < 0 || owner.Start > state.Start ||
+                owner.Indent is < 0 or > 32 ||
+                owner.ContentIndent < owner.Indent || owner.ContentIndent > 128 ||
+                lists[i] != owner.Indent)
+                throw new InvalidDataException("Invalid list owner state.");
+            var offset = 128 + 12 * i;
+            BinaryPrimitives.WriteInt64LittleEndian(destination.AsSpan(offset, 8),
+                owner.Start);
+            destination[offset + 8] = (byte)owner.Indent;
+            destination[offset + 9] = (byte)owner.ContentIndent;
         }
     }
 
@@ -223,7 +237,8 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
         };
         var length = record[22];
         if (length > LanguageMaxBytes || record[88] > 32 ||
-            record[89] > 32 || record[90] > 1 ||
+            record[89] > 32 || record[90] > 1 || record[91] > 32 ||
+            record[88] != record[91] || record[92] > 1 || record[93] > 1 ||
             (marker == '\0' && (length != 0 || record[21] != 0 ||
                 BinaryPrimitives.ReadInt32LittleEndian(record.AsSpan(16, 4)) != 0)))
             throw new InvalidDataException("Invalid fenced-code checkpoint.");
@@ -231,12 +246,20 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
         var language = length == 0 ? null :
             StrictUtf8.GetString(record, 24, length);
 
+        var owners = new MarkdownListOwner[record[91]];
         var lists = new int[record[88]];
-        for (var i = 0; i < lists.Length; i++)
+        var globalStart = BinaryPrimitives.ReadInt64LittleEndian(record.AsSpan(0, 8));
+        for (var i = 0; i < owners.Length; i++)
         {
-            if (record[91 + i] > 32)
-                throw new InvalidDataException("Invalid list indent checkpoint.");
-            lists[i] = record[91 + i];
+            var offset = 128 + 12 * i;
+            var start = BinaryPrimitives.ReadInt64LittleEndian(record.AsSpan(offset, 8));
+            var indent = record[offset + 8];
+            var contentIndent = record[offset + 9];
+            if (start < 0 || start > globalStart || indent > 32 ||
+                contentIndent < indent || contentIndent > 128)
+                throw new InvalidDataException("Invalid list owner record.");
+            owners[i] = new MarkdownListOwner(start, indent, contentIndent);
+            lists[i] = indent;
         }
 
         return new MarkdownStreamCheckpoint(
@@ -247,6 +270,9 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
             record[21], language)
         {
             ListIndents = lists,
+            ListOwners = owners,
+            PreviousOwnedText = record[92] == 1,
+            PreviousWasBlank = record[93] == 1,
             PreviousQuoteDepth = record[89],
             PreviousParagraphCandidate = record[90] == 1
         };
