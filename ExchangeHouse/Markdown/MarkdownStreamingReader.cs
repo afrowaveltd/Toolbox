@@ -328,19 +328,19 @@ public static class MarkdownStreamingReader
 
         var owners = UpdateOwners(previous, line);
         if (line.Kind != MarkdownStreamLineKind.Markdown)
-            return line with { ListDepth = owners.Count };
+            return line with { ListDepth = owners.Length };
 
         if (TryListMarker(line.Content.AsSpan(), out _, out _))
             return line with
             {
                 ListOwnerStart = line.Start,
-                ListDepth = owners.Count
+                ListDepth = owners.Length
             };
 
-        var owner = owners.Count == 0 ? null : owners[^1];
+        var owner = owners.Length == 0 ? null : owners[^1];
         return line with
         {
-            ListDepth = owners.Count,
+            ListDepth = owners.Length,
             ListOwnerStart = owner?.Start,
             IsListContinuationCandidate = owner is not null
         };
