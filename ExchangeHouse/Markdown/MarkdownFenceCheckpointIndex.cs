@@ -260,6 +260,17 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
         destination[91] = (byte)owners.Count;
         destination[92] = state.PreviousOwnedText ? (byte)1 : (byte)0;
         destination[93] = state.PreviousWasBlank ? (byte)1 : (byte)0;
+        if (state.PreviousParagraphCandidate != state.OpenParagraphStart.HasValue ||
+            (state.OpenParagraphStart is long paragraph &&
+                (paragraph < 0 || paragraph >= state.Start)) ||
+            (state.ParagraphListOwnerStart is long paragraphOwner &&
+                (paragraphOwner < 0 || paragraphOwner >= state.Start ||
+                 state.OpenParagraphStart is null)))
+            throw new InvalidDataException("Invalid paragraph ownership checkpoint.");
+        BinaryPrimitives.WriteInt64LittleEndian(destination.AsSpan(96, 8),
+            state.OpenParagraphStart ?? -1);
+        BinaryPrimitives.WriteInt64LittleEndian(destination.AsSpan(104, 8),
+            state.ParagraphListOwnerStart ?? -1);
         for (var i = 0; i < owners.Count; i++)
         {
             var owner = owners[i];
@@ -295,6 +306,17 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
 
         var language = length == 0 ? null :
             StrictUtf8.GetString(record, 24, length);
+        var paragraphStart = BinaryPrimitives.ReadInt64LittleEndian(
+            record.AsSpan(96, 8));
+        var paragraphOwner = BinaryPrimitives.ReadInt64LittleEndian(
+            record.AsSpan(104, 8));
+        var lineStart = BinaryPrimitives.ReadInt64LittleEndian(
+            record.AsSpan(0, 8));
+        if (paragraphStart < -1 || paragraphStart >= lineStart ||
+            paragraphOwner < -1 || paragraphOwner >= lineStart ||
+            (paragraphStart == -1 && paragraphOwner != -1) ||
+            ((paragraphStart != -1) != (record[90] == 1)))
+            throw new InvalidDataException("Invalid paragraph checkpoint.");
 
         var owners = new MarkdownListOwner[record[91]];
         var lists = new int[record[88]];
@@ -324,7 +346,9 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
             PreviousOwnedText = record[92] == 1,
             PreviousWasBlank = record[93] == 1,
             PreviousQuoteDepth = record[89],
-            PreviousParagraphCandidate = record[90] == 1
+            PreviousParagraphCandidate = record[90] == 1,
+            OpenParagraphStart = paragraphStart == -1 ? null : paragraphStart,
+            ParagraphListOwnerStart = paragraphOwner == -1 ? null : paragraphOwner
         };
     }
 
