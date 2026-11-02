@@ -50,6 +50,21 @@ public sealed record MarkdownStreamLine(
 }
 
 /// <summary>
+/// Structural state immediately before one physical Markdown line. The start
+/// offset is a UTF-16 character position in the logical document, not a byte
+/// position. A zero marker means there is no open fenced code block.
+/// </summary>
+/// <remarks>
+/// This experimental checkpoint covers only code fences. Full list ownership,
+/// reference links, paragraph continuation and CommonMark container state
+/// cannot yet be resumed from this structure.
+/// </remarks>
+public sealed record MarkdownStreamCheckpoint(
+    long Start, char FenceMarker = '\0', int FenceLength = 0,
+    long FenceStart = -1, int FenceQuoteDepth = 0,
+    string? CodeLanguage = null);
+
+/// <summary>
 /// Memory-bounded Markdown input scanner. Unlike Parse(string), this scanner
 /// does not build a document tree. It stores only unfinished structural state
 /// (fence delimiter and language, quote depth, and bounded list indent stack).
@@ -67,17 +82,52 @@ public static class MarkdownStreamingReader
     private readonly record struct FenceState(
         char Marker, int Length, long Start, int QuoteDepth, string? Language);
 
-    public static async IAsyncEnumerable<MarkdownStreamLine> ScanAsync(
+    /// <summary>Scan a new stream from character offset zero.</summary>
+    public static IAsyncEnumerable<MarkdownStreamLine> ScanAsync(
         TextReader reader,
         MarkdownStreamOptions? options = null,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) =>
+        ScanCoreAsync(reader, null, options, cancellationToken);
+
+    /// <summary>
+    /// Continue a physical-line scan from a previously indexed fence
+    /// checkpoint. Raw input must begin at the checkpoint's line boundary.
+    /// The open list stack is not reconstructed by this experimental API.
+    /// </summary>
+    public static IAsyncEnumerable<MarkdownStreamLine> ScanAsync(
+        TextReader reader,
+        MarkdownStreamCheckpoint checkpoint,
+        MarkdownStreamOptions? options = null,
+        CancellationToken cancellationToken = default) =>
+        ScanCoreAsync(reader, checkpoint, options, cancellationToken);
+
+    private static async IAsyncEnumerable<MarkdownStreamLine> ScanCoreAsync(
+        TextReader reader,
+        MarkdownStreamCheckpoint? checkpoint,
+        MarkdownStreamOptions? options,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(reader);
         options ??= new MarkdownStreamOptions();
         options.Validate();
+        if (checkpoint is not null &&
+            (checkpoint.Start < 0 ||
+             (checkpoint.FenceMarker == '\0' &&
+              (checkpoint.FenceLength != 0 || checkpoint.FenceStart != -1 ||
+               checkpoint.FenceQuoteDepth != 0 || checkpoint.CodeLanguage is not null)) ||
+             (checkpoint.FenceMarker != '\0' &&
+              ((checkpoint.FenceMarker is not ('~' or '`')) ||
+               checkpoint.FenceLength < 3 || checkpoint.FenceStart < 0 ||
+               checkpoint.FenceStart > checkpoint.Start ||
+               checkpoint.FenceQuoteDepth is < 0 or > 32))))
+            throw new ArgumentException("Invalid Markdown checkpoint.", nameof(checkpoint));
 
-        long offset = 0;
-        FenceState? activeFence = null;
+        long offset = checkpoint?.Start ?? 0;
+        FenceState? activeFence = checkpoint?.FenceMarker is '~' or '`'
+            ? new FenceState(checkpoint.FenceMarker, checkpoint.FenceLength,
+                checkpoint.FenceStart, checkpoint.FenceQuoteDepth,
+                checkpoint.CodeLanguage)
+            : null;
         var openLists = new List<int>(32);
 
         await foreach (var raw in ReadLinesAsync(reader, options, cancellationToken))
