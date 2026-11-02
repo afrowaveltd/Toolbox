@@ -315,3 +315,17 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   be addressed in a separate design/implementation effort.
 - **No source implementation or NuGet release.** Proposal:
   [Afrowave Docs Reader](Docs/Unified-Docs-Reader-Proposal/en.md).
+
+
+## 2026-11-02 — paragraph source identity in streaming Markdown (draft PR #3)
+
+- Added `ParagraphStart` to conservative line events; sparse page
+  checkpoints also persist `OpenParagraphStart` and the associated
+  `ParagraphListOwnerStart` without increasing their 512-byte size.
+- Continuation now checks consistent list owner *and* quote depth.
+  Tests cover list child-to-parent outdents, explicit blank/fence
+  interruptions, unchanged owner continuations and sparse parity.
+- This advances contextual Markdown pagination, but remains incomplete
+  for full CommonMark lazy containers, paragraph fusion and references.
+  No NuGet package release.
+- [Checkpoint guide](ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
