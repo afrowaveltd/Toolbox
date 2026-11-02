@@ -80,6 +80,9 @@ public sealed class MarkdownDiskPageIndex : IDisposable, IAsyncDisposable
     /// <summary>Number of source lines on a full page.</summary>
     public int LinesPerPage => _options.LinesPerPage;
 
+    /// <summary>Maximum validated UTF-8 bytes per source physical line.</summary>
+    public int MaxLineBytes => _options.MaxLineBytes;
+
     /// <summary>Create a bounded-memory page index and strictly validate the entire source.</summary>
     public static async Task<MarkdownDiskPageIndex> BuildAsync(
         string sourcePath,
