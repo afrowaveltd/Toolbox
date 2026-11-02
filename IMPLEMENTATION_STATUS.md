@@ -300,3 +300,18 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - The sixth Showcase reader uses the new default transparently.
   No new NuGet or production-complete CommonMark viewer claimed.
 - [Checkpoint guide](ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
+
+## 2026-11-02 — deferred Afrowave Docs Reader idea (design only)
+
+- Captured a possible virtual-book reader for the common
+  `Docs/<Topic>/en.md` layout: recursively collect topics, insert
+  generated topic headings, preserve original file provenance and
+  treat the result as one navigable Markdown document without a
+  physical concatenation or full-book RAM allocation.
+- Future sources may include a local folder and a GitHub repository
+  at a pinned revision; implementation should wait for robust
+  single-document contextual paging. Source path security, symlinks,
+  localization fallback, link rewriting and GitHub tree limits must
+  be addressed in a separate design/implementation effort.
+- **No source implementation or NuGet release.** Proposal:
+  [Afrowave Docs Reader](Docs/Unified-Docs-Reader-Proposal/en.md).
