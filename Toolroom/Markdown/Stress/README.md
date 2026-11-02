@@ -24,3 +24,13 @@ The existing full-document MarkdownParser and Showcase local Markdown viewer sti
 The [dedicated workflow](../../../.github/workflows/markdown-stress.yml) runs 10 MiB by default on matching PRs; manually dispatch 100 MiB, 1 GiB or 10 GiB. Do not claim success at large sizes without a completed run.
 
 See [test details](Docs/Stress/en.md) and [implementation status](IMPLEMENTATION_STATUS.md).
+
+## Low-memory Debian field acceptance
+
+For a terminal-only Debian 13 VM with 1 vCPU and 2 GiB of RAM,
+use the reproducible [low-memory acceptance protocol](../../../Docs/Low-Memory-Linux-Acceptance/en.md).
+Build the Release application **before** measuring runtime with
+`/usr/bin/time -v`. Begin with a 10 MiB virtual stream, optionally
+advance to 100 MiB, and record the exact Git commit, maximum process
+RSS, wall time and swap usage. The virtual stress runner is not an
+end-to-end disk-pager benchmark. No result from that VM is claimed yet.
