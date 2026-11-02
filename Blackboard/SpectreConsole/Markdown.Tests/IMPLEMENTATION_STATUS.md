@@ -116,3 +116,12 @@ New virtual-terminal tests cover quote depth, nested numbered-list code indentat
 
 - Three new tests check custom bullet/quote/list indentation, literal C# code with session lifecycle, and correctly interrupted plain quote prose. The language-label missing outer indent was fixed as part of this milestone.
 - [CI #41257477307](https://github.com/afrowaveltd/Toolbox/actions/runs/41257477307): **34/34 renderer tests green**.
+
+
+## 2026-11-02 — owner-aware streaming list UI regression
+
+- Added virtual-console exercise for nested list markers, explicit child
+  continuation and return to parent, using a custom indentation theme.
+- This covers conservative streaming presentation, not complete CommonMark
+  matching and not end-to-end huge-file terminal acceptance.
+- See draft PR #3 and the renderer's implementation status.
