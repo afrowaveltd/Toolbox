@@ -31,6 +31,22 @@ public enum MarkdownStreamLineKind
 }
 
 /// <summary>
+/// Evidence of a blank-separated list construct, not a complete CommonMark
+/// tight/loose classification of the entire containing list.
+/// </summary>
+public enum MarkdownListSpacingHint
+{
+    /// <summary>No blank-separated list continuation is recognized.</summary>
+    None,
+
+    /// <summary>A new paragraph may continue an existing list item after a blank.</summary>
+    BlankSeparatedParagraph,
+
+    /// <summary>A new list item follows an earlier item after a blank.</summary>
+    BlankSeparatedItem
+}
+
+/// <summary>
 /// One completed physical line and its active structural index. RawText
 /// preserves the exact characters and newline. Start is a 64-bit UTF-16
 /// character offset; it is not a byte offset. No previous content is retained.
@@ -65,6 +81,12 @@ public sealed record MarkdownStreamLine(
     /// for markers, blanks and fenced code. Not a complete CommonMark AST.
     /// </summary>
     public long? ParagraphStart { get; init; }
+
+    /// <summary>
+    /// Conservative evidence of a blank-separated list item or paragraph.
+    /// Not a definitive CommonMark tight/loose list classification.
+    /// </summary>
+    public MarkdownListSpacingHint ListSpacingHint { get; init; }
 }
 
 /// <summary>A bounded active list-item candidate, without its source text.</summary>
@@ -370,19 +392,32 @@ public static class MarkdownStreamingReader
         if (line.Kind != MarkdownStreamLineKind.Markdown)
             return line with { ListDepth = owners.Length };
 
+        var mayBeBlankSeparated = previous.PreviousWasBlank &&
+            previous.ListOwners.Count > 0 &&
+            previous.PreviousQuoteDepth == line.QuoteDepth &&
+            owners.Length > 0;
+
         if (TryListMarker(line.Content.AsSpan(), out _, out _))
             return line with
             {
                 ListOwnerStart = line.Start,
-                ListDepth = owners.Length
+                ListDepth = owners.Length,
+                ListSpacingHint = mayBeBlankSeparated ?
+                    MarkdownListSpacingHint.BlankSeparatedItem :
+                    MarkdownListSpacingHint.None
             };
 
         var owner = owners.Length == 0 ? null : owners[^1];
+        var isExistingOwner = owner is not null &&
+            previous.ListOwners.Any(x => x.Start == owner.Start);
         return line with
         {
             ListDepth = owners.Length,
             ListOwnerStart = owner?.Start,
-            IsListContinuationCandidate = owner is not null
+            IsListContinuationCandidate = owner is not null,
+            ListSpacingHint = mayBeBlankSeparated && isExistingOwner ?
+                MarkdownListSpacingHint.BlankSeparatedParagraph :
+                MarkdownListSpacingHint.None
         };
     }
 
