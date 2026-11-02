@@ -237,3 +237,13 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 - New virtual-console regression exercises preview/source toggle.
   Manual visual terminal test and 1/10 GiB end-to-end pager remain
   outstanding. [Docs](Docs/Markdown-Paged-Source-Viewer/en.md).
+
+## 2026-11-02 — candidate-context restoration for page seeks
+
+- The existing source/preview toggle now consumes a bounded 128-byte
+  structural checkpoint with prior list indentation, quote and paragraph
+  hints in addition to fenced-code state. No new viewer mode or heavy
+  dependency was added.
+- Do not describe the conservative preview as full CommonMark rendering;
+  literal source remains the default. Manual terminal acceptance pending.
+- [Source documentation](../../../ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
