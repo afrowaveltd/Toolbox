@@ -140,3 +140,16 @@ continues to report all source pages. This saves disk at the cost
 of bounded replay CPU/I/O, **not** constant-time seeking. The entire
 source still needs two initial sequential scans.
 [Disk/CPU tradeoff](Docs/Fence-Checkpoints/en.md).
+
+
+## Paragraph source offsets in bounded checkpoints (2026-11-02)
+
+`MarkdownStreamLine.ParagraphStart` now identifies the start of a
+conservatively recognized prose paragraph. The 512-byte temporary
+checkpoint persists that 64-bit UTF-16 offset along with an optional
+`ParagraphListOwnerStart`. Crossing between list child and parent,
+changing explicit quote depth or encountering blank/fenced code
+interrupts paragraph continuity. Seeking with sparse checkpoints
+recovers the same identity without retaining previous text.
+Complete CommonMark paragraphs and multi-line layout are not yet
+implemented. [Context rules](Docs/Fence-Checkpoints/en.md).
