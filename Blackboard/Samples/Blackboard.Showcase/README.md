@@ -133,3 +133,13 @@ page N even when their fence opened on an earlier page. This still does
 **not** guarantee CommonMark-correct rendering of lists, reference links,
 multiline paragraphs or quotes. Source view remains the default.
 [Technical contract](../../../ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
+
+
+## Owner-aware conservative preview (experimental, 2026-11-02)
+
+The reversible sixth Showcase preview now benefits from its shared
+Markdown renderer's explicit source-owner offsets. It can place simple
+nested markers and indented child/parent continuation lines using the
+restored list depth across page boundaries. It still does not promise
+full CommonMark layout; literal source remains the default and the
+original complete document renderer remains unchanged.
