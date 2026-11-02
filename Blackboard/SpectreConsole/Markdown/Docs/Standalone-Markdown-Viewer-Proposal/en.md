@@ -75,4 +75,4 @@ Actual naming, assembly placement, public API, package policy and exact keybindi
 - [Blackboard renderer README](../../README.md)
 - [Blackboard Showcase](../../../Samples/Blackboard.Showcase/README.md), which already opens whole local Markdown files in read-only mode.
 
-[Markdown implementation status](../../IMPLEMENTATION_STATUS.md).
+[Markdown implementation status](../IMPLEMENTATION_STATUS.md).
