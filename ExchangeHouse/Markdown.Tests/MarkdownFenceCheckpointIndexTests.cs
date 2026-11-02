@@ -231,6 +231,54 @@ public sealed class MarkdownFenceCheckpointIndexTests
     }
 
     [Fact]
+    public async Task Random_access_pages_match_uninterrupted_scan_for_bounded_structure()
+    {
+        const string markdown =
+            "# 🐈 Intro\r\n" +
+            "- parent\n  - child\n    more prose\n    continuation\n" +
+            "> quoted\n> quote continuation\n" +
+            "> ~~~csharp\n> # code\n> ~~~\n" +
+            "ordinary\nordinary continuation\n\n" +
+            "~~~bash\n- literal item\n~~~\n" +
+            "the end";
+        await WithMarkdownAsync(markdown, async (path, temp) =>
+        {
+            var expected = new List<MarkdownStreamLine>();
+            using (var complete = new StringReader(markdown))
+                await foreach (var line in MarkdownStreamingReader.ScanAsync(complete))
+                    expected.Add(line);
+
+            await using var pages = await MarkdownDiskPageIndex.BuildAsync(path,
+                new MarkdownDiskPageOptions { LinesPerPage = 3 }, tempDirectory: temp);
+            await using var index = await MarkdownFenceCheckpointIndex.BuildAsync(
+                pages, tempDirectory: temp);
+
+            // Request pages in reverse order, ensuring no shared cursor dependency.
+            var actual = new MarkdownStreamLine[expected.Count];
+            for (long page = index.PageCount; page-- > 0;)
+            {
+                var current = await index.ReadPageAsync(page);
+                for (var i = 0; i < current.Lines.Count; i++)
+                    actual[checked((int)(current.Source.FirstLine - 1 + i))] =
+                        current.Lines[i];
+            }
+
+            for (var i = 0; i < expected.Count; i++)
+            {
+                Assert.Equal(expected[i].Kind, actual[i].Kind);
+                Assert.Equal(expected[i].Start, actual[i].Start);
+                Assert.Equal(expected[i].RawText, actual[i].RawText);
+                Assert.Equal(expected[i].QuoteDepth, actual[i].QuoteDepth);
+                Assert.Equal(expected[i].ListDepth, actual[i].ListDepth);
+                Assert.Equal(expected[i].OpenFenceStart, actual[i].OpenFenceStart);
+                Assert.Equal(expected[i].CodeLanguage, actual[i].CodeLanguage);
+                Assert.Equal(expected[i].IsParagraphContinuationCandidate,
+                    actual[i].IsParagraphContinuationCandidate);
+            }
+        });
+    }
+
+    [Fact]
     public async Task Rejects_too_small_checkpoint_quota_before_creating_file()
     {
         await WithMarkdownAsync("one\ntwo\n", async (path, temp) =>
