@@ -127,19 +127,7 @@ public static class MarkdownStreamingReader
         ArgumentNullException.ThrowIfNull(reader);
         options ??= new MarkdownStreamOptions();
         options.Validate();
-        if (checkpoint is not null &&
-            (checkpoint.Start < 0 ||
-             (checkpoint.FenceMarker == '\0' &&
-              (checkpoint.FenceLength != 0 || checkpoint.FenceStart != -1 ||
-               checkpoint.FenceQuoteDepth != 0 || checkpoint.CodeLanguage is not null)) ||
-             (checkpoint.FenceMarker != '\0' &&
-              ((checkpoint.FenceMarker is not ('~' or '`')) ||
-               checkpoint.FenceLength < 3 || checkpoint.FenceStart < 0 ||
-               checkpoint.FenceStart > checkpoint.Start ||
-               checkpoint.FenceQuoteDepth is < 0 or > 32))) ||
-             checkpoint.PreviousQuoteDepth is < 0 or > 32 ||
-             checkpoint.ListIndents is null || checkpoint.ListIndents.Count > 32 ||
-             checkpoint.ListIndents.Any(n => n is < 0 or > 32)))
+        if (checkpoint is not null && !IsValidCheckpoint(checkpoint))
             throw new ArgumentException("Invalid Markdown checkpoint.", nameof(checkpoint));
 
         long offset = checkpoint?.Start ?? 0;
@@ -236,6 +224,20 @@ public static class MarkdownStreamingReader
             };
             offset = checked(offset + raw.Length);
         }
+    }
+
+    private static bool IsValidCheckpoint(MarkdownStreamCheckpoint c)
+    {
+        if (c.Start < 0 || c.PreviousQuoteDepth is < 0 or > 32 ||
+            c.ListIndents is null || c.ListIndents.Count > 32 ||
+            c.ListIndents.Any(n => n is < 0 or > 32))
+            return false;
+        if (c.FenceMarker == '\0')
+            return c.FenceLength == 0 && c.FenceStart == -1 &&
+                c.FenceQuoteDepth == 0 && c.CodeLanguage is null;
+        return c.FenceMarker is '~' or '`' && c.FenceLength >= 3 &&
+            c.FenceStart >= 0 && c.FenceStart <= c.Start &&
+            c.FenceQuoteDepth is >= 0 and <= 32;
     }
 
     /// <summary>
