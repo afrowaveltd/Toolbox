@@ -223,3 +223,20 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   No NuGet release by these commits.
 - Work remains in [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3)
   on `feature/markdown-streaming-stress-20261102`; not merged into master.
+
+## 2026-11-02 — fenced-code checkpoints for large Markdown pages (draft PR #3)
+
+- `ExchangeHouse.MarkdownStreamingReader` accepts an optional explicit
+  `MarkdownStreamCheckpoint`, restoring global UTF-16 position and
+  code-fence state for independent pages.
+- `MarkdownFenceCheckpointIndex` records one disposable **96-byte**
+  checkpoint per page, separate from raw-source byte-offset index.
+  An arbitrary page can now be classified correctly when a code fence
+  began elsewhere. Disk quota and cleanup are enforced.
+- Sixth Blackboard Showcase demo has a reversible toggle between literal
+  source and **conservative** Markdown rendering with resumed fence state.
+- Tests and English docs record what works and the remaining
+  list/paragraph/reference/quote limitations. BOM-only input is now
+  consistently empty. No NuGet package published or stable release declared.
+- [Checkpoint docs](ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md),
+  [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
