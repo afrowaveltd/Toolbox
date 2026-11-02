@@ -191,3 +191,17 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 
 - Current read-only full local Markdown FileBrowser demo remains the working prototype. A possible future standalone command-line/TUI Markdown document viewer would add HTTP(S) and GitHub README source providers while reusing the parser/renderer; it is not yet created.
 - [Standalone viewer concept](../../SpectreConsole/Markdown/Docs/Standalone-Markdown-Viewer-Proposal/en.md). No behavior changed in Showcase.
+
+## 2026-11-02 — remote Markdown temporary disk cache (experimental)
+
+- Added `RemoteMarkdownTempDocument`: trusted HTTPS streaming download via HttpClient.ResponseHeadersRead, 64-KiB copy buffer, unique system Temp file, selectable disk byte cap (default 16 GiB), seekable independent file-reader sessions and cleanup on dispose/errors/cancellation.
+- Added isolated HttpMessageHandler tests for unmodified content, random-access paging after HTTP close, Content-Length and streaming size rejection, error cleanup, insecure URL rejection and cancellation.
+- Added design specification for future simultaneous download, semantic Markdown-aware UnderstandMe translation, ordered target-language temporary file and paged reading. **No live translation adapter is implemented.**
+- **CI pending for this increment**. The helper is a Showcase sample API, not yet accessible from the menu or the production Markdown renderer.
+
+### Next
+
+1. Verify cross-platform CI and fix any test defects.
+2. Implement strict incremental text decoding and controlled growing-file producer/consumer protocol.
+3. Add a real standalone pager and remote URL selector, then wire the current temp cache into it.
+4. Integrate a privacy-conscious UnderstandMe translation adapter only after semantic Markdown segmentation and robust ordering.
