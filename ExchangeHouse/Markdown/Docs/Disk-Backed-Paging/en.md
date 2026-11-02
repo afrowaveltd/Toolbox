@@ -112,3 +112,13 @@ bidirectional terminal viewer is implemented by this index.
 
 See [streaming scanner](../Streaming-Scanner/en.md) and the
 [Showcase remote-spool documentation](../../../../Blackboard/Samples/Blackboard.Showcase/Docs/Remote-Markdown-Cache/en.md).
+
+
+## Optional sparse semantic checkpoint index
+
+The companion [structural index](../Fence-Checkpoints/en.md) now saves
+a 512-byte checkpoint once every 16 pages by default (configurable
+1–256). Random reads reconstruct the omitted page-boundary state
+through at most 15 earlier pages, retaining only one at a time in RAM.
+This reduces temporary disk use but trades some seek latency for it;
+the base source byte-offset index still stores 8 bytes **per page**.
