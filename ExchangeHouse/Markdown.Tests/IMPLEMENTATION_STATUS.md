@@ -133,3 +133,10 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 - Added six cases covering distinct outer/inner source owners, nested numbered list parent, separated runs, quoted fenced code, quoted loose separators and existing plain quote behavior.
 - Initial failing tests caught ambiguity of standalone quote detection under a regular item and a test's too-small child indent; both corrected before verified green CI.
 - [CI #41257477307](https://github.com/afrowaveltd/Toolbox/actions/runs/41257477307): **88/88 passed**.
+
+## 2026-11-02 — experimental indexed streaming scanner and diskless stress harness
+
+- Introduced forward-only MarkdownStreamingReader.ScanAsync with 64-bit source character offsets, bounded input-line buffer and minimal open-fence/list index state. Long code fences do not accumulate in memory.
+- Stress runner: Toolroom/Markdown/Stress, with deterministic virtual Markdown for 10M, 100M, 1G and 10G; optional Spectre render to null output; 50k-line open-fence regression.
+- Existing full-document parser and normal Showcase viewer remain unchanged. Full CommonMark-equivalent streaming state, deferred references and paged terminal navigation are not yet supported.
+- **CI and large stress execution pending**; the change is on a review branch, not asserted merged to master.
