@@ -30,31 +30,48 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);
     private readonly MarkdownDiskPageIndex _pages;
     private readonly string _path;
+    private readonly int _checkpointStride;
     private int _disposed;
 
-    private MarkdownFenceCheckpointIndex(MarkdownDiskPageIndex pages, string path)
+    private MarkdownFenceCheckpointIndex(
+        MarkdownDiskPageIndex pages, string path, int checkpointStride)
     {
         _pages = pages;
         _path = path;
+        _checkpointStride = checkpointStride;
     }
 
-    /// <summary>Number of independently seekable fence checkpoints.</summary>
+    /// <summary>Number of pages with independently reconstructable states.</summary>
     public long PageCount => _pages.PageCount;
 
+    /// <summary>Store one checkpoint for every this-many pages, default 16.</summary>
+    public int CheckpointStride => _checkpointStride;
+
+    /// <summary>Number of fixed-size checkpoint records on disk.</summary>
+    public long SavedCheckpointCount =>
+        PageCount == 0 ? 0 : 1 + (PageCount - 1) / _checkpointStride;
+
     /// <summary>
-    /// Scan the source one more time, retaining only its current fenced-code
-    /// state, and write one fixed-size checkpoint per source page to OS Temp.
+    /// Scan the source a second time with bounded state and save one 512-byte
+    /// checkpoint every checkpointStride pages. Other pages reconstruct their
+    /// state by replaying at most checkpointStride-1 source pages.
     /// </summary>
     public static async Task<MarkdownFenceCheckpointIndex> BuildAsync(
         MarkdownDiskPageIndex pages,
         CancellationToken cancellationToken = default,
         string? tempDirectory = null,
-        long maxIndexBytes = DefaultMaxIndexBytes)
+        long maxIndexBytes = DefaultMaxIndexBytes,
+        int checkpointStride = 16)
     {
         ArgumentNullException.ThrowIfNull(pages);
+        if (checkpointStride is < 1 or > 256)
+            throw new ArgumentOutOfRangeException(nameof(checkpointStride),
+                "Checkpoint stride must be 1..256 pages.");
         if (maxIndexBytes < RecordBytes)
             throw new ArgumentOutOfRangeException(nameof(maxIndexBytes));
-        if (pages.PageCount > maxIndexBytes / RecordBytes)
+        var savedCount = pages.PageCount == 0 ? 0 :
+            1 + (pages.PageCount - 1) / checkpointStride;
+        if (savedCount > maxIndexBytes / RecordBytes)
             throw new InvalidDataException("Fence checkpoint index exceeds disk quota.");
 
         var directory = tempDirectory ?? Path.GetTempPath();
@@ -96,7 +113,8 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
             await foreach (var line in MarkdownStreamingReader.ScanAsync(
                 reader, options, cancellationToken))
             {
-                if (lines % pages.LinesPerPage == 0)
+                if (lines % pages.LinesPerPage == 0 &&
+                    (lines / pages.LinesPerPage) % checkpointStride == 0)
                 {
                     state = state with { Start = line.Start };
                     Encode(record, state);
@@ -110,13 +128,14 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
                 lines = checked(lines + 1);
             }
 
-            if (lines != pages.LineCount || output.Length != pages.PageCount * RecordBytes ||
+            if (lines != pages.LineCount ||
+                output.Length != checked(savedCount * RecordBytes) ||
                 source.Length != sourceSize ||
                 File.GetLastWriteTimeUtc(pages.SourcePath) != lastWrite)
                 throw new IOException("Source Markdown changed during checkpoint indexing.");
 
             await output.FlushAsync(cancellationToken);
-            return new MarkdownFenceCheckpointIndex(pages, path);
+            return new MarkdownFenceCheckpointIndex(pages, path, checkpointStride);
         }
         catch
         {
@@ -127,7 +146,11 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
         }
     }
 
-    /// <summary>Read one saved page-boundary state directly from temporary disk.</summary>
+    /// <summary>
+    /// Reconstruct the state at a requested page by loading the closest
+    /// preceding disk checkpoint, then replaying at most stride-1 pages.
+    /// Only one page's text is materialized at a time.
+    /// </summary>
     public async Task<MarkdownStreamCheckpoint> ReadCheckpointAsync(
         long pageNumber, CancellationToken cancellationToken = default)
     {
@@ -135,12 +158,39 @@ public sealed class MarkdownFenceCheckpointIndex : IDisposable, IAsyncDisposable
         if (pageNumber < 0 || pageNumber >= PageCount)
             throw new ArgumentOutOfRangeException(nameof(pageNumber));
 
+        var anchorNumber = pageNumber / _checkpointStride;
+        var anchorPage = anchorNumber * _checkpointStride;
         var data = new byte[RecordBytes];
-        await using var index = new FileStream(_path, FileMode.Open,
-            FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous);
-        index.Seek(checked(pageNumber * RecordBytes), SeekOrigin.Begin);
-        await index.ReadExactlyAsync(data, cancellationToken);
-        return Decode(data);
+        await using (var index = new FileStream(_path, FileMode.Open,
+            FileAccess.Read, FileShare.Read, 4096, FileOptions.Asynchronous))
+        {
+            index.Seek(checked(anchorNumber * RecordBytes), SeekOrigin.Begin);
+            await index.ReadExactlyAsync(data, cancellationToken);
+        }
+
+        var state = Decode(data);
+        var options = new MarkdownStreamOptions
+        {
+            MaxLineChars = checked(_pages.MaxLineBytes + 2)
+        };
+        for (var page = anchorPage; page < pageNumber; page++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var source = await _pages.ReadPageAsync(page, cancellationToken);
+            using var reader = new StringReader(source.Content);
+            var encountered = 0;
+            await foreach (var line in MarkdownStreamingReader.ScanAsync(
+                reader, state, options, cancellationToken))
+            {
+                state = MarkdownStreamingReader.AdvanceCheckpoint(state, line);
+                encountered++;
+            }
+            if (encountered != source.LineCount)
+                throw new InvalidDataException(
+                    "Sparse checkpoint replay disagrees with source page line count.");
+        }
+
+        return state;
     }
 
     /// <summary>
