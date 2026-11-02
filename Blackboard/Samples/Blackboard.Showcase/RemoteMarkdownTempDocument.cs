@@ -44,7 +44,8 @@ public sealed class RemoteMarkdownTempDocument : IDisposable, IAsyncDisposable
         HttpClient httpClient,
         Uri source,
         long maxBytes = 16L * 1024 * 1024 * 1024,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? tempDirectory = null)
     {
         ArgumentNullException.ThrowIfNull(httpClient);
         ArgumentNullException.ThrowIfNull(source);
@@ -57,7 +58,9 @@ public sealed class RemoteMarkdownTempDocument : IDisposable, IAsyncDisposable
             throw new ArgumentOutOfRangeException(nameof(maxBytes));
 
         // CreateNew avoids replacing a file even in the unlikely event of a name collision.
-        var path = Path.Combine(Path.GetTempPath(), "afrowave-markdown-" +
+        var directory = tempDirectory ?? Path.GetTempPath();
+        Directory.CreateDirectory(directory);
+        var path = Path.Combine(directory, "afrowave-markdown-" +
             Guid.NewGuid().ToString("N") + ".tmp");
         try
         {
