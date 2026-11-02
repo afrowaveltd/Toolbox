@@ -364,6 +364,7 @@ public sealed class MarkdownFenceCheckpointIndexTests
                 Assert.Equal(expected[i].CodeLanguage, actual[i].CodeLanguage);
                 Assert.Equal(expected[i].IsParagraphContinuationCandidate,
                     actual[i].IsParagraphContinuationCandidate);
+                Assert.Equal(expected[i].ParagraphStart, actual[i].ParagraphStart);
                 Assert.Equal(expected[i].ListOwnerStart, actual[i].ListOwnerStart);
                 Assert.Equal(expected[i].IsListContinuationCandidate,
                     actual[i].IsListContinuationCandidate);
@@ -441,8 +442,103 @@ public sealed class MarkdownFenceCheckpointIndexTests
                     actual[i].IsListContinuationCandidate);
                 Assert.Equal(expected[i].IsParagraphContinuationCandidate,
                     actual[i].IsParagraphContinuationCandidate);
+                Assert.Equal(expected[i].ParagraphStart, actual[i].ParagraphStart);
                 Assert.Equal(expected[i].OpenFenceStart, actual[i].OpenFenceStart);
             }
+        });
+    }
+
+    [Fact]
+    public async Task Paragraph_start_is_preserved_through_sparse_replay_and_changes_with_list_owner()
+    {
+        const string markdown =
+            "- parent\n" +
+            "  parent paragraph A\n" +
+            "  parent paragraph B\n" +
+            "  - child\n" +
+            "    child paragraph A\n" +
+            "    child paragraph B\n" +
+            "  parent again\n" +
+            "  parent again continued\n" +
+            "\n" +
+            "  fresh paragraph after blank\n" +
+            "  continuation after blank\n" +
+            "outside\n";
+
+        await WithMarkdownAsync(markdown, async (path, temp) =>
+        {
+            await using var pages = await MarkdownDiskPageIndex.BuildAsync(path,
+                new MarkdownDiskPageOptions { LinesPerPage = 1 }, tempDirectory: temp);
+            await using var index = await MarkdownFenceCheckpointIndex.BuildAsync(
+                pages, tempDirectory: temp, checkpointStride: 4);
+
+            // Read out of order, reconstructing both saved and intermediate
+            // checkpoints, without retaining a single previous page.
+            var childContinued = Assert.Single((await index.ReadPageAsync(5)).Lines);
+            var parentReturned = Assert.Single((await index.ReadPageAsync(6)).Lines);
+            var parentContinued = Assert.Single((await index.ReadPageAsync(7)).Lines);
+            var fresh = Assert.Single((await index.ReadPageAsync(9)).Lines);
+            var afterFresh = Assert.Single((await index.ReadPageAsync(10)).Lines);
+            var outside = Assert.Single((await index.ReadPageAsync(11)).Lines);
+            var parentFirst = Assert.Single((await index.ReadPageAsync(1)).Lines);
+            var parentSecond = Assert.Single((await index.ReadPageAsync(2)).Lines);
+
+            Assert.True(parentSecond.IsParagraphContinuationCandidate);
+            Assert.Equal(parentFirst.Start, parentSecond.ParagraphStart);
+            Assert.Equal(parentFirst.ParagraphStart, parentSecond.ParagraphStart);
+            Assert.Equal(markdown.IndexOf("    child paragraph A", StringComparison.Ordinal),
+                childContinued.ParagraphStart);
+            Assert.True(childContinued.IsParagraphContinuationCandidate);
+            Assert.False(parentReturned.IsParagraphContinuationCandidate);
+            Assert.Equal(parentReturned.Start, parentReturned.ParagraphStart);
+            Assert.Equal(0L, parentReturned.ListOwnerStart);
+            Assert.True(parentContinued.IsParagraphContinuationCandidate);
+            Assert.Equal(parentReturned.Start, parentContinued.ParagraphStart);
+            Assert.False(fresh.IsParagraphContinuationCandidate);
+            Assert.Equal(fresh.Start, fresh.ParagraphStart);
+            Assert.True(afterFresh.IsParagraphContinuationCandidate);
+            Assert.Equal(fresh.Start, afterFresh.ParagraphStart);
+            Assert.Null(outside.ListOwnerStart);
+            Assert.False(outside.IsParagraphContinuationCandidate);
+        });
+    }
+
+    [Fact]
+    public async Task Quote_transition_and_fence_reset_paragraph_identity()
+    {
+        const string markdown =
+            "unquoted first\n" +
+            "unquoted second\n" +
+            "> quoted one\n" +
+            "> quoted two\n" +
+            "~~~md\n" +
+            "not a paragraph\n" +
+            "~~~\n" +
+            "outside again\n";
+
+        await WithMarkdownAsync(markdown, async (path, temp) =>
+        {
+            await using var pages = await MarkdownDiskPageIndex.BuildAsync(path,
+                new MarkdownDiskPageOptions { LinesPerPage = 1 }, tempDirectory: temp);
+            await using var index = await MarkdownFenceCheckpointIndex.BuildAsync(
+                pages, tempDirectory: temp, checkpointStride: 3);
+
+            var line1 = Assert.Single((await index.ReadPageAsync(1)).Lines);
+            var quoted = Assert.Single((await index.ReadPageAsync(2)).Lines);
+            var quotedContinuation = Assert.Single((await index.ReadPageAsync(3)).Lines);
+            var code = Assert.Single((await index.ReadPageAsync(5)).Lines);
+            var final = Assert.Single((await index.ReadPageAsync(7)).Lines);
+
+            Assert.Equal(0L, line1.ParagraphStart);
+            Assert.True(line1.IsParagraphContinuationCandidate);
+            Assert.Equal(quoted.Start, quoted.ParagraphStart);
+            Assert.False(quoted.IsParagraphContinuationCandidate);
+            Assert.Equal(quoted.Start, quotedContinuation.ParagraphStart);
+            Assert.True(quotedContinuation.IsParagraphContinuationCandidate);
+            Assert.Null(code.ParagraphStart);
+            Assert.False(code.IsParagraphContinuationCandidate);
+            Assert.Equal(final.Start, final.ParagraphStart);
+            Assert.False(final.IsParagraphContinuationCandidate);
         });
     }
 
