@@ -84,7 +84,7 @@ public static class MarkdownStreamingReader
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var content = raw.AsSpan().TrimEnd('\r', '\n').ToString();
+            var content = raw.AsSpan().TrimEnd("\r\n").ToString();
             var quoteDepth = TryQuotePrefix(content.AsSpan(), out var quoteBody)
                 ? CountQuoteDepth(content.AsSpan(), out quoteBody)
                 : 0;
@@ -245,7 +245,7 @@ public static class MarkdownStreamingReader
         }
         if (i >= value.Length)
             return false;
-        if (value[i] is '-' or '*' or '+' &&
+        if ((value[i] is '-' or '*' or '+') &&
             i + 1 < value.Length && char.IsWhiteSpace(value[i + 1]))
             return true;
         var start = i;
