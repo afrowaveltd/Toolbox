@@ -237,3 +237,24 @@
 - This is conservative ownership, **not** complete CommonMark logical
   list tree or a published NuGet API. PR #3 remains draft.
 - [Detail](Docs/Fence-Checkpoints/en.md).
+
+
+## 2026-11-02 — sparse structural index, bounded page replay (draft PR #3)
+
+- `MarkdownFenceCheckpointIndex.BuildAsync` stores a fixed 512-byte
+  record only every `checkpointStride` source pages, **default 16**,
+  configurable 1..256. `SavedCheckpointCount` exposes physical count;
+  `PageCount` remains unchanged.
+- `ReadCheckpointAsync(page)` finds the nearest earlier stored checkpoint
+  and uses the same bounded streaming scanner and `AdvanceCheckpoint`
+  to replay at most stride-1 complete source pages. No full-document
+  buffer and no persistent cache; cancellation/source mutation checks
+  remain active.
+- Per-page raw UTF-8 byte-offset index is unchanged at 8 bytes/page.
+  For 1 million lines/40 lines per page, default state index is about
+  800 kB vs ~12.8 MB at stride 1; CPU/I/O on seeks increases.
+- Added sparse crossing-boundary, owner/fence parity, quota and invalid
+  stride tests; exact CI reported in PR #3.
+- Does not add full CommonMark equivalence, 1/10-GiB interactive
+  acceptance or a NuGet release.
+- [Technical guide](Docs/Fence-Checkpoints/en.md).
