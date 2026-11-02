@@ -27,10 +27,15 @@ See [test details](Docs/Stress/en.md) and [implementation status](IMPLEMENTATION
 
 ## Low-memory Debian field acceptance
 
-For a terminal-only Debian 13 VM with 1 vCPU and 2 GiB of RAM,
-use the reproducible [low-memory acceptance protocol](../../../Docs/Low-Memory-Linux-Acceptance/en.md).
-Build the Release application **before** measuring runtime with
-`/usr/bin/time -v`. Begin with a 10 MiB virtual stream, optionally
-advance to 100 MiB, and record the exact Git commit, maximum process
-RSS, wall time and swap usage. The virtual stress runner is not an
-end-to-end disk-pager benchmark. No result from that VM is claimed yet.
+For a terminal-only Debian 13 VM with **1 vCPU, 1 GiB of RAM and
+physical rotational-HDD backing**, use the reproducible
+[low-memory acceptance protocol](../../../Docs/Low-Memory-Linux-Acceptance/en.md).
+Prefer to publish the Linux Release executable on a stronger machine,
+then measure **runtime only** with `/usr/bin/time -v` on the VM.
+Begin with a 10 MiB virtual stream, optionally advance to 100 MiB,
+and record Git SHA, maximum process RSS, wall time, swap I/O and disk
+wait time. Compare RAM at 2 GiB **only when needed**, while preserving
+the same 1 vCPU and HDD backing. A virtual disk that merely sets the
+rotational flag on SSD storage is not a physical-HDD test.
+The virtual stress runner does **not** benchmark disk-backed Markdown
+paging. No result from this VM is claimed yet.
