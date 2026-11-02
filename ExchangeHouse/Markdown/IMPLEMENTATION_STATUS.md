@@ -201,3 +201,20 @@
   highlighter session snapshots, live-growing file or giant-pager
   acceptance. No new NuGet release.
 - [Detailed docs](Docs/Fence-Checkpoints/en.md).
+
+## 2026-11-02 — resumed list/quote/paragraph candidates
+
+- Extended `MarkdownStreamCheckpoint` with a bounded (max 32) list
+  indentation stack, previous quote depth and previous paragraph candidate.
+- Shared `MarkdownStreamingReader.AdvanceCheckpoint` drives on-disk state
+  rather than duplicating scanner list transitions; per-line
+  `IsParagraphContinuationCandidate` indicates only conservative
+  uninterrupted prose continuation.
+- Checkpoint records are now **128 bytes per source page**; the 96-byte
+  experimental revision is superseded. Strict disk quota and cleanup remain.
+- Added page-seek tests for two-level lists, paragraph continuations,
+  quote-depth changes, blank/fence interruptions and source integrity.
+- Full CommonMark list ownership, list rendering equivalence, lazy
+  continuation and link reference resolution remain future. Not published.
+- [Documentation](Docs/Fence-Checkpoints/en.md) and
+  [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
