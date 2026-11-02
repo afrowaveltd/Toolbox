@@ -193,3 +193,34 @@ semantics require richer parsing. No paragraph body text, AST or inline
 rendering buffer is persisted by the checkpoint. Source mode remains
 authoritative, and the full-document parser remains the reference for
 features it already implements.
+
+## Blank-separated list evidence (2026-11-02)
+
+The conservative streaming scanner now exposes
+`MarkdownStreamLine.ListSpacingHint` with these values:
+
+- `None`: no blank-separated list transition recognized.
+- `BlankSeparatedParagraph`: after a blank source line, an explicitly
+  indented paragraph belongs to a previously active list-item owner.
+- `BlankSeparatedItem`: a list-item marker follows a blank line within
+  an active list/quote context.
+
+Both are **evidence**, not an authoritative `IsLoose` flag. Under CommonMark,
+tightness is a property of a whole list; some loose-list decisions require
+looking ahead or revisiting earlier items. Streaming line events must not
+pretend to know that final answer before seeing the rest of the list.
+The hints preserve the distinction between a new paragraph of an existing
+item and a subsequent list item without buffering the whole list.
+
+No additional state fields or index space are required. The existing
+`PreviousWasBlank`, previous list-owner descriptors and quote-depth metadata
+already persist in the sparse 512-byte checkpoint. The same classification
+therefore survives reverse page reads and sparse replay.
+
+A blank line followed by unindented text does **not** automatically claim
+the previous list item; simple lazy continuation is permitted only without
+that blank. Explicit quote-depth changes do not transfer list ownership.
+Multiple blank lines may conservatively produce the same
+`BlankSeparatedParagraph` hint when a sufficiently indented line resumes
+an active owner. These hints do **not** settle every CommonMark loose-list
+corner case or retroactively format previous items.
