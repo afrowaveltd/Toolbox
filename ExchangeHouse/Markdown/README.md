@@ -93,7 +93,7 @@ claimed. See [disk-backed paging](Docs/Disk-Backed-Paging/en.md).
 ## Restartable code-fence scanning across disk pages (2026-11-02)
 
 The experimental `MarkdownFenceCheckpointIndex` builds a second small,
-disposable **96-byte-per-page** index. At each page boundary it records the
+disposable **128-byte-per-page** index. At each page boundary it records the
 current fenced-code marker, opening offset, quote depth and optional short
 language hint. `ReadPageAsync(number)` reconstructs line events with
 `MarkdownStreamingReader.ScanAsync(reader, checkpoint)`, even if the opener
@@ -101,3 +101,14 @@ is far away. The state index is disk-backed and quota-limited; source text
 is not retained. This is **fence-safe classification**, not full resumable
 CommonMark semantics or a stable NuGet API. See
 [fence checkpoints](Docs/Fence-Checkpoints/en.md).
+
+## Resumable list and paragraph *candidates* (2026-11-02)
+
+The page checkpoint now also stores up to 32 list indent candidates and
+the preceding line's quote-depth/paragraph-continuity hints. Seeks restore
+`MarkdownStreamLine.ListDepth` across page boundaries, and
+`IsParagraphContinuationCandidate` exposes conservative cross-page
+plain-paragraph continuity. These hints do **not** constitute complete
+CommonMark list ownership, lazy continuation, or identical formatted output.
+The 128-byte temporary record remains bounded and quota-controlled.
+[Technical details](Docs/Fence-Checkpoints/en.md).
