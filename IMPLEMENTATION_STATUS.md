@@ -340,3 +340,21 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   The temporary 512-byte checkpoint and raw 8-byte/page index are
   unchanged. Tests and documentation updated; no new NuGet release.
 - [Details](ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
+
+## 2026-11-02 — optional disk-backed list-wide spacing index (draft PR #3)
+
+- `ExchangeHouse/Markdown/MarkdownListSpacingIndex.cs` creates an
+  independent, disposable **list-wide candidate** index by a third
+  bounded-memory sequential scan. It stores group summaries (24 bytes)
+  and item offsets (16 bytes) on temporary disk, rather than holding
+  prior paragraphs or list items in RAM.
+- Supports retroactive group candidate lookup by source marker offset;
+  tests cover nested lists, blank separators, quote/type transitions,
+  fenced code, source integrity, disk quota and disposal. The scanner's
+  32-owner bound remains; the optional index is not yet wired to TUI.
+- Future: compare full parser's tight/loose decisions, integrate
+  contextual styling and run a **real** 1-vCPU/2-GiB terminal-only
+  Debian acceptance session. Do not call current CI a VM measurement.
+- [Index design](ExchangeHouse/Markdown/Docs/List-Spacing-Index/en.md)
+  and [low-RAM VM protocol](Docs/Low-Memory-Linux-Acceptance/en.md).
+  PR #3 remains draft; no NuGet package released.
