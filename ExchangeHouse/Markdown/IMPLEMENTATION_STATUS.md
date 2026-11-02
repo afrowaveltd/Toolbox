@@ -277,3 +277,19 @@
 - This is *conservative paragraph identity*, not a full CommonMark
   paragraph AST or finished visual layout. No NuGet release.
 - [Specification](Docs/Fence-Checkpoints/en.md).
+
+## 2026-11-02 — evidence of blank-separated list paragraphs/items (draft PR #3)
+
+- Added `MarkdownListSpacingHint` (`None`,
+  `BlankSeparatedParagraph`, `BlankSeparatedItem`) to conservative
+  `MarkdownStreamLine` classification.
+- Uses existing `PreviousWasBlank`, owner stack and quote-depth state
+  to distinguish a new paragraph in the same list item from a new
+  blank-separated item. No change to 512-byte checkpoints, 16-page
+  default spacing, or bounded-memory scan.
+- Added sparse reverse-page regression tests for separated paragraphs,
+  sibling items, multiple blanks, quote boundaries and unowned prose.
+- **Not** a global CommonMark tight/loose verdict; that requires
+  higher-level list-wide context and possibly retroactive formatting.
+  No NuGet publication.
+- [Detailed documentation](Docs/Fence-Checkpoints/en.md).
