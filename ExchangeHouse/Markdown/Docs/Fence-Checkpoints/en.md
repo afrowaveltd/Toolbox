@@ -165,3 +165,31 @@ still validated and scanned twice during index creation; sparse state
 does not skip that validation. Replay also checks that the source has
 not changed via the underlying source index; cancellation and errors
 are propagated. No persistent cross-session index is introduced.
+
+
+## Paragraph identity across page boundaries (2026-11-02)
+
+The same 512-byte temporary checkpoint now also stores
+`OpenParagraphStart` (the global UTF-16 offset at which the current prose
+paragraph began) and `ParagraphListOwnerStart` (the active list item, if
+any). Both are saved as optional 64-bit offsets in previously reserved
+record bytes; the **512-byte size and sparse 16-page default remain
+unchanged**.
+
+`MarkdownStreamLine.ParagraphStart` identifies the paragraph for each
+conservatively recognized prose line. A subsequent physical line can
+continue that paragraph only if its explicit blockquote depth and list
+owner are unchanged, the previous line was another paragraph candidate,
+and no blank/fence or other block interruption has occurred. Otherwise
+the current line begins a new paragraph identity. This prevents incorrectly
+joining a child list paragraph to its parent after an outdent, even when
+both lines contain normal prose. Open paragraph state is restored when a
+page is sought directly or reconstructed through sparse checkpoint replay.
+
+`IsParagraphContinuationCandidate` is intentionally **not a promise of
+CommonMark paragraph ownership**: inline HTML, thematic/setext
+interpretations, lazy blockquote continuation and tight/loose list
+semantics require richer parsing. No paragraph body text, AST or inline
+rendering buffer is persisted by the checkpoint. Source mode remains
+authoritative, and the full-document parser remains the reference for
+features it already implements.
