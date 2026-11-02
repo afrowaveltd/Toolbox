@@ -171,7 +171,7 @@
   random access and preserves original source. Index does not materialize in RAM.
 - Full streaming UTF-8 decoding with strict fallback and terminal-control
   rejection before any page is displayed; CRLF/LF/CR recognition,
-  configurable line/page limits and cancellation. Temp index deleted
+  configurable line/page limits, 256-MiB default index quota and cancellation. Temp index deleted
   on failures and disposal; file size and timestamp checked for changes.
 - Added unit tests for Unicode/emoji, BOM, byte offsets, line breaks,
   25,000 lines/500 on-disk offsets, random access, invalid controls,
