@@ -5,42 +5,69 @@ using System.Text;
 namespace Afrowave.Toolbox.ExchangeHouse.Markdown;
 
 /// <summary>
-/// Memory limits for the opt-in incremental Markdown chunk scanner.
-/// A chunk is a self-contained parsing window, not a complete CommonMark document.
+/// Limits for the forward-only Markdown scanner. Open block state is stored
+/// separately from the content, so an arbitrarily long fenced block is legal.
 /// </summary>
 public sealed class MarkdownStreamOptions
 {
-    public int PreferredChunkChars { get; init; } = 32 * 1024;
-    public int MaxChunkChars { get; init; } = 256 * 1024;
     public int MaxLineChars { get; init; } = 64 * 1024;
     public int ReadBufferChars { get; init; } = 8 * 1024;
 
     internal void Validate()
     {
-        if (PreferredChunkChars < 1 || MaxChunkChars < PreferredChunkChars ||
-            MaxLineChars < 1 || MaxLineChars > MaxChunkChars ||
-            ReadBufferChars is < 1 or > 1024 * 1024)
+        if (MaxLineChars < 1 || ReadBufferChars is < 1 or > 1024 * 1024)
             throw new ArgumentOutOfRangeException(nameof(MarkdownStreamOptions),
-                "Require 1 <= preferred <= maximum, 1 <= max line <= maximum chunk, and a positive bounded read buffer.");
+                "Both limits must be positive; read buffer must not exceed 1 MiB.");
     }
 }
 
+public enum MarkdownStreamLineKind
+{
+    Blank,
+    Markdown,
+    CodeFenceOpen,
+    CodeContent,
+    CodeFenceClose
+}
+
 /// <summary>
-/// Bounded, forward-only Markdown parsing windows from any TextReader, including
-/// virtual readers that generate data without storing it on disk.
+/// One completed physical line and its active structural index. RawText
+/// preserves the exact characters and newline. Start is a 64-bit UTF-16
+/// character offset; it is not a byte offset. No previous content is retained.
+/// </summary>
+public sealed record MarkdownStreamLine(
+    MarkdownStreamLineKind Kind,
+    long Start,
+    string RawText,
+    string Content,
+    int QuoteDepth,
+    int ListDepth,
+    long? OpenFenceStart,
+    string? CodeLanguage)
+{
+    /// <summary>The full UTF-16 character length including line ending.</summary>
+    public int Length => RawText.Length;
+}
+
+/// <summary>
+/// Memory-bounded Markdown input scanner. Unlike Parse(string), this scanner
+/// does not build a document tree. It stores only unfinished structural state
+/// (fence delimiter and language, quote depth, and bounded list indent stack).
+/// Each finished line can immediately be rendered or discarded.
 /// </summary>
 /// <remarks>
-/// Only blank-line boundaries outside simple fenced code are emitted. Each resulting
-/// MarkdownDocument has chunk-local offsets and its own list/quote hierarchy.
-/// Cross-window list ownership, references and complete CommonMark equivalence
-/// are NOT guaranteed. Oversized unbroken blocks fail explicitly instead of
-/// silently allocating unbounded memory. This API is experimental; do not
-/// substitute it for a fully stateful incremental parser where exact semantics
-/// or global offsets are required.
+/// This is a conservative streaming classification API, not a CommonMark-complete
+/// incremental AST. Cross-line inline references, full list continuation
+/// ownership and absolute inline offsets require later dedicated work.
+/// A long unfinished fence is processed line by line; only a single excessively
+/// long physical line is rejected according to MaxLineChars.
 /// </remarks>
 public static class MarkdownStreamingReader
 {
-    public static async IAsyncEnumerable<MarkdownDocument> ParseAsync(
+    private readonly record struct FenceState(
+        char Marker, int Length, long Start, int QuoteDepth, string? Language);
+
+    public static async IAsyncEnumerable<MarkdownStreamLine> ScanAsync(
         TextReader reader,
         MarkdownStreamOptions? options = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -49,88 +76,183 @@ public static class MarkdownStreamingReader
         options ??= new MarkdownStreamOptions();
         options.Validate();
 
-        var chunk = new StringBuilder(Math.Min(options.PreferredChunkChars, 32 * 1024));
-        char openFence = '\0';
-        var fenceLength = 0;
+        long offset = 0;
+        FenceState? activeFence = null;
+        var openLists = new List<int>(32);
 
         await foreach (var raw in ReadLinesAsync(reader, options, cancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var line = raw.TrimEnd('\r', '\n');
 
-            if (TryFence(line, out var marker, out var length, out var isCloser))
+            var content = raw.AsSpan().TrimEnd('\r', '\n').ToString();
+            var quoteDepth = TryQuotePrefix(content.AsSpan(), out var quoteBody)
+                ? CountQuoteDepth(content.AsSpan(), out quoteBody)
+                : 0;
+            var body = quoteDepth > 0 ? quoteBody.ToString() : content;
+            MarkdownStreamLineKind kind;
+            long? fenceStart = null;
+            string? language = null;
+
+            if (activeFence is { } fence)
             {
-                if (openFence == '\0')
+                fenceStart = fence.Start;
+                language = fence.Language;
+
+                if (quoteDepth != fence.QuoteDepth)
                 {
-                    openFence = marker;
-                    fenceLength = length;
+                    // An explicitly quote-owned fence never consumes a line
+                    // from a different quote container. Reclassify it below.
+                    activeFence = null;
                 }
-                else if (openFence == marker && isCloser && length >= fenceLength)
+                else if (TryFence(body.AsSpan(), out var closingMarker,
+                    out var closingCount, out _, out var trailingOnly) &&
+                    closingMarker == fence.Marker && closingCount >= fence.Length &&
+                    trailingOnly)
                 {
-                    openFence = '\0';
-                    fenceLength = 0;
+                    kind = MarkdownStreamLineKind.CodeFenceClose;
+                    activeFence = null;
+                    yield return new MarkdownStreamLine(kind, offset, raw, body, quoteDepth,
+                        openLists.Count, fenceStart, language);
+                    offset = checked(offset + raw.Length);
+                    continue;
+                }
+                else
+                {
+                    kind = MarkdownStreamLineKind.CodeContent;
+                    yield return new MarkdownStreamLine(kind, offset, raw, body, quoteDepth,
+                        openLists.Count, fenceStart, language);
+                    offset = checked(offset + raw.Length);
+                    continue;
                 }
             }
 
-            if (chunk.Length > options.MaxChunkChars - raw.Length)
-                throw new InvalidDataException(
-                    "Markdown logical block exceeds MaxChunkChars. Increase the explicit " +
-                    "limit or use a finer-grained stateful parser; input was not truncated.");
-
-            chunk.Append(raw);
-
-            if (openFence == '\0' && string.IsNullOrWhiteSpace(line) &&
-                chunk.Length >= options.PreferredChunkChars)
+            if (TryFence(body.AsSpan(), out var opener, out var openerCount,
+                out var info, out _))
             {
-                yield return MarkdownParser.Parse(chunk.ToString());
-                chunk.Clear();
+                kind = MarkdownStreamLineKind.CodeFenceOpen;
+                language = FirstWord(info);
+                fenceStart = offset;
+                activeFence = new FenceState(opener, openerCount, offset, quoteDepth, language);
             }
+            else if (string.IsNullOrWhiteSpace(body))
+            {
+                kind = MarkdownStreamLineKind.Blank;
+            }
+            else
+            {
+                kind = MarkdownStreamLineKind.Markdown;
+                // Only list *openers* update the index. This does not claim
+                // complete CommonMark lazy/loose continuation semantics.
+                if (TryListIndent(body.AsSpan(), out var indent))
+                {
+                    while (openLists.Count > 0 && openLists[^1] >= indent)
+                        openLists.RemoveAt(openLists.Count - 1);
+                    if (openLists.Count < 32)
+                        openLists.Add(indent);
+                }
+                else if (!char.IsWhiteSpace(body[0]))
+                {
+                    openLists.Clear();
+                }
+            }
+
+            yield return new MarkdownStreamLine(kind, offset, raw, body, quoteDepth,
+                openLists.Count, fenceStart, language);
+            offset = checked(offset + raw.Length);
         }
-
-        if (chunk.Length != 0)
-            yield return MarkdownParser.Parse(chunk.ToString());
     }
 
-    private static bool TryFence(string line, out char marker, out int length, out bool isCloser)
+    private static bool TryQuotePrefix(ReadOnlySpan<char> value, out ReadOnlySpan<char> body)
+    {
+        body = value;
+        var spaces = 0;
+        while (spaces < body.Length && spaces < 4 && body[spaces] == ' ')
+            spaces++;
+        if (spaces > 3)
+            return false;
+        body = body[spaces..];
+        return !body.IsEmpty && body[0] == '>';
+    }
+
+    private static int CountQuoteDepth(ReadOnlySpan<char> line, out ReadOnlySpan<char> body)
+    {
+        body = line.TrimStart(' ');
+        var depth = 0;
+        while (depth < 32 && !body.IsEmpty && body[0] == '>')
+        {
+            depth++;
+            body = body[1..];
+            if (!body.IsEmpty && body[0] == ' ')
+                body = body[1..];
+        }
+        return depth;
+    }
+
+    private static bool TryFence(ReadOnlySpan<char> content,
+        out char marker, out int length, out ReadOnlySpan<char> info,
+        out bool trailingOnly)
     {
         marker = '\0';
         length = 0;
-        isCloser = false;
-
-        var span = line.AsSpan();
-        // Allow conservative quote-prefix fences; the full parser remains
-        // responsible for actual syntax interpretation.
-        while (!span.IsEmpty)
-        {
-            var spaces = 0;
-            while (spaces < span.Length && spaces < 4 && span[spaces] == ' ')
-                spaces++;
-            if (spaces > 3)
-                return false;
-            span = span[spaces..];
-            if (span.IsEmpty || span[0] != '>')
-                break;
-            span = span[1..];
-            if (!span.IsEmpty && span[0] == ' ')
-                span = span[1..];
-        }
-
-        var indent = 0;
-        while (indent < span.Length && indent < 4 && span[indent] == ' ')
-            indent++;
-        if (indent > 3)
+        info = default;
+        trailingOnly = false;
+        var indentation = 0;
+        while (indentation < content.Length && indentation < 4 &&
+               content[indentation] == ' ')
+            indentation++;
+        if (indentation > 3)
             return false;
-        span = span[indent..];
+        content = content[indentation..];
 
-        if (span.Length < 3 || (span[0] != '~' && span[0] != '\u0060'))
+        if (content.Length < 3 || (content[0] != '~' && content[0] != '\u0060'))
             return false;
-        marker = span[0];
-        while (length < span.Length && span[length] == marker)
+        marker = content[0];
+        while (length < content.Length && content[length] == marker)
             length++;
         if (length < 3)
             return false;
-        isCloser = span[length..].Trim().IsEmpty;
+        info = content[length..].Trim();
+        trailingOnly = info.IsEmpty;
+        // Backticks inside a backtick opener's information string are invalid.
+        if (marker == '\u0060' && info.Contains('\u0060'))
+            return false;
         return true;
+    }
+
+    private static string? FirstWord(ReadOnlySpan<char> value)
+    {
+        if (value.IsEmpty)
+            return null;
+        var i = 0;
+        while (i < value.Length && !char.IsWhiteSpace(value[i]))
+            i++;
+        return value[..i].ToString();
+    }
+
+    private static bool TryListIndent(ReadOnlySpan<char> value, out int indent)
+    {
+        indent = 0;
+        var i = 0;
+        while (i < value.Length && indent <= 32)
+        {
+            if (value[i] == ' ')
+                indent++;
+            else if (value[i] == '\t')
+                indent += 4 - indent % 4;
+            else
+                break;
+            i++;
+        }
+        if (i >= value.Length)
+            return false;
+        if (value[i] is '-' or '*' or '+' &&
+            i + 1 < value.Length && char.IsWhiteSpace(value[i + 1]))
+            return true;
+        var start = i;
+        while (i < value.Length && i - start < 9 && char.IsDigit(value[i]))
+            i++;
+        return i > start && i + 1 < value.Length &&
+            (value[i] == '.' || value[i] == ')') && char.IsWhiteSpace(value[i + 1]);
     }
 
     private static async IAsyncEnumerable<string> ReadLinesAsync(
@@ -140,6 +262,7 @@ public static class MarkdownStreamingReader
         var buffer = ArrayPool<char>.Shared.Rent(options.ReadBufferChars);
         var line = new StringBuilder();
         var afterCr = false;
+
         try
         {
             int read;
@@ -154,8 +277,8 @@ public static class MarkdownStreamingReader
                     {
                         if (c == '\n')
                         {
-                            if (line.Length >= options.MaxLineChars)
-                                throw new InvalidDataException("Markdown line exceeds MaxLineChars.");
+                            if (line.Length >= options.MaxLineChars + 1)
+                                throw new InvalidDataException("Markdown physical line exceeds MaxLineChars.");
                             line.Append('\n');
                             yield return line.ToString();
                             line.Clear();
@@ -168,7 +291,7 @@ public static class MarkdownStreamingReader
                     }
 
                     if (line.Length >= options.MaxLineChars)
-                        throw new InvalidDataException("Markdown line exceeds MaxLineChars.");
+                        throw new InvalidDataException("Markdown physical line exceeds MaxLineChars.");
                     line.Append(c);
                     if (c == '\n')
                     {
