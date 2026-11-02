@@ -111,6 +111,24 @@ public sealed class MarkdownDiskPageIndexTests
     }
 
     [Fact]
+    public async Task Temporary_index_quota_stops_newline_heavy_input_and_cleans_up()
+    {
+        await WithFileAsync(Encoding.UTF8.GetBytes("\n\n\n\n\n"),
+            async (path, temp) =>
+            {
+                await Assert.ThrowsAsync<InvalidDataException>(() =>
+                    MarkdownDiskPageIndex.BuildAsync(path,
+                        new MarkdownDiskPageOptions
+                        {
+                            LinesPerPage = 1,
+                            MaxIndexBytes = 16
+                        },
+                        tempDirectory: temp));
+                Assert.Empty(Directory.GetFiles(temp, "afrowave-markdown-index-*.tmp"));
+            });
+    }
+
+    [Fact]
     public async Task Disposes_index_without_touching_source_and_rejects_later_reads()
     {
         await WithFileAsync(Encoding.UTF8.GetBytes("one\ntwo\nthree"),
