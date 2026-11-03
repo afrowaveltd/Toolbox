@@ -254,3 +254,11 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 - The tests are local and use stubbed HTTP response handlers. They
   verify single-process behavior only, not cross-process locking,
   physical HDD latency or live network connectivity.
+
+## 2026-11-03 — unknown-length HTTP quota regression
+
+- Extended the cache quota suite with a deliberately **unknown
+  Content-Length** stream. Confirms the **total cache disk budget**
+  is enforced while receiving chunks, partial files are removed,
+  and the previously saved offline document remains byte-identical.
+- This is a stubbed HTTP response, not a live network benchmark.

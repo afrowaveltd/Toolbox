@@ -403,3 +403,10 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   1-vCPU/1-GiB physical HDD benchmark or finished Docs Reader.
 - Docs and README updated. PR #3 remains draft and unmerged,
   no NuGet publication. [Cache details](ExchangeHouse/Markdown/Docs/Offline-Document-Cache/en.md).
+
+## 2026-11-03 — cache disk quota verified during unknown-length transfer
+
+- Added regression using a deliberately missing HTTP Content-Length:
+  combined cache quota is enforced on received bytes, incomplete
+  download is cleaned up and the prior offline Markdown copy survives.
+  No real-HDD Debian VM measurement or Docs Reader UI integration yet.

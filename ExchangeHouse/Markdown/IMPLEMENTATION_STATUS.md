@@ -347,3 +347,10 @@
   corrupt-manifest protection. Process-level locks, crash-part cleanup,
   full-cache LRU eviction and actual 1 GiB RAM/HDD acceptance still
   remain future work. [Contract](Docs/Offline-Document-Cache/en.md).
+
+## 2026-11-03 — streaming transfer limit confirmation
+
+- Added an explicit unknown-`Content-Length` remote body regression
+  to verify the new total cache disk quota is checked *during*
+  chunked response streaming, with cleanup and offline preservation.
+  No automatic cache eviction or new NuGet release.
