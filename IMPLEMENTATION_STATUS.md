@@ -237,3 +237,9 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Added a conditional HTTP source to [Markdown.Cache](Blackboard/SpectreConsole/Markdown.Cache/README.md) with persisted ETag/Last-Modified validators, full validated `200` replacement, `304` reuse and explicit stale fallback for offline errors. Separate fake-handler tests were authored for positive and negative HTTP paths.
 - Source layer remains separate from Markdown parsing and terminal rendering. No standalone `mdview`, GitHub README discovery, cache eviction or public package release.
 - **Verification pending** for new source and tests: no local .NET SDK, and no successful GitHub CI result established for this increment.
+
+## 2026-11-03 — public GitHub preferred README source
+
+- Added [GitHubReadmeSource](Blackboard/SpectreConsole/Markdown.Cache/Docs/GitHub-Readme/en.md) to independent Markdown.Cache with official GitHub REST README retrieval, raw Markdown media type, case-insensitive repository cache keys and persistent conditional HTTP validation.
+- Added in-memory HTTP regression cases; no GitHub-auth tokens, ref/file selection, redirects, linked documents or CLI application are implemented in this slice.
+- **Tests/CI unverified** for this new feature (no local .NET SDK). Await concrete build/test evidence before claiming a passing release.
