@@ -34,3 +34,7 @@ Command grammar tests are authored but have not yet been run in this execution e
 ## Known build fix (2026-11-03)
 
 The first CLI commit referenced `TextFilePreviewReader` as though it were exported by FileBrowser. That safe reader is currently defined under the Showcase namespace. The CLI now compiles the same source file via an MSBuild `Compile Include` link and imports `Afrowave.Toolbox.Blackboard.Showcase`; this is deliberately temporary to avoid a dependency on the Showcase executable. A proper extraction into a shared neutral reader library is the follow-up. The Windows full-suite log that exposed the mistake also reported **32/32 Markdown.Cache tests passing**, but the corrected CLI build is not yet verified.
+
+## Windows test verification (2026-11-03)
+
+The user-provided `dotnet test Toolbox.sln` log after the shared reader fix shows `mdview.dll` successfully built and `MdView.Tests` **10/10 passed**; all twelve solution test assemblies passed **6,438/6,438** on Windows (net10.0 target, .NET 11 preview SDK). Manual CLI usage and Linux CI are still pending; the pending cross-project linked-source reader extraction remains an architecture task.
