@@ -69,6 +69,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Afrowave.Toolbox.Blackboard
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.TextMate.Tests", "Blackboard\SpectreConsole\Markdown.TextMate.Tests\Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.TextMate.Tests.csproj", "{C43CE021-4C8B-4122-950F-829D891C0273}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache", "Blackboard\SpectreConsole\Markdown.Cache\Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.csproj", "{9B1EA874-6D47-4E26-AB23-117AF0C97701}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.Tests", "Blackboard\SpectreConsole\Markdown.Cache.Tests\Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.Tests.csproj", "{F4B357CE-05D1-4451-9F0C-49739EC5F0B2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -343,6 +347,14 @@ Global
 		{C43CE021-4C8B-4122-950F-829D891C0273}.Release|x64.Build.0 = Release|Any CPU
 		{C43CE021-4C8B-4122-950F-829D891C0273}.Release|x86.ActiveCfg = Release|Any CPU
 		{C43CE021-4C8B-4122-950F-829D891C0273}.Release|x86.Build.0 = Release|Any CPU
+		{9B1EA874-6D47-4E26-AB23-117AF0C97701}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B1EA874-6D47-4E26-AB23-117AF0C97701}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B1EA874-6D47-4E26-AB23-117AF0C97701}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B1EA874-6D47-4E26-AB23-117AF0C97701}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4B357CE-05D1-4451-9F0C-49739EC5F0B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4B357CE-05D1-4451-9F0C-49739EC5F0B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4B357CE-05D1-4451-9F0C-49739EC5F0B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4B357CE-05D1-4451-9F0C-49739EC5F0B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
