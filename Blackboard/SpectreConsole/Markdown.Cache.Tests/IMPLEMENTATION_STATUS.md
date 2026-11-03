@@ -11,3 +11,7 @@ Added four regression cases for independent concurrent cache instances, corrupte
 ## 2026-11-03 — HTTP fake-handler suite
 
 Added eight tests for initial `200`, ETag/Last-Modified `304`, changed `200`, offline stale fallback, unsafe response protection, missing entry errors and strict URL policy. Total cache tests authored: **18**. Verification in CI pending; local SDK unavailable.
+
+## 2026-11-03 — GitHub preferred README source regressions
+
+Added GitHub fake-handler tests for official raw README endpoint, conditional 304 caching across object lifetimes, mixed-case repository identifiers, offline fallback, rejection of unsafe input, and malformed responses. No SDK in this execution environment; test execution and CI confirmation are pending. Next: verify Linux/Windows builds before progressing to CLI work.
