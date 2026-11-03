@@ -45,3 +45,9 @@ if (result.Document is not null)
 The initial adapter deliberately permits **HTTPS URLs without query strings, fragments or embedded credentials** only. HTTP is opt-in for explicit local/test use. Redirects are not supported; callers should disable automatic redirects as shown. Do not inject authenticated handlers or store private documents yet. The cache does not interpret Markdown, nor does it automatically display stale content as fresh. URL identity and metadata are isolated from the parser/renderer; GitHub README discovery is a separate future adapter. The client must configure timeouts and safe transport settings. Resource consumption is controlled by the cache's configured per-document limit; global cache eviction and decompression-ratio bounds are not implemented.
 
 [HTTP validation details](Docs/Http-Validation/en.md).
+
+## GitHub preferred README provider (2026-11-03)
+
+Added `GitHubReadmeSource` for **public** default-branch README documents via GitHub's official `GET /repos/{owner}/{repo}/readme` endpoint and the raw media type. Repository identifiers are validated and treated case-insensitively for cache keys; branch/ref and file path are not guessed or case-folded. ETag/Last-Modified, disk-persisted checks and explicit offline/stale behavior reuse the existing cache. No new dependency in ExchangeHouse Markdown or Spectre renderer. The source uses an injected `HttpClient`; **disable automatic redirects** on its handler and use no authentication credentials for this initial public-only adapter.
+
+See [GitHub README documentation](Docs/GitHub-Readme/en.md). The standalone `mdview` command is **not implemented**.
