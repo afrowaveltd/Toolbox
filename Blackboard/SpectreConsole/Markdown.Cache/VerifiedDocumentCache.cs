@@ -103,7 +103,7 @@ public sealed class VerifiedDocumentCache
                 await File.ReadAllTextAsync(index, cancellationToken).ConfigureAwait(false), JsonOptions);
             if (manifest is null || manifest.SourceKey != sourceKey ||
                 manifest.Length < 0 || manifest.Length > _maximumDocumentBytes ||
-                manifest.Hash.Length != 64 || !manifest.Hash.All(Uri.IsHexDigit) ||
+                string.IsNullOrEmpty(manifest.Hash) || manifest.Hash.Length != 64 || !manifest.Hash.All(Uri.IsHexDigit) ||
                 manifest.Hash != manifest.Hash.ToLowerInvariant())
                 return null;
             var blob = Path.Combine(_root, "blobs", manifest.Hash + ".md");
