@@ -225,3 +225,9 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Added separate .NET 10 [Markdown.Cache](Blackboard/SpectreConsole/Markdown.Cache/README.md) assembly and [xUnit tests](Blackboard/SpectreConsole/Markdown.Cache.Tests/README.md), registered in `Toolbox.sln`.
 - Implemented bounded streamed spooling, strict UTF-8/control validation, SHA-256 content-addressed blobs, atomic source-index publication, independent cache read verification and prior-entry preservation on failed replacements. Documentation and per-project implementation checkpoints are present.
 - **Not yet CI verified:** new tests authored but have not run locally (dotnet SDK unavailable). Do not claim successful builds. No HTTP/GitHub refresh, offline viewer UI, cache eviction or cross-process hardening yet.
+
+## 2026-11-03 — Markdown.Cache writer safety increment
+
+- Improved [Markdown.Cache](Blackboard/SpectreConsole/Markdown.Cache/README.md) with an exclusive cross-process writer lock, direct symlink/reparse-point checks, content-addressed blob repair and a default per-user cache directory helper.
+- Authored four additional xUnit tests (ten in total). [Cache status](Blackboard/SpectreConsole/Markdown.Cache/IMPLEMENTATION_STATUS.md) records unresolved TOCTOU/permissions and crash-durability limitations.
+- **Build/test verification still outstanding:** .NET SDK unavailable in local execution and no successful CI run observed for these commits. No HTTP or GitHub reader integration yet.
