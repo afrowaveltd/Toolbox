@@ -22,3 +22,9 @@ dotnet test Blackboard/SpectreConsole/Markdown.Cache.Tests/Afrowave.Toolbox.Blac
 ```
 
 [Design and limitations](Docs/Storage/en.md) · [Implementation status](IMPLEMENTATION_STATUS.md) · [Future viewer cache contract](../Markdown/Docs/Document-Cache-Policy/en.md).
+
+## Cross-process writer and directory hardening (2026-11-03)
+
+Writers now take an exclusive `.write.lock` file handle (retry with cancellation), shared between independent cache instances/processes, before mutating cache storage. Cache root, `blobs`, `entries`, index and blob targets reject symlinks/reparse points when inspected. A corrupt existing digest-named blob is replaced with validated content instead of being trusted. `CacheDirectory.GetDefaultPath()` suggests Windows per-user LocalApplicationData or Unix XDG cache / `~/.cache`; caller still creates/owns the directory.
+
+This is **defense in depth**, not a guarantee against an attacker concurrently replacing directory components (TOCTOU), parent-path symlinks or power-loss durability. Use an isolated trusted user-owned root; private/authenticated caching remains deferred. No full multi-process stress test has run yet.
