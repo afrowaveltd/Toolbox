@@ -22,6 +22,7 @@ public sealed class MarkdownPagedSourceDemoTests
 
             var console = InteractiveConsole();
             console.Input.PushKey(ConsoleKey.Enter);  // pick README.md
+            console.Input.PushKey(ConsoleKey.Enter);  // Balanced profile
             console.Input.PushKey(ConsoleKey.Enter);  // page 1 -> 2
             console.Input.PushKey(ConsoleKey.Enter);  // page 2 -> 1
             console.Input.PushKey(ConsoleKey.Escape); // close
@@ -52,6 +53,7 @@ public sealed class MarkdownPagedSourceDemoTests
                 source, new UTF8Encoding(false));
             var console = InteractiveConsole();
             console.Input.PushKey(ConsoleKey.Enter);      // pick Markdown
+            console.Input.PushKey(ConsoleKey.Enter);      // Balanced profile
             console.Input.PushKey(ConsoleKey.DownArrow);  // select preview toggle
             console.Input.PushKey(ConsoleKey.Enter);      // preview on
             console.Input.PushKey(ConsoleKey.DownArrow);  // select source toggle
@@ -79,7 +81,8 @@ public sealed class MarkdownPagedSourceDemoTests
             await File.WriteAllBytesAsync(Path.Combine(directory, "bad.md"),
                 [0x23, 0x20, 0x41, 0x0A, 0x1B, 0x5B, 0x33, 0x31, 0x6D]);
             var console = InteractiveConsole();
-            console.Input.PushKey(ConsoleKey.Enter);
+            console.Input.PushKey(ConsoleKey.Enter); // pick invalid source
+            console.Input.PushKey(ConsoleKey.Enter); // Balanced profile
 
             await new MarkdownPagedSourceDemo().RunAsync(
                 console, directory, CancellationToken.None);
@@ -98,7 +101,8 @@ public sealed class MarkdownPagedSourceDemoTests
         {
             await File.WriteAllBytesAsync(Path.Combine(directory, "blank.md"), []);
             var selected = InteractiveConsole();
-            selected.Input.PushKey(ConsoleKey.Enter);
+            selected.Input.PushKey(ConsoleKey.Enter); // pick empty source
+            selected.Input.PushKey(ConsoleKey.Enter); // Balanced profile
             await new MarkdownPagedSourceDemo().RunAsync(
                 selected, directory, CancellationToken.None);
             Assert.Contains("file is empty", selected.Output);
@@ -108,6 +112,88 @@ public sealed class MarkdownPagedSourceDemoTests
             await new MarkdownPagedSourceDemo().RunAsync(
                 cancelled, directory, CancellationToken.None);
             Assert.Contains("paging cancelled", cancelled.Output);
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    [Fact]
+    public async Task Hdd_profile_uses_64_line_pages_with_a_checkpoint_on_every_page()
+    {
+        var directory = CreateDirectory();
+        try
+        {
+            var markdown = string.Join("\n", Enumerable.Range(1, 65)
+                .Select(i => $"line {i:00}")) + "\n";
+            await File.WriteAllTextAsync(Path.Combine(directory, "hdd.md"), markdown);
+            var console = InteractiveConsole();
+            console.Input.PushKey(ConsoleKey.Enter);     // picker
+            console.Input.PushKey(ConsoleKey.DownArrow); // HDD profile
+            console.Input.PushKey(ConsoleKey.Enter);
+            console.Input.PushKey(ConsoleKey.Enter);     // next page
+            console.Input.PushKey(ConsoleKey.Escape);    // close
+
+            await new MarkdownPagedSourceDemo().RunAsync(
+                console, directory, CancellationToken.None);
+
+            Assert.Contains("Using profile Hdd (64 lines/page, checkpoint every 1 pages)",
+                console.Output);
+            Assert.Contains("page 1/2", console.Output);
+            Assert.Contains("page 2/2", console.Output);
+            Assert.Contains("line 65", console.Output);
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    [Fact]
+    public async Task LowRam_profile_keeps_pages_small_and_allows_backward_navigation()
+    {
+        var directory = CreateDirectory();
+        try
+        {
+            var markdown = string.Join("\n", Enumerable.Range(1, 17)
+                .Select(i => $"line {i:00}")) + "\n";
+            await File.WriteAllTextAsync(Path.Combine(directory, "lowram.md"), markdown);
+            var console = InteractiveConsole();
+            console.Input.PushKey(ConsoleKey.Enter); // picker
+            console.Input.PushKey(ConsoleKey.DownArrow);
+            console.Input.PushKey(ConsoleKey.DownArrow);
+            console.Input.PushKey(ConsoleKey.DownArrow);
+            console.Input.PushKey(ConsoleKey.Enter); // LowRAM
+            console.Input.PushKey(ConsoleKey.Enter); // page 1 -> 2
+            console.Input.PushKey(ConsoleKey.Enter); // page 2 -> 3
+            console.Input.PushKey(ConsoleKey.Escape);
+
+            await new MarkdownPagedSourceDemo().RunAsync(
+                console, directory, CancellationToken.None);
+
+            Assert.Contains("Using profile LowRam (8 lines/page, checkpoint every 16 pages)",
+                console.Output);
+            Assert.Contains("page 1/3", console.Output);
+            Assert.Contains("page 2/3", console.Output);
+            Assert.Contains("page 3/3", console.Output);
+            Assert.Contains("line 17", console.Output);
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    [Fact]
+    public async Task Profile_cancel_leaves_selected_source_untouched()
+    {
+        var directory = CreateDirectory();
+        try
+        {
+            var path = Path.Combine(directory, "cancel.md");
+            await File.WriteAllTextAsync(path, "# unchanged\n");
+            var console = InteractiveConsole();
+            console.Input.PushKey(ConsoleKey.Enter);  // pick file
+            console.Input.PushKey(ConsoleKey.Escape); // cancel profile
+
+            await new MarkdownPagedSourceDemo().RunAsync(
+                console, directory, CancellationToken.None);
+
+            Assert.Contains("Markdown paging cancelled", console.Output);
+            Assert.DoesNotContain("Indexing and validating", console.Output);
+            Assert.Equal("# unchanged\n", await File.ReadAllTextAsync(path));
         }
         finally { Directory.Delete(directory, recursive: true); }
     }
