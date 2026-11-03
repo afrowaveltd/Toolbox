@@ -278,3 +278,10 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - **Do not call the new reader-specific test suite green yet:** `TextFiles.Tests` is absent from the run output, despite existing in the GitHub solution/project files (28 C# projects registered vs 27 projects reported for restore). This is a missing-coverage issue, not a failing assertion.
 - Added x64/x86 ActiveCfg/Build.0 configuration mappings for both new projects in `Toolbox.sln` to prevent solution-configuration skips. This likely explains omission; verification remains pending.
 - Run `dotnet test Toolbox.sln` again after syncing and verify `TextFiles.Tests` appears with 5 passed. If still absent, run `dotnet test Blackboard/TextFiles.Tests/Afrowave.Toolbox.Blackboard.TextFiles.Tests.csproj` and inspect the active solution platform.
+
+## 2026-11-03 — TextFiles solution verification confirmed on Windows
+
+- User-supplied full `dotnet test Toolbox.sln` log after the solution-platform configuration fix confirms **6,443 tests passed / 6,443 total, 0 failed, 0 skipped** across all 13 test assemblies using Windows and `.NET SDK 11.0.100-rc.3.26522.148` with `net10.0` targets.
+- The previously missing `Afrowave.Toolbox.Blackboard.TextFiles.Tests.dll` is now explicitly built and executed: **5/5** tests passed. `TextFiles` library, `mdview` and Showcase all built; `MdView.Tests` 10/10, Showcase.Tests 39/39.
+- This closes the extraction test-coverage gap. Remaining non-blocking warnings are XML documentation CS1591/CS1573, two xUnit2013 suggestions and NETSDK1057 preview SDK notices. No claim of a separate Linux CI or interactive manual `mdview` acceptance test.
+- Next: manual `mdview` smoke testing and then Spectre.Console FileBrowser selection/pager integration. Preserve the verified snapshot during incremental changes.
