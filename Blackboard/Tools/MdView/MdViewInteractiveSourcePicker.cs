@@ -32,12 +32,18 @@ public sealed class MdViewInteractiveSourcePicker
 
         var start = Path.GetFullPath(startingDirectory);
         var browser = new SpectreFileBrowser(new FileBrowserLocalSource(), _console);
+        string? feedback = null;
 
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
             _console.Clear();
             _console.Write(new Text("Afrowave mdview — choose a document source" + Environment.NewLine));
+            if (feedback is not null)
+            {
+                _console.Write(new Text(feedback + Environment.NewLine));
+                feedback = null;
+            }
 
             var selection = await new SelectionPrompt<string>()
                 .Title("Open Markdown from")
@@ -66,8 +72,7 @@ public sealed class MdViewInteractiveSourcePicker
                 // FileBrowser permits interactive filter changes: validate again independently.
                 if (!IsMarkdownPath(path))
                 {
-                    _console.Write(new Text("Only .md and .markdown files can be displayed." +
-                        Environment.NewLine));
+                    feedback = "Only .md and .markdown files can be displayed.";
                     continue;
                 }
                 return new MdViewCommand(MdViewSourceKind.Local, path);
@@ -86,8 +91,7 @@ public sealed class MdViewInteractiveSourcePicker
                     !string.IsNullOrEmpty(uri.UserInfo) || !string.IsNullOrEmpty(uri.Query) ||
                     !string.IsNullOrEmpty(uri.Fragment))
                 {
-                    _console.Write(new Text("Enter an absolute HTTPS URL without credentials, query or fragment." +
-                        Environment.NewLine));
+                    feedback = "Enter an absolute HTTPS URL without credentials, query or fragment.";
                     continue;
                 }
 
@@ -107,8 +111,7 @@ public sealed class MdViewInteractiveSourcePicker
                 }
                 catch (ArgumentException)
                 {
-                    _console.Write(new Text("Expected a GitHub owner/repository pair." +
-                        Environment.NewLine));
+                    feedback = "Expected a GitHub owner/repository pair.";
                 }
             }
         }
