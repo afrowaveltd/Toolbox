@@ -30,6 +30,18 @@ public sealed record MarkdownCachedRemoteDocument(
     bool IsStale, string? ETag, DateTimeOffset? LastModified);
 
 /// <summary>
+/// On-disk usage of the cache-owned files in the selected directory.
+/// Counts source versions, manifests, and incomplete cache-owned parts,
+/// but not unrelated files or disposable Markdown page indexes.
+/// </summary>
+public sealed record MarkdownRemoteCacheUsage(
+    long FileCount, long UsedBytes, long MaxTotalBytes)
+{
+    /// <summary>Available capacity under the configured cache-owned file quota.</summary>
+    public long RemainingBytes => Math.Max(0, MaxTotalBytes - UsedBytes);
+}
+
+/// <summary>
 /// Reusable disk-backed cache for trusted HTTPS Markdown documents.
 /// Stores versioned source files plus one atomically replaced manifest per URL.
 /// Does not store document bodies, page indexes or a document catalog in RAM.
@@ -43,12 +55,17 @@ public sealed record MarkdownCachedRemoteDocument(
 public sealed class MarkdownRemoteDocumentCache
 {
     private const long DefaultMaxDocumentBytes = 256L * 1024 * 1024;
+    private const long DefaultMaxTotalCacheBytes = 1024L * 1024 * 1024;
+    // Reserve metadata headroom while streaming so source data cannot
+    // consume the entire cache quota just before the manifest is committed.
+    private const long ManifestReserveBytes = 16 * 1024;
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = false
     };
     private readonly SemaphoreSlim _gate = new(1, 1);
     private readonly string _directory;
+    private readonly long _maxTotalCacheBytes;
 
     private sealed record CacheManifest(
         int Version, string FileName, long ByteCount,
@@ -58,13 +75,81 @@ public sealed class MarkdownRemoteDocumentCache
     /// A caller-supplied dedicated directory or a per-user application cache
     /// directory (XDG_CACHE_HOME on Unix when configured). Not OS Temp.
     /// </summary>
-    public MarkdownRemoteDocumentCache(string? directory = null)
+    public MarkdownRemoteDocumentCache(
+        string? directory = null,
+        long maxTotalCacheBytes = DefaultMaxTotalCacheBytes)
     {
+        if (maxTotalCacheBytes < ManifestReserveBytes + 1)
+            throw new ArgumentOutOfRangeException(nameof(maxTotalCacheBytes),
+                "The cache quota must leave room for manifest metadata.");
         _directory = Path.GetFullPath(directory ?? DefaultDirectory());
+        _maxTotalCacheBytes = maxTotalCacheBytes;
     }
 
     /// <summary>The directory containing persisted source versions and manifests.</summary>
     public string DirectoryPath => _directory;
+
+    /// <summary>Maximum total bytes of cache-owned source, manifest and part files.</summary>
+    public long MaxTotalCacheBytes => _maxTotalCacheBytes;
+
+    /// <summary>
+    /// Inspect cache-owned file count and bytes in constant managed memory.
+    /// This does not parse documents or include unrelated Temp/page-index files.
+    /// </summary>
+    public async Task<MarkdownRemoteCacheUsage> GetUsageAsync(
+        CancellationToken cancellationToken = default)
+    {
+        await _gate.WaitAsync(cancellationToken);
+        try { return GetUsageCore(cancellationToken); }
+        finally { _gate.Release(); }
+    }
+
+    /// <summary>
+    /// Explicitly prune old versions for which a different, verified current
+    /// version exists. By default, files younger than 24 hours are retained,
+    /// to avoid interfering with a recently opened reading session.
+    /// Never removes the manifest-selected offline copy or untrusted files.
+    /// Not safe to call concurrently with readers in another process.
+    /// </summary>
+    public async Task<int> PruneObsoleteVersionsAsync(
+        TimeSpan? minimumAge = null,
+        CancellationToken cancellationToken = default)
+    {
+        var age = minimumAge ?? TimeSpan.FromDays(1);
+        if (age < TimeSpan.Zero || age > TimeSpan.FromDays(36500))
+            throw new ArgumentOutOfRangeException(nameof(minimumAge));
+        await _gate.WaitAsync(cancellationToken);
+        try
+        {
+            if (!Directory.Exists(_directory))
+                return 0;
+            var cutoff = DateTime.UtcNow - age;
+            var removed = 0;
+            // No all-document catalog is materialized. The extra manifest
+            // read per obsolete version favors bounded RAM over scan speed.
+            foreach (var path in Directory.EnumerateFiles(
+                _directory, "*.md", SearchOption.TopDirectoryOnly))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var name = Path.GetFileName(path);
+                if (!IsVersionName(name) ||
+                    File.GetLastWriteTimeUtc(path) > cutoff)
+                    continue;
+
+                var key = name[..64];
+                var current = await ReadManifestAsync(key, cancellationToken);
+                // A missing/corrupt manifest is NOT proof that an older file
+                // can be safely deleted. Preserve the last possible offline
+                // copy rather than guessing.
+                if (current is null || current.FileName == name)
+                    continue;
+                File.Delete(path);
+                removed++;
+            }
+            return removed;
+        }
+        finally { _gate.Release(); }
+    }
 
     /// <summary>
     /// Open a cached source or download/revalidate it with a bounded buffer.
@@ -139,6 +224,13 @@ public sealed class MarkdownRemoteDocumentCache
                     throw new InvalidDataException(
                         "Remote Markdown exceeds the configured document limit.");
 
+                var usage = GetUsageCore(cancellationToken);
+                if (usage.RemainingBytes <= ManifestReserveBytes)
+                    throw new InvalidDataException(
+                        "The reusable Markdown cache is at its disk quota. " +
+                        "Export or explicitly prune old copies before refreshing.");
+                var writableBytes = usage.RemainingBytes - ManifestReserveBytes;
+
                 var versionName = key + "." + Guid.NewGuid().ToString("N") + ".md";
                 var tempPath = Path.Combine(_directory, key + "." +
                     Guid.NewGuid().ToString("N") + ".part");
@@ -166,6 +258,9 @@ public sealed class MarkdownRemoteDocumentCache
                                 if (count > maxBytes - total)
                                     throw new InvalidDataException(
                                         "Remote Markdown exceeded its byte limit during transfer.");
+                                if (count > writableBytes - total)
+                                    throw new InvalidDataException(
+                                        "Remote Markdown exceeded the total cache disk quota.");
                                 await local.WriteAsync(
                                     buffer.AsMemory(0, count), cancellationToken);
                                 total += count;
@@ -293,6 +388,61 @@ public sealed class MarkdownRemoteDocumentCache
         {
             TryDelete(temp);
         }
+    }
+
+    private MarkdownRemoteCacheUsage GetUsageCore(CancellationToken cancellationToken)
+    {
+        long bytes = 0, files = 0;
+        if (Directory.Exists(_directory))
+        {
+            foreach (var path in Directory.EnumerateFiles(
+                _directory, "*", SearchOption.TopDirectoryOnly))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!IsManagedName(Path.GetFileName(path)))
+                    continue;
+                // Do not follow a symlink planted in a shared cache root.
+                var info = new FileInfo(path);
+                if ((info.Attributes & FileAttributes.ReparsePoint) != 0)
+                    continue;
+                bytes = checked(bytes + info.Length);
+                files = checked(files + 1);
+            }
+        }
+        return new MarkdownRemoteCacheUsage(files, bytes, _maxTotalCacheBytes);
+    }
+
+    private static bool IsManagedName(string name)
+    {
+        if (name.Length < 64 || !IsHexKey(name.AsSpan(0, 64)))
+            return false;
+        if (name.Length == 69 && name.EndsWith(".json", StringComparison.Ordinal))
+            return true;
+        if (IsVersionName(name))
+            return true;
+        // Temporary source and temporary manifest writes are counted against
+        // the same total cap, including abandoned crash leftovers.
+        if (name.Length is not (64 + 1 + 32 + 5 or 64 + 1 + 32 + 10) ||
+            name[64] != '.' ||
+            !Guid.TryParseExact(name.Substring(65, 32), "N", out _))
+            return false;
+        return name.EndsWith(".part", StringComparison.Ordinal);
+    }
+
+    private static bool IsVersionName(string name) =>
+        name.Length == 64 + 1 + 32 + 3 &&
+        IsHexKey(name.AsSpan(0, 64)) &&
+        name[64] == '.' &&
+        Guid.TryParseExact(name.Substring(65, 32), "N", out _) &&
+        name.EndsWith(".md", StringComparison.Ordinal);
+
+    private static bool IsHexKey(ReadOnlySpan<char> key)
+    {
+        foreach (var c in key)
+            if (c is not (>= '0' and <= '9') and
+                not (>= 'a' and <= 'f'))
+                return false;
+        return true;
     }
 
     private MarkdownCachedRemoteDocument ToResult(
