@@ -41,6 +41,18 @@ public sealed record MarkdownRemoteCacheUsage(
     public long RemainingBytes => Math.Max(0, MaxTotalBytes - UsedBytes);
 }
 
+/// <summary>A stored document available for offline browsing without HTTP.</summary>
+public sealed record MarkdownRemoteCacheEntry(
+    Uri? Source, string LocalPath, long ByteCount,
+    DateTimeOffset? LastModified, string CacheKey);
+
+/// <summary>
+/// One bounded, filesystem-order page of saved cache documents.
+/// Directory changes may affect paging order; restart browsing after writes.
+/// </summary>
+public sealed record MarkdownRemoteCachePage(
+    IReadOnlyList<MarkdownRemoteCacheEntry> Entries, bool HasMore);
+
 /// <summary>
 /// Reusable disk-backed cache for trusted HTTPS Markdown documents.
 /// Stores versioned source files plus one atomically replaced manifest per URL.
@@ -69,7 +81,8 @@ public sealed class MarkdownRemoteDocumentCache
 
     private sealed record CacheManifest(
         int Version, string FileName, long ByteCount,
-        string? ETag, DateTimeOffset? LastModified);
+        string? ETag, DateTimeOffset? LastModified,
+        string? SourceUrl = null);
 
     /// <summary>
     /// A caller-supplied dedicated directory or a per-user application cache
@@ -148,6 +161,72 @@ public sealed class MarkdownRemoteDocumentCache
                 removed++;
             }
             return removed;
+        }
+        finally { _gate.Release(); }
+    }
+
+    /// <summary>
+    /// Enumerate a bounded page of valid cached documents without network calls
+    /// or loading the entire directory catalog into RAM.
+    /// </summary>
+    /// <remarks>
+    /// The order is filesystem enumeration order, not globally sorted.
+    /// Restart at offset zero after cache modifications. Old manifests without
+    /// a source URI can still be viewed, but cannot be revalidated by name.
+    /// </remarks>
+    public async Task<MarkdownRemoteCachePage> ListPageAsync(
+        int skip = 0, int pageSize = 12,
+        CancellationToken cancellationToken = default)
+    {
+        if (skip < 0)
+            throw new ArgumentOutOfRangeException(nameof(skip));
+        if (pageSize is < 1 or > 64)
+            throw new ArgumentOutOfRangeException(nameof(pageSize));
+        await _gate.WaitAsync(cancellationToken);
+        try
+        {
+            var entries = new List<MarkdownRemoteCacheEntry>(pageSize);
+            if (!Directory.Exists(_directory))
+                return new MarkdownRemoteCachePage(entries, false);
+            long seen = 0;
+            foreach (var file in Directory.EnumerateFiles(
+                _directory, "*.json", SearchOption.TopDirectoryOnly))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var name = Path.GetFileName(file);
+                if (name.Length != 69 ||
+                    !name.EndsWith(".json", StringComparison.Ordinal) ||
+                    !IsHexKey(name.AsSpan(0, 64)))
+                    continue;
+                var key = name[..64];
+                var manifest = await ReadManifestAsync(key, cancellationToken);
+                if (manifest is null)
+                    continue;
+                if (seen++ < skip)
+                    continue;
+                if (entries.Count == pageSize)
+                    return new MarkdownRemoteCachePage(entries, true);
+
+                // A stored URI is trusted only when it reproduces the hash
+                // of this manifest, preventing a forged label/source.
+                Uri? source = null;
+                if (manifest.SourceUrl is { Length: > 0 and <= 4096 } url &&
+                    Uri.TryCreate(url, UriKind.Absolute, out var candidate))
+                {
+                    try
+                    {
+                        ValidateSource(candidate);
+                        if (CacheKey(candidate) == key)
+                            source = candidate;
+                    }
+                    catch (ArgumentException) { /* Legacy/invalid URL label. */ }
+                }
+
+                entries.Add(new MarkdownRemoteCacheEntry(
+                    source, Path.Combine(_directory, manifest.FileName),
+                    manifest.ByteCount, manifest.LastModified, key));
+            }
+            return new MarkdownRemoteCachePage(entries, false);
         }
         finally { _gate.Release(); }
     }
@@ -280,7 +359,10 @@ public sealed class MarkdownRemoteDocumentCache
                     File.Move(tempPath, versionPath);
                     var manifest = new CacheManifest(1, versionName, total,
                         response.Headers.ETag?.ToString(),
-                        response.Content.Headers.LastModified);
+                        response.Content.Headers.LastModified,
+                        source.GetComponents(
+                            UriComponents.SchemeAndServer | UriComponents.PathAndQuery,
+                            UriFormat.UriEscaped));
                     tempManifestPath = Path.Combine(_directory, key + "." +
                         Guid.NewGuid().ToString("N") + ".json.part");
                     var manifestJson = JsonSerializer.Serialize(manifest, JsonOptions);
