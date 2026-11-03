@@ -71,6 +71,66 @@ public sealed class VerifiedDocumentCacheTests
         Assert.Equal(before.Sha256, (await fixture.Cache.GetAsync("source"))?.Sha256);
     }
 
+
+    [Fact]
+    public async Task IndependentInstancesDoNotPublishMixedContent()
+    {
+        using var fixture = new CacheFixture();
+        var first = new VerifiedDocumentCache(fixture.Root);
+        var second = new VerifiedDocumentCache(fixture.Root);
+        var one = new string('A', 300_000);
+        var two = new string('B', 300_000);
+        await Task.WhenAll(
+            first.PutAsync("same", Bytes(one)),
+            second.PutAsync("same", Bytes(two)));
+        var found = await fixture.Cache.GetAsync("same");
+        Assert.NotNull(found);
+        var content = await File.ReadAllTextAsync(found.ContentPath);
+        Assert.True(content == one || content == two);
+        Assert.Equal(300_000, found.Length);
+    }
+
+    [Fact]
+    public async Task CorruptedExistingDigestBlobIsRepaired()
+    {
+        using var fixture = new CacheFixture();
+        var original = await fixture.Cache.PutAsync("source", Bytes("healthy"));
+        await File.WriteAllTextAsync(original.ContentPath, "damaged");
+        Assert.Null(await fixture.Cache.GetAsync("source"));
+        await fixture.Cache.PutAsync("source", Bytes("healthy"));
+        Assert.Equal("healthy", await File.ReadAllTextAsync(
+            (await fixture.Cache.GetAsync("source"))!.ContentPath));
+    }
+
+    [Fact]
+    public async Task RejectsSymlinkedCacheSubdirectory()
+    {
+        using var fixture = new CacheFixture();
+        if (!OperatingSystem.IsLinux()) return;
+        var external = Path.Combine(Path.GetTempPath(), "afrowave-external-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(external);
+        Directory.CreateDirectory(fixture.Root);
+        try
+        {
+            Directory.CreateSymbolicLink(Path.Combine(fixture.Root, "blobs"), external);
+            await Assert.ThrowsAsync<IOException>(() => fixture.Cache.PutAsync("source", Bytes("text")));
+        }
+        finally
+        {
+            // Do not recursively delete through a symlink in the test fixture.
+            Directory.Delete(Path.Combine(fixture.Root, "blobs"));
+            Directory.Delete(external);
+        }
+    }
+
+    [Fact]
+    public void DefaultCacheLocationIsUserSpecificAndAbsolute()
+    {
+        var path = CacheDirectory.GetDefaultPath();
+        Assert.True(Path.IsPathFullyQualified(path));
+        Assert.Contains("afrowave", path, StringComparison.OrdinalIgnoreCase);
+    }
+
     private static MemoryStream Bytes(string text) => new(Encoding.UTF8.GetBytes(text));
 
     private sealed class CacheFixture : IDisposable
