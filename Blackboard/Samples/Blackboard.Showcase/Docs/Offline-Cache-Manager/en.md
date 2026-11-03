@@ -80,5 +80,5 @@ automatically run a cache sweeper or evict the last offline copy.
   an online Download URL / GitHub repository UI.
 
 See [reusable source cache contract](../../../../../ExchangeHouse/Markdown/Docs/Offline-Document-Cache/en.md),
-[local disk pager](Markdown-Paged-Source-Viewer/en.md), and
+[local disk pager](../Markdown-Paged-Source-Viewer/en.md), and
 [future Docs Reader design](../../../../../Docs/Unified-Docs-Reader-Proposal/en.md).

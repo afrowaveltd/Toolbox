@@ -93,4 +93,4 @@ cached copies through the shared contextual pager, independent export
 and confirmable URL-specific deletion/pruning. This is a working
 proof of the Docs Reader's cache-management surface, not the complete
 Docs Reader, an online GitHub repository selector, or a virtual
-documentation book. [Menu guide](../Blackboard/Samples/Blackboard.Showcase/Docs/Offline-Cache-Manager/en.md).
+documentation book. [Menu guide](../../Blackboard/Samples/Blackboard.Showcase/Docs/Offline-Cache-Manager/en.md).
