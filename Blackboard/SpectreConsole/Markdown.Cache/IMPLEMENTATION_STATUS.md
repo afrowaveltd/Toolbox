@@ -35,3 +35,8 @@ Next: run and correct Windows/Linux solution CI; then add fault-injection tests,
 - Added [GitHub README fake-handler tests](../Markdown.Cache.Tests/GitHubReadmeSourceTests.cs) covering API request headers, case-insensitive cache aliases, 304 after restarting the reader, stale offline, 404 without cache, corrupt body fallback, invalid identifiers including trailing newline and unexpected 304. **Tests authored, not run**.
 - Documentation in [Docs/GitHub-Readme/en.md](Docs/GitHub-Readme/en.md). The standalone CLI/TUI, GitHub private auth, canonical metadata, redirects and linked-document resolution remain unimplemented.
 - No .NET SDK available locally; CI result for this revision not yet verified. Next: fix any CI failure, integrate a small CLI command dispatcher after stable source contract, then add source-aware README links and pager work separately.
+
+## 2026-11-03 — first CLI consumer
+
+- The new [mdview executable](../../Tools/MdView/README.md) consumes HTTP and GitHub source adapters and prints explicit `Stale` state when offline. Cache library stays independent of CLI and renderer.
+- No conditional-download behavior changed in the cache. Integration tests and CI results for mdview remain outstanding.
