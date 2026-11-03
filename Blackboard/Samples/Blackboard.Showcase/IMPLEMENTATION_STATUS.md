@@ -295,3 +295,8 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
   `ListSpacingHint` via ExchangeHouse. Existing source navigation and
   preview layout are unchanged: no incorrect whole-list loose/tight
   rendering claim. Literal source remains default.
+
+## 2026-11-03 — Markdown page profile picker
+
+- Added explicit Balanced/HDD/SSD/LowRAM selection after file pick in sixth Showcase demo; source index and checkpoint stride follow the same validated preset.
+- No impact on navigation or source/conservative-preview toggle; Escape at profile prompt exits safely. Added interactive console regression tests for HDD 64-line and LowRAM 8-line pages and cancellation. No hardware auto-detection or giant-file VM acceptance claim.

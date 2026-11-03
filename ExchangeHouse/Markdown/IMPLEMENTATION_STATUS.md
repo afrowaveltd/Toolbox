@@ -312,3 +312,9 @@
   no full CommonMark list-wide tight/loose guarantee, no confirmed
   2-GiB RAM VM measurement and no NuGet release.
 - [API and limits](Docs/List-Spacing-Index/en.md).
+
+## 2026-11-03 — explicit source/checkpoint resource profiles
+
+- Added `MarkdownPagingProfile`, `MarkdownPagingSettings` and `MarkdownPagingProfiles.For` with Balanced 40/16, HDD 64/1, SSD 64/32 and LowRAM 8/16; independent source/index quotas and 64 KiB line limit remain.
+- Immutable settings support custom overrides with validation. Added source+fence replay tests across all presets and invalid-input tests.
+- Showcase now selects profile manually, not by inferring VM disk hardware. No 1 GiB HDD measurements or NuGet release; PR #3 remains draft. [Details](Docs/Paging-Profiles/en.md).

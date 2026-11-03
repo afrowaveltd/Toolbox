@@ -231,3 +231,9 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 - Checks 16-byte marker records, 24-byte group records and exact source
   preservation. Deliberately does not claim full CommonMark list
   equivalence or acceptance on 1-vCPU/2-GiB VM.
+
+## 2026-11-03 — profile policy regressions
+
+- `MarkdownPagingProfilesTests` cover the four validated presets, custom record overrides, invalid bounds and enum values.
+- Every preset builds both disk indexes and resumes an arbitrarily sought page inside a long code fence; original source is preserved.
+- Tests are synthetic; do not mistake them for real 1-vCPU/1-GiB HDD measurements.

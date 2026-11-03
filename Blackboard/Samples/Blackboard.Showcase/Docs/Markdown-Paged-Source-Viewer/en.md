@@ -86,3 +86,7 @@ offset index and the Next/Previous menu are unchanged. Replay is
 bounded (maximum 15 source pages for the default), not instantaneous;
 small strides may be preferable for very large physical lines or
 high-frequency random seeks. [Technical details](../../../../../ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
+
+## HDD / SSD / LowRAM / Balanced selection (2026-11-03)
+
+After choosing the local file, select Balanced (40 lines/checkpoint 16), HDD (64/1), SSD (64/32) or LowRAM (8/16) before source indexing. The TUI reports the profile and allows Escape to cancel. These are initial hypotheses to be measured on the actual 1-vCPU/1-GiB HDD-backed Debian VM, not automatic hardware detection. [Full settings and limitations](../../../../../ExchangeHouse/Markdown/Docs/Paging-Profiles/en.md).

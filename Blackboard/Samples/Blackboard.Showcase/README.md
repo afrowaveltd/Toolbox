@@ -153,3 +153,7 @@ between stored checkpoints transparently replays up to 15 earlier
 source pages to reconstruct the same conservative Markdown context.
 No UI change or full-document buffering; the literal source remains
 the default display. The tradeoff is disk space versus seek I/O.
+
+## Selectable Markdown paging profiles (2026-11-03)
+
+The sixth Markdown pager now asks for **Balanced, HDD, SSD or LowRAM** after local file selection, displays the selected page size/checkpoint interval, and applies both settings when building the indexes. Escape cancels before indexing. Source mode remains the default. [Profile policy](../../../ExchangeHouse/Markdown/Docs/Paging-Profiles/en.md).

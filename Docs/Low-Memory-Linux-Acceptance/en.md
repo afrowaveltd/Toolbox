@@ -175,3 +175,7 @@ while keeping the HDD unchanged. A successful test will be documented
 as a *specific measured workload*. Do not generalize that every
 supported Markdown page or giant document runs within 1 GiB, and do
 not equate a virtual streaming pass with end-to-end HDD acceptance.
+
+## Paging profile comparison (2026-11-03)
+
+The experimental Showcase now offers manual Balanced (40/16), HDD (64/1), SSD (64/32), and LowRAM (8/16) presets. On the 1-GiB HDD-backed guest, compare the same physical source/navigation sequence under Balanced and HDD first, then optional SSD/LowRAM and custom strides 1/4/16. Keep CPU, storage backing, VM disk cache and source identical, and record RSS, swap, disk wait and elapsed time. No profile currently introduces a 50–100 MiB RAM cache or guarantees a process memory ceiling. [Tuning guide](../../ExchangeHouse/Markdown/Docs/Paging-Profiles/en.md).

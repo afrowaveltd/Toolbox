@@ -373,3 +373,9 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   the VM disk image resides on a physical rotating HDD. No 1-GiB VM
   runtime or real-HDD acceptance has yet been performed or claimed.
   Changes are documentation-only, PR #3 stays draft.
+
+## 2026-11-03 — selectable Markdown HDD/SSD/LowRAM paging profiles (draft PR #3)
+
+- Added editable validated preset configurations: Balanced 40 source lines/16-page checkpoint stride, HDD 64/1, SSD 64/32, LowRAM 8/16. Independent disk index quotas and maximum line limit are retained.
+- Sixth Showcase viewer prompts for profile before indexing and reports chosen settings. Added C# API and TestConsole regressions covering real pager seeks, validation and cancel. No automatic disk inference, no 50–100 MiB page cache, no measured optimal profile or 1-GiB real-HDD acceptance.
+- READMEs, Docs and implementation statuses updated. PR #3 remains draft, unmerged; no NuGet publication. [Tuning guide](ExchangeHouse/Markdown/Docs/Paging-Profiles/en.md).

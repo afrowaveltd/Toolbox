@@ -180,3 +180,7 @@ search without loading the groups or item records into RAM. Conservative
 nested/quoted/type-separated groups are not a complete CommonMark list
 model, and no automatic TUI integration or NuGet release is implied.
 [Read the full API and limitation guide](Docs/List-Spacing-Index/en.md).
+
+## Paging profiles (2026-11-03)
+
+`MarkdownPagingProfiles.For` supplies validated **Balanced (40 lines/stride 16), HDD (64/1), SSD (64/32) and LowRAM (8/16)** settings. Callers may override individual values with `with` and pass them to the source and sparse context index. The sixth Showcase reader offers these profiles interactively. These are unbenchmarked tuning starting points, not exact RAM budgets. [Profile guide](Docs/Paging-Profiles/en.md).

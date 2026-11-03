@@ -139,3 +139,7 @@ Next: confirm CI and add regression cases for any Windows/SSH differences that a
   conservative preview toggle and switching back to literal Markdown.
   Existing page navigation, cancellation and unsafe-input tests remain.
 - Preview does not promise CommonMark-equivalent nested-list rendering.
+
+## 2026-11-03 — paging profile console regressions
+
+- Updated existing pager tests to select Balanced before navigation. New HDD, LowRAM and cancel-prompt tests exercise source preservation and the adjusted page counts. Exact CI on draft PR #3 is the test authority.
