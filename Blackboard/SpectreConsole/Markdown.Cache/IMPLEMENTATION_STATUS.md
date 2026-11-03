@@ -18,3 +18,12 @@ Next: run and correct Windows/Linux solution CI; then add fault-injection tests,
 - Added `CacheDirectory.GetDefaultPath()` using per-user Windows LocalApplicationData or XDG cache / `~/.cache` on Unix; no directory is implicitly created by this helper.
 - Added four tests: independent instances writing one key, corrupt blob replacement, Linux symlinked directory rejection and per-user absolute cache path. **Total authored tests: ten; not executed or CI-confirmed.**
 - Local container has no `dotnet` executable and no outward DNS to install it. No new GitHub Actions success was established. Next: CI verification, test fixes, then fault injection, secure root provisioning, stale/conditional metadata and HTTP fake-handler tests.
+
+## 2026-11-03 — conditional HTTP source and metadata
+
+- Extended source index metadata additively with optional `ETag`, `LastModified` and `CheckedAtUtc`; legacy entries without validators remain readable. `PutAsync` still defaults to previous calling convention.
+- Added `MarkNotModifiedAsync` under the per-process + cross-process write locks. It rechecks the indexed SHA-256 and refuses to update a changed/missing entry.
+- Added `HttpMarkdownDocumentSource` using injected `HttpClient`: conditional GET, validated `200` replacement, `304` reuse, explicit stale/error states, and cancellation propagation. Restricted to credentials-free HTTPS URLs without query/fragment by default. HTTP opt-in is for development/tests.
+- Authored eight isolated HTTP handler tests: 200→304 across instances, replacement 200, network failure stale fallback, invalid response old-entry preservation, 404 without cache, insecure/secret URL refusal, Last-Modified persistence, and unexpected 304 without cache. Total authored cache tests **18** (previous ten plus eight).
+- **Not yet verified by a .NET build:** no local SDK. The GitHub status and PR-triggered workflow lookups for the intermediate test commit showed no runs/statuses. This is not proof of green CI.
+- Limitations: automatic redirect behavior must be disabled on injected `HttpClient`; no GitHub README API adapter, per-user auth isolation, rate limit policy, global quota, safe automatic cache cleanup or paged Markdown rendering. Follow-up: CI/build fixes, redirect handling, controlled cache eviction and GitHub README provider.
