@@ -53,12 +53,42 @@ public sealed class MarkdownPagedSourceDemo : IBlackboardShowcaseDemo
             return;
         }
 
+        const string balanced = "Balanced — 40 lines, 16-page checkpoint interval";
+        const string hdd = "HDD — 64 lines, checkpoint every page";
+        const string ssd = "SSD — 64 lines, 32-page checkpoint interval";
+        const string lowRam = "LowRAM — 8 lines, 16-page checkpoint interval";
+        const string cancel = "Cancel paging";
+
+        var choice = await new SelectionPrompt<string>()
+            .Title("Choose a paging profile (hardware is not auto-detected)")
+            .PageSize(5)
+            .AddChoices(balanced, hdd, ssd, lowRam, cancel)
+            .AddCancelResult(cancel)
+            .ShowAsync(console, cancellationToken);
+        if (choice == cancel)
+        {
+            console.Write(new Text("Markdown paging cancelled." + Environment.NewLine));
+            return;
+        }
+
+        var profile = choice switch
+        {
+            hdd => MarkdownPagingProfile.Hdd,
+            ssd => MarkdownPagingProfile.Ssd,
+            lowRam => MarkdownPagingProfile.LowRam,
+            _ => MarkdownPagingProfile.Balanced
+        };
+        var settings = MarkdownPagingProfiles.For(profile);
+
         try
         {
-            console.Write(new Text("Indexing and validating UTF-8 Markdown on disk..." +
+            console.Write(new Text("Using profile " + profile +
+                " (" + settings.LinesPerPage + " lines/page, checkpoint every " +
+                settings.CheckpointStride + " pages)." + Environment.NewLine +
+                "Indexing and validating UTF-8 Markdown on disk..." +
                 Environment.NewLine));
             await using var index = await MarkdownDiskPageIndex.BuildAsync(
-                path, cancellationToken: cancellationToken);
+                path, settings.CreateSourceOptions(), cancellationToken: cancellationToken);
             if (index.PageCount == 0)
             {
                 console.Write(new Text("The Markdown file is empty." + Environment.NewLine));
@@ -70,7 +100,9 @@ public sealed class MarkdownPagedSourceDemo : IBlackboardShowcaseDemo
             var displayName = new string(Path.GetFileName(path)
                 .Select(c => char.IsControl(c) ? '\uFFFD' : c).ToArray());
             await using var fences = await MarkdownFenceCheckpointIndex.BuildAsync(
-                index, cancellationToken);
+                index, cancellationToken,
+                maxIndexBytes: settings.MaxCheckpointIndexBytes,
+                checkpointStride: settings.CheckpointStride);
             long pageNumber = 0;
             var showConservativePreview = false;
             while (true)
