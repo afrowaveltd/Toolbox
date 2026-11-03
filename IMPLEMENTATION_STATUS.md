@@ -271,3 +271,10 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Both Showcase (text, JSON, Markdown previews) and [mdview](Blackboard/Tools/MdView/README.md) now use a normal `ProjectReference` to the shared assembly; mdview's temporary linked `Compile Include` is removed and the original Showcase copy deleted.
 - Added five isolated `TextFiles.Tests` cases and registered new library + tests in `Toolbox.sln`; all changes and docs committed directly to GitHub.
 - **Verification not yet established after extraction.** The user-provided 6,438/6,438 Windows pass applies to the preceding snapshot. Next run: `dotnet test Toolbox.sln` on updated checkout, plus manual `mdview local README.md` smoke test.
+
+## 2026-11-03 — Windows TextFiles extraction test evidence gap
+
+- The user-supplied Windows `dotnet test Toolbox.sln` log after extraction shows all **6,438 tests that actually ran** passed with 0 failures/skips, and `Afrowave.Toolbox.Blackboard.TextFiles.dll` built successfully. `mdview.dll` also built; its 10 tests and Showcase's 39 tests passed.
+- **Do not call the new reader-specific test suite green yet:** `TextFiles.Tests` is absent from the run output, despite existing in the GitHub solution/project files (28 C# projects registered vs 27 projects reported for restore). This is a missing-coverage issue, not a failing assertion.
+- Added x64/x86 ActiveCfg/Build.0 configuration mappings for both new projects in `Toolbox.sln` to prevent solution-configuration skips. This likely explains omission; verification remains pending.
+- Run `dotnet test Toolbox.sln` again after syncing and verify `TextFiles.Tests` appears with 5 passed. If still absent, run `dotnet test Blackboard/TextFiles.Tests/Afrowave.Toolbox.Blackboard.TextFiles.Tests.csproj` and inspect the active solution platform.
