@@ -237,3 +237,9 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 - `MarkdownPagingProfilesTests` cover the four validated presets, custom record overrides, invalid bounds and enum values.
 - Every preset builds both disk indexes and resumes an arbitrarily sought page inside a long code fence; original source is preserved.
 - Tests are synthetic; do not mistake them for real 1-vCPU/1-GiB HDD measurements.
+
+## 2026-11-03 — persistent remote cache tests
+
+- Added `MarkdownRemoteDocumentCacheTests` for byte-perfect downloads, re-open from a different cache instance without internet, HTTP ETag/Last-Modified conditional requests and 304, explicitly forced fresh versions and retention of open-version paths.
+- Tests also cover broken connections and 5xx stale copies, 4xx error propagation, no-network cache misses, download byte quota with old-copy preservation, permanent export, explicit per-URL deletion and rejection of insecure URLs/corrupt path metadata.
+- Tests use local stubbed HttpClient handlers and isolated temporary directories; no live GitHub networking or 1-GiB HDD acceptance is claimed.

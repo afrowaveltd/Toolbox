@@ -318,3 +318,11 @@
 - Added `MarkdownPagingProfile`, `MarkdownPagingSettings` and `MarkdownPagingProfiles.For` with Balanced 40/16, HDD 64/1, SSD 64/32 and LowRAM 8/16; independent source/index quotas and 64 KiB line limit remain.
 - Immutable settings support custom overrides with validation. Added source+fence replay tests across all presets and invalid-input tests.
 - Showcase now selects profile manually, not by inferring VM disk hardware. No 1 GiB HDD measurements or NuGet release; PR #3 remains draft. [Details](Docs/Paging-Profiles/en.md).
+
+## 2026-11-03 — opt-in persistent offline Markdown document cache (draft PR #3)
+
+- Added `MarkdownRemoteDocumentCache` as a separate ExchangeHouse primitive; the Showcase `RemoteMarkdownTempDocument` still deletes its temporary file when disposed.
+- URL-hashed per-user cache manifests point to immutable versioned HTTPS source copies. `OnlineFirst` conditionally checks ETag/Last-Modified, supports HTTP 304 without re-download, and returns explicitly stale copies for offline/timeout/5xx scenarios. `OfflineOnly` makes no network requests; `ForceRefresh` retrieves a new version.
+- Bounded 64 KiB download buffer, 256 MiB per-document default quota, safe manifest file names, owner-only Unix file permissions, atomic manifest replacement, explicit `SaveCopyAsync` and per-URL `RemoveAsync`.
+- Regression tests cover offline persistence across instances, 304 validators, refresh version preservation, stale fallback, HTTP 4xx, quotas, manual cleanup, export and corrupt manifest safety.
+- No Docs Reader remote menu/provider, automatic cache GC, total-directory quota, parallel-process locks, 1-GiB HDD field benchmark or NuGet release yet. [Cache details](Docs/Offline-Document-Cache/en.md).

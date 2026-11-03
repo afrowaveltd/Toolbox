@@ -184,3 +184,7 @@ model, and no automatic TUI integration or NuGet release is implied.
 ## Paging profiles (2026-11-03)
 
 `MarkdownPagingProfiles.For` supplies validated **Balanced (40 lines/stride 16), HDD (64/1), SSD (64/32) and LowRAM (8/16)** settings. Callers may override individual values with `with` and pass them to the source and sparse context index. The sixth Showcase reader offers these profiles interactively. These are unbenchmarked tuning starting points, not exact RAM budgets. [Profile guide](Docs/Paging-Profiles/en.md).
+
+## Reusable offline HTTPS Markdown source cache (2026-11-03)
+
+`MarkdownRemoteDocumentCache` now stores versioned, immutable source copies in a per-user application cache, separate from disposable page/checkpoint indexes. Its `GetAsync` supports conditional HTTP `ETag`/`Last-Modified` checks, explicit offline-only access, forced refresh and marked stale fallback after connection failures. `SaveCopyAsync` exports a selected version to a permanent user path and `RemoveAsync` removes a single URL's stored versions on request. The default per-document download limit is 256 MiB and transfers use bounded buffers. This is a **library primitive**, not yet a remote Docs Reader TUI, automatic network sync, global cache quota or secure multi-user server endpoint. See [cache contract](Docs/Offline-Document-Cache/en.md).

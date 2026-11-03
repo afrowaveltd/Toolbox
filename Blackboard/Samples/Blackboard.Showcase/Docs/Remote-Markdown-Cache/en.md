@@ -59,3 +59,7 @@ language or page turn.
 
 [Live translation design](../Live-Markdown-Translation/en.md) describes how
 the raw spooling and future UnderstandMe processing can overlap safely.
+
+## Separate reusable offline cache added (2026-11-03)
+
+The disposal semantics above remain unchanged for `RemoteMarkdownTempDocument`: it is a temporary **session spool**, not persistent storage. The new, independent `ExchangeHouse.MarkdownRemoteDocumentCache` supports stable per-user copies across launches, HTTPS ETag/Last-Modified revalidation, offline fallback, explicit export and explicit per-URL removal. Working Markdown page indexes remain temporary. See [persistent cache documentation](../../../../../ExchangeHouse/Markdown/Docs/Offline-Document-Cache/en.md). The Showcase remote picker is not yet wired to this service.

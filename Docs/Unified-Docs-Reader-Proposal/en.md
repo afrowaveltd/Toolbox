@@ -66,3 +66,7 @@ selection, with an option to view original source separately.
 
 The proposal deliberately does **not** expand the current draft PR's
 feature acceptance criteria. It only preserves an idea for future work.
+
+## Source-cache foundation added (2026-11-03)
+
+A reusable `ExchangeHouse.MarkdownRemoteDocumentCache` now provides a separate **implemented library foundation** for the future remote Docs Reader. It saves versioned HTTPS Markdown source files in a per-user cache, conditionally revalidates them using HTTP ETag/Last-Modified, retains an explicitly flagged stale copy for offline use, and supports export and per-URL removal. Unlike this source cache, disposable page/fence indexes remain safe to rebuild. No GitHub repository tree provider, virtual book source manifest, offline GUI/TUI menu, project-wide synchronization or finished Docs Reader has been implemented. Read [cache API and limitations](../ExchangeHouse/Markdown/Docs/Offline-Document-Cache/en.md).
