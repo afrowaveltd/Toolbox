@@ -119,3 +119,13 @@ temp download and temporary source/page indexes still have independent
 disposal semantics. **There is no finished Docs Reader remote picker,
 automatic cache eviction or new NuGet release.**
 [Cache and quota guide](ExchangeHouse/Markdown/Docs/Offline-Document-Cache/en.md).
+
+## Experimental offline Markdown cache browser (2026-11-03)
+
+The draft branch's seventh [Blackboard Showcase demo](Blackboard/Samples/Blackboard.Showcase/Docs/Offline-Cache-Manager/en.md)
+can browse previously cached HTTPS Markdown documents without
+internet, display cache disk usage, read them through the existing
+pager, export files, and explicitly confirm cache deletion or
+older-version pruning. Catalogue pages are bounded (eight entries);
+the full Docs Reader/GitHub tree provider and 1-GiB HDD field
+acceptance remain future work. No NuGet release.

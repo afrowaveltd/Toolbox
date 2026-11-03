@@ -157,3 +157,15 @@ the default display. The tradeoff is disk space versus seek I/O.
 ## Selectable Markdown paging profiles (2026-11-03)
 
 The sixth Markdown pager now asks for **Balanced, HDD, SSD or LowRAM** after local file selection, displays the selected page size/checkpoint interval, and applies both settings when building the indexes. Escape cancels before indexing. Source mode remains the default. [Profile policy](../../../ExchangeHouse/Markdown/Docs/Paging-Profiles/en.md).
+
+## Offline Markdown cache manager (2026-11-03)
+
+The **seventh Showcase menu item** lists previously cached remote Markdown
+documents without internet access. It reports used disk bytes, browses
+at most eight entries per screen, opens a selected document through the
+existing disk-indexed reader, and offers independent export, explicit
+URL-specific removal and protected obsolete-version pruning. A legacy
+cache entry without a verified URL remains openable, but is not
+misidentified as a live source. The menu does **not** fetch URLs,
+enumerate GitHub repositories, or implement the finished Docs Reader.
+[Usage and limitations](Docs/Offline-Cache-Manager/en.md).

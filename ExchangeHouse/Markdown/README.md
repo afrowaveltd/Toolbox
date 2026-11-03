@@ -201,3 +201,15 @@ avoids deleting anything if its manifest is missing/corrupt. Failed
 quota-limited downloads leave the last usable copy intact; there is
 **no automatic eviction, no total-process RAM guarantee and no
 cross-process storage lock**. [Details](Docs/Offline-Document-Cache/en.md).
+
+## Bounded offline document catalog (2026-11-03)
+
+`MarkdownRemoteDocumentCache.ListPageAsync(skip,pageSize)` now returns a
+bounded manifest page (1–64 entries), with **no network requests** or
+full-catalog allocation. New source manifests retain a normalized
+source URL, authenticated by matching its SHA-256 key before display.
+Legacy manifests without this property remain readable and appear
+with an unknown source. Enumeration order is filesystem order, not
+a globally sorted stable index. The Showcase seventh demo uses this
+API for its offline cache manager.
+[Menu usage](../../Blackboard/Samples/Blackboard.Showcase/Docs/Offline-Cache-Manager/en.md).

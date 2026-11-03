@@ -363,3 +363,15 @@
 - Oversized ETag data cannot replace an otherwise valid cached copy;
   failed downloads clean new temporary/version files. Added oversized
   manifest and validator regressions; no cross-process lock yet.
+
+## 2026-11-03 — bounded offline document catalog
+
+- Added `MarkdownRemoteCacheEntry`, `MarkdownRemoteCachePage` and
+  `ListPageAsync` for on-demand, bounded pages of valid cache manifests,
+  without network requests or a giant in-memory source catalog.
+- New manifest format preserves source URI for browsing, with URL-label
+  trust checked against the SHA-256 cache key. Backward-compatible
+  nullable `SourceUrl` permits legacy cached documents.
+- Tests cover two-source paging, unrelated file exclusion, missing
+  legacy URL and forged URL labels. No sorted persistent catalog or
+  cross-process consistency guarantee. [Catalog and TUI](Docs/Offline-Document-Cache/en.md).

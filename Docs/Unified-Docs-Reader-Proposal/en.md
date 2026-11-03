@@ -84,3 +84,13 @@ cache management optional. The 24h pruning grace period protects
 recent versions, not simultaneous readers in other processes. No
 Docs Reader TUI or GitHub repository provider is implemented yet.
 [Cache contract](../../ExchangeHouse/Markdown/Docs/Offline-Document-Cache/en.md).
+
+## Offline cache manager in Blackboard Showcase (2026-11-03)
+
+The seventh Showcase demo now implements **local offline cache
+management**: eight-item source listing, disk-usage overview, reading
+cached copies through the shared contextual pager, independent export
+and confirmable URL-specific deletion/pruning. This is a working
+proof of the Docs Reader's cache-management surface, not the complete
+Docs Reader, an online GitHub repository selector, or a virtual
+documentation book. [Menu guide](../Blackboard/Samples/Blackboard.Showcase/Docs/Offline-Cache-Manager/en.md).

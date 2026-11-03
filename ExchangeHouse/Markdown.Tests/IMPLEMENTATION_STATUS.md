@@ -269,3 +269,10 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
   memory or treated as a valid current version, and remote ETag values
   above 16 KiB cannot publish invalid metadata, consume orphan space
   or overwrite the last saved offline copy.
+
+## 2026-11-03 — paged catalog and compatibility tests
+
+- Added bounded `ListPageAsync` tests for multi-document pagination
+  and `HasMore`, explicit 1..64 limits, exclusion of unrelated
+  files, old manifest without `SourceUrl`, and forged mismatching
+  URL metadata. All use local disk and stub HTTP.

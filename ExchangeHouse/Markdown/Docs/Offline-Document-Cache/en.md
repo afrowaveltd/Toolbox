@@ -213,3 +213,26 @@ leaves the existing cached manifest and source intact and cleans up
 its failed new version. A corrupt or oversized existing manifest is
 not trusted as proof that old copies are safe to prune. Tests cover
 oversized on-disk manifests and unusually large ETag headers.
+
+## Paged offline source catalog (2026-11-03)
+
+`ListPageAsync(skip, pageSize)` returns a
+`MarkdownRemoteCachePage` with up to 64 `MarkdownRemoteCacheEntry`
+records and `HasMore`; it does not fetch URLs, deserialize Markdown
+bodies or materialize all cache records. Only valid manifests with
+a present matching-size source file are listed. The URL is optional:
+newly downloaded source manifests store normalized HTTPS addresses,
+but **legacy files lack this field** and are still readable. A
+source label is exposed only if it re-hashes to its cache key.
+For private signed URLs, remember that the manifest now includes
+a URI with query parameters. Keep the per-user cache private, and
+never show those query values in a shared terminal UI.
+
+The seventh Blackboard Showcase demo displays this catalog in
+eight-entry screens, reuses the original Markdown pager to open
+offline files, and offers explicit export/remove/prune actions.
+Paging uses filesystem enumeration order, not a sorted or locked
+cross-process snapshot. Repeated deep skips can be I/O-expensive on
+an HDD; a dedicated on-disk catalog is a separate future optimization.
+
+[Offline-cache Showcase menu](../../../../Blackboard/Samples/Blackboard.Showcase/Docs/Offline-Cache-Manager/en.md).

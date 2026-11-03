@@ -300,3 +300,20 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 
 - Added explicit Balanced/HDD/SSD/LowRAM selection after file pick in sixth Showcase demo; source index and checkpoint stride follow the same validated preset.
 - No impact on navigation or source/conservative-preview toggle; Escape at profile prompt exits safely. Added interactive console regression tests for HDD 64-line and LowRAM 8-line pages and cancellation. No hardware auto-detection or giant-file VM acceptance claim.
+
+## 2026-11-03 — seventh Showcase demo: offline cache management
+
+- Added `MarkdownOfflineCacheDemo`, registered after the existing sixth
+  source-pager demo. Displays cache-owned disk usage; paginates cached
+  manifests eight at a time; opens offline source via the **same**
+  `MarkdownPagedSourceDemo.ShowFileAsync` implementation.
+- Explicit actions: export a separate copy without silent overwrite,
+  confirm URL-specific removal, and confirm pruning of older redundant
+  versions with a 24h grace period. No online request during browsing.
+- Bounded catalog avoids retaining all document bodies in RAM.
+  Unknown legacy URL entries remain viewable/exportable; deletion
+  by URL requires a verified source. TestConsole regression suite
+  checks empty, open, remove and prune flows.
+- Future: remote GitHub input/Docs Reader book, indexed catalog
+  ordering and real 1-vCPU/1-GiB rotational HDD acceptance.
+  [Manager guide](Docs/Offline-Cache-Manager/en.md).

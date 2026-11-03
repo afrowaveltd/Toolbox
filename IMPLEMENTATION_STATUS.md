@@ -418,3 +418,22 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   with retention of old offline source and no orphan download files.
 - Source-file stream limits and user-controlled disk quota remain
   independent; no Docs Reader TUI or 1-GiB HDD field acceptance yet.
+
+## 2026-11-03 — first offline cache-management TUI for Markdown
+
+- Added seventh Blackboard Showcase demo backed by
+  `MarkdownRemoteDocumentCache.ListPageAsync`, returning bounded
+  pages of verified cached sources and legacy unknown-origin files
+  without any network dependency or full in-memory catalog.
+- New source manifests carry an optional normalized URI, authenticated
+  by SHA-256 key matching; legacy manifests are backward-compatible.
+  URLs are shortened and query-hidden in console labels; signed query
+  data remain private cache metadata and must not be shared.
+- Reuses the existing HDD/SSD/LowRAM/Balanced Markdown pager to open
+  cached copies; offers explicit permanent copy, confirmed URL removal
+  and confirmed obsolete-version pruning. Tests cover offline UI
+  flows, bounded catalog behavior and hash/legacy handling.
+- Remaining: online URL/GitHub provider, full Docs Reader, catalog
+  indexing for very large caches, multi-process locking, end-to-end
+  1-vCPU/1-GiB rotational HDD benchmarks. Draft PR #3 unmerged,
+  no NuGet release. [TUI guide](Blackboard/Samples/Blackboard.Showcase/Docs/Offline-Cache-Manager/en.md).

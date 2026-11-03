@@ -143,3 +143,12 @@ Next: confirm CI and add regression cases for any Windows/SSH differences that a
 ## 2026-11-03 — paging profile console regressions
 
 - Updated existing pager tests to select Balanced before navigation. New HDD, LowRAM and cancel-prompt tests exercise source preservation and the adjusted page counts. Exact CI on draft PR #3 is the test authority.
+
+## 2026-11-03 — offline-cache manager UI tests
+
+- Added `MarkdownOfflineCacheDemoTests` for empty/offline cache browsing,
+  reuse of the existing contextual disk-paged Markdown reader,
+  removal only after an explicit confirmation, and protected
+  obsolete-version pruning.
+- Test cases use Spectre.Console.Testing and a stubbed HTTPS client to
+  populate isolated cache directories. No live network dependency.
