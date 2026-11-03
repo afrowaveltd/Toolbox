@@ -183,3 +183,8 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 
 - A separate [Markdown.Cache GitHub README provider](../Markdown.Cache/Docs/GitHub-Readme/en.md) is now implemented for public repository default-branch READMEs. It reuses safe disk-backed conditional HTTP cache and does not modify the renderer or parser.
 - Tests are authored with fake HTTP handlers; .NET build/CI has not been confirmed. No standalone `mdview` executable or GitHub file/link navigation exists yet.
+
+## 2026-11-03 — first mdview consumer
+
+- Added [separate mdview terminal executable](../../Tools/MdView/README.md), consuming this renderer along with independent Cache and FileBrowser libraries. The renderer's public API and parsing behavior are unchanged.
+- CLI grammar regression tests authored. It shows full documents via existing in-memory pipeline; no native pager, rendered relative-link navigation or source indexing. Build/CI pending.
