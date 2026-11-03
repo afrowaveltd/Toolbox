@@ -163,9 +163,13 @@ public sealed class VerifiedDocumentCache
 
     private static void EnsureNotReparsePoint(string path)
     {
-        if ((File.Exists(path) || Directory.Exists(path)) &&
-            (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
-            throw new IOException("Cache root or entry must not be a symbolic link or reparse point.");
+        try
+        {
+            if ((File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
+                throw new IOException("Cache root or entry must not be a symbolic link or reparse point.");
+        }
+        catch (FileNotFoundException) { }
+        catch (DirectoryNotFoundException) { }
     }
 
     private static async Task<bool> MatchesDigestAsync(string blob, string expectedHash, long expectedLength, CancellationToken token)
