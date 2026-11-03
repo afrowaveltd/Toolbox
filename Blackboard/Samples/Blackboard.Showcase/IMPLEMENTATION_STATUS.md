@@ -191,3 +191,8 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 
 - Current read-only full local Markdown FileBrowser demo remains the working prototype. A possible future standalone command-line/TUI Markdown document viewer would add HTTP(S) and GitHub README source providers while reusing the parser/renderer; it is not yet created.
 - [Standalone viewer concept](../../SpectreConsole/Markdown/Docs/Standalone-Markdown-Viewer-Proposal/en.md). No behavior changed in Showcase.
+
+## 2026-11-03 — safe decoder moved to shared TextFiles library
+
+- `TextFilePreviewReader.cs` has been extracted from the Showcase executable into [Blackboard.TextFiles](../../TextFiles/README.md). Showcase JSON, text and Markdown preview consumers now import the shared namespace, and the Showcase project uses a normal project reference.
+- The original Showcase source file is deleted, removing duplicated compilation. Established Showcase integration tests were updated to import the new API namespace. The previous Windows test success predates extraction; rerun the solution before claiming this change green.
