@@ -1,3 +1,4 @@
+using Afrowave.Toolbox.Blackboard.TextFiles;
 using System.Text;
 using Afrowave.Toolbox.Blackboard.Showcase;
 using Xunit;
