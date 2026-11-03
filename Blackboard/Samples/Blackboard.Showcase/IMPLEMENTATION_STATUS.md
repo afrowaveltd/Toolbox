@@ -196,3 +196,7 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 
 - `TextFilePreviewReader.cs` has been extracted from the Showcase executable into [Blackboard.TextFiles](../../TextFiles/README.md). Showcase JSON, text and Markdown preview consumers now import the shared namespace, and the Showcase project uses a normal project reference.
 - The original Showcase source file is deleted, removing duplicated compilation. Established Showcase integration tests were updated to import the new API namespace. The previous Windows test success predates extraction; rerun the solution before claiming this change green.
+
+## 2026-11-03 — shared reader migration verified on Windows
+
+- User's full solution test run confirms Showcase.Tests **39/39** after migrating text, JSON and Markdown preview consumers to `Blackboard.TextFiles`. The reader's own tests also executed **5/5**, and the entire solution passed **6,443/6,443** on Windows.
