@@ -30,7 +30,8 @@ public sealed class VerifiedDocumentCache
         _maximumDocumentBytes = maximumDocumentBytes;
     }
 
-    public async Task<CachedDocument> PutAsync(string sourceKey, Stream content, CancellationToken cancellationToken = default)
+    public async Task<CachedDocument> PutAsync(string sourceKey, Stream content, CancellationToken cancellationToken = default,
+        string? eTag = null, DateTimeOffset? lastModified = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceKey);
         ArgumentNullException.ThrowIfNull(content);
@@ -87,14 +88,15 @@ public sealed class VerifiedDocumentCache
             else File.Move(temporary, blob);
             temporary = null;
 
-            var entry = new CachedDocument(sourceKey, digest, length, DateTimeOffset.UtcNow, blob);
+            var now = DateTimeOffset.UtcNow;
+            var entry = new CachedDocument(sourceKey, digest, length, now, blob, eTag, lastModified, now);
             var index = IndexPath(entries, sourceKey);
             EnsureNotReparsePoint(index);
             var tempIndex = index + "." + Guid.NewGuid().ToString("N") + ".tmp";
             try
             {
                 await File.WriteAllTextAsync(tempIndex, JsonSerializer.Serialize(
-                    new CacheManifest(sourceKey, digest, length, entry.StoredAtUtc), JsonOptions), StrictUtf8, cancellationToken).ConfigureAwait(false);
+                    new CacheManifest(sourceKey, digest, length, entry.StoredAtUtc, eTag, lastModified, now), JsonOptions), StrictUtf8, cancellationToken).ConfigureAwait(false);
                 File.Move(tempIndex, index, overwrite: true);
             }
             finally { if (File.Exists(tempIndex)) File.Delete(tempIndex); }
@@ -132,13 +134,51 @@ public sealed class VerifiedDocumentCache
             EnsureNotReparsePoint(blob);
             if (!await MatchesDigestAsync(blob, manifest.Hash, manifest.Length, cancellationToken).ConfigureAwait(false)) return null;
             await ValidateUtf8Async(blob, cancellationToken).ConfigureAwait(false);
-            return new CachedDocument(sourceKey, manifest.Hash, manifest.Length, manifest.StoredAtUtc, blob);
+            return new CachedDocument(sourceKey, manifest.Hash, manifest.Length, manifest.StoredAtUtc, blob,
+                manifest.ETag, manifest.LastModified, manifest.CheckedAtUtc);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException
                                          or InvalidDataException or DecoderFallbackException or ArgumentException)
         {
             return null;
         }
+    }
+
+    /// <summary>
+    /// Records a successful HTTP 304 only if the same validated content is still indexed.
+    /// Does not modify content bytes or overwrite a newer concurrent writer.
+    /// </summary>
+    public async Task<CachedDocument?> MarkNotModifiedAsync(string sourceKey, string expectedSha256,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceKey);
+        ArgumentException.ThrowIfNullOrWhiteSpace(expectedSha256);
+        await _writes.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            Directory.CreateDirectory(_root);
+            EnsureNotReparsePoint(_root);
+            await using var processLock = await AcquireProcessLockAsync(cancellationToken).ConfigureAwait(false);
+            var current = await GetAsync(sourceKey, cancellationToken).ConfigureAwait(false);
+            if (current is null || current.Sha256 != expectedSha256) return null;
+            var entries = Path.Combine(_root, "entries");
+            EnsureNotReparsePoint(entries);
+            var index = IndexPath(entries, sourceKey);
+            EnsureNotReparsePoint(index);
+            var updated = current with { CheckedAtUtc = DateTimeOffset.UtcNow };
+            var tempIndex = index + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            try
+            {
+                await File.WriteAllTextAsync(tempIndex, JsonSerializer.Serialize(
+                    new CacheManifest(updated.SourceKey, updated.Sha256, updated.Length, updated.StoredAtUtc,
+                        updated.ETag, updated.LastModified, updated.CheckedAtUtc), JsonOptions), StrictUtf8,
+                    cancellationToken).ConfigureAwait(false);
+                File.Move(tempIndex, index, overwrite: true);
+            }
+            finally { if (File.Exists(tempIndex)) File.Delete(tempIndex); }
+            return updated;
+        }
+        finally { _writes.Release(); }
     }
 
     private async Task<FileStream> AcquireProcessLockAsync(CancellationToken cancellationToken)
@@ -206,8 +246,10 @@ public sealed class VerifiedDocumentCache
         }
     }
 
-    private sealed record CacheManifest(string SourceKey, string Hash, long Length, DateTimeOffset StoredAtUtc);
+    private sealed record CacheManifest(string SourceKey, string Hash, long Length, DateTimeOffset StoredAtUtc,
+        string? ETag = null, DateTimeOffset? LastModified = null, DateTimeOffset? CheckedAtUtc = null);
 }
 
 /// <param name="ContentPath">Internal validated blob path, not a public download URL.</param>
-public sealed record CachedDocument(string SourceKey, string Sha256, long Length, DateTimeOffset StoredAtUtc, string ContentPath);
+public sealed record CachedDocument(string SourceKey, string Sha256, long Length, DateTimeOffset StoredAtUtc,
+    string ContentPath, string? ETag = null, DateTimeOffset? LastModified = null, DateTimeOffset? CheckedAtUtc = null);
