@@ -40,3 +40,8 @@ Next: run and correct Windows/Linux solution CI; then add fault-injection tests,
 
 - The new [mdview executable](../../Tools/MdView/README.md) consumes HTTP and GitHub source adapters and prints explicit `Stale` state when offline. Cache library stays independent of CLI and renderer.
 - No conditional-download behavior changed in the cache. Integration tests and CI results for mdview remain outstanding.
+
+## 2026-11-03 — user Windows regression confirmation
+
+- `Markdown.Cache.Tests` passed **32/32** in the user-provided full Windows solution test log, with no failed/skipped tests. This supersedes earlier 'test execution pending' statements for this snapshot on Windows. Linux CI and manual network scenarios remain unverified.
+- Nonfatal XML documentation warnings (CS1591/CS1573) are logged for public cache APIs and should be cleaned without changing runtime behavior.
