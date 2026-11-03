@@ -10,10 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="../../SpectreConsole/Markdown/Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.csproj" />
     <ProjectReference Include="../../SpectreConsole/Markdown.Cache/Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.csproj" />
+    <ProjectReference Include="../../TextFiles/Afrowave.Toolbox.Blackboard.TextFiles.csproj" />
     <ProjectReference Include="../../SpectreConsole/FileBrowser/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <!-- Temporary source reuse until the safe reader is extracted into a neutral library. -->
-    <Compile Include="../../Samples/Blackboard.Showcase/TextFilePreviewReader.cs" Link="Shared/TextFilePreviewReader.cs" />
   </ItemGroup>
 </Project>
