@@ -15,6 +15,7 @@ public sealed class VerifiedDocumentCache
     private readonly string _root;
     private readonly long _maximumDocumentBytes;
     private readonly SemaphoreSlim _writes = new(1, 1);
+    private static readonly TimeSpan LockRetryInterval = TimeSpan.FromMilliseconds(50);
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
@@ -25,6 +26,7 @@ public sealed class VerifiedDocumentCache
         if (maximumDocumentBytes <= 0)
             throw new ArgumentOutOfRangeException(nameof(maximumDocumentBytes));
         _root = Path.GetFullPath(rootDirectory);
+        EnsureNotReparsePoint(_root);
         _maximumDocumentBytes = maximumDocumentBytes;
     }
 
@@ -40,8 +42,13 @@ public sealed class VerifiedDocumentCache
         {
             var blobs = Path.Combine(_root, "blobs");
             var entries = Path.Combine(_root, "entries");
+            Directory.CreateDirectory(_root);
+            EnsureNotReparsePoint(_root);
+            await using var processLock = await AcquireProcessLockAsync(cancellationToken).ConfigureAwait(false);
             Directory.CreateDirectory(blobs);
             Directory.CreateDirectory(entries);
+            EnsureNotReparsePoint(blobs);
+            EnsureNotReparsePoint(entries);
             temporary = Path.Combine(_root, ".incoming-" + Guid.NewGuid().ToString("N"));
             long length = 0;
             using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
@@ -68,12 +75,21 @@ public sealed class VerifiedDocumentCache
             await ValidateUtf8Async(temporary, cancellationToken).ConfigureAwait(false);
             var digest = Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
             var blob = Path.Combine(blobs, digest + ".md");
-            if (!File.Exists(blob)) File.Move(temporary, blob);
-            else File.Delete(temporary);
+            // Never follow a pre-existing blob symlink or trust a corrupt digest-named file.
+            if (File.Exists(blob) || Directory.Exists(blob))
+            {
+                EnsureNotReparsePoint(blob);
+                if (!await MatchesDigestAsync(blob, digest, length, cancellationToken).ConfigureAwait(false))
+                    File.Move(temporary, blob, overwrite: true);
+                else
+                    File.Delete(temporary);
+            }
+            else File.Move(temporary, blob);
             temporary = null;
 
             var entry = new CachedDocument(sourceKey, digest, length, DateTimeOffset.UtcNow, blob);
             var index = IndexPath(entries, sourceKey);
+            EnsureNotReparsePoint(index);
             var tempIndex = index + "." + Guid.NewGuid().ToString("N") + ".tmp";
             try
             {
@@ -95,10 +111,16 @@ public sealed class VerifiedDocumentCache
     public async Task<CachedDocument?> GetAsync(string sourceKey, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceKey);
-        var index = IndexPath(Path.Combine(_root, "entries"), sourceKey);
-        if (!File.Exists(index)) return null;
+        var entries = Path.Combine(_root, "entries");
+        var blobs = Path.Combine(_root, "blobs");
+        var index = IndexPath(entries, sourceKey);
         try
         {
+            EnsureNotReparsePoint(_root);
+            EnsureNotReparsePoint(entries);
+            EnsureNotReparsePoint(blobs);
+            EnsureNotReparsePoint(index);
+            if (!File.Exists(index)) return null;
             var manifest = JsonSerializer.Deserialize<CacheManifest>(
                 await File.ReadAllTextAsync(index, cancellationToken).ConfigureAwait(false), JsonOptions);
             if (manifest is null || manifest.SourceKey != sourceKey ||
@@ -107,13 +129,8 @@ public sealed class VerifiedDocumentCache
                 manifest.Hash != manifest.Hash.ToLowerInvariant())
                 return null;
             var blob = Path.Combine(_root, "blobs", manifest.Hash + ".md");
-            if (!File.Exists(blob) || new FileInfo(blob).Length != manifest.Length) return null;
-            using var sha = SHA256.Create();
-            await using (var input = new FileStream(blob, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, FileOptions.Asynchronous))
-            {
-                var digest = Convert.ToHexString(await sha.ComputeHashAsync(input, cancellationToken).ConfigureAwait(false)).ToLowerInvariant();
-                if (!string.Equals(digest, manifest.Hash, StringComparison.Ordinal)) return null;
-            }
+            EnsureNotReparsePoint(blob);
+            if (!await MatchesDigestAsync(blob, manifest.Hash, manifest.Length, cancellationToken).ConfigureAwait(false)) return null;
             await ValidateUtf8Async(blob, cancellationToken).ConfigureAwait(false);
             return new CachedDocument(sourceKey, manifest.Hash, manifest.Length, manifest.StoredAtUtc, blob);
         }
@@ -122,6 +139,42 @@ public sealed class VerifiedDocumentCache
         {
             return null;
         }
+    }
+
+    private async Task<FileStream> AcquireProcessLockAsync(CancellationToken cancellationToken)
+    {
+        var lockPath = Path.Combine(_root, ".write.lock");
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            EnsureNotReparsePoint(lockPath);
+            try
+            {
+                // FileShare.None provides exclusive writer admission across cache instances/processes.
+                return new FileStream(lockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+            }
+            catch (IOException)
+            {
+                // Another writer may own the lock; retry without blocking cancellation.
+                await Task.Delay(LockRetryInterval, cancellationToken).ConfigureAwait(false);
+            }
+        }
+    }
+
+    private static void EnsureNotReparsePoint(string path)
+    {
+        if ((File.Exists(path) || Directory.Exists(path)) &&
+            (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
+            throw new IOException("Cache root or entry must not be a symbolic link or reparse point.");
+    }
+
+    private static async Task<bool> MatchesDigestAsync(string blob, string expectedHash, long expectedLength, CancellationToken token)
+    {
+        if (!File.Exists(blob) || new FileInfo(blob).Length != expectedLength) return false;
+        using var sha = SHA256.Create();
+        await using var input = new FileStream(blob, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, FileOptions.Asynchronous);
+        var hash = Convert.ToHexString(await sha.ComputeHashAsync(input, token).ConfigureAwait(false)).ToLowerInvariant();
+        return string.Equals(hash, expectedHash, StringComparison.Ordinal);
     }
 
     private static string IndexPath(string entries, string key)
