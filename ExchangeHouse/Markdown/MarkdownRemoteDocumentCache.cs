@@ -202,8 +202,9 @@ public sealed class MarkdownRemoteDocumentCache
                         TryDelete(tempManifestPath);
                 }
             }
-            catch (HttpRequestException) when (existing is not null &&
-                !cancellationToken.IsCancellationRequested)
+            catch (HttpRequestException ex) when (existing is not null &&
+                !cancellationToken.IsCancellationRequested &&
+                (ex.StatusCode is null || (int)ex.StatusCode.Value >= 500))
             {
                 return ToResult(source, existing, fromCache: true, stale: true);
             }
