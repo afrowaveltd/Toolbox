@@ -53,6 +53,21 @@ public sealed class MarkdownPagedSourceDemo : IBlackboardShowcaseDemo
             return;
         }
 
+        await ShowFileAsync(console, path, cancellationToken);
+    }
+
+    /// <summary>
+    /// Open an existing local Markdown source using the same bounded-memory
+    /// pager and profile selector, including reusable offline cache copies.
+    /// This method never deletes the supplied source on exit.
+    /// </summary>
+    public static async Task ShowFileAsync(
+        IAnsiConsole console, string path, CancellationToken cancellationToken,
+        string? label = null)
+    {
+        ArgumentNullException.ThrowIfNull(console);
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
         const string balanced = "Balanced — 40 lines, 16-page checkpoint interval";
         const string hdd = "HDD — 64 lines, checkpoint every page";
         const string ssd = "SSD — 64 lines, 32-page checkpoint interval";
@@ -97,7 +112,8 @@ public sealed class MarkdownPagedSourceDemo : IBlackboardShowcaseDemo
 
             // Filenames are untrusted terminal input, even when the Markdown
             // bytes have been validated separately.
-            var displayName = new string(Path.GetFileName(path)
+            var displayName = new string((label ?? Path.GetFileName(path))
+                .Take(128)
                 .Select(c => char.IsControl(c) ? '\uFFFD' : c).ToArray());
             await using var fences = await MarkdownFenceCheckpointIndex.BuildAsync(
                 index, cancellationToken,
