@@ -112,6 +112,42 @@ public sealed class HttpMarkdownDocumentSourceTests
             source.OpenAsync(new Uri("https://example.org/readme.md?token=secret")));
     }
 
+
+    [Fact]
+    public async Task LastModifiedValidatorSurvivesRestart()
+    {
+        using var temp = new TempCache();
+        var modified = new DateTimeOffset(2026, 10, 15, 12, 0, 0, TimeSpan.Zero);
+        var calls = 0;
+        using var client = Client(request =>
+        {
+            if (++calls == 1)
+            {
+                var response = Ok("# With timestamp", "\"version-a\"");
+                response.Content.Headers.LastModified = modified;
+                return response;
+            }
+            Assert.Equal(modified, request.Headers.IfModifiedSince);
+            return new HttpResponseMessage(HttpStatusCode.NotModified);
+        });
+        await new HttpMarkdownDocumentSource(client, new VerifiedDocumentCache(temp.Root)).OpenAsync(Address);
+        var response2 = await new HttpMarkdownDocumentSource(client,
+            new VerifiedDocumentCache(temp.Root)).OpenAsync(Address);
+        Assert.Equal(HttpDocumentState.NotModified, response2.State);
+        Assert.Equal(modified, response2.Document!.LastModified);
+    }
+
+    [Fact]
+    public async Task NotModifiedWithoutAnyCacheIsNotSuccess()
+    {
+        using var temp = new TempCache();
+        using var client = Client(_ => new HttpResponseMessage(HttpStatusCode.NotModified));
+        var result = await new HttpMarkdownDocumentSource(client,
+            new VerifiedDocumentCache(temp.Root)).OpenAsync(Address);
+        Assert.Equal(HttpDocumentState.Error, result.State);
+        Assert.Null(result.Document);
+    }
+
     private static HttpClient Client(Func<HttpRequestMessage, HttpResponseMessage> callback) =>
         new(new Handler(callback), disposeHandler: true);
 
