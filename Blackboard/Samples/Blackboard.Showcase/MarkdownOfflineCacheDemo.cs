@@ -118,7 +118,7 @@ public sealed class MarkdownOfflineCacheDemo : IBlackboardShowcaseDemo
             var selection = await new SelectionPrompt<string>()
                 .Title($"Offline documents {skip + 1}–{skip + page.Entries.Count} " +
                     "(Esc returns)")
-                .PageSize(Math.Min(12, choices.Count))
+                .PageSize(Math.Max(3, Math.Min(12, choices.Count)))
                 .UseConverter(Markup.Escape)
                 .AddChoices(choices)
                 .AddCancelResult(BackToList)
@@ -215,7 +215,7 @@ public sealed class MarkdownOfflineCacheDemo : IBlackboardShowcaseDemo
                 const string keep = "No, keep the offline document";
                 var answer = await new SelectionPrompt<string>()
                     .Title("Remove this offline document? This cannot be undone.")
-                    .PageSize(2)
+                    .PageSize(3)
                     .AddChoices(keep, confirm)
                     .AddCancelResult(keep)
                     .ShowAsync(console, cancellationToken);
@@ -238,7 +238,7 @@ public sealed class MarkdownOfflineCacheDemo : IBlackboardShowcaseDemo
         const string clean = "Prune older redundant versions (24-hour grace period)";
         var choice = await new SelectionPrompt<string>()
             .Title("This will never delete the verified current offline copy.")
-            .PageSize(2)
+            .PageSize(3)
             .AddChoices(keep, clean)
             .AddCancelResult(keep)
             .ShowAsync(console, cancellationToken);
