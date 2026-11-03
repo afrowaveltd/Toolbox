@@ -515,6 +515,9 @@ public sealed class MarkdownRemoteDocumentCacheTests
             Assert.Null(legacy.Source);
             Assert.Equal(stored.LocalPath, legacy.LocalPath);
             Assert.Equal("legacy\n", await File.ReadAllTextAsync(legacy.LocalPath));
+            var export = Path.Combine(root, "Exported-Legacy.md");
+            await MarkdownRemoteDocumentCache.SaveCopyAsync(legacy, export);
+            Assert.Equal("legacy\n", await File.ReadAllTextAsync(export));
             Assert.Equal(stored.LocalPath,
                 (await cache.GetAsync(client, DocumentUrl,
                     MarkdownRemoteCacheMode.OfflineOnly)).LocalPath);

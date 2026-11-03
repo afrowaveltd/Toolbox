@@ -454,11 +454,33 @@ public sealed class MarkdownRemoteDocumentCache
     /// sibling is copied and then moved into place, so errors leave no partial
     /// target. Existing target files are not replaced by default.
     /// </summary>
-    public static async Task SaveCopyAsync(
+    public static Task SaveCopyAsync(
         MarkdownCachedRemoteDocument document, string destination,
         bool overwrite = false, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(document);
+        return SaveSourceCopyAsync(document.LocalPath, destination,
+            overwrite, cancellationToken);
+    }
+
+    /// <summary>
+    /// Export a bounded-catalog entry, including legacy entries without
+    /// a known origin URI. No synthetic URL or network request is needed.
+    /// </summary>
+    public static Task SaveCopyAsync(
+        MarkdownRemoteCacheEntry entry, string destination,
+        bool overwrite = false, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entry);
+        return SaveSourceCopyAsync(entry.LocalPath, destination,
+            overwrite, cancellationToken);
+    }
+
+    private static async Task SaveSourceCopyAsync(
+        string sourcePath, string destination,
+        bool overwrite, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourcePath);
         ArgumentException.ThrowIfNullOrWhiteSpace(destination);
         var target = Path.GetFullPath(destination);
         var parent = Path.GetDirectoryName(target)!;
@@ -468,7 +490,7 @@ public sealed class MarkdownRemoteDocumentCache
             Guid.NewGuid().ToString("N") + ".part");
         try
         {
-            await using (var input = new FileStream(document.LocalPath,
+            await using (var input = new FileStream(sourcePath,
                 FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete,
                 64 * 1024, FileOptions.Asynchronous | FileOptions.SequentialScan))
             await using (var output = new FileStream(temp,

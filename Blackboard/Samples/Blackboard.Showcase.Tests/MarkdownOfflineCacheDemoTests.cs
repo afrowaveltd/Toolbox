@@ -126,6 +126,59 @@ public sealed class MarkdownOfflineCacheDemoTests
         finally { Directory.Delete(root, true); }
     }
 
+    [Fact]
+    public async Task Catalog_navigation_does_not_materialize_all_documents_in_one_menu()
+    {
+        var root = NewRoot();
+        try
+        {
+            var cache = new MarkdownRemoteDocumentCache(Path.Combine(root, "cache"));
+            using var client = CreateClient(() => Ok("# Offline\n"));
+            for (var i = 0; i < 9; i++)
+                _ = await cache.GetAsync(client,
+                    new Uri($"https://example.org/readme-{i:00}.md"));
+            var console = CreateConsole();
+            console.Input.PushKey(ConsoleKey.Enter); // browse
+            for (var i = 0; i < 8; i++)
+                console.Input.PushKey(ConsoleKey.DownArrow); // next saved page
+            console.Input.PushKey(ConsoleKey.Enter);
+            console.Input.PushKey(ConsoleKey.Escape); // leave browser
+            console.Input.PushKey(ConsoleKey.Escape); // leave menu
+
+            await new MarkdownOfflineCacheDemo(cache).RunAsync(
+                console, root, CancellationToken.None);
+
+            Assert.Contains("Offline documents 1–8", console.Output);
+            Assert.Contains("Offline documents 9–9", console.Output);
+            Assert.Equal(9, (await cache.ListPageAsync(pageSize: 16)).Entries.Count);
+        }
+        finally { Directory.Delete(root, true); }
+    }
+
+    [Fact]
+    public async Task Signed_url_query_values_are_not_printed_in_offline_menu()
+    {
+        var root = NewRoot();
+        try
+        {
+            var cache = new MarkdownRemoteDocumentCache(Path.Combine(root, "cache"));
+            using var client = CreateClient(() => Ok("# Document\n"));
+            _ = await cache.GetAsync(client,
+                new Uri("https://example.org/private.md?token=SECRET123"));
+            var console = CreateConsole();
+            console.Input.PushKey(ConsoleKey.Enter); // browse
+            console.Input.PushKey(ConsoleKey.Escape); // return to main
+            console.Input.PushKey(ConsoleKey.Escape); // exit
+
+            await new MarkdownOfflineCacheDemo(cache).RunAsync(
+                console, root, CancellationToken.None);
+
+            Assert.Contains("private.md", console.Output);
+            Assert.DoesNotContain("SECRET123", console.Output);
+        }
+        finally { Directory.Delete(root, true); }
+    }
+
     private static string NewRoot()
     {
         var path = Path.Combine(Path.GetTempPath(),

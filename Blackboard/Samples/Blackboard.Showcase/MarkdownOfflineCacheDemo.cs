@@ -193,11 +193,7 @@ public sealed class MarkdownOfflineCacheDemo : IBlackboardShowcaseDemo
                 try
                 {
                     await MarkdownRemoteDocumentCache.SaveCopyAsync(
-                        new MarkdownCachedRemoteDocument(
-                            entry.Source ?? new Uri("https://example.invalid/legacy"),
-                            entry.LocalPath, entry.ByteCount,
-                            true, true, null, entry.LastModified),
-                        destination, cancellationToken: cancellationToken);
+                        entry, destination, cancellationToken: cancellationToken);
                     console.Write(new Text(
                         "Permanent copy saved: " + SafeLabel(destination, 160) + "\n"));
                 }
