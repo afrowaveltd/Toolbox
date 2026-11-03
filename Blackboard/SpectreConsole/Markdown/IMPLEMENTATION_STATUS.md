@@ -173,3 +173,8 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 
 - Separate [Markdown.Cache](../Markdown.Cache/IMPLEMENTATION_STATUS.md) now includes cross-process writer admission, direct symlink checks and per-user cache location selection. No change to Markdown parsing/rendering.
 - Ten cache tests authored, **not yet executed/CI verified**. Viewer network adapters and offline UI remain future implementation.
+
+## 2026-11-03 — conditional HTTP cache provider
+
+- [Markdown.Cache](../Markdown.Cache/README.md) adds optional HTTP conditional-fetch transport, ETag/Last-Modified persistence and distinguishable fresh/unchanged/stale/error results. The renderer and ExchangeHouse parser remain independent and unchanged.
+- Eight HTTP tests use injected in-memory handlers. No viewer command, GitHub-specific README resolver or terminal UI integrated. Build/CI still unverified; see [cache checkpoint](../Markdown.Cache/IMPLEMENTATION_STATUS.md).
