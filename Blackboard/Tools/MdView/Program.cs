@@ -25,28 +25,18 @@ static async Task<int> RunAsync(string[] args)
 
     if (command.Kind == MdViewSourceKind.Interactive)
     {
-        Console.WriteLine("Markdown viewer: 1 Local  2 URL  3 GitHub  Q Quit");
-        var selection = Console.ReadLine()?.Trim();
-        if (selection is null || selection.Equals("q", StringComparison.OrdinalIgnoreCase)) return 0;
-        switch (selection)
+        try
         {
-            case "1":
-                Console.Write("Local Markdown path: ");
-                command = new(MdViewSourceKind.Local, Console.ReadLine());
-                break;
-            case "2":
-                Console.Write("HTTP(S) Markdown URL: ");
-                command = new(MdViewSourceKind.Url, Console.ReadLine());
-                break;
-            case "3":
-                Console.Write("GitHub owner/repository: ");
-                var text = Console.ReadLine() ?? "";
-                try { command = MdViewCommand.Parse("git", text); }
-                catch (ArgumentException ex) { Console.Error.WriteLine(ex.Message); return 2; }
-                break;
-            default:
-                Console.Error.WriteLine("Unknown menu choice.");
-                return 2;
+            var chosen = await new MdViewInteractiveSourcePicker(AnsiConsole.Console)
+                .PickAsync(Environment.CurrentDirectory);
+            if (chosen is null) return 0;
+            command = chosen;
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or IOException or
+                                   UnauthorizedAccessException or ArgumentException)
+        {
+            Console.Error.WriteLine("Interactive selection failed: " + ex.Message);
+            return 1;
         }
     }
 
@@ -56,9 +46,7 @@ static async Task<int> RunAsync(string[] args)
         if (command.Kind == MdViewSourceKind.Local)
         {
             var path = Path.GetFullPath(command.Value ?? "");
-            var ext = Path.GetExtension(path);
-            if (!ext.Equals(".md", StringComparison.OrdinalIgnoreCase) &&
-                !ext.Equals(".markdown", StringComparison.OrdinalIgnoreCase))
+            if (!MdViewInteractiveSourcePicker.IsMarkdownPath(path))
             {
                 Console.Error.WriteLine("Local source must end in .md or .markdown.");
                 return 2;
@@ -122,5 +110,5 @@ static void PrintHelp()
     Console.WriteLine("mdview git OWNER REPOSITORY");
     Console.WriteLine("mdview git OWNER/REPOSITORY");
     Console.WriteLine("mdview --help");
-    Console.WriteLine("No arguments: interactive Local / URL / GitHub source menu.");
+    Console.WriteLine("No arguments: interactive Spectre source menu with a local Markdown FileBrowser.");
 }
