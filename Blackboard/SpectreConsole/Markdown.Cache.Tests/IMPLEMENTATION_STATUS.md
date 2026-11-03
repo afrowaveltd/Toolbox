@@ -7,3 +7,7 @@ Created six xUnit scenarios for disk persistence across instances, replacement r
 ## 2026-11-03 — hardening test additions
 
 Added four regression cases for independent concurrent cache instances, corrupted digest blob repair, Linux symlinked storage guard and default per-user cache location (ten total authored). No local SDK; **tests have not yet run**. Confirm through Linux/Windows CI before accepting this checkpoint as green.
+
+## 2026-11-03 — HTTP fake-handler suite
+
+Added eight tests for initial `200`, ETag/Last-Modified `304`, changed `200`, offline stale fallback, unsafe response protection, missing entry errors and strict URL policy. Total cache tests authored: **18**. Verification in CI pending; local SDK unavailable.
