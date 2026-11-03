@@ -26,7 +26,7 @@ public sealed class VerifiedDocumentCacheTests
         using var fixture = new CacheFixture();
         var before = await fixture.Cache.PutAsync("source", Bytes("good document"));
         await Assert.ThrowsAsync<InvalidDataException>(() =>
-            fixture.Cache.PutAsync("source", Bytes("bad\u001b[31m")).AsTask());
+            fixture.Cache.PutAsync("source", Bytes("bad\u001b[31m")));
         var after = await fixture.Cache.GetAsync("source");
         Assert.Equal(before.Sha256, after?.Sha256);
     }
@@ -37,7 +37,7 @@ public sealed class VerifiedDocumentCacheTests
         using var fixture = new CacheFixture();
         var before = await fixture.Cache.PutAsync("source", Bytes("valid"));
         await Assert.ThrowsAsync<DecoderFallbackException>(() =>
-            fixture.Cache.PutAsync("source", new MemoryStream(new byte[] { 0x61, 0xc3, 0x28 })).AsTask());
+            fixture.Cache.PutAsync("source", new MemoryStream(new byte[] { 0x61, 0xc3, 0x28 })));
         Assert.Equal(before.Sha256, (await fixture.Cache.GetAsync("source"))?.Sha256);
     }
 
@@ -55,7 +55,7 @@ public sealed class VerifiedDocumentCacheTests
     {
         using var fixture = new CacheFixture(4);
         await Assert.ThrowsAsync<InvalidDataException>(() =>
-            fixture.Cache.PutAsync("source", Bytes("hello")).AsTask());
+            fixture.Cache.PutAsync("source", Bytes("hello")));
         Assert.Null(await fixture.Cache.GetAsync("source"));
     }
 
