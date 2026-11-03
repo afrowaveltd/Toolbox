@@ -133,6 +133,7 @@ public sealed class MarkdownRemoteDocumentCache
                 cancellationToken.ThrowIfCancellationRequested();
                 var name = Path.GetFileName(path);
                 if (!IsVersionName(name) ||
+                    (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0 ||
                     File.GetLastWriteTimeUtc(path) > cutoff)
                     continue;
 
@@ -236,6 +237,7 @@ public sealed class MarkdownRemoteDocumentCache
                     Guid.NewGuid().ToString("N") + ".part");
                 var versionPath = Path.Combine(_directory, versionName);
                 string? tempManifestPath = null;
+                var committed = false;
                 try
                 {
                     EnsureDirectory();
@@ -285,8 +287,14 @@ public sealed class MarkdownRemoteDocumentCache
                         JsonSerializer.Serialize(manifest, JsonOptions),
                         cancellationToken);
                     MakePrivate(tempManifestPath);
+                    // The quota must hold even when a server supplies unusually
+                    // long cache validators; the temporary manifest counts too.
+                    if (GetUsageCore(cancellationToken).UsedBytes > _maxTotalCacheBytes)
+                        throw new InvalidDataException(
+                            "Remote Markdown metadata exceeded the cache disk quota.");
                     File.Move(tempManifestPath,
                         Path.Combine(_directory, key + ".json"), overwrite: true);
+                    committed = true;
                     return ToResult(source, manifest, fromCache: false, stale: false);
                 }
                 finally
@@ -295,6 +303,10 @@ public sealed class MarkdownRemoteDocumentCache
                     TryDelete(tempPath);
                     if (tempManifestPath is not null)
                         TryDelete(tempManifestPath);
+                    // A failed write must not leave an unreferenced version
+                    // consuming the very disk space needed for offline access.
+                    if (!committed)
+                        TryDelete(versionPath);
                 }
             }
             catch (HttpRequestException ex) when (existing is not null &&
