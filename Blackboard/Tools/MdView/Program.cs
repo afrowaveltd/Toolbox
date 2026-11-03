@@ -107,7 +107,7 @@ static async Task<int> RunAsync(string[] args)
     }
     catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or
                                ArgumentException or InvalidOperationException or
-                               HttpRequestException or System.Text.DecoderFallbackException)
+                               HttpRequestException or UriFormatException or System.Text.DecoderFallbackException)
     {
         Console.Error.WriteLine("Unable to display the requested Markdown document: " + ex.Message);
         return 1;
