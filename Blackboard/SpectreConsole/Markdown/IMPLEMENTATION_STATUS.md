@@ -178,3 +178,8 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 
 - [Markdown.Cache](../Markdown.Cache/README.md) adds optional HTTP conditional-fetch transport, ETag/Last-Modified persistence and distinguishable fresh/unchanged/stale/error results. The renderer and ExchangeHouse parser remain independent and unchanged.
 - Eight HTTP tests use injected in-memory handlers. No viewer command, GitHub-specific README resolver or terminal UI integrated. Build/CI still unverified; see [cache checkpoint](../Markdown.Cache/IMPLEMENTATION_STATUS.md).
+
+## 2026-11-03 — GitHub README source provider foundation
+
+- A separate [Markdown.Cache GitHub README provider](../Markdown.Cache/Docs/GitHub-Readme/en.md) is now implemented for public repository default-branch READMEs. It reuses safe disk-backed conditional HTTP cache and does not modify the renderer or parser.
+- Tests are authored with fake HTTP handlers; .NET build/CI has not been confirmed. No standalone `mdview` executable or GitHub file/link navigation exists yet.
