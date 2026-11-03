@@ -257,3 +257,10 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - MdView now links the original Showcase `TextFilePreviewReader.cs` source and imports its actual namespace. This is a temporary compilation bridge until the reader is extracted as a shared library rather than duplicating implementation.
 - The two Configurator tests now inject isolated preference files, preventing an installed Czech language preference from changing tests intended to exercise English UI. Production UI untouched.
 - .NET 11 preview `NETSDK1057` is informational; CS1591/CS1573 XML documentation warnings and xUnit2013 analyzer warnings are nonfatal and remain for cleanup. **Full corrected Windows/Linux CI is not yet established.**
+
+## 2026-11-03 — full Windows solution test confirmation (user-run)
+
+- User supplied the output of `dotnet test Toolbox.sln` on Windows, using .NET SDK `11.0.100-rc.3.26522.148` targeting `net10.0` projects. **All 6,438 tests passed; 0 failed, 0 skipped** across twelve test assemblies. This is a user-reported local run, not an independently observed GitHub Actions CI result.
+- Per assembly: Essentials 3198; WhenItFails 1475; Setter 1241; FileBrowser 160; UnderstandMe 111; Configurator 44; ExchangeHouse Markdown 88; Blackboard Markdown 34; Markdown.Cache 32; mdview 10; Blackboard.Showcase 39; Markdown.TextMate 6.
+- Confirms that the corrected mdview source link/import now compiles and the two Configurator locale-isolation test fixes pass. Prior unverified checkpoints for these sources are superseded by this Windows test run.
+- Remaining nonblocking warnings: CS1591/CS1573 on public XML API comments in Markdown.Cache and MdView; two xUnit2013 assertions in ExchangeHouse Markdown tests; and NETSDK1057 informing that the SDK is preview. Still pending: clean Linux CI verification, interactive mdview smoke test, and extraction of complete text reader from the Showcase sample into a neutral shared project.
