@@ -1,6 +1,6 @@
 # mdview CLI: first executable slice
 
-**Status:** implemented as in-repository .NET 10 console project, 2026-11-03. No public package or standalone installed command. Compile/test verification pending.
+**Status:** in-repository .NET 10 executable. The command parser and TextFiles extraction passed the user-provided Windows solution baseline; the new Spectre interactive source picker is authored and awaiting its own test rerun. No public package or system-wide installed command.
 
 ## Source selection
 
@@ -17,7 +17,7 @@ mdview github:OWNER/REPO
 mdview --help
 ```
 
-With no arguments, an elementary numbered Local / URL / GitHub menu prompts for the source; future work will add real FileBrowser navigation, back/forward history and theme choice. Explicit source commands bypass the menu. The argument parser is independent and unit tested. GitHub owner/repo capitalization is left as input for network requests and normalized by the source adapter for cache keys; local filename casing is preserved.
+With no arguments, a Spectre.Console menu offers Local Markdown file, HTTPS URL, GitHub README and Exit. The Local choice opens the existing SpectreFileBrowser with a Markdown filename filter, folder navigation and search; Escape inside the browser returns to the source menu. URL and GitHub use Spectre text prompts. [Interaction details](../Interactive-Source-Picker/en.md). Future work includes in-document navigation, back/forward history and theme choice. Explicit source commands bypass the menu. The argument parser is independent and unit tested. GitHub owner/repo capitalization is left as input for network requests and normalized by the source adapter for cache keys; local filename casing is preserved.
 
 ## Rendering and storage
 
@@ -33,6 +33,6 @@ Local documents are decoded with `TextFilePreviewReader.ReadCompleteAsync` (incl
 - No authenticated GitHub/API clients, network query URLs or arbitrary remote protocols.
 - No `Docs/**` navigation, external Markdown links, anchors, pager or reverse search.
 - Current parser/renderer remain in-memory; a 1 GB Markdown benchmark is still a target, not demonstrated.
-- An interactive Spectre FileBrowser and automated CLI end-to-end tests should follow after successful CI of these projects.
+- The no-argument Spectre FileBrowser and virtual-terminal picker tests are implemented, but the new test run, full CLI end-to-end rendering checks and live terminal acceptance remain pending.
 
 [README](../../README.md) · [Implementation status](../../IMPLEMENTATION_STATUS.md).
