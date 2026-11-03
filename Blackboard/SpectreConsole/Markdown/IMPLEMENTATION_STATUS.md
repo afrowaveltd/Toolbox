@@ -168,3 +168,8 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 - New independent [Markdown.Cache library](../Markdown.Cache/README.md) and [tests](../Markdown.Cache.Tests/README.md) contain the first disk-store implementation. Parser/renderer itself is unchanged and has no cache dependency.
 - The [viewer cache contract](Docs/Document-Cache-Policy/en.md) remains the wider target; current store does not implement conditional network refresh, cleanup, per-user path selection or paging.
 - New cache tests have not yet passed CI or been run locally; .NET SDK unavailable in execution environment. See [cache status](../Markdown.Cache/IMPLEMENTATION_STATUS.md).
+
+## 2026-11-03 — independent cache hardening checkpoint
+
+- Separate [Markdown.Cache](../Markdown.Cache/IMPLEMENTATION_STATUS.md) now includes cross-process writer admission, direct symlink checks and per-user cache location selection. No change to Markdown parsing/rendering.
+- Ten cache tests authored, **not yet executed/CI verified**. Viewer network adapters and offline UI remain future implementation.
