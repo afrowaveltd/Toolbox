@@ -219,3 +219,9 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - The standalone Markdown viewer remains **design-only**, while the existing local Showcase reader remains functional and previously CI-verified.
 - Documented durable cache behavior: online conditional refresh, visible offline/stale fallback, crash-safe validated writes, separate per-user cache location and explicit user-controlled cleanup. [Cache policy](Blackboard/SpectreConsole/Markdown/Docs/Document-Cache-Policy/en.md) and [renderer status](Blackboard/SpectreConsole/Markdown/IMPLEMENTATION_STATUS.md).
 - No cache or `mdview` code is claimed; .NET tests and full CI have not been run for this documentation increment.
+
+## 2026-11-03 — verified Markdown disk cache initial code
+
+- Added separate .NET 10 [Markdown.Cache](Blackboard/SpectreConsole/Markdown.Cache/README.md) assembly and [xUnit tests](Blackboard/SpectreConsole/Markdown.Cache.Tests/README.md), registered in `Toolbox.sln`.
+- Implemented bounded streamed spooling, strict UTF-8/control validation, SHA-256 content-addressed blobs, atomic source-index publication, independent cache read verification and prior-entry preservation on failed replacements. Documentation and per-project implementation checkpoints are present.
+- **Not yet CI verified:** new tests authored but have not run locally (dotnet SDK unavailable). Do not claim successful builds. No HTTP/GitHub refresh, offline viewer UI, cache eviction or cross-process hardening yet.
