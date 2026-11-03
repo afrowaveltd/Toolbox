@@ -71,3 +71,8 @@
 - The user-reported Windows full-suite run had **42/44 passing**, with `Main_menu_help_opens_topic_offline_then_returns_to_main_menu` and `Escape_exits_empty_interactive_editor` failing because they expected English UI strings but used the real user's default preferences location (Czech UI visible in the log).
 - Both tests now inject unique/isolated preferences paths. The production Configurator and language selection remain unchanged; tests should no longer inherit a user's saved locale.
 - **Awaiting rerun** of `dotnet test Toolbox.sln` on the corrected source. Do not claim these two tests passed yet.
+
+## 2026-11-03 — Windows regression fix confirmed
+
+- User's repeated full solution run confirms **44/44 Configurator tests passing**, including the two previously failing locale-sensitive interactive tests. Their injected isolated preferences paths resolve the local Czech UI interference without changing the production Configurator.
+- Other suites also passed; XML documentation/analyzer warnings are separate nonblocking cleanup tasks.
