@@ -28,3 +28,20 @@ dotnet test Blackboard/SpectreConsole/Markdown.Cache.Tests/Afrowave.Toolbox.Blac
 Writers now take an exclusive `.write.lock` file handle (retry with cancellation), shared between independent cache instances/processes, before mutating cache storage. Cache root, `blobs`, `entries`, index and blob targets reject symlinks/reparse points when inspected. A corrupt existing digest-named blob is replaced with validated content instead of being trusted. `CacheDirectory.GetDefaultPath()` suggests Windows per-user LocalApplicationData or Unix XDG cache / `~/.cache`; caller still creates/owns the directory.
 
 This is **defense in depth**, not a guarantee against an attacker concurrently replacing directory components (TOCTOU), parent-path symlinks or power-loss durability. Use an isolated trusted user-owned root; private/authenticated caching remains deferred. No full multi-process stress test has run yet.
+
+## Conditional HTTP(S) documents (2026-11-03)
+
+`HttpMarkdownDocumentSource` is a small opt-in adapter over an injected `HttpClient` and this cache. It sends `If-None-Match` and `If-Modified-Since` from the previously verified entry, stores a complete validated `200 OK` response atomically and handles `304 Not Modified` by updating the last-check timestamp **without downloading content**. A failure returns `HttpDocumentState.Stale` with the last valid copy and a warning, or `Error` when no cache is present. Cancellation requested by the caller propagates.
+
+```csharp
+using var http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+var cache = new VerifiedDocumentCache(CacheDirectory.GetDefaultPath());
+var source = new HttpMarkdownDocumentSource(http, cache);
+var result = await source.OpenAsync(new Uri("https://example.org/README.md"));
+if (result.Document is not null)
+    Console.WriteLine($"{result.State}: {result.Document.ContentPath}");
+```
+
+The initial adapter deliberately permits **HTTPS URLs without query strings, fragments or embedded credentials** only. HTTP is opt-in for explicit local/test use. Redirects are not supported; callers should disable automatic redirects as shown. Do not inject authenticated handlers or store private documents yet. The cache does not interpret Markdown, nor does it automatically display stale content as fresh. URL identity and metadata are isolated from the parser/renderer; GitHub README discovery is a separate future adapter. The client must configure timeouts and safe transport settings. Resource consumption is controlled by the cache's configured per-document limit; global cache eviction and decompression-ratio bounds are not implemented.
+
+[HTTP validation details](Docs/Http-Validation/en.md).
