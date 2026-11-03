@@ -245,6 +245,146 @@ public sealed class MarkdownRemoteDocumentCacheTests
         finally { Directory.Delete(root, recursive: true); }
     }
 
+    [Fact]
+    public async Task Cache_quota_rejects_second_document_without_losing_offline_copy()
+    {
+        var root = NewDirectory();
+        try
+        {
+            var second = new Uri("https://example.org/docs/second.md");
+            var cache = new MarkdownRemoteDocumentCache(root,
+                maxTotalCacheBytes: 20 * 1024);
+            using var firstClient = Client(_ => Ok("kept offline\n"u8.ToArray(), "\"one\""));
+            var original = await cache.GetAsync(firstClient, DocumentUrl);
+            var before = await cache.GetUsageAsync();
+            Assert.Equal(2, before.FileCount);
+            Assert.True(before.UsedBytes < before.MaxTotalBytes);
+            Assert.Equal(20 * 1024, before.MaxTotalBytes);
+            Assert.Equal(before.MaxTotalBytes - before.UsedBytes,
+                before.RemainingBytes);
+
+            using var nextClient = Client(_ => Ok(new byte[8 * 1024], "\"large\""));
+            await Assert.ThrowsAsync<InvalidDataException>(() =>
+                cache.GetAsync(nextClient, second));
+
+            var after = await cache.GetUsageAsync();
+            Assert.Equal(before, after);
+            Assert.DoesNotContain(Directory.GetFiles(root),
+                p => p.EndsWith(".part", StringComparison.Ordinal));
+            var offline = await cache.GetAsync(firstClient, DocumentUrl,
+                MarkdownRemoteCacheMode.OfflineOnly);
+            Assert.Equal(original.LocalPath, offline.LocalPath);
+            Assert.Equal("kept offline\n", await File.ReadAllTextAsync(offline.LocalPath));
+            await Assert.ThrowsAsync<FileNotFoundException>(() => cache.GetAsync(
+                firstClient, second, MarkdownRemoteCacheMode.OfflineOnly));
+        }
+        finally { Directory.Delete(root, recursive: true); }
+    }
+
+    [Fact]
+    public async Task Explicit_pruning_removes_old_versions_only_and_preserves_other_urls()
+    {
+        var root = NewDirectory();
+        try
+        {
+            var url2 = new Uri("https://example.org/guide-two.md");
+            var counter = 0;
+            using var http = Client(_ => Ok(
+                Encoding.UTF8.GetBytes("generation " + ++counter + "\n"),
+                "\"v" + counter + "\""));
+            var cache = new MarkdownRemoteDocumentCache(root);
+            var older = await cache.GetAsync(http, DocumentUrl);
+            var newer = await cache.GetAsync(http, DocumentUrl,
+                MarkdownRemoteCacheMode.ForceRefresh);
+            var newest = await cache.GetAsync(http, DocumentUrl,
+                MarkdownRemoteCacheMode.ForceRefresh);
+            var other = await cache.GetAsync(http, url2);
+            var before = await cache.GetUsageAsync();
+            Assert.Equal(6, before.FileCount); // two manifests, four .md copies
+            Assert.True(File.Exists(older.LocalPath));
+            Assert.True(File.Exists(newer.LocalPath));
+
+            // Default 24h protection avoids pruning a just-opened document.
+            Assert.Equal(0, await cache.PruneObsoleteVersionsAsync());
+            Assert.Equal(2, await cache.PruneObsoleteVersionsAsync(TimeSpan.Zero));
+            var after = await cache.GetUsageAsync();
+            Assert.Equal(before.FileCount - 2, after.FileCount);
+            Assert.True(after.UsedBytes < before.UsedBytes);
+            Assert.False(File.Exists(older.LocalPath));
+            Assert.False(File.Exists(newer.LocalPath));
+            Assert.True(File.Exists(newest.LocalPath));
+            Assert.True(File.Exists(other.LocalPath));
+
+            Assert.Equal(newest.LocalPath, (await cache.GetAsync(http,
+                DocumentUrl, MarkdownRemoteCacheMode.OfflineOnly)).LocalPath);
+            Assert.Equal(other.LocalPath, (await cache.GetAsync(http,
+                url2, MarkdownRemoteCacheMode.OfflineOnly)).LocalPath);
+        }
+        finally { Directory.Delete(root, recursive: true); }
+    }
+
+    [Fact]
+    public async Task Prune_never_guesses_when_manifest_is_missing_or_corrupt()
+    {
+        var root = NewDirectory();
+        try
+        {
+            using var http = Client(_ => Ok("reusable\n"u8.ToArray(), "\"v\""));
+            var cache = new MarkdownRemoteDocumentCache(root);
+            var a = await cache.GetAsync(http, DocumentUrl);
+            var b = await cache.GetAsync(http, DocumentUrl,
+                MarkdownRemoteCacheMode.ForceRefresh);
+            var manifest = Assert.Single(Directory.GetFiles(root, "*.json"));
+            await File.WriteAllTextAsync(manifest, "{invalid json");
+            Assert.Equal(0, await cache.PruneObsoleteVersionsAsync(TimeSpan.Zero));
+            Assert.True(File.Exists(a.LocalPath));
+            Assert.True(File.Exists(b.LocalPath));
+            Assert.Equal(3, (await cache.GetUsageAsync()).FileCount);
+        }
+        finally { Directory.Delete(root, recursive: true); }
+    }
+
+    [Fact]
+    public async Task Quota_counts_only_owned_cache_files_without_a_body_catalog()
+    {
+        var root = NewDirectory();
+        try
+        {
+            var cache = new MarkdownRemoteDocumentCache(root);
+            var empty = await cache.GetUsageAsync();
+            Assert.Equal(0, empty.FileCount);
+            Assert.False(Directory.Exists(Path.Combine(root, "missing")));
+            await File.WriteAllBytesAsync(Path.Combine(root, "unrelated.txt"), new byte[500]);
+            using var client = Client(_ => Ok("hi\n"u8.ToArray(), "\"v\""));
+            var copy = await cache.GetAsync(client, DocumentUrl);
+            var usage = await cache.GetUsageAsync();
+            Assert.Equal(2, usage.FileCount);
+            Assert.True(usage.UsedBytes > copy.ByteCount);
+            Assert.True(usage.UsedBytes < 500);
+            Assert.Equal(0, await cache.PruneObsoleteVersionsAsync(TimeSpan.Zero));
+
+            await cache.RemoveAsync(DocumentUrl);
+            Assert.Equal(0, (await cache.GetUsageAsync()).UsedBytes);
+            Assert.True(File.Exists(Path.Combine(root, "unrelated.txt")));
+        }
+        finally { Directory.Delete(root, recursive: true); }
+    }
+
+    [Fact]
+    public async Task Small_or_invalid_total_quota_and_negative_retention_age_are_rejected()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new MarkdownRemoteDocumentCache(maxTotalCacheBytes: 100));
+        var root = NewDirectory();
+        try
+        {
+            var cache = new MarkdownRemoteDocumentCache(root);
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+                cache.PruneObsoleteVersionsAsync(TimeSpan.FromSeconds(-1)));
+        }
+        finally { Directory.Delete(root, recursive: true); }
+    }
+
     private static HttpResponseMessage Ok(byte[] bytes, string tag)
     {
         var message = new HttpResponseMessage(HttpStatusCode.OK)
