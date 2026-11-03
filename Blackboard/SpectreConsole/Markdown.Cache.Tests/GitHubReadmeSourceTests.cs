@@ -107,6 +107,8 @@ public sealed class GitHubReadmeSourceTests
     [InlineData("owner", "")]
     [InlineData("", "repo")]
     [InlineData("owner", "repo?token=abc")]
+    [InlineData("owner\n", "repo")]
+    [InlineData("owner", "repo\n")]
     public async Task InvalidOwnerOrRepositoryNeverSendsRequest(string owner, string repository)
     {
         using var fixture = new Fixture();
