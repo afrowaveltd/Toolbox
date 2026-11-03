@@ -17,3 +17,11 @@ Do not cache private/authenticated content until caller authorization partitioni
 The next slice should add isolated fake-clock conditional-refresh metadata, concurrent-process protection and fault injection before connecting a real HTTP client. The existing parser and renderer are unchanged.
 
 [README](../../README.md) · [Implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## 2026-11-03 hardening increment
+
+- An exclusive file handle on the same persistent `.write.lock` is acquired before changing blobs or indices. Other writers retry with cancellation; concurrent readers can still validate the currently published index. This is designed to work across process boundaries on supported .NET filesystems.
+- Direct cache directories and blob/index targets are checked for symlinks/reparse points including dangling links. This is **not** race-free against adversarial directory swaps or untrusted parent directories. Secure OS permissions and protection against TOCTOU remain separate work.
+- A digest-named blob that exists but fails length/hash verification is replaced from the newly validated incoming document.
+- `CacheDirectory.GetDefaultPath()` provides a platform-specific per-user recommended location; root provisioning and directory permissions are owned by the future application.
+- Added multi-instance concurrent writer, damaged blob recovery, Linux symlink and default location tests. **These tests are authored but have not yet been executed.**
