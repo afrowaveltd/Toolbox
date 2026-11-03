@@ -285,3 +285,9 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - The previously missing `Afrowave.Toolbox.Blackboard.TextFiles.Tests.dll` is now explicitly built and executed: **5/5** tests passed. `TextFiles` library, `mdview` and Showcase all built; `MdView.Tests` 10/10, Showcase.Tests 39/39.
 - This closes the extraction test-coverage gap. Remaining non-blocking warnings are XML documentation CS1591/CS1573, two xUnit2013 suggestions and NETSDK1057 preview SDK notices. No claim of a separate Linux CI or interactive manual `mdview` acceptance test.
 - Next: manual `mdview` smoke testing and then Spectre.Console FileBrowser selection/pager integration. Preserve the verified snapshot during incremental changes.
+
+## 2026-11-03 — first interactive mdview source picker
+
+- Replaced mdview's no-arg numbered `Console.ReadLine` menu with a Spectre.Console menu and real `SpectreFileBrowser` for local `.md`/`.markdown` files. HTTPS and GitHub source entry use Spectre prompts. Esc cancels the nested browser back to source menu, or exits at the root menu. No changes to the parser, renderer or HTTP cache.
+- Added [interactive picker tests](Blackboard/Tools/MdView.Tests/README.md) using injected TestConsole and isolated files; **11 new xUnit cases** are authored. Projected totals if all pass: MdView.Tests **21/21**, solution **6,454/6,454**. These are **not yet confirmed**: the last user-reported green Windows checkpoint was **6,443/6,443** before this update.
+- [Picker documentation](Blackboard/Tools/MdView/Docs/Interactive-Source-Picker/en.md) and CLI README were updated. Next run: `dotnet test Toolbox.sln` after pulling current commits; also test no-args interactive menu manually. Low-memory paging remains future work.
