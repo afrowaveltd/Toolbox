@@ -264,3 +264,10 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Per assembly: Essentials 3198; WhenItFails 1475; Setter 1241; FileBrowser 160; UnderstandMe 111; Configurator 44; ExchangeHouse Markdown 88; Blackboard Markdown 34; Markdown.Cache 32; mdview 10; Blackboard.Showcase 39; Markdown.TextMate 6.
 - Confirms that the corrected mdview source link/import now compiles and the two Configurator locale-isolation test fixes pass. Prior unverified checkpoints for these sources are superseded by this Windows test run.
 - Remaining nonblocking warnings: CS1591/CS1573 on public XML API comments in Markdown.Cache and MdView; two xUnit2013 assertions in ExchangeHouse Markdown tests; and NETSDK1057 informing that the SDK is preview. Still pending: clean Linux CI verification, interactive mdview smoke test, and extraction of complete text reader from the Showcase sample into a neutral shared project.
+
+## 2026-11-03 — extracted standalone TextFiles library
+
+- Moved the strict BOM-aware, terminal-safe `TextFilePreviewReader` implementation out of the Blackboard.Showcase executable into [Blackboard.TextFiles](Blackboard/TextFiles/README.md), preserving functionality while changing its namespace to `Afrowave.Toolbox.Blackboard.TextFiles`.
+- Both Showcase (text, JSON, Markdown previews) and [mdview](Blackboard/Tools/MdView/README.md) now use a normal `ProjectReference` to the shared assembly; mdview's temporary linked `Compile Include` is removed and the original Showcase copy deleted.
+- Added five isolated `TextFiles.Tests` cases and registered new library + tests in `Toolbox.sln`; all changes and docs committed directly to GitHub.
+- **Verification not yet established after extraction.** The user-provided 6,438/6,438 Windows pass applies to the preceding snapshot. Next run: `dotnet test Toolbox.sln` on updated checkout, plus manual `mdview local README.md` smoke test.
