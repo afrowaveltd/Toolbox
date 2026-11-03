@@ -413,6 +413,51 @@ public sealed class MarkdownRemoteDocumentCacheTests
         finally { Directory.Delete(root, recursive: true); }
     }
 
+    [Fact]
+    public async Task Oversized_manifest_is_not_loaded_as_valid_cache_metadata()
+    {
+        var root = NewDirectory();
+        try
+        {
+            var cache = new MarkdownRemoteDocumentCache(root);
+            using var http = Client(_ => Ok("persisted\n"u8.ToArray(), "\"v\""));
+            var saved = await cache.GetAsync(http, DocumentUrl);
+            var manifest = Assert.Single(Directory.GetFiles(root, "*.json"));
+            await File.WriteAllTextAsync(manifest, new string('X', 128 * 1024));
+            await Assert.ThrowsAsync<FileNotFoundException>(() =>
+                cache.GetAsync(http, DocumentUrl, MarkdownRemoteCacheMode.OfflineOnly));
+            Assert.True(File.Exists(saved.LocalPath));
+            Assert.Equal(0, await cache.PruneObsoleteVersionsAsync(TimeSpan.Zero));
+        }
+        finally { Directory.Delete(root, recursive: true); }
+    }
+
+    [Fact]
+    public async Task Oversized_http_etag_cannot_publish_an_unusable_manifest()
+    {
+        var root = NewDirectory();
+        try
+        {
+            var cache = new MarkdownRemoteDocumentCache(root);
+            using var original = Client(_ => Ok("safe\n"u8.ToArray(), "\"v\""));
+            var existing = await cache.GetAsync(original, DocumentUrl);
+            var before = await cache.GetUsageAsync();
+
+            var veryLongTag = "\"" + new string('x', 20 * 1024) + "\"";
+            using var bad = Client(_ => Ok("new\n"u8.ToArray(), veryLongTag));
+            await Assert.ThrowsAsync<InvalidDataException>(() =>
+                cache.GetAsync(bad, DocumentUrl, MarkdownRemoteCacheMode.ForceRefresh));
+
+            Assert.Equal(before, await cache.GetUsageAsync());
+            Assert.Equal(existing.LocalPath, (await cache.GetAsync(original,
+                DocumentUrl, MarkdownRemoteCacheMode.OfflineOnly)).LocalPath);
+            Assert.Equal("safe\n", await File.ReadAllTextAsync(existing.LocalPath));
+            Assert.DoesNotContain(Directory.GetFiles(root),
+                file => file.EndsWith(".part", StringComparison.Ordinal));
+        }
+        finally { Directory.Delete(root, recursive: true); }
+    }
+
     private sealed class UnspecifiedLengthContent(byte[] payload) : HttpContent
     {
         protected override Task SerializeToStreamAsync(
