@@ -27,3 +27,11 @@ Next: run and correct Windows/Linux solution CI; then add fault-injection tests,
 - Authored eight isolated HTTP handler tests: 200→304 across instances, replacement 200, network failure stale fallback, invalid response old-entry preservation, 404 without cache, insecure/secret URL refusal, Last-Modified persistence, and unexpected 304 without cache. Total authored cache tests **18** (previous ten plus eight).
 - **Not yet verified by a .NET build:** no local SDK. The GitHub status and PR-triggered workflow lookups for the intermediate test commit showed no runs/statuses. This is not proof of green CI.
 - Limitations: automatic redirect behavior must be disabled on injected `HttpClient`; no GitHub README API adapter, per-user auth isolation, rate limit policy, global quota, safe automatic cache cleanup or paged Markdown rendering. Follow-up: CI/build fixes, redirect handling, controlled cache eviction and GitHub README provider.
+
+## 2026-11-03 — public GitHub preferred README adapter
+
+- Added `GitHubReadmeSource` using official GitHub REST preferred README endpoint, `Accept: application/vnd.github.raw+json`, User-Agent/API version, strict owner/repo validation and lowercased owner/repo cache identity (not ref/path).
+- Reuses `VerifiedDocumentCache` and its `200`/ETag/`304`/SHA-256/offline-stale semantics. No branch/file guesses or authentication; redirects refused under explicitly non-redirecting caller-supplied HTTP handler.
+- Added [GitHub README fake-handler tests](../Markdown.Cache.Tests/GitHubReadmeSourceTests.cs) covering API request headers, case-insensitive cache aliases, 304 after restarting the reader, stale offline, 404 without cache, corrupt body fallback, invalid identifiers including trailing newline and unexpected 304. **Tests authored, not run**.
+- Documentation in [Docs/GitHub-Readme/en.md](Docs/GitHub-Readme/en.md). The standalone CLI/TUI, GitHub private auth, canonical metadata, redirects and linked-document resolution remain unimplemented.
+- No .NET SDK available locally; CI result for this revision not yet verified. Next: fix any CI failure, integrate a small CLI command dispatcher after stable source contract, then add source-aware README links and pager work separately.
