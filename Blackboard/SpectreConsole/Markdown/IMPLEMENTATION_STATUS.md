@@ -188,3 +188,8 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 
 - Added [separate mdview terminal executable](../../Tools/MdView/README.md), consuming this renderer along with independent Cache and FileBrowser libraries. The renderer's public API and parsing behavior are unchanged.
 - CLI grammar regression tests authored. It shows full documents via existing in-memory pipeline; no native pager, rendered relative-link navigation or source indexing. Build/CI pending.
+
+## 2026-11-03 — interactive mdview source selection
+
+- The separate [mdview CLI](../../Tools/MdView/Docs/Interactive-Source-Picker/en.md) now opens a Spectre.Console source menu and reuses `SpectreFileBrowser` for interactive local Markdown selection, while continuing to use the existing renderer unchanged.
+- Eleven new virtual-terminal picker cases are authored but not yet executed. Document rendering still loads the entire Markdown string; a disk-backed, low-RAM pager is a separate milestone.
