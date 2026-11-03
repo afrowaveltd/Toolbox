@@ -59,19 +59,19 @@ public sealed class MarkdownPagedSourceDemo : IBlackboardShowcaseDemo
         const string lowRam = "LowRAM — 8 lines, 16-page checkpoint interval";
         const string cancel = "Cancel paging";
 
-        var choice = await new SelectionPrompt<string>()
+        var profileChoice = await new SelectionPrompt<string>()
             .Title("Choose a paging profile (hardware is not auto-detected)")
             .PageSize(5)
             .AddChoices(balanced, hdd, ssd, lowRam, cancel)
             .AddCancelResult(cancel)
             .ShowAsync(console, cancellationToken);
-        if (choice == cancel)
+        if (profileChoice == cancel)
         {
             console.Write(new Text("Markdown paging cancelled." + Environment.NewLine));
             return;
         }
 
-        var profile = choice switch
+        var profile = profileChoice switch
         {
             hdd => MarkdownPagingProfile.Hdd,
             ssd => MarkdownPagingProfile.Ssd,
