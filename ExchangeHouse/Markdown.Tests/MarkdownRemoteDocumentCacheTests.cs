@@ -458,6 +458,98 @@ public sealed class MarkdownRemoteDocumentCacheTests
         finally { Directory.Delete(root, recursive: true); }
     }
 
+    [Fact]
+    public async Task Document_catalog_lists_only_valid_cached_files_with_bounded_page_size()
+    {
+        var root = NewDirectory();
+        try
+        {
+            var cache = new MarkdownRemoteDocumentCache(root);
+            using var client = Client(_ => Ok("doc\n"u8.ToArray(), "\"v\""));
+            var firstUrl = DocumentUrl;
+            var secondUrl = new Uri("https://example.org/second.md");
+            var first = await cache.GetAsync(client, firstUrl);
+            var second = await cache.GetAsync(client, secondUrl);
+            await File.WriteAllTextAsync(Path.Combine(root, "unrelated.json"), "{}");
+
+            var all = await cache.ListPageAsync(pageSize: 4);
+            Assert.Equal(2, all.Entries.Count);
+            Assert.False(all.HasMore);
+            Assert.Contains(all.Entries, x => x.Source == firstUrl &&
+                x.LocalPath == first.LocalPath && x.ByteCount == first.ByteCount);
+            Assert.Contains(all.Entries, x => x.Source == secondUrl &&
+                x.LocalPath == second.LocalPath);
+            Assert.All(all.Entries, x => Assert.Equal(64, x.CacheKey.Length));
+
+            var p1 = await cache.ListPageAsync(pageSize: 1);
+            var p2 = await cache.ListPageAsync(skip: 1, pageSize: 1);
+            var end = await cache.ListPageAsync(skip: 2, pageSize: 1);
+            Assert.Single(p1.Entries);
+            Assert.Single(p2.Entries);
+            Assert.True(p1.HasMore);
+            Assert.False(p2.HasMore);
+            Assert.Empty(end.Entries);
+            Assert.NotEqual(p1.Entries[0].CacheKey, p2.Entries[0].CacheKey);
+            Assert.Equal(2, (await cache.ListPageAsync(pageSize: 64)).Entries.Count);
+        }
+        finally { Directory.Delete(root, recursive: true); }
+    }
+
+    [Fact]
+    public async Task Legacy_manifest_remains_openable_even_without_stored_source_url()
+    {
+        var root = NewDirectory();
+        try
+        {
+            var cache = new MarkdownRemoteDocumentCache(root);
+            using var client = Client(_ => Ok("legacy\n"u8.ToArray(), "\"tag\""));
+            var stored = await cache.GetAsync(client, DocumentUrl);
+            var manifestPath = Assert.Single(Directory.GetFiles(root, "*.json"));
+            var parsed = System.Text.Json.Nodes.JsonNode.Parse(
+                await File.ReadAllTextAsync(manifestPath))!.AsObject();
+            parsed.Remove("SourceUrl");
+            await File.WriteAllTextAsync(manifestPath, parsed.ToJsonString());
+
+            var page = await new MarkdownRemoteDocumentCache(root).ListPageAsync();
+            var legacy = Assert.Single(page.Entries);
+            Assert.Null(legacy.Source);
+            Assert.Equal(stored.LocalPath, legacy.LocalPath);
+            Assert.Equal("legacy\n", await File.ReadAllTextAsync(legacy.LocalPath));
+            Assert.Equal(stored.LocalPath,
+                (await cache.GetAsync(client, DocumentUrl,
+                    MarkdownRemoteCacheMode.OfflineOnly)).LocalPath);
+        }
+        finally { Directory.Delete(root, recursive: true); }
+    }
+
+    [Fact]
+    public async Task Falsified_url_in_cache_metadata_is_never_shown_as_a_trusted_source()
+    {
+        var root = NewDirectory();
+        try
+        {
+            var cache = new MarkdownRemoteDocumentCache(root);
+            using var client = Client(_ => Ok("safe\n"u8.ToArray(), "\"v\""));
+            _ = await cache.GetAsync(client, DocumentUrl);
+            var manifestPath = Assert.Single(Directory.GetFiles(root, "*.json"));
+            var parsed = System.Text.Json.Nodes.JsonNode.Parse(
+                await File.ReadAllTextAsync(manifestPath))!.AsObject();
+            parsed["SourceUrl"] = "https://evil.example/docs.md";
+            await File.WriteAllTextAsync(manifestPath, parsed.ToJsonString());
+
+            var page = await cache.ListPageAsync();
+            Assert.Null(Assert.Single(page.Entries).Source);
+            Assert.Single(page.Entries);
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+                cache.ListPageAsync(pageSize: 65));
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+                cache.ListPageAsync(skip: -1));
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+                cache.ListPageAsync(pageSize: 0));
+        }
+        finally { Directory.Delete(root, recursive: true); }
+    }
+
     private sealed class UnspecifiedLengthContent(byte[] payload) : HttpContent
     {
         protected override Task SerializeToStreamAsync(
