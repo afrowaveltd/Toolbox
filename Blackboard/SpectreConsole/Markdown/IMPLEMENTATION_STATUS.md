@@ -156,3 +156,9 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 
 - The future viewer proposal now covers case-insensitive GitHub owner/repo arguments (one API request), and a separate block-event parser/terminal pager research track using `IAsyncEnumerable` with bounded lookahead, optional disk spooling and full-document fidelity.
 - Current parser still materializes the entire document. No 1 GB runtime capacity is claimed. [Design details](Docs/Standalone-Markdown-Viewer-Proposal/en.md).
+
+## 2026-11-03 — offline-first cache design checkpoint
+
+- Added [persistent document cache policy](Docs/Document-Cache-Policy/en.md): retain valid remote README content across restarts; use ETag/Last-Modified conditional validation; explicitly distinguish stale/offline content; atomic writes and corruption-safe fallback; safe cache roots, budgets, opt-in cleanup and tests.
+- Updated the [standalone viewer proposal](Docs/Standalone-Markdown-Viewer-Proposal/en.md) to link the cache acceptance contract.
+- **Documentation only:** no source provider, cache implementation, standalone `mdview`, paging engine or NuGet publication. Existing full-document local Showcase behavior is unchanged. Automated tests for this contract are not yet implemented.
