@@ -30,3 +30,7 @@ dotnet test Toolbox.sln
 Command grammar tests are authored but have not yet been run in this execution environment (no .NET SDK). Manual Windows Terminal, Debian console and SSH output tests remain necessary.
 
 [CLI topic guide](Docs/CLI/en.md) · [Implementation status](IMPLEMENTATION_STATUS.md) · [Cache source](../../SpectreConsole/Markdown.Cache/README.md).
+
+## Known build fix (2026-11-03)
+
+The first CLI commit referenced `TextFilePreviewReader` as though it were exported by FileBrowser. That safe reader is currently defined under the Showcase namespace. The CLI now compiles the same source file via an MSBuild `Compile Include` link and imports `Afrowave.Toolbox.Blackboard.Showcase`; this is deliberately temporary to avoid a dependency on the Showcase executable. A proper extraction into a shared neutral reader library is the follow-up. The Windows full-suite log that exposed the mistake also reported **32/32 Markdown.Cache tests passing**, but the corrected CLI build is not yet verified.
