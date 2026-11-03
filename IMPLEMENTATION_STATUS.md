@@ -231,3 +231,9 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Improved [Markdown.Cache](Blackboard/SpectreConsole/Markdown.Cache/README.md) with an exclusive cross-process writer lock, direct symlink/reparse-point checks, content-addressed blob repair and a default per-user cache directory helper.
 - Authored four additional xUnit tests (ten in total). [Cache status](Blackboard/SpectreConsole/Markdown.Cache/IMPLEMENTATION_STATUS.md) records unresolved TOCTOU/permissions and crash-durability limitations.
 - **Build/test verification still outstanding:** .NET SDK unavailable in local execution and no successful CI run observed for these commits. No HTTP or GitHub reader integration yet.
+
+## 2026-11-03 — HTTP conditional-document cache slice
+
+- Added a conditional HTTP source to [Markdown.Cache](Blackboard/SpectreConsole/Markdown.Cache/README.md) with persisted ETag/Last-Modified validators, full validated `200` replacement, `304` reuse and explicit stale fallback for offline errors. Separate fake-handler tests were authored for positive and negative HTTP paths.
+- Source layer remains separate from Markdown parsing and terminal rendering. No standalone `mdview`, GitHub README discovery, cache eviction or public package release.
+- **Verification pending** for new source and tests: no local .NET SDK, and no successful GitHub CI result established for this increment.
