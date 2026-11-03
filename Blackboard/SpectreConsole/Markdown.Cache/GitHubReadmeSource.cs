@@ -12,9 +12,9 @@ namespace Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache;
 /// </summary>
 public sealed class GitHubReadmeSource
 {
-    private static readonly Regex OwnerPattern = new("^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37})$",
+    private static readonly Regex OwnerPattern = new(@"\A[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})\z",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
-    private static readonly Regex RepositoryPattern = new("^[A-Za-z0-9_.-]{1,100}$",
+    private static readonly Regex RepositoryPattern = new(@"\A[A-Za-z0-9_.-]{1,100}\z",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
     private readonly HttpClient _client;
     private readonly VerifiedDocumentCache _cache;
