@@ -1,4 +1,4 @@
-using Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser;
+using Afrowave.Toolbox.Blackboard.Showcase;
 using Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown;
 using Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache;
 using Afrowave.Toolbox.Blackboard.Tools.MdView;
