@@ -32,7 +32,9 @@ IBlackboardShowcaseDemo[] modules =
     new FileBrowserJsonDemo(),
     new FileBrowserDirectoryDemo(),
     new MarkdownThemeDemo(),
-    new MarkdownFilePreviewDemo()
+    new MarkdownFilePreviewDemo(),
+    new MarkdownPagedSourceDemo(),
+    new MarkdownOfflineCacheDemo()
 ];
 
 try

@@ -133,3 +133,152 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 - Added six cases covering distinct outer/inner source owners, nested numbered list parent, separated runs, quoted fenced code, quoted loose separators and existing plain quote behavior.
 - Initial failing tests caught ambiguity of standalone quote detection under a regular item and a test's too-small child indent; both corrected before verified green CI.
 - [CI #41257477307](https://github.com/afrowaveltd/Toolbox/actions/runs/41257477307): **88/88 passed**.
+
+## 2026-11-02 — experimental indexed streaming scanner and diskless stress harness
+
+- Introduced forward-only MarkdownStreamingReader.ScanAsync with 64-bit source character offsets, bounded input-line buffer and minimal open-fence/list index state. Long code fences do not accumulate in memory.
+- Stress runner: Toolroom/Markdown/Stress, with deterministic virtual Markdown for 10M, 100M, 1G and 10G; optional Spectre render to null output; 50k-line open-fence regression.
+- Existing full-document parser and normal Showcase viewer remain unchanged. Full CommonMark-equivalent streaming state, deferred references and paged terminal navigation are not yet supported.
+- **CI and large stress execution pending**; the change is on a review branch, not asserted merged to master.
+
+## 2026-11-02 — temporary disk-backed paging regression suite (draft PR #3)
+
+- Added `MarkdownDiskPageIndexTests` covering random page navigation,
+  raw UTF-8 source/byte offsets including emoji, BOM handling, CRLF/LF/CR,
+  EOF boundaries, empty file, invalid UTF-8 and terminal controls, maximum
+  physical line size, temporary index size quota/cleanup, mutable source,
+  invalid options and a 25,000-line / 500-page on-disk index.
+- This verifies **source pagination**, not multi-page Markdown semantic
+  rendering or 1 GiB/10 GiB interactive acceptance. Test artifacts are
+  isolated under unique temporary directories and deleted after use.
+- Relevant .NET Linux/Windows CI: [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
+
+## 2026-11-02 — fence checkpoint regression coverage
+
+- Added `MarkdownFenceCheckpointIndexTests` for restartable classification
+  of code fences across arbitrary page boundaries; opening length and
+  quote-depth constraints; UTF-8/BOM and UTF-16 source offsets; 96-byte
+  per-page index, quota and disposal; empty and BOM-only documents.
+- CI validates the exact commits in [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
+
+## 2026-11-02 — bounded structural checkpoint regressions
+
+- Extended `MarkdownFenceCheckpointIndexTests` for list-depth restoration
+  across arbitrary page reads, same-depth quoted prose continuity,
+  quote-depth interruption, blank/fence paragraph resets and updated
+  128-byte checkpoint records/quotas.
+- Candidate labels intentionally do not imply CommonMark AST equivalence.
+  See [PR #3](https://github.com/afrowaveltd/Toolbox/pull/3) for exact CI.
+
+## 2026-11-02 — reverse-order parity against uninterrupted source scanning
+
+- Added `Random_access_pages_match_uninterrupted_scan_for_bounded_structure`:
+  read UTF-8 source pages in **reverse order**, then compare every line
+  against the one-pass scanner's kind, UTF-16 start, raw bytes-as-text,
+  quote depth, list candidate depth, fence start/language and paragraph
+  continuation candidate. The fixture covers nested lists, quoted code,
+  headings, blank lines and CRLF.
+- This verifies parity for the defined conservative scanner **only**, not
+  CommonMark rendering equivalence. Exact CI evidence follows the PR.
+
+
+## 2026-11-02 — persisted owner offset regression coverage
+
+- `MarkdownFenceCheckpointIndexTests` now checks 512-byte per-page
+  state, owner marker offsets across nested/parent continuations,
+  unindented lazy candidates, blank and quote interruptions and parity
+  against an uninterrupted scanner in reverse page order.
+- Tests validate conservative owner identities rather than claiming
+  full CommonMark container parsing. CI: draft PR #3.
+
+
+## 2026-11-02 — sparse checkpoint replay tests (draft PR #3)
+
+- Verified default 16-page spacing/512-byte records and deletion on
+  disposal; configurable 1/4/16 stride behavior.
+- Added reverse-order read parity across sparse boundaries for list
+  owner offsets, quote depth, paragraph candidates and code fence state.
+  Added saved-record quota and invalid stride (0/257) tests.
+- Source and checkpoint index remain bounded; regression tests are
+  synthetic, not 1/10-GiB interactive proof. See PR #3 CI.
+
+
+## 2026-11-02 — paragraph source-offset checkpoint regressions
+
+- `MarkdownFenceCheckpointIndexTests` now compares `ParagraphStart`
+  between uninterrupted scans and sparse page replay.
+- New fixtures cover child/parent list ownership changes without a blank
+  separator, continued prose in the same owner, a blank before independent
+  prose, explicit quote transitions, and fence start/close resets.
+- Verifies source-position identity, not full CommonMark layout equivalence.
+
+## 2026-11-02 — blank-separated list evidence regressions (draft PR #3)
+
+- Added tests for `MarkdownListSpacingHint` on a new paragraph of an
+  existing list item, a new sibling marker after a blank, uninterrupted
+  tight candidates, quote-depth isolation and unindented prose outside
+  a list. Compare reverse sparse-page views with uninterrupted scanning.
+- Checked that multiple blank lines restart paragraph identity and
+  retain bounded list-state semantics; no full CommonMark guarantee.
+
+## 2026-11-02 — disk-backed retroactive list-group regression suite
+
+- Added `MarkdownListSpacingIndexTests` exercising retroactive
+  list-wide loose candidates after later blank-separated siblings,
+  multi-paragraph items, tight candidates, nested/quoted list grouping,
+  bullet/numbered type switches, fenced-code membership, quota failure
+  cleanup, disposal, no-list sources and 2,000 sequential item markers.
+- Checks 16-byte marker records, 24-byte group records and exact source
+  preservation. Deliberately does not claim full CommonMark list
+  equivalence or acceptance on 1-vCPU/2-GiB VM.
+
+## 2026-11-03 — profile policy regressions
+
+- `MarkdownPagingProfilesTests` cover the four validated presets, custom record overrides, invalid bounds and enum values.
+- Every preset builds both disk indexes and resumes an arbitrarily sought page inside a long code fence; original source is preserved.
+- Tests are synthetic; do not mistake them for real 1-vCPU/1-GiB HDD measurements.
+
+## 2026-11-03 — persistent remote cache tests
+
+- Added `MarkdownRemoteDocumentCacheTests` for byte-perfect downloads, re-open from a different cache instance without internet, HTTP ETag/Last-Modified conditional requests and 304, explicitly forced fresh versions and retention of open-version paths.
+- Tests also cover broken connections and 5xx stale copies, 4xx error propagation, no-network cache misses, download byte quota with old-copy preservation, permanent export, explicit per-URL deletion and rejection of insecure URLs/corrupt path metadata.
+- Tests use local stubbed HttpClient handlers and isolated temporary directories; no live GitHub networking or 1-GiB HDD acceptance is claimed.
+
+## 2026-11-03 — persistent cache quota and manual pruning tests
+
+- Extended `MarkdownRemoteDocumentCacheTests` with combined cache
+  disk-budget rejection while preserving the previous offline file,
+  byte/file-count usage accounting, explicit pruning of old versions
+  across multiple URLs, default 24h grace retention, corrupt manifest
+  non-deletion, and input validation.
+- The tests are local and use stubbed HTTP response handlers. They
+  verify single-process behavior only, not cross-process locking,
+  physical HDD latency or live network connectivity.
+
+## 2026-11-03 — unknown-length HTTP quota regression
+
+- Extended the cache quota suite with a deliberately **unknown
+  Content-Length** stream. Confirms the **total cache disk budget**
+  is enforced while receiving chunks, partial files are removed,
+  and the previously saved offline document remains byte-identical.
+- This is a stubbed HTTP response, not a live network benchmark.
+
+## 2026-11-03 — malicious/oversized cache metadata regressions
+
+- Added tests ensuring oversized saved manifests are not loaded into
+  memory or treated as a valid current version, and remote ETag values
+  above 16 KiB cannot publish invalid metadata, consume orphan space
+  or overwrite the last saved offline copy.
+
+## 2026-11-03 — paged catalog and compatibility tests
+
+- Added bounded `ListPageAsync` tests for multi-document pagination
+  and `HasMore`, explicit 1..64 limits, exclusion of unrelated
+  files, old manifest without `SourceUrl`, and forged mismatching
+  URL metadata. All use local disk and stub HTTP.
+
+## 2026-11-03 — legacy catalog export regression
+
+- The old-format manifest fixture now verifies that a catalog entry
+  with an unknown source URI can still be exported byte-identically
+  to a permanent independent path.

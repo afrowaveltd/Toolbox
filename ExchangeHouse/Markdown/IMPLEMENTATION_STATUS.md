@@ -154,3 +154,232 @@
 - Explicitly indented quotes, children/paragraphs, blank separators and quoted fences remain owner-aware. Equal quote depths in different outer items do not merge. The parser prioritizes checking active list content indentation before accepting a standalone quote.
 - Six new parser regression cases, including code literal safety, CRLF/link offset and nested owner boundary checks. [Parser docs](Docs/Quoted-Lists-Inside-Lists/en.md).
 - [CI #41257477307](https://github.com/afrowaveltd/Toolbox/actions/runs/41257477307) **SUCCESS**, parser **88/88**. No NuGet publication.
+
+## 2026-11-02 — experimental indexed streaming scanner and diskless stress harness
+
+- Introduced forward-only MarkdownStreamingReader.ScanAsync with 64-bit source character offsets, bounded input-line buffer and minimal open-fence/list index state. Long code fences do not accumulate in memory.
+- Stress runner: Toolroom/Markdown/Stress, with deterministic virtual Markdown for 10M, 100M, 1G and 10G; optional Spectre render to null output; 50k-line open-fence regression.
+- Existing full-document parser and normal Showcase viewer remain unchanged. Full CommonMark-equivalent streaming state, deferred references and paged terminal navigation are not yet supported.
+- **CI and large stress execution pending**; the change is on a review branch, not asserted merged to master.
+
+## 2026-11-02 — UTF-8 disk-backed source page index (draft PR #3)
+
+- Added `MarkdownDiskPageIndex.BuildAsync` and `ReadPageAsync`: index
+  64-bit little-endian **byte offsets** to a temporary disk file with one
+  entry per fixed number of physical lines. Each page load has bounded
+  memory independent of total source length; supports reverse/forward
+  random access and preserves original source. Index does not materialize in RAM.
+- Full streaming UTF-8 decoding with strict fallback and terminal-control
+  rejection before any page is displayed; CRLF/LF/CR recognition,
+  configurable line/page limits, 256-MiB default index quota and cancellation. Temp index deleted
+  on failures and disposal; file size and timestamp checked for changes.
+- Added unit tests for Unicode/emoji, BOM, byte offsets, line breaks,
+  25,000 lines/500 on-disk offsets, random access, invalid controls,
+  page bounds, mutations and cleanup.
+- **Not** a CommonMark-semantic page or complete viewer; only raw source.
+  A future page-state checkpoint is needed for correct multi-page fences,
+  lists and reference definitions. No giant interactive viewer is
+  claimed validated. No new NuGet publication.
+- [Index contract](Docs/Disk-Backed-Paging/en.md). CI evidence for this
+  branch is tracked by [PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
+
+## 2026-11-02 — resumable fenced-code page checkpoints (draft PR #3)
+
+- `MarkdownStreamCheckpoint` and a second `MarkdownStreamingReader.ScanAsync`
+  overload resume physical-line scanning from an explicit UTF-16 offset
+  and active fence marker/length/start/quote-depth/language.
+- `MarkdownFenceCheckpointIndex.BuildAsync(MarkdownDiskPageIndex)`
+  writes a fixed **96-byte** state record to temporary disk for each source
+  page (configurable default max 256 MiB), then
+  `ReadPageAsync(number)` returns the raw source and resumed classified
+  lines. The source is validated by the underlying index; indexing runs
+  a second bounded sequential pass.
+- Regression tests for arbitrary page jumps, four-backtick fences,
+  quote interruption, language hints, UTF-8 BOM and emoji offsets,
+  index quota/cleanup, 2,000-line fence, empty/BOM-only files.
+- **Limits:** no full CommonMark list/paragraph/reference checkpoints,
+  highlighter session snapshots, live-growing file or giant-pager
+  acceptance. No new NuGet release.
+- [Detailed docs](Docs/Fence-Checkpoints/en.md).
+
+## 2026-11-02 — resumed list/quote/paragraph candidates
+
+- Extended `MarkdownStreamCheckpoint` with a bounded (max 32) list
+  indentation stack, previous quote depth and previous paragraph candidate.
+- Shared `MarkdownStreamingReader.AdvanceCheckpoint` drives on-disk state
+  rather than duplicating scanner list transitions; per-line
+  `IsParagraphContinuationCandidate` indicates only conservative
+  uninterrupted prose continuation.
+- Checkpoint records are now **128 bytes per source page**; the 96-byte
+  experimental revision is superseded. Strict disk quota and cleanup remain.
+- Added page-seek tests for two-level lists, paragraph continuations,
+  quote-depth changes, blank/fence interruptions and source integrity.
+- Full CommonMark list ownership, list rendering equivalence, lazy
+  continuation and link reference resolution remain future. Not published.
+- [Documentation](Docs/Fence-Checkpoints/en.md) and
+  [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
+
+
+## 2026-11-02 — actual list-marker ownership across indexed pages
+
+- `MarkdownListOwner(Start, Indent, ContentIndent)` stores lightweight
+  64-bit UTF-16 identities of up to 32 active list markers.
+- `MarkdownStreamLine.ListOwnerStart` and
+  `IsListContinuationCandidate` annotate indented and simple lazy prose,
+  parent returns and quoted-container boundaries, in both uninterrupted
+  streaming scans and reversed-order disk-page reads.
+- The second disposable index uses fixed **512-byte records** to save
+  owner descriptors alongside fence and previous quote/paragraph hints;
+  formerly 128 bytes. Underlying source index remains eight bytes/page.
+- Added tests for explicit nested/parent owner reassociation, lazy
+  continuation, blank-separated reset, quote-depth isolation and
+  owner metadata parity under reverse paging.
+- This is conservative ownership, **not** complete CommonMark logical
+  list tree or a published NuGet API. PR #3 remains draft.
+- [Detail](Docs/Fence-Checkpoints/en.md).
+
+
+## 2026-11-02 — sparse structural index, bounded page replay (draft PR #3)
+
+- `MarkdownFenceCheckpointIndex.BuildAsync` stores a fixed 512-byte
+  record only every `checkpointStride` source pages, **default 16**,
+  configurable 1..256. `SavedCheckpointCount` exposes physical count;
+  `PageCount` remains unchanged.
+- `ReadCheckpointAsync(page)` finds the nearest earlier stored checkpoint
+  and uses the same bounded streaming scanner and `AdvanceCheckpoint`
+  to replay at most stride-1 complete source pages. No full-document
+  buffer and no persistent cache; cancellation/source mutation checks
+  remain active.
+- Per-page raw UTF-8 byte-offset index is unchanged at 8 bytes/page.
+  For 1 million lines/40 lines per page, default state index is about
+  800 kB vs ~12.8 MB at stride 1; CPU/I/O on seeks increases.
+- Added sparse crossing-boundary, owner/fence parity, quota and invalid
+  stride tests; exact CI reported in PR #3.
+- Does not add full CommonMark equivalence, 1/10-GiB interactive
+  acceptance or a NuGet release.
+- [Technical guide](Docs/Fence-Checkpoints/en.md).
+
+
+## 2026-11-02 — paragraph identity and list-owner boundary checking
+
+- Added optional `MarkdownStreamLine.ParagraphStart` and checkpoint
+  `OpenParagraphStart` / `ParagraphListOwnerStart`.
+- The scanner attaches paragraph identity after list ownership.
+  Same-quote prose can continue only when its list item owner remains
+  identical; unindenting from a child back to a parent starts a new
+  paragraph even without a blank physical line.
+- Existing sparse 512-byte state snapshots store two additional signed
+  64-bit optional offsets in reserved record bytes. No size/disk
+  budget increase and no previous prose text stored.
+- Regression coverage includes paragraph start preservation under
+  random page reads, child/parent transitions, blank boundaries,
+  code fences, quote changes and parity with uninterrupted scanning.
+- This is *conservative paragraph identity*, not a full CommonMark
+  paragraph AST or finished visual layout. No NuGet release.
+- [Specification](Docs/Fence-Checkpoints/en.md).
+
+## 2026-11-02 — evidence of blank-separated list paragraphs/items (draft PR #3)
+
+- Added `MarkdownListSpacingHint` (`None`,
+  `BlankSeparatedParagraph`, `BlankSeparatedItem`) to conservative
+  `MarkdownStreamLine` classification.
+- Uses existing `PreviousWasBlank`, owner stack and quote-depth state
+  to distinguish a new paragraph in the same list item from a new
+  blank-separated item. No change to 512-byte checkpoints, 16-page
+  default spacing, or bounded-memory scan.
+- Added sparse reverse-page regression tests for separated paragraphs,
+  sibling items, multiple blanks, quote boundaries and unowned prose.
+- **Not** a global CommonMark tight/loose verdict; that requires
+  higher-level list-wide context and possibly retroactive formatting.
+  No NuGet publication.
+- [Detailed documentation](Docs/Fence-Checkpoints/en.md).
+
+## 2026-11-02 — optional disk-backed completed-list spacing summaries (draft PR #3)
+
+- Added `MarkdownListSpacingIndex` and `MarkdownListSpacingGroup`.
+  An optional third sequential source pass uses the existing bounded
+  Markdown scanner to record source-ordered marker offsets and compact
+  completed list-group summaries in two disposable Temp files.
+- Exact record sizes are 16 bytes/item and 24 bytes/group; combined
+  default disk quota 256 MiB, bounded 32-entry active group stack.
+  Binary search resolves `FindForItemAsync(markerStart)` without reading
+  all groups into RAM. A late blank-separated item/paragraph can mark
+  earlier items of the same group as `IsLooseCandidate`.
+- Added tests for retroactive spacing, nested groups, quoted/marker-type
+  separation, owned fenced code, zero-list files, per-record scaling,
+  quota failure cleanup and disposal.
+- The index is deliberately **optional**; no sixth Showcase integration,
+  no full CommonMark list-wide tight/loose guarantee, no confirmed
+  2-GiB RAM VM measurement and no NuGet release.
+- [API and limits](Docs/List-Spacing-Index/en.md).
+
+## 2026-11-03 — explicit source/checkpoint resource profiles
+
+- Added `MarkdownPagingProfile`, `MarkdownPagingSettings` and `MarkdownPagingProfiles.For` with Balanced 40/16, HDD 64/1, SSD 64/32 and LowRAM 8/16; independent source/index quotas and 64 KiB line limit remain.
+- Immutable settings support custom overrides with validation. Added source+fence replay tests across all presets and invalid-input tests.
+- Showcase now selects profile manually, not by inferring VM disk hardware. No 1 GiB HDD measurements or NuGet release; PR #3 remains draft. [Details](Docs/Paging-Profiles/en.md).
+
+## 2026-11-03 — opt-in persistent offline Markdown document cache (draft PR #3)
+
+- Added `MarkdownRemoteDocumentCache` as a separate ExchangeHouse primitive; the Showcase `RemoteMarkdownTempDocument` still deletes its temporary file when disposed.
+- URL-hashed per-user cache manifests point to immutable versioned HTTPS source copies. `OnlineFirst` conditionally checks ETag/Last-Modified, supports HTTP 304 without re-download, and returns explicitly stale copies for offline/timeout/5xx scenarios. `OfflineOnly` makes no network requests; `ForceRefresh` retrieves a new version.
+- Bounded 64 KiB download buffer, 256 MiB per-document default quota, safe manifest file names, owner-only Unix file permissions, atomic manifest replacement, explicit `SaveCopyAsync` and per-URL `RemoveAsync`.
+- Regression tests cover offline persistence across instances, 304 validators, refresh version preservation, stale fallback, HTTP 4xx, quotas, manual cleanup, export and corrupt manifest safety.
+- No Docs Reader remote menu/provider, automatic cache GC, total-directory quota, parallel-process locks, 1-GiB HDD field benchmark or NuGet release yet. [Cache details](Docs/Offline-Document-Cache/en.md).
+
+## 2026-11-03 — bounded total cache disk usage and cautious manual pruning (draft PR #3)
+
+- Extended `MarkdownRemoteDocumentCache` with a configurable 1 GiB
+  default **total cache-owned disk quota** (not a RAM budget), while
+  retaining the 256 MiB per-document default limit. Enforces the
+  remaining budget on each received chunk with reserved manifest
+  headroom; unsuccessful refreshes do not orphan new versions or
+  destroy the prior valid offline manifest.
+- Added `GetUsageAsync`/`MarkdownRemoteCacheUsage` to enumerate
+  recognized cache-owned source, manifest and part files without
+  loading source bodies or maintaining an in-memory catalog.
+- Added **explicit** `PruneObsoleteVersionsAsync` with 24h default
+  grace interval; deletes only older source versions when a different
+  valid current manifest remains, never automatically evicts the last
+  offline copy or guesses at corrupted manifests.
+- Tests cover total-quota failure and preservation, usage accounting,
+  recent-version grace, multi-URL isolation, manual pruning, and
+  corrupt-manifest protection. Process-level locks, crash-part cleanup,
+  full-cache LRU eviction and actual 1 GiB RAM/HDD acceptance still
+  remain future work. [Contract](Docs/Offline-Document-Cache/en.md).
+
+## 2026-11-03 — streaming transfer limit confirmation
+
+- Added an explicit unknown-`Content-Length` remote body regression
+  to verify the new total cache disk quota is checked *during*
+  chunked response streaming, with cleanup and offline preservation.
+  No automatic cache eviction or new NuGet release.
+
+## 2026-11-03 — bounded remote cache metadata
+
+- Manifest JSON is capped at **16 KiB** before reading into RAM and
+  before publish, avoiding unbounded metadata allocations on a weak
+  terminal-only Debian target.
+- Oversized ETag data cannot replace an otherwise valid cached copy;
+  failed downloads clean new temporary/version files. Added oversized
+  manifest and validator regressions; no cross-process lock yet.
+
+## 2026-11-03 — bounded offline document catalog
+
+- Added `MarkdownRemoteCacheEntry`, `MarkdownRemoteCachePage` and
+  `ListPageAsync` for on-demand, bounded pages of valid cache manifests,
+  without network requests or a giant in-memory source catalog.
+- New manifest format preserves source URI for browsing, with URL-label
+  trust checked against the SHA-256 cache key. Backward-compatible
+  nullable `SourceUrl` permits legacy cached documents.
+- Tests cover two-source paging, unrelated file exclusion, missing
+  legacy URL and forged URL labels. No sorted persistent catalog or
+  cross-process consistency guarantee. [Catalog and TUI](Docs/Offline-Document-Cache/en.md).
+
+## 2026-11-03 — safe entry export for legacy cached documents
+
+- Added the `SaveCopyAsync(MarkdownRemoteCacheEntry,...)` overload,
+  sharing the atomic file-copy core with the existing downloaded-document
+  export. Offline legacy entries now export without a fabricated URI.
+- Added legacy export regression; full Docs Reader and online GitHub
+  provider remain unimplemented.

@@ -156,3 +156,24 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 
 - The future viewer proposal now covers case-insensitive GitHub owner/repo arguments (one API request), and a separate block-event parser/terminal pager research track using `IAsyncEnumerable` with bounded lookahead, optional disk spooling and full-document fidelity.
 - Current parser still materializes the entire document. No 1 GB runtime capacity is claimed. [Design details](Docs/Standalone-Markdown-Viewer-Proposal/en.md).
+
+## 2026-11-02 — experimental indexed streaming scanner and diskless stress harness
+
+- Introduced forward-only MarkdownStreamingReader.ScanAsync with 64-bit source character offsets, bounded input-line buffer and minimal open-fence/list index state. Long code fences do not accumulate in memory.
+- Stress runner: Toolroom/Markdown/Stress, with deterministic virtual Markdown for 10M, 100M, 1G and 10G; optional Spectre render to null output; 50k-line open-fence regression.
+- Existing full-document parser and normal Showcase viewer remain unchanged. Full CommonMark-equivalent streaming state, deferred references and paged terminal navigation are not yet supported.
+- **CI and large stress execution pending**; the change is on a review branch, not asserted merged to master.
+
+
+## 2026-11-02 — owner-aware line rendering (draft PR #3)
+
+- Streaming renderer now consumes `MarkdownStreamLine.ListOwnerStart`,
+  `IsListContinuationCandidate` and restored `ListDepth` to indent
+  nested list markers and conservative paragraph continuations.
+- It continues to use the existing safe Markdown inline renderer, not
+  Spectre.Markup with untrusted raw text. Full-document rendering API
+  unchanged; this is an additive experimental path.
+- Added virtual-terminal regression test for child and parent
+  continuation rendering, including custom indentation. Exact Linux/
+  Windows CI evidence is tracked in draft PR #3.
+- Important: not a full CommonMark container renderer, no new NuGet.

@@ -105,3 +105,67 @@ dotnet run --project Blackboard/Samples/Blackboard.Showcase
 ```
 
 Then choose the Markdown file viewer and open the root `README.md`. This is an independent Showcase feature, not a new FileBrowser/Markdown NuGet dependency. [Full viewer guide](Docs/Markdown-File-Viewer/en.md).
+
+## Remote Markdown temp-file spooling (experimental, 2026-11-02)
+
+The new reusable-in-sample `RemoteMarkdownTempDocument` downloads a trusted HTTPS Markdown document with bounded memory into a disposable uniquely named temporary file. `OpenRead()` provides independent seekable paging streams after the network request has completed. Disposal deletes the temp file. This helper is **not yet wired into the interactive viewer**; only local selection is available in the menu. See [remote cache](Docs/Remote-Markdown-Cache/en.md), [future live translation proposal](Docs/Live-Markdown-Translation/en.md) and [implementation status](IMPLEMENTATION_STATUS.md).
+
+## Indexed source-page navigation (experimental, 2026-11-02)
+
+The sixth Showcase menu option, **Markdown — disk-indexed source pages**,
+uses ExchangeHouse's new temporary byte-offset page index to display
+one page of local UTF-8 Markdown source at a time. Navigate **Next** and
+**Previous** in either direction, or Escape to close; only the requested
+page is held in memory. The entire file is scanned and validated before
+paging. Unlike the fifth (fully rendered, in-memory) viewer, this one
+intentionally displays **literal source**, not context-dependent Markdown
+rendering: code fences and lists could cross page boundaries. It is a
+low-memory navigation experiment rather than the final `mdview`.
+[Usage and limitations](Docs/Markdown-Paged-Source-Viewer/en.md).
+
+## Context-aware code-fence preview toggle (experimental, 2026-11-02)
+
+The sixth source pager now creates an additional disposable fenced-code
+checkpoint index. Its navigation menu offers **Show conservative Markdown
+preview** / **Show literal source**. Preview mode reuses the existing
+streaming-line Spectre renderer; it can correctly classify code lines on
+page N even when their fence opened on an earlier page. This still does
+**not** guarantee CommonMark-correct rendering of lists, reference links,
+multiline paragraphs or quotes. Source view remains the default.
+[Technical contract](../../../ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
+
+
+## Owner-aware conservative preview (experimental, 2026-11-02)
+
+The reversible sixth Showcase preview now benefits from its shared
+Markdown renderer's explicit source-owner offsets. It can place simple
+nested markers and indented child/parent continuation lines using the
+restored list depth across page boundaries. It still does not promise
+full CommonMark layout; literal source remains the default and the
+original complete document renderer remains unchanged.
+
+
+## Sparse checkpoint storage (2026-11-02)
+
+The sixth Showcase reader automatically uses the ExchangeHouse
+checkpoint index with its default 16-page stride. Visiting a page
+between stored checkpoints transparently replays up to 15 earlier
+source pages to reconstruct the same conservative Markdown context.
+No UI change or full-document buffering; the literal source remains
+the default display. The tradeoff is disk space versus seek I/O.
+
+## Selectable Markdown paging profiles (2026-11-03)
+
+The sixth Markdown pager now asks for **Balanced, HDD, SSD or LowRAM** after local file selection, displays the selected page size/checkpoint interval, and applies both settings when building the indexes. Escape cancels before indexing. Source mode remains the default. [Profile policy](../../../ExchangeHouse/Markdown/Docs/Paging-Profiles/en.md).
+
+## Offline Markdown cache manager (2026-11-03)
+
+The **seventh Showcase menu item** lists previously cached remote Markdown
+documents without internet access. It reports used disk bytes, browses
+at most eight entries per screen, opens a selected document through the
+existing disk-indexed reader, and offers independent export, explicit
+URL-specific removal and protected obsolete-version pruning. A legacy
+cache entry without a verified URL remains openable, but is not
+misidentified as a live source. The menu does **not** fetch URLs,
+enumerate GitHub repositories, or implement the finished Docs Reader.
+[Usage and limitations](Docs/Offline-Cache-Manager/en.md).

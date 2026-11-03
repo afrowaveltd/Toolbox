@@ -1,6 +1,6 @@
 # Afrowave.Toolbox — repository implementation status
 
-**Updated 2026-10-31. Source of truth:** [GitHub master](https://github.com/afrowaveltd/Toolbox/tree/master). This file is a **cross-project continuation overview**; authoritative technical details remain in each component's `IMPLEMENTATION_STATUS.md`.
+**Updated 2026-11-02. Source of truth:** [GitHub master](https://github.com/afrowaveltd/Toolbox/tree/master). This file is a **cross-project continuation overview**; authoritative technical details remain in each component's `IMPLEMENTATION_STATUS.md`.
 
 ## 2026-11-02 — repository-wide NuGet-first release decision
 
@@ -213,3 +213,255 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Verified through official GitHub REST docs that **owner/repo are already case-insensitive**. No capitalization-guessing request loops; use one README API request and canonical repo metadata if necessary. Local Linux paths, branch/ref names and repository file paths are not assumed case-insensitive.
 - Recorded a separate prospective `IAsyncEnumerable` incremental block parser and Unix-`less`-style pager as a **research track**: quote/list/fence state and bounded lookahead, late reference definitions, optional two-pass/disk-backed spooling, terminal-width aware visual lines, keybindings, cache/index for reverse navigation and 1 GB benchmark targets. Distinguish chunked file decoding from full in-memory parsing.
 - Retain strict source validation and no silent help truncation. **Design/documentation only**; no parser API, CLI app, pager, tests, NuGet publication or 1 GB streaming claim has been implemented. [Detailed proposal](Blackboard/SpectreConsole/Markdown/Docs/Standalone-Markdown-Viewer-Proposal/en.md).
+
+## 2026-11-02 — experimental indexed streaming, virtual stress and remote temp caching (draft PR #3)
+
+- ExchangeHouse: additive `MarkdownStreamingReader.ScanAsync(TextReader)` preserves original lines and 64-bit UTF-16 offsets, indexes open code-fence state and bounded list indentation instead of collecting entire logical blocks. Not a full incremental CommonMark AST.
+- Blackboard: separate `RenderStreamingLine` entry point; existing whole-document renderer remains intact.
+- Toolroom: deterministic virtual Markdown generator with opt-in 10M, 100M, 1G, 10G stress runner, reporting wall time, managed-heap samples and RSS. Small 10M workflow passed; larger sizes not yet tested.
+- Showcase: experimental trusted HTTPS download-to-OS-Temp utility, 64-KiB network/file buffer, configurable byte limit, independent seekable reads, error cleanup and delete-on-dispose. Not yet wired into the interactive menu.
+- Future UnderstandMe integration, concurrent growing-file translation, full semantic Markdown block segmentation and paged UI documented as design only; do not claim deployed translation.
+- GitHub PR: [#3](https://github.com/afrowaveltd/Toolbox/pull/3), draft, not yet merged. Each relevant project README/Docs/en.md/status is updated.
+
+## 2026-11-02 — disk-backed Markdown source paging and Showcase navigation (draft PR #3)
+
+- `ExchangeHouse.MarkdownDiskPageIndex`: strict UTF-8 full-file validation,
+  fixed-size 64-bit **byte-offset** disk index with 256 MiB default index
+  quota, bounded page reading and arbitrary page access without retaining
+  previous page contents in RAM. Temporary index removed on failure/disposal.
+- `Blackboard.Showcase` sixth demo: FileBrowser local Markdown selection,
+  40-line raw-source pages, Next/Previous/Close selection and safe literal
+  console display. The pre-existing fifth **fully rendered** viewer remains
+  unchanged. HTTP and GitHub source choices are not yet wired in.
+- Regression coverage for UTF-8/emoji/BOM, bad encoding/controls, offset
+  correctness, CRLF/LF/CR, index size/line limits, random page navigation,
+  file changes and cleanup. [Source index guide](ExchangeHouse/Markdown/Docs/Disk-Backed-Paging/en.md)
+  · [Showcase pager guide](Blackboard/Samples/Blackboard.Showcase/Docs/Markdown-Paged-Source-Viewer/en.md).
+- **Limitations:** indexing currently scans the whole UTF-8 file once,
+  page contents are unformatted Markdown **source**. Contextual semantics,
+  page-spanning fence/list state, incremental downloader integration,
+  translations and 1 GiB/10 GiB end-to-end viewer validation remain future.
+  No NuGet release by these commits.
+- Work remains in [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3)
+  on `feature/markdown-streaming-stress-20261102`; not merged into master.
+
+## 2026-11-02 — fenced-code checkpoints for large Markdown pages (draft PR #3)
+
+- `ExchangeHouse.MarkdownStreamingReader` accepts an optional explicit
+  `MarkdownStreamCheckpoint`, restoring global UTF-16 position and
+  code-fence state for independent pages.
+- `MarkdownFenceCheckpointIndex` records one disposable **96-byte**
+  checkpoint per page, separate from raw-source byte-offset index.
+  An arbitrary page can now be classified correctly when a code fence
+  began elsewhere. Disk quota and cleanup are enforced.
+- Sixth Blackboard Showcase demo has a reversible toggle between literal
+  source and **conservative** Markdown rendering with resumed fence state.
+- Tests and English docs record what works and the remaining
+  list/paragraph/reference/quote limitations. BOM-only input is now
+  consistently empty. No NuGet package published or stable release declared.
+- [Checkpoint docs](ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md),
+  [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
+
+## 2026-11-02 — bounded list/quote/paragraph checkpoints (draft PR #3)
+
+- Expanded the experimental page checkpoint from 96 to **128 bytes**
+  without storing source lines: maximum 32 list indentation candidates,
+  prior quote depth and prior paragraph-continuation candidate now join
+  active fenced-code state and UTF-16 offset. Scanner and index share
+  `AdvanceCheckpoint` to minimize grammar divergence.
+- Added tests of page-order independence, quote-depth transitions,
+  nested-list candidate depth and paragraph interruption boundaries.
+- **Not** a CommonMark-complete resumable AST, nor a NuGet release.
+  Future work: true list ownership, lazy paragraphs, reference resolution
+  and contextually accurate Spectre paging.
+- [Docs](ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md) /
+  [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
+
+
+## 2026-11-02 — owner-aware list continuation checkpoints (draft PR #3)
+
+- Extended disk-backed Markdown checkpoint from 128 to **512 bytes/page**,
+  retaining up to 32 active list-item marker offsets (64-bit UTF-16),
+  marker and content indentation, fences, quote/paragraph hints.
+- Added `ListOwnerStart` and `IsListContinuationCandidate` to
+  streaming line events and tested nested, parent, lazy and quoted
+  continuation across arbitrary page reads; content remains bounded.
+- The old 128-byte snapshot is superseded inside this unpublished draft.
+  Source offset index remains 8 bytes/page. No new NuGet release.
+- Conservative ownership is not equivalent to full CommonMark
+  rendering. Next: contextual rendering of list continuations and more
+  complete paragraph/list container parsing.
+- [Architecture](ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md)
+  and [PR #3](https://github.com/afrowaveltd/Toolbox/pull/3).
+
+
+## 2026-11-02 — owner-aware Markdown Spectre rendering (draft PR #3)
+
+- The existing paged preview now uses safe owner-aware list indentation
+  through `MarkdownSpectreRenderer.RenderStreamingLine`; nested items
+  and conservatively owned prose no longer lose all list context on
+  a page jump. Custom theme and inline styles remain supported.
+- Separate Blackboard renderer and regression suite updated; no
+  source-level dependence on Showcase. Full-formatted CommonMark
+  semantics still future, and no preview NuGet has been published.
+
+
+## 2026-11-02 — sparse Markdown page checkpoints (draft PR #3)
+
+- Instead of writing a 512-byte structural record per source page,
+  `MarkdownFenceCheckpointIndex` now defaults to one every **16 pages**
+  (configurable stride 1..256). `SavedCheckpointCount` reports the
+  physical record count. The raw source byte-offset index stays 8 bytes
+  **per page**.
+- Arbitrary page reads replay at most stride-1 previous pages to
+  reconstruct conservative fences, list owners and quote/paragraph
+  candidates with bounded RAM. Disk footprint shrinks at the cost of
+  additional replay I/O and CPU. Tested sparse crossing boundaries,
+  reverse-order parity, index quotas and invalid configuration.
+- The sixth Showcase reader uses the new default transparently.
+  No new NuGet or production-complete CommonMark viewer claimed.
+- [Checkpoint guide](ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
+
+## 2026-11-02 — deferred Afrowave Docs Reader idea (design only)
+
+- Captured a possible virtual-book reader for the common
+  `Docs/<Topic>/en.md` layout: recursively collect topics, insert
+  generated topic headings, preserve original file provenance and
+  treat the result as one navigable Markdown document without a
+  physical concatenation or full-book RAM allocation.
+- Future sources may include a local folder and a GitHub repository
+  at a pinned revision; implementation should wait for robust
+  single-document contextual paging. Source path security, symlinks,
+  localization fallback, link rewriting and GitHub tree limits must
+  be addressed in a separate design/implementation effort.
+- **No source implementation or NuGet release.** Proposal:
+  [Afrowave Docs Reader](Docs/Unified-Docs-Reader-Proposal/en.md).
+
+
+## 2026-11-02 — paragraph source identity in streaming Markdown (draft PR #3)
+
+- Added `ParagraphStart` to conservative line events; sparse page
+  checkpoints also persist `OpenParagraphStart` and the associated
+  `ParagraphListOwnerStart` without increasing their 512-byte size.
+- Continuation now checks consistent list owner *and* quote depth.
+  Tests cover list child-to-parent outdents, explicit blank/fence
+  interruptions, unchanged owner continuations and sparse parity.
+- This advances contextual Markdown pagination, but remains incomplete
+  for full CommonMark lazy containers, paragraph fusion and references.
+  No NuGet package release.
+- [Checkpoint guide](ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
+
+## 2026-11-02 — blank-separated Markdown list evidence (draft PR #3)
+
+- Streaming Markdown emits `ListSpacingHint` for new paragraphs of
+  existing list items and blank-separated new sibling items, preserving
+  quote and ownership boundaries after sparse page seeks.
+- This is a bounded per-line observation, **not** definitive CommonMark
+  tight/loose list classification; full rendering remains a future task.
+  The temporary 512-byte checkpoint and raw 8-byte/page index are
+  unchanged. Tests and documentation updated; no new NuGet release.
+- [Details](ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
+
+## 2026-11-02 — optional disk-backed list-wide spacing index (draft PR #3)
+
+- `ExchangeHouse/Markdown/MarkdownListSpacingIndex.cs` creates an
+  independent, disposable **list-wide candidate** index by a third
+  bounded-memory sequential scan. It stores group summaries (24 bytes)
+  and item offsets (16 bytes) on temporary disk, rather than holding
+  prior paragraphs or list items in RAM.
+- Supports retroactive group candidate lookup by source marker offset;
+  tests cover nested lists, blank separators, quote/type transitions,
+  fenced code, source integrity, disk quota and disposal. The scanner's
+  32-owner bound remains; the optional index is not yet wired to TUI.
+- Future: compare full parser's tight/loose decisions, integrate
+  contextual styling and run a **real** 1-vCPU/2-GiB terminal-only
+  Debian acceptance session. Do not call current CI a VM measurement.
+- [Index design](ExchangeHouse/Markdown/Docs/List-Spacing-Index/en.md)
+  and [low-RAM VM protocol](Docs/Low-Memory-Linux-Acceptance/en.md).
+  PR #3 remains draft; no NuGet package released.
+
+## 2026-11-02 — 1-GiB rotational-HDD Debian acceptance baseline
+
+- User-selected field target: **1 virtual CPU, 1 GiB RAM, Debian minimal
+  terminal-only and a real rotational HDD-backed virtual disk**.
+  Escalate to 2 GiB RAM only if measured limits require it, keeping
+  disk, controller, CPU and source workload constant.
+- Updated [low-memory test protocol](Docs/Low-Memory-Linux-Acceptance/en.md)
+  and Markdown Stress README to separate Release build from runtime
+  RSS, measure swap and HDD latency, and compare sparse checkpoint
+  strides 1/4/16 in later real-source pager tests.
+- Important distinction: a guest `ROTA=1` device hint cannot prove
+  the VM disk image resides on a physical rotating HDD. No 1-GiB VM
+  runtime or real-HDD acceptance has yet been performed or claimed.
+  Changes are documentation-only, PR #3 stays draft.
+
+## 2026-11-03 — selectable Markdown HDD/SSD/LowRAM paging profiles (draft PR #3)
+
+- Added editable validated preset configurations: Balanced 40 source lines/16-page checkpoint stride, HDD 64/1, SSD 64/32, LowRAM 8/16. Independent disk index quotas and maximum line limit are retained.
+- Sixth Showcase viewer prompts for profile before indexing and reports chosen settings. Added C# API and TestConsole regressions covering real pager seeks, validation and cancel. No automatic disk inference, no 50–100 MiB page cache, no measured optimal profile or 1-GiB real-HDD acceptance.
+- READMEs, Docs and implementation statuses updated. PR #3 remains draft, unmerged; no NuGet publication. [Tuning guide](ExchangeHouse/Markdown/Docs/Paging-Profiles/en.md).
+
+## 2026-11-03 — reusable offline HTTPS Markdown cache for future Docs Reader
+
+- Implemented `ExchangeHouse/Markdown/MarkdownRemoteDocumentCache.cs` as an opt-in per-user source cache separate from disposable page and fence indexes and the existing Showcase session-only HTTPS spool.
+- Supports conditional HTTP GET with ETag/Last-Modified and 304 reuse, no-network explicit offline mode, safe stale fallback for broken connections/5xx, forced refresh, immutable cached versions, manual export and per-URL removal. Streamed download buffer stays 64 KiB; per-document default 256 MiB quota.
+- Added mock-HTTP regression tests for freshness, interruption, preservation, quotas, security and exports; English README and topic documentation updated. Cached source data may still be purged by OS policy; no reliable permanent storage without explicit SaveCopy.
+- The **Docs Reader, GitHub tree/manifest provider, remote TUI selector, total cache quota, cross-process coordination and 1-GiB HDD acceptance remain future work**. PR #3 draft, no merge/release. [Cache contract](ExchangeHouse/Markdown/Docs/Offline-Document-Cache/en.md).
+
+## 2026-11-03 — safe total disk budget for reusable offline Markdown cache (draft PR #3)
+
+- Added default 1 GiB configurable combined cache-owned source/manifest
+  disk quota, independent of per-document 256 MiB transfer limit and
+  separate disposable Markdown page/context indexes.
+- Added bounded-memory `GetUsageAsync`, explicit
+  `PruneObsoleteVersionsAsync` (24-hour default grace), protection of
+  the valid manifest-selected copy and fail-without-eviction behavior
+  on exhausted storage. Cached offline reads remain available even
+  if quota is exhausted.
+- Tests cover quota rejection, previous version preservation, usage
+  accounting, multi-URL pruning, grace interval and corrupt metadata.
+  No global automatic LRU, process-crossing locks, orphan-part cleanup,
+  1-vCPU/1-GiB physical HDD benchmark or finished Docs Reader.
+- Docs and README updated. PR #3 remains draft and unmerged,
+  no NuGet publication. [Cache details](ExchangeHouse/Markdown/Docs/Offline-Document-Cache/en.md).
+
+## 2026-11-03 — cache disk quota verified during unknown-length transfer
+
+- Added regression using a deliberately missing HTTP Content-Length:
+  combined cache quota is enforced on received bytes, incomplete
+  download is cleaned up and the prior offline Markdown copy survives.
+  No real-HDD Debian VM measurement or Docs Reader UI integration yet.
+
+## 2026-11-03 — 16-KiB cache manifest memory guard
+
+- Bounded cached HTTP metadata to 16 KiB before parsing and
+  publishing. Regressions cover oversized manifests and ETag validators,
+  with retention of old offline source and no orphan download files.
+- Source-file stream limits and user-controlled disk quota remain
+  independent; no Docs Reader TUI or 1-GiB HDD field acceptance yet.
+
+## 2026-11-03 — first offline cache-management TUI for Markdown
+
+- Added seventh Blackboard Showcase demo backed by
+  `MarkdownRemoteDocumentCache.ListPageAsync`, returning bounded
+  pages of verified cached sources and legacy unknown-origin files
+  without any network dependency or full in-memory catalog.
+- New source manifests carry an optional normalized URI, authenticated
+  by SHA-256 key matching; legacy manifests are backward-compatible.
+  URLs are shortened and query-hidden in console labels; signed query
+  data remain private cache metadata and must not be shared.
+- Reuses the existing HDD/SSD/LowRAM/Balanced Markdown pager to open
+  cached copies; offers explicit permanent copy, confirmed URL removal
+  and confirmed obsolete-version pruning. Tests cover offline UI
+  flows, bounded catalog behavior and hash/legacy handling.
+- Remaining: online URL/GitHub provider, full Docs Reader, catalog
+  indexing for very large caches, multi-process locking, end-to-end
+  1-vCPU/1-GiB rotational HDD benchmarks. Draft PR #3 unmerged,
+  no NuGet release. [TUI guide](Blackboard/Samples/Blackboard.Showcase/Docs/Offline-Cache-Manager/en.md).
+
+## 2026-11-03 — offline cache paging and legacy export refinement
+
+- Cached document export accepts both current and legacy catalog
+  entries without manufacturing source identities. Added nine-item
+  paged TUI browsing regression and signed-URL query privacy test.
+- Draft PR #3; no online GitHub Docs Reader or NuGet release.

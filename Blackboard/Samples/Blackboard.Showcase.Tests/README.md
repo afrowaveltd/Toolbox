@@ -22,3 +22,7 @@ See [Showcase README](../Blackboard.Showcase/README.md) and [Implementation Stat
 ## Complete Markdown file viewer regression coverage (2026-11-02)
 
 `MarkdownFilePreviewDemoTests` exercises actual FileBrowser selection of `.md`/`.markdown`, nested Markdown with safe C# syntax, Unicode BOM, invalid/binary/control rejection, uppercase extension, cancelled/empty file and full display beyond 64 KiB (including the document tail). The reader tests additionally verify 512 KiB+ complete source, UTF-8 multibyte data across read buffers and rejection of corrupt data far beyond the former limit. All file operations are read-only and temporary test fixtures are removed.
+
+## Remote Markdown temporary cache tests (2026-11-02)
+
+New tests exercise `RemoteMarkdownTempDocument` through an in-memory HttpMessageHandler: exact on-disk byte preservation, random-access paging after download, normal and exceptional cleanup, disk byte limits, rejected insecure URLs and pre-cancelled calls. Tests do not contact real servers and do not claim that network timeouts or live translated rendering have been exercised.

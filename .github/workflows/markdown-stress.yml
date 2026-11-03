@@ -1,0 +1,53 @@
+name: Markdown virtual-stream stress
+
+on:
+  pull_request:
+    branches: [ "master" ]
+    paths:
+      - "ExchangeHouse/Markdown/**"
+      - "ExchangeHouse/Markdown.Tests/**"
+      - "Blackboard/SpectreConsole/Markdown/**"
+      - "Toolroom/Markdown/Stress/**"
+      - ".github/workflows/markdown-stress.yml"
+  workflow_dispatch:
+    inputs:
+      size:
+        description: "Virtual UTF-8 Markdown input (binary size units)"
+        required: true
+        default: "1G"
+        type: choice
+        options: [ "10M", "100M", "1G", "10G" ]
+      seed:
+        description: "Deterministic generator seed"
+        required: true
+        default: "12345"
+        type: string
+      render:
+        description: "Exercise Spectre renderer (output discarded)"
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  stress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      MD_STRESS_SIZE: ${{ inputs.size || '10M' }}
+      MD_STRESS_SEED: ${{ inputs.seed || '12345' }}
+      MD_STRESS_RENDER: ${{ inputs.render }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Verify incremental parser regressions
+        run: dotnet test ExchangeHouse/Markdown.Tests/Afrowave.Toolbox.ExchangeHouse.Markdown.Tests.csproj -c Release
+      - name: Stream synthetic Markdown into parser, writer and optional renderer
+        shell: bash
+        run: |
+          args=(--size "$MD_STRESS_SIZE" --seed "$MD_STRESS_SEED" --max-heap-mib 256)
+          if [[ "$MD_STRESS_RENDER" == "false" ]]; then
+            args+=(--no-render)
+          fi
+          dotnet run -c Release --project Toolroom/Markdown/Stress -- "${args[@]}"

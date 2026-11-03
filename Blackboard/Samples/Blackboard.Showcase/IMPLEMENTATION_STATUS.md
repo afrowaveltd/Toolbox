@@ -191,3 +191,135 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 
 - Current read-only full local Markdown FileBrowser demo remains the working prototype. A possible future standalone command-line/TUI Markdown document viewer would add HTTP(S) and GitHub README source providers while reusing the parser/renderer; it is not yet created.
 - [Standalone viewer concept](../../SpectreConsole/Markdown/Docs/Standalone-Markdown-Viewer-Proposal/en.md). No behavior changed in Showcase.
+
+## 2026-11-02 — remote Markdown temporary disk cache (experimental)
+
+- Added `RemoteMarkdownTempDocument`: trusted HTTPS streaming download via HttpClient.ResponseHeadersRead, 64-KiB copy buffer, unique system Temp file, selectable disk byte cap (default 16 GiB), seekable independent file-reader sessions and cleanup on dispose/errors/cancellation.
+- Added isolated HttpMessageHandler tests for unmodified content, random-access paging after HTTP close, Content-Length and streaming size rejection, error cleanup, insecure URL rejection and cancellation.
+- Added design specification for future simultaneous download, semantic Markdown-aware UnderstandMe translation, ordered target-language temporary file and paged reading. **No live translation adapter is implemented.**
+- **CI pending for this increment**. The helper is a Showcase sample API, not yet accessible from the menu or the production Markdown renderer.
+
+### Next
+
+1. Verify cross-platform CI and fix any test defects.
+2. Implement strict incremental text decoding and controlled growing-file producer/consumer protocol.
+3. Add a real standalone pager and remote URL selector, then wire the current temp cache into it.
+4. Integrate a privacy-conscious UnderstandMe translation adapter only after semantic Markdown segmentation and robust ordering.
+
+## 2026-11-02 — experimental source pager registered (draft PR #3)
+
+- Registered sixth `MarkdownPagedSourceDemo` using existing FileBrowser
+  with `*.md;*.markdown` mask and extension revalidation.
+- ExchangeHouse disk index scans/validates strict UTF-8 once; only the
+  current 40-line source page is read, with interactive Next/Previous/
+  Close actions and literal Spectre.Text output (no unsafe Markup).
+  User-selected filename is terminal-control-sanitized. Index cleanup
+  is automatic and original document stays read-only.
+- Unit tests cover stepping forward/backward, Unicode, rejected unsafe
+  file, empty file and cancelled picker.
+- This is **raw source paging only**, not yet formatted multi-page Markdown
+  reading, incremental HTTP/translation or standalone mdview.
+  The existing fifth complete rendered viewer is unchanged.
+  Manual Windows/Debian terminal acceptance and giant-file viewer
+  benchmarks are outstanding. No new NuGet publication.
+- [Instructions](Docs/Markdown-Paged-Source-Viewer/en.md);
+  [disk index API](../../../ExchangeHouse/Markdown/Docs/Disk-Backed-Paging/en.md).
+- CI for draft PR: [#3](https://github.com/afrowaveltd/Toolbox/pull/3).
+
+## 2026-11-02 — conservative formatted preview across source pages
+
+- Sixth Showcase demo now builds a disposable fence checkpoint index in
+  addition to the raw source offset index, with a reversible literal /
+  streaming-renderer preview toggle.
+- Code fences opened on previous pages retain `CodeContent` semantics
+  on a later page; other CommonMark multi-line structures are not
+  fully resumable. Literal source remains the default.
+- New virtual-console regression exercises preview/source toggle.
+  Manual visual terminal test and 1/10 GiB end-to-end pager remain
+  outstanding. [Docs](Docs/Markdown-Paged-Source-Viewer/en.md).
+
+## 2026-11-02 — candidate-context restoration for page seeks
+
+- The existing source/preview toggle now consumes a bounded 128-byte
+  structural checkpoint with prior list indentation, quote and paragraph
+  hints in addition to fenced-code state. No new viewer mode or heavy
+  dependency was added.
+- Do not describe the conservative preview as full CommonMark rendering;
+  literal source remains the default. Manual terminal acceptance pending.
+- [Source documentation](../../../ExchangeHouse/Markdown/Docs/Fence-Checkpoints/en.md).
+
+
+## 2026-11-02 — list owner identities available to paged preview
+
+- The sixth Showcase pager consumes the same bounded checkpoint source;
+  page line events now include list owner offsets and continuation flags.
+  The preview UI itself is intentionally unchanged; renderer integration
+  and complete list formatting are still future work.
+- Checkpoint size is 512 bytes/page and disk quotas remain enabled.
+  Neither a stable NuGet release nor manual 10-GiB acceptance is claimed.
+
+
+## 2026-11-02 — owner-aware renderer integration
+
+- Existing conservative page-preview toggle now routes real
+  `ListOwnerStart` and `IsListContinuationCandidate` metadata to
+  Blackboard Markdown's safe streaming renderer.
+- Indents simple nested markers and their owned prose, including page
+  jumps from child back to parent. No different preview menu or new
+  library dependencies. Full CommonMark fidelity still incomplete.
+
+
+## 2026-11-02 — sparse source-context checkpoints in sixth viewer
+
+- `MarkdownPagedSourceDemo` consumes ExchangeHouse's default sparse
+  16-page state index without menu changes. Source mode remains default.
+- Missing page-boundary state is replayed from the closest earlier
+  checkpoint (up to 15 pages), preserving conservative fence/list
+  identity without buffering the whole document.
+- Read latency depends on stride and physical line sizes; full
+  CommonMark rendering and manual giant-document acceptance remain open.
+
+
+## 2026-11-02 — paragraph identity available during page navigation
+
+- `MarkdownContextPage.Lines` returned by the existing sixth Showcase
+  option now carries conservative `ParagraphStart` source offsets,
+  restored from the unchanged-size sparse checkpoint.
+- This reduces false positive continuation across parent/child list
+  ownership; no new menu option or full Markdown paragraph renderer
+  is claimed. Literal source is still the default.
+
+## 2026-11-02 — list spacing hints available to paged renderer
+
+- The paged source/preview backend now carries per-line conservative
+  `ListSpacingHint` via ExchangeHouse. Existing source navigation and
+  preview layout are unchanged: no incorrect whole-list loose/tight
+  rendering claim. Literal source remains default.
+
+## 2026-11-03 — Markdown page profile picker
+
+- Added explicit Balanced/HDD/SSD/LowRAM selection after file pick in sixth Showcase demo; source index and checkpoint stride follow the same validated preset.
+- No impact on navigation or source/conservative-preview toggle; Escape at profile prompt exits safely. Added interactive console regression tests for HDD 64-line and LowRAM 8-line pages and cancellation. No hardware auto-detection or giant-file VM acceptance claim.
+
+## 2026-11-03 — seventh Showcase demo: offline cache management
+
+- Added `MarkdownOfflineCacheDemo`, registered after the existing sixth
+  source-pager demo. Displays cache-owned disk usage; paginates cached
+  manifests eight at a time; opens offline source via the **same**
+  `MarkdownPagedSourceDemo.ShowFileAsync` implementation.
+- Explicit actions: export a separate copy without silent overwrite,
+  confirm URL-specific removal, and confirm pruning of older redundant
+  versions with a 24h grace period. No online request during browsing.
+- Bounded catalog avoids retaining all document bodies in RAM.
+  Unknown legacy URL entries remain viewable/exportable; deletion
+  by URL requires a verified source. TestConsole regression suite
+  checks empty, open, remove and prune flows.
+- Future: remote GitHub input/Docs Reader book, indexed catalog
+  ordering and real 1-vCPU/1-GiB rotational HDD acceptance.
+  [Manager guide](Docs/Offline-Cache-Manager/en.md).
+
+## 2026-11-03 — extended offline cache UI regression coverage
+
+- Added nine-item catalog navigation and signed-query redaction tests.
+- Export now passes the actual saved entry directly to ExchangeHouse,
+  avoiding any synthetic URL for older cached documents.

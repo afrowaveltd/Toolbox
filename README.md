@@ -115,3 +115,29 @@ Markdown parsing and Spectre presentation now support **ordinary list → explic
 ## View actual Markdown README files in the Showcase (2026-11-02)
 
 The fifth [Blackboard Showcase](Blackboard/Samples/Blackboard.Showcase/README.md) module uses the existing FileBrowser to select local `*.md;*.markdown` files and displays their **entire validated document**, including C# / Bash grammar coloring through the optional TextMate adapter. Files larger than 64 KiB receive only an informational notice; they are **not truncated or rejected by size**. Strict UTF-8 or BOM-marked UTF-16/32 decoding, terminal-control screening and read-only access apply to the whole file. [File-viewer guide](Blackboard/Samples/Blackboard.Showcase/Docs/Markdown-File-Viewer/en.md). Large documents still require memory for the full parsed Markdown model.
+
+## Experimental streaming Markdown and remote disk cache (2026-11-02)
+
+On [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3), ExchangeHouse has a bounded-memory forward-only Markdown scanner with open-code-fence indexing and 64-bit offsets. [Toolroom Markdown Stress](Toolroom/Markdown/Stress/README.md) generates 10M–10G logical Markdown without disk input and optionally renders without capturing output. The Showcase has a separate [trusted HTTPS -> temporary file spooling helper](Blackboard/Samples/Blackboard.Showcase/Docs/Remote-Markdown-Cache/en.md) for future network readers. Existing full-document Markdown parsing and interactive local Markdown preview are unchanged. [Live UnderstandMe translation over disk-spooled Markdown](Blackboard/Samples/Blackboard.Showcase/Docs/Live-Markdown-Translation/en.md) is a **design proposal**, not an implemented feature. The changes are experimental and not yet merged into master.
+
+## Offline Markdown cache retention and budget (2026-11-03)
+
+The draft Markdown `ExchangeHouse` API now includes a **reusable
+offline HTTPS source cache** with ETag/Last-Modified revalidation,
+stale/offline reuse, a configurable 1 GiB default **cache disk**
+budget, explicit storage usage inspection, safe manual older-version
+pruning and export to a user-selected permanent location. The session
+temp download and temporary source/page indexes still have independent
+disposal semantics. **There is no finished Docs Reader remote picker,
+automatic cache eviction or new NuGet release.**
+[Cache and quota guide](ExchangeHouse/Markdown/Docs/Offline-Document-Cache/en.md).
+
+## Experimental offline Markdown cache browser (2026-11-03)
+
+The draft branch's seventh [Blackboard Showcase demo](Blackboard/Samples/Blackboard.Showcase/Docs/Offline-Cache-Manager/en.md)
+can browse previously cached HTTPS Markdown documents without
+internet, display cache disk usage, read them through the existing
+pager, export files, and explicitly confirm cache deletion or
+older-version pruning. Catalogue pages are bounded (eight entries);
+the full Docs Reader/GitHub tree provider and 1-GiB HDD field
+acceptance remain future work. No NuGet release.
