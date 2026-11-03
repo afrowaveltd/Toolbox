@@ -283,9 +283,12 @@ public sealed class MarkdownRemoteDocumentCache
                         response.Content.Headers.LastModified);
                     tempManifestPath = Path.Combine(_directory, key + "." +
                         Guid.NewGuid().ToString("N") + ".json.part");
+                    var manifestJson = JsonSerializer.Serialize(manifest, JsonOptions);
+                    if (Encoding.UTF8.GetByteCount(manifestJson) > ManifestReserveBytes)
+                        throw new InvalidDataException(
+                            "Remote Markdown cache validators exceed the manifest limit.");
                     await File.WriteAllTextAsync(tempManifestPath,
-                        JsonSerializer.Serialize(manifest, JsonOptions),
-                        cancellationToken);
+                        manifestJson, cancellationToken);
                     MakePrivate(tempManifestPath);
                     // The quota must hold even when a server supplies unusually
                     // long cache validators; the temporary manifest counts too.
@@ -470,6 +473,12 @@ public sealed class MarkdownRemoteDocumentCache
             return null;
         try
         {
+            // This is control metadata, not a source document. A corrupt or
+            // hostile oversized manifest must never be loaded wholesale on
+            // a 1-GiB class machine.
+            var manifestInfo = new FileInfo(manifestPath);
+            if (!manifestInfo.Exists || manifestInfo.Length > ManifestReserveBytes)
+                return null;
             var json = await File.ReadAllTextAsync(manifestPath, cancellationToken);
             var manifest = JsonSerializer.Deserialize<CacheManifest>(json, JsonOptions);
             if (manifest is null || manifest.Version != 1 ||
