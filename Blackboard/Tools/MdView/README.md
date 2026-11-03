@@ -38,3 +38,7 @@ The first CLI commit referenced `TextFilePreviewReader` as though it were export
 ## Windows test verification (2026-11-03)
 
 The user-provided `dotnet test Toolbox.sln` log after the shared reader fix shows `mdview.dll` successfully built and `MdView.Tests` **10/10 passed**; all twelve solution test assemblies passed **6,438/6,438** on Windows (net10.0 target, .NET 11 preview SDK). Manual CLI usage and Linux CI are still pending; the pending cross-project linked-source reader extraction remains an architecture task.
+
+## Independent local reader (2026-11-03)
+
+The temporary Showcase `Compile Include` bridge is now removed. The local file decoder lives in [Blackboard.TextFiles](../../TextFiles/README.md), with a dedicated `ProjectReference`. The CLI has no dependency on the Showcase executable. Rerun the full solution tests to verify this refactoring; the previously reported green Windows run predates it.
