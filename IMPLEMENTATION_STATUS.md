@@ -250,3 +250,10 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Direct/local HTTP(S)/GitHub README commands reuse existing Markdown renderer, FileBrowser complete strict local decoder and verified remote cache source adapters. No-argument path has a simple text-menu prototype, not the planned Spectre picker/pager.
 - Whole source and Markdown model are still materialized in memory; no new 1 GB streaming claim or installed `mdview` executable distribution.
 - **Build/test and terminal acceptance remain unverified** in this execution environment (no SDK). Follow-up: confirm Linux/Windows CI and add e2e and interactive FileBrowser tests.
+
+## 2026-11-03 — Windows build/test feedback and focused corrections
+
+- User-provided `dotnet test Toolbox.sln` output showed **Markdown.Cache 32/32**, ExchangeHouse Markdown 88/88, Blackboard Markdown 34/34, FileBrowser 160/160, Essentials 3198/3198 and WhenItFails 1475/1475 passed. The solution was **not green**: MdView had three CS0103 unresolved reader symbol errors and UnderstandMe Configurator had two English UI expectation failures (42/44 passed).
+- MdView now links the original Showcase `TextFilePreviewReader.cs` source and imports its actual namespace. This is a temporary compilation bridge until the reader is extracted as a shared library rather than duplicating implementation.
+- The two Configurator tests now inject isolated preference files, preventing an installed Czech language preference from changing tests intended to exercise English UI. Production UI untouched.
+- .NET 11 preview `NETSDK1057` is informational; CS1591/CS1573 XML documentation warnings and xUnit2013 analyzer warnings are nonfatal and remain for cleanup. **Full corrected Windows/Linux CI is not yet established.**
