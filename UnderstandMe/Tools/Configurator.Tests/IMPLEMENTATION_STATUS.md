@@ -65,3 +65,9 @@
 - [GitHub Actions #40880298677](https://github.com/afrowaveltd/Toolbox/actions/runs/40880298677) **SUCCESS** for consumer integration commit `18d0281ee232bdd8080f00923f91f5d8b34adb1b`.
 - Linux whole-solution restore/build/test **PASS**. Windows FileBrowser, UnderstandMe Configurator (including shared Markdown help tests), Blackboard Showcase and UnderstandMe localization concurrency suites **PASS**.
 - No release/published Markdown NuGet was created; Configurator references the in-repo library project. Windows real-terminal Markdown Help visuals and Debian manual acceptance remain to be checked by a person; virtual terminal tests prove the covered behavior only.
+
+## 2026-11-03 — locale-test isolation correction
+
+- The user-reported Windows full-suite run had **42/44 passing**, with `Main_menu_help_opens_topic_offline_then_returns_to_main_menu` and `Escape_exits_empty_interactive_editor` failing because they expected English UI strings but used the real user's default preferences location (Czech UI visible in the log).
+- Both tests now inject unique/isolated preferences paths. The production Configurator and language selection remain unchanged; tests should no longer inherit a user's saved locale.
+- **Awaiting rerun** of `dotnet test Toolbox.sln` on the corrected source. Do not claim these two tests passed yet.
