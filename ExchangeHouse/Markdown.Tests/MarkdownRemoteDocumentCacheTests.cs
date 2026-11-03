@@ -282,6 +282,34 @@ public sealed class MarkdownRemoteDocumentCacheTests
     }
 
     [Fact]
+    public async Task Unknown_content_length_stream_stops_at_total_quota_and_keeps_saved_document()
+    {
+        var root = NewDirectory();
+        try
+        {
+            var cache = new MarkdownRemoteDocumentCache(root,
+                maxTotalCacheBytes: 24 * 1024);
+            using var first = Client(_ => Ok("offline copy\n"u8.ToArray(), "\"safe\""));
+            var saved = await cache.GetAsync(first, DocumentUrl);
+            var otherUrl = new Uri("https://example.org/unknown-length.md");
+            using var unknown = Client(_ => new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new UnspecifiedLengthContent(new byte[32 * 1024])
+            });
+
+            await Assert.ThrowsAsync<InvalidDataException>(() =>
+                cache.GetAsync(unknown, otherUrl));
+            Assert.Equal("offline copy\n", await File.ReadAllTextAsync(saved.LocalPath));
+            Assert.Equal(saved.LocalPath, (await cache.GetAsync(first,
+                DocumentUrl, MarkdownRemoteCacheMode.OfflineOnly)).LocalPath);
+            Assert.Equal(2, (await cache.GetUsageAsync()).FileCount);
+            Assert.DoesNotContain(Directory.GetFiles(root),
+                p => p.EndsWith(".part", StringComparison.Ordinal));
+        }
+        finally { Directory.Delete(root, recursive: true); }
+    }
+
+    [Fact]
     public async Task Explicit_pruning_removes_old_versions_only_and_preserves_other_urls()
     {
         var root = NewDirectory();
@@ -383,6 +411,22 @@ public sealed class MarkdownRemoteDocumentCacheTests
                 cache.PruneObsoleteVersionsAsync(TimeSpan.FromSeconds(-1)));
         }
         finally { Directory.Delete(root, recursive: true); }
+    }
+
+    private sealed class UnspecifiedLengthContent(byte[] payload) : HttpContent
+    {
+        protected override Task SerializeToStreamAsync(
+            Stream stream, TransportContext? context) =>
+            stream.WriteAsync(payload, 0, payload.Length);
+
+        protected override bool TryComputeLength(out long length)
+        {
+            length = 0;
+            return false;
+        }
+
+        protected override Task<Stream> CreateContentReadStreamAsync() =>
+            Task.FromResult<Stream>(new MemoryStream(payload, writable: false));
     }
 
     private static HttpResponseMessage Ok(byte[] bytes, string tag)
