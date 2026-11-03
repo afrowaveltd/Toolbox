@@ -213,3 +213,9 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Verified through official GitHub REST docs that **owner/repo are already case-insensitive**. No capitalization-guessing request loops; use one README API request and canonical repo metadata if necessary. Local Linux paths, branch/ref names and repository file paths are not assumed case-insensitive.
 - Recorded a separate prospective `IAsyncEnumerable` incremental block parser and Unix-`less`-style pager as a **research track**: quote/list/fence state and bounded lookahead, late reference definitions, optional two-pass/disk-backed spooling, terminal-width aware visual lines, keybindings, cache/index for reverse navigation and 1 GB benchmark targets. Distinguish chunked file decoding from full in-memory parsing.
 - Retain strict source validation and no silent help truncation. **Design/documentation only**; no parser API, CLI app, pager, tests, NuGet publication or 1 GB streaming claim has been implemented. [Detailed proposal](Blackboard/SpectreConsole/Markdown/Docs/Standalone-Markdown-Viewer-Proposal/en.md).
+
+## 2026-11-03 — Markdown offline cache acceptance contract
+
+- The standalone Markdown viewer remains **design-only**, while the existing local Showcase reader remains functional and previously CI-verified.
+- Documented durable cache behavior: online conditional refresh, visible offline/stale fallback, crash-safe validated writes, separate per-user cache location and explicit user-controlled cleanup. [Cache policy](Blackboard/SpectreConsole/Markdown/Docs/Document-Cache-Policy/en.md) and [renderer status](Blackboard/SpectreConsole/Markdown/IMPLEMENTATION_STATUS.md).
+- No cache or `mdview` code is claimed; .NET tests and full CI have not been run for this documentation increment.
