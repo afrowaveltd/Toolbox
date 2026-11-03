@@ -162,3 +162,9 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 - Added [persistent document cache policy](Docs/Document-Cache-Policy/en.md): retain valid remote README content across restarts; use ETag/Last-Modified conditional validation; explicitly distinguish stale/offline content; atomic writes and corruption-safe fallback; safe cache roots, budgets, opt-in cleanup and tests.
 - Updated the [standalone viewer proposal](Docs/Standalone-Markdown-Viewer-Proposal/en.md) to link the cache acceptance contract.
 - **Documentation only:** no source provider, cache implementation, standalone `mdview`, paging engine or NuGet publication. Existing full-document local Showcase behavior is unchanged. Automated tests for this contract are not yet implemented.
+
+## 2026-11-03 — separate verified cache foundation introduced
+
+- New independent [Markdown.Cache library](../Markdown.Cache/README.md) and [tests](../Markdown.Cache.Tests/README.md) contain the first disk-store implementation. Parser/renderer itself is unchanged and has no cache dependency.
+- The [viewer cache contract](Docs/Document-Cache-Policy/en.md) remains the wider target; current store does not implement conditional network refresh, cleanup, per-user path selection or paging.
+- New cache tests have not yet passed CI or been run locally; .NET SDK unavailable in execution environment. See [cache status](../Markdown.Cache/IMPLEMENTATION_STATUS.md).
