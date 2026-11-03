@@ -70,3 +70,17 @@ feature acceptance criteria. It only preserves an idea for future work.
 ## Source-cache foundation added (2026-11-03)
 
 A reusable `ExchangeHouse.MarkdownRemoteDocumentCache` now provides a separate **implemented library foundation** for the future remote Docs Reader. It saves versioned HTTPS Markdown source files in a per-user cache, conditionally revalidates them using HTTP ETag/Last-Modified, retains an explicitly flagged stale copy for offline use, and supports export and per-URL removal. Unlike this source cache, disposable page/fence indexes remain safe to rebuild. No GitHub repository tree provider, virtual book source manifest, offline GUI/TUI menu, project-wide synchronization or finished Docs Reader has been implemented. Read [cache API and limitations](../../ExchangeHouse/Markdown/Docs/Offline-Document-Cache/en.md).
+
+## Offline cache storage budget and user-initiated maintenance (2026-11-03)
+
+The implemented ExchangeHouse source cache now supplies a configurable
+default **1 GiB total cache-owned disk budget**, disk-usage inspection
+and an **explicit** older-version pruning operation that retains
+the manifest-selected offline copy. It does not silently evict documents
+on full disks; a requested refresh fails without losing the prior
+usable copy. A future Docs Reader should show cache usage and offer
+export, remove-document and prune-versions commands while keeping
+cache management optional. The 24h pruning grace period protects
+recent versions, not simultaneous readers in other processes. No
+Docs Reader TUI or GitHub repository provider is implemented yet.
+[Cache contract](../../ExchangeHouse/Markdown/Docs/Offline-Document-Cache/en.md).

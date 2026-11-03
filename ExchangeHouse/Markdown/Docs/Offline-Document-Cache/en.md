@@ -134,3 +134,71 @@ GitHub tree provider are **not implemented**.
 [Remote temporary spooling in Showcase](../../../../Blackboard/Samples/Blackboard.Showcase/Docs/Remote-Markdown-Cache/en.md) ·
 [Virtual Docs Reader proposal](../../../../Docs/Unified-Docs-Reader-Proposal/en.md) ·
 [Disk-backed page indexes](../Disk-Backed-Paging/en.md).
+
+## Total disk quota, usage reporting and explicit pruning (2026-11-03)
+
+The reusable source cache now has a **default 1 GiB combined disk budget**
+for cache-owned documents, version manifests and incomplete cache writes.
+This is configurable independently of the default **256 MiB
+per-document** transfer limit. These are **disk byte limits**, not a RAM
+cache allocation, and do not change the temporary 8-byte/page source
+offset and 512-byte sparse context indexes.
+
+```csharp
+var cache = new MarkdownRemoteDocumentCache(
+    maxTotalCacheBytes: 128L * 1024 * 1024);
+var usage = await cache.GetUsageAsync();
+Console.WriteLine(
+    $"Used: {usage.UsedBytes:N0} bytes in {usage.FileCount:N0} files");
+Console.WriteLine($"Remaining: {usage.RemainingBytes:N0} bytes");
+
+// Explicit maintenance, not an automatic eviction policy:
+var removed = await cache.PruneObsoleteVersionsAsync();
+
+// Only after verifying readers no longer need older versions:
+var removedNow = await cache.PruneObsoleteVersionsAsync(TimeSpan.Zero);
+```
+
+**Retention rules:**
+
+- Quota checks run before a new transfer and on each received chunk,
+  counting old versions as well as the new one. Small metadata headroom
+  is reserved, and the manifest is checked before publishing. A failed
+  refresh cleans up its unfinished or unreferenced new version; an
+  earlier valid offline manifest remains untouched.
+- `GetUsageAsync` performs a sequential enumeration of **cache-owned
+  filenames only**, without building a content catalog or reading
+  Markdown bodies into RAM. Unrelated files and separately managed
+  page indexes are excluded. Existing cached files can still be opened
+  **offline when the cache is already over its configured quota**.
+- When the disk budget cannot hold the next version, the download
+  fails with `InvalidDataException`. **The cache does not silently
+  delete any document merely to make room.** The caller may export,
+  remove a specific URL's cache or explicitly prune obsolete versions.
+- `PruneObsoleteVersionsAsync` deletes only recognizable old `.md`
+  version files when **a different, verified manifest-selected version
+  for the same URL exists**. Missing or corrupt manifests never trigger
+  speculative deletion of an orphan that might be the last recoverable
+  offline source.
+- The default pruning grace period is **24 hours**. This protects
+  recently refreshed files, but is **not** an operating-system
+  cross-process lease: an older version may still be open in another
+  reader. Applications should close such sessions before maintenance;
+  passing `TimeSpan.Zero` explicitly removes the grace interval.
+- Crash-leftover `.part` files count toward the quota, but are **not
+  automatically removed** by obsolete-version pruning. Safe orphan
+  recovery, per-document pinned retention, cross-process coordination,
+  and explicit UI storage management remain future enhancements.
+- The cap is enforced cooperatively inside a single cache instance.
+  Separate application processes, external file changes and unrelated
+  files in the directory are **not** controlled by this mechanism.
+  It must not be described as an operating-system hard filesystem quota.
+
+For a weak machine, choose a conservative **disk** budget and keep
+large caches on storage with enough free space. The metadata enumeration
+uses little RAM but can cost I/O on a rotational HDD; it runs on
+downloads/maintenance, **not** on every page turn.
+
+The future Docs Reader can surface usage, export, refresh and manual
+pruning actions. None of those interactive menu entries are currently
+wired into the Showcase or a standalone Docs Reader.

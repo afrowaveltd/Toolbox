@@ -326,3 +326,24 @@
 - Bounded 64 KiB download buffer, 256 MiB per-document default quota, safe manifest file names, owner-only Unix file permissions, atomic manifest replacement, explicit `SaveCopyAsync` and per-URL `RemoveAsync`.
 - Regression tests cover offline persistence across instances, 304 validators, refresh version preservation, stale fallback, HTTP 4xx, quotas, manual cleanup, export and corrupt manifest safety.
 - No Docs Reader remote menu/provider, automatic cache GC, total-directory quota, parallel-process locks, 1-GiB HDD field benchmark or NuGet release yet. [Cache details](Docs/Offline-Document-Cache/en.md).
+
+## 2026-11-03 — bounded total cache disk usage and cautious manual pruning (draft PR #3)
+
+- Extended `MarkdownRemoteDocumentCache` with a configurable 1 GiB
+  default **total cache-owned disk quota** (not a RAM budget), while
+  retaining the 256 MiB per-document default limit. Enforces the
+  remaining budget on each received chunk with reserved manifest
+  headroom; unsuccessful refreshes do not orphan new versions or
+  destroy the prior valid offline manifest.
+- Added `GetUsageAsync`/`MarkdownRemoteCacheUsage` to enumerate
+  recognized cache-owned source, manifest and part files without
+  loading source bodies or maintaining an in-memory catalog.
+- Added **explicit** `PruneObsoleteVersionsAsync` with 24h default
+  grace interval; deletes only older source versions when a different
+  valid current manifest remains, never automatically evicts the last
+  offline copy or guesses at corrupted manifests.
+- Tests cover total-quota failure and preservation, usage accounting,
+  recent-version grace, multi-URL isolation, manual pruning, and
+  corrupt-manifest protection. Process-level locks, crash-part cleanup,
+  full-cache LRU eviction and actual 1 GiB RAM/HDD acceptance still
+  remain future work. [Contract](Docs/Offline-Document-Cache/en.md).

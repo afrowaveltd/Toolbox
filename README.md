@@ -107,3 +107,15 @@ The fifth [Blackboard Showcase](Blackboard/Samples/Blackboard.Showcase/README.md
 ## Experimental streaming Markdown and remote disk cache (2026-11-02)
 
 On [draft PR #3](https://github.com/afrowaveltd/Toolbox/pull/3), ExchangeHouse has a bounded-memory forward-only Markdown scanner with open-code-fence indexing and 64-bit offsets. [Toolroom Markdown Stress](Toolroom/Markdown/Stress/README.md) generates 10M–10G logical Markdown without disk input and optionally renders without capturing output. The Showcase has a separate [trusted HTTPS -> temporary file spooling helper](Blackboard/Samples/Blackboard.Showcase/Docs/Remote-Markdown-Cache/en.md) for future network readers. Existing full-document Markdown parsing and interactive local Markdown preview are unchanged. [Live UnderstandMe translation over disk-spooled Markdown](Blackboard/Samples/Blackboard.Showcase/Docs/Live-Markdown-Translation/en.md) is a **design proposal**, not an implemented feature. The changes are experimental and not yet merged into master.
+
+## Offline Markdown cache retention and budget (2026-11-03)
+
+The draft Markdown `ExchangeHouse` API now includes a **reusable
+offline HTTPS source cache** with ETag/Last-Modified revalidation,
+stale/offline reuse, a configurable 1 GiB default **cache disk**
+budget, explicit storage usage inspection, safe manual older-version
+pruning and export to a user-selected permanent location. The session
+temp download and temporary source/page indexes still have independent
+disposal semantics. **There is no finished Docs Reader remote picker,
+automatic cache eviction or new NuGet release.**
+[Cache and quota guide](ExchangeHouse/Markdown/Docs/Offline-Document-Cache/en.md).

@@ -386,3 +386,20 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Supports conditional HTTP GET with ETag/Last-Modified and 304 reuse, no-network explicit offline mode, safe stale fallback for broken connections/5xx, forced refresh, immutable cached versions, manual export and per-URL removal. Streamed download buffer stays 64 KiB; per-document default 256 MiB quota.
 - Added mock-HTTP regression tests for freshness, interruption, preservation, quotas, security and exports; English README and topic documentation updated. Cached source data may still be purged by OS policy; no reliable permanent storage without explicit SaveCopy.
 - The **Docs Reader, GitHub tree/manifest provider, remote TUI selector, total cache quota, cross-process coordination and 1-GiB HDD acceptance remain future work**. PR #3 draft, no merge/release. [Cache contract](ExchangeHouse/Markdown/Docs/Offline-Document-Cache/en.md).
+
+## 2026-11-03 — safe total disk budget for reusable offline Markdown cache (draft PR #3)
+
+- Added default 1 GiB configurable combined cache-owned source/manifest
+  disk quota, independent of per-document 256 MiB transfer limit and
+  separate disposable Markdown page/context indexes.
+- Added bounded-memory `GetUsageAsync`, explicit
+  `PruneObsoleteVersionsAsync` (24-hour default grace), protection of
+  the valid manifest-selected copy and fail-without-eviction behavior
+  on exhausted storage. Cached offline reads remain available even
+  if quota is exhausted.
+- Tests cover quota rejection, previous version preservation, usage
+  accounting, multi-URL pruning, grace interval and corrupt metadata.
+  No global automatic LRU, process-crossing locks, orphan-part cleanup,
+  1-vCPU/1-GiB physical HDD benchmark or finished Docs Reader.
+- Docs and README updated. PR #3 remains draft and unmerged,
+  no NuGet publication. [Cache details](ExchangeHouse/Markdown/Docs/Offline-Document-Cache/en.md).

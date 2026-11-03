@@ -188,3 +188,16 @@ model, and no automatic TUI integration or NuGet release is implied.
 ## Reusable offline HTTPS Markdown source cache (2026-11-03)
 
 `MarkdownRemoteDocumentCache` now stores versioned, immutable source copies in a per-user application cache, separate from disposable page/checkpoint indexes. Its `GetAsync` supports conditional HTTP `ETag`/`Last-Modified` checks, explicit offline-only access, forced refresh and marked stale fallback after connection failures. `SaveCopyAsync` exports a selected version to a permanent user path and `RemoveAsync` removes a single URL's stored versions on request. The default per-document download limit is 256 MiB and transfers use bounded buffers. This is a **library primitive**, not yet a remote Docs Reader TUI, automatic network sync, global cache quota or secure multi-user server endpoint. See [cache contract](Docs/Offline-Document-Cache/en.md).
+
+## Cache-wide source retention and disk quota (2026-11-03)
+
+`MarkdownRemoteDocumentCache` now enforces a configurable **1 GiB
+default total cache-owned disk budget** alongside the independent
+256 MiB/document transfer limit. `GetUsageAsync` reports occupied
+bytes and file count without loading documents. An explicit
+`PruneObsoleteVersionsAsync` preserves each valid manifest-selected
+offline copy, retains recent versions for 24 hours by default and
+avoids deleting anything if its manifest is missing/corrupt. Failed
+quota-limited downloads leave the last usable copy intact; there is
+**no automatic eviction, no total-process RAM guarantee and no
+cross-process storage lock**. [Details](Docs/Offline-Document-Cache/en.md).

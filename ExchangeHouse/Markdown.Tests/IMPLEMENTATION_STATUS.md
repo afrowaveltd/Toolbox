@@ -243,3 +243,14 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 - Added `MarkdownRemoteDocumentCacheTests` for byte-perfect downloads, re-open from a different cache instance without internet, HTTP ETag/Last-Modified conditional requests and 304, explicitly forced fresh versions and retention of open-version paths.
 - Tests also cover broken connections and 5xx stale copies, 4xx error propagation, no-network cache misses, download byte quota with old-copy preservation, permanent export, explicit per-URL deletion and rejection of insecure URLs/corrupt path metadata.
 - Tests use local stubbed HttpClient handlers and isolated temporary directories; no live GitHub networking or 1-GiB HDD acceptance is claimed.
+
+## 2026-11-03 — persistent cache quota and manual pruning tests
+
+- Extended `MarkdownRemoteDocumentCacheTests` with combined cache
+  disk-budget rejection while preserving the previous offline file,
+  byte/file-count usage accounting, explicit pruning of old versions
+  across multiple URLs, default 24h grace retention, corrupt manifest
+  non-deletion, and input validation.
+- The tests are local and use stubbed HTTP response handlers. They
+  verify single-process behavior only, not cross-process locking,
+  physical HDD latency or live network connectivity.
