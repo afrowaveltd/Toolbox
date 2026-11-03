@@ -243,3 +243,10 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Added [GitHubReadmeSource](Blackboard/SpectreConsole/Markdown.Cache/Docs/GitHub-Readme/en.md) to independent Markdown.Cache with official GitHub REST README retrieval, raw Markdown media type, case-insensitive repository cache keys and persistent conditional HTTP validation.
 - Added in-memory HTTP regression cases; no GitHub-auth tokens, ref/file selection, redirects, linked documents or CLI application are implemented in this slice.
 - **Tests/CI unverified** for this new feature (no local .NET SDK). Await concrete build/test evidence before claiming a passing release.
+
+## 2026-11-03 — initial mdview CLI application
+
+- Created [mdview](Blackboard/Tools/MdView/README.md) .NET 10 executable and [CLI grammar tests](Blackboard/Tools/MdView.Tests/README.md); registered both in `Toolbox.sln`.
+- Direct/local HTTP(S)/GitHub README commands reuse existing Markdown renderer, FileBrowser complete strict local decoder and verified remote cache source adapters. No-argument path has a simple text-menu prototype, not the planned Spectre picker/pager.
+- Whole source and Markdown model are still materialized in memory; no new 1 GB streaming claim or installed `mdview` executable distribution.
+- **Build/test and terminal acceptance remain unverified** in this execution environment (no SDK). Follow-up: confirm Linux/Windows CI and add e2e and interactive FileBrowser tests.
