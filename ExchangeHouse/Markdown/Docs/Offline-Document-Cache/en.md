@@ -202,3 +202,14 @@ downloads/maintenance, **not** on every page turn.
 The future Docs Reader can surface usage, export, refresh and manual
 pruning actions. None of those interactive menu entries are currently
 wired into the Showcase or a standalone Docs Reader.
+
+## Bounded control metadata (2026-11-03)
+
+Cache manifest control data is limited to **16 KiB** before either
+serialization is published or a saved manifest is loaded. Exceptionally
+large origin validators are rejected rather than allowing an
+unbounded manifest read on a low-RAM machine. An unsuccessful refresh
+leaves the existing cached manifest and source intact and cleans up
+its failed new version. A corrupt or oversized existing manifest is
+not trusted as proof that old copies are safe to prune. Tests cover
+oversized on-disk manifests and unusually large ETag headers.

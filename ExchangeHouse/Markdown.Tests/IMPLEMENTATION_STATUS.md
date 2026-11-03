@@ -262,3 +262,10 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
   is enforced while receiving chunks, partial files are removed,
   and the previously saved offline document remains byte-identical.
 - This is a stubbed HTTP response, not a live network benchmark.
+
+## 2026-11-03 — malicious/oversized cache metadata regressions
+
+- Added tests ensuring oversized saved manifests are not loaded into
+  memory or treated as a valid current version, and remote ETag values
+  above 16 KiB cannot publish invalid metadata, consume orphan space
+  or overwrite the last saved offline copy.

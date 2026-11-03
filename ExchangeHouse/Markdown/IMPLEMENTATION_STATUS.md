@@ -354,3 +354,12 @@
   to verify the new total cache disk quota is checked *during*
   chunked response streaming, with cleanup and offline preservation.
   No automatic cache eviction or new NuGet release.
+
+## 2026-11-03 — bounded remote cache metadata
+
+- Manifest JSON is capped at **16 KiB** before reading into RAM and
+  before publish, avoiding unbounded metadata allocations on a weak
+  terminal-only Debian target.
+- Oversized ETag data cannot replace an otherwise valid cached copy;
+  failed downloads clean new temporary/version files. Added oversized
+  manifest and validator regressions; no cross-process lock yet.

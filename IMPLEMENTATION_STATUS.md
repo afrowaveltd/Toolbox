@@ -410,3 +410,11 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   combined cache quota is enforced on received bytes, incomplete
   download is cleaned up and the prior offline Markdown copy survives.
   No real-HDD Debian VM measurement or Docs Reader UI integration yet.
+
+## 2026-11-03 — 16-KiB cache manifest memory guard
+
+- Bounded cached HTTP metadata to 16 KiB before parsing and
+  publishing. Regressions cover oversized manifests and ETag validators,
+  with retention of old offline source and no orphan download files.
+- Source-file stream limits and user-controlled disk quota remain
+  independent; no Docs Reader TUI or 1-GiB HDD field acceptance yet.
