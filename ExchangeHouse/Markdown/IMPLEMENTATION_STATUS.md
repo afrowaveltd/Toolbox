@@ -375,3 +375,11 @@
 - Tests cover two-source paging, unrelated file exclusion, missing
   legacy URL and forged URL labels. No sorted persistent catalog or
   cross-process consistency guarantee. [Catalog and TUI](Docs/Offline-Document-Cache/en.md).
+
+## 2026-11-03 — safe entry export for legacy cached documents
+
+- Added the `SaveCopyAsync(MarkdownRemoteCacheEntry,...)` overload,
+  sharing the atomic file-copy core with the existing downloaded-document
+  export. Offline legacy entries now export without a fabricated URI.
+- Added legacy export regression; full Docs Reader and online GitHub
+  provider remain unimplemented.

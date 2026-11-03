@@ -317,3 +317,9 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 - Future: remote GitHub input/Docs Reader book, indexed catalog
   ordering and real 1-vCPU/1-GiB rotational HDD acceptance.
   [Manager guide](Docs/Offline-Cache-Manager/en.md).
+
+## 2026-11-03 — extended offline cache UI regression coverage
+
+- Added nine-item catalog navigation and signed-query redaction tests.
+- Export now passes the actual saved entry directly to ExchangeHouse,
+  avoiding any synthetic URL for older cached documents.

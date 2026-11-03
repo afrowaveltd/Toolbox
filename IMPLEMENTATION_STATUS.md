@@ -437,3 +437,10 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   indexing for very large caches, multi-process locking, end-to-end
   1-vCPU/1-GiB rotational HDD benchmarks. Draft PR #3 unmerged,
   no NuGet release. [TUI guide](Blackboard/Samples/Blackboard.Showcase/Docs/Offline-Cache-Manager/en.md).
+
+## 2026-11-03 — offline cache paging and legacy export refinement
+
+- Cached document export accepts both current and legacy catalog
+  entries without manufacturing source identities. Added nine-item
+  paged TUI browsing regression and signed-URL query privacy test.
+- Draft PR #3; no online GitHub Docs Reader or NuGet release.

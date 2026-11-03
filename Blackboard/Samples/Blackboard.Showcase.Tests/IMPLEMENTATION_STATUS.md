@@ -152,3 +152,10 @@ Next: confirm CI and add regression cases for any Windows/SSH differences that a
   obsolete-version pruning.
 - Test cases use Spectre.Console.Testing and a stubbed HTTPS client to
   populate isolated cache directories. No live network dependency.
+
+## 2026-11-03 — bounded catalog pagination and privacy
+
+- Added nine-document TestConsole navigation proving that the eighth
+  entry is followed by a separate second menu page, plus a signed URL
+  fixture confirming query secrets are not shown in terminal labels.
+- Offline export uses the new direct cached-entry copy method.

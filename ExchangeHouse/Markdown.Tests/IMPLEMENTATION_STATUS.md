@@ -276,3 +276,9 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
   and `HasMore`, explicit 1..64 limits, exclusion of unrelated
   files, old manifest without `SourceUrl`, and forged mismatching
   URL metadata. All use local disk and stub HTTP.
+
+## 2026-11-03 — legacy catalog export regression
+
+- The old-format manifest fixture now verifies that a catalog entry
+  with an unknown source URI can still be exported byte-identically
+  to a permanent independent path.

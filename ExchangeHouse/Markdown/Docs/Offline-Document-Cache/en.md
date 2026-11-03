@@ -236,3 +236,11 @@ cross-process snapshot. Repeated deep skips can be I/O-expensive on
 an HDD; a dedicated on-disk catalog is a separate future optimization.
 
 [Offline-cache Showcase menu](../../../../Blackboard/Samples/Blackboard.Showcase/Docs/Offline-Cache-Manager/en.md).
+
+## Exporting legacy catalog entries (2026-11-03)
+
+The static `MarkdownRemoteDocumentCache.SaveCopyAsync` also accepts a
+`MarkdownRemoteCacheEntry`, allowing a legacy saved file whose original
+HTTPS URL is not known to be exported without inventing a source URI.
+The same atomic sibling-copy semantics and refusal to overwrite existing
+targets apply as for `MarkdownCachedRemoteDocument`.
