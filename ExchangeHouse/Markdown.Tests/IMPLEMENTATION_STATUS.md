@@ -133,3 +133,8 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 - Added six cases covering distinct outer/inner source owners, nested numbered list parent, separated runs, quoted fenced code, quoted loose separators and existing plain quote behavior.
 - Initial failing tests caught ambiguity of standalone quote detection under a regular item and a test's too-small child indent; both corrected before verified green CI.
 - [CI #41257477307](https://github.com/afrowaveltd/Toolbox/actions/runs/41257477307): **88/88 passed**.
+
+## 2026-11-04 — incremental line-scanning regression suite
+
+- Added `MarkdownIncrementalLineScannerTests.cs` (16 test cases: 13 Facts and 3 Theory rows). These exercise streaming laziness, exact source offsets and line endings, top-level fenced-code state/language, heading parity with the current full parser for flat examples, literal nested-container lines, Unicode, cancellation, bounded line length and late unsafe controls.
+- Existing parser and renderer tests remain unchanged. New tests have **not yet been executed** in this environment; after syncing, run `dotnet test ExchangeHouse/Markdown.Tests/Afrowave.Toolbox.ExchangeHouse.Markdown.Tests.csproj` and the full solution. The stream scanner is opt-in and cannot yet replace the full Markdown parser.
