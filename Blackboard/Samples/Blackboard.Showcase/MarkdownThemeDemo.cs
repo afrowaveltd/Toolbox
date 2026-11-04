@@ -62,6 +62,33 @@ public sealed class MarkdownThemeDemo : IBlackboardShowcaseDemo
           >       ```
           Continue with the remaining deployment steps.
 
+        ### JavaScript, JSON and YAML — syntax colors are not C#-only
+
+        ```javascript
+        const greetings = ["Hello", "Ahoj", "Habari"];
+        function greet(name) {
+            return ``Welcome, ${name}!``;
+        }
+        console.log(greet("Afrowave"));
+        ```
+
+        ```json
+        {
+            "name": "Afrowave",
+            "enabled": true,
+            "languages": ["cs", "en", "sw"]
+        }
+        ```
+
+        ```yaml
+        project: Toolbox
+        enabled: true
+        languages:
+          - cs
+          - en
+          - sw
+        ```
+
         ### .NET Core 3.1 console application (classic Main entry point)
         The older project template makes C# namespaces, classes and nested code indentation visible.
 
