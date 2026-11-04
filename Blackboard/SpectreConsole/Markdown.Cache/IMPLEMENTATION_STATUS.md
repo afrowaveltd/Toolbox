@@ -52,3 +52,9 @@ Next: run and correct Windows/Linux solution CI; then add fault-injection tests,
 - Valid owner/name checks and public-only filtering; raw descriptions are sanitized and labels escaped by the CLI. HTTP redirects are refused and caller must disable automatic redirects. No credentials, README downloads or network-dependent Markdown rendering in the catalog layer.
 - An independent case-insensitive SHA-256 verified cache snapshot stays fresh for 30 minutes, then refreshes atomically; errors use an explicitly stale last valid list (or an error if none exists). A `TimeProvider` injection supports deterministic expiry tests.
 - [Architecture and API usage](Docs/GitHub-Repository-Catalog/en.md). Added fake-HTTP regression tests. **Not yet compiled or regression-tested in this execution environment**, which lacks a .NET SDK. User's previously confirmed Windows 6,443 test baseline was before these additions.
+
+## 2026-11-04 — catalog pagination test fixture corrected
+
+- User's Windows solution run confirmed the catalog assembly builds and 43 of 44 Markdown.Cache tests pass. The single failing test erroneously matched `per_page=100` when looking for `page=1`, making its fake server repeat page one and report 11 calls instead of 3.
+- Corrected the test's page parameter comparison and asserted exact page URLs. **Production `GitHubRepositoryCatalogSource` is unchanged**; its ten-page limit behaved as designed under the faulty fixture.
+- Full confirmation awaits the user's new run after syncing the test fix.
