@@ -20,3 +20,11 @@
 
 - Follow-up user-provided `dotnet test Toolbox.sln` log confirms the extracted TextFiles library builds successfully and all **5/5 TextFiles.Tests pass**. Whole solution: **6,443/6,443 green, no failures/skips**.
 - The earlier omitted test project was corrected by complete x64/x86 solution configuration entries. This local Windows verification does not establish separate Linux CI or interactive terminal acceptance.
+
+## 2026-11-04 — bounded UTF-8 disk line index
+
+- Added `Utf8DiskLineIndex` and `Utf8LinePage` in TextFiles. The source is validated sequentially as strict UTF-8 before pages are made available. CRLF (including buffer boundaries), LF, CR and UTF-8 BOM are supported; unsafe terminal controls and invalid bytes anywhere reject the file. UTF-16/32 remain supported only in the older complete reader.
+- Writes 64-bit physical-line offsets to a temporary `DeleteOnClose` index (8 bytes per line plus sentinel, 256 MiB default disk limit). No full-document line table or Markdown syntax tree is kept in RAM. Reading is bounded to 128 source lines and 4 MiB of bytes per page, with explicit 1 MiB/line default failure and `NextLine` for lossless continuation. Validated content is read-only.
+- Added 15 focused tests in TextFiles.Tests for empty/trailing lines, mixed endings, Unicode/BOM and buffer splits, random access, byte/index/line budgets, late-invalid UTF-8, unsafe controls, UTF16 rejection, cancellation and invalid parameters.
+- [Detailed implementation](Docs/Disk-Line-Index/en.md). A first explicit raw-source terminal consumer is in [mdview](../Tools/MdView/Docs/Raw-Source-Pager/en.md); the normal complete Markdown renderer is unchanged.
+- **New tests and compilation are not confirmed** in this environment (no .NET SDK). The previously reported 6,443/6,443 Windows pass predates this work. Next: user/CI `dotnet test Toolbox.sln`; afterward implement stateful incremental Markdown parsing and visual-row paging separately.
