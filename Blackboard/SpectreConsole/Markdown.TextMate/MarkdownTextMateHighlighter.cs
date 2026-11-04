@@ -24,18 +24,35 @@ public sealed class MarkdownTextMateHighlighter : IMarkdownSyntaxHighlighter
     public IMarkdownHighlightSession? CreateSession(string language)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(language);
+        var rawId = language.Trim().ToLowerInvariant();
+        if (rawId.Length > 64)
+            return null; // A fence hint is a language name, never arbitrary input.
         var id = NormalizeLanguage(language);
         if (id is "text" or "plain" or "none")
             return null;
-        // Direct language IDs cover the bundled registry; extension lookup allows
-        // every additional bundled grammar to work without another hard-coded list.
-        var scope = options.GetScopeByLanguageId(id);
-        if (scope is null && id.Length <= 64 && id.All(character =>
-            char.IsAsciiLetterOrDigit(character) || character is '_' or '-' or '+'))
+
+        // Prefer a precise bundled grammar ID if it exists (e.g. JSON with comments
+        // or Sass). Alias mapping is a convenience fallback, never a downgrade.
+        var scope = options.GetScopeByLanguageId(rawId) ?? options.GetScopeByLanguageId(id);
+
+        // For otherwise unknown IDs, ask the installed bundle about common file
+        // extensions. This enables additional grammars without a maintained allowlist.
+        if (scope is null)
         {
-            var extensionLanguage = options.GetLanguageByExtension("." + id);
-            if (extensionLanguage is not null)
-                scope = options.GetScopeByLanguageId(extensionLanguage.Id);
+            foreach (var extension in new[] { rawId, id }.Distinct(StringComparer.Ordinal))
+            {
+                if (extension.Length == 0 || extension.Length > 64 ||
+                    !extension.All(character => char.IsAsciiLetterOrDigit(character) ||
+                                                character is '_' or '-' or '+'))
+                    continue;
+
+                var languageByExtension = options.GetLanguageByExtension("." + extension);
+                if (languageByExtension is null)
+                    continue;
+                scope = options.GetScopeByLanguageId(languageByExtension.Id);
+                if (scope is not null)
+                    break;
+            }
         }
         if (scope is null)
             return null;
