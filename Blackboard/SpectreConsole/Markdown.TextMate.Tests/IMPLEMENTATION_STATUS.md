@@ -17,3 +17,7 @@
 - Added 20 common language-alias theory cases and 15 bundled grammar selection theory cases (JavaScript, TypeScript, Python, JSON, YAML, HTML, CSS, SQL, Go, Rust, Java, C++, PowerShell, Markdown). Added dedicated JavaScript-token and unknown-grammar safe-literal assertions.
 - Existing C# token-color and unsafe Spectre markup regressions remain. These tests specifically exercise the installed TextMateSharp.Grammars 2.0.4 registry, not imagined syntax coloring for every programming language in existence.
 - **Execution pending.** Original six TextMate tests passed in the 6,443-green user Windows baseline; the new cases were added afterwards.
+
+### Extension lookup follow-up
+
+- Added a conditional JSX extension-lookup regression: when `TextMateSharp.Grammars` provides a `.jsx` grammar, `CreateSession("jsx")` must resolve it without a manually maintained alias. The missing-grammar case is intentionally permitted (safe plain-text fallback). Still unverified until a real .NET run.
