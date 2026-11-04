@@ -51,3 +51,9 @@ The initial adapter deliberately permits **HTTPS URLs without query strings, fra
 Added `GitHubReadmeSource` for **public** default-branch README documents via GitHub's official `GET /repos/{owner}/{repo}/readme` endpoint and the raw media type. Repository identifiers are validated and treated case-insensitively for cache keys; branch/ref and file path are not guessed or case-folded. ETag/Last-Modified, disk-persisted checks and explicit offline/stale behavior reuse the existing cache. No new dependency in ExchangeHouse Markdown or Spectre renderer. The source uses an injected `HttpClient`; **disable automatic redirects** on its handler and use no authentication credentials for this initial public-only adapter.
 
 See [GitHub README documentation](Docs/GitHub-Readme/en.md). The standalone `mdview` command is **not implemented**.
+
+## GitHub public repository catalog (2026-11-04)
+
+The independent `GitHubRepositoryCatalogSource` uses official GitHub REST endpoints to list **public** repositories belonging to a user or organization. It identifies the account type first and retrieves at most ten 100-item pages; longer lists are clearly marked as truncated. Its validated JSON snapshot uses a separate case-insensitive owner cache key, stays fresh for 30 minutes, and remains usable **with a stale warning** after a failed refresh. No credentials or README bodies are included in the catalog.
+
+[Catalog documentation](Docs/GitHub-Repository-Catalog/en.md) · [mdview repository selector](../../Tools/MdView/Docs/GitHub-Owner-Discovery/en.md). The older 'mdview not implemented' note above is historical; mdview now consumes both GitHub README and owner catalog adapters. New catalog tests are committed but not yet executed in this environment.
