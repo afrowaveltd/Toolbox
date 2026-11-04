@@ -40,3 +40,7 @@ The previous user-verified baseline was **6,443/6,443 green on Windows**, before
 Interactive source selection is not an interactive viewer after rendering. The existing renderer still materializes the entire Markdown document and outputs it in one pass. True low-memory paging, screen history, in-document navigation, GitHub-linked file navigation and large-file streaming are separate future milestones.
 
 [mdview README](../../README.md) · [CLI usage](../CLI/en.md) · [Implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## GitHub owner-only discovery (2026-11-04)
+
+The GitHub input prompt now also accepts only a user or organization name (for example `afrowaveltd`) in addition to `owner/repository`. With an owner alone, the next stage opens the [public GitHub repository browser](../GitHub-Owner-Discovery/en.md), with a short tree, searchable/paged Select prompt and explicit Escape cancellation. Its catalog is cached separately from README contents. The source-selection prompt itself does not send any HTTP requests.
