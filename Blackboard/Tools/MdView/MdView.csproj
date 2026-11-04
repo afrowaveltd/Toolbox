@@ -9,6 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../SpectreConsole/Markdown/Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.csproj" />
+    <ProjectReference Include="../../SpectreConsole/Markdown.TextMate/Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.TextMate.csproj" />
     <ProjectReference Include="../../SpectreConsole/Markdown.Cache/Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.csproj" />
     <ProjectReference Include="../../TextFiles/Afrowave.Toolbox.Blackboard.TextFiles.csproj" />
     <ProjectReference Include="../../SpectreConsole/FileBrowser/Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser.csproj" />
