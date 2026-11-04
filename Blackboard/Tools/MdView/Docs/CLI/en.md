@@ -9,6 +9,7 @@ Positional forms:
 ```text
 mdview PATH
 mdview local PATH
+mdview source PATH           # interactive raw UTF-8 line pager
 mdview URL
 mdview url HTTPS_URL
 mdview git OWNER REPO
@@ -31,7 +32,7 @@ Local documents are decoded with `TextFilePreviewReader.ReadCompleteAsync` (incl
 
 - No automatic following of HTTP redirects or GitHub renamed repository redirects.
 - No authenticated GitHub/API clients, network query URLs or arbitrary remote protocols.
-- No `Docs/**` navigation, external Markdown links, anchors, pager or reverse search.
+- No `Docs/**` navigation, external Markdown links, anchors, **formatted Markdown pager**, or reverse search. An explicitly raw, indexed source-line pager is available via `source PATH`.
 - Current parser/renderer remain in-memory; a 1 GB Markdown benchmark is still a target, not demonstrated.
 - The no-argument Spectre FileBrowser and virtual-terminal picker tests are implemented, but the new test run, full CLI end-to-end rendering checks and live terminal acceptance remain pending.
 
@@ -50,3 +51,9 @@ mdview github:afrowaveltd
 ```
 
 These forms open the public [GitHub owner/repository selector](../GitHub-Owner-Discovery/en.md). A short tree is shown for up to 20 repositories; the paged `SelectionPrompt` can filter names and descriptions or cancel with Escape. Only the selected README is downloaded. The catalog is cached independently of README contents for 30 minutes and supports explicit stale/offline fallback. The first 1,000 repositories are displayed with a warning if more exist. Bare owners are interpreted as GitHub; use `local PATH` for local paths without extensions. Noninteractive scripts should use `git OWNER REPOSITORY`.
+
+## Disk-backed raw source pager (2026-11-04)
+
+`mdview source PATH` opens an opt-in, strict UTF-8 **raw source** pager on local files. It uses a temporary disk-backed physical-line index and exposes Next page, Previous page, Go to line and Exit. Unlike normal `mdview local PATH`, it does **not** parse or syntax-color Markdown; normal fully rendered behavior remains unchanged. Indexing validates all bytes before display, limits index and page allocations and makes no silent truncation. A formatted, visual-row-aware streaming Markdown pager is still future work.
+
+[Source pager guide](../Raw-Source-Pager/en.md) · [Disk index](../../../../TextFiles/Docs/Disk-Line-Index/en.md).
