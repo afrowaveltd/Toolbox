@@ -26,6 +26,15 @@ public sealed class MdViewCommandTests
         Assert.Equal("afrowaveltd", value.Value);
         Assert.Equal("toolbox", value.Repository);
     }
+    [Fact]
+    public void ExplicitSourceCommandEnablesRawIndexedPaging()
+    {
+        var command = MdViewCommand.Parse("SOURCE", "./Docs/Help/en.md");
+        Assert.Equal(MdViewSourceKind.SourcePager, command.Kind);
+        Assert.Equal("./Docs/Help/en.md", command.Value);
+        Assert.Null(command.Repository);
+    }
+
     [Theory]
     [InlineData("git", "AfrowaveLtd")]
     [InlineData("GITHUB", "afrowaveltd")]
