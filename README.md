@@ -17,6 +17,8 @@
 | [ExchangeHouse Markdown](ExchangeHouse/Markdown/README.md) | UI-neutral lossless Markdown parser, links/images, nested lists, code-language and quote metadata | Implemented preview project, **not yet published** |
 | [Blackboard Markdown](Blackboard/SpectreConsole/Markdown/README.md) | Spectre.Console Markdown display, safe images, quotes, code blocks and optional syntax colors | Implemented preview project, **not yet published** |
 | [Markdown.TextMate](Blackboard/SpectreConsole/Markdown.TextMate/README.md) | Optional real code syntax coloring for Markdown with TextMateSharp grammars | Implemented source adapter; **not yet published** |
+| [Blackboard.TextFiles](Blackboard/TextFiles/README.md) | Strict local Unicode reader and disk-backed UTF-8 physical-line index for bounded-memory paging | Source implementation, **not yet published** |
+| [mdview](Blackboard/Tools/MdView/README.md) | Terminal Markdown reader for local, HTTPS and GitHub READMEs; owner browsing, optional raw indexed source pager | In-repository CLI preview; **not yet published** |
 | [SeeMe](SeeMe/README.md) | Console presentation helpers for WhenItFails | Implemented source project |
 | [Toolroom](Toolroom/README.md) | Runnable developer/maintenance tools including WhenItFails Setter | Implemented utilities |
 
@@ -115,3 +117,15 @@ Markdown parsing and Spectre presentation now support **ordinary list → explic
 ## View actual Markdown README files in the Showcase (2026-11-02)
 
 The fifth [Blackboard Showcase](Blackboard/Samples/Blackboard.Showcase/README.md) module uses the existing FileBrowser to select local `*.md;*.markdown` files and displays their **entire validated document**, including C# / Bash grammar coloring through the optional TextMate adapter. Files larger than 64 KiB receive only an informational notice; they are **not truncated or rejected by size**. Strict UTF-8 or BOM-marked UTF-16/32 decoding, terminal-control screening and read-only access apply to the whole file. [File-viewer guide](Blackboard/Samples/Blackboard.Showcase/Docs/Markdown-File-Viewer/en.md). Large documents still require memory for the full parsed Markdown model.
+
+## First bounded-memory source-paging milestone (2026-11-04)
+
+Our Markdown reader now has an **optional indexed raw UTF-8 source pager** alongside the existing fully formatted, whole-document viewer:
+
+```bash
+dotnet run --project Blackboard/Tools/MdView -- source README.md
+```
+
+`Blackboard.TextFiles.Utf8DiskLineIndex` strictly validates all bytes in one sequential pass, writes source-line offsets to a temporary bounded disk index and reads forward/backward pages with a small RAM budget. The source pager uses Spectre.Console prompts for Next, Previous, Go to line and Exit. This first mode intentionally displays **raw Markdown source**, not rendered blocks; the regular mdview renderer, code highlighting, FileBrowser and GitHub support remain unchanged. Proper formatted streaming Markdown paging (including lists, quote/fence state and terminal wrapping) is a separate next milestone. New code and tests have been committed, but the latest full-solution test run has not yet been confirmed for this increment.
+
+[Disk index design](Blackboard/TextFiles/Docs/Disk-Line-Index/en.md) · [mdview source pager](Blackboard/Tools/MdView/Docs/Raw-Source-Pager/en.md).
