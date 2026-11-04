@@ -13,3 +13,7 @@ The original ten command-grammar tests passed in the user-supplied 6,443-green W
 ## Owner-only repository chooser tests (2026-11-04)
 
 Added command grammar cases for bare `OWNER`, `git OWNER`, `github:OWNER`, and explicit `local` behavior. The interactive source menu now also has an owner-only input test. New `MdViewGitHubRepositoryPickerTests` use `TestConsole` and fake HTTP to verify selecting repository names, filtering by description, cancelling without fetching any README, literal markup-safe labels, non-interactive rejection and 404 errors. These new tests await execution; the earlier green Windows baseline predates the change.
+
+## Source pager tests (2026-11-04)
+
+Added `MdViewSourcePagerTests` to verify the explicit raw UTF-8 source pager: Escape/exit, read-only literal output, next/back restoring the actual page start, direct jump to physical line, invalid jump feedback, refusal of noninteractive terminals, and rejection of unsafe source before any content is displayed. Command parsing also tests `source PATH`. These new cases await execution; the last user-confirmed full Windows baseline predates them.
