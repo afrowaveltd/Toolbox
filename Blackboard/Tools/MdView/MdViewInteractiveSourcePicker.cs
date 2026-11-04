@@ -100,7 +100,7 @@ public sealed class MdViewInteractiveSourcePicker
 
             if (selection == GitHubLabel)
             {
-                var input = await new TextPrompt<string>("GitHub owner/repository (empty = back): ")
+                var input = await new TextPrompt<string>("GitHub owner or owner/repository (empty = back): ")
                     .AllowEmpty().ShowAsync(_console, cancellationToken);
                 if (string.IsNullOrWhiteSpace(input))
                     continue;
@@ -111,7 +111,7 @@ public sealed class MdViewInteractiveSourcePicker
                 }
                 catch (ArgumentException)
                 {
-                    feedback = "Expected a GitHub owner/repository pair.";
+                    feedback = "Expected a GitHub owner or owner/repository.";
                 }
             }
         }
