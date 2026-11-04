@@ -65,3 +65,11 @@
 
 - The preceding full solution log showed **MdView.Tests 42/42 green**, including source pager navigation and GitHub owner-selection coverage. Maintainer now confirms the remaining unrelated mock-pagination test has also been fixed and the full Windows suite passes.
 - Normal formatted rendering and the opt-in `source PATH` physical-line pager remain separate modes. Next: incremental Markdown block-state parsing and eventual visual-row/formatted pager, keeping compatibility and bounded resource budgets.
+
+## 2026-11-04 — persistent interactive session after full-document rendering
+
+- Implemented `MdViewDocumentCompletionPrompt`: after a successfully rendered full Markdown document, Enter returns to the main source menu, Escape exits, and all other keys (including `F`, page navigation and arrows) are intentionally ignored.
+- Extracted the lifecycle loop into testable `MdViewSession`. It distinguishes actual rendering from user cancellation and errors via `MdViewDisplayResult`, and reuses the existing local/URL/GitHub loading and renderer. Previous source menu, GitHub discovery, TextMate colors, cache policy and error codes remain unchanged.
+- The CLI skips completion waiting when stdin/stdout is redirected or Spectre.Console reports noninteractive capabilities, keeping `mdview ... > output.txt` a one-shot command. `--help`, errors, cancelled repository chooser and the separate `source PATH` raw pager are excluded from the completion prompt.
+- Added 5 key-handling tests and 8 session integration tests with Spectre `TestConsole`, covering Enter → menu → next document → Escape, filtering unrelated keys, noninteractive behavior and no double prompt. [Detailed interaction contract](Docs/Document-End-Navigation/en.md).
+- **New change not yet compiled/tested** in the current environment (no .NET SDK). Last maintainer-confirmed full Windows suite was green before this change. Next: `dotnet test Toolbox.sln` and manual verification in Windows Terminal/Debian.
