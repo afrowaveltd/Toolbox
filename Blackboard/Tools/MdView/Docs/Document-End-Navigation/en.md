@@ -45,3 +45,7 @@ New `TestConsole` regressions cover Enter, Escape, ignoring other keys, noninter
 **The new changes have been committed but not yet compiled or run in this environment** (no local .NET SDK). The most recent maintainer-confirmed full Windows test checkpoint was all green before this feature. Run the tests after pulling before declaring this revision green.
 
 [CLI guide](../CLI/en.md) · [mdview README](../../README.md) · [Implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## Reserved keys and future indexed search (design update 2026-11-04)
+
+A later `F` action will open a topic/phrase selector, populated by a small configurable English default set and real headings. `N` and `P` will navigate through indexed occurrences; novel queries will be scanned on demand and stored against a content digest. **No behavior changes in this increment:** all keys besides Enter and Escape remain ignored after rendering. See [Indexed Search Design](../Indexed-Search/en.md).
