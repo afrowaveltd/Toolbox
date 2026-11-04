@@ -67,20 +67,30 @@ public sealed class GitHubRepositoryCatalogSourceTests
     public async Task MultiplePagesAreCombinedAndPrivateOrUnsafeEntriesAreIgnored()
     {
         using var fixture = new Fixture();
-        var count = 0;
+        var requests = new List<string>();
         using var client = Client(request =>
         {
-            count++;
-            if (request.RequestUri!.AbsolutePath == "/users/octocat")
+            var uri = request.RequestUri!;
+            requests.Add(uri.AbsoluteUri);
+            if (uri.AbsolutePath == "/users/octocat")
                 return Ok("""{"type":"User"}""");
-            if (request.RequestUri.Query.Contains("page=1", StringComparison.Ordinal))
+
+            // Match the exact page parameter, not a substring: "per_page=100"
+            // also contains "page=1", which would incorrectly repeat page 1.
+            if (uri.Query.Split('&').Any(parameter =>
+                parameter.Equals("page=1", StringComparison.Ordinal)))
                 return Ok("""[{"name":"Bravo","private":false},{"name":"bad/name"},{"name":"Secret","private":true},{"name":"Bravo"}]""", next: true);
             return Ok("""[{"name":"Alpha","description":"A\nB","private":false}]""");
         });
 
         var result = await new GitHubRepositoryCatalogSource(client, new VerifiedDocumentCache(fixture.Root))
             .ListAsync("octocat");
-        Assert.Equal(3, count);
+        Assert.Equal(new[]
+        {
+            "https://api.github.com/users/octocat",
+            "https://api.github.com/users/octocat/repos?per_page=100&page=1&type=owner",
+            "https://api.github.com/users/octocat/repos?per_page=100&page=2&type=owner"
+        }, requests);
         Assert.Equal(new[] { "Alpha", "Bravo" }, result.Repositories.Select(r => r.Name).ToArray());
         Assert.Equal("AB", result.Repositories[0].Description);
         Assert.False(result.Truncated);
