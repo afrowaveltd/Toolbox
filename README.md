@@ -129,3 +129,9 @@ dotnet run --project Blackboard/Tools/MdView -- source README.md
 `Blackboard.TextFiles.Utf8DiskLineIndex` strictly validates all bytes in one sequential pass, writes source-line offsets to a temporary bounded disk index and reads forward/backward pages with a small RAM budget. The source pager uses Spectre.Console prompts for Next, Previous, Go to line and Exit. This first mode intentionally displays **raw Markdown source**, not rendered blocks; the regular mdview renderer, code highlighting, FileBrowser and GitHub support remain unchanged. Proper formatted streaming Markdown paging (including lists, quote/fence state and terminal wrapping) is a separate next milestone. New code and tests have been committed, but the latest full-solution test run has not yet been confirmed for this increment.
 
 [Disk index design](Blackboard/TextFiles/Docs/Disk-Line-Index/en.md) · [mdview source pager](Blackboard/Tools/MdView/Docs/Raw-Source-Pager/en.md).
+
+## Interactive mdview document completion (2026-11-04)
+
+After successfully opening a fully rendered Markdown document in an interactive terminal, `mdview` now waits for **Enter** to reopen the source menu or **Escape** to exit. Other keys are ignored for now, reserving `F`/PageUp/PageDown/arrows for later search and page navigation. A direct local, URL or GitHub README launch gains the same repeatable-session behavior, so users can open a second document without restarting the tool. When stdin or stdout is redirected, the CLI completes without waiting. The separate `mdview source PATH` disk-backed raw source pager retains its own navigation.
+
+[mdview documentation](Blackboard/Tools/MdView/Docs/Document-End-Navigation/en.md) · [mdview implementation status](Blackboard/Tools/MdView/IMPLEMENTATION_STATUS.md). New tests are committed; a fresh full Windows test run is pending.
