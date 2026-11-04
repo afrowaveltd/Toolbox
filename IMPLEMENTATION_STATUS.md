@@ -299,3 +299,7 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - TextMate's language resolution now attempts all installed grammar IDs and extension-based registry lookups, with comprehensive aliases for common Markdown fence spellings. TextMateSharp.Grammars 2.0.4 provides 50+ languages; unsupported grammars remain plain text. The base Markdown renderer and ExchangeHouse parser gain no new native dependency.
 - Expanded TextMate grammar tests (alias families, JS/TS/Python/JSON/YAML/web/SQL/etc.) and mdview syntax-wiring tests. Added JavaScript, JSON and YAML demo code in Showcase and corresponding checks. [Supported Grammars documentation](Blackboard/SpectreConsole/Markdown.TextMate/Docs/Supported-Grammars/en.md).
 - **Changes committed but not yet compiled/tested** in the current environment. Previous Windows 6,443/6,443 test baseline predates both this feature and the immediately prior interactive picker increment; do not claim a new green count. Next: `dotnet test Toolbox.sln`, then manual colored `mdview` local/GitHub check, and adjust any missing grammar IDs observed in that run.
+
+### Grammar-discovery refinement (2026-11-04)
+
+- The new adapter now explicitly prefers exact bundled language IDs over fallback aliases and tries installed extension lookup using both original and normalized hints; added a conditional `.jsx` resolution test. README, supported-grammars guide and example links reflect this precedence. Full compilation/tests still pending for this increment.
