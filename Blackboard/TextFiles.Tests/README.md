@@ -9,3 +9,7 @@ dotnet test Blackboard/TextFiles.Tests/Afrowave.Toolbox.Blackboard.TextFiles.Tes
 Tests are authored and committed, but **not yet executed** after extraction.
 
 [TextFiles library](../TextFiles/README.md).
+
+## Indexed UTF-8 physical-line reader regressions (2026-11-04)
+
+Added `Utf8DiskLineIndexTests` for random-access forward/backward pages, mixed CRLF/LF/CR and buffer boundaries, BOM and Unicode, no trailing phantom line, empty files, malformed/unsafe data beyond the initial buffer, UTF-16 rejection, bounded per-line/page/index budgets, cancellation and invalid arguments. These cases verify the **source index** only, not formatted Markdown rendering. New tests await a Windows/Linux run; the earlier five reader tests passed in the 6,443/6,443 Windows baseline.
