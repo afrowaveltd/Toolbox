@@ -18,3 +18,9 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 
 - Added `MdViewHighlightingTests`: confirm mdview's render theme installs TextMateSharp, JavaScript produces styled tokens and literal terminal-safe output, and unknown grammars remain readable. Existing CLI grammar + interactive-prompt tests remain unchanged.
 - Test suite not yet rerun for this change; prior 6,443-green Windows baseline predates this feature and the earlier interactive picker.
+
+## 2026-11-04 — GitHub owner-only command and chooser tests
+
+- Added parser regressions for bare owner, `git OWNER`, `github:OWNER` and explicit local path priority; the interactive GitHub source prompt accepts an owner alone.
+- Added `MdViewGitHubRepositoryPickerTests` using fake GitHub HTTP responses and `Spectre.Console.Testing`: choose repo, Escape without README fetch, filter by description, markup-safe labels, noninteractive terminal refusal and 404 error.
+- Tests authored and committed; **new code has not yet been run** on the user's Windows or Linux toolchain.
