@@ -82,3 +82,9 @@ A formatted, visual-line-aware Markdown pager that preserves lists, code-fence s
 After displaying a fully rendered Markdown document on an interactive console, `mdview` now shows `Enter: main menu | Esc: exit` and **waits for a key**. Enter reopens the existing FileBrowser/URL/GitHub source menu without restarting the application; Escape exits successfully. All other keys, including `F`, PageUp/PageDown and arrows, are deliberately ignored until search and in-document navigation are implemented. This also works after a direct `mdview local PATH`, `mdview url URL` or `mdview git OWNER REPOSITORY` command.
 
 Help, failed or cancelled reads and the separately interactive raw `source PATH` pager do not receive this extra completion prompt. When input or output is redirected, the CLI renders once and exits automatically so scripts cannot hang. [Full interaction contract](Docs/Document-End-Navigation/en.md). The new prompt and session-loop tests are committed but a new test run is still pending.
+
+## Planned indexed document search (design only, 2026-11-04)
+
+A future `F` search interface should offer common English README topics (Installation, Build, Compilation, Configuration, Usage, Examples and others) plus detected heading titles and user-entered phrases. `N`/`P` would move between next/previous occurrences. Instead of indexing every word on every start, index a small configurable seed set and scan/add new phrases only on first use; store compact source offsets tied to a verified document version so stale positions cannot survive README updates.
+
+**Search is not yet implemented; F/N/P still have no action.** The groundwork is an isolated forward-only [incremental line scanner](../../../ExchangeHouse/Markdown/Docs/Incremental-Source-Scanner/en.md) committed alongside this design; it is not wired into mdview's existing fully rendered output. [Full future-search plan](Docs/Indexed-Search/en.md).
