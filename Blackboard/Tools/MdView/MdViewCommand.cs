@@ -1,6 +1,6 @@
 namespace Afrowave.Toolbox.Blackboard.Tools.MdView;
 
-public enum MdViewSourceKind { Interactive, Local, Url, GitHub, Help }
+public enum MdViewSourceKind { Interactive, Local, Url, GitHub, Help, SourcePager }
 
 public sealed record MdViewCommand(MdViewSourceKind Kind, string? Value = null, string? Repository = null)
 {
@@ -37,6 +37,8 @@ public sealed record MdViewCommand(MdViewSourceKind Kind, string? Value = null, 
                 return new(MdViewSourceKind.Local, Require(args[1]));
             if (args[0].Equals("url", StringComparison.OrdinalIgnoreCase))
                 return new(MdViewSourceKind.Url, Require(args[1]));
+            if (args[0].Equals("source", StringComparison.OrdinalIgnoreCase))
+                return new(MdViewSourceKind.SourcePager, Require(args[1]));
             if (args[0].Equals("git", StringComparison.OrdinalIgnoreCase) ||
                 args[0].Equals("github", StringComparison.OrdinalIgnoreCase))
             {
