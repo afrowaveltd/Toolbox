@@ -139,7 +139,9 @@ public sealed class MarkdownIncrementalLineScannerTests
         Assert.True(await enumerator.MoveNextAsync());
         Assert.Equal("Valid first", enumerator.Current.Text);
         await Assert.ThrowsAsync<InvalidDataException>(async () =>
-            await enumerator.MoveNextAsync().AsTask());
+        {
+            await enumerator.MoveNextAsync();
+        });
     }
 
     [Fact]
