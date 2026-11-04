@@ -20,3 +20,10 @@ Added GitHub fake-handler tests for official raw README endpoint, conditional 30
 
 - Added fake-HTTP `GitHubRepositoryCatalogSourceTests` for account type discovery (user/organization), public-only listings, pagination, invalid/duplicate/private filtering, case-insensitive 30-minute cache, deterministic offline stale fallback, 404 and malformed JSON errors, invalid owner strings and the 10-page cap. No live GitHub calls.
 - **New tests unverified**; the earlier 32/32 user-run Windows cache result predates these changes.
+
+## 2026-11-04 — Windows regression log, pagination fixture correction
+
+- User's full Windows `dotnet test Toolbox.sln` run compiled the new GitHub repository catalog and all other projects. `Markdown.Cache.Tests`: **43 passed, 1 failed** (out of 44); all other suites were green. The failing test was `GitHubRepositoryCatalogSourceTests.MultiplePagesAreCombinedAndPrivateOrUnsafeEntriesAreIgnored`, expecting 3 HTTP calls but counting 11.
+- Root cause confirmed in the **fake-HTTP test fixture**, not the production catalog: `Query.Contains("page=1")` also matched the `per_page=100` parameter. Consequently the mock returned page 1 for every request and falsely simulated endless `Link: next` pagination up to the real client's ten-page safety limit.
+- Committed a minimal test fix: match `page=1` as an exact ampersand-separated query parameter, then assert all three request URLs explicitly (owner lookup, page 1, page 2). Catalog implementation and cache remain unchanged.
+- A fresh test run after this commit is **pending**; do not claim 44/44 or full solution green yet. Recommended: `dotnet test Blackboard/SpectreConsole/Markdown.Cache.Tests/Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.Tests.csproj` followed by `dotnet test Toolbox.sln`.
