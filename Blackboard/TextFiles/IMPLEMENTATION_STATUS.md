@@ -28,3 +28,8 @@
 - Added 15 focused tests in TextFiles.Tests for empty/trailing lines, mixed endings, Unicode/BOM and buffer splits, random access, byte/index/line budgets, late-invalid UTF-8, unsafe controls, UTF16 rejection, cancellation and invalid parameters.
 - [Detailed implementation](Docs/Disk-Line-Index/en.md). A first explicit raw-source terminal consumer is in [mdview](../Tools/MdView/Docs/Raw-Source-Pager/en.md); the normal complete Markdown renderer is unchanged.
 - **New tests and compilation are not confirmed** in this environment (no .NET SDK). The previously reported 6,443/6,443 Windows pass predates this work. Next: user/CI `dotnet test Toolbox.sln`; afterward implement stateful incremental Markdown parsing and visual-row paging separately.
+
+## 2026-11-04 — Windows validation checkpoint
+
+- The earlier full Windows test log showed **TextFiles.Tests 20/20 green**, including the newly added strict UTF-8 disk line index. Maintainer subsequently confirmed that the final, corrected solution test run is entirely green.
+- The disk index is the verified **raw source** navigation primitive, not a completed formatted streaming Markdown parser. Further Linux, performance and mutation-race hardening remain future work.
