@@ -15,3 +15,8 @@ Added eight tests for initial `200`, ETag/Last-Modified `304`, changed `200`, of
 ## 2026-11-03 — GitHub preferred README source regressions
 
 Added GitHub fake-handler tests for official raw README endpoint, conditional 304 caching across object lifetimes, mixed-case repository identifiers, offline fallback, rejection of unsafe input, and malformed responses. No SDK in this execution environment; test execution and CI confirmation are pending. Next: verify Linux/Windows builds before progressing to CLI work.
+
+## 2026-11-04 — GitHub public repository catalog tests
+
+- Added fake-HTTP `GitHubRepositoryCatalogSourceTests` for account type discovery (user/organization), public-only listings, pagination, invalid/duplicate/private filtering, case-insensitive 30-minute cache, deterministic offline stale fallback, 404 and malformed JSON errors, invalid owner strings and the 10-page cap. No live GitHub calls.
+- **New tests unverified**; the earlier 32/32 user-run Windows cache result predates these changes.
