@@ -52,3 +52,17 @@ Eleven new TestConsole-driven scenarios cover the menu, cancellation, real file 
 ## Color syntax highlighting for installed grammar languages (2026-11-04)
 
 The CLI now enables our optional [TextMate grammar adapter](../../SpectreConsole/Markdown.TextMate/Docs/Supported-Grammars/en.md) when rendering local, HTTPS and GitHub Markdown. Its previous default Markdown theme omitted the syntax provider. More than 50 languages supported by the installed `TextMateSharp.Grammars` bundle can be selected directly or by file extension, with common README aliases including `js`, `ts`, `py`, `cs`, `sh`, `json`, `yml`, `sql`, `html`, `css`, `rust` and `go`. Code never executes; unknown languages, native backend failures and long lines safely render as plain text. TextMate's native dependency is optional to base Markdown/ExchangeHouse, but included in this CLI. New highlighter and integration regression tests have been committed; no new test run has yet been verified.
+
+## Browse public GitHub repositories by owner (2026-11-04)
+
+You no longer need to remember an exact repository name. The following commands list an owner's public repositories and open a Spectre selection interface:
+
+```bash
+dotnet run --project Blackboard/Tools/MdView -- afrowaveltd
+dotnet run --project Blackboard/Tools/MdView -- git afrowaveltd
+dotnet run --project Blackboard/Tools/MdView -- github:afrowaveltd
+```
+
+The existing `git OWNER REPOSITORY` and `github:OWNER/REPOSITORY` forms still open a README immediately. The no-argument GitHub source prompt accepts just the owner too. Small catalogs show an owner/repository tree; all catalogs offer a paged selection prompt with a name/description filter and Escape to cancel without downloading a README. The catalog uses public GitHub REST endpoints, a 30-minute independently verified local cache with explicit stale/offline fallback and a bounded first-1,000-repositories limit. Owner-only browsing requires an interactive terminal; scripts should give a full owner/repository pair.
+
+[Detailed owner discovery guide](Docs/GitHub-Owner-Discovery/en.md) · [GitHub catalog source](../../SpectreConsole/Markdown.Cache/Docs/GitHub-Repository-Catalog/en.md). New catalog and UI tests are committed but not yet executed here.
