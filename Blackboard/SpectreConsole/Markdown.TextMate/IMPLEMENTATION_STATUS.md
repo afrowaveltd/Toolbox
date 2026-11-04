@@ -21,3 +21,7 @@
 - `mdview` now explicitly wires this optional highlighter into its render theme for local, HTTPS and GitHub markdown; the base ExchangeHouse parser and Blackboard Markdown renderer remain independent of TextMate native dependencies. Showcase's existing optional adapter also gains the new mapping.
 - Expanded `MarkdownTextMateHighlighterTests` to check aliases, bundled programming/data/web grammars, JavaScript token colors and safe fallback. See [Supported Grammars](Docs/Supported-Grammars/en.md).
 - **New source/tests not yet verified by compiler or CI** in this environment (no .NET SDK). User-confirmed baseline of 6,443 green tests was earlier than both the interactive picker and this feature. Run `dotnet test Toolbox.sln` and manually compare JavaScript/JSON/C# colors on Windows/Debian. Unsupported bundled grammar IDs render plain text rather than failing.
+
+### Accurate bundled-grammar precedence
+
+- Adjusted resolution to prefer the **exact installed language ID** before an alias, preserving more specific bundled grammars (e.g., specialized JSON variants) when present; extension lookup considers both original and normalized hint. This broadens support without guessing or external downloads. Added a conditional JSX extension regression. Verification pending.
