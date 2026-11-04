@@ -66,3 +66,13 @@ dotnet run --project Blackboard/Tools/MdView -- github:afrowaveltd
 The existing `git OWNER REPOSITORY` and `github:OWNER/REPOSITORY` forms still open a README immediately. The no-argument GitHub source prompt accepts just the owner too. Small catalogs show an owner/repository tree; all catalogs offer a paged selection prompt with a name/description filter and Escape to cancel without downloading a README. The catalog uses public GitHub REST endpoints, a 30-minute independently verified local cache with explicit stale/offline fallback and a bounded first-1,000-repositories limit. Owner-only browsing requires an interactive terminal; scripts should give a full owner/repository pair.
 
 [Detailed owner discovery guide](Docs/GitHub-Owner-Discovery/en.md) · [GitHub catalog source](../../SpectreConsole/Markdown.Cache/Docs/GitHub-Repository-Catalog/en.md). New catalog and UI tests are committed but not yet executed here.
+
+## Disk-backed source paging — optional raw mode (2026-11-04)
+
+```bash
+dotnet run --project Blackboard/Tools/MdView -- source README.md
+```
+
+The new `source PATH` command opens a small-RAM, **strict UTF-8 source pager** on an indexed local file. It displays complete physical source lines, not rendered Markdown, and supports **Next page**, **Previous page**, **Go to line** and **Exit** through Spectre.Console. Index offsets reside in a temporary disk file; the source reader validates the entire document before showing the first page. The default index budget is 256 MiB, with per-page/per-line limits and explicit failures instead of silent truncation. UTF-16/32 and styled Markdown remain available through the existing complete-file `local` mode, not this raw source pager.
+
+A formatted, visual-line-aware Markdown pager that preserves lists, code-fence state, links, themes, wrapping and disk-backed backward navigation still needs a separate incremental block parser. The existing local/URL/GitHub commands are unchanged. [Raw pager guide](Docs/Raw-Source-Pager/en.md) · [Disk index guide](../../TextFiles/Docs/Disk-Line-Index/en.md). New source-pager tests are authored; compilation/CI execution not yet confirmed.
