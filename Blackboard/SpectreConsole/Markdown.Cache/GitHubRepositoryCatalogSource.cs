@@ -35,12 +35,14 @@ public sealed class GitHubRepositoryCatalogSource
 
     private readonly HttpClient _client;
     private readonly VerifiedDocumentCache _cache;
+    private readonly TimeProvider _clock;
 
     /// <summary>Creates a public-only GitHub catalog source using a caller-owned HTTP client.</summary>
-    public GitHubRepositoryCatalogSource(HttpClient client, VerifiedDocumentCache cache)
+    public GitHubRepositoryCatalogSource(HttpClient client, VerifiedDocumentCache cache, TimeProvider? clock = null)
     {
         _client = client ?? throw new ArgumentNullException(nameof(client));
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+        _clock = clock ?? TimeProvider.System;
     }
 
     /// <summary>
@@ -59,7 +61,7 @@ public sealed class GitHubRepositoryCatalogSource
 
         if (cached is not null && snapshot is not null)
         {
-            var age = DateTimeOffset.UtcNow - cached.StoredAtUtc;
+            var age = _clock.GetUtcNow() - cached.StoredAtUtc;
             if (age >= TimeSpan.Zero && age < Freshness)
                 return Result(snapshot, GitHubRepositoryCatalogState.FreshCache);
         }
