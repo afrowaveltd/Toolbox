@@ -27,3 +27,8 @@ Added GitHub fake-handler tests for official raw README endpoint, conditional 30
 - Root cause confirmed in the **fake-HTTP test fixture**, not the production catalog: `Query.Contains("page=1")` also matched the `per_page=100` parameter. Consequently the mock returned page 1 for every request and falsely simulated endless `Link: next` pagination up to the real client's ten-page safety limit.
 - Committed a minimal test fix: match `page=1` as an exact ampersand-separated query parameter, then assert all three request URLs explicitly (owner lookup, page 1, page 2). Catalog implementation and cache remain unchanged.
 - A fresh test run after this commit is **pending**; do not claim 44/44 or full solution green yet. Recommended: `dotnet test Blackboard/SpectreConsole/Markdown.Cache.Tests/Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.Tests.csproj` followed by `dotnet test Toolbox.sln`.
+
+## 2026-11-04 — catalog pagination regression resolved
+
+- Maintainer confirmed **all Windows solution tests green** after the test fixture was corrected to distinguish `page=1` from `per_page=100`.
+- Previous failure (43/44 Cache.Tests) has been closed; no production code change was needed. The exact per-assembly rerun log was not provided separately.
