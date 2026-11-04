@@ -303,3 +303,9 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 ### Grammar-discovery refinement (2026-11-04)
 
 - The new adapter now explicitly prefers exact bundled language IDs over fallback aliases and tries installed extension lookup using both original and normalized hints; added a conditional `.jsx` resolution test. README, supported-grammars guide and example links reflect this precedence. Full compilation/tests still pending for this increment.
+
+## 2026-11-04 — owner-only GitHub repository browser
+
+- Implemented GitHub user/organization public repository catalog in Markdown.Cache and Spectre selection in mdview, supporting `mdview afrowaveltd`, `mdview git afrowaveltd` and `mdview github:afrowaveltd`.
+- Catalog has a separate SHA-256 verified 30-minute cache, offline stale fallback, bounded 100-item pages (ten maximum) and explicit truncation warning. No private repositories, authentication or README downloads during listing.
+- Added fake-HTTP cache tests, owner-only CLI parser tests and virtual-terminal chooser tests. New tests not yet run; the prior 6,443-green Windows baseline predates this addition.
