@@ -74,3 +74,7 @@ The numbered `13)` quoted item now has an explicit quote-prefixed blank line bef
 ## 2026-11-01 — list → quote → list → code
 
 The gallery demonstrates a deployment step containing a quoted warning, numbered substep and literal `bash` fence. Its source is parsed once and rendered with three independent indentation layers in all four themes. TextMate remains optional and Monochrome remains plain. [Layout guide](../../../../SpectreConsole/Markdown/Docs/Quoted-List-Containers/en.md).
+
+## 2026-11-04 — multi-language code examples
+
+The gallery's sample source now includes JavaScript, JSON and YAML code fences as well as the original C# demonstration, all using the existing optional TextMate highlighter. The adapter now resolves all bundled language IDs and extensions, not a finite C#-centric list. Unsupported or unavailable grammars still render as safe literal code; the editor/preview never evaluates it. See [supported grammar details](../../../SpectreConsole/Markdown.TextMate/Docs/Supported-Grammars/en.md). This increment requires a fresh test run.
