@@ -73,3 +73,8 @@
 - The CLI skips completion waiting when stdin/stdout is redirected or Spectre.Console reports noninteractive capabilities, keeping `mdview ... > output.txt` a one-shot command. `--help`, errors, cancelled repository chooser and the separate `source PATH` raw pager are excluded from the completion prompt.
 - Added 5 key-handling tests and 8 session integration tests with Spectre `TestConsole`, covering Enter → menu → next document → Escape, filtering unrelated keys, noninteractive behavior and no double prompt. [Detailed interaction contract](Docs/Document-End-Navigation/en.md).
 - **New change not yet compiled/tested** in the current environment (no .NET SDK). Last maintainer-confirmed full Windows suite was green before this change. Next: `dotnet test Toolbox.sln` and manual verification in Windows Terminal/Debian.
+
+## 2026-11-04 — future indexed topic/phrase search captured
+
+- New [Indexed Search](Docs/Indexed-Search/en.md) plan: future `F` shows seeded English README terms and heading titles or accepts an arbitrary word/phrase; `N`/`P` navigate previous/next indexed occurrences. Add unknown phrases on demand with a bounded scan, store compact offsets against a verified digest, and invalidate on document changes. Later support user-configurable seed terms and language options.
+- **This is design only.** Current completion keys stay Enter→menu, Escape→exit; `F/N/P` and page keys remain inactive. The new standalone [ExchangeHouse incremental line scanner](../../../ExchangeHouse/Markdown/Docs/Incremental-Source-Scanner/en.md) is not yet integrated into the rendered mdview path. Continue from its test validation and future block events before implementing search.
