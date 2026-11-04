@@ -49,4 +49,4 @@ Additional choices requiring explicit tests:
 
 This is a roadmap, not a claim of implemented search, immediate navigation, exhaustive CommonMark parsing or fast first-query performance.
 
-[mdview README](../../README.md) · [Disk-backed UTF-8 lines](../../../../TextFiles/Docs/Disk-Line-Index/en.md) · [Document completion keys](../Document-End-Navigation/en.md) · [Implementation status](../../IMPLEMENTATION_STATUS.md).
+[mdview README](../README.md) · [Disk-backed UTF-8 lines](../../../TextFiles/Docs/Disk-Line-Index/en.md) · [Document completion keys](../Document-End-Navigation/en.md) · [Implementation status](../IMPLEMENTATION_STATUS.md).
