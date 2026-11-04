@@ -4,13 +4,13 @@
 
 The optional `MarkdownTextMateHighlighter` resolves the first language identifier from a fenced Markdown code block (such as `javascript` in `\`\`\`javascript`). It uses:
 
-1. Case-insensitive normalization of common language names, command aliases and filename suffixes.
-2. A direct lookup of the resulting language ID in `TextMateSharp.Grammars`' bundled registry.
-3. An extension-based registry lookup for other supported languages when the ID lookup finds no grammar.
+1. A case-insensitive **exact grammar ID** lookup, preserving a more specific syntax when available.
+2. Normalization of common language names and README fence aliases, followed by another grammar ID lookup.
+3. An extension-based registry lookup (first with the original hint, then the alias) when neither grammar ID resolves.
 
 **There is no hard-coded whitelist of languages.** New or uncommon language IDs work automatically **when the installed TextMateSharp grammar bundle contains them**. The project currently references `TextMateSharp.Grammars` **2.0.4**, which ships grammars for **50+ languages** including JavaScript, TypeScript, C#, Python, C/C++, Rust, Go, Java, PHP, Ruby, Swift, Dart, PowerShell, Bash, SQL, HTML, CSS, SCSS, Less, JSON, XML, YAML, Markdown, LaTeX and many others. Consult upstream for the version-specific grammar inventory: https://github.com/danipen/TextMateSharp
 
-Not every language, file extension or dialect is supported by that bundle, and no colors are invented for unsupported grammars. `toml`, AJIS-native constructs and new languages without a bundled grammar require an additional grammar provider in a future increment; `ajis` currently uses the closest JSON-like highlighting as a visual approximation, not an AJIS parser.
+Not every language, file extension or dialect is supported by that bundle, and no colors are invented for unsupported grammars. AJIS-native constructs and new languages without a bundled grammar require an additional grammar provider in a future increment; `ajis` currently uses the closest JSON-like highlighting as a visual approximation, not an AJIS parser. Some other formats (for example TOML) may also be absent from this particular bundle; support is always determined by the actual installed grammar catalog.
 
 ## Examples
 
