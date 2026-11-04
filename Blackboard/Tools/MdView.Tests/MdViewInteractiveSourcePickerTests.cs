@@ -76,6 +76,24 @@ public sealed class MdViewInteractiveSourcePickerTests
     }
 
     [Fact]
+    public async Task GithubOwnerAloneIsAcceptedForRepositoryDiscovery()
+    {
+        var console = Interactive();
+        console.Input.PushKey(ConsoleKey.DownArrow);
+        console.Input.PushKey(ConsoleKey.DownArrow);
+        console.Input.PushKey(ConsoleKey.Enter);
+        console.Input.PushTextWithEnter("afrowaveltd");
+
+        var result = await new MdViewInteractiveSourcePicker(console)
+            .PickAsync(Path.GetTempPath());
+
+        Assert.NotNull(result);
+        Assert.Equal(MdViewSourceKind.GitHub, result.Kind);
+        Assert.Equal("afrowaveltd", result.Value);
+        Assert.Null(result.Repository);
+    }
+
+    [Fact]
     public async Task HttpsSourceCollectsValidUrl()
     {
         var console = Interactive();
