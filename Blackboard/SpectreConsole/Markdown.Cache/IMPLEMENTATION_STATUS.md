@@ -58,3 +58,8 @@ Next: run and correct Windows/Linux solution CI; then add fault-injection tests,
 - User's Windows solution run confirmed the catalog assembly builds and 43 of 44 Markdown.Cache tests pass. The single failing test erroneously matched `per_page=100` when looking for `page=1`, making its fake server repeat page one and report 11 calls instead of 3.
 - Corrected the test's page parameter comparison and asserted exact page URLs. **Production `GitHubRepositoryCatalogSource` is unchanged**; its ten-page limit behaved as designed under the faulty fixture.
 - Full confirmation awaits the user's new run after syncing the test fix.
+
+## 2026-11-04 — catalog fixture repair: maintainer confirms green regression
+
+- Maintainer reports the full Windows solution tests are green after fixing the mock HTTP query parameter matcher. Production GitHub catalog implementation was unchanged.
+- The previous failing catalog test is confirmed resolved by the user. Independent Linux/CI verification remains open.
