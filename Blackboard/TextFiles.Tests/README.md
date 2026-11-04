@@ -6,7 +6,7 @@ Focused unit tests for the independent safe local text reader, in addition to th
 dotnet test Blackboard/TextFiles.Tests/Afrowave.Toolbox.Blackboard.TextFiles.Tests.csproj
 ```
 
-Tests are authored and committed, but **not yet executed** after extraction.
+The original five extracted-reader tests were confirmed **5/5 passed** in the user's Windows solution run. The new index tests described below **have not yet been executed**.
 
 [TextFiles library](../TextFiles/README.md).
 
