@@ -16,3 +16,8 @@
 
 - Confirmed from the user's full Windows solution log: `Afrowave.Toolbox.Blackboard.TextFiles.Tests.dll` was built and executed, with **5 passed, 0 failed, 0 skipped**. This closes the previously missing test execution evidence gap.
 - Solution-wide result in the same run: **6,443/6,443 passed**.
+
+## 2026-11-04 — disk-backed physical-line index regression suite
+
+- Added 15 `Utf8DiskLineIndexTests` for bounded memory/disk indexing and random-access UTF-8 source pages, line ending and Unicode edge cases, invalid data rejection before any page, budget errors, cancellation and invalid arguments. The five previously user-confirmed reader extraction tests are unchanged.
+- **Execution not yet confirmed** for these new tests; rerun `dotnet test Blackboard/TextFiles.Tests/Afrowave.Toolbox.Blackboard.TextFiles.Tests.csproj` and the full solution. Do not claim a new green total before a test log.
