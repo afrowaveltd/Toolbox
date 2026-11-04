@@ -42,6 +42,12 @@ static async Task<int> RunAsync(string[] args)
 
     try
     {
+        if (command.Kind == MdViewSourceKind.SourcePager)
+        {
+            await new MdViewSourcePager(AnsiConsole.Console).RunAsync(command.Value!);
+            return 0;
+        }
+
         string content;
         if (command.Kind == MdViewSourceKind.Local)
         {
@@ -104,7 +110,7 @@ static async Task<int> RunAsync(string[] args)
     }
     catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or
                                ArgumentException or InvalidOperationException or
-                               HttpRequestException or UriFormatException or System.Text.DecoderFallbackException)
+                               InvalidDataException or HttpRequestException or UriFormatException or System.Text.DecoderFallbackException)
     {
         Console.Error.WriteLine("Unable to display the requested Markdown document: " + ex.Message);
         return 1;
@@ -114,7 +120,8 @@ static async Task<int> RunAsync(string[] args)
 static void PrintHelp()
 {
     Console.WriteLine("mdview [PATH | URL | github:OWNER/REPOSITORY]");
-    Console.WriteLine("mdview local PATH");
+    Console.WriteLine("mdview local PATH  (complete rendered Markdown)");
+    Console.WriteLine("mdview source PATH (bounded-memory raw source pager)");
     Console.WriteLine("mdview url HTTPS_URL");
     Console.WriteLine("mdview OWNER           (browse public GitHub repositories)");
     Console.WriteLine("mdview github:OWNER    (browse public GitHub repositories)");
