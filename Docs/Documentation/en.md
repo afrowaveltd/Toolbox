@@ -8,7 +8,8 @@ This is the main documentation entry point for **the entire Toolbox**, not only 
 2. [Repository getting started](../Toolbox-Getting-Started/en.md) — install, build and run examples
 3. [Architecture](../Architecture/en.md) — ownership and dependency direction
 4. [Development and verification](../Development-and-Verification/en.md) — testing, docs, GitHub and CI
-5. [Release and package status](../Release-Status/en.md) — three published NuGet packages vs unpublished source projects
+5. [Release and package status](../Release-Status/en.md) — confirmed NuGet packages vs unpublished source projects
+6. [NuGet-first preview release policy](../NuGet-Release-Policy/en.md) — publish useful components early, version safely and update external consumers
 
 ## Libraries, tools and project documentation
 
@@ -22,8 +23,8 @@ This is the main documentation entry point for **the entire Toolbox**, not only 
 | **FileBrowser** | [README](../../Blackboard/SpectreConsole/FileBrowser/README.md) · [Interactive browser](../../Blackboard/SpectreConsole/FileBrowser/Docs/Interactive-Browser/en.md) |
 | **Blackboard Markdown** | [README](../../Blackboard/SpectreConsole/Markdown/README.md) · [Themes](../../Blackboard/SpectreConsole/Markdown/Docs/Rendering-and-Themes/en.md) · [Nested lists](../../Blackboard/SpectreConsole/Markdown/Docs/Nested-List-Presentation/en.md) · [Loose list display](../../Blackboard/SpectreConsole/Markdown/Docs/Loose-List-Presentation/en.md) |
 | **ExchangeHouse** | [Family overview](../../ExchangeHouse/README.md) · [Conversion roadmap](../../ExchangeHouse/Docs/Converters/en.md) |
-| **ExchangeHouse Markdown** | [README](../../ExchangeHouse/Markdown/README.md) · [Links/images](../../ExchangeHouse/Markdown/Docs/Images-and-Links/en.md) · [Nested lists](../../ExchangeHouse/Markdown/Docs/Nested-Lists/en.md) · [Loose list paragraphs](../../ExchangeHouse/Markdown/Docs/Loose-List-Paragraphs/en.md) |
-| **Showcase** | [README](../../Blackboard/Samples/Blackboard.Showcase/README.md) · [Theme gallery](../../Blackboard/Samples/Blackboard.Showcase/Docs/Markdown-Themes/en.md) |
+| **ExchangeHouse Markdown** | [README](../../ExchangeHouse/Markdown/README.md) · [Links/images](../../ExchangeHouse/Markdown/Docs/Images-and-Links/en.md) · [Nested lists](../../ExchangeHouse/Markdown/Docs/Nested-Lists/en.md) · [Loose list paragraphs](../../ExchangeHouse/Markdown/Docs/Loose-List-Paragraphs/en.md) · [Incremental source scanner](../../ExchangeHouse/Markdown/Docs/Incremental-Source-Scanner/en.md) |
+| **Showcase** | [README](../../Blackboard/Samples/Blackboard.Showcase/README.md) · [Theme gallery](../../Blackboard/Samples/Blackboard.Showcase/Docs/Markdown-Themes/en.md) |\n| **mdview** | [README](../../Blackboard/Tools/MdView/README.md) · [End-of-document navigation](../../Blackboard/Tools/MdView/Docs/Document-End-Navigation/en.md) · [Future indexed search (design)](../../Blackboard/Tools/MdView/Docs/Indexed-Search/en.md) |
 | **SeeMe** | [README](../../SeeMe/README.md) · [Console adapter](../../SeeMe/WhenItFails/Console/README.md) |
 | **Toolroom** | [README](../../Toolroom/README.md) · [Setter](../../Toolroom/WhenItFails/Setter/README.md) |
 

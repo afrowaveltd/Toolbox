@@ -49,3 +49,23 @@ Blank-separated paragraphs owned by an ExchangeHouse list item remain aligned be
 ## Code, blockquotes and optional syntax highlighting (2026-10-31)
 
 Indented list-embedded quotes and fenced code now render beneath their list item, with optional code language labels. A session-based `SyntaxHighlighter` theme property accepts independent coloring providers; the base Markdown renderer retains plain-text fallback. The new optional [TextMate adapter](../Markdown.TextMate/README.md) integrates TextMateSharp grammar coloring without forcing native assets on normal Markdown consumers. See [Code and Quote Presentation](Docs/Code-Quote-Presentation/en.md). Not publicly published on NuGet.
+
+## Quoted list rendering (2026-11-01)
+
+Quote-contained lists render with configurable quote prefix outside the list indentation, preserving original ordered numbers and source-aware continuation alignment. [Presentation documentation](Docs/Quoted-List-Presentation/en.md). More complex quoted code containers remain future work.
+
+## Quoted code and syntax highlighting (2026-11-01)
+
+The renderer can display syntax-colored fenced source inside quoted lists, drawing themed quote prefixes outside the code/list indentation. An optional per-fence TextMate highlighting session is disposed on closure or interruption. Code remains safe literal text; see [quote-code rendering](Docs/Quoted-Code-Presentation/en.md).
+
+## Loose quoted list paragraphs (2026-11-01)
+
+The quote-prefix styling and list-content alignment now handle quoted list items with blank-separated, explicitly indented paragraphs. The parser decides ownership; the existing renderer shows preserved quote blank lines and resumes beneath the original numbered marker without duplicating it. [Presentation details](Docs/Quoted-Loose-Presentation/en.md).
+
+## Outer and inner list indentation (2026-11-01)
+
+Quoted lists embedded beneath ordinary list items draw the **outer list indentation before the quote prefix**, then the inner quote-list nesting. Code-fence language labels, delimiters and bodies use that same layout; plain quoted prose owned by the outer item is not double-indented. [Quoted list container presentation](Docs/Quoted-List-Containers/en.md).
+
+## Future standalone Markdown viewer — design proposal (2026-11-02)
+
+After this parser/renderer has matured, a separate terminal app could open local Markdown, HTTP(S) documents and GitHub repository README files by `github:owner/repo`. No-argument mode would expose an interactive source picker. The reader would reuse this library rather than embedding fetch/navigation concerns into the renderer. [Proposal and non-goals](Docs/Standalone-Markdown-Viewer-Proposal/en.md). **Not implemented.**

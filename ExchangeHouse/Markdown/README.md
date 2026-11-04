@@ -57,3 +57,27 @@ See [Lazy list continuations](Docs/Lazy-List-Continuations/en.md).
 ## Quotes, fenced code and language hints (2026-10-31)
 
 Conservative indented blockquotes and fenced code can be associated with their containing list item. Source-aware `QuoteDepth`, `EmbeddedBlocks`, `CodeFenceInfo` and `CodeLanguage` expose metadata without code execution, dependency changes or source rewriting. This does not implement full CommonMark block nesting. See [Code and Quote Containers](Docs/Code-and-Quote-Containers/en.md).
+
+## Lists inside blockquotes (2026-11-01)
+
+`MarkdownDocument.QuoteListRoots` now represents conservative nested numbered/unordered lists on explicitly quote-prefixed lines (`> - item`). Normal `ListRoots` remains the collection of **unquoted** list roots; original source, markers and links are unchanged. [Quoted-list documentation](Docs/Quoted-Lists/en.md). Code fences inside quoted containers and complete CommonMark semantics are not yet supported.
+
+## Explicit quote-prefixed fenced code (2026-11-01)
+
+The parser recognizes fenced code within blockquotes and sufficiently indented quoted-list items (for example, `> ~~~csharp`). Every code line needs an explicit matching quote depth. A missing or different quote prefix ends the quoted fence and does not swallow the next Markdown block. Exact source positions, delimiters, language hints, and whitespace remain intact. [Quoted-code behavior](Docs/Quoted-Code-Fences/en.md). This is a conservative subset of CommonMark.
+
+## Blank-separated paragraphs inside quoted lists (2026-11-01)
+
+A quoted list item may now own one or more physical quote-prefixed blank lines (`> ` / `>`) **only when** the following line belongs to that item's explicitly indented continuation at the same quote depth. The immutable separator/owner fields work for quoted and ordinary lists; raw source and quoted marker styling are retained. Unrelated paragraphs, nested quote levels and list markers cannot steal those separators. [Quoted loose paragraphs](Docs/Quoted-Loose-Paragraphs/en.md). This is not full CommonMark.
+
+## Nested quoted sublists under ordinary list items (2026-11-01)
+
+`- Step` followed by `  > - Warning` now retains both independent owners: `QuoteContainerListOwnerStart` and `QuoteContainerListMarker` describe the ordinary outer item, while `QuoteListRoots` and the existing continuation owner describe the inner quoted list. Numbered children, sufficiently indented paragraphs, quote blank separators and literal same-depth code fences are supported. Original source offsets, links and line endings are unchanged. [Examples and limits](Docs/Quoted-Lists-Inside-Lists/en.md).
+
+## Bounded forward-only Markdown source scanner (2026-11-04)
+
+Added an **opt-in**, UI-neutral `MarkdownIncrementalLineScanner.ScanAsync(TextReader)` that yields physical lines one by one through `IAsyncEnumerable<MarkdownStreamLine>`, preserving original CRLF/LF/CR endings and UTF-16 source offsets. It tracks top-level fenced-code state (including an optional language hint), ATX headings, blank lines and simple opaque quote/list starts without allocating a complete document model. It enforces a per-line character budget and rejects unsafe terminal controls.
+
+**This is not yet a complete incremental block parser or rendered Markdown pager.** Nested list/quote ownership, reference definitions, multiline paragraph groups and visual wrapping still belong to the existing full parser or future state-machine work. The scanner receives already decoded characters; to prevent partial display of an untrusted file that contains invalid bytes late in the stream, validate the entire file first using the TextFiles disk index or an immutable verified spool.
+
+[Design, guarantees and limitations](Docs/Incremental-Source-Scanner/en.md). New regression tests are authored but not yet executed in this environment.

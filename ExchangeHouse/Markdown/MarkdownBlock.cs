@@ -36,6 +36,18 @@ public sealed record MarkdownBlock(
     /// <summary>Quote marker depth, zero for non-quote lines.</summary>
     public int QuoteDepth { get; init; }
 
+    /// <summary>
+    /// Absolute source offset of the ordinary list item enclosing this
+    /// explicitly quoted line. Independent from inner quoted-list ownership.
+    /// </summary>
+    public int? QuoteContainerListOwnerStart { get; init; }
+
+    /// <summary>
+    /// Marker of the enclosing ordinary list item, if any. Used by terminal
+    /// renderers for the outer indent before a quoted list or code fence.
+    /// </summary>
+    public MarkdownListMarker? QuoteContainerListMarker { get; init; }
+
     /// <summary>Absolute source offset of the opening code fence, for opener/body/closer.</summary>
     public int? CodeFenceStart { get; init; }
 
@@ -55,8 +67,10 @@ public sealed record MarkdownBlock(
     public int? ListContinuationOwnerStart { get; init; }
 
     /// <summary>
-    /// Owner's list-marker source offset when this blank line separates explicitly indented
-    /// paragraphs within a loose list item. Null for unrelated blank lines.
+    /// Owner's list-marker source offset when a physical blank or quote-prefixed
+    /// blank separates explicitly indented content of a loose list item.
+    /// Null for unrelated blanks. Quote-prefixed separators retain their
+    /// BlockQuote kind and QuoteDepth so their visible markers are preserved.
     /// </summary>
     public int? ListBlankOwnerStart { get; init; }
 }

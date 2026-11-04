@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Afrowave.Toolbox.Blackboard.Showcase;
+namespace Afrowave.Toolbox.Blackboard.TextFiles;
 
 /// <summary>How a selected local file can be represented safely in a terminal.</summary>
 public enum TextPreviewKind
@@ -23,7 +23,7 @@ public sealed record TextPreviewResult(
     TextPreviewKind Kind, string Content, string? EncodingName, bool Truncated, long TotalBytes);
 
 /// <summary>
-/// Text-only, bounded, read-only local file preview used by Blackboard's example app.
+/// Reusable strict local text reader supporting bounded previews and complete documents.
 /// </summary>
 /// <remarks>
 /// The classifier is intentionally conservative: unsupported code pages and binary
@@ -104,6 +104,82 @@ public static class TextFilePreviewReader
             TextPreviewKind.BinaryOrUnsupportedEncoding, "", null, truncated, originalLength);
     }
 
+    /// <summary>
+    /// Reads and validates an entire selected text file, without an arbitrary byte cap.
+    /// Uses a small reusable decoding buffer; the returned document is materialized
+    /// as one string for whole-document Markdown parsing and rendering.
+    /// </summary>
+    /// <remarks>
+    /// Intended for user-initiated full documents, not the bounded generic file
+    /// preview. Large documents consume memory proportional to decoded text and
+    /// their Markdown syntax tree. Invalid encoding or terminal controls anywhere
+    /// in the file reject the entire result.
+    /// </remarks>
+    public static async Task<TextPreviewResult> ReadCompleteAsync(
+        string path, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
+        await using var stream = new FileStream(
+            path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 8192,
+            FileOptions.Asynchronous | FileOptions.SequentialScan);
+        var originalLength = stream.Length;
+        if (originalLength == 0)
+            return new TextPreviewResult(TextPreviewKind.Empty, "", "UTF-8", false, 0);
+
+        // Read enough initial bytes to distinguish UTF-8/16/32 BOMs even if
+        // a file stream returns fewer bytes than requested in one read.
+        var prefix = new byte[4];
+        var prefixLength = 0;
+        while (prefixLength < prefix.Length)
+        {
+            var read = await stream.ReadAsync(
+                prefix.AsMemory(prefixLength), cancellationToken).ConfigureAwait(false);
+            if (read == 0)
+                break;
+            prefixLength += read;
+        }
+
+        var (encoding, bomLength, encodingName) =
+            DetectEncoding(prefix.AsSpan(0, prefixLength));
+        stream.Position = bomLength;
+
+        // StreamReader keeps decoder state across chunk boundaries, so a valid
+        // multibyte code point split across reads is never mistaken for corruption.
+        using var reader = new StreamReader(stream, encoding,
+            detectEncodingFromByteOrderMarks: false, bufferSize: 8192, leaveOpen: true);
+        var characters = new char[8192];
+        var text = new StringBuilder();
+        try
+        {
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var read = await reader.ReadAsync(
+                    characters.AsMemory(), cancellationToken).ConfigureAwait(false);
+                if (read == 0)
+                    break;
+
+                var chunk = characters.AsSpan(0, read);
+                if (HasUnsafeControls(chunk))
+                    return new TextPreviewResult(
+                        TextPreviewKind.BinaryOrUnsupportedEncoding, "", null, false,
+                        originalLength);
+                text.Append(chunk);
+            }
+        }
+        catch (DecoderFallbackException)
+        {
+            return new TextPreviewResult(
+                TextPreviewKind.BinaryOrUnsupportedEncoding, "", null, false,
+                originalLength);
+        }
+
+        return new TextPreviewResult(
+            text.Length == 0 ? TextPreviewKind.Empty : TextPreviewKind.Text,
+            text.ToString(), encodingName, false, originalLength);
+    }
+
     private static (Encoding Encoding, int Offset, string Name) DetectEncoding(ReadOnlySpan<byte> bytes)
     {
         if (bytes.Length >= 4 && bytes[..4].SequenceEqual(new byte[] { 0xFF, 0xFE, 0x00, 0x00 }))
@@ -124,7 +200,10 @@ public static class TextFilePreviewReader
         return (new UTF8Encoding(false, true), 0, "UTF-8");
     }
 
-    private static bool HasUnsafeControls(string text)
+    private static bool HasUnsafeControls(string text) =>
+        HasUnsafeControls(text.AsSpan());
+
+    private static bool HasUnsafeControls(ReadOnlySpan<char> text)
     {
         foreach (var character in text)
         {

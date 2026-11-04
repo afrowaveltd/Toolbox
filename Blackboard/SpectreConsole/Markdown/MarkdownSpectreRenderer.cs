@@ -36,6 +36,15 @@ public static class MarkdownSpectreRenderer
         {
         foreach (var block in document.Blocks)
         {
+            // An interrupted quote-owned fence has no physical closing delimiter.
+            // Never carry its highlighter state into the following prose or list.
+            if (highlightSession is not null &&
+                block.Kind is not (MarkdownBlockKind.CodeFence or MarkdownBlockKind.CodeLine))
+            {
+                highlightSession.Dispose();
+                highlightSession = null;
+            }
+
             switch (block.Kind)
             {
                 case MarkdownBlockKind.Blank:
@@ -65,21 +74,29 @@ public static class MarkdownSpectreRenderer
                         }
                     }
                     if (theme.ShowCodeFenceDelimiters)
-                        WriteLine(console, ListContainerIndent(block, theme) +
-                            (block.ListContinuationMarker is null
-                                ? block.RawText.TrimEnd('\r', '\n') : block.Text), theme.Code);
+                        WriteLine(console, OuterQuoteListIndent(block, theme) +
+                            QuoteContainerPrefix(block, theme) +
+                            ListContainerIndent(block, theme) +
+                            (block.QuoteDepth > 0 || block.ListContinuationMarker is not null
+                                ? block.Text : block.RawText.TrimEnd('\r', '\n')), theme.Code);
                     else if (!block.IsClosingCodeFence && theme.ShowCodeLanguage &&
                              block.CodeLanguage is { Length: > 0 } codeLanguage)
-                        WriteLine(console, ListContainerIndent(block, theme) +
+                        WriteLine(console, OuterQuoteListIndent(block, theme) +
+                            QuoteContainerPrefix(block, theme) +
+                            ListContainerIndent(block, theme) +
                             theme.CodeIndent + "[" + codeLanguage + "]", theme.CodeLanguageStyle);
                     break;
                 case MarkdownBlockKind.CodeLine:
+                    if (block.QuoteDepth > 0)
+                        WriteSafe(console, OuterQuoteListIndent(block, theme) +
+                            QuoteContainerPrefix(block, theme), theme.QuoteMarker);
                     WriteSafe(console, ListContainerIndent(block, theme) + theme.CodeIndent, theme.Code);
                     WriteHighlightedCode(console, block.Text, block.CodeLanguage, theme, ref highlightSession);
                     WriteNewline(console);
                     break;
                 case MarkdownBlockKind.BlockQuote:
-                    WriteSafe(console, ListContainerIndent(block, theme) +
+                    WriteSafe(console, OuterQuoteListIndent(block, theme) +
+                        ListContainerIndent(block, theme) +
                         string.Concat(Enumerable.Repeat(theme.QuotePrefix,
                             Math.Clamp(block.QuoteDepth, 0, 32))), theme.QuoteMarker);
                     WriteInlineLine(console, block, theme.Quote, theme);
@@ -88,6 +105,9 @@ public static class MarkdownSpectreRenderer
                     WriteInlineLine(console, block, theme.GetHeadingStyle(block.HeadingLevel), theme);
                     break;
                 case MarkdownBlockKind.ListItem:
+                    if (block.QuoteDepth > 0)
+                        WriteSafe(console, OuterQuoteListIndent(block, theme) +
+                            QuoteContainerPrefix(block, theme), theme.QuoteMarker);
                     var marker = block.ListMarker;
                     var depth = Math.Clamp(marker?.Depth ?? 0, 0, 32);
                     var prefix = ListPrefix(marker, theme);
@@ -97,6 +117,9 @@ public static class MarkdownSpectreRenderer
                     WriteNewline(console);
                     break;
                 case MarkdownBlockKind.Paragraph:
+                    if (block.QuoteDepth > 0)
+                        WriteSafe(console, OuterQuoteListIndent(block, theme) +
+                            QuoteContainerPrefix(block, theme), theme.QuoteMarker);
                     if (block.ListContinuationMarker is not null)
                         WriteSafe(console, ListContainerIndent(block, theme), theme.Body);
                     WriteInlineLine(console, block, theme.Body, theme);
@@ -110,14 +133,33 @@ public static class MarkdownSpectreRenderer
         }
     }
 
+    // Quote prefixes are rendered separately from list indentation so callers
+    // can style nesting markers without changing source-relative list depths.
+    private static string QuoteContainerPrefix(MarkdownBlock block, MarkdownSpectreTheme theme) =>
+        string.Concat(Enumerable.Repeat(theme.QuotePrefix,
+            Math.Clamp(block.QuoteDepth, 0, 32)));
+
+    private static string OuterQuoteListIndent(MarkdownBlock block, MarkdownSpectreTheme theme)
+    {
+        // For plain quoted text the regular ListContinuationMarker already
+        // produces the outer indent. Avoid rendering it twice.
+        if (block.QuoteContainerListMarker is not { } outer ||
+            block.ListContinuationOwnerStart == block.QuoteContainerListOwnerStart)
+            return string.Empty;
+        return ListIndentForMarker(outer, theme);
+    }
+
+    private static string ListIndentForMarker(MarkdownListMarker marker,
+        MarkdownSpectreTheme theme) =>
+        string.Concat(Enumerable.Repeat(theme.ListIndent,
+            Math.Clamp(marker.Depth, 0, 32))) +
+        new string(' ', ListPrefix(marker, theme).Length + 1);
+
     private static string ListContainerIndent(MarkdownBlock block, MarkdownSpectreTheme theme)
     {
         if (block.ListContinuationMarker is not { } marker)
             return string.Empty;
-        var markerPrefix = ListPrefix(marker, theme);
-        var level = string.Concat(Enumerable.Repeat(theme.ListIndent,
-            Math.Clamp(marker.Depth, 0, 32)));
-        return level + new string(' ', markerPrefix.Length + 1);
+        return ListIndentForMarker(marker, theme);
     }
 
     private static void WriteHighlightedCode(

@@ -31,6 +31,19 @@ public sealed class MarkdownThemeDemo : IBlackboardShowcaseDemo
 
         ### Quotes and source code
         > A quote can contain **emphasis** without injecting terminal markup.
+        > - **Quoted lists** retain their own numbering
+        >   12) First quoted step
+        >     - A nested bullet under the step
+        >   13) Second quoted step
+        >
+        >       Its second paragraph stays under the same numbered item.
+        >       ```csharp
+        >       public static int Double(int value)
+        >       {
+        >           return value * 2;
+        >       }
+        >       ```
+        >> - A different quote level stays separate
 
         - Source code can live **inside a list**:
           > This is a nested quote.
@@ -40,9 +53,72 @@ public sealed class MarkdownThemeDemo : IBlackboardShowcaseDemo
           This paragraph belongs to the same item.
         The next line continues lazily without indentation.
 
+        ### Quote nested inside an ordinary list
+        - Check the deployment requirements:
+          > - **Important:** Verify the runtime.
+          >   12) Review the dependency versions.
+          >       ```bash
+          >       dotnet --list-runtimes
+          >       ```
+          Continue with the remaining deployment steps.
+
+        ### JavaScript, JSON and YAML — syntax colors are not C#-only
+
+        ```javascript
+        const greetings = ["Hello", "Ahoj", "Habari"];
+        function greet(name) {
+            return "Welcome, " + name + "!";
+        }
+        console.log(greet("Afrowave"));
+        ```
+
+        ```json
+        {
+            "name": "Afrowave",
+            "enabled": true,
+            "languages": ["cs", "en", "sw"]
+        }
+        ```
+
+        ```yaml
+        project: Toolbox
+        enabled: true
+        languages:
+          - cs
+          - en
+          - sw
+        ```
+
+        ### .NET Core 3.1 console application (classic Main entry point)
+        The older project template makes C# namespaces, classes and nested code indentation visible.
+
         ```csharp
-        var document = MarkdownParser.Parse(markdown);
-        MarkdownSpectreRenderer.Render(console, document, theme);
+        using System;
+
+        namespace HelloCore31
+        {
+            internal class Program
+            {
+                private static void Main(string[] args)
+                {
+                    Console.WriteLine("Hello from .NET Core 3.1!");
+
+                    if (args.Length > 0)
+                    {
+                        Console.WriteLine($"First argument: {args[0]}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("No arguments were supplied.");
+                    }
+
+                    for (int i = 0; i < 3; i++)
+                    {
+                        Console.WriteLine($"Step {i + 1}");
+                    }
+                }
+            }
+        }
         ```
         """);
 
@@ -115,6 +191,10 @@ public sealed class MarkdownThemeDemo : IBlackboardShowcaseDemo
             ShowCodeFenceDelimiters = true
         })
     ];
+
+    // Reuse the exact same Classic style for file previews; only the Showcase
+    // knows about this optional native TextMate backend.
+    internal static MarkdownSpectreTheme ClassicPreviewTheme => Themes[0].Theme;
 
     /// <inheritdoc/>
     public string Id => "markdown-themes";

@@ -68,3 +68,44 @@ The adapter is a **Showcase-only dependency**, not required by the base Markdown
 If native grammar support is unavailable, the gallery retains safe literal code.
 
 [Adapter documentation](../../SpectreConsole/Markdown.TextMate/README.md).
+
+## Classic .NET Core 3.1 code sample (2026-11-01)
+
+The Markdown theme gallery uses a longer, historically typical C# console entry point:
+`using System`, a named namespace, `Program`, `private static void Main(string[] args)`,
+a conditional branch and a `for` loop. Its declared `csharp` fence exercises
+TextMate syntax colors, brace nesting and **source-preserved indentation**.
+This is an embedded demonstration of .NET Core 3.1-era syntax, **not** a
+change to Toolbox's net10.0 target framework. All four gallery themes
+reuse the same parsed Markdown; Monochrome remains uncolored.
+
+## Quote-nested code example (2026-11-01)
+
+The Markdown theme gallery now includes an indented `csharp` fence beneath a numbered list item **inside a blockquote**, in addition to the classic .NET Core 3.1 `Program.Main` sample. Colored themes demonstrate optional TextMate highlighting in both places; Monochrome remains uncolored. [Gallery documentation](Docs/Markdown-Themes/en.md).
+
+## Quote-list second paragraph (2026-11-01)
+
+The Markdown gallery's numbered quoted-list sample includes a blank quote line followed by a second indented paragraph and a C# fence, illustrating loose quote lists alongside ordinary lists and .NET Core 3.1 syntax highlighting. [Markdown themes](Docs/Markdown-Themes/en.md).
+
+## Quote nested under a deployment step (2026-11-01)
+
+The Markdown theme gallery now includes an ordinary deployment item containing a quoted warning, numbered dependency checks and a `bash` fence with `dotnet --list-runtimes`. This adds no project dependencies and does not execute the command. [Theme guide](Docs/Markdown-Themes/en.md).
+
+## Open a complete README.md through FileBrowser (2026-11-02)
+
+Choose the fifth Showcase item **Markdown — open local README or .md file**, navigate folders and select `*.md` or `*.markdown`. The app validates the extension again after selection, because FileBrowser permits interactive filter changes. It then performs a **complete, read-only** decode, parses Markdown and renders all blocks in the Classic theme with optional TextMate code syntax coloring. **There is no 64 KiB display cutoff:** files above 64 KiB merely show an informational warning and continue rendering the entire contents.
+
+Encoding and safety checks cover **the entire file**, not only a prefix. Supported input is strict UTF-8 or BOM-marked UTF-16/UTF-32. Invalid Unicode, NUL/binary text and forbidden terminal control characters cause an explanatory refusal rather than partial unsafe output. An empty file or cancelled picker returns cleanly. The scanner reads in bounded 8 KiB chunks, but the source and parse tree are materialized into RAM; extremely large files therefore still depend on available memory and terminal scrollback. Markdown grammar is tolerant: valid encoding and safe output are *not* a guarantee of strict CommonMark conformance. Code fences are displayed, never executed.
+
+Run from the Toolbox repository root:
+
+```bash
+git pull
+dotnet run --project Blackboard/Samples/Blackboard.Showcase
+```
+
+Then choose the Markdown file viewer and open the root `README.md`. This is an independent Showcase feature, not a new FileBrowser/Markdown NuGet dependency. [Full viewer guide](Docs/Markdown-File-Viewer/en.md).
+
+## Multiple syntax languages in Markdown gallery (2026-11-04)
+
+The Markdown theme gallery sample now includes JavaScript, JSON and YAML fenced examples alongside C# to exercise the shared optional TextMate adapter. The adapter recognizes all grammars in the installed bundle and common aliases. Showcase rendering behavior outside these samples remains unchanged. See [TextMate grammar support](../../SpectreConsole/Markdown.TextMate/Docs/Supported-Grammars/en.md). New code and tests are committed but not yet rerun.

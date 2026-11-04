@@ -12,3 +12,9 @@ this adapter uses TextMateSharp 2.0.4 (MIT) and bundled language grammars.
 
 Upstream: [TextMateSharp](https://github.com/danipen/TextMateSharp),
 [GitHub Linguist](https://github.com/github-linguist/linguist).
+
+## 2026-11-04 — broad bundled language resolution
+
+All registry language IDs and available extension-based grammar mappings are now considered. Alias normalization covers common fenced Markdown spellings, including JavaScript and TS abbreviations, languages, shells and data formats. There is no custom grammar loader or requirement to install all grammars separately. See [Supported Grammars](../Supported-Grammars/en.md) for examples and the limitation that missing bundle grammars stay plain text.
+
+The separate mdview app now opts into the adapter for all three source types. The parser and base Markdown renderer remain dependency-free with respect to TextMateSharp.

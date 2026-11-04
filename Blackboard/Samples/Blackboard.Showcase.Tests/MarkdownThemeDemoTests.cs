@@ -30,8 +30,24 @@ public sealed class MarkdownThemeDemoTests
         Assert.Contains("Theme preview: Classic", console.Output);
         Assert.Contains("Markdown theme gallery", console.Output);
         Assert.Contains("One document can have many appearances.", console.Output);
+        Assert.Contains("const greetings =", console.Output);
+        Assert.Contains("console.log(greet(", console.Output);
+        Assert.Contains("project: Toolbox", console.Output);
         Assert.Contains("../Docs/en.md", console.Output);
-        Assert.Contains("MarkdownSpectreRenderer.Render", console.Output);
+        // A C# 8 / .NET Core 3.1 Program.Main sample demonstrates real,
+        // source-preserved indentation through the Markdown/Spectre pipeline.
+        Assert.Contains("using System;", console.Output);
+        Assert.Contains("namespace HelloCore31", console.Output);
+        Assert.Contains("Review the dependency versions.", console.Output);
+        Assert.Contains("dotnet --list-runtimes", console.Output);
+        Assert.Contains("public static int Double(int value)", console.Output);
+        Assert.Contains("Its second paragraph stays under the same numbered item.", console.Output);
+        Assert.Contains("return value * 2;", console.Output);
+        Assert.Contains("            private static void Main(string[] args)", console.Output);
+        Assert.Contains("                if (args.Length > 0)", console.Output);
+        Assert.Contains("                    Console.WriteLine($\"First argument: {args[0]}\");", console.Output);
+        Assert.Contains("                for (int i = 0; i < 3; i++)", console.Output);
+        Assert.DoesNotContain("```csharp", console.Output);
         Assert.DoesNotContain("**document**", console.Output);
     }
 

@@ -19,3 +19,9 @@ Nested list regression suite (2026-10-31): ordered/unordered markers, hierarchy,
 2026-10-31: Indented continuation line ownership and exact source offsets, nested ancestor return, numbered/tabbed indentation and code/blank-line boundaries have dedicated xUnit cases.
 
 Loose-list regressions (2026-10-31): owned blank separators, multiple blank lines with tabs/CRLF, ancestor reattachment, unrelated/trailing blanks, new list marker boundaries, code-fence protection and unchanged round trips.
+
+## Incremental source stream tests (2026-11-04)
+
+Added `MarkdownIncrementalLineScannerTests` (**16 test cases**) for exact physical line endings, UTF-16 source offsets, CRLF split between reads, top-level fence state/language hints, flat ATX heading parity, opaque quote/list preservation, forward-only lazy reads, line limits, unsafe controls and cancellation. This experimental scanner is separate from the existing fully parsed `MarkdownDocument` and must not be mistaken for complete CommonMark or a formatted visual pager. New tests are committed but **not yet executed in this environment**.
+
+[Scanner contract](../Markdown/Docs/Incremental-Source-Scanner/en.md).

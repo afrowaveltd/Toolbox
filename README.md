@@ -17,10 +17,24 @@
 | [ExchangeHouse Markdown](ExchangeHouse/Markdown/README.md) | UI-neutral lossless Markdown parser, links/images, nested lists, code-language and quote metadata | Implemented preview project, **not yet published** |
 | [Blackboard Markdown](Blackboard/SpectreConsole/Markdown/README.md) | Spectre.Console Markdown display, safe images, quotes, code blocks and optional syntax colors | Implemented preview project, **not yet published** |
 | [Markdown.TextMate](Blackboard/SpectreConsole/Markdown.TextMate/README.md) | Optional real code syntax coloring for Markdown with TextMateSharp grammars | Implemented source adapter; **not yet published** |
+| [Blackboard.TextFiles](Blackboard/TextFiles/README.md) | Strict local Unicode reader and disk-backed UTF-8 physical-line index for bounded-memory paging | Source implementation, **not yet published** |
+| [mdview](Blackboard/Tools/MdView/README.md) | Terminal Markdown reader for local, HTTPS and GitHub READMEs; owner browsing, optional raw indexed source pager | In-repository CLI preview; **not yet published** |
 | [SeeMe](SeeMe/README.md) | Console presentation helpers for WhenItFails | Implemented source project |
 | [Toolroom](Toolroom/README.md) | Runnable developer/maintenance tools including WhenItFails Setter | Implemented utilities |
 
 The three NuGet publications above are **maintainer-confirmed**; the package IDs/versions match repository project metadata. Do not confuse a project `Version` with public publication. Details: [Release status](Docs/Release-Status/en.md).
+
+## NuGet-first reusable component policy
+
+As soon as a self-contained .NET library is useful, documented, tested and
+installable, we publish a **NuGet prerelease** rather than waiting for a full
+`1.0.0`. Frequent preview releases are welcome; downstream projects consume
+stable package IDs and may opt into updates without changing shared source
+paths. Published versions are immutable and consumers must explicitly enable
+prerelease updates where their package manager requires it. This is a
+**publication policy**, not a claim that every preview project has already
+been released. See [NuGet release policy](Docs/NuGet-Release-Policy/en.md)
+and [current package status](Docs/Release-Status/en.md).
 
 ## Applications and examples
 
@@ -95,3 +109,37 @@ Afrowave intends to give everyone the maximum feasible access to useful hosted s
 ## License
 
 See [LICENSE.txt](LICENSE.txt).
+
+## Quoted sublists inside ordinary list items (2026-11-01)
+
+Markdown parsing and Spectre presentation now support **ordinary list → explicitly indented quote → nested list → fenced code**, preserving the enclosing ordinary item and the independent quoted-list hierarchy. See the [ExchangeHouse parser guide](ExchangeHouse/Markdown/Docs/Quoted-Lists-Inside-Lists/en.md) and [Blackboard presentation guide](Blackboard/SpectreConsole/Markdown/Docs/Quoted-List-Containers/en.md). No new NuGet release.
+
+## View actual Markdown README files in the Showcase (2026-11-02)
+
+The fifth [Blackboard Showcase](Blackboard/Samples/Blackboard.Showcase/README.md) module uses the existing FileBrowser to select local `*.md;*.markdown` files and displays their **entire validated document**, including C# / Bash grammar coloring through the optional TextMate adapter. Files larger than 64 KiB receive only an informational notice; they are **not truncated or rejected by size**. Strict UTF-8 or BOM-marked UTF-16/32 decoding, terminal-control screening and read-only access apply to the whole file. [File-viewer guide](Blackboard/Samples/Blackboard.Showcase/Docs/Markdown-File-Viewer/en.md). Large documents still require memory for the full parsed Markdown model.
+
+## First bounded-memory source-paging milestone (2026-11-04)
+
+Our Markdown reader now has an **optional indexed raw UTF-8 source pager** alongside the existing fully formatted, whole-document viewer:
+
+```bash
+dotnet run --project Blackboard/Tools/MdView -- source README.md
+```
+
+`Blackboard.TextFiles.Utf8DiskLineIndex` strictly validates all bytes in one sequential pass, writes source-line offsets to a temporary bounded disk index and reads forward/backward pages with a small RAM budget. The source pager uses Spectre.Console prompts for Next, Previous, Go to line and Exit. This first mode intentionally displays **raw Markdown source**, not rendered blocks; the regular mdview renderer, code highlighting, FileBrowser and GitHub support remain unchanged. Proper formatted streaming Markdown paging (including lists, quote/fence state and terminal wrapping) is a separate next milestone. New code and tests have been committed, but the latest full-solution test run has not yet been confirmed for this increment.
+
+[Disk index design](Blackboard/TextFiles/Docs/Disk-Line-Index/en.md) · [mdview source pager](Blackboard/Tools/MdView/Docs/Raw-Source-Pager/en.md).
+
+## Interactive mdview document completion (2026-11-04)
+
+After successfully opening a fully rendered Markdown document in an interactive terminal, `mdview` now waits for **Enter** to reopen the source menu or **Escape** to exit. Other keys are ignored for now, reserving `F`/PageUp/PageDown/arrows for later search and page navigation. A direct local, URL or GitHub README launch gains the same repeatable-session behavior, so users can open a second document without restarting the tool. When stdin or stdout is redirected, the CLI completes without waiting. The separate `mdview source PATH` disk-backed raw source pager retains its own navigation.
+
+[mdview documentation](Blackboard/Tools/MdView/Docs/Document-End-Navigation/en.md) · [mdview implementation status](Blackboard/Tools/MdView/IMPLEMENTATION_STATUS.md). New tests are committed; a fresh full Windows test run is pending.
+
+## Future README search and incremental scanner (2026-11-04)
+
+For future visual paging, we now have an **independent forward-only Markdown source-line scanner** in ExchangeHouse. It preserves physical newlines and UTF-16 source offsets and tracks top-level fenced-code state without materializing the complete document. It is **not** wired into mdview or advertised as a complete Markdown parser; the existing renderer remains unchanged. [Scanner design](ExchangeHouse/Markdown/Docs/Incremental-Source-Scanner/en.md).
+
+We also captured a **design-only** next-stage navigation idea: a few common English README subjects (e.g., Installation, Build, Compilation, Configuration), a heading outline and on-demand indexed phrases. A future `F` action would choose/add a query and `N/P` would navigate its hits. Match positions should use small, disk-backed, content-digest-bound indexes rather than copying every paragraph. **Search keys are not active yet.** [Indexed search plan](Blackboard/Tools/MdView/Docs/Indexed-Search/en.md).
+
+New scanner and test code has been committed, but a fresh full Windows/.NET test run is still needed before this increment can be considered verified.

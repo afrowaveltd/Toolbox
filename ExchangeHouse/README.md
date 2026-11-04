@@ -24,3 +24,7 @@ Commit each small, testable increment to Toolbox; keep each project's English `R
 ## Blockquote and code metadata (2026-10-31)
 
 The independent [Markdown parser](Markdown/README.md) now retains source-language hints for fenced code and conservative quote/code blocks within list items. It does not perform coloring itself; a separate optional Blackboard TextMate adapter handles terminal syntax highlighting.
+
+## Quoted sublists nested within ordinary lists
+
+The Markdown parser tracks an ordinary list item's ownership of its explicitly indented quote, without merging the quote's separate ordered/unordered list tree into `ListRoots`. Two additive block properties retain outer source-owner information. [Container behavior](Markdown/Docs/Quoted-Lists-Inside-Lists/en.md). Not full CommonMark.

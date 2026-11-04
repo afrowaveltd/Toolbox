@@ -24,10 +24,36 @@ public sealed class MarkdownTextMateHighlighter : IMarkdownSyntaxHighlighter
     public IMarkdownHighlightSession? CreateSession(string language)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(language);
+        var rawId = language.Trim().ToLowerInvariant();
+        if (rawId.Length > 64)
+            return null; // A fence hint is a language name, never arbitrary input.
         var id = NormalizeLanguage(language);
         if (id is "text" or "plain" or "none")
             return null;
-        var scope = options.GetScopeByLanguageId(id);
+
+        // Prefer a precise bundled grammar ID if it exists (e.g. JSON with comments
+        // or Sass). Alias mapping is a convenience fallback, never a downgrade.
+        var scope = options.GetScopeByLanguageId(rawId) ?? options.GetScopeByLanguageId(id);
+
+        // For otherwise unknown IDs, ask the installed bundle about common file
+        // extensions. This enables additional grammars without a maintained allowlist.
+        if (scope is null)
+        {
+            foreach (var extension in new[] { rawId, id }.Distinct(StringComparer.Ordinal))
+            {
+                if (extension.Length == 0 || extension.Length > 64 ||
+                    !extension.All(character => char.IsAsciiLetterOrDigit(character) ||
+                                                character is '_' or '-' or '+'))
+                    continue;
+
+                var languageByExtension = options.GetLanguageByExtension("." + extension);
+                if (languageByExtension is null)
+                    continue;
+                scope = options.GetScopeByLanguageId(languageByExtension.Id);
+                if (scope is not null)
+                    break;
+            }
+        }
         if (scope is null)
             return null;
 
@@ -44,17 +70,43 @@ public sealed class MarkdownTextMateHighlighter : IMarkdownSyntaxHighlighter
         ArgumentException.ThrowIfNullOrWhiteSpace(language);
         return language.Trim().ToLowerInvariant() switch
         {
-            "cs" or "c#" or "c-sharp" => "csharp",
-            "sh" or "bash" or "zsh" or "shell" => "shellscript",
-            "ps1" or "pwsh" => "powershell",
-            "js" or "node" => "javascript",
-            "ts" => "typescript",
-            "py" => "python",
-            "yml" => "yaml",
-            "md" => "markdown",
-            "c++" or "cc" => "cpp",
+            // Names commonly found in README fences, command snippets and extensions.
+            "cs" or "c#" or "c-sharp" or "csharp" or "dotnet" => "csharp",
+            "vb" or "vbnet" or "visualbasic" or "visual-basic" => "vb",
+            "f#" or "f-sharp" or "fs" => "fsharp",
+            "c++" or "cxx" or "cc" or "hpp" or "hxx" => "cpp",
+            "h" => "c",
+            "sh" or "bash" or "zsh" or "ksh" or "shell" or "shell-script" or "shellscript" => "shellscript",
+            "ps" or "ps1" or "pwsh" or "psm1" => "powershell",
+            "js" or "node" or "nodejs" or "mjs" or "cjs" or "ecmascript" or "es6" => "javascript",
+            "ts" or "mts" or "cts" => "typescript",
+            "py" or "pyw" or "python3" => "python",
+            "rb" or "ruby-script" => "ruby",
             "rs" => "rust",
-            var other => other
+            "golang" => "go",
+            "kt" or "kts" => "kotlin",
+            "swiftlang" => "swift",
+            "dartlang" => "dart",
+            "php3" or "php7" or "php8" => "php",
+            "pl" or "perl5" => "perl",
+            "lua-script" => "lua",
+            "rscript" => "r",
+            "sqlserver" or "tsql" or "mysql" or "postgres" or "postgresql" or "sqlite" => "sql",
+            "htm" or "xhtml" => "html",
+            "svg" or "xsd" or "xsl" or "xslt" or "csproj" or "fsproj" or "vbproj" => "xml",
+            "scss" or "sass" => "scss",
+            "lesscss" => "less",
+            "jsn" or "jsonc" or "json5" or "jsonl" or "ndjson" or "ajis" => "json",
+            "yml" or "yaml" => "yaml",
+            "md" or "mdown" or "mkd" => "markdown",
+            "tex" => "latex",
+            "diff" or "patch" => "diff",
+            "docker" or "dockerfile" => "dockerfile",
+            "make" or "makefile" or "gnumake" => "makefile",
+            "tf" or "terraform" => "terraform",
+            "ini" or "cfg" or "conf" => "ini",
+            "txt" or "plaintext" or "plain-text" => "text",
+            var other => other // Direct registry ID or extension fallback, never whitelist-only.
         };
     }
 

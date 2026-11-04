@@ -4,6 +4,17 @@
 
 Work directly with [afrowaveltd/Toolbox](https://github.com/afrowaveltd/Toolbox). Commit each self-contained implementation and its tests/docs; keep each project `IMPLEMENTATION_STATUS.md` current so another contributor can resume without reconstructing the conversation. GitHub workflow results are verification evidence only for the exact commit/run they checked.
 
+## Publish usable components as independent NuGet packages
+
+Once a library has a useful tested API, valid documentation and a verified
+package-installation path, publish a prerelease rather than waiting for the
+entire Toolbox or a stable 1.0.0. Subsequent useful increments may ship as
+separate preview versions. External consumers reference NuGet package IDs,
+not relative source-project paths. Keep publication evidence distinct from CI
+success and honor prerelease opt-in, stable dependency restrictions and
+package/version immutability. The authoritative decision and release gates
+are in [NuGet release policy](../NuGet-Release-Policy/en.md).
+
 ## Documentation conventions
 
 - Root `README.md`: short English family entry point and basic usage.

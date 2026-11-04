@@ -71,3 +71,49 @@
 ## 2026-10-31 — fenced-code/quote container recognition
 
 ExchangeHouse Markdown now records fenced-code language metadata, quote depth, and attached quote/code list blocks while retaining line offsets and literal-source preservation. This is bounded syntax support, not full CommonMark containers. [Detailed parser status](Markdown/IMPLEMENTATION_STATUS.md). CI pending for the complete follow-up changes.
+
+### Cross-platform green verification — 2026-10-31
+
+- [GitHub Actions #41251065292](https://github.com/afrowaveltd/Toolbox/actions/runs/41251065292) **SUCCESS** for source commit `5b80ad1e3f9cde50ae793da53b3b81c30d727d08`. Linux complete solution restore/build/tests passed, Windows targeted UI and grammar tests passed, and Markdown link validation passed.
+- Windows: **ExchangeHouse Markdown 66/66**, **Blackboard Markdown 24/24**, **TextMate adapter 6/6**, **Showcase 26/26**, **FileBrowser 160/160**, **Configurator 44/44**, **UnderstandMe localization 34/34**.
+- The documentation link audit examined **280 Markdown files and 1,423 local targets** with no missing targets. A later docs-only commit clarified a nested-fence illustration; final docs CI is tracked separately.
+- Real TextMate C# tokenization was exercised under Linux and Windows CI, including platform-specific Oniguruma dependencies. This does **not** establish manual SSH/tmux or Debian terminal acceptance, complete CommonMark support, NuGet publication, or a completed third-party transitive-license review.
+
+## 2026-11-01 — quoted list recognition
+
+- Added bounded independent nested-list hierarchy inside explicit quote-prefix lines. See [Markdown status](Markdown/IMPLEMENTATION_STATUS.md) and [quoted list design](Markdown/Docs/Quoted-Lists/en.md). Existing source-preserving representation remains intact. CI pending.
+
+### Verified cross-platform quoted-list milestone — 2026-11-01
+
+- [GitHub Actions #41251673070](https://github.com/afrowaveltd/Toolbox/actions/runs/41251673070) **SUCCESS** for feature commit `aa3ec1246fc3125f17d1a506e415cc3ad7db418b`: Linux full solution build/test, Windows targeted UI tests and documentation-link job passed.
+- Windows results: ExchangeHouse Markdown **71/71**, Blackboard Markdown **26/26**, optional TextMate **6/6**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
+- The subsequent documentation commit introduced one incorrect cross-family relative link, fixed in `1e89cf7532c03737a0599d51c26b54cd57bb345a`. Link verification on the fix run passed; final complete CI for the documentation state is tracked independently.
+- No new NuGet publication, full CommonMark conformance, or real-terminal acceptance is claimed. This feature intentionally does not tokenize fenced code inside explicitly quote-prefixed containers.
+
+## 2026-11-01 — quoted fenced code
+
+- Parser recognizes source-aware literal quoted code fences and quoted numbered-list ownership with conservative interruption on changed/missing quote prefixes.
+- [Quoted code behavior](Markdown/Docs/Quoted-Code-Fences/en.md). Core tests passed on implementation CI [#41254427784](https://github.com/afrowaveltd/Toolbox/actions/runs/41254427784); final docs CI separate.
+
+### Full cross-platform CI checkpoint — 2026-11-01
+
+- [GitHub Actions #41254717060](https://github.com/afrowaveltd/Toolbox/actions/runs/41254717060) **SUCCESS** for final code/English-docs fix commit `8f25d8e2a72df6ffe915362ef11d64dbd6c89d6a`: Linux complete solution build/tests, Windows targeted UI/Markdown tests and repository local documentation-link validation passed.
+- Windows focused tests: ExchangeHouse Markdown **75/75**, Blackboard Markdown **29/29**, Markdown.TextMate **6/6**, Blackboard Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, UnderstandMe localization **34/34**.
+- Markdown local-link checker verified **284 files / 1,452 local targets**, zero broken links. An earlier documentation-only CI failed one wrong Showcase-to-renderer relative path, fixed in `8f25d8e`; the final checkpoint above is green.
+- No new NuGet release or manual real-terminal Windows/Debian acceptance claimed.
+
+## 2026-11-01 — quoted loose paragraphs
+
+- Markdown parser defers quote-marked blanks until a same-depth, explicitly indented list continuation establishes owner; it preserves untouched source and independent quote/unquoted list hierarchies. [Technical guide](Markdown/Docs/Quoted-Loose-Paragraphs/en.md); [project status](Markdown/IMPLEMENTATION_STATUS.md). CI pending.
+
+### Verified cross-platform milestone — 2026-11-01
+
+- [GitHub Actions #41256065289](https://github.com/afrowaveltd/Toolbox/actions/runs/41256065289) **SUCCESS** on source/documentation commit `882f15862d89214e8cc1204d8b5b7baaedd6d18a`: Linux complete solution build and tests, Windows UI/Markdown targeted tests and local Markdown documentation links all passed.
+- Windows tests: ExchangeHouse Markdown **82/82**, Blackboard Markdown **31/31**, TextMate adapter **6/6**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
+- Markdown checker processed **286 files / 1,470 local targets**, with zero missing local links.
+- The test-preserving increment has not been published to NuGet and has not undergone manual Debian/Windows/SSH visual acceptance; full CommonMark nesting remains outside this milestone.
+
+## 2026-11-01 — ordinary lists containing quoted sublists
+
+- Source-preserving Markdown now tracks the outer ordinary owner of a quote containing its own list; parser and renderer remain separate. [Architecture guide](Markdown/Docs/Quoted-Lists-Inside-Lists/en.md).
+- [Cross-platform CI #41257477307](https://github.com/afrowaveltd/Toolbox/actions/runs/41257477307) **SUCCESS**, parser 88/88. No full CommonMark claim.

@@ -366,6 +366,184 @@ public sealed class MarkdownSpectreRendererTests
         }
     }
 
+
+    [Fact]
+    public void Nested_quoted_lists_render_quote_levels_and_original_ordered_markers()
+    {
+        const string source = "> - Parent\n>   12) **Child**\n>     * Detail\n>   13) Next\n>> - Other quote level\n- Outside";
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, source, new MarkdownSpectreTheme
+        {
+            QuotePrefix = "| ", ListIndent = "....", ListBullet = "+"
+        });
+        Assert.Contains("| + Parent", console.Output);
+        Assert.Contains("| ....12) Child", console.Output);
+        Assert.Contains("| ........+ Detail", console.Output);
+        Assert.Contains("| ....13) Next", console.Output);
+        Assert.Contains("| | + Other quote level", console.Output);
+        Assert.Contains("+ Outside", console.Output);
+        Assert.DoesNotContain("**Child**", console.Output);
+    }
+
+    [Fact]
+    public void Quoted_lazy_and_explicit_paragraphs_align_under_quoted_item_marker()
+    {
+        const string source = "> 12) First\n>     Explicit **strong**\n> Lazy [guide](../guide.md)\n> 13) Second";
+        var doc = MarkdownParser.Parse(source);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc, new MarkdownSpectreTheme
+        {
+            QuotePrefix = "> ", ShowLinkDestinations = true
+        });
+        Assert.Contains("> 12) First", console.Output);
+        Assert.Contains(">     Explicit strong", console.Output);
+        Assert.Contains(">     Lazy guide (../guide.md)", console.Output);
+        Assert.Contains("> 13) Second", console.Output);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+
+    [Fact]
+    public void Highlighted_quoted_code_tracks_quote_prefix_and_disposes_session()
+    {
+        const string source = "> ```csharp\n> public class Program {}\n> - not a list\n> ```\n> - After";
+        var highlighter = new TestHighlighter();
+        var doc = MarkdownParser.Parse(source);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc, new MarkdownSpectreTheme
+        {
+            SyntaxHighlighter = highlighter, QuotePrefix = "> ", ShowCodeLanguage = true
+        });
+        Assert.Contains(">     [csharp]", console.Output);
+        Assert.Contains(">     public class Program {}", console.Output);
+        Assert.Contains(">     - not a list", console.Output);
+        Assert.Contains("> • After", console.Output);
+        Assert.Equal(new[] { "csharp" }, highlighter.Requests);
+        Assert.Equal(1, highlighter.Disposals);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Quoted_list_code_preserves_spacing_with_custom_theme_and_safe_markup()
+    {
+        const string source = "> 12) Child\n>     ```csharp\n>     if (true)\n>     {\n>         Console.WriteLine(\"[red]literal[/]\");\n>     }\n>     ```\n>     After";
+        var doc = MarkdownParser.Parse(source);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc, new MarkdownSpectreTheme
+        {
+            QuotePrefix = "| ", ListIndent = "....", CodeIndent = "-- ",
+            ShowCodeFenceDelimiters = true
+        });
+        Assert.Contains("| 12) Child", console.Output);
+        Assert.Contains("|     ```csharp", console.Output);
+        Assert.Contains("|     -- if (true)", console.Output);
+        Assert.Contains("|     --     Console.WriteLine(\"[red]literal[/]\");", console.Output);
+        Assert.Contains("|     ```", console.Output);
+        Assert.Contains("|     After", console.Output);
+        Assert.DoesNotContain(">     ```csharp", console.Output);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Interrupted_quoted_code_does_not_leak_highlighter_into_next_block()
+    {
+        const string source = "> ```csharp\n> public class Before {}\nPlain paragraph\n```csharp\npublic class After {}\n```";
+        var highlighter = new TestHighlighter();
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, source,
+            new MarkdownSpectreTheme { SyntaxHighlighter = highlighter });
+        Assert.Contains("Plain paragraph", console.Output);
+        Assert.Contains("public class After {}", console.Output);
+        Assert.Equal(new[] { "csharp", "csharp" }, highlighter.Requests);
+        Assert.Equal(2, highlighter.Disposals);
+    }
+
+    [Fact]
+    public void Loose_quoted_numbered_item_preserves_blank_quote_markers_and_aligned_paragraph()
+    {
+        const string source = "> 12) First\n> \n>\n>     Second **important**\n> 13) Next";
+        var doc = MarkdownParser.Parse(source);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc, new MarkdownSpectreTheme
+        {
+            QuotePrefix = "| ", ListIndent = "...."
+        });
+        Assert.Contains("| 12) First\n| \n| \n|     Second important\n| 13) Next",
+            console.Output);
+        Assert.DoesNotContain("**important**", console.Output);
+        Assert.True(doc.QuoteListRoots[0].IsLoose);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Quoted_loose_parent_resumes_below_nested_child_without_extra_marker()
+    {
+        const string source = "> - Parent\n>   12) Child\n> \n>   Parent detail\n> - End";
+        var doc = MarkdownParser.Parse(source);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc, new MarkdownSpectreTheme
+        {
+            QuotePrefix = "> ", ListBullet = "+", ListIndent = "...."
+        });
+        Assert.Contains("> + Parent", console.Output);
+        Assert.Contains("> ....12) Child", console.Output);
+        Assert.Contains("> \n>   Parent detail", console.Output);
+        Assert.DoesNotContain("> + Parent detail", console.Output);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+
+    [Fact]
+    public void List_nested_quoted_lists_render_both_theme_indent_levels()
+    {
+        const string source = "- Install\n  > - **Warning**\n  >   12) Risk\n  >       Note\n  Continue\n- Finish";
+        var doc = MarkdownParser.Parse(source);
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, doc, new MarkdownSpectreTheme
+        {
+            QuotePrefix = "| ", ListIndent = "....", ListBullet = "+"
+        });
+        Assert.Contains("+ Install", console.Output);
+        Assert.Contains("  | + Warning", console.Output);
+        Assert.Contains("  | ....12) Risk", console.Output);
+        Assert.Contains("  | ....    Note", console.Output);
+        Assert.Contains("  Continue", console.Output);
+        Assert.Contains("+ Finish", console.Output);
+        Assert.DoesNotContain("**Warning**", console.Output);
+    }
+
+    [Fact]
+    public void Quoted_fence_inside_ordinary_list_keeps_syntax_highlighter_scoped()
+    {
+        const string source = "- Step\n  > - Code\n  >   ```csharp\n  >   public class Hello {}\n  >   [red]literal[/]\n  >   ```\n- Next";
+        var doc = MarkdownParser.Parse(source);
+        var console = Console();
+        var backend = new TestHighlighter();
+        MarkdownSpectreRenderer.Render(console, doc, new MarkdownSpectreTheme
+        {
+            SyntaxHighlighter = backend, QuotePrefix = "| "
+        });
+        Assert.Contains("  |       [csharp]", console.Output);
+        Assert.Contains("  |       public class Hello {}", console.Output);
+        Assert.Contains("  |       [red]literal[/]", console.Output);
+        Assert.Equal(new[] { "csharp" }, backend.Requests);
+        Assert.Equal(1, backend.Disposals);
+        Assert.Equal(source, MarkdownWriter.Write(doc));
+    }
+
+    [Fact]
+    public void Plain_quote_after_list_nested_quote_does_not_double_outer_indent()
+    {
+        const string source = "- Outer\n  > - One\n  > # Heading breaks the inner list\n  > Ordinary **text**\n  Resume";
+        var console = Console();
+        MarkdownSpectreRenderer.Render(console, source,
+            new MarkdownSpectreTheme { QuotePrefix = "> " });
+        Assert.Contains("  > • One", console.Output);
+        Assert.Contains("  > Ordinary text", console.Output);
+        Assert.DoesNotContain("    > Ordinary text", console.Output);
+        Assert.Contains("  Resume", console.Output);
+    }
+
     [Fact]
     public void Rejects_null_input_and_invalid_heading_levels()
     {

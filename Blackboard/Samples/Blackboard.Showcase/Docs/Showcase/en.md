@@ -56,3 +56,9 @@ The Showcase must never be shipped as a dependency of the independent FileBrowse
 ## 2026-10-29 — interactive Markdown themes
 
 A fourth demo, `MarkdownThemeDemo`, previews the same pre-parsed ExchangeHouse Markdown document with Classic, Ocean, Forest and Monochrome styles (plus all-themes comparison) using the standalone Spectre Markdown renderer. This sample does not implement format parsing itself and does not change FileBrowser or UnderstandMe. Detailed instructions: [Markdown Themes](../Markdown-Themes/en.md).
+
+## Local Markdown file viewer (2026-11-02)
+
+A fifth `MarkdownFilePreviewDemo` reuses `SpectreFileBrowser` to select a local `*.md` or `*.markdown` file and displays its **full document** using ExchangeHouse Markdown and the existing Classic/optional TextMate theme. It reads in chunks and validates encoding and control characters across the entire file; the source is then materialized for the current parser. Files beyond 64 KiB receive an informational notice, not truncation or refusal. The existing generic text-preview module **still** limits its prefix to 16 KiB, and JSON preview still rejects oversized documents because these are separate scenarios.
+
+[Detailed full Markdown viewer guide](../Markdown-File-Viewer/en.md).

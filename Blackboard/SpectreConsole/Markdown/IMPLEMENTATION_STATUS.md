@@ -95,3 +95,101 @@ Verify CI, manual terminal smoke; then build a Showcase demo and integrate the C
 - Added session-based `IMarkdownSyntaxHighlighter`/`IMarkdownHighlightSession` contract and defensive source-span validation; providers are optional, never supplied with executable code.
 - A separate TextMate adapter lives in sibling `Markdown.TextMate`, not inside this base renderer.
 - [Code presentation](Docs/Code-Quote-Presentation/en.md). CI pending for the finalized tests.
+
+### Cross-platform green verification — 2026-10-31
+
+- [GitHub Actions #41251065292](https://github.com/afrowaveltd/Toolbox/actions/runs/41251065292) **SUCCESS** for source commit `5b80ad1e3f9cde50ae793da53b3b81c30d727d08`. Linux complete solution restore/build/tests passed, Windows targeted UI and grammar tests passed, and Markdown link validation passed.
+- Windows: **ExchangeHouse Markdown 66/66**, **Blackboard Markdown 24/24**, **TextMate adapter 6/6**, **Showcase 26/26**, **FileBrowser 160/160**, **Configurator 44/44**, **UnderstandMe localization 34/34**.
+- The documentation link audit examined **280 Markdown files and 1,423 local targets** with no missing targets. A later docs-only commit clarified a nested-fence illustration; final docs CI is tracked separately.
+- Real TextMate C# tokenization was exercised under Linux and Windows CI, including platform-specific Oniguruma dependencies. This does **not** establish manual SSH/tmux or Debian terminal acceptance, complete CommonMark support, NuGet publication, or a completed third-party transitive-license review.
+
+## 2026-11-01 — quote + list combinations
+
+- Render explicit quote prefixes before list marker and owner-aligned paragraph continuation while preserving original ordered numbers.
+- Two virtual-console regressions for mixed nested lists and quoted paragraph alignment with custom quote/list theme. [Presentation guide](Docs/Quoted-List-Presentation/en.md). CI pending, not published.
+
+### Verified cross-platform quoted-list milestone — 2026-11-01
+
+- [GitHub Actions #41251673070](https://github.com/afrowaveltd/Toolbox/actions/runs/41251673070) **SUCCESS** for feature commit `aa3ec1246fc3125f17d1a506e415cc3ad7db418b`: Linux full solution build/test, Windows targeted UI tests and documentation-link job passed.
+- Windows results: ExchangeHouse Markdown **71/71**, Blackboard Markdown **26/26**, optional TextMate **6/6**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
+- The subsequent documentation commit introduced one incorrect cross-family relative link, fixed in `1e89cf7532c03737a0599d51c26b54cd57bb345a`. Link verification on the fix run passed; final complete CI for the documentation state is tracked independently.
+- No new NuGet publication, full CommonMark conformance, or real-terminal acceptance is claimed. This feature intentionally does not tokenize fenced code inside explicitly quote-prefixed containers.
+
+## 2026-11-01 — quote-aware syntax rendering
+
+- Display quoted code delimiters/language/body with independent list indentation and quote theme. Optional syntax-highlighter sessions close when quoted code is interrupted.
+- Three virtual-terminal regression tests; [renderer documentation](Docs/Quoted-Code-Presentation/en.md).
+- [Implementation CI #41254427784](https://github.com/afrowaveltd/Toolbox/actions/runs/41254427784) **SUCCESS**. No NuGet release.
+
+### Full cross-platform CI checkpoint — 2026-11-01
+
+- [GitHub Actions #41254717060](https://github.com/afrowaveltd/Toolbox/actions/runs/41254717060) **SUCCESS** for final code/English-docs fix commit `8f25d8e2a72df6ffe915362ef11d64dbd6c89d6a`: Linux complete solution build/tests, Windows targeted UI/Markdown tests and repository local documentation-link validation passed.
+- Windows focused tests: ExchangeHouse Markdown **75/75**, Blackboard Markdown **29/29**, Markdown.TextMate **6/6**, Blackboard Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, UnderstandMe localization **34/34**.
+- Markdown local-link checker verified **284 files / 1,452 local targets**, zero broken links. An earlier documentation-only CI failed one wrong Showcase-to-renderer relative path, fixed in `8f25d8e`; the final checkpoint above is green.
+- No new NuGet release or manual real-terminal Windows/Debian acceptance claimed.
+
+## 2026-11-01 — quoted loose-list display
+
+- No renderer production changes needed: the existing `BlockQuote`, quote depth and owner-aware paragraph logic display blank quote-prefix lines and separately indented continuation correctly.
+- Added two virtual-terminal regressions for numbered quoted lists and nested-child ancestor resumption. [Guide](Docs/Quoted-Loose-Presentation/en.md). CI pending.
+
+### Verified cross-platform milestone — 2026-11-01
+
+- [GitHub Actions #41256065289](https://github.com/afrowaveltd/Toolbox/actions/runs/41256065289) **SUCCESS** on source/documentation commit `882f15862d89214e8cc1204d8b5b7baaedd6d18a`: Linux complete solution build and tests, Windows UI/Markdown targeted tests and local Markdown documentation links all passed.
+- Windows tests: ExchangeHouse Markdown **82/82**, Blackboard Markdown **31/31**, TextMate adapter **6/6**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
+- Markdown checker processed **286 files / 1,470 local targets**, with zero missing local links.
+- The test-preserving increment has not been published to NuGet and has not undergone manual Debian/Windows/SSH visual acceptance; full CommonMark nesting remains outside this milestone.
+
+## 2026-11-01 — quote container indent composition
+
+- Separate outer list content indent, theme quote prefix and quoted-list marker/paragraph indent. Optional language-label rendering now also receives the outer indent; no double indent for directly owned plain quoted text.
+- Three new virtual-terminal tests, plus [renderer guide](Docs/Quoted-List-Containers/en.md).
+- [CI #41257477307](https://github.com/afrowaveltd/Toolbox/actions/runs/41257477307) **SUCCESS**, renderer **34/34**; TextMate **6/6**.
+
+## 2026-11-02 — future standalone TUI viewer design, not implemented
+
+- A future standalone viewer would wrap the Markdown renderer with document-source adapters (Local, HTTP(S), GitHub README), navigation for relative links, themes and readable errors; it must not duplicate Markdown parsing.
+- GitHub provider should use `/repos/{owner}/{repo}/readme` rather than probing guessed branch/file paths. Maintain independent cache, credentials, and transport concerns outside the renderer.
+- Design deferred until the current parser is judged ready. [Proposed architecture](Docs/Standalone-Markdown-Viewer-Proposal/en.md). No new code, tests or release.
+
+## 2026-11-02 — streaming/pager research noted (no implementation)
+
+- The future viewer proposal now covers case-insensitive GitHub owner/repo arguments (one API request), and a separate block-event parser/terminal pager research track using `IAsyncEnumerable` with bounded lookahead, optional disk spooling and full-document fidelity.
+- Current parser still materializes the entire document. No 1 GB runtime capacity is claimed. [Design details](Docs/Standalone-Markdown-Viewer-Proposal/en.md).
+
+## 2026-11-03 — offline-first cache design checkpoint
+
+- Added [persistent document cache policy](Docs/Document-Cache-Policy/en.md): retain valid remote README content across restarts; use ETag/Last-Modified conditional validation; explicitly distinguish stale/offline content; atomic writes and corruption-safe fallback; safe cache roots, budgets, opt-in cleanup and tests.
+- Updated the [standalone viewer proposal](Docs/Standalone-Markdown-Viewer-Proposal/en.md) to link the cache acceptance contract.
+- **Documentation only:** no source provider, cache implementation, standalone `mdview`, paging engine or NuGet publication. Existing full-document local Showcase behavior is unchanged. Automated tests for this contract are not yet implemented.
+
+## 2026-11-03 — separate verified cache foundation introduced
+
+- New independent [Markdown.Cache library](../Markdown.Cache/README.md) and [tests](../Markdown.Cache.Tests/README.md) contain the first disk-store implementation. Parser/renderer itself is unchanged and has no cache dependency.
+- The [viewer cache contract](Docs/Document-Cache-Policy/en.md) remains the wider target; current store does not implement conditional network refresh, cleanup, per-user path selection or paging.
+- New cache tests have not yet passed CI or been run locally; .NET SDK unavailable in execution environment. See [cache status](../Markdown.Cache/IMPLEMENTATION_STATUS.md).
+
+## 2026-11-03 — independent cache hardening checkpoint
+
+- Separate [Markdown.Cache](../Markdown.Cache/IMPLEMENTATION_STATUS.md) now includes cross-process writer admission, direct symlink checks and per-user cache location selection. No change to Markdown parsing/rendering.
+- Ten cache tests authored, **not yet executed/CI verified**. Viewer network adapters and offline UI remain future implementation.
+
+## 2026-11-03 — conditional HTTP cache provider
+
+- [Markdown.Cache](../Markdown.Cache/README.md) adds optional HTTP conditional-fetch transport, ETag/Last-Modified persistence and distinguishable fresh/unchanged/stale/error results. The renderer and ExchangeHouse parser remain independent and unchanged.
+- Eight HTTP tests use injected in-memory handlers. No viewer command, GitHub-specific README resolver or terminal UI integrated. Build/CI still unverified; see [cache checkpoint](../Markdown.Cache/IMPLEMENTATION_STATUS.md).
+
+## 2026-11-03 — GitHub README source provider foundation
+
+- A separate [Markdown.Cache GitHub README provider](../Markdown.Cache/Docs/GitHub-Readme/en.md) is now implemented for public repository default-branch READMEs. It reuses safe disk-backed conditional HTTP cache and does not modify the renderer or parser.
+- Tests are authored with fake HTTP handlers; .NET build/CI has not been confirmed. No standalone `mdview` executable or GitHub file/link navigation exists yet.
+
+## 2026-11-03 — first mdview consumer
+
+- Added [separate mdview terminal executable](../../Tools/MdView/README.md), consuming this renderer along with independent Cache and FileBrowser libraries. The renderer's public API and parsing behavior are unchanged.
+- CLI grammar regression tests authored. It shows full documents via existing in-memory pipeline; no native pager, rendered relative-link navigation or source indexing. Build/CI pending.
+
+## 2026-11-03 — interactive mdview source selection
+
+- The separate [mdview CLI](../../Tools/MdView/Docs/Interactive-Source-Picker/en.md) now opens a Spectre.Console source menu and reuses `SpectreFileBrowser` for interactive local Markdown selection, while continuing to use the existing renderer unchanged.
+- Eleven new virtual-terminal picker cases are authored but not yet executed. Document rendering still loads the entire Markdown string; a disk-backed, low-RAM pager is a separate milestone.

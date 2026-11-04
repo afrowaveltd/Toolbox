@@ -25,6 +25,7 @@ public sealed class ConfiguratorHelpTests
     [Fact]
     public async Task Main_menu_help_opens_topic_offline_then_returns_to_main_menu()
     {
+        var prefs = Path.Combine(Path.GetTempPath(), "um-help-prefs-" + Guid.NewGuid().ToString("N") + ".json");
         var console = InteractiveConsole();
         for (var i = 0; i < 4; i++)
             console.Input.PushKey(ConsoleKey.DownArrow); // Fifth menu entry: Help.
@@ -34,7 +35,7 @@ public sealed class ConfiguratorHelpTests
         console.Input.PushKey(ConsoleKey.Escape); // Back to main menu.
         console.Input.PushKey(ConsoleKey.Escape); // Exit application.
 
-        await new ConfiguratorApp(console).RunAsync();
+        await new ConfiguratorApp(console, preferencesPath: prefs).RunAsync();
         Assert.Contains("Help topics", console.Output);
         Assert.Contains("Getting started", console.Output);
         Assert.Contains("The Configurator edits UnderstandMe settings", console.Output);

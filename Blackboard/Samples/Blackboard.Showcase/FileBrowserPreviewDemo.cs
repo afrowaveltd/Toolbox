@@ -1,3 +1,4 @@
+using Afrowave.Toolbox.Blackboard.TextFiles;
 using Afrowave.Toolbox.Blackboard.SpectreConsole.FileBrowser;
 using Spectre.Console;
 

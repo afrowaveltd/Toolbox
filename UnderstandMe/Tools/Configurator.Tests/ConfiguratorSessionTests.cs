@@ -79,9 +79,10 @@ public sealed class ConfiguratorSessionTests
     [Fact]
     public async Task Escape_exits_empty_interactive_editor()
     {
+        using var temp = new TempFolder();
         var console = TestConsole();
         console.Input.PushKey(ConsoleKey.Escape);
-        await new ConfiguratorApp(console).RunAsync();
+        await new ConfiguratorApp(console, preferencesPath: Path.Combine(Path.GetDirectoryName(temp.File)!, "isolated-ui.json")).RunAsync();
         Assert.StartsWith("\u001b[2J", console.Output);
         Assert.Equal(1, console.Output.Split("\u001b[2J").Length - 1);
         Assert.Contains("Choose an action", console.Output);

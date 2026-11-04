@@ -100,3 +100,65 @@
 - `MarkdownListItemNode.EmbeddedBlocks` exposes attached code fences/code lines/quotes without redefining `ContinuationBlocks` (paragraphs only); `ContentBlocks` preserves all attached content in source order.
 - New regression tests include literal code, nested numbered list ownership, blank separators, quote nesting and verbatim writer. Conservative scope; no nested arbitrary quote AST or full CommonMark.
 - [Code and quote containers](Docs/Code-and-Quote-Containers/en.md). CI pending for final implementation.
+
+### Cross-platform green verification — 2026-10-31
+
+- [GitHub Actions #41251065292](https://github.com/afrowaveltd/Toolbox/actions/runs/41251065292) **SUCCESS** for source commit `5b80ad1e3f9cde50ae793da53b3b81c30d727d08`. Linux complete solution restore/build/tests passed, Windows targeted UI and grammar tests passed, and Markdown link validation passed.
+- Windows: **ExchangeHouse Markdown 66/66**, **Blackboard Markdown 24/24**, **TextMate adapter 6/6**, **Showcase 26/26**, **FileBrowser 160/160**, **Configurator 44/44**, **UnderstandMe localization 34/34**.
+- The documentation link audit examined **280 Markdown files and 1,423 local targets** with no missing targets. A later docs-only commit clarified a nested-fence illustration; final docs CI is tracked separately.
+- Real TextMate C# tokenization was exercised under Linux and Windows CI, including platform-specific Oniguruma dependencies. This does **not** establish manual SSH/tmux or Debian terminal acceptance, complete CommonMark support, NuGet publication, or a completed third-party transitive-license review.
+
+## 2026-11-01 — source-aware quoted list containers
+
+- Additive `MarkdownDocument.QuoteListRoots` contains quoted list roots in source order without mixing them with `ListRoots` outside blockquotes.
+- Recognizes ordered/unordered list markers after explicit quote prefixes, preserving quote depth, original marker/number, nested list depth, indented and lazy continuation ownership and inline offsets.
+- Quote depth changes, unquoted lines, quote-prefixed headings and empty quote lines interrupt active quoted-list hierarchy.
+- Five focused parser tests plus [quoted lists guide](Docs/Quoted-Lists/en.md). Fenced code *inside* quoted containers and full CommonMark remain future work. CI pending; no new NuGet release.
+
+### Verified cross-platform quoted-list milestone — 2026-11-01
+
+- [GitHub Actions #41251673070](https://github.com/afrowaveltd/Toolbox/actions/runs/41251673070) **SUCCESS** for feature commit `aa3ec1246fc3125f17d1a506e415cc3ad7db418b`: Linux full solution build/test, Windows targeted UI tests and documentation-link job passed.
+- Windows results: ExchangeHouse Markdown **71/71**, Blackboard Markdown **26/26**, optional TextMate **6/6**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
+- The subsequent documentation commit introduced one incorrect cross-family relative link, fixed in `1e89cf7532c03737a0599d51c26b54cd57bb345a`. Link verification on the fix run passed; final complete CI for the documentation state is tracked independently.
+- No new NuGet publication, full CommonMark conformance, or real-terminal acceptance is claimed. This feature intentionally does not tokenize fenced code inside explicitly quote-prefixed containers.
+
+## 2026-11-01 — explicit quoted code fencing
+
+- Same-depth quote-prefixed backtick/tilde code fences now retain literal body, language metadata, source spans/CRLF, nested quoted-list owner, matched closer and uninterrupted writer output.
+- A missing/differently deep quote prefix terminates that fence and reclassifies the boundary line normally. No unmarked lazy quote continuation/full CommonMark claim.
+- Parser regression suite passed on [CI #41254427784](https://github.com/afrowaveltd/Toolbox/actions/runs/41254427784). [Design](Docs/Quoted-Code-Fences/en.md). No public package release.
+
+### Full cross-platform CI checkpoint — 2026-11-01
+
+- [GitHub Actions #41254717060](https://github.com/afrowaveltd/Toolbox/actions/runs/41254717060) **SUCCESS** for final code/English-docs fix commit `8f25d8e2a72df6ffe915362ef11d64dbd6c89d6a`: Linux complete solution build/tests, Windows targeted UI/Markdown tests and repository local documentation-link validation passed.
+- Windows focused tests: ExchangeHouse Markdown **75/75**, Blackboard Markdown **29/29**, Markdown.TextMate **6/6**, Blackboard Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, UnderstandMe localization **34/34**.
+- Markdown local-link checker verified **284 files / 1,452 local targets**, zero broken links. An earlier documentation-only CI failed one wrong Showcase-to-renderer relative path, fixed in `8f25d8e`; the final checkpoint above is green.
+- No new NuGet release or manual real-terminal Windows/Debian acceptance claimed.
+
+## 2026-11-01 — source-aware loose quote lists
+
+- Deferred `> ` / `>` separator lines can attach to the deepest eligible same-depth quoted list item (including an ancestor of the last numbered child). They retain `BlockQuote` kind, quote depth and raw source.
+- Attachment uses existing `ListBlankOwnerStart`, `SeparatorBlocks`, `ContentBlocks`, `IsLoose`. Multiple quote-marked blanks and CRLF preserved; inline link offsets still absolute. No ownership after a new marker, non-indented quoted text, depth switch or unquoted boundary.
+- Quoted fence literal blank lines remain `CodeLine`, never list separators. [Quoted loose paragraph design](Docs/Quoted-Loose-Paragraphs/en.md). Five focused parser tests (+ theory cases); CI pending.
+
+### Verified cross-platform milestone — 2026-11-01
+
+- [GitHub Actions #41256065289](https://github.com/afrowaveltd/Toolbox/actions/runs/41256065289) **SUCCESS** on source/documentation commit `882f15862d89214e8cc1204d8b5b7baaedd6d18a`: Linux complete solution build and tests, Windows UI/Markdown targeted tests and local Markdown documentation links all passed.
+- Windows tests: ExchangeHouse Markdown **82/82**, Blackboard Markdown **31/31**, TextMate adapter **6/6**, Showcase **26/26**, FileBrowser **160/160**, Configurator **44/44**, localization **34/34**.
+- Markdown checker processed **286 files / 1,470 local targets**, with zero missing local links.
+- The test-preserving increment has not been published to NuGet and has not undergone manual Debian/Windows/SSH visual acceptance; full CommonMark nesting remains outside this milestone.
+
+## 2026-11-01 — quote list nesting under ordinary items
+
+- Additive outer source owner offset + marker on `MarkdownBlock`, preserving separate ordinary/quoted list trees and exact input/writer offsets.
+- Explicitly indented quotes, children/paragraphs, blank separators and quoted fences remain owner-aware. Equal quote depths in different outer items do not merge. The parser prioritizes checking active list content indentation before accepting a standalone quote.
+- Six new parser regression cases, including code literal safety, CRLF/link offset and nested owner boundary checks. [Parser docs](Docs/Quoted-Lists-Inside-Lists/en.md).
+- [CI #41257477307](https://github.com/afrowaveltd/Toolbox/actions/runs/41257477307) **SUCCESS**, parser **88/88**. No NuGet publication.
+
+## 2026-11-04 — optional incremental Markdown physical-line scanner
+
+- Created `MarkdownIncrementalLineScanner`, `MarkdownStreamLineKind`, and `MarkdownStreamLine` in the existing `ExchangeHouse/Markdown` .NET project, without modifying `MarkdownParser.Parse` or rendering behavior.
+- `ScanAsync(TextReader)` uses a 4096-character source buffer and yields bounded physical lines with exact CRLF/LF/CR terminators, UTF-16 source offsets and a stateful **top-level** fenced code scope (opening/closing markers, language hints), plus ATX headings and opaque list/quote markers.
+- Enforces a configurable per-line character bound (default 1 Mi UTF-16 units, maximum 4 Mi), checks cancellation and rejects unsafe controls. Since output is progressive, callers must separately validate entire untrusted byte streams before permitting terminal output; source encoding validation and full CommonMark/nested container ownership are not claimed.
+- Added `MarkdownIncrementalLineScannerTests` (13 Facts + 3 Theory rows = **16 new cases**) with round-trip newlines, chunk-boundary CRLF, fenced-code state, heading parity for a flat subset, opaque container preservation, Unicode offsets, cancellation, limits and late-invalid input. No source-to-renderer integration yet.
+- [English technical documentation](Docs/Incremental-Source-Scanner/en.md). **Compilation/test execution pending** in this environment (no .NET SDK); the last maintainer-confirmed Windows green full-solution run predates this addition. Next: confirm `dotnet test Toolbox.sln`, then build and compare completed block events with the existing parser before adapting mdview.

@@ -1,0 +1,41 @@
+# Afrowave.Toolbox.Blackboard.TextFiles
+
+Independent .NET 10 library for safe, read-only local text-file decoding. Extracted from the Blackboard.Showcase sample on 2026-11-03 and reused by Showcase and the standalone `mdview` CLI. No dependency on Spectre.Console, the Markdown parser, HTTP, GitHub or an executable sample.
+
+## API
+
+```csharp
+using Afrowave.Toolbox.Blackboard.TextFiles;
+
+var shortPreview = await TextFilePreviewReader.ReadAsync("notes.txt", maxPreviewBytes: 4096);
+var fullDocument = await TextFilePreviewReader.ReadCompleteAsync("README.md");
+
+if (fullDocument.Kind == TextPreviewKind.Text)
+    Console.WriteLine(fullDocument.Content);
+```
+
+`ReadAsync` validates a bounded prefix (default 16 KiB, configurable 256 bytes–256 KiB); its `Truncated` property reports whether more content exists. `ReadCompleteAsync` decodes the entire stream in small buffers, then returns one complete string (not a bounded-memory document representation). Both detect strict UTF-8, UTF-8 BOM and UTF-16/UTF-32 BOM endianness; invalid byte sequences or unsafe terminal control characters cause `BinaryOrUnsupportedEncoding` rather than replacement text. No file is modified and no fetched text is interpreted as terminal markup.
+
+The source implementation was **moved, not reimplemented**. Existing Showcase text/JSON/Markdown tests still exercise the same code through the new project dependency. Five additional reader-only regression tests were authored in `TextFiles.Tests`.
+
+```bash
+dotnet test Blackboard/TextFiles.Tests/Afrowave.Toolbox.Blackboard.TextFiles.Tests.csproj
+dotnet test Toolbox.sln
+```
+
+**Verification:** the reader extraction was later confirmed by the user on Windows as part of a **6,443/6,443** solution test run, including **5/5 TextFiles tests**. The new disk-backed line index and its additional tests are a **later, unverified** increment. Full visual Markdown streaming, reusable persistent indexes and stronger filesystem mutation/symlink policy remain future work.
+
+[Extraction guide](Docs/Architecture/en.md) · [Implementation status](IMPLEMENTATION_STATUS.md).
+
+## Low-memory UTF-8 line index (2026-11-04)
+
+Added `Utf8DiskLineIndex` for bounded-memory, read-only, **disk-backed random access to physical UTF-8 lines**. It validates the full file in one sequential scan before offering pages, rejects malformed UTF-8 and unsafe terminal controls, and indexes line start byte offsets on disk (8 bytes per line plus a sentinel, default 256 MiB index cap). Pages are limited to 128 physical lines and 4 MiB of source bytes, with a 1 MiB per-line default; budget failures are explicit, not silent truncation. UTF-8 BOM, CRLF/LF/CR and Unicode are supported, including buffer-boundary splits.
+
+```csharp
+await using var index = await Utf8DiskLineIndex.OpenAsync("README.md");
+var page = await index.ReadPageAsync(0, maxLines: 24);
+if (page.HasMore)
+    page = await index.ReadPageAsync(page.NextLine, maxLines: 24);
+```
+
+The derived temporary index disappears on disposal and does not affect our persistent downloaded README cache. This is a **source line index**, not an incremental Markdown parser; the normal complete-document renderer remains unchanged. The first terminal consumer is `mdview source README.md`, explicitly displaying raw source pages. [Architecture, safety and limits](Docs/Disk-Line-Index/en.md). New tests are committed, but a build/test pass is still pending.
