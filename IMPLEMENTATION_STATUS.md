@@ -323,3 +323,9 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Only failure was `Markdown.Cache.Tests.GitHubRepositoryCatalogSourceTests.MultiplePagesAreCombinedAndPrivateOrUnsafeEntriesAreIgnored` (43 passed, 1 failed): fake-HTTP page-one matcher used substring `Contains("page=1")`, which wrongly matched `per_page=100`. It repeatedly sent the first page and reached the intended ten-page safety cap (11 total requests with account lookup).
 - Fixed **test only**, using exact `page=1` parameter comparison and expected URL sequence for profile/page1/page2. No production API, cache, renderer, or index behavior was changed.
 - **Verification of the corrected snapshot is pending** because no local .NET SDK is installed. Run `dotnet test Toolbox.sln` after pulling; expected overall count remains 6,540 provided no other changes alter discovery.
+
+## 2026-11-04 — full Windows regression green after catalog fixture correction
+
+- Maintainer confirms the updated `dotnet test Toolbox.sln` run is **fully green** following the exact `page=1` query-parameter matcher correction. The immediately preceding full log had 6,540 total tests with one failing fixture case; with that case corrected and no reported changes to test discovery, the **expected total is 6,540 passing, zero failures**. The confirmation was conversational rather than a newly attached per-assembly log.
+- GitHub repository selection, TextMate language highlighting and UTF-8 disk-backed source pagination are now under a maintainer-confirmed Windows regression checkpoint. No independent Linux/CI or multi-gigabyte performance validation has been claimed.
+- Next architectural milestone: design and test a stateful incremental Markdown block reader, keeping it separate from the source-line index and the current full-document Markdown renderer; preserve the all-green baseline after each small commit.
