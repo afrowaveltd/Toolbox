@@ -23,7 +23,7 @@ dotnet test Blackboard/TextFiles.Tests/Afrowave.Toolbox.Blackboard.TextFiles.Tes
 dotnet test Toolbox.sln
 ```
 
-**Verification pending:** the user-provided 6,438/6,438 green Windows run applies to the snapshot **before** this extraction. New tests and consumer dependency changes need another run. Large-file paging, progressive Markdown parse, filesystem race protection and symlink policy are outside this decoder.
+**Verification:** the reader extraction was later confirmed by the user on Windows as part of a **6,443/6,443** solution test run, including **5/5 TextFiles tests**. The new disk-backed line index and its additional tests are a **later, unverified** increment. Full visual Markdown streaming, reusable persistent indexes and stronger filesystem mutation/symlink policy remain future work.
 
 [Extraction guide](Docs/Architecture/en.md) · [Implementation status](IMPLEMENTATION_STATUS.md).
 
