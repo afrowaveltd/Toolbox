@@ -30,4 +30,4 @@ dotnet test Toolbox.sln
 
 Tests use simulated Spectre.Console keyboards for next/back/jump/Escape, literal control-safe display, read-only behavior and refusal of invalid source. No .NET SDK was available to run new tests in the current execution environment; this milestone requires Windows and Debian verification before declaring green.
 
-[Disk-backed index design](../../../TextFiles/Docs/Disk-Line-Index/en.md) · [mdview README](../../README.md) · [Implementation status](../../IMPLEMENTATION_STATUS.md).
+[Disk-backed index design](../../../../TextFiles/Docs/Disk-Line-Index/en.md) · [mdview README](../../README.md) · [Implementation status](../../IMPLEMENTATION_STATUS.md).
