@@ -67,7 +67,7 @@ public sealed class MarkdownThemeDemo : IBlackboardShowcaseDemo
         ```javascript
         const greetings = ["Hello", "Ahoj", "Habari"];
         function greet(name) {
-            return ``Welcome, ${name}!``;
+            return "Welcome, " + name + "!";
         }
         console.log(greet("Afrowave"));
         ```
