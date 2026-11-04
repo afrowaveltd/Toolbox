@@ -57,3 +57,11 @@ These forms open the public [GitHub owner/repository selector](../GitHub-Owner-D
 `mdview source PATH` opens an opt-in, strict UTF-8 **raw source** pager on local files. It uses a temporary disk-backed physical-line index and exposes Next page, Previous page, Go to line and Exit. Unlike normal `mdview local PATH`, it does **not** parse or syntax-color Markdown; normal fully rendered behavior remains unchanged. Indexing validates all bytes before display, limits index and page allocations and makes no silent truncation. A formatted, visual-row-aware streaming Markdown pager is still future work.
 
 [Source pager guide](../Raw-Source-Pager/en.md) · [Disk index](../../../../TextFiles/Docs/Disk-Line-Index/en.md).
+
+## Reopen the source menu after reading (2026-11-04)
+
+After any successfully displayed **fully rendered** Markdown document in an interactive terminal, `mdview` waits for a single completion action: **Enter** reopens the main source menu, **Escape** exits and other keys are ignored. The behavior applies to direct local, URL and GitHub invocation as well as documents chosen from the no-argument menu. This provides repeated reading without restarting `mdview`.
+
+Redirected stdin/stdout or a noninteractive console skips the prompt and exits normally. The `--help` and error paths retain their exit behavior. The independent `mdview source PATH` raw pager is not double-prompted because it already supports its own page navigation. This change does not yet add `F` search, PageUp/PageDown or formatted Markdown paging.
+
+[Document completion details](../Document-End-Navigation/en.md).
