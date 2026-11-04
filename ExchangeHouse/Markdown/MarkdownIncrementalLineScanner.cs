@@ -262,16 +262,17 @@ public static class MarkdownIncrementalLineScanner
         if (c == '>')
             return true;
         if (c is '-' or '+' or '*')
-            return indent + 1 < line.Length && line[indent + 1] is ' ' or '\t';
+            return indent + 1 < line.Length &&
+                (line[indent + 1] == ' ' || line[indent + 1] == '\t');
         if (!char.IsAsciiDigit(c))
             return false;
 
         var i = indent;
         while (i < line.Length && char.IsAsciiDigit(line[i]) && i - indent < 10)
             i++;
-        return i - indent is >= 1 and <= 9 &&
+        return (i - indent is >= 1 and <= 9) &&
             i + 1 < line.Length &&
-            line[i] is '.' or ')' &&
-            line[i + 1] is ' ' or '\t';
+            (line[i] == '.' || line[i] == ')') &&
+            (line[i + 1] == ' ' || line[i + 1] == '\t');
     }
 }
