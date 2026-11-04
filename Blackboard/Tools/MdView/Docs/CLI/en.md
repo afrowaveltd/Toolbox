@@ -36,3 +36,7 @@ Local documents are decoded with `TextFilePreviewReader.ReadCompleteAsync` (incl
 - The no-argument Spectre FileBrowser and virtual-terminal picker tests are implemented, but the new test run, full CLI end-to-end rendering checks and live terminal acceptance remain pending.
 
 [README](../../README.md) · [Implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## Syntax highlighting (2026-11-04)
+
+`mdview` now creates a Markdown theme with the optional TextMate grammar adapter, so fenced blocks in supported bundled languages are colored whether the document came from a local file, HTTPS or GitHub README. This is **syntax highlighting**, not code execution. The language follows the Markdown fence tag; missing tags and unsupported language IDs remain plain. Language names and common filename suffix aliases are case-insensitive and the adapter checks the entire bundled grammar catalog. See the [supported-language guide](../../../SpectreConsole/Markdown.TextMate/Docs/Supported-Grammars/en.md). No automatic guessing from the code body, remote grammar downloads or 1 GB streaming rendering are implied.
