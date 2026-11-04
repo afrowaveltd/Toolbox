@@ -105,3 +105,7 @@ dotnet run --project Blackboard/Samples/Blackboard.Showcase
 ```
 
 Then choose the Markdown file viewer and open the root `README.md`. This is an independent Showcase feature, not a new FileBrowser/Markdown NuGet dependency. [Full viewer guide](Docs/Markdown-File-Viewer/en.md).
+
+## Multiple syntax languages in Markdown gallery (2026-11-04)
+
+The Markdown theme gallery sample now includes JavaScript, JSON and YAML fenced examples alongside C# to exercise the shared optional TextMate adapter. The adapter recognizes all grammars in the installed bundle and common aliases. Showcase rendering behavior outside these samples remains unchanged. See [TextMate grammar support](../../SpectreConsole/Markdown.TextMate/Docs/Supported-Grammars/en.md). New code and tests are committed but not yet rerun.
