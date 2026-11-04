@@ -154,3 +154,11 @@
 - Explicitly indented quotes, children/paragraphs, blank separators and quoted fences remain owner-aware. Equal quote depths in different outer items do not merge. The parser prioritizes checking active list content indentation before accepting a standalone quote.
 - Six new parser regression cases, including code literal safety, CRLF/link offset and nested owner boundary checks. [Parser docs](Docs/Quoted-Lists-Inside-Lists/en.md).
 - [CI #41257477307](https://github.com/afrowaveltd/Toolbox/actions/runs/41257477307) **SUCCESS**, parser **88/88**. No NuGet publication.
+
+## 2026-11-04 — optional incremental Markdown physical-line scanner
+
+- Created `MarkdownIncrementalLineScanner`, `MarkdownStreamLineKind`, and `MarkdownStreamLine` in the existing `ExchangeHouse/Markdown` .NET project, without modifying `MarkdownParser.Parse` or rendering behavior.
+- `ScanAsync(TextReader)` uses a 4096-character source buffer and yields bounded physical lines with exact CRLF/LF/CR terminators, UTF-16 source offsets and a stateful **top-level** fenced code scope (opening/closing markers, language hints), plus ATX headings and opaque list/quote markers.
+- Enforces a configurable per-line character bound (default 1 Mi UTF-16 units, maximum 4 Mi), checks cancellation and rejects unsafe controls. Since output is progressive, callers must separately validate entire untrusted byte streams before permitting terminal output; source encoding validation and full CommonMark/nested container ownership are not claimed.
+- Added `MarkdownIncrementalLineScannerTests` (13 Facts + 3 Theory rows = **16 new cases**) with round-trip newlines, chunk-boundary CRLF, fenced-code state, heading parity for a flat subset, opaque container preservation, Unicode offsets, cancellation, limits and late-invalid input. No source-to-renderer integration yet.
+- [English technical documentation](Docs/Incremental-Source-Scanner/en.md). **Compilation/test execution pending** in this environment (no .NET SDK); the last maintainer-confirmed Windows green full-solution run predates this addition. Next: confirm `dotnet test Toolbox.sln`, then build and compare completed block events with the existing parser before adapting mdview.
