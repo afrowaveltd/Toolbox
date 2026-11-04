@@ -17,3 +17,9 @@ Added command grammar cases for bare `OWNER`, `git OWNER`, `github:OWNER`, and e
 ## Source pager tests (2026-11-04)
 
 Added `MdViewSourcePagerTests` to verify the explicit raw UTF-8 source pager: Escape/exit, read-only literal output, next/back restoring the actual page start, direct jump to physical line, invalid jump feedback, refusal of noninteractive terminals, and rejection of unsafe source before any content is displayed. Command parsing also tests `source PATH`. These new cases await execution; the last user-confirmed full Windows baseline predates them.
+
+## Document-end navigation and repeatable sessions (2026-11-04)
+
+Added `MdViewDocumentCompletionPromptTests` (5 new cases) and `MdViewSessionTests` (8 cases), using the virtual Spectre `TestConsole`. They cover Enter-to-menu, Escape-to-exit, ignoring reserved search/pager keys, noninteractive completion without input, direct-command → menu → second document flow, cancelling the returned menu, preserving errors, suppressing prompts for unread/cancelled sources, and ensuring the raw source pager is not prompted twice. The session tests use in-memory delegate fakes and do not call the network or filesystem.
+
+The last maintainer-confirmed full Windows baseline was green *before* this feature. These 13 new cases have **not yet been executed** in this environment.
