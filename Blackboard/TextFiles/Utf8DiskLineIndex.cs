@@ -36,6 +36,8 @@ public sealed class Utf8DiskLineIndex : IAsyncDisposable
     private const int MaximumPageLines = 128;
     private const int MaximumPageBytes = 4 * 1024 * 1024;
     private const int DefaultMaximumLineBytes = 1024 * 1024;
+    /// <summary>Default maximum temporary offset index (256 MiB).</summary>
+    public const long DefaultMaximumIndexBytes = 256L * 1024 * 1024;
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);
 
     private readonly FileStream _source;
@@ -70,14 +72,18 @@ public sealed class Utf8DiskLineIndex : IAsyncDisposable
     /// </summary>
     /// <param name="path">Local UTF-8 text file, with or without UTF-8 BOM.</param>
     /// <param name="maximumLineBytes">Per-line read limit (4 KiB to 4 MiB).</param>
+    /// <param name="maximumIndexBytes">Maximum temporary index size; default 256 MiB.</param>
     /// <param name="cancellationToken">Cancels indexing and deletes the temporary table.</param>
     public static async Task<Utf8DiskLineIndex> OpenAsync(
         string path, int maximumLineBytes = DefaultMaximumLineBytes,
+        long maximumIndexBytes = DefaultMaximumIndexBytes,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         if (maximumLineBytes is < 4096 or > 4 * 1024 * 1024)
             throw new ArgumentOutOfRangeException(nameof(maximumLineBytes));
+        if (maximumIndexBytes < 16)
+            throw new ArgumentOutOfRangeException(nameof(maximumIndexBytes));
 
         var source = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read,
             BufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan);
@@ -106,6 +112,10 @@ public sealed class Utf8DiskLineIndex : IAsyncDisposable
                 {
                     if (position >= length)
                         return;
+                    // Include the final sentinel in the on-disk budget.
+                    if (checked((lineCount + 2) * sizeof(long)) > maximumIndexBytes)
+                        throw new InvalidDataException(
+                            "The source contains more lines than the temporary index budget allows.");
                     writer.Write(position);
                     lineCount = checked(lineCount + 1);
                 }
