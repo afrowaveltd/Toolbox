@@ -174,8 +174,10 @@ public sealed class MarkdownIncrementalLineScannerTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+        {
             await CollectAsync(MarkdownIncrementalLineScanner.ScanAsync(
-                reader, cancellationToken: cts.Token)));
+                reader, cancellationToken: cts.Token));
+        });
         Assert.Equal(0, reader.CharactersConsumed);
     }
 
@@ -187,8 +189,10 @@ public sealed class MarkdownIncrementalLineScannerTests
     {
         using var reader = new StringReader("A");
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () =>
+        {
             await CollectAsync(MarkdownIncrementalLineScanner.ScanAsync(
-                reader, maxLineCharacters: limit)));
+                reader, maxLineCharacters: limit));
+        });
     }
 
     private static async Task<List<MarkdownStreamLine>> ScanAsync(string source)
