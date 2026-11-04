@@ -200,3 +200,8 @@ Existing Markdown-theme sample now includes a quote and a declared-language `csh
 ## 2026-11-03 — shared reader migration verified on Windows
 
 - User's full solution test run confirms Showcase.Tests **39/39** after migrating text, JSON and Markdown preview consumers to `Blackboard.TextFiles`. The reader's own tests also executed **5/5**, and the entire solution passed **6,443/6,443** on Windows.
+
+## 2026-11-04 — more syntax color examples in theme gallery
+
+- Extended the existing Markdown theme gallery's sample with `javascript`, `json`, and `yaml` fenced examples alongside C#, using the pre-existing optional TextMate backend. Expanded grammar aliases now apply to Showcase without changing its parser or base renderer.
+- Theme-gallery regression test now checks that JavaScript and YAML sample lines appear. No code is executed. New changes not yet compiled/tested locally in this session.
