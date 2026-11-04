@@ -73,3 +73,11 @@ A quoted list item may now own one or more physical quote-prefixed blank lines (
 ## Nested quoted sublists under ordinary list items (2026-11-01)
 
 `- Step` followed by `  > - Warning` now retains both independent owners: `QuoteContainerListOwnerStart` and `QuoteContainerListMarker` describe the ordinary outer item, while `QuoteListRoots` and the existing continuation owner describe the inner quoted list. Numbered children, sufficiently indented paragraphs, quote blank separators and literal same-depth code fences are supported. Original source offsets, links and line endings are unchanged. [Examples and limits](Docs/Quoted-Lists-Inside-Lists/en.md).
+
+## Bounded forward-only Markdown source scanner (2026-11-04)
+
+Added an **opt-in**, UI-neutral `MarkdownIncrementalLineScanner.ScanAsync(TextReader)` that yields physical lines one by one through `IAsyncEnumerable<MarkdownStreamLine>`, preserving original CRLF/LF/CR endings and UTF-16 source offsets. It tracks top-level fenced-code state (including an optional language hint), ATX headings, blank lines and simple opaque quote/list starts without allocating a complete document model. It enforces a per-line character budget and rejects unsafe terminal controls.
+
+**This is not yet a complete incremental block parser or rendered Markdown pager.** Nested list/quote ownership, reference definitions, multiline paragraph groups and visual wrapping still belong to the existing full parser or future state-machine work. The scanner receives already decoded characters; to prevent partial display of an untrusted file that contains invalid bytes late in the stream, validate the entire file first using the TextFiles disk index or an immutable verified spool.
+
+[Design, guarantees and limitations](Docs/Incremental-Source-Scanner/en.md). New regression tests are authored but not yet executed in this environment.
