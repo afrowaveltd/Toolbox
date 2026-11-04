@@ -26,3 +26,16 @@ dotnet test Toolbox.sln
 **Verification pending:** the user-provided 6,438/6,438 green Windows run applies to the snapshot **before** this extraction. New tests and consumer dependency changes need another run. Large-file paging, progressive Markdown parse, filesystem race protection and symlink policy are outside this decoder.
 
 [Extraction guide](Docs/Architecture/en.md) · [Implementation status](IMPLEMENTATION_STATUS.md).
+
+## Low-memory UTF-8 line index (2026-11-04)
+
+Added `Utf8DiskLineIndex` for bounded-memory, read-only, **disk-backed random access to physical UTF-8 lines**. It validates the full file in one sequential scan before offering pages, rejects malformed UTF-8 and unsafe terminal controls, and indexes line start byte offsets on disk (8 bytes per line plus a sentinel, default 256 MiB index cap). Pages are limited to 128 physical lines and 4 MiB of source bytes, with a 1 MiB per-line default; budget failures are explicit, not silent truncation. UTF-8 BOM, CRLF/LF/CR and Unicode are supported, including buffer-boundary splits.
+
+```csharp
+await using var index = await Utf8DiskLineIndex.OpenAsync("README.md");
+var page = await index.ReadPageAsync(0, maxLines: 24);
+if (page.HasMore)
+    page = await index.ReadPageAsync(page.NextLine, maxLines: 24);
+```
+
+The derived temporary index disappears on disposal and does not affect our persistent downloaded README cache. This is a **source line index**, not an incremental Markdown parser; the normal complete-document renderer remains unchanged. The first terminal consumer is `mdview source README.md`, explicitly displaying raw source pages. [Architecture, safety and limits](Docs/Disk-Line-Index/en.md). New tests are committed, but a build/test pass is still pending.
