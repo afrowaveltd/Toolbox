@@ -90,7 +90,7 @@ static async Task<int> RunAsync(string[] args)
 
         if (content.Length > 1024 * 1024)
             Console.Error.WriteLine("Large Markdown document: current renderer loads the entire text in memory.");
-        MarkdownSpectreRenderer.Render(AnsiConsole.Console, content);
+        MarkdownSpectreRenderer.Render(AnsiConsole.Console, content, MdViewHighlighting.CreateTheme());
         return 0;
     }
     catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or
