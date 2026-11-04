@@ -203,8 +203,8 @@ public sealed class GitHubRepositoryCatalogSource
             var snapshot = JsonSerializer.Deserialize<CatalogSnapshot>(data);
             if (snapshot is null || snapshot.Version != SnapshotVersion ||
                 snapshot.Repositories is null || snapshot.Repositories.Length > MaximumPages * PageSize ||
-                snapshot.Repositories.Any(r => r is null || !RepoPattern.IsMatch(r.Name) ||
-                                               r.Name is "." or ".."))
+                snapshot.Repositories.Any(r => r is null || string.IsNullOrWhiteSpace(r.Name) ||
+                                               !RepoPattern.IsMatch(r.Name) || r.Name is "." or ".."))
                 return null;
             return snapshot;
         }
