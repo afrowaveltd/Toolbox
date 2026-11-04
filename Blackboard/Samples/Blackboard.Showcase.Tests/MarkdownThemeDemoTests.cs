@@ -30,6 +30,9 @@ public sealed class MarkdownThemeDemoTests
         Assert.Contains("Theme preview: Classic", console.Output);
         Assert.Contains("Markdown theme gallery", console.Output);
         Assert.Contains("One document can have many appearances.", console.Output);
+        Assert.Contains("const greetings =", console.Output);
+        Assert.Contains("console.log(greet(", console.Output);
+        Assert.Contains("project: Toolbox", console.Output);
         Assert.Contains("../Docs/en.md", console.Output);
         // A C# 8 / .NET Core 3.1 Program.Main sample demonstrates real,
         // source-preserved indentation through the Markdown/Spectre pipeline.
