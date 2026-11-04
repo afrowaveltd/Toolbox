@@ -78,6 +78,28 @@ public sealed class Utf8DiskLineIndexTests
     }
 
     [Fact]
+    public async Task CrLfAcrossIndexBufferBoundaryIsOneNewline()
+    {
+        using var fixture = new Fixture();
+        var line = new string('a', 65535);
+        var file = await fixture.WriteAsync(line + "\r\nSecond");
+        await using var index = await Utf8DiskLineIndex.OpenAsync(file, 128 * 1024);
+        Assert.Equal(2, index.LineCount);
+        var page = await index.ReadPageAsync(0);
+        Assert.Equal(line, page.Lines[0]);
+        Assert.Equal("Second", page.Lines[1]);
+    }
+
+    [Fact]
+    public async Task TemporaryIndexBudgetFailsExplicitlyWithoutTruncatingDocument()
+    {
+        using var fixture = new Fixture();
+        var file = await fixture.WriteAsync("One\nTwo\nThree");
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            Utf8DiskLineIndex.OpenAsync(file, maximumIndexBytes: 24));
+    }
+
+    [Fact]
     public async Task UnicodeCodepointSplitAcrossIndexBuffersIsAccepted()
     {
         using var fixture = new Fixture();
