@@ -1,6 +1,8 @@
 using Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown;
 using Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.TextMate;
 using Spectre.Console.Testing;
+using TextMateSharp.Grammars;
+using TextMateSharp.Themes;
 using Xunit;
 
 namespace Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.TextMate.Tests;
@@ -66,6 +68,22 @@ public sealed class MarkdownTextMateHighlighterTests
             Assert.InRange(span.Start, 0, source.Length - 1);
             Assert.InRange(span.Length, 1, source.Length - span.Start);
         });
+    }
+
+    [Fact]
+    public void Installed_extension_grammars_are_resolved_without_a_hardcoded_alias()
+    {
+        var options = new RegistryOptions(ThemeName.DarkPlus);
+        var extensionLanguage = options.GetLanguageByExtension(".jsx");
+        if (extensionLanguage is null ||
+            options.GetScopeByLanguageId(extensionLanguage.Id) is null)
+            return; // A grammar is optional; absence is valid with a safe plain fallback.
+
+        var highlighter = new MarkdownTextMateHighlighter();
+        using var session = highlighter.CreateSession("jsx");
+        Assert.NotNull(session);
+        var spans = session!.HighlightLine("const element = <div>Hello</div>;");
+        Assert.All(spans, span => Assert.True(span.Length > 0));
     }
 
     [Fact]
