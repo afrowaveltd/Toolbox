@@ -45,3 +45,10 @@ Next: run and correct Windows/Linux solution CI; then add fault-injection tests,
 
 - `Markdown.Cache.Tests` passed **32/32** in the user-provided full Windows solution test log, with no failed/skipped tests. This supersedes earlier 'test execution pending' statements for this snapshot on Windows. Linux CI and manual network scenarios remain unverified.
 - Nonfatal XML documentation warnings (CS1591/CS1573) are logged for public cache APIs and should be cleaned without changing runtime behavior.
+
+## 2026-11-04 — GitHub public repository catalog
+
+- Added `GitHubRepositoryCatalogSource` with `ListAsync(owner)`, read-only typed public repositories, GitHub account-type discovery, user/org specific endpoints, controlled pagination (100 per page, maximum ten pages), 4 MiB response cap and explicit truncation warning.
+- Valid owner/name checks and public-only filtering; raw descriptions are sanitized and labels escaped by the CLI. HTTP redirects are refused and caller must disable automatic redirects. No credentials, README downloads or network-dependent Markdown rendering in the catalog layer.
+- An independent case-insensitive SHA-256 verified cache snapshot stays fresh for 30 minutes, then refreshes atomically; errors use an explicitly stale last valid list (or an error if none exists). A `TimeProvider` injection supports deterministic expiry tests.
+- [Architecture and API usage](Docs/GitHub-Repository-Catalog/en.md). Added fake-HTTP regression tests. **Not yet compiled or regression-tested in this execution environment**, which lacks a .NET SDK. User's previously confirmed Windows 6,443 test baseline was before these additions.
