@@ -40,3 +40,13 @@ Local documents are decoded with `TextFilePreviewReader.ReadCompleteAsync` (incl
 ## Syntax highlighting (2026-11-04)
 
 `mdview` now creates a Markdown theme with the optional TextMate grammar adapter, so fenced blocks in supported bundled languages are colored whether the document came from a local file, HTTPS or GitHub README. This is **syntax highlighting**, not code execution. The language follows the Markdown fence tag; missing tags and unsupported language IDs remain plain. Language names and common filename suffix aliases are case-insensitive and the adapter checks the entire bundled grammar catalog. See the [supported-language guide](../../../../SpectreConsole/Markdown.TextMate/Docs/Supported-Grammars/en.md). No automatic guessing from the code body, remote grammar downloads or 1 GB streaming rendering are implied.
+
+## GitHub owner-only selection (2026-11-04)
+
+```text
+mdview afrowaveltd
+mdview git afrowaveltd
+mdview github:afrowaveltd
+```
+
+These forms open the public [GitHub owner/repository selector](../GitHub-Owner-Discovery/en.md). A short tree is shown for up to 20 repositories; the paged `SelectionPrompt` can filter names and descriptions or cancel with Escape. Only the selected README is downloaded. The catalog is cached independently of README contents for 30 minutes and supports explicit stale/offline fallback. The first 1,000 repositories are displayed with a warning if more exist. Bare owners are interpreted as GitHub; use `local PATH` for local paths without extensions. Noninteractive scripts should use `git OWNER REPOSITORY`.
