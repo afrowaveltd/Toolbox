@@ -116,3 +116,8 @@ Next: confirm CI and add regression cases for any Windows/SSH differences that a
 - During implementation initial CI failed on a test referencing a nonpublic file-extension helper; source was corrected to expose the simple reusable validation helper before final green CI. This does not affect the reusable FileBrowser package.
 - The reader has **no arbitrary 64 KiB Markdown cut-off**; the size warning is informational. Whole-file Unicode/control validation precedes rendering. Current renderer still materializes full text and model in RAM; true out-of-core/paged help is future work.
 - The previous embedded theme gallery was visually confirmed by user screenshots in Windows Terminal. Actual Windows/Debian manual UI verification of the **new file-backed viewer** remains pending; no Markdown NuGet release.
+
+## 2026-11-04 — multi-language Markdown theme demonstration coverage
+
+- Expanded the existing Classic theme-gallery test to verify JavaScript and YAML example content in the output, alongside earlier C# checks.
+- The last user-confirmed 6,443-green Windows baseline predates this change; new assertions await a fresh `dotnet test Toolbox.sln` run.
