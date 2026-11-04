@@ -69,6 +69,15 @@ static async Task<int> RunAsync(string[] args)
             using var handler = new HttpClientHandler { AllowAutoRedirect = false, AutomaticDecompression = System.Net.DecompressionMethods.None };
             using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
             var cache = new VerifiedDocumentCache(CacheDirectory.GetDefaultPath());
+            if (command.Kind == MdViewSourceKind.GitHub && command.Repository is null)
+            {
+                var chosen = await new MdViewGitHubRepositoryPicker(
+                    AnsiConsole.Console, new GitHubRepositoryCatalogSource(http, cache))
+                    .PickAsync(command.Value!);
+                if (chosen is null) return 0;
+                command = chosen;
+            }
+
             HttpDocumentResult result;
             if (command.Kind == MdViewSourceKind.GitHub)
                 result = await new GitHubReadmeSource(http, cache).OpenAsync(command.Value!, command.Repository!);
@@ -107,6 +116,9 @@ static void PrintHelp()
     Console.WriteLine("mdview [PATH | URL | github:OWNER/REPOSITORY]");
     Console.WriteLine("mdview local PATH");
     Console.WriteLine("mdview url HTTPS_URL");
+    Console.WriteLine("mdview OWNER           (browse public GitHub repositories)");
+    Console.WriteLine("mdview github:OWNER    (browse public GitHub repositories)");
+    Console.WriteLine("mdview git OWNER       (browse public GitHub repositories)");
     Console.WriteLine("mdview git OWNER REPOSITORY");
     Console.WriteLine("mdview git OWNER/REPOSITORY");
     Console.WriteLine("mdview --help");
