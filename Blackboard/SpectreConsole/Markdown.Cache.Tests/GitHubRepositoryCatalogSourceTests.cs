@@ -99,13 +99,12 @@ public sealed class GitHubRepositoryCatalogSourceTests
             Assert.Single(initial.Repositories);
         }
 
-        // The cache's own integrity-checked manifest is left untouched. A fresh
-        // snapshot must avoid a needless network hit; explicit elapsed-time logic
-        // is exercised via injectable clock in a later targeted suite.
         using var offline = Client(_ => throw new HttpRequestException("Offline"));
-        var cached = await new GitHubRepositoryCatalogSource(offline, new VerifiedDocumentCache(fixture.Root))
-            .ListAsync("AFROWAVELTD");
-        Assert.Equal(GitHubRepositoryCatalogState.FreshCache, cached.State);
+        var later = new TestClock(DateTimeOffset.UtcNow.AddMinutes(35));
+        var cached = await new GitHubRepositoryCatalogSource(
+            offline, new VerifiedDocumentCache(fixture.Root), later).ListAsync("AFROWAVELTD");
+        Assert.Equal(GitHubRepositoryCatalogState.Stale, cached.State);
+        Assert.Contains("last verified list", cached.Warning);
         Assert.Equal("Cached", Assert.Single(cached.Repositories).Name);
     }
 
@@ -190,6 +189,11 @@ public sealed class GitHubRepositoryCatalogSourceTests
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
             CancellationToken cancellationToken) => Task.FromResult(respond(request));
+    }
+
+    private sealed class TestClock(DateTimeOffset now) : TimeProvider
+    {
+        public override DateTimeOffset GetUtcNow() => now;
     }
 
     private sealed class Fixture : IDisposable
