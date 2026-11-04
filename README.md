@@ -135,3 +135,11 @@ dotnet run --project Blackboard/Tools/MdView -- source README.md
 After successfully opening a fully rendered Markdown document in an interactive terminal, `mdview` now waits for **Enter** to reopen the source menu or **Escape** to exit. Other keys are ignored for now, reserving `F`/PageUp/PageDown/arrows for later search and page navigation. A direct local, URL or GitHub README launch gains the same repeatable-session behavior, so users can open a second document without restarting the tool. When stdin or stdout is redirected, the CLI completes without waiting. The separate `mdview source PATH` disk-backed raw source pager retains its own navigation.
 
 [mdview documentation](Blackboard/Tools/MdView/Docs/Document-End-Navigation/en.md) · [mdview implementation status](Blackboard/Tools/MdView/IMPLEMENTATION_STATUS.md). New tests are committed; a fresh full Windows test run is pending.
+
+## Future README search and incremental scanner (2026-11-04)
+
+For future visual paging, we now have an **independent forward-only Markdown source-line scanner** in ExchangeHouse. It preserves physical newlines and UTF-16 source offsets and tracks top-level fenced-code state without materializing the complete document. It is **not** wired into mdview or advertised as a complete Markdown parser; the existing renderer remains unchanged. [Scanner design](ExchangeHouse/Markdown/Docs/Incremental-Source-Scanner/en.md).
+
+We also captured a **design-only** next-stage navigation idea: a few common English README subjects (e.g., Installation, Build, Compilation, Configuration), a heading outline and on-demand indexed phrases. A future `F` action would choose/add a query and `N/P` would navigate its hits. Match positions should use small, disk-backed, content-digest-bound indexes rather than copying every paragraph. **Search keys are not active yet.** [Indexed search plan](Blackboard/Tools/MdView/Docs/Indexed-Search/en.md).
+
+New scanner and test code has been committed, but a fresh full Windows/.NET test run is still needed before this increment can be considered verified.
