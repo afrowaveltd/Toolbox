@@ -27,7 +27,32 @@ public sealed class MdViewCommandTests
         Assert.Equal("toolbox", value.Repository);
     }
     [Theory]
-    [InlineData("git", "missing")]
+    [InlineData("git", "AfrowaveLtd")]
+    [InlineData("GITHUB", "afrowaveltd")]
+    public void OwnerOnlyVerbOpensRepositoryBrowser(string verb, string owner)
+    {
+        var command = MdViewCommand.Parse(verb, owner);
+        Assert.Equal(MdViewSourceKind.GitHub, command.Kind);
+        Assert.Equal(owner, command.Value);
+        Assert.Null(command.Repository);
+    }
+
+    [Theory]
+    [InlineData("github:afrowaveltd")]
+    [InlineData("afrowaveltd")]
+    public void OwnerOnlyShortcutOpensRepositoryBrowser(string input)
+    {
+        var command = MdViewCommand.Parse(input);
+        Assert.Equal(MdViewSourceKind.GitHub, command.Kind);
+        Assert.Equal("afrowaveltd", command.Value);
+        Assert.Null(command.Repository);
+    }
+
+    [Fact]
+    public void ExplicitLocalFileStillWinsOverOwnerDiscovery() =>
+        Assert.Equal(MdViewSourceKind.Local, MdViewCommand.Parse("local", "afrowaveltd").Kind);
+
+    [Theory]
     [InlineData("git", "owner/repo/extra")]
     [InlineData("unknown", "argument")]
     public void InvalidCommandsAreRejected(string verb, string value) =>
