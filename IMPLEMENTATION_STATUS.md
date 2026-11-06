@@ -358,3 +358,10 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - The layer retains **no full block text** and never creates a full-document syntax tree. Fenced code regions can be huge without copying their contents into the block scanner. Its output is designed for a later disk block index and source/visual row mapping; it is not yet a formatted Markdown pager. Existing mdview commands and renderer are unchanged.
 - Added 16 regression cases, including strict coverage/reconstruction, forward-only laziness and a **flat-subset** parity check against the established `MarkdownParser`. [Implementation notes](ExchangeHouse/Markdown/Docs/Incremental-Block-Spans/en.md).
 - New tests/CI pending at the time of authoring. Next: container ownership states, parity on nested lists and quote fences, then a visual-row pager and eventually seeded/on-demand phrase search.
+
+
+### CI verification — 2026-11-07 completed block spans
+
+- [GitHub Actions run 42313009028](https://github.com/afrowaveltd/Toolbox/actions/runs/42313009028) **SUCCESS** on the test-implementation commit `34ad5e5d8d0da6b720230711a91a3984a0bc8383`. Full Linux build reported **0 warnings, 0 errors** and passed all test assemblies, including **ExchangeHouse.Markdown.Tests 111/111** (the new 16 block-span cases included).
+- Windows UI regression job and Markdown local link validation also **SUCCESS** in the same run.
+- Subsequent changes are documentation/status updates only. No full CommonMark parity, manual terminal rendering or multi-gigabyte performance claims are implied.
