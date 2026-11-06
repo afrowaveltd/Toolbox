@@ -25,3 +25,9 @@ Loose-list regressions (2026-10-31): owned blank separators, multiple blank line
 Added `MarkdownIncrementalLineScannerTests` (**16 test cases**) for exact physical line endings, UTF-16 source offsets, CRLF split between reads, top-level fence state/language hints, flat ATX heading parity, opaque quote/list preservation, forward-only lazy reads, line limits, unsafe controls and cancellation. This experimental scanner is separate from the existing fully parsed `MarkdownDocument` and must not be mistaken for complete CommonMark or a formatted visual pager. New tests are committed but **not yet executed in this environment**.
 
 [Scanner contract](../Markdown/Docs/Incremental-Source-Scanner/en.md).
+
+## Incremental completed-block span tests (2026-11-07)
+
+Added `MarkdownIncrementalBlockScannerTests` with 16 cases for exact non-overlapping source coverage, CRLF/Unicode offsets, top-level headings and blank blocks, constant-sized metadata for long paragraph/code ranges, explicit unclosed fences, opacity of quote/list lines, one-line lookahead, cancellation, late-invalid controls and invalid budgets. A **restricted flat grammar** corpus is compared with `MarkdownParser.Parse` for heading/paragraph/blank/fence classification, without claiming equivalence for nested containers.
+
+The new tests were committed but should be considered unverified until the next CI or maintainer run. [Scanner contract](../Markdown/Docs/Incremental-Block-Spans/en.md).
