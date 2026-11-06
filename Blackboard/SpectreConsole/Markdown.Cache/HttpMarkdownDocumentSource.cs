@@ -10,6 +10,10 @@ public sealed class HttpMarkdownDocumentSource
     private readonly VerifiedDocumentCache _cache;
     private readonly bool _allowHttp;
 
+    /// <summary>Creates a public HTTP(S) Markdown source with explicit control over insecure HTTP.</summary>
+    /// <param name="client">Caller-owned HTTP client; automatic redirects should be disabled.</param>
+    /// <param name="cache">Cache for validating and reusing previously downloaded content.</param>
+    /// <param name="allowInsecureHttp">Whether to permit HTTP URLs in addition to HTTPS (default: false).</param>
     public HttpMarkdownDocumentSource(HttpClient client, VerifiedDocumentCache cache, bool allowInsecureHttp = false)
     {
         _client = client ?? throw new ArgumentNullException(nameof(client));
@@ -17,6 +21,12 @@ public sealed class HttpMarkdownDocumentSource
         _allowHttp = allowInsecureHttp;
     }
 
+    /// <summary>Opens a validated public Markdown URL and checks conditional freshness headers.</summary>
+    /// <param name="uri">Absolute URL without credentials, query parameters or fragment.</param>
+    /// <param name="cancellationToken">Cancellation token for HTTP and cache operations.</param>
+    /// <returns>A verified document with download, not-modified, stale or error status.</returns>
+    /// <exception cref="ArgumentException">The supplied URL violates the source policy.</exception>
+    /// <exception cref="OperationCanceledException">The caller cancels the operation.</exception>
     public async Task<HttpDocumentResult> OpenAsync(Uri uri, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(uri);
@@ -80,7 +90,18 @@ public sealed class HttpMarkdownDocumentSource
             status, message);
 }
 
-public enum HttpDocumentState { Downloaded, NotModified, Stale, Error }
+/// <summary>Freshness and availability of a remotely requested Markdown document.</summary>
+public enum HttpDocumentState
+{
+    /// <summary>A new validated copy was downloaded and cached.</summary>
+    Downloaded,
+    /// <summary>The server returned HTTP 304 and the existing verified copy remains current.</summary>
+    NotModified,
+    /// <summary>Fetching failed; a previously validated copy is available but may be outdated.</summary>
+    Stale,
+    /// <summary>No usable validated copy is available.</summary>
+    Error
+}
 
 /// <summary>Stale indicates a validated old copy, never a successful HTTP freshness check.</summary>
 public sealed record HttpDocumentResult(CachedDocument? Document, HttpDocumentState State,
