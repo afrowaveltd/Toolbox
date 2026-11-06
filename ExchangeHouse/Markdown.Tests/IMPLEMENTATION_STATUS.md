@@ -143,3 +143,9 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 
 - Replaced two `Assert.Equal(1, collection.Count)` checks in `MarkdownParserTests.Quoted_fence_interruption_reclassifies_unquoted_and_differently_nested_lines` with `Assert.Single(collection)`. This preserves and strengthens the assertion semantics while addressing `xUnit2013`.
 - [GitHub Actions run 42311109763](https://github.com/afrowaveltd/Toolbox/actions/runs/42311109763) confirms fresh Linux build **0 warnings/0 errors** with test suites passing and Windows UI regressions green.
+
+## 2026-11-07 — block span regression coverage
+
+- Added `MarkdownIncrementalBlockScannerTests` (16 cases) with exact contiguous UTF-16 source spans and line offsets; complete CR/LF/CRLF reconstruction, Unicode, huge code/paragraph regions, unterminated fence metadata and conservative opaque quote/list behavior. Also asserts early-event laziness and propagates cancellation/unsafe controls.
+- Compared flat heading/blank/paragraph/fenced code output with existing `MarkdownParser.Parse` on a restricted golden input. Test is intentionally not proof of full CommonMark or nested container parity.
+- **Fresh CI results pending** for this new change. Do not state a new green total until verified.
