@@ -63,4 +63,4 @@ The newly added `MarkdownIncrementalLineScannerTests` check exact newline round-
 3. Build a visual-row pager with disk-backed source/block metadata and reversible navigation, only after semantic equivalence is measured.
 4. Integrate optional, digest-bound term/heading indexes for future `F/N/P` search **after** page navigation exists.
 
-[Parser README](../README.md) · [Implementation status](../IMPLEMENTATION_STATUS.md) · [Future indexed search](../../../Blackboard/Tools/MdView/Docs/Indexed-Search/en.md).
+[Parser README](../../README.md) · [Implementation status](../../IMPLEMENTATION_STATUS.md) · [Future indexed search](../../../../Blackboard/Tools/MdView/Docs/Indexed-Search/en.md).
