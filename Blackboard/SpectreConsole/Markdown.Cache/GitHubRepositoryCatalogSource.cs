@@ -10,7 +10,17 @@ public sealed record GitHubRepositoryInfo(
     string Name, string? Description = null, bool Archived = false, bool Fork = false);
 
 /// <summary>Whether a catalog came from GitHub, an unexpired cache or an offline fallback.</summary>
-public enum GitHubRepositoryCatalogState { Downloaded, FreshCache, Stale, Error }
+public enum GitHubRepositoryCatalogState
+{
+    /// <summary>A complete bounded catalog was downloaded and verified.</summary>
+    Downloaded,
+    /// <summary>The locally verified catalog is still within its freshness window.</summary>
+    FreshCache,
+    /// <summary>The last verified catalog is used after an unsuccessful refresh.</summary>
+    Stale,
+    /// <summary>No verified catalog is available.</summary>
+    Error
+}
 
 /// <summary>Complete bounded repository listing result; a stale result is never called fresh.</summary>
 public sealed record GitHubRepositoryCatalogResult(
