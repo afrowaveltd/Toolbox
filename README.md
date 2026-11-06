@@ -4,7 +4,7 @@
 
 **GitHub is the source of truth:** [afrowaveltd/Toolbox](https://github.com/afrowaveltd/Toolbox) (branch `master`).
 
-[Documentation index](Docs/Documentation/en.md) · [Repository overview](Docs/Toolbox-Overview/en.md) · [Architecture](Docs/Architecture/en.md) · [Build and verification](Docs/Development-and-Verification/en.md) · [Implementation status](IMPLEMENTATION_STATUS.md)
+[Documentation index](Docs/Documentation/en.md) · [Warning-free builds](Docs/Warning-Free-Build/en.md) · [Repository overview](Docs/Toolbox-Overview/en.md) · [Architecture](Docs/Architecture/en.md) · [Build and verification](Docs/Development-and-Verification/en.md) · [Implementation status](IMPLEMENTATION_STATUS.md)
 
 ## Package and project directory
 
@@ -143,3 +143,10 @@ For future visual paging, we now have an **independent forward-only Markdown sou
 We also captured a **design-only** next-stage navigation idea: a few common English README subjects (e.g., Installation, Build, Compilation, Configuration), a heading outline and on-demand indexed phrases. A future `F` action would choose/add a query and `N/P` would navigate its hits. Match positions should use small, disk-backed, content-digest-bound indexes rather than copying every paragraph. **Search keys are not active yet.** [Indexed search plan](Blackboard/Tools/MdView/Docs/Indexed-Search/en.md).
 
 New scanner and test code has been committed, but a fresh full Windows/.NET test run is still needed before this increment can be considered verified.
+
+
+## XML API documentation and warning-free build (2026-11-07)
+
+We completed the public XML documentation of the remaining Markdown cache and mdview APIs, including source modes, freshness statuses, constructors and all positional record parameters. Two ExchangeHouse test assertions were adjusted to `Assert.Single` to resolve xUnit analyzer suggestions; GitHub Actions was upgraded to Node 24-compatible `actions/checkout@v5` and `actions/setup-dotnet@v5`, and reported local Markdown link errors were fixed. No source behavior was intentionally changed, and **XML documentation generation remains enabled**.
+
+[GitHub Actions run 42311109763](https://github.com/afrowaveltd/Toolbox/actions/runs/42311109763) confirmed a fresh Linux build with **0 warnings and 0 errors**, successful tests, Windows UI regressions and Markdown links. [Maintenance and verification policy](Docs/Warning-Free-Build/en.md).
