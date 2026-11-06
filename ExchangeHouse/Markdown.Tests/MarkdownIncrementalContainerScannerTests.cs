@@ -27,7 +27,7 @@ public sealed class MarkdownIncrementalContainerScannerTests
             MarkdownContainerLineKind.Quote,
             MarkdownContainerLineKind.Plain
         }, lines.Select(x => x.Kind));
-        Assert.Equal(new long[] { 0, 7, 14, 25, 32 },
+        Assert.Equal(new long[] { 0, 7, 14, 24, 31 },
             lines.Select(x => x.Source.Utf16Offset));
     }
 
