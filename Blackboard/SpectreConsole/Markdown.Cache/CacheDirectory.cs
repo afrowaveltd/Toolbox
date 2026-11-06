@@ -3,6 +3,9 @@ namespace Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache;
 /// <summary>Suggests a private per-user cache location. Does not create or secure directories.</summary>
 public static class CacheDirectory
 {
+    /// <summary>Resolves the default per-user Markdown cache path without creating it.</summary>
+    /// <returns>An absolute location beneath the platform's user cache directory.</returns>
+    /// <exception cref="InvalidOperationException">No usable user cache or home directory exists.</exception>
     public static string GetDefaultPath()
     {
         if (OperatingSystem.IsWindows())
