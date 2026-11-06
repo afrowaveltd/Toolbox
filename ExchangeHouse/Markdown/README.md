@@ -81,3 +81,9 @@ Added an **opt-in**, UI-neutral `MarkdownIncrementalLineScanner.ScanAsync(TextRe
 **This is not yet a complete incremental block parser or rendered Markdown pager.** Nested list/quote ownership, reference definitions, multiline paragraph groups and visual wrapping still belong to the existing full parser or future state-machine work. The scanner receives already decoded characters; to prevent partial display of an untrusted file that contains invalid bytes late in the stream, validate the entire file first using the TextFiles disk index or an immutable verified spool.
 
 [Design, guarantees and limitations](Docs/Incremental-Source-Scanner/en.md). New regression tests are authored but not yet executed in this environment.
+
+## Completed incremental block spans (2026-11-07)
+
+The optional `MarkdownIncrementalBlockScanner.ScanAsync(TextReader)` consumes `MarkdownIncrementalLineScanner` and emits **completed, non-overlapping source ranges**: top-level headings, blank lines, consecutive simple paragraph lines, closed/unterminated top-level fenced code, and opaque single-line quote/list markers. It records UTF-16 source offsets and physical line ranges, not a duplicate string for an arbitrarily long block. Fence closure and language hints remain explicit, and unfinished code fences are distinguished at EOF.
+
+This is an **indexing foundation**, not a substitute for the existing full Markdown parser, inline handling, nested container semantics or renderer. `mdview` is not connected to it yet. [Technical contract and examples](Docs/Incremental-Block-Spans/en.md); 16 new focused test cases and a restricted golden comparison with `MarkdownParser.Parse` were added. New tests await CI confirmation.
