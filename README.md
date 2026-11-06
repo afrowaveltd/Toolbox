@@ -150,3 +150,9 @@ New scanner and test code has been committed, but a fresh full Windows/.NET test
 We completed the public XML documentation of the remaining Markdown cache and mdview APIs, including source modes, freshness statuses, constructors and all positional record parameters. Two ExchangeHouse test assertions were adjusted to `Assert.Single` to resolve xUnit analyzer suggestions; GitHub Actions was upgraded to Node 24-compatible `actions/checkout@v5` and `actions/setup-dotnet@v5`, and reported local Markdown link errors were fixed. No source behavior was intentionally changed, and **XML documentation generation remains enabled**.
 
 [GitHub Actions run 42311109763](https://github.com/afrowaveltd/Toolbox/actions/runs/42311109763) confirmed a fresh Linux build with **0 warnings and 0 errors**, successful tests, Windows UI regressions and Markdown links. [Maintenance and verification policy](Docs/Warning-Free-Build/en.md).
+
+## Incremental Markdown block ranges (2026-11-07)
+
+The next stage after streamed physical lines is now implemented in `ExchangeHouse.Markdown`: `MarkdownIncrementalBlockScanner` emits **completed, non-overlapping UTF-16 source spans** for conservative top-level headings, simple paragraphs, blank lines and fenced code, without allocating a copy of entire code blocks. List/quote structures remain opaque until ownership semantics can be faithfully modeled. The new 16-case regression suite checks mixed line endings, Unicode offsets, source coverage, laziness, huge code ranges, explicit unclosed fences and parity with the existing parser on a limited flat subset.
+
+[Block range architecture](ExchangeHouse/Markdown/Docs/Incremental-Block-Spans/en.md) · [Existing whole-document parser](ExchangeHouse/Markdown/README.md). `mdview` is unchanged: this is infrastructure for later visual paging, not yet a rendered stream or the planned `F/N/P` indexed search.
