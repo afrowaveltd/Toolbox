@@ -19,6 +19,11 @@ public sealed class VerifiedDocumentCache
     private static readonly UTF8Encoding StrictUtf8 = new(false, true);
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
+    /// <summary>Initializes a content-addressed cache with an explicit document size limit.</summary>
+    /// <param name="rootDirectory">Absolute or relative root used for private content blobs and metadata.</param>
+    /// <param name="maximumDocumentBytes">Maximum bytes accepted for a single validated document (default: 256 MiB).</param>
+    /// <exception cref="ArgumentException">The cache location is missing or invalid.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">The size limit is not positive.</exception>
     public VerifiedDocumentCache(string rootDirectory, long maximumDocumentBytes = 256L * 1024 * 1024)
     {
         if (string.IsNullOrWhiteSpace(rootDirectory))
@@ -30,6 +35,14 @@ public sealed class VerifiedDocumentCache
         _maximumDocumentBytes = maximumDocumentBytes;
     }
 
+    /// <summary>Validates UTF-8 and terminal safety, hashes the content and atomically publishes a cache entry.</summary>
+    /// <param name="sourceKey">Stable caller-defined identity of the source document.</param>
+    /// <param name="content">Readable stream of source bytes; ownership remains with the caller.</param>
+    /// <param name="cancellationToken">Cancellation token for reading, writing and validation.</param>
+    /// <param name="eTag">Optional HTTP ETag for future conditional requests.</param>
+    /// <param name="lastModified">Optional HTTP Last-Modified timestamp for revalidation.</param>
+    /// <returns>Metadata and local path for the fully validated cached document.</returns>
+    /// <exception cref="InvalidDataException">Content exceeds its size limit or is unsafe/invalid UTF-8.</exception>
     public async Task<CachedDocument> PutAsync(string sourceKey, Stream content, CancellationToken cancellationToken = default,
         string? eTag = null, DateTimeOffset? lastModified = null)
     {
@@ -250,6 +263,14 @@ public sealed class VerifiedDocumentCache
         string? ETag = null, DateTimeOffset? LastModified = null, DateTimeOffset? CheckedAtUtc = null);
 }
 
+/// <summary>Metadata for one fully validated immutable local document blob.</summary>
+/// <param name="SourceKey">Caller-defined source identity, distinct from the content hash.</param>
+/// <param name="Sha256">Lowercase SHA-256 digest of the validated source bytes.</param>
+/// <param name="Length">Document length in bytes.</param>
+/// <param name="StoredAtUtc">Time the current content was stored in the cache.</param>
 /// <param name="ContentPath">Internal validated blob path, not a public download URL.</param>
+/// <param name="ETag">Optional HTTP entity tag of the source document.</param>
+/// <param name="LastModified">Optional HTTP modification time supplied by the origin.</param>
+/// <param name="CheckedAtUtc">Most recent successful origin freshness check, if any.</param>
 public sealed record CachedDocument(string SourceKey, string Sha256, long Length, DateTimeOffset StoredAtUtc,
     string ContentPath, string? ETag = null, DateTimeOffset? LastModified = null, DateTimeOffset? CheckedAtUtc = null);
