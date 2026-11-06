@@ -19,12 +19,22 @@ public sealed class GitHubReadmeSource
     private readonly HttpClient _client;
     private readonly VerifiedDocumentCache _cache;
 
+    /// <summary>Creates a public GitHub README source using a caller-owned HTTP client and verified cache.</summary>
+    /// <param name="client">HTTP client configured without automatic redirects.</param>
+    /// <param name="cache">Verified disk cache used for conditional requests and offline fallback.</param>
     public GitHubReadmeSource(HttpClient client, VerifiedDocumentCache cache)
     {
         _client = client ?? throw new ArgumentNullException(nameof(client));
         _cache = cache ?? throw new ArgumentNullException(nameof(cache));
     }
 
+    /// <summary>Retrieves the preferred public README using GitHub's REST API, revalidating a cached copy when available.</summary>
+    /// <param name="owner">GitHub account or organization login.</param>
+    /// <param name="repository">Repository name, without branches or file paths.</param>
+    /// <param name="cancellationToken">Token to cancel network and cache operations.</param>
+    /// <returns>The verified README and its freshness state, or an error/stale result.</returns>
+    /// <exception cref="ArgumentException">The owner or repository name is invalid.</exception>
+    /// <exception cref="OperationCanceledException">The caller cancels the request.</exception>
     public async Task<HttpDocumentResult> OpenAsync(string owner, string repository,
         CancellationToken cancellationToken = default)
     {
