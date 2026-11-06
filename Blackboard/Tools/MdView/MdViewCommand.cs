@@ -1,9 +1,33 @@
 namespace Afrowave.Toolbox.Blackboard.Tools.MdView;
 
-public enum MdViewSourceKind { Interactive, Local, Url, GitHub, Help, SourcePager }
+/// <summary>Supported modes and source types for the mdview command-line reader.</summary>
+public enum MdViewSourceKind
+{
+    /// <summary>Open the interactive Spectre.Console source selection menu.</summary>
+    Interactive,
+    /// <summary>Read a local Markdown document with full rendering.</summary>
+    Local,
+    /// <summary>Read a public HTTP(S) Markdown document.</summary>
+    Url,
+    /// <summary>Read a GitHub README or browse an owner's public repositories.</summary>
+    GitHub,
+    /// <summary>Print command-line usage and exit.</summary>
+    Help,
+    /// <summary>Navigate a local UTF-8 file as indexed raw source lines.</summary>
+    SourcePager
+}
 
+/// <summary>Parsed mdview invocation, independent of terminal interaction and network I/O.</summary>
+/// <param name="Kind">Selected reader mode or command action.</param>
+/// <param name="Value">Local path, remote URL or GitHub owner, depending on the mode.</param>
+/// <param name="Repository">Optional GitHub repository; null requests owner-only browsing.</param>
 public sealed record MdViewCommand(MdViewSourceKind Kind, string? Value = null, string? Repository = null)
 {
+    /// <summary>Converts command-line tokens to a strongly typed source command.</summary>
+    /// <param name="args">CLI arguments, excluding the executable name.</param>
+    /// <returns>A command describing the selected source or interactive/help action.</returns>
+    /// <exception cref="ArgumentNullException">The argument array is null.</exception>
+    /// <exception cref="ArgumentException">The source or command syntax is invalid.</exception>
     public static MdViewCommand Parse(params string[] args)
     {
         ArgumentNullException.ThrowIfNull(args);
