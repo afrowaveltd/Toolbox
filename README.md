@@ -156,3 +156,11 @@ We completed the public XML documentation of the remaining Markdown cache and md
 The next stage after streamed physical lines is now implemented in `ExchangeHouse.Markdown`: `MarkdownIncrementalBlockScanner` emits **completed, non-overlapping UTF-16 source spans** for conservative top-level headings, simple paragraphs, blank lines and fenced code, without allocating a copy of entire code blocks. List/quote structures remain opaque until ownership semantics can be faithfully modeled. The new 16-case regression suite checks mixed line endings, Unicode offsets, source coverage, laziness, huge code ranges, explicit unclosed fences and parity with the existing parser on a limited flat subset.
 
 [Block range architecture](ExchangeHouse/Markdown/Docs/Incremental-Block-Spans/en.md) · [Existing whole-document parser](ExchangeHouse/Markdown/README.md). `mdview` is unchanged: this is infrastructure for later visual paging, not yet a rendered stream or the planned `F/N/P` indexed search.
+
+## Conservative Markdown quote/list streaming (2026-11-07)
+
+The incremental parser groundwork now includes `MarkdownIncrementalContainerScanner`, a separate `IAsyncEnumerable<MarkdownContainerLine>` adapter for **explicit quote depths, nested ordered/unordered list markers, provable indented continuations, and code-fence lifetime inside quotes**. It retains only the current bounded source line and a maximum of 32 list frames rather than buffering the full document. Quote-depth mismatch interrupts a quote-owned fence instead of swallowing unrelated Markdown as code.
+
+This is a **deliberately conservative** lexical metadata layer, not a full CommonMark AST, a formatted streaming renderer or a change in `mdview`. Lazy continuations, deferred loose-list blank ownership and an ordinary list's outer ownership of nested quotes remain future work. Added 18 focused tests, including restricted parity checks with the current full `MarkdownParser`. CI passed on [run 42314716633](https://github.com/afrowaveltd/Toolbox/actions/runs/42314716633) with **6,603 passing tests, zero warnings and zero errors**, plus successful Windows UI and link-validation jobs.
+
+[Explicit container architecture](ExchangeHouse/Markdown/Docs/Explicit-Container-Scanner/en.md) · [ExchangeHouse status](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.md).
