@@ -31,3 +31,9 @@ Added `MarkdownIncrementalLineScannerTests` (**16 test cases**) for exact physic
 Added `MarkdownIncrementalBlockScannerTests` with 16 cases for exact non-overlapping source coverage, CRLF/Unicode offsets, top-level headings and blank blocks, constant-sized metadata for long paragraph/code ranges, explicit unclosed fences, opacity of quote/list lines, one-line lookahead, cancellation, late-invalid controls and invalid budgets. A **restricted flat grammar** corpus is compared with `MarkdownParser.Parse` for heading/paragraph/blank/fence classification, without claiming equivalence for nested containers.
 
 The new tests were committed but should be considered unverified until the next CI or maintainer run. [Scanner contract](../Markdown/Docs/Incremental-Block-Spans/en.md).
+
+## Explicit container scanner regressions (2026-11-07)
+
+Added `MarkdownIncrementalContainerScannerTests` (**18 cases**: 15 `[Fact]` and three `[InlineData]`) covering quote depth, nested list markers and ancestor continuations, quoted and top-level fenced code, interruption on a quote-depth change, source offset/line-ending fidelity, stale owner clearing, tabs and ordered marker bounds, early streaming events, unsafe controls and cancellation. A restricted marker/fence comparison checks agreement with the existing full `MarkdownParser`. This is not yet an assertion of complete CommonMark compatibility.
+
+[Scanner contract](../Markdown/Docs/Explicit-Container-Scanner/en.md).
