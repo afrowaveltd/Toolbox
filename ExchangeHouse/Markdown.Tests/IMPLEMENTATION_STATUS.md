@@ -149,3 +149,10 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 - Added `MarkdownIncrementalBlockScannerTests` (16 cases) with exact contiguous UTF-16 source spans and line offsets; complete CR/LF/CRLF reconstruction, Unicode, huge code/paragraph regions, unterminated fence metadata and conservative opaque quote/list behavior. Also asserts early-event laziness and propagates cancellation/unsafe controls.
 - Compared flat heading/blank/paragraph/fenced code output with existing `MarkdownParser.Parse` on a restricted golden input. Test is intentionally not proof of full CommonMark or nested container parity.
 - **Fresh CI results pending** for this new change. Do not state a new green total until verified.
+
+
+### CI verification — 2026-11-07 completed block spans
+
+- [GitHub Actions run 42313009028](https://github.com/afrowaveltd/Toolbox/actions/runs/42313009028) **SUCCESS** on the test-implementation commit `34ad5e5d8d0da6b720230711a91a3984a0bc8383`. Full Linux build reported **0 warnings, 0 errors** and passed all test assemblies, including **ExchangeHouse.Markdown.Tests 111/111** (the new 16 block-span cases included).
+- Windows UI regression job and Markdown local link validation also **SUCCESS** in the same run.
+- Subsequent changes are documentation/status updates only. No full CommonMark parity, manual terminal rendering or multi-gigabyte performance claims are implied.
