@@ -87,3 +87,11 @@ Added an **opt-in**, UI-neutral `MarkdownIncrementalLineScanner.ScanAsync(TextRe
 The optional `MarkdownIncrementalBlockScanner.ScanAsync(TextReader)` consumes `MarkdownIncrementalLineScanner` and emits **completed, non-overlapping source ranges**: top-level headings, blank lines, consecutive simple paragraph lines, closed/unterminated top-level fenced code, and opaque single-line quote/list markers. It records UTF-16 source offsets and physical line ranges, not a duplicate string for an arbitrarily long block. Fence closure and language hints remain explicit, and unfinished code fences are distinguished at EOF.
 
 This is an **indexing foundation**, not a substitute for the existing full Markdown parser, inline handling, nested container semantics or renderer. `mdview` is not connected to it yet. [Technical contract and examples](Docs/Incremental-Block-Spans/en.md); 16 new focused test cases and a restricted golden comparison with `MarkdownParser.Parse` were added. New tests await CI confirmation.
+
+## Conservative explicit container metadata (2026-11-07)
+
+Added `MarkdownIncrementalContainerScanner.ScanAsync(TextReader)`, an **additive forward-only metadata layer** recognizing explicit quote depth (including `>>` and `> >`), ordered/unordered nested list markers, only provable indented list continuations and fences inside quotes. Code lines preserve the opening fence scope: embedded headings, list and quote characters do not turn into structure. A change in explicit quote depth interrupts a quoted fence instead of fabricating a closing delimiter.
+
+The scanner emits one `MarkdownContainerLine` per physical source line and holds a capped **32-frame list stack** plus constant-size fence metadata; no document or block text is retained beyond the current line. Critically, it **does not** guess unindented lazy continuations, deferred blank owners or outer-list ownership of a nested quote. Those remain part of the existing whole-document parser until we can reproduce them reliably. Nothing is connected to `mdview` rendering yet.
+
+[Full behavior and limitations](Docs/Explicit-Container-Scanner/en.md). Added 18 focused cases for nested quotes, lists, explicit owners, quote-owned fences, cancellation and a restricted parser comparison; validate with `dotnet test Toolbox.sln`.
