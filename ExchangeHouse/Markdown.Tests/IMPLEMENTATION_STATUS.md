@@ -138,3 +138,8 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 
 - Added `MarkdownIncrementalLineScannerTests.cs` (16 test cases: 13 Facts and 3 Theory rows). These exercise streaming laziness, exact source offsets and line endings, top-level fenced-code state/language, heading parity with the current full parser for flat examples, literal nested-container lines, Unicode, cancellation, bounded line length and late unsafe controls.
 - Existing parser and renderer tests remain unchanged. New tests have **not yet been executed** in this environment; after syncing, run `dotnet test ExchangeHouse/Markdown.Tests/Afrowave.Toolbox.ExchangeHouse.Markdown.Tests.csproj` and the full solution. The stream scanner is opt-in and cannot yet replace the full Markdown parser.
+
+## 2026-11-07 — xUnit analyzer warnings eliminated
+
+- Replaced two `Assert.Equal(1, collection.Count)` checks in `MarkdownParserTests.Quoted_fence_interruption_reclassifies_unquoted_and_differently_nested_lines` with `Assert.Single(collection)`. This preserves and strengthens the assertion semantics while addressing `xUnit2013`.
+- [GitHub Actions run 42311109763](https://github.com/afrowaveltd/Toolbox/actions/runs/42311109763) confirms fresh Linux build **0 warnings/0 errors** with test suites passing and Windows UI regressions green.
