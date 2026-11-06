@@ -170,3 +170,10 @@
 - The conservative scanner explicitly **does not** support nested list/quote ownership, in-container fences, full CommonMark rendering or byte-offset random access; the original parser and all mdview/renderer behavior remain unchanged. Untrusted bytes require whole-file validation before progressive terminal output.
 - Added 16 focused tests, including long ranges, exact source reconstruction and a restricted golden equivalence check against `MarkdownParser.Parse`.
 - [Detailed English documentation](Docs/Incremental-Block-Spans/en.md). Compilation and test results for this change pending. Next: implement well-bounded nested container state and golden comparisons before integrating a formatted visual pager.
+
+
+### CI verification — 2026-11-07 completed block spans
+
+- [GitHub Actions run 42313009028](https://github.com/afrowaveltd/Toolbox/actions/runs/42313009028) **SUCCESS** on the test-implementation commit `34ad5e5d8d0da6b720230711a91a3984a0bc8383`. Full Linux build reported **0 warnings, 0 errors** and passed all test assemblies, including **ExchangeHouse.Markdown.Tests 111/111** (the new 16 block-span cases included).
+- Windows UI regression job and Markdown local link validation also **SUCCESS** in the same run.
+- Subsequent changes are documentation/status updates only. No full CommonMark parity, manual terminal rendering or multi-gigabyte performance claims are implied.
