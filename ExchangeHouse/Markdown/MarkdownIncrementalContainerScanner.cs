@@ -185,6 +185,9 @@ public static class MarkdownIncrementalContainerScanner
                 continue;
             }
 
+            // Once a nonblank non-list line cannot be explicitly attributed,
+            // do not let a later indented line revive a stale list owner.
+            lists.Clear();
             if (quoteDepth > 0)
             {
                 yield return new MarkdownContainerLine(line, MarkdownContainerLineKind.Quote, quoteDepth);
@@ -325,7 +328,12 @@ public static class MarkdownIncrementalContainerScanner
         var i = 0;
         while (i < 4 && i < text.Length && text[i] == ' ')
             i++;
-        return text[(i + length)..].Trim(' ', '\t').IsEmpty;
+        foreach (var character in text[(i + length)..])
+        {
+            if (character is not (' ' or '\t'))
+                return false;
+        }
+        return true;
     }
 
     private static string? ReadLanguage(
