@@ -156,3 +156,9 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 - [GitHub Actions run 42313009028](https://github.com/afrowaveltd/Toolbox/actions/runs/42313009028) **SUCCESS** on the test-implementation commit `34ad5e5d8d0da6b720230711a91a3984a0bc8383`. Full Linux build reported **0 warnings, 0 errors** and passed all test assemblies, including **ExchangeHouse.Markdown.Tests 111/111** (the new 16 block-span cases included).
 - Windows UI regression job and Markdown local link validation also **SUCCESS** in the same run.
 - Subsequent changes are documentation/status updates only. No full CommonMark parity, manual terminal rendering or multi-gigabyte performance claims are implied.
+
+## 2026-11-07 — quote/list streaming scanner tests
+
+- Added `MarkdownIncrementalContainerScannerTests` with **18 test cases**: nested quote depth; nested ordered/unordered list markers; provable indented parent/child continuations; code-fence protection and interruption on quote-depth changes; quoted list-owned fences; source/UTF-16 offset fidelity; avoiding stale owners; tab stops, marker bounds, incremental reading, cancellation and invalid controls.
+- Test fixture includes a **restricted parity assertion** for explicitly marked list/fence lines against `MarkdownParser.Parse`. Do not use it as proof of full nested CommonMark equivalence.
+- CI verification: pending after feature/test commit; do not claim a green result until the full workflow completes.
