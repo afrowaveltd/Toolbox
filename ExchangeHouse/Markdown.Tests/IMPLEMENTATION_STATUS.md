@@ -162,3 +162,9 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 - Added `MarkdownIncrementalContainerScannerTests` with **18 test cases**: nested quote depth; nested ordered/unordered list markers; provable indented parent/child continuations; code-fence protection and interruption on quote-depth changes; quoted list-owned fences; source/UTF-16 offset fidelity; avoiding stale owners; tab stops, marker bounds, incremental reading, cancellation and invalid controls.
 - Test fixture includes a **restricted parity assertion** for explicitly marked list/fence lines against `MarkdownParser.Parse`. Do not use it as proof of full nested CommonMark equivalence.
 - CI verification: pending after feature/test commit; do not claim a green result until the full workflow completes.
+
+### Verified CI — 2026-11-07 explicit container scanner
+
+- [GitHub Actions #42314716633](https://github.com/afrowaveltd/Toolbox/actions/runs/42314716633) **SUCCESS**, including the feature and all **18 new explicit-container tests** after correcting the test's hand-computed CR/LF fixture offsets. Linux clean solution build: **0 warnings / 0 errors**; test assemblies: **6,603 passed, zero failed**. ExchangeHouse Markdown tests: **138/138**.
+- Windows UI regression job **SUCCESS**, Markdown local link checker **SUCCESS**. The implementation and test behavior are therefore verified; subsequent README/status updates are documentation-only.
+- Scope remains conservative: explicit markers, quote depth and quoted fences only, with no full CommonMark/list ownership parity or visual Markdown paging claim.
