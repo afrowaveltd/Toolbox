@@ -10,6 +10,7 @@ This is the main documentation entry point for **the entire Toolbox**, not only 
 4. [Development and verification](../Development-and-Verification/en.md) — testing, docs, GitHub and CI
 5. [Release and package status](../Release-Status/en.md) — confirmed NuGet packages vs unpublished source projects
 6. [NuGet-first preview release policy](../NuGet-Release-Policy/en.md) — publish useful components early, version safely and update external consumers
+7. [Warning-free builds and XML documentation](../Warning-Free-Build/en.md) — document public API contracts, fix analyzer diagnostics and validate clean CI
 
 ## Libraries, tools and project documentation
 
