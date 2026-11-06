@@ -641,8 +641,8 @@ public sealed class MarkdownParserTests
         Assert.Equal(MarkdownBlockKind.Paragraph, doc.Blocks[2].Kind);
         Assert.Null(doc.Blocks[2].CodeFenceStart);
         Assert.Equal(MarkdownBlockKind.ListItem, doc.Blocks[3].Kind);
-        Assert.Equal(1, doc.ListRoots.Count);
-        Assert.Equal(1, doc.QuoteListRoots.Count);
+        Assert.Single(doc.ListRoots);
+        Assert.Single(doc.QuoteListRoots);
         Assert.Equal(2, doc.QuoteListRoots[0].Block.QuoteDepth);
         Assert.Equal(source, MarkdownWriter.Write(doc));
 
