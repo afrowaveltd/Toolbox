@@ -365,3 +365,11 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - [GitHub Actions run 42313009028](https://github.com/afrowaveltd/Toolbox/actions/runs/42313009028) **SUCCESS** on the test-implementation commit `34ad5e5d8d0da6b720230711a91a3984a0bc8383`. Full Linux build reported **0 warnings, 0 errors** and passed all test assemblies, including **ExchangeHouse.Markdown.Tests 111/111** (the new 16 block-span cases included).
 - Windows UI regression job and Markdown local link validation also **SUCCESS** in the same run.
 - Subsequent changes are documentation/status updates only. No full CommonMark parity, manual terminal rendering or multi-gigabyte performance claims are implied.
+
+## 2026-11-07 — incremental explicit quote/list context, isolated module
+
+- Added `ExchangeHouse.Markdown.MarkdownIncrementalContainerScanner` as a new opt-in, bounded `IAsyncEnumerable<MarkdownContainerLine>` source scanner. It recognizes explicit quote depth, ordered/unordered nested lists with provable indented continuation owners, top-level and quote-owned fences with matching delimiter/quote-depth lifetimes. It preserves all original physical line text and UTF-16 offsets.
+- Memory budget is bounded by a single source line (from `MarkdownIncrementalLineScanner`) plus 32 maximum list frames and active fence metadata. No full-document buffer, no new rendering mode or navigation key semantics.
+- Conservative correctness matters more than superficial parsing: unindented lazy ownership, loose blank ownership and outer list ownership of nested quotes are deliberately deferred. Existing mdview, full Markdown parser, renderer, TextMate and offline cache are unchanged.
+- Added 18 focused regression cases with restricted parser comparison. [English design and API notes](ExchangeHouse/Markdown/Docs/Explicit-Container-Scanner/en.md). CI build/tests after this addition to be verified separately.
+- Next milestone: cross-check complex nested quoted lists/fences against original parser, then emit correct completed container block spans for the eventual disk-backed visual Markdown pager.
