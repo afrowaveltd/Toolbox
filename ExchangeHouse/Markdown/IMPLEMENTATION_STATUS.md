@@ -177,3 +177,12 @@
 - [GitHub Actions run 42313009028](https://github.com/afrowaveltd/Toolbox/actions/runs/42313009028) **SUCCESS** on the test-implementation commit `34ad5e5d8d0da6b720230711a91a3984a0bc8383`. Full Linux build reported **0 warnings, 0 errors** and passed all test assemblies, including **ExchangeHouse.Markdown.Tests 111/111** (the new 16 block-span cases included).
 - Windows UI regression job and Markdown local link validation also **SUCCESS** in the same run.
 - Subsequent changes are documentation/status updates only. No full CommonMark parity, manual terminal rendering or multi-gigabyte performance claims are implied.
+
+## 2026-11-07 — explicit quote/list streaming metadata
+
+- Added public `MarkdownIncrementalContainerScanner`, `MarkdownContainerLine`, and `MarkdownContainerLineKind` with complete English XML API comments, without modifying the existing `MarkdownParser`, `MarkdownIncrementalBlockScanner`, or any rendering paths.
+- Parses **explicit** quote nesting up to depth 32, ordered/unordered nested list markers and sufficiently indented continuation owners with a maximum 32 list frames, and top-level/quote-owned code fences including delimiter/quote-depth validation.
+- Source is preserved through `MarkdownStreamLine` and UTF-16 offsets. Fences keep literal code protected from accidental list/heading classifications; a quote-depth mismatch interrupts an active quoted fence and the current source line is reclassified. Stale list owners are dropped on unrelated content.
+- Does **not** claim lazy continuation ownership, loose-list blank ownership, the outer list owner of indented nested quoted content, complete CommonMark or byte-offset random access. It is an isolated source metadata foundation pending container-aware *completed block* semantics. Does not change mdview output.
+- Added 18 fake-stream tests including a restricted parity check with the established full parser, a documentation page [Explicit Container Scanner](Docs/Explicit-Container-Scanner/en.md), and root documentation links.
+- Next: verify new CI test run and reconcile any discrepancies, then separately model outer list plus quote-local owners and finish container block boundaries.
