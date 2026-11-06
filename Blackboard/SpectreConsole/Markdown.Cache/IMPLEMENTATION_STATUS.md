@@ -63,3 +63,10 @@ Next: run and correct Windows/Linux solution CI; then add fault-injection tests,
 
 - Maintainer reports the full Windows solution tests are green after fixing the mock HTTP query parameter matcher. Production GitHub catalog implementation was unchanged.
 - The previous failing catalog test is confirmed resolved by the user. Independent Linux/CI verification remains open.
+
+## 2026-11-07 — public XML API documentation complete, verified
+
+- Added accurate XML summaries and parameter/return/exception documentation for `CacheDirectory.GetDefaultPath`, `GitHubReadmeSource` constructor and `OpenAsync`, `HttpMarkdownDocumentSource` constructor and `OpenAsync`, `VerifiedDocumentCache` constructor and `PutAsync`, `HttpDocumentState` values and `GitHubRepositoryCatalogState` values.
+- Completed **all eight positional parameter comments** on `CachedDocument`, resolving the seven `CS1573` warnings caused by documenting only `ContentPath`. No runtime behavior or public signatures changed, and no warning suppression was introduced.
+- [GitHub Actions run 42311109763](https://github.com/afrowaveltd/Toolbox/actions/runs/42311109763): Linux fresh build **0 warnings, 0 errors**, Linux tests green, Windows UI tests green, documentation link checker green. The run includes the source/XML fixes and workflow cleanup.
+- [Warning-free build policy](../../../Docs/Warning-Free-Build/en.md).
