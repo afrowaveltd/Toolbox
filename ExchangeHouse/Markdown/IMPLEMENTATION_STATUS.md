@@ -186,3 +186,9 @@
 - Does **not** claim lazy continuation ownership, loose-list blank ownership, the outer list owner of indented nested quoted content, complete CommonMark or byte-offset random access. It is an isolated source metadata foundation pending container-aware *completed block* semantics. Does not change mdview output.
 - Added 18 fake-stream tests including a restricted parity check with the established full parser, a documentation page [Explicit Container Scanner](Docs/Explicit-Container-Scanner/en.md), and root documentation links.
 - Next: verify new CI test run and reconcile any discrepancies, then separately model outer list plus quote-local owners and finish container block boundaries.
+
+### Verified CI — 2026-11-07 explicit container scanner
+
+- [GitHub Actions #42314716633](https://github.com/afrowaveltd/Toolbox/actions/runs/42314716633) **SUCCESS**, including the feature and all **18 new explicit-container tests** after correcting the test's hand-computed CR/LF fixture offsets. Linux clean solution build: **0 warnings / 0 errors**; test assemblies: **6,603 passed, zero failed**. ExchangeHouse Markdown tests: **138/138**.
+- Windows UI regression job **SUCCESS**, Markdown local link checker **SUCCESS**. The implementation and test behavior are therefore verified; subsequent README/status updates are documentation-only.
+- Scope remains conservative: explicit markers, quote depth and quoted fences only, with no full CommonMark/list ownership parity or visual Markdown paging claim.
