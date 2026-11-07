@@ -215,3 +215,11 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 
 - Added five `MarkdownScannerCheckpointTests`: nested ownership/fence JSON roundtrip, empty initial state, unsupported version and owner reference rejection, invalid fence/nesting rejection, malformed and oversized JSON.
 - Production contract `9aa8bfb0f44452779f1646b3297aff601d280f90`; tests `b7b13ad5c36c7a0b7571bbf90198a1e332d0e407`. These tests do **not** demonstrate live scanner export/restore or source-binding correctness. Fresh .NET test run pending.
+
+
+## 2026-11-08 — live checkpoint state-machine parity tests
+
+- Added five `InlineData` examples in `MarkdownContainerStateMachineTests.CaptureAndRestoreAfterEveryLineMatchesUninterruptedScan` for list nesting, quote ownership, fenced code and CRLF/mixed newline continuation.
+- Added three focused tests for active quoted fence state restoration, rejection of misaligned next source lines and rejection of an unresolvable outer fence-owner.
+- Implementation `eed96080d2567ea5d68a3b679a5c8c83840ab766`, tests `5ad6259202aa739f8e409309eb963233f60999f4`. These tests check state-machine classification, not arbitrary on-disk seek, snapshot identity or rendered terminal row parity.
+- **Fresh CI/manual test verification pending.** Previous green Windows suite was confirmed before this refactor.
