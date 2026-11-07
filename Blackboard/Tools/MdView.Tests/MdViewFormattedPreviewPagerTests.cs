@@ -84,15 +84,16 @@ public sealed class MdViewFormattedPreviewPagerTests
             "intro\n```text\n# code\nsecond code\n```\nending");
         var console = Interactive();
         console.Input.PushKey(ConsoleKey.Enter); // Next.
-        console.Input.PushKey(ConsoleKey.Enter); // Previous (first choice on last? No: line 3–4 has Next).
-        // Second Enter selects Next again because this is the middle page.
-        console.Input.PushKey(ConsoleKey.Enter); // Previous on final page.
+        console.Input.PushKey(ConsoleKey.Enter); // Next again, to the final page.
+        console.Input.PushKey(ConsoleKey.Enter); // Previous is first on the final page.
         console.Input.PushKey(ConsoleKey.Escape);
 
         await new MdViewFormattedPreviewPager(console).RunAsync(path, 2);
 
         Assert.Contains("# code", console.Output);
         Assert.Contains("Source lines 5–6", console.Output);
+        Assert.Equal(2, console.Output.Split(
+            "Source lines 3–4", StringSplitOptions.None).Length - 1);
     }
 
     [Fact]
