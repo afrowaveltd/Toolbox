@@ -257,3 +257,11 @@
 - Commit `39dd20eb3127dbae8ddccfb33a5b5590f47e7b9a` contains the test cases. Updated the formerly obsolete known-gap section in [Dual List Ownership](Docs/Dual-List-Ownership/en.md) in commit `0d283fdcace758c85519bce1542059f36cdf0b10`.
 - **Fresh CI verification pending.** Previous 6,662 passing tests apply to the state *before* the production and regression changes in this milestone. Do not claim those counts for the new snapshot.
 - Remaining: additional list/quote/tab golden cases, validated UTF-8 byte-offset mapping, and a resource-budgeted formatted pager before mdview can consume the streaming scanner.
+
+## 2026-11-07 — tab stops and nested code-fence owner golden tests
+
+- Added **four xUnit theory cases** in `MarkdownIncrementalQuoteOwnershipTests`: ordinary/quoted lists with a tab-delimited marker and tab-indented fence (including mixed CRLF/LF/CR), and ordinary/quoted nested numbered/unordered lists with a child-owned code fence.
+- The cases check exact original Markdown round-trip, stream event classification, closing-fence lifetime, deepest owning list offset, absolute UTF-16 source offsets and parity with `MarkdownParser.Parse`.
+- Test commit: `cd958febe6a34ff86caa7a7d0fa18014f3dd285f`. Documentation: [Dual List Ownership](Docs/Dual-List-Ownership/en.md), updated in `d02799c0cc524869c8ef7262a4d751ed18df340e`.
+- Maintainer reports all tests green after the preceding indentation-fence milestone; **these four newly committed test cases have not been independently verified by CI here**. Do not extrapolate the earlier 6,662-test snapshot.
+- No production API, parser behavior, `mdview` renderer or NuGet package publication was changed in this increment. Next: verify green CI, expand interrupted-fence golden cases, then introduce an immutable-file-aware UTF-16-to-byte index before visual paging.
