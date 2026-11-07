@@ -1,3 +1,4 @@
+using Afrowave.Toolbox.ExchangeHouse.Markdown;
 using System.Globalization;
 using Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown;
 using Afrowave.Toolbox.Blackboard.TextFiles;
@@ -37,6 +38,7 @@ public sealed class MdViewFormattedPreviewPager
 
         await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(
             path, cancellationToken: cancellationToken);
+        await using var containerCursor = new MdViewContainerPageCursor(snapshot);
         var index = snapshot.Lines;
         long firstLine = 0;
         var previousPages = new Stack<long>();
@@ -55,7 +57,7 @@ public sealed class MdViewFormattedPreviewPager
                 " bytes | " + index.LineCount.ToString(CultureInfo.InvariantCulture) +
                 " physical lines" + Environment.NewLine));
             _console.Write(new Text(
-                "Source-page preview: fences, lists and quotes spanning pages may render differently." +
+                "Incremental fence ownership; lists, quotes and visual rows remain experimental." +
                 Environment.NewLine));
             if (feedback is not null)
             {
@@ -69,11 +71,43 @@ public sealed class MdViewFormattedPreviewPager
             }
             else
             {
-                // This is deliberately a bounded source fragment, not a
-                // continuation of an unfinished whole-document parser state.
-                var markdown = string.Join("\n", page.Lines);
-                MarkdownSpectreRenderer.Render(
-                    _console, markdown, MdViewHighlighting.CreateTheme());
+                // Scanner context survives forward page boundaries. Only
+                // confirmed fenced lines bypass the fragment parser so that
+                // "# heading" or "- item" inside code stays literal.
+                var classified = await containerCursor.ReadAsync(
+                    page.FirstLine, page.Lines.Count, cancellationToken)
+                    .ConfigureAwait(false);
+                if (classified.Count != page.Lines.Count)
+                    throw new InvalidDataException(
+                        "Container scanner and validated line index disagree.");
+
+                var theme = MdViewHighlighting.CreateTheme();
+                var prose = new List<string>();
+                void FlushProse()
+                {
+                    if (prose.Count == 0)
+                        return;
+                    MarkdownSpectreRenderer.Render(
+                        _console, string.Join("\n", prose), theme);
+                    prose.Clear();
+                }
+
+                foreach (var line in classified)
+                {
+                    if (line.Kind is MarkdownContainerLineKind.FenceOpen or
+                        MarkdownContainerLineKind.CodeLine or
+                        MarkdownContainerLineKind.FenceClose)
+                    {
+                        FlushProse();
+                        // Literal Spectre Text: code cannot be mistaken for
+                        // markdown headings, lists or executable markup.
+                        _console.Write(new Text(
+                            line.Source.Text + Environment.NewLine));
+                    }
+                    else
+                        prose.Add(line.Source.Text);
+                }
+                FlushProse();
             }
 
             _console.Write(new Text("Source lines " +
