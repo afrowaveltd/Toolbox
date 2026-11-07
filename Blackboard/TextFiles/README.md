@@ -98,3 +98,18 @@ single-pass HDD-optimized scan and immutable-source handling remain future
 work. No performance figures are claimed. Additional large mixed-encoding
 regressions are committed; fresh test execution is pending.
 
+
+## Contiguous source paging (2026-11-07)
+
+`Utf8DiskLineIndex.ReadPageAsync` now loads a selected page with
+one **contiguous source read**, after selecting offsets from the
+on-disk line table. The existing byte and line limits remain:
+128 physical lines, 4 MiB per page, configurable per-line cap,
+strict UTF-8 validation and `NextLine` continuation.
+
+The public API has not changed. This eliminates one seek per line
+during a source-page read but does not yet deliver a fully immutable
+source snapshot or guarantee measured HDD throughput. Two focused
+regressions cover large mixed Unicode/BOM/newline pages and
+byte-budget page boundaries. Verification is pending.
+
