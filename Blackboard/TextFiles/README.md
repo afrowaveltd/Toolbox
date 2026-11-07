@@ -144,3 +144,31 @@ unchanged; future formatted paging can consume the snapshot after
 additional renderer and source-span parity work. Four new tests were
 authored; new build/CI verification is pending.
 
+
+## Configurable snapshot workspace and cleanup (2026-11-07)
+
+`Utf8ValidatedSnapshot.CreateAsync` now accepts an optional
+`temporaryRoot` argument **after** the existing cancellation token, preserving
+previous positional callers. It must designate an existing directory; when
+omitted, the OS temporary directory is used. A unique
+`afrowave-utf8-snapshot-*` child directory is created inside it; the
+caller-owned root is never removed.
+
+```csharp
+await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(
+    "README.md",
+    temporaryRoot: "/mnt/large-temp");
+```
+
+The path is illustrative; use an existing location suitable for the current
+operating system and available free space. The snapshot removes its own
+temporary files on disposal and after a failed copy/validation. Ordinary
+cancellation before copying does not create a working directory. On Windows,
+the read-only handles are closed before deletion.
+
+Four lifecycle tests cover successful disposal, invalid-content cleanup,
+byte-budget failure cleanup and pre-cancelled operations using an isolated
+test directory. **Fresh CI/build confirmation is pending**. Workspaces are
+not a defense against malicious same-user tampering and process termination
+may leave orphaned temporary directories; optional startup cleanup remains
+future work.
