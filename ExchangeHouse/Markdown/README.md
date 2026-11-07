@@ -119,3 +119,23 @@ New opt-in `MarkdownIncrementalContainerBlockScanner.ScanAsync(TextReader)` comp
 Span categories are top-level heading, ordinary run, quote run, one list-marker line, list-owned continuation run, blank run, and fenced code. A fence explicitly reports `Closed`, `Interrupted`, or `EndOfFile`; interrupted lines are reprocessed as their own spans, never swallowed. Long contiguous runs require constant-sized span state; the line reader and deferred-blank adapter retain their existing resource budgets.
 
 [Full contract and limitations](Docs/Incremental-Container-Block-Spans/en.md). The scanner does **not** parse full CommonMark, collect complete list subtrees, map UTF-16 spans directly to UTF-8 byte offsets, or change current `mdview` rendering. Twenty-two focused tests were added for exact source reconstruction, quote/list ownership, fence completion, lazy/blank boundaries, Unicode, bounded reading and cancellation.
+
+
+## Versioned incremental scanner checkpoint contract (2026-11-08)
+
+`MarkdownScannerCheckpoint` and
+`MarkdownScannerCheckpointCodec` establish a **versioned, bounded,
+validated serialization contract** for future fast Markdown scanner
+restoration. The schema records the next physical line and UTF-16 offset,
+both list-ownership stacks, quote state, blank separator flags and complete
+active code-fence context. JSON payloads are limited to 32 KiB; unknown
+versions, malformed data, invalid offset references and over-deep lists
+fail validation.
+
+This is **not yet a resumable scanner**: current `ScanAsync` does not
+export this state or accept it for restart. No snapshot identity binding
+or safe random seek is claimed. `mdview preview` continues using the
+already validated disk-backed classified-event journal.
+
+[Checkpoint contract and limitations](Docs/Scanner-Checkpoints/en.md).
+Five new focused tests are committed; their execution is pending.
