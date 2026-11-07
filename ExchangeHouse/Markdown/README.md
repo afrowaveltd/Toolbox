@@ -103,3 +103,11 @@ The additive `MarkdownContainerLine` API now exposes three init-only propertiesâ
 Inside ordinary and quoted lists, fenced-code indent stripping now removes **only the owning item's required content indent** rather than all leading whitespace. This prevents excessively indented backticks from being mistaken for opening or closing code fences. It is checked against the existing whole-document parser.
 
 This is a conservative, opt-in scanner feature: lazy continuations and deferred loose-list blank ownership are not inferred, the full renderer and mdview are unchanged, and this is not yet complete CommonMark. [Detailed ownership design](Docs/Dual-List-Ownership/en.md).
+
+## Deferred blanks and lazy list ownership (2026-11-07)
+
+The forward-only `MarkdownIncrementalContainerScanner` now marks uninterrupted, unindented list paragraph continuations with `MarkdownContainerLine.IsLazyListContinuation`. A blank, heading, new marker, thematic break, fence or quote boundary prevents accidental lazy ownership. This remains a conservative, opt-in source scanner and does not alter the existing full parser or mdview renderer.
+
+New `MarkdownDeferredListOwnershipScanner.ScanAsync(TextReader)` offers **bounded lookahead** to defer classification of blank separators until the following explicitly indented list continuation proves their owner. It preserves original text, line endings, quote depth and separate outer/inner list owner metadata. `ListBlankOwnerUtf16Offset` is assigned only to proven blanks; other blanks remain unowned. Buffers are limited by both a line-count budget (default 1,024) and an aggregate UTF-16 character budget (default 1 Mi); excess input raises an explicit exception rather than silently truncating source.
+
+[Detailed English contract](Docs/Deferred-List-Ownership/en.md). Twenty new tests cover loose-list ownership, quote scopes, continuation rules, delayed events, memory budgets and restricted parity with the full parser. The rendered CLI remains untouched.
