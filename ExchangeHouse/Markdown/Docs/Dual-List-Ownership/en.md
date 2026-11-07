@@ -63,7 +63,7 @@ The full parser's original source and paragraph content offsets are kept.
 For example, under a `- item` marker (content indentation of two columns),
 a fence preceded by two through five spaces is recognized; one preceded by
 six spaces is not. The same boundary applies after a quote prefix, such as
-`> - item` and `>       ```js`.
+`> - item` and a quote-prefixed fence marker with six spaces after `>`.
 
 The regression `FenceOpeningIndentationBoundaryMatchesFullParser` covers
 both ordinary and quote-local lists at all five boundaries, checking
