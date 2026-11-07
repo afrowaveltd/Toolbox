@@ -133,3 +133,30 @@ row pagination and cached reverse checkpoints are not yet implemented.
 The existing `local`, `source`, `git` and `url` modes remain
 unchanged. New compilation and test results must be verified on Windows
 and Debian before claiming a green build.
+
+
+## Disk-backed container journal for reverse navigation (2026-11-08)
+
+The experimental `preview PATH` mode now retains classified
+`MarkdownContainerLine` events in a **bounded disk journal** rather than
+discarding them after each page. The cursor writes serialized line events
+and a separate 64-bit per-line offset table. Previously visited pages,
+including their fence/list/quote metadata, are reloaded directly from
+the journal: navigating backward no longer forces a replay from the
+beginning of the document. Forward scans continue from the previous
+scanner position.
+
+`MdViewContainerPageCursor` defaults to a **512 MiB journal byte
+budget** plus a **256 MiB offset-table budget**, both configurable in
+its constructor. Exceeding either cap fails explicitly, without silently
+dropping lines. Temporary files are opened with delete-on-close, and
+normal disposal releases the parser, reader and both files. Event text
+is stored on disk, not retained in a growing RAM collection.
+
+This is **not** a serializable snapshot of the scanner's private iterator
+state. Jumping **forward beyond the scanned high-water mark** still
+requires processing intermediate source lines, so it is not yet
+constant-time random Markdown navigation. Disk budgets also mean
+extremely large files may require explicit configuration or another
+metadata representation. Original mdview modes are unchanged.
+Focused tests are committed but require a fresh Windows/Debian run.
