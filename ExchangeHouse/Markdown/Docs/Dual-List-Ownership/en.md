@@ -50,19 +50,31 @@ The existing `MarkdownParser` and `MarkdownWriter` remain the semantic baseline;
 
 An arbitrary `TextReader` is not evidence of valid UTF-8. The progressive scanner may yield early lines before detecting a late invalid control character; do not expose untrusted progressive output to a terminal until the original file has passed whole-source validation (for example through `TextFiles.Utf8DiskLineIndex`).
 
-## Known compatibility gap: excessive indentation on code-fence opening
+## Opening code-fence indentation parity (2026-11-07)
 
-The current whole-document `MarkdownParser.Parse` recognizes an opening fence under a list item after removing **all** indentation from an explicitly indented continuation. The conservative incremental scanner removes **only the owning item's content indentation**. Consequently, for input such as:
+The whole-document `MarkdownParser.Parse` now uses the same conservative
+opening-fence indentation rule as `MarkdownIncrementalContainerScanner`
+for explicitly continued ordinary-list and quote-local list items:
+strip **only the list item's required content indentation** before testing
+the delimiter. Up to three additional spaces are permitted; four or more
+additional spaces remain indented content rather than opening a fence.
+The full parser's original source and paragraph content offsets are kept.
 
-```markdown
-- item
-      ```js
-  text
-```
+For example, under a `- item` marker (content indentation of two columns),
+a fence preceded by two through five spaces is recognized; one preceded by
+six spaces is not. The same boundary applies after a quote prefix, such as
+`> - item` and `>       ```js`.
 
-the whole-document parser currently classifies the second physical line as `CodeFence`, while the incremental scanner classifies it as `ListContinuation` (not a fence). This distinction is **intentional in the new component but not yet reconciled for renderer compatibility**. The old parser's closing-fence path already removes only the owner's required indentation, and both implementations agree that a marker with excessive remaining indentation cannot close a fence.
+The regression `FenceOpeningIndentationBoundaryMatchesFullParser` covers
+both ordinary and quote-local lists at all five boundaries, checking
+classification, fence offsets and unchanged-source round-tripping.
+The earlier `OverIndentedListFenceOpenerIsNotRecognizedAsCode` regression
+and its quoted counterpart cover the conservative rejection case.
 
-This case has a regression test explicitly recording **both behaviors**, not asserting false parity. Before switching `mdview` to the new scanner, choose and test a consistent opening/closing fence indentation contract for the original parser and the incremental scanner, including lists, quotes, nested owners and tab stops. Until then the full renderer remains unchanged.
+This closes **one specific previously recorded compatibility discrepancy**;
+it is not proof of complete CommonMark, nested container or tab-indentation
+equivalence. Do not switch the formatted `mdview` renderer to the streaming
+parser without broader golden comparisons and fresh passing CI.
 
 ## Tests and verification
 
@@ -71,7 +83,7 @@ dotnet test ExchangeHouse/Markdown.Tests/Afrowave.Toolbox.ExchangeHouse.Markdown
 dotnet test Toolbox.sln
 ```
 
-`MarkdownIncrementalQuoteOwnershipTests` contains 14 targeted regressions for adjacent outer items, nested ordered and unordered outer lists, independent inner list items/continuations, quote-only metadata, changes in quote depth, mixed newlines/Unicode offsets, literal fences, and early streaming output. Supported cases compare owner source offsets to `MarkdownParser.Parse` instead of checking only the new parser's self-consistency. See repository CI for the verified results.
+`MarkdownIncrementalQuoteOwnershipTests` contains targeted regressions for adjacent outer items, nested ordered and unordered outer lists, independent inner list items/continuations, quote-only metadata, changes in quote depth, mixed newlines/Unicode offsets, literal fences, and early streaming output. Supported cases compare owner source offsets to `MarkdownParser.Parse` instead of checking only the new parser's self-consistency. See repository CI for the verified results.
 
 ## Next implementation steps
 
