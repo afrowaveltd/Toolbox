@@ -39,3 +39,10 @@
 - Commits `7e0cd3790f776d6258aa638e366d1c3aacedbd7f`, `378bc31aa7b75b34e2290248185a9d21bf6a4dfe`. These are source-based assertions, not an HDD benchmark.
 - Fresh `dotnet test Blackboard/TextFiles.Tests/Afrowave.Toolbox.Blackboard.TextFiles.Tests.csproj` and `dotnet test Toolbox.sln` verification pending.
 
+
+## 2026-11-07 — contiguous source-page regression coverage
+
+- Added `ContiguousPagesPreserveUnicodeBomAndMixedNewlinesAcrossBoundaries` (261 UTF-8 lines with BOM, Unicode and rotating CRLF/CR/LF across the 128-line boundary, forward and random access).
+- Added `ContiguousPageByteLimitNeverDropsTheFirstLineOfNextPage` (100 long lines, >4 MiB source total, exact `NextLine` continuation and reconstruction).
+- Tests committed in `16bf7eca7554b6a0e1f8f56dc32988503135f089`; runtime change in `133f28a2cd8fdb7d51d974ff935e930eff83a464`. Execution still pending; no claim of green CI for this snapshot.
+
