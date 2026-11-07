@@ -111,3 +111,25 @@ navigation exits. CLI requires an interactive terminal.
 
 [Detailed design and limitations](Docs/Experimental-Formatted-Preview/en.md).
 New tests and compilation await a fresh Windows/Linux run.
+
+
+## Incremental fenced-code context across preview pages (2026-11-08)
+
+The opt-in `preview PATH` mode now uses `MdViewContainerPageCursor`,
+a bounded cursor over `MarkdownIncrementalContainerScanner` fed by
+`Utf8ValidatedSnapshot.OpenReader()`. Forward navigation continues from
+the scanner's last physical line without rescanning earlier pages.
+Backward navigation and source-line jumps replay scanner state from the
+start of the snapshot (correct but potentially slow for very large files).
+
+Confirmed `FenceOpen`, `CodeLine` and `FenceClose` events are emitted
+as **literal, safe Spectre text** instead of being reparsed as Markdown
+headings, list markers or Spectre markup. Consecutive non-code source
+lines still use the existing colored Markdown renderer in bounded chunks.
+This preserves basic code-fence classification across page boundaries,
+but code syntax coloring, precise quote/list formatting, complete visual
+row pagination and cached reverse checkpoints are not yet implemented.
+
+The existing `local`, `source`, `git` and `url` modes remain
+unchanged. New compilation and test results must be verified on Windows
+and Debian before claiming a green build.
