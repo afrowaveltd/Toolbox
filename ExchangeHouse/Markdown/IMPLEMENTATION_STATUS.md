@@ -274,3 +274,12 @@
 - **Critical scope:** this is a serializable state **format only**, not scanner export/restore, not source-bound authentication, and not safe random seek. Existing Markdown scanners, mdview journal and default renderer are unchanged. Current fences longer than the provisional checkpoint limit cannot be encoded and must be handled in the next design increment.
 - **New test execution pending**. Verify focused `ExchangeHouse/Markdown.Tests` and the full solution on Windows; do not extrapolate the maintainer's previous green result to this commit.
 - Next: refactor scanner internals into a reusable explicit state machine while retaining exact existing `ScanAsync` output; then implement safe export/resume with source identity and golden parity tests.
+
+
+## 2026-11-08 — explicit container state machine with capture/restore
+
+- Extracted existing `MarkdownIncrementalContainerScanner.ScanAsync` classification into nested public `StateMachine`. The original streaming entrypoint and helper logic remain; its foreach now delegates each decoded physical `MarkdownStreamLine` to `StateMachine.Process` (commit `eed96080d2567ea5d68a3b679a5c8c83840ab766`).
+- `StateMachine.Capture()` generates a validated version-1 `MarkdownScannerCheckpoint`, including both list stacks, quote owner, blank separator flags, fence and exact line/UTF-16 continuation coordinate. `StateMachine.Restore(checkpoint)` reconstructs these and rejects an active quoted fence whose original outer list frame is absent. Consecutive source number and offset checks fail fast.
+- Added `MarkdownContainerStateMachineTests` with five mixed-container golden sources restoring before every physical line, an active quoted fenced-block resume, out-of-order offset rejection and invalid fence-owner restoration (`5ad6259202aa739f8e409309eb963233f60999f4`).
+- **Boundary:** `StateMachine` can resume after being fed already-decoded, correctly numbered lines, but no source digest/identity binding or arbitrary-position physical line reader exists yet. It is unsafe to trust external checkpoint data as a proof of file contents. The separate mdview event journal remains unchanged.
+- **Fresh tests pending**: user-confirmed green Windows suite predates this refactor. Run `dotnet test ExchangeHouse/Markdown.Tests/Afrowave.Toolbox.ExchangeHouse.Markdown.Tests.csproj` and `dotnet test Toolbox.sln` on Windows. Ensure existing parser golden tests still pass before any mdview integration.
