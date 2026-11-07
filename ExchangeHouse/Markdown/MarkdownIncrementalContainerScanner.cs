@@ -204,6 +204,11 @@ public static class MarkdownIncrementalContainerScanner
                 currentOuterQuoteOwner = outerOwner?.Start;
             }
 
+            // An unowned standalone quote interrupts any previous ordinary
+            // list context; a later indented quote must not revive that owner.
+            if (quoteDepth > 0 && outerOwner is null)
+                ordinaryLists.Clear();
+
             var activeLists = quoteDepth > 0 ? quoteLists : ordinaryLists;
             var (indentOwnerDepth, indentOwner) = FindContinuation(activeLists, content);
             var fenceContent = indentOwnerDepth >= 0
@@ -274,9 +279,6 @@ public static class MarkdownIncrementalContainerScanner
             activeLists.Clear();
             // A standalone quoted paragraph cannot keep a stale ordinary
             // list owner alive for later, unrelated indented quote lines.
-            if (quoteDepth > 0 && outerOwner is null)
-                ordinaryLists.Clear();
-
             yield return Make(line,
                 quoteDepth > 0 ? MarkdownContainerLineKind.Quote :
                     MarkdownContainerLineKind.Plain,
