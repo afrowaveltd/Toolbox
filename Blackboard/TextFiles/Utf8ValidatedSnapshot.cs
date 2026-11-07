@@ -66,8 +66,20 @@ public sealed class Utf8ValidatedSnapshot : IAsyncDisposable
 
         // Use a uniquely named private subdirectory even when the caller
         // chooses a shared work volume. Never delete the caller's root.
-        var directory = Directory.CreateTempSubdirectory(
-            "afrowave-utf8-snapshot-", temporaryRoot);
+        DirectoryInfo directory;
+        if (temporaryRoot is null)
+        {
+            directory = Directory.CreateTempSubdirectory("afrowave-utf8-snapshot-");
+        }
+        else
+        {
+            if (!Directory.Exists(temporaryRoot))
+                throw new DirectoryNotFoundException(
+                    "The configured snapshot temporary root does not exist.");
+            directory = Directory.CreateDirectory(Path.Combine(
+                temporaryRoot, "afrowave-utf8-snapshot-" +
+                    Guid.NewGuid().ToString("N")));
+        }
         var destination = Path.Combine(directory.FullName, "validated.utf8");
         Utf8DiskLineIndex? index = null;
         FileStream? readGuard = null;
