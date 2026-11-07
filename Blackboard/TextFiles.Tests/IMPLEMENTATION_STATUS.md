@@ -32,3 +32,10 @@
 
 - Added four new tests for the optional `Utf8DocumentOffsetIndex`: UTF-8 BOM/multibyte Unicode/CRLF interior mapping, empty and terminated lines, surrogate middle/out-of-range rejection, index disk budget and zero-length source.
 - Production commit `525266761512b202b545169a210a609f20896ee9`, tests `b9b7fb8bd02a95ecca3947f8f1d8a377675afe82`. New tests have **not been run in this environment**. Validate with `dotnet test Blackboard/TextFiles.Tests/Afrowave.Toolbox.Blackboard.TextFiles.Tests.csproj` and `dotnet test Toolbox.sln`.
+
+## 2026-11-07 — batch construction parity regressions
+
+- Added two tests for document-absolute position indexing: mixed UTF-8 multibyte text/CRLF/LF/CR over 320 lines with sampling across 128-line boundaries; BOM-only source and EOF on an unterminated final line.
+- Commits `7e0cd3790f776d6258aa638e366d1c3aacedbd7f`, `378bc31aa7b75b34e2290248185a9d21bf6a4dfe`. These are source-based assertions, not an HDD benchmark.
+- Fresh `dotnet test Blackboard/TextFiles.Tests/Afrowave.Toolbox.Blackboard.TextFiles.Tests.csproj` and `dotnet test Toolbox.sln` verification pending.
+
