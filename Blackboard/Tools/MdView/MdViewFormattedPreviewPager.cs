@@ -7,8 +7,9 @@ using Spectre.Console;
 namespace Afrowave.Toolbox.Blackboard.Tools.MdView;
 
 /// <summary>
-/// Experimental bounded-source Markdown preview. Each page is parsed
-/// independently; cross-page Markdown container state is not preserved.
+/// Experimental bounded-source Markdown preview. Confirmed fenced-code
+/// state survives page boundaries; other Markdown fragments are still
+/// parsed independently and may lose list/quote context.
 /// </summary>
 public sealed class MdViewFormattedPreviewPager
 {
@@ -20,7 +21,7 @@ public sealed class MdViewFormattedPreviewPager
         _console = console ?? throw new ArgumentNullException(nameof(console));
 
     /// <summary>
-    /// Displays one independent, bounded Markdown source page at a time.
+    /// Displays one bounded, partially container-aware source page at a time.
     /// The existing complete-document renderer remains the default CLI mode.
     /// </summary>
     /// <param name="path">Local UTF-8 Markdown document.</param>
