@@ -49,3 +49,10 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - Root cause is in the simulated input: on the last page the `Next page` menu entry is omitted, so `Previous page` is the **first** choice. The test's extra `DownArrow` selected `Go to source line` instead, with no following text input.
 - Removed the extra key and added a separate `GoToSourceLineReadsRequestedPage` test that explicitly supplies line `3`. Commit `191b304252daadd6e1bbf3fa4a545bcdfa5f4613`.
 - **Fresh test execution pending.** No production pager behavior changed. Re-run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj` and the solution suite; count remains unverified until then.
+
+
+## 2026-11-08 — cross-page fence lifecycle regression coverage
+
+- Added `FenceCrossingPageBoundaryKeepsHeadingLookingCodeLiteral` and `ReturningToEarlierPageReplaysScannerWithoutLosingFenceContext` against the opt-in preview CLI using TestConsole.
+- These exercise literal Markdown-looking lines inside a fence across the 2-line source-page boundary and scanner replay after page navigation.
+- Test commit `48bf8bc47064741cdc810f3fd279f9d7c147cc49`. **Not yet executed** in this environment; rerun focused mdview tests and full solution.
