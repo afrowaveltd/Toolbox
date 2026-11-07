@@ -57,3 +57,12 @@
 - The full reader still seeks per source line while creating pages; this is **not a completed single-sequential-pass HDD optimization**. Limits, source identity caveats and existing API semantics are unchanged. No mdview integration.
 - **CI/build pending** for this revision, because .NET SDK is unavailable in this environment. Next: run TextFiles and full Toolbox tests, then optimize physical-line page IO and immutable snapshot policy.
 
+
+## 2026-11-07 — contiguous physical-line page reads
+
+- Reworked `Utf8DiskLineIndex.ReadPageAsync` to select the largest admissible page from one on-disk offset-table read, then perform **one contiguous source seek/read** for that selected page. It decodes each bounded slice with strict UTF-8 and preserves BOM, CRLF/LF/CR, unsafe-control checks, random page access and `NextLine`.
+- Source commit `133f28a2cd8fdb7d51d974ff935e930eff83a464`; regression commit `16bf7eca7554b6a0e1f8f56dc32988503135f089` (261-line Unicode/BOM/terminator boundaries and 100 long lines crossing a 4 MiB page budget).
+- The maximum page stays 128 lines / 4 MiB and the existing per-line cap still applies. Only the source-page read pattern changed; no public API, Markdown renderer, snapshot integrity guarantee or NuGet publication changed.
+- **Fresh .NET/CI verification not yet confirmed** for this increment. Run TextFiles tests and `dotnet test Toolbox.sln` and record actual results. Do not infer throughput gains without benchmarking on representative HDD/SSD.
+- Next: consider combining initial validation/indexing with metadata generation and create a stable source snapshot policy before enabling formatted streaming markdown pages.
+
