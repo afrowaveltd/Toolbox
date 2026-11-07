@@ -162,7 +162,11 @@ public sealed class MarkdownIncrementalContainerScannerTests
         var lines = await ScanAsync(source);
         Assert.Equal(MarkdownContainerLineKind.ListItem, lines[0].Kind);
         Assert.Equal("123456789.", lines[0].ListMarker);
-        Assert.Equal(MarkdownContainerLineKind.Plain, lines[1].Kind);
+        // The ten-digit text is not a new list marker, but it is a valid
+        // unindented continuation of the preceding nine-digit list item.
+        Assert.Equal(MarkdownContainerLineKind.ListContinuation, lines[1].Kind);
+        Assert.True(lines[1].IsLazyListContinuation);
+        Assert.Equal(lines[0].Source.Utf16Offset, lines[1].ListOwnerUtf16Offset);
         Assert.Equal(MarkdownContainerLineKind.ListItem, lines[2].Kind);
         Assert.Equal("1)", lines[2].ListMarker);
     }
