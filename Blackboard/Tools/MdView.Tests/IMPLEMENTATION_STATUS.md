@@ -63,3 +63,9 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - Added five `MdViewContainerPageCursorTests` for previously scanned reverse-page reuse, forward-after-backward code fence continuation, failure on event byte budget exhaustion, failure on offset budget exhaustion and empty-source/argument checks.
 - Cursor implementation commit `a30c6283dcaac88774c6c59a24e6e15fd11250ad`; test commit `487e50ea9d73e134b7a13cf1761d291ad1b736ad`.
 - This verifies a cached **classified event journal**, not restorable scanner iterator state or fast jumps into previously unseen ranges. New test execution pending; no verified total pass count for this increment.
+
+## 2026-11-08 — Maintainer-confirmed Windows green checkpoint
+
+- Maintainer reports the Windows Toolbox test run is **still green** after the disk-backed classified-event journal implementation (`a30c6283dcaac88774c6c59a24e6e15fd11250ad`) and its focused regression tests (`487e50ea9d73e134b7a13cf1761d291ad1b736ad`).
+- This is a user-confirmed test result. No detailed test count, run artifact, or Linux verification was supplied; do not infer any of those.
+- Next planned step: design restorable, serializable incremental scanner state with correct fence/list/quote parity, independent budget controls and regression coverage before enabling arbitrary-position checkpoint seeks.
