@@ -194,3 +194,38 @@ mixed terminators across 128-line page boundaries, and a page-byte
 budget interruption across 100 long lines with exact continuation.
 Fresh CI and build results are tracked in the implementation status.
 
+
+## Validated private source snapshot (2026-11-07)
+
+For consumers that cannot tolerate a changing original file between
+validation and paging, `Utf8ValidatedSnapshot.CreateAsync(path)` creates
+a **private temporary working copy** before opening
+`Utf8DiskLineIndex`. It copies with a fixed 64 KiB buffer (16 GiB
+default copy-size cap), performs strict whole-file UTF-8 and terminal
+control validation on the *completed copy*, and only then returns access
+to its read-only line index. Cancellation, invalid content and budget
+failures dispose partial resources and remove the temporary directory.
+
+```csharp
+await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync("README.md");
+var firstPage = await snapshot.Lines.ReadPageAsync(0, 24);
+await using var positions = await Utf8DocumentOffsetIndex.CreateAsync(snapshot.Lines);
+long startByte = await positions.GetByteOffsetAsync(12);
+```
+
+A snapshot owns its physical-line index; callers must dispose dependent
+offset indexes first. The snapshot's temporary directory is removed upon
+disposal. The separate remote document cache is not modified.
+
+**Exact scope:** the displayed bytes are isolated from subsequent changes
+to the original path, but the source could change during copying; that may
+create a mixed (still independently validated) byte stream rather than a
+point-in-time original version. Access by same-identity or privileged
+processes to private temporary storage is not treated as hostile. On
+Windows a read-only guard shared for reads rejects ordinary attempts to
+open the snapshot for writing; Unix filesystem behavior is not claimed
+as a mandatory lock. To establish original-version identity later, add
+content digests and a defined source-change policy.
+
+This does not by itself implement progressive Markdown rendering, a
+single-pass combined index or a benchmarked HDD throughput guarantee.
