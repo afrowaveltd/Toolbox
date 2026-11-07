@@ -1,6 +1,6 @@
 # Incremental explicit Markdown container scanner
 
-**Status:** additive, isolated source metadata scanner implemented on 2026-11-07. This is an intermediate step toward container-aware streaming Markdown blocks, **not** a renderer, complete CommonMark parser, or replacement for the current `MarkdownParser.Parse`.
+**Status:** additive, isolated source metadata scanner implemented on 2026-11-07; extended with separate outer/inner list ownership later the same day. This is an intermediate step toward container-aware streaming Markdown blocks, **not** a renderer, complete CommonMark parser, or replacement for the current `MarkdownParser.Parse`.
 
 ## Motivation and design
 
@@ -31,9 +31,9 @@ await foreach (var line in MarkdownIncrementalContainerScanner.ScanAsync(reader)
 
 - Explicit ordered list markers (up to nine digits; `1.`, `2)`) and unordered markers (`-`, `+`, `*`) are recognized with the existing parser's four-column tab-stop and 256-column indentation rules.
 - Markers nested beneath a previous item use a bounded (32-level) stack. An explicitly indented continuation is attributed to the deepest compatible list item. When an ancestor is selected, deeper stale frames are discarded. A change in quote depth resets the stack.
-- A nonblank ordinary/quoted line that lacks provable list ownership ends the active list context, avoiding later false attribution to a stale list.
-- Fences opened within **explicit quotes** retain the opening quote depth. While active, `# Heading`, list markers, and nested quote-like text are literal `CodeLine`. A matching closing fence must have the right marker, sufficient length and only spaces or tabs after it.
-- If quote depth differs from that of the opener, a quote-owned fence is **interrupted**, not auto-closed. The mismatching line is reclassified normally; no synthetic closing code fence is invented.
+- A nonblank ordinary/quoted line that lacks provable list ownership ends its active local list context. An unowned standalone quote also clears stale ordinary-list frames.
+- Fences opened within **explicit quotes** retain the opening quote depth and any provable enclosing ordinary-list owner, independently of their quote-local list owner. While active, `# Heading`, list markers, and nested quote-like text are literal `CodeLine`. A matching closing fence must have the right marker, sufficient length and only spaces or tabs after it.
+- If quote depth or the enclosing ordinary-list owner differs from that of the opener, a quote-owned fence is **interrupted**, not auto-closed. The mismatching line is reclassified normally; no synthetic closing code fence is invented.
 - A top-level fence treats quote and list-like lines as literal code until its matching closer, regardless of their appearance.
 
 ## Deliberate limitations
@@ -41,12 +41,12 @@ await foreach (var line in MarkdownIncrementalContainerScanner.ScanAsync(reader)
 This is an **explicit-markers** scanner, not a semantic list or quote AST. In particular:
 
 - Lazy/unindented paragraph continuation ownership is **not** inferred. Whitespace-only blank lines do not acquire a list owner here; deferred blank/loose-list ownership remains a full-parser feature.
-- Ordinary list items containing quotes can require an outer list owner distinct from the inner quoted list. This intermediate layer intentionally does **not** claim those outer owners. Only quote-depth-local list ownership is attached where explicit indentation proves it.
+- Ordinary list items containing quotes now retain a **separate outer owner** when explicit indentation proves that relationship. The additional init-only `QuoteContainerListOwnerUtf16Offset`, `QuoteContainerListDepth` and `QuoteContainerListMarker` record properties do not change the existing constructor or quote-local `ListOwnerUtf16Offset` semantics. See [dual list ownership](../Dual-List-Ownership/en.md). Ambiguous/lazy ownership is still not inferred.
 - The scanner does not yet parse headings *inside* quotes, setext headings, thematic breaks, reference definitions, inline links, or visual rows.
 - The original `MarkdownIncrementalBlockScanner` remains focused on top-level source spans; it has **not** been switched to this container scanner until we can confirm complete container boundary semantics.
 - Output is progressive: a `TextReader` does not prove that the original file is valid UTF-8. Do not send its events to an untrusted terminal without a previous full-source validation pass (e.g., `TextFiles.Utf8DiskLineIndex` or a verified immutable spool).
 
-The state contains a maximum of 32 list frames, current quote depth, and one active fence's marker, length, language hint, source position and possible explicit owner. Each line has the same configurable character limit as the original scanner, by default 1 Mi UTF-16 code units. No additional disk index is created by this component.
+The state contains two independently bounded stacks of up to 32 list frames (ordinary and quote-local), current quote depth/outer-owner identity, and one active fence's marker, length, language hint, source position and owner metadata. Each line has the same configurable character limit as the original scanner, by default 1 Mi UTF-16 code units. No additional disk index is created by this component.
 
 ## Verification
 
@@ -59,7 +59,7 @@ dotnet test Toolbox.sln
 
 ## Next work
 
-1. Extend the container state model to distinguish an outer ordinary list owner from quote-local list ownership; add test cases matching `MarkdownParser.QuoteContainerListOwnerStart`.
+1. Extend golden parity tests for ambiguous blank/loose continuations and explicitly model unresolved ownership without guessing. The separate **outer ordinary-list and quote-local** owners are now implemented for provable explicit indentation.
 2. Define safe completed block events for quote/list-owned spans, including deferred blank ownership, interruption and nesting boundaries.
 3. Reconcile these events with the existing parser using real README fixtures, then introduce disk-backed block indexing and the visual Markdown pager.
 
