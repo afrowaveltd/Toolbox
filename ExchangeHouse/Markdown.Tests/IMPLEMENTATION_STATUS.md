@@ -209,3 +209,9 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 - [GitHub Actions run 42360297028](https://github.com/afrowaveltd/Toolbox/actions/runs/42360297028) on commit `1bc41eeca49d003ed5e28f2d0d875c6120ce39fc`: **SUCCESS** for Linux full solution build and tests (**6,662 passed, 0 failed**), **0 Warning(s), 0 Error(s)**; Windows UI regression job **SUCCESS**, local Markdown documentation links **SUCCESS**.
 - `ExchangeHouse.Markdown.Tests`: **197/197 passing**, including all **22** new completed-container-span tests. Earlier two `xUnit2031` warnings were fixed without suppression; post-fix build reports none.
 - Subsequent changes are README, documentation-index and implementation-status updates only. No production behavior changes after this verified code snapshot. Known list-owned code-fence opener indentation discrepancy remains explicitly deferred from any mdview renderer integration.
+
+
+## 2026-11-08 — checkpoint codec focused tests
+
+- Added five `MarkdownScannerCheckpointTests`: nested ownership/fence JSON roundtrip, empty initial state, unsupported version and owner reference rejection, invalid fence/nesting rejection, malformed and oversized JSON.
+- Production contract `9aa8bfb0f44452779f1646b3297aff601d280f90`; tests `b7b13ad5c36c7a0b7571bbf90198a1e332d0e407`. These tests do **not** demonstrate live scanner export/restore or source-binding correctness. Fresh .NET test run pending.
