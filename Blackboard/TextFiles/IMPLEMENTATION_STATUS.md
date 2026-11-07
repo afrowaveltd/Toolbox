@@ -90,3 +90,10 @@
 - Replaced the unsupported call: default storage still uses `Directory.CreateTempSubdirectory(prefix)`; custom storage checks that its root exists and creates a uniquely named child using `Directory.CreateDirectory(Path.Combine(root, prefix + Guid.NewGuid().ToString("N")))`. This preserves the existing `temporaryRoot` API and avoids silently creating the caller's root.
 - Fix commit `8eab8a7767c566c337a28f5d39fde4455e07ae9f`. Added missing-root regression in `b9fd37bb9a2cc38898aa6f95d4e37c740e371576`.
 - **Fresh Windows rebuild and all tests after this fix not yet confirmed**. Run `dotnet test Blackboard/TextFiles.Tests/Afrowave.Toolbox.Blackboard.TextFiles.Tests.csproj` then `dotnet test Toolbox.sln` to verify.
+
+
+## 2026-11-07 — Windows build feedback: snapshot compiles, test switch syntax corrected
+
+- Windows build log after the `Directory.CreateTempSubdirectory` compatibility fix confirms `Afrowave.Toolbox.Blackboard.TextFiles` compiled. The remaining blocking diagnostics were two `CS0019` errors in test-source switch expressions (lines 389 and 397), not production code.
+- Corrected the test expressions to `(i % 3) switch` in commit `ec35699ddee85df90afac5cb5707717d18c480ce`.
+- **No passing test count is asserted for this new revision**; run focused and complete solution tests before moving snapshot-backed formatted paging into `mdview`.
