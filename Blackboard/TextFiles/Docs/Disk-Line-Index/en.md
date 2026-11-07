@@ -166,3 +166,31 @@ Unicode/newline lines, including 128-line batch boundaries, and cover
 a BOM-only source and final unterminated line. Compilation and CI
 verification must be recorded separately.
 
+
+## Contiguous bounded page reads (2026-11-07)
+
+`Utf8DiskLineIndex.ReadPageAsync` now reads the selected physical
+lines as **one contiguous source-byte range** instead of seeking and
+reading separately for every physical line. The existing small disk-offset
+table read determines the included prefix before the source read.
+Each selected line still undergoes strict UTF-8 decoding, unsafe-control
+rejection, BOM handling and newline trimming independently.
+
+Selection enforces the existing maximum 128 lines and maximum 4 MiB
+of source bytes per page, plus the configured per-line byte limit.
+If the next line would exceed the page budget, that line is not consumed:
+`NextLine` still points to its exact physical-line number.
+Reverse/random-access pages, empty lines and CRLF/LF/CR boundaries
+retain the same public contract.
+
+This removes per-line **source seeks within a page** and allows the OS to
+service a contiguous read efficiently, including on HDDs. It does not
+turn the initial full-file validation into a one-pass combined index,
+make the source immutable, or prove a particular throughput improvement.
+The same-size concurrent file mutation limitation still applies.
+
+Two new regressions exercise a 261-line BOM/Unicode document with
+mixed terminators across 128-line page boundaries, and a page-byte
+budget interruption across 100 long lines with exact continuation.
+Fresh CI and build results are tracked in the implementation status.
+
