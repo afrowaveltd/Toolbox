@@ -36,6 +36,23 @@ public sealed class Utf8ValidatedSnapshot : IAsyncDisposable
     /// </summary>
     public Utf8DiskLineIndex Lines { get; }
 
+    /// <summary>
+    /// Opens a forward-only, strict UTF-8 reader for the already validated
+    /// private copy. The caller owns and disposes the returned reader.
+    /// </summary>
+    /// <returns>A new independent reader positioned at the beginning of the snapshot.</returns>
+    /// <exception cref="ObjectDisposedException">The snapshot has been disposed.</exception>
+    public StreamReader OpenReader()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        return new StreamReader(
+            new FileStream(Path.Combine(_directory, "validated.utf8"),
+                FileMode.Open, FileAccess.Read, FileShare.Read,
+                CopyBufferBytes, FileOptions.SequentialScan),
+            new System.Text.UTF8Encoding(false, true),
+            detectEncodingFromByteOrderMarks: true);
+    }
+
     /// <summary>Byte length of the validated copy, including any UTF-8 BOM.</summary>
     public long ByteLength => Lines.ByteLength;
 
