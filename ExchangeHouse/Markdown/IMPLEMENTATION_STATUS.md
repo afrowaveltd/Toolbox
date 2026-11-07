@@ -205,3 +205,10 @@
 
 - The full parser `MarkdownParser.Parse` currently strips **all** leading continuation indentation when checking an *opening* fence under a list item. The new incremental scanner strips only the owner's required indentation, so it conservatively rejects an opener with four or more remaining spaces. The full parser already uses a more restricted rule for *closing* fences. This is a **known semantic difference**, captured in `MarkdownIncrementalQuoteOwnershipTests.OverIndentedListFenceOpenerIsNotRecognizedAsCode`.
 - Do **not** wire this scanner into the existing rendered mdview path until opener/closer indentation is reconciled and cross-parser golden cases are green. The original parser/renderer is deliberately unchanged.
+
+### Verified CI — 2026-11-07 dual-owner and fence-indentation regressions
+
+- [GitHub Actions #42317726747](https://github.com/afrowaveltd/Toolbox/actions/runs/42317726747) **SUCCESS** on commit `75f6e548da063fe95e39ab2f57d7f7049ecb3fd6`, including production dual-ownership changes, all **17** new quote-ownership cases, the exact-indent fix and the documented full-parser compatibility gap. Linux solution build/tests and Windows UI regressions passed; Markdown link checker passed.
+- [GitHub Actions #42317702162](https://github.com/afrowaveltd/Toolbox/actions/runs/42317702162) on test correction commit `25b352ed32a1afe4507c850591ba3188dabe4ee4`: full Linux **6,620/6,620 tests green**, **0 Warning(s), 0 Error(s)**; Windows UI regression and local Markdown links **SUCCESS**.
+- A mismatched root-list depth expectation in the initial tests was corrected. A subsequent test asserted false parity for an overindented opening fence; it was changed to record both real behaviors, without changing the existing full parser or renderer. The compatibility gap remains explicitly tracked for future reconciliation.
+- The following README and status commits are documentation-only. The new scanner is an opt-in parsing layer and is **not** enabled in mdview.
