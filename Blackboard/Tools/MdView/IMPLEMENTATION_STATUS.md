@@ -124,3 +124,9 @@
 - ExchangeHouse.Markdown now has a versioned validated `MarkdownScannerCheckpoint` data contract (commit `9aa8bfb0f44452779f1646b3297aff601d280f90`) and five focused codec tests, documented at `ExchangeHouse/Markdown/Docs/Scanner-Checkpoints/en.md`.
 - This does **not** alter `mdview preview`. Its classified-event disk journal remains the only implemented cache for reverse navigation. Scanner export, resume, source binding and fast skipping into unseen source regions remain pending.
 - Previous user-confirmed Windows green baseline predates this new codec; fresh compile/test verification pending.
+
+
+## 2026-11-08 — ExchangeHouse incremental parser state-machine API available
+
+- `MarkdownIncrementalContainerScanner.StateMachine` now supports `Process`, `Capture` and `Restore` (commit `eed96080d2567ea5d68a3b679a5c8c83840ab766`) with focused golden parity tests (`5ad6259202aa739f8e409309eb963233f60999f4`).
+- **No mdview runtime integration in this step**: the existing disk-backed classified-line journal is retained until source identity and bounded resumption from a byte/UTF-16 boundary are implemented and tested. A checkpoint codec is not evidence of correct source ownership. New parser tests still require a green rerun.
