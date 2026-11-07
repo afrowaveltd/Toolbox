@@ -237,3 +237,9 @@
 - Preserves **two independent list owner spaces**, resolved blank owner vs unowned, and lazy vs explicit continuation. Separate list-item marker spans do **not** represent complete nested subtrees. UTF-16 source coordinates still need byte-offset mapping against a validated immutable file before random-access disk paging.
 - **Not wired to mdview**. The existing full parser, TextMate renderer, cache and UI remain untouched. The known overindented list-owned opening fence discrepancy remains tracked; do not claim complete CommonMark compatibility.
 - Added 22 focused tests and [English design/usage documentation](Docs/Incremental-Container-Block-Spans/en.md). Initial CI confirmed all 6,662 tests passing; two xUnit2031 warnings in the new tests were subsequently fixed in commit `1bc41eeca49d003ed5e28f2d0d875c6120ce39fc`. Awaiting final fresh post-fix CI warning verification.
+
+### Verified CI — completed container-aware spans, 2026-11-07
+
+- [GitHub Actions run 42360297028](https://github.com/afrowaveltd/Toolbox/actions/runs/42360297028) on commit `1bc41eeca49d003ed5e28f2d0d875c6120ce39fc`: **SUCCESS** for Linux full solution build and tests (**6,662 passed, 0 failed**), **0 Warning(s), 0 Error(s)**; Windows UI regression job **SUCCESS**, local Markdown documentation links **SUCCESS**.
+- `ExchangeHouse.Markdown.Tests`: **197/197 passing**, including all **22** new completed-container-span tests. Earlier two `xUnit2031` warnings were fixed without suppression; post-fix build reports none.
+- Subsequent changes are README, documentation-index and implementation-status updates only. No production behavior changes after this verified code snapshot. Known list-owned code-fence opener indentation discrepancy remains explicitly deferred from any mdview renderer integration.
