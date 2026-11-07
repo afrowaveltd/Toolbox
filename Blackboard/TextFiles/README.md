@@ -85,3 +85,16 @@ as authorization for progressive untrusted rendering.
 
 [Details and resource limits](Docs/Disk-Line-Index/en.md).
 New tests and compilation **await verification**.
+
+## Batched disk index construction (2026-11-07)
+
+Creating `Utf8DocumentOffsetIndex` now uses a bounded batch of up to
+128 physical line starts from the existing disk index instead of repeatedly
+decoding/seeking each line solely to discover terminator lengths.
+The public API and 16-byte-per-line temporary format are unchanged.
+This eliminates per-line byte-position lookups during table creation, but
+`ReadPageAsync` still performs per-line source seeks; a strictly
+single-pass HDD-optimized scan and immutable-source handling remain future
+work. No performance figures are claimed. Additional large mixed-encoding
+regressions are committed; fresh test execution is pending.
+
