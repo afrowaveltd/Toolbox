@@ -212,3 +212,13 @@
 - [GitHub Actions #42317702162](https://github.com/afrowaveltd/Toolbox/actions/runs/42317702162) on test correction commit `25b352ed32a1afe4507c850591ba3188dabe4ee4`: full Linux **6,620/6,620 tests green**, **0 Warning(s), 0 Error(s)**; Windows UI regression and local Markdown links **SUCCESS**.
 - A mismatched root-list depth expectation in the initial tests was corrected. A subsequent test asserted false parity for an overindented opening fence; it was changed to record both real behaviors, without changing the existing full parser or renderer. The compatibility gap remains explicitly tracked for future reconciliation.
 - The following README and status commits are documentation-only. The new scanner is an opt-in parsing layer and is **not** enabled in mdview.
+
+## 2026-11-07 — deferred loose-list blank and lazy paragraph semantics
+
+- Extended `MarkdownContainerLine` with additive init-only `IsLazyListContinuation` and `ListBlankOwnerUtf16Offset`; the existing positional constructor stays binary/source compatible.
+- The existing forward-only `MarkdownIncrementalContainerScanner` now emits `ListContinuation` with `IsLazyListContinuation=true` for uninterrupted, unindented paragraph text. Explicit headings, new list markers, code fences, quote prefixes, thematic breaks and pending blank separators prevent lazy ownership. Ordinary/quote-local blank-pending contexts remain independently scoped.
+- Added `MarkdownDeferredListOwnershipScanner.ScanAsync` with a delayed and bounded pending-blank run. Only a subsequent **explicit** `ListContinuation` in the same quote depth/outer ordinary-list scope can claim those blanks. No owner is fabricated after a new item, an interrupted quote, unindented prose or EOF.
+- Two resource limits (default 1,024 pending blank lines and 1,048,576 aggregate UTF-16 characters) prevent unbounded buffering. Exceeding either raises `InvalidDataException`; source text and newline fidelity are preserved.
+- Added **20 focused tests** for loose-list ownership/laziness, outer-inner quote scopes, bounded memory and incremental emission, plus updated two existing fixtures. Full renderer, API links, TextMate and mdview output remain unchanged.
+- [Detailed design](Docs/Deferred-List-Ownership/en.md). Known full-parser fence-opening indentation divergence remains documented; nested containers and formatted streaming paging are not yet fully implemented.
+- CI on the functional/test snapshot `9822713461466a4cc2849c3963211075dc14bd27`: Linux solution **6,640/6,640 passing tests, 0 warnings, 0 errors**. Windows and final documentation checks were still in progress when this status was authored.
