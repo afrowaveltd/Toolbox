@@ -103,6 +103,7 @@ public static class MarkdownIncrementalContainerScanner
         string? fenceLanguage = null;
         int fenceListDepth = -1;
         long? fenceListOwner = null;
+        int fenceContentIndent = 0;
         ListFrame? fenceOuterOwner = null;
         int fenceOuterDepth = -1;
 
@@ -163,10 +164,10 @@ public static class MarkdownIncrementalContainerScanner
                      outerOwner?.Start == fenceOuterOwner?.Start))
                 {
                     var codeContent = fenceQuoteDepth > 0 ? content : text;
-                    if (fenceListOwner is not null &&
-                        FindContinuation(fenceQuoteDepth > 0 ? quoteLists : ordinaryLists,
-                            codeContent).Depth >= 0)
-                        codeContent = codeContent[LeadingIndentLength(codeContent)..];
+                    // Strip only the owning item's content indent, never all
+                    // whitespace: four remaining spaces cannot close a fence.
+                    if (fenceListOwner is not null)
+                        codeContent = StripIndentUpTo(codeContent, fenceContentIndent);
                     var closing = IsClosingFence(codeContent, fenceMarker, fenceLength);
                     yield return Make(line,
                         closing ? MarkdownContainerLineKind.FenceClose :
@@ -181,6 +182,7 @@ public static class MarkdownIncrementalContainerScanner
                         fenceLanguage = null;
                         fenceListDepth = -1;
                         fenceListOwner = null;
+                        fenceContentIndent = 0;
                         fenceOuterOwner = null;
                         fenceOuterDepth = -1;
                     }
@@ -192,6 +194,7 @@ public static class MarkdownIncrementalContainerScanner
                 fenceLanguage = null;
                 fenceListDepth = -1;
                 fenceListOwner = null;
+                fenceContentIndent = 0;
                 fenceOuterOwner = null;
                 fenceOuterDepth = -1;
             }
@@ -211,8 +214,10 @@ public static class MarkdownIncrementalContainerScanner
 
             var activeLists = quoteDepth > 0 ? quoteLists : ordinaryLists;
             var (indentOwnerDepth, indentOwner) = FindContinuation(activeLists, content);
+            var ownerContentIndent = indentOwnerDepth >= 0
+                ? activeLists[indentOwnerDepth].ContentIndent : 0;
             var fenceContent = indentOwnerDepth >= 0
-                ? content[LeadingIndentLength(content)..]
+                ? StripIndentUpTo(content, ownerContentIndent)
                 : content;
 
             if (TryFence(fenceContent, out var marker, out var count))
@@ -228,6 +233,7 @@ public static class MarkdownIncrementalContainerScanner
                 fenceLanguage = ReadLanguage(fenceContent, marker, count);
                 fenceListDepth = indentOwnerDepth;
                 fenceListOwner = indentOwner;
+                fenceContentIndent = ownerContentIndent;
                 fenceOuterOwner = outerOwner;
                 fenceOuterDepth = outerDepth;
                 yield return Make(line, MarkdownContainerLineKind.FenceOpen,
@@ -284,6 +290,21 @@ public static class MarkdownIncrementalContainerScanner
                     MarkdownContainerLineKind.Plain,
                 quoteDepth, outerOwner: outerOwner, outerDepth: outerDepth);
         }
+    }
+
+    private static ReadOnlySpan<char> StripIndentUpTo(
+        ReadOnlySpan<char> text, int requiredColumns)
+    {
+        var columns = 0;
+        var index = 0;
+        while (index < text.Length &&
+               (text[index] == ' ' || text[index] == '\t') &&
+               columns < requiredColumns)
+        {
+            columns += text[index] == '\t' ? 4 - columns % 4 : 1;
+            index++;
+        }
+        return columns >= requiredColumns ? text[index..] : text;
     }
 
     private static int LeadingIndentLength(ReadOnlySpan<char> text)
