@@ -62,4 +62,4 @@ of these newly committed tests has not yet been confirmed.
 
 [Markdown README](../../README.md) ·
 [Implementation status](../../IMPLEMENTATION_STATUS.md) ·
-[mdview preview](../../../../Blackboard/Tools/MdView/Docs/Experimental-Formatted-Preview/en.md).
+[mdview preview](../../../Blackboard/Tools/MdView/Docs/Experimental-Formatted-Preview/en.md).
