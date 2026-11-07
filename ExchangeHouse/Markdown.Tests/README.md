@@ -59,3 +59,20 @@ Added `MarkdownIncrementalContainerBlockScannerTests` (**22 cases**) covering co
 Two `xUnit2031` warnings in the initial test commit were fixed by using `Assert.Single(collection, predicate)` instead of filtering through `Where`; a tautological assertion was replaced with an actual source-offset assertion. Keep analyzer warnings at zero.
 
 [Scanner details](../Markdown/Docs/Incremental-Container-Block-Spans/en.md). No change to the existing whole-document renderer.
+
+
+## State machine and checkpoint regression coverage (2026-11-08)
+
+`MarkdownScannerCheckpointTests` covers versioned JSON schema round trips,
+invalid owners, excessive stacks and malformed/oversized snapshots.
+`MarkdownContainerStateMachineTests` exercises the new public
+`MarkdownIncrementalContainerScanner.StateMachine` API: it repeatedly
+captures, encodes, decodes and restores the scanner between consecutive
+physical lines, comparing results to the uninterrupted `ScanAsync`
+baseline across nested list/quote ownership, fences and mixed line
+terminators. Invalid source continuity and unresolved fence outer
+ownership are rejected.
+
+This tests **logical container state restoration**, not secure resumption
+from a byte offset, source identity authentication, terminal rendering or
+CommonMark conformance. Fresh test execution after the refactor is pending.
