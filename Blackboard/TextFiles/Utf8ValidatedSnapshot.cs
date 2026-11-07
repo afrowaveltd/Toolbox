@@ -48,20 +48,26 @@ public sealed class Utf8ValidatedSnapshot : IAsyncDisposable
     /// <param name="maximumLineBytes">Per-line read limit passed to the UTF-8 index.</param>
     /// <param name="maximumIndexBytes">Disk budget for the physical-line index.</param>
     /// <param name="cancellationToken">Cancels copy and validation and cleans up.</param>
+    /// <param name="temporaryRoot">Existing directory for temporary snapshot storage,
+    /// or null to use the OS temporary directory. The directory itself is never removed.</param>
     /// <returns>Validated private copy and its owned physical-line index.</returns>
     public static async Task<Utf8ValidatedSnapshot> CreateAsync(
         string path,
         long maximumSnapshotBytes = DefaultMaximumSnapshotBytes,
         int maximumLineBytes = 1024 * 1024,
         long maximumIndexBytes = Utf8DiskLineIndex.DefaultMaximumIndexBytes,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? temporaryRoot = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         if (maximumSnapshotBytes < 0)
             throw new ArgumentOutOfRangeException(nameof(maximumSnapshotBytes));
         cancellationToken.ThrowIfCancellationRequested();
 
-        var directory = Directory.CreateTempSubdirectory("afrowave-utf8-snapshot-");
+        // Use a uniquely named private subdirectory even when the caller
+        // chooses a shared work volume. Never delete the caller's root.
+        var directory = Directory.CreateTempSubdirectory(
+            "afrowave-utf8-snapshot-", temporaryRoot);
         var destination = Path.Combine(directory.FullName, "validated.utf8");
         Utf8DiskLineIndex? index = null;
         FileStream? readGuard = null;
