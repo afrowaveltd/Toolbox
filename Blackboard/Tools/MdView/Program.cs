@@ -51,6 +51,14 @@ static async Task<MdViewDisplayResult> DisplayAsync(
 {
     try
     {
+        if (command.Kind == MdViewSourceKind.FormattedPreview)
+        {
+            // Explicit experimental mode: bounded, independently parsed pages.
+            await new MdViewFormattedPreviewPager(console).RunAsync(
+                command.Value!, cancellationToken: cancellationToken);
+            return new MdViewDisplayResult(0, false);
+        }
+
         if (command.Kind == MdViewSourceKind.SourcePager)
         {
             // This source-line viewer already owns its own Next/Back/Exit prompts.
@@ -147,6 +155,7 @@ static void PrintHelp()
     Console.WriteLine("mdview [PATH | URL | github:OWNER/REPOSITORY]");
     Console.WriteLine("mdview local PATH  (complete rendered Markdown)");
     Console.WriteLine("mdview source PATH (bounded-memory raw source pager)");
+    Console.WriteLine("mdview preview PATH (experimental bounded Markdown page preview)");
     Console.WriteLine("mdview url HTTPS_URL");
     Console.WriteLine("mdview OWNER           (browse public GitHub repositories)");
     Console.WriteLine("mdview github:OWNER    (browse public GitHub repositories)");
