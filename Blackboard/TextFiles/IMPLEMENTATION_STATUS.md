@@ -33,3 +33,11 @@
 
 - The earlier full Windows test log showed **TextFiles.Tests 20/20 green**, including the newly added strict UTF-8 disk line index. Maintainer subsequently confirmed that the final, corrected solution test run is entirely green.
 - The disk index is the verified **raw source** navigation primitive, not a completed formatted streaming Markdown parser. Further Linux, performance and mutation-race hardening remain future work.
+
+## 2026-11-07 — bounded UTF-16 line-column to UTF-8 byte positions
+
+- Added `Utf8DiskLineIndex.GetByteOffsetAsync(long lineNumber, int utf16Column, CancellationToken)`, a source-preserving read-only mapping from a **physical line and decoded UTF-16 content column** to the corresponding absolute UTF-8 byte offset in the indexed file. It reuses one-line bounded validation and a disk-backed line-start entry; optional first-line BOM contributes three bytes.
+- The API rejects negative/out-of-range lines or columns and a column splitting an emoji surrogate pair. It maps a line-end column to the first terminator byte or EOF and supports mixed CRLF/LF/CR. It does not yet map a document-absolute UTF-16 position, validate a stable immutable snapshot identity, or offer visual Markdown paging.
+- Source commit `db31e7af6b7a33ef2f6698820e9f7a62cabb9721`; four focused test cases `85d3bccd5a6f203aba22742334e61297ad24a874`; English [technical guide](Docs/Disk-Line-Index/en.md) and README updated.
+- **Fresh test and CI validation pending in this environment.** The user-confirmed green solution state applies to the preceding Markdown regression milestone, not necessarily to this newly introduced method.
+- Next: source-identity/immutability and cumulative UTF-16 line-start mapping with explicit source-coordinate semantics before connecting the completed Markdown block spans to a formatted disk pager.
