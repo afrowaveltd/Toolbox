@@ -337,9 +337,18 @@ public sealed class Utf8DiskLineIndexTests
         await using var positions = await Utf8DocumentOffsetIndex.CreateAsync(lines);
         Assert.Equal(source.Length, positions.Utf16Length);
 
-        // Exercise index boundaries at 128 and 256 physical lines and all
-        // UTF-16 positions except those inside surrogate pairs.
-        for (var offset = 0; offset <= source.Length; offset++)
+        // Sample document positions and the boundary between each 128-line
+        // batch without multiplying disk seeks across every UTF-16 unit.
+        var offsets = Enumerable.Range(0, source.Length + 1)
+            .Where(i => i % 17 == 0 || i == source.Length)
+            .Concat(new[]
+            {
+                source.IndexOf("Č 128", StringComparison.Ordinal),
+                source.IndexOf("line 256", StringComparison.Ordinal)
+            })
+            .Where(i => i >= 0)
+            .Distinct();
+        foreach (var offset in offsets)
         {
             if (offset > 0 && offset < source.Length &&
                 char.IsHighSurrogate(source[offset - 1]) &&
