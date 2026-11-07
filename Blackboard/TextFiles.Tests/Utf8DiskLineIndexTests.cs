@@ -386,7 +386,7 @@ public sealed class Utf8DiskLineIndexTests
     {
         using var fixture = new Fixture();
         var expected = Enumerable.Range(0, 261)
-            .Select(i => i % 3 switch
+            .Select(i => (i % 3) switch
             {
                 0 => $"Číslo {i} 🌍",
                 1 => $"Line {i}",
@@ -394,7 +394,7 @@ public sealed class Utf8DiskLineIndexTests
             })
             .ToArray();
         var separators = Enumerable.Range(0, expected.Length - 1)
-            .Select(i => i % 3 switch { 0 => "\r\n", 1 => "\r", _ => "\n" })
+            .Select(i => (i % 3) switch { 0 => "\r\n", 1 => "\r", _ => "\n" })
             .ToArray();
         var content = string.Concat(expected.Select((line, i) =>
             line + (i < separators.Length ? separators[i] : string.Empty)));
