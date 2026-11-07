@@ -56,6 +56,19 @@ public sealed record MarkdownContainerLine(
 
     /// <summary>Original marker of the containing ordinary list item, when known.</summary>
     public string? QuoteContainerListMarker { get; init; }
+
+    /// <summary>
+    /// True for an unindented paragraph continuation owned by the preceding
+    /// active list item; never inferred after an unresolved blank separator.
+    /// </summary>
+    public bool IsLazyListContinuation { get; init; }
+
+    /// <summary>
+    /// Owner of a blank separator resolved by a following explicitly indented
+    /// continuation. Null means no confirmed separator owner.
+    /// Only set by the opt-in deferred ownership scanner.
+    /// </summary>
+    public long? ListBlankOwnerUtf16Offset { get; init; }
 }
 
 /// <summary>
@@ -95,6 +108,8 @@ public static class MarkdownIncrementalContainerScanner
         var quoteLists = new List<ListFrame>(MaximumDepth);
         var currentQuoteDepth = 0;
         long? currentOuterQuoteOwner = null;
+        bool ordinaryBlankPending = false;
+        bool quoteBlankPending = false;
 
         char fenceMarker = '\0';
         int fenceLength = 0;
@@ -203,6 +218,7 @@ public static class MarkdownIncrementalContainerScanner
                 (quoteDepth > 0 && outerOwner?.Start != currentOuterQuoteOwner))
             {
                 quoteLists.Clear();
+                quoteBlankPending = false;
                 currentQuoteDepth = quoteDepth;
                 currentOuterQuoteOwner = outerOwner?.Start;
             }
@@ -210,9 +226,28 @@ public static class MarkdownIncrementalContainerScanner
             // An unowned standalone quote interrupts any previous ordinary
             // list context; a later indented quote must not revive that owner.
             if (quoteDepth > 0 && outerOwner is null)
+            {
                 ordinaryLists.Clear();
+                ordinaryBlankPending = false;
+            }
 
             var activeLists = quoteDepth > 0 ? quoteLists : ordinaryLists;
+            // A following explicit continuation may own a loose-list
+            // separator; a new marker or unindented prose may not.
+            if (quoteDepth == 0 && ordinaryBlankPending && !IsBlank(content))
+            {
+                if (TryListMarker(content, out _, out _, out _) ||
+                    FindContinuation(ordinaryLists, content).Depth < 0)
+                    ordinaryLists.Clear();
+                ordinaryBlankPending = false;
+            }
+            if (quoteDepth > 0 && quoteBlankPending && !IsBlank(content))
+            {
+                if (TryListMarker(content, out _, out _, out _) ||
+                    FindContinuation(quoteLists, content).Depth < 0)
+                    quoteLists.Clear();
+                quoteBlankPending = false;
+            }
             var (indentOwnerDepth, indentOwner) = FindContinuation(activeLists, content);
             var ownerContentIndent = indentOwnerDepth >= 0
                 ? activeLists[indentOwnerDepth].ContentIndent : 0;
@@ -245,8 +280,12 @@ public static class MarkdownIncrementalContainerScanner
 
             if (content.IsEmpty || IsBlank(content))
             {
-                // Blank ownership is deferred in the full parser. We record
-                // the outer quote container, but do not invent an inner owner.
+                // Blank ownership is deferred in the full parser. Keep the
+                // source line until a later explicit continuation resolves it.
+                if (quoteDepth > 0)
+                    quoteBlankPending = true;
+                else
+                    ordinaryBlankPending = true;
                 yield return Make(line, MarkdownContainerLineKind.Blank,
                     quoteDepth, outerOwner: outerOwner, outerDepth: outerDepth);
                 continue;
@@ -282,14 +321,67 @@ public static class MarkdownIncrementalContainerScanner
                 continue;
             }
 
+            if (activeLists.Count > 0 && !IsParagraphInterruptor(content))
+            {
+                // The current item owns unindented prose only while no blank
+                // interrupted it. Do not guess ownership for headings, new
+                // markers, thematic breaks, fences or quote prefixes.
+                var lazyDepth = activeLists.Count - 1;
+                yield return Make(line, MarkdownContainerLineKind.ListContinuation,
+                    quoteDepth, lazyDepth, listOwner: activeLists[^1].Start,
+                    outerOwner: outerOwner, outerDepth: outerDepth)
+                    with { IsLazyListContinuation = true };
+                continue;
+            }
+
             activeLists.Clear();
-            // A standalone quoted paragraph cannot keep a stale ordinary
-            // list owner alive for later, unrelated indented quote lines.
             yield return Make(line,
                 quoteDepth > 0 ? MarkdownContainerLineKind.Quote :
                     MarkdownContainerLineKind.Plain,
                 quoteDepth, outerOwner: outerOwner, outerDepth: outerDepth);
         }
+    }
+
+    private static bool IsParagraphInterruptor(ReadOnlySpan<char> content)
+    {
+        if (TryListMarker(content, out _, out _, out _) ||
+            TryFence(content, out _, out _))
+            return true;
+
+        var indent = 0;
+        while (indent < content.Length && indent < 4 && content[indent] == ' ')
+            indent++;
+        if (indent > 3 || indent >= content.Length)
+            return false;
+
+        if (content[indent] == '>')
+            return true;
+        if (content[indent] == '#')
+        {
+            var i = indent;
+            while (i < content.Length && content[i] == '#')
+                i++;
+            var count = i - indent;
+            if (count is >= 1 and <= 6 &&
+                (i == content.Length || content[i] is ' ' or '\t'))
+                return true;
+        }
+
+        if (content[indent] is '-' or '*' or '_')
+        {
+            var marker = content[indent];
+            var count = 0;
+            for (var i = indent; i < content.Length; i++)
+            {
+                if (content[i] == marker)
+                    count++;
+                else if (content[i] is not (' ' or '\t'))
+                    return false;
+            }
+            if (count >= 3)
+                return true;
+        }
+        return false;
     }
 
     private static ReadOnlySpan<char> StripIndentUpTo(
