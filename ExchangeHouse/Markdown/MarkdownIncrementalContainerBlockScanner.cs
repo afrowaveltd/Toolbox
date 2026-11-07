@@ -132,8 +132,8 @@ public static class MarkdownIncrementalContainerBlockScanner
 
             if (pending?.Kind == MarkdownContainerSpanKind.FencedCode)
             {
-                if (line.Kind is MarkdownContainerLineKind.CodeLine or
-                    MarkdownContainerLineKind.FenceClose &&
+                if ((line.Kind is MarkdownContainerLineKind.CodeLine or
+                    MarkdownContainerLineKind.FenceClose) &&
                     line.FenceStartUtf16Offset == pending.FenceStartUtf16Offset)
                 {
                     var closed = line.Kind == MarkdownContainerLineKind.FenceClose;
