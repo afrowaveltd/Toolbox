@@ -113,3 +113,34 @@ source snapshot or guarantee measured HDD throughput. Two focused
 regressions cover large mixed Unicode/BOM/newline pages and
 byte-budget page boundaries. Verification is pending.
 
+
+## Private validated UTF-8 snapshots (2026-11-07)
+
+`Utf8ValidatedSnapshot` creates a private temporary copy of a local file,
+then builds a strict UTF-8 line index **from that completed copy** before
+exposing its `Lines` property. The original file is never written.
+The copy uses a 64 KiB sequential buffer and an explicit default 16 GiB
+temporary-space budget; size overruns and late-invalid UTF-8 or unsafe
+terminal controls fail before the snapshot is returned.
+
+```csharp
+await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync("README.md");
+var page = await snapshot.Lines.ReadPageAsync(0, maxLines: 24);
+await using var positions = await Utf8DocumentOffsetIndex.CreateAsync(snapshot.Lines);
+```
+
+The snapshot owns and disposes its line index, read-only guard and private
+temporary directory. Dispose any dependent UTF-16 document index **before**
+disposing the snapshot. Updates to the original path after copying do not
+alter the validated copy. This is a stable *private working copy*, not a
+cryptographically authenticated snapshot of the original at one instant:
+source changes during the copy may produce a mixed but independently
+validated copy, and same-user/privileged filesystem tampering remains
+outside this component's threat guarantees. On Windows a read-sharing
+read-only guard also blocks ordinary write opens to the copy.
+
+This is an opt-in foundation only. Existing mdview rendering remains
+unchanged; future formatted paging can consume the snapshot after
+additional renderer and source-span parity work. Four new tests were
+authored; new build/CI verification is pending.
+
