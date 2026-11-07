@@ -200,3 +200,8 @@
 - Protect quote-owned fences across body/closing lines and interrupt them if quote depth or outer-owner identity changes; do not synthesize a closing fence. Tightened fence opening/closing to strip **exactly the owning item's content indentation**, preserving overindented literal code.
 - Still **not** full CommonMark or deferred loose-list/blank/lazy continuation ownership. The existing full parser, renderer, mdview and cache are unchanged.
 - Added 17 focused regressions, including parity for supported owners with `MarkdownParser.Parse`, UTF-16/Unicode offsets, code fences and invalid overly-indented code markers. New [ownership documentation](Docs/Dual-List-Ownership/en.md). CI result for final snapshot to be recorded separately.
+
+### Compatibility note — overindented list-fence opener
+
+- The full parser `MarkdownParser.Parse` currently strips **all** leading continuation indentation when checking an *opening* fence under a list item. The new incremental scanner strips only the owner's required indentation, so it conservatively rejects an opener with four or more remaining spaces. The full parser already uses a more restricted rule for *closing* fences. This is a **known semantic difference**, captured in `MarkdownIncrementalQuoteOwnershipTests.OverIndentedListFenceOpenerIsNotRecognizedAsCode`.
+- Do **not** wire this scanner into the existing rendered mdview path until opener/closer indentation is reconciled and cross-parser golden cases are green. The original parser/renderer is deliberately unchanged.
