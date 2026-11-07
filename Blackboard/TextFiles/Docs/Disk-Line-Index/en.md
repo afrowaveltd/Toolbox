@@ -59,6 +59,43 @@ change during indexing/reading can escape size-only detection. Stronger
 snapshot identity is required before using stored block offsets for
 untrusted progressive terminal rendering.
 
+## Document-wide UTF-16 to UTF-8 positions (2026-11-07)
+
+`Utf8DocumentOffsetIndex` is a separate, optional disk-backed table that
+maps **absolute decoded UTF-16 positions** (as produced by Markdown's
+source-preserving scanner) to positions in the original UTF-8 file.
+It records each physical line's UTF-16 start, content length and line-ending
+length (16 bytes per line) in a temporary `DeleteOnClose` file.
+The initial UTF-8 BOM counts as **zero** UTF-16 units but **three** bytes;
+CRLF contributes two UTF-16 units, LF/CR one each.
+
+```csharp
+await using var lines = await Utf8DiskLineIndex.OpenAsync("README.md");
+await using var positions = await Utf8DocumentOffsetIndex.CreateAsync(lines);
+long byteOffset = await positions.GetByteOffsetAsync(markdownSpan.StartUtf16Offset);
+```
+
+Construction walks bounded source pages and performs per-line byte-position
+lookups. Queries binary-search the derived disk table and use the existing
+strict one-line mapper. Middle-of-surrogate-pair positions are rejected rather
+than converted into replacement characters. EOF maps to the exact source
+byte length; a position between CR and LF maps between those two bytes.
+Empty sources have a zero-length table.
+
+This first implementation is **correctness-first**, not an HDD performance
+claim: construction currently issues multiple random seeks per physical line.
+A later coordinated sequential index writer can significantly reduce I/O.
+The index must be disposed before its borrowed `Utf8DiskLineIndex`.
+Its 256 MiB default disk budget is independent of the source's physical-line
+index budget. No full-document string or in-memory offset array is retained.
+
+**Integrity limitation:** index construction and later lookups use the
+existing read-only handle but do not pin an immutable snapshot. Concurrent
+same-length replacement or mutation is not ruled out, particularly on Unix.
+Before progressive rendering of untrusted source, use an immutable validated
+spool or implement a stronger source-identity/content policy. This API does
+not yet enable formatted paging in mdview.
+
 ## Resource budgets
 
 - Scan/validation buffer: **64 KiB** of source bytes plus a small UTF-8 decoder buffer.
