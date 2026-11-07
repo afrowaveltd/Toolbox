@@ -386,3 +386,8 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Kept ordinary and quote-local list stacks independent, with owner-scoped quote state and fence interruption on quote-depth/outer-owner changes. Overindented fence markers are protected by stripping **only required content indentation**, not all leading whitespace.
 - Added 17 focused tests, including offset/owner equivalence to the existing full `MarkdownParser` on supported cases and Unicode/newline/oversized indentation boundaries. No renderer or mdview behavior changes; full CommonMark and speculative lazy/blank ownership are not claimed.
 - [English design](ExchangeHouse/Markdown/Docs/Dual-List-Ownership/en.md). The first CI suite with 14 tests found an incorrect test expectation for the root list depth; fixed. Fresh CI after additional fence regressions pending.
+
+### 2026-11-07 — stream/full-parser fence opening difference (tracked)
+
+- The new source scanner preserves excess indentation after a list owner's required content prefix; the established `MarkdownParser` currently discards all indentation on **opening** list-owned fences, but uses a stricter rule on **closing**. One new test initially assumed parity incorrectly. It now asserts the established parser's real `CodeFence` result alongside the incremental scanner's conservative `ListContinuation` result.
+- Both implementations and the existing mdview renderer are unchanged by this test correction. The divergence is explicitly documented in [Dual List Ownership](ExchangeHouse/Markdown/Docs/Dual-List-Ownership/en.md) and will be reconciled before visual paging integration; no false claim of complete CommonMark or full-parser parity.
