@@ -27,3 +27,8 @@
 - Added four `Utf8DiskLineIndexTests`: BOM and mixed newline/Unicode positions; rejection of invalid/surrogate-splitting UTF-16 columns; empty and final-terminated lines; random offsets over a 64 KiB buffer boundary.
 - Feature source: `db31e7af6b7a33ef2f6698820e9f7a62cabb9721`. Test commit: `85d3bccd5a6f203aba22742334e61297ad24a874`.
 - New tests and full solution build have **not been independently executed in this environment** (no installed .NET SDK). Run `dotnet test Blackboard/TextFiles.Tests/Afrowave.Toolbox.Blackboard.TextFiles.Tests.csproj` and `dotnet test Toolbox.sln` and record the actual results.
+
+## 2026-11-07 — document-absolute offset regression suite
+
+- Added four new tests for the optional `Utf8DocumentOffsetIndex`: UTF-8 BOM/multibyte Unicode/CRLF interior mapping, empty and terminated lines, surrogate middle/out-of-range rejection, index disk budget and zero-length source.
+- Production commit `525266761512b202b545169a210a609f20896ee9`, tests `b9b7fb8bd02a95ecca3947f8f1d8a377675afe82`. New tests have **not been run in this environment**. Validate with `dotnet test Blackboard/TextFiles.Tests/Afrowave.Toolbox.Blackboard.TextFiles.Tests.csproj` and `dotnet test Toolbox.sln`.
