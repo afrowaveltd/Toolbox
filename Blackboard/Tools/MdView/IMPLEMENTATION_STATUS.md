@@ -111,3 +111,9 @@
 - Added five focused tests in `487e50ea9d73e134b7a13cf1761d291ad1b736ad`: backward reuse, forward-after-reverse fence parity, journal budget, offset budget and empty file.
 - **Not a scanner-state checkpoint** or constant-time navigation to previously unseen source lines. Large forward skips still require intermediate scanner work. This is a bounded correctness-first event cache; no benchmarked HDD performance claims.
 - **Fresh tests not yet run in this environment.** Verify `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj` and `dotnet test Toolbox.sln`, plus Debian/Windows file-cleanup behavior.
+
+## 2026-11-08 — Maintainer-confirmed Windows green checkpoint
+
+- Maintainer reports the Windows Toolbox test run is **still green** after the disk-backed classified-event journal implementation (`a30c6283dcaac88774c6c59a24e6e15fd11250ad`) and its focused regression tests (`487e50ea9d73e134b7a13cf1761d291ad1b736ad`).
+- This is a user-confirmed test result. No detailed test count, run artifact, or Linux verification was supplied; do not infer any of those.
+- Next planned step: design restorable, serializable incremental scanner state with correct fence/list/quote parity, independent budget controls and regression coverage before enabling arbitrary-position checkpoint seeks.
