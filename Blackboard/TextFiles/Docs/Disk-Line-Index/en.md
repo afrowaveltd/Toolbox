@@ -31,6 +31,34 @@ if (page.HasMore)
 
 `Utf8LinePage` returns the zero-based `FirstLine`, the continuation point `NextLine`, `TotalLines`, a bounded `Lines` list, and `HasMore`. The page is read using source/offset seeks; it is possible to request an earlier physical line without reparsing the entire document. All source text is rendered literally by callers, never interpreted as terminal markup.
 
+## UTF-16 line-column to UTF-8 byte mapping (2026-11-07)
+
+`GetByteOffsetAsync(lineNumber, utf16Column)` is a bounded, random-access
+mapping for **one validated physical line**. The line number is zero-based,
+and the UTF-16 column measures decoded line *content*, excluding the
+terminator and the optional initial UTF-8 BOM. An end-of-line content column
+maps to the first line-terminator byte, or EOF if there is no terminator.
+
+```csharp
+await using var index = await Utf8DiskLineIndex.OpenAsync("README.md");
+long byteOffset = await index.GetByteOffsetAsync(lineNumber: 12, utf16Column: 4);
+```
+
+The implementation reuses `ReadPageAsync(..., 1)` to enforce the existing
+maximum physical-line budget and strict decoding. It counts UTF-8 bytes in
+the selected UTF-16 prefix, adds the on-disk line-start offset and handles
+the optional three BOM bytes only on the first line. Columns splitting a
+surrogate pair and columns outside a line are rejected. Files are not
+modified, and the full document is never materialized.
+
+This API deliberately does **not** translate an absolute UTF-16 position
+into a byte offset: doing so requires a separately maintained cumulative
+UTF-16 line-start index (and a defined BOM/line-ending coordinate policy).
+It is also not an immutable content snapshot: a same-size in-place source
+change during indexing/reading can escape size-only detection. Stronger
+snapshot identity is required before using stored block offsets for
+untrusted progressive terminal rendering.
+
 ## Resource budgets
 
 - Scan/validation buffer: **64 KiB** of source bytes plus a small UTF-8 decoder buffer.
