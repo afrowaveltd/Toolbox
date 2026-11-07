@@ -66,3 +66,11 @@
 - **Fresh .NET/CI verification not yet confirmed** for this increment. Run TextFiles tests and `dotnet test Toolbox.sln` and record actual results. Do not infer throughput gains without benchmarking on representative HDD/SSD.
 - Next: consider combining initial validation/indexing with metadata generation and create a stable source snapshot policy before enabling formatted streaming markdown pages.
 
+
+## 2026-11-07 — validated private UTF-8 snapshot foundation
+
+- Added `Utf8ValidatedSnapshot.CreateAsync` as an opt-in, read-only source isolation layer. A 64 KiB buffer copies source bytes sequentially to a new private temporary directory under an explicit default 16 GiB byte budget. The **completed copy** is then validated using the existing strict `Utf8DiskLineIndex.OpenAsync`, before it is exposed.
+- The snapshot owns its physical-line index and read-only copy guard; disposal removes temporary storage. Callers may create `Utf8DocumentOffsetIndex` on `snapshot.Lines`, disposing that derived index first. The existing `mdview` renderer remains unchanged.
+- Precise boundary: future changes to the original file do not change the copied bytes, but concurrent modification **during** copying could yield a mixed (independently validated) copy. This is not a cryptographically authenticated instant-in-time snapshot, a same-identity adversarial tamper defense, or full Linux mandatory locking.
+- Production commit `4957d3728ad303e2338ef8707c47b52cd711ff22`; four new regression tests in `5e69419c92c74f02618130d15a95c4de1fa7bcb3`. New snapshot and test compilation **not yet verified by CI**; run TextFiles focused and full Toolbox tests.
+- Next: validate snapshot lifecycle on Windows and Debian (including file sharing and cleanup), then integrate a snapshot-backed opt-in formatted pager only after the remaining Markdown source-span tests pass.
