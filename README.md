@@ -164,3 +164,11 @@ The incremental parser groundwork now includes `MarkdownIncrementalContainerScan
 This is a **deliberately conservative** lexical metadata layer, not a full CommonMark AST, a formatted streaming renderer or a change in `mdview`. Lazy continuations, deferred loose-list blank ownership and an ordinary list's outer ownership of nested quotes remain future work. Added 18 focused tests, including restricted parity checks with the current full `MarkdownParser`. CI passed on [run 42314716633](https://github.com/afrowaveltd/Toolbox/actions/runs/42314716633) with **6,603 passing tests, zero warnings and zero errors**, plus successful Windows UI and link-validation jobs.
 
 [Explicit container architecture](ExchangeHouse/Markdown/Docs/Explicit-Container-Scanner/en.md) · [ExchangeHouse status](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.md).
+
+## Markdown: independent outer and quoted-list ownership (2026-11-07)
+
+The incremental Markdown scanner now distinguishes **the ordinary list item that owns a quote** from **the list item within the quote**. New init-only metadata on `MarkdownContainerLine` records the outer owner's source offset, depth and original marker, while existing `ListOwnerUtf16Offset` continues to identify the quote-local owner. This preserves both nesting identities across nested list items, quoted code fences and changes in quote depth, without buffering a full document or changing an existing constructor.
+
+Quoted/list-owned fence parsing was also hardened to strip **only the owning item's required indentation**. Extra indentation after that prefix stays significant: a delimiter with four remaining spaces is code text, not a closing fence. The new 17-case regression suite compares supported owner and fence metadata with the established full `MarkdownParser` and covers Unicode and mixed line endings.
+
+The normal `mdview` renderer and all user-facing navigation remain unchanged. This is a conservative source-metadata milestone, not complete CommonMark, paged rendering or active `F/N/P` search. [Technical ownership guide](ExchangeHouse/Markdown/Docs/Dual-List-Ownership/en.md) · [Tests](ExchangeHouse/Markdown.Tests/README.md).
