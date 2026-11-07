@@ -128,7 +128,7 @@ public sealed class MarkdownDeferredListOwnershipScannerTests
     [Fact]
     public async Task ThematicBreakCannotBeLazyParagraph()
     {
-        const string source = "- item\n* * *\n  not owned";
+        const string source = "- item\n***\n  not owned";
         var lines = await ReadAsync(source);
         Assert.False(lines[1].IsLazyListContinuation);
         Assert.Equal(MarkdownContainerLineKind.Plain, lines[1].Kind);
