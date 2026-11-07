@@ -103,3 +103,10 @@
 - Maintainer reports that the Windows solution build and tests are now **all green** after the `Utf8ValidatedSnapshot` custom-root compatibility fix (`8eab8a7767c566c337a28f5d39fde4455e07ae9f`) and associated regression test (`b9fd37bb9a2cc38898aa6f95d4e37c740e371576`).
 - This is user-confirmed validation; no detailed per-project test count or CI run ID was supplied for this checkpoint. Do not infer a specific count or independent Linux result.
 - Next: continue with opt-in snapshot-backed formatted Markdown paging, keeping the existing mdview renderer as default, and check Windows/Debian lifecycle behavior before release.
+
+
+## 2026-11-08 — snapshot streaming reader for Markdown preview
+
+- Added `Utf8ValidatedSnapshot.OpenReader()`, returning an independently owned strict UTF-8 `StreamReader` over the already validated private snapshot copy. The method checks disposed state and does not expose the original mutable source file; consumer must dispose the returned reader.
+- Commit `54ba6fe6338a0492082717bf92b05135d60f3fcd`. Used by optional incremental `mdview preview` container cursor; original `Utf8DiskLineIndex` and default mdview commands are unchanged.
+- New code awaits Windows/Debian test verification; no immutable-against-same-user-tampering guarantee is claimed.
