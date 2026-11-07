@@ -249,6 +249,79 @@ public sealed class Utf8DiskLineIndexTests
         Assert.Equal(65540, await index.GetByteOffsetAsync(1, 0));
     }
 
+    [Fact]
+    public async Task DocumentUtf16OffsetsMapBomUnicodeAndCrLfInterior()
+    {
+        using var fixture = new Fixture();
+        const string source = "A🌍ž\r\nB\nČ\rD";
+        var bytes = new UTF8Encoding(true).GetPreamble()
+            .Concat(Encoding.UTF8.GetBytes(source)).ToArray();
+        var path = await fixture.WriteBytesAsync(bytes);
+        await using var lines = await Utf8DiskLineIndex.OpenAsync(path);
+        await using var positions = await Utf8DocumentOffsetIndex.CreateAsync(lines);
+
+        Assert.Equal(source.Length, positions.Utf16Length);
+        Assert.Equal(lines.LineCount * 16, positions.IndexBytes);
+        Assert.Equal(3, await positions.GetByteOffsetAsync(0));
+        Assert.Equal(4, await positions.GetByteOffsetAsync(1));
+        Assert.Equal(8, await positions.GetByteOffsetAsync(3));
+        Assert.Equal(10, await positions.GetByteOffsetAsync(4));
+        Assert.Equal(11, await positions.GetByteOffsetAsync(5)); // Between CR and LF.
+        Assert.Equal(12, await positions.GetByteOffsetAsync(6));
+        Assert.Equal(14, await positions.GetByteOffsetAsync(8));
+        Assert.Equal(16, await positions.GetByteOffsetAsync(9));
+        Assert.Equal(bytes.Length, await positions.GetByteOffsetAsync(source.Length));
+    }
+
+    [Fact]
+    public async Task DocumentOffsetsHandleEmptyAndTrailingTerminatedLines()
+    {
+        using var fixture = new Fixture();
+        const string source = "First\n\r\nLast\r";
+        var path = await fixture.WriteAsync(source);
+        await using var lines = await Utf8DiskLineIndex.OpenAsync(path);
+        await using var positions = await Utf8DocumentOffsetIndex.CreateAsync(lines);
+
+        Assert.Equal(source.Length, positions.Utf16Length);
+        for (var i = 0; i <= source.Length; i++)
+            Assert.Equal(i, await positions.GetByteOffsetAsync(i));
+    }
+
+    [Fact]
+    public async Task DocumentOffsetsRejectSurrogateMiddleAndInvalidCoordinates()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteAsync("A🌍\nEnd");
+        await using var lines = await Utf8DiskLineIndex.OpenAsync(path);
+        await using var positions = await Utf8DocumentOffsetIndex.CreateAsync(lines);
+
+        await Assert.ThrowsAsync<ArgumentException>(() => positions.GetByteOffsetAsync(2));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => positions.GetByteOffsetAsync(-1));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            positions.GetByteOffsetAsync(positions.Utf16Length + 1));
+    }
+
+    [Fact]
+    public async Task DocumentOffsetIndexHonorsDiskBudgetAndEmptySources()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteAsync("one\ntwo\nthree");
+        await using (var lines = await Utf8DiskLineIndex.OpenAsync(path))
+        {
+            await Assert.ThrowsAsync<InvalidDataException>(() =>
+                Utf8DocumentOffsetIndex.CreateAsync(lines, maximumIndexBytes: 32));
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+                Utf8DocumentOffsetIndex.CreateAsync(lines, maximumIndexBytes: 0));
+        }
+
+        path = await fixture.WriteAsync("");
+        await using var emptyLines = await Utf8DiskLineIndex.OpenAsync(path);
+        await using var empty = await Utf8DocumentOffsetIndex.CreateAsync(emptyLines);
+        Assert.Equal(0, empty.Utf16Length);
+        Assert.Equal(0, empty.IndexBytes);
+        Assert.Equal(0, await empty.GetByteOffsetAsync(0));
+    }
+
     private sealed class Fixture : IDisposable
     {
         public string Root { get; } =
