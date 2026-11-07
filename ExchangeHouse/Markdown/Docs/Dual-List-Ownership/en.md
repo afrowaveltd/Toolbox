@@ -76,6 +76,27 @@ it is not proof of complete CommonMark, nested container or tab-indentation
 equivalence. Do not switch the formatted `mdview` renderer to the streaming
 parser without broader golden comparisons and fresh passing CI.
 
+## Additional golden coverage: tabs and nested lists
+
+The tab and nested ownership regressions compare the original whole-document
+parser with incremental container events without enabling progressive rendering.
+
+- `TabIndentedListFenceKeepsOwnerAndMatchesFullParser` uses a tab after the
+  list marker (content column four), a tab before the opening/closing fence,
+  and mixed CRLF/LF/CR terminators. Ordinary and quote-local list scopes must
+  retain the same owner and absolute UTF-16 fence offsets.
+- `NestedListFenceRetainsDeepestOwnerAndSourceOffsets` checks a numbered
+  parent, a nested unordered child, and a fenced code block owned by that
+  **child**, not the parent. The quoted form exercises the independent
+  quote-local stack.
+- Both tests verify `MarkdownWriter.Write` round-tripping exactly and
+  compare the opening fence start with the established parser for every
+  code line and closer.
+
+The scanner deliberately exposes UTF-16 source offsets, **not UTF-8 byte
+offsets**. A later disk-backed visual pager must first map those offsets
+against validated source bytes and record the file identity/version.
+
 ## Tests and verification
 
 ```bash
