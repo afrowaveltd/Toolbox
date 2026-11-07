@@ -184,8 +184,8 @@ public sealed class MarkdownIncrementalContainerBlockScannerTests
             "  >   # not a heading\n  >   - not an item\n  >   ```\n" +
             "  > - next";
         var spans = await ScanAsync(source);
-        var fence = Assert.Single(spans.Where(x =>
-            x.Kind == MarkdownContainerSpanKind.FencedCode));
+        var fence = Assert.Single(spans, x =>
+            x.Kind == MarkdownContainerSpanKind.FencedCode);
 
         Assert.Equal(4, fence.LineCount);
         Assert.Equal(MarkdownFenceSpanEnd.Closed, fence.FenceEnd);
@@ -219,8 +219,8 @@ public sealed class MarkdownIncrementalContainerBlockScannerTests
             "- first\n  > ~~~text\n  > literal\n" +
             "- second\n  > ordinary quote";
         var spans = await ScanAsync(source);
-        var fence = Assert.Single(spans.Where(x =>
-            x.Kind == MarkdownContainerSpanKind.FencedCode));
+        var fence = Assert.Single(spans, x =>
+            x.Kind == MarkdownContainerSpanKind.FencedCode);
         Assert.Equal(MarkdownFenceSpanEnd.Interrupted, fence.FenceEnd);
         Assert.Equal(2, fence.LineCount);
         var marker = spans.Single(x =>
@@ -294,7 +294,8 @@ public sealed class MarkdownIncrementalContainerBlockScannerTests
             .ScanAsync(reader).GetAsyncEnumerator();
         Assert.True(await enumerator.MoveNextAsync());
         Assert.Equal(MarkdownContainerSpanKind.Heading, enumerator.Current.Kind);
-        Assert.Equal("# First\n", "# First\n");
+        Assert.Equal(0L, enumerator.Current.StartUtf16Offset);
+        Assert.Equal(8L, enumerator.Current.EndUtf16Offset);
         Assert.InRange(reader.CharactersConsumed, 16, 18);
     }
 
