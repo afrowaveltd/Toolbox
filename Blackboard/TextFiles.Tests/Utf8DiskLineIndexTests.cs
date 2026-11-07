@@ -322,6 +322,56 @@ public sealed class Utf8DiskLineIndexTests
         Assert.Equal(0, await empty.GetByteOffsetAsync(0));
     }
 
+    [Fact]
+    public async Task DocumentOffsetIndexMatchesUtf8PrefixesAcrossManyPages()
+    {
+        using var fixture = new Fixture();
+        var source = string.Concat(Enumerable.Range(0, 320).Select(i =>
+            i % 3 == 0 ? $"řádek {i} 🌍\r\n" :
+            i % 3 == 1 ? $"line {i}\n" : $"Č {i}\r"));
+        var bytes = new UTF8Encoding(true).GetPreamble()
+            .Concat(Encoding.UTF8.GetBytes(source)).ToArray();
+        var path = await fixture.WriteBytesAsync(bytes);
+
+        await using var lines = await Utf8DiskLineIndex.OpenAsync(path);
+        await using var positions = await Utf8DocumentOffsetIndex.CreateAsync(lines);
+        Assert.Equal(source.Length, positions.Utf16Length);
+
+        // Exercise index boundaries at 128 and 256 physical lines and all
+        // UTF-16 positions except those inside surrogate pairs.
+        for (var offset = 0; offset <= source.Length; offset++)
+        {
+            if (offset > 0 && offset < source.Length &&
+                char.IsHighSurrogate(source[offset - 1]) &&
+                char.IsLowSurrogate(source[offset]))
+                continue;
+
+            var expected = 3L + Encoding.UTF8.GetByteCount(source.AsSpan(0, offset));
+            Assert.Equal(expected, await positions.GetByteOffsetAsync(offset));
+        }
+    }
+
+    [Fact]
+    public async Task DocumentOffsetIndexHandlesBomOnlyAndLastLineWithoutTerminator()
+    {
+        using var fixture = new Fixture();
+        var bom = new UTF8Encoding(true).GetPreamble();
+        var path = await fixture.WriteBytesAsync(bom);
+        await using (var lines = await Utf8DiskLineIndex.OpenAsync(path))
+        await using (var positions = await Utf8DocumentOffsetIndex.CreateAsync(lines))
+        {
+            Assert.Equal(0, positions.Utf16Length);
+            Assert.Equal(3, await positions.GetByteOffsetAsync(0));
+        }
+
+        path = await fixture.WriteAsync("One\r\nLast");
+        await using var plainLines = await Utf8DiskLineIndex.OpenAsync(path);
+        await using var plainPositions = await Utf8DocumentOffsetIndex.CreateAsync(plainLines);
+        Assert.Equal(9, plainPositions.Utf16Length);
+        Assert.Equal(5, await plainPositions.GetByteOffsetAsync(5));
+        Assert.Equal(9, await plainPositions.GetByteOffsetAsync(9));
+    }
+
     private sealed class Fixture : IDisposable
     {
         public string Root { get; } =
