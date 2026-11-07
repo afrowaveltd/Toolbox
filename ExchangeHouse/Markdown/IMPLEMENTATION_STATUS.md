@@ -243,3 +243,10 @@
 - [GitHub Actions run 42360297028](https://github.com/afrowaveltd/Toolbox/actions/runs/42360297028) on commit `1bc41eeca49d003ed5e28f2d0d875c6120ce39fc`: **SUCCESS** for Linux full solution build and tests (**6,662 passed, 0 failed**), **0 Warning(s), 0 Error(s)**; Windows UI regression job **SUCCESS**, local Markdown documentation links **SUCCESS**.
 - `ExchangeHouse.Markdown.Tests`: **197/197 passing**, including all **22** new completed-container-span tests. Earlier two `xUnit2031` warnings were fixed without suppression; post-fix build reports none.
 - Subsequent changes are README, documentation-index and implementation-status updates only. No production behavior changes after this verified code snapshot. Known list-owned code-fence opener indentation discrepancy remains explicitly deferred from any mdview renderer integration.
+
+## 2026-11-07 — list-owned opening fence indentation parity
+
+- Changed `MarkdownParser.Parse` to evaluate a list-owned opening code fence after stripping **only the owning item's required content indentation**, not all leading whitespace. Applied to both ordinary and quote-local list continuations. The source-preserving `content` and its offsets remain unchanged for ordinary paragraph continuations.
+- Updated `MarkdownIncrementalQuoteOwnershipTests.OverIndentedListFenceOpenerIsNotRecognizedAsCode` to expect `Paragraph` in the established full parser, matching the incremental scanner's `ListContinuation` rather than an incorrectly opened code fence. This resolves the specifically recorded overindented opening-fence discrepancy; it does **not** establish complete parser equivalence.
+- Production commit `06cda232002210fcae6df61eb1ca13ed71290111`; regression update `bdf9de981438eefd20ca58d57c8b90e492ee8a0c`. **Fresh CI results pending** for this change; do not count the preceding 6,662 green tests as validating this fix.
+- No `mdview`, rendered Markdown pager, indexed F/N/P search, NuGet release or CommonMark conformance change is claimed.
