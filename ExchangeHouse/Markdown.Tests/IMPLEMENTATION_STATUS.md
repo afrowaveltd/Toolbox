@@ -203,3 +203,9 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 
 - Added `MarkdownIncrementalContainerBlockScannerTests.cs` (**22 cases**): disjoint exact UTF-16 source span coverage and physical line boundary reconstruction; independent list/quote/blank ownership; lazy vs explicit continuation runs; matched, interrupted and EOF-terminated fences; large paragraphs/code runs without storing text; Unicode/CRLF/CR/LF; early streaming, cancellation and resource limits.
 - [CI for first test snapshot](https://github.com/afrowaveltd/Toolbox/actions/runs/42360132099) passed Linux/Windows builds/tests and links: **6,662 passed, zero failed**. It exposed two **xUnit2031** style warnings on `Assert.Single(spans.Where(...))`; corrected in commit `1bc41eeca49d003ed5e28f2d0d875c6120ce39fc`. A tautological heading equality was replaced with an offset assertion. Fresh zero-warning verification pending.
+
+### Verified CI — completed container-aware spans, 2026-11-07
+
+- [GitHub Actions run 42360297028](https://github.com/afrowaveltd/Toolbox/actions/runs/42360297028) on commit `1bc41eeca49d003ed5e28f2d0d875c6120ce39fc`: **SUCCESS** for Linux full solution build and tests (**6,662 passed, 0 failed**), **0 Warning(s), 0 Error(s)**; Windows UI regression job **SUCCESS**, local Markdown documentation links **SUCCESS**.
+- `ExchangeHouse.Markdown.Tests`: **197/197 passing**, including all **22** new completed-container-span tests. Earlier two `xUnit2031` warnings were fixed without suppression; post-fix build reports none.
+- Subsequent changes are README, documentation-index and implementation-status updates only. No production behavior changes after this verified code snapshot. Known list-owned code-fence opener indentation discrepancy remains explicitly deferred from any mdview renderer integration.
