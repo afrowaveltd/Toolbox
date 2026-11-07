@@ -102,27 +102,139 @@ public static class MarkdownIncrementalContainerScanner
         if (maxLineCharacters is < 1 or > 4 * 1024 * 1024)
             throw new ArgumentOutOfRangeException(nameof(maxLineCharacters));
 
-        // Ordinary items and quoted items have independent ownership stacks.
-        // A quote nested in an ordinary item does not consume that outer stack.
-        var ordinaryLists = new List<ListFrame>(MaximumDepth);
-        var quoteLists = new List<ListFrame>(MaximumDepth);
-        var currentQuoteDepth = 0;
-        long? currentOuterQuoteOwner = null;
-        bool ordinaryBlankPending = false;
-        bool quoteBlankPending = false;
+        var state = new StateMachine();
+        await foreach (var line in MarkdownIncrementalLineScanner.ScanAsync(
+            source, maxLineCharacters, cancellationToken)
+            .WithCancellation(cancellationToken).ConfigureAwait(false))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            yield return state.Process(line);
+        }
+    }
 
-        char fenceMarker = '\0';
-        int fenceLength = 0;
-        int fenceQuoteDepth = 0;
-        long fenceStart = 0;
-        string? fenceLanguage = null;
-        int fenceListDepth = -1;
-        long? fenceListOwner = null;
-        int fenceContentIndent = 0;
-        ListFrame? fenceOuterOwner = null;
-        int fenceOuterDepth = -1;
+    /// <summary>
+    /// Explicit container state machine. Process sequential, previously decoded
+    /// physical lines, and capture or restore the full bounded parser context.
+    /// The caller remains responsible for validated source bytes and line framing.
+    /// </summary>
+    public sealed class StateMachine
+    {
+        private readonly List<ListFrame> ordinaryLists = new(MaximumDepth);
+        private readonly List<ListFrame> quoteLists = new(MaximumDepth);
+        private int currentQuoteDepth;
+        private long? currentOuterQuoteOwner;
+        private bool ordinaryBlankPending;
+        private bool quoteBlankPending;
 
-        MarkdownContainerLine Make(
+        private char fenceMarker = '\0';
+        private int fenceLength;
+        private int fenceQuoteDepth;
+        private long fenceStart;
+        private string? fenceLanguage;
+        private int fenceListDepth = -1;
+        private long? fenceListOwner;
+        private int fenceContentIndent;
+        private ListFrame? fenceOuterOwner;
+        private int fenceOuterDepth = -1;
+        private long _nextLineNumber;
+        private long _nextUtf16Offset;
+
+        /// <summary>Next zero-based physical source line expected by the machine.</summary>
+        public long NextLineNumber => _nextLineNumber;
+
+        /// <summary>Next decoded document UTF-16 position (without UTF-8 BOM).</summary>
+        public long NextUtf16Offset => _nextUtf16Offset;
+
+        /// <summary>Classifies one sequential, prevalidated physical line and advances state.</summary>
+        /// <param name="line">Decoded scanner line with matching number and offset.</param>
+        /// <returns>Conservative container classification and original source span.</returns>
+        public MarkdownContainerLine Process(MarkdownStreamLine line)
+        {
+            ArgumentNullException.ThrowIfNull(line);
+            if (line.Text is null || line.Terminator is null ||
+                line.Terminator is not ("" or "\r" or "\n" or "\r\n"))
+                throw new ArgumentException("The physical source line is invalid.", nameof(line));
+            if (line.LineNumber != _nextLineNumber ||
+                line.Utf16Offset != _nextUtf16Offset)
+                throw new ArgumentException(
+                    "Physical source lines must be consecutive and offset-aligned.",
+                    nameof(line));
+
+            var result = Classify(line);
+            _nextLineNumber = checked(_nextLineNumber + 1);
+            _nextUtf16Offset = checked(_nextUtf16Offset +
+                line.Text.Length + line.Terminator.Length);
+            return result;
+        }
+
+        /// <summary>Captures the scanner's complete logical container context.</summary>
+        /// <returns>A validated, versioned checkpoint without source identity.</returns>
+        public MarkdownScannerCheckpoint Capture()
+        {
+            var snapshot = new MarkdownScannerCheckpoint(
+                MarkdownScannerCheckpointCodec.CurrentVersion,
+                _nextLineNumber, _nextUtf16Offset,
+                ordinaryLists.Select(x => new MarkdownScannerListFrame(
+                    x.MarkerIndent, x.ContentIndent, x.Start, x.Marker)).ToArray(),
+                quoteLists.Select(x => new MarkdownScannerListFrame(
+                    x.MarkerIndent, x.ContentIndent, x.Start, x.Marker)).ToArray(),
+                currentQuoteDepth, currentOuterQuoteOwner,
+                ordinaryBlankPending, quoteBlankPending,
+                fenceLength == 0 ? null : new MarkdownScannerFenceState(
+                    fenceMarker, fenceLength, fenceQuoteDepth, fenceStart,
+                    fenceLanguage, fenceListDepth, fenceListOwner,
+                    fenceContentIndent, fenceOuterOwner?.Start, fenceOuterDepth));
+            MarkdownScannerCheckpointCodec.Validate(snapshot);
+            return snapshot;
+        }
+
+        /// <summary>Restores a state; callers must bind it to the same validated source.</summary>
+        /// <param name="checkpoint">Validated state from the same source version.</param>
+        /// <returns>A machine ready for the next offset-aligned decoded line.</returns>
+        public static StateMachine Restore(MarkdownScannerCheckpoint checkpoint)
+        {
+            MarkdownScannerCheckpointCodec.Validate(checkpoint);
+            var result = new StateMachine
+            {
+                _nextLineNumber = checkpoint.NextLineNumber,
+                _nextUtf16Offset = checkpoint.NextUtf16Offset,
+                currentQuoteDepth = checkpoint.CurrentQuoteDepth,
+                currentOuterQuoteOwner = checkpoint.CurrentOuterQuoteOwnerUtf16Offset,
+                ordinaryBlankPending = checkpoint.OrdinaryBlankPending,
+                quoteBlankPending = checkpoint.QuoteBlankPending
+            };
+            result.ordinaryLists.AddRange(checkpoint.OrdinaryLists.Select(x =>
+                new ListFrame(x.MarkerIndent, x.ContentIndent,
+                    x.StartUtf16Offset, x.Marker)));
+            result.quoteLists.AddRange(checkpoint.QuoteLists.Select(x =>
+                new ListFrame(x.MarkerIndent, x.ContentIndent,
+                    x.StartUtf16Offset, x.Marker)));
+
+            if (checkpoint.Fence is { } fence)
+            {
+                result.fenceMarker = fence.Marker;
+                result.fenceLength = fence.Length;
+                result.fenceQuoteDepth = fence.QuoteDepth;
+                result.fenceStart = fence.StartUtf16Offset;
+                result.fenceLanguage = fence.Language;
+                result.fenceListDepth = fence.ListDepth;
+                result.fenceListOwner = fence.ListOwnerUtf16Offset;
+                result.fenceContentIndent = fence.ContentIndent;
+                result.fenceOuterDepth = fence.OuterListDepth;
+                if (fence.OuterListOwnerUtf16Offset is not null)
+                {
+                    if (fence.OuterListDepth >= result.ordinaryLists.Count ||
+                        result.ordinaryLists[fence.OuterListDepth].Start !=
+                            fence.OuterListOwnerUtf16Offset.Value)
+                        throw new InvalidDataException(
+                            "Fenced quote's outer list owner is not in its stack.");
+                    result.fenceOuterOwner = result.ordinaryLists[fence.OuterListDepth];
+                }
+            }
+            return result;
+        }
+
+        private static MarkdownContainerLine Make(
             MarkdownStreamLine line, MarkdownContainerLineKind kind,
             int quoteDepth, int listDepth = -1, string? listMarker = null,
             long? listOwner = null, long? codeFenceStart = null,
@@ -135,11 +247,9 @@ public static class MarkdownIncrementalContainerScanner
                 QuoteContainerListMarker = outerOwner?.Marker
             };
 
-        await foreach (var line in MarkdownIncrementalLineScanner.ScanAsync(
-            source, maxLineCharacters, cancellationToken)
-            .WithCancellation(cancellationToken).ConfigureAwait(false))
+
+        private MarkdownContainerLine Classify(MarkdownStreamLine line)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             var text = line.Text.AsSpan();
             ListFrame? outerOwner = null;
             var outerDepth = -1;
@@ -184,7 +294,7 @@ public static class MarkdownIncrementalContainerScanner
                     if (fenceListOwner is not null)
                         codeContent = StripIndentUpTo(codeContent, fenceContentIndent);
                     var closing = IsClosingFence(codeContent, fenceMarker, fenceLength);
-                    yield return Make(line,
+                    var completedFence = Make(line,
                         closing ? MarkdownContainerLineKind.FenceClose :
                             MarkdownContainerLineKind.CodeLine,
                         fenceQuoteDepth, fenceListDepth, listOwner: fenceListOwner,
@@ -201,7 +311,7 @@ public static class MarkdownIncrementalContainerScanner
                         fenceOuterOwner = null;
                         fenceOuterDepth = -1;
                     }
-                    continue;
+                    return completedFence;
                 }
 
                 fenceMarker = '\0';
@@ -271,11 +381,10 @@ public static class MarkdownIncrementalContainerScanner
                 fenceContentIndent = ownerContentIndent;
                 fenceOuterOwner = outerOwner;
                 fenceOuterDepth = outerDepth;
-                yield return Make(line, MarkdownContainerLineKind.FenceOpen,
+                return Make(line, MarkdownContainerLineKind.FenceOpen,
                     quoteDepth, fenceListDepth, listOwner: fenceListOwner,
                     codeFenceStart: fenceStart, language: fenceLanguage,
                     outerOwner: outerOwner, outerDepth: outerDepth);
-                continue;
             }
 
             if (content.IsEmpty || IsBlank(content))
@@ -286,9 +395,8 @@ public static class MarkdownIncrementalContainerScanner
                     quoteBlankPending = true;
                 else
                     ordinaryBlankPending = true;
-                yield return Make(line, MarkdownContainerLineKind.Blank,
+                return Make(line, MarkdownContainerLineKind.Blank,
                     quoteDepth, outerOwner: outerOwner, outerDepth: outerDepth);
-                continue;
             }
 
             if (TryListMarker(content, out var listMarker, out var indent,
@@ -304,10 +412,9 @@ public static class MarkdownIncrementalContainerScanner
                     var listDepth = activeLists.Count;
                     activeLists.Add(new ListFrame(indent, contentIndent,
                         line.Utf16Offset, listMarker));
-                    yield return Make(line, MarkdownContainerLineKind.ListItem,
+                    return Make(line, MarkdownContainerLineKind.ListItem,
                         quoteDepth, listDepth, listMarker, line.Utf16Offset,
                         outerOwner: outerOwner, outerDepth: outerDepth);
-                    continue;
                 }
             }
 
@@ -315,10 +422,9 @@ public static class MarkdownIncrementalContainerScanner
             {
                 activeLists.RemoveRange(indentOwnerDepth + 1,
                     activeLists.Count - indentOwnerDepth - 1);
-                yield return Make(line, MarkdownContainerLineKind.ListContinuation,
+                return Make(line, MarkdownContainerLineKind.ListContinuation,
                     quoteDepth, indentOwnerDepth, listOwner: indentOwner,
                     outerOwner: outerOwner, outerDepth: outerDepth);
-                continue;
             }
 
             if (activeLists.Count > 0 && !IsParagraphInterruptor(content))
@@ -327,15 +433,14 @@ public static class MarkdownIncrementalContainerScanner
                 // interrupted it. Do not guess ownership for headings, new
                 // markers, thematic breaks, fences or quote prefixes.
                 var lazyDepth = activeLists.Count - 1;
-                yield return Make(line, MarkdownContainerLineKind.ListContinuation,
+                return Make(line, MarkdownContainerLineKind.ListContinuation,
                     quoteDepth, lazyDepth, listOwner: activeLists[^1].Start,
                     outerOwner: outerOwner, outerDepth: outerDepth)
                     with { IsLazyListContinuation = true };
-                continue;
             }
 
             activeLists.Clear();
-            yield return Make(line,
+            return Make(line,
                 quoteDepth > 0 ? MarkdownContainerLineKind.Quote :
                     MarkdownContainerLineKind.Plain,
                 quoteDepth, outerOwner: outerOwner, outerDepth: outerDepth);
