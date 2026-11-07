@@ -74,3 +74,12 @@
 - Precise boundary: future changes to the original file do not change the copied bytes, but concurrent modification **during** copying could yield a mixed (independently validated) copy. This is not a cryptographically authenticated instant-in-time snapshot, a same-identity adversarial tamper defense, or full Linux mandatory locking.
 - Production commit `4957d3728ad303e2338ef8707c47b52cd711ff22`; four new regression tests in `5e69419c92c74f02618130d15a95c4de1fa7bcb3`. New snapshot and test compilation **not yet verified by CI**; run TextFiles focused and full Toolbox tests.
 - Next: validate snapshot lifecycle on Windows and Debian (including file sharing and cleanup), then integrate a snapshot-backed opt-in formatted pager only after the remaining Markdown source-span tests pass.
+
+
+## 2026-11-07 — configurable snapshot workspace and lifecycle verification
+
+- Appended optional `temporaryRoot` to `Utf8ValidatedSnapshot.CreateAsync`. It chooses an existing filesystem directory for private snapshot staging, while preserving existing positional arguments. The snapshot creates/deletes only its unique child directory; the caller's root is retained.
+- Added four regression tests on an isolated root: successful disposal removes the working copy, invalid controls and copy-budget failure clean temporary files, and pre-cancelled operations create none.
+- Production commit `c628a500ae75e322671dba413448090f88d6bc3e`, test commits `27497726f9044fcbd7cf01a713ccb2ec93f47193` and `aaef104a78c84c4cf753794aea216269b8d6264f`.
+- These are **source changes without verified new CI results**. No automatic orphan-workspace sweeper is implemented; source mutation during the initial copy and same-user tampering remain outside strict snapshot guarantees. `mdview` still uses its existing renderer.
+- Next: confirm Windows/Debian test and cleanup behavior, then design an opt-in snapshot-backed formatted pager without changing legacy rendering.
