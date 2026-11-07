@@ -188,6 +188,67 @@ public sealed class Utf8DiskLineIndexTests
         Assert.Empty((await index.ReadPageAsync(2)).Lines);
     }
 
+    [Fact]
+    public async Task ByteOffsetsRespectBomUnicodeAndMixedLineEndings()
+    {
+        using var fixture = new Fixture();
+        const string content = "A🌍ž\r\nB\nČ\rD";
+        var bytes = new UTF8Encoding(true).GetPreamble()
+            .Concat(Encoding.UTF8.GetBytes(content)).ToArray();
+        var path = await fixture.WriteBytesAsync(bytes);
+        await using var index = await Utf8DiskLineIndex.OpenAsync(path);
+
+        Assert.Equal(3, await index.GetByteOffsetAsync(0, 0));
+        Assert.Equal(4, await index.GetByteOffsetAsync(0, 1));
+        Assert.Equal(8, await index.GetByteOffsetAsync(0, 3));
+        Assert.Equal(10, await index.GetByteOffsetAsync(0, 4));
+        Assert.Equal(12, await index.GetByteOffsetAsync(1, 0));
+        Assert.Equal(13, await index.GetByteOffsetAsync(1, 1));
+        Assert.Equal(14, await index.GetByteOffsetAsync(2, 0));
+        Assert.Equal(16, await index.GetByteOffsetAsync(2, 1));
+        Assert.Equal(17, await index.GetByteOffsetAsync(3, 0));
+        Assert.Equal(18, await index.GetByteOffsetAsync(3, 1));
+    }
+
+    [Fact]
+    public async Task ByteOffsetsRejectSurrogateSplitsAndOutOfRangeColumns()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteAsync("A🌍\n");
+        await using var index = await Utf8DiskLineIndex.OpenAsync(path);
+
+        await Assert.ThrowsAsync<ArgumentException>(() => index.GetByteOffsetAsync(0, 2));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => index.GetByteOffsetAsync(0, -1));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => index.GetByteOffsetAsync(0, 4));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => index.GetByteOffsetAsync(-1, 0));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => index.GetByteOffsetAsync(1, 0));
+    }
+
+    [Fact]
+    public async Task ByteOffsetsHandleEmptyLineAndFinalTerminator()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteAsync("First\n\r\nLast\r");
+        await using var index = await Utf8DiskLineIndex.OpenAsync(path);
+
+        Assert.Equal(6, await index.GetByteOffsetAsync(1, 0));
+        Assert.Equal(8, await index.GetByteOffsetAsync(2, 0));
+        Assert.Equal(12, await index.GetByteOffsetAsync(2, 4));
+    }
+
+    [Fact]
+    public async Task ByteOffsetsRemainRandomAccessAcrossLargeLines()
+    {
+        using var fixture = new Fixture();
+        var first = new string('x', 65535) + "🌍";
+        var path = await fixture.WriteAsync(first + "\nNext");
+        await using var index = await Utf8DiskLineIndex.OpenAsync(path, 128 * 1024);
+
+        Assert.Equal(65535, await index.GetByteOffsetAsync(0, 65535));
+        Assert.Equal(65539, await index.GetByteOffsetAsync(0, 65537));
+        Assert.Equal(65540, await index.GetByteOffsetAsync(1, 0));
+    }
+
     private sealed class Fixture : IDisposable
     {
         public string Root { get; } =
