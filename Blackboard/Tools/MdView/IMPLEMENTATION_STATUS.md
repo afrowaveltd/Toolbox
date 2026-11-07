@@ -84,3 +84,11 @@
 - Documented every `MdViewSourceKind` enum value, `MdViewCommand` positional-record parameters and the `Parse` contract (arguments, result and relevant exceptions). Eliminates its previously reported `CS1591` diagnostics without changing command parsing behavior.
 - Confirmed by [GitHub Actions run 42311109763](https://github.com/afrowaveltd/Toolbox/actions/runs/42311109763): fresh Linux build **0 warnings/0 errors**; Windows UI tests and documentation links passed.
 - Recheck documentation on each new public API; do not disable `GenerateDocumentationFile`.
+
+## 2026-11-08 — opt-in bounded rendered preview of validated source pages
+
+- Added `MdViewSourceKind.FormattedPreview` and case-insensitive `mdview preview PATH` grammar (`4d31301ff9b46f27cdbf3af5841e4da44fa57d2c`), a separate `MdViewFormattedPreviewPager` (`754466f97251295dfaee04421b4f86952ca3c398`), and Program entrypoint wiring (`4fba512fe79801f25902379b295e05caf58fc6a2`).
+- Uses `Utf8ValidatedSnapshot` and bounded `Utf8DiskLineIndex.ReadPageAsync` pages, then calls the existing `MarkdownSpectreRenderer` with **only the current source fragment**. Supports Next, Previous, Go to source line and Exit through Spectre.Console.
+- Added command grammar and interactive pager tests (`ddb56e93d02538075624464d81865015fb577556`, `cae0180021afccd2d9624a2e80ae7d5cdeb99484`); English guide [Experimental Formatted Preview](Docs/Experimental-Formatted-Preview/en.md). Source `local`, `source`, GitHub and HTTPS behavior are unchanged.
+- **Not a completed formatted visual pager**: independent fragment parsing cannot carry fence/list/quote state across page boundaries; line count is not actual terminal row count, and scanner-based block spans are not integrated. The next milestone is stateful container-aware incremental rendering with explicit boundary tests.
+- **Fresh build/test/CI validation pending**. Last maintainer-reported green Windows solution run was before this new mdview mode. Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj` and `dotnet test Toolbox.sln`; then manually verify on Windows and Debian.
