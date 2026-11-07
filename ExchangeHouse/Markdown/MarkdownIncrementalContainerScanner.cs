@@ -43,7 +43,20 @@ public sealed record MarkdownContainerLine(
     string? ListMarker = null,
     long? ListOwnerUtf16Offset = null,
     long? FenceStartUtf16Offset = null,
-    string? CodeLanguage = null);
+    string? CodeLanguage = null)
+{
+    /// <summary>
+    /// Explicit ordinary-list owner containing this quoted source line, if provable.
+    /// Separate from <see cref="ListOwnerUtf16Offset"/>, which identifies a quote-local list.
+    /// </summary>
+    public long? QuoteContainerListOwnerUtf16Offset { get; init; }
+
+    /// <summary>Zero-based outer ordinary-list nesting depth, or -1 when absent.</summary>
+    public int QuoteContainerListDepth { get; init; } = -1;
+
+    /// <summary>Original marker of the containing ordinary list item, when known.</summary>
+    public string? QuoteContainerListMarker { get; init; }
+}
 
 /// <summary>
 /// Incrementally recognizes explicit quote/list markers and the lifetime of
@@ -53,8 +66,8 @@ public sealed record MarkdownContainerLine(
 /// <remarks>
 /// Indented and unindented paragraph continuations without explicit ownership
 /// are deliberately conservative. Quoted lists are kept separate from ordinary
-/// lists, and an indented quote nested in an outer list does not claim that outer
-/// list owner yet. This is not full CommonMark and is not connected to mdview.
+/// lists, while provably indented quotes retain their enclosing ordinary-list
+/// owner as separate metadata. This is not full CommonMark or an mdview renderer.
 /// Caller must fully validate untrusted file bytes before progressive display.
 /// </remarks>
 public static class MarkdownIncrementalContainerScanner
@@ -76,8 +89,13 @@ public static class MarkdownIncrementalContainerScanner
         if (maxLineCharacters is < 1 or > 4 * 1024 * 1024)
             throw new ArgumentOutOfRangeException(nameof(maxLineCharacters));
 
-        var lists = new List<ListFrame>(MaximumDepth);
+        // Ordinary items and quoted items have independent ownership stacks.
+        // A quote nested in an ordinary item does not consume that outer stack.
+        var ordinaryLists = new List<ListFrame>(MaximumDepth);
+        var quoteLists = new List<ListFrame>(MaximumDepth);
         var currentQuoteDepth = 0;
+        long? currentOuterQuoteOwner = null;
+
         char fenceMarker = '\0';
         int fenceLength = 0;
         int fenceQuoteDepth = 0;
@@ -85,6 +103,21 @@ public static class MarkdownIncrementalContainerScanner
         string? fenceLanguage = null;
         int fenceListDepth = -1;
         long? fenceListOwner = null;
+        ListFrame? fenceOuterOwner = null;
+        int fenceOuterDepth = -1;
+
+        MarkdownContainerLine Make(
+            MarkdownStreamLine line, MarkdownContainerLineKind kind,
+            int quoteDepth, int listDepth = -1, string? listMarker = null,
+            long? listOwner = null, long? codeFenceStart = null,
+            string? language = null, ListFrame? outerOwner = null, int outerDepth = -1) =>
+            new(line, kind, quoteDepth, listDepth, listMarker,
+                listOwner, codeFenceStart, language)
+            {
+                QuoteContainerListOwnerUtf16Offset = outerOwner?.Start,
+                QuoteContainerListDepth = outerOwner is null ? -1 : outerDepth,
+                QuoteContainerListMarker = outerOwner?.Marker
+            };
 
         await foreach (var line in MarkdownIncrementalLineScanner.ScanAsync(
             source, maxLineCharacters, cancellationToken)
@@ -92,24 +125,55 @@ public static class MarkdownIncrementalContainerScanner
         {
             cancellationToken.ThrowIfCancellationRequested();
             var text = line.Text.AsSpan();
-            var hasQuote = TryQuote(text, out var depth, out var contentIndex);
-            var content = hasQuote ? text[contentIndex..] : text;
-            var quoteDepth = hasQuote ? depth : 0;
+            ListFrame? outerOwner = null;
+            var outerDepth = -1;
+            var quoteDepth = 0;
+            var content = text;
+
+            // Probe ordinary-list content indentation BEFORE standalone quotes.
+            // "  > quote" can belong to "- item" even though a standalone
+            // quote with up to three spaces would also be syntactically valid.
+            var (outerCandidateDepth, _) = FindContinuation(ordinaryLists, text);
+            if (outerCandidateDepth >= 0)
+            {
+                var stripped = text[LeadingIndentLength(text)..];
+                if (TryQuote(stripped, out var nestedDepth, out var nestedIndex))
+                {
+                    quoteDepth = nestedDepth;
+                    content = stripped[nestedIndex..];
+                    outerDepth = outerCandidateDepth;
+                    outerOwner = ordinaryLists[outerDepth];
+                    ordinaryLists.RemoveRange(outerDepth + 1,
+                        ordinaryLists.Count - outerDepth - 1);
+                }
+            }
+            if (quoteDepth == 0 && TryQuote(text, out var directDepth, out var directIndex))
+            {
+                quoteDepth = directDepth;
+                content = text[directIndex..];
+            }
 
             if (fenceLength > 0)
             {
-                // An explicitly quoted fence cannot consume an unquoted line or
-                // a line with a different quote depth. Its closure is implicit
-                // at the boundary, not an invented closing delimiter.
-                if (fenceQuoteDepth == 0 || quoteDepth == fenceQuoteDepth)
+                // An ordinary fence can contain arbitrary literal markers.
+                // A quoted fence requires the exact quote depth AND its outer
+                // list owner; a change means an interruption, not a closer.
+                if (fenceQuoteDepth == 0 ||
+                    (quoteDepth == fenceQuoteDepth &&
+                     outerOwner?.Start == fenceOuterOwner?.Start))
                 {
                     var codeContent = fenceQuoteDepth > 0 ? content : text;
+                    if (fenceListOwner is not null &&
+                        FindContinuation(fenceQuoteDepth > 0 ? quoteLists : ordinaryLists,
+                            codeContent).Depth >= 0)
+                        codeContent = codeContent[LeadingIndentLength(codeContent)..];
                     var closing = IsClosingFence(codeContent, fenceMarker, fenceLength);
-                    yield return new MarkdownContainerLine(line,
+                    yield return Make(line,
                         closing ? MarkdownContainerLineKind.FenceClose :
                             MarkdownContainerLineKind.CodeLine,
-                        fenceQuoteDepth, fenceListDepth, null, fenceListOwner,
-                        fenceStart, fenceLanguage);
+                        fenceQuoteDepth, fenceListDepth, listOwner: fenceListOwner,
+                        codeFenceStart: fenceStart, language: fenceLanguage,
+                        outerOwner: fenceOuterOwner, outerDepth: fenceOuterDepth);
                     if (closing)
                     {
                         fenceMarker = '\0';
@@ -117,6 +181,8 @@ public static class MarkdownIncrementalContainerScanner
                         fenceLanguage = null;
                         fenceListDepth = -1;
                         fenceListOwner = null;
+                        fenceOuterOwner = null;
+                        fenceOuterDepth = -1;
                     }
                     continue;
                 }
@@ -126,77 +192,104 @@ public static class MarkdownIncrementalContainerScanner
                 fenceLanguage = null;
                 fenceListDepth = -1;
                 fenceListOwner = null;
+                fenceOuterOwner = null;
+                fenceOuterDepth = -1;
             }
 
-            if (quoteDepth != currentQuoteDepth)
+            if (quoteDepth != currentQuoteDepth ||
+                (quoteDepth > 0 && outerOwner?.Start != currentOuterQuoteOwner))
             {
-                lists.Clear();
+                quoteLists.Clear();
                 currentQuoteDepth = quoteDepth;
+                currentOuterQuoteOwner = outerOwner?.Start;
             }
 
-            if (TryFence(content, out var marker, out var count))
+            var activeLists = quoteDepth > 0 ? quoteLists : ordinaryLists;
+            var (indentOwnerDepth, indentOwner) = FindContinuation(activeLists, content);
+            var fenceContent = indentOwnerDepth >= 0
+                ? content[LeadingIndentLength(content)..]
+                : content;
+
+            if (TryFence(fenceContent, out var marker, out var count))
             {
+                // For a fence directly inside a quote, previous quote-local
+                // list markers are not allowed to acquire this block.
+                if (indentOwnerDepth < 0)
+                    activeLists.Clear();
                 fenceMarker = marker;
                 fenceLength = count;
                 fenceQuoteDepth = quoteDepth;
                 fenceStart = line.Utf16Offset;
-                fenceLanguage = ReadLanguage(content, marker, count);
-                (fenceListDepth, fenceListOwner) = FindContinuation(lists, content);
-                yield return new MarkdownContainerLine(line, MarkdownContainerLineKind.FenceOpen,
-                    quoteDepth, fenceListDepth, null, fenceListOwner,
-                    fenceStart, fenceLanguage);
+                fenceLanguage = ReadLanguage(fenceContent, marker, count);
+                fenceListDepth = indentOwnerDepth;
+                fenceListOwner = indentOwner;
+                fenceOuterOwner = outerOwner;
+                fenceOuterDepth = outerDepth;
+                yield return Make(line, MarkdownContainerLineKind.FenceOpen,
+                    quoteDepth, fenceListDepth, listOwner: fenceListOwner,
+                    codeFenceStart: fenceStart, language: fenceLanguage,
+                    outerOwner: outerOwner, outerDepth: outerDepth);
                 continue;
             }
 
             if (content.IsEmpty || IsBlank(content))
             {
-                // A later explicitly indented continuation may still prove
-                // ownership; this first scanner never assigns blank ownership.
-                yield return new MarkdownContainerLine(line, MarkdownContainerLineKind.Blank, quoteDepth);
+                // Blank ownership is deferred in the full parser. We record
+                // the outer quote container, but do not invent an inner owner.
+                yield return Make(line, MarkdownContainerLineKind.Blank,
+                    quoteDepth, outerOwner: outerOwner, outerDepth: outerDepth);
                 continue;
             }
 
             if (TryListMarker(content, out var listMarker, out var indent,
                     out var contentIndent) &&
-                (indent <= 3 || lists.Count > 0 && indent >= lists[0].MarkerIndent))
+                (indent <= 3 ||
+                 activeLists.Count > 0 && indent >= activeLists[0].MarkerIndent))
             {
-                while (lists.Count > 0 && lists[^1].MarkerIndent >= indent)
-                    lists.RemoveAt(lists.Count - 1);
-                if (lists.Count < MaximumDepth)
+                while (activeLists.Count > 0 &&
+                       activeLists[^1].MarkerIndent >= indent)
+                    activeLists.RemoveAt(activeLists.Count - 1);
+                if (activeLists.Count < MaximumDepth)
                 {
-                    var listDepth = lists.Count;
-                    var frame = new ListFrame(indent, contentIndent, line.Utf16Offset);
-                    lists.Add(frame);
-                    yield return new MarkdownContainerLine(line, MarkdownContainerLineKind.ListItem,
-                        quoteDepth, listDepth, listMarker, line.Utf16Offset);
+                    var listDepth = activeLists.Count;
+                    activeLists.Add(new ListFrame(indent, contentIndent,
+                        line.Utf16Offset, listMarker));
+                    yield return Make(line, MarkdownContainerLineKind.ListItem,
+                        quoteDepth, listDepth, listMarker, line.Utf16Offset,
+                        outerOwner: outerOwner, outerDepth: outerDepth);
                     continue;
                 }
             }
 
-            var (ownerDepth, ownerOffset) = FindContinuation(lists, content);
-            if (ownerDepth >= 0)
+            if (indentOwnerDepth >= 0)
             {
-                // The same explicit indentation rule as the existing parser:
-                // attach to the deepest item with sufficient content indent.
-                lists.RemoveRange(ownerDepth + 1, lists.Count - ownerDepth - 1);
-                yield return new MarkdownContainerLine(line,
-                    MarkdownContainerLineKind.ListContinuation,
-                    quoteDepth, ownerDepth, ListOwnerUtf16Offset: ownerOffset);
+                activeLists.RemoveRange(indentOwnerDepth + 1,
+                    activeLists.Count - indentOwnerDepth - 1);
+                yield return Make(line, MarkdownContainerLineKind.ListContinuation,
+                    quoteDepth, indentOwnerDepth, listOwner: indentOwner,
+                    outerOwner: outerOwner, outerDepth: outerDepth);
                 continue;
             }
 
-            // Once a nonblank non-list line cannot be explicitly attributed,
-            // do not let a later indented line revive a stale list owner.
-            lists.Clear();
-            if (quoteDepth > 0)
-            {
-                yield return new MarkdownContainerLine(line, MarkdownContainerLineKind.Quote, quoteDepth);
-            }
-            else
-            {
-                yield return new MarkdownContainerLine(line, MarkdownContainerLineKind.Plain);
-            }
+            activeLists.Clear();
+            // A standalone quoted paragraph cannot keep a stale ordinary
+            // list owner alive for later, unrelated indented quote lines.
+            if (quoteDepth > 0 && outerOwner is null)
+                ordinaryLists.Clear();
+
+            yield return Make(line,
+                quoteDepth > 0 ? MarkdownContainerLineKind.Quote :
+                    MarkdownContainerLineKind.Plain,
+                quoteDepth, outerOwner: outerOwner, outerDepth: outerDepth);
         }
+    }
+
+    private static int LeadingIndentLength(ReadOnlySpan<char> text)
+    {
+        var index = 0;
+        while (index < text.Length && (text[index] == ' ' || text[index] == '\t'))
+            index++;
+        return index;
     }
 
     private static (int Depth, long? Owner) FindContinuation(
@@ -361,5 +454,5 @@ public static class MarkdownIncrementalContainerScanner
         return true;
     }
 
-    private sealed record ListFrame(int MarkerIndent, int ContentIndent, long Start);
+    private sealed record ListFrame(int MarkerIndent, int ContentIndent, long Start, string Marker);
 }
