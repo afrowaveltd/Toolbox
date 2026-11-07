@@ -50,6 +50,20 @@ The existing `MarkdownParser` and `MarkdownWriter` remain the semantic baseline;
 
 An arbitrary `TextReader` is not evidence of valid UTF-8. The progressive scanner may yield early lines before detecting a late invalid control character; do not expose untrusted progressive output to a terminal until the original file has passed whole-source validation (for example through `TextFiles.Utf8DiskLineIndex`).
 
+## Known compatibility gap: excessive indentation on code-fence opening
+
+The current whole-document `MarkdownParser.Parse` recognizes an opening fence under a list item after removing **all** indentation from an explicitly indented continuation. The conservative incremental scanner removes **only the owning item's content indentation**. Consequently, for input such as:
+
+```markdown
+- item
+      ```js
+  text
+```
+
+the whole-document parser currently classifies the second physical line as `CodeFence`, while the incremental scanner classifies it as `ListContinuation` (not a fence). This distinction is **intentional in the new component but not yet reconciled for renderer compatibility**. The old parser's closing-fence path already removes only the owner's required indentation, and both implementations agree that a marker with excessive remaining indentation cannot close a fence.
+
+This case has a regression test explicitly recording **both behaviors**, not asserting false parity. Before switching `mdview` to the new scanner, choose and test a consistent opening/closing fence indentation contract for the original parser and the incremental scanner, including lists, quotes, nested owners and tab stops. Until then the full renderer remains unchanged.
+
 ## Tests and verification
 
 ```bash
