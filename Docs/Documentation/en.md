@@ -46,6 +46,7 @@ These existing pages cover **Essentials specifically**, not the public API of ev
 
 ## Architecture and future designs
 
+- [Afrowave design philosophy](../Design-Philosophy/en.md): explore useful ideas before combining overlapping mechanisms into a small, composable core; share cross-language semantics through idiomatic APIs.
 - [AJIS / A2 design notes](../../Ajis/README.md) — design, no AJIS 2 runtime in this solution.
 - [Id rebuild](../Id-Rebuild-Review/en.md) · [High availability](../Id-High-Availability-and-Replication/en.md) · [Observer/Uplink](../Id-Observer-and-Uplink/en.md) · [Regional routing](../Id-Autodiscovery-and-Regional-Routing/en.md) — design/reference material only.
 - [Community and transparent operating funds](../Afrowave-Community-Access-and-Transparent-Funding/en.md) — policy/planning, not implemented financial infrastructure.
