@@ -63,3 +63,54 @@ of these newly committed tests has not yet been confirmed.
 [Markdown README](../../README.md) ·
 [Implementation status](../../IMPLEMENTATION_STATUS.md) ·
 [mdview preview](../../../Blackboard/Tools/MdView/Docs/Experimental-Formatted-Preview/en.md).
+
+## Explicit scanner state machine (2026-11-08)
+
+The container scanner now exposes
+`MarkdownIncrementalContainerScanner.StateMachine`, which performs exactly
+one conservative classification for each **already decoded, consecutive**
+`MarkdownStreamLine`. The existing public `ScanAsync(TextReader)` entry
+continues to own the physical-line scanner, but delegates classification
+to the same state machine; it does not require callers to use checkpoints.
+
+```csharp
+var state = new MarkdownIncrementalContainerScanner.StateMachine();
+
+await foreach (var line in MarkdownIncrementalLineScanner.ScanAsync(reader))
+{
+    var classified = state.Process(line);
+    // Render or journal only after the entire source has been validated.
+    var saved = MarkdownScannerCheckpointCodec.Encode(state.Capture());
+    state = MarkdownIncrementalContainerScanner.StateMachine.Restore(
+        MarkdownScannerCheckpointCodec.Decode(saved));
+}
+```
+
+`Capture()` materializes independent arrays for both list stacks, current
+quote and pending-blank flags, and any open fence. `Restore()` validates
+the checkpoint and reconstitutes all frames, including the ordinary-list
+object referenced by an active quoted fence. An unresolved outer fence
+owner is rejected rather than guessed. `Process()` rejects out-of-order
+line numbers and UTF-16 offsets, and advances the cursor by the exact
+decoded text-plus-terminator length.
+
+The first golden parity suite restores the state **before every physical
+line** for several mixed CR/LF/CRLF documents with lazy/nested lists, quote
+fences, interrupted fences and ordinary headings. The output must exactly
+equal the unchanged `ScanAsync` classification. Further tests exercise
+an active quoted fence and malformed restoration.
+
+**Still missing:** exporting an arbitrary running `ScanAsync` iterator
+is not necessary because classification is now explicitly stateful, but
+restoring the **physical line reader** at an offset is not implemented.
+Consumers must provide lines from the same validated immutable snapshot
+with correct line numbers and decoded UTF-16 offsets. A structurally
+valid checkpoint, on its own, is not evidence that it matches that
+snapshot. The `mdview` integration remains on its proven disk journal
+until source identity, byte seeking, checkpoint persistence and parity
+tests have been added.
+
+**Compatibility:** the original `ScanAsync` signature and source output
+are intended to remain identical. This is a testable refactoring, not a
+claim of a completed random-access visual pager. New focused tests and a
+fresh full solution test run must be verified separately.
