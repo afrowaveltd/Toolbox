@@ -265,3 +265,12 @@
 - Test commit: `cd958febe6a34ff86caa7a7d0fa18014f3dd285f`. Documentation: [Dual List Ownership](Docs/Dual-List-Ownership/en.md), updated in `d02799c0cc524869c8ef7262a4d751ed18df340e`.
 - Maintainer reports all tests green after the preceding indentation-fence milestone; **these four newly committed test cases have not been independently verified by CI here**. Do not extrapolate the earlier 6,662-test snapshot.
 - No production API, parser behavior, `mdview` renderer or NuGet package publication was changed in this increment. Next: verify green CI, expand interrupted-fence golden cases, then introduce an immutable-file-aware UTF-16-to-byte index before visual paging.
+
+
+## 2026-11-08 — versioned scanner checkpoint data contract
+
+- Introduced `MarkdownScannerCheckpoint` with independent ordinary/quote list-frame stacks, next line and decoded UTF-16 positions, pending blank flags, current quote context, and full active fence metadata. `MarkdownScannerCheckpointCodec` provides bounded version-1 JSON encode/decode/validation (32 KiB max; max 32 list frames); invalid data is rejected.
+- Implementation `9aa8bfb0f44452779f1646b3297aff601d280f90`, tests `b7b13ad5c36c7a0b7571bbf90198a1e332d0e407`, guide `Docs/Scanner-Checkpoints/en.md` (`ccf7d1cb92b6441ec50b66f07ea7c15c47cdb64f`).
+- **Critical scope:** this is a serializable state **format only**, not scanner export/restore, not source-bound authentication, and not safe random seek. Existing Markdown scanners, mdview journal and default renderer are unchanged. Current fences longer than the provisional checkpoint limit cannot be encoded and must be handled in the next design increment.
+- **New test execution pending**. Verify focused `ExchangeHouse/Markdown.Tests` and the full solution on Windows; do not extrapolate the maintainer's previous green result to this commit.
+- Next: refactor scanner internals into a reusable explicit state machine while retaining exact existing `ScanAsync` output; then implement safe export/resume with source identity and golden parity tests.
