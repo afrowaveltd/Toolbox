@@ -138,3 +138,31 @@ Regression tests cover UTF-8 BOM and Unicode, CRLF/LF/CR, cross-buffer multibyte
 5. Measured 1 GiB+ files on slow HDD/old hardware, including cancellation, Unicode/emoji and terminal resize.
 
 [TextFiles README](../../README.md) · [Implementation status](../../IMPLEMENTATION_STATUS.md) · [mdview source pager](../../../Tools/MdView/Docs/Raw-Source-Pager/en.md).
+
+## Batched UTF-16 table construction (2026-11-07)
+
+`Utf8DocumentOffsetIndex.CreateAsync` now fetches up to **128 physical
+line-start offsets with one table read**, matching the bounded
+`Utf8DiskLineIndex.ReadPageAsync` window. For each decoded line, the
+UTF-8 byte length of its content is subtracted from the difference between
+the current and following physical line starts. The remaining one or two
+bytes identify LF/CR or CRLF, while an optional initial UTF-8 BOM is
+accounted for once.
+
+This replaces two calls to `GetByteOffsetAsync` **per line** with a
+single batched read of the existing offset table **per page**. The
+resulting 16-byte-per-line UTF-16 metadata is still written incrementally
+and retains the same disk budget, source-coordinate semantics, and
+binary-search lookup API.
+
+The physical-line reader still seeks for individual lines within each page,
+and source immutability has not been proven. This is a reduction in random
+index access, **not** a verified one-pass source scanner or benchmarked HDD
+throughput improvement. A future coordinated first-pass writer or immutable
+spool could eliminate remaining per-line seeks.
+
+Additional regressions sample offsets across more than 300 mixed
+Unicode/newline lines, including 128-line batch boundaries, and cover
+a BOM-only source and final unterminated line. Compilation and CI
+verification must be recorded separately.
+
