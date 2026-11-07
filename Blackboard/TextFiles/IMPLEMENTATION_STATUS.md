@@ -48,3 +48,12 @@
 - Source commit `525266761512b202b545169a210a609f20896ee9`; four regression tests in `b9b7fb8bd02a95ecca3947f8f1d8a377675afe82`; English docs in [Disk Line Index](Docs/Disk-Line-Index/en.md) and README.
 - Table construction remains bounded-memory but performs per-line random seeks, which is unoptimized for slow HDDs. Source file is not yet an immutable snapshot; a same-length concurrent mutation cannot be excluded. No mdview renderer integration or NuGet release is claimed.
 - **Compilation and new test execution pending** (no local .NET SDK). Next verify solution tests, then optimize construction to a single sequential indexing pass and design source immutability rules before formatting untrusted pages.
+
+## 2026-11-07 — batched UTF-16 index construction
+
+- Added internal `Utf8DiskLineIndex.ReadLineStartsAsync` for one bounded read of up to 129 consecutive 64-bit line offsets (128 lines plus sentinel).
+- Reworked `Utf8DocumentOffsetIndex.CreateAsync` to compute content UTF-8 byte lengths and newline widths from each decoded bounded page and its batch offsets. The BOM is checked once; there are no longer two repeated `GetByteOffsetAsync` source/index lookups for every line.
+- Commits: `4abd07692df0ee7d3676b4ab83c376958b382b62` (batch API), `a20d5faace219ef4720ff1155c4ea2a62a44564d` (producer), `7e0cd3790f776d6258aa638e366d1c3aacedbd7f` and `378bc31aa7b75b34e2290248185a9d21bf6a4dfe` (regressions).
+- The full reader still seeks per source line while creating pages; this is **not a completed single-sequential-pass HDD optimization**. Limits, source identity caveats and existing API semantics are unchanged. No mdview integration.
+- **CI/build pending** for this revision, because .NET SDK is unavailable in this environment. Next: run TextFiles and full Toolbox tests, then optimize physical-line page IO and immutable snapshot policy.
+
