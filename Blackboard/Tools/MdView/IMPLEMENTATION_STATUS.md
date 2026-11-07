@@ -117,3 +117,10 @@
 - Maintainer reports the Windows Toolbox test run is **still green** after the disk-backed classified-event journal implementation (`a30c6283dcaac88774c6c59a24e6e15fd11250ad`) and its focused regression tests (`487e50ea9d73e134b7a13cf1761d291ad1b736ad`).
 - This is a user-confirmed test result. No detailed test count, run artifact, or Linux verification was supplied; do not infer any of those.
 - Next planned step: design restorable, serializable incremental scanner state with correct fence/list/quote parity, independent budget controls and regression coverage before enabling arbitrary-position checkpoint seeks.
+
+
+## 2026-11-08 — external scanner checkpoint format prepared
+
+- ExchangeHouse.Markdown now has a versioned validated `MarkdownScannerCheckpoint` data contract (commit `9aa8bfb0f44452779f1646b3297aff601d280f90`) and five focused codec tests, documented at `ExchangeHouse/Markdown/Docs/Scanner-Checkpoints/en.md`.
+- This does **not** alter `mdview preview`. Its classified-event disk journal remains the only implemented cache for reverse navigation. Scanner export, resume, source binding and fast skipping into unseen source regions remain pending.
+- Previous user-confirmed Windows green baseline predates this new codec; fresh compile/test verification pending.
