@@ -186,3 +186,9 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 - [GitHub Actions #42317702162](https://github.com/afrowaveltd/Toolbox/actions/runs/42317702162) on test correction commit `25b352ed32a1afe4507c850591ba3188dabe4ee4`: full Linux **6,620/6,620 tests green**, **0 Warning(s), 0 Error(s)**; Windows UI regression and local Markdown links **SUCCESS**.
 - A mismatched root-list depth expectation in the initial tests was corrected. A subsequent test asserted false parity for an overindented opening fence; it was changed to record both real behaviors, without changing the existing full parser or renderer. The compatibility gap remains explicitly tracked for future reconciliation.
 - The following README and status commits are documentation-only. The new scanner is an opt-in parsing layer and is **not** enabled in mdview.
+
+## 2026-11-07 — deferred list ownership regression checkpoint
+
+- Created `MarkdownDeferredListOwnershipScannerTests` with **20 cases**: simple and quote-owned loose-list blank separators, two independent owners, EOF and scope interruption, ordinary and quoted lazy continuations, heading/fence/thematic interruption, bounded pending-run limits, early emission and full-parser comparison on supported syntax.
+- Adjusted the existing ordered-marker and standalone-quote tests to assert valid unindented continuation ownership, rather than the former generic text classification. Corrected thematic-break fixture to unambiguous `***`.
+- Confirmed Linux full solution `6,640/6,640` tests green, zero build warnings/errors on commit `9822713461466a4cc2849c3963211075dc14bd27`. Windows UI regression and Markdown link checks are tracked in GitHub Actions.
