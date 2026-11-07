@@ -60,6 +60,42 @@ public sealed class MdViewFormattedPreviewPagerTests
     }
 
     [Fact]
+    public async Task FenceCrossingPageBoundaryKeepsHeadingLookingCodeLiteral()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteAsync(
+            "intro\n```text\n# literal inside code\n- not a list\n```\n# actual heading");
+        var console = Interactive();
+        console.Input.PushKey(ConsoleKey.Enter); // Next page: inside the fence.
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewFormattedPreviewPager(console).RunAsync(path, 2);
+
+        Assert.Contains("# literal inside code", console.Output);
+        Assert.Contains("- not a list", console.Output);
+        Assert.Contains("Source lines 3–4", console.Output);
+    }
+
+    [Fact]
+    public async Task ReturningToEarlierPageReplaysScannerWithoutLosingFenceContext()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteAsync(
+            "intro\n```text\n# code\nsecond code\n```\nending");
+        var console = Interactive();
+        console.Input.PushKey(ConsoleKey.Enter); // Next.
+        console.Input.PushKey(ConsoleKey.Enter); // Previous (first choice on last? No: line 3–4 has Next).
+        // Second Enter selects Next again because this is the middle page.
+        console.Input.PushKey(ConsoleKey.Enter); // Previous on final page.
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewFormattedPreviewPager(console).RunAsync(path, 2);
+
+        Assert.Contains("# code", console.Output);
+        Assert.Contains("Source lines 5–6", console.Output);
+    }
+
+    [Fact]
     public async Task UnsafeInputIsNeverRendered()
     {
         using var fixture = new Fixture();
