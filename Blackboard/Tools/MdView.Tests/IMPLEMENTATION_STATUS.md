@@ -36,3 +36,9 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - Added `MdViewDocumentCompletionPromptTests` with 5 cases: Enter, Escape, ignored reserved future keys, ignored unrelated keys, noninteractive immediate return.
 - Added `MdViewSessionTests` with 8 cases: Enter to main menu then second document, Enter then cancelled menu, Escape without menu, noninteractive one-shot execution, error code preservation, GitHub chooser cancellation without a phantom prompt, raw pager without duplicate completion, interactive startup.
 - The 13 new scenarios use `Spectre.Console.Testing.TestConsole` without live network. **Awaiting full Windows/CI test confirmation** after sync.
+
+## 2026-11-08 — experimental formatted preview regressions
+
+- Added `MdViewCommandTests.ExplicitPreviewCommandIsOptInAndCaseInsensitive` and four `MdViewFormattedPreviewPagerTests` for heading rendering, source-preserving snapshot use, Next/Previous navigation, rejection of unsafe terminal controls and noninteractive guard behavior.
+- Code commits: `4d31301ff9b46f27cdbf3af5841e4da44fa57d2c`, `754466f97251295dfaee04421b4f86952ca3c398`, `4fba512fe79801f25902379b295e05caf58fc6a2`; test commits: `ddb56e93d02538075624464d81865015fb577556`, `cae0180021afccd2d9624a2e80ae7d5cdeb99484`.
+- **Fresh test/build execution pending.** These tests cover independently parsed source fragments only, not stateful cross-page Markdown or screen-row fitting.
