@@ -318,6 +318,54 @@ public sealed class MarkdownIncrementalQuoteOwnershipTests
         Assert.InRange(reader.CharactersConsumed, 18, 20);
     }
 
+    [Fact]
+    public async Task OverIndentedQuotedListFenceMarkerDoesNotCloseTheCodeBlock()
+    {
+        const string source =
+            "> - item\n>   ```js\n>       ```\n>   ```\n> - next";
+        var scanned = await ScanAsync(source);
+        var parsed = MarkdownParser.Parse(source);
+
+        Assert.Equal(new[]
+        {
+            MarkdownContainerLineKind.ListItem,
+            MarkdownContainerLineKind.FenceOpen,
+            MarkdownContainerLineKind.CodeLine,
+            MarkdownContainerLineKind.FenceClose,
+            MarkdownContainerLineKind.ListItem
+        }, scanned.Select(x => x.Kind));
+        Assert.Equal(MarkdownBlockKind.CodeLine, parsed.Blocks[2].Kind);
+        Assert.Equal(MarkdownBlockKind.CodeFence, parsed.Blocks[3].Kind);
+        Assert.Equal(scanned[1].Source.Utf16Offset, scanned[2].FenceStartUtf16Offset);
+    }
+
+    [Fact]
+    public async Task OverIndentedOrdinaryListFenceMarkerRemainsLiteralCode()
+    {
+        const string source = "- item\n  ```js\n      ```\n  ```\n- next";
+        var scanned = await ScanAsync(source);
+        var parsed = MarkdownParser.Parse(source);
+        Assert.Equal(MarkdownContainerLineKind.FenceOpen, scanned[1].Kind);
+        Assert.Equal(MarkdownContainerLineKind.CodeLine, scanned[2].Kind);
+        Assert.Equal(MarkdownContainerLineKind.FenceClose, scanned[3].Kind);
+        Assert.Equal(MarkdownBlockKind.CodeLine, parsed.Blocks[2].Kind);
+        Assert.Equal(MarkdownBlockKind.CodeFence, parsed.Blocks[3].Kind);
+        Assert.Equal(scanned[0].Source.Utf16Offset, scanned[2].ListOwnerUtf16Offset);
+    }
+
+    [Fact]
+    public async Task OverIndentedListFenceOpenerIsNotRecognizedAsCode()
+    {
+        const string source = "- item\n      ```js\n  ordinary continuation";
+        var scanned = await ScanAsync(source);
+        var parsed = MarkdownParser.Parse(source);
+
+        Assert.Equal(MarkdownContainerLineKind.ListItem, scanned[0].Kind);
+        Assert.Equal(MarkdownContainerLineKind.ListContinuation, scanned[1].Kind);
+        Assert.Null(scanned[1].FenceStartUtf16Offset);
+        Assert.Equal(MarkdownBlockKind.Paragraph, parsed.Blocks[1].Kind);
+    }
+
     private static async Task<List<MarkdownContainerLine>> ScanAsync(string source)
     {
         using var reader = new StringReader(source);
