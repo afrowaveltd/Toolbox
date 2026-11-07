@@ -192,3 +192,11 @@
 - [GitHub Actions #42314716633](https://github.com/afrowaveltd/Toolbox/actions/runs/42314716633) **SUCCESS**, including the feature and all **18 new explicit-container tests** after correcting the test's hand-computed CR/LF fixture offsets. Linux clean solution build: **0 warnings / 0 errors**; test assemblies: **6,603 passed, zero failed**. ExchangeHouse Markdown tests: **138/138**.
 - Windows UI regression job **SUCCESS**, Markdown local link checker **SUCCESS**. The implementation and test behavior are therefore verified; subsequent README/status updates are documentation-only.
 - Scope remains conservative: explicit markers, quote depth and quoted fences only, with no full CommonMark/list ownership parity or visual Markdown paging claim.
+
+## 2026-11-07 — separate outer and quote-local ownership
+
+- Extended `MarkdownIncrementalContainerScanner` with **two independent 32-frame list stacks** and three additive `MarkdownContainerLine` init-only properties: outer ordinary-list offset/depth/marker. Existing positional constructor, inner `ListOwnerUtf16Offset`, quote-local nesting depth and source offset contract remain unchanged.
+- Probe explicit indentation before recognizing a standalone quote, retaining the owner of `- parent\n  > quote` even where a bare quote is syntactically plausible. The quote-local stack resets when quote depth or outer-owner identity changes. An unowned standalone quote invalidates stale ordinary-list ownership.
+- Protect quote-owned fences across body/closing lines and interrupt them if quote depth or outer-owner identity changes; do not synthesize a closing fence. Tightened fence opening/closing to strip **exactly the owning item's content indentation**, preserving overindented literal code.
+- Still **not** full CommonMark or deferred loose-list/blank/lazy continuation ownership. The existing full parser, renderer, mdview and cache are unchanged.
+- Added 17 focused regressions, including parity for supported owners with `MarkdownParser.Parse`, UTF-16/Unicode offsets, code fences and invalid overly-indented code markers. New [ownership documentation](Docs/Dual-List-Ownership/en.md). CI result for final snapshot to be recorded separately.
