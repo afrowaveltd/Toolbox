@@ -497,6 +497,73 @@ public sealed class Utf8DiskLineIndexTests
         Assert.Equal(contents.Length, await positions.GetByteOffsetAsync(positions.Utf16Length));
     }
 
+    [Fact]
+    public async Task SnapshotUsesSelectedTemporaryRootAndCleansUpAfterDispose()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteAsync("Český text\nSecond");
+        var root = Path.Combine(fixture.Root, "work");
+        Directory.CreateDirectory(root);
+
+        await using (var snapshot = await Utf8ValidatedSnapshot.CreateAsync(
+            path, temporaryRoot: root))
+        {
+            Assert.Equal(new[] { "Český text", "Second" },
+                (await snapshot.Lines.ReadPageAsync(0)).Lines);
+            var child = Assert.Single(Directory.GetDirectories(root));
+            Assert.StartsWith("afrowave-utf8-snapshot-",
+                Path.GetFileName(child), StringComparison.Ordinal);
+            Assert.True(File.Exists(Path.Combine(child, "validated.utf8")));
+        }
+
+        Assert.Empty(Directory.GetFileSystemEntries(root));
+        Assert.True(Directory.Exists(root));
+    }
+
+    [Fact]
+    public async Task SnapshotValidationFailureCleansSelectedRoot()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteBytesAsync(
+            Encoding.UTF8.GetBytes("Safe\nUnsafe\u001b[31m"));
+        var root = Path.Combine(fixture.Root, "work");
+        Directory.CreateDirectory(root);
+
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            Utf8ValidatedSnapshot.CreateAsync(path, temporaryRoot: root));
+        Assert.Empty(Directory.GetFileSystemEntries(root));
+    }
+
+    [Fact]
+    public async Task SnapshotCopyBudgetFailureCleansSelectedRoot()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteAsync(new string('x', 1024));
+        var root = Path.Combine(fixture.Root, "work");
+        Directory.CreateDirectory(root);
+
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            Utf8ValidatedSnapshot.CreateAsync(path,
+                maximumSnapshotBytes: 8, temporaryRoot: root));
+        Assert.Empty(Directory.GetFileSystemEntries(root));
+    }
+
+    [Fact]
+    public async Task SnapshotPreCancelledOperationDoesNotCreateWorkspace()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteAsync("Test");
+        var root = Path.Combine(fixture.Root, "work");
+        Directory.CreateDirectory(root);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            Utf8ValidatedSnapshot.CreateAsync(path,
+                cancellationToken: cancellation.Token, temporaryRoot: root));
+        Assert.Empty(Directory.GetFileSystemEntries(root));
+    }
+
     private sealed class Fixture : IDisposable
     {
         public string Root { get; } =
