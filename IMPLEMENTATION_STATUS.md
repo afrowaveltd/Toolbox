@@ -379,3 +379,10 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - [GitHub Actions #42314716633](https://github.com/afrowaveltd/Toolbox/actions/runs/42314716633) **SUCCESS**, including the feature and all **18 new explicit-container tests** after correcting the test's hand-computed CR/LF fixture offsets. Linux clean solution build: **0 warnings / 0 errors**; test assemblies: **6,603 passed, zero failed**. ExchangeHouse Markdown tests: **138/138**.
 - Windows UI regression job **SUCCESS**, Markdown local link checker **SUCCESS**. The implementation and test behavior are therefore verified; subsequent README/status updates are documentation-only.
 - Scope remains conservative: explicit markers, quote depth and quoted fences only, with no full CommonMark/list ownership parity or visual Markdown paging claim.
+
+## 2026-11-07 — dual list-owner semantics for incremental Markdown
+
+- Added separate **outer ordinary-list owner** metadata for explicit quoted Markdown content in `MarkdownIncrementalContainerScanner`; `MarkdownContainerLine` now exposes `QuoteContainerListOwnerUtf16Offset`, `QuoteContainerListDepth` and `QuoteContainerListMarker` as additive init-only properties, leaving the existing positional record signature intact.
+- Kept ordinary and quote-local list stacks independent, with owner-scoped quote state and fence interruption on quote-depth/outer-owner changes. Overindented fence markers are protected by stripping **only required content indentation**, not all leading whitespace.
+- Added 17 focused tests, including offset/owner equivalence to the existing full `MarkdownParser` on supported cases and Unicode/newline/oversized indentation boundaries. No renderer or mdview behavior changes; full CommonMark and speculative lazy/blank ownership are not claimed.
+- [English design](ExchangeHouse/Markdown/Docs/Dual-List-Ownership/en.md). The first CI suite with 14 tests found an incorrect test expectation for the root list depth; fixed. Fresh CI after additional fence regressions pending.
