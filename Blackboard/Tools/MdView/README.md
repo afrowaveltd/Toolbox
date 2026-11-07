@@ -88,3 +88,26 @@ Help, failed or cancelled reads and the separately interactive raw `source PATH`
 A future `F` search interface should offer common English README topics (Installation, Build, Compilation, Configuration, Usage, Examples and others) plus detected heading titles and user-entered phrases. `N`/`P` would move between next/previous occurrences. Instead of indexing every word on every start, index a small configurable seed set and scan/add new phrases only on first use; store compact source offsets tied to a verified document version so stale positions cannot survive README updates.
 
 **Search is not yet implemented; F/N/P still have no action.** The groundwork is an isolated forward-only [incremental line scanner](../../../ExchangeHouse/Markdown/Docs/Incremental-Source-Scanner/en.md) committed alongside this design; it is not wired into mdview's existing fully rendered output. [Full future-search plan](Docs/Indexed-Search/en.md).
+
+## Experimental formatted source-page preview (2026-11-08)
+
+```bash
+dotnet run --project Blackboard/Tools/MdView -- preview README.md
+```
+
+The new **opt-in** `preview PATH` command creates a validated temporary
+UTF-8 snapshot, reads a bounded source page (24 physical lines by default),
+and passes only that fragment to the existing Markdown/Spectre renderer.
+Spectre navigation provides Next, Previous, Go to source line and Exit.
+The normal `local`, `git`, `url` and raw `source` paths are unchanged.
+
+**Known limitation:** source pages are parsed independently. A fenced code
+block, list or quote spanning pages can lose syntax/context at the boundary.
+The number of rendered terminal rows is not currently constrained, and this
+is not yet the planned stateful, index-aware visual pager. It is a
+separately named proof of concept for snapshot-backed bounded rendering.
+The source Markdown is unchanged; the temporary snapshot is disposed when
+navigation exits. CLI requires an interactive terminal.
+
+[Detailed design and limitations](Docs/Experimental-Formatted-Preview/en.md).
+New tests and compilation await a fresh Windows/Linux run.
