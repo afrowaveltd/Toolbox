@@ -10,8 +10,8 @@ namespace Afrowave.Toolbox.Blackboard.TextFiles;
 /// <remarks>
 /// Builds an independent, temporary 16-byte-per-line index from a validated
 /// <see cref="Utf8DiskLineIndex"/>. Its caller retains ownership of that source.
-/// Construction is bounded-memory but currently performs random source seeks
-/// per line and may be slow on rotational disks. This is not an immutable
+/// Construction is bounded-memory and batches physical-line and byte-offset
+/// reads, without repeated per-line position decoding. This is not an immutable
 /// snapshot of a concurrently modified file.
 /// </remarks>
 public sealed class Utf8DocumentOffsetIndex : IAsyncDisposable
@@ -67,6 +67,9 @@ public sealed class Utf8DocumentOffsetIndex : IAsyncDisposable
         {
             var entry = new byte[EntrySize];
             long total = 0;
+            var bomBytes = source.LineCount > 0
+                ? await source.GetByteOffsetAsync(0, 0, cancellationToken).ConfigureAwait(false)
+                : 0L;
             for (long lineNumber = 0; lineNumber < source.LineCount;)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -75,19 +78,19 @@ public sealed class Utf8DocumentOffsetIndex : IAsyncDisposable
                 if (page.Lines.Count == 0)
                     throw new InvalidDataException("Line index did not make progress.");
 
-                foreach (var line in page.Lines)
+                // The physical-line reader has already decoded the bounded
+                // page. Fetch all corresponding start offsets in one disk read.
+                var starts = await source.ReadLineStartsAsync(
+                    lineNumber, page.Lines.Count, cancellationToken)
+                    .ConfigureAwait(false);
+                for (var i = 0; i < page.Lines.Count; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    // UTF-16 length of the content is known without materializing
-                    // the document. The byte gap to the following start is the
-                    // terminator: zero, LF/CR (one), or CRLF (two).
-                    var endByte = await source.GetByteOffsetAsync(
-                        lineNumber, line.Length, cancellationToken).ConfigureAwait(false);
-                    var nextByte = lineNumber + 1 < source.LineCount
-                        ? await source.GetByteOffsetAsync(
-                            lineNumber + 1, 0, cancellationToken).ConfigureAwait(false)
-                        : source.ByteLength;
-                    var gap = nextByte - endByte;
+                    var line = page.Lines[i];
+                    var physicalBytes = starts[i + 1] - starts[i];
+                    // ReadPageAsync excludes the leading UTF-8 BOM only on line 0.
+                    var prefixBytes = lineNumber == 0 ? bomBytes : 0;
+                    var gap = physicalBytes - Encoding.UTF8.GetByteCount(line) - prefixBytes;
                     if (gap is < 0 or > 2)
                         throw new InvalidDataException("Invalid line terminator width.");
 
