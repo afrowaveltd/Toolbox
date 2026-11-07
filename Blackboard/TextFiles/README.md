@@ -39,3 +39,26 @@ if (page.HasMore)
 ```
 
 The derived temporary index disappears on disposal and does not affect our persistent downloaded README cache. This is a **source line index**, not an incremental Markdown parser; the normal complete-document renderer remains unchanged. The first terminal consumer is `mdview source README.md`, explicitly displaying raw source pages. [Architecture, safety and limits](Docs/Disk-Line-Index/en.md). New tests are committed, but a build/test pass is still pending.
+
+## UTF-16 line-column to UTF-8 byte mapping (2026-11-07)
+
+After `OpenAsync` validates the full source, `GetByteOffsetAsync(lineNumber,
+utf16Column)` maps a **zero-based physical line** and **UTF-16 content column**
+to a physical UTF-8 byte offset. It reads only one bounded line and its disk
+index entry, accounts for initial UTF-8 BOM bytes, handles multibyte Unicode
+and mixed CRLF/LF/CR, and rejects columns that split surrogate pairs.
+
+```csharp
+await using var index = await Utf8DiskLineIndex.OpenAsync("README.md");
+long offset = await index.GetByteOffsetAsync(0, 5);
+```
+
+This is not yet an **absolute document-wide UTF-16-offset** mapper or an
+immutable-file snapshot. The source can still change in place between
+validation and a later read. Do not attach untrusted streaming Markdown
+rendering to this helper until stable source identity and cumulative UTF-16
+line-start mapping are implemented.
+
+[Line-index byte-offset guide](Docs/Disk-Line-Index/en.md). Four focused
+tests were added for BOM/Unicode/CRLF, surrogate boundaries, empty lines
+and random access across large lines. **Fresh build/tests pending**.
