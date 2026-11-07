@@ -30,8 +30,8 @@ public sealed class MdViewFormattedPreviewPagerTests
         using var fixture = new Fixture();
         var path = await fixture.WriteAsync("# One\nfirst\n# Two\nsecond");
         var console = Interactive();
-        console.Input.PushKey(ConsoleKey.Enter); // Next
-        console.Input.PushKey(ConsoleKey.DownArrow);
+        console.Input.PushKey(ConsoleKey.Enter); // Next on the first page.
+        // On the last page there is no Next choice; Previous is first.
         console.Input.PushKey(ConsoleKey.Enter); // Previous
         console.Input.PushKey(ConsoleKey.Escape);
 
@@ -40,6 +40,23 @@ public sealed class MdViewFormattedPreviewPagerTests
         Assert.Contains("Two", console.Output);
         Assert.Equal(2,
             console.Output.Split("Source lines 1–2", StringSplitOptions.None).Length - 1);
+    }
+
+    [Fact]
+    public async Task GoToSourceLineReadsRequestedPage()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteAsync("# One\nfirst\n# Two\nsecond");
+        var console = Interactive();
+        console.Input.PushKey(ConsoleKey.DownArrow); // Go to source line.
+        console.Input.PushKey(ConsoleKey.Enter);
+        console.Input.PushTextWithEnter("3");
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewFormattedPreviewPager(console).RunAsync(path, 2);
+
+        Assert.Contains("Source lines 3–4", console.Output);
+        Assert.Contains("Two", console.Output);
     }
 
     [Fact]
