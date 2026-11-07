@@ -222,3 +222,9 @@
 - Added **20 focused tests** for loose-list ownership/laziness, outer-inner quote scopes, bounded memory and incremental emission, plus updated two existing fixtures. Full renderer, API links, TextMate and mdview output remain unchanged.
 - [Detailed design](Docs/Deferred-List-Ownership/en.md). Known full-parser fence-opening indentation divergence remains documented; nested containers and formatted streaming paging are not yet fully implemented.
 - CI on the functional/test snapshot `9822713461466a4cc2849c3963211075dc14bd27`: Linux solution **6,640/6,640 passing tests, 0 warnings, 0 errors**. Windows and final documentation checks were still in progress when this status was authored.
+
+### Verified CI — 2026-11-07 deferred list-ownership milestone
+
+- [GitHub Actions run 42359532384](https://github.com/afrowaveltd/Toolbox/actions/runs/42359532384), on commit `711df48e5e3038e5c78940b333107f00f6aacd4b`: **SUCCESS**. Linux solution **6,640/6,640 tests passing**, **0 compiler warnings, 0 build errors**. `ExchangeHouse.Markdown.Tests` **175/175** passing (including 20 new deferred-ownership cases); Windows UI regression tests **SUCCESS**, Markdown local documentation links **SUCCESS**.
+- The two earlier generic-text fixture expectations were updated for confirmed lazy paragraph ownership; thematic-break fixture was made unambiguous (`***`). These corrections did not require modifications to the established whole-document `MarkdownParser`.
+- Subsequent changes only update English README, documentation index and status notes. Full rendered Markdown paging and `F/N/P` indexed navigation remain future milestones.
