@@ -229,3 +229,30 @@ content digests and a defined source-change policy.
 
 This does not by itself implement progressive Markdown rendering, a
 single-pass combined index or a benchmarked HDD throughput guarantee.
+
+
+## Choosing a snapshot working volume and lifecycle tests (2026-11-07)
+
+The optional `temporaryRoot` parameter on
+`Utf8ValidatedSnapshot.CreateAsync` allows callers to choose an existing
+temporary directory (for example, a separate HDD volume with ample free
+space). It is appended after `cancellationToken` so earlier positional
+callers remain source-compatible. A uniquely named private child directory
+is always created; the supplied root itself is **never deleted**.
+
+```csharp
+await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(
+    "README.md", temporaryRoot: Path.GetTempPath());
+```
+
+Normal disposal releases the indexed file and guard before recursively
+removing the child workspace. Failed validation, a budget overrun and a
+cancelled operation clean up the allocated resources; pre-cancelled calls
+create no workspace. New isolated-root regression tests check success,
+invalid controls, copy budget and cancellation.
+
+There is deliberately no implicit global cleanup of all similarly named
+folders: doing so could erase a snapshot used by another process. A sudden
+process crash or forced termination may still leave an orphan; recovery
+requires a future explicit ownership/lease policy. The caller must select a
+trusted writable root and should monitor free disk space independently.
