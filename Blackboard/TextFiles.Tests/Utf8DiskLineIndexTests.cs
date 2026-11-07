@@ -512,7 +512,7 @@ public sealed class Utf8DiskLineIndexTests
                 (await snapshot.Lines.ReadPageAsync(0)).Lines);
             var child = Assert.Single(Directory.GetDirectories(root));
             Assert.StartsWith("afrowave-utf8-snapshot-",
-                Path.GetFileName(child), StringComparison.Ordinal);
+                Path.GetFileName(child));
             Assert.True(File.Exists(Path.Combine(child, "validated.utf8")));
         }
 
