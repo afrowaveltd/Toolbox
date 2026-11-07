@@ -63,3 +63,11 @@
 
 - Added `SnapshotRejectsMissingCustomRootWithoutCreatingIt`, covering explicit `DirectoryNotFoundException` and no creation of the caller root. Test commit `b9fd37bb9a2cc38898aa6f95d4e37c740e371576`.
 - Production `CS1501` correction in `8eab8a7767c566c337a28f5d39fde4455e07ae9f`. Previous Windows build failed because `Directory.CreateTempSubdirectory(prefix, root)` is unavailable. **New build/test result pending**.
+
+
+## 2026-11-07 — Windows compiler error CS0019 in contiguous-page tests
+
+- The maintainer's Windows `dotnet test Toolbox.sln` build log showed that the previous `CS1501` production error was resolved and `Afrowave.Toolbox.Blackboard.TextFiles.dll` built successfully.
+- Compilation of `Utf8DiskLineIndexTests.cs` stopped at lines 389 and 397 with two `CS0019` errors because `i % 3 switch` was parsed with an unintended switch-expression operand. Parenthesized both modulo operations as `(i % 3) switch` to express the intended switch selector.
+- Fix commit: `ec35699ddee85df90afac5cb5707717d18c480ce`. The reported build had **0 compiler warnings, 2 compiler errors** before this fix; `NETSDK1057` was informational preview-SDK output.
+- The corrected test project and full suite **still require a fresh Windows run**. Run the focused TextFiles test project first and then `dotnet test Toolbox.sln`.
