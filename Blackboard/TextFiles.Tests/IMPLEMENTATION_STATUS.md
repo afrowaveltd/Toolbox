@@ -58,3 +58,8 @@
 - Added four tests for configurable temporary storage: successful disposal, invalid-content cleanup, copy-budget cleanup and pre-cancelled execution. All tests use per-fixture scratch roots and assert that no child files/directories remain after completion.
 - Commits `27497726f9044fcbd7cf01a713ccb2ec93f47193`, `aaef104a78c84c4cf753794aea216269b8d6264f`. Runtime API `c628a500ae75e322671dba413448090f88d6bc3e`.
 - No .NET SDK is installed in the current execution environment; **fresh test compilation and execution are pending**, including actual Windows and Debian filesystem behavior. Run the focused TextFiles suite followed by the full solution.
+
+## 2026-11-07 — net10 custom-root compatibility regression
+
+- Added `SnapshotRejectsMissingCustomRootWithoutCreatingIt`, covering explicit `DirectoryNotFoundException` and no creation of the caller root. Test commit `b9fd37bb9a2cc38898aa6f95d4e37c740e371576`.
+- Production `CS1501` correction in `8eab8a7767c566c337a28f5d39fde4455e07ae9f`. Previous Windows build failed because `Directory.CreateTempSubdirectory(prefix, root)` is unavailable. **New build/test result pending**.
