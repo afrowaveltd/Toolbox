@@ -387,6 +387,43 @@ public sealed class MarkdownIncrementalQuoteOwnershipTests
         Assert.Null(parsed.Blocks[1].CodeFenceStart);
     }
 
+    [Theory]
+    [InlineData(false, 0)]
+    [InlineData(false, 1)]
+    [InlineData(false, 2)]
+    [InlineData(false, 3)]
+    [InlineData(false, 4)]
+    [InlineData(true, 0)]
+    [InlineData(true, 1)]
+    [InlineData(true, 2)]
+    [InlineData(true, 3)]
+    [InlineData(true, 4)]
+    public async Task FenceOpeningIndentationBoundaryMatchesFullParser(
+        bool quoted, int extraSpaces)
+    {
+        // Two spaces belong to the list item; only up to three additional
+        // spaces are permitted before an opening fence delimiter.
+        var prefix = quoted ? "> " : string.Empty;
+        var source = prefix + "- item\n" +
+            prefix + new string(' ', 2 + extraSpaces) + "```csharp\n";
+        var scanned = await ScanAsync(source);
+        var parsed = MarkdownParser.Parse(source);
+        var opensFence = extraSpaces <= 3;
+
+        Assert.Equal(source, string.Concat(scanned.Select(x => x.Source.Raw)));
+        Assert.Equal(source, MarkdownWriter.Write(parsed));
+        Assert.Equal(opensFence
+                ? MarkdownContainerLineKind.FenceOpen
+                : MarkdownContainerLineKind.ListContinuation,
+            scanned[1].Kind);
+        Assert.Equal(opensFence
+                ? MarkdownBlockKind.CodeFence
+                : MarkdownBlockKind.Paragraph,
+            parsed.Blocks[1].Kind);
+        Assert.Equal(opensFence, scanned[1].FenceStartUtf16Offset.HasValue);
+        Assert.Equal(opensFence, parsed.Blocks[1].CodeFenceStart.HasValue);
+    }
+
     private static async Task<List<MarkdownContainerLine>> ScanAsync(string source)
     {
         using var reader = new StringReader(source);
