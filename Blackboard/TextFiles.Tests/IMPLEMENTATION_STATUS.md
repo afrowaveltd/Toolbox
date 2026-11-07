@@ -46,3 +46,8 @@
 - Added `ContiguousPageByteLimitNeverDropsTheFirstLineOfNextPage` (100 long lines, >4 MiB source total, exact `NextLine` continuation and reconstruction).
 - Tests committed in `16bf7eca7554b6a0e1f8f56dc32988503135f089`; runtime change in `133f28a2cd8fdb7d51d974ff935e930eff83a464`. Execution still pending; no claim of green CI for this snapshot.
 
+
+## 2026-11-07 — validated snapshot regression coverage
+
+- Four `Utf8ValidatedSnapshot` tests cover unchanged snapshot content after the original path is rewritten, rejection of unsafe controls, copy byte budget and zero-byte sources, and Unicode BOM/emoji with derived document offsets.
+- Implementation `4957d3728ad303e2338ef8707c47b52cd711ff22`; test commit `5e69419c92c74f02618130d15a95c4de1fa7bcb3`. The code is committed but fresh build/tests are **not yet confirmed**.
