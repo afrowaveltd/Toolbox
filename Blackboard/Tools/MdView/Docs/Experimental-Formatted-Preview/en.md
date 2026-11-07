@@ -70,3 +70,28 @@ Debian acceptance are complete.
 [Raw source pager](../Raw-Source-Pager/en.md) ·
 [TextFiles snapshot](../../../../TextFiles/README.md) ·
 [Implementation status](../../IMPLEMENTATION_STATUS.md).
+
+
+## Incremental fenced-block classification (2026-11-08)
+
+The formatted preview now has a validated-snapshot-backed
+`MdViewContainerPageCursor` that maintains a forward-only
+`MarkdownIncrementalContainerScanner` iterator. Each requested source
+page obtains matching classified events. A proven fence opener,
+code-content line or matching closer is written **literally** through
+Spectre `Text` rather than being passed to the page-fragment Markdown
+parser. Markdown-looking source within a continued fence therefore
+cannot turn into a heading/list merely because a source-page boundary
+occurs.
+
+Ordinary non-code runs remain independently parsed bounded fragments,
+and code lines currently use plain literal rendering rather than
+TextMate syntax highlighting. Reverse/jump navigation resets and replays
+from the beginning; no claim of O(1) random page navigation for
+container metadata is made. Resource use remains bounded (one 128-line
+page plus scanner state and on-disk indexes), but seeking far backward
+may require scanning many earlier lines.
+
+This remains an **experimental** pager. Quoted/lazy list ownership,
+visual terminal row wrapping, context-aware inline Markdown and truly
+random indexed syntax checkpoints are not solved by this change.
