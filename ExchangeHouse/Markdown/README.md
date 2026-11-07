@@ -139,3 +139,25 @@ already validated disk-backed classified-event journal.
 
 [Checkpoint contract and limitations](Docs/Scanner-Checkpoints/en.md).
 Five new focused tests are committed; their execution is pending.
+
+
+## Stateful container classification and checkpoint restore (2026-11-08)
+
+`MarkdownIncrementalContainerScanner.StateMachine` now exposes the same
+conservative line classification as the existing `ScanAsync` wrapper, but
+with explicit `Process(MarkdownStreamLine)`, `Capture()` and
+`Restore(MarkdownScannerCheckpoint)` methods. A machine validates
+consecutive physical line numbers and decoded UTF-16 offsets; checkpoint
+restoration validates quoted-fence outer-list ownership rather than
+guessing missing data. `ScanAsync` continues using
+`MarkdownIncrementalLineScanner` and delegates to the same state machine,
+preserving its original signature.
+
+The new golden tests compare uninterrupted `ScanAsync` results with a
+state machine checkpointed and restored **before every line** in
+nested lists, quotes, code fences, CR/LF/CRLF and interrupted fences.
+The state is not yet attached to a source identity, nor can the physical
+reader resume from an arbitrary byte offset; the experimental `mdview`
+continues to use its disk event journal rather than trusting unbound
+checkpoints. See [Scanner checkpoints](Docs/Scanner-Checkpoints/en.md).
+Fresh Windows/Linux test execution of this refactor is pending.
