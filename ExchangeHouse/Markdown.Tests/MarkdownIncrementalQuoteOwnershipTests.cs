@@ -22,7 +22,7 @@ public sealed class MarkdownIncrementalQuoteOwnershipTests
         Assert.Equal(6, stream.Count);
         Assert.Equal(MarkdownContainerLineKind.ListItem, stream[0].Kind);
         Assert.Equal(MarkdownContainerLineKind.Quote, stream[1].Kind);
-        Assert.Equal(new[] { -1, -1, 0, 1, 1, 0 }, stream.Select(x => x.ListDepth));
+        Assert.Equal(new[] { 0, -1, 0, 1, 1, 0 }, stream.Select(x => x.ListDepth));
         Assert.All(stream.Skip(1), x =>
         {
             Assert.Equal(1, x.QuoteDepth);
