@@ -442,6 +442,61 @@ public sealed class Utf8DiskLineIndexTests
         Assert.Equal(expected, first.Lines.Concat(second.Lines));
     }
 
+    [Fact]
+    public async Task ValidatedSnapshotKeepsOriginalContentAfterSourceChanges()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteAsync("Original 🌍\r\nSecond");
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(path);
+
+        await File.WriteAllTextAsync(path, "Changed!\nUnrelated");
+        var page = await snapshot.Lines.ReadPageAsync(0);
+        Assert.Equal(new[] { "Original 🌍", "Second" }, page.Lines);
+        Assert.Equal(Encoding.UTF8.GetByteCount("Original 🌍\r\nSecond"),
+            snapshot.ByteLength);
+    }
+
+    [Fact]
+    public async Task ValidatedSnapshotRejectsUnsafeInputWithoutExposingPage()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteBytesAsync(
+            Encoding.UTF8.GetBytes("valid\ninvalid\u001b[31m"));
+        await Assert.ThrowsAsync<InvalidDataException>(
+            () => Utf8ValidatedSnapshot.CreateAsync(path));
+    }
+
+    [Fact]
+    public async Task ValidatedSnapshotHonorsByteBudgetAndSupportsEmptyFile()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteAsync("12345");
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            Utf8ValidatedSnapshot.CreateAsync(path, maximumSnapshotBytes: 4));
+
+        path = await fixture.WriteAsync("");
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(
+            path, maximumSnapshotBytes: 0);
+        Assert.Equal(0, snapshot.ByteLength);
+        Assert.Empty((await snapshot.Lines.ReadPageAsync(0)).Lines);
+    }
+
+    [Fact]
+    public async Task ValidatedSnapshotSupportsUnicodeBomAndDocumentOffsets()
+    {
+        using var fixture = new Fixture();
+        var contents = new UTF8Encoding(true).GetPreamble()
+            .Concat(Encoding.UTF8.GetBytes("Č🌍\r\nNext")).ToArray();
+        var path = await fixture.WriteBytesAsync(contents);
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(path);
+        await using var positions = await Utf8DocumentOffsetIndex.CreateAsync(snapshot.Lines);
+        Assert.Equal(new[] { "Č🌍", "Next" },
+            (await snapshot.Lines.ReadPageAsync(0)).Lines);
+        Assert.Equal(3, await positions.GetByteOffsetAsync(0));
+        Assert.Equal(9, await positions.GetByteOffsetAsync(3));
+        Assert.Equal(contents.Length, await positions.GetByteOffsetAsync(positions.Utf16Length));
+    }
+
     private sealed class Fixture : IDisposable
     {
         public string Root { get; } =
