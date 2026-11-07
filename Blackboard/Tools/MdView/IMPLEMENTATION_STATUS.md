@@ -101,3 +101,13 @@
 - Updated `MdViewFormattedPreviewPager` to render confirmed fence/code/closer events as literal Spectre Text (never parse Markdown-looking code), and ordinary runs with the existing Markdown renderer (`f5e5bd475b640952379c6d06732891a1ca9cd865`). New cross-page tests in `48bf8bc47064741cdc810f3fd279f9d7c147cc49`.
 - **Scope:** preserves forward code fence classification, not full CommonMark, TextMate syntax colors for code, or terminal row paging. Reverse/jump replays from the start and may be slow on very long files. Existing default renderer is untouched.
 - **Fresh .NET tests pending.** Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`, `dotnet test Blackboard/TextFiles.Tests/Afrowave.Toolbox.Blackboard.TextFiles.Tests.csproj` and `dotnet test Toolbox.sln`. Windows/SSH/Debian acceptance and possible renderer regressions remain to verify.
+
+
+## 2026-11-08 — disk-journal reverse navigation, distinct from scanner checkpoints
+
+- Replaced reverse replay in `MdViewContainerPageCursor` with a disk-backed journal of complete serialized `MarkdownContainerLine` events plus an 8-byte-per-line offset table (commit `a30c6283dcaac88774c6c59a24e6e15fd11250ad`).
+- Already scanned pages are loaded from the on-disk journal without replaying parser state; the live incremental scanner continues only for requests beyond the scanned high-water mark. The cursor exposes `CachedLineCount` and `JournalBytes` for testing/diagnostics.
+- Explicit 512 MiB event and 256 MiB offset default disk budgets, 8 MiB per-record cap, cancellation support and fail-closed behavior after scanning/write failure. Both journals use `DeleteOnClose` and are disposed independently of the caller-owned validated snapshot.
+- Added five focused tests in `487e50ea9d73e134b7a13cf1761d291ad1b736ad`: backward reuse, forward-after-reverse fence parity, journal budget, offset budget and empty file.
+- **Not a scanner-state checkpoint** or constant-time navigation to previously unseen source lines. Large forward skips still require intermediate scanner work. This is a bounded correctness-first event cache; no benchmarked HDD performance claims.
+- **Fresh tests not yet run in this environment.** Verify `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj` and `dotnet test Toolbox.sln`, plus Debian/Windows file-cleanup behavior.
