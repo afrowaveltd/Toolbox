@@ -174,3 +174,8 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 - Added `MarkdownIncrementalQuoteOwnershipTests` (**17 cases**). Explicit ordinary-list and quote-local list owners are asserted independently, including nested list descendants, owner changes, quoted/unquoted boundaries, quoted fences, CR/LF/CRLF Unicode offsets and early streaming yield.
 - Three cases enforce precise list-owned fence indentation: excessively indented code delimiters must not spuriously open or close a fence. Compares supported classifications with `MarkdownParser.Parse`.
 - The first CI run of the new tests caught an incorrect expected root list depth (`-1` rather than `0`); corrected in commit `afc7d53dabaa09d5c0b11c7b10b61e0f6f9056ba`. Production implementation already returned the expected depth. Final post-correction CI run pending.
+
+### Compatibility/test correction — 2026-11-07
+
+- CI for the 17-case suite identified an incorrect assumption in the overindented-opener **test**, not a compiler error: `MarkdownParser.Parse` currently classifies an overindented list-owned opening delimiter as `CodeFence`, while the conservative incremental scanner returns `ListContinuation`. The test now documents/asserts **both actual behaviors** rather than pretending they match.
+- This known gap is tracked in [Dual List Ownership](../Markdown/Docs/Dual-List-Ownership/en.md) and must be reconciled before adopting the streaming scanner as a replacement renderer.
