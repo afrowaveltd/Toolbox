@@ -51,3 +51,11 @@ Added `MarkdownDeferredListOwnershipScannerTests` (**20 cases**, including four 
 Two existing scanner fixtures were updated to expect valid lazy paragraph ownership where the previous conservative implementation emitted generic `Plain` or `Quote` lines. The thematic-break test uses unambiguous `***` rather than `* * *`, which the existing parser can also treat as a list marker.
 
 [Deferred ownership documentation](../Markdown/Docs/Deferred-List-Ownership/en.md).
+
+## Completed container source-span regressions (2026-11-07)
+
+Added `MarkdownIncrementalContainerBlockScannerTests` (**22 cases**) covering contiguous, non-overlapping source ranges and exact CR/LF/CRLF and Unicode reconstruction; nested list/quote owner metadata; separate ordinary and quote-local continuation runs; loose-list blank owner resolution; uninterrupted lazy continuations; top-level and quoted fenced-code closure, interruption and EOF; large paragraphs/code blocks without storing their text; early streaming events; resource limits and cancellation.
+
+Two `xUnit2031` warnings in the initial test commit were fixed by using `Assert.Single(collection, predicate)` instead of filtering through `Where`; a tautological assertion was replaced with an actual source-offset assertion. Keep analyzer warnings at zero.
+
+[Scanner details](../Markdown/Docs/Incremental-Container-Block-Spans/en.md). No change to the existing whole-document renderer.
