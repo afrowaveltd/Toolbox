@@ -381,6 +381,67 @@ public sealed class Utf8DiskLineIndexTests
         Assert.Equal(9, await plainPositions.GetByteOffsetAsync(9));
     }
 
+    [Fact]
+    public async Task ContiguousPagesPreserveUnicodeBomAndMixedNewlinesAcrossBoundaries()
+    {
+        using var fixture = new Fixture();
+        var expected = Enumerable.Range(0, 261)
+            .Select(i => i % 3 switch
+            {
+                0 => $"Číslo {i} 🌍",
+                1 => $"Line {i}",
+                _ => $"Žluťoučký {i}"
+            })
+            .ToArray();
+        var separators = Enumerable.Range(0, expected.Length - 1)
+            .Select(i => i % 3 switch { 0 => "\r\n", 1 => "\r", _ => "\n" })
+            .ToArray();
+        var content = string.Concat(expected.Select((line, i) =>
+            line + (i < separators.Length ? separators[i] : string.Empty)));
+        var bytes = new UTF8Encoding(true).GetPreamble()
+            .Concat(Encoding.UTF8.GetBytes(content)).ToArray();
+        var path = await fixture.WriteBytesAsync(bytes);
+        await using var index = await Utf8DiskLineIndex.OpenAsync(path);
+
+        var allLines = new List<string>();
+        var next = 0L;
+        while (next < index.LineCount)
+        {
+            var page = await index.ReadPageAsync(next, 128);
+            Assert.NotEmpty(page.Lines);
+            allLines.AddRange(page.Lines);
+            Assert.True(page.NextLine > next);
+            next = page.NextLine;
+        }
+
+        Assert.Equal(expected, allLines);
+        Assert.Equal(expected.Skip(127).Take(4),
+            (await index.ReadPageAsync(127, 4)).Lines);
+        Assert.Equal(expected.Take(3), (await index.ReadPageAsync(0, 3)).Lines);
+    }
+
+    [Fact]
+    public async Task ContiguousPageByteLimitNeverDropsTheFirstLineOfNextPage()
+    {
+        using var fixture = new Fixture();
+        var large = new string('z', 60000);
+        var expected = Enumerable.Range(0, 100)
+            .Select(i => large + i.ToString("D3")).ToArray();
+        var path = await fixture.WriteAsync(string.Join("\n", expected));
+        await using var index = await Utf8DiskLineIndex.OpenAsync(
+            path, maximumLineBytes: 65536);
+
+        var first = await index.ReadPageAsync(0, 100);
+        Assert.InRange(first.Lines.Count, 1, 99);
+        Assert.Equal(expected.Take(first.Lines.Count), first.Lines);
+        Assert.Equal(first.Lines.Count, first.NextLine);
+
+        var second = await index.ReadPageAsync(first.NextLine, 100);
+        Assert.Equal(expected.Skip(first.Lines.Count), second.Lines);
+        Assert.False(second.HasMore);
+        Assert.Equal(expected, first.Lines.Concat(second.Lines));
+    }
+
     private sealed class Fixture : IDisposable
     {
         public string Root { get; } =
