@@ -21,3 +21,9 @@
 
 - Added 15 `Utf8DiskLineIndexTests` for bounded memory/disk indexing and random-access UTF-8 source pages, line ending and Unicode edge cases, invalid data rejection before any page, budget errors, cancellation and invalid arguments. The five previously user-confirmed reader extraction tests are unchanged.
 - **Execution not yet confirmed** for these new tests; rerun `dotnet test Blackboard/TextFiles.Tests/Afrowave.Toolbox.Blackboard.TextFiles.Tests.csproj` and the full solution. Do not claim a new green total before a test log.
+
+## 2026-11-07 — byte-offset mapping regressions
+
+- Added four `Utf8DiskLineIndexTests`: BOM and mixed newline/Unicode positions; rejection of invalid/surrogate-splitting UTF-16 columns; empty and final-terminated lines; random offsets over a 64 KiB buffer boundary.
+- Feature source: `db31e7af6b7a33ef2f6698820e9f7a62cabb9721`. Test commit: `85d3bccd5a6f203aba22742334e61297ad24a874`.
+- New tests and full solution build have **not been independently executed in this environment** (no installed .NET SDK). Run `dotnet test Blackboard/TextFiles.Tests/Afrowave.Toolbox.Blackboard.TextFiles.Tests.csproj` and `dotnet test Toolbox.sln` and record the actual results.
