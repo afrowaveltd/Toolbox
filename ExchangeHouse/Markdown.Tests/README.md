@@ -37,3 +37,9 @@ The new tests were committed but should be considered unverified until the next 
 Added `MarkdownIncrementalContainerScannerTests` (**18 cases**: 15 `[Fact]` and three `[InlineData]`) covering quote depth, nested list markers and ancestor continuations, quoted and top-level fenced code, interruption on a quote-depth change, source offset/line-ending fidelity, stale owner clearing, tabs and ordered marker bounds, early streaming events, unsafe controls and cancellation. A restricted marker/fence comparison checks agreement with the existing full `MarkdownParser`. This is not yet an assertion of complete CommonMark compatibility.
 
 [Scanner contract](../Markdown/Docs/Explicit-Container-Scanner/en.md).
+
+## Dual list ownership regressions (2026-11-07)
+
+Added `MarkdownIncrementalQuoteOwnershipTests` (**17 cases**), validating separate outer ordinary-list and quote-local list owner metadata, nested ordered/unordered ancestors, quote-only ownership, quoted/ordinary-list code-fence protection and interrupted quote scope. Tests compare provable owner source offsets to `MarkdownParser.Parse`, including Unicode and mixed CR/LF endings. Three additional cases specifically reject falsely opening or closing fences after stripping *too much* indentation. The earlier single failing fixture assertion was corrected: the outer list's root depth is `0`, not `-1`.
+
+[Ownership contract](../Markdown/Docs/Dual-List-Ownership/en.md).
