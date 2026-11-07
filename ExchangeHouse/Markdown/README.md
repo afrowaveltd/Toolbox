@@ -95,3 +95,11 @@ Added `MarkdownIncrementalContainerScanner.ScanAsync(TextReader)`, an **additive
 The scanner emits one `MarkdownContainerLine` per physical source line and holds a capped **32-frame list stack** plus constant-size fence metadata; no document or block text is retained beyond the current line. Critically, it **does not** guess unindented lazy continuations, deferred blank owners or outer-list ownership of a nested quote. Those remain part of the existing whole-document parser until we can reproduce them reliably. Nothing is connected to `mdview` rendering yet.
 
 [Full behavior and limitations](Docs/Explicit-Container-Scanner/en.md). Added 18 focused cases for nested quotes, lists, explicit owners, quote-owned fences, cancellation and a restricted parser comparison; validate with `dotnet test Toolbox.sln`.
+
+## Independent quote / ordinary-list ownership (2026-11-07)
+
+The additive `MarkdownContainerLine` API now exposes three init-only properties—`QuoteContainerListOwnerUtf16Offset`, `QuoteContainerListDepth` and `QuoteContainerListMarker`—for **the outer ordinary-list item** that owns a quoted line. The existing `ListOwnerUtf16Offset` and `ListDepth` still represent the **quote-local list owner** where appropriate. The two stacks remain distinct and are invalidated on quote-depth or outer-owner changes.
+
+Inside ordinary and quoted lists, fenced-code indent stripping now removes **only the owning item's required content indent** rather than all leading whitespace. This prevents excessively indented backticks from being mistaken for opening or closing code fences. It is checked against the existing whole-document parser.
+
+This is a conservative, opt-in scanner feature: lazy continuations and deferred loose-list blank ownership are not inferred, the full renderer and mdview are unchanged, and this is not yet complete CommonMark. [Detailed ownership design](Docs/Dual-List-Ownership/en.md).
