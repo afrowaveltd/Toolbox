@@ -35,6 +35,16 @@ public sealed class MdViewCommandTests
         Assert.Null(command.Repository);
     }
 
+    [Fact]
+    public void ExplicitPreviewCommandIsOptInAndCaseInsensitive()
+    {
+        var command = MdViewCommand.Parse("PREVIEW", "./README.md");
+        Assert.Equal(MdViewSourceKind.FormattedPreview, command.Kind);
+        Assert.Equal("./README.md", command.Value);
+        Assert.Equal(MdViewSourceKind.Local,
+            MdViewCommand.Parse("local", "./README.md").Kind);
+    }
+
     [Theory]
     [InlineData("git", "AfrowaveLtd")]
     [InlineData("GITHUB", "afrowaveltd")]
