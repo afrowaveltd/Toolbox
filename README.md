@@ -180,3 +180,11 @@ The optional incremental scanner now tracks **lazy list-paragraph continuations*
 The lookahead has two explicit resource limits—**1,024 pending lines** and **1 Mi UTF-16 characters** by default—and fails clearly rather than silently truncating source. The additive `MarkdownContainerLine` properties `IsLazyListContinuation` and `ListBlankOwnerUtf16Offset` preserve the existing positional constructor signature. Twenty new regression cases exercise loose lists, quote scopes, lazy paragraphs, interruption, bounded lookahead and source fidelity.
 
 [GitHub Actions run 42359532384](https://github.com/afrowaveltd/Toolbox/actions/runs/42359532384) verified Linux/Windows tests and Markdown links, with **6,640 passing tests and zero compiler warnings/errors**. The established full Markdown parser and `mdview` remain unchanged. [Detailed deferred-ownership contract](ExchangeHouse/Markdown/Docs/Deferred-List-Ownership/en.md).
+
+## Completed container-aware Markdown source spans (2026-11-07)
+
+`ExchangeHouse.Markdown` now includes an **opt-in streaming `MarkdownIncrementalContainerBlockScanner`** that emits contiguous, nonoverlapping source spans for headings, plain/quoted runs, individual list markers, list-owned continuations, owned or unresolved blank runs and fenced code. It reuses the proven explicit quote/list and deferred-blank ownership scanners; the additional stage retains **one pending span** rather than the whole text or list subtree.
+
+For code fences the event records exactly how parsing ended: a matching closer (`Closed`), quote/outer-list scope interruption (`Interrupted`) or end of source with no closer (`EndOfFile`). All source positions are decoded UTF-16 offsets and physical line numbers; a later disk index must map these onto validated UTF-8 byte offsets. The existing `mdview` renderer is unchanged.
+
+Added **22 regression cases** for exact source reconstruction, mixed newlines/Unicode, separate quote/ordinary-list ownership, blank/lazy runs, complete/interrupted code fences, large runs and bounded resource usage. [Full contract](ExchangeHouse/Markdown/Docs/Incremental-Container-Block-Spans/en.md) · [Implementation status](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.md).
