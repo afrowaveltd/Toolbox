@@ -192,3 +192,9 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 - Created `MarkdownDeferredListOwnershipScannerTests` with **20 cases**: simple and quote-owned loose-list blank separators, two independent owners, EOF and scope interruption, ordinary and quoted lazy continuations, heading/fence/thematic interruption, bounded pending-run limits, early emission and full-parser comparison on supported syntax.
 - Adjusted the existing ordered-marker and standalone-quote tests to assert valid unindented continuation ownership, rather than the former generic text classification. Corrected thematic-break fixture to unambiguous `***`.
 - Confirmed Linux full solution `6,640/6,640` tests green, zero build warnings/errors on commit `9822713461466a4cc2849c3963211075dc14bd27`. Windows UI regression and Markdown link checks are tracked in GitHub Actions.
+
+### Verified CI — 2026-11-07 deferred list-ownership milestone
+
+- [GitHub Actions run 42359532384](https://github.com/afrowaveltd/Toolbox/actions/runs/42359532384), on commit `711df48e5e3038e5c78940b333107f00f6aacd4b`: **SUCCESS**. Linux solution **6,640/6,640 tests passing**, **0 compiler warnings, 0 build errors**. `ExchangeHouse.Markdown.Tests` **175/175** passing (including 20 new deferred-ownership cases); Windows UI regression tests **SUCCESS**, Markdown local documentation links **SUCCESS**.
+- The two earlier generic-text fixture expectations were updated for confirmed lazy paragraph ownership; thematic-break fixture was made unambiguous (`***`). These corrections did not require modifications to the established whole-document `MarkdownParser`.
+- Subsequent changes only update English README, documentation index and status notes. Full rendered Markdown paging and `F/N/P` indexed navigation remain future milestones.
