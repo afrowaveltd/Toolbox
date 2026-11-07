@@ -111,3 +111,11 @@ The forward-only `MarkdownIncrementalContainerScanner` now marks uninterrupted, 
 New `MarkdownDeferredListOwnershipScanner.ScanAsync(TextReader)` offers **bounded lookahead** to defer classification of blank separators until the following explicitly indented list continuation proves their owner. It preserves original text, line endings, quote depth and separate outer/inner list owner metadata. `ListBlankOwnerUtf16Offset` is assigned only to proven blanks; other blanks remain unowned. Buffers are limited by both a line-count budget (default 1,024) and an aggregate UTF-16 character budget (default 1 Mi); excess input raises an explicit exception rather than silently truncating source.
 
 [Detailed English contract](Docs/Deferred-List-Ownership/en.md). Twenty new tests cover loose-list ownership, quote scopes, continuation rules, delayed events, memory budgets and restricted parity with the full parser. The rendered CLI remains untouched.
+
+## Container-aware completed source spans (2026-11-07)
+
+New opt-in `MarkdownIncrementalContainerBlockScanner.ScanAsync(TextReader)` composes the existing source-line, explicit quote/list, and deferred-blank scanners into **completed, non-overlapping UTF-16 source spans** suitable for a future disk-backed Markdown block index. It preserves physical line boundaries, separate ordinary and quoted-list ownership, lazy vs explicit continuations, and resolved vs unresolved blank separators **without copying entire paragraphs or code fences**.
+
+Span categories are top-level heading, ordinary run, quote run, one list-marker line, list-owned continuation run, blank run, and fenced code. A fence explicitly reports `Closed`, `Interrupted`, or `EndOfFile`; interrupted lines are reprocessed as their own spans, never swallowed. Long contiguous runs require constant-sized span state; the line reader and deferred-blank adapter retain their existing resource budgets.
+
+[Full contract and limitations](Docs/Incremental-Container-Block-Spans/en.md). The scanner does **not** parse full CommonMark, collect complete list subtrees, map UTF-16 spans directly to UTF-8 byte offsets, or change current `mdview` rendering. Twenty-two focused tests were added for exact source reconstruction, quote/list ownership, fence completion, lazy/blank boundaries, Unicode, bounded reading and cancellation.
