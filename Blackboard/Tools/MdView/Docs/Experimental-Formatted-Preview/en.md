@@ -95,3 +95,37 @@ may require scanning many earlier lines.
 This remains an **experimental** pager. Quoted/lazy list ownership,
 visual terminal row wrapping, context-aware inline Markdown and truly
 random indexed syntax checkpoints are not solved by this change.
+
+
+## Disk-backed classified-event journal (2026-11-08)
+
+The previous `MdViewContainerPageCursor` used a forward-only scanner
+and replayed all prior input whenever the user navigated backward.
+It now writes complete classified events to a temporary serialized
+journal and a separate 8-byte-per-physical-line offset index.
+
+When a page is within the scanned high-water mark, the cursor seeks
+directly to the recorded events and deserializes at most the requested
+128 lines. It does not rescan preceding source text. Beyond the high-water
+mark, the same incremental scanner is resumed and the intervening
+events are added to the journal before the requested page is returned.
+The page renderer continues to treat fence open/content/close as
+literal Spectre text and other lines as bounded Markdown fragments.
+
+Two independent disk budgets apply by default: 512 MiB for serialized
+events and 256 MiB for offsets. Individual serialized records are
+limited to 8 MiB. On budget exhaustion, partial-write errors or scanner
+failure the cursor becomes unusable (fail-closed). The snapshot is owned
+by the caller; the cursor disposes its own scanner and temporary
+delete-on-close journal files.
+
+**Not a true scanner checkpoint:** the underlying scanner maintains
+list/quote/fence state inside an async iterator, so no arbitrary state
+restoration is claimed. The journal caches already classified output,
+not the iterator state. Previously unseen distant jumps still require
+a scan of the intervening lines, and the 512 MiB default is a disk-space
+limit rather than a promise to index unlimited document sizes.
+
+Tests cover reverse/forward parity, fence classification, both budgets
+and empty-source handling. Execution and Windows/Debian acceptance remain
+to be confirmed after this change.
