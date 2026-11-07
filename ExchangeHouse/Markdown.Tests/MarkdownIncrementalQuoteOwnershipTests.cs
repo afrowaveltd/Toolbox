@@ -424,6 +424,71 @@ public sealed class MarkdownIncrementalQuoteOwnershipTests
         Assert.Equal(opensFence, parsed.Blocks[1].CodeFenceStart.HasValue);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task TabIndentedListFenceKeepsOwnerAndMatchesFullParser(bool quoted)
+    {
+        // The tab after the list marker advances to column four; a leading
+        // tab on subsequent lines must consume precisely that content indent.
+        var prefix = quoted ? "> " : string.Empty;
+        var source = prefix + "-\titem\r\n" +
+            prefix + "\t```txt\n" +
+            prefix + "\tliteral\r" +
+            prefix + "\t```";
+        var scanned = await ScanAsync(source);
+        var parsed = MarkdownParser.Parse(source);
+
+        Assert.Equal(source, string.Concat(scanned.Select(x => x.Source.Raw)));
+        Assert.Equal(source, MarkdownWriter.Write(parsed));
+        Assert.Equal(4, scanned.Count);
+        Assert.Equal(MarkdownContainerLineKind.ListItem, scanned[0].Kind);
+        Assert.Equal(MarkdownContainerLineKind.FenceOpen, scanned[1].Kind);
+        Assert.Equal(MarkdownContainerLineKind.CodeLine, scanned[2].Kind);
+        Assert.Equal(MarkdownContainerLineKind.FenceClose, scanned[3].Kind);
+        Assert.Equal(MarkdownBlockKind.CodeFence, parsed.Blocks[1].Kind);
+        Assert.Equal(MarkdownBlockKind.CodeLine, parsed.Blocks[2].Kind);
+        Assert.Equal(MarkdownBlockKind.CodeFence, parsed.Blocks[3].Kind);
+
+        foreach (var i in new[] { 1, 2, 3 })
+        {
+            Assert.Equal(scanned[0].Source.Utf16Offset, scanned[i].ListOwnerUtf16Offset);
+            Assert.Equal(scanned[1].Source.Utf16Offset, scanned[i].FenceStartUtf16Offset);
+            Assert.Equal(parsed.Blocks[i].CodeFenceStart, scanned[i].FenceStartUtf16Offset);
+            Assert.Equal(parsed.Blocks[i].Start, scanned[i].Source.Utf16Offset);
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task NestedListFenceRetainsDeepestOwnerAndSourceOffsets(bool quoted)
+    {
+        var prefix = quoted ? "> " : string.Empty;
+        var source = prefix + "1. parent\n" +
+            prefix + "   - child\n" +
+            prefix + "     ```json\n" +
+            prefix + "     {}\n" +
+            prefix + "     ```\n";
+        var scanned = await ScanAsync(source);
+        var parsed = MarkdownParser.Parse(source);
+
+        Assert.Equal(source, MarkdownWriter.Write(parsed));
+        Assert.Equal(source, string.Concat(scanned.Select(x => x.Source.Raw)));
+        Assert.Equal(MarkdownContainerLineKind.ListItem, scanned[1].Kind);
+        Assert.Equal(MarkdownContainerLineKind.FenceOpen, scanned[2].Kind);
+        Assert.Equal(MarkdownContainerLineKind.CodeLine, scanned[3].Kind);
+        Assert.Equal(MarkdownContainerLineKind.FenceClose, scanned[4].Kind);
+        Assert.Equal(1, scanned[2].ListDepth);
+        for (var i = 2; i <= 4; i++)
+        {
+            Assert.Equal(scanned[1].Source.Utf16Offset, scanned[i].ListOwnerUtf16Offset);
+            Assert.Equal(scanned[2].Source.Utf16Offset, scanned[i].FenceStartUtf16Offset);
+            Assert.Equal(parsed.Blocks[i].CodeFenceStart, scanned[i].FenceStartUtf16Offset);
+            Assert.Equal(parsed.Blocks[i].Start, scanned[i].Source.Utf16Offset);
+        }
+    }
+
     private static async Task<List<MarkdownContainerLine>> ScanAsync(string source)
     {
         using var reader = new StringReader(source);
