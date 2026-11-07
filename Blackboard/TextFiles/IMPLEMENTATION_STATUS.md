@@ -41,3 +41,10 @@
 - Source commit `db31e7af6b7a33ef2f6698820e9f7a62cabb9721`; four focused test cases `85d3bccd5a6f203aba22742334e61297ad24a874`; English [technical guide](Docs/Disk-Line-Index/en.md) and README updated.
 - **Fresh test and CI validation pending in this environment.** The user-confirmed green solution state applies to the preceding Markdown regression milestone, not necessarily to this newly introduced method.
 - Next: source-identity/immutability and cumulative UTF-16 line-start mapping with explicit source-coordinate semantics before connecting the completed Markdown block spans to a formatted disk pager.
+
+## 2026-11-07 — document-absolute UTF-16 to UTF-8 disk mapping
+
+- Introduced independent `Utf8DocumentOffsetIndex` with a temporary 16-byte-per-physical-line table containing UTF-16 line starts, decoded content lengths and line terminator lengths. It maps document-absolute UTF-16 offsets, including CR/LF/CRLF and EOF, to UTF-8 source byte positions by disk-backed binary search plus existing bounded line decoding. Initial BOM is excluded from UTF-16 coordinates, retained in byte coordinates.
+- Source commit `525266761512b202b545169a210a609f20896ee9`; four regression tests in `b9b7fb8bd02a95ecca3947f8f1d8a377675afe82`; English docs in [Disk Line Index](Docs/Disk-Line-Index/en.md) and README.
+- Table construction remains bounded-memory but performs per-line random seeks, which is unoptimized for slow HDDs. Source file is not yet an immutable snapshot; a same-length concurrent mutation cannot be excluded. No mdview renderer integration or NuGet release is claimed.
+- **Compilation and new test execution pending** (no local .NET SDK). Next verify solution tests, then optimize construction to a single sequential indexing pass and design source immutability rules before formatting untrusted pages.
