@@ -172,3 +172,11 @@ The incremental Markdown scanner now distinguishes **the ordinary list item that
 Quoted/list-owned fence parsing was also hardened to strip **only the owning item's required indentation**. Extra indentation after that prefix stays significant: a delimiter with four remaining spaces is code text, not a closing fence. The new 17-case regression suite compares supported owner and fence metadata with the established full `MarkdownParser` and covers Unicode and mixed line endings.
 
 The normal `mdview` renderer and all user-facing navigation remain unchanged. This is a conservative source-metadata milestone, not complete CommonMark, paged rendering or active `F/N/P` search. [Technical ownership guide](ExchangeHouse/Markdown/Docs/Dual-List-Ownership/en.md) · [Tests](ExchangeHouse/Markdown.Tests/README.md).
+
+## Streaming Markdown: deferred list separators and lazy continuations (2026-11-07)
+
+The optional incremental scanner now tracks **lazy list-paragraph continuations** without indentation, provided no blank or interrupting block starter has broken the active item. The new `MarkdownDeferredListOwnershipScanner` then buffers a **bounded run of blank lines** until an explicitly indented continuation proves their owner in the same quote/outer-list scope. It preserves original line endings and UTF-16 source offsets, and leaves unresolved blanks unowned.
+
+The lookahead has two explicit resource limits—**1,024 pending lines** and **1 Mi UTF-16 characters** by default—and fails clearly rather than silently truncating source. The additive `MarkdownContainerLine` properties `IsLazyListContinuation` and `ListBlankOwnerUtf16Offset` preserve the existing positional constructor signature. Twenty new regression cases exercise loose lists, quote scopes, lazy paragraphs, interruption, bounded lookahead and source fidelity.
+
+[GitHub Actions run 42359532384](https://github.com/afrowaveltd/Toolbox/actions/runs/42359532384) verified Linux/Windows tests and Markdown links, with **6,640 passing tests and zero compiler warnings/errors**. The established full Markdown parser and `mdview` remain unchanged. [Detailed deferred-ownership contract](ExchangeHouse/Markdown/Docs/Deferred-List-Ownership/en.md).
