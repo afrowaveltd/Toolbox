@@ -62,3 +62,26 @@ line-start mapping are implemented.
 [Line-index byte-offset guide](Docs/Disk-Line-Index/en.md). Four focused
 tests were added for BOM/Unicode/CRLF, surrogate boundaries, empty lines
 and random access across large lines. **Fresh build/tests pending**.
+
+## Document-wide UTF-16 offsets (2026-11-07)
+
+`Utf8DocumentOffsetIndex` adds a **separate disk-backed index** of decoded
+UTF-16 line starts and terminator lengths. It accepts the absolute positions
+emitted by incremental Markdown source scanners; initial UTF-8 BOM bytes are
+excluded from UTF-16 coordinates, while CR/LF/CRLF terminators are included.
+
+```csharp
+await using var lines = await Utf8DiskLineIndex.OpenAsync("README.md");
+await using var positions = await Utf8DocumentOffsetIndex.CreateAsync(lines);
+long byteOffset = await positions.GetByteOffsetAsync(42);
+```
+
+The temporary table uses 16 bytes per physical line (256 MiB default cap),
+is deleted on disposal, and does not retain the whole document in RAM.
+Creation currently performs multiple random reads per line, so large HDD
+throughput remains **unoptimized and unbenchmarked**. The source file is
+not guaranteed immutable across indexing and display; do not yet use this
+as authorization for progressive untrusted rendering.
+
+[Details and resource limits](Docs/Disk-Line-Index/en.md).
+New tests and compilation **await verification**.
