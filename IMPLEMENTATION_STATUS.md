@@ -419,3 +419,9 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Added 22 new regression cases for reconstruction, Unicode/mixed line endings, nested owners, fence interruption and malformed/unclosed fences, laziness, cancellation, limit propagation and large block metadata. [English architecture](ExchangeHouse/Markdown/Docs/Incremental-Container-Block-Spans/en.md).
 - CI run `42360132099` passed **6,662 solution tests** (including ExchangeHouse Markdown **197/197**) and Linux/Windows validation, but showed two `xUnit2031` test analyzer warnings; corrected in commit `1bc41eeca49d003ed5e28f2d0d875c6120ce39fc`. Fresh CI warning verification pending.
 - `mdview`, source pager, TextMate and original Markdown full parser are **unchanged**. Next: reconcile the remaining list-owned opening fence indentation mismatch, then design a versioned, content-digest-bound **disk-backed span index and UTF-16 → UTF-8 offset map**, before adding rendered page navigation.
+
+### Verified CI — completed container-aware spans, 2026-11-07
+
+- [GitHub Actions run 42360297028](https://github.com/afrowaveltd/Toolbox/actions/runs/42360297028) on commit `1bc41eeca49d003ed5e28f2d0d875c6120ce39fc`: **SUCCESS** for Linux full solution build and tests (**6,662 passed, 0 failed**), **0 Warning(s), 0 Error(s)**; Windows UI regression job **SUCCESS**, local Markdown documentation links **SUCCESS**.
+- `ExchangeHouse.Markdown.Tests`: **197/197 passing**, including all **22** new completed-container-span tests. Earlier two `xUnit2031` warnings were fixed without suppression; post-fix build reports none.
+- Subsequent changes are README, documentation-index and implementation-status updates only. No production behavior changes after this verified code snapshot. Known list-owned code-fence opener indentation discrepancy remains explicitly deferred from any mdview renderer integration.
