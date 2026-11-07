@@ -250,3 +250,10 @@
 - Updated `MarkdownIncrementalQuoteOwnershipTests.OverIndentedListFenceOpenerIsNotRecognizedAsCode` to expect `Paragraph` in the established full parser, matching the incremental scanner's `ListContinuation` rather than an incorrectly opened code fence. This resolves the specifically recorded overindented opening-fence discrepancy; it does **not** establish complete parser equivalence.
 - Production commit `06cda232002210fcae6df61eb1ca13ed71290111`; regression updates `bdf9de981438eefd20ca58d57c8b90e492ee8a0c` and `710ab0eab0242a4fb848304a46f5efe4eb718541` (added explicit quoted-list parity case). **Fresh CI results pending** for this change; do not count the preceding 6,662 green tests as validating this fix.
 - No `mdview`, rendered Markdown pager, indexed F/N/P search, NuGet release or CommonMark conformance change is claimed.
+
+### 2026-11-07 — boundary golden cases and documentation reconciliation
+
+- Added `FenceOpeningIndentationBoundaryMatchesFullParser`: **10** xUnit theory rows for ordinary and quote-local list continuations with 0, 1, 2, 3 and 4 *additional* spaces beyond the item's two-space content indentation. These compare `MarkdownParser.Parse` with `MarkdownIncrementalContainerScanner` for fence-opening classification, `CodeFenceStart`/stream fence offset and exact round-trip source preservation.
+- Commit `39dd20eb3127dbae8ddccfb33a5b5590f47e7b9a` contains the test cases. Updated the formerly obsolete known-gap section in [Dual List Ownership](Docs/Dual-List-Ownership/en.md) in commit `0d283fdcace758c85519bce1542059f36cdf0b10`.
+- **Fresh CI verification pending.** Previous 6,662 passing tests apply to the state *before* the production and regression changes in this milestone. Do not claim those counts for the new snapshot.
+- Remaining: additional list/quote/tab golden cases, validated UTF-8 byte-offset mapping, and a resource-budgeted formatted pager before mdview can consume the streaming scanner.
