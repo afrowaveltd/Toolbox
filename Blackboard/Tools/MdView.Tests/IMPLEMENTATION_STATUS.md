@@ -56,3 +56,10 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - Added `FenceCrossingPageBoundaryKeepsHeadingLookingCodeLiteral` and `ReturningToEarlierPageReplaysScannerWithoutLosingFenceContext` against the opt-in preview CLI using TestConsole.
 - These exercise literal Markdown-looking lines inside a fence across the 2-line source-page boundary and scanner replay after page navigation.
 - Test commit `48bf8bc47064741cdc810f3fd279f9d7c147cc49`. **Not yet executed** in this environment; rerun focused mdview tests and full solution.
+
+
+## 2026-11-08 — disk-backed container event journal tests
+
+- Added five `MdViewContainerPageCursorTests` for previously scanned reverse-page reuse, forward-after-backward code fence continuation, failure on event byte budget exhaustion, failure on offset budget exhaustion and empty-source/argument checks.
+- Cursor implementation commit `a30c6283dcaac88774c6c59a24e6e15fd11250ad`; test commit `487e50ea9d73e134b7a13cf1761d291ad1b736ad`.
+- This verifies a cached **classified event journal**, not restorable scanner iterator state or fast jumps into previously unseen ranges. New test execution pending; no verified total pass count for this increment.
