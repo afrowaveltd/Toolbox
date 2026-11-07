@@ -286,6 +286,73 @@ public sealed class Utf8DiskLineIndex : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Maps a zero-based UTF-16 column within a physical source line to its
+    /// absolute UTF-8 byte offset. A column must not split a surrogate pair.
+    /// The line terminator is excluded; the column at the end of its content
+    /// maps to the first byte of the terminator (or end of file).
+    /// </summary>
+    /// <param name="lineNumber">Zero-based physical line number.</param>
+    /// <param name="utf16Column">Zero-based UTF-16 column excluding BOM and terminator.</param>
+    /// <param name="cancellationToken">Cancels reading the bounded line and index entry.</param>
+    /// <returns>Absolute byte offset in the validated source file.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">Line or column is out of range.</exception>
+    /// <exception cref="ArgumentException">Column splits a UTF-16 surrogate pair.</exception>
+    public async Task<long> GetByteOffsetAsync(
+        long lineNumber, int utf16Column, CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (lineNumber < 0 || lineNumber >= LineCount)
+            throw new ArgumentOutOfRangeException(nameof(lineNumber));
+        if (utf16Column < 0)
+            throw new ArgumentOutOfRangeException(nameof(utf16Column));
+
+        // Reuse the same bounded decoder and validation as ordinary source pages.
+        var page = await ReadPageAsync(lineNumber, 1, cancellationToken)
+            .ConfigureAwait(false);
+        var line = page.Lines[0];
+        if (utf16Column > line.Length)
+            throw new ArgumentOutOfRangeException(nameof(utf16Column));
+        if (utf16Column > 0 && utf16Column < line.Length &&
+            char.IsHighSurrogate(line[utf16Column - 1]) &&
+            char.IsLowSurrogate(line[utf16Column]))
+            throw new ArgumentException("Column splits a UTF-16 surrogate pair.",
+                nameof(utf16Column));
+
+        var prefixBytes = StrictUtf8.GetByteCount(line.AsSpan(0, utf16Column));
+        await _readGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            var offsetBytes = new byte[sizeof(long)];
+            _offsets.Position = checked(lineNumber * sizeof(long));
+            await _offsets.ReadExactlyAsync(offsetBytes, cancellationToken)
+                .ConfigureAwait(false);
+            var start = BinaryPrimitives.ReadInt64LittleEndian(offsetBytes);
+
+            // The first line returned by ReadPageAsync hides the UTF-8 BOM.
+            // Account for its three source bytes in the physical position.
+            if (lineNumber == 0 && ByteLength >= 3)
+            {
+                var signature = new byte[3];
+                _source.Position = 0;
+                await _source.ReadExactlyAsync(signature, cancellationToken)
+                    .ConfigureAwait(false);
+                if (signature[0] == 0xEF && signature[1] == 0xBB &&
+                    signature[2] == 0xBF)
+                    start += 3;
+            }
+            var absolute = checked(start + prefixBytes);
+            if (absolute > ByteLength)
+                throw new IOException("Source contents changed after indexing.");
+            return absolute;
+        }
+        finally
+        {
+            _readGate.Release();
+        }
+    }
+
     /// <summary>Deletes the temporary index and closes the read-only source.</summary>
     public async ValueTask DisposeAsync()
     {
