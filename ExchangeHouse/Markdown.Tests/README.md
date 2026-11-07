@@ -43,3 +43,11 @@ Added `MarkdownIncrementalContainerScannerTests` (**18 cases**: 15 `[Fact]` and 
 Added `MarkdownIncrementalQuoteOwnershipTests` (**17 cases**), validating separate outer ordinary-list and quote-local list owner metadata, nested ordered/unordered ancestors, quote-only ownership, quoted/ordinary-list code-fence protection and interrupted quote scope. Tests compare provable owner source offsets to `MarkdownParser.Parse`, including Unicode and mixed CR/LF endings. Three additional cases specifically reject falsely opening or closing fences after stripping *too much* indentation. The earlier single failing fixture assertion was corrected: the outer list's root depth is `0`, not `-1`.
 
 [Ownership contract](../Markdown/Docs/Dual-List-Ownership/en.md).
+
+## Deferred ownership and lazy-continuation tests (2026-11-07)
+
+Added `MarkdownDeferredListOwnershipScannerTests` (**20 cases**, including four parameterized invalid-budget rows), covering loose-list blanks in ordinary and quoted lists, independent outer/inner quote owners, blank runs flushed at EOF or changes of scope, explicit-only blank assignment, lazy continuation without a blank, headings/thematic breaks/fences interrupting lists, incremental emission and strict lookahead budgets.
+
+Two existing scanner fixtures were updated to expect valid lazy paragraph ownership where the previous conservative implementation emitted generic `Plain` or `Quote` lines. The thematic-break test uses unambiguous `***` rather than `* * *`, which the existing parser can also treat as a list marker.
+
+[Deferred ownership documentation](../Markdown/Docs/Deferred-List-Ownership/en.md).
