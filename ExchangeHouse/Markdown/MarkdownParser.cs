@@ -208,7 +208,10 @@ public static class MarkdownParser
             else if (TryContinuation(line, listStack, out continuationOwner, out int contentIndex))
             {
                 content = line[contentIndex..];
-                if (TryFence(content, out fenceMarker, out fenceLength))
+                // Check fences against only the owning item's required indentation.
+                // Excess indentation must remain meaningful (indented code).
+                var fenceCandidate = StripIndentUpTo(line, continuationOwner!.ContentIndentColumns);
+                if (TryFence(fenceCandidate, out fenceMarker, out fenceLength))
                 {
                     kind = MarkdownBlockKind.CodeFence;
                     inCode = true;
@@ -310,7 +313,10 @@ public static class MarkdownParser
                              out continuationOwner, out var quoteContentIndex))
                 {
                     content = quotedContent[quoteContentIndex..];
-                    if (TryFence(content, out fenceMarker, out fenceLength))
+                    // Quote-local opening fences must match closing-fence indentation.
+                    var fenceCandidate = StripIndentUpTo(
+                        quotedContent, continuationOwner!.ContentIndentColumns);
+                    if (TryFence(fenceCandidate, out fenceMarker, out fenceLength))
                     {
                         kind = MarkdownBlockKind.CodeFence;
                         inCode = true;
