@@ -51,3 +51,10 @@
 
 - Four `Utf8ValidatedSnapshot` tests cover unchanged snapshot content after the original path is rewritten, rejection of unsafe controls, copy byte budget and zero-byte sources, and Unicode BOM/emoji with derived document offsets.
 - Implementation `4957d3728ad303e2338ef8707c47b52cd711ff22`; test commit `5e69419c92c74f02618130d15a95c4de1fa7bcb3`. The code is committed but fresh build/tests are **not yet confirmed**.
+
+
+## 2026-11-07 — snapshot workspace lifecycle regressions
+
+- Added four tests for configurable temporary storage: successful disposal, invalid-content cleanup, copy-budget cleanup and pre-cancelled execution. All tests use per-fixture scratch roots and assert that no child files/directories remain after completion.
+- Commits `27497726f9044fcbd7cf01a713ccb2ec93f47193`, `aaef104a78c84c4cf753794aea216269b8d6264f`. Runtime API `c628a500ae75e322671dba413448090f88d6bc3e`.
+- No .NET SDK is installed in the current execution environment; **fresh test compilation and execution are pending**, including actual Windows and Debian filesystem behavior. Run the focused TextFiles suite followed by the full solution.
