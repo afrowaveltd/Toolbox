@@ -367,11 +367,10 @@ public sealed class MarkdownIncrementalQuoteOwnershipTests
         Assert.Equal(MarkdownContainerLineKind.ListItem, scanned[0].Kind);
         Assert.Equal(MarkdownContainerLineKind.ListContinuation, scanned[1].Kind);
         Assert.Null(scanned[1].FenceStartUtf16Offset);
-        // Known restricted-parity gap: the established full parser strips
-        // all explicit continuation indentation before checking an opener.
-        // The new scanner conservatively preserves excess indentation.
-        // Do not enable the new scanner as the renderer until reconciled.
-        Assert.Equal(MarkdownBlockKind.CodeFence, parsed.Blocks[1].Kind);
+        // Both parsing paths preserve excess indentation beyond the list
+        // content column: this is an ordinary continuation, not a fence.
+        Assert.Equal(MarkdownBlockKind.Paragraph, parsed.Blocks[1].Kind);
+        Assert.Null(parsed.Blocks[1].CodeFenceStart);
     }
 
     private static async Task<List<MarkdownContainerLine>> ScanAsync(string source)
