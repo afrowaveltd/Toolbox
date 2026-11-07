@@ -564,6 +564,18 @@ public sealed class Utf8DiskLineIndexTests
         Assert.Empty(Directory.GetFileSystemEntries(root));
     }
 
+    [Fact]
+    public async Task SnapshotRejectsMissingCustomRootWithoutCreatingIt()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteAsync("Test");
+        var missing = Path.Combine(fixture.Root, "missing-root");
+
+        await Assert.ThrowsAsync<DirectoryNotFoundException>(() =>
+            Utf8ValidatedSnapshot.CreateAsync(path, temporaryRoot: missing));
+        Assert.False(Directory.Exists(missing));
+    }
+
     private sealed class Fixture : IDisposable
     {
         public string Root { get; } =
