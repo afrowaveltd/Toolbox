@@ -222,36 +222,57 @@ public sealed class Utf8DiskLineIndex : IAsyncDisposable
             _offsets.Position = checked(firstLine * sizeof(long));
             await _offsets.ReadExactlyAsync(table, cancellationToken).ConfigureAwait(false);
 
-            var lines = new List<string>(count);
-            var buffer = ArrayPool<byte>.Shared.Rent(_maximumLineBytes);
-            var bytesInPage = 0L;
+            // Select the largest prefix permitted by the same per-line and
+            // page byte budgets before touching the source file. The offset
+            // table is already read as one small contiguous range.
+            var selected = 0;
+            long startByte = -1;
+            long pageBytes = 0;
+            for (var i = 0; i < count; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var start = BinaryPrimitives.ReadInt64LittleEndian(
+                    table.AsSpan(i * sizeof(long), sizeof(long)));
+                var end = BinaryPrimitives.ReadInt64LittleEndian(
+                    table.AsSpan((i + 1) * sizeof(long), sizeof(long)));
+                var size = end - start;
+                if (start < 0 || size < 0 || end > ByteLength)
+                    throw new InvalidDataException("The line index is corrupt.");
+                if (size > _maximumLineBytes)
+                    throw new InvalidDataException(
+                        "A source line exceeds the configured per-line byte limit.");
+                if (selected > 0 && pageBytes + size > MaximumPageBytes)
+                    break;
+                if (selected == 0)
+                    startByte = start;
+                pageBytes += size;
+                selected++;
+            }
+
+            // One seek and one contiguous read per page instead of one per
+            // physical line. Keep the pool rental below the 4 MiB page cap.
+            var lines = new List<string>(selected);
+            var buffer = ArrayPool<byte>.Shared.Rent(checked((int)pageBytes));
             try
             {
-                for (var i = 0; i < count; i++)
+                _source.Position = startByte;
+                await _source.ReadExactlyAsync(
+                    buffer.AsMemory(0, checked((int)pageBytes)),
+                    cancellationToken).ConfigureAwait(false);
+
+                for (var i = 0; i < selected; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var start = BinaryPrimitives.ReadInt64LittleEndian(
                         table.AsSpan(i * sizeof(long), sizeof(long)));
                     var end = BinaryPrimitives.ReadInt64LittleEndian(
                         table.AsSpan((i + 1) * sizeof(long), sizeof(long)));
-                    var size = end - start;
-                    if (size < 0 || end > ByteLength)
-                        throw new InvalidDataException("The line index is corrupt.");
-                    if (size > _maximumLineBytes)
-                        throw new InvalidDataException(
-                            "A source line exceeds the configured per-line byte limit.");
-                    if (lines.Count != 0 && bytesInPage + size > MaximumPageBytes)
-                        break;
-
-                    _source.Position = start;
-                    await _source.ReadExactlyAsync(
-                        buffer.AsMemory(0, checked((int)size)), cancellationToken)
-                        .ConfigureAwait(false);
-
                     string line;
                     try
                     {
-                        line = StrictUtf8.GetString(buffer, 0, (int)size);
+                        line = StrictUtf8.GetString(buffer,
+                            checked((int)(start - startByte)),
+                            checked((int)(end - start)));
                     }
                     catch (DecoderFallbackException ex)
                     {
@@ -267,7 +288,6 @@ public sealed class Utf8DiskLineIndex : IAsyncDisposable
                     if (firstLine == 0 && i == 0 && line.StartsWith('\uFEFF'))
                         line = line[1..];
                     lines.Add(line);
-                    bytesInPage += size;
                 }
             }
             finally
