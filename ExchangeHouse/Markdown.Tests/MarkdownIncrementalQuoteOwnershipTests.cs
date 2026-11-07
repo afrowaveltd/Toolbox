@@ -124,7 +124,11 @@ public sealed class MarkdownIncrementalQuoteOwnershipTests
         Assert.All(lines.Skip(1), x =>
             Assert.Null(x.QuoteContainerListOwnerUtf16Offset));
         Assert.Equal(new[] { 0, 1, 1 }, lines.Select(x => x.QuoteDepth));
-        Assert.Equal(MarkdownContainerLineKind.Quote, lines[2].Kind);
+        // An unowned standalone quote still has its own quote-local list,
+        // and this following line is a valid lazy continuation of that list.
+        Assert.Equal(MarkdownContainerLineKind.ListContinuation, lines[2].Kind);
+        Assert.True(lines[2].IsLazyListContinuation);
+        Assert.Equal(lines[1].Source.Utf16Offset, lines[2].ListOwnerUtf16Offset);
     }
 
     [Fact]
