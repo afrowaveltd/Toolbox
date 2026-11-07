@@ -71,3 +71,9 @@
 - Compilation of `Utf8DiskLineIndexTests.cs` stopped at lines 389 and 397 with two `CS0019` errors because `i % 3 switch` was parsed with an unintended switch-expression operand. Parenthesized both modulo operations as `(i % 3) switch` to express the intended switch selector.
 - Fix commit: `ec35699ddee85df90afac5cb5707717d18c480ce`. The reported build had **0 compiler warnings, 2 compiler errors** before this fix; `NETSDK1057` was informational preview-SDK output.
 - The corrected test project and full suite **still require a fresh Windows run**. Run the focused TextFiles test project first and then `dotnet test Toolbox.sln`.
+
+## 2026-11-07 — Windows green checkpoint after CS1501 correction
+
+- Maintainer reports that the Windows solution build and tests are now **all green** after the `Utf8ValidatedSnapshot` custom-root compatibility fix (`8eab8a7767c566c337a28f5d39fde4455e07ae9f`) and associated regression test (`b9fd37bb9a2cc38898aa6f95d4e37c740e371576`).
+- This is user-confirmed validation; no detailed per-project test count or CI run ID was supplied for this checkpoint. Do not infer a specific count or independent Linux result.
+- Next: continue with opt-in snapshot-backed formatted Markdown paging, keeping the existing mdview renderer as default, and check Windows/Debian lifecycle behavior before release.
