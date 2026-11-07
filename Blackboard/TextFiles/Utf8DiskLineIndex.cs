@@ -286,6 +286,44 @@ public sealed class Utf8DiskLineIndex : IAsyncDisposable
         }
     }
 
+    // Internal batch lookup for coordinated source/UTF-16 index construction.
+    // A single offset-table read replaces two random source/index lookups per line.
+    internal async Task<long[]> ReadLineStartsAsync(
+        long firstLine, int count, CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (firstLine < 0 || firstLine > LineCount)
+            throw new ArgumentOutOfRangeException(nameof(firstLine));
+        if (count < 1 || count > MaximumPageLines ||
+            count > LineCount - firstLine)
+            throw new ArgumentOutOfRangeException(nameof(count));
+
+        await _readGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+            var bytes = new byte[checked((count + 1) * sizeof(long))];
+            _offsets.Position = checked(firstLine * sizeof(long));
+            await _offsets.ReadExactlyAsync(bytes, cancellationToken)
+                .ConfigureAwait(false);
+
+            var starts = new long[count + 1];
+            for (var i = 0; i < starts.Length; i++)
+            {
+                starts[i] = BinaryPrimitives.ReadInt64LittleEndian(
+                    bytes.AsSpan(i * sizeof(long), sizeof(long)));
+                if (starts[i] < 0 || starts[i] > ByteLength ||
+                    (i > 0 && starts[i] < starts[i - 1]))
+                    throw new InvalidDataException("The line index is corrupt.");
+            }
+            return starts;
+        }
+        finally
+        {
+            _readGate.Release();
+        }
+    }
+
     /// <summary>
     /// Maps a zero-based UTF-16 column within a physical source line to its
     /// absolute UTF-8 byte offset. A column must not split a surrogate pair.
