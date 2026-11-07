@@ -179,3 +179,10 @@ Added parser tests for source-aware language hints, fenced-code isolation from M
 
 - CI for the 17-case suite identified an incorrect assumption in the overindented-opener **test**, not a compiler error: `MarkdownParser.Parse` currently classifies an overindented list-owned opening delimiter as `CodeFence`, while the conservative incremental scanner returns `ListContinuation`. The test now documents/asserts **both actual behaviors** rather than pretending they match.
 - This known gap is tracked in [Dual List Ownership](../Markdown/Docs/Dual-List-Ownership/en.md) and must be reconciled before adopting the streaming scanner as a replacement renderer.
+
+### Verified CI — 2026-11-07 dual-owner and fence-indentation regressions
+
+- [GitHub Actions #42317726747](https://github.com/afrowaveltd/Toolbox/actions/runs/42317726747) **SUCCESS** on commit `75f6e548da063fe95e39ab2f57d7f7049ecb3fd6`, including production dual-ownership changes, all **17** new quote-ownership cases, the exact-indent fix and the documented full-parser compatibility gap. Linux solution build/tests and Windows UI regressions passed; Markdown link checker passed.
+- [GitHub Actions #42317702162](https://github.com/afrowaveltd/Toolbox/actions/runs/42317702162) on test correction commit `25b352ed32a1afe4507c850591ba3188dabe4ee4`: full Linux **6,620/6,620 tests green**, **0 Warning(s), 0 Error(s)**; Windows UI regression and local Markdown links **SUCCESS**.
+- A mismatched root-list depth expectation in the initial tests was corrected. A subsequent test asserted false parity for an overindented opening fence; it was changed to record both real behaviors, without changing the existing full parser or renderer. The compatibility gap remains explicitly tracked for future reconciliation.
+- The following README and status commits are documentation-only. The new scanner is an opt-in parsing layer and is **not** enabled in mdview.
