@@ -83,3 +83,10 @@
 - Production commit `c628a500ae75e322671dba413448090f88d6bc3e`, test commits `27497726f9044fcbd7cf01a713ccb2ec93f47193` and `aaef104a78c84c4cf753794aea216269b8d6264f`.
 - These are **source changes without verified new CI results**. No automatic orphan-workspace sweeper is implemented; source mutation during the initial copy and same-user tampering remain outside strict snapshot guarantees. `mdview` still uses its existing renderer.
 - Next: confirm Windows/Debian test and cleanup behavior, then design an opt-in snapshot-backed formatted pager without changing legacy rendering.
+
+## 2026-11-07 — Windows compiler error CS1501 corrected
+
+- The maintainer's Windows `dotnet test`/build output reported `CS1501` at `Utf8ValidatedSnapshot.cs:69`: `Directory.CreateTempSubdirectory` has no overload accepting both prefix and custom root on target `net10.0`. SDK `NETSDK1057` preview notices are informational, not the error.
+- Replaced the unsupported call: default storage still uses `Directory.CreateTempSubdirectory(prefix)`; custom storage checks that its root exists and creates a uniquely named child using `Directory.CreateDirectory(Path.Combine(root, prefix + Guid.NewGuid().ToString("N")))`. This preserves the existing `temporaryRoot` API and avoids silently creating the caller's root.
+- Fix commit `8eab8a7767c566c337a28f5d39fde4455e07ae9f`. Added missing-root regression in `b9fd37bb9a2cc38898aa6f95d4e37c740e371576`.
+- **Fresh Windows rebuild and all tests after this fix not yet confirmed**. Run `dotnet test Blackboard/TextFiles.Tests/Afrowave.Toolbox.Blackboard.TextFiles.Tests.csproj` then `dotnet test Toolbox.sln` to verify.
