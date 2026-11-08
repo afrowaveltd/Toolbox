@@ -94,6 +94,48 @@ public sealed class MdViewContainerPageCursorTests
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => cursor.ReadAsync(0, 129));
     }
 
+    [Fact]
+    public async Task CancellingAnEarlierCompletedRequestDoesNotCancelForwardNavigation()
+    {
+        using var file = new TestFile();
+        var path = await file.WriteAsync(
+            "intro\n```text\n# literal\n```\n# heading");
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        using var firstRequest = new CancellationTokenSource();
+
+        Assert.Equal(2, (await cursor.ReadAsync(
+            0, 2, firstRequest.Token)).Count);
+
+        // The token belongs to the completed call, not the persistent scanner.
+        firstRequest.Cancel();
+        var next = await cursor.ReadAsync(2, 3);
+        Assert.Equal(3, next.Count);
+        Assert.Equal(MarkdownContainerLineKind.CodeLine, next[0].Kind);
+        Assert.Equal(MarkdownContainerLineKind.FenceClose, next[1].Kind);
+        Assert.Equal(MarkdownContainerLineKind.Plain, next[2].Kind);
+    }
+
+    [Fact]
+    public async Task PreCancelledRequestDoesNotPoisonAWorkingCursor()
+    {
+        using var file = new TestFile();
+        var path = await file.WriteAsync("one\ntwo\nthree");
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        Assert.Single(await cursor.ReadAsync(0, 1));
+
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            cursor.ReadAsync(1, 1, cancelled.Token));
+
+        var next = await cursor.ReadAsync(1, 2);
+        Assert.Equal(new[] { "two", "three" },
+            next.Select(x => x.Source.Text));
+        Assert.Equal(3, cursor.CachedLineCount);
+    }
+
     private sealed class TestFile : IDisposable
     {
         private readonly string _dir = Path.Combine(
