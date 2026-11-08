@@ -130,3 +130,20 @@
 
 - `MarkdownIncrementalContainerScanner.StateMachine` now supports `Process`, `Capture` and `Restore` (commit `eed96080d2567ea5d68a3b679a5c8c83840ab766`) with focused golden parity tests (`5ad6259202aa739f8e409309eb963233f60999f4`).
 - **No mdview runtime integration in this step**: the existing disk-backed classified-line journal is retained until source identity and bounded resumption from a byte/UTF-16 boundary are implemented and tested. A checkpoint codec is not evidence of correct source ownership. New parser tests still require a green rerun.
+
+## 2026-11-08 — persistent scanner cancellation ownership fix
+
+- Corrected `MdViewContainerPageCursor` so the long-lived async scanner
+  never captures the first `ReadAsync` caller's cancellation token.
+  Previously an unrelated cancellation **after a successful first request**
+  could terminate future incremental navigation.
+- New regression tests cover late cancellation of a completed request
+  followed by fence-aware forward navigation, and a pre-cancelled call
+  followed by a successful page request.
+- Source commit `0d8a8ac24c405480f4fff3dda7801466483614e4`;
+  tests `5a7ae69e4d526c41656c9931a1568c81d3b18364`.
+- Per-call cancellation is checked at each scanner advance and journal
+  operation, but cannot directly interrupt an in-flight local source
+  stream read. Cancellation during advancing a scanner remains fail-closed.
+- **Fresh test execution not verified**; continue with focused mdview
+  tests, full solution tests and Windows/Debian acceptance before release.
