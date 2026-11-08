@@ -129,3 +129,19 @@ limit rather than a promise to index unlimited document sizes.
 Tests cover reverse/forward parity, fence classification, both budgets
 and empty-source handling. Execution and Windows/Debian acceptance remain
 to be confirmed after this change.
+
+## Per-request cancellation boundaries (2026-11-08)
+
+The disk-journal cursor's incremental scanner now uses a lifetime-independent
+enumerator token. Cancelling or disposing the token for an **earlier completed**
+`ReadAsync` does not affect subsequent forward navigation or fence state.
+Each call still checks its own cancellation token before scanning, after
+each asynchronous line advance and during journal reads/writes.
+
+**Limitation:** an in-flight underlying stream read cannot presently be
+interrupted directly by a caller-specific cancellation token; cancellation
+is observed at the next boundary. A cancelled scan after advancing the
+iterator is conservatively failed closed to avoid journaling inconsistent
+positions. The reader is a local validated snapshot, not an arbitrary
+network source. Two regression tests cover completed-token cancellation
+and pre-cancelled calls on a usable cursor.
