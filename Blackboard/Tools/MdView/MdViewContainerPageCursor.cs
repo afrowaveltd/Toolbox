@@ -147,9 +147,14 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
             if (_scanner is null)
             {
                 _reader = _snapshot.OpenReader();
+                // An async enumerator outlives a single ReadAsync request.
+                // Capturing its first caller's token would cancel unrelated
+                // future navigation when that caller later disposes/cancels it.
+                // Keep iterator lifetime independent and check each request's
+                // token around MoveNextAsync and all journal IO.
                 _scanner = MarkdownIncrementalContainerScanner.ScanAsync(
-                    _reader, cancellationToken: cancellationToken)
-                    .GetAsyncEnumerator(cancellationToken);
+                    _reader, cancellationToken: CancellationToken.None)
+                    .GetAsyncEnumerator(CancellationToken.None);
             }
 
             while (_scannedLines < requestedEnd)
@@ -157,6 +162,7 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
                 cancellationToken.ThrowIfCancellationRequested();
                 if (!await _scanner.MoveNextAsync().ConfigureAwait(false))
                     break;
+                cancellationToken.ThrowIfCancellationRequested();
 
                 var line = _scanner.Current;
                 if (line.Source.LineNumber != _scannedLines)
