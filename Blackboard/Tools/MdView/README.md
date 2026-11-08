@@ -160,3 +160,13 @@ constant-time random Markdown navigation. Disk budgets also mean
 extremely large files may require explicit configuration or another
 metadata representation. Original mdview modes are unchanged.
 Focused tests are committed but require a fresh Windows/Debian run.
+
+### Page-request cancellation isolation
+
+`MdViewContainerPageCursor` no longer captures the first `ReadAsync`
+call's cancellation token in its persistent scanner enumerator.
+Per-request cancellation is checked at scan and journal boundaries;
+a cancelled **previously completed** request cannot poison later
+navigation. An in-progress local stream read is not interruptible by
+the request token, and cancellation after scanner advancement still
+fails closed to protect journal consistency.
