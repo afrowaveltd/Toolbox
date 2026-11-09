@@ -18,7 +18,7 @@ mdview github:OWNER/REPO
 mdview --help
 ```
 
-With no arguments, a Spectre.Console menu offers Local Markdown file, HTTPS URL, GitHub README and Exit. The Local choice opens the existing SpectreFileBrowser with a Markdown filename filter, folder navigation and search; Escape inside the browser returns to the source menu. URL and GitHub use Spectre text prompts. [Interaction details](../Interactive-Source-Picker/en.md). Future work includes in-document navigation, back/forward history and theme choice. Explicit source commands bypass the menu. The argument parser is independent and unit tested. GitHub owner/repo capitalization is left as input for network requests and normalized by the source adapter for cache keys; local filename casing is preserved.
+With no arguments, a Spectre.Console menu offers Local Markdown file, HTTPS URL, GitHub README and Exit. The Local choice opens the existing SpectreFileBrowser with a Markdown filename filter, folder navigation and search; Escape inside the browser returns to the source menu. URL and GitHub use Spectre text prompts. [Interaction details](../Interactive-Source-Picker/en.md). Explicit `browse PATH` and `browse-url HTTPS_URL` commands now provide separate opt-in relative-link navigation with bounded Back/Forward history; this is not yet part of the default source menu. Exact terminal-row scrolling, GitHub repository file navigation and themes remain future work. Explicit source commands bypass the menu. The argument parser is independent and unit tested. GitHub owner/repo capitalization is left as input for network requests and normalized by the source adapter for cache keys; local filename casing is preserved.
 
 ## Rendering and storage
 
@@ -32,7 +32,7 @@ Local documents are decoded with `TextFilePreviewReader.ReadCompleteAsync` (incl
 
 - No automatic following of HTTP redirects or GitHub renamed repository redirects.
 - No authenticated GitHub/API clients, network query URLs or arbitrary remote protocols.
-- No `Docs/**` navigation, external Markdown links, anchors, **formatted Markdown pager**, or reverse search. An explicitly raw, indexed source-line pager is available via `source PATH`.
+- No `Docs/**` link-following in the **default** one-shot modes; explicit `browse PATH` and `browse-url HTTPS_URL` now support scoped Markdown links and heading jumps. GitHub file navigation, arbitrary external links, true visual-row Markdown paging and reverse search remain future work. An explicitly raw, indexed source-line pager is available via `source PATH`.
 - Current parser/renderer remain in-memory; a 1 GB Markdown benchmark is still a target, not demonstrated.
 - The no-argument Spectre FileBrowser and virtual-terminal picker tests are implemented, but the new test run, full CLI end-to-end rendering checks and live terminal acceptance remain pending.
 
