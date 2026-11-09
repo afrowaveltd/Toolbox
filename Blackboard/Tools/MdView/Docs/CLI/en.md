@@ -74,3 +74,24 @@ even though the renderer can display Markdown link text. The accepted
 local file paths, HTTPS bases, GitHub repository paths/refs, in-document
 anchors, keyboard selection and bounded Back/Forward history. All are
 planned features, not existing commands.
+
+## Opt-in local link browser (2026-11-09)
+
+```text
+mdview browse README.md
+```
+
+This separate interactive mode uses a validated local snapshot, the
+existing Markdown parser/renderer, a selectable list of relative
+Markdown links and bounded Back/Forward history. The initial document
+directory is the permitted lexical navigation root. Only `.md` and
+`.markdown` documents inside that root are allowed; source files above
+1 MiB UTF-8 are rejected. External links and online/GitHub navigation
+are not yet supported. A selected anchor is recorded but scrolling
+to the heading is not implemented. A failed link does not replace
+the currently open document. See
+[Link Navigation](../Link-Navigation/en.md).
+
+Existing `local`, `url`, `git`, `source` and `preview` behavior
+remains unchanged; the default completion prompt is not used in
+`browse` mode.
