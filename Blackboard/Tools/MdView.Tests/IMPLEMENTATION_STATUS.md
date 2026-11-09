@@ -174,3 +174,18 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   independently recorded count must not be mistaken for this checkpoint.
 - Next coverage: Markdown link extraction, escaped literal/code-fence
   exclusion, safe user selection and failed-open history preservation.
+
+## 2026-11-09 — Markdown links and explicit picker tests
+
+- Added `MdViewDocumentLinkTests` covering source-offset-aware
+  nested links, rejected fenced and inline code, images, escaped syntax,
+  external and unsafe targets, extraction budget, Spectre picker choice,
+  Escape cancellation, empty catalog and noninteractive guard.
+- Production commits `3bddf6f6e072faf5c1befe6099136efe58924364`,
+  `96746b60374c2db9575781801b9f411e3072202a`.
+  Test commits `0ba10326c6d0795866fdde1386ab4cd81f8b29fb`,
+  `445a8f4bc08ea23667c9aea8f82691856e4fab74`.
+- The preceding local-navigation test suite was maintainer-confirmed
+  green. **The new link-extraction tests are not yet verified.**
+  Run focused and complete solution tests before connecting the
+  picker to a user-facing flow.
