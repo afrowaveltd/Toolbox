@@ -415,7 +415,7 @@
   and Program wiring in `0e3a542a7c1cace0d747ab46b7aff0a229e36be1`.
   The CLI configures no automatic redirects/decompression; original
   commands remain unchanged.
-- Seven isolated tests in
+- Nine isolated tests in
   `e9e987a251fd3a69abd08490b2599d9fb4c664fe`
   cover relative HTTPS links, anchor-only navigation, history,
   missing remote target rollback, Stale offline fallback,
@@ -427,3 +427,8 @@
   Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
   and `dotnet test Toolbox.sln`; manually smoke-test an HTTPS
   Markdown documentation link in Debian/Windows Terminal.
+
+- Follow-up HTTPS navigation safety regression commit
+  `e1ae4cee8ce4fd421c7f6921e8b3b2e1d85b750e`
+  adds oversized-document rollback and cross-origin request rejection.
+  New tests have not yet been verified by the maintainer.
