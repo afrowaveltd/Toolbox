@@ -100,3 +100,18 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - Test execution **pending** after the earlier 6,726-green baseline.
   Verify with `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
   and `dotnet test Toolbox.sln`.
+
+## 2026-11-09 — sparse disk checkpoint index regression tests
+
+- Added three focused tests for `MdViewDiskCheckpointIndex`:
+  270-line mixed forward/backward reads across sparse code-fence
+  boundaries, strict index disk budgets and invalid requests, and empty
+  validated source behavior. Includes exact EOF when line count is a
+  multiple of checkpoint stride.
+- Source commit `05256266a6a92615018381c7037852c88c75ea28`;
+  tests `2c4967efa33fa344d28e0ad9996f4fd1ed7a0141` and
+  `e31ece89e2ac375585ec1e88d30fd5987db9f3a9`.
+- **Pending Windows/Debian .NET verification.** Last user-confirmed
+  baseline green predates the sparse index. Run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`.
