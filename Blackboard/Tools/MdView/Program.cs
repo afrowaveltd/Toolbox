@@ -51,6 +51,22 @@ static async Task<MdViewDisplayResult> DisplayAsync(
 {
     try
     {
+        if (command.Kind == MdViewSourceKind.GitHubLinkBrowser)
+        {
+            using var handler = new HttpClientHandler
+            {
+                AllowAutoRedirect = false,
+                AutomaticDecompression = System.Net.DecompressionMethods.None
+            };
+            using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
+            var cache = new VerifiedDocumentCache(CacheDirectory.GetDefaultPath(),
+                maximumDocumentBytes: MdViewGitHubNavigationSession.DefaultMaximumDocumentBytes);
+            await new MdViewGitHubLinkBrowser(console,
+                new GitHubRepositoryFileSource(http, cache))
+                .RunAsync(command.Value!, command.Repository!, cancellationToken);
+            return new MdViewDisplayResult(0, false);
+        }
+
         if (command.Kind == MdViewSourceKind.HttpsLinkBrowser)
         {
             // The new interactive HTTPS browser stays independent of
@@ -182,6 +198,8 @@ static void PrintHelp()
     Console.WriteLine("mdview source PATH (bounded-memory raw source pager)");
     Console.WriteLine("mdview browse PATH (opt-in local Markdown link navigation)");
     Console.WriteLine("mdview browse-url HTTPS_URL (opt-in same-origin HTTPS link navigation)");
+    Console.WriteLine("mdview browse-git OWNER REPOSITORY (opt-in GitHub Markdown navigation)");
+    Console.WriteLine("mdview browse-git OWNER/REPOSITORY");
     Console.WriteLine("mdview preview PATH (experimental bounded Markdown page preview)");
     Console.WriteLine("mdview url HTTPS_URL");
     Console.WriteLine("mdview OWNER           (browse public GitHub repositories)");
