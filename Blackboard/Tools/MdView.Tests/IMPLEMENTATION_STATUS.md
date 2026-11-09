@@ -152,3 +152,16 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - These new tests have **not yet been confirmed**; run
   `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
   and `dotnet test Toolbox.sln`.
+
+## 2026-11-09 — source-aware history and validated local navigation tests
+
+- Added `MdViewNavigationHistoryTests`: bounded/branching
+  source-neutral history, oldest eviction, relative local navigation,
+  Back/Forward after validated snapshot loading, failed-link rollback
+  and missing history destination rollback.
+- Production commits `63f1eea7fca5b5916e61009cc7b0d950658d3a2d`
+  and `2427df924e1bf521108717b20727f1bf45fd4045`;
+  tests `c7696d3db911c8dc113846f9460f3c1d8aeeff7c`.
+- New focused and full solution tests **pending**. Run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`.
