@@ -98,11 +98,12 @@ public sealed class GitHubRepositoryFileSource
                 return value;
             },
             cancellationToken).ConfigureAwait(false);
-        if (readme.Value is null)
+        var resolvedPath = readme.Value;
+        if (resolvedPath is null)
             throw new IOException(readme.Warning ?? "GitHub README metadata is unavailable.");
 
         var identity = new GitHubRepositoryFile(
-            owner, repository, resolvedRef, readme.Value);
+            owner, repository, resolvedRef, resolvedPath);
         ValidateFile(identity);
 
         var state = branch.State == HttpDocumentState.Stale ||
