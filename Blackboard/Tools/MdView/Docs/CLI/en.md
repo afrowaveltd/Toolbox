@@ -143,3 +143,17 @@ This is separate from `git OWNER REPOSITORY`, which retains its
 existing one-shot README behavior. The current GitHub mode supports
 public Markdown documentation only; private repositories, cross-ref
 links, HTML/blob pages and external links are not followed.
+
+## GitHub repository catalog failure recovery (2026-11-09)
+
+An owner-only choice such as `git afrowaveltd` or the interactive
+source menu normally loads a public repository catalog. If that
+catalog fails with HTTP 403, 404, an expired limit or another error
+without a verified cached index, the selector now offers a manual
+repository name instead of aborting `mdview`. Type `Toolbox` to
+select `afrowaveltd/Toolbox`, or submit an empty name to go back.
+Invalid names are rejected locally before making another HTTP request.
+
+If GitHub has rate-limited all relevant API calls, manual selection
+does not circumvent the limit. Retry after GitHub's reported reset
+or use an already validated cached document where available.
