@@ -86,3 +86,17 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - Maintainer reports **6,726 passing tests** after the mdview scanner cancellation-lifetime change and its regression tests. This is a maintainer-confirmed result, not an independently inspected CI run; test runner platform and detailed counts were not supplied.
 - The tested change is production commit `0d8a8ac24c405480f4fff3dda7801466483614e4` and tests commit `5a7ae69e4d526c41656c9931a1568c81d3b18364`.
 - Next: bind serializable scanner checkpoints to a validated source and enable bounded seeking to previously unseen Markdown sections; retain the existing journal and legacy viewer behavior until parity is tested.
+
+## 2026-11-09 — opt-in checkpoint resume tests
+
+- Three focused tests for resuming a fenced code block across independently
+  reopened physical pages; reusing a checkpoint; mixed CRLF/CR/LF offsets,
+  terminal EOF, and rejection of positions created by a different reader.
+- Changes under test: `Utf8ValidatedSnapshot.OpenReaderAtByteOffset`
+  (`57a0cecbba5b4491545ea9511fe50a3969fbc9fe`) and
+  `MdViewCheckpointPageReader`
+  (`d615853d8d6ada9492ff8f19dfeb2fdce96641b3`).
+  Tests: `bf8c892977700f2c9f5f2a6a8f5583a934abc257`.
+- Test execution **pending** after the earlier 6,726-green baseline.
+  Verify with `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`.
