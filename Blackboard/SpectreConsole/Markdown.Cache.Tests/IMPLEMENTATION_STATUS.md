@@ -51,3 +51,8 @@ Added GitHub fake-handler tests for official raw README endpoint, conditional 30
   the provider accepts an API response containing a large Base64-like
   field but caches only the validated tiny README path projection,
   even when the disk cache budget is 4 KiB. Fresh tests pending.
+
+- Final static review: test assertions hardened for nullable safety in
+  `d4bdc4ec916f9bd5853cb59242218a031421370c`. Provider source
+  re-fetched from GitHub; metadata projection and Uri correction verified
+  present. Runtime tests remain pending in the maintainer environment.
