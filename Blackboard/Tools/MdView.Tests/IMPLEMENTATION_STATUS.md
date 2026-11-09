@@ -252,3 +252,8 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   `0e3a542a7c1cace0d747ab46b7aff0a229e36be1`.
 - **Focused and full test execution still pending for this change.**
   GitHub branch/path provider tests will be a future separate batch.
+
+- Follow-up HTTPS navigation safety regression commit
+  `e1ae4cee8ce4fd421c7f6921e8b3b2e1d85b750e`
+  adds oversized-document rollback and cross-origin request rejection.
+  New tests have not yet been verified by the maintainer.
