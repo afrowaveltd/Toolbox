@@ -70,3 +70,38 @@ Next: run and correct Windows/Linux solution CI; then add fault-injection tests,
 - Completed **all eight positional parameter comments** on `CachedDocument`, resolving the seven `CS1573` warnings caused by documenting only `ContentPath`. No runtime behavior or public signatures changed, and no warning suppression was introduced.
 - [GitHub Actions run 42311109763](https://github.com/afrowaveltd/Toolbox/actions/runs/42311109763): Linux fresh build **0 warnings, 0 errors**, Linux tests green, Windows UI tests green, documentation link checker green. The run includes the source/XML fixes and workflow cleanup.
 - [Warning-free build policy](../../../Docs/Warning-Free-Build/en.md).
+
+## 2026-11-09 — exact-ref GitHub repository Markdown file provider
+
+- Maintainer confirmed the preceding local/HTTPS browse increments green
+  before this GitHub file change (no new exact count supplied).
+- Added `GitHubRepositoryFileSource`, `GitHubRepositoryFile` and
+  `GitHubReadmeLocation` in commit
+  `cf9857b90fc4a22561042044f8a1af53f337e772`.
+  The provider uses official GitHub repository metadata to resolve
+  `default_branch`, README metadata at the selected ref to locate the
+  actual `path`, and a Contents API raw request for a selected Markdown
+  file at its explicit branch/ref.
+- Metadata is schema/identity-validated before publishing to
+  `VerifiedDocumentCache`, with a 64 KiB metadata cap.
+  Ref and file path are escaped separately; cache identities preserve
+  case-sensitive ref/path while normalizing owner/repository case.
+  Conditional ETag/Last-Modified, integrity-checked Stale offline fallback
+  and bounded document writes reuse existing cache mechanisms.
+- Follow-up commits `77e7f82c8e3d6b3df805cb14b135aa8a7141bad6`,
+  `cf37a77df715bd2a9a9b9eab794f25e0f455894a` and
+  `356f128cb44c727eba9f5f119a914a2e233d3557`
+  hardened stale metadata recovery, invalid schema fallback and
+  nullable ref tracking.
+- Added seven `GitHubRepositoryFileSourceTests` in
+  `e8cc19b55e4a273ae12f906374b3259400bdb1c7`.
+  Cases cover slash-containing ref/README discovery, 304 metadata/content
+  revalidation, offline metadata/content fallback, unsafe README metadata,
+  cache replacement rejection, invalid file inputs and ref separation.
+- The original public preferred `GitHubReadmeSource` is unchanged.
+  New full/targeted tests **have not yet been run** in this environment.
+  The provider requires an injected client with automatic redirects disabled;
+  it does not authenticate or access private repositories.
+- Documentation: `Docs/GitHub-Repository-Files/en.md`.
+  Next run `dotnet test Blackboard/SpectreConsole/Markdown.Cache.Tests/Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.Tests.csproj`
+  and `dotnet test Toolbox.sln` on Debian/Windows.
