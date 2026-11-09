@@ -32,3 +32,16 @@ Added GitHub fake-handler tests for official raw README endpoint, conditional 30
 
 - Maintainer confirmed **all Windows solution tests green** after the test fixture was corrected to distinguish `page=1` from `per_page=100`.
 - Previous failure (43/44 Cache.Tests) has been closed; no production code change was needed. The exact per-assembly rerun log was not provided separately.
+
+## 2026-11-09 — exact-ref GitHub file provider coverage
+
+- Added `GitHubRepositoryFileSourceTests` in
+  `e8cc19b55e4a273ae12f906374b3259400bdb1c7`.
+  Seven tests cover repository default branch and nested README metadata,
+  escaped slash refs for Contents API, cached conditional 304 metadata and
+  file requests, stale/offline metadata and content fallback, rejected
+  traversal paths before fetch, invalid replacement preserving verified
+  blobs, invalid file identity and different-ref cache isolation.
+- Existing GitHub preferred README provider remains unchanged.
+- Fresh tests **not yet confirmed**. Run the project's targeted test
+  command and the full `Toolbox.sln` suite.
