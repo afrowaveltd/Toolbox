@@ -153,3 +153,25 @@
 - Maintainer reports **6,726 passing tests** after the mdview scanner cancellation-lifetime change and its regression tests. This is a maintainer-confirmed result, not an independently inspected CI run; test runner platform and detailed counts were not supplied.
 - The tested change is production commit `0d8a8ac24c405480f4fff3dda7801466483614e4` and tests commit `5a7ae69e4d526c41656c9931a1568c81d3b18364`.
 - Next: bind serializable scanner checkpoints to a validated source and enable bounded seeking to previously unseen Markdown sections; retain the existing journal and legacy viewer behavior until parity is tested.
+
+## 2026-11-09 — snapshot-bound checkpoint resume foundation
+
+- Added `Utf8ValidatedSnapshot.OpenReaderAtByteOffset` for independently owned
+  strict UTF-8 readers at validated byte boundaries (source commit
+  `57a0cecbba5b4491545ea9511fe50a3969fbc9fe`).
+- Added isolated opt-in `MdViewCheckpointPageReader` which binds opaque
+  checkpoint positions to one reader instance and combines
+  `Utf8DocumentOffsetIndex`, physical-line byte-start alignment checks,
+  fresh snapshot readers, and `StateMachine.Restore` to process bounded
+  pages at previously obtained checkpoint positions.
+- Implementation commit `d615853d8d6ada9492ff8f19dfeb2fdce96641b3`;
+  focused tests commit `bf8c892977700f2c9f5f2a6a8f5583a934abc257`.
+- **No change to the existing mdview CLI pager/journal.** No arbitrary
+  unseen-line O(1) navigation yet; checkpoint production still needs forward
+  classification. Checkpoint objects are instance-bound but not
+  cryptographically tied to bytes. Raw line `Kind` is locally classified
+  after seeking; the restored container `Kind` is authoritative.
+- **New .NET test execution unverified** (SDK unavailable in this execution
+  environment). Last maintainer-confirmed checkpoint: 6,726 tests green,
+  before these commits. Next: test Windows/Debian, then build bounded
+  persisted checkpoints bound to the validated snapshot.
