@@ -185,3 +185,20 @@ trusted future checkpoints remains a separate step. Embedded raw
 `MarkdownStreamLine.Kind` is locally classified, while the enclosing
 `MarkdownContainerLine.Kind` preserves restored container state. See the
 [formatted preview guide](Docs/Experimental-Formatted-Preview/en.md).
+
+### Sparse on-disk scanner checkpoints
+
+An opt-in `MdViewDiskCheckpointIndex` supports bounded random physical-line
+classification after a **one-time full source indexing pass**. By default it
+stores a versioned scanner context every 1,024 lines, with a combined
+256 MiB disk limit for checkpoint records and their offsets. Random reads
+restore the nearest preceding checkpoint and classify fewer than 1,024
+intermediate lines, rather than replaying all preceding lines.
+
+Use `CreateAsync(snapshot, utf16Positions)` then `ReadAsync(line, 40)`.
+The index owns temporary files only; callers own and dispose the validated
+snapshot and UTF-16 position index. This is opt-in infrastructure, not
+yet a new end-user `mdview` navigation mode. Building the index still
+opens bounded snapshot readers repeatedly; HDD throughput remains
+unbenchmarked. See
+[experimental preview and checkpoint guide](Docs/Experimental-Formatted-Preview/en.md).
