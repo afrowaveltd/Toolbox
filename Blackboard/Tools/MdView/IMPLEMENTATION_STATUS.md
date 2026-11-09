@@ -187,6 +187,7 @@
   budget and delete-on-close cleanup. Restores nearest previous checkpoint,
   then replays fewer than stride preceding lines. Existing journal and
   default mdview UI remain unchanged.
+- Follow-up source commit `d88e0678f9b70ce0272136da4ecc1087f2d1843a` makes the fully initialized offset stream's nullable-flow contract explicit for the checkpoint writer.
 - Added tests for sparse forward/backward/repeat fence-state parity,
   exact-EOF checkpoints, invalid arguments/budgets and empty input
   (commits `2c4967efa33fa344d28e0ad9996f4fd1ed7a0141`,
