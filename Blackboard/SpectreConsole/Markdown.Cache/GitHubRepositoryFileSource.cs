@@ -70,7 +70,12 @@ public sealed class GitHubRepositoryFileSource
 
         var branch = await GetMetadataAsync(
             "github-repo-branch:v1:" + key, new Uri(prefix),
-            root => ReadRequiredString(root, "default_branch"),
+            root =>
+            {
+                var value = ReadRequiredString(root, "default_branch");
+                ValidateReference(value);
+                return value;
+            },
             cancellationToken).ConfigureAwait(false);
         if (branch.Value is null)
             throw new IOException(branch.Warning ?? "GitHub default branch is unavailable.");
@@ -81,7 +86,13 @@ public sealed class GitHubRepositoryFileSource
         var readme = await GetMetadataAsync(
             "github-repo-readme-path:v1:" + key + ":" +
             Uri.EscapeDataString(branch.Value), readmeUri,
-            root => ReadRequiredString(root, "path"),
+            root =>
+            {
+                var value = ReadRequiredString(root, "path");
+                ValidateFile(new GitHubRepositoryFile(
+                    owner, repository, branch.Value, value));
+                return value;
+            },
             cancellationToken).ConfigureAwait(false);
         if (readme.Value is null)
             throw new IOException(readme.Warning ?? "GitHub README metadata is unavailable.");
@@ -186,7 +197,7 @@ public sealed class GitHubRepositoryFileSource
                 request, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
             if (response.RequestMessage?.RequestUri is { } redirected && redirected != uri)
                 return await MetadataFallbackAsync(previous,
-                    "GitHub metadata redirected; refusing changed source.", token)
+                    "GitHub metadata redirected; refusing changed source.", select, token)
                     .ConfigureAwait(false);
 
             if (response.StatusCode == HttpStatusCode.NotModified)
@@ -206,7 +217,7 @@ public sealed class GitHubRepositoryFileSource
 
             if (response.StatusCode != HttpStatusCode.OK)
                 return await MetadataFallbackAsync(previous,
-                    "GitHub metadata returned HTTP " + (int)response.StatusCode + ".", token)
+                    "GitHub metadata returned HTTP " + (int)response.StatusCode + ".", select, token)
                     .ConfigureAwait(false);
 
             await using var stream = await response.Content.ReadAsStreamAsync(token)
@@ -243,7 +254,7 @@ public sealed class GitHubRepositoryFileSource
         {
             return await MetadataFallbackAsync(
                 previous, "GitHub metadata unavailable or invalid; using verified cache if present.",
-                token).ConfigureAwait(false);
+                select, token).ConfigureAwait(false);
         }
     }
 
@@ -258,19 +269,23 @@ public sealed class GitHubRepositoryFileSource
     }
 
     private static async Task<MetadataValue> MetadataFallbackAsync(
-        CachedDocument? previous, string warning, CancellationToken token)
+        CachedDocument? previous, string warning,
+        Func<JsonElement, string> select, CancellationToken token)
     {
         if (previous is null)
             return new MetadataValue(null, HttpDocumentState.Error, warning);
-        // Only metadata that passed schema checks when stored by this provider
-        // should be used; reparse before returning it to callers.
-        if (previous.Length > MaximumMetadataBytes)
-            return new MetadataValue(null, HttpDocumentState.Error, warning);
-        var bytes = await File.ReadAllBytesAsync(previous.ContentPath, token)
-            .ConfigureAwait(false);
-        // Selection must be performed by the calling site; this helper
-        // only supplies a readable verified content path.
-        return new MetadataValue(null, HttpDocumentState.Error, warning);
+        try
+        {
+            var value = await ReadMetadataValueAsync(previous, select, token)
+                .ConfigureAwait(false);
+            return new MetadataValue(value, HttpDocumentState.Stale, warning);
+        }
+        catch (Exception ex) when (ex is IOException or InvalidDataException or
+                                   JsonException or UnauthorizedAccessException)
+        {
+            return new MetadataValue(null, HttpDocumentState.Error,
+                warning + " Cached metadata is invalid.");
+        }
     }
 
     private static string ReadRequiredString(JsonElement root, string name)
