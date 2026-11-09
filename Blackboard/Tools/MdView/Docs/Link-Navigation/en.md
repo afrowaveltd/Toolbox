@@ -371,3 +371,24 @@ The previous source/preview pager modes and one-shot
 `git OWNER REPOSITORY` command remain unchanged. Large-document
 streaming link extraction and exact terminal scrollback positioning
 are future work.
+
+## Link discovery visibility in `browse-git` (2026-11-09)
+
+The terminal renders a whole Markdown document, then shows a
+**Follow a link** keyboard action at the end of the document when
+at least one supported link was recognized. A link styled in the
+rendered Markdown is *not* a clickable terminal widget.
+
+To make this behavior discoverable for long READMEs, the GitHub
+browser now prints **Navigable Markdown links: N** near the document
+header, including a hint to select **Follow a link** in the menu
+below the document. If no supported repository-relative Markdown
+links exist, the header explicitly displays zero.
+
+The Toolbox root README has supported relative Markdown destinations
+in both inline documentation navigation and project-table rows.
+`ToolboxStyleReadmeLinksAreResolvedFromGitHubRepositoryRoot`
+provides regression coverage for these shapes, excluding external
+HTTPS links, and `BrowserFollowsMarkdownAndReturnsViaVirtualTerminal`
+asserts that the terminal reports a nonzero count. These additions
+have not been independently run in the maintainer environment.
