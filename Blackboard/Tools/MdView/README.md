@@ -256,3 +256,15 @@ This is backend infrastructure; the existing interactive `mdview`
 terminal controls are unchanged. Explicit link selection, anchor
 scrolling, and HTTPS/GitHub history will follow separately.
 [Detailed contract](Docs/Link-Navigation/en.md).
+
+### Opt-in link discovery and terminal picker
+
+`MdViewDocumentLinkExtractor` enumerates supported relative links using
+existing `ExchangeHouse.Markdown` parser tokens, preserving original source
+offsets and excluding fenced code, inline code, images and forbidden links.
+The 1 Mi UTF-16 character and 4,096-link caps prevent unlimited
+in-memory extraction. `MdViewDocumentLinkPicker` provides an explicit
+Spectre.Console list with Escape cancellation; it does not open content.
+Both components are **not yet integrated into mdview's default display
+loop**. Large-document streaming link indexing remains future work.
+See [Link Navigation](Docs/Link-Navigation/en.md).
