@@ -117,3 +117,29 @@ GitHub repository-file following, cross-origin navigation or automatic
 redirects. The existing `url HTTPS_URL` single-document command
 continues to behave independently.
 [Detailed link navigation contract](../Link-Navigation/en.md).
+
+## GitHub relative Markdown navigation (2026-11-09)
+
+```text
+mdview browse-git afrowaveltd Toolbox
+mdview browse-git afrowaveltd/Toolbox
+```
+
+This opt-in interactive command discovers the repository's actual
+default branch and README filename through GitHub REST metadata. It
+then retrieves each selected Markdown file through the official
+Contents endpoint at the **same explicit ref**. Links are resolved
+relative to the active file path, not the command working directory,
+and cannot cross repository boundaries or invoke unsupported schemes.
+
+The browser supports Follow a link, Back, Forward, anchor-based
+display and Exit/Escape. It preserves only a bounded path/fragment
+history; document retrieval uses the existing validated conditional
+disk cache and clearly labels offline/Stale content and metadata.
+Maximum displayed Markdown file: 1 MiB. A noninteractive terminal
+is rejected before contacting GitHub.
+
+This is separate from `git OWNER REPOSITORY`, which retains its
+existing one-shot README behavior. The current GitHub mode supports
+public Markdown documentation only; private repositories, cross-ref
+links, HTML/blob pages and external links are not followed.
