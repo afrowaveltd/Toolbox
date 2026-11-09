@@ -204,3 +204,42 @@ already-implemented local loader/session. Test coverage includes fenced
 code, inline code, images, escaped syntax, resolved source positions,
 unsafe/external links, keyboard choice, cancellation and noninteractive
 terminal rejection.
+
+## Opt-in interactive local browsing (2026-11-09)
+
+The first actual terminal integration is available using:
+
+```bash
+dotnet run --project Blackboard/Tools/MdView -- browse README.md
+```
+
+The new `MdViewSourceKind.LocalLinkBrowser` is an explicit mode, not the
+default `local` or `preview` path. `MdViewLocalLinkBrowser` uses the
+existing Markdown renderer, `MdViewDocumentLinkExtractor`,
+`MdViewDocumentLinkPicker` and `MdViewLocalNavigationSession`.
+It shows a source label and offers **Follow a link**, **Back**,
+**Forward** (when available), and **Exit browser**, with Escape as Exit.
+
+A selected link is opened through `MdViewLocalLinkLoader` into a private,
+fully validated snapshot before history advances. A nonexistent or
+invalid target displays a recoverable message and leaves the prior
+document open. Only local relative Markdown targets within the initial
+document's directory tree are supported. External links, HTTPS and
+GitHub repositories are not navigable in this mode.
+
+Each opened source has a **1 MiB UTF-8 byte cap**, in addition to
+the bounded AST link extractor's character/link budgets. Unlike the
+raw/experimental indexed source pagers, this mode renders each
+small document completely. It is designed for local README and Docs
+navigation, not huge-file paging. It refuses noninteractive terminals.
+
+A fragment (`#heading`) is shown in the source label and preserved in
+history, but **does not yet scroll to a rendered heading**. Back/Forward
+reopens and validates the previous destination and does not retain
+all visited documents in memory. Symlink/reparse-point safeguards are
+best effort and do not create an OS-enforced sandbox.
+
+Focused virtual-terminal regression coverage exercises direct command
+parsing, explicit link following, Back/Forward, broken-link recovery,
+links inside code fences and noninteractive rejection. These newest
+tests require a fresh maintainer/CI run.
