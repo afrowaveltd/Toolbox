@@ -25,9 +25,11 @@ public sealed class MdViewLocalLinkBrowserTests
         docs.Write("Docs/en.md", "# Linked documentation");
         var terminal = Interactive();
 
-        // README: Follow -> picker: Go -> Docs: Back -> README: Exit.
+        // README Follow -> picker Go -> Docs Back -> README Forward -> Docs Exit.
         terminal.Input.PushKey(ConsoleKey.Enter);
         terminal.Input.PushKey(ConsoleKey.Enter);
+        terminal.Input.PushKey(ConsoleKey.Enter);
+        terminal.Input.PushKey(ConsoleKey.DownArrow);
         terminal.Input.PushKey(ConsoleKey.Enter);
         terminal.Input.PushKey(ConsoleKey.DownArrow);
         terminal.Input.PushKey(ConsoleKey.Enter);
