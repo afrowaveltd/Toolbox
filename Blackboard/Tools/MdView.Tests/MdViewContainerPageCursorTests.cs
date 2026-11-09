@@ -248,7 +248,7 @@ public sealed class MdViewContainerPageCursorTests
                 snapshot, positions, stride: 4, maximumIndexBytes: 16));
         await using var index = await MdViewDiskCheckpointIndex.CreateAsync(
             snapshot, positions, stride: 4);
-        Assert.Equal(5, index.CheckpointCount);
+        Assert.Equal(6, index.CheckpointCount);
         Assert.True(index.IndexBytes > 0);
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
             index.ReadAsync(-1, 2));
