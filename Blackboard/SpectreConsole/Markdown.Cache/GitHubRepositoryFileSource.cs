@@ -250,7 +250,7 @@ public sealed class GitHubRepositoryFileSource
         catch (Exception ex) when (ex is HttpRequestException or IOException or
                                    TimeoutException or InvalidDataException or
                                    JsonException or DecoderFallbackException or
-                                   OperationCanceledException)
+                                   ArgumentException or OperationCanceledException)
         {
             return await MetadataFallbackAsync(
                 previous, "GitHub metadata unavailable or invalid; using verified cache if present.",
@@ -281,7 +281,8 @@ public sealed class GitHubRepositoryFileSource
             return new MetadataValue(value, HttpDocumentState.Stale, warning);
         }
         catch (Exception ex) when (ex is IOException or InvalidDataException or
-                                   JsonException or UnauthorizedAccessException)
+                                   JsonException or UnauthorizedAccessException or
+                                   ArgumentException)
         {
             return new MetadataValue(null, HttpDocumentState.Error,
                 warning + " Cached metadata is invalid.");
