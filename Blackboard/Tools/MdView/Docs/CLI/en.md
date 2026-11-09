@@ -95,3 +95,25 @@ the currently open document. See
 Existing `local`, `url`, `git`, `source` and `preview` behavior
 remains unchanged; the default completion prompt is not used in
 `browse` mode.
+
+## HTTPS links: opt-in interactive browser (2026-11-09)
+
+```text
+mdview browse-url https://docs.example.org/README.md
+```
+
+This command accepts an absolute HTTPS Markdown URL without credentials,
+query string or fragment. Relative links remain on the same host and
+port; the user selects each link explicitly through Spectre.Console.
+**Back/Forward** revalidate the previous URL using the existing verified
+cache; offline or failed requests may reuse a previously validated blob
+as an explicitly labeled **Stale** document. Destination open failures
+do not advance history. A same-document anchor is resolved from the
+already verified content without a new network request.
+
+The browser supports a **1 MiB maximum Markdown document** and
+renders the selected heading or full small document. No arbitrary
+GitHub repository-file following, cross-origin navigation or automatic
+redirects. The existing `url HTTPS_URL` single-document command
+continues to behave independently.
+[Detailed link navigation contract](../Link-Navigation/en.md).
