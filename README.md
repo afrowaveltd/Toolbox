@@ -18,7 +18,7 @@
 | [Blackboard Markdown](Blackboard/SpectreConsole/Markdown/README.md) | Spectre.Console Markdown display, safe images, quotes, code blocks and optional syntax colors | Implemented preview project, **not yet published** |
 | [Markdown.TextMate](Blackboard/SpectreConsole/Markdown.TextMate/README.md) | Optional real code syntax coloring for Markdown with TextMateSharp grammars | Implemented source adapter; **not yet published** |
 | [Blackboard.TextFiles](Blackboard/TextFiles/README.md) | Strict local Unicode reader and disk-backed UTF-8 physical-line index for bounded-memory paging | Source implementation, **not yet published** |
-| [mdview](Blackboard/Tools/MdView/README.md) | Terminal Markdown reader for local, HTTPS and GitHub READMEs; owner browsing, optional raw indexed source pager | In-repository CLI preview; **not yet published** |
+| [mdview](Blackboard/Tools/MdView/README.md) | Terminal Markdown reader with opt-in local, same-origin HTTPS and GitHub repository-relative link navigation, Back/Forward, verified cache, heading anchors and indexed source pager | In-repository CLI preview; **not yet published** |
 | [SeeMe](SeeMe/README.md) | Console presentation helpers for WhenItFails | Implemented source project |
 | [Toolroom](Toolroom/README.md) | Runnable developer/maintenance tools including WhenItFails Setter | Implemented utilities |
 
@@ -86,6 +86,17 @@ Or try the offline localization configurator:
 ```bash
 dotnet run --project UnderstandMe/Tools/Configurator
 ```
+
+Try GitHub-linked Markdown documentation without cloning another repository:
+
+```bash
+dotnet run --project Blackboard/Tools/MdView -- browse-git afrowaveltd Toolbox
+```
+
+This opt-in mode discovers GitHub's actual default branch and README file,
+then follows repository-relative Markdown links in the same ref with a verified
+cache and bounded Back/Forward history. See the
+[mdview navigation guide](Blackboard/Tools/MdView/Docs/Link-Navigation/en.md).
 
 [Repository getting started](Docs/Toolbox-Getting-Started/en.md) includes per-project testing and examples of adding a published NuGet package.
 
