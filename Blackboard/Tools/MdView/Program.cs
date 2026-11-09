@@ -51,6 +51,24 @@ static async Task<MdViewDisplayResult> DisplayAsync(
 {
     try
     {
+        if (command.Kind == MdViewSourceKind.HttpsLinkBrowser)
+        {
+            // The new interactive HTTPS browser stays independent of
+            // normal one-shot remote Markdown rendering.
+            using var handler = new HttpClientHandler
+            {
+                AllowAutoRedirect = false,
+                AutomaticDecompression = System.Net.DecompressionMethods.None
+            };
+            using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
+            var cache = new VerifiedDocumentCache(CacheDirectory.GetDefaultPath(),
+                maximumDocumentBytes: MdViewHttpsNavigationSession.DefaultMaximumDocumentBytes);
+            await new MdViewHttpsLinkBrowser(console,
+                new HttpMarkdownDocumentSource(http, cache))
+                .RunAsync(command.Value!, cancellationToken);
+            return new MdViewDisplayResult(0, false);
+        }
+
         if (command.Kind == MdViewSourceKind.LocalLinkBrowser)
         {
             await new MdViewLocalLinkBrowser(console).RunAsync(
@@ -163,6 +181,7 @@ static void PrintHelp()
     Console.WriteLine("mdview local PATH  (complete rendered Markdown)");
     Console.WriteLine("mdview source PATH (bounded-memory raw source pager)");
     Console.WriteLine("mdview browse PATH (opt-in local Markdown link navigation)");
+    Console.WriteLine("mdview browse-url HTTPS_URL (opt-in same-origin HTTPS link navigation)");
     Console.WriteLine("mdview preview PATH (experimental bounded Markdown page preview)");
     Console.WriteLine("mdview url HTTPS_URL");
     Console.WriteLine("mdview OWNER           (browse public GitHub repositories)");
