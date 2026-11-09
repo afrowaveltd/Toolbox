@@ -335,3 +335,19 @@ repositories/branches, open external URLs or handle private GitHub
 repositories. Existing `git OWNER REPOSITORY` continues to display
 the original one-shot preferred README.
 [Link Navigation](Docs/Link-Navigation/en.md).
+
+### GitHub README link visibility (2026-11-09)
+
+`browse-git` now prints **Navigable Markdown links: N** before
+rendering each document and explains that links are selected using
+**Follow a link** in the keyboard menu **below** the rendered Markdown.
+The rendered Markdown text itself is not an interactive click target;
+the browser deliberately offers a separate terminal selection prompt.
+Unsupported external links are not counted.
+
+The Toolbox root README contains many repository-relative documentation
+links, including links inside the project overview table. Regression
+coverage checks that those links are recognized while an external
+GitHub website URL is excluded. If the displayed count is zero on
+that README, investigate the extractor/parser or actual source
+identity rather than assuming the README contains no links.
