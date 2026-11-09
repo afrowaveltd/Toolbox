@@ -225,3 +225,20 @@ must separately check symlinks/reparse points. **Clickable navigation,
 anchor selection and Back/Forward history are still planned**, not
 implemented. Full contract:
 [Link Navigation](Docs/Link-Navigation/en.md).
+
+### Local linked Markdown loading (2026-11-09)
+
+`MdViewLocalLinkLoader.OpenAsync(source, href)` now resolves a relative
+link from a typed local origin and opens the destination as a caller-owned,
+**fully validated UTF-8 snapshot**. It accepts only `.md` and
+`.markdown` targets, with the same bounded disk budget as the underlying
+snapshot. It rejects lexical paths outside the specified navigation root,
+and checks root/intermediate/leaf paths for symlink or reparse-point
+attributes before opening.
+
+This is an **opt-in backend API**, not an interactive clickable link UI.
+The checks do not provide race-free filesystem confinement: an attacker
+could replace a directory between checking and opening. Additional
+OS-level file handle constraints would be required to guarantee isolation
+from hostile same-user filesystem mutations. HTTPS/GitHub loaders,
+heading anchors and history remain future steps.
