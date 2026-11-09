@@ -185,3 +185,45 @@ reclassified after a seek; the authoritative container classification is
 `MarkdownContainerLine.Kind`. Do not infer source-global top-level fence
 metadata from the embedded raw line kind after resumed reads.
 New focused tests await Windows/Debian execution.
+
+## Sparse disk scanner checkpoints (2026-11-09)
+
+`MdViewDiskCheckpointIndex` is an independent **opt-in** random-page
+classification index over a private `Utf8ValidatedSnapshot` and its
+`Utf8DocumentOffsetIndex`.
+
+```csharp
+await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(path);
+await using var positions = await Utf8DocumentOffsetIndex.CreateAsync(snapshot.Lines);
+await using var checkpoints = await MdViewDiskCheckpointIndex.CreateAsync(
+    snapshot, positions, stride: 1024);
+var page = await checkpoints.ReadAsync(firstLine: 500_000, maxLines: 40);
+```
+
+Creation **first classifies the entire source** in bounded pages and
+persists versioned scanner state every 1,024 lines by default, plus the
+initial state. Checkpoint payloads are stored in a temporary length-prefixed
+disk file with an independent 8-byte-per-checkpoint offset table. Total
+temporary checkpoint storage is capped at 256 MiB by default; stride is
+configurable from 1 to 65,536 lines. Both files use `DeleteOnClose`.
+
+A later request locates the nearest preceding checkpoint in constant-time
+slot arithmetic, restores validated state against the same snapshot,
+replays **fewer than stride** preceding lines and returns up to 128
+classified physical source lines. Reverse/jump requests do not depend on
+a shared iterator. If the requested line is EOF, the resulting page is
+empty. All reads validate checkpoint source-line alignment.
+
+The checkpoint index contains **state, not a complete event journal**.
+It does not change the existing preview UI, raw source pager, or legacy
+renderer. Index construction itself is correctness-first: it currently
+reopens a snapshot reader per bounded page and does not claim a
+single-pass HDD throughput benchmark. Large initial indexing can take
+time and uses temporary disk space, but not a full-document RAM model.
+An index is tied to the live validated copy; do not share checkpoint
+files across changed documents. External checkpoint deserialization is
+not exposed by the new index.
+
+The new tests cover cross-checkpoint code-fence parity, distant backward
+navigation, repeated reads, disk budgets, invalid inputs and empty input.
+Run focused and solution test suites before release.
