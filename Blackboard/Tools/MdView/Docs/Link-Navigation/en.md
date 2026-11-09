@@ -243,3 +243,30 @@ Focused virtual-terminal regression coverage exercises direct command
 parsing, explicit link following, Back/Forward, broken-link recovery,
 links inside code fences and noninteractive rejection. These newest
 tests require a fresh maintainer/CI run.
+
+## Heading anchors in local browse mode (2026-11-09)
+
+`MdViewHeadingIndex` derives a bounded, ordered list of recognized ATX
+headings from the existing `ExchangeHouse.Markdown.MarkdownParser` block
+classification. It creates lowercase Unicode-preserving slugs, normalizes
+whitespace to dashes, and disambiguates repeats using `-1`, `-2`, etc.
+Fenced-code text is never mistaken for a heading.
+
+In opt-in `mdview browse README.md`, choosing a link with a fragment
+such as `Docs/en.md#installation` or `#installation` now displays
+the validated destination **starting from the matching source heading**
+and labels the jump. Back/Forward retains the fragment and repeats
+the heading lookup when reopening the source. Unknown anchors display
+a readable warning rather than crashing.
+
+This is a **source-heading display jump**, not terminal scrollback
+manipulation: the browser renders the Markdown suffix from the heading,
+not an exact visual row or a context-preserving page slice. For this
+reason, small-document mode and its existing 1 MiB limit remain
+important. The lightweight slug algorithm intentionally does not
+claim complete GitHub/CommonMark anchor parity, especially for
+formatted headings and punctuation. A richer heading renderer/source
+index is future work.
+
+The default `mdview local`, HTTPS/GitHub viewer, and experimental
+source/preview pagers are unchanged.
