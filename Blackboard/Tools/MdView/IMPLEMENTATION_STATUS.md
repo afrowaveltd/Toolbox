@@ -384,3 +384,10 @@
 - Fresh test execution pending; run
   `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
   and `dotnet test Toolbox.sln` before release.
+
+## 2026-11-09 — Debian heading-anchor virtual terminal test correction
+
+- Maintainer's Debian .NET 11 RC SDK test run compiled all mdview dependencies and reported **112 passed, 1 failed, 0 skipped** (113 MdView.Tests total). Only failure: `MdViewHeadingIndexTests.FragmentOnlyLinkStartsRenderingAtTargetHeading` with `InvalidOperationException: No input available` from `Spectre.Console.Testing.TestConsoleInput`.
+- Root cause: after following the anchor and returning Back, the source page presents **Follow / Forward / Exit**. The test supplied one DownArrow, accidentally selecting Forward instead of Exit, and exhausted the queued input. Added a second DownArrow, keeping production code unchanged (commit `8b6884e26a7ef5766815e84c2c928bb8f34caa10`).
+- `NETSDK1057` is an informational preview SDK message; not the cause of this failure.
+- **Retest pending after this correction.** Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`, then `dotnet test Toolbox.sln`; do not count the correction as green until confirmed.
