@@ -233,3 +233,22 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - Debian SDK 11 RC test log: **112 passed / 1 failed / 113 total**. The only failing case was `FragmentOnlyLinkStartsRenderingAtTargetHeading` due to a depleted `TestConsoleInput` queue, not a compiler or Markdown parser error.
 - The post-Back original document has **Follow, Forward, Exit**; the previous script used one DownArrow and selected Forward. Added the missing second DownArrow to select Exit (commit `8b6884e26a7ef5766815e84c2c928bb8f34caa10`). Production implementation unchanged.
 - Retest focused and complete solution suites to verify. The `NETSDK1057` preview notice is informational.
+
+## 2026-11-09 — same-origin HTTPS navigation and offline cache regression
+
+- Maintainer confirms full tests green after the previous
+  heading-anchor input-sequence fix; this is the baseline preceding
+  HTTPS implementation.
+- Added `MdViewHttpsNavigationTests` in
+  `e9e987a251fd3a69abd08490b2599d9fb4c664fe`.
+  Cases cover explicit `browse-url` parsing, remote relative path
+  and Back/Forward requests, anchor-only navigation without refetch,
+  unavailable remote target rollback, stale offline cached copy,
+  interactive Spectre linked-doc navigation and noninteractive guard.
+- Production commits:
+  `d63ad06e868ca2a2636a3eb21d314e5b36c6451b`,
+  `4211f92b1fcabd76927f4bcac04fdf1f5f1d2054`,
+  `ec9c07d11f0fa4ef3587b25a69ffc4ed019e40ca`,
+  `0e3a542a7c1cace0d747ab46b7aff0a229e36be1`.
+- **Focused and full test execution still pending for this change.**
+  GitHub branch/path provider tests will be a future separate batch.
