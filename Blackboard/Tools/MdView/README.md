@@ -242,3 +242,17 @@ could replace a directory between checking and opening. Additional
 OS-level file handle constraints would be required to guarantee isolation
 from hostile same-user filesystem mutations. HTTPS/GitHub loaders,
 heading anchors and history remain future steps.
+
+### History and local navigation controller
+
+Opt-in `MdViewNavigationHistory` keeps a bounded source/fragment
+Back/Forward history, including branch truncation and oldest-entry
+eviction. `MdViewLocalNavigationSession` combines it with fully
+validated local linked snapshots. It opens each destination before
+changing navigation state and retains only **one open snapshot** at
+a time. Broken links leave the previous document available.
+
+This is backend infrastructure; the existing interactive `mdview`
+terminal controls are unchanged. Explicit link selection, anchor
+scrolling, and HTTPS/GitHub history will follow separately.
+[Detailed contract](Docs/Link-Navigation/en.md).
