@@ -110,16 +110,85 @@ public sealed class MdViewGitHubRepositoryPickerTests
     }
 
     [Fact]
-    public async Task CatalogNotFoundReportsReadableError()
+    public async Task CatalogForbiddenOffersManualRepositoryNameInsteadOfCrashing()
     {
         using var temp = new Fixture();
-        using var http = Client(_ => new HttpResponseMessage(HttpStatusCode.NotFound));
-        var picker = new MdViewGitHubRepositoryPicker(Interactive(),
+        var requests = 0;
+        using var http = Client(_ =>
+        {
+            requests++;
+            return new HttpResponseMessage(HttpStatusCode.Forbidden);
+        });
+        var console = Interactive();
+        console.Input.PushTextWithEnter("Toolbox");
+
+        var picked = await new MdViewGitHubRepositoryPicker(console,
+            new GitHubRepositoryCatalogSource(http, new VerifiedDocumentCache(temp.Root)))
+            .PickAsync("afrowaveltd");
+
+        Assert.Equal(MdViewSourceKind.GitHub, picked?.Kind);
+        Assert.Equal("afrowaveltd", picked?.Value);
+        Assert.Equal("Toolbox", picked?.Repository);
+        Assert.Contains("HTTP 403", console.Output);
+        Assert.Contains("skip the catalog", console.Output);
+        Assert.Equal(1, requests); // No retry or README fetch in the picker.
+    }
+
+    [Fact]
+    public async Task CatalogNotFoundOffersBackWithoutAnyReadmeFetch()
+    {
+        using var temp = new Fixture();
+        var requests = 0;
+        using var http = Client(_ =>
+        {
+            requests++;
+            return new HttpResponseMessage(HttpStatusCode.NotFound);
+        });
+        var console = Interactive();
+        console.Input.PushKey(ConsoleKey.Enter); // Empty manual name = back.
+        var picker = new MdViewGitHubRepositoryPicker(console,
             new GitHubRepositoryCatalogSource(http, new VerifiedDocumentCache(temp.Root)));
 
-        var error = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => picker.PickAsync("missing"));
-        Assert.Contains("HTTP 404", error.Message);
+        var picked = await picker.PickAsync("missing");
+
+        Assert.Null(picked);
+        Assert.Contains("HTTP 404", console.Output);
+        Assert.Equal(1, requests);
+    }
+
+    [Fact]
+    public async Task ManualRepositoryNameRejectsPathTraversalBeforeSelection()
+    {
+        using var temp = new Fixture();
+        using var http = Client(_ => new HttpResponseMessage(HttpStatusCode.Forbidden));
+        var console = Interactive();
+        console.Input.PushTextWithEnter("../outside");
+        console.Input.PushTextWithEnter("Valid.Repo");
+
+        var picked = await new MdViewGitHubRepositoryPicker(console,
+            new GitHubRepositoryCatalogSource(http, new VerifiedDocumentCache(temp.Root)))
+            .PickAsync("owner");
+
+        Assert.Equal("Valid.Repo", picked?.Repository);
+        Assert.Contains("Invalid repository name", console.Output);
+    }
+
+    [Fact]
+    public async Task EmptyVerifiedCatalogAllowsDirectRepositoryName()
+    {
+        using var temp = new Fixture();
+        using var http = Client(request => request.RequestUri!.AbsolutePath == "/users/owner"
+            ? Ok("""{"type":"User"}""")
+            : Ok("[]"));
+        var console = Interactive();
+        console.Input.PushTextWithEnter("KnownRepo");
+
+        var picked = await new MdViewGitHubRepositoryPicker(console,
+            new GitHubRepositoryCatalogSource(http, new VerifiedDocumentCache(temp.Root)))
+            .PickAsync("owner");
+
+        Assert.Equal("KnownRepo", picked?.Repository);
+        Assert.Contains("No public repositories were found", console.Output);
     }
 
     private static TestConsole Interactive()
