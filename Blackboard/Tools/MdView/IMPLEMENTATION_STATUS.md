@@ -432,3 +432,36 @@
   `e1ae4cee8ce4fd421c7f6921e8b3b2e1d85b750e`
   adds oversized-document rollback and cross-origin request rejection.
   New tests have not yet been verified by the maintainer.
+
+## 2026-11-09 — opt-in GitHub repository file browsing
+
+- Maintainer confirmed all preceding local/HTTPS Markdown navigation
+  tests green before this increment (no exact new totals supplied).
+- New `MdViewGitHubNavigationSession`
+  (`cd0a025b4f59efd27c420feefa0b37c04d1e30b5`)
+  uses the new verified `GitHubRepositoryFileSource` and the existing
+  typed origin, parser-backed link resolver and bounded Back/Forward
+  history. Initial README branch/ref/path comes from official GitHub
+  metadata; changed file destinations are validated before history commits.
+  Same-file anchors reuse verified content without a new API request.
+- `MdViewGitHubLinkBrowser`
+  (`498fccc1d2d8d0afbd52c05b2c45f7850a43bfb2`)
+  provides an opt-in interactive terminal flow with exact
+  owner/repository/ref/path display, verified content and metadata
+  Stale indicators, link selection, heading display, Back/Forward,
+  and recoverable invalid-target errors. 1 MiB source budget remains.
+- CLI parser (`ae88207c13b00d1ab7e1aac57d1462b13da61684`)
+  and Program wiring (`8535579c933e6fd743b1a989ec6bda307e46dea6`)
+  support `mdview browse-git OWNER REPOSITORY` and
+  `mdview browse-git OWNER/REPOSITORY`; no automatic HTTP redirects.
+- Seven `MdViewGitHubNavigationTests` added in
+  `ad8d7a445754789834216c013b85a85bc362d117`:
+  command isolation, branch with slash, real file transitions,
+  Back/Forward, same-file anchors, missing/oversized target rollback,
+  virtual-terminal navigation and noninteractive rejection.
+- Existing one-shot `git` and all local/HTTPS modes remain unchanged.
+  Explicit exclusions: private GitHub repos, cross-repo/ref links, HTML
+  blob URLs, attachments and >1 MiB complete-document browsing.
+- **New tests pending developer/maintainer verification.**
+  Read `Docs/Link-Navigation/en.md` and the new cache-provider
+  `Docs/GitHub-Repository-Files/en.md`; run focused and full tests.
