@@ -118,6 +118,37 @@ public sealed class GitHubRepositoryFileSourceTests
     }
 
     [Fact]
+    public async Task LargeGitHubReadmeJsonStoresOnlyTinyValidatedIdentityMetadata()
+    {
+        using var temp = new Fixture();
+        var cache = new VerifiedDocumentCache(temp.Root, maximumDocumentBytes: 4096);
+        using var http = Client(request =>
+        {
+            if (request.RequestUri!.AbsolutePath.EndsWith("/readme", StringComparison.Ordinal))
+            {
+                // GitHub README JSON can embed the entire source as Base64;
+                // the cache must not duplicate that large metadata payload.
+                var body = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    path = "README.md",
+                    content = new string('A', 110_000)
+                });
+                return Json(body);
+            }
+            return Json("""{"default_branch":"main"}""");
+        });
+        var source = new GitHubRepositoryFileSource(http, cache);
+        var readme = await source.ResolveReadmeAsync("owner", "repo");
+        Assert.Equal("README.md", readme.File.Path);
+
+        var cached = await cache.GetAsync(
+            "github-repo-readme-path:v1:owner/repo:main");
+        Assert.NotNull(cached);
+        Assert.True(cached.Length < 512);
+        Assert.DoesNotContain("content", await File.ReadAllTextAsync(cached.ContentPath));
+    }
+
+    [Fact]
     public async Task IncorrectFileEncodingFallsBackWithoutReplacingPreviousBlob()
     {
         using var temp = new Fixture();
