@@ -20,7 +20,9 @@ public enum MdViewSourceKind
     /// <summary>Browse local Markdown links with explicit keyboard navigation.</summary>
     LocalLinkBrowser,
     /// <summary>Browse same-origin HTTPS Markdown links with verified caching.</summary>
-    HttpsLinkBrowser
+    HttpsLinkBrowser,
+    /// <summary>Browse Markdown files in a public GitHub repository.</summary>
+    GitHubLinkBrowser
 }
 
 /// <summary>Parsed mdview invocation, independent of terminal interaction and network I/O.</summary>
@@ -73,6 +75,14 @@ public sealed record MdViewCommand(MdViewSourceKind Kind, string? Value = null, 
                 return new(MdViewSourceKind.LocalLinkBrowser, Require(args[1]));
             if (args[0].Equals("browse-url", StringComparison.OrdinalIgnoreCase))
                 return new(MdViewSourceKind.HttpsLinkBrowser, Require(args[1]));
+            if (args[0].Equals("browse-git", StringComparison.OrdinalIgnoreCase))
+            {
+                var pieces = Require(args[1]).Split('/');
+                if (pieces.Length != 2 || !IsOwner(pieces[0]) ||
+                    string.IsNullOrWhiteSpace(pieces[1]))
+                    throw new ArgumentException("Use browse-git OWNER/REPOSITORY or browse-git OWNER REPOSITORY.");
+                return new(MdViewSourceKind.GitHubLinkBrowser, pieces[0], pieces[1]);
+            }
             if (args[0].Equals("preview", StringComparison.OrdinalIgnoreCase))
                 return new(MdViewSourceKind.FormattedPreview, Require(args[1]));
             if (args[0].Equals("git", StringComparison.OrdinalIgnoreCase) ||
@@ -85,6 +95,13 @@ public sealed record MdViewCommand(MdViewSourceKind Kind, string? Value = null, 
                     throw new ArgumentException("Use git OWNER, git OWNER REPOSITORY, or git OWNER/REPOSITORY.");
                 return new(MdViewSourceKind.GitHub, pieces[0], pieces[1]);
             }
+        }
+        if (args.Length == 3 &&
+            args[0].Equals("browse-git", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!IsOwner(Require(args[1])))
+                throw new ArgumentException("Invalid GitHub owner.");
+            return new(MdViewSourceKind.GitHubLinkBrowser, args[1], Require(args[2]));
         }
         if (args.Length == 3 &&
             (args[0].Equals("git", StringComparison.OrdinalIgnoreCase) ||
