@@ -175,3 +175,25 @@
   environment). Last maintainer-confirmed checkpoint: 6,726 tests green,
   before these commits. Next: test Windows/Debian, then build bounded
   persisted checkpoints bound to the validated snapshot.
+
+## 2026-11-09 — disk-backed sparse Markdown scanner checkpoint index
+
+- Added internal trusted checkpoint rebinding to `MdViewCheckpointPageReader`
+  (commit `ad9c024778239dde7f8f334affffed705d425eb6`).
+- Added `MdViewDiskCheckpointIndex` (commit
+  `05256266a6a92615018381c7037852c88c75ea28`): one-time source
+  classification, bounded JSON checkpoint storage and an 8-byte slot table,
+  configurable stride (default 1,024 lines), default 256 MiB combined disk
+  budget and delete-on-close cleanup. Restores nearest previous checkpoint,
+  then replays fewer than stride preceding lines. Existing journal and
+  default mdview UI remain unchanged.
+- Added tests for sparse forward/backward/repeat fence-state parity,
+  exact-EOF checkpoints, invalid arguments/budgets and empty input
+  (commits `2c4967efa33fa344d28e0ad9996f4fd1ed7a0141`,
+  `e31ece89e2ac375585ec1e88d30fd5987db9f3a9`).
+- **Build/test status:** unverified after latest changes; maintainer's
+  preceding test run was green, but does not cover this new index. Do not
+  claim benchmarked HDD gains or O(1) first-time indexing. Next:
+  validate focused/full suites, benchmark source indexing on HDD/SSD and
+  consider reusing the same sequential reader during checkpoint creation
+  before wiring any new UI mode.
