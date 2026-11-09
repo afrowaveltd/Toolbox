@@ -29,6 +29,40 @@ public sealed class MdViewDocumentLinkTests
     }
 
     [Fact]
+    public void ToolboxStyleReadmeLinksAreResolvedFromGitHubRepositoryRoot()
+    {
+        const string markdown = """
+            # Afrowave Toolbox
+            **GitHub:** [afrowaveltd/Toolbox](https://github.com/afrowaveltd/Toolbox)
+            [Documentation index](Docs/Documentation/en.md) · [Architecture](Docs/Architecture/en.md)
+
+            | Project | Description |
+            | --- | --- |
+            | [Essentials](Essentials/README.md) | General result contracts |
+            | [mdview](Blackboard/Tools/MdView/README.md) | Markdown reader |
+            """;
+        var origin = MdViewDocumentOrigin.FromGitHub(
+            "afrowaveltd", "Toolbox", "master", "README.md");
+
+        var links = MdViewDocumentLinkExtractor.Extract(markdown, origin);
+
+        Assert.Equal(4, links.Count);
+        Assert.Equal(
+            new[] {
+                "Docs/Documentation/en.md",
+                "Docs/Architecture/en.md",
+                "Essentials/README.md",
+                "Blackboard/Tools/MdView/README.md"
+            },
+            links.Select(link => link.Target.Origin.Location).ToArray());
+        Assert.All(links, link =>
+        {
+            Assert.Equal("master", link.Target.Origin.Ref);
+            Assert.Equal("Toolbox", link.Target.Origin.Repository);
+        });
+    }
+
+    [Fact]
     public void FencedCodeInlineCodeImagesAndUnsafeTargetsAreNotNavigable()
     {
         const string markdown = """
