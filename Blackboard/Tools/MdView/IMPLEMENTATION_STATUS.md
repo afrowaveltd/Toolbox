@@ -198,3 +198,25 @@
   validate focused/full suites, benchmark source indexing on HDD/SSD and
   consider reusing the same sequential reader during checkpoint creation
   before wiring any new UI mode.
+
+## 2026-11-09 — one-pass checkpoint construction; link navigation roadmap
+
+- Changed `MdViewDiskCheckpointIndex.CreateAsync` to classify the private
+  snapshot through **one forward reader**, capturing sparse
+  `StateMachine` checkpoints at the chosen stride instead of repeatedly
+  reopening the source after each 128-line slice. Source commit
+  `cb6b814bf2d3234c384e84c7e58b789e3ad01b3f`.
+- Added Unicode, CRLF/CR/LF and nontrivial stride random-access parity test
+  in `6efabec11171dacc4a3de3e6ec3ae91fbac89634`. Index remains
+  opt-in; existing CLI preview and disk journal remain unchanged.
+- Added [Link Navigation](Docs/Link-Navigation/en.md) plan in commit
+  `888853b20dbc1c6b46ba8ee06d2276263efa11f0`.
+  **Interactive links are not yet implemented.** Roadmap includes typed
+  local/HTTPS/GitHub bases, relative links, in-document heading anchors,
+  explicit link selection and Back/Forward history, with safe resolution,
+  cache/offline handling and regression tests.
+- Maintainer reports the prior full suite still green; **this new code
+  and test increment has not been independently rerun**. Next validate
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj` and
+  `dotnet test Toolbox.sln`. Then implement UI-neutral source-aware link
+  resolution before changing interactive navigation.
