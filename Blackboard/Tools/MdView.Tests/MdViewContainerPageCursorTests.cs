@@ -273,6 +273,39 @@ public sealed class MdViewContainerPageCursorTests
         Assert.Empty((await index.ReadAsync(0, 1)).Lines);
     }
 
+    [Fact]
+    public async Task SequentialCheckpointBuildKeepsUnicodeAndMixedNewlineOffsets()
+    {
+        using var file = new TestFile();
+        var lines = Enumerable.Range(0, 301).Select(i =>
+            i == 38 ? "```text" :
+            i == 264 ? "```" :
+            i is > 38 and < 264 ? $"# 🌍 inside {i}" : $"Český řádek {i}")
+            .ToArray();
+        var text = string.Concat(lines.Select((line, i) =>
+            line + (i == lines.Length - 1 ? string.Empty :
+                i % 3 == 0 ? "\r\n" : i % 3 == 1 ? "\r" : "\n")));
+        var path = await file.WriteAsync(text);
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(path);
+        await using var positions = await Utf8DocumentOffsetIndex.CreateAsync(snapshot.Lines);
+        await using var index = await MdViewDiskCheckpointIndex.CreateAsync(
+            snapshot, positions, stride: 37);
+
+        Assert.Equal(301, index.IndexedLineCount);
+        Assert.Equal(9, index.CheckpointCount);
+        foreach (var first in new[] { 0L, 37, 74, 150, 263, 264, 299, 301 })
+        {
+            var page = await index.ReadAsync(first, 2);
+            Assert.Equal(lines.Skip((int)first).Take(2),
+                page.Lines.Select(x => x.Source.Text));
+            Assert.Equal(Math.Min(301, first + 2), page.Next.NextLineNumber);
+        }
+        Assert.Equal(MarkdownContainerLineKind.CodeLine,
+            (await index.ReadAsync(263, 1)).Lines[0].Kind);
+        Assert.Equal(MarkdownContainerLineKind.FenceClose,
+            (await index.ReadAsync(264, 1)).Lines[0].Kind);
+    }
+
     private sealed class TestFile : IDisposable
     {
         private readonly string _dir = Path.Combine(
