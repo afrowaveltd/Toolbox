@@ -53,6 +53,36 @@ public sealed class Utf8ValidatedSnapshot : IAsyncDisposable
             detectEncodingFromByteOrderMarks: true);
     }
 
+    /// <summary>
+    /// Opens an independent strict UTF-8 reader at an absolute byte position.
+    /// The caller must supply a validated UTF-8 character boundary, normally
+    /// obtained from the snapshot's physical-line or document offset index.
+    /// The returned reader is owned by the caller.
+    /// </summary>
+    /// <param name="byteOffset">Absolute source byte offset, including any BOM.</param>
+    /// <returns>Reader starting at the supplied UTF-8 character boundary.</returns>
+    public StreamReader OpenReaderAtByteOffset(long byteOffset)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (byteOffset < 0 || byteOffset > ByteLength)
+            throw new ArgumentOutOfRangeException(nameof(byteOffset));
+
+        var stream = new FileStream(Path.Combine(_directory, "validated.utf8"),
+            FileMode.Open, FileAccess.Read, FileShare.Read,
+            CopyBufferBytes, FileOptions.SequentialScan);
+        try
+        {
+            stream.Position = byteOffset;
+            return new StreamReader(stream, new System.Text.UTF8Encoding(false, true),
+                detectEncodingFromByteOrderMarks: byteOffset == 0);
+        }
+        catch
+        {
+            stream.Dispose();
+            throw;
+        }
+    }
+
     /// <summary>Byte length of the validated copy, including any UTF-8 BOM.</summary>
     public long ByteLength => Lines.ByteLength;
 
