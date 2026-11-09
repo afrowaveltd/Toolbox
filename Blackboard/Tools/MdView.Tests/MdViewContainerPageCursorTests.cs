@@ -136,6 +136,67 @@ public sealed class MdViewContainerPageCursorTests
         Assert.Equal(3, cursor.CachedLineCount);
     }
 
+    [Fact]
+    public async Task CheckpointReaderResumesFenceAcrossIndependentPageReaders()
+    {
+        using var file = new TestFile();
+        var path = await file.WriteAsync("intro\n```cs\n# literal\n- literal\n```\n# heading");
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(path);
+        await using var offsets = await Utf8DocumentOffsetIndex.CreateAsync(snapshot.Lines);
+        var reader = new MdViewCheckpointPageReader(snapshot, offsets);
+
+        var first = await reader.ReadAsync(reader.Start, 2);
+        Assert.Equal(2, first.Next.NextLineNumber);
+        var middle = await reader.ReadAsync(first.Next, 2);
+        Assert.All(middle.Lines,
+            x => Assert.Equal(MarkdownContainerLineKind.CodeLine, x.Kind));
+        var last = await reader.ReadAsync(middle.Next, 2);
+        Assert.Equal(MarkdownContainerLineKind.FenceClose, last.Lines[0].Kind);
+        Assert.Equal(MarkdownContainerLineKind.Plain, last.Lines[1].Kind);
+
+        // Reusing a checkpoint must be repeatable, not consume a shared iterator.
+        var repeated = await reader.ReadAsync(first.Next, 2);
+        Assert.Equal(middle.Lines.Select(x => x.Kind),
+            repeated.Lines.Select(x => x.Kind));
+        Assert.Equal(middle.Next.NextUtf16Offset, repeated.Next.NextUtf16Offset);
+    }
+
+    [Fact]
+    public async Task CheckpointReaderHandlesBomMixedTerminatorsAndEndOfFile()
+    {
+        using var file = new TestFile();
+        var path = await file.WriteAsync("Č 🌍\r\n> quote\r- item\nlast");
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(path);
+        await using var offsets = await Utf8DocumentOffsetIndex.CreateAsync(snapshot.Lines);
+        var reader = new MdViewCheckpointPageReader(snapshot, offsets);
+        var first = await reader.ReadAsync(reader.Start, 1);
+        var second = await reader.ReadAsync(first.Next, 3);
+
+        Assert.Equal("Č 🌍", first.Lines[0].Source.Text);
+        Assert.Equal("\r\n", first.Lines[0].Source.Terminator);
+        Assert.Equal(new[] { "> quote", "- item", "last" },
+            second.Lines.Select(x => x.Source.Text));
+        Assert.Equal(offsets.Utf16Length, second.Next.NextUtf16Offset);
+        Assert.Empty((await reader.ReadAsync(second.Next, 3)).Lines);
+    }
+
+    [Fact]
+    public async Task CheckpointCannotBeTransferredBetweenSnapshotReaders()
+    {
+        using var file = new TestFile();
+        var path = await file.WriteAsync("alpha\nbeta");
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(path);
+        await using var offsets = await Utf8DocumentOffsetIndex.CreateAsync(snapshot.Lines);
+        var first = new MdViewCheckpointPageReader(snapshot, offsets);
+        var other = new MdViewCheckpointPageReader(snapshot, offsets);
+        var checkpoint = (await first.ReadAsync(first.Start, 1)).Next;
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            other.ReadAsync(checkpoint, 1));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            first.ReadAsync(first.Start, 129));
+    }
+
     private sealed class TestFile : IDisposable
     {
         private readonly string _dir = Path.Combine(
