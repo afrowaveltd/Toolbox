@@ -65,3 +65,12 @@ After any successfully displayed **fully rendered** Markdown document in an inte
 Redirected stdin/stdout or a noninteractive console skips the prompt and exits normally. The `--help` and error paths retain their exit behavior. The independent `mdview source PATH` raw pager is not double-prompted because it already supports its own page navigation. This change does not yet add `F` search, PageUp/PageDown or formatted Markdown paging.
 
 [Document completion details](../Document-End-Navigation/en.md).
+
+## Planned relative links and document history (2026-11-09)
+
+The existing viewer does **not** yet support interactive link navigation,
+even though the renderer can display Markdown link text. The accepted
+[design and security contract](../Link-Navigation/en.md) covers relative
+local file paths, HTTPS bases, GitHub repository paths/refs, in-document
+anchors, keyboard selection and bounded Back/Forward history. All are
+planned features, not existing commands.
