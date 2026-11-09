@@ -220,3 +220,23 @@
   `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj` and
   `dotnet test Toolbox.sln`. Then implement UI-neutral source-aware link
   resolution before changing interactive navigation.
+
+## 2026-11-09 — UI-neutral relative Markdown link resolution
+
+- Added `MdViewDocumentOrigin`, `MdViewResolvedLink` and
+  `MdViewLinkResolver` in commit `7e978cd885727726650b6e2d01047fd5c0c4c8cf`.
+  Local navigation bases are explicit canonical roots; HTTPS bases
+  preserve secure URI origin; GitHub bases retain owner/repository/ref/path.
+  No document is opened by this resolver.
+- Added focused local, HTTPS, GitHub, anchor and unsafe target tests
+  (`5279fab4e9bb03929db8e7d254df3262a7cb151d`) and a nested
+  relative parent-path correction
+  (`53ecda0e5b7aac91583a929dfe49f069986f0a48`).
+- This implementation is deliberately conservative: no encoded
+  link paths, query URLs, cross-origin navigation or local symlink
+  traversal protection. Filesystem identity must be checked by the
+  later document-opening layer. Link extraction/selection, anchor
+  heading index and Back/Forward UI are **not implemented**.
+- Maintainer confirmed green baseline before this code. **Fresh new
+  tests not yet confirmed**. Next: run focused and full solution
+  tests, then add safe source loading and explicit link selection.
