@@ -213,3 +213,17 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   and `dotnet test Toolbox.sln`.
 
 - Windows handle-lifetime follow-up: `e35a0bc151717a8b72539c07e05e0b4c61d1b0d1` closes the snapshot reader before any Follow/Back/Forward transition can dispose the old snapshot; this avoids open-reader blocking deletion of the temporary source on Windows. Fresh tests still pending.
+
+## 2026-11-09 — heading anchor navigation tests
+
+- Maintainer reports preceding browser navigation increment functioning
+  and all tests green.
+- New `MdViewHeadingIndexTests` covers duplicate heading slugs,
+  Unicode, fenced-code exclusion, missing heading lookup, bounded
+  input, and virtual-terminal anchor navigation/feedback.
+- Production commits `d482d5a6a6dcd6b224307fb4a4cac6c10079a2dd`,
+  `17a92b687ab6ff738aa707251863cba941b5a9e2`;
+  tests `a0fb36799521561c962ba57f0567a428d7f3d368`,
+  `c071d0e31d19ef9b6d94679fb57aebcbaa9347a4`.
+- New tests **not yet run** in this environment. Focused/full suite
+  and Windows/Debian browse smoke checks required.
