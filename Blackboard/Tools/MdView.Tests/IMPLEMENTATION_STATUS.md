@@ -294,3 +294,18 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   `528c83196516bb9e9c6a56e978d545913ddf4c11`.
 - **Retest required.** New tests have not yet been confirmed;
   do not report them as green until the maintainer runs them.
+
+## 2026-11-09 — GitHub catalog HTTP 403/manual fallback tests
+
+- User observed a GitHub owner catalog HTTP 403 and confirmed
+  an API rate-limit reset was required; this was not a parser failure.
+- Picker test updates in
+  `24a6e1b412920aa0999b354e8b7488e238831cdb`
+  cover HTTP 403 manual repository selection without catalog retry,
+  HTTP 404 cancellation, local rejection of malformed repository
+  names, and manual selection after an empty catalog result.
+- Production fallback implemented in
+  `c1a52dc013340f4b7b6c8939fdf86717e475057d`.
+- **Focused/full new tests unverified.** The manual prompt does
+  not bypass GitHub API limits; subsequent README loads can still
+  fail until the reported reset.
