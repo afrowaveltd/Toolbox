@@ -71,8 +71,28 @@ public sealed class MdViewLocalLinkBrowser
             if (markdown.Length > MdViewDocumentLinkExtractor.MaximumDocumentCharacters)
                 throw new InvalidDataException("Document exceeds the bounded link browser limit.");
 
+            // Render from the requested heading instead of printing all
+            // preceding sections. This is source-heading navigation, not a
+            // terminal scrollback operation or visual-row pagination.
+            var rendered = markdown;
+            if (current.Target.Fragment is { Length: > 0 } fragment)
+            {
+                var heading = MdViewHeadingIndex.Find(
+                    MdViewHeadingIndex.Create(markdown), fragment);
+                if (heading is not null)
+                {
+                    rendered = markdown[heading.SourceOffset..];
+                    _console.Write(new Text(
+                        "Jumped to heading: " + heading.Title + Environment.NewLine));
+                }
+                else
+                {
+                    _console.Write(new Text(
+                        "Heading anchor not found: #" + fragment + Environment.NewLine));
+                }
+            }
             MarkdownSpectreRenderer.Render(
-                _console, markdown, MdViewHighlighting.CreateTheme());
+                _console, rendered, MdViewHighlighting.CreateTheme());
 
             var links = MdViewDocumentLinkExtractor.Extract(
                 markdown, current.Target.Origin);
