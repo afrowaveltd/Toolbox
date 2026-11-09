@@ -321,3 +321,9 @@
   `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
   and `dotnet test Toolbox.sln`, then join explicit picker selection
   to safe local navigation in an opt-in command/session.
+
+## 2026-11-09 — maintainer-confirmed green link discovery checkpoint
+
+- Maintainer confirms **all tests green** after the opt-in Markdown link extractor, Spectre.Console link picker, and their new regression tests. No precise new counts or independent CI run are asserted.
+- Verified-by-maintainer source commits: `3bddf6f6e072faf5c1befe6099136efe58924364`, `96746b60374c2db9575781801b9f411e3072202a`; test commits: `0ba10326c6d0795866fdde1386ab4cd81f8b29fb`, `445a8f4bc08ea23667c9aea8f82691856e4fab74`.
+- Next: opt-in connection of explicit link selection to `MdViewLocalNavigationSession`, then regression-check actual document transitions and history before changing default CLI behavior.
