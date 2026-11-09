@@ -489,3 +489,25 @@
   the displayed count and whether `Follow a link` is offered.
   If count is zero, inspect parser output/source identity; if nonzero,
   use the menu at the end of the document.
+
+## 2026-11-09 — GitHub catalog HTTP 403 recovery
+
+- Maintainer observed `GitHub catalog request returned HTTP 403`
+  when selecting owner `afrowaveltd` interactively; subsequently
+  identified the cause as the GitHub API request-rate limit, with
+  a reported approximately 15-minute wait to reset.
+- The catalog source already returns a structured Error or verified
+  Stale response. Previous `MdViewGitHubRepositoryPicker` threw
+  `InvalidOperationException` on Error, terminating the viewer.
+- Changed picker to display the warning, accept a manually entered
+  repository name, reject malformed names, or return null for Back
+  without inventing a catalog (source commit
+  `c1a52dc013340f4b7b6c8939fdf86717e475057d`).
+- Updated picker regression tests to cover HTTP 403 fallback,
+  HTTP 404 Back, invalid manual names and an empty verified catalog
+  (test commit `24a6e1b412920aa0999b354e8b7488e238831cdb`).
+- This does not evade rate limits: GitHub README/file requests may
+  also fail until API access resets. Existing verified stale caches
+  remain the only documented offline alternative.
+- **New tests not yet confirmed green.** Run MdView focused tests
+  and full Toolbox.sln after updating the working checkout.
