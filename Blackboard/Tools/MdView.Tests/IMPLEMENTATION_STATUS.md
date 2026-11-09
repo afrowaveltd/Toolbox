@@ -227,3 +227,9 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   `c071d0e31d19ef9b6d94679fb57aebcbaa9347a4`.
 - New tests **not yet run** in this environment. Focused/full suite
   and Windows/Debian browse smoke checks required.
+
+## 2026-11-09 — heading anchor test input regression fixed
+
+- Debian SDK 11 RC test log: **112 passed / 1 failed / 113 total**. The only failing case was `FragmentOnlyLinkStartsRenderingAtTargetHeading` due to a depleted `TestConsoleInput` queue, not a compiler or Markdown parser error.
+- The post-Back original document has **Follow, Forward, Exit**; the previous script used one DownArrow and selected Forward. Added the missing second DownArrow to select Exit (commit `8b6884e26a7ef5766815e84c2c928bb8f34caa10`). Production implementation unchanged.
+- Retest focused and complete solution suites to verify. The `NETSDK1057` preview notice is informational.
