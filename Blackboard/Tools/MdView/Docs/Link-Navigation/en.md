@@ -60,3 +60,42 @@ No implementation of the above is claimed by this design document.
 [mdview README](../../README.md) ·
 [CLI guide](../CLI/en.md) ·
 [Implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## Implemented foundation — pure typed resolver (2026-11-09)
+
+The first **UI-neutral** slice is now implemented as
+`MdViewDocumentOrigin`, `MdViewResolvedLink` and
+`MdViewLinkResolver.Resolve`. Local origins carry a canonical file path
+and explicit navigation root; HTTPS origins carry an absolute secure
+source URI; GitHub origins carry owner, repository, explicit resolved
+ref and repository-relative path. Anchor-only links retain the source
+origin; path links preserve the appropriate source identity.
+
+The resolver does no disk/network access, does not select links from
+rendered output, and does not yet integrate with mdview's interactive
+terminal session. It rejects absolute/unsupported schemes, query strings,
+encoded link paths, backslashes, cross-origin HTTPS jumps, local links
+outside the configured lexical root and repository parent traversal.
+The current conservative policy excludes percent-encoded filenames and
+fragments with slashes until a dedicated decoding and validation design
+is tested. It also deliberately rejects externally hosted links here;
+a separate explicit external-opening action would be required.
+
+**Security boundary:** local lexical path containment does not
+resolve symlinks or reparse points; a future file opener must verify
+the resolved filesystem target before opening it. GitHub references
+must come from the provider's resolved branch/ref metadata, not an
+unverified guessed default branch.
+
+Example, without opening a file:
+
+```csharp
+var origin = MdViewDocumentOrigin.FromLocal(
+    Path.GetFullPath("README.md"), Directory.GetCurrentDirectory());
+var target = MdViewLinkResolver.Resolve(origin, "Docs/Installation/en.md");
+Console.WriteLine(target.Origin.Location);
+```
+
+See `MdViewLinkResolverTests` for initial local, HTTPS, GitHub,
+fragment and unsafe-target regression cases. Compilation and test
+execution of this increment remain to be confirmed.
