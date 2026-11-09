@@ -227,3 +227,18 @@ not exposed by the new index.
 The new tests cover cross-checkpoint code-fence parity, distant backward
 navigation, repeated reads, disk budgets, invalid inputs and empty input.
 Run focused and solution test suites before release.
+
+## Sequential sparse checkpoint construction (2026-11-09)
+
+The `MdViewDiskCheckpointIndex.CreateAsync` builder now consumes one
+forward strict UTF-8 snapshot reader and one incremental physical-line
+scanner to feed the restorable container `StateMachine`. It captures
+checkpoints at the configured stride without opening a new positioned
+reader for each bounded page. This removes repeated seek/reopen work
+from **index construction**; random-page reads still restore and replay
+from the nearest persisted checkpoint.
+
+This is a source-I/O-pattern optimization, **not** an HDD benchmark or
+a change to the default CLI pager. The resulting checkpoint offsets and
+fence states have new mixed-newline/Unicode regression coverage. Focused
+and full-suite verification is required after this change.
