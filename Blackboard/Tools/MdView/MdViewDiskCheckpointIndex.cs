@@ -10,7 +10,7 @@ namespace Afrowave.Toolbox.Blackboard.Tools.MdView;
 /// one classified event for every physical source line.
 /// </summary>
 /// <remarks>
-/// Building the index must classify the full validated document once.
+/// Building the index classifies the full validated document in one sequential source pass.
 /// This is a context index, not a rendering journal or full CommonMark parser.
 /// The caller owns the source snapshot and the UTF-16 index.
 /// </remarks>
@@ -83,7 +83,7 @@ public sealed class MdViewDiskCheckpointIndex : IAsyncDisposable
             var pages = new MdViewCheckpointPageReader(snapshot, positions);
             long count = 0;
             long bytes = 0;
-            var next = pages.Start;
+            var state = new MarkdownIncrementalContainerScanner.StateMachine();
 
             async Task StoreAsync(MdViewCheckpointPosition position)
             {
@@ -106,25 +106,29 @@ public sealed class MdViewDiskCheckpointIndex : IAsyncDisposable
                 count++;
             }
 
-            await StoreAsync(next).ConfigureAwait(false);
+            await StoreAsync(pages.BindCheckpoint(state.Capture())).ConfigureAwait(false);
             var totalLines = snapshot.Lines.LineCount;
-            while (next.NextLineNumber < totalLines)
+
+            // Build scanner contexts with one forward stream, rather than
+            // reopening and seeking the snapshot for every 128-line page.
+            // The source was fully UTF-8/control validated when captured.
+            using (var reader = snapshot.OpenReader())
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                var nextBoundary = Math.Min(
-                    totalLines, checked(((next.NextLineNumber / stride) + 1L) * stride));
-                while (next.NextLineNumber < nextBoundary)
+                await foreach (var line in MarkdownIncrementalLineScanner.ScanAsync(
+                    reader, maxLineCharacters: 4 * 1024 * 1024,
+                    cancellationToken: cancellationToken)
+                    .WithCancellation(cancellationToken).ConfigureAwait(false))
                 {
-                    var take = (int)Math.Min(128, nextBoundary - next.NextLineNumber);
-                    var page = await pages.ReadAsync(next, take, cancellationToken)
-                        .ConfigureAwait(false);
-                    if (page.Lines.Count == 0 || page.Next.NextLineNumber <= next.NextLineNumber)
-                        throw new InvalidDataException("Checkpoint source did not advance.");
-                    next = page.Next;
+                    cancellationToken.ThrowIfCancellationRequested();
+                    state.Process(line);
+                    if (state.NextLineNumber % stride == 0)
+                        await StoreAsync(pages.BindCheckpoint(state.Capture()))
+                            .ConfigureAwait(false);
                 }
-                if (next.NextLineNumber % stride == 0)
-                    await StoreAsync(next).ConfigureAwait(false);
             }
+            if (state.NextLineNumber != totalLines)
+                throw new InvalidDataException(
+                    "Validated snapshot line count changed during checkpoint indexing.");
 
             await records.FlushAsync(cancellationToken).ConfigureAwait(false);
             await offsets.FlushAsync(cancellationToken).ConfigureAwait(false);
