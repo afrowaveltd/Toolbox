@@ -170,3 +170,18 @@ a cancelled **previously completed** request cannot poison later
 navigation. An in-progress local stream read is not interruptible by
 the request token, and cancellation after scanner advancement still
 fails closed to protect journal consistency.
+
+### Opt-in snapshot checkpoint page reader
+
+`MdViewCheckpointPageReader` resumes classified physical Markdown pages
+from opaque, snapshot-bound `MdViewCheckpointPosition` values. It maps the
+UTF-16 checkpoint to a validated byte-aligned line start, reopens a strict
+UTF-8 reader on the private copy and restores explicit quote/list/fence
+state without replaying earlier source lines. Maximum request: 128 lines.
+
+It is intentionally separate from the existing journal pager. It can only
+seek to positions whose checkpoints have already been obtained; generating
+trusted future checkpoints remains a separate step. Embedded raw
+`MarkdownStreamLine.Kind` is locally classified, while the enclosing
+`MarkdownContainerLine.Kind` preserves restored container state. See the
+[formatted preview guide](Docs/Experimental-Formatted-Preview/en.md).
