@@ -53,6 +53,8 @@ public sealed class MdViewHeadingIndexTests
         terminal.Input.PushKey(ConsoleKey.Enter); // Choose anchor
         terminal.Input.PushKey(ConsoleKey.DownArrow); // Back from anchor
         terminal.Input.PushKey(ConsoleKey.Enter);
+        // Original page now has Follow, Forward, Exit after returning from anchor.
+        terminal.Input.PushKey(ConsoleKey.DownArrow); // Forward
         terminal.Input.PushKey(ConsoleKey.DownArrow); // Exit original
         terminal.Input.PushKey(ConsoleKey.Enter);
 
