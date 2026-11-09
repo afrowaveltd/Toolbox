@@ -257,3 +257,22 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   `e1ae4cee8ce4fd421c7f6921e8b3b2e1d85b750e`
   adds oversized-document rollback and cross-origin request rejection.
   New tests have not yet been verified by the maintainer.
+
+## 2026-11-09 — interactive GitHub file navigation tests
+
+- Maintainer confirmed preceding mdview HTTPS navigation fully green.
+- Added seven `MdViewGitHubNavigationTests`
+  (`ad8d7a445754789834216c013b85a85bc362d117`):
+  explicit `browse-git` grammar and preservation of original `git`
+  mode, exact-ref repo-relative link following, metadata-derived slash
+  branch, Back/Forward revalidation, same-file fragments without fetch,
+  missing/oversize target rollback, virtual Spectre terminal traversal,
+  and noninteractive guard.
+- Production commits: `cd0a025b4f59efd27c420feefa0b37c04d1e30b5`,
+  `498fccc1d2d8d0afbd52c05b2c45f7850a43bfb2`,
+  `ae88207c13b00d1ab7e1aac57d1462b13da61684`,
+  `8535579c933e6fd743b1a989ec6bda307e46dea6`.
+- **Fresh focused/full test execution not yet confirmed.**
+  Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln` then report any failures before next
+  milestone.
