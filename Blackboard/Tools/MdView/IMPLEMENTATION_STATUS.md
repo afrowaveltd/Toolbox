@@ -298,3 +298,26 @@
 - Next: implement bounded extraction and keyboard selection of Markdown
   links, then connect the existing local navigation session without
   changing established default viewer behavior prematurely.
+
+## 2026-11-09 — opt-in Markdown link extraction and Spectre picker
+
+- Previous local navigation-history increment was confirmed green by
+  the maintainer (exact count not supplied for that run).
+- Added `MdViewDocumentLinkExtractor` using the established
+  `MarkdownParser.Parse(...).Blocks[].Inlines` source-aware nodes,
+  filtering to resolvable links, with 1 Mi UTF-16 source-character and
+  4,096-link budgets; source commit
+  `3bddf6f6e072faf5c1befe6099136efe58924364`.
+- Added independent `MdViewDocumentLinkPicker` with Spectre.Console
+  keyboard selection, Escape cancellation and no implicit document open
+  (commit `96746b60374c2db9575781801b9f411e3072202a`).
+- New regression cases for nested inline links, original offsets,
+  fenced/inline code, images, escaped markup, unsafe destinations,
+  bounds and interactive selection (test commits
+  `0ba10326c6d0795866fdde1386ab4cd81f8b29fb` and
+  `445a8f4bc08ea23667c9aea8f82691856e4fab74`).
+- **Not connected to normal CLI, completion keys or local session.**
+  New test execution pending; SDK is unavailable here. Next run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`, then join explicit picker selection
+  to safe local navigation in an opt-in command/session.
