@@ -38,7 +38,7 @@ public sealed class MdViewDocumentLinkTests
             ```markdown
             [fenced](secret.md)
             ```
-            \\[escaped](hidden.md)
+            \[escaped](hidden.md)
             [external](https://outside.example/path.md)
             [traversal](../private.md)
             """;
