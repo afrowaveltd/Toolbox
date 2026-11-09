@@ -99,3 +99,32 @@ Console.WriteLine(target.Origin.Location);
 See `MdViewLinkResolverTests` for initial local, HTTPS, GitHub,
 fragment and unsafe-target regression cases. Compilation and test
 execution of this increment remain to be confirmed.
+
+## Local link loading foundation (2026-11-09)
+
+`MdViewLocalLinkLoader.OpenAsync` now connects the pure local resolver to
+`Utf8ValidatedSnapshot.CreateAsync`. A caller can explicitly follow a
+relative link to a local Markdown file, obtaining a validated private
+working copy and its source origin/fragment. Both `.md` and `.markdown`
+extensions are recognized; other types and malformed/unsafe UTF-8 are
+rejected. Returned `MdViewLocalLinkedDocument` is `IAsyncDisposable`
+and owns its snapshot.
+
+```csharp
+var source = MdViewDocumentOrigin.FromLocal(
+    Path.GetFullPath("README.md"), Directory.GetCurrentDirectory());
+await using var linked = await MdViewLocalLinkLoader.OpenAsync(
+    source, "Docs/Installation/en.md");
+using var reader = linked.Snapshot.OpenReader();
+```
+
+Navigation roots are lexical: before staging, the loader rejects
+symbolic-link/reparse-point components including intermediate directories,
+but this is **not** a race-free OS-enforced sandbox. The caller chooses
+the trusted navigation root and must not rely on these checks alone against
+concurrent hostile filesystem changes. The link fragment is carried as
+metadata; it does **not** yet move the reader to a heading.
+
+The mdview CLI and interactive UI remain unchanged. External HTTPS/GitHub
+loading must be built on their existing validated cache/providers rather
+than this local loader.
