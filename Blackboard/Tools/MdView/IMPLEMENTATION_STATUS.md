@@ -358,3 +358,29 @@
   terminal smoke run for `mdview browse README.md`.
 
 - Windows handle-lifetime follow-up: `e35a0bc151717a8b72539c07e05e0b4c61d1b0d1` closes the snapshot reader before any Follow/Back/Forward transition can dispose the old snapshot; this avoids open-reader blocking deletion of the temporary source on Windows. Fresh tests still pending.
+
+## 2026-11-09 — local heading-anchor display navigation
+
+- Maintainer reports the opt-in `mdview browse` integration fully
+  functional and the tests green before this new change (no precise
+  counts supplied).
+- Added `MdViewHeadingIndex` in commit
+  `d482d5a6a6dcd6b224307fb4a4cac6c10079a2dd`:
+  uses existing Markdown parser's heading classification, ignores
+  fenced code, preserves original source offsets, generates
+  lowercase/dash/Unicode slugs and disambiguates repeats.
+- Integrated source-heading display jumps into opt-in
+  `MdViewLocalLinkBrowser` in commit
+  `17a92b687ab6ff738aa707251863cba941b5a9e2`.
+  Fragment targets render from the matching heading; Back/Forward
+  already preserves the fragment. Missing anchors display feedback.
+- Regression tests added in
+  `a0fb36799521561c962ba57f0567a428d7f3d368`,
+  terminal input refined in
+  `c071d0e31d19ef9b6d94679fb57aebcbaa9347a4`.
+- **No claims of full GitHub anchor slug parity or true terminal
+  scrollback repositioning.** The current jump renders the Markdown
+  suffix, within the existing small-document budget.
+- Fresh test execution pending; run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln` before release.
