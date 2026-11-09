@@ -297,3 +297,22 @@ preserves the fragment. Unknown fragments show feedback.
 
 This is not yet exact terminal row scrolling or full GitHub heading
 slug compatibility. See [Link Navigation](Docs/Link-Navigation/en.md).
+
+### Relative HTTPS Markdown navigation (2026-11-09)
+
+Use `mdview browse-url https://docs.example.org/README.md` to
+interactively follow **same-origin** relative HTTPS Markdown links.
+The optional browser reuses `HttpMarkdownDocumentSource`,
+`VerifiedDocumentCache`, parser-backed link selection and the
+source/fragment Back/Forward history. Every different URL is fully
+validated before navigation commits. Previous verified content can
+serve as an **explicitly labeled Stale/offline fallback**; failed links
+without a valid cached copy leave the original page available.
+
+The HTTPS browser limits each document to 1 MiB, does not allow
+automatic redirects, and follows no non-HTTPS or cross-origin links.
+Same-document anchor jumps do not refetch the source. This is opt-in:
+normal `url`, `git`, `local`, `source`, `preview` and
+`browse` commands retain their previous behavior.
+GitHub repository file navigation is a future separate adapter.
+[Design and acceptance details](Docs/Link-Navigation/en.md).
