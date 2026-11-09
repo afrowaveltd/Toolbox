@@ -138,3 +138,17 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   **Fresh execution pending**; run
   `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
   and `dotnet test Toolbox.sln`.
+
+## 2026-11-09 — validated local linked document tests
+
+- Maintainer confirms the preceding typed resolver baseline:
+  **89 passing MdView tests and 6,745 passing solution tests**.
+- Added five focused `MdViewLocalLinkLoaderTests` validating nested
+  local README/Docs following, parent-relative navigation, extension
+  and root restrictions, invalid UTF-8 and snapshot budget, and
+  symlink/reparse rejection where the environment supports symlinks.
+- Production commit `8d18686c8b9e46e0861286007a37883511c6386e`;
+  tests commit `777b918bc0cb1a82e49f7a3eb63cefc84f1285ec`.
+- These new tests have **not yet been confirmed**; run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`.
