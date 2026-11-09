@@ -263,3 +263,27 @@
   rendered link interaction. Next: verify tests and build a safe source-
   specific navigation controller/history using local documents first;
   HTTPS and GitHub can reuse their own authenticated/validated providers.
+
+## 2026-11-09 — bounded history and local navigation session
+
+- Maintainer reports the previous local-link loader increment fully
+  green, without a new detailed test count; this is the last confirmed
+  baseline before the changes below.
+- Added `MdViewNavigationHistory` in
+  `63f1eea7fca5b5916e61009cc7b0d950658d3a2d`:
+  source-neutral bounded document+fragment locations, default capacity
+  128, duplicate suppression, Back/Forward, branch truncation, and
+  oldest eviction.
+- Added opt-in `MdViewLocalNavigationSession` in
+  `2427df924e1bf521108717b20727f1bf45fd4045`:
+  one owned validated snapshot at a time, history transitions only
+  after successful target opening, source revalidation on back/forward,
+  async disposal. Existing CLI menus are unchanged.
+- Added history and session regression tests in
+  `c7696d3db911c8dc113846f9460f3c1d8aeeff7c`.
+  New test execution **not yet confirmed**.
+- No clickable terminal links, navigation hotkeys, heading-anchor
+  scrolling, network/GitHub target loader, or tamper-proof filesystem
+  containment is claimed. Next: full tests, then controlled link
+  extraction and explicit keyboard selection without changing the
+  established completion prompt unexpectedly.
