@@ -72,7 +72,7 @@ public sealed class GitHubRepositoryFileSource
         var key = owner.ToLowerInvariant() + "/" + repository.ToLowerInvariant();
 
         var branch = await GetMetadataAsync(
-            "github-repo-branch:v1:" + key, new Uri(prefix),
+            "github-repo-branch:v1:" + key, prefix,
             "default_branch", root =>
             {
                 var value = ReadRequiredString(root, "default_branch");
