@@ -18,7 +18,9 @@ public enum MdViewSourceKind
     /// <summary>Preview one bounded source page with the Markdown renderer.</summary>
     FormattedPreview,
     /// <summary>Browse local Markdown links with explicit keyboard navigation.</summary>
-    LocalLinkBrowser
+    LocalLinkBrowser,
+    /// <summary>Browse same-origin HTTPS Markdown links with verified caching.</summary>
+    HttpsLinkBrowser
 }
 
 /// <summary>Parsed mdview invocation, independent of terminal interaction and network I/O.</summary>
@@ -69,6 +71,8 @@ public sealed record MdViewCommand(MdViewSourceKind Kind, string? Value = null, 
                 return new(MdViewSourceKind.SourcePager, Require(args[1]));
             if (args[0].Equals("browse", StringComparison.OrdinalIgnoreCase))
                 return new(MdViewSourceKind.LocalLinkBrowser, Require(args[1]));
+            if (args[0].Equals("browse-url", StringComparison.OrdinalIgnoreCase))
+                return new(MdViewSourceKind.HttpsLinkBrowser, Require(args[1]));
             if (args[0].Equals("preview", StringComparison.OrdinalIgnoreCase))
                 return new(MdViewSourceKind.FormattedPreview, Require(args[1]));
             if (args[0].Equals("git", StringComparison.OrdinalIgnoreCase) ||
