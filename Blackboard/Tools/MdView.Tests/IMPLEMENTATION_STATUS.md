@@ -125,3 +125,16 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   production optimization `cb6b814bf2d3234c384e84c7e58b789e3ad01b3f`.
 - **New test execution pending.** Next add pure source-origin/relative-link
   resolution tests per the documented navigator design.
+
+## 2026-11-09 — relative-link resolver regression tests
+
+- Created `MdViewLinkResolverTests` covering relative local
+  README/Docs paths, upward navigation within root, escape rejection,
+  HTTPS source URI resolution and absolute root paths, cross-origin/
+  scheme/query rejection, GitHub nested paths and refs, anchor-only
+  targets and unsupported percent-encoded links.
+- Test commit `5279fab4e9bb03929db8e7d254df3262a7cb151d`,
+  corrected deep GitHub path test `53ecda0e5b7aac91583a929dfe49f069986f0a48`.
+  **Fresh execution pending**; run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`.
