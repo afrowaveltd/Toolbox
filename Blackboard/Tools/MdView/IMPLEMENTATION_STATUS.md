@@ -465,3 +465,27 @@
 - **New tests pending developer/maintainer verification.**
   Read `Docs/Link-Navigation/en.md` and the new cache-provider
   `Docs/GitHub-Repository-Files/en.md`; run focused and full tests.
+
+## 2026-11-09 — GitHub link visibility after first successful browse smoke test
+
+- Maintainer confirms `browse-git` **loads and displays README
+  successfully**, without reporting a runtime failure, but sees no
+  links offered in the displayed document. This confirms reading,
+  **not** yet successful link selection for a real Toolbox README.
+- Source review confirms the root `README.md` contains many
+  repository-relative Markdown links, including `Docs/**` and
+  project README paths. Rendered Markdown links are not directly
+  clickable: the `Follow a link` picker appears after the
+  rendered document, when extraction returns navigable links.
+- Added a visible `Navigable Markdown links: N` header and menu hint
+  in `MdViewGitHubLinkBrowser`: commit
+  `528c83196516bb9e9c6a56e978d545913ddf4c11`.
+- Added a Toolbox README-shaped extraction regression in
+  `b895ecfc5eeeb61b1e9a08eb1a15cf2927cc43a5`;
+  added a virtual-terminal link-count assertion in
+  `d2b4bb09551dab366d6351f15ae8269708c82e3a`.
+- **Post-change tests not yet confirmed.** Follow up with focused/full
+  solution tests and run `browse-git afrowaveltd Toolbox` to inspect
+  the displayed count and whether `Follow a link` is offered.
+  If count is zero, inspect parser output/source identity; if nonzero,
+  use the menu at the end of the document.
