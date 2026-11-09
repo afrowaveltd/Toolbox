@@ -328,3 +328,43 @@ Additional defensive tests reject a destination exceeding the browsing
 byte budget after cache validation and ensure cross-origin/absolute links
 cannot issue another request or modify the existing history. Test commit
 `e1ae4cee8ce4fd421c7f6921e8b3b2e1d85b750e`.
+
+## Interactive GitHub repository navigation (2026-11-09)
+
+The new explicit command:
+
+```bash
+dotnet run --project Blackboard/Tools/MdView -- browse-git afrowaveltd Toolbox
+```
+
+uses `GitHubRepositoryFileSource.ResolveReadmeAsync` to retrieve the
+actual default branch and preferred README path via GitHub's REST
+metadata endpoints, rather than assuming `main` or `README.md`.
+`MdViewDocumentOrigin.FromGitHub` stores owner, repository, resolved
+ref and repository-relative path. Selecting a link calls the existing
+`MdViewLinkResolver` and then retrieves an exact-ref Markdown file
+using the Contents API and `VerifiedDocumentCache`.
+
+`MdViewGitHubNavigationSession` commits history only after a file
+has been verified and fits the 1 MiB browsing budget. Same-file anchor
+navigation avoids a network request. Back/Forward revalidate changed
+files through the same source adapter and may use explicitly labeled
+Stale/offline content when a matching verified copy already exists.
+The UI presents both **README metadata freshness** and **file
+freshness** independently.
+
+The source parser, safe link picker and heading display jump are
+shared with the local/HTTPS browser. No user-selected link is
+followed automatically. Files in another repository, different ref,
+on external websites or in non-Markdown formats are excluded; even
+absolute GitHub `blob` URLs are currently unsupported.
+
+The provider must be used with a no-automatic-redirect HTTP client;
+the CLI configures this. Initial metadata and content retrieval may
+fail when GitHub rate-limits anonymous API calls. In that case cached
+copies are labeled Stale, not incorrectly reported as current.
+
+The previous source/preview pager modes and one-shot
+`git OWNER REPOSITORY` command remain unchanged. Large-document
+streaming link extraction and exact terminal scrollback positioning
+are future work.
