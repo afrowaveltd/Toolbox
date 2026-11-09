@@ -1,12 +1,14 @@
 # Markdown link navigation — implementation plan
 
-**Status (2026-11-09): implemented opt-in local and HTTPS browsing.**
+**Status (2026-11-09): implemented opt-in local, HTTPS and GitHub browsing.**
 `mdview browse PATH` follows local relative Markdown links with bounded
 Back/Forward history and heading display jumps. `mdview browse-url HTTPS_URL`
-extends the same workflow to same-origin HTTPS Markdown with verified disk
-cache and explicit offline/stale fallback. The regular one-shot `local`,
-`url` and `git` modes remain unchanged. GitHub repository file navigation
-is a separate planned milestone.
+uses same-origin HTTPS Markdown with verified offline/stale fallback;
+`mdview browse-git OWNER REPOSITORY` discovers the actual default branch
+and README path and navigates files within that repository/ref.
+The existing one-shot `local`, `url` and `git` modes remain unchanged.
+Private repositories, cross-origin/source navigation and huge-file
+streamed link indexing remain future milestones.
 
 ## Source bases and relative links
 
@@ -58,9 +60,10 @@ completion-prompt keyboard contract.
    Back/Forward navigation with user-visible failure handling.
 4. Integrate with opt-in formatted paging and later indexed search.
 
-The foundation is implemented for local and same-origin HTTPS documents in
-explicit opt-in modes; GitHub file navigation, exact visual-row scrolling
-and large-document streaming links remain pending.
+The foundation is implemented for local, same-origin HTTPS and public
+GitHub repository Markdown documents in explicit opt-in modes.
+Exact visual-row scrolling, cross-origin/source navigation and
+large-document streaming links remain pending.
 
 [mdview README](../../README.md) ·
 [CLI guide](../CLI/en.md) ·
