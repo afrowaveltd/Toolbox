@@ -165,3 +165,12 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - New focused and full solution tests **pending**. Run
   `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
   and `dotnet test Toolbox.sln`.
+
+## 2026-11-09 — navigation regression green checkpoint
+
+- Maintainer reports green tests after the bounded history and local
+  navigation regression cases were added.
+- No specific post-change count or CI run ID was supplied. Previous
+  independently recorded count must not be mistaken for this checkpoint.
+- Next coverage: Markdown link extraction, escaped literal/code-fence
+  exclusion, safe user selection and failed-open history preservation.
