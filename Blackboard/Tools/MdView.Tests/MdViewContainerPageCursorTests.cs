@@ -197,6 +197,82 @@ public sealed class MdViewContainerPageCursorTests
             first.ReadAsync(first.Start, 129));
     }
 
+    [Fact]
+    public async Task SparseCheckpointsRestoreFenceStateAcrossDistantForwardAndBackwardJumps()
+    {
+        using var file = new TestFile();
+        var lines = Enumerable.Range(0, 270)
+            .Select(i => i == 4 ? "```text" :
+                i == 250 ? "```" :
+                i is > 4 and < 250 ? $"# literal {i}" : $"normal {i}")
+            .ToArray();
+        var path = await file.WriteAsync(string.Join("\r\n", lines));
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(path);
+        await using var positions = await Utf8DocumentOffsetIndex.CreateAsync(snapshot.Lines);
+        await using var index = await MdViewDiskCheckpointIndex.CreateAsync(
+            snapshot, positions, stride: 32);
+
+        Assert.Equal(270, index.IndexedLineCount);
+        Assert.Equal(9, index.CheckpointCount);
+        var middle = await index.ReadAsync(239, 5);
+        Assert.Equal(Enumerable.Range(239, 5).Select(i => $"# literal {i}"),
+            middle.Lines.Select(x => x.Source.Text));
+        Assert.All(middle.Lines,
+            x => Assert.Equal(MarkdownContainerLineKind.CodeLine, x.Kind));
+
+        var after = await index.ReadAsync(250, 2);
+        Assert.Equal(MarkdownContainerLineKind.FenceClose, after.Lines[0].Kind);
+        Assert.Equal(MarkdownContainerLineKind.Plain, after.Lines[1].Kind);
+        var before = await index.ReadAsync(4, 2);
+        Assert.Equal(MarkdownContainerLineKind.FenceOpen, before.Lines[0].Kind);
+        Assert.Equal(MarkdownContainerLineKind.CodeLine, before.Lines[1].Kind);
+        var repeated = await index.ReadAsync(239, 5);
+        Assert.Equal(middle.Lines.Select(x => x.Kind),
+            repeated.Lines.Select(x => x.Kind));
+        Assert.Empty((await index.ReadAsync(270, 2)).Lines);
+    }
+
+    [Fact]
+    public async Task SparseCheckpointBudgetsAndInvalidRequestsFailExplicitly()
+    {
+        using var file = new TestFile();
+        var path = await file.WriteAsync(string.Join("\n",
+            Enumerable.Range(0, 20).Select(i => $"entry {i}")));
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(path);
+        await using var positions = await Utf8DocumentOffsetIndex.CreateAsync(snapshot.Lines);
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            MdViewDiskCheckpointIndex.CreateAsync(snapshot, positions, stride: 0));
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            MdViewDiskCheckpointIndex.CreateAsync(
+                snapshot, positions, stride: 4, maximumIndexBytes: 16));
+        await using var index = await MdViewDiskCheckpointIndex.CreateAsync(
+            snapshot, positions, stride: 4);
+        Assert.Equal(5, index.CheckpointCount);
+        Assert.True(index.IndexBytes > 0);
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            index.ReadAsync(-1, 2));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            index.ReadAsync(21, 2));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            index.ReadAsync(0, 129));
+    }
+
+    [Fact]
+    public async Task EmptySparseCheckpointIndexRemainsReadable()
+    {
+        using var file = new TestFile();
+        var path = await file.WriteAsync("");
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(path);
+        await using var positions = await Utf8DocumentOffsetIndex.CreateAsync(snapshot.Lines);
+        await using var index = await MdViewDiskCheckpointIndex.CreateAsync(
+            snapshot, positions, stride: 16);
+
+        Assert.Equal(0, index.IndexedLineCount);
+        Assert.Equal(1, index.CheckpointCount);
+        Assert.Empty((await index.ReadAsync(0, 1)).Lines);
+    }
+
     private sealed class TestFile : IDisposable
     {
         private readonly string _dir = Path.Combine(
