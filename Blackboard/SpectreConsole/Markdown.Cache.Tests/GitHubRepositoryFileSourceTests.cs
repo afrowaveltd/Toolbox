@@ -19,7 +19,7 @@ public sealed class GitHubRepositoryFileSourceTests
         {
             requested.Add(request.RequestUri!.AbsoluteUri);
             Assert.Contains(request.Headers.Accept,
-                item => item.MediaType == (request.RequestUri.AbsolutePath.Contains("/contents/")
+                item => item.MediaType == (request.RequestUri!.AbsolutePath.Contains("/contents/")
                     ? "application/vnd.github.raw+json" : "application/vnd.github+json"));
             Assert.NotEmpty(request.Headers.UserAgent);
             return Reply(request);
@@ -143,9 +143,9 @@ public sealed class GitHubRepositoryFileSourceTests
 
         var cached = await cache.GetAsync(
             "github-repo-readme-path:v1:owner/repo:main");
-        Assert.NotNull(cached);
-        Assert.True(cached.Length < 512);
-        Assert.DoesNotContain("content", await File.ReadAllTextAsync(cached.ContentPath));
+        var metadata = Assert.IsType<CachedDocument>(cached);
+        Assert.True(metadata.Length < 512);
+        Assert.DoesNotContain("content", await File.ReadAllTextAsync(metadata.ContentPath));
     }
 
     [Fact]
