@@ -327,3 +327,32 @@
 - Maintainer confirms **all tests green** after the opt-in Markdown link extractor, Spectre.Console link picker, and their new regression tests. No precise new counts or independent CI run are asserted.
 - Verified-by-maintainer source commits: `3bddf6f6e072faf5c1befe6099136efe58924364`, `96746b60374c2db9575781801b9f411e3072202a`; test commits: `0ba10326c6d0795866fdde1386ab4cd81f8b29fb`, `445a8f4bc08ea23667c9aea8f82691856e4fab74`.
 - Next: opt-in connection of explicit link selection to `MdViewLocalNavigationSession`, then regression-check actual document transitions and history before changing default CLI behavior.
+
+## 2026-11-09 — opt-in local Markdown link browsing UI
+
+- Added explicit `MdViewSourceKind.LocalLinkBrowser` and
+  `mdview browse PATH` grammar in commit
+  `c29bb36afe71d48ce591fa97f7ef5f0bb53c67ea`.
+- Added `MdViewLocalLinkBrowser` in
+  `cdacb01c0d27bbb5105ff283897155eda93549ef`,
+  connecting validated local snapshots, the established parser-backed
+  link extractor, Spectre link picker and transactional bounded
+  Back/Forward history. Opt-in browser renders each local Markdown
+  document only after full validation and has a 1 MiB input byte cap.
+- Program/CLI wiring in
+  `a5a42d2d41bc22ea8111509f38b1b271fb6bf498`
+  returns `Displayed=false` to avoid a second document-completion
+  prompt. Default local/GitHub/URL/raw/preview modes are unchanged.
+- Virtual-terminal integration and parser tests added in
+  `43dd4090fbf8283f89b26677c2841fcafe695c6e`,
+  refined for Back/Forward coverage in
+  `a7d60224c15d254facae7134450654076ba8a174`.
+- Limitations: no heading scrolling for anchor fragments,
+  no remote/GitHub target following, no 1 GiB streaming links,
+  and no race-free filesystem containment. UI is interactive-only;
+  errors on target open preserve current navigation state.
+- **Fresh focused/full .NET tests are pending.** Maintainer-confirmed
+  green baseline predates this UI integration. Verify
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`, plus a manual Windows/Debian
+  terminal smoke run for `mdview browse README.md`.
