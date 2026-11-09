@@ -83,7 +83,7 @@ Next: run and correct Windows/Linux solution CI; then add fault-injection tests,
   actual `path`, and a Contents API raw request for a selected Markdown
   file at its explicit branch/ref.
 - Metadata is schema/identity-validated before publishing to
-  `VerifiedDocumentCache`, with a 64 KiB metadata cap.
+  `VerifiedDocumentCache`, with bounded 2 MiB metadata responses projected into at most 8 KiB validated identity-only cache records.
   Ref and file path are escaped separately; cache identities preserve
   case-sensitive ref/path while normalizing owner/repository case.
   Conditional ETag/Last-Modified, integrity-checked Stale offline fallback
@@ -93,7 +93,7 @@ Next: run and correct Windows/Linux solution CI; then add fault-injection tests,
   `356f128cb44c727eba9f5f119a914a2e233d3557`
   hardened stale metadata recovery, invalid schema fallback and
   nullable ref tracking.
-- Added seven `GitHubRepositoryFileSourceTests` in
+- Added eight `GitHubRepositoryFileSourceTests` in
   `e8cc19b55e4a273ae12f906374b3259400bdb1c7`.
   Cases cover slash-containing ref/README discovery, 304 metadata/content
   revalidation, offline metadata/content fallback, unsafe README metadata,
@@ -105,3 +105,13 @@ Next: run and correct Windows/Linux solution CI; then add fault-injection tests,
 - Documentation: `Docs/GitHub-Repository-Files/en.md`.
   Next run `dotnet test Blackboard/SpectreConsole/Markdown.Cache.Tests/Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown.Cache.Tests.csproj`
   and `dotnet test Toolbox.sln` on Debian/Windows.
+
+- Further verification/hardening commits:
+  `a767bbe2c8238aac5f87ac86e555c292371d080d` projects large
+  GitHub README JSON responses to compact cache identity metadata;
+  `a1cfe9e24582d4f5137bdcc7b41bea9a79519c31` ensures a
+  nonnull validated README path; `9005940789d89a02f4d7dec646866eff896097d7`
+  fixes passing an already constructed Uri to metadata retrieval.
+  Additional large metadata regression:
+  `987ab0c865de9cabf4ddb0ab8b6bd852edc0cbc3`.
+  New code/test execution remains unconfirmed.
