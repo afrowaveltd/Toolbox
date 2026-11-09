@@ -101,7 +101,7 @@ public sealed class MdViewDiskCheckpointIndex : IAsyncDisposable
 
                 var offsetBytes = new byte[sizeof(long)];
                 BinaryPrimitives.WriteInt64LittleEndian(offsetBytes, recordOffset);
-                await offsets.WriteAsync(offsetBytes, cancellationToken).ConfigureAwait(false);
+                await offsets!.WriteAsync(offsetBytes, cancellationToken).ConfigureAwait(false);
                 bytes = checked(bytes + cost);
                 count++;
             }
