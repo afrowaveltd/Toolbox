@@ -37,7 +37,7 @@ Added GitHub fake-handler tests for official raw README endpoint, conditional 30
 
 - Added `GitHubRepositoryFileSourceTests` in
   `e8cc19b55e4a273ae12f906374b3259400bdb1c7`.
-  Seven tests cover repository default branch and nested README metadata,
+  Eight tests cover repository default branch and nested README metadata,
   escaped slash refs for Contents API, cached conditional 304 metadata and
   file requests, stale/offline metadata and content fallback, rejected
   traversal paths before fetch, invalid replacement preserving verified
@@ -45,3 +45,9 @@ Added GitHub fake-handler tests for official raw README endpoint, conditional 30
 - Existing GitHub preferred README provider remains unchanged.
 - Fresh tests **not yet confirmed**. Run the project's targeted test
   command and the full `Toolbox.sln` suite.
+
+- Added large README JSON response regression in
+  `987ab0c865de9cabf4ddb0ab8b6bd852edc0cbc3`:
+  the provider accepts an API response containing a large Base64-like
+  field but caches only the validated tiny README path projection,
+  even when the disk cache budget is 4 KiB. Fresh tests pending.
