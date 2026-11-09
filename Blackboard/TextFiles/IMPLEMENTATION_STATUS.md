@@ -110,3 +110,15 @@
 - Added `Utf8ValidatedSnapshot.OpenReader()`, returning an independently owned strict UTF-8 `StreamReader` over the already validated private snapshot copy. The method checks disposed state and does not expose the original mutable source file; consumer must dispose the returned reader.
 - Commit `54ba6fe6338a0492082717bf92b05135d60f3fcd`. Used by optional incremental `mdview preview` container cursor; original `Utf8DiskLineIndex` and default mdview commands are unchanged.
 - New code awaits Windows/Debian test verification; no immutable-against-same-user-tampering guarantee is claimed.
+
+## 2026-11-09 — independent indexed-offset snapshot stream reader
+
+- Added `Utf8ValidatedSnapshot.OpenReaderAtByteOffset(long)`: opens a new
+  read-only strict UTF-8 reader on the private validated copy at a caller
+  supplied UTF-8 character boundary (not automatically verified by this
+  low-level method). Byte bounds are checked; the caller owns the reader.
+- Commit `57a0cecbba5b4491545ea9511fe50a3969fbc9fe`.
+  Used by opt-in `MdViewCheckpointPageReader`, which validates the
+  checkpoint against both UTF-16 and physical-line positions.
+- Existing `OpenReader()` and snapshot disposal behavior remain unchanged.
+  Fresh focused and solution test execution pending.
