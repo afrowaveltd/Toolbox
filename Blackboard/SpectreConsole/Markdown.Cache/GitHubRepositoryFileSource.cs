@@ -77,20 +77,21 @@ public sealed class GitHubRepositoryFileSource
                 return value;
             },
             cancellationToken).ConfigureAwait(false);
-        if (branch.Value is null)
+        var resolvedRef = branch.Value;
+        if (resolvedRef is null)
             throw new IOException(branch.Warning ?? "GitHub default branch is unavailable.");
-        ValidateReference(branch.Value);
+        ValidateReference(resolvedRef);
 
         var readmeUri = new Uri(prefix + "/readme?ref=" +
-            Uri.EscapeDataString(branch.Value));
+            Uri.EscapeDataString(resolvedRef));
         var readme = await GetMetadataAsync(
             "github-repo-readme-path:v1:" + key + ":" +
-            Uri.EscapeDataString(branch.Value), readmeUri,
+            Uri.EscapeDataString(resolvedRef), readmeUri,
             root =>
             {
                 var value = ReadRequiredString(root, "path");
                 ValidateFile(new GitHubRepositoryFile(
-                    owner, repository, branch.Value, value));
+                    owner, repository, resolvedRef, value));
                 return value;
             },
             cancellationToken).ConfigureAwait(false);
@@ -98,7 +99,7 @@ public sealed class GitHubRepositoryFileSource
             throw new IOException(readme.Warning ?? "GitHub README metadata is unavailable.");
 
         var identity = new GitHubRepositoryFile(
-            owner, repository, branch.Value, readme.Value);
+            owner, repository, resolvedRef, readme.Value);
         ValidateFile(identity);
 
         var state = branch.State == HttpDocumentState.Stale ||
