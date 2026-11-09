@@ -29,7 +29,16 @@ public sealed class MdViewGitHubRepositoryPicker
 
         var result = await _catalog.ListAsync(owner, token);
         if (result.State == GitHubRepositoryCatalogState.Error)
-            throw new InvalidOperationException(result.Warning ?? "Could not load GitHub repositories.");
+        {
+            _console.Write(new Text("GitHub repository catalog is unavailable." +
+                Environment.NewLine));
+            if (result.Warning is not null)
+                _console.Write(new Text(result.Warning + Environment.NewLine));
+            _console.Write(new Text(
+                "Enter a public repository name directly to skip the catalog, " +
+                "or leave it empty to go back." + Environment.NewLine));
+            return await PickManualRepositoryAsync(owner, token).ConfigureAwait(false);
+        }
 
         _console.Write(new Text("GitHub — public repositories of " + owner +
             Environment.NewLine));
@@ -43,8 +52,9 @@ public sealed class MdViewGitHubRepositoryPicker
 
         if (result.Repositories.Count == 0)
         {
-            _console.Write(new Text("No public repositories were found." + Environment.NewLine));
-            return null;
+            _console.Write(new Text("No public repositories were found in the catalog." +
+                Environment.NewLine));
+            return await PickManualRepositoryAsync(owner, token).ConfigureAwait(false);
         }
 
         // A short tree is useful for orientation, but a 1,000-line tree would
@@ -93,6 +103,35 @@ public sealed class MdViewGitHubRepositoryPicker
             var input = await new TextPrompt<string>("Filter text (empty = show all): ")
                 .AllowEmpty().ShowAsync(_console, token);
             filter = input.Trim();
+        }
+    }
+
+    private async Task<MdViewCommand?> PickManualRepositoryAsync(
+        string owner, CancellationToken cancellationToken)
+    {
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var input = await new TextPrompt<string>(
+                "GitHub repository name (empty = back): ")
+                .AllowEmpty()
+                .ShowAsync(_console, cancellationToken).ConfigureAwait(false);
+            var name = input.Trim();
+            if (name.Length == 0)
+                return null;
+
+            // Match the repository-name constraints of GitHubReadmeSource.
+            // Never treat the typed value as a verified catalog entry.
+            if (name.Length > 100 || name is "." or ".." ||
+                !name.All(c => char.IsAsciiLetterOrDigit(c) || c is '_' or '-' or '.'))
+            {
+                _console.Write(new Text(
+                    "Invalid repository name. Use 1–100 ASCII letters, digits, _, - or ." +
+                    Environment.NewLine));
+                continue;
+            }
+
+            return new MdViewCommand(MdViewSourceKind.GitHub, owner, name);
         }
     }
 
