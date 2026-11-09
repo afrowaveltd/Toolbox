@@ -211,3 +211,5 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   Last maintainer-confirmed full suite green predates these commits.
   Verify `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
   and `dotnet test Toolbox.sln`.
+
+- Windows handle-lifetime follow-up: `e35a0bc151717a8b72539c07e05e0b4c61d1b0d1` closes the snapshot reader before any Follow/Back/Forward transition can dispose the old snapshot; this avoids open-reader blocking deletion of the temporary source on Windows. Fresh tests still pending.
