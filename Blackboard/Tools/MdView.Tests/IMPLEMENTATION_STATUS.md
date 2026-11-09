@@ -115,3 +115,13 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   baseline green predates the sparse index. Run
   `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
   and `dotnet test Toolbox.sln`.
+
+## 2026-11-09 — sequential checkpoint construction regression
+
+- Added `SequentialCheckpointBuildKeepsUnicodeAndMixedNewlineOffsets`:
+  301 physical lines with Unicode and mixed CRLF/CR/LF, sparse stride 37,
+  forward/back random positions, code fence classification and EOF.
+- Test commit `6efabec11171dacc4a3de3e6ec3ae91fbac89634` checks
+  production optimization `cb6b814bf2d3234c384e84c7e58b789e3ad01b3f`.
+- **New test execution pending.** Next add pure source-origin/relative-link
+  resolution tests per the documented navigator design.
