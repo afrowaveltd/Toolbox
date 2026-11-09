@@ -51,6 +51,13 @@ static async Task<MdViewDisplayResult> DisplayAsync(
 {
     try
     {
+        if (command.Kind == MdViewSourceKind.LocalLinkBrowser)
+        {
+            await new MdViewLocalLinkBrowser(console).RunAsync(
+                command.Value!, cancellationToken);
+            return new MdViewDisplayResult(0, false);
+        }
+
         if (command.Kind == MdViewSourceKind.FormattedPreview)
         {
             // Explicit experimental mode: bounded, independently parsed pages.
@@ -155,6 +162,7 @@ static void PrintHelp()
     Console.WriteLine("mdview [PATH | URL | github:OWNER/REPOSITORY]");
     Console.WriteLine("mdview local PATH  (complete rendered Markdown)");
     Console.WriteLine("mdview source PATH (bounded-memory raw source pager)");
+    Console.WriteLine("mdview browse PATH (opt-in local Markdown link navigation)");
     Console.WriteLine("mdview preview PATH (experimental bounded Markdown page preview)");
     Console.WriteLine("mdview url HTTPS_URL");
     Console.WriteLine("mdview OWNER           (browse public GitHub repositories)");
