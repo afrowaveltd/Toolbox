@@ -57,3 +57,21 @@ See [GitHub README documentation](Docs/GitHub-Readme/en.md). The standalone `mdv
 The independent `GitHubRepositoryCatalogSource` uses official GitHub REST endpoints to list **public** repositories belonging to a user or organization. It identifies the account type first and retrieves at most ten 100-item pages; longer lists are clearly marked as truncated. Its validated JSON snapshot uses a separate case-insensitive owner cache key, stays fresh for 30 minutes, and remains usable **with a stale warning** after a failed refresh. No credentials or README bodies are included in the catalog.
 
 [Catalog documentation](Docs/GitHub-Repository-Catalog/en.md) · [mdview repository selector](../../Tools/MdView/Docs/GitHub-Owner-Discovery/en.md). The older 'mdview not implemented' note above is historical; mdview now consumes both GitHub README and owner catalog adapters. New catalog tests are committed but not yet executed in this environment.
+
+## Verified GitHub repository files (2026-11-09)
+
+`GitHubRepositoryFileSource` resolves the **actual default branch and
+preferred README path** using official GitHub metadata before retrieving
+repository-relative Markdown documents via
+`GET /repos/{owner}/{repo}/contents/{path}?ref={ref}`. It uses
+`VerifiedDocumentCache` for validated UTF-8, content digest, conditional
+304/ETag and explicitly labeled Stale/offline fallback. Metadata itself
+is parsed and identity-validated before caching with a 64 KiB cap.
+Repository file identity is case-insensitive only for owner/repository;
+the ref (including names with slashes) and path are preserved exactly.
+Only Markdown files are accepted and redirected responses are rejected.
+The caller must disable automatic HTTP redirects.
+
+See [GitHub Repository Files](Docs/GitHub-Repository-Files/en.md).
+This is independent of the existing preferred default-branch
+`GitHubReadmeSource`, which remains compatible and unchanged.
