@@ -66,6 +66,15 @@ public sealed class MdViewCheckpointPageReader
     /// <summary>Initial source-bound checkpoint before the first physical line.</summary>
     public MdViewCheckpointPosition Start { get; }
 
+    // Only trusted checkpoint stores constructed for this exact reader may
+    // rebind serialized parser state. ReadAsync independently verifies its
+    // UTF-16 and byte alignment against the validated snapshot.
+    internal MdViewCheckpointPosition BindCheckpoint(MarkdownScannerCheckpoint checkpoint)
+    {
+        MarkdownScannerCheckpointCodec.Validate(checkpoint);
+        return new MdViewCheckpointPosition(this, checkpoint);
+    }
+
     /// <summary>
     /// Classifies up to 128 physical lines from a checkpoint without replaying
     /// previous lines. The next checkpoint can be reused for future navigation.
