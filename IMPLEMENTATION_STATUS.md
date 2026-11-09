@@ -425,3 +425,28 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - [GitHub Actions run 42360297028](https://github.com/afrowaveltd/Toolbox/actions/runs/42360297028) on commit `1bc41eeca49d003ed5e28f2d0d875c6120ce39fc`: **SUCCESS** for Linux full solution build and tests (**6,662 passed, 0 failed**), **0 Warning(s), 0 Error(s)**; Windows UI regression job **SUCCESS**, local Markdown documentation links **SUCCESS**.
 - `ExchangeHouse.Markdown.Tests`: **197/197 passing**, including all **22** new completed-container-span tests. Earlier two `xUnit2031` warnings were fixed without suppression; post-fix build reports none.
 - Subsequent changes are README, documentation-index and implementation-status updates only. No production behavior changes after this verified code snapshot. Known list-owned code-fence opener indentation discrepancy remains explicitly deferred from any mdview renderer integration.
+
+## 2026-11-09 — mdview GitHub repository file navigation
+
+- Maintainer confirms previous opt-in local and HTTPS Markdown navigation
+  tests green. The newest GitHub implementation has **not yet been
+  compiled or tested** in the maintainer environment.
+- Added official GitHub repository metadata and exact-ref Markdown file
+  provider to `Blackboard/SpectreConsole/Markdown.Cache`, including
+  validated compact README/default-branch metadata, ETag/304 handling,
+  exact-ref/path cache keys, and explicitly labeled offline/Stale fallback.
+- Added opt-in `mdview browse-git OWNER REPOSITORY` CLI navigation
+  using verified repository-file provider, bounded source/fragment
+  history, parser-backed link choices and heading display jumps.
+- New tests:
+  `Blackboard/SpectreConsole/Markdown.Cache.Tests/GitHubRepositoryFileSourceTests.cs`
+  and `Blackboard/Tools/MdView.Tests/MdViewGitHubNavigationTests.cs`.
+  See both projects' `IMPLEMENTATION_STATUS.md` for implementation
+  commits and current limitations.
+- Updated the root README and English documentation:
+  `Blackboard/SpectreConsole/Markdown.Cache/Docs/GitHub-Repository-Files/en.md`
+  and `Blackboard/Tools/MdView/Docs/Link-Navigation/en.md`.
+- Next: obtain maintainer-confirmed focused + full solution test results
+  and smoke-test `browse-git afrowaveltd Toolbox`. Known exclusions:
+  private GitHub repos, cross-repo/ref links, absolute blob-page URLs,
+  large-document streaming links and exact terminal-row scrolling.
