@@ -145,3 +145,43 @@ iterator is conservatively failed closed to avoid journaling inconsistent
 positions. The reader is a local validated snapshot, not an arbitrary
 network source. Two regression tests cover completed-token cancellation
 and pre-cancelled calls on a usable cursor.
+
+## Snapshot-bound checkpoint resume (2026-11-09)
+
+`MdViewCheckpointPageReader` is a separate **opt-in building block**
+for stateful jumping to previously captured source boundaries. It combines:
+the caller-owned `Utf8ValidatedSnapshot`, a
+`Utf8DocumentOffsetIndex` made from that snapshot's `Lines`, and the
+`MarkdownIncrementalContainerScanner.StateMachine` checkpoint.
+
+```csharp
+await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(path);
+await using var offsets = await Utf8DocumentOffsetIndex.CreateAsync(snapshot.Lines);
+var pages = new MdViewCheckpointPageReader(snapshot, offsets);
+var first = await pages.ReadAsync(pages.Start, 40);
+var next = await pages.ReadAsync(first.Next, 40);
+```
+
+Every read maps the checkpoint's global UTF-16 position to a source byte
+offset, validates that it equals the indexed start of the expected physical
+line, opens a fresh strict UTF-8 reader at that byte boundary, restores
+list/quote/fence state and classifies at most 128 lines. The result contains
+another opaque checkpoint tied to this reader instance. Reusing a checkpoint
+is repeatable; it does not consume shared iterator state. An EOF checkpoint
+returns an empty page.
+
+Checkpoint objects cannot be transferred between reader instances or
+deserialized from arbitrary external data. The caller must provide offsets
+for this exact snapshot and keep the snapshot and offsets alive throughout
+reads. This is a source-lifetime ownership contract, **not cryptographic
+protection against same-user tampering**.
+
+This opt-in API does **not** make arbitrary unseen offsets instantly
+navigable: a trustworthy checkpoint first has to be obtained by sequential
+classification (or future source-bound disk checkpoint construction). It
+does not replace the existing disk event journal or change the normal mdview
+CLI pager. The embedded `MarkdownStreamLine.Kind` is locally
+reclassified after a seek; the authoritative container classification is
+`MarkdownContainerLine.Kind`. Do not infer source-global top-level fence
+metadata from the embedded raw line kind after resumed reads.
+New focused tests await Windows/Debian execution.
