@@ -268,3 +268,20 @@ Spectre.Console list with Escape cancellation; it does not open content.
 Both components are **not yet integrated into mdview's default display
 loop**. Large-document streaming link indexing remains future work.
 See [Link Navigation](Docs/Link-Navigation/en.md).
+
+### Interactive local Markdown links — opt-in command
+
+Use `mdview browse README.md` (or
+`dotnet run --project Blackboard/Tools/MdView -- browse README.md`)
+to open an explicitly **interactive** reader with selectable relative
+Markdown links, Back/Forward and Escape to exit. It uses one validated
+local snapshot at a time and reopens each target on navigation; invalid
+targets preserve the current document. It limits individual sources
+to 1 MiB of UTF-8 data and confines link paths lexically to the
+starting document directory; symlink checks are best effort rather
+than a race-free OS security boundary.
+
+In-document anchors are recorded but not yet scrolled into view.
+Nonlocal HTTPS/GitHub links remain unsupported here. The existing
+normal renderer, indexed raw pager and experimental formatted preview
+are unchanged. [Detailed guide](Docs/Link-Navigation/en.md).
