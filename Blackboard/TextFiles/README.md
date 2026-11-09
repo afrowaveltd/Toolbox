@@ -172,3 +172,15 @@ test directory. **Fresh CI/build confirmation is pending**. Workspaces are
 not a defense against malicious same-user tampering and process termination
 may leave orphaned temporary directories; optional startup cleanup remains
 future work.
+
+### Snapshot readers at indexed byte offsets
+
+`Utf8ValidatedSnapshot.OpenReaderAtByteOffset(byteOffset)` creates an
+independent strict UTF-8 `StreamReader` from an absolute byte position in
+the private validated copy (including any BOM). Bounds are checked; the
+caller must ensure the supplied byte position is a valid UTF-8 character
+boundary, typically by using `Utf8DiskLineIndex.GetByteOffsetAsync`
+or `Utf8DocumentOffsetIndex.GetByteOffsetAsync`. The caller disposes the
+returned reader. This low-level API does not independently verify a
+character boundary or source identity. The existing `OpenReader()`
+contract remains unchanged.
