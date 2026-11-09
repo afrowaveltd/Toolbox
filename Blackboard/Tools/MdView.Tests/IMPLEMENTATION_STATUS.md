@@ -276,3 +276,21 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
   and `dotnet test Toolbox.sln` then report any failures before next
   milestone.
+
+## 2026-11-09 — Toolbox README-shaped link detection regression
+
+- Maintainer smoke-tested `browse-git`: README displayed but
+  navigable links were not apparent in the terminal.
+- Added `ToolboxStyleReadmeLinksAreResolvedFromGitHubRepositoryRoot`
+  test in `b895ecfc5eeeb61b1e9a08eb1a15cf2927cc43a5`:
+  four representative repo-local links in documentation navigation
+  and a Markdown project table must resolve under the `master`
+  ref; an external GitHub website link must be excluded.
+- Extended `MdViewGitHubNavigationTests` in
+  `d2b4bb09551dab366d6351f15ae8269708c82e3a` to assert
+  the displayed `Navigable Markdown links: 1` count and
+  `Follow a link` action for its simulated README.
+- Production UX commit:
+  `528c83196516bb9e9c6a56e978d545913ddf4c11`.
+- **Retest required.** New tests have not yet been confirmed;
+  do not report them as green until the maintainer runs them.
