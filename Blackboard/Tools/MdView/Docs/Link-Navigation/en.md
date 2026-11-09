@@ -323,3 +323,8 @@ offline Stale fallback, missing destination rollback, single-fetch
 same-document anchors, explicit terminal selection and noninteractive
 rejection. This latest source change still requires a fresh maintainer
 test run.
+
+Additional defensive tests reject a destination exceeding the browsing
+byte budget after cache validation and ensure cross-origin/absolute links
+cannot issue another request or modify the existing history. Test commit
+`e1ae4cee8ce4fd421c7f6921e8b3b2e1d85b750e`.
