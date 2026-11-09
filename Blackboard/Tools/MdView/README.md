@@ -316,3 +316,22 @@ normal `url`, `git`, `local`, `source`, `preview` and
 `browse` commands retain their previous behavior.
 GitHub repository file navigation is a future separate adapter.
 [Design and acceptance details](Docs/Link-Navigation/en.md).
+
+### GitHub repository Markdown browsing (2026-11-09)
+
+The opt-in command `mdview browse-git OWNER REPOSITORY` (also
+`browse-git OWNER/REPOSITORY`) resolves the real default branch
+and README path from GitHub's official metadata, then allows explicit
+navigation of relative `.md` and `.markdown` links **inside the same
+repository and ref**. The terminal shows the owner/repository/ref/path,
+content cache freshness and metadata freshness, including an explicit
+Stale/offline indicator when applicable. It offers Follow a link,
+Back/Forward, anchored heading display and Escape/Exit. Missing or
+invalid targets leave the previous verified page open.
+
+The same 1 MiB byte limit and small-document parser bounds apply.
+This does not yet follow absolute GitHub blob-page links, move between
+repositories/branches, open external URLs or handle private GitHub
+repositories. Existing `git OWNER REPOSITORY` continues to display
+the original one-shot preferred README.
+[Link Navigation](Docs/Link-Navigation/en.md).
