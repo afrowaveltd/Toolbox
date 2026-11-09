@@ -1,9 +1,12 @@
 # Markdown link navigation — implementation plan
 
-**Status (2026-11-09): design and acceptance contract only.** Current mdview
-renders Markdown but does not provide interactive link selection, follow,
-document history, anchor jumps, or relative-document navigation.
-The standalone Markdown documentation-link checker is not a viewer navigator.
+**Status (2026-11-09): implemented opt-in local and HTTPS browsing.**
+`mdview browse PATH` follows local relative Markdown links with bounded
+Back/Forward history and heading display jumps. `mdview browse-url HTTPS_URL`
+extends the same workflow to same-origin HTTPS Markdown with verified disk
+cache and explicit offline/stale fallback. The regular one-shot `local`,
+`url` and `git` modes remain unchanged. GitHub repository file navigation
+is a separate planned milestone.
 
 ## Source bases and relative links
 
@@ -55,7 +58,9 @@ completion-prompt keyboard contract.
    Back/Forward navigation with user-visible failure handling.
 4. Integrate with opt-in formatted paging and later indexed search.
 
-No implementation of the above is claimed by this design document.
+The foundation is implemented for local and same-origin HTTPS documents in
+explicit opt-in modes; GitHub file navigation, exact visual-row scrolling
+and large-document streaming links remain pending.
 
 [mdview README](../../README.md) ·
 [CLI guide](../CLI/en.md) ·
@@ -270,3 +275,51 @@ index is future work.
 
 The default `mdview local`, HTTPS/GitHub viewer, and experimental
 source/preview pagers are unchanged.
+
+## Verified-cache HTTPS link browsing (2026-11-09)
+
+The explicit interactive command:
+
+```bash
+dotnet run --project Blackboard/Tools/MdView -- browse-url https://docs.example.org/README.md
+```
+
+uses `MdViewHttpsNavigationSession` together with
+`HttpMarkdownDocumentSource` and `VerifiedDocumentCache`. This path
+retains original source identity and relative URI semantics, stays on the
+same HTTPS scheme/host/port, rejects unsupported scheme/query links and
+never follows HTTP redirects automatically. The HTTP client and cache
+are caller-owned; the CLI configures no automatic redirects and no
+automatic decompression.
+
+The browser offers explicit **Follow a link**, **Back**, **Forward** and
+**Exit browser**, with Escape cancellation. Destination content must
+pass full UTF-8/terminal-control validation and a **1 MiB byte budget**
+before replacing the current location. History records only document
+coordinates and fragments, not whole Markdown documents. Returning
+to a previously visited remote document revalidates through conditional
+HTTP requests when available; a network failure may return an existing
+integrity-checked blob as **Stale**, explicitly marked on screen. A
+nonexistent remote target without a valid cache leaves the prior page
+and history unchanged.
+
+Same-document anchor changes (including Back/Forward) reuse the already
+validated document without a new HTTP request. Heading jumps use the
+existing small-document `MdViewHeadingIndex` and display the Markdown
+suffix from the corresponding source heading. They are not exact
+terminal-row scrolling.
+
+HTTPS browser state is isolated from local browse mode. It does not
+upgrade plain HTTP, cross between network hosts, open local file URLs,
+auto-open external websites, or fetch GitHub repository files. For
+GitHub, the current `GitHubReadmeSource` retrieves only the preferred
+default-branch README and does not expose a resolved file path or ref;
+these identities must be retrieved reliably before relative GitHub
+navigation can be enabled.
+
+Test coverage includes same-origin path resolution, actual HTTP requests
+during Back/Forward, 304/cache compatibility through existing cache tests,
+offline Stale fallback, missing destination rollback, single-fetch
+same-document anchors, explicit terminal selection and noninteractive
+rejection. This latest source change still requires a fresh maintainer
+test run.
