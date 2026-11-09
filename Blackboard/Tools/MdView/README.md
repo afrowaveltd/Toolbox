@@ -351,3 +351,18 @@ coverage checks that those links are recognized while an external
 GitHub website URL is excluded. If the displayed count is zero on
 that README, investigate the extractor/parser or actual source
 identity rather than assuming the README contains no links.
+
+### Repository catalog unavailable or rate-limited (2026-11-09)
+
+When the GitHub owner-only repository catalog reports an error
+(including HTTP 403 from an exhausted API rate limit), the interactive
+repository picker no longer terminates the application. It displays
+the returned warning, offers a **manual repository-name prompt** and
+allows an empty entry to return to the source menu. Manual names are
+validated before requesting a README; the catalog is not silently
+represented as an empty or complete list.
+
+This fallback does **not** bypass GitHub's API limits: a subsequent
+README or metadata request can still be rejected until the limit
+resets. Previously verified cached content may remain available
+under the existing documented stale/offline policy.
