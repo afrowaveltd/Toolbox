@@ -212,3 +212,16 @@ HTTPS source URI, or a GitHub repository/ref/path. It will add safe link
 selection, heading anchors, and bounded Back/Forward history. No
 automatic opening or execution of links is planned; source-specific
 validation and offline cache behavior must remain intact.
+
+### Typed relative-link resolver (first code slice)
+
+The **noninteractive** `MdViewLinkResolver` now resolves relative
+Markdown paths and same-document fragments against explicit local,
+HTTPS or GitHub document origins. It returns a canonical target but
+never opens it. Dangerous schemes, cross-origin transitions, encoded
+paths, parent-directory escapes and unsupported query links are
+rejected. Local path containment is lexical only; a future opener
+must separately check symlinks/reparse points. **Clickable navigation,
+anchor selection and Back/Forward history are still planned**, not
+implemented. Full contract:
+[Link Navigation](Docs/Link-Navigation/en.md).
