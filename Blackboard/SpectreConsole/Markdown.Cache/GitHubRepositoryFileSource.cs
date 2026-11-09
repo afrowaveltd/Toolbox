@@ -33,7 +33,10 @@ public sealed record GitHubReadmeLocation(
 /// </remarks>
 public sealed class GitHubRepositoryFileSource
 {
-    private const int MaximumMetadataBytes = 64 * 1024;
+    // GitHub README JSON may embed the entire README as Base64. Keep the
+    // remote response bounded, but persist only the validated identity fields.
+    private const int MaximumMetadataResponseBytes = 2 * 1024 * 1024;
+    private const int MaximumCachedMetadataBytes = 8 * 1024;
     private static readonly Regex OwnerPattern = new(
         @"\A[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})\z",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
@@ -70,7 +73,7 @@ public sealed class GitHubRepositoryFileSource
 
         var branch = await GetMetadataAsync(
             "github-repo-branch:v1:" + key, new Uri(prefix),
-            root =>
+            "default_branch", root =>
             {
                 var value = ReadRequiredString(root, "default_branch");
                 ValidateReference(value);
@@ -87,7 +90,7 @@ public sealed class GitHubRepositoryFileSource
         var readme = await GetMetadataAsync(
             "github-repo-readme-path:v1:" + key + ":" +
             Uri.EscapeDataString(resolvedRef), readmeUri,
-            root =>
+            "path", root =>
             {
                 var value = ReadRequiredString(root, "path");
                 ValidateFile(new GitHubRepositoryFile(
@@ -187,7 +190,7 @@ public sealed class GitHubRepositoryFileSource
     }
 
     private async Task<MetadataValue> GetMetadataAsync(
-        string key, Uri uri, Func<JsonElement, string> select,
+        string key, Uri uri, string selectedProperty, Func<JsonElement, string> select,
         CancellationToken token)
     {
         var previous = await _cache.GetAsync(key, token).ConfigureAwait(false);
@@ -229,14 +232,22 @@ public sealed class GitHubRepositoryFileSource
             while ((read = await stream.ReadAsync(chunk.AsMemory(), token)
                 .ConfigureAwait(false)) != 0)
             {
-                if (buffer.Length + read > MaximumMetadataBytes)
+                if (buffer.Length + read > MaximumMetadataResponseBytes)
                     throw new InvalidDataException("GitHub metadata exceeds the byte budget.");
                 buffer.Write(chunk, 0, read);
             }
             var data = buffer.ToArray();
+            string validatedValue;
             using (var json = JsonDocument.Parse(data))
-                _ = select(json.RootElement); // Check schema before publishing into cache.
-            using var content = new MemoryStream(data, writable: false);
+                validatedValue = select(json.RootElement);
+            // The original JSON may contain Base64 document bytes. They have
+            // no value for identity lookups: store a tiny validated projection,
+            // retaining the upstream ETag for correct conditional revalidation.
+            var compact = JsonSerializer.SerializeToUtf8Bytes(
+                new Dictionary<string, string> { [selectedProperty] = validatedValue });
+            if (compact.Length > MaximumCachedMetadataBytes)
+                throw new InvalidDataException("GitHub identity metadata exceeds the cache budget.");
+            using var content = new MemoryStream(compact, writable: false);
             var saved = await _cache.PutAsync(
                 key, content, token, response.Headers.ETag?.ToString(),
                 response.Content.Headers.LastModified).ConfigureAwait(false);
@@ -262,7 +273,7 @@ public sealed class GitHubRepositoryFileSource
     private static async Task<string> ReadMetadataValueAsync(
         CachedDocument entry, Func<JsonElement, string> select, CancellationToken token)
     {
-        if (entry.Length > MaximumMetadataBytes)
+        if (entry.Length > MaximumCachedMetadataBytes)
             throw new InvalidDataException("Cached GitHub metadata exceeds the budget.");
         using var json = JsonDocument.Parse(
             await File.ReadAllBytesAsync(entry.ContentPath, token).ConfigureAwait(false));
@@ -328,7 +339,7 @@ public sealed class GitHubRepositoryFileSource
 
     private static void ValidateReference(string reference)
     {
-        if (string.IsNullOrWhiteSpace(reference) ||
+        if (string.IsNullOrWhiteSpace(reference) || reference.Length > 1024 ||
             reference.StartsWith('/') || reference.EndsWith('/') ||
             reference.Any(c => char.IsControl(c) || char.IsWhiteSpace(c) ||
                                c is '\\' or '?' or '#' or '%'))
@@ -340,9 +351,10 @@ public sealed class GitHubRepositoryFileSource
         ValidateRepository(file.Owner, file.Repository);
         ValidateReference(file.Reference);
         var path = file.Path;
-        if (string.IsNullOrWhiteSpace(path) || path.StartsWith('/') ||
+        if (string.IsNullOrWhiteSpace(path) || path.Length > 4096 ||
+            path.StartsWith('/') ||
             path.Any(c => char.IsControl(c) || c is '\\' or '%' or '?' or '#' or ':') ||
-            path.Split('/').Any(p => p is "" or "." or ".."))
+            path.Split('/').Any(p => p.Length > 255 || p is "" or "." or ".."))
             throw new ArgumentException("Invalid repository file path.");
         var extension = Path.GetExtension(path);
         if (!extension.Equals(".md", StringComparison.OrdinalIgnoreCase) &&
