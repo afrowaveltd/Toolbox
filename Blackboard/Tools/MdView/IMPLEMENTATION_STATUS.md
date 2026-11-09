@@ -391,3 +391,39 @@
 - Root cause: after following the anchor and returning Back, the source page presents **Follow / Forward / Exit**. The test supplied one DownArrow, accidentally selecting Forward instead of Exit, and exhausted the queued input. Added a second DownArrow, keeping production code unchanged (commit `8b6884e26a7ef5766815e84c2c928bb8f34caa10`).
 - `NETSDK1057` is an informational preview SDK message; not the cause of this failure.
 - **Retest pending after this correction.** Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`, then `dotnet test Toolbox.sln`; do not count the correction as green until confirmed.
+
+## 2026-11-09 — HTTPS verified-cache link navigation
+
+- Maintainer confirms all focused/solution tests green after the previous
+  heading-anchor TestConsole input correction
+  (`8b6884e26a7ef5766815e84c2c928bb8f34caa10`); no precise
+  counts were supplied for this confirmation.
+- Added `MdViewHttpsNavigationSession` in
+  `d63ad06e868ca2a2636a3eb21d314e5b36c6451b`,
+  preserving typed HTTPS document origin and fragment, verifying
+  each changed URL via the existing `HttpMarkdownDocumentSource`
+  and `VerifiedDocumentCache` before updating history. Back/Forward
+  explicitly report verified Stale fallback; same-document anchors
+  reuse current content without HTTP.
+- Added opt-in `MdViewHttpsLinkBrowser` in
+  `4211f92b1fcabd76927f4bcac04fdf1f5f1d2054`:
+  1 MiB source byte cap, parser-backed link selection, full
+  validated rendering, heading jump, failed-link feedback, Escape,
+  and source freshness indicator.
+- Added `browse-url HTTPS_URL` command grammar in
+  `ec9c07d11f0fa4ef3587b25a69ffc4ed019e40ca`
+  and Program wiring in `0e3a542a7c1cace0d747ab46b7aff0a229e36be1`.
+  The CLI configures no automatic redirects/decompression; original
+  commands remain unchanged.
+- Seven isolated tests in
+  `e9e987a251fd3a69abd08490b2599d9fb4c664fe`
+  cover relative HTTPS links, anchor-only navigation, history,
+  missing remote target rollback, Stale offline fallback,
+  virtual-terminal Browse/Back and noninteractive rejection.
+- GitHub default README adapter does **not** expose a canonical
+  file path and resolved ref or fetch arbitrary repository files;
+  GitHub relative navigation remains a separate milestone.
+- **Fresh post-change .NET tests have not been confirmed.**
+  Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`; manually smoke-test an HTTPS
+  Markdown documentation link in Debian/Windows Terminal.
