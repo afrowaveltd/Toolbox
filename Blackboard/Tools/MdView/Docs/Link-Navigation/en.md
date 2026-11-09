@@ -164,3 +164,43 @@ The implementation is **not wired to terminal keyboard controls yet**.
 No link extraction from rendered Markdown, heading anchor jumps, or
 network/GitHub navigation is claimed. Local path reparse checks are
 best-effort and remain subject to concurrent path substitution.
+
+## Parser-backed link discovery and explicit terminal selection (2026-11-09)
+
+Two new **opt-in** components reuse the existing ExchangeHouse Markdown
+inline parser rather than implementing a second Markdown grammar:
+
+- `MdViewDocumentLinkExtractor.Extract(markdown, origin)` returns ordered
+  `MdViewDocumentLink` values, each carrying the original label,
+  destination, UTF-16 source offset and a typed resolved target.
+  It traverses recognized inline links (including links inside emphasis)
+  but deliberately does not offer image targets, inline-code text,
+  fenced-code content, malformed/escaped syntax, unsupported schemes or
+  links blocked by the conservative relative-link resolver.
+- `MdViewDocumentLinkPicker` offers those links through a Spectre.Console
+  selection prompt. Only an explicit Enter choice returns a link; Escape
+  cancels. It never opens or downloads a target.
+
+Extraction currently builds the regular document Markdown AST and is
+**limited to 1,048,576 UTF-16 characters** and **4,096 links** per call.
+This is a deliberate separate small-document path, **not** a streaming
+index for 1 GiB files; a future source-index-backed link catalog must
+avoid full-document materialization. Existing raw/preview paging is not
+changed by this first slice.
+
+```csharp
+var links = MdViewDocumentLinkExtractor.Extract(markdown, origin);
+var chosen = await new MdViewDocumentLinkPicker(console).PickAsync(links);
+if (chosen is not null)
+{
+    // Future CLI integration: validate/open chosen.Target, then commit history.
+}
+```
+
+This backend selector is **not yet wired to the default mdview CLI,
+the existing document-completion prompt or the local navigation session**.
+Link-following must still be invoked explicitly by a caller through the
+already-implemented local loader/session. Test coverage includes fenced
+code, inline code, images, escaped syntax, resolved source positions,
+unsafe/external links, keyboard choice, cancellation and noninteractive
+terminal rejection.
