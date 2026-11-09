@@ -121,6 +121,48 @@ public sealed class MdViewHttpsNavigationTests
     }
 
     [Fact]
+    public async Task OversizeRemoteTargetKeepsLastValidatedPage()
+    {
+        using var temp = new Fixture();
+        using var http = Client(request => Ok(
+            request.RequestUri!.AbsolutePath == "/README.md"
+                ? "# Home"
+                : new string('x', 128)));
+        var session = await MdViewHttpsNavigationSession.OpenAsync(
+            new HttpMarkdownDocumentSource(
+                http, new VerifiedDocumentCache(temp.Root, maximumDocumentBytes: 4096)),
+            MdViewDocumentOrigin.FromHttps(HomeUrl),
+            maximumDocumentBytes: 32);
+
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            session.FollowAsync("Docs/large.md"));
+        Assert.Equal(HomeUrl, session.Current.Target.Origin.Location);
+        Assert.Equal(1, session.History.Count);
+    }
+
+    [Fact]
+    public async Task ForbiddenCrossOriginLinkCannotSendSecondRequest()
+    {
+        using var temp = new Fixture();
+        var calls = 0;
+        using var http = Client(_ =>
+        {
+            calls++;
+            return Ok("# Home");
+        });
+        var session = await MdViewHttpsNavigationSession.OpenAsync(
+            new HttpMarkdownDocumentSource(http, new VerifiedDocumentCache(temp.Root)),
+            MdViewDocumentOrigin.FromHttps(HomeUrl));
+
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            session.FollowAsync("https://other.example.org/README.md"));
+        await Assert.ThrowsAsync<ArgumentException>(() =>
+            session.FollowAsync("//other.example.org/README.md"));
+        Assert.Equal(1, calls);
+        Assert.Equal(1, session.History.Count);
+    }
+
+    [Fact]
     public async Task BrowserRendersLinkedDocumentAndBackViaVirtualTerminal()
     {
         using var temp = new Fixture();
