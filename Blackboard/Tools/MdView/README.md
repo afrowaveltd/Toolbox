@@ -285,3 +285,15 @@ In-document anchors are recorded but not yet scrolled into view.
 Nonlocal HTTPS/GitHub links remain unsupported here. The existing
 normal renderer, indexed raw pager and experimental formatted preview
 are unchanged. [Detailed guide](Docs/Link-Navigation/en.md).
+
+### Local heading anchor navigation
+
+The opt-in `mdview browse PATH` now resolves fragment links such as
+`#installation` and `Docs/Setup/en.md#install` against a bounded
+`MdViewHeadingIndex`. A matching heading is rendered at the beginning
+of the displayed Markdown suffix. Repeated heading slugs receive
+`-1`, `-2` suffixes; fenced-code lines are excluded. Back/Forward
+preserves the fragment. Unknown fragments show feedback.
+
+This is not yet exact terminal row scrolling or full GitHub heading
+slug compatibility. See [Link Navigation](Docs/Link-Navigation/en.md).
