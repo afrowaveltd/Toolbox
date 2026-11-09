@@ -22,7 +22,11 @@ calls:
 
 Both responses use `Accept: application/vnd.github+json`, are
 schema/identity-validated before being cached, and may reuse the
-previously validated metadata when offline. When either metadata
+previously validated metadata when offline. GitHub's README JSON may
+include its entire Base64-encoded content: responses are bounded to
+**2 MiB**, but only the validated branch/path projection (maximum
+**8 KiB**) is persisted with the original HTTP validator, avoiding
+duplicate large metadata cache files. When either metadata
 request falls back to a cached copy, the returned
 `GitHubReadmeLocation.State` is `Stale` and its `Warning` explains
 the condition. The ref and README filename are never guessed.
@@ -83,7 +87,8 @@ dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj
 dotnet test Toolbox.sln
 ```
 
-Regression tests cover real branch/README identity discovery, exact-ref
+Regression tests cover large README JSON projection, real branch/README
+identity discovery, exact-ref
 requests with slash-containing refs, 304 revalidation, offline/stale
 fallback, invalid metadata and traversal rejection, cache isolation by
 ref, and failed UTF-8 replacement without cache corruption. The tests
