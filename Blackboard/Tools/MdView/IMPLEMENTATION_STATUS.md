@@ -287,3 +287,14 @@
   containment is claimed. Next: full tests, then controlled link
   extraction and explicit keyboard selection without changing the
   established completion prompt unexpectedly.
+
+## 2026-11-09 — maintainer-confirmed green navigation checkpoint
+
+- Maintainer confirms that the complete test suite is **still green**
+  after introducing `MdViewNavigationHistory`, `MdViewLocalNavigationSession`
+  and their regression coverage.
+- This is a maintainer-reported verification; no new precise test count,
+  platform or independently reviewed CI run is asserted.
+- Next: implement bounded extraction and keyboard selection of Markdown
+  links, then connect the existing local navigation session without
+  changing established default viewer behavior prematurely.
