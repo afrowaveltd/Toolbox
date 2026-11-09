@@ -62,9 +62,12 @@ public sealed class MdViewLocalLinkBrowser
                 message = null;
             }
 
-            using var reader = current.Snapshot.OpenReader();
-            var markdown = await reader.ReadToEndAsync(cancellationToken)
-                .ConfigureAwait(false);
+            string markdown;
+            using (var reader = current.Snapshot.OpenReader())
+            {
+                markdown = await reader.ReadToEndAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            } // Close the source handle before Follow/Back/Forward disposes the snapshot.
             if (markdown.Length > MdViewDocumentLinkExtractor.MaximumDocumentCharacters)
                 throw new InvalidDataException("Document exceeds the bounded link browser limit.");
 
