@@ -85,7 +85,7 @@ public sealed class MdViewLinkResolverTests
         Assert.Equal("Toolbox", target.Origin.Repository);
         Assert.Equal("usage", target.Fragment);
         var previous = MdViewLinkResolver.Resolve(target.Origin,
-            "../../../../README.md");
+            "../../../../../README.md");
         Assert.Equal("README.md", previous.Origin.Location);
         Assert.Throws<ArgumentException>(() =>
             MdViewLinkResolver.Resolve(source, "../other-project/file.md"));
