@@ -16,7 +16,9 @@ public enum MdViewSourceKind
     /// <summary>Navigate a local UTF-8 file as indexed raw source lines.</summary>
     SourcePager,
     /// <summary>Preview one bounded source page with the Markdown renderer.</summary>
-    FormattedPreview
+    FormattedPreview,
+    /// <summary>Browse local Markdown links with explicit keyboard navigation.</summary>
+    LocalLinkBrowser
 }
 
 /// <summary>Parsed mdview invocation, independent of terminal interaction and network I/O.</summary>
@@ -65,6 +67,8 @@ public sealed record MdViewCommand(MdViewSourceKind Kind, string? Value = null, 
                 return new(MdViewSourceKind.Url, Require(args[1]));
             if (args[0].Equals("source", StringComparison.OrdinalIgnoreCase))
                 return new(MdViewSourceKind.SourcePager, Require(args[1]));
+            if (args[0].Equals("browse", StringComparison.OrdinalIgnoreCase))
+                return new(MdViewSourceKind.LocalLinkBrowser, Require(args[1]));
             if (args[0].Equals("preview", StringComparison.OrdinalIgnoreCase))
                 return new(MdViewSourceKind.FormattedPreview, Require(args[1]));
             if (args[0].Equals("git", StringComparison.OrdinalIgnoreCase) ||
