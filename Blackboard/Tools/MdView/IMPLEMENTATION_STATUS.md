@@ -240,3 +240,26 @@
 - Maintainer confirmed green baseline before this code. **Fresh new
   tests not yet confirmed**. Next: run focused and full solution
   tests, then add safe source loading and explicit link selection.
+
+## 2026-11-09 — local relative Markdown link loader
+
+- Maintainer reports **89/89 MdView tests and 6,745/6,745 solution
+  tests green** after the typed resolver increment. This confirmation
+  predates the loader changes in this entry.
+- Added optional `MdViewLocalLinkLoader` and owned
+  `MdViewLocalLinkedDocument` in commit
+  `8d18686c8b9e46e0861286007a37883511c6386e`.
+  It resolves only permitted local Markdown paths, checks extension and
+  lexical root, rejects symlink/reparse components and validates the entire
+  target through the existing budgeted private UTF-8 snapshot.
+- Added five regression tests in
+  `777b918bc0cb1a82e49f7a3eb63cefc84f1285ec`
+  (nested Docs link, parent navigation, non-Markdown/traversal,
+  invalid UTF-8 and disk limits, platform-conditional symlink check).
+- **Security boundary:** directory attribute checks before open are not
+  resistant to concurrent path substitution. No claim of OS-enforced
+  confinement, hostile same-user tamper resistance or cross-source loading.
+- **New test execution pending.** No change to the default CLI or
+  rendered link interaction. Next: verify tests and build a safe source-
+  specific navigation controller/history using local documents first;
+  HTTPS and GitHub can reuse their own authenticated/validated providers.
