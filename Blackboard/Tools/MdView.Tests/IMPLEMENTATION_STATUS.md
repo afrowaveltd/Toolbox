@@ -195,3 +195,19 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - Maintainer confirms **all tests green** after the opt-in Markdown link extractor, Spectre.Console link picker, and their new regression tests. No precise new counts or independent CI run are asserted.
 - Verified-by-maintainer source commits: `3bddf6f6e072faf5c1befe6099136efe58924364`, `96746b60374c2db9575781801b9f411e3072202a`; test commits: `0ba10326c6d0795866fdde1386ab4cd81f8b29fb`, `445a8f4bc08ea23667c9aea8f82691856e4fab74`.
 - Next: opt-in connection of explicit link selection to `MdViewLocalNavigationSession`, then regression-check actual document transitions and history before changing default CLI behavior.
+
+## 2026-11-09 — opt-in local link browser terminal integration
+
+- Added `MdViewLocalLinkBrowserTests`: explicit `browse` grammar,
+  actual README → Docs link following, Back/Forward/Exit
+  virtual-terminal sequence, recoverable missing Markdown target,
+  code-fence-only link exclusion and noninteractive terminal rejection.
+- Source commits `c29bb36afe71d48ce591fa97f7ef5f0bb53c67ea`,
+  `cdacb01c0d27bbb5105ff283897155eda93549ef`,
+  `a5a42d2d41bc22ea8111509f38b1b271fb6bf498`;
+  test commits `43dd4090fbf8283f89b26677c2841fcafe695c6e`
+  and `a7d60224c15d254facae7134450654076ba8a174`.
+- **New tests not independently executed in this environment**.
+  Last maintainer-confirmed full suite green predates these commits.
+  Verify `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`.
