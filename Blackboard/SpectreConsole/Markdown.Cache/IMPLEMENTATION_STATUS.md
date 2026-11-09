@@ -115,3 +115,8 @@ Next: run and correct Windows/Linux solution CI; then add fault-injection tests,
   Additional large metadata regression:
   `987ab0c865de9cabf4ddb0ab8b6bd852edc0cbc3`.
   New code/test execution remains unconfirmed.
+
+- Final static review: test assertions hardened for nullable safety in
+  `d4bdc4ec916f9bd5853cb59242218a031421370c`. Provider source
+  re-fetched from GitHub; metadata projection and Uri correction verified
+  present. Runtime tests remain pending in the maintainer environment.
