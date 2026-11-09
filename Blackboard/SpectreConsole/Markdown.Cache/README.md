@@ -65,8 +65,7 @@ preferred README path** using official GitHub metadata before retrieving
 repository-relative Markdown documents via
 `GET /repos/{owner}/{repo}/contents/{path}?ref={ref}`. It uses
 `VerifiedDocumentCache` for validated UTF-8, content digest, conditional
-304/ETag and explicitly labeled Stale/offline fallback. Metadata itself
-is parsed and identity-validated before caching with a 64 KiB cap.
+304/ETag and explicitly labeled Stale/offline fallback. Metadata responses can include Base64 README content, so they are bounded to 2 MiB and reduced to a maximum 8 KiB identity-only cache record (validated branch or file path), retaining the upstream ETag.
 Repository file identity is case-insensitive only for owner/repository;
 the ref (including names with slashes) and path are preserved exactly.
 Only Markdown files are accepted and redirected responses are rejected.
@@ -75,3 +74,5 @@ The caller must disable automatic HTTP redirects.
 See [GitHub Repository Files](Docs/GitHub-Repository-Files/en.md).
 This is independent of the existing preferred default-branch
 `GitHubReadmeSource`, which remains compatible and unchanged.
+
+Metadata compaction means the cached entry does not duplicate GitHub's Base64 README content; the compact identity is still schema-validated and hashed by VerifiedDocumentCache.
