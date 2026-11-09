@@ -73,7 +73,8 @@ public sealed class MdViewHeadingIndexTests
         var terminal = Interactive();
         terminal.Input.PushKey(ConsoleKey.Enter);
         terminal.Input.PushKey(ConsoleKey.Enter);
-        terminal.Input.PushKey(ConsoleKey.DownArrow);
+        terminal.Input.PushKey(ConsoleKey.DownArrow); // Back
+        terminal.Input.PushKey(ConsoleKey.DownArrow); // Exit
         terminal.Input.PushKey(ConsoleKey.Enter);
 
         await new MdViewLocalLinkBrowser(terminal).RunAsync(home);
