@@ -73,6 +73,14 @@ public sealed class MdViewGitHubLinkBrowser
             if (markdown.Length > MdViewDocumentLinkExtractor.MaximumDocumentCharacters)
                 throw new InvalidDataException("GitHub document exceeds the link extractor size limit.");
 
+            var links = MdViewDocumentLinkExtractor.Extract(markdown, origin);
+            _console.Write(new Text(
+                "Navigable Markdown links: " + links.Count +
+                (links.Count > 0
+                    ? " (choose 'Follow a link' in the menu below the document)"
+                    : " (no supported repository-relative Markdown links)") +
+                Environment.NewLine));
+
             var rendered = markdown;
             if (current.Target.Fragment is { Length: > 0 } fragment)
             {
@@ -90,7 +98,6 @@ public sealed class MdViewGitHubLinkBrowser
             }
             MarkdownSpectreRenderer.Render(_console, rendered, MdViewHighlighting.CreateTheme());
 
-            var links = MdViewDocumentLinkExtractor.Extract(markdown, origin);
             var choices = new List<string>();
             if (links.Count > 0)
                 choices.Add("Follow a link");
