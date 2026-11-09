@@ -202,3 +202,13 @@ yet a new end-user `mdview` navigation mode. Building the index still
 opens bounded snapshot readers repeatedly; HDD throughput remains
 unbenchmarked. See
 [experimental preview and checkpoint guide](Docs/Experimental-Formatted-Preview/en.md).
+
+### Relative Markdown link navigation roadmap (2026-11-09)
+
+Interactive link following is **not yet implemented**. The planned
+[link navigator](Docs/Link-Navigation/en.md) will resolve Markdown links
+against a typed document origin: the current local file directory, an
+HTTPS source URI, or a GitHub repository/ref/path. It will add safe link
+selection, heading anchors, and bounded Back/Forward history. No
+automatic opening or execution of links is planned; source-specific
+validation and offline cache behavior must remain intact.
