@@ -128,3 +128,39 @@ metadata; it does **not** yet move the reader to a heading.
 The mdview CLI and interactive UI remain unchanged. External HTTPS/GitHub
 loading must be built on their existing validated cache/providers rather
 than this local loader.
+
+## Bounded history and local navigation session (2026-11-09)
+
+Two independent opt-in components now exist:
+
+- `MdViewNavigationHistory`: source-agnostic bounded history of typed
+  document origins and fragments, default 128 entries (maximum 4096).
+  Supports Back, Forward, branch-after-back (discard forward entries),
+  duplicate-visit suppression, and eviction of oldest entries.
+- `MdViewLocalNavigationSession`: owns **one** validated local Markdown
+  snapshot and a history. `OpenAsync` starts from a local source;
+  `FollowAsync`, `BackAsync`, and `ForwardAsync` use the existing
+  safe relative-link loader. Destination validation happens before
+  committing a transition. Missing, invalid or disallowed destinations
+  leave the current document/history unchanged.
+
+```csharp
+var origin = MdViewDocumentOrigin.FromLocal(
+    Path.GetFullPath("README.md"), Directory.GetCurrentDirectory());
+await using var navigation = await MdViewLocalNavigationSession.OpenAsync(origin);
+await navigation.FollowAsync("Docs/Install/en.md#setup");
+await navigation.BackAsync();
+await navigation.ForwardAsync();
+```
+
+History stores only link coordinates; it **reopens and revalidates**
+destinations on Back/Forward. It does not retain all visited snapshots,
+eliminating unbounded document-memory growth. A failed destination open
+does not modify history. The controller is async-disposable and closes
+its current snapshot; the caller must not continue using previously
+replaced snapshots.
+
+The implementation is **not wired to terminal keyboard controls yet**.
+No link extraction from rendered Markdown, heading anchor jumps, or
+network/GitHub navigation is claimed. Local path reparse checks are
+best-effort and remain subject to concurrent path substitution.
