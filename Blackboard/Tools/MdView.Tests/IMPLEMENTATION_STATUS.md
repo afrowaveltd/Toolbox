@@ -309,3 +309,31 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - **Focused/full new tests unverified.** The manual prompt does
   not bypass GitHub API limits; subsequent README loads can still
   fail until the reported reset.
+
+## 2026-11-11 — GitHub interactive menu link visibility regressions
+
+- `MdViewInteractiveSourcePickerTests` now expects
+  `GitHubLinkBrowser` for the no-argument GitHub menu
+  with owner-only or direct `owner/repo` input; added explicit
+  `git` one-shot compatibility assertion
+  (commit `63230ff5553a5774b99c1a291f8e4d9cfb9a7cc6`).
+- `MdViewGitHubRepositoryPickerTests` now checks
+  `PickBrowseAsync` returns a browsable GitHub command after
+  owner-only catalog selection and after HTTP 403 manual fallback
+  (commit `740cd6a54f914de461470272df22420dad852dd9`).
+- `MdViewGitHubNavigationTests` asserts that the browser displays
+  both the parsed link count and **actual first-link labels**
+  before rendering (commit
+  `7a7af4799e4c0c967d71fb4e506e0509aa31eaf7`).
+- `MdViewSessionTests` checks that the no-argument source menu's
+  GitHub choice is dispatched as `GitHubLinkBrowser` and does
+  not invoke a legacy post-render completion prompt (commit
+  `09d2474862294e8d3da11574bfd19e2b227ac960`).
+- The real user symptom was a non-navigable README opened from
+  the original interactive GitHub menu despite `browse-git`
+  existing as an opt-in command. No parser or cache behavior
+  was changed in this increment.
+- **Fresh focused/full tests pending.** Last maintainer-confirmed
+  green suite predates these changes; run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln` to verify.
