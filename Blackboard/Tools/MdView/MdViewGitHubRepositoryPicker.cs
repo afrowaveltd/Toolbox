@@ -17,6 +17,22 @@ public sealed class MdViewGitHubRepositoryPicker
     }
 
     /// <summary>
+    /// Selects a repository for the interactive Markdown link browser instead
+    /// of the legacy one-shot GitHub README display.
+    /// </summary>
+    /// <param name="owner">GitHub account or organization.</param>
+    /// <param name="token">Cancels selection.</param>
+    /// <returns>GitHub link browser command, or null when cancelled.</returns>
+    public async Task<MdViewCommand?> PickBrowseAsync(
+        string owner, CancellationToken token = default)
+    {
+        var selected = await PickAsync(owner, token).ConfigureAwait(false);
+        return selected is null
+            ? null
+            : selected with { Kind = MdViewSourceKind.GitHubLinkBrowser };
+    }
+
+    /// <summary>
     /// Lists repositories for an owner and returns an explicit README command,
     /// or null when the user presses Escape. Never fetches any README itself.
     /// </summary>
