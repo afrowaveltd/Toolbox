@@ -450,3 +450,25 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   and smoke-test `browse-git afrowaveltd Toolbox`. Known exclusions:
   private GitHub repos, cross-repo/ref links, absolute blob-page URLs,
   large-document streaming links and exact terminal-row scrolling.
+
+## 2026-11-11 — interactive GitHub source now opens Markdown link browser
+
+- Corrected the no-argument GitHub source menu path in
+  `Blackboard/Tools/MdView`: it previously dispatched one-shot
+  `GitHub` README rendering, explaining why navigable links
+  were absent despite correct README content. It now dispatches
+  `GitHubLinkBrowser`, including owner-only repository catalog
+  selection, manual fallback after API 403, and repository-relative
+  link/Back/Forward navigation.
+- Links now include an **above-the-document preview of their
+  first three labels** in addition to the full
+  `Follow a link` keyboard picker after rendering.
+- Explicit CLI `git OWNER REPOSITORY` remains the same
+  one-shot renderer. No changes to core Markdown parser,
+  verified GitHub cache or existing non-GitHub source modes.
+- Source and test details are recorded under
+  `Blackboard/Tools/MdView/IMPLEMENTATION_STATUS.md` and
+  `Blackboard/Tools/MdView.Tests/IMPLEMENTATION_STATUS.md`.
+- Documentation has been updated. **Fresh focused and full
+  .NET test execution are not yet confirmed**; obtain maintainer
+  test and interactive smoke results before considering it green.
