@@ -125,6 +125,8 @@ public sealed class MdViewGitHubNavigationTests
             .RunAsync("owner", "repo");
         Assert.Contains("Documentation", terminal.Output);
         Assert.Contains("Navigable Markdown links: 1", terminal.Output);
+        Assert.Contains("Available links (first 3):", terminal.Output);
+        Assert.Contains("Documentation → Docs/en.md", terminal.Output);
         Assert.Contains("Follow a link", terminal.Output);
         Assert.Contains("GitHub: owner/repo @ feature/v2", terminal.Output);
         Assert.Contains("Source: Downloaded", terminal.Output);
