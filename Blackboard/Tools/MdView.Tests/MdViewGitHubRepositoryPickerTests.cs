@@ -34,6 +34,43 @@ public sealed class MdViewGitHubRepositoryPickerTests
     }
 
     [Fact]
+    public async Task InteractiveOwnerSelectionReturnsBrowsableGitHubDocument()
+    {
+        using var temp = new Fixture();
+        using var http = Client(request =>
+            request.RequestUri!.AbsolutePath == "/users/afrowaveltd"
+                ? Ok("""{"type":"Organization"}""")
+                : Ok("""[{"name":"Toolbox"}]"""));
+        var console = Interactive();
+        console.Input.PushKey(ConsoleKey.Enter); // Choose Toolbox in catalog
+
+        var picked = await new MdViewGitHubRepositoryPicker(console,
+            new GitHubRepositoryCatalogSource(http, new VerifiedDocumentCache(temp.Root)))
+            .PickBrowseAsync("afrowaveltd");
+
+        Assert.Equal(MdViewSourceKind.GitHubLinkBrowser, picked?.Kind);
+        Assert.Equal("afrowaveltd", picked?.Value);
+        Assert.Equal("Toolbox", picked?.Repository);
+    }
+
+    [Fact]
+    public async Task RateLimitedCatalogCanStillSelectBrowsableRepositoryManually()
+    {
+        using var temp = new Fixture();
+        using var http = Client(_ => new HttpResponseMessage(HttpStatusCode.Forbidden));
+        var console = Interactive();
+        console.Input.PushTextWithEnter("Toolbox");
+
+        var picked = await new MdViewGitHubRepositoryPicker(console,
+            new GitHubRepositoryCatalogSource(http, new VerifiedDocumentCache(temp.Root)))
+            .PickBrowseAsync("afrowaveltd");
+
+        Assert.Equal(MdViewSourceKind.GitHubLinkBrowser, picked?.Kind);
+        Assert.Equal("Toolbox", picked?.Repository);
+        Assert.Contains("HTTP 403", console.Output);
+    }
+
+    [Fact]
     public async Task EscapeCancelsWithoutFetchingReadme()
     {
         using var temp = new Fixture();
