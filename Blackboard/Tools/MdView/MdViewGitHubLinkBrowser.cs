@@ -77,9 +77,23 @@ public sealed class MdViewGitHubLinkBrowser
             _console.Write(new Text(
                 "Navigable Markdown links: " + links.Count +
                 (links.Count > 0
-                    ? " (choose 'Follow a link' in the menu below the document)"
+                    ? " (select 'Follow a link' in the menu below the document)"
                     : " (no supported repository-relative Markdown links)") +
                 Environment.NewLine));
+            if (links.Count > 0)
+            {
+                // A long README can push the navigation menu below the
+                // terminal viewport. Show actual link labels up front, not
+                // merely a count. The full list remains in the link picker.
+                _console.Write(new Text("Available links (first 3):" + Environment.NewLine));
+                for (var index = 0; index < Math.Min(3, links.Count); index++)
+                {
+                    var link = links[index];
+                    _console.Write(new Text("  " + (index + 1) + ". " +
+                        ShortLabel(link.Label) + " → " +
+                        ShortLabel(link.Destination) + Environment.NewLine));
+                }
+            }
 
             var rendered = markdown;
             if (current.Target.Fragment is { Length: > 0 } fragment)
@@ -144,5 +158,9 @@ public sealed class MdViewGitHubLinkBrowser
                 message = "Unable to follow GitHub Markdown link: " + ex.Message;
             }
         }
+
     }
+
+    private static string ShortLabel(string value) =>
+        value.Length > 64 ? value[..64] + "…" : value;
 }
