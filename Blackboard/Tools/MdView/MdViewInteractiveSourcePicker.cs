@@ -11,7 +11,7 @@ public sealed class MdViewInteractiveSourcePicker
 {
     private const string LocalLabel = "Local Markdown file";
     private const string UrlLabel = "HTTPS Markdown URL";
-    private const string GitHubLabel = "GitHub repository README";
+    private const string GitHubLabel = "GitHub repository (browse Markdown links)";
     private const string ExitLabel = "Exit";
     private readonly IAnsiConsole _console;
 
@@ -107,7 +107,12 @@ public sealed class MdViewInteractiveSourcePicker
 
                 try
                 {
-                    return MdViewCommand.Parse("git", input.Trim());
+                    // The interactive GitHub choice is a link browser.
+                    // The explicit 'git OWNER REPO' CLI remains one-shot.
+                    return MdViewCommand.Parse("git", input.Trim()) with
+                    {
+                        Kind = MdViewSourceKind.GitHubLinkBrowser
+                    };
                 }
                 catch (ArgumentException)
                 {
