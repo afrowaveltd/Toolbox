@@ -18,7 +18,7 @@ mdview github:OWNER/REPO
 mdview --help
 ```
 
-With no arguments, a Spectre.Console menu offers Local Markdown file, HTTPS URL, GitHub README and Exit. The Local choice opens the existing SpectreFileBrowser with a Markdown filename filter, folder navigation and search; Escape inside the browser returns to the source menu. URL and GitHub use Spectre text prompts. [Interaction details](../Interactive-Source-Picker/en.md). Explicit `browse PATH` and `browse-url HTTPS_URL` commands now provide separate opt-in relative-link navigation with bounded Back/Forward history; this is not yet part of the default source menu. Exact terminal-row scrolling, GitHub repository file navigation and themes remain future work. Explicit source commands bypass the menu. The argument parser is independent and unit tested. GitHub owner/repo capitalization is left as input for network requests and normalized by the source adapter for cache keys; local filename casing is preserved.
+With no arguments, a Spectre.Console menu offers Local Markdown file, HTTPS URL, **GitHub repository (browse Markdown links)** and Exit. The Local choice opens the existing SpectreFileBrowser with a Markdown filename filter, folder navigation and search; Escape inside the browser returns to the source menu. URL and GitHub use Spectre text prompts. [Interaction details](../Interactive-Source-Picker/en.md). Explicit `browse PATH` and `browse-url HTTPS_URL` commands now provide separate opt-in relative-link navigation with bounded Back/Forward history; this is not yet part of the default source menu. Exact terminal-row scrolling and themes remain future work. Interactive GitHub selection now launches the repository-relative link browser; explicit `git` remains one-shot. Explicit source commands bypass the menu. The argument parser is independent and unit tested. GitHub owner/repo capitalization is left as input for network requests and normalized by the source adapter for cache keys; local filename casing is preserved.
 
 ## Rendering and storage
 
@@ -157,3 +157,20 @@ Invalid names are rejected locally before making another HTTP request.
 If GitHub has rate-limited all relevant API calls, manual selection
 does not circumvent the limit. Retry after GitHub's reported reset
 or use an already validated cached document where available.
+
+
+## Default GitHub menu vs explicit one-shot GitHub CLI (2026-11-11)
+
+The **no-argument menu** GitHub choice now launches the interactive
+GitHub Markdown browser. Enter `afrowaveltd/Toolbox` directly or
+`afrowaveltd` and then select `Toolbox` from the repository catalog;
+both routes support repository-relative Markdown links and
+Back/Forward. The first three navigable links are previewed above the
+rendered README, and the full picker is available under
+`Follow a link` after the document.
+
+The existing explicit `git afrowaveltd Toolbox` remains the
+single-document renderer and deliberately has no link navigation.
+Use `browse-git afrowaveltd Toolbox` for an explicit CLI navigation
+command. The interactive GitHub menu change does not alter local/URL
+source choices.
