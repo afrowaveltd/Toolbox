@@ -70,7 +70,7 @@ public sealed class MdViewInteractiveSourcePickerTests
             .PickAsync(Path.GetTempPath());
 
         Assert.NotNull(result);
-        Assert.Equal(MdViewSourceKind.GitHub, result.Kind);
+        Assert.Equal(MdViewSourceKind.GitHubLinkBrowser, result.Kind);
         Assert.Equal("AfrowaveLtd", result.Value);
         Assert.Equal("Toolbox", result.Repository);
     }
@@ -88,9 +88,18 @@ public sealed class MdViewInteractiveSourcePickerTests
             .PickAsync(Path.GetTempPath());
 
         Assert.NotNull(result);
-        Assert.Equal(MdViewSourceKind.GitHub, result.Kind);
+        Assert.Equal(MdViewSourceKind.GitHubLinkBrowser, result.Kind);
         Assert.Equal("afrowaveltd", result.Value);
         Assert.Null(result.Repository);
+    }
+
+    [Fact]
+    public void ExplicitGitHubCommandRemainsOneShot()
+    {
+        Assert.Equal(MdViewSourceKind.GitHub,
+            MdViewCommand.Parse("git", "afrowaveltd", "Toolbox").Kind);
+        Assert.Equal(MdViewSourceKind.GitHubLinkBrowser,
+            MdViewCommand.Parse("browse-git", "afrowaveltd", "Toolbox").Kind);
     }
 
     [Fact]
