@@ -68,13 +68,11 @@ static async Task<MdViewDisplayResult> DisplayAsync(
                     console,
                     new GitHubRepositoryCatalogSource(
                         http, new VerifiedDocumentCache(cacheRoot)))
-                    .PickAsync(command.Value!, cancellationToken);
+                    .PickBrowseAsync(command.Value!, cancellationToken);
                 if (selected is null)
                     return new MdViewDisplayResult(0, false);
 
-                // Picker selection is historically a one-shot README command.
-                // In this explicit browsing branch it becomes a browser target.
-                command = selected with { Kind = MdViewSourceKind.GitHubLinkBrowser };
+                command = selected;
             }
 
             var cache = new VerifiedDocumentCache(cacheRoot,
