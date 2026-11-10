@@ -10,7 +10,7 @@ From the Toolbox repository root:
 dotnet run --project Blackboard/Tools/MdView
 ```
 
-The default command enters a Spectre.Console selection prompt with four choices: Local Markdown file, HTTPS Markdown URL, GitHub repository README, and Exit. Press Escape to exit without opening a document. This requires an interactive terminal; piped or non-interactive invocations should pass a source as an argument instead.
+The default command enters a Spectre.Console selection prompt with four choices: Local Markdown file, HTTPS Markdown URL, **GitHub repository (browse Markdown links)**, and Exit. Press Escape to exit without opening a document. This requires an interactive terminal; piped or non-interactive invocations should pass a source as an argument instead.
 
 ### Local Markdown file
 
@@ -20,7 +20,7 @@ Escape within FileBrowser returns to the mdview source selection menu; it does n
 
 ### URL and GitHub
 
-The HTTPS option prompts for an absolute URL. It disallows embedded credentials, queries and fragments, matching the existing anonymous HTTP adapter's restrictions. An empty entry returns to the menu. The GitHub option prompts for `owner/repository`, reusing the existing `MdViewCommand.Parse("git", value)` grammar; the transport adapter further validates the owner/repository identifiers. The picker does not make network requests. HTTP retrieval, ETag/Last-Modified validation and explicit stale/offline messages occur later in the unchanged execution path.
+The HTTPS option prompts for an absolute URL. It disallows embedded credentials, queries and fragments, matching the existing anonymous HTTP adapter's restrictions. An empty entry returns to the menu. The GitHub option accepts `owner` or `owner/repository`. Unlike the explicit one-shot `git OWNER REPOSITORY` CLI, this **interactive** selection dispatches `MdViewSourceKind.GitHubLinkBrowser`. With an owner only, the repository catalog (or its manual-name fallback after API errors) runs before opening the interactive reader. The source picker itself does not make network requests. Subsequent GitHub metadata/file fetching and verified-cache freshness handling occur in the link browser.
 
 The menu does not add support for private GitHub repositories, automatically followed redirects, local files without Markdown extensions or arbitrary network schemes.
 
@@ -37,10 +37,31 @@ The previous user-verified baseline was **6,443/6,443 green on Windows**, before
 
 ## Non-goals
 
-Interactive source selection is not an interactive viewer after rendering. The existing renderer still materializes the entire Markdown document and outputs it in one pass. True low-memory paging, screen history, in-document navigation, GitHub-linked file navigation and large-file streaming are separate future milestones.
+Local and HTTPS choices still use the original one-shot reader; the **GitHub menu choice now opens the interactive link browser**, including source/fragment Back/Forward and heading display jumps. This browser is limited to 1 MiB per Markdown file and uses the existing verified cache. True streaming Markdown pages, unrestricted cross-source navigation and exact terminal scrollback positioning remain future milestones.
 
 [mdview README](../../README.md) · [CLI usage](../CLI/en.md) · [Implementation status](../../IMPLEMENTATION_STATUS.md).
 
 ## GitHub owner-only discovery (2026-11-04)
 
 The GitHub input prompt now also accepts only a user or organization name (for example `afrowaveltd`) in addition to `owner/repository`. With an owner alone, the next stage opens the [public GitHub repository browser](../GitHub-Owner-Discovery/en.md), with a short tree, searchable/paged Select prompt and explicit Escape cancellation. Its catalog is cached separately from README contents. The source-selection prompt itself does not send any HTTP requests.
+
+
+## Main menu GitHub navigation correction (2026-11-11)
+
+The menu originally returned the one-shot `MdViewSourceKind.GitHub`,
+which rendered the README but never offered `Follow a link`. This was
+the cause of a user-visible report that GitHub README links were missing.
+The menu now returns `GitHubLinkBrowser`, whereas direct
+`git OWNER REPOSITORY` remains a single-page command.
+
+When only the owner is entered, Program resolves a repository using
+`MdViewGitHubRepositoryPicker.PickBrowseAsync` (including the
+rate-limit/403 manual-name fallback), then starts the same browser.
+Before rendering a long README the browser lists its **link count and
+first three labels/destinations**; the full selection is through
+`Follow a link` below the document. Rendered Markdown labels are not
+directly clickable terminal hyperlinks.
+
+Tests cover both menu forms, catalog selection and rate-limit fallback,
+`MdViewSession` dispatch, and visible link preview. Newly added tests
+require a fresh maintainer run.
