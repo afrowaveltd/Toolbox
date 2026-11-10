@@ -14,7 +14,7 @@ dotnet run --project Blackboard/Tools/MdView -- github:AfrowaveLtd/Toolbox
 dotnet run --project Blackboard/Tools/MdView
 ```
 
-Without arguments, a **Spectre.Console source menu** offers an interactive local Markdown FileBrowser, HTTPS URL prompt, GitHub `owner/repo` prompt and Exit. Escape from FileBrowser returns to the source menu; Escape from the source menu exits. See [interactive source selection](Docs/Interactive-Source-Picker/en.md). The command parser accepts verbs without case sensitivity but never changes Linux local path casing or ref/path names. `mdview` is the compiled executable assembly name; it is not installed as a system command.
+Without arguments, a **Spectre.Console source menu** offers an interactive local Markdown FileBrowser, HTTPS URL prompt, **GitHub repository Markdown link browsing** (owner or owner/repo), and Exit. Escape from FileBrowser returns to the source menu; Escape from the source menu exits. See [interactive source selection](Docs/Interactive-Source-Picker/en.md). The command parser accepts verbs without case sensitivity but never changes Linux local path casing or ref/path names. `mdview` is the compiled executable assembly name; it is not installed as a system command.
 
 Local files support `.md` and `.markdown` and reuse the complete, strict Unicode/control-safe reader from [Blackboard.TextFiles](../../TextFiles/README.md). Remote sources use fully verified UTF-8 cache entries, ETag/Last-Modified checks and explicit stale status when offline. Public GitHub README retrieval uses the preferred REST endpoint, not guessed filenames or branches. HTTP(S) URLs with query strings, fragments or embedded credentials are rejected by the current generic provider; plain HTTP is disabled by default. GitHub private repositories, redirects and links to other files are not supported.
 
@@ -366,3 +366,20 @@ This fallback does **not** bypass GitHub's API limits: a subsequent
 README or metadata request can still be rejected until the limit
 resets. Previously verified cached content may remain available
 under the existing documented stale/offline policy.
+
+
+### Main menu GitHub links are now navigable (2026-11-11)
+
+Selecting GitHub from the no-argument menu previously opened a
+**one-shot README** rather than the link-navigation session. The menu
+now starts the same `GitHubLinkBrowser` as `browse-git OWNER REPO`.
+When only an owner is entered, the repository selector returns a
+browser command after catalog selection or manual-name fallback.
+The browser shows the **number of navigable links and the first three
+link labels** above a long README. Choose **Follow a link** in the
+terminal menu below the rendered Markdown to browse all supported
+repository-relative Markdown links. Text-rendered Markdown links are
+not directly mouse-clickable in the terminal.
+
+`git OWNER REPO` remains the unchanged one-shot CLI mode. GitHub
+metadata, repository and file cache validation remain the same.
