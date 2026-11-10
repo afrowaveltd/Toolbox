@@ -511,3 +511,45 @@
   remain the only documented offline alternative.
 - **New tests not yet confirmed green.** Run MdView focused tests
   and full Toolbox.sln after updating the working checkout.
+
+## 2026-11-11 — fix interactive GitHub README missing link navigation
+
+- User confirms the Markdown reader displays documents correctly but
+  still cannot see navigable links after selecting GitHub from the
+  **no-argument interactive source menu**.
+- Root cause verified in source: `MdViewInteractiveSourcePicker` returned
+  `MdViewSourceKind.GitHub`, which routes through the old one-shot
+  `GitHubReadmeSource`/renderer. The implemented link browser
+  `GitHubLinkBrowser` was only reachable using explicit
+  `browse-git` commands; this was a routing/UX gap, not evidence
+  of a broken Markdown link parser.
+- `MdViewInteractiveSourcePicker` now clearly labels its GitHub
+  option as **GitHub repository (browse Markdown links)** and returns
+  `GitHubLinkBrowser` for both `owner/repo` and owner-only input
+  (commit `a83168d13edea2571addbb74f7755bd852e23ebd`).
+- `Program` now routes owner-only interactive choices through
+  `MdViewGitHubRepositoryPicker.PickBrowseAsync` and then launches
+  the same verified-cache GitHub link browser (commits
+  `ebb4197fc3989a57117dc0a9bcb15e2ee6a7f50c` and
+  `41c332af042d9b4b73e52c627583a0e5b5165187`).
+  The picker method is an opt-in adapter; ordinary one-shot
+  `PickAsync` and explicit CLI `git OWNER REPO` remain unchanged
+  (commit `ba4482bd83e304a332a950693393010dadad0e12`).
+- To make links apparent in long GitHub READMEs, the browser now shows
+  the number of navigable links and the **first three actual
+  link labels/destinations** before rendering, plus the original
+  `Follow a link` keyboard picker after the document
+  (commit `24d3e8e04650b6250a9bb72cab671f92f8eec3b2`).
+- New/updated regression coverage: main-menu direct repo,
+  owner-only catalog and 403 manual fallback, MdViewSession
+  dispatch without double completion prompt, one-shot CLI
+  compatibility and GitHub link preview. See
+  `Blackboard/Tools/MdView.Tests/IMPLEMENTATION_STATUS.md`.
+- Documentation refreshed in `README.md`,
+  `Docs/CLI/en.md`, `Docs/Interactive-Source-Picker/en.md`
+  and `Docs/GitHub-Owner-Discovery/en.md`.
+- **New changes not yet tested by the maintainer or .NET SDK in this
+  environment.** Run focused and full solution tests, then smoke-test
+  no-argument GitHub selection with both `afrowaveltd/Toolbox`
+  and owner-only `afrowaveltd`. A still rate-limited GitHub API
+  may prevent obtaining metadata even though menu routing is fixed.
