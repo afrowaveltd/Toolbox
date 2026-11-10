@@ -59,7 +59,25 @@ static async Task<MdViewDisplayResult> DisplayAsync(
                 AutomaticDecompression = System.Net.DecompressionMethods.None
             };
             using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(30) };
-            var cache = new VerifiedDocumentCache(CacheDirectory.GetDefaultPath(),
+            var cacheRoot = CacheDirectory.GetDefaultPath();
+            // The repository catalog is independently bounded and can exceed
+            // the 1 MiB per-document display cap of the GitHub link browser.
+            if (command.Repository is null)
+            {
+                var selected = await new MdViewGitHubRepositoryPicker(
+                    console,
+                    new GitHubRepositoryCatalogSource(
+                        http, new VerifiedDocumentCache(cacheRoot)))
+                    .PickAsync(command.Value!, cancellationToken);
+                if (selected is null)
+                    return new MdViewDisplayResult(0, false);
+
+                // Picker selection is historically a one-shot README command.
+                // In this explicit browsing branch it becomes a browser target.
+                command = selected with { Kind = MdViewSourceKind.GitHubLinkBrowser };
+            }
+
+            var cache = new VerifiedDocumentCache(cacheRoot,
                 maximumDocumentBytes: MdViewGitHubNavigationSession.DefaultMaximumDocumentBytes);
             await new MdViewGitHubLinkBrowser(console,
                 new GitHubRepositoryFileSource(http, cache))
