@@ -147,6 +147,36 @@ public sealed class MdViewSessionTests
     }
 
     [Fact]
+    public async Task MainMenuGitHubSelectionUsesLinkBrowserNotOneShotRenderer()
+    {
+        var console = Interactive();
+        console.Input.PushKey(ConsoleKey.DownArrow); // URL
+        console.Input.PushKey(ConsoleKey.DownArrow); // GitHub navigation
+        console.Input.PushKey(ConsoleKey.Enter);
+        console.Input.PushTextWithEnter("afrowaveltd/Toolbox");
+
+        MdViewCommand? dispatched = null;
+        var code = await new MdViewSession(console).RunAsync(
+            new MdViewCommand(MdViewSourceKind.Interactive),
+            token => new MdViewInteractiveSourcePicker(console)
+                .PickAsync(Path.GetTempPath(), token),
+            (command, _) =>
+            {
+                dispatched = command;
+                // Link browsing owns its own terminal loop, not the legacy
+                // post-render completion prompt.
+                return Task.FromResult(new MdViewDisplayResult(0, false));
+            },
+            waitForCompletion: true);
+
+        Assert.Equal(0, code);
+        Assert.Equal(MdViewSourceKind.GitHubLinkBrowser, dispatched?.Kind);
+        Assert.Equal("afrowaveltd", dispatched?.Value);
+        Assert.Equal("Toolbox", dispatched?.Repository);
+        Assert.DoesNotContain("Enter: main menu", console.Output);
+    }
+
+    [Fact]
     public async Task StartingInInteractiveModeUsesMenuImmediately()
     {
         var console = Interactive();
