@@ -87,6 +87,14 @@ Or try the offline localization configurator:
 dotnet run --project UnderstandMe/Tools/Configurator
 ```
 
+The no-argument `mdview` source menu also opens this **interactive
+GitHub link browser** when you choose the GitHub repository option.
+Enter `afrowaveltd/Toolbox` or choose `Toolbox` from
+`afrowaveltd`'s catalog. The reader previews the first three
+repository-relative links above the README and provides the full
+`Follow a link` picker after it. Explicit `git OWNER REPOSITORY`
+still renders only a single README.
+
 Try GitHub-linked Markdown documentation without cloning another repository:
 
 ```bash
