@@ -20,9 +20,9 @@ dotnet run --project Blackboard/Tools/MdView -- github:afrowaveltd/Toolbox
 dotnet run --project Blackboard/Tools/MdView -- local README.md
 ```
 
-When launched without arguments, the existing Spectre source menu's GitHub choice now accepts either `owner` or `owner/repository`. With an owner alone, `mdview` contacts GitHub's public REST API, then opens a `SelectionPrompt` of repository names and short descriptions. For 20 repositories or fewer, it also draws a compact tree under the account name; larger accounts use only the paged selection control to avoid dumping thousands of lines.
+When launched without arguments, the Spectre source menu's GitHub choice accepts either `owner` or `owner/repository` and now opens the **interactive Markdown link browser** rather than the legacy one-shot README view. With an owner alone, `mdview` contacts GitHub's public REST API, then opens a `SelectionPrompt` of repository names and short descriptions. For 20 repositories or fewer, it also draws a compact tree under the account name; larger accounts use only the paged selection control to avoid dumping thousands of lines.
 
-The `Filter / search by name or description` entry narrows displayed choices case-insensitively. An empty filter resets the list. `Back / cancel` or Escape exits without fetching any README. After choosing a repository, the existing preferred README source reads only that repository's README, preserving its ETag/Last-Modified and offline cache behavior.
+The `Filter / search by name or description` entry narrows displayed choices case-insensitively. An empty filter resets the list. `Back / cancel` or Escape exits without fetching any README. For the no-argument menu, selecting a repository now opens `MdViewGitHubLinkBrowser`, resolving the actual default branch and README path and presenting repository-relative links. Explicit legacy `git OWNER REPOSITORY` still uses the existing preferred single-README source and its ETag/offline cache policy.
 
 ### Name resolution rules
 
@@ -52,3 +52,18 @@ Command parsing regressions check owner-only, direct repo and explicit local for
 **Verification pending:** no .NET SDK is available in this execution environment. The previously reported 6,443-test Windows baseline predates this feature and the recent source-picker and highlighter changes. Run the full suite after syncing; then check `mdview git afrowaveltd` manually in Windows Terminal or Debian.
 
 [mdview README](../../README.md) · [CLI guide](../CLI/en.md) · [Status](../../IMPLEMENTATION_STATUS.md).
+
+
+## Interactive GitHub navigation (2026-11-11)
+
+In the no-argument source menu, **GitHub repository (browse Markdown
+links)** now enters `browse-git` behavior after selecting the owner/repo.
+A previous UI routing mistake entered a one-shot README instead, making
+its links inaccessible despite correct rendering. Both direct
+`owner/repository` and owner-only catalog selection now dispatch the
+same link browser. On catalog HTTP 403, the repository may be typed
+manually; API rate limits are not bypassed. The browser shows a link
+count and first three link labels before the rendered document and a
+full `Follow a link` choice after it.
+
+The explicit `git OWNER REPOSITORY` CLI remains unchanged.
