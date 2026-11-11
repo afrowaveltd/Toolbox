@@ -383,3 +383,31 @@ not directly mouse-clickable in the terminal.
 
 `git OWNER REPO` remains the unchanged one-shot CLI mode. GitHub
 metadata, repository and file cache validation remain the same.
+
+### First bounded Markdown page navigation for GitHub (2026-11-11)
+
+Long Markdown files opened by the interactive GitHub menu or by
+`mdview browse-git OWNER REPOSITORY` now show **one page at a time**
+instead of dumping the entire document. Each page contains at most
+**24 physical Markdown source lines** and **16,384 UTF-16 display
+characters**. The menu supports **Next page**, **Previous page**,
+**Go to heading** (up to the first 512 recognized headings) and
+**Go to source line**, alongside the existing **Follow a link**,
+document-level Back/Forward and Exit.
+
+Short files of at most 24 lines continue using the previous complete
+renderer and menu order. A long document is parsed and indexed once
+per verified file/content SHA-256; switching pages does not generate
+network requests or reread the entire document. Fenced code stays
+literal even at a page boundary. A very long individual line may be
+shortened on screen with a warning; it is **not** truncated in the
+cached source. Complex quote/list boundaries and full cross-page
+TextMate coloring remain experimental.
+
+The GitHub browser still has its original **1 MiB source limit**.
+This first source-page UI is not a streaming reader for gigabyte
+files or a wrapped visual-terminal-row paginator. The separate
+local disk-backed source pager and incremental scanner/checkpoint
+infrastructure remain the route for truly large files.
+
+[Read the page-navigation guide](Docs/Paged-GitHub-Browsing/en.md).
