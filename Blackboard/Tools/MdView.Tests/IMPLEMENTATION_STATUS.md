@@ -343,3 +343,26 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - Maintainer confirms an actual `afrowaveltd/MemView` documentation session renders correctly and navigates Markdown links. Screenshot shows an English Git lesson in the terminal.
 - This observation supports **manual GitHub integration/UX acceptance** after the main-menu `GitHubLinkBrowser` fix. It does **not** confirm execution of the newly added focused/full xUnit suite; those remain separately pending until explicit test results are provided.
 - Continue with `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj` and `dotnet test Toolbox.sln` for a new automated green checkpoint.
+
+## 2026-11-11 — GitHub bounded source-page regression suite
+
+- Six `MdViewSmallMarkdownPageIndexTests` were added:
+  `d5e6b5ddeab7fe0209df836df5446aeb27e094ab` and
+  `0d6d65a29fd02e8d59206d51054cf8e63e78dbad`.
+  They validate physical-line page ranges, correct fence-code
+  classification when a page starts inside C code, source-offset
+  lookup including Unicode, long-line display budget,
+  UTF-16 surrogate safety and invalid/budget input guards.
+- Five new `MdViewGitHubNavigationTests` cases added in
+  `2ce5a596dd19c2bed1187c9cebf457c8f9757dc4` and
+  `024897d3a37d69a54c3ae6cda43212d192c53c3c`:
+  a long README displays only 24-line pages, Next/Previous
+  navigation reuses the same one-time verified GitHub fetch,
+  Go to heading and Go to source line work, and Follow a link
+  still opens a new Markdown file with Back history.
+- Existing short README terminal scenarios intentionally retain
+  the same menu order and full-document display.
+- **New focused/solution tests not yet run or confirmed green**;
+  previous MemView success was a separate manual acceptance check.
+  Test with `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`, then smoke-test GitHub paging.
