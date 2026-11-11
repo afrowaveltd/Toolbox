@@ -471,3 +471,16 @@ for very small terminals remain future work. All temporary page
 indexes are disk-backed and deleted when the preview ends.
 
 [Responsive preview guide](Docs/Responsive-Preview/en.md).
+
+### Narrow terminal note for clipped code (2026-11-12)
+
+The code-overflow status line now adapts its length to the available
+content columns, avoiding an additional terminal-row wrap below
+the page footer. A narrow viewport displays
+`→ Code clipped (no wrap).` or a shorter equivalent; wider
+viewports retain the full explanatory message. The underlying
+code line remains a single clipped display row with its trailing
+`→` marker; the verified source is unchanged.
+
+The Markdown renderer displays formatted headings without the
+literal `#` marker, including after a clipped code fence.
