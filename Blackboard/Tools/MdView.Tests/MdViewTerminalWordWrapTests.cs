@@ -11,14 +11,14 @@ public sealed class MdViewTerminalWordWrapTests
     {
         const string source =
             "A complete sentence. Another short clause, followed by more words here.";
-        var rows = MdViewTerminalWordWrap.Wrap(source, 42);
+        var rows = MdViewTerminalWordWrap.Wrap(source, 32);
 
         Assert.True(rows.Count >= 2);
         Assert.EndsWith(".", rows[0]);
         Assert.Equal(source,
             string.Join(" ", rows)); // Soft wrapping preserves word order.
         Assert.All(rows, row =>
-            Assert.True(MdViewTerminalWordWrap.MeasureColumns(row) <= 42));
+            Assert.True(MdViewTerminalWordWrap.MeasureColumns(row) <= 32));
     }
 
     [Fact]
