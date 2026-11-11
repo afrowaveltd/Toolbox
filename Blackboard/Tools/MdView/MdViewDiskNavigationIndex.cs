@@ -151,6 +151,13 @@ public sealed class MdViewDiskNavigationIndex : IAsyncDisposable
                     MarkdownContainerLineKind.CodeLine or
                     MarkdownContainerLineKind.FenceClose)
                     continue;
+                // Avoid treating conservatively unowned indented code as
+                // navigable Markdown. List continuations are handled
+                // independently by the existing container scanner.
+                if (line.Kind == MarkdownContainerLineKind.Plain &&
+                    (line.Source.Text.StartsWith("    ", StringComparison.Ordinal) ||
+                     line.Source.Text.StartsWith('\t')))
+                    continue;
 
                 // Conservative: only unquoted top-level ATX headings.
                 if (line.Kind == MarkdownContainerLineKind.Plain &&
