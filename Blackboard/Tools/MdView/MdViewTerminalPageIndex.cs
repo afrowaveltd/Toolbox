@@ -66,13 +66,13 @@ public sealed class MdViewTerminalPageIndex : IAsyncDisposable
     /// <param name="snapshot">Caller-owned validated immutable snapshot.</param>
     /// <param name="width">Detected terminal width.</param>
     /// <param name="height">Detected terminal height.</param>
-    /// <param name="maximumSourceLinesPerPage">Legacy explicit upper bound (1–128).</param>
+    /// <param name="maximumSourceLinesPerPage">Zero for automatic viewport height, otherwise an explicit 1–128 row limit.</param>
     /// <param name="maximumIndexBytes">Maximum temporary page-index storage.</param>
     /// <param name="cancellationToken">Cancels the sequential scan.</param>
     /// <returns>Owned disk index to dispose before the source snapshot.</returns>
     public static async Task<MdViewTerminalPageIndex> CreateAsync(
         Utf8ValidatedSnapshot snapshot, int width, int height,
-        int maximumSourceLinesPerPage = 24,
+        int maximumSourceLinesPerPage = 0,
         long maximumIndexBytes = DefaultMaximumIndexBytes,
         CancellationToken cancellationToken = default)
     {
@@ -81,13 +81,15 @@ public sealed class MdViewTerminalPageIndex : IAsyncDisposable
             throw new ArgumentOutOfRangeException(nameof(width));
         if (height <= 0)
             throw new ArgumentOutOfRangeException(nameof(height));
-        if (maximumSourceLinesPerPage is < 1 or > 128)
+        if (maximumSourceLinesPerPage is < 0 or > 128)
             throw new ArgumentOutOfRangeException(nameof(maximumSourceLinesPerPage));
         if (maximumIndexBytes < RecordBytes)
             throw new ArgumentOutOfRangeException(nameof(maximumIndexBytes));
 
         var columns = Math.Clamp(width - 2, 8, 4096);
-        var rowsPerPage = Math.Min(maximumSourceLinesPerPage,
+        var rowLimit = maximumSourceLinesPerPage == 0
+            ? 128 : maximumSourceLinesPerPage;
+        var rowsPerPage = Math.Min(rowLimit,
             Math.Max(1, height - ReservedTerminalRows));
         var path = Path.Combine(Path.GetTempPath(),
             "afrowave-mdview-visual-pages-" + Guid.NewGuid().ToString("N") + ".idx");
