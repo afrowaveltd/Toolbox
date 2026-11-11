@@ -776,3 +776,34 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   up to 128 visual rows. Test `996a03c2ab7abccf3520b853ad374411722b940d`
   compares narrow, wide, tall and explicitly capped viewports.
   Fresh .NET test verification remains pending.
+
+## 2026-11-12 — 174/176 responsive-preview test failures corrected
+
+- Maintainer's Debian `MdView.Tests` output: **174 passed,
+  2 failed, 0 skipped, 176 total**.
+- `MdViewTerminalPageIndexTests.CodeLineClippedWithArrowIsOneVisualRow`
+  failed because its assertion expected literal `# Ending`,
+  while `MarkdownSpectreRenderer` intentionally consumes the
+  ATX heading marker and renders `Ending`. Production heading
+  rendering did not need changing. Assertion corrected in
+  `ff2411594f620b618dafad085cd48064dfd074b1`.
+- `MdViewFormattedPreviewPagerTests.CodeOverflowIsMarkedButCodeSourceRemainsUnchanged`
+  failed because the 31-column test terminal wrapped the long
+  grey overflow explanation; the asserted uninterrupted string
+  was absent. The pager now emits a compact single-row warning
+  chosen by content width, preserving the full explanation on
+  wider terminals: commits
+  `c1889b53d3f62de5c7372674b54ccac1d6b9c4f3`,
+  `d58d11d2be89b1ee8ca803a55b8cb6003173ccd4`.
+- Updated the narrow-viewport expectation in
+  `a33ecffbf780947b060059e2142bd288b1c6bbbf`
+  and added a wide-viewport regression in
+  `679628725495c72a8c91fde21ca2770edd42e6b5`.
+- No changes were made to the validated source data,
+  disk page index, source pagination algorithm, code-line clipping
+  or Github/HTTPS navigation. The change only corrects the
+  display-width-aware status text and test expectations.
+- **Post-fix tests not yet run here or maintainer-confirmed.**
+  Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  followed by `dotnet test Toolbox.sln`. Do not label the new
+  checkpoint green until those results are available.
