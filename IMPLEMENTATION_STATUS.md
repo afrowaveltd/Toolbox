@@ -540,3 +540,34 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - **Fresh test verification still pending.** Run the targeted
   `MdView.Tests` and `Toolbox.sln` suites, then test the
   experimental local preview with a large Markdown file.
+
+## 2026-11-11 — responsive local Markdown source preview
+
+- The experimental local `mdview preview PATH` now adapts to
+  terminal width and height on the next redraw, displaying a
+  grey three-line technical header, one blank separator and
+  grey **Page X of Y / Source lines A–B of C** footer.
+- Introduced `MdViewTerminalWordWrap` for punctuation-preferred
+  prose wrapping and Unicode cell-width handling;
+  **fenced code remains unwrapped** with `→` marking
+  clipped right-side content. The validated original is
+  never rewritten.
+- Added a disposable, bounded disk `MdViewTerminalPageIndex`
+  (64 MiB default cap) for viewport-specific page count and
+  source-line plus in-line visual-row positions; the reader
+  can resume within a long paragraph rather than skipping it.
+  The page index is rebuilt after terminal geometry changes.
+  This requires a sequential scan of the validated snapshot,
+  not a complete in-RAM Markdown AST.
+- The existing `MdViewContainerPageCursor` and lazy disk
+  heading/link picker are reused. Raw source and GitHub/HTTPS
+  readers remain independent and unchanged.
+- New source, tests and English instructions documented under
+  `Blackboard/Tools/MdView/Docs/Responsive-Preview/en.md`,
+  `Blackboard/Tools/MdView/IMPLEMENTATION_STATUS.md`
+  and `Blackboard/Tools/MdView.Tests/IMPLEMENTATION_STATUS.md`.
+  The visual row count is deterministic but not exact for
+  all complex Markdown and Unicode grapheme layouts.
+- **Fresh focused and full test verification still pending.**
+  Run MdView.Tests and Toolbox.sln and manually smoke-test
+  resizing Konsole between page transitions.
