@@ -393,3 +393,9 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - **Tests have not yet been rerun after the fix.**
   Verify focused MdView suite then complete solution; retain
   the 147/148 outcome as the last observed pre-fix state.
+
+## 2026-11-11 — maintainer-confirmed green after Unicode page-boundary correction
+
+- Maintainer confirms **no errors** after updating to the UTF-16 source-page boundary fix and new regression tests. This supersedes the previously reported 147 passed / 1 failed result; exact current test totals were not provided and are not inferred.
+- Verified-by-maintainer source fix: `fe9ccc8b734ac7b399f1fca5bbb3ddaa134c927f`; regression tests: `b276c12c2de5344f3ae313e28038c8a717f8e850`.
+- Next milestone: disk-backed heading/link indexing for large Markdown files, building on validated snapshots and existing disk line/scanner checkpoint indexes; retain the 1 MiB bounded GitHub rendering cap until a genuinely streaming navigation path is tested.
