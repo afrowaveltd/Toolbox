@@ -245,7 +245,13 @@ public sealed class MdViewTerminalPageIndex : IAsyncDisposable
         ArgumentNullException.ThrowIfNull(line);
         return line.Kind is MarkdownContainerLineKind.FenceOpen or
             MarkdownContainerLineKind.CodeLine or
-            MarkdownContainerLineKind.FenceClose;
+            MarkdownContainerLineKind.FenceClose ||
+            // Conservative unowned four-space/tab-indented source also
+            // represents literal code; explicit list continuations
+            // are classified separately and retain their own layout.
+            (line.Kind == MarkdownContainerLineKind.Plain &&
+             (line.Source.Text.StartsWith("    ", StringComparison.Ordinal) ||
+              line.Source.Text.StartsWith('\t')));
     }
 
     private async Task<MdViewVisualPosition> ReadAtAsync(
