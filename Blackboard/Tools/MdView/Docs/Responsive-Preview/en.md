@@ -28,8 +28,10 @@ the window is resized. At the next render after a width/height change:
 
 The page reserves **16 terminal rows** for a three-line technical
 header, one blank separator, a footer, warnings and the navigation
-prompt. Display height is bounded by the requested `linesPerPage`
-upper limit (default 24) as well as the remaining viewport rows.
+prompt. The default `linesPerPage = 0` now uses the **available
+terminal height automatically**, up to a hard safety limit of 128
+visual content rows. Supplying an explicit `linesPerPage` value of
+1–128 retains that smaller upper limit for callers and tests.
 The available content width reserves two terminal columns.
 
 For very small terminals there may not be enough room for all prompt
@@ -156,3 +158,13 @@ separate and is still treated as prose, as required for Markdown
 list semantics. This extension is covered by a targeted regression
 test. As in the existing index, ambiguous indentation is treated
 conservatively; full CommonMark ownership remains future work.
+
+### Automatic height correction (2026-11-11)
+
+The initial responsive code retained the old default of 24 content
+rows, so a very tall terminal still displayed short pages. This
+was corrected: the default now fills as much of the viewport as
+possible (up to the bounded 128-row scanner/rendering limit), while
+an explicit numeric cap remains supported. A dedicated viewport
+regression compares 40-row and 80-row terminals and an explicit
+two-row limit. New test results remain pending.
