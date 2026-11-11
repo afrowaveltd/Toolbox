@@ -243,3 +243,8 @@ canonical page boundaries. This is a deterministic source-
 visual layout, still experimental for nested Markdown containers,
 complex inline tokens and terminal-dependent Unicode widths.
 [Responsive preview internals](../Responsive-Preview/en.md).
+
+The default `preview` content height is **automatic**: all
+available screen rows after the 16-row header/footer/menu reserve
+can be used, up to 128 visual rows. An explicit `linesPerPage`
+parameter still constrains callers who need a smaller page size.
