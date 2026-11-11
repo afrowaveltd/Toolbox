@@ -110,3 +110,25 @@ flows should remain unchanged.
 [Link navigation](../Link-Navigation/en.md) ·
 [Experimental local preview](../Experimental-Formatted-Preview/en.md) ·
 [Implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## UTF-16 page-budget boundary correction (2026-11-11)
+
+A maintainer test run after the initial paging implementation reported
+**147 passed, 1 failed, 0 skipped, 148 total** in `MdView.Tests`.
+The failing case was
+`MdViewSmallMarkdownPageIndexTests.PageCharacterBudgetDoesNotSplitUnicodeSurrogatePair`:
+expected 16,383 display characters but observed 16,384.
+
+The Unicode pair itself was not split. When the first physical line was
+shortened to avoid an orphan high surrogate, one UTF-16 code unit remained
+in the page budget. The previous loop incorrectly consumed a single
+character from the **next** source line, creating an incomplete heading.
+The corrected `GetPage` stops after truncating any physical line.
+If the remaining budget cannot accommodate the leading two-code-unit
+Unicode scalar on the next line, the next line is left untouched for
+the next page rather than advanced without output.
+
+The original verified source and source-line offsets are unchanged.
+Regression coverage now explicitly checks both conditions and ensures
+the following heading remains visible when the next page is requested.
+The corrected tests still require a fresh maintainer run.
