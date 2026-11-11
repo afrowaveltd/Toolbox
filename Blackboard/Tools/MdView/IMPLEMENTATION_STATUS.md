@@ -656,3 +656,47 @@
 - Maintainer confirms **no errors** after updating to the UTF-16 source-page boundary fix and new regression tests. This supersedes the previously reported 147 passed / 1 failed result; exact current test totals were not provided and are not inferred.
 - Verified-by-maintainer source fix: `fe9ccc8b734ac7b399f1fca5bbb3ddaa134c927f`; regression tests: `b276c12c2de5344f3ae313e28038c8a717f8e850`.
 - Next milestone: disk-backed heading/link indexing for large Markdown files, building on validated snapshots and existing disk line/scanner checkpoint indexes; retain the 1 MiB bounded GitHub rendering cap until a genuinely streaming navigation path is tested.
+
+## 2026-11-11 — disk-backed heading/link index for large local Markdown previews
+
+- Previous unicode-page boundary fix and MdView test suite were
+  explicitly maintainer-confirmed green. That is the baseline before
+  the changes below; new test totals are not asserted.
+- Added `MdViewDiskNavigationIndex` in commit
+  `6ed7131b6502a6712e5a6a96ad835dc0a572ade2`:
+  a sequential, bounded-memory scan of a caller-owned verified
+  `Utf8ValidatedSnapshot` through existing incremental Markdown
+  container and inline parsers. Source-bound heading and inline-link
+  positions are stored in three temporary files (records plus two
+  64-bit offset tables), with a combined default 128 MiB disk budget,
+  16 KiB record cap, bounded labels/destinations, cancellation and
+  cleanup on failure. It keeps no full AST or complete result list
+  in RAM. Conservative fenced/indented code exclusions were hardened
+  in `77706689f963a746f5a55d32720cae02e29ebeb6`.
+- Added `MdViewDiskNavigationPicker` (`05d27fa6068de1c24c56ae7730c5a564bde15734`)
+  for keyboard selection in batches of 12 entries, with Next/Previous
+  results and Escape/Back.
+- Integrated lazy index construction into the existing **local**
+  `MdViewFormattedPreviewPager` (`47e56f1112983f1c53d88a0b4615ee3b3252e138`,
+  formatting `097594ecb0acf6dd581e0a64d0ca82ca32fdae3e`).
+  New menu items: **Find heading (disk index)** and **Find link
+  location (disk index)**. Selected entries jump to a physical
+  source line; they do not automatically open linked destinations.
+  Normal paging does not build the index until it is requested;
+  an index build error leaves the normal pager intact.
+- Tests: `MdViewDiskNavigationIndexTests` (`51a622bbba1dea415d7104e96a86d62911d7695e`,
+  fixture correction `e86e8a63e5511cd52c5bb2c1b1d5faf0d53e9822`,
+  offset assertions `7789e49d110f84ef2866283a9f6c673fc23cbfb0`,
+  indented-code regression `750bca818071a7b5d9e04a50271b6ecc873656ba`),
+  picker tests (`262df9bb5ce89da3ad1cfaad508afff40ff15a9b`),
+  preview terminal integration cases (`6d0d3482e2d9afbade716c2f4cb9a58d70756b91`).
+- English guide: `Docs/Disk-Navigation-Index/en.md`.
+- **New tests have not been executed in this environment.**
+  Run focused MdView tests and full Toolbox.sln; smoke-test long
+  local `mdview preview PATH` with indexed heading/link jumps.
+- Current limitations: conservative line-local inline grammar, no
+  reference-link/multiline/CommonMark parity; indexed link entries
+  are source locations, not cross-document navigation. Index build
+  requires one sequential pass and remains limited by the snapshot's
+  own disk/line budgets. Large-document visual-row pagination and
+  arbitrary GitHub files above the current 1 MiB cap are still pending.
