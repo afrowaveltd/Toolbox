@@ -496,3 +496,20 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   next true multi-gigabyte, low-RAM heading/link navigation milestone.
 - **Tests on this increment have not yet been confirmed green.**
   Run focused MdView tests and full `Toolbox.sln` on Debian/Windows.
+
+## 2026-11-11 — mdview Unicode page-budget regression correction
+
+- Maintainer reported `MdView.Tests`: **147 passed, 1 failed,
+  0 skipped, 148 total**. Single failure:
+  `PageCharacterBudgetDoesNotSplitUnicodeSurrogatePair`.
+- `MdViewSmallMarkdownPageIndex` now ends the rendered page
+  after a truncated physical line and does not consume a subsequent
+  line when only one UTF-16 code unit remains before its emoji.
+  Source commit `fe9ccc8b734ac7b399f1fca5bbb3ddaa134c927f`.
+- Original regression retained; added tests for truncated-line
+  boundary integrity and next-line emoji preservation:
+  `b276c12c2de5344f3ae313e28038c8a717f8e850`.
+- GitHub link browsing, verified cache, historical navigation and
+  large-file disk pager are unchanged.
+- **Focused/full solution test verification remains pending after
+  the fix.** See MdView and MdView.Tests implementation statuses.
