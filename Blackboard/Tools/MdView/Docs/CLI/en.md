@@ -174,3 +174,29 @@ single-document renderer and deliberately has no link navigation.
 Use `browse-git afrowaveltd Toolbox` for an explicit CLI navigation
 command. The interactive GitHub menu change does not alter local/URL
 source choices.
+
+## GitHub page navigation in long READMEs (2026-11-11)
+
+`browse-git OWNER REPOSITORY` and the no-argument GitHub source
+choice now show only a bounded source-line page when the current
+Markdown document has more than 24 physical lines.
+
+The navigation menu retains **Follow a link**, Back/Forward history
+and Exit, and adds **Next page**, **Previous page**,
+**Go to heading**, and **Go to source line** for long documents.
+The current source-line range is shown above the page. Choosing a
+heading positions that source line at the top of the next view;
+following a Markdown link still opens and verifies the destination
+before changing history. Up to 512 headings are offered in the
+initial picker, while the line-number prompt can reach any line
+within the bounded document.
+
+A page emits at most 16 Ki UTF-16 characters. Long physical lines
+are shortened for display only. Fenced code stays literal across
+boundaries; complete cross-page list/quote formatting and
+visual-row/terminal-height pagination are not yet solved. The
+existing 1 MiB verified GitHub file cap remains. Short source files
+retain their original single-document presentation. The one-shot
+`git OWNER REPOSITORY` command is unchanged.
+
+[Technical behavior and tests](../Paged-GitHub-Browsing/en.md).
