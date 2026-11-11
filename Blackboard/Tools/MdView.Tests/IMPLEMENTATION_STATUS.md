@@ -428,3 +428,30 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   `750bca818071a7b5d9e04a50271b6ecc873656ba`.
 - **New test execution not yet confirmed.** Run focused MdView tests,
   then full Toolbox.sln; verify manual long-file source jumps.
+
+## 2026-11-11 — adaptive terminal page regression checkpoint
+
+- Added five `MdViewTerminalWordWrapTests` covering punctuation-
+  aware sentence/clause wrapping, fallback word splits, no-wrap
+  code clipping `→`, combining/emoji/CJK handling and
+  argument validation; source/test commits
+  `c72f5f0df7811441c1184d9a73c7ccdfea4c2a61`,
+  `6a607adcb02e395b8b9e2cc7e0e3c0dbc219d619`.
+- Added five `MdViewTerminalPageIndexTests` in
+  `259eebca8119b08791bf105d11974e96a05b0368`:
+  different viewport size yields different page count,
+  extremely long physical prose line resumes at nonzero
+  wrap offset, code stays one row with overflow indicator,
+  page index failure leaves validated input intact, and
+  invalid/disposed page positions are rejected.
+- Added two `MdViewFormattedPreviewPagerTests` cases in
+  `7752320d5738afee1b0c0c113ab9ee389cfbdb0c`:
+  Page X of Y + physical range in narrow viewport, and code
+  overflow without changing source bytes. Corrected the
+  expectation for an intentionally one-row-clipped header
+  in `1d4b1961dab83af11963a767bd1c0e259fef7825`.
+- Existing virtual-terminal source browsing, page history,
+  lazy disk heading/link jumps and fenced code cases must
+  remain green; no intentional change in these APIs.
+- **These new tests have not yet been run or maintainer-confirmed
+  green.** Execute focused MdView and full Toolbox.sln suites.
