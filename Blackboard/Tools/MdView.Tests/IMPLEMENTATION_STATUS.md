@@ -462,3 +462,10 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   confirms that conservative indented source code is clipped
   rather than soft-wrapped. The preceding responsive tests
   are still pending independent execution.
+
+- Height adaptation follow-up: `3004bfc4fb2af9a3789343b79a31b2f8ac3c9de5`
+  and `8a6defbeb986cb254f147d813959bce44cb4c3a1`
+  remove the old fixed 24-row default; automatic pages can grow
+  up to 128 visual rows. Test `996a03c2ab7abccf3520b853ad374411722b940d`
+  compares narrow, wide, tall and explicitly capped viewports.
+  Fresh .NET test verification remains pending.
