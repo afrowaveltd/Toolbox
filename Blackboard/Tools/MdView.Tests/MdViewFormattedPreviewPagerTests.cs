@@ -207,6 +207,24 @@ public sealed class MdViewFormattedPreviewPagerTests
     }
 
     [Fact]
+    public async Task WideTerminalShowsFullSingleLineCodeOverflowExplanation()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteAsync(
+            "```c\n    " + new string('x', 120) + "\n```\n# End");
+        var console = Interactive();
+        console.Profile.Width = 90;
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewFormattedPreviewPager(console).RunAsync(path);
+
+        Assert.Contains(
+            "→ Code continues beyond the visible width (not wrapped).",
+            console.Output);
+        Assert.Contains("Page 1 of 1", console.Output);
+    }
+
+    [Fact]
     public async Task UnsafeInputIsNeverRendered()
     {
         using var fixture = new Fixture();
