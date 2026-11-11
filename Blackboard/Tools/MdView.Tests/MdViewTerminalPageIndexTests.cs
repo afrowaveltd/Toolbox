@@ -22,11 +22,19 @@ public sealed class MdViewTerminalPageIndexTests
             snapshot, width: 36, height: 24);
         await using var wide = await MdViewTerminalPageIndex.CreateAsync(
             snapshot, width: 120, height: 40);
+        await using var tall = await MdViewTerminalPageIndex.CreateAsync(
+            snapshot, width: 120, height: 80);
+        await using var explicitCap = await MdViewTerminalPageIndex.CreateAsync(
+            snapshot, width: 120, height: 80, maximumSourceLinesPerPage: 2);
 
         Assert.Equal(34, narrow.Columns);
         Assert.Equal(8, narrow.RowsPerPage);
         Assert.Equal(24, wide.RowsPerPage);
+        Assert.Equal(64, tall.RowsPerPage);
+        Assert.Equal(2, explicitCap.RowsPerPage);
         Assert.True(narrow.PageCount > wide.PageCount);
+        Assert.True(wide.PageCount > tall.PageCount);
+        Assert.True(explicitCap.PageCount > tall.PageCount);
         Assert.Equal(new MdViewVisualPosition(0, 0),
             await narrow.GetStartAsync(0));
         Assert.Equal(original, await File.ReadAllBytesAsync(fixture.Path));
