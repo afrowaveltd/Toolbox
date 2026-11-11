@@ -42,3 +42,20 @@ unchanged.
 New tests are committed but **not yet maintainer-confirmed green**.
 Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
 and `dotnet test Toolbox.sln` before the next milestone.
+
+## Responsive preview regressions (2026-11-11)
+
+New `MdViewTerminalWordWrapTests` cover natural language break
+priority, long words, Unicode cell widths, emoji safety and
+code lines that are clipped rather than wrapped.
+`MdViewTerminalPageIndexTests` cover viewport-specific page
+counts, resize re-indexing, source positions within a single
+very long line, code overflow, disk budget failure and bounds.
+New `MdViewFormattedPreviewPagerTests` cases verify a visual
+Page X of Y footer and code continuation messages; the
+pre-existing source-line jump, fence and navigation scenarios
+remain in place.
+
+This source increment has **not yet been verified by a fresh
+maintainer test run**. Run the targeted MdView tests and complete
+Toolbox solution suite before considering this checkpoint green.
