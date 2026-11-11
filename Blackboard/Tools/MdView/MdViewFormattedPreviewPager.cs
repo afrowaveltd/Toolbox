@@ -126,9 +126,18 @@ public sealed class MdViewFormattedPreviewPager
                     " of " + lines.LineCount.ToString(CultureInfo.InvariantCulture) +
                     Environment.NewLine, gray));
                 if (rendered.ContainsClippedCode)
-                    _console.Write(new Text(
-                        "→ Code continues beyond the visible width (not wrapped)." +
-                        Environment.NewLine, gray));
+                {
+                    // A narrow terminal must not wrap the status warning
+                    // into additional rows outside the viewport budget.
+                    // The arrow on the code line and this note both mean
+                    // horizontal clipping, never a source line break.
+                    var codeNote = pageIndex.Columns >= 56
+                        ? "→ Code continues beyond the visible width (not wrapped)."
+                        : pageIndex.Columns >= 24
+                            ? "→ Code clipped (no wrap)."
+                            : "→ Code clipped";
+                    _console.Write(new Text(codeNote + Environment.NewLine, gray));
+                }
 
                 const string next = "Next page";
                 const string previous = "Previous page";
