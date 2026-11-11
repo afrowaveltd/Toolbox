@@ -222,7 +222,8 @@ public sealed class MdViewGitHubLinkBrowser
                         // Keep selection bounded independently of source size.
                         var shown = headings.Take(512).ToArray();
                         var options = shown.Select((heading, index) =>
-                            (index + 1) + ". " + heading.Title + " (#" + heading.Anchor + ")")
+                            (index + 1) + ". " + ShortLabel(heading.Title) +
+                            " (#" + ShortLabel(heading.Anchor) + ")")
                             .ToList();
                         const string back = "Back / cancel";
                         options.Add(back);
