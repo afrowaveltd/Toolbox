@@ -242,3 +242,16 @@ This is a source-I/O-pattern optimization, **not** an HDD benchmark or
 a change to the default CLI pager. The resulting checkpoint offsets and
 fence states have new mixed-newline/Unicode regression coverage. Focused
 and full-suite verification is required after this change.
+
+## Separation from the new GitHub source-page UI (2026-11-11)
+
+The opt-in GitHub link browser now offers bounded source-line
+pagination for 1 MiB-or-smaller verified Markdown files. This does
+not replace this separate **local** experimental preview command,
+`mdview preview PATH`, whose `Utf8ValidatedSnapshot`,
+disk line-index and container-event journal target much larger
+source inputs. GitHub paging currently uses the in-memory
+small-document parser and only renders current source fragments.
+Large-file source-aware visual pagination should build on the
+existing disk-backed indexes and scanner checkpoints, not remove
+the GitHub browser's input cap.
