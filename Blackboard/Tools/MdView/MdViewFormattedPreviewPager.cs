@@ -44,7 +44,11 @@ public sealed class MdViewFormattedPreviewPager
         long firstLine = 0;
         var previousPages = new Stack<long>();
         string? feedback = null;
+        MdViewDiskNavigationIndex? navigationIndex = null;
+        var navigationPicker = new MdViewDiskNavigationPicker(_console);
 
+        try
+        {
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -121,12 +125,19 @@ public sealed class MdViewFormattedPreviewPager
             const string next = "Next page";
             const string previous = "Previous page";
             const string jump = "Go to source line";
+            const string headings = "Find heading (disk index)";
+            const string links = "Find link location (disk index)";
             const string exit = "Exit preview";
 
             var choices = new List<string>();
             if (page.HasMore) choices.Add(next);
             if (previousPages.Count != 0) choices.Add(previous);
-            if (index.LineCount != 0) choices.Add(jump);
+            if (index.LineCount != 0)
+            {
+                choices.Add(jump);
+                choices.Add(headings);
+                choices.Add(links);
+            }
             choices.Add(exit);
 
             var chosen = await new SelectionPrompt<string>()
@@ -165,6 +176,53 @@ public sealed class MdViewFormattedPreviewPager
                 previousPages.Clear();
                 firstLine = number - 1;
             }
+            else if (chosen == headings || chosen == links)
+            {
+                try
+                {
+                    if (navigationIndex is null)
+                    {
+                        _console.Write(new Text(
+                            "Indexing validated Markdown source once; results stay on disk..." +
+                            Environment.NewLine));
+                        navigationIndex = await MdViewDiskNavigationIndex.CreateAsync(
+                            snapshot, cancellationToken: cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+
+                    var kind = chosen == headings
+                        ? MdViewIndexedItemKind.Heading
+                        : MdViewIndexedItemKind.Link;
+                    var target = await navigationPicker.PickAsync(
+                        navigationIndex, kind, cancellationToken).ConfigureAwait(false);
+                    if (target is not null)
+                    {
+                        // The disk index records source coordinates, not
+                        // approved cross-document link destinations.
+                        previousPages.Clear();
+                        firstLine = target.LineNumber;
+                        feedback = "Jumped to source line " +
+                            (firstLine + 1).ToString(CultureInfo.InvariantCulture) +
+                            (kind == MdViewIndexedItemKind.Link
+                                ? " containing the selected Markdown link."
+                                : " containing the selected heading.");
+                    }
+                }
+                catch (Exception ex) when (ex is IOException or InvalidDataException or
+                    UnauthorizedAccessException)
+                {
+                    // A failed index cannot replace the already working
+                    // source-line pager. Index construction removes partial
+                    // temporary files before throwing.
+                    feedback = "Navigation index unavailable: " + ex.Message;
+                }
+            }
+        }
+        }
+        finally
+        {
+            if (navigationIndex is not null)
+                await navigationIndex.DisposeAsync().ConfigureAwait(false);
         }
     }
 }
