@@ -366,3 +366,9 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   previous MemView success was a separate manual acceptance check.
   Test with `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
   and `dotnet test Toolbox.sln`, then smoke-test GitHub paging.
+
+- Additional display hardening (no behavior change to navigation):
+  `86afdc02e85860187a50b072f0fb441124eb4647` bounds displayed
+  heading-choice labels and `1081d13cb6e16df2dffb010d1d261ca7ecc5d348`
+  avoids splitting UTF-16 surrogate pairs when shortening labels.
+  Regression tests remain pending execution.
