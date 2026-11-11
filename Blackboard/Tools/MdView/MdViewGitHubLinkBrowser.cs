@@ -103,7 +103,8 @@ public sealed class MdViewGitHubLinkBrowser
                 {
                     var heading = MdViewHeadingIndex.Find(headings, fragment);
                     if (heading is null)
-                        message = "Heading anchor not found: #" + fragment;
+                        _console.Write(new Text(
+                            "Heading anchor not found: #" + fragment + Environment.NewLine));
                     else
                         firstLine = pageIndex.FindSourceLine(heading.SourceOffset);
                 }
