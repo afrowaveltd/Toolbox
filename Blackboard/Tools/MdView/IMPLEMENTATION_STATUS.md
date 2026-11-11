@@ -762,3 +762,9 @@
   Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
   and `dotnet test Toolbox.sln` and manually resize Konsole
   between page actions. Do not claim green until results are known.
+
+- Follow-up safeguard: `8edf72f7fc45eebc0959d4a7b58b44fecee086f0`
+  conservatively treats unowned indented source lines as code
+  for no-wrap/clipping behavior, not only explicit fences.
+  Regression test: `7f8a9b85148dc5bf1aefb0da58cc0bf6f687f31c`.
+  Post-change tests remain pending.
