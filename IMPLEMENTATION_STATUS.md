@@ -580,3 +580,24 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   Explicit smaller caller caps remain compatible. Regression:
   `996a03c2ab7abccf3520b853ad374411722b940d`.
   New tests are not yet maintainer-confirmed green.
+
+## 2026-11-12 — responsive MdView preview: two test regressions corrected
+
+- Maintainer reported focused `MdView.Tests`: 174 passed,
+  2 failed, 0 skipped, 176 total.
+- One test expected literal `# Ending` even though the Markdown
+  renderer correctly displays the formatted heading `Ending`.
+  The other expected an unwrapped, full-width code-overflow
+  explanation from a 31-column terminal. Both causes were
+  identified and test assertions corrected.
+- `MdViewFormattedPreviewPager` now selects the code clipping
+  warning text according to available terminal width; long code
+  lines still remain unwrapped and source preserving.
+  Source: `c1889b53d3f62de5c7372674b54ccac1d6b9c4f3`,
+  `d58d11d2be89b1ee8ca803a55b8cb6003173ccd4`.
+  Tests: `ff2411594f620b618dafad085cd48064dfd074b1`,
+  `a33ecffbf780947b060059e2142bd288b1c6bbbf`,
+  `679628725495c72a8c91fde21ca2770edd42e6b5`.
+- English docs: `Blackboard/Tools/MdView/Docs/Responsive-Preview/en.md`.
+  See project-level implementation statuses for test names/details.
+- **Fresh focused and solution test results remain pending.**
