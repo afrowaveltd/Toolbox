@@ -617,3 +617,9 @@
   source index** and reconnect the existing validated snapshot
   and sparse container checkpoints to context-preserving large-file
   rendering. Do not lift the GitHub 1 MiB cap prematurely.
+
+- Final picker-width hardening: `86afdc02e85860187a50b072f0fb441124eb4647`
+  truncates displayed heading labels, and
+  `1081d13cb6e16df2dffb010d1d261ca7ecc5d348`
+  preserves Unicode surrogate pairs in shortened link/heading labels.
+  No new automated green claim is made.
