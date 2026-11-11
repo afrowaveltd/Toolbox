@@ -83,6 +83,29 @@ public sealed class MdViewTerminalPageIndexTests
     }
 
     [Fact]
+    public async Task FourSpaceIndentedCodeIsNotSoftWrapped()
+    {
+        using var fixture = new Fixture(
+            "    int very_long_identifier_with_spaces = value + another_value;\nNormal prose");
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(fixture.Path);
+        await using var index = await MdViewTerminalPageIndex.CreateAsync(
+            snapshot, width: 24, height: 36);
+        Assert.Equal(1, index.PageCount);
+
+        var console = new TestConsole();
+        console.Profile.Width = 24;
+        console.Profile.Height = 36;
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        var rendered = await MdViewTerminalPageRenderer.RenderAsync(
+            console, cursor, await index.GetStartAsync(0),
+            index.Columns, index.RowsPerPage, new MarkdownSpectreTheme());
+
+        Assert.True(rendered.ContainsClippedCode);
+        Assert.Contains("→", console.Output);
+        Assert.Contains("Normal prose", console.Output);
+    }
+
+    [Fact]
     public async Task DiskBudgetRejectsIndexWithoutChangingValidatedSnapshot()
     {
         using var fixture = new Fixture(string.Join("\n",
