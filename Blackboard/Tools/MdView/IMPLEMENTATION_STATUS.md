@@ -553,3 +553,10 @@
   no-argument GitHub selection with both `afrowaveltd/Toolbox`
   and owner-only `afrowaveltd`. A still rate-limited GitHub API
   may prevent obtaining metadata even though menu routing is fixed.
+
+## 2026-11-11 — maintainer manual acceptance: MemView GitHub Markdown browsing
+
+- Maintainer reports successful **manual end-to-end use of GitHub Markdown browsing and link navigation** against the independent public `afrowaveltd/MemView` repository after the interactive menu routing correction.
+- Screenshot supplied of the rendered English Git lesson confirms readable headings, lists, paragraph text, code examples, and Markdown presentation in a Linux terminal. Maintainer explicitly confirms links work in this repository.
+- This is **manual acceptance**, not a newly reported focused or full `.NET` test run. No test totals, CI status, or exhaustive source/anchor scenarios are inferred.
+- Next follow-up: retain the working GitHub browsing behavior, separately verify focused/full regression suites, and continue examining usability and large-document paging without weakening verified cache/source boundaries.
