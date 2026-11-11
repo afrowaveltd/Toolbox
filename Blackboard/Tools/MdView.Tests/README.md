@@ -23,3 +23,22 @@ Added `MdViewSourcePagerTests` to verify the explicit raw UTF-8 source pager: Es
 Added `MdViewDocumentCompletionPromptTests` (5 new cases) and `MdViewSessionTests` (8 cases), using the virtual Spectre `TestConsole`. They cover Enter-to-menu, Escape-to-exit, ignoring reserved search/pager keys, noninteractive completion without input, direct-command → menu → second document flow, cancelling the returned menu, preserving errors, suppressing prompts for unread/cancelled sources, and ensuring the raw source pager is not prompted twice. The session tests use in-memory delegate fakes and do not call the network or filesystem.
 
 The last maintainer-confirmed full Windows baseline was green *before* this feature. These 13 new cases have **not yet been executed** in this environment.
+
+## Disk-backed Markdown navigation (2026-11-11)
+
+The new `MdViewDiskNavigationIndexTests`,
+`MdViewDiskNavigationPickerTests` and additions to
+`MdViewFormattedPreviewPagerTests` verify source-aware headings
+and inline link positions in large validated Markdown snapshots.
+Coverage includes fenced/indented/inline code, images, escaped links,
+source UTF-16 offsets across mixed line endings, distant disk result
+pages, disk budget failure recovery, long Unicode labels,
+selector cancellation and navigation into local preview pages.
+The index is created lazily by `mdview preview PATH` only when the
+reader chooses Find heading / Find link location; the existing
+GitHub browsing and normal Markdown rendering test paths remain
+unchanged.
+
+New tests are committed but **not yet maintainer-confirmed green**.
+Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+and `dotnet test Toolbox.sln` before the next milestone.
