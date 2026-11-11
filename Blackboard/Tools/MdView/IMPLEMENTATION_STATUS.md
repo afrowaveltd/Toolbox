@@ -623,3 +623,30 @@
   `1081d13cb6e16df2dffb010d1d261ca7ecc5d348`
   preserves Unicode surrogate pairs in shortened link/heading labels.
   No new automated green claim is made.
+
+## 2026-11-11 — fix failed UTF-16 page boundary test (147/148)
+
+- Maintainer's Debian `MdView.Tests` result: **147 passed, 1 failed,
+  0 skipped, total 148**. The single failure was
+  `PageCharacterBudgetDoesNotSplitUnicodeSurrogatePair`
+  (expected 16,383 UTF-16 characters, actual 16,384).
+- Source analysis identified that `GetPage` correctly avoided
+  cutting the emoji surrogate pair but then consumed one character
+  from the **next physical line** using the leftover budget. This
+  is a pagination boundary issue, not a Markdown parser failure.
+- Fixed `MdViewSmallMarkdownPageIndex.GetPage` to stop emitting
+  source lines immediately after shortening a long line and to
+  leave a next line intact if its first Unicode scalar cannot fit
+  the remaining UTF-16 page budget. Source commit
+  `fe9ccc8b734ac7b399f1fca5bbb3ddaa134c927f`.
+- Strengthened the original Unicode test and added two regression
+  cases for no next-line leakage and preservation of an emoji at
+  the beginning of the next line: test commit
+  `b276c12c2de5344f3ae313e28038c8a717f8e850`.
+- Only bounded source-page rendering changed. Existing GitHub
+  verified cache, Markdown link navigation, history, one-shot
+  commands and indexed large-file pager remain untouched.
+- **Post-fix focused/full tests pending maintainer verification.**
+  Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`; do not claim all green until
+  the revised tests are executed.
