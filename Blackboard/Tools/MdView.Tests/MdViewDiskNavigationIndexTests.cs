@@ -48,6 +48,21 @@ public sealed class MdViewDiskNavigationIndexTests
     }
 
     [Fact]
+    public async Task IndentedCodeDoesNotProduceClickableSourceLinkLocations()
+    {
+        using var sample = new Document(
+            "# Real heading\n    [Not a link](hidden.md)\n\t[Also code](tab.md)\n[Real](Docs/en.md)");
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(sample.Path);
+        await using var index = await MdViewDiskNavigationIndex.CreateAsync(snapshot);
+
+        Assert.Equal(1, index.HeadingCount);
+        Assert.Equal(1, index.LinkCount);
+        var links = await index.ReadAsync(MdViewIndexedItemKind.Link, 0);
+        Assert.Equal("Docs/en.md", Assert.Single(links).Destination);
+        Assert.Equal(3, links[0].LineNumber);
+    }
+
+    [Fact]
     public async Task ReadsDistantResultPagesWithoutMaterializingAllEntries()
     {
         var text = string.Join("\n", Enumerable.Range(0, 3000).Select(i =>
