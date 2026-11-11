@@ -99,6 +99,52 @@ public sealed class MdViewSmallMarkdownPageIndexTests
         Assert.Equal(MdViewSmallMarkdownPageIndex.MaximumPageCharacters - 1,
             shown.Length);
         Assert.False(char.IsHighSurrogate(shown[^1]));
+        // After shortening a physical line, a leftover code unit must
+        // never consume part of the following Markdown heading.
+        Assert.DoesNotContain("# Next", shown);
+        Assert.True(page.HasMore);
+        Assert.Equal(1, page.NextLine);
+        var following = new MdViewSmallMarkdownPageIndex(source).GetPage(page.NextLine);
+        Assert.Contains("# Next", string.Concat(following.Segments.Select(x => x.Text)));
+    }
+
+    [Fact]
+    public void RemainingOneCodeUnitDoesNotConsumeEmojiAtStartOfNextLine()
+    {
+        var source = new string('a', MdViewSmallMarkdownPageIndex.MaximumPageCharacters - 2)
+            + "\n😀 and a complete Unicode heading follows\n# Heading";
+        var index = new MdViewSmallMarkdownPageIndex(source);
+        var first = index.GetPage(0);
+
+        Assert.Equal(1, first.NextLine);
+        Assert.True(first.HasMore);
+        Assert.False(first.TruncatedLine);
+        Assert.Equal(MdViewSmallMarkdownPageIndex.MaximumPageCharacters - 1,
+            string.Concat(first.Segments.Select(x => x.Text)).Length);
+
+        var second = index.GetPage(first.NextLine);
+        Assert.Equal(1, second.FirstLine);
+        Assert.StartsWith("😀", string.Concat(second.Segments.Select(x => x.Text)));
+    }
+
+    [Fact]
+    public void TruncatedLineNeverLeaksNextHeadingThroughLeftoverBudget()
+    {
+        var source = new string('a', MdViewSmallMarkdownPageIndex.MaximumPageCharacters - 1)
+            + "😀" + "\n# Visible only on next page";
+        var index = new MdViewSmallMarkdownPageIndex(source);
+        var first = index.GetPage(0);
+
+        Assert.True(first.TruncatedLine);
+        Assert.Equal(1, first.NextLine);
+        Assert.Equal(MdViewSmallMarkdownPageIndex.MaximumPageCharacters - 1,
+            string.Concat(first.Segments.Select(x => x.Text)).Length);
+        Assert.DoesNotContain("#", string.Concat(first.Segments.Select(x => x.Text)));
+
+        var second = index.GetPage(first.NextLine);
+        Assert.Equal(1, second.FirstLine);
+        Assert.Contains("# Visible only on next page",
+            string.Concat(second.Segments.Select(x => x.Text)));
     }
 
     [Fact]
