@@ -36,7 +36,16 @@ public sealed class MdViewGitHubLinkBrowser
         var navigation = await MdViewGitHubNavigationSession.OpenAsync(
             _source, owner, repository, cancellationToken: cancellationToken).ConfigureAwait(false);
         var picker = new MdViewDocumentLinkPicker(_console);
+        var theme = MdViewHighlighting.CreateTheme();
         string? message = null;
+        string? markdown = null;
+        string? activeSource = null;
+        string? activeDigest = null;
+        MdViewSmallMarkdownPageIndex? pageIndex = null;
+        IReadOnlyList<MdViewDocumentLink> links = [];
+        IReadOnlyList<MdViewHeadingAnchor> headings = [];
+        MdViewResolvedLink? displayedTarget = null;
+        int firstLine = 0;
 
         while (true)
         {
@@ -67,13 +76,40 @@ public sealed class MdViewGitHubLinkBrowser
                 message = null;
             }
 
-            var markdown = await File.ReadAllTextAsync(
-                current.Result.Document!.ContentPath, new UTF8Encoding(false, true),
-                cancellationToken).ConfigureAwait(false);
-            if (markdown.Length > MdViewDocumentLinkExtractor.MaximumDocumentCharacters)
-                throw new InvalidDataException("GitHub document exceeds the link extractor size limit.");
+            // Only reload/reparse after a verified source identity or content
+            // digest changes. Page changes do not reread the whole document.
+            var source = current.Result.Document!;
+            if (pageIndex is null || markdown is null ||
+                activeSource != origin.Location || activeDigest != source.Sha256)
+            {
+                markdown = await File.ReadAllTextAsync(
+                    source.ContentPath, new UTF8Encoding(false, true),
+                    cancellationToken).ConfigureAwait(false);
+                if (markdown.Length > MdViewDocumentLinkExtractor.MaximumDocumentCharacters)
+                    throw new InvalidDataException(
+                        "GitHub document exceeds the bounded small-document browser limit.");
+                pageIndex = new MdViewSmallMarkdownPageIndex(markdown);
+                links = MdViewDocumentLinkExtractor.Extract(markdown, origin);
+                headings = MdViewHeadingIndex.Create(markdown);
+                activeSource = origin.Location;
+                activeDigest = source.Sha256;
+                displayedTarget = null;
+            }
 
-            var links = MdViewDocumentLinkExtractor.Extract(markdown, origin);
+            if (displayedTarget != current.Target)
+            {
+                firstLine = 0;
+                if (current.Target.Fragment is { Length: > 0 } fragment)
+                {
+                    var heading = MdViewHeadingIndex.Find(headings, fragment);
+                    if (heading is null)
+                        message = "Heading anchor not found: #" + fragment;
+                    else
+                        firstLine = pageIndex.FindSourceLine(heading.SourceOffset);
+                }
+                displayedTarget = current.Target;
+            }
+
             _console.Write(new Text(
                 "Navigable Markdown links: " + links.Count +
                 (links.Count > 0
@@ -82,9 +118,6 @@ public sealed class MdViewGitHubLinkBrowser
                 Environment.NewLine));
             if (links.Count > 0)
             {
-                // A long README can push the navigation menu below the
-                // terminal viewport. Show actual link labels up front, not
-                // merely a count. The full list remains in the link picker.
                 _console.Write(new Text("Available links (first 3):" + Environment.NewLine));
                 for (var index = 0; index < Math.Min(3, links.Count); index++)
                 {
@@ -95,22 +128,41 @@ public sealed class MdViewGitHubLinkBrowser
                 }
             }
 
-            var rendered = markdown;
-            if (current.Target.Fragment is { Length: > 0 } fragment)
+            var paged = pageIndex.LineCount > MdViewSmallMarkdownPageIndex.DefaultPageLines;
+            MdViewMarkdownSourcePage? visiblePage = null;
+            if (paged)
             {
-                var heading = MdViewHeadingIndex.Find(
-                    MdViewHeadingIndex.Create(markdown), fragment);
-                if (heading is null)
+                visiblePage = pageIndex.GetPage(firstLine);
+                _console.Write(new Text(
+                    "Page: source lines " + (visiblePage.FirstLine + 1) +
+                    "–" + visiblePage.NextLine + " / " + visiblePage.LineCount +
+                    Environment.NewLine));
+                MdViewSmallMarkdownPageIndex.RenderPage(_console, visiblePage, theme);
+                if (visiblePage.TruncatedLine)
                     _console.Write(new Text(
-                        "Heading anchor not found: #" + fragment + Environment.NewLine));
-                else
-                {
-                    rendered = markdown[heading.SourceOffset..];
-                    _console.Write(new Text(
-                        "Jumped to heading: " + heading.Title + Environment.NewLine));
-                }
+                        "Long source line shortened on this page; use source pager for full text." +
+                        Environment.NewLine));
             }
-            MarkdownSpectreRenderer.Render(_console, rendered, MdViewHighlighting.CreateTheme());
+            else
+            {
+                // Keep the familiar complete-document presentation and
+                // keyboard actions for short Markdown files.
+                var rendered = markdown;
+                if (current.Target.Fragment is { Length: > 0 } fragment)
+                {
+                    var heading = MdViewHeadingIndex.Find(headings, fragment);
+                    if (heading is null)
+                        _console.Write(new Text(
+                            "Heading anchor not found: #" + fragment + Environment.NewLine));
+                    else
+                    {
+                        rendered = markdown[heading.SourceOffset..];
+                        _console.Write(new Text(
+                            "Jumped to heading: " + heading.Title + Environment.NewLine));
+                    }
+                }
+                MarkdownSpectreRenderer.Render(_console, rendered, theme);
+            }
 
             var choices = new List<string>();
             if (links.Count > 0)
@@ -119,6 +171,14 @@ public sealed class MdViewGitHubLinkBrowser
                 choices.Add("Back");
             if (navigation.History.CanGoForward)
                 choices.Add("Forward");
+            if (paged && visiblePage!.HasMore)
+                choices.Add("Next page");
+            if (paged && firstLine > 0)
+                choices.Add("Previous page");
+            if (paged && headings.Count > 0)
+                choices.Add("Go to heading");
+            if (paged)
+                choices.Add("Go to source line");
             choices.Add("Exit browser");
 
             var action = await new SelectionPrompt<string>()
@@ -149,6 +209,52 @@ public sealed class MdViewGitHubLinkBrowser
                     case "Forward":
                         await navigation.ForwardAsync(cancellationToken).ConfigureAwait(false);
                         break;
+                    case "Next page":
+                        firstLine = visiblePage!.NextLine;
+                        break;
+                    case "Previous page":
+                        firstLine = Math.Max(0,
+                            firstLine - MdViewSmallMarkdownPageIndex.DefaultPageLines);
+                        break;
+                    case "Go to heading":
+                    {
+                        // Keep selection bounded independently of source size.
+                        var shown = headings.Take(512).ToArray();
+                        var options = shown.Select((heading, index) =>
+                            (index + 1) + ". " + heading.Title + " (#" + heading.Anchor + ")")
+                            .ToList();
+                        const string back = "Back / cancel";
+                        options.Add(back);
+                        var picked = await new SelectionPrompt<string>()
+                            .Title("Choose a heading (first 512)")
+                            .PageSize(Math.Clamp(options.Count, 3, 15))
+                            .UseConverter(Markup.Escape)
+                            .AddChoices(options)
+                            .AddCancelResult(back)
+                            .ShowAsync(_console, cancellationToken).ConfigureAwait(false);
+                        var headingIndex = options.IndexOf(picked);
+                        if (headingIndex >= 0 && headingIndex < shown.Length)
+                            firstLine = pageIndex!.FindSourceLine(shown[headingIndex].SourceOffset);
+                        break;
+                    }
+                    case "Go to source line":
+                    {
+                        var input = await new TextPrompt<string>(
+                            "Source line (1-based, empty = cancel): ")
+                            .AllowEmpty().ShowAsync(_console, cancellationToken)
+                            .ConfigureAwait(false);
+                        if (input.Length > 0)
+                        {
+                            if (int.TryParse(input, System.Globalization.NumberStyles.None,
+                                    System.Globalization.CultureInfo.InvariantCulture,
+                                    out var number) &&
+                                number >= 1 && number <= pageIndex!.LineCount)
+                                firstLine = number - 1;
+                            else
+                                message = "Source line is outside this document.";
+                        }
+                        break;
+                    }
                 }
             }
             catch (Exception ex) when (ex is IOException or InvalidDataException or
