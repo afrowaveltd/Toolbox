@@ -571,3 +571,12 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - **Fresh focused and full test verification still pending.**
   Run MdView.Tests and Toolbox.sln and manually smoke-test
   resizing Konsole between page transitions.
+
+- Follow-up adaptive-height correction: `MdViewFormattedPreviewPager`
+  defaults to automatic viewport use rather than fixed 24 rows;
+  content pages grow up to the 128-visual-row safety limit
+  (commits `3004bfc4fb2af9a3789343b79a31b2f8ac3c9de5` and
+  `8a6defbeb986cb254f147d813959bce44cb4c3a1`).
+  Explicit smaller caller caps remain compatible. Regression:
+  `996a03c2ab7abccf3520b853ad374411722b940d`.
+  New tests are not yet maintainer-confirmed green.
