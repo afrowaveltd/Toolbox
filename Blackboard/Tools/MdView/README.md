@@ -437,3 +437,36 @@ rich cross-page code highlight and constant-time first distant
 jumps are not yet implemented.
 
 [Disk Navigation Index](Docs/Disk-Navigation-Index/en.md).
+
+### Adaptive local formatted preview (2026-11-11)
+
+`mdview preview PATH` now detects terminal width and height before
+every redraw. The reader reserves space for the menu and grey
+informational header, shows one blank row between the header and
+Markdown, and displays a grey **Page X of Y | Source lines A–B of C**
+footer. Page counts are backed by a temporary disk index of visual
+source positions for the current terminal dimensions; a changed
+window width or height triggers a new index on the **next** draw.
+
+Prose wraps at a preferred sentence boundary, comma/clause or whole
+word; long unbreakable words are split only when necessary. The
+layout counts approximate terminal display-cell widths for Unicode,
+emoji and CJK, and can resume in the middle of a long physical
+source line. **Fenced code is not word-wrapped**: long code lines
+show a trailing `→` when more source extends off-screen, preserving
+indentation and source contents.
+
+The screen-height layout reserves 16 rows for header/footer/menu;
+the default maximum content height remains 24 visual rows.
+Indexed heading/link jumps and source-line jumps remain available.
+A jump to an exact physical line that is not a canonical page start
+is clearly marked `(jump view)` next to the page number.
+
+Page-count consistency is exact for this deterministic wrapping
+model, not necessarily for every terminal font, styled Markdown
+list/quote or unusually complex inline markup. Full CommonMark
+visual-row parity, horizontal scrolling of code and compact layout
+for very small terminals remain future work. All temporary page
+indexes are disk-backed and deleted when the preview ends.
+
+[Responsive preview guide](Docs/Responsive-Preview/en.md).
