@@ -110,6 +110,13 @@ per page (current GitHub input cap: 1 MiB). See the
 [mdview navigation guide](Blackboard/Tools/MdView/Docs/Link-Navigation/en.md)
 and [bounded source-page guide](Blackboard/Tools/MdView/Docs/Paged-GitHub-Browsing/en.md).
 
+The local experimental Markdown preview now adapts to the **current
+terminal width and height**, with sentence-aware prose wrapping,
+unwrapped code lines marked `→` when clipped, and a grey
+**Page X of Y** footer. Visual page starts are indexed on disk for
+the active terminal size and recalculated on the next draw after
+a resize. [Responsive preview guide](Blackboard/Tools/MdView/Docs/Responsive-Preview/en.md).
+
 For large **local** Markdown files, the experimental disk-backed
 navigation index is available separately:
 
