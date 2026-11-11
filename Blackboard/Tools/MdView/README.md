@@ -457,7 +457,8 @@ show a trailing `→` when more source extends off-screen, preserving
 indentation and source contents.
 
 The screen-height layout reserves 16 rows for header/footer/menu;
-the default maximum content height remains 24 visual rows.
+the **default uses available terminal height automatically** (up to
+128 content rows). Callers can still request a smaller explicit cap.
 Indexed heading/link jumps and source-line jumps remain available.
 A jump to an exact physical line that is not a canonical page start
 is clearly marked `(jump view)` next to the page number.
