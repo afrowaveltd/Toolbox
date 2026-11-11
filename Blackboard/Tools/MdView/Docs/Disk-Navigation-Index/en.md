@@ -124,3 +124,13 @@ maintainer confirms a fresh run.
 [MdView README](../../README.md) ·
 [Experimental preview](../Experimental-Formatted-Preview/en.md) ·
 [Implementation status](../../IMPLEMENTATION_STATUS.md).
+
+### Conservative indented-code handling
+
+The first disk index also rejects conservatively unowned source lines
+beginning with four spaces or a tab, to avoid presenting Markdown-like
+links from indented code as navigable links. Explicitly classified
+list continuations are still parsed separately. This is conservative
+and can omit legitimate constructs in ambiguous indentation; the
+source is never modified. The indexed source-position UI does not
+open any destination automatically.
