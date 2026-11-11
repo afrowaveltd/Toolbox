@@ -269,6 +269,12 @@ public sealed class MdViewGitHubLinkBrowser
 
     }
 
-    private static string ShortLabel(string value) =>
-        value.Length > 64 ? value[..64] + "…" : value;
+    private static string ShortLabel(string value)
+    {
+        const int limit = 64;
+        if (value.Length <= limit)
+            return value;
+        var length = char.IsHighSurrogate(value[limit - 1]) ? limit - 1 : limit;
+        return value[..length] + "…";
+    }
 }
