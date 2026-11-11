@@ -337,3 +337,9 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   green suite predates these changes; run
   `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
   and `dotnet test Toolbox.sln` to verify.
+
+## 2026-11-11 — manual MemView GitHub browsing accepted
+
+- Maintainer confirms an actual `afrowaveltd/MemView` documentation session renders correctly and navigates Markdown links. Screenshot shows an English Git lesson in the terminal.
+- This observation supports **manual GitHub integration/UX acceptance** after the main-menu `GitHubLinkBrowser` fix. It does **not** confirm execution of the newly added focused/full xUnit suite; those remain separately pending until explicit test results are provided.
+- Continue with `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj` and `dotnet test Toolbox.sln` for a new automated green checkpoint.
