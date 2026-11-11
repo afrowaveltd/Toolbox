@@ -163,6 +163,47 @@ public sealed class MdViewFormattedPreviewPagerTests
     }
 
     [Fact]
+    public async Task ResponsiveFooterShowsTotalPagesAndVisualSourceRange()
+    {
+        using var fixture = new Fixture();
+        var source = string.Join("\n", Enumerable.Range(1, 48).Select(number =>
+            "Chapter " + number + ". This sentence should wrap, naturally, in a narrow terminal."));
+        var path = await fixture.WriteAsync(source);
+        var console = Interactive();
+        console.Profile.Width = 42;
+        console.Profile.Height = 28;
+        console.Input.PushKey(ConsoleKey.Enter); // Next page
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewFormattedPreviewPager(console).RunAsync(path);
+
+        Assert.Contains("Page 1 of ", console.Output);
+        Assert.Contains("Page 2 of ", console.Output);
+        Assert.Contains("Source lines 1–", console.Output);
+        Assert.Contains("Smart prose wrapping", console.Output);
+        Assert.Contains("mdview — experimental Markdown page preview", console.Output);
+    }
+
+    [Fact]
+    public async Task CodeOverflowIsMarkedButCodeSourceRemainsUnchanged()
+    {
+        using var fixture = new Fixture();
+        var content = "```c\n    return really_long_function_name(12345);\n```\n# End";
+        var path = await fixture.WriteAsync(content);
+        var original = await File.ReadAllBytesAsync(path);
+        var console = Interactive();
+        console.Profile.Width = 31;
+        console.Profile.Height = 40;
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewFormattedPreviewPager(console).RunAsync(path);
+
+        Assert.Contains("→ Code continues beyond the visible width", console.Output);
+        Assert.Contains("Page 1 of 1", console.Output);
+        Assert.Equal(original, await File.ReadAllBytesAsync(path));
+    }
+
+    [Fact]
     public async Task UnsafeInputIsNeverRendered()
     {
         using var fixture = new Fixture();
@@ -190,6 +231,7 @@ public sealed class MdViewFormattedPreviewPagerTests
         console.Profile.Capabilities.Interactive = true;
         console.Profile.Capabilities.Unicode = true;
         console.Profile.Width = 120;
+        console.Profile.Height = 40;
         return console;
     }
 
