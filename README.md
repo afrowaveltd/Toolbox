@@ -110,6 +110,20 @@ per page (current GitHub input cap: 1 MiB). See the
 [mdview navigation guide](Blackboard/Tools/MdView/Docs/Link-Navigation/en.md)
 and [bounded source-page guide](Blackboard/Tools/MdView/Docs/Paged-GitHub-Browsing/en.md).
 
+For large **local** Markdown files, the experimental disk-backed
+navigation index is available separately:
+
+```bash
+dotnet run --project Blackboard/Tools/MdView -- preview README.md
+```
+
+Choose **Find heading (disk index)** or **Find link location (disk index)**
+to build a lazy streaming catalog and jump to source coordinates without
+loading the document into RAM. It uses bounded disk records and result
+pages; this does **not** raise the GitHub reader's 1 MiB source limit or
+open linked files automatically. See the
+[Disk Navigation Index guide](Blackboard/Tools/MdView/Docs/Disk-Navigation-Index/en.md).
+
 [Repository getting started](Docs/Toolbox-Getting-Started/en.md) includes per-project testing and examples of adding a published NuGet package.
 
 ## Documentation and development rules
