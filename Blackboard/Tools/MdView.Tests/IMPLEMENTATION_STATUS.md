@@ -469,3 +469,24 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   up to 128 visual rows. Test `996a03c2ab7abccf3520b853ad374411722b940d`
   compares narrow, wide, tall and explicitly capped viewports.
   Fresh .NET test verification remains pending.
+
+## 2026-11-12 — two responsive-preview assertions corrected
+
+- Reported `MdView.Tests`: **174 passed, 2 failed, 176 total,
+  0 skipped**.
+- `CodeLineClippedWithArrowIsOneVisualRow` now expects a
+  formatted `Ending` heading rather than raw `# Ending`
+  source syntax, and asserts the literal marker is absent:
+  `ff2411594f620b618dafad085cd48064dfd074b1`.
+- `CodeOverflowIsMarkedButCodeSourceRemainsUnchanged`
+  now asserts the width-appropriate short status line for its
+  31-column terminal instead of an uninterrupted long sentence:
+  `a33ecffbf780947b060059e2142bd288b1c6bbbf`.
+- Added `WideTerminalShowsFullSingleLineCodeOverflowExplanation`
+  to preserve the complete warning in sufficiently wide windows:
+  `679628725495c72a8c91fde21ca2770edd42e6b5`.
+- Production width-aware warning logic:
+  `c1889b53d3f62de5c7372674b54ccac1d6b9c4f3`,
+  `d58d11d2be89b1ee8ca803a55b8cb6003173ccd4`.
+- **Fresh tests are pending.** Prior 174/176 result remains the
+  observed pre-fix state, not evidence of a new passing run.
