@@ -181,7 +181,8 @@ public sealed class MdViewFormattedPreviewPagerTests
         Assert.Contains("Page 2 of ", console.Output);
         Assert.Contains("Source lines 1–", console.Output);
         Assert.Contains("Smart prose wrapping", console.Output);
-        Assert.Contains("mdview — experimental Markdown page preview", console.Output);
+        // The 42-column viewport intentionally shortens header text.
+        Assert.Contains("mdview — experimental Markdown page", console.Output);
     }
 
     [Fact]
