@@ -472,3 +472,27 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Documentation has been updated. **Fresh focused and full
   .NET test execution are not yet confirmed**; obtain maintainer
   test and interactive smoke results before considering it green.
+
+## 2026-11-11 — first bounded source-page GitHub Markdown reader
+
+- Following successful user-verified GitHub Markdown browsing in
+  `afrowaveltd/MemView`, `Blackboard/Tools/MdView` now offers a
+  **paged terminal reader for long GitHub Markdown files**.
+  The default page is at most 24 physical source lines and 16 Ki
+  UTF-16 display characters, with Next, Previous, Go to heading,
+  Go to source line, Follow a link, and document Back/Forward.
+- The source is still bounded to 1 MiB per verified GitHub document,
+  and remains in memory for whole-parser context and link extraction.
+  Pages are source-line fragments, not visual-row layout, and
+  fenced code is emitted literally to avoid markdown misclassification
+  across boundaries. Short files retain prior behavior.
+- New source: `MdViewSmallMarkdownPageIndex.cs`; GitHub browser
+  integration and 11 new focused/virtual-terminal regression tests.
+  See `Blackboard/Tools/MdView/IMPLEMENTATION_STATUS.md` and
+  `Blackboard/Tools/MdView.Tests/IMPLEMENTATION_STATUS.md`.
+  [English guide](Blackboard/Tools/MdView/Docs/Paged-GitHub-Browsing/en.md).
+- Existing disk-indexed local pager, snapshot and checkpoint scanners
+  remain unchanged. They are the appropriate foundation for the
+  next true multi-gigabyte, low-RAM heading/link navigation milestone.
+- **Tests on this increment have not yet been confirmed green.**
+  Run focused MdView tests and full `Toolbox.sln` on Debian/Windows.
