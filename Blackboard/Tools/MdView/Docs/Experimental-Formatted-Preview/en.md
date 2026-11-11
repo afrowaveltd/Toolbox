@@ -255,3 +255,24 @@ small-document parser and only renders current source fragments.
 Large-file source-aware visual pagination should build on the
 existing disk-backed indexes and scanner checkpoints, not remove
 the GitHub browser's input cap.
+
+## Lazy disk navigation index (2026-11-11)
+
+The experimental `mdview preview PATH` now exposes **Find heading
+(disk index)** and **Find link location (disk index)** after the
+existing Next, Previous and Go to source line options. No index is
+constructed during ordinary paging. The first indexed navigation
+request scans the complete validated snapshot sequentially, while
+keeping only a bounded line and record in memory; it persists
+source coordinates to a capped disk-backed catalog.
+
+`MdViewDiskNavigationPicker` presents 12 results at a time.
+Selecting one returns to the existing container-aware source
+pager positioned at that item's physical source line. Browsing
+indexed link locations **does not open the linked file**. A
+navigation index that exceeds its independent disk budget fails
+closed and normal paging can continue. The index files are
+deleted on disposal, and the original private source snapshot
+remains untouched.
+
+[Detailed disk index contract](../Disk-Navigation-Index/en.md).
