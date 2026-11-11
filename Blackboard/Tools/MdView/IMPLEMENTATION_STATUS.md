@@ -719,7 +719,8 @@
   (physical source line plus in-line wrap-row offset), default
   64 MiB index disk cap and one complete sequential source scan.
   The index reports PageCount for a known width/height, with 16
-  reserved terminal rows and existing 24-visual-content-row default.
+  reserved terminal rows. The default now uses viewport height
+automatically (up to 128 visual rows); an explicit 1–128 cap remains supported.
   Added line+wrap-row page lookup
   (`c95209013787a122ba691d1d6da3aafe01f63a3d`) and
   first-visual-page source-line lookup correction
@@ -768,3 +769,10 @@
   for no-wrap/clipping behavior, not only explicit fences.
   Regression test: `7f8a9b85148dc5bf1aefb0da58cc0bf6f687f31c`.
   Post-change tests remain pending.
+
+- Height adaptation follow-up: `3004bfc4fb2af9a3789343b79a31b2f8ac3c9de5`
+  and `8a6defbeb986cb254f147d813959bce44cb4c3a1`
+  remove the old fixed 24-row default; automatic pages can grow
+  up to 128 visual rows. Test `996a03c2ab7abccf3520b853ad374411722b940d`
+  compares narrow, wide, tall and explicitly capped viewports.
+  Fresh .NET test verification remains pending.
