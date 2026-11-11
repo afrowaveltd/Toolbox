@@ -700,3 +700,65 @@
   requires one sequential pass and remains limited by the snapshot's
   own disk/line budgets. Large-document visual-row pagination and
   arbitrary GitHub files above the current 1 MiB cap are still pending.
+
+## 2026-11-11 — viewport-aware Markdown preview, punctuation wrapping and code clipping
+
+- Maintainer previously confirmed the local disk heading/link navigation
+  preview works on a real Markdown document. This is the **pre-change
+  manual baseline**, not confirmation of the new responsive renderer.
+- Added `MdViewTerminalWordWrap` in
+  `c72f5f0df7811441c1184d9a73c7ccdfea4c2a61`: deterministic
+  terminal-cell-aware line wrapping that prefers sentence, clause
+  and word boundaries. Long unbreakable prose tokens are split on
+  Unicode scalar boundaries, not between UTF-16 surrogate halves.
+  Fenced code is not wrapped and uses a trailing right-arrow `→`
+  when its full text does not fit the viewport.
+- Added `MdViewTerminalPageIndex`
+  (`a85b872b09361e3c449400acdfd146f63d12ee1e`)
+  with 12-byte disk-only visual page start records
+  (physical source line plus in-line wrap-row offset), default
+  64 MiB index disk cap and one complete sequential source scan.
+  The index reports PageCount for a known width/height, with 16
+  reserved terminal rows and existing 24-visual-content-row default.
+  Added line+wrap-row page lookup
+  (`c95209013787a122ba691d1d6da3aafe01f63a3d`) and
+  first-visual-page source-line lookup correction
+  (`ea09bbb3691aa0b521b2793d169ab5f729ae035f`).
+- Added `MdViewTerminalPageRenderer`
+  (`1b7c517eb315b0aa6e8a1d9fea801dfc76dd008b`):
+  visual-row-bounded renderer backed by the existing
+  `MdViewContainerPageCursor`, with resumable source+wrap offset.
+  Empty source rows render explicitly
+  (`33b72f91513f14895dbda08af5c52b0c7756e332`).
+- Reworked experimental **local** `MdViewFormattedPreviewPager`
+  (`d1e1bae61ce40fd8ea748cab0304de3e18a26342`):
+  technical header and footer use grey `Spectre.Console.Text`;
+  one blank row separates header from Markdown; footer shows
+  **Page X of Y** and **Source lines A–B of C**. Width and height
+  are checked before each redraw; resize rebuilds the disk page
+  index, retaining current source line but discarding invalid
+  prior-width wrap offsets/history. Next/Previous and lazy
+  heading/link source jumps remain available; noncanonical
+  starts are flagged as `(jump view)`.
+- New tests: five `MdViewTerminalWordWrapTests`
+  (`6a607adcb02e395b8b9e2cc7e0e3c0dbc219d619`,
+  refined `06ecfa802d885932371ac11cd1c65f49729d0b5b`),
+  five `MdViewTerminalPageIndexTests`
+  (`259eebca8119b08791bf105d11974e96a05b0368`),
+  plus two preview integration regressions
+  (`7752320d5738afee1b0c0c113ab9ee389cfbdb0c`;
+  corrected narrow-header assertion
+  `1d4b1961dab83af11963a767bd1c0e259fef7825`).
+- Main limitations: total pages are exact for the deterministic
+  source/visual-row algorithm, **not guaranteed pixel/cell-exact**
+  for arbitrary Markdown decoration, grapheme-cluster emoji
+  composition, nested containers and different terminal fonts.
+  Long code lines are clipped on screen without horizontal
+  scrolling yet; the raw source remains complete.
+- Detailed guide: `Docs/Responsive-Preview/en.md`. Existing
+  local raw source pager, GitHub/HTTPS source adapters and small
+  1 MiB GitHub Markdown link browser are unchanged.
+- **Fresh focused/full `.NET` test results not yet supplied.**
+  Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln` and manually resize Konsole
+  between page actions. Do not claim green until results are known.
