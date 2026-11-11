@@ -411,3 +411,29 @@ local disk-backed source pager and incremental scanner/checkpoint
 infrastructure remain the route for truly large files.
 
 [Read the page-navigation guide](Docs/Paged-GitHub-Browsing/en.md).
+
+### Disk-backed Markdown headings and link locations for large local files
+
+The experimental local formatted preview (`mdview preview PATH`)
+now supports **Find heading (disk index)** and **Find link location
+(disk index)**. These optional actions build a disk-backed
+`MdViewDiskNavigationIndex` **lazily** on first use and then show
+headings/links in batches of 12. Selecting an item jumps to its
+physical source line, without loading the full Markdown document
+or every result into RAM.
+
+The index makes a sequential pass through the previously validated
+source snapshot, records recognized ATX headings and inline link
+positions outside fenced code, and stores variable-length entries
+plus 64-bit per-kind offsets in temporary files. The default combined
+index disk budget is 128 MiB. A budget failure leaves normal paging
+available; successful indexes are disposed with the preview.
+
+**This is source-position navigation, not cross-document link
+following.** The existing small-document `browse` / `browse-git`
+modes still own their separate link-following safety contracts.
+Reference links, multiline constructs, full CommonMark parsing,
+rich cross-page code highlight and constant-time first distant
+jumps are not yet implemented.
+
+[Disk Navigation Index](Docs/Disk-Navigation-Index/en.md).
