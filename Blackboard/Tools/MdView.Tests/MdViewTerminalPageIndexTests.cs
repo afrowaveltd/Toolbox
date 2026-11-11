@@ -87,7 +87,10 @@ public sealed class MdViewTerminalPageIndexTests
 
         Assert.True(page.ContainsClippedCode);
         Assert.Contains("→", console.Output);
-        Assert.Contains("# Ending", console.Output);
+        // The Markdown renderer consumes the ATX marker and displays the
+        // formatted heading text, rather than the literal "# Ending".
+        Assert.Contains("Ending", console.Output);
+        Assert.DoesNotContain("# Ending", console.Output);
     }
 
     [Fact]
