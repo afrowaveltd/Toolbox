@@ -455,3 +455,10 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   remain green; no intentional change in these APIs.
 - **These new tests have not yet been run or maintainer-confirmed
   green.** Execute focused MdView and full Toolbox.sln suites.
+
+- An additional `MdViewTerminalPageIndexTests` case
+  `FourSpaceIndentedCodeIsNotSoftWrapped`
+  (`7f8a9b85148dc5bf1aefb0da58cc0bf6f687f31c`)
+  confirms that conservative indented source code is clipped
+  rather than soft-wrapped. The preceding responsive tests
+  are still pending independent execution.
