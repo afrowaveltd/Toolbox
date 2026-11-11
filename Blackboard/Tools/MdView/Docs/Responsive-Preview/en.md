@@ -145,3 +145,14 @@ needing to repaint the page that was already on screen.
 [Preview documentation](../Experimental-Formatted-Preview/en.md) ·
 [Disk navigation index](../Disk-Navigation-Index/en.md) ·
 [Implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## Indented code safeguard (2026-11-11)
+
+The initial responsive implementation conservatively classified
+fenced code as literal. This now also includes otherwise-unowned
+four-space/tab-indented lines, so they are clipped with `→` rather
+than soft-wrapped. Explicit list continuation ownership remains
+separate and is still treated as prose, as required for Markdown
+list semantics. This extension is covered by a targeted regression
+test. As in the existing index, ambiguous indentation is treated
+conservatively; full CommonMark ownership remains future work.
