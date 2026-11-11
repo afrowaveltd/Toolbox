@@ -168,3 +168,37 @@ possible (up to the bounded 128-row scanner/rendering limit), while
 an explicit numeric cap remains supported. A dedicated viewport
 regression compares 40-row and 80-row terminals and an explicit
 two-row limit. New test results remain pending.
+
+## Code overflow notice and Markdown heading test correction (2026-11-12)
+
+The maintainer's first responsive-preview `MdView.Tests` run reported
+**174 passed, 2 failed, 0 skipped, 176 total**.
+
+1. `CodeLineClippedWithArrowIsOneVisualRow` expected the literal
+   `# Ending` after rendering an ATX heading. The shared Markdown
+   renderer correctly strips the heading syntax and displays
+   `Ending` as formatted text. The regression now asserts the
+   rendered heading, while verifying it is not printed as literal
+   Markdown source.
+2. `CodeOverflowIsMarkedButCodeSourceRemainsUnchanged` searched
+   for a long uninterrupted status sentence inside a **31-column**
+   terminal. Terminal wrapping prevented that exact contiguous
+   substring from appearing in the test output.
+
+The preview now selects a single-row grey code-clipping notice based
+on the available **content** columns:
+
+- 56 or more: `→ Code continues beyond the visible width (not wrapped).`
+- 25–55: `→ Code clipped (no wrap).`
+- 14–24: `→ Code clipped`
+- 8–13: `→ code`
+
+These notices are supplementary; the trailing `→` on the displayed
+code line remains the primary indicator. The source code is **not**
+soft-wrapped, modified or truncated in the validated snapshot.
+A new wide-terminal test ensures the full explanatory note remains
+available when it fits.
+
+The post-fix focused and complete solution suites still require
+maintainer confirmation; the **174/176** result is the last reported
+run before these corrections.
