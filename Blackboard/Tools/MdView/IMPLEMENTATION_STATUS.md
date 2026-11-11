@@ -560,3 +560,60 @@
 - Screenshot supplied of the rendered English Git lesson confirms readable headings, lists, paragraph text, code examples, and Markdown presentation in a Linux terminal. Maintainer explicitly confirms links work in this repository.
 - This is **manual acceptance**, not a newly reported focused or full `.NET` test run. No test totals, CI status, or exhaustive source/anchor scenarios are inferred.
 - Next follow-up: retain the working GitHub browsing behavior, separately verify focused/full regression suites, and continue examining usability and large-document paging without weakening verified cache/source boundaries.
+
+## 2026-11-11 — bounded GitHub Markdown source-page navigation
+
+- Maintainer has confirmed the previous GitHub browsing implementation
+  worked end-to-end against the separate `afrowaveltd/MemView` repository,
+  including working relative Markdown links and readable C code
+  documentation in Linux Konsole (screenshots provided). This is the
+  **manual baseline**, not verification of this new page increment.
+- Added `MdViewSmallMarkdownPageIndex`, `MdViewMarkdownSourcePage`
+  and `MdViewMarkdownPageSegment`:
+  `e7612a2b5532aec8a45b4a236e80cafcb187f5a2`.
+  A document already limited by the verified GitHub browser to 1 MiB
+  is parsed with the shared ExchangeHouse parser. The index maps
+  UTF-16 source offsets to physical lines and returns at most 24
+  source lines and 16 Ki UTF-16 display characters per page by default.
+  Source-aware fenced-code classification prevents false Markdown
+  headings/lists at a page boundary.
+- `MdViewGitHubLinkBrowser` now switches long verified Markdown
+  documents to bounded source-page output, offers Next/Previous
+  page, Go to heading (first 512 headings) and Go to source line,
+  while retaining the existing Follow a link, document-level
+  Back/Forward, original cache freshness display and Exit:
+  `c03e53300bdcd5dd3db670e8eea70d8cfa885d5a`.
+  Short documents (up to 24 lines) keep their previous one-shot
+  renderer and menu order. Document/page index and link catalog
+  are reused by content SHA-256/source identity so page changes
+  do **not** fetch GitHub content or reparse the full source.
+- Source-line display truncation is bounded and now avoids splitting
+  UTF-16 surrogate pairs:
+  `4fa996781a4a9bc289301ec41081f753a6fbd901`.
+  Missing anchors report their warning immediately:
+  `e00632a556b7ca21d2010ec68ab19bbdea00c026`.
+- Six new focused page-index regressions:
+  `d5e6b5ddeab7fe0209df836df5446aeb27e094ab` and
+  `0d6d65a29fd02e8d59206d51054cf8e63e78dbad`;
+  five new virtual-terminal integration regressions:
+  `2ce5a596dd19c2bed1187c9cebf457c8f9757dc4` and
+  `024897d3a37d69a54c3ae6cda43212d192c53c3c`.
+- Full guide: `Docs/Paged-GitHub-Browsing/en.md`.
+  Existing local disk-backed raw/source preview, container scanner and
+  sparse scanner checkpoint infrastructure remain unchanged.
+- **Limits:** the GitHub document is still fully parsed in memory
+  and limited to 1 MiB; pages are physical-source-line slices, not
+  terminal-row layout. Continued nested list/quote containers and
+  cross-page stateful TextMate syntax coloring are experimental.
+  Pages with extremely long lines visibly shorten the output without
+  altering verified source bytes.
+- **Fresh tests pending maintainer confirmation; no local dotnet
+  executable is available in this environment.** Run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`. Manually smoke-test long
+  `browse-git afrowaveltd MemView` documents and confirm Next,
+  Previous, heading, line and link navigation.
+- Next milestone: design/implement a **disk-backed heading/link
+  source index** and reconnect the existing validated snapshot
+  and sparse container checkpoints to context-preserving large-file
+  rendering. Do not lift the GitHub 1 MiB cap prematurely.
