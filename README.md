@@ -103,8 +103,12 @@ dotnet run --project Blackboard/Tools/MdView -- browse-git afrowaveltd Toolbox
 
 This opt-in mode discovers GitHub's actual default branch and README file,
 then follows repository-relative Markdown links in the same ref with a verified
-cache and bounded Back/Forward history. See the
-[mdview navigation guide](Blackboard/Tools/MdView/Docs/Link-Navigation/en.md).
+cache and bounded Back/Forward history. Markdown files longer than 24 source
+lines now use **bounded source-page navigation**, with Next/Previous,
+heading/source-line jumps and a maximum of 16 Ki UTF-16 display characters
+per page (current GitHub input cap: 1 MiB). See the
+[mdview navigation guide](Blackboard/Tools/MdView/Docs/Link-Navigation/en.md)
+and [bounded source-page guide](Blackboard/Tools/MdView/Docs/Paged-GitHub-Browsing/en.md).
 
 [Repository getting started](Docs/Toolbox-Getting-Started/en.md) includes per-project testing and examples of adding a published NuGet package.
 
