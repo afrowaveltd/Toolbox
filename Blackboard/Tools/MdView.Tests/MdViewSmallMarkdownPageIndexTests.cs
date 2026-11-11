@@ -87,6 +87,21 @@ public sealed class MdViewSmallMarkdownPageIndexTests
     }
 
     [Fact]
+    public void PageCharacterBudgetDoesNotSplitUnicodeSurrogatePair()
+    {
+        var source = new string('a', MdViewSmallMarkdownPageIndex.MaximumPageCharacters - 1)
+            + "😀" + new string('z', 400) + "\n# Next";
+        var page = new MdViewSmallMarkdownPageIndex(source).GetPage(0);
+
+        Assert.True(page.TruncatedLine);
+        Assert.Single(page.Segments);
+        var shown = page.Segments[0].Text;
+        Assert.Equal(MdViewSmallMarkdownPageIndex.MaximumPageCharacters - 1,
+            shown.Length);
+        Assert.False(char.IsHighSurrogate(shown[^1]));
+    }
+
+    [Fact]
     public void RejectsInvalidPageRequestsAndDocumentOverBudget()
     {
         var index = new MdViewSmallMarkdownPageIndex("# Safe\nContent");
