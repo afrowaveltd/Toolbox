@@ -519,3 +519,24 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Maintainer confirms **no errors** after updating to the UTF-16 source-page boundary fix and new regression tests. This supersedes the previously reported 147 passed / 1 failed result; exact current test totals were not provided and are not inferred.
 - Verified-by-maintainer source fix: `fe9ccc8b734ac7b399f1fca5bbb3ddaa134c927f`; regression tests: `b276c12c2de5344f3ae313e28038c8a717f8e850`.
 - Next milestone: disk-backed heading/link indexing for large Markdown files, building on validated snapshots and existing disk line/scanner checkpoint indexes; retain the 1 MiB bounded GitHub rendering cap until a genuinely streaming navigation path is tested.
+
+## 2026-11-11 — large-document disk heading/link positions
+
+- Building on the maintainer-confirmed green Markdown GitHub browser,
+  added a **local** streaming disk-backed heading/link index for
+  `mdview preview PATH`. It uses the existing validated snapshot and
+  container/inline scanners; keeps only bounded records in temporary
+  files, with 64-bit offset indexes and a configurable 128 MiB default
+  disk budget. It is created lazily when heading/link source navigation
+  is requested and results are shown 12 per selection page.
+- The preview can now jump to heading and link **source lines** without
+  retaining the entire file or its full result catalog in RAM.
+  It does not follow external links or change the existing GitHub
+  verified-cache reader or its 1 MiB input cap.
+- New English docs:
+  `Blackboard/Tools/MdView/Docs/Disk-Navigation-Index/en.md`.
+  Source and test implementation details are in project-specific
+  `IMPLEMENTATION_STATUS.md` files.
+- **Fresh test verification still pending.** Run the targeted
+  `MdView.Tests` and `Toolbox.sln` suites, then test the
+  experimental local preview with a large Markdown file.
