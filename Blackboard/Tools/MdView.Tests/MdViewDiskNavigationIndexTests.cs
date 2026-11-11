@@ -14,11 +14,11 @@ public sealed class MdViewDiskNavigationIndexTests
         using var sample = new Document("""
             # Start
             [Install](Docs/Install/en.md) and **[Top](#start)**
-            \`[not a link](inline.md)\` ![picture](image.png)
-            \`\`\`markdown
+            `[not a link](inline.md)` ![picture](image.png)
+            ```markdown
             # False heading
             [Hidden](secret.md)
-            \`\`\`
+            ```
             ## Installation
             > [Quoted docs](Docs/Quoted.md)
             """);
