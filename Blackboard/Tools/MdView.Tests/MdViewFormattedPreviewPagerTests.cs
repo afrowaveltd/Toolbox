@@ -199,7 +199,9 @@ public sealed class MdViewFormattedPreviewPagerTests
 
         await new MdViewFormattedPreviewPager(console).RunAsync(path);
 
-        Assert.Contains("→ Code continues beyond the visible width", console.Output);
+        // The 31-column terminal receives a single-row compact notice.
+        Assert.Contains("→ Code clipped (no wrap).", console.Output);
+        Assert.DoesNotContain("Code continues beyond the visible width", console.Output);
         Assert.Contains("Page 1 of 1", console.Output);
         Assert.Equal(original, await File.ReadAllBytesAsync(path));
     }
