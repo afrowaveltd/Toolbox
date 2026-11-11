@@ -30,13 +30,13 @@ public sealed class MdViewFormattedPreviewPager
     /// with lazy disk-indexed heading and link source-position navigation.
     /// </summary>
     /// <param name="path">Local UTF-8 Markdown document.</param>
-    /// <param name="linesPerPage">Legacy upper bound on visual content rows (1–128).</param>
+    /// <param name="linesPerPage">Zero for automatic viewport height, or an explicit 1–128 visual row cap.</param>
     /// <param name="cancellationToken">Cancels validation, indexing or navigation.</param>
-    public async Task RunAsync(string path, int linesPerPage = 24,
+    public async Task RunAsync(string path, int linesPerPage = 0,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        if (linesPerPage is < 1 or > 128)
+        if (linesPerPage is < 0 or > 128)
             throw new ArgumentOutOfRangeException(nameof(linesPerPage));
         if (!_console.Profile.Capabilities.Interactive)
             throw new InvalidOperationException(
