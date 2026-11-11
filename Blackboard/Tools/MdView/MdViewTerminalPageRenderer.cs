@@ -90,6 +90,13 @@ public static class MdViewTerminalPageRenderer
                             rendered + Environment.NewLine,
                             theme.GetHeadingStyle(classified.Source.HeadingLevel)));
                     }
+                    else if (rendered.Length == 0)
+                    {
+                        // The Markdown parser has no block for an empty
+                        // string. Reserve its actual blank terminal row so
+                        // the visual page index and emitted rows agree.
+                        console.WriteLine();
+                    }
                     else
                     {
                         MarkdownSpectreRenderer.Render(console, rendered, theme);
