@@ -174,39 +174,13 @@ public sealed class MdViewTerminalPageIndex : IAsyncDisposable
         }
     }
 
-    /// <summary>Finds the last canonical page start not after a source line.</summary>
-    /// <param name="lineNumber">Zero-based source line number.</param>
+    /// <summary>Finds the first canonical page containing a source line.</summary>
+    /// <param name="lineNumber">Zero-based physical source line.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Zero-based canonical page number containing the requested line.</returns>
-    public async Task<long> FindPageAsync(
-        long lineNumber, CancellationToken cancellationToken = default)
-    {
-        ObjectDisposedException.ThrowIf(_disposed, this);
-        if (lineNumber < 0 || lineNumber >= SourceLineCount)
-            throw new ArgumentOutOfRangeException(nameof(lineNumber));
-        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            var low = 0L;
-            var high = PageCount;
-            while (low < high)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                var middle = low + (high - low) / 2;
-                var position = await ReadAtAsync(middle, cancellationToken)
-                    .ConfigureAwait(false);
-                if (position.Line <= lineNumber)
-                    low = middle + 1;
-                else
-                    high = middle;
-            }
-            return Math.Max(0, low - 1);
-        }
-        finally
-        {
-            _gate.Release();
-        }
-    }
+    /// <returns>Zero-based canonical page where that physical line begins.</returns>
+    public Task<long> FindPageAsync(
+        long lineNumber, CancellationToken cancellationToken = default) =>
+        FindPageAsync(new MdViewVisualPosition(lineNumber, 0), cancellationToken);
 
     /// <summary>Finds the canonical page containing a source line and wrap-row offset.</summary>
     /// <param name="position">Source position within the validated document.</param>
