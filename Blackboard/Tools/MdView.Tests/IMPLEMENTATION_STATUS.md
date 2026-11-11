@@ -372,3 +372,24 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   heading-choice labels and `1081d13cb6e16df2dffb010d1d261ca7ecc5d348`
   avoids splitting UTF-16 surrogate pairs when shortening labels.
   Regression tests remain pending execution.
+
+## 2026-11-11 — Unicode page truncation test failure and correction
+
+- Reported Debian test run: **147 passed / 1 failed / 148 total,
+  0 skipped**. Only
+  `MdViewSmallMarkdownPageIndexTests.PageCharacterBudgetDoesNotSplitUnicodeSurrogatePair`
+  failed (16,384 actual vs. 16,383 expected characters).
+- Root cause: page renderer skipped half an emoji at the
+  remaining UTF-16 budget boundary, but used its final code unit
+  to emit one character from the next physical source line.
+- Production fix: `fe9ccc8b734ac7b399f1fca5bbb3ddaa134c927f`
+  terminates the page on truncated source line and never consumes
+  a new source line that cannot display its first scalar.
+- Test fix and new regressions:
+  `b276c12c2de5344f3ae313e28038c8a717f8e850`
+  keeps the original strict 16,383-char assertion,
+  asserts that the next heading remains on the next page,
+  and tests leftover-one-code-unit handling before an emoji.
+- **Tests have not yet been rerun after the fix.**
+  Verify focused MdView suite then complete solution; retain
+  the 147/148 outcome as the last observed pre-fix state.
