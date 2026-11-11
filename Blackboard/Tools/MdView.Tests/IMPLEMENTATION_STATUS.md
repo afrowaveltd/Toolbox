@@ -399,3 +399,32 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - Maintainer confirms **no errors** after updating to the UTF-16 source-page boundary fix and new regression tests. This supersedes the previously reported 147 passed / 1 failed result; exact current test totals were not provided and are not inferred.
 - Verified-by-maintainer source fix: `fe9ccc8b734ac7b399f1fca5bbb3ddaa134c927f`; regression tests: `b276c12c2de5344f3ae313e28038c8a717f8e850`.
 - Next milestone: disk-backed heading/link indexing for large Markdown files, building on validated snapshots and existing disk line/scanner checkpoint indexes; retain the 1 MiB bounded GitHub rendering cap until a genuinely streaming navigation path is tested.
+
+## 2026-11-11 — disk-backed Markdown navigation tests added
+
+- Previous `MdView.Tests` suite confirmed green by maintainer after
+  Unicode page boundary regression fix. New tests below pending.
+- Added `MdViewDiskNavigationIndexTests` covering top-level
+  headings, nested and quoted inline links, fenced/indented/inline
+  code exclusion, image exclusion, distant disk result pages,
+  mixed line-ending source offsets, bounded disk space rollback,
+  Unicode label clipping, oversized destination rejection,
+  argument guards and post-disposal read rejection.
+- Added `MdViewDiskNavigationPickerTests` covering disk result
+  pages beyond the first 12 items, Escape without invalidating
+  the index, empty catalogs and noninteractive rejection.
+- Expanded `MdViewFormattedPreviewPagerTests` with virtual-terminal
+  scenarios to jump to a distant heading and a link's source line,
+  and to return from an empty heading catalog without losing the
+  current validated preview.
+- Implementation commits: `6ed7131b6502a6712e5a6a96ad835dc0a572ade2`,
+  `05d27fa6068de1c24c56ae7730c5a564bde15734`,
+  `47e56f1112983f1c53d88a0b4615ee3b3252e138`,
+  `77706689f963a746f5a55d32720cae02e29ebeb6`.
+  Test commits: `51a622bbba1dea415d7104e96a86d62911d7695e`,
+  `e86e8a63e5511cd52c5bb2c1b1d5faf0d53e9822`,
+  `6d0d3482e2d9afbade716c2f4cb9a58d70756b91`,
+  `262df9bb5ce89da3ad1cfaad508afff40ff15a9b`,
+  `750bca818071a7b5d9e04a50271b6ecc873656ba`.
+- **New test execution not yet confirmed.** Run focused MdView tests,
+  then full Toolbox.sln; verify manual long-file source jumps.
