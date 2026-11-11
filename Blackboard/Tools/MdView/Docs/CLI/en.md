@@ -200,3 +200,19 @@ retain their original single-document presentation. The one-shot
 `git OWNER REPOSITORY` command is unchanged.
 
 [Technical behavior and tests](../Paged-GitHub-Browsing/en.md).
+
+## Experimental local disk-index navigation (2026-11-11)
+
+Use `mdview preview PATH` for local validated large Markdown files.
+Its terminal menu now offers **Find heading (disk index)** and
+**Find link location (disk index)**. The first use triggers a
+one-pass index construction using the existing validated snapshot;
+later result pages are read from temporary disk offsets in bounded
+batches of 12. Selected results jump to their physical source lines,
+not to a different document. The existing Next/Previous and Go to
+source line functionality is unchanged.
+
+The GitHub reader still enforces its independent 1 MiB source limit;
+this local disk index is the next step toward large-document
+navigation, not an instruction to remove that limit.
+[Technical details](../Disk-Navigation-Index/en.md).
