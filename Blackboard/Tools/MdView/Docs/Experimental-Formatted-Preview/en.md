@@ -276,3 +276,32 @@ deleted on disposal, and the original private source snapshot
 remains untouched.
 
 [Detailed disk index contract](../Disk-Navigation-Index/en.md).
+
+## Responsive viewport paging (2026-11-11)
+
+The local experimental preview now queries
+`IAnsiConsole.Profile.Width` and `Height` at each redraw. A
+new `MdViewTerminalPageIndex` stores visual-page start positions
+in an automatically deleted disk file, providing an explicit
+**Page X of Y** based on the active terminal dimensions. When a
+window is resized, the next draw rebuilds that page index and
+reflows the current source line; no asynchronous redraw of the
+current screen is attempted.
+
+The technical header and page footer use grey text, with a blank
+line between the header and document. Human prose preferentially
+wraps at sentence and word boundaries. Fenced code **does not
+wrap** and shows a `→` continuation indicator when its
+visible portion is clipped; complete validated source remains
+available through the independent raw source pager. Physical
+line and within-line visual-row positions prevent omission when
+a paragraph spans multiple pages.
+
+The current line/visual-row layout is deterministic and source-
+preserving but does not claim full CommonMark layout fidelity:
+continued list/quote context, emoji terminal widths, complete
+inline syntax and advanced syntax highlighting can differ from
+the simple visual-row estimate. The existing heading/link
+disk navigation and container event journal are retained.
+
+[Full responsive layout guide](../Responsive-Preview/en.md).
