@@ -134,6 +134,109 @@ public sealed class MdViewGitHubNavigationTests
     }
 
     [Fact]
+    public async Task LongGitHubReadmeDisplaysPagesInsteadOfDumpingTheWholeSource()
+    {
+        using var temp = new Fixture();
+        var markdown = "# Intro\n" +
+            string.Join("\n", Enumerable.Range(1, 70).Select(n => "sample line " + n));
+        using var http = Client(request =>
+            request.RequestUri!.AbsolutePath.EndsWith("/contents/README.md",
+                StringComparison.Ordinal)
+                ? Raw(markdown)
+                : Reply(request));
+        var terminal = Interactive();
+        terminal.Input.PushKey(ConsoleKey.Enter); // Next page
+        terminal.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewGitHubLinkBrowser(terminal, Source(http, temp.Root))
+            .RunAsync("owner", "repo");
+
+        Assert.Contains("Page: source lines 1–24", terminal.Output);
+        Assert.Contains("Page: source lines 25–48", terminal.Output);
+        Assert.Contains("sample line 47", terminal.Output);
+        Assert.DoesNotContain("sample line 70", terminal.Output);
+    }
+
+    [Fact]
+    public async Task LongGitHubReadmeAllowsJumpingDirectlyToAHeading()
+    {
+        using var temp = new Fixture();
+        var markdown = "# Intro\n" +
+            string.Join("\n", Enumerable.Range(2, 48).Select(n => "line " + n)) +
+            "\n## Target heading\n" +
+            string.Join("\n", Enumerable.Range(51, 20).Select(n => "line " + n));
+        using var http = Client(request =>
+            request.RequestUri!.AbsolutePath.EndsWith("/contents/README.md",
+                StringComparison.Ordinal)
+                ? Raw(markdown)
+                : Reply(request));
+        var terminal = Interactive();
+        terminal.Input.PushKey(ConsoleKey.DownArrow); // Go to heading
+        terminal.Input.PushKey(ConsoleKey.Enter);
+        terminal.Input.PushKey(ConsoleKey.DownArrow); // Target heading
+        terminal.Input.PushKey(ConsoleKey.Enter);
+        terminal.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewGitHubLinkBrowser(terminal, Source(http, temp.Root))
+            .RunAsync("owner", "repo");
+
+        Assert.Contains("Page: source lines 50–", terminal.Output);
+        Assert.Contains("Target heading", terminal.Output);
+    }
+
+    [Fact]
+    public async Task LongGitHubReadmeAllowsJumpingToSourceLine()
+    {
+        using var temp = new Fixture();
+        var markdown = "# Intro\n" +
+            string.Join("\n", Enumerable.Range(2, 70).Select(n => "line " + n));
+        using var http = Client(request =>
+            request.RequestUri!.AbsolutePath.EndsWith("/contents/README.md",
+                StringComparison.Ordinal)
+                ? Raw(markdown)
+                : Reply(request));
+        var terminal = Interactive();
+        terminal.Input.PushKey(ConsoleKey.DownArrow); // Go to heading
+        terminal.Input.PushKey(ConsoleKey.DownArrow); // Go to source line
+        terminal.Input.PushKey(ConsoleKey.Enter);
+        terminal.Input.PushTextWithEnter("42");
+        terminal.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewGitHubLinkBrowser(terminal, Source(http, temp.Root))
+            .RunAsync("owner", "repo");
+
+        Assert.Contains("Page: source lines 42–65", terminal.Output);
+        Assert.Contains("line 42", terminal.Output);
+    }
+
+    [Fact]
+    public async Task LinksRemainUsableWhenReadmeIsPaged()
+    {
+        using var temp = new Fixture();
+        var markdown = "# Home\n[Documentation](Docs/en.md)\n" +
+            string.Join("\n", Enumerable.Range(1, 60).Select(n => "line " + n));
+        using var http = Client(request =>
+            request.RequestUri!.AbsolutePath.EndsWith("/contents/README.md",
+                StringComparison.Ordinal)
+                ? Raw(markdown)
+                : Reply(request));
+        var terminal = Interactive();
+        terminal.Input.PushKey(ConsoleKey.Enter); // Follow link
+        terminal.Input.PushKey(ConsoleKey.Enter); // Documentation
+        terminal.Input.PushKey(ConsoleKey.Enter); // Back from Docs
+        terminal.Input.PushKey(ConsoleKey.Escape); // Exit on original page
+
+        await new MdViewGitHubLinkBrowser(terminal, Source(http, temp.Root))
+            .RunAsync("owner", "repo");
+
+        Assert.Contains("Page: source lines 1–24", terminal.Output);
+        Assert.Contains("GitHub: owner/repo @ feature/v2 / Docs/en.md",
+            terminal.Output);
+        Assert.Contains("GitHub: owner/repo @ feature/v2 / README.md",
+            terminal.Output);
+    }
+
+    [Fact]
     public async Task NoninteractiveBrowserDoesNotPerformNetworkRequests()
     {
         using var temp = new Fixture();
