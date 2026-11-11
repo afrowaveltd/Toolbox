@@ -117,8 +117,14 @@ public sealed class MdViewSmallMarkdownPageIndex
             if (take > 0 && take < block.RawText.Length &&
                 char.IsHighSurrogate(block.RawText[take - 1]))
                 take--;
+            // If the remaining budget cannot hold the first Unicode scalar,
+            // leave this physical line intact for the next page. Never
+            // consume a line without displaying any part of it.
+            if (take == 0)
+                break;
             var text = block.RawText[..take];
-            if (take < block.RawText.Length)
+            var lineWasTruncated = take < block.RawText.Length;
+            if (lineWasTruncated)
                 truncated = true;
             if (block.Kind is MarkdownBlockKind.CodeFence or MarkdownBlockKind.CodeLine)
             {
@@ -130,6 +136,12 @@ public sealed class MdViewSmallMarkdownPageIndex
 
             remaining -= take;
             end++;
+            // The rest of a truncated physical line is intentionally omitted
+            // from this display page, not queued as a new source line. Do not
+            // spend a leftover UTF-16 code unit on the following line:
+            // that would display a misleading fragment of its Markdown.
+            if (lineWasTruncated)
+                break;
         }
         FlushProse();
 
