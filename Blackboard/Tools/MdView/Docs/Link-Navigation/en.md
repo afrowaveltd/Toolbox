@@ -414,3 +414,23 @@ The existing explicit CLI `git OWNER REPOSITORY` remains one-shot;
 use `browse-git OWNER REPOSITORY` or the no-argument GitHub menu for
 actual link navigation. Targeted regressions were added, but this
 increment still requires a fresh maintainer test run.
+
+## Source-page navigation for longer GitHub Markdown files (2026-11-11)
+
+The GitHub link browser now uses `MdViewSmallMarkdownPageIndex`
+for documents exceeding 24 physical lines. It displays bounded
+source pages with **Next / Previous**, **Go to heading**,
+**Go to source line**, and the existing complete-document
+`Follow a link` catalog and document history. Page changes
+do not refetch remote content; a source file/content-digest
+transition rebuilds only the active document index.
+
+The full-doc parser's fenced-code classification prevents source
+that resembles Markdown inside a continued code fence from being
+rendered as a heading or list. List/quote fragment continuation
+remains experimental. Long single physical lines may be visibly
+shortened, without changing the cached original. This 1 MiB
+small-document index is distinct from the disk-backed scanner
+checkpoint/index architecture for 1 GiB Markdown files.
+
+[Source-page guide](../Paged-GitHub-Browsing/en.md).
