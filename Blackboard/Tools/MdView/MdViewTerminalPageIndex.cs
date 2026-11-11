@@ -208,6 +208,43 @@ public sealed class MdViewTerminalPageIndex : IAsyncDisposable
         }
     }
 
+    /// <summary>Finds the canonical page containing a source line and wrap-row offset.</summary>
+    /// <param name="position">Source position within the validated document.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Zero-based canonical page number.</returns>
+    public async Task<long> FindPageAsync(
+        MdViewVisualPosition position, CancellationToken cancellationToken = default)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (position.Line < 0 || position.Line >= SourceLineCount ||
+            position.WrapRow < 0)
+            throw new ArgumentOutOfRangeException(nameof(position));
+        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var low = 0L;
+            var high = PageCount;
+            while (low < high)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var middle = low + (high - low) / 2;
+                var start = await ReadAtAsync(middle, cancellationToken)
+                    .ConfigureAwait(false);
+                if (start.Line < position.Line ||
+                    (start.Line == position.Line &&
+                     start.WrapRow <= position.WrapRow))
+                    low = middle + 1;
+                else
+                    high = middle;
+            }
+            return Math.Max(0, low - 1);
+        }
+        finally
+        {
+            _gate.Release();
+        }
+    }
+
     /// <summary>Releases and deletes the temporary viewport-dependent index.</summary>
     public async ValueTask DisposeAsync()
     {
