@@ -392,3 +392,25 @@ provides regression coverage for these shapes, excluding external
 HTTPS links, and `BrowserFollowsMarkdownAndReturnsViaVirtualTerminal`
 asserts that the terminal reports a nonzero count. These additions
 have not been independently run in the maintainer environment.
+
+## GitHub selection from the no-argument source menu (2026-11-11)
+
+Previously the main source menu selected the legacy one-shot
+`GitHub` reader even for an interactive user, so README links were
+rendered only as styled text with no browsing prompt. The GitHub
+menu choice now intentionally selects `GitHubLinkBrowser`.
+Direct `owner/repository` input opens the exact-ref browser;
+owner-only input first offers the repository catalog or a validated
+manual-name fallback when the catalog fails (including HTTP 403).
+
+The browser now presents the total number of navigable Markdown links
+and the **first three label/destination pairs** *above* the Markdown
+document. `Follow a link` in the terminal menu after the document
+offers the complete list. This uses an ordinary keyboard-selectable
+Spectre.Console prompt, not mouse-clickable Markdown. Unsupported
+external URLs remain excluded from the same-repository navigator.
+
+The existing explicit CLI `git OWNER REPOSITORY` remains one-shot;
+use `browse-git OWNER REPOSITORY` or the no-argument GitHub menu for
+actual link navigation. Targeted regressions were added, but this
+increment still requires a fresh maintainer test run.
