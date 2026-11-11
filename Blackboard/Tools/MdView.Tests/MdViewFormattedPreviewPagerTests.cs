@@ -97,6 +97,72 @@ public sealed class MdViewFormattedPreviewPagerTests
     }
 
     [Fact]
+    public async Task DiskIndexedHeadingSelectionJumpsToDistantSourceLine()
+    {
+        using var fixture = new Fixture();
+        var lines = Enumerable.Range(0, 55).Select(i => "ordinary " + i).ToArray();
+        lines[0] = "# Introduction";
+        lines[37] = "## Target section";
+        var path = await fixture.WriteAsync(string.Join("\n", lines));
+        var console = Interactive();
+
+        console.Input.PushKey(ConsoleKey.DownArrow); // Go to source line
+        console.Input.PushKey(ConsoleKey.DownArrow); // Find heading
+        console.Input.PushKey(ConsoleKey.Enter);
+        console.Input.PushKey(ConsoleKey.DownArrow); // Target section
+        console.Input.PushKey(ConsoleKey.Enter);
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewFormattedPreviewPager(console).RunAsync(path);
+
+        Assert.Contains("Indexed headings", console.Output);
+        Assert.Contains("Jumped to source line 38", console.Output);
+        Assert.Contains("Source lines 38–", console.Output);
+        Assert.Contains("Target section", console.Output);
+    }
+
+    [Fact]
+    public async Task DiskIndexedLinkSelectionJumpsToItsSourceLocation()
+    {
+        using var fixture = new Fixture();
+        var lines = Enumerable.Range(0, 50).Select(i => "ordinary " + i).ToArray();
+        lines[19] = "[Installation](Docs/Install/en.md)";
+        var path = await fixture.WriteAsync(string.Join("\n", lines));
+        var console = Interactive();
+
+        console.Input.PushKey(ConsoleKey.DownArrow); // Go to source line
+        console.Input.PushKey(ConsoleKey.DownArrow); // Find heading
+        console.Input.PushKey(ConsoleKey.DownArrow); // Find link
+        console.Input.PushKey(ConsoleKey.Enter);
+        console.Input.PushKey(ConsoleKey.Enter); // First link
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewFormattedPreviewPager(console).RunAsync(path);
+
+        Assert.Contains("Indexed links", console.Output);
+        Assert.Contains("Jumped to source line 20", console.Output);
+        Assert.Contains("Docs/Install/en.md", console.Output);
+    }
+
+    [Fact]
+    public async Task EmptyHeadingIndexReturnsToPreviewWithoutReplacingSource()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteAsync("ordinary text\n[One](Doc.md)");
+        var console = Interactive();
+
+        // No Next on the last page: Go to line, Find heading, Find link, Exit.
+        console.Input.PushKey(ConsoleKey.DownArrow); // Find heading
+        console.Input.PushKey(ConsoleKey.Enter);
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewFormattedPreviewPager(console).RunAsync(path, 24);
+
+        Assert.Contains("No indexed headings were found.", console.Output);
+        Assert.Contains("ordinary text", console.Output);
+    }
+
+    [Fact]
     public async Task UnsafeInputIsNeverRendered()
     {
         using var fixture = new Fixture();
