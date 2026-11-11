@@ -111,6 +111,12 @@ public sealed class MdViewSmallMarkdownPageIndex
                 break;
 
             var take = Math.Min(block.RawText.Length, remaining);
+            // A UTF-16 character budget must never split a surrogate pair.
+            // This source is already validated Unicode, but terminal Text
+            // should not be handed an orphan high surrogate.
+            if (take > 0 && take < block.RawText.Length &&
+                char.IsHighSurrogate(block.RawText[take - 1]))
+                take--;
             var text = block.RawText[..take];
             if (take < block.RawText.Length)
                 truncated = true;
