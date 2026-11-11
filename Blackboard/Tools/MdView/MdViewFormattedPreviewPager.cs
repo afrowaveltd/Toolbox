@@ -133,9 +133,11 @@ public sealed class MdViewFormattedPreviewPager
                     // horizontal clipping, never a source line break.
                     var codeNote = pageIndex.Columns >= 56
                         ? "→ Code continues beyond the visible width (not wrapped)."
-                        : pageIndex.Columns >= 24
+                        : pageIndex.Columns >= 25
                             ? "→ Code clipped (no wrap)."
-                            : "→ Code clipped";
+                            : pageIndex.Columns >= 14
+                                ? "→ Code clipped"
+                                : "→ code";
                     _console.Write(new Text(codeNote + Environment.NewLine, gray));
                 }
 
