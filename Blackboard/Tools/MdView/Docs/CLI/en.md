@@ -216,3 +216,30 @@ The GitHub reader still enforces its independent 1 MiB source limit;
 this local disk index is the next step toward large-document
 navigation, not an instruction to remove that limit.
 [Technical details](../Disk-Navigation-Index/en.md).
+
+## Terminal-aware visual pagination for `preview` (2026-11-11)
+
+```bash
+mdview preview README.md
+```
+
+Local experimental preview now automatically adapts its content
+height and soft-wrapping width to the detected terminal window.
+The geometry is read again on the **next** page draw after a resize.
+The grey header is separated from document content by a single
+blank row. A grey footer reads **Page X of Y** and includes the
+physical source range for the displayed visual page.
+
+Ordinary prose wraps at natural sentence/clause/word boundaries;
+unbreakable words are split as necessary. Fenced-code lines
+are not wrapped; `→` indicates content hidden beyond the right
+edge. The original file and validated snapshot remain unchanged.
+The total page count is computed by a disk index for the active
+geometry, not an in-RAM document copy.
+
+For a manual source-line or indexed heading jump, a
+`(jump view)` annotation distinguishes the custom start from
+canonical page boundaries. This is a deterministic source-
+visual layout, still experimental for nested Markdown containers,
+complex inline tokens and terminal-dependent Unicode widths.
+[Responsive preview internals](../Responsive-Preview/en.md).
