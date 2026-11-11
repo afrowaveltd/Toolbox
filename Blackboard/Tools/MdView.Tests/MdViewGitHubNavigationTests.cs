@@ -158,6 +158,36 @@ public sealed class MdViewGitHubNavigationTests
     }
 
     [Fact]
+    public async Task PreviousPageReturnsToTheOriginalSourceRange()
+    {
+        using var temp = new Fixture();
+        var markdown = "# Intro\n" +
+            string.Join("\n", Enumerable.Range(1, 70).Select(n => "line " + n));
+        var requests = 0;
+        using var http = Client(request =>
+        {
+            requests++;
+            return request.RequestUri!.AbsolutePath.EndsWith("/contents/README.md",
+                StringComparison.Ordinal)
+                ? Raw(markdown)
+                : Reply(request);
+        });
+        var terminal = Interactive();
+        terminal.Input.PushKey(ConsoleKey.Enter); // Next page
+        terminal.Input.PushKey(ConsoleKey.DownArrow); // Previous page
+        terminal.Input.PushKey(ConsoleKey.Enter);
+        terminal.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewGitHubLinkBrowser(terminal, Source(http, temp.Root))
+            .RunAsync("owner", "repo");
+
+        Assert.Equal(2, terminal.Output.Split(
+            "Page: source lines 1–24", StringSplitOptions.None).Length - 1);
+        Assert.Contains("Page: source lines 25–48", terminal.Output);
+        Assert.Equal(3, requests); // Branch + README metadata + one source fetch.
+    }
+
+    [Fact]
     public async Task LongGitHubReadmeAllowsJumpingDirectlyToAHeading()
     {
         using var temp = new Fixture();
