@@ -42,7 +42,7 @@ public sealed class MdViewDiskNavigationIndexTests
             links.Select(item => item.Destination).ToArray());
         Assert.Equal(new long[] { 1, 1, 8 },
             links.Select(item => item.LineNumber).ToArray());
-        Assert.Equal(sample.Text.IndexOf("[Install]", StringComparison.Ordinal),
+        Assert.Equal((long)sample.Text.IndexOf("[Install]", StringComparison.Ordinal),
             links[0].Utf16Offset);
         Assert.All(links, item => Assert.Equal(MdViewIndexedItemKind.Link, item.Kind));
     }
@@ -80,9 +80,9 @@ public sealed class MdViewDiskNavigationIndexTests
         Assert.Equal(1, links.Count);
         Assert.Equal(3, headings[1].LineNumber);
         Assert.Equal(2, links[0].LineNumber);
-        Assert.Equal(source.IndexOf("[Two]", StringComparison.Ordinal),
+        Assert.Equal((long)source.IndexOf("[Two]", StringComparison.Ordinal),
             links[0].Utf16Offset);
-        Assert.Equal(source.IndexOf("# Three", StringComparison.Ordinal),
+        Assert.Equal((long)source.IndexOf("# Three", StringComparison.Ordinal),
             headings[1].Utf16Offset);
     }
 
