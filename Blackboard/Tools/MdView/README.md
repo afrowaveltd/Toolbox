@@ -484,3 +484,27 @@ code line remains a single clipped display row with its trailing
 
 The Markdown renderer displays formatted headings without the
 literal `#` marker, including after a clipped code fence.
+
+### Shared visual layout for list, quote and inline-link wrapping (2026-11-13)
+
+Local experimental `mdview preview PATH` now uses one
+`MdViewTerminalLineLayout` representation for both disk-indexed
+visual page counts and the actual terminal renderer. It consumes
+already classified source lines and creates literal, styled rows:
+bullets and ordered list numbers occur only on the first row,
+wrapped list continuations retain hanging indentation, quotes keep
+a visible `│` gutter, and wrapped Markdown link labels keep their
+link appearance without counting hidden destinations as columns.
+
+Strong/emphasis and inline-code styles survive wrapping. Fenced
+and conservatively indented code stay unwrapped and show `→`
+when clipped. The renderer no longer reparses each wrapped row
+as a fresh Markdown document, eliminating repeated markers and
+a common source of page-count/layout disagreement.
+
+This is a bounded per-line implementation, not a full
+CommonMark/table layout engine. It shares the existing validated
+snapshot, disk-backed page index, source-position resume model
+and the 1 MiB GitHub browser cap (unchanged).
+
+[Technical guide and limitations](Docs/Styled-Visual-Layout/en.md).
