@@ -137,8 +137,39 @@ public static class MdViewTerminalPipeTableLayout
     {
         if (!text.Contains(@"\|", StringComparison.Ordinal))
             return text;
-        // Unescape only literal escaped pipes. Other Markdown escapes
-        // remain for the existing conservative inline parser.
-        return text.Replace(@"\|", "|", StringComparison.Ordinal);
+
+        // Escaping a table delimiter is a Markdown presentation rule,
+        // but inside an inline code span the backslash is literal
+        // source code. Preserve code spans and all other escapes.
+        var builder = new System.Text.StringBuilder(text.Length);
+        var codeDelimiterLength = 0;
+        for (var index = 0; index < text.Length; index++)
+        {
+            if (text[index] == '\u0060' && !IsEscaped(text, index))
+            {
+                var run = 1;
+                while (index + run < text.Length &&
+                       text[index + run] == '\u0060')
+                    run++;
+                if (codeDelimiterLength == 0)
+                    codeDelimiterLength = run;
+                else if (codeDelimiterLength == run)
+                    codeDelimiterLength = 0;
+                builder.Append(text, index, run);
+                index += run - 1;
+                continue;
+            }
+
+            if (codeDelimiterLength == 0 && text[index] == '\\' &&
+                index + 1 < text.Length && text[index + 1] == '|' &&
+                !IsEscaped(text, index))
+            {
+                builder.Append('|');
+                index++;
+                continue;
+            }
+            builder.Append(text[index]);
+        }
+        return builder.ToString();
     }
 }
