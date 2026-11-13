@@ -168,7 +168,7 @@ public sealed class MdViewFormattedPreviewPager
                         containerCursor, position.Line,
                         rendered.Next.Line + (rendered.Next.WrapRow > 0 ? 1 : 0),
                         cancellationToken).ConfigureAwait(false);
-                if (visibleTable is not null)
+                if (visibleTable is not null && width >= 28)
                     choices.Add(nativeTable);
                 choices.Add(exit);
 
