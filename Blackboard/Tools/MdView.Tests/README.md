@@ -104,9 +104,10 @@ bracketed markup, cell-size clipping with unchanged source,
 fenced-code rejection and noninteractive/invalid-source
 failure behavior.
 
-Two `MdViewFormattedPreviewPagerTests` cover native
+Three `MdViewFormattedPreviewPagerTests` cover native
 table modal round-trip without losing the normal source page,
-and hiding the menu action for unconfirmed pipe text.
+hiding the menu for unconfirmed pipe text, and retaining
+compact table preview below the 28-column native threshold.
 
 These newly added tests **await a fresh .NET run**; the last
 maintainer-verified green checkpoint precedes this feature.
