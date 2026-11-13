@@ -226,3 +226,19 @@ Full CommonMark, tables, ambiguous lazy continuations and
 terminal-specific grapheme width remain out of scope.
 
 [Shared visual row design](../Styled-Visual-Layout/en.md).
+
+## Compact table rows and resize (2026-11-13)
+
+Explicitly framed, top-level pipe-table rows now become
+numbered vertical cells. The viewport-dependent page
+index counts every displayed cell row, so resizing the
+terminal recomputes **Page X of Y** from the same compact
+layout used by the renderer. Table columns are not loaded
+as a full in-memory document; per-line parsing remains
+bounded by the verified snapshot's line-size cap.
+
+A table delimiter row becomes a single visual divider;
+long link labels inside cells retain their styled display
+text without showing the destination. Full cross-row GFM
+alignment remains a future milestone.
+[Compact table guide](../Compact-Pipe-Tables/en.md).
