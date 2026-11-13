@@ -873,3 +873,9 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
 - One **orange warning** was observed, but its exact text, diagnostic ID, source and category have not yet been provided. Do **not** record a zero-warning build or mark the warning as resolved.
 - Automated test totals and separate full-solution results were not supplied; do not invent counts.
 - Next action: request the verbatim warning (or screenshot), identify its source, fix and test the cause, then update this status. This does not block recording the successful functional test checkpoint.
+
+## 2026-11-13 — orange warning resolved by .NET 11 final upgrade
+
+- Maintainer clarified that the sole orange warning was a **.NET preview-SDK warning**, not a MdView analyzer, compiler, or runtime defect.
+- After updating the local environment to **.NET 11 final**, the warning disappeared. All MdView tests and functional behavior were previously reported as passing.
+- **No source change required**. The earlier warning triage note remains as historical context, superseded by this resolution. Exact test counts were not supplied.
