@@ -78,8 +78,9 @@ This is **not yet full CommonMark**. The incremental container
 scanner deliberately uses conservative rules for lazy list
 continuation, nested/quoted containers and ambiguous indentation.
 Multiline inline links, reference-style links, setext headings,
-tables, and all advanced nested constructs remain outside the
-new layout contract. Complex grapheme clusters and differences in
+full multi-row GFM table column alignment, and advanced nested
+constructs remain outside the new layout contract. Explicit
+pipe-framed table rows have a separate compact-cell fallback. Complex grapheme clusters and differences in
 terminal Unicode cell widths can still change physical wrapping.
 The displayed total page count is exact for our deterministic
 line-layout model, not for every possible terminal font.
