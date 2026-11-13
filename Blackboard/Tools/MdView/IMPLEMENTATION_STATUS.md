@@ -866,3 +866,10 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   (not full CommonMark), no table/setext/reference-link layout,
   no terminal-specific grapheme width guarantee, and no
   interactive link following from local large-file `preview`.
+
+## 2026-11-13 — maintainer test acceptance with one warning pending triage
+
+- Maintainer reports that tests for the new shared styled visual-row layout are **passing** and that the local preview works correctly in practice.
+- One **orange warning** was observed, but its exact text, diagnostic ID, source and category have not yet been provided. Do **not** record a zero-warning build or mark the warning as resolved.
+- Automated test totals and separate full-solution results were not supplied; do not invent counts.
+- Next action: request the verbatim warning (or screenshot), identify its source, fix and test the cause, then update this status. This does not block recording the successful functional test checkpoint.
