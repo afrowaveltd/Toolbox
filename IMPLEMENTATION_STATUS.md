@@ -630,3 +630,10 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   yet been executed/confirmed** after this increment; preserve
   the previous green checkpoint separately and run focused
   MdView tests plus full Toolbox.sln before continuing.
+
+## 2026-11-13 — maintainer test acceptance with one warning pending triage
+
+- Maintainer confirms **tests passing and correct real-world behavior** for the new shared visual-row layout in MdView.
+- One orange warning is reported but not yet characterized. Its text and source must be obtained before changing production code or claiming warning-free output.
+- Exact test counts and separate full-solution/CI outcomes are not provided.
+- Detailed status: `Blackboard/Tools/MdView/IMPLEMENTATION_STATUS.md` and `Blackboard/Tools/MdView.Tests/IMPLEMENTATION_STATUS.md`.
