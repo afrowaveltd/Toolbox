@@ -559,3 +559,29 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   these changes. The new tests are **not yet confirmed**.
   Run focused MdView tests then full Toolbox.sln; record any
   failures with exact test names.
+
+## 2026-11-13 — native Spectre table widget tests pending
+
+- Eight new `MdViewSpectreTableViewerTests`
+  (`603284757ba82a9a038b771ff0fcad023aa8f5ce`):
+  matching Markdown header/delimiter discovery, rounded Unicode
+  Spectre borders on wide terminals, transposed Column/Value
+  view with field paging on narrow terminals, multi-chunk
+  table navigation, literal safe handling of bracketed markup,
+  visible long-cell clipping without modifying validated
+  source bytes, exclusion of fenced pipe rows, and invalid
+  source/noninteractive mode rejection.
+- Two new `MdViewFormattedPreviewPagerTests`
+  (`e060e79d203611417c2f2c7b1d67cef1bc4381bc`)
+  verify that a detected table opens via **View table (Spectre)**
+  and returns to the same Markdown source page, and that
+  unconfirmed pipe text does not add a table menu action.
+- The prior `MdViewTerminalPipeTableLayoutTests` continue
+  exercising the same conservative `TryReadCells` parser
+  and in-page compact fallback. No intentional changes to
+  Unicode, source-line page counts, code-fence ownership
+  or validated disk-index navigation.
+- **Fresh test verification pending.** Run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`,
+  then `dotnet test Toolbox.sln`. No post-change pass
+  counts or CI claims are made.
