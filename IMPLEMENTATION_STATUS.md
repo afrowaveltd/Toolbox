@@ -692,7 +692,7 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   More information:
   `Blackboard/Tools/MdView/Docs/Native-Spectre-Tables/en.md`.
   MdView README and English topic documentation updated.
-- Added eight viewer and two main-preview integration
+- Added eight viewer and three main-preview integration
   regression tests. The prior green state is the baseline:
   **fresh focused/full .NET tests for this increment remain
   pending maintainer verification**.
