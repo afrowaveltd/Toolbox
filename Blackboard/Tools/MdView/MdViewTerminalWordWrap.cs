@@ -32,33 +32,10 @@ public static class MdViewTerminalWordWrap
         var expanded = source.Replace("\t", "    ", StringComparison.Ordinal);
         if (code)
             return [ClipCode(expanded, columns)];
-        if (expanded.Length == 0)
-            return [""];
-
-        var rows = new List<string>();
-        var start = 0;
-        while (start < expanded.Length)
-        {
-            var limit = FittingEnd(expanded, start, columns);
-            if (limit >= expanded.Length)
-            {
-                rows.Add(expanded[start..]);
-                break;
-            }
-            // Choose a natural break only after a substantial part of the
-            // viewport; avoid breaking a long compound phrase too early.
-            var breakAt = FindNaturalBreak(expanded, start, limit);
-            if (breakAt <= start)
-                breakAt = limit;
-
-            rows.Add(expanded[start..breakAt].TrimEnd());
-            start = breakAt;
-            // Discard only leading whitespace of soft continuation rows.
-            // The original source is never modified.
-            while (start < expanded.Length && expanded[start] == ' ')
-                start++;
-        }
-        return rows.Count == 0 ? [""] : rows;
+        // Both ordinary callers and styled Markdown layout must use
+        // identical source positions and break rules.
+        return SliceProse(expanded, columns)
+            .Select(slice => slice.Text).ToArray();
     }
 
     /// <summary>
