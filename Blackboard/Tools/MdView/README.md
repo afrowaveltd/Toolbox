@@ -508,3 +508,28 @@ snapshot, disk-backed page index, source-position resume model
 and the 1 MiB GitHub browser cap (unchanged).
 
 [Technical guide and limitations](Docs/Styled-Visual-Layout/en.md).
+
+### Compact pipe-table preview for narrow terminals (2026-11-13)
+
+The experimental local `mdview preview PATH` now shows
+**conservatively framed pipe-table rows** as compact, numbered
+vertical cells. A source row like `| Name | Description |` becomes
+`1 │ Name` and `2 │ Description` on separate visual rows,
+with safe word wrapping inside each cell. This remains readable on
+small terminals without keeping the entire table in RAM.
+
+An explicitly framed alignment/separator row becomes a compact
+divider. Escaped pipes and pipes inside inline backtick code
+are not treated as cell separators. The feature is disabled
+inside code fences, quotes, list containers and ambiguous
+delimiter-free text. A maximum of 32 columns prevents
+unbounded per-source-row catalog growth.
+
+Page counts and rendering both use the shared
+`MdViewTerminalLineLayout`, so compact cells are counted as
+the same visual rows they display. The original Markdown
+file and disk-backed source indexes remain unchanged.
+
+This first version does **not** claim full GFM table
+column alignment or cross-row header inference.
+[Compact pipe table guide](Docs/Compact-Pipe-Tables/en.md).
