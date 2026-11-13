@@ -531,3 +531,8 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - A single orange warning remains to be diagnosed from its verbatim message; **zero warnings is not confirmed**.
 - No test totals or independent CI result were supplied. Preserve this as a reported functional/test acceptance, not a fabricated zero-warning verification.
 - Once the warning is provided, add a targeted regression test if it reflects a code or analyzer defect.
+
+## 2026-11-13 — orange warning resolved by .NET 11 final upgrade
+
+- The maintainer identified the orange message as coming from a **preview version of .NET**. Upgrading the local SDK to **.NET 11 final** removed the warning.
+- This is an **environment resolution**, not an MdView test or source fix. Previously reported tests were passing; no fresh count is inferred and no regression test is warranted for this SDK warning.
