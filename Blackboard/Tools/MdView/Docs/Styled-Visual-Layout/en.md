@@ -108,3 +108,25 @@ run before claiming the new version green.
 [Responsive preview](../Responsive-Preview/en.md) ·
 [Disk navigation index](../Disk-Navigation-Index/en.md) ·
 [Implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## Conservative compact pipe-table cells (2026-11-13)
+
+The shared `MdViewTerminalLineLayout` now delegates
+clearly framed, top-level pipe-table rows to the
+`MdViewTerminalPipeTableLayout` component. It renders
+each source row as a sequence of numbered vertical cells,
+using the same styled visible-text wrapping as prose.
+The disk page index and terminal renderer therefore agree
+on the number and positions of visual rows.
+
+Only rows enclosed by explicit, unescaped `|` delimiters,
+with 2–32 columns, are recognized. Pipes inside backtick
+code spans and escaped pipes do not create new cells.
+A conventional alignment-marker row becomes one
+divider. Ambiguous/unframed source and code blocks
+remain handled by their previous code paths.
+
+This is a compact low-RAM reading mode rather than a
+column-width-aware GFM table engine; header inference,
+nested table ownership and proper column alignment remain
+separate future work. [Detailed guide](../Compact-Pipe-Tables/en.md).
