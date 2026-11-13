@@ -667,3 +667,32 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   list/quote table state remain future work.
 - **Fresh focused/full .NET tests pending maintainer validation**.
   The prior all-green state predates this increment.
+
+## 2026-11-13 — Spectre.Console native Markdown table inspector
+
+- Added a native `Spectre.Console.Table` modal to the
+  experimental local `mdview preview PATH`. When a source
+  page contains a verified Markdown pipe header followed by a
+  matching separator row and the terminal is wide enough,
+  **View table (Spectre)** opens a real bordered/rounded table.
+- In wide terminals the widget displays actual aligned table
+  columns. In narrower terminals a real rounded two-column
+  Column/Value presentation retains all fields using bounded
+  chunk navigation. Native rendering consumes only a few
+  source rows/fields from the previously validated, disk-
+  backed cursor and never builds the entire Markdown table.
+- This is intentionally a separate modal from the main
+  disk-indexed Markdown preview. The pre-existing compact
+  table layout continues to own Page X of Y and its exact
+  source/visual-row positions. Full native in-page table
+  integration awaits accurate Spectre height measurement.
+- Parser reused from `MdViewTerminalPipeTableLayout`,
+  with safe literal `Text` cells, escaped Markdown headers,
+  clipped long cells and original source preservation.
+  More information:
+  `Blackboard/Tools/MdView/Docs/Native-Spectre-Tables/en.md`.
+  MdView README and English topic documentation updated.
+- Added eight viewer and two main-preview integration
+  regression tests. The prior green state is the baseline:
+  **fresh focused/full .NET tests for this increment remain
+  pending maintainer verification**.
