@@ -61,6 +61,50 @@ public static class MdViewTerminalWordWrap
         return rows.Count == 0 ? [""] : rows;
     }
 
+    /// <summary>
+    /// Returns source-positioned rows of already display-normalized prose.
+    /// Unlike a list of strings, each slice identifies the exact visible
+    /// characters needed to retain inline styling across soft line breaks.
+    /// </summary>
+    /// <param name="text">Display text with tabs already expanded.</param>
+    /// <param name="columns">Content width measured in terminal cells.</param>
+    /// <returns>At least one row, with UTF-16-safe start and length offsets.</returns>
+    public static IReadOnlyList<MdViewTerminalWrapSlice> SliceProse(
+        string text, int columns)
+    {
+        ArgumentNullException.ThrowIfNull(text);
+        if (columns is < 8 or > 4096)
+            throw new ArgumentOutOfRangeException(nameof(columns));
+        if (text.Length == 0)
+            return [new MdViewTerminalWrapSlice(0, 0, "")];
+
+        var rows = new List<MdViewTerminalWrapSlice>();
+        var start = 0;
+        while (start < text.Length)
+        {
+            var limit = FittingEnd(text, start, columns);
+            if (limit >= text.Length)
+            {
+                rows.Add(new MdViewTerminalWrapSlice(start,
+                    text.Length - start, text[start..]));
+                break;
+            }
+            var breakAt = FindNaturalBreak(text, start, limit);
+            if (breakAt <= start)
+                breakAt = limit;
+            var end = breakAt;
+            while (end > start && char.IsWhiteSpace(text[end - 1]))
+                end--;
+            rows.Add(new MdViewTerminalWrapSlice(start, end - start,
+                text[start..end]));
+            start = breakAt;
+            while (start < text.Length && text[start] == ' ')
+                start++;
+        }
+        return rows.Count == 0
+            ? [new MdViewTerminalWrapSlice(0, 0, "")] : rows;
+    }
+
     /// <summary>Counts visual terminal cells, with a conservative wide-rune model.</summary>
     /// <param name="source">Unicode text.</param>
     /// <returns>Measured columns, treating combining marks as zero width.</returns>
@@ -149,3 +193,12 @@ public static class MdViewTerminalWordWrap
             >= 0x20000 and <= 0x3FFFD ? 2 : 1;
     }
 }
+
+/// <summary>
+/// Displayed prose segment with exact UTF-16 coordinates in its
+/// previously normalized visible text, not the original Markdown source.
+/// </summary>
+/// <param name="Start">Zero-based display-text offset.</param>
+/// <param name="Length">Displayed UTF-16 length.</param>
+/// <param name="Text">Visible row text.</param>
+public sealed record MdViewTerminalWrapSlice(int Start, int Length, string Text);
