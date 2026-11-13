@@ -879,3 +879,52 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
 - Maintainer clarified that the sole orange warning was a **.NET preview-SDK warning**, not a MdView analyzer, compiler, or runtime defect.
 - After updating the local environment to **.NET 11 final**, the warning disappeared. All MdView tests and functional behavior were previously reported as passing.
 - **No source change required**. The earlier warning triage note remains as historical context, superseded by this resolution. Exact test counts were not supplied.
+
+## 2026-11-13 — conservative compact pipe-table cells for local preview
+
+- The previously confirmed **green** test checkpoint and resolved
+  .NET preview-SDK warning are the baseline. This increment adds
+  new code and tests; **fresh test execution is pending**.
+- Added `MdViewTerminalPipeTableLayout`
+  (`bab282198b2c5f349e331b109ee4874d55ee94ba`)
+  for `mdview preview PATH`. Explicit, top-level
+  `| cell | cell |` Markdown rows become numbered vertical
+  cell rows that remain readable at narrow widths without
+  loading whole tables in RAM. Separator rows become a visual
+  divider; 2–32 columns are supported. Ambiguous, unframed,
+  quoted/list-owned and fenced-code rows fall back to the
+  established rendering path.
+- `MdViewTerminalLineLayout` now delegates conservative pipe
+  rows to the table component, and shares an extracted
+  `LayoutStyledContents` helper for ordinary paragraphs and
+  table cells (`d8656439985e66c3761d8c868e8ce5fa2b788bc2`).
+  This preserves link/emphasis/inline-code styling while using
+  **exactly the same rows** in the disk page index and renderer.
+  Existing snapshot, cache and low-RAM contracts are retained.
+- Inline pipe recognizer distinguishes escaped delimiters and
+  backtick code spans. After a hardening pass,
+  `d538533e7a63633a6ce1e1ae85e059bb04c92be3`
+  preserves literal `\\|` inside inline code and only removes
+  escape backslashes for ordinary cell display text.
+- **Ten** focused `MdViewTerminalPipeTableLayoutTests`:
+  `0d1aa364035a51f2d6d551b10832fbb446b3cb71`
+  and `63dab5bf84b2bc8320decfe833ae1d675fc4ad1f`.
+  Coverage: framed header rows, alignment divider, escaped
+  and code-contained pipes, inline-code escape preservation,
+  link styling, fallback for ambiguous pipe text,
+  exclusion inside fenced code, eight-column terminal width,
+  32-column input bound, and disk-index/render parity.
+- English guide: `Docs/Compact-Pipe-Tables/en.md`;
+  MdView README and CLI/responsive/styled layout docs updated.
+- **Limitations:** this is a line-local compact reading layout,
+  not full GitHub-Flavored Markdown table rendering. It does
+  not infer header semantics across source lines, align fixed
+  column widths across rows, accept delimiter-free rows or
+  handle deeply nested table ownership. Those require later
+  bounded lookahead and/or a disk-backed table context index.
+- **Verification status:** new code not compiled or test-executed
+  in this assistant environment; the previous green baseline
+  does not imply these table tests pass. Run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  then `dotnet test Toolbox.sln` and smoke-test local preview
+  on a Markdown document with pipe tables.
