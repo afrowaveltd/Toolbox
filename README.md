@@ -125,6 +125,16 @@ visible styled labels without counting hidden URL destinations.
 This avoids reparsing wrapped fragments as new Markdown blocks.
 [Styled visual layout details](Blackboard/Tools/MdView/Docs/Styled-Visual-Layout/en.md).
 
+The experimental local preview now also offers **View table (Spectre)**
+when a confirmed Markdown table header and delimiter row are visible.
+This opens a real rounded **Spectre.Console.Table** with aligned columns
+(or a bordered Column/Value view in narrower terminals), reading only
+bounded chunks from the validated disk-backed source. Back/Escape
+restores the same Markdown page. The ordinary compact table rendering
+is retained for source page counts until native border/wrap heights
+can be indexed precisely.
+[Native Spectre table guide](Blackboard/Tools/MdView/Docs/Native-Spectre-Tables/en.md).
+
 The local Markdown preview also offers a **compact pipe-table view**:
 explicitly framed `| Name | Description |` rows become numbered
 vertical cells, with safe wrapping even on very narrow terminals.
