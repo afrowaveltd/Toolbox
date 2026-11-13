@@ -1,5 +1,4 @@
 using System.Globalization;
-using Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown;
 using Afrowave.Toolbox.ExchangeHouse.Markdown;
 using Spectre.Console;
 using Spectre.Console.Rendering;
@@ -31,6 +30,7 @@ public sealed class MdViewSpectreTableViewer
     private readonly IAnsiConsole _console;
 
     /// <summary>Creates the native table viewer for a Spectre terminal.</summary>
+    /// <param name="console">Interactive terminal that owns table rendering.</param>
     public MdViewSpectreTableViewer(IAnsiConsole console) =>
         _console = console ?? throw new ArgumentNullException(nameof(console));
 
@@ -51,7 +51,8 @@ public sealed class MdViewSpectreTableViewer
         ArgumentNullException.ThrowIfNull(cursor);
         if (firstLine < 0 || lastLineExclusive < firstLine)
             throw new ArgumentOutOfRangeException(nameof(firstLine));
-        var upper = Math.Min(lastLineExclusive, firstLine + 128);
+        var upper = Math.Min(lastLineExclusive,
+            firstLine > long.MaxValue - 128 ? long.MaxValue : firstLine + 128);
         for (var sourceLine = firstLine; sourceLine < upper; sourceLine++)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -76,6 +77,9 @@ public sealed class MdViewSpectreTableViewer
     /// screen per chunk, allowing next-chunk navigation without loading
     /// the full table. Escape restores the existing Markdown preview.
     /// </summary>
+    /// <param name="cursor">Caller-owned disk-backed source cursor.</param>
+    /// <param name="headerLine">Zero-based validated Markdown table header line.</param>
+    /// <param name="cancellationToken">Cancels reads and terminal prompts.</param>
     public async Task RunAsync(
         MdViewContainerPageCursor cursor, long headerLine,
         CancellationToken cancellationToken = default)
@@ -126,8 +130,7 @@ public sealed class MdViewSpectreTableViewer
             var table = new Table()
                 .RoundedBorder()
                 .BorderColor(Color.Grey);
-            if (width >= 20)
-                table.Width(Math.Min(width - 2, 140));
+            table.Width(Math.Min(width - 2, 140));
 
             long followingLine = sourceLine;
             var nextColumn = 0;
