@@ -533,3 +533,30 @@ file and disk-backed source indexes remain unchanged.
 This first version does **not** claim full GFM table
 column alignment or cross-row header inference.
 [Compact pipe table guide](Docs/Compact-Pipe-Tables/en.md).
+
+### Native Spectre.Console tables — rounded grid inspector (2026-11-13)
+
+The local experimental `mdview preview PATH` now detects tables
+with a real header and matching delimiter row on the current source
+page. The menu then offers **View table (Spectre)**. This opens a
+real `Spectre.Console.Table` with a rounded grey border and
+alignment inferred from GFM delimiter cells (`---`, `:---`,
+`---:`, `:---:`). Wide terminals show a conventional grid;
+narrow terminals use a rounded **Column / Value** table.
+
+The native inspector reads **bounded source chunks** from the
+existing validated disk-backed container cursor (at most six data
+rows or eight transposed fields per display). Long cell contents
+are visibly shortened, never changed in the source. Press Next
+table chunk to proceed or Back/Escape to return to the original
+Markdown source page. The option is offered only when the
+terminal is at least 28 columns wide.
+
+The existing compact cell layout stays the default in-page format
+**for now**. Embedding native framed tables in the main visual
+page would first require accurate Spectre-rendered row/height
+measurement in the disk visual page index. The optional modal
+viewer prevents decorative borders from silently breaking
+`Page X of Y` or physical source jumps.
+
+[Native Spectre table guide](Docs/Native-Spectre-Tables/en.md).
