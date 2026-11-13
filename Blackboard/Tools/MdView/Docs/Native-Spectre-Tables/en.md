@@ -114,9 +114,9 @@ Eight `MdViewSpectreTableViewerTests` cover correct header/delimiter
 recognition, real rounded borders, grid/transpose modes, bounded
 row/field navigation, malicious-looking literal markup, long-cell
 clipping with intact source, fence exclusion and invalid-source
-rejection. Two additional preview integration tests verify opening
-and returning from the modal viewer and absence of the option for
-non-table text.
+rejection. Three additional preview integration tests verify opening
+and returning from the modal viewer, absence of the option for
+non-table text, and compact fallback for terminals under 28 columns.
 
 **The new source/test changes have not yet been compiled or executed
 in this assistant environment.** The last confirmed green checkpoint
