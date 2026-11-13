@@ -814,3 +814,55 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
 - This confirms the post-fix test checkpoint following the previously reported 174 passed / 2 failed result. The current exact pass/skip totals were not supplied and are **not inferred**.
 - Includes the fixes for formatted ATX heading expectations, narrow-viewport code warning and wide-viewport warning regression. No further production changes at this checkpoint.
 - Next incremental milestone: continue refining responsive Markdown visual-row fidelity (especially complex lists, quotes and inline formatting) and code overflow usability while preserving disk-indexed source navigation and verified cache contracts.
+
+## 2026-11-13 — shared source-aware visual rows for lists, quotes and links
+
+- Following a **maintainer-confirmed all-green** responsive MdView
+  test checkpoint, the next planned implementation increment addresses
+  page count/render disagreement for Markdown containers and inlines.
+- Root cause: the disk visual-page index counted wrapped **raw Markdown**
+  while the renderer parsed each soft-wrapped fragment as a separate
+  Markdown document. Invisible URL destinations, displayed list bullets,
+  quote gutters and Markdown marker removal could produce a different
+  number of actual rows or make repeated list markers appear.
+- Added `MdViewTerminalLineLayout`:
+  `421c027d6ba3f71473d7c7130031f874c3a29324`.
+  It consumes one already-classified Markdown source line, separates
+  visible container markers and styled inline text, applies hanging
+  indentation to wrapped list items and repeatable quote gutters,
+  preserves link label/inline emphasis/code styling across wraps,
+  and leaves fenced/indented code literal and horizontally clipped.
+- Both `MdViewTerminalPageIndex`
+  (`3d535cabe7513a09f852ac193c70a1391866374f`) and
+  `MdViewTerminalPageRenderer`
+  (`072f58a1e60de968b0771b27d5dd39f40d8d2758`) now use
+  the **same** `Layout` rows. The renderer writes literal
+  `Spectre.Console.Text` spans with exactly one newline per
+  indexed visual row, rather than reparsing each soft fragment.
+- Added `MdViewTerminalWordWrap.SliceProse` to preserve exact
+  UTF-16 display offsets for styled spans:
+  `7b2f1bdecd8c5921fc9e5739a831969806c32b58`.
+  The original wrapping API now calls the same slice algorithm:
+  `b19a1a9d3aaa0d7a4f92d3b1b901ae03e0c13165`.
+- Per-line inline span slicing uses a monotonic token cursor and
+  bounded adjacent-token merging for improved long-line behavior:
+  `fe389c44a8cb5da71941ce6551c2cf726aa7d9c6`.
+  The snapshot's existing line-size and disk-index budgets remain.
+- Nine new `MdViewTerminalLineLayoutTests` verify hanging
+  indentation, quotes, nested quoted numbered markers, wrapped
+  and quoted links, strong/inline-code roles, fenced code literal
+  handling, escaped/malformed markup, and disk index/renderer
+  resume-point agreement:
+  `8bfe2de61757c609d052eeee6afa0cb82feba071`,
+  `83b3372f4f870f9eefbe94153b0d88b597779c03`.
+- New guide: `Docs/Styled-Visual-Layout/en.md`.
+  Existing GitHub/HTTPS browser, raw source pager, validated
+  snapshot and disk navigation index behavior are unchanged.
+- **Fresh post-change focused/full test runs not yet confirmed.**
+  The prior all-green report applies to the preceding checkpoint.
+  Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln` on Debian/Windows.
+- Limits remain: conservative incremental scanner ownership
+  (not full CommonMark), no table/setext/reference-link layout,
+  no terminal-specific grapheme width guarantee, and no
+  interactive link following from local large-file `preview`.
