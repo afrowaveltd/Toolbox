@@ -497,3 +497,30 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - The exact new total was not provided; do not claim a fabricated count or a separate CI result.
 - Covered correction commits: `ff2411594f620b618dafad085cd48064dfd074b1`, `a33ecffbf780947b060059e2142bd288b1c6bbbf`, and added wide-terminal test `679628725495c72a8c91fde21ca2770edd42e6b5`. Production warning fixes: `c1889b53d3f62de5c7372674b54ccac1d6b9c4f3` and `d58d11d2be89b1ee8ca803a55b8cb6003173ccd4`.
 - Continue from this maintainer-verified checkpoint; add regression coverage for future terminal layout changes.
+
+## 2026-11-13 — shared inline/container visual row test checkpoint
+
+- The previous responsive preview suite was explicitly reported
+  green by the maintainer. This new increment is **not yet run**.
+- Added nine `MdViewTerminalLineLayoutTests`:
+  long bullet item keeps one bullet with hanging indentation;
+  wrapped block quotes keep a gutter on each row;
+  inline link visible label keeps the Link style across wraps
+  without counting its hidden destination; strong and inline
+  code styling survive wrapping; quoted ordered lists retain
+  correct marker/continuation prefixes; fenced code stays
+  literal; escaped/malformed markup stays safe; quoted links
+  retain styling; and the renderer's Next position agrees
+  with disk-indexed page starts through a multi-page
+  document combining lists, links, quotes and headings.
+- Test sources: `8bfe2de61757c609d052eeee6afa0cb82feba071`
+  and `83b3372f4f870f9eefbe94153b0d88b597779c03`.
+- Production now shares the exact row layout between
+  `MdViewTerminalPageIndex` and `MdViewTerminalPageRenderer`.
+  That alignment is an essential regression invariant for
+  `Page X of Y`, source-preserving forward/back pages and
+  long-line resume positions. The original word-wrap method
+  also reuses the new UTF-16-safe visible slice implementation.
+- **Verification pending**: focused `MdView.Tests` then
+  full `Toolbox.sln`. Do not claim this increment green
+  before the maintainer reports results.
