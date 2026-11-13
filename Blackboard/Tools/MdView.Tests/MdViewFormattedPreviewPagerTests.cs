@@ -225,6 +225,46 @@ public sealed class MdViewFormattedPreviewPagerTests
     }
 
     [Fact]
+    public async Task RealSpectreTableOpensAndReturnsWithoutLosingMarkdownPage()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteAsync(
+            "| Name | Value |\n| --- | ---: |\n| CPU | 16 cores |\n# Afterwards");
+        var console = Interactive();
+        // Only the jump, heading, link and Spectre table choices
+        // precede Exit on this one-page Markdown document.
+        console.Input.PushKey(ConsoleKey.DownArrow);
+        console.Input.PushKey(ConsoleKey.DownArrow);
+        console.Input.PushKey(ConsoleKey.DownArrow);
+        console.Input.PushKey(ConsoleKey.Enter); // View table (Spectre)
+        console.Input.PushKey(ConsoleKey.Escape); // Back to Markdown preview
+        console.Input.PushKey(ConsoleKey.Escape); // Exit preview
+
+        await new MdViewFormattedPreviewPager(console).RunAsync(path);
+
+        Assert.Contains("View table (Spectre)", console.Output);
+        Assert.Contains("Native Spectre table", console.Output);
+        Assert.Contains("╭", console.Output);
+        Assert.Contains("16 cores", console.Output);
+        Assert.Contains("Page 1 of ", console.Output);
+    }
+
+    [Fact]
+    public async Task OrdinaryPreviewDoesNotShowTableInspectorWithoutHeaderDelimiter()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteAsync(
+            "Ordinary text\n| A | B |\nNot an alignment divider");
+        var console = Interactive();
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewFormattedPreviewPager(console).RunAsync(path);
+
+        Assert.DoesNotContain("View table (Spectre)", console.Output);
+        Assert.Contains("Ordinary text", console.Output);
+    }
+
+    [Fact]
     public async Task UnsafeInputIsNeverRendered()
     {
         using var fixture = new Fixture();
