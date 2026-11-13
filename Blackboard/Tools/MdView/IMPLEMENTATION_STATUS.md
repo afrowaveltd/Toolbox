@@ -807,3 +807,10 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
   followed by `dotnet test Toolbox.sln`. Do not label the new
   checkpoint green until those results are available.
+
+## 2026-11-13 — maintainer-confirmed green responsive-preview checkpoint
+
+- Maintainer reports **all tests green / no remaining failures** after updating to the responsive-preview heading assertion and width-aware code-overflow notice fixes.
+- This confirms the post-fix test checkpoint following the previously reported 174 passed / 2 failed result. The current exact pass/skip totals were not supplied and are **not inferred**.
+- Includes the fixes for formatted ATX heading expectations, narrow-viewport code warning and wide-viewport warning regression. No further production changes at this checkpoint.
+- Next incremental milestone: continue refining responsive Markdown visual-row fidelity (especially complex lists, quotes and inline formatting) and code overflow usability while preserving disk-indexed source navigation and verified cache contracts.
