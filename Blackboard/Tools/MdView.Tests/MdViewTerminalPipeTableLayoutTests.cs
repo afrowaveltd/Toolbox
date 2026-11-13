@@ -54,6 +54,20 @@ public sealed class MdViewTerminalPipeTableLayoutTests
     }
 
     [Fact]
+    public async Task EscapedPipeInsideInlineCodeRemainsLiteralSource()
+    {
+        var line = Assert.Single(await ScanAsync(
+            "| \u0060literal\\|pipe\u0060 | escaped\\|pipe |"));
+        var rows = MdViewTerminalLineLayout.Layout(line, 50);
+
+        Assert.Equal(2, rows.Count);
+        Assert.Contains(@"literal\|pipe", rows[0].Text);
+        Assert.Contains("escaped|pipe", rows[1].Text);
+        Assert.Contains(rows[0].Spans, span =>
+            span.Role == MdViewTerminalSpanRole.Code);
+    }
+
+    [Fact]
     public async Task LinkInTableCellRetainsStyleAndHidesDestination()
     {
         var line = Assert.Single(await ScanAsync(
