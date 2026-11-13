@@ -637,3 +637,9 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - One orange warning is reported but not yet characterized. Its text and source must be obtained before changing production code or claiming warning-free output.
 - Exact test counts and separate full-solution/CI outcomes are not provided.
 - Detailed status: `Blackboard/Tools/MdView/IMPLEMENTATION_STATUS.md` and `Blackboard/Tools/MdView.Tests/IMPLEMENTATION_STATUS.md`.
+
+## 2026-11-13 — orange warning resolved by .NET 11 final upgrade
+
+- The remaining orange warning during the MdView styled visual-layout test checkpoint was identified by the maintainer as a **.NET preview warning**.
+- Upgrading the local development environment to **.NET 11 final** resolved it. No changes to the Toolbox/MdView implementation were needed.
+- Previous passing-test confirmation stands; the warning is no longer outstanding. Exact test counts were not provided.
