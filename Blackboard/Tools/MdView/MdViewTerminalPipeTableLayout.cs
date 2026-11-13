@@ -35,13 +35,10 @@ public static class MdViewTerminalPipeTableLayout
             throw new ArgumentOutOfRangeException(nameof(columns));
         rows = [];
 
-        if (line.Kind != MarkdownContainerLineKind.Plain ||
-            line.QuoteDepth != 0 ||
-            line.Source.Kind == MarkdownStreamLineKind.Heading ||
-            !TrySplitCells(line.Source.Text, out var cells))
+        if (!TryReadCells(line, out var cells, out var isSeparator))
             return false;
 
-        if (cells.All(IsDelimiterCell))
+        if (isSeparator)
         {
             rows = [new MdViewTerminalDisplayRow(
                 [new MdViewTerminalStyledSpan(
@@ -62,10 +59,37 @@ public static class MdViewTerminalPipeTableLayout
             if (MdViewTerminalWordWrap.MeasureColumns(first) > columns - 8)
                 first = hanging = "";
             result.AddRange(MdViewTerminalLineLayout.LayoutStyledContents(
-                UnescapePipes(cells[i]), columns, first, hanging,
+                cells[i], columns, first, hanging,
                 MdViewTerminalSpanRole.Body));
         }
         rows = result;
+        return true;
+    }
+
+    /// <summary>
+    /// Reads a conservatively recognized pipe row as bounded decoded cells.
+    /// Shared by the compact reader and the opt-in native Spectre table
+    /// inspector; it never treats fences, quoted text or list text as tables.
+    /// </summary>
+    /// <param name="line">Validated, container-classified source line.</param>
+    /// <param name="cells">Unescaped cell contents, owned by the caller.</param>
+    /// <param name="isSeparator">True for an all-delimiter alignment row.</param>
+    /// <returns>True for a clearly framed two-to-32-column pipe row.</returns>
+    public static bool TryReadCells(
+        MarkdownContainerLine line, out IReadOnlyList<string> cells,
+        out bool isSeparator)
+    {
+        ArgumentNullException.ThrowIfNull(line);
+        cells = [];
+        isSeparator = false;
+        if (line.Kind != MarkdownContainerLineKind.Plain ||
+            line.QuoteDepth != 0 ||
+            line.Source.Kind == MarkdownStreamLineKind.Heading ||
+            !TrySplitCells(line.Source.Text, out var parsed))
+            return false;
+        isSeparator = parsed.All(IsDelimiterCell);
+        cells = isSeparator ? parsed :
+            parsed.Select(UnescapePipes).ToArray();
         return true;
     }
 
