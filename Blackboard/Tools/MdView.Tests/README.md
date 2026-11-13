@@ -59,3 +59,23 @@ remain in place.
 This source increment has **not yet been verified by a fresh
 maintainer test run**. Run the targeted MdView tests and complete
 Toolbox solution suite before considering this checkpoint green.
+
+## Shared layout and renderer parity tests (2026-11-13)
+
+Added nine `MdViewTerminalLineLayoutTests` for wrapped list
+bullets/hanging indents, repeated quote gutters, long link
+labels with retained link roles, emphasis and inline-code
+styles, quoted numbered lists, literal code fences,
+escaped/malformed markup, and disk-page-index/renderer
+resume-position parity across visual pages.
+
+The production row model is shared by the disk index and
+renderer. `MdViewTerminalWordWrap.SliceProse` exposes the
+display-text source positions of soft rows, and the ordinary
+wrap method reuses it. The per-line inline token cursor is
+monotonic to avoid quadratic behavior on a single long
+source line containing many Markdown tokens.
+
+**Fresh focused and full-solution tests pending.** The last
+maintainer-confirmed all-green checkpoint predates this
+increment.
