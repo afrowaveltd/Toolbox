@@ -79,6 +79,10 @@ public static class MdViewTerminalLineLayout
                 clipped)];
         }
 
+        // Only conservatively framed pipe-table rows outside source code.
+        if (MdViewTerminalPipeTableLayout.TryLayout(line, columns, out var tableRows))
+            return tableRows;
+
         var source = line.Source.Text;
         var prefix = new StringBuilder();
         var contents = StripStructuralPrefix(line, source, prefix);
@@ -149,6 +153,20 @@ public static class MdViewTerminalLineLayout
             continuation = "";
         }
 
+
+        return LayoutStyledContents(contents, columns, firstPrefix,
+            continuation, role);
+    }
+
+    /// <summary>
+    /// Formats the visible contents of a source line or one table cell
+    /// with consistent hanging prefixes and Unicode-safe inline styling.
+    /// </summary>
+    internal static IReadOnlyList<MdViewTerminalDisplayRow> LayoutStyledContents(
+        string contents, int columns, string firstPrefix, string continuation,
+        MdViewTerminalSpanRole role)
+    {
+        ArgumentNullException.ThrowIfNull(contents);
         var styled = new List<MdViewTerminalStyledSpan>();
         AppendInlines(styled, MarkdownInlineParser.Parse(contents), role);
         var visible = string.Concat(styled.Select(span => span.Text));
