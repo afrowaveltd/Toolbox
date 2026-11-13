@@ -608,3 +608,25 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Exact current test totals were not supplied. No independent CI conclusion or additional counts are claimed.
 - `Blackboard/Tools/MdView/IMPLEMENTATION_STATUS.md` and `Blackboard/Tools/MdView.Tests/IMPLEMENTATION_STATUS.md` contain the detailed fixes and test checkpoint.
 - Next work: improve display fidelity and keyboard usability of viewport-responsive Markdown paging without regressing disk-backed indexes, low-memory behavior, GitHub navigation or validated snapshot guarantees.
+
+## 2026-11-13 — MdView shared styled visual row layout
+
+- Building on the maintainer-confirmed green adaptive preview,
+  the local `mdview preview PATH` now calculates and renders
+  visual rows through the same `MdViewTerminalLineLayout`.
+  It accounts for displayed (rather than source) link labels,
+  hanging list indentation, quote gutters, headings and inline
+  emphasis/code styles, improving page count and renderer parity.
+- The previous implementation independently reparsed each
+  wrapped fragment and could reinterpret or duplicate Markdown
+  markers. It now writes safe literal Spectre text spans with
+  one output newline per indexed row. Fenced/indented code is
+  unchanged (unwrapped with right-arrow clipping).
+- No changes to GitHub/HTTPS network browsing, the validated
+  UTF-8 source snapshot or existing disk index safety budgets.
+  Documentation: `Blackboard/Tools/MdView/Docs/Styled-Visual-Layout/en.md`.
+  Project README and topic-specific English documentation updated.
+- Nine targeted regression tests added. **Fresh tests have not
+  yet been executed/confirmed** after this increment; preserve
+  the previous green checkpoint separately and run focused
+  MdView tests plus full Toolbox.sln before continuing.
