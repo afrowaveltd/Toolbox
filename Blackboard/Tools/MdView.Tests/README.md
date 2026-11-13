@@ -79,3 +79,16 @@ source line containing many Markdown tokens.
 **Fresh focused and full-solution tests pending.** The last
 maintainer-confirmed all-green checkpoint predates this
 increment.
+
+## Compact table regression tests (2026-11-13)
+
+Nine `MdViewTerminalPipeTableLayoutTests` cover
+numbered compact cells, separator rows, escaped and
+inline-code pipes, visible link-label styling, ambiguous
+fallback, fenced-code preservation, eight-column terminal
+widths, 32-column input bounds, and disk index/renderer
+agreement across page boundaries.
+
+Fresh focused/full-solution tests are **pending maintainer
+verification**; retain the prior all-green state as the
+baseline before these table changes.
