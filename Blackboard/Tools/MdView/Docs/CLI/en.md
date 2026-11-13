@@ -264,3 +264,20 @@ wraps. Code fences and indented code remain literal and
 unwrapped as before. The existing source and GitHub/HTTPS
 navigation commands are unchanged. See
 [the shared visual layout guide](../Styled-Visual-Layout/en.md).
+
+## Compact Markdown table layout (2026-11-13)
+
+For `mdview preview PATH`, explicitly framed Markdown
+pipe-table rows are displayed as separate numbered cells
+instead of a horizontal grid that would overflow the
+terminal. Cell text wraps to the available viewport width,
+preserving inline link and code styling. Divider rows
+remain visible as horizontal separators. The table
+renderer is shared with the disk visual page index;
+changing terminal dimensions rebuilds the index using
+the same compact layout.
+
+Ambiguous pipe text, code fences and unsupported nested
+table constructs are not converted to table cells.
+This remains an experimental, deliberately conservative
+subset of Markdown/GFM. [Details](../Compact-Pipe-Tables/en.md).
