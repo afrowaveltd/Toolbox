@@ -643,3 +643,27 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - The remaining orange warning during the MdView styled visual-layout test checkpoint was identified by the maintainer as a **.NET preview warning**.
 - Upgrading the local development environment to **.NET 11 final** resolved it. No changes to the Toolbox/MdView implementation were needed.
 - Previous passing-test confirmation stands; the warning is no longer outstanding. Exact test counts were not provided.
+
+## 2026-11-13 — MdView compact pipe-table source rows
+
+- Following the maintainer-confirmed green MdView styled-layout
+  checkpoint and resolution of the .NET preview SDK warning,
+  local `mdview preview PATH` now supports a **conservative
+  compact pipe-table view**. Explicitly framed top-level
+  Markdown table rows appear as numbered vertical cells,
+  avoiding clipped horizontal tables on narrow terminals.
+- Recognition ignores escaped pipes and pipes inside inline
+  code; fenced code is never interpreted as tables. Standard
+  inline styles are preserved and original validated source
+  bytes are unchanged. One source row may occupy several
+  visual rows, counted identically by disk page index and renderer.
+- Ten regression tests added under
+  `Blackboard/Tools/MdView.Tests/MdViewTerminalPipeTableLayoutTests.cs`.
+  English topic guide:
+  `Blackboard/Tools/MdView/Docs/Compact-Pipe-Tables/en.md`.
+  Root/MdView README and linked English documentation updated.
+- This is **not full GFM column-aligned table support**; table
+  header inference, ambiguous/delimiter-free rows and nested
+  list/quote table state remain future work.
+- **Fresh focused/full .NET tests pending maintainer validation**.
+  The prior all-green state predates this increment.
