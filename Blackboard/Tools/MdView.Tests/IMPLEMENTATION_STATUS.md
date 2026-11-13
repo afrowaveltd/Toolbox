@@ -490,3 +490,10 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   `d58d11d2be89b1ee8ca803a55b8cb6003173ccd4`.
 - **Fresh tests are pending.** Prior 174/176 result remains the
   observed pre-fix state, not evidence of a new passing run.
+
+## 2026-11-13 — maintainer-confirmed green responsive-preview checkpoint
+
+- Maintainer explicitly confirms the latest test runs are **green** after both prior responsive-preview failures were addressed. This supersedes the last observed pre-fix 174/176 result.
+- The exact new total was not provided; do not claim a fabricated count or a separate CI result.
+- Covered correction commits: `ff2411594f620b618dafad085cd48064dfd074b1`, `a33ecffbf780947b060059e2142bd288b1c6bbbf`, and added wide-terminal test `679628725495c72a8c91fde21ca2770edd42e6b5`. Production warning fixes: `c1889b53d3f62de5c7372674b54ccac1d6b9c4f3` and `d58d11d2be89b1ee8ca803a55b8cb6003173ccd4`.
+- Continue from this maintainer-verified checkpoint; add regression coverage for future terminal layout changes.
