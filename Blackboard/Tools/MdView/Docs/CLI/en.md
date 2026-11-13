@@ -248,3 +248,19 @@ The default `preview` content height is **automatic**: all
 available screen rows after the 16-row header/footer/menu reserve
 can be used, up to 128 visual rows. An explicit `linesPerPage`
 parameter still constrains callers who need a smaller page size.
+
+## Wrapped lists and inline formatting in preview (2026-11-13)
+
+The experimental local `mdview preview PATH` retains list
+bullets and numeric markers on the first visual row, uses
+hanging indentation for wrapped continuation rows, repeats
+a quote gutter across wrapped quotes, and displays only the
+visible styled label of Markdown links. The viewport page
+index now measures these same rendered rows, improving
+`Page X of Y` consistency.
+
+Inline strong/emphasis/code spans retain their style across
+wraps. Code fences and indented code remain literal and
+unwrapped as before. The existing source and GitHub/HTTPS
+navigation commands are unchanged. See
+[the shared visual layout guide](../Styled-Visual-Layout/en.md).
