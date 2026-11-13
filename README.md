@@ -117,6 +117,14 @@ unwrapped code lines marked `→` when clipped, and a grey
 the active terminal size and recalculated on the next draw after
 a resize. [Responsive preview guide](Blackboard/Tools/MdView/Docs/Responsive-Preview/en.md).
 
+The local responsive Markdown preview now uses a shared **styled
+visual-row layout** for both pagination and rendering. Bulleted
+and ordered list items keep hanging indentation, quoted prose keeps
+its visible left gutter, and wrapped inline links retain their
+visible styled labels without counting hidden URL destinations.
+This avoids reparsing wrapped fragments as new Markdown blocks.
+[Styled visual layout details](Blackboard/Tools/MdView/Docs/Styled-Visual-Layout/en.md).
+
 For large **local** Markdown files, the experimental disk-backed
 navigation index is available separately:
 
