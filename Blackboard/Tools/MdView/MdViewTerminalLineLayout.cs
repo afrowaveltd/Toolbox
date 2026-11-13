@@ -157,6 +157,11 @@ public static class MdViewTerminalLineLayout
             MdViewTerminalWordWrap.MeasureColumns(continuation));
         var slices = MdViewTerminalWordWrap.SliceProse(visible, contentColumns);
         var rows = new List<MdViewTerminalDisplayRow>(slices.Count);
+        // A long line containing many links can have thousands of
+        // styled tokens. Keep one monotonic cursor over the tokens instead
+        // of restarting from token zero for every wrapped screen row.
+        var segmentIndex = 0;
+        var segmentStart = 0;
         for (var index = 0; index < slices.Count; index++)
         {
             var rowPrefix = index == 0 ? firstPrefix : continuation;
@@ -166,19 +171,26 @@ public static class MdViewTerminalLineLayout
                     rowPrefix, MdViewTerminalSpanRole.Marker));
 
             var slice = slices[index];
-            var running = 0;
-            foreach (var segment in styled)
+            while (segmentIndex < styled.Count &&
+                segmentStart + styled[segmentIndex].Text.Length <= slice.Start)
             {
-                var from = Math.Max(slice.Start, running);
+                segmentStart += styled[segmentIndex].Text.Length;
+                segmentIndex++;
+            }
+            var current = segmentIndex;
+            var offset = segmentStart;
+            while (current < styled.Count && offset < slice.Start + slice.Length)
+            {
+                var segment = styled[current];
+                var from = Math.Max(slice.Start, offset);
                 var to = Math.Min(slice.Start + slice.Length,
-                    running + segment.Text.Length);
+                    offset + segment.Text.Length);
                 if (to > from)
                     parts.Add(new MdViewTerminalStyledSpan(
-                        segment.Text.Substring(from - running, to - from),
+                        segment.Text.Substring(from - offset, to - from),
                         segment.Role));
-                running += segment.Text.Length;
-                if (running >= slice.Start + slice.Length)
-                    break;
+                offset += segment.Text.Length;
+                current++;
             }
             rows.Add(new MdViewTerminalDisplayRow(parts, false));
         }
@@ -258,7 +270,8 @@ public static class MdViewTerminalLineLayout
         if (text.Length == 0)
             return;
         var expanded = text.Replace("\t", "    ", StringComparison.Ordinal);
-        if (output.Count > 0 && output[^1].Role == role)
+        if (output.Count > 0 && output[^1].Role == role &&
+            output[^1].Text.Length + expanded.Length <= 4096)
             output[^1] = output[^1] with { Text = output[^1].Text + expanded };
         else
             output.Add(new MdViewTerminalStyledSpan(expanded, role));
