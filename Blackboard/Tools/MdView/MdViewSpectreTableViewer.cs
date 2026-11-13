@@ -108,6 +108,14 @@ public sealed class MdViewSpectreTableViewer
             // Query the live console dimensions again on every chunk.
             var width = Math.Max(1, _console.Profile.Width);
             var height = Math.Max(1, _console.Profile.Height);
+            if (width < 28)
+            {
+                _console.Write(new Text(
+                    "Native table view needs at least 28 columns. " +
+                    "Use the compact Markdown preview or widen the terminal." +
+                    Environment.NewLine));
+                return;
+            }
             var grid = width >= Math.Max(64, 14 * headings.Count) &&
                 headings.Count <= 6;
 
@@ -211,6 +219,10 @@ public sealed class MdViewSpectreTableViewer
                       " · fields " + (columnStart + 1) + "–" +
                       (nextColumn != 0 ? nextColumn : headings.Count) +
                       " of " + headings.Count) +
+                Environment.NewLine,
+                new Style(foreground: Color.Grey)));
+            _console.Write(new Text(
+                "Long cells show an ellipsis; full source remains in Markdown preview." +
                 Environment.NewLine,
                 new Style(foreground: Color.Grey)));
 
