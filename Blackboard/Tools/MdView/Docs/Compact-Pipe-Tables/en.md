@@ -110,3 +110,19 @@ The compact table's display-time unescaping of `\\|` now operates
 ignores both kinds of escaped pipe for column splitting.
 This protection has an explicit regression test; the original
 validated snapshot never changes.
+
+## Optional native Spectre table view (2026-11-13)
+
+The compact vertical cells remain the **main source-page fallback**.
+A new opt-in **View table (Spectre)** menu action appears on
+source pages with a confirmed Markdown header + alignment separator.
+It constructs the actual `Spectre.Console.Table` with rounded grey
+borders and real column alignment, in small source-bounded chunks.
+
+The native inspector has its own modal paging and returns to
+the same Markdown source page afterward. This separation
+deliberately preserves the exact source/visual-page index while
+we develop measurement of Spectre border and wrapped-cell
+heights for future seamless in-page integration.
+
+[Native Spectre table guide](../Native-Spectre-Tables/en.md).
