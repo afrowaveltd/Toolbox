@@ -571,7 +571,7 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   visible long-cell clipping without modifying validated
   source bytes, exclusion of fenced pipe rows, and invalid
   source/noninteractive mode rejection.
-- Two new `MdViewFormattedPreviewPagerTests`
+- Three new `MdViewFormattedPreviewPagerTests`
   (`e060e79d203611417c2f2c7b1d67cef1bc4381bc`)
   verify that a detected table opens via **View table (Spectre)**
   and returns to the same Markdown source page, and that
