@@ -928,3 +928,72 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
   then `dotnet test Toolbox.sln` and smoke-test local preview
   on a Markdown document with pipe tables.
+
+## 2026-11-13 — opt-in native Spectre.Console rounded table inspector
+
+- Building on the **previous maintainer-confirmed green** compact
+  table checkpoint, introduced an optional native Spectre table view
+  without replacing the source-page visual layout. The user requested
+  real Spectre.Console tables with borders and smarter parsing.
+- `MdViewTerminalPipeTableLayout.TryReadCells` is now a public,
+  XML-documented shared parser for conservatively framed, validated
+  top-level pipe rows (`6b42956a3c397d4f820feabaf0402a3d02e5bf9e`).
+  Compact visual cells retain their existing semantics. Escaped
+  pipes/backtick code span handling is reused without duplicating
+  the parser.
+- Added `MdViewSpectreTableViewer`
+  (`c78d01bd2489e913069493c912daa43dd44d0cef`):
+  after a matching table header and alignment separator, an
+  interactive modal constructs actual `Spectre.Console.Table`
+  widgets with rounded grey borders. A wide viewport shows a
+  multi-column grid with column alignment from `---`,
+  `:---`, `---:`, `:---:`. Narrower viewports display an
+  actual 2-column **Column / Value** Spectre table. The
+  modal re-queries terminal dimensions per chunk.
+- The native view uses the caller's existing validated, disk-backed
+  `MdViewContainerPageCursor`, retaining only a limited chunk
+  (at most 6 source rows in grid mode or 8 transposed fields per
+  modal page). Cells are visibly clipped at 256 characters at
+  most, or a smaller viewport-dependent bound; the original
+  snapshot is not modified. A width under 28 columns leaves
+  the compact source-page view as the usable fallback.
+- Navigation: `Next table chunk` for large tables, with an
+  end-of-table probe that avoids showing a false Next item
+  (`4cd9af9185ebc6d2ae10f386aa6f09c4c710b52a`);
+  Back/Escape restores the same source page. Headers are
+  `Markup.Escape`d and cells rendered as safe literal
+  `Spectre.Console.Text` rather than evaluated markup.
+  Added small-terminal fallback and clear clipped-cell
+  disclosure in `2642e09c9c4e410b0988866e2ef90952f7268cfd`.
+- Integrated **View table (Spectre)** into
+  `MdViewFormattedPreviewPager` for source pages containing a
+  confidently recognized top-level header + matching delimiter
+  row, and only for terminals wide enough for the widget:
+  `5c74c4e6fdd1abc44c514e8b8ee5b322dc6807ca`,
+  `10905bcf479d56891b890baeb9f44294efcb1195`.
+- **Deliberate compatibility boundary:** main Markdown source
+  pages still use the earlier compact cell layout and its
+  exact disk-indexed `Page X of Y`. This optional native
+  modal does not claim main document visual page rows measured
+  by Spectre's border/wrapped-cell renderer. Integrating native
+  frames directly into source pages requires a bounded table-
+  block scan and accurate Spectre measurement on both index
+  and display paths. This prevents loss of source navigation
+  or miscounting page boundaries.
+- Eight focused `MdViewSpectreTableViewerTests`
+  (`603284757ba82a9a038b771ff0fcad023aa8f5ce`);
+  two preview integration tests
+  (`e060e79d203611417c2f2c7b1d67cef1bc4381bc`).
+  Test cases cover native rounded borders, alignment,
+  wide/narrow layouts, incremental chunks, source preservation,
+  malicious-looking markup as literal data, code-fence
+  exclusion, accurate menu eligibility and restoration of
+  the original source page.
+- New English guide:
+  `Docs/Native-Spectre-Tables/en.md` and updated MdView
+  README, tests README, CLI, responsive and compact-table docs.
+- **These new tests have NOT been run in the assistant's
+  environment**. The last confirmed all-green test suite
+  predates this change. Run the focused MdView.Tests and full
+  Toolbox.sln suites on Debian/Windows and manually inspect
+  a Markdown table via `mdview preview PATH`.
