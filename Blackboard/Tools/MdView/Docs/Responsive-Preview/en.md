@@ -242,3 +242,20 @@ long link labels inside cells retain their styled display
 text without showing the destination. Full cross-row GFM
 alignment remains a future milestone.
 [Compact table guide](../Compact-Pipe-Tables/en.md).
+
+## Native Spectre table inspection without page-index regression (2026-11-13)
+
+The responsive preview can now open confirmed Markdown tables
+as real rounded `Spectre.Console.Table` widgets via
+**View table (Spectre)**. The inspector recomputes layout at
+each chunk from current terminal dimensions and uses the
+existing validated source cursor; wide displays show aligned
+grid columns while narrower displays transpose to Field/Value.
+
+This is a modal operation. The disk-backed source-page visual
+index remains unchanged, so extra native table borders cannot
+silently alter page counts or jump positions. Embedded native
+tables in the main document will require measured Spectre row
+heights and a table-block-aware disk page index before merging.
+
+[Native Spectre table guide](../Native-Spectre-Tables/en.md).
