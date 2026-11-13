@@ -87,8 +87,8 @@ dotnet test Toolbox.sln
 dotnet run --project Blackboard/Tools/MdView -- preview README.md
 ```
 
-Nine new `MdViewTerminalPipeTableLayoutTests` cover simple headers,
-separator rows, literal escaped/code pipes, styled link cells,
+Ten new `MdViewTerminalPipeTableLayoutTests` cover simple headers,
+separator rows, literal escaped/code pipes, preserving backslashes\ninside inline code, styled link cells,
 ambiguous input fallback, fenced-code exclusion, very narrow
 terminals, maximum column guards, and agreement between disk
 page starts and renderer resume coordinates.
@@ -100,3 +100,13 @@ the preceding styled-layout implementation.
 [Styled visual layout](../Styled-Visual-Layout/en.md) ·
 [Responsive preview](../Responsive-Preview/en.md) ·
 [Implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## Literal backslashes inside inline code (2026-11-13)
+
+The compact table's display-time unescaping of `\\|` now operates
+**only outside inline code spans**. A regular table cell containing
+`a\\|b` displays as `a|b`, but an inline code cell containing
+`a\\|b` retains the literal backslash. The recognizer still
+ignores both kinds of escaped pipe for column splitting.
+This protection has an explicit regression test; the original
+validated snapshot never changes.
