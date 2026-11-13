@@ -536,3 +536,26 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 
 - The maintainer identified the orange message as coming from a **preview version of .NET**. Upgrading the local SDK to **.NET 11 final** removed the warning.
 - This is an **environment resolution**, not an MdView test or source fix. Previously reported tests were passing; no fresh count is inferred and no regression test is warranted for this SDK warning.
+
+## 2026-11-13 — compact pipe-table visual regression checkpoint
+
+- Added ten `MdViewTerminalPipeTableLayoutTests` in
+  `0d1aa364035a51f2d6d551b10832fbb446b3cb71`
+  and `63dab5bf84b2bc8320decfe833ae1d675fc4ad1f`.
+- Scenarios validate: numbered cell rows for a framed Markdown
+  table, separator divider, escaped and inline-code pipes as
+  non-delimiters, unescaping ordinary pipes without changing
+  inline code, preserving links and hiding destinations,
+  ambiguous/unframed fallback, fenced code literal behavior,
+  eight-column narrow terminals, 32-column bound, and agreement
+  between disk visual-page starts and the renderer's next position
+  across a multi-page table.
+- Source: `MdViewTerminalPipeTableLayout`;
+  `MdViewTerminalLineLayout.LayoutStyledContents` shared
+  between ordinary text and compact cells. The page index
+  and renderer already share `MdViewTerminalLineLayout.Layout`,
+  preserving the existing source-position invariant.
+- Last maintainer-confirmed test state was green **before**
+  these changes. The new tests are **not yet confirmed**.
+  Run focused MdView tests then full Toolbox.sln; record any
+  failures with exact test names.
