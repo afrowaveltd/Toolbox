@@ -146,6 +146,7 @@ public sealed class MdViewFormattedPreviewPager
                 const string jump = "Go to source line";
                 const string headings = "Find heading (disk index)";
                 const string links = "Find link location (disk index)";
+                const string nativeTable = "View table (Spectre)";
                 const string exit = "Exit preview";
 
                 var choices = new List<string>();
@@ -159,6 +160,16 @@ public sealed class MdViewFormattedPreviewPager
                     choices.Add(headings);
                     choices.Add(links);
                 }
+                // Inspect only this visible page (up to 128 physical lines).
+                // No whole-table state is allocated or stored in RAM.
+                long? visibleTable = null;
+                if (rendered.Rows > 0)
+                    visibleTable = await MdViewSpectreTableViewer.FindFirstTableAsync(
+                        containerCursor, position.Line,
+                        rendered.Next.Line + (rendered.Next.WrapRow > 0 ? 1 : 0),
+                        cancellationToken).ConfigureAwait(false);
+                if (visibleTable is not null)
+                    choices.Add(nativeTable);
                 choices.Add(exit);
 
                 var chosen = await new SelectionPrompt<string>()
@@ -220,6 +231,14 @@ public sealed class MdViewFormattedPreviewPager
                     customStart = position !=
                         await pageIndex.GetStartAsync(pageNumber, cancellationToken)
                             .ConfigureAwait(false);
+                }
+                else if (chosen == nativeTable && visibleTable is not null)
+                {
+                    await new MdViewSpectreTableViewer(_console).RunAsync(
+                        containerCursor, visibleTable.Value, cancellationToken)
+                        .ConfigureAwait(false);
+                    // The source pager retains its canonical page and rechecks
+                    // the actual terminal size on the next normal draw.
                 }
                 else if (chosen == headings || chosen == links)
                 {
