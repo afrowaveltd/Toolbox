@@ -122,9 +122,11 @@ public sealed class MdViewTerminalPageIndex : IAsyncDisposable
                 cancellationToken.ThrowIfCancellationRequested();
                 if (line.Source.LineNumber != lines)
                     throw new InvalidDataException("Page scanner source line is inconsistent.");
-                var code = IsLiteralCode(line);
-                var rowCount = MdViewTerminalWordWrap.Wrap(
-                    line.Source.Text, columns, code).Count;
+                // The disk index and the visible renderer must count
+                // precisely the same formatted rows. This includes quote
+                // bars, hanging list markers and visible link labels.
+                var rowCount = MdViewTerminalLineLayout.Layout(
+                    line, columns).Count;
                 var consumed = 0;
                 while (consumed < rowCount)
                 {
