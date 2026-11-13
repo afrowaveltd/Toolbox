@@ -982,7 +982,7 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   or miscounting page boundaries.
 - Eight focused `MdViewSpectreTableViewerTests`
   (`603284757ba82a9a038b771ff0fcad023aa8f5ce`);
-  two preview integration tests
+  three preview integration tests
   (`e060e79d203611417c2f2c7b1d67cef1bc4381bc`).
   Test cases cover native rounded borders, alignment,
   wide/narrow layouts, incremental chunks, source preservation,
