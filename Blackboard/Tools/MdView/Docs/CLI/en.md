@@ -281,3 +281,21 @@ Ambiguous pipe text, code fences and unsupported nested
 table constructs are not converted to table cells.
 This remains an experimental, deliberately conservative
 subset of Markdown/GFM. [Details](../Compact-Pipe-Tables/en.md).
+
+## Native Spectre table inspector (2026-11-13)
+
+`mdview preview PATH` now offers **View table (Spectre)** when
+the current page contains a top-level pipe-table header followed
+by a matching delimiter row. The inspector draws a native
+Spectre.Console table with rounded borders and aligned columns,
+or a two-column Column/Value table at narrower widths. It
+reads only small chunks through the existing validated source
+cursor and preserves the current document page on return.
+
+Unlike compact in-page table rows, this opt-in modal does not
+yet affect main-document `Page X of Y`. Terminal widths under
+28 columns continue using compact rendering. Full GFM
+table block measurement for seamless in-page native
+tables is a future incremental milestone.
+
+[Native table details](../Native-Spectre-Tables/en.md).
