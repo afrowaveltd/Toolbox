@@ -250,6 +250,24 @@ public sealed class MdViewFormattedPreviewPagerTests
     }
 
     [Fact]
+    public async Task VeryNarrowTerminalKeepsCompactTableFallback()
+    {
+        using var fixture = new Fixture();
+        var path = await fixture.WriteAsync(
+            "| Name | Value |\n| --- | --- |\n| CPU | OK |");
+        var console = Interactive();
+        console.Profile.Width = 26;
+        console.Profile.Height = 32;
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewFormattedPreviewPager(console).RunAsync(path);
+
+        Assert.DoesNotContain("View table (Spectre)", console.Output);
+        Assert.Contains("CPU", console.Output);
+        Assert.Contains("Page 1 of ", console.Output);
+    }
+
+    [Fact]
     public async Task OrdinaryPreviewDoesNotShowTableInspectorWithoutHeaderDelimiter()
     {
         using var fixture = new Fixture();
