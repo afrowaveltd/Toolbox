@@ -92,3 +92,21 @@ agreement across page boundaries.
 Fresh focused/full-solution tests are **pending maintainer
 verification**; retain the prior all-green state as the
 baseline before these table changes.
+
+## Native Spectre table widget tests (2026-11-13)
+
+Added eight `MdViewSpectreTableViewerTests` verifying bounded
+source-based native Spectre table chunks: framed-header and
+separator recognition, rounded Unicode border in a wide
+terminal, transposed field paging in a narrow terminal,
+multi-chunk data navigation, safe literal rendering of
+bracketed markup, cell-size clipping with unchanged source,
+fenced-code rejection and noninteractive/invalid-source
+failure behavior.
+
+Two `MdViewFormattedPreviewPagerTests` cover native
+table modal round-trip without losing the normal source page,
+and hiding the menu action for unconfirmed pipe text.
+
+These newly added tests **await a fresh .NET run**; the last
+maintainer-verified green checkpoint precedes this feature.
