@@ -62,45 +62,23 @@ public static class MdViewTerminalPageRenderer
                 if (classified.Source.LineNumber != position.Line)
                     throw new InvalidDataException("Preview source cursor lost line alignment.");
 
-                var code = MdViewTerminalPageIndex.IsLiteralCode(classified);
-                var source = classified.Source.Text;
-                var rows = MdViewTerminalWordWrap.Wrap(source, columns, code);
+                var rows = MdViewTerminalLineLayout.Layout(classified, columns);
                 if (position.WrapRow >= rows.Count)
                     throw new InvalidDataException(
                         "Visual page position exceeds the wrapped source line.");
 
-                if (code && MdViewTerminalWordWrap.MeasureColumns(
-                    source.Replace("\t", "    ", StringComparison.Ordinal)) > columns)
-                    clipped = true;
-
                 for (var row = position.WrapRow; row < rows.Count; row++)
                 {
                     var rendered = rows[row];
-                    if (code)
-                    {
-                        console.Write(new Text(rendered + Environment.NewLine, theme.Code));
-                    }
-                    else if (classified.Source.Kind == MarkdownStreamLineKind.Heading &&
-                             row > 0 &&
-                             classified.Source.HeadingLevel is >= 1 and <= 6)
-                    {
-                        // Wrapped heading continuation retains heading styling;
-                        // Markdown syntax markers are not repeated on soft rows.
-                        console.Write(new Text(
-                            rendered + Environment.NewLine,
-                            theme.GetHeadingStyle(classified.Source.HeadingLevel)));
-                    }
-                    else if (rendered.Length == 0)
-                    {
-                        // The Markdown parser has no block for an empty
-                        // string. Reserve its actual blank terminal row so
-                        // the visual page index and emitted rows agree.
-                        console.WriteLine();
-                    }
-                    else
-                    {
-                        MarkdownSpectreRenderer.Render(console, rendered, theme);
-                    }
+                    if (rendered.IsClippedCode)
+                        clipped = true;
+                    foreach (var segment in rendered.Spans)
+                        console.Write(new Text(segment.Text,
+                            ResolveStyle(segment.Role, classified, theme)));
+                    // Emit one actual terminal row per indexed row. Parsing
+                    // each soft fragment again used to duplicate list markers,
+                    // lose link styles and disagree with the page index.
+                    console.WriteLine();
 
                     emitted++;
                     if (emitted == contentRows && row + 1 < rows.Count)
@@ -118,4 +96,22 @@ public static class MdViewTerminalPageRenderer
 
         return new MdViewTerminalRenderedPage(start, position, emitted, clipped);
     }
+
+    private static Style ResolveStyle(
+        MdViewTerminalSpanRole role, MarkdownContainerLine source,
+        MarkdownSpectreTheme theme) => role switch
+    {
+        MdViewTerminalSpanRole.Marker => theme.ListMarker,
+        MdViewTerminalSpanRole.Quote => theme.Quote,
+        MdViewTerminalSpanRole.Heading =>
+            source.Source.HeadingLevel is >= 1 and <= 6
+                ? theme.GetHeadingStyle(source.Source.HeadingLevel)
+                : theme.Body,
+        MdViewTerminalSpanRole.Strong => theme.Strong,
+        MdViewTerminalSpanRole.Emphasis => theme.Emphasis,
+        MdViewTerminalSpanRole.Link => theme.Link,
+        MdViewTerminalSpanRole.Code => theme.Code,
+        MdViewTerminalSpanRole.Image => theme.Image,
+        _ => theme.Body
+    };
 }
