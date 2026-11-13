@@ -524,3 +524,10 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - **Verification pending**: focused `MdView.Tests` then
   full `Toolbox.sln`. Do not claim this increment green
   before the maintainer reports results.
+
+## 2026-11-13 — maintainer test acceptance with one warning pending triage
+
+- Maintainer confirms the new Markdown layout tests are **OK/passing** and the local reader works correctly.
+- A single orange warning remains to be diagnosed from its verbatim message; **zero warnings is not confirmed**.
+- No test totals or independent CI result were supplied. Preserve this as a reported functional/test acceptance, not a fabricated zero-warning verification.
+- Once the warning is provided, add a targeted regression test if it reflects a code or analyzer defect.
