@@ -601,3 +601,10 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - English docs: `Blackboard/Tools/MdView/Docs/Responsive-Preview/en.md`.
   See project-level implementation statuses for test names/details.
 - **Fresh focused and solution test results remain pending.**
+
+## 2026-11-13 — maintainer-confirmed green responsive-preview checkpoint
+
+- Maintainer confirms **all tests green** after the responsive `MdView` narrow-terminal code-overflow status and formatted heading assertion corrections; the preceding 174/176 test report is now historical.
+- Exact current test totals were not supplied. No independent CI conclusion or additional counts are claimed.
+- `Blackboard/Tools/MdView/IMPLEMENTATION_STATUS.md` and `Blackboard/Tools/MdView.Tests/IMPLEMENTATION_STATUS.md` contain the detailed fixes and test checkpoint.
+- Next work: improve display fidelity and keyboard usability of viewport-responsive Markdown paging without regressing disk-backed indexes, low-memory behavior, GitHub navigation or validated snapshot guarantees.
