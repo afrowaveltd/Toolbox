@@ -125,6 +125,14 @@ visible styled labels without counting hidden URL destinations.
 This avoids reparsing wrapped fragments as new Markdown blocks.
 [Styled visual layout details](Blackboard/Tools/MdView/Docs/Styled-Visual-Layout/en.md).
 
+The local Markdown preview also offers a **compact pipe-table view**:
+explicitly framed `| Name | Description |` rows become numbered
+vertical cells, with safe wrapping even on very narrow terminals.
+Escaped pipes and inline-code pipes are not mistaken for column
+separators; table layout is shared by the disk page index and
+renderer. This is a low-memory, line-local presentation, **not**
+full GFM grid alignment. [Compact pipe-table guide](Blackboard/Tools/MdView/Docs/Compact-Pipe-Tables/en.md).
+
 For large **local** Markdown files, the experimental disk-backed
 navigation index is available separately:
 
