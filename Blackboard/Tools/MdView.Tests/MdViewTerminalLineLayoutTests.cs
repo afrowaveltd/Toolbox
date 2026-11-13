@@ -91,6 +91,39 @@ public sealed class MdViewTerminalLineLayoutTests
     }
 
     [Fact]
+    public async Task QuotedLinkKeepsQuotePrefixAndLinkColorOnEachWrappedRow()
+    {
+        var line = Assert.Single(await ScanAsync(
+            "> [Read the full installation instructions](Docs/Installation/en.md)"));
+        var rows = MdViewTerminalLineLayout.Layout(line, 20);
+
+        Assert.True(rows.Count > 1);
+        Assert.All(rows, row =>
+        {
+            Assert.StartsWith("│ ", row.Text);
+            Assert.Contains(row.Spans, span =>
+                span.Role == MdViewTerminalSpanRole.Link);
+            Assert.True(MdViewTerminalWordWrap.MeasureColumns(row.Text) <= 20);
+        });
+        Assert.DoesNotContain(rows, row => row.Text.Contains("Docs/Installation"));
+    }
+
+    [Fact]
+    public async Task MalformedAndEscapedMarkdownAreRenderedAsLiteralSafeText()
+    {
+        var line = Assert.Single(await ScanAsync(
+            @"\[literal] and [not-a-link] plus [red]safe[/]"));
+        var rows = MdViewTerminalLineLayout.Layout(line, 80);
+        var text = string.Concat(rows.Select(row => row.Text));
+
+        Assert.Contains("[literal]", text);
+        Assert.Contains("[not-a-link]", text);
+        Assert.Contains("[red]safe[/]", text);
+        Assert.DoesNotContain(rows.SelectMany(row => row.Spans),
+            span => span.Role == MdViewTerminalSpanRole.Link);
+    }
+
+    [Fact]
     public async Task LiteralCodeStillShowsSourceMarkersWithoutMarkdownParsing()
     {
         var lines = await ScanAsync(
