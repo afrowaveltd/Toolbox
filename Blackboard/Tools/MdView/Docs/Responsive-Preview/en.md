@@ -202,3 +202,27 @@ available when it fits.
 The post-fix focused and complete solution suites still require
 maintainer confirmation; the **174/176** result is the last reported
 run before these corrections.
+
+## List, quote and inline-aware rows (2026-11-13)
+
+`MdViewTerminalPageIndex` and `MdViewTerminalPageRenderer`
+now obtain their row boundaries from **the same**
+`MdViewTerminalLineLayout.Layout` implementation. It strips
+recognized Markdown list/quote syntax into stable display markers
+and hanging indentation, measures only the **visible** inline
+text, and retains link, emphasis and inline-code presentation
+across soft wrap/page boundaries.
+
+This replaces the earlier mismatch between raw Markdown source
+length and fully rendered link labels/list markers. The renderer
+writes each styled `Spectre.Console.Text` span literally and
+emits one newline per model row; no wrapped fragment is
+independently reparsed as a new Markdown document.
+
+Quoted nested lists, long link labels and very long paragraphs
+have focused regression tests, including direct verification
+that the next page position agrees with the disk index.
+Full CommonMark, tables, ambiguous lazy continuations and
+terminal-specific grapheme width remain out of scope.
+
+[Shared visual row design](../Styled-Visual-Layout/en.md).
