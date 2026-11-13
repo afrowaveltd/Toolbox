@@ -128,7 +128,7 @@ public sealed class MdViewSpectreTableViewer
             {
                 for (var column = 0; column < headings.Count; column++)
                 {
-                    var heading = PlainCell(headings[column]);
+                    var heading = PlainCell(headings[column], 96);
                     var alignment = separators[column].Trim();
                     table.AddColumn(Markup.Escape(heading), col =>
                     {
@@ -148,8 +148,11 @@ public sealed class MdViewSpectreTableViewer
                     if (result.Count == 0 ||
                         !TryDataRow(result[0], headings.Count, out var cells))
                         break;
+                    var maxCell = Math.Clamp(
+                        (width - 6) * 2 / headings.Count,
+                        24, MaximumCellCharacters);
                     table.AddRow(cells.Select(cell =>
-                        (IRenderable)new Text(PlainCell(cell))).ToArray());
+                        (IRenderable)new Text(PlainCell(cell, maxCell))).ToArray());
                     followingLine++;
                     displayedRows++;
                 }
@@ -167,8 +170,9 @@ public sealed class MdViewSpectreTableViewer
                     for (var i = columnStart; i < stop; i++)
                     {
                         table.AddRow(
-                            new Text(PlainCell(headings[i])),
-                            new Text(PlainCell(values[i])));
+                            new Text(PlainCell(headings[i], 80)),
+                            new Text(PlainCell(values[i],
+                                Math.Clamp(width - 16, 24, MaximumCellCharacters))));
                         displayedRows++;
                     }
                     if (stop < headings.Count)
@@ -189,7 +193,16 @@ public sealed class MdViewSpectreTableViewer
             _console.WriteLine();
             if (grid)
                 completedRows += displayedRows;
-            var atEnd = followingLine == sourceLine && nextColumn == 0;
+            // A full chunk does not imply another row exists: inspect only
+            // the single next source line before offering Next.
+            var hasMore = nextColumn != 0;
+            if (!hasMore && followingLine > sourceLine)
+            {
+                var probe = await cursor.ReadAsync(
+                    followingLine, 1, cancellationToken).ConfigureAwait(false);
+                hasMore = probe.Count > 0 &&
+                    TryDataRow(probe[0], headings.Count, out _);
+            }
             _console.Write(new Text(
                 (grid
                     ? "Data rows shown: " + displayedRows +
@@ -204,7 +217,7 @@ public sealed class MdViewSpectreTableViewer
             const string next = "Next table chunk";
             const string back = "Back to Markdown preview";
             var choices = new List<string>();
-            if (!atEnd)
+            if (hasMore)
                 choices.Add(next);
             choices.Add(back);
             var selected = await new SelectionPrompt<string>()
@@ -240,14 +253,14 @@ public sealed class MdViewSpectreTableViewer
         return true;
     }
 
-    private static string PlainCell(string source)
+    private static string PlainCell(string source, int maximumCharacters)
     {
         // Source line validation already rejects unsafe terminal controls.
         // Clip before the inline parser to cap allocations from untrusted
         // Markdown even if a single source cell is extremely long.
-        if (source.Length > MaximumCellCharacters)
+        if (source.Length > maximumCharacters)
         {
-            var limit = MaximumCellCharacters - 1;
+            var limit = maximumCharacters - 1;
             if (char.IsHighSurrogate(source[limit - 1]))
                 limit--;
             source = source[..limit] + "…";
