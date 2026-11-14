@@ -215,3 +215,16 @@ Spectre's real output segments.
 
 Maintainer's last focused test run: **219 passed, 1 failed, 220 total**
 before this test correction. A fresh run is still required.
+
+## Shared native widget factory and page-fragment planning (2026-11-14)
+
+The existing modal inspector now delegates rounded grid creation
+and bounded literal cell display to `MdViewSpectreTableFactory`.
+A separate non-rendering `MdViewNativeTablePagePlanner` uses that
+same factory plus actual Spectre segment-row measurement to construct
+source-bound table fragments (up to six data rows). It can request
+compact fallback without consuming rows when a native block will
+not fit. These are additive architecture changes: the modal UI and
+the default compact page index remain unchanged.
+
+[Native page-fragment contract](../Native-Table-Page-Planner/en.md).
