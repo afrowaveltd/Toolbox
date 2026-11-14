@@ -696,3 +696,9 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   regression tests. The prior green state is the baseline:
   **fresh focused/full .NET tests for this increment remain
   pending maintainer verification**.
+
+## 2026-11-14 — native Spectre table test compilation fixes (maintainer build)
+
+- The maintainer's full `Toolbox.sln` run reported two `CS0236` compile errors in `MdViewSpectreTableViewerTests.SourceFixture`, plus one `xUnit2013` analyzer warning in `MdViewDiskNavigationIndexTests`. Other displayed test assemblies passed, but `MdView.Tests` was blocked at compile time.
+- Fixed fixture name shadowing with `System.IO.Path` qualification (`ef6ee546b5513ef481cdd12ca4eb124a49531d14`) and changed the one-item collection assertion to `Assert.Single` (`35e34fdc07bdd8c9228d8d3e3d911a9881d37624`). No product code changed.
+- **Fresh MdView and full-solution verification remains pending** after these test-only changes; record results upon maintainer rerun.
