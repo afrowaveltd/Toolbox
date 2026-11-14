@@ -162,3 +162,19 @@ Additional viewer regressions verify native modal rejection
 below 12 terminal rows and safe fallback when an overly long
 header would exceed the available visual-row budget even
 without data rows.
+
+## Source-bound table block regression tests (2026-11-14)
+
+Added six `MdViewSpectreTableBlockReaderTests` verifying a valid
+header at a visible-page boundary with its delimiter on the next
+page; six-row chunk continuation with no missing/duplicate data;
+termination at the first non-table source line; escaped/inline-code
+pipes and intact on-disk data; fenced, quoted and mismatched
+rejection; argument and cancellation guards.
+
+Existing native inspector discovery, header validation and data
+row recognition now call the same block reader. The normal compact
+page index and renderer have **not** been switched to native
+rendered widgets. **These new tests are not yet executed here.**
+Run focused MdView.Tests and the full Toolbox solution on Debian
+or Windows, then smoke-test `mdview preview README.md`.
