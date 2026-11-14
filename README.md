@@ -125,6 +125,14 @@ visible styled labels without counting hidden URL destinations.
 This avoids reparsing wrapped fragments as new Markdown blocks.
 [Styled visual layout details](Blackboard/Tools/MdView/Docs/Styled-Visual-Layout/en.md).
 
+The next MdView milestone now has a **bounded table-block reader** shared
+with the native inspector: framed header/delimiter detection survives a
+source-page boundary, and six-row chunks expose an exact resume line
+without allocating the whole table. The default page still uses the
+previous compact layout; automatic in-page native grids await a
+height-aware disk page model.
+[Source-aware table block contract](Blackboard/Tools/MdView/Docs/Native-Table-Blocks/en.md).
+
 The native modal requires at least **28 columns and 12 rows**;
 if a native header cannot fit even without data, the reader keeps
 the existing compact Markdown preview instead of overflowing
