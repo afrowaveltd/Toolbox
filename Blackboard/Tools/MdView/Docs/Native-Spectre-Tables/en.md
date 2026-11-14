@@ -125,3 +125,46 @@ belongs to the previous compact pipe-table implementation.
 [Compact table layout](../Compact-Pipe-Tables/en.md) ·
 [Responsive preview](../Responsive-Preview/en.md) ·
 [Implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## Render-segment height-aware native chunks (2026-11-14)
+
+The native modal now has a dedicated `MdViewSpectreTableHeight`
+helper. Spectre's `IRenderable.Measure` supplies horizontal
+constraints, not an exact vertical row count. The helper instead
+counts the real rendered `Segment` line breaks produced by the
+**same Spectre pipeline** and the **current** terminal capabilities
+and width, including rounded borders, header rules and wrapped cells.
+
+Before accepting each additional source row (or transposed field),
+the viewer creates a **bounded candidate native table**, measures
+its actual row count, and adds it only if the widget still fits the
+remaining terminal height. Otherwise that source row/field is kept
+for **Next table chunk**, with no omission or duplication.
+The previous six-source-row and eight-field maximums remain hard
+upper bounds. A 512-rendered-row guard prevents runaway
+measurement even on unusually tall terminal profiles.
+
+The modal reserves terminal space for its header, status line and
+selection prompt. Grey header/status text is clipped to one visual
+row instead of wrapping unexpectedly. For smaller terminal heights,
+the optional informational note is omitted to preserve navigation
+space. If even a one-row native table cannot fit, the modal
+returns to the existing compact Markdown preview rather than
+repeatedly offering an unrenderable chunk.
+
+This remains a **modal native table**: the main disk-backed visual
+page index still uses its compact table layout and retains its
+verified source-line positions. Embedded native tables in normal
+Markdown pages still require a bounded block-aware layout/index
+that handles the exact border rows across page boundaries.
+
+New test coverage: `MdViewSpectreTableHeightTests` checks the
+read-only measurement contract, narrow/wide wrapped-cell heights,
+early row-budget stopping and invalid arguments.
+`WrappedNativeTableRowsFitMeasuredTerminalHeight` verifies that
+the visible native table stays within the measured viewport
+budget while retaining next-chunk navigation.
+
+**New source and test changes are pending a fresh .NET run.**
+The previous native-table tests were maintainer-confirmed green
+before this incremental height-measurement change.
