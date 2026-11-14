@@ -592,3 +592,10 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - Fixed by using fully qualified `System.IO.Path.Combine(System.IO.Path.GetTempPath(), ...)` in `MdViewSpectreTableViewerTests.cs`; commit `ef6ee546b5513ef481cdd12ca4eb124a49531d14`. No production runtime behavior changed.
 - The same compiler run reported one `xUnit2013` warning at `MdViewDiskNavigationIndexTests.cs:95`: `Assert.Equal(1, links.Count)` for a one-element collection. Replaced with `Assert.Single(links)`; commit `35e34fdc07bdd8c9228d8d3e3d911a9881d37624`.
 - **These corrections have not been recompiled in this assistant environment.** Re-run focused `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj` and then `dotnet test Toolbox.sln`; only record a new green checkpoint after the maintainer reports it. Existing green results for other projects do not establish the new MdView tests are passing.
+
+## 2026-11-14 — native Spectre table chunk status assertion corrected (206/207)
+
+- Maintainer's focused `MdView.Tests` run now **compiles**, with **206 passed, 1 failed, 0 skipped, 207 total** (pre-fix observation).
+- The only failing regression was `MdViewSpectreTableViewerTests.MultiPageGridKeepsHeaderAndDoesNotLoadEntireTable`: the test looked for uppercase `Rows visited: 8`, whereas the native table viewer deliberately prints lowercase `rows visited: 8` after the separator in `Data rows shown: 4 · rows visited: 8`.
+- Corrected the test to assert the actual lowercase status and additionally check `Data rows shown: 4`, preserving the verified four-rows-per-chunk / eight-visited-after-two-chunks contract. Commit: `3088f73e1e64b134ee9ed93afba1102c25754f43`.
+- No production renderer change required. **Fresh rerun is pending**; do not claim a green 207/207 checkpoint before maintainer confirmation.
