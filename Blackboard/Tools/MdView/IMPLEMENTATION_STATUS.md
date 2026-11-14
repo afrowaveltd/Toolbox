@@ -1004,3 +1004,9 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
 - Also resolved a `xUnit2013` test analyzer warning (`MdViewDiskNavigationIndexTests.cs:95`) by using `Assert.Single(links)`, commit `35e34fdc07bdd8c9228d8d3e3d911a9881d37624`.
 - **No MdView production implementation change** was required for either diagnostic. Other Toolbox test projects shown in the maintainer log passed; the native table viewer regression suite remains **not yet run successfully** because the test project did not compile.
 - Next verification: targeted MdView tests, followed by full `Toolbox.sln` after `git pull`. Do not claim a fresh green state prematurely.
+
+## 2026-11-14 — native Spectre table chunk status assertion corrected (206/207)
+
+- After prior `CS0236` and `xUnit2013` test fixes, maintainer reran `MdView.Tests`: **206 passed, 1 failed, 207 total, 0 skipped**. The remaining case was a test-only capitalization mismatch: production displays `Data rows shown: 4 · rows visited: 8`, while the assertion expected uppercase `Rows visited: 8`.
+- The regression now checks the real lowercase label and the four-row chunk count; commit `3088f73e1e64b134ee9ed93afba1102c25754f43`. Production `MdViewSpectreTableViewer`, verified source, paging index and table navigation are unchanged.
+- **Re-run still pending:** focused `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj` then full `dotnet test Toolbox.sln`. No new all-green status asserted until results arrive.
