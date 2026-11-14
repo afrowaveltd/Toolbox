@@ -280,3 +280,10 @@ The lookahead has two explicit resource limits—**1,024 pending lines** and **1
 For code fences the event records exactly how parsing ended: a matching closer (`Closed`), quote/outer-list scope interruption (`Interrupted`) or end of source with no closer (`EndOfFile`). All source positions are decoded UTF-16 offsets and physical line numbers; a later disk index must map these onto validated UTF-8 byte offsets. The existing `mdview` renderer is unchanged.
 
 Added **22 regression cases** for exact source reconstruction, mixed newlines/Unicode, separate quote/ordinary-list ownership, blank/lazy runs, complete/interrupted code fences, large runs and bounded resource usage. [Full contract](ExchangeHouse/Markdown/Docs/Incremental-Container-Block-Spans/en.md) · [Implementation status](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.md).
+
+The next MdView table milestone adds a **source-bound native page
+planner**. It constructs at most six data rows of a real Spectre
+grid, measures the actual border/header/wrapped-cell height, and
+returns an exact source continuation or compact fallback without
+changing the current disk-backed `Page X of Y` renderer.
+[Native table page planner](Blackboard/Tools/MdView/Docs/Native-Table-Page-Planner/en.md).
