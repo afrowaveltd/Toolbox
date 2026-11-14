@@ -178,3 +178,18 @@ page index and renderer have **not** been switched to native
 rendered widgets. **These new tests are not yet executed here.**
 Run focused MdView.Tests and the full Toolbox solution on Debian
 or Windows, then smoke-test `mdview preview README.md`.
+
+### Tiny-terminal native header regression correction (2026-11-14)
+
+The Debian-focused MdView run produced **219 passed / 1 failed /
+220 total**. The single failure was
+`OversizedHeaderAloneDoesNotOverflowTinyNativeModal`, which supplied
+no input although an unbroken 120-character header was clipped by
+Spectre and the resulting five-row table could legitimately open.
+The test now supplies Escape and checks safe modal navigation.
+A separate test uses **word-wrappable long headings** to verify
+that a genuinely over-height header returns to compact Markdown
+without opening the prompt. Production height measurement is unchanged.
+
+Commit: `a5f511165d1fafe0a94121cb23c3fb0ba9af4c4c`.
+Fresh focused/full-solution runs are **pending** after this correction.
