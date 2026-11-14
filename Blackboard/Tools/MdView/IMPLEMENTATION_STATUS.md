@@ -1079,3 +1079,43 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
 - **Post-fix verification pending.** Run focused MdView.Tests and
   `dotnet test Toolbox.sln` after `git pull`.
   Do not mark this checkpoint green until a new successful run.
+
+## 2026-11-14 — measured native table page fragments (not yet enabled in main preview)
+
+- Maintainer confirmed the previous tiny-header test correction and
+  the complete local test run **all green**. Exact totals were not
+  supplied for the latest green run; this is the verified baseline
+  before the changes below.
+- Extracted unchanged native rounded table/escaped heading/literal-cell
+  construction to internal `MdViewSpectreTableFactory.cs`
+  (commit `ab23bc0ffbf71d5ca4d333b663bf076d7221f37b`),
+  and delegated the modal inspector's two existing helpers to it
+  (commit `439232615df0cebc956429259663c0c43a1a2bfc`).
+- Added `MdViewNativeTablePagePlanner.cs`
+  (commit `368745065e2e6802bf3d93142a94f24bc3d26eeb`).
+  It prepares a native wide-grid fragment for a validated
+  source-table header and an exact source data-row start. The
+  fragment contains at most six accepted physical source data rows,
+  real Spectre-rendered height (borders, header, wrapped cells),
+  the first unconsumed source line and a bounded HasMore probe.
+- The planner does not render/write output, fetch network resources,
+  or modify original Markdown. It supports an explicit
+  zero-consumption compact fallback for a narrow terminal,
+  header/first-row overflow, and invalid continuation. A repeated
+  header is counted again on each future native page fragment.
+- Added six `MdViewNativeTablePagePlannerTests` (commit
+  `d6a1ac761bd549a2d5b72838ae4e10214be27d7a`), with a
+  nullable assertion cleanup (commit
+  `82606d3a93bd8621bc10293a1f8d56a97b873c9f`).
+- English documentation: `Docs/Native-Table-Page-Planner/en.md`;
+  MdView README and source/native table guides updated.
+- **Fresh tests for this increment pending on the maintainer's
+  .NET installation.** Run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`, then smoke-test
+  `mdview preview README.md`. No new green test claim is made.
+- **Next:** implement an on-disk visual block-event page index and
+  renderer that both use this planner's source continuation,
+  exact native visual height and compact fallback decisions.
+  Only then expose optional embedded Spectre tables. The existing
+  compact `Page X of Y` remains untouched and the default.
