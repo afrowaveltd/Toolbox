@@ -197,3 +197,21 @@ disk-backed; the default compact page layout and modal controls do
 not change. These new source/tests await fresh execution.
 
 [Full table-block design and inline pagination requirements](../Native-Table-Blocks/en.md).
+
+### Clipped versus wrapped table headers (2026-11-14)
+
+The 64-column × 12-row regression revealed an important distinction:
+an extremely long **unbreakable** header can be clipped to fit the
+native Spectre table width, so the modal can correctly open and must
+remain dismissible with Escape. A long **word-wrappable** header can
+instead occupy several actual rendered rows and exceed the five-row
+table budget available at that height. Only the latter must fall back
+without prompting.
+
+The tests now cover these cases separately rather than assuming that
+character count alone implies measured table height. The source
+Markdown is never modified and the height preflight remains based on
+Spectre's real output segments.
+
+Maintainer's last focused test run: **219 passed, 1 failed, 220 total**
+before this test correction. A fresh run is still required.
