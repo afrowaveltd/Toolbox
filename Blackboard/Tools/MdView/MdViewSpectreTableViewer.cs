@@ -130,7 +130,7 @@ public sealed class MdViewSpectreTableViewer
             // Budget the actual Spectre-rendered rows, not an estimated
             // number of lines per Markdown cell. Leave enough room for
             // a header, status, navigation prompt and a blank separator.
-            const int reservedRows = 7;
+            var reservedRows = height >= 24 ? 8 : 7;
             var tableHeightBudget = Math.Min(
                 MdViewSpectreTableHeight.MaximumMeasuredRows,
                 Math.Max(5, height - reservedRows));
@@ -229,11 +229,9 @@ public sealed class MdViewSpectreTableViewer
                 }
             }
             _console.Clear();
-            _console.Write(new Text(
+            WriteGrayLine(
                 "Native Spectre table · source line " +
-                (headerLine + 1).ToString(CultureInfo.InvariantCulture) +
-                Environment.NewLine,
-                new Style(foreground: Color.Grey)));
+                (headerLine + 1).ToString(CultureInfo.InvariantCulture), width);
             _console.WriteLine();
             _console.Write(table);
             _console.WriteLine();
@@ -249,20 +247,19 @@ public sealed class MdViewSpectreTableViewer
                 hasMore = probe.Count > 0 &&
                     TryDataRow(probe[0], headings.Count, out _);
             }
-            _console.Write(new Text(
-                (grid
+            WriteGrayLine(
+                grid
                     ? "Data rows shown: " + displayedRows +
                       " · rows visited: " + completedRows
                     : "Source row " + (sourceLine + 1) +
                       " · fields " + (columnStart + 1) + "–" +
                       (nextColumn != 0 ? nextColumn : headings.Count) +
-                      " of " + headings.Count) +
-                Environment.NewLine,
-                new Style(foreground: Color.Grey)));
-            _console.Write(new Text(
-                "Long cells show an ellipsis; full source remains in Markdown preview." +
-                Environment.NewLine,
-                new Style(foreground: Color.Grey)));
+                      " of " + headings.Count,
+                width);
+            if (height >= 24)
+                WriteGrayLine(
+                    "… = clipped cell; full value remains in Markdown source.",
+                    width);
 
             const string next = "Next table chunk";
             const string back = "Back to Markdown preview";
@@ -287,6 +284,15 @@ public sealed class MdViewSpectreTableViewer
                 columnStart = 0;
             }
         }
+    }
+
+    private void WriteGrayLine(string message, int terminalWidth)
+    {
+        var columns = Math.Clamp(terminalWidth - 2, 8, 4096);
+        var shown = MdViewTerminalWordWrap.Wrap(
+            message, columns, code: true)[0];
+        _console.Write(new Text(shown + Environment.NewLine,
+            new Style(foreground: Color.Grey)));
     }
 
     private static Table CreateTable(
