@@ -604,3 +604,13 @@ renderer with measured height and resumable table positions.
 Six new source-bound regression tests have been committed; a
 fresh post-change .NET run is still needed.
 [Table block contract and next steps](Docs/Native-Table-Blocks/en.md).
+
+### Tiny terminal native header clarification (2026-11-14)
+
+Native table height is measured **after** bounded header clipping.
+A long unbroken heading may still fit and open the inspector (Escape
+returns safely); a word-wrappable heading that requires more actual
+display rows falls back to compact Markdown. Regression tests now
+exercise both outcomes. The maintainer's 220-case run had one test
+that incorrectly assumed all long headings must fail; the revised
+tests need a fresh run before the checkpoint is green.
