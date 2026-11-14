@@ -585,3 +585,10 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`,
   then `dotnet test Toolbox.sln`. No post-change pass
   counts or CI claims are made.
+
+## 2026-11-14 — native Spectre table test compilation fixes (maintainer build)
+
+- The maintainer provided the latest `dotnet test Toolbox.sln` output. The solution's other test projects shown in the log passed, but `MdView.Tests` did **not compile** because `MdViewSpectreTableViewerTests.SourceFixture` had two `CS0236` diagnostics at line 176. Its instance `Path` property shadowed `System.IO.Path` in the `_folder` field initializer.
+- Fixed by using fully qualified `System.IO.Path.Combine(System.IO.Path.GetTempPath(), ...)` in `MdViewSpectreTableViewerTests.cs`; commit `ef6ee546b5513ef481cdd12ca4eb124a49531d14`. No production runtime behavior changed.
+- The same compiler run reported one `xUnit2013` warning at `MdViewDiskNavigationIndexTests.cs:95`: `Assert.Equal(1, links.Count)` for a one-element collection. Replaced with `Assert.Single(links)`; commit `35e34fdc07bdd8c9228d8d3e3d911a9881d37624`.
+- **These corrections have not been recompiled in this assistant environment.** Re-run focused `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj` and then `dotnet test Toolbox.sln`; only record a new green checkpoint after the maintainer reports it. Existing green results for other projects do not establish the new MdView tests are passing.
