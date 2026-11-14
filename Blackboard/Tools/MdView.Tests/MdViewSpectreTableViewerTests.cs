@@ -176,6 +176,38 @@ public sealed class MdViewSpectreTableViewerTests
     }
 
     [Fact]
+    public async Task TooShortTerminalFallsBackWithoutOpeningNativePrompt()
+    {
+        using var fixture = new SourceFixture(
+            "| Name | Value |\n| --- | --- |\n| CPU | OK |");
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(fixture.Path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        var console = Interactive(width: 80, height: 10);
+
+        await new MdViewSpectreTableViewer(console).RunAsync(cursor, 0);
+
+        Assert.Contains("requires at least 28 columns and 12 rows",
+            console.Output);
+        Assert.DoesNotContain("Spectre table navigation", console.Output);
+    }
+
+    [Fact]
+    public async Task OversizedHeaderAloneDoesNotOverflowTinyNativeModal()
+    {
+        using var fixture = new SourceFixture(
+            "| " + new string('h', 120) +
+            " | Description |\n| --- | --- |");
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(fixture.Path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        var console = Interactive(width: 64, height: 12);
+
+        await new MdViewSpectreTableViewer(console).RunAsync(cursor, 0);
+
+        Assert.Contains("header cannot fit", console.Output);
+        Assert.DoesNotContain("Spectre table navigation", console.Output);
+    }
+
+    [Fact]
     public async Task IncorrectHeaderOrNoninteractiveModeFailsClosed()
     {
         using var fixture = new SourceFixture(
