@@ -288,34 +288,9 @@ public sealed class MdViewSpectreTableViewer
 
     private static Table CreateTable(
         int width, bool grid,
-        IReadOnlyList<string> headings, IReadOnlyList<string> separators)
-    {
-        var table = new Table()
-            .RoundedBorder()
-            .BorderColor(Color.Grey);
-        table.Width(Math.Min(width - 2, 140));
-        if (grid)
-        {
-            for (var column = 0; column < headings.Count; column++)
-            {
-                var heading = PlainCell(headings[column], 96);
-                var alignment = separators[column].Trim();
-                table.AddColumn(Markup.Escape(heading), configured =>
-                {
-                    if (alignment.StartsWith(':') && alignment.EndsWith(':'))
-                        configured.Centered();
-                    else if (alignment.EndsWith(':'))
-                        configured.RightAligned();
-                });
-            }
-        }
-        else
-        {
-            table.AddColumn("Column");
-            table.AddColumn("Value");
-        }
-        return table;
-    }
+        IReadOnlyList<string> headings, IReadOnlyList<string> separators) =>
+        MdViewSpectreTableFactory.CreateTable(
+            width, grid, headings, separators);
 
     private static bool TryDataRow(
         MarkdownContainerLine line, int expectedColumns,
@@ -323,20 +298,7 @@ public sealed class MdViewSpectreTableViewer
         MdViewSpectreTableBlockReader.TryReadDataRow(
             line, expectedColumns, out cells);
 
-    private static string PlainCell(string source, int maximumCharacters)
-    {
-        // Source line validation already rejects unsafe terminal controls.
-        // Clip before the inline parser to cap allocations from untrusted
-        // Markdown even if a single source cell is extremely long.
-        if (source.Length > maximumCharacters)
-        {
-            var limit = maximumCharacters - 1;
-            if (char.IsHighSurrogate(source[limit - 1]))
-                limit--;
-            source = source[..limit] + "…";
-        }
-        var rows = MdViewTerminalLineLayout.LayoutStyledContents(
-            source, 4096, "", "", MdViewTerminalSpanRole.Body);
-        return string.Concat(rows.Select(row => row.Text));
-    }
+    private static string PlainCell(string source, int maximumCharacters) =>
+        MdViewSpectreTableFactory.PlainCell(source, maximumCharacters);
+
 }
