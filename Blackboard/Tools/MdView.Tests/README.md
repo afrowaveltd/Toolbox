@@ -138,3 +138,22 @@ case-sensitivity mismatch: the status text prints lowercase
 Commit: `3088f73e1e64b134ee9ed93afba1102c25754f43`.
 No runtime table change was necessary. Run the focused and complete
 solution suites again; a post-fix green result is not yet confirmed.
+
+### Native Spectre height measurement regressions (2026-11-14)
+
+The `MdViewSpectreTableHeightTests` cover native bordered
+widget height measured from real rendering segments, including
+long-cell wrapping at narrow vs. wide viewport widths, early
+measurement budgets and invalid inputs. The viewer integration
+`WrappedNativeTableRowsFitMeasuredTerminalHeight` checks that
+a chunk containing wrapped cells fits the current terminal-row
+budget without losing the remaining table.
+
+Measurement does not write to `TestConsole`, and source rows
+continue to be drawn from the existing validated disk-backed
+cursor. Existing full-width, narrow-transposed and six-row-cap
+tests still define the baseline.
+
+**Fresh focused and full-solution tests are pending** after
+this increment; previous native table tests were confirmed green
+by the maintainer before these changes.
