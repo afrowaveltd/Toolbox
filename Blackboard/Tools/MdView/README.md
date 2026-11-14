@@ -560,3 +560,22 @@ viewer prevents decorative borders from silently breaking
 `Page X of Y` or physical source jumps.
 
 [Native Spectre table guide](Docs/Native-Spectre-Tables/en.md).
+
+### Native table rows measured before display (2026-11-14)
+
+The optional **View table (Spectre)** modal now measures actual
+Spectre-rendered height (rounded borders, header and wrapping) using
+the widget's output segments. It adds only source rows/fields that
+fit within a height budget for the current terminal. This prevents
+long cells from pushing the navigation menu off-screen and avoids
+guessing that every table row occupies a fixed number of lines.
+
+The previous six-source-row and eight-field upper bounds remain,
+and measurement never loads the whole Markdown table or source
+file. Narrow modal headers/statuses use single visual rows; small
+windows omit optional notes. If one native row cannot fit, the
+safe compact source preview remains available.
+
+Main document `Page X of Y` continues to use the compact source
+layout until precise native block pagination is implemented.
+[Native table measurement contract](Docs/Native-Spectre-Tables/en.md).
