@@ -615,3 +615,18 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - **Fresh tests not yet executed here**: run focused MdView.Tests, then `Toolbox.sln` on the maintainer's Debian installation and record exact results. Preserve the last green checkpoint separately until then.
 - Two additional geometry regression cases were added (`355ddc9f7655c512d89f3e1c21232271b0279f9b`): native table falls back for a 10-row terminal and a long header cannot create an overflowing header-only modal at 12 rows.
 - Production guard in `a86dc0c40237645e3a37b9bc3fe8d53025081f63`. This increments the post-green measurement test suite to **7 new [Fact] cases** (four helper and three viewer tests). All remain **unexecuted here**.
+
+## 2026-11-14 — native table block source navigation tests
+
+- Maintainer reported all-green test status for the preceding
+  native modal measurement checkpoint; exact totals unknown.
+- Added six `MdViewSpectreTableBlockReaderTests`, covering:
+  across-page header/delimiter recognition, contiguous six-row
+  chunks, no skipped/repeated rows, strict end-of-table boundary,
+  escaped and code-span pipe cells, code fences/quotes, malformed
+  delimiters, validation and cancellation.
+- Existing `MdViewSpectreTableViewerTests` remain in place to
+  protect the modal behavior now sharing the block predicate.
+- **These six newly authored cases and the refactor are untested
+  here.** Run focused MdView.Tests then `dotnet test Toolbox.sln`.
+  No new test passing counts are claimed.
