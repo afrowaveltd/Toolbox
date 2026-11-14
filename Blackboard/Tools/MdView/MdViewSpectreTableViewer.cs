@@ -131,7 +131,9 @@ public sealed class MdViewSpectreTableViewer
             // number of lines per Markdown cell. Leave enough room for
             // a header, status, navigation prompt and a blank separator.
             const int reservedRows = 7;
-            var tableHeightBudget = Math.Max(5, height - reservedRows);
+            var tableHeightBudget = Math.Min(
+                MdViewSpectreTableHeight.MaximumMeasuredRows,
+                Math.Max(5, height - reservedRows));
             var table = CreateTable(width, grid, headings, separators);
 
             long followingLine = sourceLine;
