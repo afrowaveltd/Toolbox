@@ -723,3 +723,4 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Main `Page X of Y` disk index and compact in-page tables remain unchanged. Full in-page native Spectre table embedding still requires a separately verified table-block visual index; the current change is a safe measurement foundation, not that full integration.
 - Four new height helper tests and one long-cell chunk integration test added. English details: `Blackboard/Tools/MdView/Docs/Native-Spectre-Tables/en.md`; MdView/test README updated.
 - **Fresh focused/full .NET tests pending**. No source build/test execution has been claimed in this assistant environment.
+- Native Spectre modal follow-up: at least **28 columns and 12 rows** are required, and header-only native tables undergo the same render-segment height preflight; too-small widgets fall back safely. Two more geometry regressions added (`355ddc9f7655c512d89f3e1c21232271b0279f9b`). **New test verification pending**.
