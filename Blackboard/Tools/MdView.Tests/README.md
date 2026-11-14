@@ -193,3 +193,21 @@ without opening the prompt. Production height measurement is unchanged.
 
 Commit: `a5f511165d1fafe0a94121cb23c3fb0ba9af4c4c`.
 Fresh focused/full-solution runs are **pending** after this correction.
+
+## Native table page-planner tests (2026-11-14)
+
+Added six `MdViewNativeTablePagePlannerTests` for exact source resume
+across three 6/6/2 chunks, actual Spectre-height-constrained
+one-row fragments, compact narrow-terminal fallback with no source
+consumption, header/first-row overflow, literal markup and unchanged
+source, and validation/cancellation.
+
+The inspector now shares an extracted native table factory with the
+page planner; its existing behavior is intended to remain unchanged.
+`MdViewTerminalPageIndex` and its default compact renderer are not
+modified in this increment.
+
+The maintainer confirmed the previous focused/full checkpoint green
+after the clipped-versus-wrapped header regression correction. **New
+tests for this planner have not yet been run with a .NET SDK here.**
+[Detailed guide](../MdView/Docs/Native-Table-Page-Planner/en.md).
