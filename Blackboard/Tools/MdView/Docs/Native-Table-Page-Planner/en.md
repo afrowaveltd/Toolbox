@@ -3,24 +3,24 @@
 ## Goal
 
 The previous native Spectre table inspector is a modal view. It does not
-yet participate in the local Markdown pager's disk-backed \`Page X of Y\`
-index. The new \`MdViewNativeTablePagePlanner\` is a **non-rendering**
+yet participate in the local Markdown pager's disk-backed `Page X of Y`
+index. The new `MdViewNativeTablePagePlanner` is a **non-rendering**
 intermediate step toward that integration.
 
-Given a validated \`MdViewSpectreTableHeader\`, a physical data-line
+Given a validated `MdViewSpectreTableHeader`, a physical data-line
 resume position, an actual Spectre console profile and an available
 visual-row budget, the planner constructs at most one **native
-\`Spectre.Console.Table\` fragment**, measures it using the real rendered
+`Spectre.Console.Table` fragment**, measures it using the real rendered
 segment stream, and returns its exact next physical source line.
 
-**This is not a new default UI mode.** \`mdview preview PATH\` still
+**This is not a new default UI mode.** `mdview preview PATH` still
 uses the existing compact pipe-cell presentation and its previously
-verified disk-backed visual index. \`View table (Spectre)\` still opens
+verified disk-backed visual index. `View table (Spectre)` still opens
 the separate modal inspector.
 
 ## Shared presentation contract
 
-\`MdViewSpectreTableFactory\` now owns the same literal-safe table
+`MdViewSpectreTableFactory` now owns the same literal-safe table
 construction already used by the inspector. The factory was extracted
 without changing the inspector's visual rules:
 
@@ -34,25 +34,25 @@ without changing the inspector's visual rules:
 
 The inspector delegates table creation and cell formatting to this
 factory. The new planner uses exactly the same factory and
-\`MdViewSpectreTableHeight.CountRows\` measurement helper.
+`MdViewSpectreTableHeight.CountRows` measurement helper.
 
 ## Page fragment contract
 
-\`PlanAsync(cursor, header, firstDataLine, console,
-availableContentRows, maximumSourceRows)\` returns
-\`MdViewNativeTablePageChunk\`. It contains:
+`PlanAsync(cursor, header, firstDataLine, console,
+availableContentRows, maximumSourceRows)` returns
+`MdViewNativeTablePageChunk`. It contains:
 
-- \`HeaderLine\`: the original zero-based Markdown table header.
-- \`FirstDataLine\`: the physical source data line requested by caller.
-- \`NextDataLine\`: the **first unconsumed** source line.
-- \`DataRows\`: accepted data source rows, from 0 to 6.
-- \`VisualRows\`: precisely measured Spectre widget height, including
+- `HeaderLine`: the original zero-based Markdown table header.
+- `FirstDataLine`: the physical source data line requested by caller.
+- `NextDataLine`: the **first unconsumed** source line.
+- `DataRows`: accepted data source rows, from 0 to 6.
+- `VisualRows`: precisely measured Spectre widget height, including
   native borders and column headers.
-- \`HasMore\`: whether the immediately following source line belongs
+- `HasMore`: whether the immediately following source line belongs
   to the same Markdown table.
-- \`Widget\`: the bounded, caller-owned renderable, or null on fallback.
-- \`FallbackReason\`: one of \`None\`, \`NarrowTerminal\`,
-  \`HeaderTooTall\`, \`FirstRowTooTall\` or \`NoContinuationRow\`.
+- `Widget`: the bounded, caller-owned renderable, or null on fallback.
+- `FallbackReason`: one of `None`, `NarrowTerminal`,
+  `HeaderTooTall`, `FirstRowTooTall` or `NoContinuationRow`.
 
 The caller must supply the actual number of **remaining content rows**,
 not the full screen height. Measurement uses the current Spectre
@@ -68,10 +68,10 @@ for compact fallback. This avoids pretending a narrow or transposed
 table already has an appropriate in-page source-indexing model.
 
 When a table spans several page fragments, pass the previous
-\`NextDataLine\` into the next planning request **along with the
+`NextDataLine` into the next planning request **along with the
 original header**. Each fragment repeats the native table's
 column headings, and the measured repeated border/header geometry
-is included in its \`VisualRows\`.
+is included in its `VisualRows`.
 
 The planner scans at most six data source rows plus one trailing
 lookahead, using the validated snapshot's existing on-disk cursor.
@@ -80,8 +80,8 @@ and never changes input Markdown or the old page index.
 
 ## Why this is separate from the main page index
 
-The current \`MdViewTerminalPageIndex\` records pairs
-\`(PhysicalLine, WrapRow)\`. These suffice for compact
+The current `MdViewTerminalPageIndex` records pairs
+`(PhysicalLine, WrapRow)`. These suffice for compact
 source-line rendering but are not enough to represent a partially
 rendered native table whose frame and column header repeat on the
 next page.
@@ -90,7 +90,7 @@ The next implementation increment needs a disk-backed **visual
 block-event index**, recording source anchors plus table-fragment
 state. Its renderer must consume the same native widget measurements,
 fallback decisions and resume positions as the planner. Only after
-that parity is tested should \`mdview preview\` offer optional in-page
+that parity is tested should `mdview preview` offer optional in-page
 native grids. The existing compact layout should remain the safe
 fallback for narrow screens and any over-height table block.
 
@@ -98,13 +98,13 @@ fallback for narrow screens and any over-height table block.
 
 Run after pulling new commits:
 
-\`\`\`bash
+```bash
 dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj
 dotnet test Toolbox.sln
 dotnet run --project Blackboard/Tools/MdView -- preview README.md
-\`\`\`
+```
 
-Six new \`MdViewNativeTablePagePlannerTests\` exercise exact
+Six new `MdViewNativeTablePagePlannerTests` exercise exact
 six-row continuation across a 14-row table; height-constrained
 one-row fragments; narrow fallback with zero consumed lines;
 header and first-row overflow; source/markup safety; invalid
