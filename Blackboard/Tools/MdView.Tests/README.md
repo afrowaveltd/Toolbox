@@ -111,3 +111,17 @@ compact table preview below the 28-column native threshold.
 
 These newly added tests **await a fresh .NET run**; the last
 maintainer-verified green checkpoint precedes this feature.
+
+### Native table test build diagnostics (2026-11-14)
+
+The first full-solution run after adding the native Spectre table
+viewer was blocked by two `CS0236` errors in the fixture initializer:
+its `Path` property shadowed `System.IO.Path`. The initializer
+now qualifies the framework type. Also fixed `xUnit2013` in the
+disk navigation index tests by asserting `Assert.Single(links)`.
+Both changes are test-only, commit IDs
+`ef6ee546b5513ef481cdd12ca4eb124a49531d14` and
+`35e34fdc07bdd8c9228d8d3e3d911a9881d37624`.
+
+The new native viewer tests have **not yet been run to completion**.
+Run focused MdView tests and the complete `Toolbox.sln` suite.
