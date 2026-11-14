@@ -614,3 +614,20 @@ display rows falls back to compact Markdown. Regression tests now
 exercise both outcomes. The maintainer's 220-case run had one test
 that incorrectly assumed all long headings must fail; the revised
 tests need a fresh run before the checkpoint is green.
+
+### Source-bound native table page planner (2026-11-14)
+
+`MdViewNativeTablePagePlanner` can now prepare bounded native Spectre
+table fragments for a future in-page renderer. It uses the same rounded
+table factory as the existing native inspector, measures actual rendered
+border/header/wrapped-cell height with the live Spectre console profile,
+and returns the exact next physical source line. A fragment reads at
+most six data rows plus one continuation probe. A grid that cannot fit
+returns a reasoned **zero-consumption compact fallback**.
+
+This is an **infrastructure-only milestone**: the main `Page X of Y`
+still uses the original disk-backed compact layout. Native block
+pagination will require a shared on-disk event index before switching
+the UI. Six targeted regression cases were committed; a new .NET
+focused/full test run is pending.
+[Measured native table page planning](Docs/Native-Table-Page-Planner/en.md).
