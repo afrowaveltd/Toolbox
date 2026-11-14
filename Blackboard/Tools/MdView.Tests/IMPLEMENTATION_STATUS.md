@@ -599,3 +599,8 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - The only failing regression was `MdViewSpectreTableViewerTests.MultiPageGridKeepsHeaderAndDoesNotLoadEntireTable`: the test looked for uppercase `Rows visited: 8`, whereas the native table viewer deliberately prints lowercase `rows visited: 8` after the separator in `Data rows shown: 4 · rows visited: 8`.
 - Corrected the test to assert the actual lowercase status and additionally check `Data rows shown: 4`, preserving the verified four-rows-per-chunk / eight-visited-after-two-chunks contract. Commit: `3088f73e1e64b134ee9ed93afba1102c25754f43`.
 - No production renderer change required. **Fresh rerun is pending**; do not claim a green 207/207 checkpoint before maintainer confirmation.
+
+## 2026-11-14 — maintainer-confirmed green native Spectre table baseline
+
+- Maintainer reports that test verification is **OK/green** after the final native table chunk label correction. Last failure in `MultiPageGridKeepsHeaderAndDoesNotLoadEntireTable` is resolved.
+- Exact updated test totals and CI outcome are not supplied; no fabricated counts. Future changes must keep the current native table and source-page navigation regressions passing.
