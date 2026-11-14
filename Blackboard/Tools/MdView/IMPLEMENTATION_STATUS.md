@@ -1029,3 +1029,33 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
 - Follow-up native-modal safety guard: `a86dc0c40237645e3a37b9bc3fe8d53025081f63` requires at least 28 columns **and 12 terminal rows**, and measures even a header-only native table before output. If its border/header alone cannot fit, control safely returns to compact preview without showing an unusable prompt.
 - Tests `TooShortTerminalFallsBackWithoutOpeningNativePrompt` and `OversizedHeaderAloneDoesNotOverflowTinyNativeModal` added in `355ddc9f7655c512d89f3e1c21232271b0279f9b`. Total new regression cases for this measurement increment: 4 helper tests + 3 viewer integration/guard tests = **7**.
 - English native-table guide and READMEs refreshed. **Post-change focused/full tests pending**.
+
+## 2026-11-14 — bounded source-aware table blocks
+
+- Maintainer reported **all tests green** after the preceding native
+  Spectre geometry changes. Exact counts were not provided; do not
+  substitute earlier status notes for that newer acceptance.
+- Created `MdViewSpectreTableBlockReader.cs` with a validated
+  two-line header/delimiter lookahead and source-bound
+  `MdViewSpectreTableHeader` and `MdViewSpectreTableChunk`
+  models. A header ending the current page can be checked against
+  the next source delimiter without changing page boundaries.
+- The new `ReadChunkAsync` reads 1–6 contiguous data rows
+  from the disk-backed cursor, returns the exact unconsumed
+  `NextDataLine`, probes only one more line for `HasMore`,
+  and stops on fenced, quoted, mismatched or non-table content.
+- Existing `MdViewSpectreTableViewer` delegates header discovery,
+  header validation and row recognition to this shared reader;
+  terminal UI, native height checks and compact fallback are
+  intentionally preserved.
+- New regressions in `MdViewSpectreTableBlockReaderTests.cs`
+  (6 `[Fact]` cases); detailed English guide:
+  `Docs/Native-Table-Blocks/en.md`. README and native guide updated.
+- **Fresh tests for this increment not executed in the assistant
+  environment (no dotnet SDK).** Run:
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`.
+- **Next:** design the source-bound native table visual event stream
+  and disk index with exact Spectre border/wrap heights and per-block
+  compact fallback; only then enable automatic in-page native tables.
+  Main `Page X of Y` continues to count compact rows.
