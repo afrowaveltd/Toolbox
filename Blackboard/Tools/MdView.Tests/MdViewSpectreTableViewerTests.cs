@@ -91,7 +91,10 @@ public sealed class MdViewSpectreTableViewerTests
 
         Assert.Contains("Item 1", console.Output);
         Assert.Contains("Item 5", console.Output);
-        Assert.Contains("Rows visited: 8", console.Output);
+        // The actual native table status labels its running counter
+        // "rows visited" with a lowercase r after the separator.
+        Assert.Contains("Data rows shown: 4", console.Output);
+        Assert.Contains("rows visited: 8", console.Output);
         Assert.DoesNotContain("Item 19", console.Output);
     }
 
