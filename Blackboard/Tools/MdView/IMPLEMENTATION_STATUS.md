@@ -1059,3 +1059,23 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   and disk index with exact Spectre border/wrap heights and per-block
   compact fallback; only then enable automatic in-page native tables.
   Main `Page X of Y` continues to count compact rows.
+
+## 2026-11-14 — native table tiny-header regression follow-up (219/220)
+
+- Maintainer ran `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  on Debian .NET 10: **219 passed, 1 failed, 0 skipped, 220 total**.
+- Failure: `MdViewSpectreTableViewerTests.OversizedHeaderAloneDoesNotOverflowTinyNativeModal`
+  raised `System.InvalidOperationException: No input available` because
+  an unbroken 120-character heading is truncated by the bounded native
+  header and can fit in the five-row table budget at 64×12. The modal
+  correctly prompts for a key; the test supplied none.
+- The single overbroad fixture has been replaced by **two** regressions:
+  (1) a long unbroken header *can* fit and is dismissed via Escape;
+  (2) genuinely word-wrappable oversized headers *must* fail the
+  measured height preflight and return to compact view without a prompt.
+  The measured-height production guard was not weakened, and source
+  Markdown is unchanged.
+- Test commit: `a5f511165d1fafe0a94121cb23c3fb0ba9af4c4c`.
+- **Post-fix verification pending.** Run focused MdView.Tests and
+  `dotnet test Toolbox.sln` after `git pull`.
+  Do not mark this checkpoint green until a new successful run.
