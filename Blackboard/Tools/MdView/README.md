@@ -579,3 +579,9 @@ safe compact source preview remains available.
 Main document `Page X of Y` continues to use the compact source
 layout until precise native block pagination is implemented.
 [Native table measurement contract](Docs/Native-Spectre-Tables/en.md).
+
+The native inspector also enforces a **12-row minimum terminal
+height** in addition to the existing 28-column requirement.
+An oversized native header is measured before drawing even
+when the table contains no data rows. The compact Markdown
+view remains the fallback if the native layout cannot fit.
