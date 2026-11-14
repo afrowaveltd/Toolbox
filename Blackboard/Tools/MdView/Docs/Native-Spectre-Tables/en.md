@@ -168,3 +168,19 @@ budget while retaining next-chunk navigation.
 **New source and test changes are pending a fresh .NET run.**
 The previous native-table tests were maintainer-confirmed green
 before this incremental height-measurement change.
+
+### Minimum geometry and header preflight (2026-11-14)
+
+The native inspector now requires **at least 28 terminal columns
+and 12 terminal rows**. This avoids opening an unusable modal in a
+very short terminal; the original compact Markdown source remains
+accessible. Even a table with no data rows must pass an actual
+render-segment height check for its native header and border.
+An oversized table heading that cannot fit returns safely
+without presenting an unreachable navigation prompt.
+
+Two extra regressions test these guards:
+`TooShortTerminalFallsBackWithoutOpeningNativePrompt`
+and `OversizedHeaderAloneDoesNotOverflowTinyNativeModal`.
+The new test cases, including height measurement, still await
+the maintainer's fresh .NET run.
