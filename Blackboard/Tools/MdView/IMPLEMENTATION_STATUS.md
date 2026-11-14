@@ -1010,3 +1010,8 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
 - After prior `CS0236` and `xUnit2013` test fixes, maintainer reran `MdView.Tests`: **206 passed, 1 failed, 207 total, 0 skipped**. The remaining case was a test-only capitalization mismatch: production displays `Data rows shown: 4 · rows visited: 8`, while the assertion expected uppercase `Rows visited: 8`.
 - The regression now checks the real lowercase label and the four-row chunk count; commit `3088f73e1e64b134ee9ed93afba1102c25754f43`. Production `MdViewSpectreTableViewer`, verified source, paging index and table navigation are unchanged.
 - **Re-run still pending:** focused `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj` then full `dotnet test Toolbox.sln`. No new all-green status asserted until results arrive.
+
+## 2026-11-14 — maintainer-confirmed green native Spectre table baseline
+
+- Maintainer confirms the native Spectre table tests now pass after fixing the `rows visited` assertion. The previously observed 206/207 failure is resolved; current precise test counts and any separate full-solution result were not supplied.
+- This is the **green baseline before introducing render-segment height measurement**. No production changes are included in this checkpoint.
