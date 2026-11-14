@@ -997,3 +997,10 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   predates this change. Run the focused MdView.Tests and full
   Toolbox.sln suites on Debian/Windows and manually inspect
   a Markdown table via `mdview preview PATH`.
+
+## 2026-11-14 — native Spectre table test compilation fixes (maintainer build)
+
+- Maintainer's first full-solution test run after adding the native Spectre table viewer reported `CS0236` in two locations of the *test fixture* initializer (`MdViewSpectreTableViewerTests.cs:176`). The fixture's `Path` instance property shadowed `System.IO.Path`. Corrected with full type qualification, commit `ef6ee546b5513ef481cdd12ca4eb124a49531d14`.
+- Also resolved a `xUnit2013` test analyzer warning (`MdViewDiskNavigationIndexTests.cs:95`) by using `Assert.Single(links)`, commit `35e34fdc07bdd8c9228d8d3e3d911a9881d37624`.
+- **No MdView production implementation change** was required for either diagnostic. Other Toolbox test projects shown in the maintainer log passed; the native table viewer regression suite remains **not yet run successfully** because the test project did not compile.
+- Next verification: targeted MdView tests, followed by full `Toolbox.sln` after `git pull`. Do not claim a fresh green state prematurely.
