@@ -184,3 +184,16 @@ Two extra regressions test these guards:
 and `OversizedHeaderAloneDoesNotOverflowTinyNativeModal`.
 The new test cases, including height measurement, still await
 the maintainer's fresh .NET run.
+
+## Shared source-bound table recognition (2026-11-14)
+
+The inspector now uses `MdViewSpectreTableBlockReader` to locate a
+header plus matching delimiter and to validate individual data rows.
+The reader also exposes a six-row `ReadChunkAsync` API with a precise
+`NextDataLine` and one-line `HasMore` lookahead. A table header on
+the final visible line can be recognized using the delimiter just
+beyond that page. All inputs remain validated, source-bound and
+disk-backed; the default compact page layout and modal controls do
+not change. These new source/tests await fresh execution.
+
+[Full table-block design and inline pagination requirements](../Native-Table-Blocks/en.md).
