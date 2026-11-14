@@ -112,11 +112,11 @@ public sealed class MdViewSpectreTableViewer
             // Query the live console dimensions again on every chunk.
             var width = Math.Max(1, _console.Profile.Width);
             var height = Math.Max(1, _console.Profile.Height);
-            if (width < 28)
+            if (width < 28 || height < 12)
             {
                 _console.Write(new Text(
-                    "Native table view needs at least 28 columns. " +
-                    "Use the compact Markdown preview or widen the terminal." +
+                    "Native table view requires at least 28 columns and 12 rows. " +
+                    "Use the compact Markdown preview or enlarge the terminal." +
                     Environment.NewLine));
                 return;
             }
@@ -228,6 +228,18 @@ public sealed class MdViewSpectreTableViewer
                         followingLine++;
                 }
             }
+            // A header-only source table must obey the same height
+            // contract as a table with rows. Avoid letting a long
+            // heading fill the terminal before the navigation prompt.
+            if (MdViewSpectreTableHeight.CountRows(
+                table, _console, tableHeightBudget) > tableHeightBudget)
+            {
+                _console.Write(new Text(
+                    "The native table header cannot fit this terminal height. " +
+                    "Use compact Markdown preview." + Environment.NewLine));
+                return;
+            }
+
             _console.Clear();
             WriteGrayLine(
                 "Native Spectre table · source line " +
