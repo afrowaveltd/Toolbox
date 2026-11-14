@@ -92,7 +92,7 @@ public sealed class MdViewDiskNavigationIndexTests
         var links = await index.ReadAsync(MdViewIndexedItemKind.Link, 0);
 
         Assert.Equal(2, headings.Count);
-        Assert.Equal(1, links.Count);
+        Assert.Single(links);
         Assert.Equal(3, headings[1].LineNumber);
         Assert.Equal(2, links[0].LineNumber);
         Assert.Equal((long)source.IndexOf("[Two]", StringComparison.Ordinal),
