@@ -8,7 +8,7 @@ namespace Afrowave.Toolbox.Blackboard.Tools.MdView;
 /// using the same rendering pipeline and terminal profile as console output.
 /// </summary>
 /// <remarks>
-/// <see cref="IRenderable.Measure"/> reports width, not height. Native
+/// <see cref="IRenderable"/> measurement reports width, not height. Native
 /// table borders, headers and wrapped cells must be counted from rendered
 /// segments. Only bounded chunk widgets are passed here; callers must never
 /// render a complete unbounded document to measure its height.
