@@ -650,3 +650,23 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - **Post-fix verification pending.** Run focused MdView.Tests and
   `dotnet test Toolbox.sln` after `git pull`.
   Do not mark this checkpoint green until a new successful run.
+
+## 2026-11-14 — native table visual fragment planning
+
+- Maintainer reports all-green focused/full tests for the prior
+  clipped-versus-wrapped tiny-header correction (exact count unknown).
+- Added six `MdViewNativeTablePagePlannerTests`: 14 data rows
+  resumed as 6/6/2 native chunks with measured height parity;
+  viewport-height-bound one-row splitting with exact next line;
+  narrow-grid compact fallback consuming no rows; source-bound
+  header/first-row height fallback; literal injected-looking markup
+  and unchanged source; argument, completed-continuation and
+  cancellation safeguards.
+- Native inspector's table factory extracted into
+  `MdViewSpectreTableFactory` without changing its intended output.
+  Existing native inspector, page-index, and compact renderer
+  tests must remain green.
+- **New six-case suite has not been run in this assistant
+  environment.** Re-run MdView.Tests and `Toolbox.sln`;
+  do not report another green checkpoint until actual results
+  arrive from the maintainer.
