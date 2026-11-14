@@ -708,3 +708,8 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Maintainer reports new `MdView.Tests` run: **206 passed, 1 failed, 207 total, 0 skipped**. Compilation now succeeds after the earlier fixture fix. The sole failing `MultiPageGridKeepsHeaderAndDoesNotLoadEntireTable` assertion searched for `Rows visited: 8` while Spectre table status actually uses `rows visited: 8`.
 - Fixed **test only** (`3088f73e1e64b134ee9ed93afba1102c25754f43`), also asserting `Data rows shown: 4`. Source runtime and disk-backed page index remain unchanged.
 - **Fresh focused/full test rerun pending.** Do not count this as a new confirmed green checkpoint yet.
+
+## 2026-11-14 — maintainer-confirmed green native Spectre table baseline
+
+- Maintainer confirms the native Spectre table feature test checkpoint **green** after the case-sensitive status assertion correction. Prior failing 206/207 result is historical, not current.
+- Exact post-fix totals were not reported. This confirmed state is the baseline for subsequent render-height-aware chunking work.
