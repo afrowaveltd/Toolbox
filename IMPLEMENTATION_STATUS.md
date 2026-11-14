@@ -724,3 +724,22 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Four new height helper tests and one long-cell chunk integration test added. English details: `Blackboard/Tools/MdView/Docs/Native-Spectre-Tables/en.md`; MdView/test README updated.
 - **Fresh focused/full .NET tests pending**. No source build/test execution has been claimed in this assistant environment.
 - Native Spectre modal follow-up: at least **28 columns and 12 rows** are required, and header-only native tables undergo the same render-segment height preflight; too-small widgets fall back safely. Two more geometry regressions added (`355ddc9f7655c512d89f3e1c21232271b0279f9b`). **New test verification pending**.
+
+## 2026-11-14 — MdView bounded native table block foundation
+
+- Maintainer confirmed the preceding native-table measurement
+  checkpoint is **all green**, without an exact suite count.
+- New `Blackboard/Tools/MdView/MdViewSpectreTableBlockReader.cs`
+  shares conservative framed-header detection and source-row
+  membership with the native Spectre modal, and adds bounded
+  continuation chunks (up to six source data rows, one extra
+  lookahead, exact next source line). This supports building a
+  future native table block-aware visual page index.
+- Added six test cases under `MdView.Tests`; updated both
+  READMEs, the MdView/test implementation statuses and English
+  `Docs/Native-Table-Blocks/en.md` documentation.
+- **New tests are pending execution** on a machine with .NET.
+  No automatic in-page Spectre table rendering has been enabled:
+  it still needs a measured, disk-backed table-block page model
+  shared by index and renderer. Existing compact preview remains
+  the safe default.
