@@ -713,3 +713,13 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 
 - Maintainer confirms the native Spectre table feature test checkpoint **green** after the case-sensitive status assertion correction. Prior failing 206/207 result is historical, not current.
 - Exact post-fix totals were not reported. This confirmed state is the baseline for subsequent render-height-aware chunking work.
+
+## 2026-11-14 — native Spectre table visual height measurement
+
+
+- The maintainer confirms the preceding native Spectre table tests green. This checkpoint is used as the baseline for a new incremental change (no exact test count reported).
+- Added `MdViewSpectreTableHeight` to count **actual Spectre-rendered segment rows**, including rounded borders, headers and wrapped cell content. The optional native table modal now measures each bounded candidate chunk before accepting another source row/field, ensuring its table leaves room for status and navigation; six-row/eight-field caps and the disk-backed validated source cursor remain intact.
+- Table modal header/status are now one-row clipped at narrow widths and optional notes are omitted on shorter screens. If a candidate cannot fit, control returns to the safe compact Markdown preview.
+- Main `Page X of Y` disk index and compact in-page tables remain unchanged. Full in-page native Spectre table embedding still requires a separately verified table-block visual index; the current change is a safe measurement foundation, not that full integration.
+- Four new height helper tests and one long-cell chunk integration test added. English details: `Blackboard/Tools/MdView/Docs/Native-Spectre-Tables/en.md`; MdView/test README updated.
+- **Fresh focused/full .NET tests pending**. No source build/test execution has been claimed in this assistant environment.
