@@ -173,7 +173,8 @@ public sealed class MdViewSpectreTableViewerTests
 
     private sealed class SourceFixture : IDisposable
     {
-        private readonly string _folder = Path.Combine(Path.GetTempPath(),
+        private readonly string _folder = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
             "mdview-spectre-table-" + Guid.NewGuid().ToString("N"));
 
         public SourceFixture(string source)
