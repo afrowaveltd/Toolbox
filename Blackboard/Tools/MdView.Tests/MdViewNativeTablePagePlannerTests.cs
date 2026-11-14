@@ -39,7 +39,7 @@ public sealed class MdViewNativeTablePagePlannerTests
             Assert.NotNull(fragment.Widget);
             Assert.InRange(fragment.VisualRows, 1, 80);
             Assert.Equal(fragment.VisualRows,
-                MdViewSpectreTableHeight.CountRows(fragment.Widget, console));
+                MdViewSpectreTableHeight.CountRows(fragment.Widget!, console));
         });
 
         Assert.Equal(6, first.DataRows);
