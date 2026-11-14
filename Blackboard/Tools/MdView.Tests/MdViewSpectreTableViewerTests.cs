@@ -99,6 +99,33 @@ public sealed class MdViewSpectreTableViewerTests
     }
 
     [Fact]
+    public async Task WrappedNativeTableRowsFitMeasuredTerminalHeight()
+    {
+        var source = "| Name | Description |\n| --- | --- |\n" +
+            string.Join("\n", Enumerable.Range(1, 8).Select(i =>
+                "| Item " + i + " | " +
+                string.Join(" ", Enumerable.Repeat("long descriptive value", 9)) + " |"));
+        using var fixture = new SourceFixture(source);
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(fixture.Path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        const int height = 20;
+        var console = Interactive(width: 64, height: height);
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewSpectreTableViewer(console).RunAsync(cursor, 0);
+
+        var top = console.Output.IndexOf('╭');
+        var bottom = console.Output.LastIndexOf('╯');
+        Assert.True(top >= 0 && bottom > top);
+        var renderedTable = console.Output[top..(bottom + 1)];
+        var actualRows = renderedTable.Count(character => character == '\n') + 1;
+        Assert.InRange(actualRows, 1, height - 7);
+        Assert.Contains("Item 1", console.Output);
+        Assert.DoesNotContain("Item 8", console.Output);
+        Assert.Contains("Next table chunk", console.Output);
+    }
+
+    [Fact]
     public async Task UntrustedMarkupIsRenderedAsLiteralTextAndSourceDoesNotChange()
     {
         var text = "| [red]Name[/] | Value |\n| --- | --- |\n" +
