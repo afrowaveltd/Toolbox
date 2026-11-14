@@ -259,3 +259,18 @@ tables in the main document will require measured Spectre row
 heights and a table-block-aware disk page index before merging.
 
 [Native Spectre table guide](../Native-Spectre-Tables/en.md).
+
+## Spectre modal height preflight (2026-11-14)
+
+The optional native Spectre table modal now measures **actual
+rendered rows** via Spectre segments before adding another
+visible chunk row. This includes borders and wrapped cells,
+and reserves space for footer/navigation controls. The viewer
+rechecks terminal size for each chunk and does not build
+the complete table in RAM.
+
+The source-page renderer and its disk visual-page index remain
+unchanged: native table rendering is still a separate modal
+until full table-block-aware page indexing can model frames
+and native cell geometry directly.
+[Native table implementation](../Native-Spectre-Tables/en.md).
