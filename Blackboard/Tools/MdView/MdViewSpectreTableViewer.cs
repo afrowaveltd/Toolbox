@@ -48,27 +48,10 @@ public sealed class MdViewSpectreTableViewer
         long firstLine, long lastLineExclusive,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(cursor);
-        if (firstLine < 0 || lastLineExclusive < firstLine)
-            throw new ArgumentOutOfRangeException(nameof(firstLine));
-        var upper = Math.Min(lastLineExclusive,
-            firstLine > long.MaxValue - 128 ? long.MaxValue : firstLine + 128);
-        for (var sourceLine = firstLine; sourceLine < upper; sourceLine++)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var pair = await cursor.ReadAsync(sourceLine, 2, cancellationToken)
-                .ConfigureAwait(false);
-            if (pair.Count < 2 ||
-                !MdViewTerminalPipeTableLayout.TryReadCells(
-                    pair[0], out var names, out var firstIsDivider) ||
-                firstIsDivider ||
-                !MdViewTerminalPipeTableLayout.TryReadCells(
-                    pair[1], out var separators, out var isDivider) ||
-                !isDivider || names.Count != separators.Count)
-                continue;
-            return sourceLine;
-        }
-        return null;
+        var header = await MdViewSpectreTableBlockReader.FindFirstHeaderAsync(
+            cursor, firstLine, lastLineExclusive, cancellationToken)
+            .ConfigureAwait(false);
+        return header?.SourceLine;
     }
 
     /// <summary>
@@ -91,18 +74,14 @@ public sealed class MdViewSpectreTableViewer
             throw new InvalidOperationException(
                 "Native Spectre table viewing requires an interactive terminal.");
 
-        var headerPair = await cursor.ReadAsync(headerLine, 2, cancellationToken)
-            .ConfigureAwait(false);
-        if (headerPair.Count < 2 ||
-            !MdViewTerminalPipeTableLayout.TryReadCells(
-                headerPair[0], out var headings, out var isHeaderDivider) ||
-            isHeaderDivider ||
-            !MdViewTerminalPipeTableLayout.TryReadCells(
-                headerPair[1], out var separators, out var isSeparator) ||
-            !isSeparator || headings.Count != separators.Count)
+        var header = await MdViewSpectreTableBlockReader.ReadHeaderAsync(
+            cursor, headerLine, cancellationToken).ConfigureAwait(false);
+        if (header is null)
             throw new InvalidDataException(
                 "The source line is not followed by a valid pipe-table delimiter.");
 
+        var headings = header.Columns;
+        var separators = header.Separators;
         var sourceLine = headerLine + 2;
         var columnStart = 0;
         var completedRows = 0L;
@@ -340,17 +319,9 @@ public sealed class MdViewSpectreTableViewer
 
     private static bool TryDataRow(
         MarkdownContainerLine line, int expectedColumns,
-        out IReadOnlyList<string> cells)
-    {
-        if (!MdViewTerminalPipeTableLayout.TryReadCells(
-                line, out cells, out var delimiter) ||
-            delimiter || cells.Count != expectedColumns)
-        {
-            cells = [];
-            return false;
-        }
-        return true;
-    }
+        out IReadOnlyList<string> cells) =>
+        MdViewSpectreTableBlockReader.TryReadDataRow(
+            line, expectedColumns, out cells);
 
     private static string PlainCell(string source, int maximumCharacters)
     {
