@@ -157,3 +157,8 @@ tests still define the baseline.
 **Fresh focused and full-solution tests are pending** after
 this increment; previous native table tests were confirmed green
 by the maintainer before these changes.
+
+Additional viewer regressions verify native modal rejection
+below 12 terminal rows and safe fallback when an overly long
+header would exceed the available visual-row budget even
+without data rows.
