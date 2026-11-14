@@ -763,3 +763,27 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - **Post-fix verification pending.** Run focused MdView.Tests and
   `dotnet test Toolbox.sln` after `git pull`.
   Do not mark this checkpoint green until a new successful run.
+
+## 2026-11-14 — MdView measured native table page planning milestone
+
+- Maintainer confirmed the preceding MdView tiny-header fix and
+  complete tests green before this new increment; exact counts
+  not supplied.
+- `Blackboard/Tools/MdView/MdViewSpectreTableFactory.cs`
+  centralizes native Spectre rounded grid creation and bounded,
+  literal-safe cell rendering, shared by the existing optional
+  inspector and a new planner.
+- `MdViewNativeTablePagePlanner.cs` now produces one bounded
+  source-aware native table fragment (up to six data lines),
+  measures actual Spectre visual-row height, returns precise
+  source continuation, or requests a zero-consumption compact
+  fallback. No change to default `Page X of Y` index/renderer.
+- Six additional MdView tests written and committed; update
+  includes English guide
+  `Blackboard/Tools/MdView/Docs/Native-Table-Page-Planner/en.md`
+  plus project/test READMEs and documentation cross-links.
+- **Verification pending:** focused MdView test project and full
+  `dotnet test Toolbox.sln` with the maintainer's SDK. The new
+  increment has not been called green yet.
+- **Next:** disk-backed native block-event page boundaries and
+  renderer parity, preserving compact fallback on small screens.
