@@ -192,11 +192,40 @@ public sealed class MdViewSpectreTableViewerTests
     }
 
     [Fact]
-    public async Task OversizedHeaderAloneDoesNotOverflowTinyNativeModal()
+    public async Task LongUnbrokenHeaderFitsWhenSpectreClipsItAndCanBeDismissed()
     {
+        // Spectre may clip one unbroken header word to the table width
+        // instead of wrapping it. A measured, fitting native table is
+        // allowed to open, even at the minimum supported terminal height.
         using var fixture = new SourceFixture(
             "| " + new string('h', 120) +
             " | Description |\n| --- | --- |");
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(fixture.Path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        var console = Interactive(width: 64, height: 12);
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewSpectreTableViewer(console).RunAsync(cursor, 0);
+
+        Assert.Contains("╭", console.Output);
+        Assert.Contains("Spectre table navigation", console.Output);
+        Assert.Contains("Back to Markdown preview", console.Output);
+        Assert.DoesNotContain("header cannot fit", console.Output);
+    }
+
+    [Fact]
+    public async Task OversizedWrappedHeadersFallBackWithoutOpeningTinyNativeModal()
+    {
+        // Two long, word-wrappable headings force multiple real Spectre
+        // header rows. Unlike an unbroken word, this should exceed the
+        // five-row native table budget of a twelve-row terminal.
+        var longHeading = string.Join(" ",
+            Enumerable.Repeat("heading", 20));
+        var longDescription = string.Join(" ",
+            Enumerable.Repeat("description", 12));
+        using var fixture = new SourceFixture(
+            "| " + longHeading + " | " + longDescription +
+            " |\n| --- | --- |");
         await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(fixture.Path);
         await using var cursor = new MdViewContainerPageCursor(snapshot);
         var console = Interactive(width: 64, height: 12);
