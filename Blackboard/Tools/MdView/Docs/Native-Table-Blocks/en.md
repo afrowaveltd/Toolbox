@@ -102,3 +102,14 @@ not evidence that this new increment has passed.
 See also [Native Spectre tables](../Native-Spectre-Tables/en.md),
 [Responsive preview](../Responsive-Preview/en.md) and
 [Implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## Measured continuation layout available (2026-11-14)
+
+`MdViewNativeTablePagePlanner` now consumes the source-bound header
+and builds small, actual-Spectre-measured native grid fragments with
+an exact next source line or explicit compact fallback. It reuses the
+native inspector's table factory and never writes output while
+planning. This is a stepping stone toward an on-disk block-event
+page index, not automatic native embedding in the current preview.
+
+[Measured native table page planner](../Native-Table-Page-Planner/en.md).
