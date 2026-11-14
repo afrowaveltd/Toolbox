@@ -125,6 +125,15 @@ visible styled labels without counting hidden URL destinations.
 This avoids reparsing wrapped fragments as new Markdown blocks.
 [Styled visual layout details](Blackboard/Tools/MdView/Docs/Styled-Visual-Layout/en.md).
 
+The native Spectre table inspector now also measures **actual rendered
+widget height** from Spectre's segment stream before adding another
+table row or field. This keeps borders, wrapped cells, status text
+and navigation within a bounded terminal-height budget, instead of
+estimating a fixed number of rows per cell. It still loads only a
+few validated source rows at a time and returns to the compact
+Markdown preview if a single widget row cannot fit.
+[Native table height details](Blackboard/Tools/MdView/Docs/Native-Spectre-Tables/en.md).
+
 The experimental local preview now also offers **View table (Spectre)**
 when a confirmed Markdown table header and delimiter row are visible.
 This opens a real rounded **Spectre.Console.Table** with aligned columns
