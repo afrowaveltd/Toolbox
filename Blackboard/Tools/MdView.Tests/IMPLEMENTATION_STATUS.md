@@ -604,3 +604,12 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 
 - Maintainer reports that test verification is **OK/green** after the final native table chunk label correction. Last failure in `MultiPageGridKeepsHeaderAndDoesNotLoadEntireTable` is resolved.
 - Exact updated test totals and CI outcome are not supplied; no fabricated counts. Future changes must keep the current native table and source-page navigation regressions passing.
+
+## 2026-11-14 — native Spectre table visual height measurement
+
+
+- Maintainer has confirmed the preceding native table tests **OK/green** after the final status assertion correction; this is the pre-change baseline. The precise totals were not supplied.
+- New `MdViewSpectreTableHeightTests` (`d7f52e42c520afe6648410c234f699ca4e2473f9`) exercise a real rounded native Spectre table's rendered segment height, without writing to `TestConsole`; narrow vs wide wrapping with identical data; measurement budget short-circuit; null argument and invalid cap handling.
+- New `MdViewSpectreTableViewerTests.WrappedNativeTableRowsFitMeasuredTerminalHeight` (`68e35628e0e668314362da5ac5b82b54cd69baa1`) checks a source-table with long wrapped cells uses only the available visual-row budget and still exposes Next table chunk without showing distant rows prematurely.
+- Production source commits: `879283fbce05693f86beeb74cf3b04e5027688a3`, `75c3577dcf8f998100fe953270e7b111f2f6e9ce`, `e946707035799cad82db6ee0f6ce50bd3bbff7be`, `1425f9da346b62e0924042c3ac006aff999e85a9`.
+- **Fresh tests not yet executed here**: run focused MdView.Tests, then `Toolbox.sln` on the maintainer's Debian installation and record exact results. Preserve the last green checkpoint separately until then.
