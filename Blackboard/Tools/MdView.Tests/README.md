@@ -125,3 +125,16 @@ Both changes are test-only, commit IDs
 
 The new native viewer tests have **not yet been run to completion**.
 Run focused MdView tests and the complete `Toolbox.sln` suite.
+
+### Native table chunk status regression (2026-11-14)
+
+The first fully compiling native Spectre viewer test suite reported
+**206 passed / 1 failed / 207 total**. The only failure was a test
+case-sensitivity mismatch: the status text prints lowercase
+`rows visited: 8`, but the test expected capitalized
+`Rows visited: 8`. The corrected test also explicitly checks
+`Data rows shown: 4` for the 24-row terminal chunk.
+
+Commit: `3088f73e1e64b134ee9ed93afba1102c25754f43`.
+No runtime table change was necessary. Run the focused and complete
+solution suites again; a post-fix green result is not yet confirmed.
