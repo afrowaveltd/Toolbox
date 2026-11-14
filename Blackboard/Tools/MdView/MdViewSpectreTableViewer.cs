@@ -127,29 +127,22 @@ public sealed class MdViewSpectreTableViewer
                 .ConfigureAwait(false);
             var hasRow = current.Count > 0 &&
                 TryDataRow(current[0], headings.Count, out _);
-            var table = new Table()
-                .RoundedBorder()
-                .BorderColor(Color.Grey);
-            table.Width(Math.Min(width - 2, 140));
+            // Budget the actual Spectre-rendered rows, not an estimated
+            // number of lines per Markdown cell. Leave enough room for
+            // a header, status, navigation prompt and a blank separator.
+            const int reservedRows = 7;
+            var tableHeightBudget = Math.Max(5, height - reservedRows);
+            var table = CreateTable(width, grid, headings, separators);
 
             long followingLine = sourceLine;
             var nextColumn = 0;
             var displayedRows = 0;
+            var acceptedRows = new List<IRenderable[]>();
+
             if (grid)
             {
-                for (var column = 0; column < headings.Count; column++)
-                {
-                    var heading = PlainCell(headings[column], 96);
-                    var alignment = separators[column].Trim();
-                    table.AddColumn(Markup.Escape(heading), col =>
-                    {
-                        if (alignment.StartsWith(':') && alignment.EndsWith(':'))
-                            col.Centered();
-                        else if (alignment.EndsWith(':'))
-                            col.RightAligned();
-                    });
-                }
-
+                // Keep the former conservative chunk cap: the exact
+                // measurement may lower it further for wrapped cells.
                 var limit = Math.Min(MaximumRowsPerChunk,
                     Math.Max(1, (height - 12) / 3));
                 while (displayedRows < limit)
@@ -159,19 +152,37 @@ public sealed class MdViewSpectreTableViewer
                     if (result.Count == 0 ||
                         !TryDataRow(result[0], headings.Count, out var cells))
                         break;
+
                     var maxCell = Math.Clamp(
                         (width - 6) * 2 / headings.Count,
                         24, MaximumCellCharacters);
-                    table.AddRow(cells.Select(cell =>
-                        (IRenderable)new Text(PlainCell(cell, maxCell))).ToArray());
+                    IRenderable[] candidateRow = cells.Select(cell =>
+                        (IRenderable)new Text(PlainCell(cell, maxCell))).ToArray();
+                    var candidate = CreateTable(width, grid, headings, separators);
+                    foreach (var previous in acceptedRows)
+                        candidate.AddRow(previous);
+                    candidate.AddRow(candidateRow);
+                    if (MdViewSpectreTableHeight.CountRows(
+                        candidate, _console, tableHeightBudget) > tableHeightBudget)
+                    {
+                        if (displayedRows == 0)
+                        {
+                            _console.Write(new Text(
+                                "Table cells cannot fit this terminal height. " +
+                                "Use the compact Markdown preview." + Environment.NewLine));
+                            return;
+                        }
+                        break;
+                    }
+
+                    acceptedRows.Add(candidateRow);
+                    table = candidate;
                     followingLine++;
                     displayedRows++;
                 }
             }
             else
             {
-                table.AddColumn("Column");
-                table.AddColumn("Value");
                 if (hasRow)
                 {
                     _ = TryDataRow(current[0], headings.Count, out var values);
@@ -180,19 +191,41 @@ public sealed class MdViewSpectreTableViewer
                     var stop = Math.Min(headings.Count, columnStart + fields);
                     for (var i = columnStart; i < stop; i++)
                     {
-                        table.AddRow(
+                        IRenderable[] candidateRow =
+                        [
                             new Text(PlainCell(headings[i], 80)),
                             new Text(PlainCell(values[i],
-                                Math.Clamp(width - 16, 24, MaximumCellCharacters))));
+                                Math.Clamp(width - 16, 24, MaximumCellCharacters)))
+                        ];
+                        var candidate = CreateTable(width, grid, headings, separators);
+                        foreach (var previous in acceptedRows)
+                            candidate.AddRow(previous);
+                        candidate.AddRow(candidateRow);
+                        if (MdViewSpectreTableHeight.CountRows(
+                            candidate, _console, tableHeightBudget) > tableHeightBudget)
+                        {
+                            if (displayedRows == 0)
+                            {
+                                _console.Write(new Text(
+                                    "Table field cannot fit this terminal height. " +
+                                    "Use the compact Markdown preview." + Environment.NewLine));
+                                return;
+                            }
+                            break;
+                        }
+
+                        acceptedRows.Add(candidateRow);
+                        table = candidate;
                         displayedRows++;
                     }
-                    if (stop < headings.Count)
-                        nextColumn = stop;
+
+                    var nextField = columnStart + displayedRows;
+                    if (nextField < headings.Count)
+                        nextColumn = nextField;
                     else
                         followingLine++;
                 }
             }
-
             _console.Clear();
             _console.Write(new Text(
                 "Native Spectre table · source line " +
@@ -252,6 +285,37 @@ public sealed class MdViewSpectreTableViewer
                 columnStart = 0;
             }
         }
+    }
+
+    private static Table CreateTable(
+        int width, bool grid,
+        IReadOnlyList<string> headings, IReadOnlyList<string> separators)
+    {
+        var table = new Table()
+            .RoundedBorder()
+            .BorderColor(Color.Grey);
+        table.Width(Math.Min(width - 2, 140));
+        if (grid)
+        {
+            for (var column = 0; column < headings.Count; column++)
+            {
+                var heading = PlainCell(headings[column], 96);
+                var alignment = separators[column].Trim();
+                table.AddColumn(Markup.Escape(heading), configured =>
+                {
+                    if (alignment.StartsWith(':') && alignment.EndsWith(':'))
+                        configured.Centered();
+                    else if (alignment.EndsWith(':'))
+                        configured.RightAligned();
+                });
+            }
+        }
+        else
+        {
+            table.AddColumn("Column");
+            table.AddColumn("Value");
+        }
+        return table;
     }
 
     private static bool TryDataRow(
