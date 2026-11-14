@@ -585,3 +585,22 @@ height** in addition to the existing 28-column requirement.
 An oversized native header is measured before drawing even
 when the table contains no data rows. The compact Markdown
 view remains the fallback if the native layout cannot fit.
+
+### Source-aware native table block reader (2026-11-14)
+
+Native Spectre table discovery now shares a dedicated
+`MdViewSpectreTableBlockReader` with a source-bound header and a
+bounded six-data-row continuation API. It recognizes genuine
+header/delimiter pairs even when the delimiter lies on the next
+visual source page, and returns the exact first unconsumed line
+without treating non-table text as part of the grid. Escaped pipes,
+inline-code pipes, quote/fence exclusion and cancellation remain
+covered. The optional **View table (Spectre)** modal uses the new
+recognition and per-row predicate; its controls are unchanged.
+
+**The normal in-page layout remains compact.** Native Spectre
+embedding still requires a shared table-block visual index and
+renderer with measured height and resumable table positions.
+Six new source-bound regression tests have been committed; a
+fresh post-change .NET run is still needed.
+[Table block contract and next steps](Docs/Native-Table-Blocks/en.md).
