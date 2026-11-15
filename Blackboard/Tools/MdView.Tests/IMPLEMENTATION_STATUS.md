@@ -981,3 +981,22 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   Re-run focused MdView.Tests and full Toolbox.sln;
   review warnings as well as failures. Do not claim
   this stage green until new maintainer verification.
+
+## 2026-11-15 — long native preflight layout and resize final hardening
+
+- Fixed the order of native long-table promotion in
+  `MdViewMixedVisualPagePlanner` (commit
+  `cca3a455cfe7f438006ec78238435d2830b17960`):
+  first confirm **whole-table native eligibility**, then defer the
+  native header to a fresh page if needed. Tables that ultimately
+  require compact fallback now retain normal compact line flow
+  rather than prematurely ending the previous prose page.
+- Source-state validation now rejects native continuation headers
+  too close to `long.MaxValue` for safe `header + 2` arithmetic.
+- A terminal width, height or Unicode capability change **during
+  planning**, not only between pages, now fails explicitly before
+  recording inconsistent mixed visual geometry. Both guards are
+  active in default and opt-in modes.
+- These post-test hardening changes are committed but have
+  **not yet been executed under .NET**. Previous maintainer green
+  report still refers to the pre-long-table checkout.
