@@ -652,5 +652,5 @@ requests compact fallback; original source is never altered.
 **The normal in-page `Page X of Y` remains unchanged.** This
 index covers one table; mixing ordinary paragraphs and native grids
 into a common page-height budget is the next separate milestone.
-Eleven new regression tests have been committed, pending a fresh
+Twelve new regression tests have been committed, pending a fresh
 .NET run. [Detailed contract](Docs/Native-Table-Fragment-Index/en.md).
