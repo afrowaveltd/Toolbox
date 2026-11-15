@@ -6,7 +6,7 @@ namespace Afrowave.Toolbox.Blackboard.Tools.MdView;
 /// <summary>
 /// One measured native table fragment stored as a fixed-size disk record.
 /// Its source interval contains data rows only; the source header is
-/// repeated visually and included in <see cref="VisualRows"/>.
+/// repeated visually and included in the measured visual row count.
 /// </summary>
 /// <param name="FirstDataLine">Inclusive zero-based source data line.</param>
 /// <param name="NextDataLine">Exclusive first unconsumed source data line.</param>
