@@ -678,3 +678,28 @@ This is a separate planner/renderer pair, **not yet wired into**
 `mdview preview PATH` or its existing `Page X of Y` disk index.
 Twelve targeted new tests are committed, pending a fresh .NET run.
 [Mixed visual page contract](Docs/Mixed-Visual-Page-Planning/en.md).
+
+### Disk-backed mixed Markdown page index (2026-11-15)
+
+The experimental mixed-page planner now has a **document-wide disk
+index**: `MdViewMixedVisualPageIndex` stores 56-byte source-bound
+records for every planned page, including original physical line,
+within-line wrap row, active compact-table state, actual mixed
+visual height and end-of-document information. Its disk-backed
+binary search supports canonical page lookup by physical source
+line or within-line visual row, without loading all page starts
+into RAM.
+
+`MdViewMixedVisualIndexedRenderer` reconstructs only the chosen
+canonical page and checks source cursor identity, terminal size
+and Unicode capabilities, exact `Start`/`Next` positions,
+rendered content height and the end/clipped flags before output.
+An empty file has one empty page; an exactly filled last page does
+not create an extra page. The default index disk budget is 64 MiB.
+
+This is an **experimental standalone** index and renderer.
+The existing `mdview preview PATH` command and its compact
+`Page X of Y` remain unchanged pending explicit opt-in UI work.
+Eleven new disk-index regression tests await fresh maintainer
+.NET verification.
+[Mixed page index technical guide](Docs/Mixed-Visual-Page-Index/en.md).
