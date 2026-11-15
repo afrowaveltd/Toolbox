@@ -295,3 +295,11 @@ parity before displaying a fragment. It currently indexes a
 **single table**, not mixed prose and native tables; the default
 compact Markdown page navigation is unchanged.
 [Native fragment index](Blackboard/Tools/MdView/Docs/Native-Table-Fragment-Index/en.md).
+
+MdView now also has a bounded **mixed Markdown/native Spectre
+visual-page planner and renderer**. They measure complete small
+native tables together with ordinary styled Markdown rows and
+preserve exact source continuation; long tables retain compact
+fallback across pages. The existing default `Page X of Y`
+index and UI are unchanged while whole-document indexing is built.
+[Mixed visual page contract](Blackboard/Tools/MdView/Docs/Mixed-Visual-Page-Planning/en.md).
