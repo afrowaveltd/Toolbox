@@ -1662,3 +1662,32 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   cursor location from a flattened ANSI transcript
   containing earlier erased/redrawn prompt frames.
   The output text is still checked for visibility.
+
+## 2026-11-15 — live menu visually aligned; test internals access fixed
+
+- User's new Konsole screenshot confirms the whole `preview-native
+  README.md --max-width 100 --center` screen is aligned: title,
+  rendered Markdown, `Page X of Y` and interactive navigation
+  share the same centered reading column. The scoped live Spectre
+  render hook is therefore **visually confirmed working**.
+- The same latest `.NET 10` run successfully compiled the
+  production `MdView` assembly but stopped before executing
+  `MdView.Tests` with **three CS0122** diagnostics at lines
+  226, 246 and 273 of `MdViewMixedScreenAlignmentTests.cs`.
+  These refer to the two purposely `internal` implementation
+  helpers `MdViewCenteredPromptRenderHook` and
+  `MdViewCenteredPrompt`.
+- Added `Properties/AssemblyInfo.cs` with
+  `[assembly: InternalsVisibleTo("MdView.Tests")]`
+  (commit `75e232b3ab65a0de006bb7ae0810ba5139a94fea`).
+  This follows existing repository conventions
+  (`WhenItFails/Properties/AssemblyInfo.cs`), keeps
+  production helper classes **internal** for consumers,
+  and grants only the named test assembly access.
+- No changes to live prompt behavior, navigation, source
+  indexing, renderer or 56-byte disk page records.
+- **Post-fix .NET build and test results pending.**
+  Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`. The earlier 325/333
+  run and current CS0122-blocked build are historical,
+  not outcomes for this new compiler fix.
