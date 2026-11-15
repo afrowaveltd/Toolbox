@@ -1000,3 +1000,17 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - These post-test hardening changes are committed but have
   **not yet been executed under .NET**. Previous maintainer green
   report still refers to the pre-long-table checkout.
+
+## 2026-11-15 — test run blocked by CS1026 in native planner
+
+- Maintainer attempted .NET 10 build but compilation stopped
+  at `MdViewMixedVisualPagePlanner.cs:136` with
+  **CS1026: closing ')' expected**. No new MdView
+  test-result count was produced for the long-table stage.
+- Fixed the missing closing parenthesis in the production
+  planner's native continuation validation (commit
+  `66a826192fa6aa1988088a89162c08b9712239f6`).
+  The 13 new long-table test methods are still awaiting
+  their first successful build and execution.
+- Next verification: focused MdView.Tests and all Toolbox.sln
+  tests, including warnings and native table visual smoke test.
