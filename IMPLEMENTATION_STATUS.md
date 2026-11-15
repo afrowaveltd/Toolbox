@@ -1164,3 +1164,32 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   `--long-tables`. Its new implementation/tests require
   a fresh build and test run before the milestone can be
   marked verified.
+
+## 2026-11-15 — MdView low-I/O native fragment journal requests
+
+- Maintainer's last message confirmed that the new long
+  native table reader was green following the CS1026 fix.
+  This is the baseline **before** the present optimization.
+- Replaced one-line-at-a-time disk-journal requests in
+  `MdViewNativeTablePagePlanner.PlanAsync` with one
+  bounded window of at most **six source data rows and
+  one lookahead**. Native widget measurements,
+  source-line jumps, 56-byte page index, all-or-nothing
+  compact fallback and existing CLI behavior are unchanged.
+- Added an internal `ReadRequestCount` diagnostic in
+  `MdViewContainerPageCursor` and **five deterministic
+  `MdViewNativeTableBatchReadTests`** proving three
+  journal API requests for a 14-row/three-fragment
+  fixture rather than a request per data row plus
+  separate lookahead calls.
+- New English
+  `Blackboard/Tools/MdView/Docs/Native-Table-Journal-Batching/en.md`
+  and root/MdView/test README and native planner guides
+  document the optimization and its precise limits.
+  Reducing cursor API requests is **not** the same as a
+  measured HDD speedup; per-event journal reads/JSON
+  decoding remain.
+- **Fresh .NET focused/full test execution pending**
+  after these commits. Next: inspect the real results,
+  then consider contiguous bounded journal reads and
+  reproducible slow-disk performance tests.
