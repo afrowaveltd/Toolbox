@@ -211,3 +211,20 @@ The maintainer confirmed the previous focused/full checkpoint green
 after the clipped-versus-wrapped header regression correction. **New
 tests for this planner have not yet been run with a .NET SDK here.**
 [Detailed guide](../MdView/Docs/Native-Table-Page-Planner/en.md).
+
+## Native table disk index and renderer regressions (2026-11-15)
+
+Eleven new `MdViewNativeTableFragmentIndexTests` cover fixed-size,
+disk-backed fragment lookup for 14 data rows; 6/6/2 exact continuation;
+index-to-renderer parity for a selected middle fragment; header-only
+tables; entire-table narrow/over-height compact fallback; measured
+one-row fragments with repeated headings; disk-budget failure with
+unchanged validated source; invalid arguments; rejected stale/forged
+headers and a different source cursor; terminal resize; cancellation
+and disposed-index safety.
+
+The table-only index and renderer are independent of the existing
+`MdViewTerminalPageIndex` and `mdview preview PATH` UI. The earlier
+measured table planner and native modal tests must remain green.
+**Fresh focused and full-solution .NET tests are pending for these
+new files.** [Design notes](../MdView/Docs/Native-Table-Fragment-Index/en.md).
