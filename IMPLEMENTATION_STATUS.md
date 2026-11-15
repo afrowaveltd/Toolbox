@@ -1100,3 +1100,35 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   disk-backed page-index parity. Existing compact behavior remains
   available and the current green checkpoint should be protected
   by fresh focused and full-solution tests after each change.
+
+## 2026-11-15 — MdView long native table pagination opt-in milestone
+
+- Maintainer last confirmed approximately **7,000 green
+  Toolbox tests** after whole-screen Spectre prompt
+  centering corrections. New long-table work postdates
+  that green baseline.
+- Added optional `mdview preview-native PATH --long-tables`
+  (case-insensitive; compatible with `--max-width N`
+  and `--center`). Long pipe tables can now display
+  small repeated-header native Spectre fragments across
+  canonical mixed visual pages. A source-complete bounded
+  preflight (maximum 2,048 fragments of up to six data
+  rows) chooses **whole-table compact fallback** if
+  any fragment cannot safely render.
+- The original Markdown and validated disk-backed source
+  cursor remain read-only; no complete native table
+  is loaded into RAM. Source row jumps, Page X of Y,
+  terminal resize and centered layout share the
+  existing mixed page planner and renderer.
+  The **56-byte** temporary disk-page record is unchanged:
+  a reserved native continuation sentinel uses the
+  previously defined compact-table state fields.
+- Added **13 test methods** in
+  `Blackboard/Tools/MdView.Tests/MdViewLongNativeMixedPagingTests.cs`.
+  New English guide
+  `Blackboard/Tools/MdView/Docs/Long-Native-Tables/en.md`,
+  root/project/test README and relevant Docs updated.
+- **Fresh .NET focused/full tests pending** for this
+  milestone; the previous 7,000-test report does not
+  verify this new functionality. Next: fix any
+  test/analyzer findings before expanding functionality.
