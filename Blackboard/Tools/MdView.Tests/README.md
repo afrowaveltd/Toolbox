@@ -232,12 +232,13 @@ new files.** [Design notes](../MdView/Docs/Native-Table-Fragment-Index/en.md).
 
 ## Mixed visual Markdown/native table page regressions (2026-11-15)
 
-Added eleven `MdViewMixedVisualPageTests` covering native tables between
+Added twelve `MdViewMixedVisualPageTests` covering native tables between
 ordinary paragraphs; moving a whole table before a page break;
 14-row compact fallback across multiple pages; a compact header and
 delimiter split between pages; narrow-terminal compact fallback;
 over-height long-cell tables; ordinary Markdown page-start parity
-with the established disk index; fenced and indented literal code
+with the established disk index and exact text-only renderer-output
+parity; fenced and indented literal code
 pipe text; pre-output resize
 rejection; and invalid source positions, budgets and cancellation.
 
