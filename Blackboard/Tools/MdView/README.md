@@ -805,10 +805,13 @@ only the Markdown body was centered, while the file header,
 The `--center` flag now applies the **same horizontal reading-column
 gutter to the whole mixed viewer**, not just document rows.
 
-`MdViewIndentedPromptConsole` wraps Spectre's native selection menus
-using a horizontal-only `Padder`, forwarding the original cursor,
-input, profile and render pipeline. The page menu and disk-indexed
-heading/link pickers use this adapter. Free-text line input instead
+The first forwarding `MdViewIndentedPromptConsole` adapter did not
+shift Spectre's **live** selection menu and was removed. The replacement
+`MdViewCenteredPromptRenderHook` is attached in a short-lived
+`RenderHookScope` before the prompt starts: it pads the actual
+live widget's title, arrow and choices with **zero vertical rows**,
+while preserving native Spectre keyboard/cursor behavior.
+The main menu and disk-indexed heading/link pickers use this hook. Free-text line input instead
 indents its prompt title **once** on the original console, without
 adding spaces to each typed character. File information, status,
 feedback, clip warnings, the empty-page label and menus share the
@@ -824,3 +827,26 @@ chrome/body/menu left edges, keyboard navigation, line entry,
 heading/link pickers, empty search results and default alignment.
 Fresh maintainer .NET verification is pending.
 [Unified centered preview](Docs/Mixed-Content-Alignment/en.md).
+
+### Corrected native live-prompt alignment (2026-11-15)
+
+The maintainer reported **325 passed, 8 failed, 333 total** after the
+first whole-screen centering attempt. In real Konsole the upper part
+was centered, but the interactive menu still appeared at column zero.
+
+Spectre renders `SelectionPrompt` through a late-added
+`ListPromptRenderHook`. The previous forwarding console padded
+the initial write only, not the resulting live widget. A new
+scoped `MdViewCenteredPromptRenderHook` now pads the actual
+live widget in the render pipeline, preserving cursor control
+sequences, the selection indicator and existing keyboard navigation.
+The effect is a **borderless horizontal layout**, without extra
+source/visual rows or an altered 56-byte disk index. The ineffective
+adapter was deleted.
+
+The focused alignment tests now use ANSI-enabled
+`Spectre.Console.Testing.TestConsole` and strip control sequences
+before comparing visible margins. Additional regressions verify
+hook scope and subsequent unindented output. **Fresh .NET tests and
+Konsole visual confirmation pending.**
+[Live-prompt fix](Docs/Mixed-Content-Alignment/en.md).
