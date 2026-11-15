@@ -32,15 +32,18 @@ public sealed class MdViewMixedContentAlignmentTests
     [Fact]
     public void NativeIndentRejectsNegativeGuttersAndPreservesZeroIdentity()
     {
-        var table = new Spectre.Console.Table()
-            .AddColumn("Name")
-            .AddColumn("Status")
-            .AddRow("CPU", "OK");
+        // The argument validation does not depend on table columns or
+        // data rows; use the smallest native table to avoid extensions.
+        var table = new Spectre.Console.Table();
         Assert.Same(table, MdViewMixedContentAlignment.IndentTable(table, 0));
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            MdViewMixedContentAlignment.IndentTable(table, -1));
+        {
+            _ = MdViewMixedContentAlignment.IndentTable(table, -1);
+        });
         Assert.Throws<ArgumentNullException>(() =>
-            MdViewMixedContentAlignment.IndentTable(null!, 5));
+        {
+            _ = MdViewMixedContentAlignment.IndentTable(null!, 5);
+        });
     }
 
     [Fact]
