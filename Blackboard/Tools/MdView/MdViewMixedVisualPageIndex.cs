@@ -50,7 +50,8 @@ public sealed class MdViewMixedVisualPageIndex : IAsyncDisposable
     private MdViewMixedVisualPageIndex(
         FileStream stream, MdViewContainerPageCursor cursor,
         long pageCount, long sourceLineCount, int width, int height,
-        int contentRows, bool unicode, int maximumContentColumns)
+        int contentRows, bool unicode, int maximumContentColumns,
+        bool longNativeTables)
     {
         _stream = stream;
         _sourceCursor = cursor;
@@ -61,6 +62,7 @@ public sealed class MdViewMixedVisualPageIndex : IAsyncDisposable
         ContentRows = contentRows;
         Unicode = unicode;
         MaximumContentColumns = maximumContentColumns;
+        LongNativeTables = longNativeTables;
     }
 
     /// <summary>Number of indexed pages; at least one, including an empty file.</summary>
@@ -85,6 +87,12 @@ public sealed class MdViewMixedVisualPageIndex : IAsyncDisposable
     public int MaximumContentColumns { get; }
 
     /// <summary>
+    /// Whether bounded repeated-header native fragments are enabled for
+    /// the indexed document. Stored as index metadata, not per-page bytes.
+    /// </summary>
+    public bool LongNativeTables { get; }
+
+    /// <summary>
     /// Builds a complete disk index using the same bounded planner that
     /// will later be used to render individual pages.
     /// </summary>
@@ -94,13 +102,14 @@ public sealed class MdViewMixedVisualPageIndex : IAsyncDisposable
     /// <param name="maximumIndexBytes">Maximum temporary index bytes.</param>
     /// <param name="cancellationToken">Cancels the scan and index writes.</param>
     /// <param name="maximumContentColumns">Optional content width cap, or zero for physical terminal width.</param>
+    /// <param name="longNativeTables">Opt-in bounded native continuation for long pipe tables.</param>
     /// <returns>Owned disk-backed index that must be disposed.</returns>
     public static async Task<MdViewMixedVisualPageIndex> CreateAsync(
         MdViewContainerPageCursor cursor, IAnsiConsole console,
         int contentRows,
         long maximumIndexBytes = DefaultMaximumIndexBytes,
         CancellationToken cancellationToken = default,
-        int maximumContentColumns = 0)
+        int maximumContentColumns = 0, bool longNativeTables = false)
     {
         MdViewMixedContentWidth.Validate(maximumContentColumns);
         ArgumentNullException.ThrowIfNull(cursor);
@@ -137,7 +146,8 @@ public sealed class MdViewMixedVisualPageIndex : IAsyncDisposable
 
                 var page = await MdViewMixedVisualPagePlanner.PlanAsync(
                     cursor, position, console, contentRows, cancellationToken,
-                    maximumContentColumns: maximumContentColumns)
+                    maximumContentColumns: maximumContentColumns,
+                    longNativeTables: longNativeTables)
                     .ConfigureAwait(false);
 
                 if (page.Start != position ||
@@ -171,7 +181,7 @@ public sealed class MdViewMixedVisualPageIndex : IAsyncDisposable
                     return new MdViewMixedVisualPageIndex(
                         stream, cursor, pageCount, position.Line,
                         width, height, contentRows, unicode,
-                        maximumContentColumns);
+                        maximumContentColumns, longNativeTables);
                 }
             }
         }
@@ -334,7 +344,7 @@ public sealed class MdViewMixedVisualPageIndex : IAsyncDisposable
             (((flags & AtEndFlag) != 0) != (pageNumber == PageCount - 1)) ||
             ((flags & AtEndFlag) != 0 &&
              (next.Line != SourceLineCount || next.WrapRow != 0)) ||
-            !ValidCompactState(start) || !ValidCompactState(next))
+            !ValidTableState(start) || !ValidTableState(next))
             throw new InvalidDataException(
                 "Mixed visual page index contains invalid source positions or row counts.");
 
@@ -343,11 +353,15 @@ public sealed class MdViewMixedVisualPageIndex : IAsyncDisposable
             (flags & AtEndFlag) != 0, (flags & ClippedCodeFlag) != 0);
     }
 
-    private static bool ValidCompactState(MdViewMixedVisualPosition position) =>
+    private bool ValidTableState(MdViewMixedVisualPosition position) =>
         position.CompactHeaderLine == -1
             ? position.CompactColumns == 0
             : position.CompactHeaderLine >= 0 &&
               position.CompactHeaderLine <= position.Line &&
-              position.CompactColumns is >= 2 and <=
-                  MdViewTerminalPipeTableLayout.MaximumColumns;
+              (position.IsNativeContinuation
+                  ? LongNativeTables && position.WrapRow == 0 &&
+                    position.CompactHeaderLine <= long.MaxValue - 2 &&
+                    position.Line >= position.CompactHeaderLine + 2
+                  : position.CompactColumns is >= 2 and <=
+                      MdViewTerminalPipeTableLayout.MaximumColumns);
 }
