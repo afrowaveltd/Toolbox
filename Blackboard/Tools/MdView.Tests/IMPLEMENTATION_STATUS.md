@@ -1065,3 +1065,19 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - **Focused and full .NET tests still pending**.
   Review new corruption and long-source test cases,
   and all existing native Spectre/indexing regressions.
+
+## 2026-11-15 — all tests green after contiguous journal batching
+
+- Maintainer reports **all tests passing** following the
+  seven `MdViewContiguousJournalReadTests` and cursor
+  streaming optimization. The actual total was not
+  provided, so no exact count is inferred.
+- This confirmation supersedes the pending status from
+  the previous contiguous-journal increment. It covers
+  the test run supplied by the maintainer, not an
+  independently executed run in the assistant environment.
+- Keep existing corruption, cancellation, source-line
+  parity and long native-table tests in the mandatory
+  suite. Next benchmark changes should be **opt-in**,
+  separate from xUnit timing assertions and reproducible
+  across HDD and SSD hardware.
