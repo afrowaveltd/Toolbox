@@ -932,3 +932,36 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   visible wrapped prose instead (commit
   `a03ce6d78d83276453446e748ff991de45765556`).
   No production behavior was altered by this test cleanup.
+
+## 2026-11-15 — MdView optional centered reading column
+
+- Maintainer confirmed previous optional reading-width
+  implementation green; no exact new test counts
+  were supplied.
+- New `Blackboard/Tools/MdView/MdViewMixedContentAlignment.cs`
+  computes a uniform left gutter for the optional
+  fixed-width reading column. Mixed Markdown prose
+  rows receive literal left padding; native Spectre
+  tables receive a `Padder` with **zero vertical
+  padding** and preflight measured height parity.
+  Source file bytes and canonical disk page starts
+  remain unchanged.
+- New CLI syntax:
+  `mdview preview-native README.md --max-width 100 --center`
+  (either flag order). Existing full-width mode
+  and compact `mdview preview README.md` remain
+  left-aligned and unchanged.
+- The mixed page renderer, indexed renderer and
+  interactive pager now propagate the optional
+  alignment without changing the 56-byte page
+  record format. Added dedicated xUnit parameterized
+  regression tests, new English
+  `Docs/Mixed-Content-Alignment/en.md`, and
+  updated root/project/test README and statuses.
+- **Fresh post-change .NET tests pending** in this
+  assistant environment; last green checkpoint
+  is the user's prior confirmation, not a claim
+  that the new centering code was tested.
+- Next: respond to compile/analyzer/test results
+  and smoke-test large/narrow terminals before
+  further native-table enhancements.
