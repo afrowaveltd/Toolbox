@@ -19,6 +19,18 @@ if [[ "$MOUNT_TARGET" == "/" ]]; then
     echo "Mount your HGST at /mnt/TEST or supply another separate mount." >&2
     exit 2
 fi
+ROOT_DEVICE_ID="$(findmnt -n -T / -o MAJ:MIN)"
+TEST_DEVICE_ID="$(findmnt -n -T "$ROOT" -o MAJ:MIN)"
+if [[ -n "$ROOT_DEVICE_ID" && "$ROOT_DEVICE_ID" == "$TEST_DEVICE_ID" ]]; then
+    echo "Refusing a bind mount of the system filesystem (same device ID)." >&2
+    exit 2
+fi
+TEST_FSTYPE="$(findmnt -n -T "$ROOT" -o FSTYPE)"
+if [[ "$TEST_FSTYPE" == "tmpfs" || "$TEST_FSTYPE" == "ramfs" ||
+      "$TEST_FSTYPE" == "overlay" ]]; then
+    echo "Refusing non-disk test filesystem: $TEST_FSTYPE" >&2
+    exit 2
+fi
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT="$SCRIPT_DIR/MdView.Benchmarks.csproj"
