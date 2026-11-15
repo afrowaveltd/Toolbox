@@ -251,6 +251,59 @@ public sealed class MdViewLongNativeMixedPagingTests
     }
 
     [Fact]
+    public async Task WholeTablePreflightRejectsBoundedScanBeforePartialPromotion()
+    {
+        using var fixture = new Fixture(LongTable(14));
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(fixture.Path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        var console = MakeConsole();
+        var header = await MdViewSpectreTableBlockReader.ReadHeaderAsync(cursor, 0);
+        Assert.NotNull(header);
+
+        // A fragment accepts at most six source rows. One fragment is
+        // insufficient for this 14-row table: never promote just its
+        // beginning and then silently fall back to compact halfway in.
+        Assert.False(await MdViewLongNativeTableEligibility
+            .CanRenderEntireTableAsync(
+                cursor, header, console, 30, maximumFragments: 1));
+        Assert.True(await MdViewLongNativeTableEligibility
+            .CanRenderEntireTableAsync(
+                cursor, header, console, 30, maximumFragments: 5));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            MdViewLongNativeTableEligibility.CanRenderEntireTableAsync(
+                cursor, header, console, 30, maximumFragments: 0));
+        Assert.Equal(string.Empty, console.Output);
+    }
+
+    [Fact]
+    public async Task LongNativeTableDefersItsHeaderToFreshPageAfterProse()
+    {
+        var intro = string.Join("\n", Enumerable.Repeat("Prose", 7));
+        using var fixture = new Fixture(intro + "\n" + LongTable(14));
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(fixture.Path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        var console = MakeConsole();
+
+        var first = await MdViewMixedVisualPagePlanner.PlanAsync(
+            cursor, MdViewMixedVisualPosition.Beginning, console,
+            contentRows: 8, longNativeTables: true);
+        Assert.Equal(7, first.Next.Line);
+        Assert.Equal(0, first.Next.WrapRow);
+        Assert.False(first.AtEnd);
+        Assert.Empty(first.Blocks.OfType<MdViewMixedVisualTableBlock>());
+
+        var second = await MdViewMixedVisualPagePlanner.PlanAsync(
+            cursor, first.Next, console, contentRows: 8,
+            longNativeTables: true);
+        Assert.Contains(second.Blocks,
+            block => block is MdViewMixedVisualTableBlock);
+        Assert.True(second.Next.IsNativeContinuation);
+        Assert.Equal(7, second.Next.CompactHeaderLine);
+        Assert.True(second.Next.Line > 9);
+        Assert.Equal(string.Empty, console.Output);
+    }
+
+    [Fact]
     public void CliLongTableOptionIsExplicitAndCombinesWithCenteringAndWidth()
     {
         var first = MdViewCommand.Parse("PREVIEW-NATIVE", "README.md",
