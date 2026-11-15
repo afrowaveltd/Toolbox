@@ -472,3 +472,29 @@ time improvement. The previous all-green maintainer run
 predates this batching change; new focused/full .NET tests
 must be run before another green checkpoint is recorded.
 [English performance contract](../MdView/Docs/Native-Table-Journal-Batching/en.md).
+
+## Contiguous event-journal read tests (2026-11-15)
+
+Seven new `MdViewContiguousJournalReadTests` verify
+that a window of small classified events is retrieved
+using **one event-stream read**, that larger windows
+are split only at valid record boundaries under the
+256-KiB ordinary batch limit, and that individual
+larger records remain readable up to the existing
+8-MiB serialized event cap.
+
+The tests also cover CRLF and Unicode source text,
+backward reuse without parser replay, the exact
+following-offset versus end-of-journal endpoint,
+pre-cancelled requests, and explicit rejection of
+deliberately corrupted stored record lengths and
+overlapping offsets. A new **internal**
+`EventReadRequestCount` counter tracks stream read
+calls; the existing `ReadRequestCount` continues
+tracking cursor API calls.
+
+This is not a throughput benchmark, and the preceding
+maintainer green checkpoint predates the new code.
+Run focused MdView.Tests and the full solution before
+marking the contiguous-read increment verified.
+[English contract](../MdView/Docs/Contiguous-Journal-Reads/en.md).
