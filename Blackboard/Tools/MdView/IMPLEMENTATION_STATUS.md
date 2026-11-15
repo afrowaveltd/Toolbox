@@ -1420,3 +1420,76 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   visible wrapped prose instead (commit
   `a03ce6d78d83276453446e748ff991de45765556`).
   No production behavior was altered by this test cleanup.
+
+## 2026-11-15 — optional centered reading column for mixed native Markdown
+
+- Maintainer confirmed the preceding optional mixed-preview
+  content-width work and entire local test run **all green**
+  (exact counts not provided). This is the accepted
+  checkpoint **before** the centering increment.
+- Added `MdViewMixedContentAlignment.cs` (commit
+  `8971364414a3b9273a841f0b9d981a06faaea0e9`).
+  It computes the centered left gutter from the actual
+  physical terminal width and existing
+  `MdViewMixedContentWidth.EffectiveTerminalWidth`.
+  It never changes the terminal profile. Native Spectre
+  grids are wrapped in a `Padder` with horizontal left
+  indentation and **zero vertical padding**.
+- Extended `MdViewMixedVisualPageRenderer.Render` with
+  optional `centerContent` (commit
+  `7cec4c2d89108f0535e3c56a7d5cd78287c888a3`).
+  Every source-styled Markdown display row gets the same
+  left margin; each native widget is padded with that
+  margin. The renderer measures **padded** Spectre table
+  segments before writing a single output row and rejects
+  any change in planned native table height. Source
+  styling, width-based wrapping and canonical page
+  boundaries otherwise remain unchanged.
+- Extended `MdViewMixedVisualIndexedRenderer` with
+  trailing optional `centerContent` (commit
+  `30bda58de9dde35b95f1a6057f8bcb250202797f`).
+  Centering is output-only and does **not** change the
+  disk-backed mixed page index or its existing 56-byte
+  record format. Source-line jumps remain canonical.
+- `MdViewMixedPreviewPager` accepts a trailing
+  `centerContent` flag and displays `centered` in
+  the UI header (commit
+  `0c390eb7f531940b59463a3ce3eaccc949947a22`).
+  The default is false; centering alone without a
+  content-width cap has no visible effect on a
+  full-width reading area.
+- CLI: `MdViewCommand.CenterContent` and case-insensitive
+  `mdview preview-native PATH --max-width 100 --center`
+  in **either flag order** (commit
+  `23e0753af62ee90e54db6f2b7b709f0465abc0d8`).
+  The parser refuses duplicate/unknown options. Program
+  forwards the flag and documents its usage
+  (`0ddd8ffe4776f4f2c9bea350ca960be6dcceeed8`).
+  Existing command kinds, left-aligned default, compact
+  `preview PATH`, source pager and remote readers unchanged.
+- Added 8 test methods with parameterized cases in
+  `MdViewMixedContentAlignmentTests.cs` (commit
+  `7c8d235885409d06f5c32e30a667f819b91cc0f9`,
+  deterministic invalid-option cases in
+  `3dfacc8903b0b6afaa20edd375621770b4706368`).
+  The tests check deterministic gutters, native widget
+  row-height parity, same text/native left gutter,
+  literal-safe source bytes, index/renderer canonical
+  page equality, default output without a width cap,
+  CLI parsing/invalid options and visible preview status.
+- Documentation: new English
+  `Docs/Mixed-Content-Alignment/en.md`, plus MdView
+  README, test README, main Toolbox README and cross-links
+  from mixed-width and mixed-native guides.
+- **Fresh focused/full .NET tests pending.** The assistant
+  environment has no .NET SDK. Run:
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`,
+  `dotnet test Toolbox.sln`, then compare
+  `dotnet run --project Blackboard/Tools/MdView --
+  preview-native README.md --max-width 100` with
+  the same command plus `--center`. Check page
+  counts and native borders across different window sizes.
+- **Next:** resolve compiler/analyzer/test feedback,
+  and only after green verification consider preserving
+  centered column alignment in other optional reader
+  modes or improving very-long native table behavior.
