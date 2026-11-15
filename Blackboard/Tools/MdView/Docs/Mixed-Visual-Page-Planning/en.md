@@ -140,3 +140,19 @@ Related:
 [Native table page planner](../Native-Table-Page-Planner/en.md) ·
 [Responsive compact preview](../Responsive-Preview/en.md) ·
 [Implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## Disk-backed whole-document page index (2026-11-15)
+
+`MdViewMixedVisualPageIndex` now builds complete temporary
+page records by repeatedly calling this exact mixed planner.
+Each 56-byte record stores the full source/wrap/compact-table
+continuation state for both ends of a page. Disk binary
+search maps a source line (or wrap-row position) to its
+canonical page; indexed rendering re-plans that page and
+checks its geometry against the record before output.
+
+This implementation is **not** yet wired to the default
+`mdview preview` UI. A separate opt-in navigation mode,
+window-resize reindexing and user-facing source jumps
+remain the next milestone.
+[Mixed page index contract](../Mixed-Visual-Page-Index/en.md).
