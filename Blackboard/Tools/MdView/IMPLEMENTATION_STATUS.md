@@ -1516,3 +1516,68 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
   and `dotnet test Toolbox.sln`, then smoke-test the centered
   native preview.
+
+## 2026-11-15 — unified whole-screen centered mixed preview
+
+- User-provided Konsole screenshot demonstrated that
+  `preview-native README.md --max-width 100 --center`
+  correctly centered the Markdown body but left the application
+  title/file header, `Page X of Y` and keyboard selection menu
+  at physical terminal column zero. The user requested that
+  **the entire screen share the same centered column**.
+- Added `MdViewIndentedPromptConsole.cs` (commit
+  `cff07f5b4388565085ff2626d2c1130a737cc916`).
+  The internal `IAnsiConsole` proxy forwards the original
+  `Profile`, `Input`, `Cursor`, `ExclusivityMode`,
+  `Pipeline`, `Clear` and `WriteAnsi` operations.
+  Only complete interactive `SelectionPrompt` renderables
+  are wrapped in Spectre's native horizontal-only `Padder`.
+  No fake terminal profile, new key parser, or vertical padding.
+- Updated `MdViewMixedPreviewPager.cs` (commit
+  `bbfe9b4cdcd40e55adda9757d11e33ad678ba341`):
+  calculate one `MdViewMixedContentAlignment.LeftGutter`
+  per viewport; apply it to the file/title header, status,
+  source line range, feedback, code clipping, empty label,
+  and interactive page and disk-indexed heading/link menus.
+  The document renderer was already centered and is **not**
+  padded a second time.
+- The incremental `TextPrompt` for source-line input uses
+  the **original console** with a single indented title.
+  It is deliberately excluded from the prompt proxy to
+  prevent repeated indentation of typed characters.
+  Short chrome strings clip to the same capped reading width.
+- **Default behavior remains unchanged** when `--center`
+  is omitted or no horizontal free space exists.
+  The existing compact `preview PATH`, source indexing,
+  canonical page positions, 56-byte record schema,
+  navigation semantics and resize rebuild remain intact.
+- Added **9 `MdViewMixedScreenAlignmentTests`**
+  (initial commit
+  `1dc77f20c27f3f5db90f5d5f479c7432d4953cfb`,
+  terminal newline hardening
+  `b2836a02d8b7caa0b1da1fd72e8fb5d6596a7f36`,
+  additional link/no-results regressions
+  `84b694f214f19702585100813ec063f79f2f6746`).
+  Tests check aligned header/body/footer/menu and selected
+  arrow; next/previous; source-line input; heading/link
+  pickers; no-result message; empty source and default/no-spare
+  terminal alignment.
+- Updated root/MdView/test README and English
+  `Docs/Mixed-Content-Alignment/en.md`,
+  `Docs/Mixed-Native-Preview/en.md`,
+  `Docs/Mixed-Content-Width/en.md`. Outdated descriptions
+  of left-aligned chrome under `--center` were corrected.
+- **Fresh .NET tests pending** in the maintainer's environment.
+  No current green checkpoint has been asserted for this
+  correction; the assistant has no .NET SDK. Run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`, then smoke-test
+  `dotnet run --project Blackboard/Tools/MdView --
+  preview-native README.md --max-width 100 --center`.
+  Verify the whole screen's horizontal alignment and
+  arrow-key/Enter/Escape navigation on both narrow
+  and wide terminals.
+- **Next:** resolve any compiler/analyzer or interactive
+  prompt rendering feedback first. After verified green,
+  continue with long native table pagination, preserving
+  low-RAM disk-backed source and visual indexes.
