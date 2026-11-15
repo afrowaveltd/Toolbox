@@ -1,4 +1,7 @@
 using System.Text;
+using System.Text.RegularExpressions;
+using Spectre.Console;
+using Spectre.Console.Rendering;
 using Afrowave.Toolbox.Blackboard.Tools.MdView;
 using Spectre.Console.Testing;
 using Xunit;
@@ -25,13 +28,13 @@ public sealed class MdViewMixedScreenAlignmentTests
             fixture.Path, linesPerPage: 6,
             maximumContentColumns: maximum, centerContent: true);
 
-        Assert.Contains(gutter + "mdview — mixed Markdown", console.Output);
-        Assert.Contains(gutter + "README.md |", console.Output);
-        Assert.Contains(gutter + "Readable paragraph 1", console.Output);
-        Assert.Contains(gutter + "Page 1 of ", console.Output);
-        Assert.Contains(gutter + "Mixed preview navigation", console.Output);
-        Assert.Contains(gutter + "> Next page", console.Output);
-        Assert.DoesNotContain("\nmdview — mixed Markdown", console.Output);
+        Assert.Contains(gutter + "mdview — mixed Markdown", Visible(console));
+        Assert.Contains(gutter + "README.md |", Visible(console));
+        Assert.Contains(gutter + "Readable paragraph 1", Visible(console));
+        Assert.Contains(gutter + "Page 1 of ", Visible(console));
+        Assert.Contains(gutter + "Mixed preview navigation", Visible(console));
+        Assert.Contains(gutter + "> Next page", Visible(console));
+        Assert.DoesNotContain("\nmdview — mixed Markdown", Visible(console));
         Assert.Equal(180, console.Profile.Width);
     }
 
@@ -51,10 +54,10 @@ public sealed class MdViewMixedScreenAlignmentTests
             fixture.Path, linesPerPage: 2,
             maximumContentColumns: 70, centerContent: true);
 
-        Assert.Contains(gutter + "Page 1 of 7", console.Output);
-        Assert.Contains(gutter + "Page 2 of 7", console.Output);
-        Assert.Contains(gutter + "Previous page", console.Output);
-        Assert.Equal(2, console.Output.Split(
+        Assert.Contains(gutter + "Page 1 of 7", Visible(console));
+        Assert.Contains(gutter + "Page 2 of 7", Visible(console));
+        Assert.Contains(gutter + "Previous page", Visible(console));
+        Assert.Equal(2, Visible(console).Split(
             "Page 1 of 7", StringSplitOptions.None).Length - 1);
     }
 
@@ -74,12 +77,12 @@ public sealed class MdViewMixedScreenAlignmentTests
             fixture.Path, linesPerPage: 5,
             maximumContentColumns: 80, centerContent: true);
 
-        Assert.Contains(gutter + "Physical source line (1-based", console.Output);
+        Assert.Contains(gutter + "Physical source line (1-based", Visible(console));
         Assert.Contains(gutter + "Source line 12 is on this canonical page.",
-            console.Output);
-        Assert.Contains(gutter + "Page 3 of 4", console.Output);
+            Visible(console));
+        Assert.Contains(gutter + "Page 3 of 4", Visible(console));
         Assert.DoesNotContain("Source line is outside this document.",
-            console.Output);
+            Visible(console));
     }
 
     [Fact]
@@ -103,12 +106,12 @@ public sealed class MdViewMixedScreenAlignmentTests
             fixture.Path, linesPerPage: 8,
             maximumContentColumns: 80, centerContent: true);
 
-        Assert.Contains(gutter + "Mixed preview navigation", console.Output);
-        Assert.Contains(gutter + "Indexed headings", console.Output);
+        Assert.Contains(gutter + "Mixed preview navigation", Visible(console));
+        Assert.Contains(gutter + "Indexed headings", Visible(console));
         Assert.Contains(gutter + "Source line 33 is on this canonical page.",
-            console.Output);
-        Assert.Contains(gutter + "Distant heading", console.Output);
-        Assert.Contains(gutter + "Page 5 of 5", console.Output);
+            Visible(console));
+        Assert.Contains(gutter + "Distant heading", Visible(console));
+        Assert.Contains(gutter + "Page 5 of 5", Visible(console));
     }
 
     [Fact]
@@ -131,11 +134,11 @@ public sealed class MdViewMixedScreenAlignmentTests
             fixture.Path, linesPerPage: 8,
             maximumContentColumns: 80, centerContent: true);
 
-        Assert.Contains(gutter + "Indexed links", console.Output);
+        Assert.Contains(gutter + "Indexed links", Visible(console));
         Assert.Contains(gutter + "Source line 24 is on this canonical page.",
-            console.Output);
-        Assert.Contains(gutter + "Page 3 of 4", console.Output);
-        Assert.Contains(gutter + "Installation", console.Output);
+            Visible(console));
+        Assert.Contains(gutter + "Page 3 of 4", Visible(console));
+        Assert.Contains(gutter + "Installation", Visible(console));
     }
 
     [Fact]
@@ -152,8 +155,8 @@ public sealed class MdViewMixedScreenAlignmentTests
             fixture.Path, maximumContentColumns: 80, centerContent: true);
 
         Assert.Contains(gutter + "No indexed headings were found.",
-            console.Output);
-        Assert.Contains(gutter + "Page 1 of 1", console.Output);
+            Visible(console));
+        Assert.Contains(gutter + "Page 1 of 1", Visible(console));
     }
 
     [Fact]
@@ -167,10 +170,10 @@ public sealed class MdViewMixedScreenAlignmentTests
         await new MdViewMixedPreviewPager(console).RunAsync(
             fixture.Path, maximumContentColumns: 80, centerContent: true);
 
-        Assert.Contains(gutter + "(Empty page)", console.Output);
-        Assert.Contains(gutter + "Page 1 of 1", console.Output);
-        Assert.Contains(gutter + "Mixed preview navigation", console.Output);
-        Assert.Contains(gutter + "Exit mixed preview", console.Output);
+        Assert.Contains(gutter + "(Empty page)", Visible(console));
+        Assert.Contains(gutter + "Page 1 of 1", Visible(console));
+        Assert.Contains(gutter + "Mixed preview navigation", Visible(console));
+        Assert.Contains(gutter + "Exit mixed preview", Visible(console));
     }
 
     [Fact]
@@ -183,9 +186,9 @@ public sealed class MdViewMixedScreenAlignmentTests
         await new MdViewMixedPreviewPager(console).RunAsync(
             fixture.Path, maximumContentColumns: 100, centerContent: true);
 
-        Assert.True(AtColumnZero(console.Output, "mdview — mixed Markdown"));
-        Assert.True(AtColumnZero(console.Output, "Page 1 of 1"));
-        Assert.True(AtColumnZero(console.Output, "Mixed preview navigation"));
+        Assert.True(AtColumnZero(Visible(console), "mdview — mixed Markdown"));
+        Assert.True(AtColumnZero(Visible(console), "Page 1 of 1"));
+        Assert.True(AtColumnZero(Visible(console), "Mixed preview navigation"));
         Assert.Equal(72, console.Profile.Width);
     }
 
@@ -199,11 +202,44 @@ public sealed class MdViewMixedScreenAlignmentTests
         await new MdViewMixedPreviewPager(console).RunAsync(
             fixture.Path, maximumContentColumns: 80);
 
-        Assert.True(AtColumnZero(console.Output, "mdview — mixed Markdown"));
-        Assert.True(AtColumnZero(console.Output, "Page 1 of 1"));
-        Assert.True(AtColumnZero(console.Output, "Mixed preview navigation"));
+        Assert.True(AtColumnZero(Visible(console), "mdview — mixed Markdown"));
+        Assert.True(AtColumnZero(Visible(console), "Page 1 of 1"));
+        Assert.True(AtColumnZero(Visible(console), "Mixed preview navigation"));
         Assert.DoesNotContain(new string(' ', 49) + "Mixed preview navigation",
-            console.Output);
+            Visible(console));
+    }
+
+    // SelectionPrompt is implemented using Spectre's live render hook.
+    // TestConsole normally bypasses the render pipeline, so use actual
+    // ANSI output for these UI tests and remove only control sequences
+    // before checking the human-visible text and left gutter.
+    private static string Visible(TestConsole console) =>
+        Regex.Replace(console.Output,
+                @"\x1B\[[0-?]*[ -/]*[@-~]", string.Empty)
+            .Replace("\r", string.Empty, StringComparison.Ordinal);
+
+    [Fact]
+    public void GutterRenderHookPadsActualPipelineOutputWithoutExtraRows()
+    {
+        using var console = Interactive(180);
+        using (new RenderHookScope(
+            console, new MdViewCenteredPromptRenderHook(49)))
+        {
+            console.Write(new Text("Menu item" + Environment.NewLine));
+        }
+
+        Assert.Contains(new string(' ', 49) + "Menu item",
+            Visible(console));
+        Assert.DoesNotContain("\n\n", Visible(console));
+    }
+
+    [Fact]
+    public void GutterRenderHookRejectsNegativePadding()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        {
+            _ = new MdViewCenteredPromptRenderHook(-1);
+        });
     }
 
     private static bool AtColumnZero(string output, string prefix) =>
@@ -218,6 +254,7 @@ public sealed class MdViewMixedScreenAlignmentTests
         console.Profile.Height = 80;
         console.Profile.Capabilities.Unicode = true;
         console.Profile.Capabilities.Interactive = true;
+        console.EmitAnsiSequences = true; // exercise live prompt render hooks
         return console;
     }
 
