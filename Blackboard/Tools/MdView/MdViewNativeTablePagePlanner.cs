@@ -124,18 +124,24 @@ public static class MdViewNativeTablePagePlanner
         if (measured > availableContentRows)
             return Fallback(MdViewNativeTableFallbackReason.HeaderTooTall);
 
+        // One bounded journal lookup replaces a separate offset-table
+        // lookup for every source row and the final continuation probe.
+        // Seven physical lines is the strict maximum (6 data + lookahead).
+        // The cursor keeps classified text in its disk journal, not RAM;
+        // only this fragment-sized window is materialized here.
+        var sourceWindow = await cursor.ReadAsync(
+            firstDataLine, maximumSourceRows + 1, cancellationToken)
+            .ConfigureAwait(false);
+
         var consumed = 0;
         var hasMore = false;
         var accepted = new List<IRenderable[]>(maximumSourceRows);
         while (consumed < maximumSourceRows)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var lineNumber = firstDataLine + consumed;
-            var source = await cursor.ReadAsync(lineNumber, 1, cancellationToken)
-                .ConfigureAwait(false);
-            if (source.Count == 0 ||
+            if (consumed >= sourceWindow.Count ||
                 !MdViewSpectreTableBlockReader.TryReadDataRow(
-                    source[0], header.Columns.Count, out var cells))
+                    sourceWindow[consumed], header.Columns.Count, out var cells))
                 break;
 
             // The same clipping and literal-data policy is used by the
@@ -171,17 +177,16 @@ public static class MdViewNativeTablePagePlanner
         if (consumed == 0 && firstDataLine > header.SourceLine + 2)
             return Fallback(MdViewNativeTableFallbackReason.NoContinuationRow);
 
-        // Probe just the next physical source line when the chunk cap
-        // is reached. A row rejected by measurement already proves that
-        // the same source row must be retried on the next visual page.
+        // A row rejected by measurement must be retried on the next
+        // page. Otherwise the final entry in the already read window
+        // identifies whether the physical table continues, without a
+        // second seek into the disk-backed offset journal.
         if (consumed == maximumSourceRows && !hasMore)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var next = await cursor.ReadAsync(firstDataLine + consumed, 1,
-                cancellationToken).ConfigureAwait(false);
-            hasMore = next.Count != 0 &&
+            hasMore = sourceWindow.Count > consumed &&
                 MdViewSpectreTableBlockReader.TryReadDataRow(
-                    next[0], header.Columns.Count, out _);
+                    sourceWindow[consumed], header.Columns.Count, out _);
         }
 
         return new MdViewNativeTablePageChunk(
