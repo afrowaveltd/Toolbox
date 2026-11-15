@@ -103,6 +103,66 @@ public sealed class MdViewMixedPreviewPagerTests
     }
 
     [Fact]
+    public async Task DiskIndexedLinkPickerFindsSourcePageWithoutOpeningUrl()
+    {
+        var lines = Enumerable.Range(0, 32)
+            .Select(i => "ordinary line " + (i + 1)).ToArray();
+        lines[23] = "[Installation](Docs/Installation/en.md)";
+        using var fixture = new Fixture(string.Join("\n", lines));
+        var console = Interactive();
+        console.Input.PushKey(ConsoleKey.DownArrow); // Go to source line.
+        console.Input.PushKey(ConsoleKey.DownArrow); // Find heading.
+        console.Input.PushKey(ConsoleKey.DownArrow); // Find link location.
+        console.Input.PushKey(ConsoleKey.Enter);
+        console.Input.PushKey(ConsoleKey.Enter); // First indexed link.
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewMixedPreviewPager(console).RunAsync(
+            fixture.Path, linesPerPage: 8);
+
+        Assert.Contains("Indexed links", console.Output);
+        Assert.Contains("Source line 24 is on this canonical page.", console.Output);
+        Assert.Contains("Installation", console.Output);
+        Assert.Contains("Page 3 of 4", console.Output);
+    }
+
+    [Fact]
+    public async Task InvalidSourceJumpKeepsCurrentCanonicalPage()
+    {
+        using var fixture = new Fixture(string.Join("\n",
+            Enumerable.Range(1, 20).Select(i => "Source line " + i)));
+        var console = Interactive();
+        console.Input.PushKey(ConsoleKey.DownArrow); // Go to source line.
+        console.Input.PushKey(ConsoleKey.Enter);
+        console.Input.PushTextWithEnter("999");
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewMixedPreviewPager(console).RunAsync(
+            fixture.Path, linesPerPage: 8);
+
+        Assert.Contains("Source line is outside this document.", console.Output);
+        Assert.Equal(2, console.Output.Split(
+            "Page 1 of 3", StringSplitOptions.None).Length - 1);
+        Assert.DoesNotContain("Page 2 of 3", console.Output);
+    }
+
+    [Fact]
+    public async Task ExplicitLargeRowCapStillReservesRoomForNavigationControls()
+    {
+        using var fixture = new Fixture(string.Join("\n",
+            Enumerable.Range(1, 8).Select(i => "Line " + i)));
+        var console = Interactive();
+        console.Profile.Height = 18;
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewMixedPreviewPager(console).RunAsync(
+            fixture.Path, linesPerPage: 128);
+
+        Assert.Contains("Page 1 of 4", console.Output);
+        Assert.Contains("Mixed preview navigation", console.Output);
+    }
+
+    [Fact]
     public async Task LongTableStaysCompactThroughMixedPreview()
     {
         var source = "| Name | Value |\n| --- | --- |\n" +
