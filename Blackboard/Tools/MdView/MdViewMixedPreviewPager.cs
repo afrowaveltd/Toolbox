@@ -30,9 +30,12 @@ public sealed class MdViewMixedPreviewPager
     /// <param name="path">Local UTF-8 Markdown source file.</param>
     /// <param name="linesPerPage">Zero for terminal height minus controls, else 1–128 rows.</param>
     /// <param name="cancellationToken">Cancels reading, indexing or interaction.</param>
+    /// <param name="maximumContentColumns">Optional width cap for visible Markdown and native table content; zero uses full width.</param>
     public async Task RunAsync(string path, int linesPerPage = 0,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        int maximumContentColumns = 0)
     {
+        MdViewMixedContentWidth.Validate(maximumContentColumns);
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         if (linesPerPage is < 0 or > 128)
             throw new ArgumentOutOfRangeException(nameof(linesPerPage));
@@ -106,7 +109,9 @@ public sealed class MdViewMixedPreviewPager
                         gray, width);
                     index = await MdViewMixedVisualPageIndex.CreateAsync(
                         cursor, _console, ContentRows(height, linesPerPage),
-                        cancellationToken: cancellationToken).ConfigureAwait(false);
+                        cancellationToken: cancellationToken,
+                        maximumContentColumns: maximumContentColumns)
+                        .ConfigureAwait(false);
                     pageNumber = snapshot.Lines.LineCount == 0 ? 0 :
                         await index.FindPageAsync(
                             Math.Min(anchorLine, snapshot.Lines.LineCount - 1),
@@ -114,7 +119,11 @@ public sealed class MdViewMixedPreviewPager
                 }
 
                 _console.Clear();
-                WriteGrayLine("mdview — mixed Markdown / native Spectre preview",
+                WriteGrayLine(
+                    "mdview — mixed Markdown / native Spectre preview" +
+                    (maximumContentColumns == 0 ? "" :
+                        " | max " + maximumContentColumns.ToString(
+                            CultureInfo.InvariantCulture) + " columns"),
                     gray, width);
                 WriteGrayLine(Path.GetFileName(path) + " | " +
                     snapshot.ByteLength.ToString(CultureInfo.InvariantCulture) +
