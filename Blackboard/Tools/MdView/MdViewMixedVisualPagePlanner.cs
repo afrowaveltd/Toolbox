@@ -236,7 +236,8 @@ public static class MdViewMixedVisualPagePlanner
     private static bool MayStartPipeHeader(MarkdownContainerLine line)
     {
         if (line.Kind != MarkdownContainerLineKind.Plain ||
-            line.QuoteDepth != 0)
+            line.QuoteDepth != 0 ||
+            MdViewTerminalPageIndex.IsLiteralCode(line))
             return false;
 
         // Avoid a disk-journal two-line probe on every ordinary prose
