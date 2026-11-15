@@ -12,11 +12,18 @@ public sealed class MdViewDiskNavigationPicker
     public const int ResultsPerPage = 12;
 
     private readonly IAnsiConsole _console;
+    private readonly int _leftGutter;
 
     /// <summary>Creates a picker using the caller's interactive terminal.</summary>
     /// <param name="console">Spectre terminal instance.</param>
-    public MdViewDiskNavigationPicker(IAnsiConsole console) =>
+    /// <param name="leftGutter">Optional column shared with the centered document.</param>
+    public MdViewDiskNavigationPicker(IAnsiConsole console, int leftGutter = 0)
+    {
         _console = console ?? throw new ArgumentNullException(nameof(console));
+        if (leftGutter < 0 || leftGutter >= console.Profile.Width)
+            throw new ArgumentOutOfRangeException(nameof(leftGutter));
+        _leftGutter = leftGutter;
+    }
 
     /// <summary>Finds one indexed heading or link by browsing small result pages.</summary>
     /// <param name="index">Completed, caller-owned disk navigation index.</param>
@@ -40,7 +47,8 @@ public sealed class MdViewDiskNavigationPicker
         cancellationToken.ThrowIfCancellationRequested();
         if (total == 0)
         {
-            _console.Write(new Text("No indexed " +
+            _console.Write(new Text(
+                new string(' ', _leftGutter) + "No indexed " +
                 (kind == MdViewIndexedItemKind.Heading ? "headings" : "links") +
                 " were found." + Environment.NewLine));
             return null;
@@ -70,7 +78,7 @@ public sealed class MdViewDiskNavigationPicker
             var back = new Choice(null, Movement.Back, "Back / cancel");
             choices.Add(back);
 
-            var selection = await new SelectionPrompt<Choice>()
+            var prompt = new SelectionPrompt<Choice>()
                 .Title("Indexed " +
                     (kind == MdViewIndexedItemKind.Heading ? "headings" : "links") +
                     " (" + (first + 1) + "–" + (first + items.Count) +
@@ -78,8 +86,10 @@ public sealed class MdViewDiskNavigationPicker
                 .PageSize(Math.Clamp(choices.Count, 3, 15))
                 .UseConverter(choice => Markup.Escape(choice.Label))
                 .AddChoices(choices)
-                .AddCancelResult(back)
-                .ShowAsync(_console, cancellationToken).ConfigureAwait(false);
+                .AddCancelResult(back);
+            var selection = await MdViewCenteredPrompt.ShowAsync(
+                _console, prompt, _leftGutter, cancellationToken)
+                .ConfigureAwait(false);
 
             if (selection.Item is not null)
                 return selection.Item;
