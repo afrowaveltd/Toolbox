@@ -31,6 +31,7 @@ internal static class MdViewLongNativeTableEligibility
     /// <param name="contentRows">Visual rows available to one fresh page.</param>
     /// <param name="maximumContentColumns">Optional content-column width cap.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="maximumFragments">Bounded fragment scan limit, 1–2048; lowered only in test scenarios.</param>
     /// <returns>True only if every source row fits a native fresh-page fragment.</returns>
     internal static async Task<bool> CanRenderEntireTableAsync(
         MdViewContainerPageCursor cursor,
@@ -38,8 +39,11 @@ internal static class MdViewLongNativeTableEligibility
         IAnsiConsole console,
         int contentRows,
         int maximumContentColumns = 0,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        int maximumFragments = MaximumFragments)
     {
+        if (maximumFragments is < 1 or > MaximumFragments)
+            throw new ArgumentOutOfRangeException(nameof(maximumFragments));
         ArgumentNullException.ThrowIfNull(cursor);
         ArgumentNullException.ThrowIfNull(header);
         ArgumentNullException.ThrowIfNull(console);
@@ -56,7 +60,7 @@ internal static class MdViewLongNativeTableEligibility
             return false;
 
         var nextLine = checked(header.SourceLine + 2);
-        for (var fragment = 0; fragment < MaximumFragments; fragment++)
+        for (var fragment = 0; fragment < maximumFragments; fragment++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var planned = await MdViewNativeTablePagePlanner.PlanAsync(
