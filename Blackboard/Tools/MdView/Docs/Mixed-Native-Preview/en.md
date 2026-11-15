@@ -143,3 +143,27 @@ resizing the terminal between navigation steps.
 See [mixed page disk index](../Mixed-Visual-Page-Index/en.md),
 [mixed page planner](../Mixed-Visual-Page-Planning/en.md),
 and [implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## Optional content width (2026-11-15)
+
+For long prose on a wide monitor, choose a maximum width for
+the document body:
+
+```bash
+mdview preview-native README.md --max-width 100
+```
+
+`N` is a whole number between **40 and 4096**. Omit the
+option to retain the full terminal width. Only the content
+layout is constrained: page header, footer and interactive
+navigation use the actual physical terminal. A narrow cap
+can move otherwise eligible Spectre grids to the compact
+table mode. Both the disk index and page renderer use the
+same cap, preserving canonical source-line jumps and
+`Page X of Y` after rewrapping.
+
+Terminal resize rebuilds the index even when the effective
+reading width would be unchanged; no console profile is
+modified. The content is left-aligned for now.
+
+[Full content-width contract](../Mixed-Content-Width/en.md).
