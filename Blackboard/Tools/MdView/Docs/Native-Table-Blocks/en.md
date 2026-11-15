@@ -113,3 +113,13 @@ planning. This is a stepping stone toward an on-disk block-event
 page index, not automatic native embedding in the current preview.
 
 [Measured native table page planner](../Native-Table-Page-Planner/en.md).
+
+## Indented literal-code exclusion (2026-11-15)
+
+The shared native table block reader now rejects four-space-indented
+literal code, matching the original Markdown line renderer's code-first
+classification. Neither a header/delimiter pair nor a following data
+row embedded in a literal code block may be treated as native table
+cells. The mixed visual planner also skips its disk lookahead for these
+lines. A new block-reader regression and a new mixed-page regression
+protect this behavior; both await maintainer test verification.
