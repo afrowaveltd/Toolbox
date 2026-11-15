@@ -543,7 +543,7 @@ internal static class MdViewDiskBenchmark
                 gc_gen1 = GC.CollectionCount(1),
                 gc_gen2 = GC.CollectionCount(2),
                 proc_io_delta = LinuxIo.Delta(before, LinuxIo.Read()),
-                result
+                result_type = typeof(T).Name
             });
             return result;
         }
