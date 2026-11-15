@@ -151,3 +151,21 @@ Related:
 [Mixed preview UI](../Mixed-Native-Preview/en.md) ·
 [Disk-backed page index](../Mixed-Visual-Page-Index/en.md) ·
 [Implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## Center the reading column (2026-11-15)
+
+The width cap can now be combined with `--center`:
+
+```bash
+mdview preview-native README.md --max-width 100 --center
+```
+
+The parser also accepts `--center --max-width 100`.
+The entire limited-width reading column receives one
+constant left margin. Native tables are padded on
+the left **without vertical padding** and their actual
+Spectre row height is re-measured before output.
+The document page index and physical terminal
+profile are unchanged by horizontal positioning.
+
+[Centered reading column contract](../Mixed-Content-Alignment/en.md).
