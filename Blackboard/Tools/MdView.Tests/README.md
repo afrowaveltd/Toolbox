@@ -346,3 +346,25 @@ handling, plus explicit synchronous `Action` assertions.
 Only the test changed (commit
 `59dc31b6c3199a368b46adb900d20d87c15a93fc`).
 A fresh focused/full build remains pending.
+
+## Unified full-screen mixed-preview alignment tests (2026-11-15)
+
+Added **nine `MdViewMixedScreenAlignmentTests`** after the
+maintainer reported that centered document content looked
+disconnected from the left-aligned header, file details,
+`Page X of Y`, and Spectre navigation.
+
+The suite checks the same left gutter for the body, title,
+file/status rows, selected navigation arrow, and empty-page
+message; Next/Previous navigation with the original arrow keys;
+the separately indented incremental source-line text prompt;
+disk-indexed heading and link picker alignment; missing
+heading results; unchanged uncentered layout; and zero
+indentation when the terminal has no spare horizontal width.
+
+Production adds `MdViewIndentedPromptConsole`, a forwarding
+`IAnsiConsole` adapter for whole-widget Spectre selection prompts.
+Only the surrounding interface is newly padded; the existing
+centered Markdown renderer, disk page index and source
+continuation are unchanged. **A fresh .NET test run is pending.**
+[Layout design](../MdView/Docs/Mixed-Content-Alignment/en.md).
