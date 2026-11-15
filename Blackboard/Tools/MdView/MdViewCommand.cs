@@ -45,6 +45,12 @@ public sealed record MdViewCommand(MdViewSourceKind Kind, string? Value = null, 
     /// </summary>
     public bool CenterContent { get; init; }
 
+    /// <summary>
+    /// Explicitly enables source-complete long Spectre table fragments
+    /// with repeated headings. The compact default is unchanged.
+    /// </summary>
+    public bool LongNativeTables { get; init; }
+
     /// <summary>Converts command-line tokens to a strongly typed source command.</summary>
     /// <param name="args">CLI arguments, excluding the executable name.</param>
     /// <returns>A command describing the selected source or interactive/help action.</returns>
@@ -118,6 +124,7 @@ public sealed record MdViewCommand(MdViewSourceKind Kind, string? Value = null, 
             var path = Require(args[1]);
             var maximum = 0;
             var center = false;
+            var longTables = false;
             for (var index = 2; index < args.Length;)
             {
                 var option = args[index];
@@ -125,6 +132,13 @@ public sealed record MdViewCommand(MdViewSourceKind Kind, string? Value = null, 
                     && !center)
                 {
                     center = true;
+                    index++;
+                    continue;
+                }
+                if (option.Equals("--long-tables", StringComparison.OrdinalIgnoreCase)
+                    && !longTables)
+                {
+                    longTables = true;
                     index++;
                     continue;
                 }
@@ -152,7 +166,8 @@ public sealed record MdViewCommand(MdViewSourceKind Kind, string? Value = null, 
             return new MdViewCommand(MdViewSourceKind.MixedPreview, path)
             {
                 MaximumContentColumns = maximum,
-                CenterContent = center
+                CenterContent = center,
+                LongNativeTables = longTables
             };
         }
 
