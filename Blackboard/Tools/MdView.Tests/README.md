@@ -292,3 +292,23 @@ The new UI and tests are committed but **fresh focused/full .NET
 verification is pending**. Do not mark this increment green
 until the maintainer reports the results.
 [Mixed native preview guide](../MdView/Docs/Mixed-Native-Preview/en.md).
+
+## Optional content-width regression suite (2026-11-15)
+
+`MdViewMixedContentWidthTests` verifies width-aware,
+source-preserving mixed Markdown pagination across physical terminal
+sizes and explicit caps: unchanged physical console profile,
+deterministic effective column counts, a larger canonical page
+count when prose is constrained, native grid measurement parity,
+compact fallback on narrow caps, table deferral at page
+boundaries across widths **40/63/64/80/120/220**, actual styled
+row-length bounds, disk index lookups and rendering, resize
+rejection, invalid width values, case-insensitive
+`preview-native PATH --max-width N` parsing and opt-in
+visible header status.
+
+Existing default `preview PATH` parsing, index geometry and
+renderer continue to be exercised separately. This increment
+has not yet been built or run against the maintainer's .NET 10
+environment; **new green claims are pending actual test output**.
+[Technical description](../MdView/Docs/Mixed-Content-Width/en.md).
