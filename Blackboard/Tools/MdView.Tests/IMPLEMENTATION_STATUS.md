@@ -943,3 +943,16 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   (`b8e66c66a149acebc01da6cb33ac1aed369e8ca3`).
 - Neither regression was removed or disabled. **Fresh test
   rerun pending**; then run `dotnet test Toolbox.sln`.
+
+## 2026-11-15 — maintainer confirms all green after centered UI regression fixes
+
+- User reports **about 7,000 tests green** for the current Toolbox
+  checkpoint. No full raw test transcript or separate MdView test
+  count was attached, so do not infer an exact new per-project total.
+- This supersedes the historical 334/336 result recorded above,
+  which predated the final TextPrompt gutter and empty-menu arrow
+  corrections. Neither failing regression was disabled or removed.
+- Next tests should cover multi-page native-table continuation,
+  repeated-header visual heights and source-line jumps; enforce
+  row-budget, disk-index and renderer parity on wide/narrow
+  terminals and long source files.
