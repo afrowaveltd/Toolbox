@@ -234,6 +234,26 @@ public sealed class MdViewMixedScreenAlignmentTests
     }
 
     [Fact]
+    public async Task NativePromptGutterIsScopedAndDoesNotIndentLaterOutput()
+    {
+        using var console = Interactive(180);
+        console.Input.PushKey(ConsoleKey.Escape);
+        var prompt = new SelectionPrompt<string>()
+            .Title("Scoped navigation")
+            .AddChoices("First", "Exit")
+            .AddCancelResult("Exit");
+
+        var choice = await MdViewCenteredPrompt.ShowAsync(
+            console, prompt, 49);
+        Assert.Equal("Exit", choice);
+        Assert.Contains(new string(' ', 49) + "Scoped navigation",
+            Visible(console));
+
+        console.Write(new Text("After navigation" + Environment.NewLine));
+        Assert.True(AtColumnZero(Visible(console), "After navigation"));
+    }
+
+    [Fact]
     public void GutterRenderHookRejectsNegativePadding()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
