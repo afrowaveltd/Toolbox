@@ -631,3 +631,26 @@ pagination will require a shared on-disk event index before switching
 the UI. Six targeted regression cases were committed; a new .NET
 focused/full test run is pending.
 [Measured native table page planning](Docs/Native-Table-Page-Planner/en.md).
+
+### Disk-backed native table fragment index (2026-11-15)
+
+A new **table-only** `MdViewNativeTableFragmentIndex` persists the
+measured page fragments of one confirmed Markdown table as 28-byte
+temporary disk records. Each contains the physical data-line interval,
+the actual Spectre-rendered visual height and a continuation flag.
+`GetFragmentAsync` reads one record; `FindFragmentAsync` locates
+a source row with disk-backed binary search, including mapping the
+original header/delimiter to the first fragment.
+
+`MdViewNativeTableFragmentRenderer` regenerates only the requested
+bounded fragment. Before printing, it checks the same validated source
+cursor/header, viewport geometry and exact planner height/source
+continuation. Resizes require a rebuilt index. An unsupported width
+or over-height row discards the **entire** partial native index and
+requests compact fallback; original source is never altered.
+
+**The normal in-page `Page X of Y` remains unchanged.** This
+index covers one table; mixing ordinary paragraphs and native grids
+into a common page-height budget is the next separate milestone.
+Eleven new regression tests have been committed, pending a fresh
+.NET run. [Detailed contract](Docs/Native-Table-Fragment-Index/en.md).
