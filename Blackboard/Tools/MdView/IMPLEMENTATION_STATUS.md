@@ -2085,3 +2085,18 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   2-GiB scan/seek logs and optional full-index
   measurements. Make performance decisions from
   measured numbers rather than theoretical estimates.
+
+## 2026-11-15 — benchmark launcher additional mount safety
+
+- Manual HDD bench now explicitly refuses a bind
+  mount sharing the system root volume's MAJ:MIN
+  device ID and non-disk targets `tmpfs`,
+  `ramfs` or `overlay`.
+- `df -Pk` mount-verified free space is passed
+  into the .NET harness; no reliance on a potentially
+  different `DriveInfo` root volume for the
+  conservative disk-space guard. Benchmark metrics
+  avoid JSON serialization of live snapshots/indexes.
+- Program source checked for balanced lexical
+  braces/parentheses; **no local .NET SDK exists**,
+  therefore compile and disk smoke-run pending.
