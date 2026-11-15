@@ -43,6 +43,7 @@ Each on-disk record is **28 bytes**:
 | VisualRows | Int32 | 4 bytes |
 | HasMore (0 / 1) | Int32 | 4 bytes |
 
+The fixed content-row budget must not exceed the physical console height.
 The builder stores no list of fragment positions or Spectre widgets in
 memory. The index is a temporary file with `DeleteOnClose` semantics
 and must be disposed. Read-only source snapshots and the source cursor
@@ -97,7 +98,8 @@ validated source and planner. Before it writes anything to the
 console, it verifies:
 
 1. The index is fully native (no compact fallback).
-2. The caller uses the indexed source-table header.
+2. The caller supplies the **same source cursor instance** and a header
+   whose labels and alignment cells still match the validated source.
 3. Terminal width, height and Unicode capability match the index.
 4. Recomputed source line bounds, row count, Spectre-rendered height
    and continuation flag all match the disk record.
@@ -138,13 +140,14 @@ dotnet test Toolbox.sln
 dotnet run --project Blackboard/Tools/MdView -- preview README.md
 ```
 
-The ten `MdViewNativeTableFragmentIndexTests` cover 6/6/2
+The eleven `MdViewNativeTableFragmentIndexTests` cover 6/6/2
 continuation through a 14-row source table, binary-search source
 jumps, indexed rendering of only the chosen fragment, header-only
 tables, compact fallback for narrow and short displays, five
 measured one-row fragments with repeated headers, budget failure
 without source mutation, stale header rejection, viewport resize,
-invalid arguments, cancellation, and disposal.
+invalid arguments, substituted source/header rejection, cancellation,
+and disposal.
 
 **Fresh focused/full tests for this increment are pending the
 maintainer's .NET SDK run.** The previous table page planner
