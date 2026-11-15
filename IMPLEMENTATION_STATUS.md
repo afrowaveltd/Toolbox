@@ -801,7 +801,7 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - New `MdViewNativeTableFragmentRenderer.cs` uses the same
   bounded planner and checks validated source cursor/header,
   terminal profile and actual Spectre geometry before output.
-- Added 11 xUnit regression cases and English
+- Added 12 xUnit regression cases and English
   `Docs/Native-Table-Fragment-Index/en.md` with updated MdView,
   tests and Toolbox READMEs and implementation statuses.
 - **Fresh tests pending** on the maintainer's .NET installation.
