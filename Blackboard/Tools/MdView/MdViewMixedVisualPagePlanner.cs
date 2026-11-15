@@ -128,11 +128,11 @@ public static class MdViewMixedVisualPagePlanner
             (start.CompactHeaderLine >= 0 &&
                 (start.CompactHeaderLine > start.Line ||
                  (start.CompactColumns != -1 &&
-                  start.CompactColumns is < 2 or > MdViewTerminalPipeTableLayout.MaximumColumns)) ||
+                  start.CompactColumns is < 2 or > MdViewTerminalPipeTableLayout.MaximumColumns))) ||
             (start.IsNativeContinuation &&
              (start.WrapRow != 0 ||
               start.Line < start.CompactHeaderLine + 2 ||
-              !longNativeTables)))
+              !longNativeTables))
             throw new ArgumentOutOfRangeException(nameof(start));
         cancellationToken.ThrowIfCancellationRequested();
 
