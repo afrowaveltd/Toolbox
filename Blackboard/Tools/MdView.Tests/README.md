@@ -453,3 +453,22 @@ green Toolbox tests** predates these new additions.
 run focused MdView.Tests and the complete Toolbox.sln
 before marking this milestone green.
 [English contract](../MdView/Docs/Long-Native-Tables/en.md).
+
+## Native table batch-read performance regressions (2026-11-15)
+
+Five `MdViewNativeTableBatchReadTests` now check that
+`MdViewNativeTablePagePlanner` uses **one bounded
+`MdViewContainerPageCursor.ReadAsync` request** per
+native fragment. They cover six-row fragments plus lookahead,
+14-row multi-fragment preflight (three requests total),
+height-limited continuation, end-of-table prose safety,
+unmodified source bytes, narrow compact fallback and
+pre-cancelled requests.
+
+An internal `ReadRequestCount` counter on the disk-backed
+cursor makes request-count checks deterministic. It does
+not count physical I/O operations or prove a specific HDD
+time improvement. The previous all-green maintainer run
+predates this batching change; new focused/full .NET tests
+must be run before another green checkpoint is recorded.
+[English performance contract](../MdView/Docs/Native-Table-Journal-Batching/en.md).
