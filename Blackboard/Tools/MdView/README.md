@@ -757,9 +757,10 @@ fallback. `Page X of Y` and disk-indexed source-line jumps
 remain derived from the identical source-aware page planner.
 
 The physical terminal profile is never modified; actual terminal
-resizing still invalidates and rebuilds the index. The document
-body remains left-aligned, while headers, status and navigation
-retain the full physical width. XML-commented shared helper:
+resizing still invalidates and rebuilds the index. The document body stays left-aligned within its reading area.
+Without `--center`, headers, status and navigation remain at the
+physical terminal's left edge; with `--center`, the **whole viewer**
+shares the reading-column gutter. XML-commented shared helper:
 `MdViewMixedContentWidth`. A new parameterized regression suite
 covers widths, page boundaries, native grids, source jumps,
 CLI input validation and cap-aware rendering.
@@ -795,3 +796,31 @@ markup, CLI validity and opt-in status. **The changes await
 fresh .NET tests** after the previously maintainer-confirmed
 green width-cap checkpoint.
 [Centered reading column](Docs/Mixed-Content-Alignment/en.md).
+
+### Full-screen centered mixed preview (2026-11-15)
+
+A real Konsole screenshot exposed the original alignment mismatch:
+only the Markdown body was centered, while the file header,
+`Page X of Y`, status and keyboard navigation stayed at column zero.
+The `--center` flag now applies the **same horizontal reading-column
+gutter to the whole mixed viewer**, not just document rows.
+
+`MdViewIndentedPromptConsole` wraps Spectre's native selection menus
+using a horizontal-only `Padder`, forwarding the original cursor,
+input, profile and render pipeline. The page menu and disk-indexed
+heading/link pickers use this adapter. Free-text line input instead
+indents its prompt title **once** on the original console, without
+adding spaces to each typed character. File information, status,
+feedback, clip warnings, the empty-page label and menus share the
+document's left edge and configured content-column limit.
+
+The 56-byte disk index and source-bound page geometry are unchanged.
+No extra document rows or duplicate source buffering are introduced.
+Without `--center`, the existing left-aligned mixed UI and compact
+default remain unchanged.
+
+Nine new `MdViewMixedScreenAlignmentTests` cover synchronized
+chrome/body/menu left edges, keyboard navigation, line entry,
+heading/link pickers, empty search results and default alignment.
+Fresh maintainer .NET verification is pending.
+[Unified centered preview](Docs/Mixed-Content-Alignment/en.md).
