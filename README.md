@@ -358,3 +358,14 @@ cursor controls untouched. The maintainer's preceding run showed
 **325/333 passing** with eight whole-screen alignment failures;
 the corrected build still awaits verification.
 [Native live selection alignment](Blackboard/Tools/MdView/Docs/Mixed-Content-Alignment/en.md).
+
+MdView has an **experimental opt-in long native table
+mode**: `mdview preview-native README.md --long-tables`.
+It repeats the original heading on each measured
+native Spectre fragment and preserves `Page X of Y`,
+source-line jumps, 56-byte disk index records,
+centering and resize behavior. A bounded whole-table
+streaming preflight keeps an entire unsuitable table
+compact rather than changing display format halfway
+through. The established compact default is unchanged.
+[Long native table documentation](Blackboard/Tools/MdView/Docs/Long-Native-Tables/en.md).
