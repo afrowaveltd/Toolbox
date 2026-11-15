@@ -887,3 +887,28 @@ width/centering, compact fallback, first-header page
 deferral, bounded preflight and CLI options.
 **Fresh .NET test verification is pending.**
 [Long native tables guide](Docs/Long-Native-Tables/en.md).
+
+### Native table journal request batching (2026-11-15)
+
+The native Spectre table fragment planner now reads one **bounded
+source-journal window** (up to six data rows plus one lookahead)
+per fragment, rather than issuing one journal request per row
+and another request for continuation. This reduces repetitive
+offset-table requests on high-latency storage while preserving
+the exact measured widget geometry, `HasMore`, source-row
+boundaries, compact fallback and 56-byte mixed disk page index.
+
+An internal `MdViewContainerPageCursor.ReadRequestCount`
+diagnostic allows deterministic regression tests without
+exposing new public API. Five
+`MdViewNativeTableBatchReadTests` validate one source
+request per fragment, source row retry on height overflow,
+end-of-table safety, long native preflight request count,
+and zero requests on narrow/pre-cancelled fallback.
+
+This optimization changes neither CLI flags nor output
+and does not load the entire Markdown table into RAM.
+The request-count reduction is **not** a claimed HDD
+elapsed-time benchmark result. Maintainer .NET verification
+of this new increment remains pending.
+[Batching design](Docs/Native-Table-Journal-Batching/en.md).
