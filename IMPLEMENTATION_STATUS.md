@@ -1193,3 +1193,32 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   after these commits. Next: inspect the real results,
   then consider contiguous bounded journal reads and
   reproducible slow-disk performance tests.
+
+## 2026-11-15 — Toolbox MdView contiguous event-journal read optimization
+
+- Maintainer confirmed the earlier **one source-window
+  request per native-table fragment** improvement green.
+  This is the baseline before the present increment.
+- `Blackboard/Tools/MdView/MdViewContainerPageCursor.cs`
+  now groups neighboring disk-backed classified JSON
+  line records into **bounded contiguous event-stream
+  reads of up to 256 KiB**. A valid larger single record
+  is read independently under the existing 8-MiB +
+  header cap. Neighboring offset boundaries are read
+  and strictly validated before allocating the buffer;
+  stored lengths, JSON and physical line IDs are
+  checked before returning.
+- Added internal `EventReadRequestCount` diagnostic
+  and **7 `MdViewContiguousJournalReadTests`** for
+  read-call reduction, record boundary splitting,
+  large lines, Unicode/CRLF, backwards reuse,
+  cancellation and malformed journal guards.
+  Native table output, indexing, CLI, source file
+  and mixed 56-byte on-disk page records are unchanged.
+- English `Docs/Contiguous-Journal-Reads/en.md`,
+  MdView/root/test README and existing native batching
+  guide updated. The reduction in event-stream API
+  calls is **not** asserted as a measured HDD speedup.
+- **New MdView.Tests and full Toolbox.sln verification
+  pending**. Next: fix real test feedback, then
+  measure real cold/warm-cache slow-disk performance.
