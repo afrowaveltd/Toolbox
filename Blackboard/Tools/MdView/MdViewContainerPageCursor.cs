@@ -70,6 +70,13 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
     public long JournalBytes => _eventBytes;
 
     /// <summary>
+    /// Diagnostic count of validated source read requests. Internal so
+    /// tests can verify I/O batching without introducing public API.
+    /// This counts API requests, not the lower-level journal read calls.
+    /// </summary>
+    internal long ReadRequestCount { get; private set; }
+
+    /// <summary>
     /// Returns at most 128 source-preserving classified physical lines,
     /// without replaying already cached scanner events.
     /// </summary>
@@ -88,6 +95,7 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
         if (maxLines is < 1 or > 128)
             throw new ArgumentOutOfRangeException(nameof(maxLines));
         cancellationToken.ThrowIfCancellationRequested();
+        ReadRequestCount++;
 
         var requestedEnd = firstLine > long.MaxValue - maxLines
             ? long.MaxValue : firstLine + maxLines;
