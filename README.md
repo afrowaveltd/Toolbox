@@ -369,3 +369,13 @@ streaming preflight keeps an entire unsuitable table
 compact rather than changing display format halfway
 through. The established compact default is unchanged.
 [Long native table documentation](Blackboard/Tools/MdView/Docs/Long-Native-Tables/en.md).
+
+MdView's native table pagination now batches up to
+**six source rows plus one lookahead** into a single
+disk-backed journal request per native fragment.
+This reduces repeated line/offset lookups on slower
+storage without changing native table rendering,
+source-line jumps, 56-byte page index records or
+compact fallback. Internal request-count tests verify
+the behavior; real HDD speedups are not yet measured.
+[Native table journal batching](Blackboard/Tools/MdView/Docs/Native-Table-Journal-Batching/en.md).
