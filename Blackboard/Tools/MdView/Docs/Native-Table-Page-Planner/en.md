@@ -133,3 +133,23 @@ differ. This currently indexes **one table at a time** and does
 not change the main Markdown page renderer.
 
 [Disk index contract and tests](../Native-Table-Fragment-Index/en.md).
+
+## Bounded journal batching (2026-11-15)
+
+The native fragment planner now requests **at most seven
+classified physical lines in a single disk-journal window**:
+six data rows plus one continuation lookahead. Previously
+it requested each data row separately and issued a new
+request for the final probe. Row-by-row Spectre height
+measurement and exact `NextDataLine`/`HasMore` results
+remain unchanged.
+
+The new internal `ReadRequestCount` diagnostic and
+targeted regression tests confirm one journal API request
+per fragment. This reduces redundant offset-table reads;
+it does **not** directly measure HDD latency or reduce
+the cursor's per-event disk deserialization. The bounded
+window may classify a few lines beyond a short table
+without consuming them as table data.
+
+[Detailed journal batching contract](../Native-Table-Journal-Batching/en.md).
