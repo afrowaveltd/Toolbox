@@ -703,3 +703,33 @@ The existing `mdview preview PATH` command and its compact
 Eleven new disk-index regression tests await fresh maintainer
 .NET verification.
 [Mixed page index technical guide](Docs/Mixed-Visual-Page-Index/en.md).
+
+### Opt-in mixed native Markdown preview (2026-11-15)
+
+Run `mdview preview-native README.md` (or `dotnet run --project
+Blackboard/Tools/MdView -- preview-native README.md`) to use the
+new **interactive disk-indexed mixed Markdown pager**. The previous
+`mdview preview PATH` command remains the default compact
+implementation and is not switched or replaced.
+
+The new mode displays complete small native Spectre tables between
+ordinary styled Markdown blocks. Its canonical `Page X of Y`
+navigation supports Next/Previous, one-based source-line jumps,
+and lazy disk-indexed heading/link location search. Source-line
+jumps into a table open the **containing canonical page**, not an
+unsafe custom mid-table view. A resize rebuilds visual indexes
+from the original validated source-line anchor.
+
+Long tables (more than six data rows), over-height native widgets
+and narrow terminal grids remain compact for their entire table.
+Terminal width/height are checked each draw; minimum mixed UI
+size is **28 columns × 18 rows**, and sixteen rows remain reserved
+for controls even with a large explicit content-row request.
+
+The xUnit2020 warning in the existing mixed-page test was corrected
+using `Assert.Fail` (commit
+`7f1bc4bf1388026588d728c25877f4ce34eed94c`).
+A new case-insensitive CLI test and thirteen interactive mixed-pager
+tests have been committed; **their fresh .NET result is pending**.
+The maintainer's preceding baseline was **263 passed / 0 failed /
+0 skipped**. [Usage and safeguards](Docs/Mixed-Native-Preview/en.md).
