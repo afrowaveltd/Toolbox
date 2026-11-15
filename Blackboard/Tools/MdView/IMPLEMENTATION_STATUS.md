@@ -1654,3 +1654,11 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   share the document gutter, and heading/link pickers
   still work with Enter/Escape. Next respond to any
   remaining test or UI evidence before long-table work.
+- Follow-up test hardening (commit
+  `09ae5e0d4b2c138780c18c309531434d8d1e4e20`):
+  the scoped-prompt test checks the **actual Spectre render
+  pipeline** contains no remaining gutter hook after the
+  prompt exits. It no longer infers the post-prompt
+  cursor location from a flattened ANSI transcript
+  containing earlier erased/redrawn prompt frames.
+  The output text is still checked for visibility.
