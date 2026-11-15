@@ -765,3 +765,33 @@ covers widths, page boundaries, native grids, source jumps,
 CLI input validation and cap-aware rendering.
 **Fresh .NET verification pending for this increment.**
 [Full English guide](Docs/Mixed-Content-Width/en.md).
+
+### Optional centered mixed-preview reading column (2026-11-15)
+
+For comfortable long-form reading on very wide terminals, use
+`mdview preview-native README.md --max-width 100 --center`.
+This **centers the whole 100-column reading area**, including
+existing styled Markdown rows and inline native Spectre tables.
+Every content row shares the same left margin; individual
+paragraph lines, lists and table cells remain left-aligned
+*within* the reading column. The flags work in either order.
+
+Centering is optional and defaults to off. The full-width
+`preview-native` and established compact `preview` commands
+remain unchanged. Centering without a maximum-width cap
+adds no effective padding if the content already occupies
+the terminal's full width.
+
+A shared `MdViewMixedContentAlignment` helper computes the
+left gutter without modifying the terminal profile.
+Native Spectre tables use a zero-vertical-padding `Padder`.
+The renderer measures each padded widget **before output**
+and rejects any vertical-height mismatch; canonical page
+boundaries and 56-byte disk records remain unchanged.
+
+A dedicated xUnit suite tests text/table gutter parity,
+zero added native rows, source/index continuity, literal
+markup, CLI validity and opt-in status. **The changes await
+fresh .NET tests** after the previously maintainer-confirmed
+green width-cap checkpoint.
+[Centered reading column](Docs/Mixed-Content-Alignment/en.md).
