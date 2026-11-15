@@ -2002,3 +2002,86 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   time and memory, without adding noise to the normal tests,
   changing the 56-byte page index or compromising low-RAM
   compatibility.
+
+## 2026-11-15 — isolated 2-GiB HGST benchmark harness prepared
+
+- Maintainer's most recent message requested a **manual, private HDD
+  benchmark** against an approximately 80-GB HGST 5400-RPM test disk,
+  proposed mounted at `/mnt/TEST`. A full 2-GiB Markdown source
+  must be generated reproducibly, all snapshot/journal/TEMP I/O
+  redirected to that disk, and comprehensive logs retained for
+  future before/after performance comparisons.
+- Added a separate **non-packable `MdView.Benchmarks` project** under
+  `Blackboard/Tools/`, intentionally not inserted in
+  `Toolbox.sln`, so normal MdView builds/test runs do not
+  automatically create multi-gigabyte datasets.
+- Launcher `MdView.Benchmarks/run.sh` validates the mount via
+  `findmnt`, rejects system-root volume, unexpected symlinks
+  and nested mounts, reserves at least `6 × data size + 1 GiB`,
+  creates `data/tmp/logs` **on the selected disk**, and exports
+  `TMPDIR/TMP/TEMP` **before** .NET starts. Free-space
+  measurement is taken from `df -Pk` on the selected mount
+  and passed to the .NET process, avoiding accidental
+  `DriveInfo` selection of the system root filesystem.
+  The runner verifies the resulting `Path.GetTempPath()`
+  points at the target `ROOT/tmp`. No device formatting,
+  cache clearing, privileged commands or automatic
+  source-data removal.
+- `MdView.Benchmarks/Program.cs` creates **exactly
+  2,147,483,648 source bytes** by streaming a repeating
+  deterministic Markdown block (headings, long prose,
+  inline links, 24-row pipe table, code fences,
+  Unicode), with an optional small `--size-mib 8`
+  smoke fixture. `FileMode.CreateNew` protects
+  existing files; a complete matching-size existing
+  test fixture is reused only when its marker matches.
+- `measure` performs a source snapshot + disk line validation,
+  sequential classified journal population in bounded
+  source windows, deterministic first/repeated random
+  source-line seeks with identical seeds and optional
+  multiple full passes. The benchmark-only cursor
+  budgets are **8 GiB event journal / 512 MiB offsets**,
+  leaving the normal 512-MiB/256-MiB production
+  settings unchanged.
+- `index` is deliberately a **separate** optional
+  complete mixed visual page-index measurement with
+  fixed TestConsole geometry, optional `--long-tables`,
+  canonical FindPage/GetPage lookups and a
+  benchmark-only 256-MiB mixed page index limit.
+  The ordinary `all` mode does not invoke the potentially
+  lengthy whole-document index on the 5400-RPM HDD.
+- Per-run JSONL/TXT logs contain UTC events,
+  process timing/CPU/GC/working-set data,
+  journal sizes and read-request counters,
+  detailed random seek samples/p50/p95/p99,
+  Linux `/proc/self/io` deltas and failures.
+  Separate `system-*.txt` captures mount, disk
+  rotational indicator, filesystem, free memory,
+  OS and runtime. They remain on `ROOT/logs`.
+  Cache is never forcibly dropped, so first pass
+  is **not automatically asserted cold**.
+- Granted test-only friend access
+  `InternalsVisibleTo("MdView.Benchmarks")`
+  to MdView's existing internal journal counters;
+  production public APIs, viewer behavior, source
+  parsing, snapshot logic, mixed indexes and
+  standard test suite are unchanged.
+- Documentation in new
+  `MdView.Benchmarks/README.md` and
+  `MdView.Benchmarks/Docs/HDD-Benchmark/en.md`,
+  with dedicated
+  `MdView.Benchmarks/IMPLEMENTATION_STATUS.md`.
+  Updated root and MdView README.
+- **Verification pending**: the assistant has no .NET SDK or
+  HDD mount. Maintainer must first run:
+  `bash Blackboard/Tools/MdView.Benchmarks/run.sh
+  /mnt/TEST all --size-mib 8 --seeks 10`;
+  only then the 2048-MiB scenario.
+  This test is **not yet green**; the preceding
+  maintainer-confirmed Toolbox green checkpoint
+  predates the benchmark project.
+- **Next:** inspect the first build/8-MiB test log,
+  fix any real issues on GitHub, then collect the
+  2-GiB scan/seek logs and optional full-index
+  measurements. Make performance decisions from
+  measured numbers rather than theoretical estimates.
