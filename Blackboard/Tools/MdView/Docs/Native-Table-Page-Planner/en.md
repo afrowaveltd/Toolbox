@@ -120,3 +120,16 @@ Related documentation:
 [Native Spectre inspector](../Native-Spectre-Tables/en.md) ·
 [Responsive preview](../Responsive-Preview/en.md) ·
 [Implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## Disk-backed table fragment indexing (2026-11-15)
+
+The next small component now exists:
+`MdViewNativeTableFragmentIndex` stores fixed-size measured native
+fragment records in a temporary disk file and performs binary
+search over source rows. A companion renderer regenerates exactly
+one indexed widget using the same planner and refuses to draw if
+the source cursor/header, terminal dimensions or visual-row geometry
+differ. This currently indexes **one table at a time** and does
+not change the main Markdown page renderer.
+
+[Disk index contract and tests](../Native-Table-Fragment-Index/en.md).
