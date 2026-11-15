@@ -123,7 +123,8 @@ static async Task<MdViewDisplayResult> DisplayAsync(
             await new MdViewMixedPreviewPager(console).RunAsync(
                 command.Value!, cancellationToken: cancellationToken,
                 maximumContentColumns: command.MaximumContentColumns,
-                centerContent: command.CenterContent);
+                centerContent: command.CenterContent,
+                longNativeTables: command.LongNativeTables);
             return new MdViewDisplayResult(0, false);
         }
 
@@ -231,6 +232,7 @@ static void PrintHelp()
     Console.WriteLine("mdview preview-native PATH (opt-in mixed Markdown and inline native Spectre tables)");
     Console.WriteLine("mdview preview-native PATH --max-width N (limit content to 40–4096 columns)");
     Console.WriteLine("mdview preview-native PATH --max-width N --center (center reading column)");
+    Console.WriteLine("mdview preview-native PATH --long-tables (opt-in repeated headers for long native tables)");
     Console.WriteLine("mdview url HTTPS_URL");
     Console.WriteLine("mdview OWNER           (browse public GitHub repositories)");
     Console.WriteLine("mdview github:OWNER    (browse public GitHub repositories)");
