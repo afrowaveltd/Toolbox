@@ -1581,3 +1581,9 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   prompt rendering feedback first. After verified green,
   continue with long native table pagination, preserving
   low-RAM disk-backed source and visual indexes.
+
+## 2026-11-15 — mixed screen alignment test fixture compilation fix
+
+- Maintainer's .NET 10 build confirms the production `MdView` project builds successfully. `MdView.Tests` failed with **CS0236** (twice, line 226) and **CS1061** (line 232) in the new `MdViewMixedScreenAlignmentTests.Fixture`.
+- Root cause: the fixture property `Path` shadowed the static `System.IO.Path` class used in field initialization and file-path construction. Changed both `Path.Combine` calls and `Path.GetTempPath` to explicit `System.IO.Path` references (commit `6463ac5e56fca90b1207916e7bd8cc5a6e9758b6`).
+- No production source or test intent changed. **Fresh MdView.Tests and full-solution results still pending** after this focused compiler repair.
