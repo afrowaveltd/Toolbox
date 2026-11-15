@@ -64,6 +64,10 @@ if (( AVAILABLE_KIB < REQUIRED_KIB )); then
     echo "need ${REQUIRED_KIB} KiB for source, snapshot, journal and safety reserve." >&2
     exit 2
 fi
+# Transfer the free-space reading from the actual mounted volume to
+# .NET; DriveInfo(path) can resolve non-root mount paths differently
+# across runtimes and must not accidentally consult the OS disk.
+export MDVIEW_BENCH_AVAILABLE_BYTES=$((AVAILABLE_KIB * 1024))
 
 export TMPDIR="$ROOT/tmp"
 export TMP="$TMPDIR"
