@@ -131,6 +131,7 @@ public static class MdViewMixedVisualPagePlanner
                   start.CompactColumns is < 2 or > MdViewTerminalPipeTableLayout.MaximumColumns))) ||
             (start.IsNativeContinuation &&
              (start.WrapRow != 0 ||
+              start.CompactHeaderLine > long.MaxValue - 2 ||
               start.Line < start.CompactHeaderLine + 2 ||
               !longNativeTables))
             throw new ArgumentOutOfRangeException(nameof(start));
@@ -138,6 +139,7 @@ public static class MdViewMixedVisualPagePlanner
 
         var width = Math.Max(1, console.Profile.Width);
         var height = Math.Max(1, console.Profile.Height);
+        var unicode = console.Profile.Capabilities.Unicode;
         var effectiveWidth = MdViewMixedContentWidth.EffectiveTerminalWidth(
             width, maximumContentColumns);
         var columns = MdViewMixedContentWidth.ContentColumns(
@@ -285,32 +287,34 @@ public static class MdViewMixedVisualPagePlanner
                             contentRows, cancellationToken: cancellationToken,
                             maximumContentColumns: maximumContentColumns)
                             .ConfigureAwait(false);
-                        if (fragment.IsNative && fragment.DataRows > 0)
-                        {
-                            var remaining = contentRows - used;
-                            if (fragment.VisualRows > remaining && used > 0)
-                                break;
-
-                            if (await MdViewLongNativeTableEligibility
+                        if (fragment.IsNative && fragment.DataRows > 0 &&
+                            await MdViewLongNativeTableEligibility
                                 .CanRenderEntireTableAsync(
                                     cursor, header, console, contentRows,
                                     maximumContentColumns, cancellationToken)
                                 .ConfigureAwait(false))
-                            {
-                                blocks.Add(new MdViewMixedVisualTableBlock(
-                                    header.SourceLine, fragment.NextDataLine,
-                                    fragment.DataRows, fragment.VisualRows,
-                                    fragment.Widget!));
-                                used += fragment.VisualRows;
-                                position = fragment.HasMore
-                                    ? MdViewMixedVisualPosition.NativeContinuation(
-                                        header.SourceLine, fragment.NextDataLine)
-                                    : new MdViewMixedVisualPosition(
-                                        fragment.NextDataLine, 0);
-                                if (fragment.HasMore)
-                                    break;
-                                continue;
-                            }
+                        {
+                            // Defer only a truly eligible native fragment.
+                            // If preflight fails, preserve ordinary compact
+                            // wrapping on the current page without creating
+                            // an unnecessary split before the table header.
+                            var remaining = contentRows - used;
+                            if (fragment.VisualRows > remaining && used > 0)
+                                break;
+
+                            blocks.Add(new MdViewMixedVisualTableBlock(
+                                header.SourceLine, fragment.NextDataLine,
+                                fragment.DataRows, fragment.VisualRows,
+                                fragment.Widget!));
+                            used += fragment.VisualRows;
+                            position = fragment.HasMore
+                                ? MdViewMixedVisualPosition.NativeContinuation(
+                                    header.SourceLine, fragment.NextDataLine)
+                                : new MdViewMixedVisualPosition(
+                                    fragment.NextDataLine, 0);
+                            if (fragment.HasMore)
+                                break;
+                            continue;
                         }
                     }
 
@@ -351,9 +355,15 @@ public static class MdViewMixedVisualPagePlanner
                 position = position with { CompactHeaderLine = -1, CompactColumns = 0 };
         }
 
+        if (console.Profile.Width != width ||
+            console.Profile.Height != height ||
+            console.Profile.Capabilities.Unicode != unicode)
+            throw new InvalidOperationException(
+                "Terminal geometry changed during mixed-page planning.");
+
         return new MdViewMixedVisualPage(
             start, position, used, clipped, atEnd,
-            width, height, console.Profile.Capabilities.Unicode,
+            width, height, unicode,
             blocks, maximumContentColumns, longNativeTables);
     }
 
