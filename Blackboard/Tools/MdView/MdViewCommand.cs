@@ -33,6 +33,12 @@ public enum MdViewSourceKind
 /// <param name="Repository">Optional GitHub repository; null requests owner-only browsing.</param>
 public sealed record MdViewCommand(MdViewSourceKind Kind, string? Value = null, string? Repository = null)
 {
+    /// <summary>
+    /// Optional maximum visible content columns for preview-native; zero
+    /// retains automatic full terminal width. Not used by other commands.
+    /// </summary>
+    public int MaximumContentColumns { get; init; }
+
     /// <summary>Converts command-line tokens to a strongly typed source command.</summary>
     /// <param name="args">CLI arguments, excluding the executable name.</param>
     /// <returns>A command describing the selected source or interactive/help action.</returns>
@@ -100,6 +106,23 @@ public sealed record MdViewCommand(MdViewSourceKind Kind, string? Value = null, 
                 return new(MdViewSourceKind.GitHub, pieces[0], pieces[1]);
             }
         }
+        if (args.Length == 4 &&
+            args[0].Equals("preview-native", StringComparison.OrdinalIgnoreCase) &&
+            args[2].Equals("--max-width", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!int.TryParse(args[3], System.Globalization.NumberStyles.None,
+                System.Globalization.CultureInfo.InvariantCulture, out var columns))
+                throw new ArgumentException("Maximum width must be an integer number of content columns.");
+            if (columns < MdViewMixedContentWidth.MinimumColumns ||
+                columns > MdViewMixedContentWidth.MaximumColumns)
+                throw new ArgumentException("Maximum width must be between 40 and 4096 content columns.");
+            return new MdViewCommand(
+                MdViewSourceKind.MixedPreview, Require(args[1]))
+            {
+                MaximumContentColumns = columns
+            };
+        }
+
         if (args.Length == 3 &&
             args[0].Equals("browse-git", StringComparison.OrdinalIgnoreCase))
         {
