@@ -178,13 +178,29 @@ horizontal starting column** when `--center` is selected: document,
 header, status, navigation, feedback, clipped-code notice and
 disk-indexed heading/link picker.
 
-`MdViewIndentedPromptConsole` is an internal zero-vertical-padding
-adapter implementing `IAnsiConsole`. It forwards the original
-profile, cursor, input, exclusivity mode, render pipeline, clear
-and ANSI operations. Only **whole-widget selection prompts** are
-written through it: a left-only Spectre `Padder` moves the title,
-selection marker and choices together, preserving native arrow-key,
-Enter and Escape behavior.
+The initial `MdViewIndentedPromptConsole` forwarding adapter did
+**not** position Spectre's live selection menu: it wrapped the initial
+`IAnsiConsole.Write` argument, but the native `SelectionPrompt`
+injected its actual live widget later via
+`ListPromptRenderHook` and `RenderPipeline`.
+This adapter has been deleted.
+
+The corrected `MdViewCenteredPromptRenderHook` implements
+`IRenderHook`. It is attached in a short-lived
+`RenderHookScope` **before** starting a selection prompt.
+When Spectre's own live prompt hook injects its renderable, the
+MdView hook applies horizontal-only `Padder` positioning to
+the **actual live widget**, including its title, arrow and choices.
+The effect is equivalent to a borderless, centered table container,
+without changing the number of display rows. Cursor-moving and
+erase `ControlCode` renderables pass through unchanged, retaining
+native arrow keys, Enter, Escape and live refresh behavior.
+
+The same scoped helper is used by the main navigation menu and
+the disk-indexed heading and link pickers. Result labels are
+clipped to the reading width where necessary. The hook is detached
+immediately after the prompt ends, so normal document rendering
+never receives a second margin.
 
 Free-text `TextPrompt` input is deliberately **not** wrapped by
 this adapter. It writes incrementally, so padding every output call
@@ -209,3 +225,29 @@ navigation, source-line input, heading and link pickers, empty
 search results, empty pages and unchanged default alignment.
 Fresh focused and full .NET tests are required before this
 increment is called green.
+
+## Native live-prompt correction and regression verification (2026-11-15)
+
+The maintainer reported **333 tests total: 325 passing, 8 failing**
+after the first whole-screen centering attempt. A real Konsole
+visual test showed the bottom selection menu still starting at
+column zero while the header and document were correctly centered.
+
+The failure was traced to Spectre's live `ListPromptRenderHook`,
+which emits the actual menu after a forwarding console's
+`Write` method runs. The incorrect console proxy was replaced
+with a scoped **render-pipeline** hook, described above.
+
+The alignment test suite now sets
+`TestConsole.EmitAnsiSequences = true` so Spectre's live
+render pipeline is actually used, and strips ANSI control
+sequences before asserting *visible* indentation. It also
+tests the hook's exact gutter, no additional vertical rows,
+and automatic scope removal after a selection. This avoids
+the previous false assumptions about a default TestConsole's
+captured live-prompt output.
+
+This checkpoint **has not yet been recompiled or tested in the
+assistant's environment**, because .NET SDK is unavailable.
+The next maintainer run should validate both the previously failing
+cases and normal interactive Konsole behavior.
