@@ -1066,3 +1066,21 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - **Next:** re-run focused MdView.Tests and full Toolbox.sln.
   The newest tests have not yet passed; the previous
   result of 325/333 predates this visual and compiler fix.
+
+## 2026-11-15 — MdView two final centered-screen test corrections
+
+- User-provided MdView.Tests run built successfully and reported
+  **336 total, 334 passing, two failing, zero skipped**.
+  The main Konsole centered viewer and live navigation
+  were already visually confirmed working.
+- Fixed the actual source-line `TextPrompt` indent:
+  Spectre trims leading whitespace from its markup title, so
+  MdView now writes the gutter separately before the native
+  prompt (`c6465f4ffe63af30ddbcfee590733d899eb4b117`).
+- Corrected the empty-document selected-option regression:
+  the lone `Exit mixed preview` item is selected and carries
+  Spectre's native `> ` arrow, which the test now expects
+  (`b8e66c66a149acebc01da6cb33ac1aed369e8ca3`).
+- No page index, native-table geometry or compact preview changes.
+  **Post-fix tests pending**; run MdView.Tests and full solution
+  before marking the centered viewer checkpoint green.
