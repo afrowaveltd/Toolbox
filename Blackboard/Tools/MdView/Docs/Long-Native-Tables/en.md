@@ -181,3 +181,22 @@ Related:
 [mixed disk page index](../Mixed-Visual-Page-Index/en.md),
 [native table fragment index](../Native-Table-Fragment-Index/en.md),
 [implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## Fewer source journal requests (2026-11-15)
+
+The whole-table native eligibility preflight continues to
+scan source-bound fragments conservatively, but each
+`MdViewNativeTablePagePlanner.PlanAsync` call now
+requests up to six data rows plus its lookahead in a
+**single bounded disk-journal read**. For a 14-data-row
+table split into three fragments this means **three**
+`ReadAsync` requests rather than individual requests
+for every row and continuation probe.
+
+The measured page geometry, source-line positions,
+repeated headers, compact fallback, memory bounds,
+original Markdown bytes and on-disk index format are
+unchanged. No specific end-to-end HDD speedup is
+claimed without real hardware measurements.
+
+[Journal batching details](../Native-Table-Journal-Batching/en.md).
