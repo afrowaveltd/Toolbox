@@ -173,7 +173,9 @@ public sealed class MdViewMixedScreenAlignmentTests
         Assert.Contains(gutter + "(Empty page)", Visible(console));
         Assert.Contains(gutter + "Page 1 of 1", Visible(console));
         Assert.Contains(gutter + "Mixed preview navigation", Visible(console));
-        Assert.Contains(gutter + "Exit mixed preview", Visible(console));
+        // The only selectable choice is selected by default; Spectre
+        // correctly prefixes it with the native selection marker.
+        Assert.Contains(gutter + "> Exit mixed preview", Visible(console));
     }
 
     [Fact]
