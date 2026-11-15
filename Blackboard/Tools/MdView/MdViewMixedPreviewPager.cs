@@ -31,9 +31,10 @@ public sealed class MdViewMixedPreviewPager
     /// <param name="linesPerPage">Zero for terminal height minus controls, else 1–128 rows.</param>
     /// <param name="cancellationToken">Cancels reading, indexing or interaction.</param>
     /// <param name="maximumContentColumns">Optional width cap for visible Markdown and native table content; zero uses full width.</param>
+    /// <param name="centerContent">True to center the capped reading column in the terminal.</param>
     public async Task RunAsync(string path, int linesPerPage = 0,
         CancellationToken cancellationToken = default,
-        int maximumContentColumns = 0)
+        int maximumContentColumns = 0, bool centerContent = false)
     {
         MdViewMixedContentWidth.Validate(maximumContentColumns);
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
@@ -123,7 +124,8 @@ public sealed class MdViewMixedPreviewPager
                     "mdview — mixed Markdown / native Spectre preview" +
                     (maximumContentColumns == 0 ? "" :
                         " | max " + maximumContentColumns.ToString(
-                            CultureInfo.InvariantCulture) + " columns"),
+                            CultureInfo.InvariantCulture) + " columns") +
+                    (centerContent ? " | centered" : ""),
                     gray, width);
                 WriteGrayLine(Path.GetFileName(path) + " | " +
                     snapshot.ByteLength.ToString(CultureInfo.InvariantCulture) +
@@ -139,7 +141,8 @@ public sealed class MdViewMixedPreviewPager
                 {
                     displayed = await MdViewMixedVisualIndexedRenderer.RenderPageAsync(
                         index, cursor, _console, pageNumber, theme,
-                        cancellationToken).ConfigureAwait(false);
+                        cancellationToken, centerContent: centerContent)
+                        .ConfigureAwait(false);
                 }
                 catch (InvalidOperationException) when (
                     index.TerminalWidth != _console.Profile.Width ||
