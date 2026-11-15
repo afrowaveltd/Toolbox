@@ -32,9 +32,11 @@ public sealed class MdViewMixedPreviewPager
     /// <param name="cancellationToken">Cancels reading, indexing or interaction.</param>
     /// <param name="maximumContentColumns">Optional width cap for visible Markdown and native table content; zero uses full width.</param>
     /// <param name="centerContent">True to center the capped reading column in the terminal.</param>
+    /// <param name="longNativeTables">Opt in to repeated-header long Spectre fragments after whole-table preflight.</param>
     public async Task RunAsync(string path, int linesPerPage = 0,
         CancellationToken cancellationToken = default,
-        int maximumContentColumns = 0, bool centerContent = false)
+        int maximumContentColumns = 0, bool centerContent = false,
+        bool longNativeTables = false)
     {
         MdViewMixedContentWidth.Validate(maximumContentColumns);
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
@@ -117,7 +119,8 @@ public sealed class MdViewMixedPreviewPager
                     index = await MdViewMixedVisualPageIndex.CreateAsync(
                         cursor, _console, ContentRows(height, linesPerPage),
                         cancellationToken: cancellationToken,
-                        maximumContentColumns: maximumContentColumns)
+                        maximumContentColumns: maximumContentColumns,
+                        longNativeTables: longNativeTables)
                         .ConfigureAwait(false);
                     pageNumber = snapshot.Lines.LineCount == 0 ? 0 :
                         await index.FindPageAsync(
@@ -131,7 +134,8 @@ public sealed class MdViewMixedPreviewPager
                     (maximumContentColumns == 0 ? "" :
                         " | max " + maximumContentColumns.ToString(
                             CultureInfo.InvariantCulture) + " columns") +
-                    (centerContent ? " | centered" : ""),
+                    (centerContent ? " | centered" : "") +
+                    (longNativeTables ? " | long tables" : ""),
                     gray, width, maximumContentColumns, leftGutter);
                 WriteGrayLine(Path.GetFileName(path) + " | " +
                     snapshot.ByteLength.ToString(CultureInfo.InvariantCulture) +
