@@ -922,3 +922,24 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - **Fresh test execution pending** after CS0122 fix.
   Run focused MdView.Tests and the full solution,
   inspecting test failures and analyzer warnings.
+
+## 2026-11-15 — resolve final 2/336 centered-screen regression failures
+
+- Maintainer's newest .NET 10 test output: **334/336 passed,
+  two failed, zero skipped**; compilation succeeded. Only
+  `CenteredSourceLinePromptIndentsTitleButNotEachTypedCharacter`
+  (line 80) and `CenteredEmptyDocumentAndExitAreInsideReadingColumn`
+  (line 176) failed.
+- The text prompt failure was a **real presentation bug**:
+  Spectre `TextPrompt` calls `Trim()` on its title markup.
+  The pager now writes the reading gutter separately before
+  invoking the unchanged native text prompt, preserving title
+  alignment and incremental character entry
+  (`c6465f4ffe63af30ddbcfee590733d899eb4b117`).
+- The empty document failure was a **test expectation bug**:
+  Spectre prefixes the sole selected exit choice with `> `.
+  The existing test now explicitly expects
+  `gutter + "> Exit mixed preview"`
+  (`b8e66c66a149acebc01da6cb33ac1aed369e8ca3`).
+- Neither regression was removed or disabled. **Fresh test
+  rerun pending**; then run `dotnet test Toolbox.sln`.
