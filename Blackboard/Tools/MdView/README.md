@@ -654,3 +654,27 @@ index covers one table; mixing ordinary paragraphs and native grids
 into a common page-height budget is the next separate milestone.
 Twelve new regression tests have been committed, pending a fresh
 .NET run. [Detailed contract](Docs/Native-Table-Fragment-Index/en.md).
+
+### Mixed Markdown/native Spectre page planning (2026-11-15)
+
+An experimental `MdViewMixedVisualPagePlanner` now builds a **single,
+source-aware visual page** from ordinary Markdown rows and complete
+small native Spectre grids under one row budget. Its matching
+`MdViewMixedVisualPageRenderer` renders the same blocks and checks
+viewport and measured native-widget heights **before any output**.
+The planner reuses the original styled Markdown layout, so ordinary
+headings, quotes, lists, links and clipped code keep their current
+visual row counts.
+
+Native in-page grids are deliberately limited to **complete tables
+with at most six source data rows**, and only when the entire grid
+fits the full content-page budget. When a native grid would not fit
+after preceding text, the current page ends *before its header*.
+Long tables and narrow/over-height grids stay compact for their
+**entire block**, including across page boundaries. The resume state
+retains within-line wrap offsets and compact table header/width.
+
+This is a separate planner/renderer pair, **not yet wired into**
+`mdview preview PATH` or its existing `Page X of Y` disk index.
+Ten targeted new tests are committed, pending a fresh .NET run.
+[Mixed visual page contract](Docs/Mixed-Visual-Page-Planning/en.md).
