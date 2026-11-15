@@ -850,3 +850,40 @@ before comparing visible margins. Additional regressions verify
 hook scope and subsequent unindented output. **Fresh .NET tests and
 Konsole visual confirmation pending.**
 [Live-prompt fix](Docs/Mixed-Content-Alignment/en.md).
+
+### Opt-in repeated-header long native tables (2026-11-15)
+
+The disk-indexed `preview-native` reader now supports
+**`mdview preview-native README.md --long-tables`** to display
+long pipe tables as multiple small native Spectre grids, each
+repeating the **original Markdown table header**. The flag is
+optional, case-insensitive and can be combined with
+`--max-width 100 --center` in any order.
+
+Before rendering even the first long-table fragment,
+`MdViewLongNativeTableEligibility` performs a **bounded
+source-complete streaming preflight**: up to 2,048 measured
+fragments, at most six source rows per fragment. If any
+later row cannot fit the fresh-page budget, or the scan
+limit is exceeded, **the whole table remains compact**.
+No complete source table or native widget collection
+is retained in RAM.
+
+Each continuation page stores the original header line and
+the next unconsumed physical data line in the existing
+**56-byte disk page record**, using a reserved `-1`
+native-continuation marker. The page index and renderer
+share the opt-in mode as instance metadata and verify
+identical source positions and measured row heights.
+Source jumps into later fragments, `Page X of Y`,
+terminal resize, centered layout and compact fallback
+retain their established contracts.
+
+The default `preview-native PATH` (without this flag)
+and the original `preview PATH` are unchanged. Thirteen
+new test methods cover multi-page native fragments,
+repeated headers, exact-once source rows, source jumps,
+width/centering, compact fallback, first-header page
+deferral, bounded preflight and CLI options.
+**Fresh .NET test verification is pending.**
+[Long native tables guide](Docs/Long-Native-Tables/en.md).
