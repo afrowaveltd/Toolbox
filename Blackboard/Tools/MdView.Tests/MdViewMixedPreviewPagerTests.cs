@@ -57,19 +57,19 @@ public sealed class MdViewMixedPreviewPagerTests
     public async Task SourceLineJumpInsideNativeTableOpensCanonicalPage()
     {
         var markdown = string.Join("\n",
-            Enumerable.Range(1, 15).Select(i => "Introduction " + i)) +
+            Enumerable.Range(1, 19).Select(i => "Introduction " + i)) +
             "\n| Name | Value |\n| --- | --- |\n| Apple | 10 |\nAfterwards";
         using var fixture = new Fixture(markdown);
         var console = Interactive();
         console.Input.PushKey(ConsoleKey.DownArrow); // Go to source line.
         console.Input.PushKey(ConsoleKey.Enter);
-        console.Input.PushTextWithEnter("18"); // Native data row.
+        console.Input.PushTextWithEnter("22"); // Native data row.
         console.Input.PushKey(ConsoleKey.Escape);
 
         await new MdViewMixedPreviewPager(console).RunAsync(
             fixture.Path, linesPerPage: 10);
 
-        Assert.Contains("Source line 18 is on this canonical page.", console.Output);
+        Assert.Contains("Source line 22 is on this canonical page.", console.Output);
         Assert.Contains("Apple", console.Output);
         Assert.Contains("╭", console.Output);
         Assert.Contains("Page 3 of ", console.Output);
