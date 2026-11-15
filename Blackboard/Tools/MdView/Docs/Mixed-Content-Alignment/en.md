@@ -251,3 +251,22 @@ This checkpoint **has not yet been recompiled or tested in the
 assistant's environment**, because .NET SDK is unavailable.
 The next maintainer run should validate both the previously failing
 cases and normal interactive Konsole behavior.
+
+## Visual verification and internal-test access (2026-11-15)
+
+The maintainer's next real Konsole screenshot confirms the
+**complete centered layout**, including the bottom live Spectre
+navigation list. This visually validates the scoped render-hook
+approach, independently of the automated tests.
+
+The ensuing .NET 10 build succeeded for the production MdView
+executable but encountered three `CS0122` compiler errors in
+the screen-alignment tests. The tests intentionally exercise
+the `internal` render hook and prompt helper. Rather than
+make these implementation-only types part of the public API,
+`MdView/Properties/AssemblyInfo.cs` now declares
+`InternalsVisibleTo("MdView.Tests")`, following the same
+pattern already present in WhenItFails.
+
+The compiler access correction is committed; a fresh
+focused/full test run is still required.
