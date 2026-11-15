@@ -400,3 +400,15 @@ control sequences when comparing visible text and leading
 spaces. Added hook-output and scope-lifetime coverage. The
 source-line navigation and picker tests use the real
 Spectre input and selection flow. **Fresh verification pending**.
+
+### Live prompt test access (2026-11-15)
+
+The new live-prompt hook works visually in Konsole, but the next
+test build stopped with three `CS0122` errors in
+`MdViewMixedScreenAlignmentTests`: the test assembly could not
+access the intentionally `internal` live prompt helpers.
+`MdView/Properties/AssemblyInfo.cs` now grants friend access
+only to `MdView.Tests` through `InternalsVisibleTo` (commit
+`75e232b3ab65a0de006bb7ae0810ba5139a94fea`).
+Production helper types remain internal. **New .NET test
+results pending.**
