@@ -96,7 +96,7 @@ currently green pager.
 
 ## Test coverage
 
-Eleven `MdViewMixedVisualPageTests` cover:
+Twelve `MdViewMixedVisualPageTests` cover:
 
 - A real rounded native table between ordinary prose paragraphs,
   including literal bracketed markup and unchanged source bytes.
@@ -108,6 +108,8 @@ Eleven `MdViewMixedVisualPageTests` cover:
 - An over-height, long-cell table remaining compact across pages.
 - The exact same page starts as the pre-existing compact visual
   index for ordinary headings, wrapped text, lists, quotes and code.
+- **Byte-for-byte matching terminal output** between the new mixed
+  renderer and existing compact renderer for a text-only page.
 - Fenced or four-space-indented literal code containing pipe text never
   promoted into a native table.
 - Resize detection before any page output.
