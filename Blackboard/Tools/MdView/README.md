@@ -676,5 +676,5 @@ retains within-line wrap offsets and compact table header/width.
 
 This is a separate planner/renderer pair, **not yet wired into**
 `mdview preview PATH` or its existing `Page X of Y` disk index.
-Ten targeted new tests are committed, pending a fresh .NET run.
+Eleven targeted new tests are committed, pending a fresh .NET run.
 [Mixed visual page contract](Docs/Mixed-Visual-Page-Planning/en.md).
