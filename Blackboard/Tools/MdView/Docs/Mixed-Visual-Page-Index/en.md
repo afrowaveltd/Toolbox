@@ -176,3 +176,26 @@ overrides the physical terminal profile. The original
 compact page index remains unchanged.
 
 [Optional width guide](../Mixed-Content-Width/en.md).
+
+## Native continuation records for opt-in long tables (2026-11-15)
+
+The optional `LongNativeTables` index metadata now selects
+source-complete native fragment pagination for long
+Markdown pipe tables. The 56-byte on-disk schema remains
+unchanged: the existing `CompactHeaderLine` field stores
+the original table heading and `CompactColumns = -1`
+distinguishes **native continuation** from a compact
+positive column count. `WrapRow = 0` and `Line`
+indicates the first unconsumed physical data line.
+
+The disk index validates this sentinel only in the
+opt-in mode. `MdViewMixedVisualIndexedRenderer`
+reconstructs each native continuation page using the
+same selected flag, validates its measured row count
+and exact `Start`/`Next` source state before writing.
+
+The header and delimiter source lines map to the
+first native fragment; later data rows map to their
+own canonical continuation pages. Repeated headers
+are visual only and do not create extra source lines.
+[Long native table contract](../Long-Native-Tables/en.md).
