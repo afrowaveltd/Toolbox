@@ -279,6 +279,30 @@ public sealed class MdViewMixedVisualPageTests
     }
 
     [Fact]
+    public async Task IndentedLiteralCodePipesAreNotNativeTables()
+    {
+        const string source =
+            "    | Name | Value |\n" +
+            "    | --- | --- |\n" +
+            "    | A | B |\nAfter";
+        using var fixture = new Fixture(source);
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(fixture.Path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        var console = MakeConsole();
+
+        var page = await MdViewMixedVisualPagePlanner.PlanAsync(
+            cursor, MdViewMixedVisualPosition.Beginning, console, 40);
+
+        Assert.True(page.AtEnd);
+        Assert.Empty(page.Blocks.OfType<MdViewMixedVisualTableBlock>());
+        Assert.Equal(-1, page.Next.CompactHeaderLine);
+        MdViewMixedVisualPageRenderer.Render(
+            console, page, new MarkdownSpectreTheme());
+        Assert.Contains("| Name | Value |", console.Output);
+        Assert.DoesNotContain("╭", console.Output);
+    }
+
+    [Fact]
     public async Task ResizeIsRejectedBeforeAnyMixedPageOutput()
     {
         using var fixture = new Fixture(
