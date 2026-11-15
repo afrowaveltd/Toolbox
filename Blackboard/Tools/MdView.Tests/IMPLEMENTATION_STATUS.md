@@ -697,7 +697,7 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 
 - Maintainer reports all tests green for the preceding table-only
   disk fragment index checkpoint; exact counts unknown.
-- Added **11 `MdViewMixedVisualPageTests`** using verified local
+- Added **12 `MdViewMixedVisualPageTests`** using verified local
   Markdown sources and virtual `Spectre.Console.Testing.TestConsole`.
   They cover prose/native/prose rendering, moving native tables to
   the next page without header loss, persistent compact fallback
@@ -718,3 +718,7 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - Native table block reader additionally refuses four-space-indented
   literal code as both header and data row. A seventh source-block
   reader regression was added; this new case is not yet executed.
+
+- New exact-output parity regression compares the mixed and old
+  text-only Spectre renderers over the same source and viewport,
+  including style-bearing Markdown. Awaiting a fresh .NET test run.
