@@ -744,3 +744,29 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - **The new 11 cases are not yet executed in this
   assistant environment.** Re-run focused MdView.Tests
   and `dotnet test Toolbox.sln` before calling this increment green.
+
+## 2026-11-15 — native mixed preview UI regressions and zero-warning cleanup
+
+- Maintainer confirmed **263 passed / 0 failed / 0 skipped**
+  for MdView.Tests prior to this increment. It emitted
+  a single `xUnit2020` warning caused by
+  `Assert.True(false, message)`. The test now uses
+  `Assert.Fail(message)` (commit
+  `7f1bc4bf1388026588d728c25877f4ce34eed94c`).
+- One added `MdViewCommandTests` regression checks the
+  case-insensitive `preview-native PATH` opt-in command
+  and preservation of `preview PATH`.
+- **13 new `MdViewMixedPreviewPagerTests`** cover native
+  Spectre grid between prose, Next/Previous page indices,
+  physical source-line jumps into a table's data row,
+  distant heading/link selection, invalid source-line
+  input, long-table/narrow compact fallback, empty
+  document, tiny/noninteractive terminal checks,
+  explicit row cap respecting control rows, invalid
+  argument and control-character rejection.
+- New production `MdViewMixedPreviewPager` is separate
+  from existing compact `MdViewFormattedPreviewPager`;
+  the old UI and its tests must remain green.
+- **Fresh new-case execution pending** on the maintainer's
+  .NET 10 installation. Do not carry the prior green
+  outcome forward to these new tests without a rerun.
