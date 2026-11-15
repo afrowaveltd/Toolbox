@@ -133,7 +133,7 @@ public static class MdViewMixedVisualPagePlanner
              (start.WrapRow != 0 ||
               start.CompactHeaderLine > long.MaxValue - 2 ||
               start.Line < start.CompactHeaderLine + 2 ||
-              !longNativeTables))
+              !longNativeTables)))
             throw new ArgumentOutOfRangeException(nameof(start));
         cancellationToken.ThrowIfCancellationRequested();
 
