@@ -24,6 +24,7 @@ public static class MdViewMixedVisualIndexedRenderer
     /// <param name="pageNumber">Zero-based canonical document page number.</param>
     /// <param name="theme">Existing Markdown styles shared with the compact reader.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="centerContent">Whether to center the planned reading column without changing its indexed rows.</param>
     /// <returns>Verified source-bound index record for the displayed page.</returns>
     public static async Task<MdViewMixedIndexedPage> RenderPageAsync(
         MdViewMixedVisualPageIndex index,
@@ -31,7 +32,8 @@ public static class MdViewMixedVisualIndexedRenderer
         IAnsiConsole console,
         long pageNumber,
         MarkdownSpectreTheme theme,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        bool centerContent = false)
     {
         ArgumentNullException.ThrowIfNull(index);
         ArgumentNullException.ThrowIfNull(cursor);
@@ -64,7 +66,8 @@ public static class MdViewMixedVisualIndexedRenderer
                 "Mixed Markdown page source or visual geometry no longer matches its disk index.");
 
         cancellationToken.ThrowIfCancellationRequested();
-        var resume = MdViewMixedVisualPageRenderer.Render(console, page, theme);
+        var resume = MdViewMixedVisualPageRenderer.Render(
+            console, page, theme, centerContent);
         if (resume != expected.Next)
             throw new InvalidDataException(
                 "Mixed page renderer returned an unexpected source position.");
