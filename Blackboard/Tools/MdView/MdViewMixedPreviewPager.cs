@@ -229,10 +229,15 @@ public sealed class MdViewMixedPreviewPager
 
                 if (chosen == jump)
                 {
-                    // A free-text prompt renders typed input incrementally.
-                    // Indent its title once instead of padding each keypress.
+                    // Spectre TextPrompt.WritePrompt trims its markup with
+                    // Trim(), which removes leading spaces from the title.
+                    // Write the gutter separately, without a newline,
+                    // before opening the native incremental text prompt.
+                    // This positions its title and user input together,
+                    // without injecting spaces before each typed character.
+                    if (leftGutter > 0)
+                        _console.Write(new Text(new string(' ', leftGutter)));
                     var response = await new TextPrompt<string>(
-                        new string(' ', leftGutter) +
                         "Physical source line (1-based, empty = cancel): ")
                         .AllowEmpty()
                         .ShowAsync(_console, cancellationToken).ConfigureAwait(false);
