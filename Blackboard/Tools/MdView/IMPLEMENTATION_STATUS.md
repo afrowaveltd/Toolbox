@@ -1979,3 +1979,26 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   timings and profile per-event JSON deserialization;
   do not claim a physical I/O or throughput improvement
   solely from this deterministic read-call reduction.
+
+## 2026-11-15 — maintainer green confirmation: contiguous journal reads
+
+- Maintainer confirms **all tests green** after the bounded
+  contiguous-event read implementation and its seven
+  `MdViewContiguousJournalReadTests` were committed.
+  This supersedes the pending-verification note directly
+  above. No exact test count or machine-readable log
+  was supplied with this confirmation; do not invent one.
+- Green checkpoint includes 256-KiB contiguous event windows,
+  separate oversized-record reads, strict offset/length and
+  JSON/source-line checks, cancellation, Unicode/CRLF,
+  and journal reuse while preserving source read-only behavior.
+- `ReadRequestCount` and `EventReadRequestCount` measure
+  internal request counts; they are not elapsed-time or physical
+  disk-operation measurements. No claim of a measured HDD
+  speedup follows solely from passing these tests.
+- **Next:** design a reproducible opt-in throughput benchmark
+  against a representative Markdown source. Capture cold
+  versus warm OS cache separately, request counts, elapsed
+  time and memory, without adding noise to the normal tests,
+  changing the 56-byte page index or compromising low-RAM
+  compatibility.
