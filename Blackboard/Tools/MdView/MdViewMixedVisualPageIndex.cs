@@ -50,7 +50,7 @@ public sealed class MdViewMixedVisualPageIndex : IAsyncDisposable
     private MdViewMixedVisualPageIndex(
         FileStream stream, MdViewContainerPageCursor cursor,
         long pageCount, long sourceLineCount, int width, int height,
-        int contentRows, bool unicode)
+        int contentRows, bool unicode, int maximumContentColumns)
     {
         _stream = stream;
         _sourceCursor = cursor;
@@ -60,6 +60,7 @@ public sealed class MdViewMixedVisualPageIndex : IAsyncDisposable
         TerminalHeight = height;
         ContentRows = contentRows;
         Unicode = unicode;
+        MaximumContentColumns = maximumContentColumns;
     }
 
     /// <summary>Number of indexed pages; at least one, including an empty file.</summary>
@@ -80,6 +81,9 @@ public sealed class MdViewMixedVisualPageIndex : IAsyncDisposable
     /// <summary>Whether the measured terminal supported Unicode.</summary>
     public bool Unicode { get; }
 
+    /// <summary>Optional Markdown/native table content width cap; zero uses the full terminal.</summary>
+    public int MaximumContentColumns { get; }
+
     /// <summary>
     /// Builds a complete disk index using the same bounded planner that
     /// will later be used to render individual pages.
@@ -89,13 +93,16 @@ public sealed class MdViewMixedVisualPageIndex : IAsyncDisposable
     /// <param name="contentRows">Content row budget, from 1 to 128.</param>
     /// <param name="maximumIndexBytes">Maximum temporary index bytes.</param>
     /// <param name="cancellationToken">Cancels the scan and index writes.</param>
+    /// <param name="maximumContentColumns">Optional content width cap, or zero for physical terminal width.</param>
     /// <returns>Owned disk-backed index that must be disposed.</returns>
     public static async Task<MdViewMixedVisualPageIndex> CreateAsync(
         MdViewContainerPageCursor cursor, IAnsiConsole console,
         int contentRows,
         long maximumIndexBytes = DefaultMaximumIndexBytes,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        int maximumContentColumns = 0)
     {
+        MdViewMixedContentWidth.Validate(maximumContentColumns);
         ArgumentNullException.ThrowIfNull(cursor);
         ArgumentNullException.ThrowIfNull(console);
         if (contentRows is < 1 or > 128 ||
@@ -129,7 +136,8 @@ public sealed class MdViewMixedVisualPageIndex : IAsyncDisposable
                         "Terminal geometry changed during mixed-page indexing.");
 
                 var page = await MdViewMixedVisualPagePlanner.PlanAsync(
-                    cursor, position, console, contentRows, cancellationToken)
+                    cursor, position, console, contentRows, cancellationToken,
+                    maximumContentColumns: maximumContentColumns)
                     .ConfigureAwait(false);
 
                 if (page.Start != position ||
@@ -162,7 +170,8 @@ public sealed class MdViewMixedVisualPageIndex : IAsyncDisposable
                     await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
                     return new MdViewMixedVisualPageIndex(
                         stream, cursor, pageCount, position.Line,
-                        width, height, contentRows, unicode);
+                        width, height, contentRows, unicode,
+                        maximumContentColumns);
                 }
             }
         }
