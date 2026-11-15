@@ -62,6 +62,8 @@ public static class MdViewSpectreTableBlockReader
         var pair = await cursor.ReadAsync(headerLine, 2, cancellationToken)
             .ConfigureAwait(false);
         if (pair.Count != 2 ||
+            MdViewTerminalPageIndex.IsLiteralCode(pair[0]) ||
+            MdViewTerminalPageIndex.IsLiteralCode(pair[1]) ||
             !MdViewTerminalPipeTableLayout.TryReadCells(
                 pair[0], out var headings, out var firstIsSeparator) ||
             firstIsSeparator ||
@@ -176,7 +178,8 @@ public static class MdViewSpectreTableBlockReader
         ArgumentNullException.ThrowIfNull(line);
         if (expectedColumns is < 2 or > MdViewTerminalPipeTableLayout.MaximumColumns)
             throw new ArgumentOutOfRangeException(nameof(expectedColumns));
-        if (!MdViewTerminalPipeTableLayout.TryReadCells(
+        if (MdViewTerminalPageIndex.IsLiteralCode(line) ||
+            !MdViewTerminalPipeTableLayout.TryReadCells(
                 line, out cells, out var separator) ||
             separator || cells.Count != expectedColumns)
         {
