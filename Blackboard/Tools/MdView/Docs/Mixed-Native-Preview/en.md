@@ -228,3 +228,25 @@ container** using Spectre's existing interactive grid, with
 no extra border or vertical rows. The previous forwarding console
 adapter has been removed. Fresh .NET test and visual verification
 is pending.
+
+## Opt-in long native tables (2026-11-15)
+
+The previously compact-only display of long pipe tables
+can now be changed explicitly:
+
+```bash
+mdview preview-native README.md --max-width 100 --center --long-tables
+```
+
+With `--long-tables`, a source-complete bounded preflight
+checks every planned native fragment before the first
+one is emitted. Eligible long tables are shown as
+multiple small native grids with the **original Markdown
+header repeated**. Exact original source rows and their
+canonical disk page numbers are preserved. A later
+fragment that would not fit, an excessively long table
+or a narrow reading column forces the **whole table**
+back to compact mode.
+
+Without this flag the earlier behavior remains unchanged.
+[Complete long native table contract](../Long-Native-Tables/en.md).
