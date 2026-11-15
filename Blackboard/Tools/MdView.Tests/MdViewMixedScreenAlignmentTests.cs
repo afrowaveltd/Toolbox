@@ -223,13 +223,14 @@ public sealed class MdViewMixedScreenAlignmentTests
 
     private sealed class Fixture : IDisposable
     {
-        private readonly string _directory = Path.Combine(Path.GetTempPath(),
+        private readonly string _directory = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
             "mdview-screen-" + Guid.NewGuid().ToString("N"));
 
         public Fixture(string text)
         {
             Directory.CreateDirectory(_directory);
-            Path = Path.Combine(_directory, "README.md");
+            Path = System.IO.Path.Combine(_directory, "README.md");
             File.WriteAllText(Path, text, new UTF8Encoding(false));
         }
 
