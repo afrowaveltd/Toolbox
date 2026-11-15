@@ -67,9 +67,13 @@ public sealed class MdViewDiskNavigationPicker
                 var label = kind == MdViewIndexedItemKind.Heading
                     ? item.Label
                     : item.Label + " → " + Clip(item.Destination ?? "");
+                var fullLabel = (first + i + 1) + ". " +
+                    Clip(label) + " (line " + (item.LineNumber + 1) + ")";
+                var availableColumns = Math.Clamp(
+                    _console.Profile.Width - 2 * _leftGutter - 4,
+                    20, 96);
                 choices.Add(new Choice(item, Movement.None,
-                    (first + i + 1) + ". " + Clip(label) +
-                    " (line " + (item.LineNumber + 1) + ")"));
+                    Clip(fullLabel, availableColumns)));
             }
             if (first + items.Count < total)
                 choices.Add(new Choice(null, Movement.Next, "Next results"));
@@ -107,9 +111,8 @@ public sealed class MdViewDiskNavigationPicker
         }
     }
 
-    private static string Clip(string text)
+    private static string Clip(string text, int max = 96)
     {
-        const int max = 96;
         if (text.Length <= max)
             return text;
         var length = char.IsHighSurrogate(text[max - 1]) ? max - 1 : max;
