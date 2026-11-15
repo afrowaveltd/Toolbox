@@ -122,7 +122,8 @@ static async Task<MdViewDisplayResult> DisplayAsync(
             // pages. The existing compact "preview" mode is unchanged.
             await new MdViewMixedPreviewPager(console).RunAsync(
                 command.Value!, cancellationToken: cancellationToken,
-                maximumContentColumns: command.MaximumContentColumns);
+                maximumContentColumns: command.MaximumContentColumns,
+                centerContent: command.CenterContent);
             return new MdViewDisplayResult(0, false);
         }
 
@@ -229,6 +230,7 @@ static void PrintHelp()
     Console.WriteLine("mdview preview PATH (experimental bounded Markdown page preview)");
     Console.WriteLine("mdview preview-native PATH (opt-in mixed Markdown and inline native Spectre tables)");
     Console.WriteLine("mdview preview-native PATH --max-width N (limit content to 40–4096 columns)");
+    Console.WriteLine("mdview preview-native PATH --max-width N --center (center reading column)");
     Console.WriteLine("mdview url HTTPS_URL");
     Console.WriteLine("mdview OWNER           (browse public GitHub repositories)");
     Console.WriteLine("mdview github:OWNER    (browse public GitHub repositories)");
