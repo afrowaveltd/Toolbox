@@ -270,3 +270,30 @@ pattern already present in WhenItFails.
 
 The compiler access correction is committed; a fresh
 focused/full test run is still required.
+
+## TextPrompt leading whitespace and empty-menu selection (2026-11-15)
+
+After the live-menu render fix, the maintainer's .NET 10 build and
+test run completed compilation and reported **334 passing out of
+336**, with just two centered-screen regressions failing.
+
+The `CenteredSourceLinePromptIndentsTitleButNotEachTypedCharacter`
+failure exposed a **real text-entry alignment issue**:
+Spectre.Console's `TextPrompt.WritePrompt` trims the prompt markup
+with `Trim()`. Supplying `new string(' ', leftGutter) + title`
+therefore does not preserve the left margin. The corrected MdView
+pager writes the margin as a separate literal `Text` renderable
+on the current line **before** invoking the native text prompt.
+It leaves the prompt title unindented and preserves native
+incremental typing without inserting a gutter before each digit.
+
+The `CenteredEmptyDocumentAndExitAreInsideReadingColumn` failure
+was an incorrect assertion: the only selection choice on an empty
+document is already highlighted, so Spectre displays
+`> Exit mixed preview`, not an unmarked item. The regression
+now checks the full selected choice with its reading-column gutter.
+
+These were minimal fixes. No source snapshot, mixed page index,
+56-byte disk record, native table planner or other viewer mode
+was modified. The new code and tests require a fresh maintainer
+test run before being considered verified.
