@@ -980,3 +980,30 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - **Focused/full .NET test rerun pending.** The last green
   checkpoint is the previously confirmed width-cap stage,
   not yet the new centered-column tests.
+
+## 2026-11-15 — MdView unified centered screen
+
+- User screenshot confirmed that centered Markdown content
+  was visually separated from left-aligned application
+  header, `Page X of Y`, and keyboard selection prompt.
+- `Blackboard/Tools/MdView/MdViewIndentedPromptConsole.cs`
+  and `MdViewMixedPreviewPager.cs` now align the
+  **whole mixed-preview UI** under optional
+  `preview-native PATH --max-width N --center`:
+  document body, title/file, page source status, feedback,
+  native Spectre selection arrow and disk-indexed
+  heading/link pickers. Free-text source-line input has
+  a single indented title, retaining normal typing.
+- The unchanged physical terminal profile and validated
+  source snapshot still determine page geometry/resizing.
+  The existing disk page index (56-byte records) and
+  low-memory compact fallback are unchanged.
+- Nine new focused UI tests plus updated English
+  `Docs/Mixed-Content-Alignment/en.md`, MdView
+  preview/width guides, README and project status files
+  committed to GitHub.
+- **New focused and full-solution .NET runs pending.**
+  Do not mark this new correction green without actual
+  test results. Next: verify selection prompt rendering
+  and resolve any UI/compiler regressions before
+  long native table continuation work.
