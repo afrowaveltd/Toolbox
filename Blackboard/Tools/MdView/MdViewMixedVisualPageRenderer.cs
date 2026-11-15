@@ -22,10 +22,11 @@ public static class MdViewMixedVisualPageRenderer
     /// <param name="console">Target Spectre console.</param>
     /// <param name="plan">Bounded, source-aware page plan.</param>
     /// <param name="theme">Existing Markdown presentation theme.</param>
+    /// <param name="centerContent">Whether to center the reading column inside the physical terminal.</param>
     /// <returns>Exact resume position recorded by the page planner.</returns>
     public static MdViewMixedVisualPosition Render(
         IAnsiConsole console, MdViewMixedVisualPage plan,
-        MarkdownSpectreTheme theme)
+        MarkdownSpectreTheme theme, bool centerContent = false)
     {
         ArgumentNullException.ThrowIfNull(console);
         ArgumentNullException.ThrowIfNull(plan);
@@ -36,6 +37,10 @@ public static class MdViewMixedVisualPageRenderer
             console.Profile.Capabilities.Unicode != plan.Unicode)
             throw new InvalidOperationException(
                 "Terminal geometry changed; rebuild the mixed visual page plan.");
+
+        var gutter = MdViewMixedContentAlignment.LeftGutter(
+            plan.TerminalWidth, plan.MaximumContentColumns, centerContent);
+        var prefix = gutter == 0 ? null : new Text(new string(' ', gutter));
 
         var counted = 0;
         foreach (var block in plan.Blocks)
@@ -52,7 +57,9 @@ public static class MdViewMixedVisualPageRenderer
             {
                 if (native.Widget is null ||
                     MdViewSpectreTableHeight.CountRows(
-                        native.Widget, console, 128) != native.VisualRows)
+                        MdViewMixedContentAlignment.IndentTable(
+                            native.Widget, gutter),
+                        console, 128) != native.VisualRows)
                     throw new InvalidDataException(
                         "Native table height differs from the mixed page plan.");
             }
@@ -80,6 +87,8 @@ public static class MdViewMixedVisualPageRenderer
                 case MdViewMixedVisualTextBlock text:
                     foreach (var row in text.Rows)
                     {
+                        if (prefix is not null)
+                            console.Write(prefix);
                         foreach (var span in row.Spans)
                             console.Write(new Text(span.Text,
                                 MdViewTerminalPageRenderer.ResolveStyle(
@@ -88,7 +97,8 @@ public static class MdViewMixedVisualPageRenderer
                     }
                     break;
                 case MdViewMixedVisualTableBlock native:
-                    console.Write(native.Widget);
+                    console.Write(MdViewMixedContentAlignment.IndentTable(
+                        native.Widget, gutter));
                     break;
             }
         }
