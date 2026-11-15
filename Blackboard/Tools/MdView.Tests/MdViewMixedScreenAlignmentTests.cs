@@ -41,7 +41,7 @@ public sealed class MdViewMixedScreenAlignmentTests
         using var fixture = new Fixture(string.Join("\n",
             Enumerable.Range(1, 14).Select(i => "Item " + i)));
         var console = Interactive(180);
-        const string gutter = "                                                      "; // 54
+        var gutter = new string(' ', 54);
         console.Input.PushKey(ConsoleKey.Enter);     // Next.
         console.Input.PushKey(ConsoleKey.DownArrow); // Previous.
         console.Input.PushKey(ConsoleKey.Enter);
@@ -138,9 +138,9 @@ public sealed class MdViewMixedScreenAlignmentTests
         await new MdViewMixedPreviewPager(console).RunAsync(
             fixture.Path, maximumContentColumns: 100, centerContent: true);
 
-        Assert.StartsWith("mdview — mixed Markdown", console.Output);
-        Assert.Contains("\nPage 1 of 1", console.Output);
-        Assert.Contains("\nMixed preview navigation", console.Output);
+        Assert.True(AtColumnZero(console.Output, "mdview — mixed Markdown"));
+        Assert.True(AtColumnZero(console.Output, "Page 1 of 1"));
+        Assert.True(AtColumnZero(console.Output, "Mixed preview navigation"));
         Assert.Equal(72, console.Profile.Width);
     }
 
@@ -154,12 +154,17 @@ public sealed class MdViewMixedScreenAlignmentTests
         await new MdViewMixedPreviewPager(console).RunAsync(
             fixture.Path, maximumContentColumns: 80);
 
-        Assert.StartsWith("mdview — mixed Markdown", console.Output);
-        Assert.Contains("\nPage 1 of 1", console.Output);
-        Assert.Contains("\nMixed preview navigation", console.Output);
+        Assert.True(AtColumnZero(console.Output, "mdview — mixed Markdown"));
+        Assert.True(AtColumnZero(console.Output, "Page 1 of 1"));
+        Assert.True(AtColumnZero(console.Output, "Mixed preview navigation"));
         Assert.DoesNotContain(new string(' ', 49) + "Mixed preview navigation",
             console.Output);
     }
+
+    private static bool AtColumnZero(string output, string prefix) =>
+        output.Split('\n').Any(line =>
+            line.TrimEnd('\r').StartsWith(
+                prefix, StringComparison.Ordinal));
 
     private static TestConsole Interactive(int width)
     {
