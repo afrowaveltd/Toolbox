@@ -167,3 +167,23 @@ reading width would be unchanged; no console profile is
 modified. The content is left-aligned for now.
 
 [Full content-width contract](../Mixed-Content-Width/en.md).
+
+## Optional centered reading column (2026-11-15)
+
+The opt-in `preview-native` UI can center its constrained
+document-body column in a wide terminal:
+
+```bash
+mdview preview-native README.md --max-width 100 --center
+```
+
+It preserves left-alignment of individual Markdown rows
+and native table cells **within** the centered reading area.
+Only the document body is shifted: headers, status messages
+and navigation remain at the normal terminal edge.
+Native table padding adds no top/bottom rows and is
+measured before display, preserving exact indexed
+`Page X of Y` and physical source-line jumps.
+The default without `--center` is unchanged.
+
+[Full centered-alignment guide](../Mixed-Content-Alignment/en.md).
