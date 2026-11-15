@@ -140,10 +140,11 @@ dotnet test Toolbox.sln
 dotnet run --project Blackboard/Tools/MdView -- preview README.md
 ```
 
-The eleven `MdViewNativeTableFragmentIndexTests` cover 6/6/2
+The twelve `MdViewNativeTableFragmentIndexTests` cover 6/6/2
 continuation through a 14-row source table, binary-search source
 jumps, indexed rendering of only the chosen fragment, header-only
-tables, compact fallback for narrow and short displays, five
+tables, compact fallback for narrow and short displays, rollback of an already
+partially indexed table when a later data row cannot fit, five
 measured one-row fragments with repeated headers, budget failure
 without source mutation, stale header rejection, viewport resize,
 invalid arguments, substituted source/header rejection, cancellation,
