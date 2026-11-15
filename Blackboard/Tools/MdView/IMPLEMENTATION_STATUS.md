@@ -1743,3 +1743,79 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   geometry and canonical disk-indexed Page X of Y navigation.
   Preserve low RAM use, source jumps, resize rebuild and existing
   compact fallback where a native fragment cannot fit.
+
+## 2026-11-15 — opt-in long native Spectre table continuation
+
+- **Previous green checkpoint:** maintainer reported approximately
+  **7,000 Toolbox tests green** after centered live-menu fixes.
+  No per-project test counts were provided. The new long-native-table
+  changes below have **not yet been tested with .NET** in the
+  assistant environment, which does not have the SDK.
+- Added `MdViewLongNativeTableEligibility.cs` (commit
+  `ab6d0fddb9376a6092cc201f9df8536c9789ef85`):
+  bounded, source-complete streaming preflight for all fragments of
+  a validated pipe table. It measures at most **2,048 fragments**,
+  with at most six physical source data rows per fragment,
+  and chooses entire-table compact fallback if any fragment fails
+  or the limit is reached. It retains no accumulated native
+  widget array or complete source table in RAM. An internal
+  restricted `maximumFragments` argument supports bounded
+  regression tests without changing the default policy
+  (`4dfb1a2cdb4f8daa547bc04f99de6c3fb950388f`).
+- Extended `MdViewMixedVisualPagePlanner.cs` (commit
+  `e90c246277add7930b5fb269d601f723eacef145`;
+  validation correction
+  `303ce0db45a462324095d9b4fde08f4a65c0023b`):
+  when the optional `longNativeTables` flag is enabled, a
+  source-complete long table can emit consecutive measured,
+  repeated-header native fragments. The first native fragment
+  defers before its header when the remainder of the current
+  page is insufficient; subsequent fragments start on fresh
+  visual pages. Data-row source positions advance exactly.
+  Invalid/malformed continuation state is rejected.
+- Kept the established **56-byte** mixed disk page record
+  format. `MdViewMixedVisualPosition.NativeContinuation`
+  uses `CompactHeaderLine = original source header` and
+  `CompactColumns = -1` with `WrapRow = 0`; compact
+  state continues using positive column counts.
+  `MdViewMixedVisualPageIndex.LongNativeTables` records the
+  opt-in flag as instance metadata and validates the native
+  sentinel only when enabled (commit
+  `85c957007e716778c525904ec10ef70b6ee4c91d`).
+  The indexed renderer re-plans using the exact same mode
+  (`dcbbd8519ca03b7319f7177ca300f8d21fa6f48d`).
+- CLI parser, Program dispatch/help and pager now support
+  **`mdview preview-native PATH --long-tables`**, optionally
+  combined in any order with `--max-width N` and
+  `--center` (commits
+  `b33630e70cb3d687557c7609da9f616aac6cb223`,
+  `6a9b4d20d18f032a0966635407a911cebc9e5f82`,
+  `1a70d9c332f4efa64a4c7592bc48a16bd74f749d`).
+  The existing compact `mdview preview PATH` and
+  non-opted-in `preview-native PATH` remain unchanged.
+- Added **13 test methods** in
+  `MdViewLongNativeMixedPagingTests.cs` (initial commit
+  `a1ca25d0f46e84f4bf351c2f8ad80893a227fd79`,
+  all-or-nothing scan limit and fresh-page deferral tests
+  `cbc0d03b7690627739e3cff30c5c2b6cb1b399d9`).
+  Covers exact-once source rows and repeated table headings
+  across pages, source jumps, exactly filled EOF, original
+  compact fallback, narrow cap, centered output, resize,
+  invalid continuation, cancellation, bounded preflight,
+  header deferral, CLI and interactive read-only source.
+- Documentation: new English
+  `Docs/Long-Native-Tables/en.md`; root/project/test README,
+  mixed native preview, mixed visual page index and
+  standalone fragment-index guides updated.
+- **Verification pending**: run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`,
+  `dotnet test Toolbox.sln`, then smoke-test
+  `dotnet run --project Blackboard/Tools/MdView --
+  preview-native README.md --max-width 100 --center --long-tables`
+  against a Markdown document containing at least 14 data
+  rows. Confirm every continuation page repeats the header
+  and source-line jumps land in the correct fragment.
+- **Next:** respond immediately to compile/analyzer/functional
+  test feedback. After a new green checkpoint, consider
+  native long-table caching/index throughput and very
+  large low-memory workloads. Do not alter compact defaults.
