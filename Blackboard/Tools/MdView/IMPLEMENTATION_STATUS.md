@@ -1722,3 +1722,24 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
 - **New focused and full-solution test reruns pending** after these
   two targeted corrections. Next: if green, finish centered viewer
   checkpoint, then proceed with long native-table continuation.
+
+## 2026-11-15 — maintainer confirms green after centered-screen corrections
+
+- Maintainer reports **approximately 7,000 tests green** after the
+  final centered text-entry and selected-exit regressions were fixed.
+  Treat this as a user-confirmed green checkpoint; the latest raw
+  test log and per-project totals were not supplied in this message.
+- Prior failing MdView screen alignment cases concerned Spectre's
+  trimmed TextPrompt title and the native selection marker on an
+  empty document. The production prompt gutter fix
+  (`c6465f4ffe63af30ddbcfee590733d899eb4b117`) and assertion
+  fix (`b8e66c66a149acebc01da6cb33ac1aed369e8ca3`) are
+  included in the confirmed current checkout.
+- The previous Konsole screenshot also visually confirmed the
+  centered Markdown content, header, status and live menu share one
+  horizontal reading column. Default compact mode remains unchanged.
+- **Next implementation milestone:** long native Spectre tables
+  with bounded streaming chunks, repeated headers, measured row
+  geometry and canonical disk-indexed Page X of Y navigation.
+  Preserve low RAM use, source jumps, resize rebuild and existing
+  compact fallback where a native fragment cannot fit.
