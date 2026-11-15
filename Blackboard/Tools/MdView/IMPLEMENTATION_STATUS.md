@@ -1200,11 +1200,12 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   by checking the source-line's possible pipe prefix without
   materializing a trimmed long string (commit
   `8cbc254c70df633aa1081a17f855298f897862db`).
-- Added **10 `MdViewMixedVisualPageTests`** (commits
+- Added **11 `MdViewMixedVisualPageTests`** (commits
   `e18455a986cf0993ee20813fde2632fdb4dbc906`,
   `3904f213b32bbbae8a02ea2d25957bc683c86ab1`).
   They cover compact/native source progression, height/page
-  boundaries, fenced pipes, old compact page-start parity,
+  boundaries, fenced and indented literal code pipes, old compact
+  page-start parity,
   narrow terminals, resize and source/cancellation guards.
 - English documentation:
   `Docs/Mixed-Visual-Page-Planning/en.md`. Updated MdView README,
@@ -1218,3 +1219,11 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   **mixed-document page-start index** using this shared planner,
   with source-line jumps, geometry rebuilds and rendering parity
   before offering optional inline native tables in the UI.
+
+- Additional conservative native table guard: `MdViewSpectreTableBlockReader`
+  rejects four-space-indented literal code both for the header pair
+  and for data-row continuation; the mixed planner skips the table
+  probe for literal code (commits `71f5b66dcf5656f7306acb9c00bab16f780697f0`,
+  `4de37faae36c3f0d6f4ef3abf8aa2843b8b68dc7`). A seventh
+  `MdViewSpectreTableBlockReaderTests` case and an eleventh mixed-page
+  case verify this behavior. These are **unexecuted** here.
