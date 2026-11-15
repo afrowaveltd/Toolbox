@@ -112,6 +112,51 @@ public sealed class MdViewMixedScreenAlignmentTests
     }
 
     [Fact]
+    public async Task CenteredIndexedLinkPickerKeepsSelectedLocationOnCanonicalPage()
+    {
+        var lines = Enumerable.Range(0, 32)
+            .Select(i => "ordinary line " + (i + 1)).ToArray();
+        lines[23] = "[Installation](Docs/Installation/en.md)";
+        using var fixture = new Fixture(string.Join("\n", lines));
+        var console = Interactive(180);
+        var gutter = new string(' ', 49);
+        console.Input.PushKey(ConsoleKey.DownArrow); // Source line.
+        console.Input.PushKey(ConsoleKey.DownArrow); // Heading picker.
+        console.Input.PushKey(ConsoleKey.DownArrow); // Link picker.
+        console.Input.PushKey(ConsoleKey.Enter);
+        console.Input.PushKey(ConsoleKey.Enter);     // Indexed link.
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewMixedPreviewPager(console).RunAsync(
+            fixture.Path, linesPerPage: 8,
+            maximumContentColumns: 80, centerContent: true);
+
+        Assert.Contains(gutter + "Indexed links", console.Output);
+        Assert.Contains(gutter + "Source line 24 is on this canonical page.",
+            console.Output);
+        Assert.Contains(gutter + "Page 3 of 4", console.Output);
+        Assert.Contains(gutter + "Installation", console.Output);
+    }
+
+    [Fact]
+    public async Task CenteredEmptyHeadingSearchMessageUsesReadingColumn()
+    {
+        using var fixture = new Fixture("Text without any headings.");
+        var console = Interactive(180);
+        var gutter = new string(' ', 49);
+        console.Input.PushKey(ConsoleKey.DownArrow); // Heading picker.
+        console.Input.PushKey(ConsoleKey.Enter);
+        console.Input.PushKey(ConsoleKey.Escape);
+
+        await new MdViewMixedPreviewPager(console).RunAsync(
+            fixture.Path, maximumContentColumns: 80, centerContent: true);
+
+        Assert.Contains(gutter + "No indexed headings were found.",
+            console.Output);
+        Assert.Contains(gutter + "Page 1 of 1", console.Output);
+    }
+
+    [Fact]
     public async Task CenteredEmptyDocumentAndExitAreInsideReadingColumn()
     {
         using var fixture = new Fixture("");
