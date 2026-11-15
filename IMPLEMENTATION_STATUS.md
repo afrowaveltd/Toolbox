@@ -926,3 +926,9 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Next: resolve any failing test or warning first,
   then further improve native table behavior and large
   terminal readability without sacrificing indexed parity.
+- Follow-up fixture hardening: a canonical page beginning inside a
+  long soft-wrapped source line is not required to repeat the
+  `Line N:` prefix. The constrained-page regression now checks
+  visible wrapped prose instead (commit
+  `a03ce6d78d83276453446e748ff991de45765556`).
+  No production behavior was altered by this test cleanup.
