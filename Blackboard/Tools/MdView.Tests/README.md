@@ -267,3 +267,28 @@ source-aware mixed planner. This stage does **not** change the
 default compact Markdown reader UI. **Focused and full-solution
 tests are pending** for these new files.
 [Contract](../MdView/Docs/Mixed-Visual-Page-Index/en.md).
+
+## Opt-in mixed native preview and xUnit2020 cleanup (2026-11-15)
+
+The maintainer reports the preceding MdView checkpoint:
+**263 passed, zero failed, zero skipped**, with one analyzer
+warning in `MdViewMixedVisualPageTests`. Replaced
+`Assert.True(false, message)` with `Assert.Fail(message)`
+to remove `xUnit2020` without changing the failure condition.
+
+Added one `MdViewCommandTests` case to verify
+`preview-native PATH` parsing is explicit and case-insensitive
+while `preview PATH` stays compact.
+
+Added **13 `MdViewMixedPreviewPagerTests`** covering inline
+native table rendering between prose, Next/Previous indexed
+navigation, canonical source-line jumps into native table data,
+disk-indexed heading and link selection, invalid source jump,
+long-table and narrow-terminal compact fallback, empty source,
+undersized/noninteractive terminals, row control-area reserves,
+invalid arguments and unsafe UTF-8 content.
+
+The new UI and tests are committed but **fresh focused/full .NET
+verification is pending**. Do not mark this increment green
+until the maintainer reports the results.
+[Mixed native preview guide](../MdView/Docs/Mixed-Native-Preview/en.md).
