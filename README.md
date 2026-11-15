@@ -338,3 +338,13 @@ verifies unchanged native table row heights before output
 and preserves canonical disk-indexed page numbers.
 All other viewer modes remain left-aligned by default.
 [Centered reading guide](Blackboard/Tools/MdView/Docs/Mixed-Content-Alignment/en.md).
+
+MdView's `preview-native README.md --max-width 100 --center`
+now centers the **whole viewer** in one reading column:
+Markdown content, file header, `Page X of Y`, selected
+navigation marker, source-line input, indexed heading/link
+lookup and feedback. An internal Spectre prompt adapter
+preserves the original keyboard interaction while text entry
+uses a separately indented title. Uncentered and compact
+reader modes remain unchanged.
+[Unified center alignment](Blackboard/Tools/MdView/Docs/Mixed-Content-Alignment/en.md).
