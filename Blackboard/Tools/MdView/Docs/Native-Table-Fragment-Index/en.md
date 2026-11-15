@@ -158,3 +158,15 @@ Related:
 [Native page planner](../Native-Table-Page-Planner/en.md) ·
 [Native table blocks](../Native-Table-Blocks/en.md) ·
 [Implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## First mixed Markdown page planner (2026-11-15)
+
+A new bounded `MdViewMixedVisualPagePlanner` can place a **complete,
+small** native Spectre table between ordinary source-aware Markdown
+rows within the same visual row budget. Its matching renderer shares
+the old Markdown style resolver and preflights measured widget heights
+before output. Long tables deliberately remain compact across pages
+until their repeated-header native continuation is supported by a
+whole-document mixed page index.
+
+[Mixed visual page planning](../Mixed-Visual-Page-Planning/en.md).
