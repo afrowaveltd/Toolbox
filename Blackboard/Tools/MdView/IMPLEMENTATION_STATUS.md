@@ -1913,3 +1913,69 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   contiguous journal-event disk read strategy and a
   repeatable HDD cold/warm-cache benchmark rather than
   changing source/index architecture speculatively.
+
+## 2026-11-15 — bounded contiguous JSON event-journal reads
+
+- **Previous checkpoint confirmed green by maintainer:** the
+  native-table source-journal request batching milestone
+  (one `MdViewContainerPageCursor.ReadAsync` per fragment).
+  The new changes below **postdate** that test report.
+- Found the next HDD-sensitive bottleneck in
+  `MdViewContainerPageCursor.ReadAsync`: after one
+  offset-table read it still performed **two separate
+  event-stream reads for every classified source line**
+  (four-byte record header and JSON payload). One
+  native-table fragment request therefore still produced
+  many underlying event-stream operations.
+- Updated `MdViewContainerPageCursor.cs` (commit
+  `839e67bd82104e48d131c6bf96c76c605398562b`).
+  The cursor now reads at most one **additional following
+  offset** to determine the exact end of a requested
+  middle-of-journal window; the current `_eventBytes`
+  is used as the sentinel at the scanned end.
+  Strictly bounded record spans are validated before
+  event reads. Complete neighboring events are grouped
+  into **at most 256 KiB contiguous event-stream reads**;
+  a single valid bigger event is read individually,
+  up to the original 8-MiB JSON + 4-byte header bound.
+  Original Markdown and journal file formats unchanged.
+- Additional guard (commit
+  `2e885d9b2404b4b99563000be22120cf535ee1bf`):
+  verify monotonic, bounded source-record offsets
+  **before** subtracting two long offsets, avoiding
+  malformed offset overflow. Each decoded record's
+  stored four-byte length must exactly equal its
+  offset-defined byte span minus four; JSON and original
+  physical line number remain validated.
+- Added internal `EventReadRequestCount` for actual
+  event-stream `ReadExactlyAsync` invocations.
+  The previously added internal `ReadRequestCount`
+  still counts high-level `ReadAsync` requests.
+  These are diagnostic API counters, not OS physical
+  disk I/O counters or HDD elapsed-time benchmarks.
+- Added **7 xUnit methods** in
+  `MdViewContiguousJournalReadTests.cs` (commit
+  `c66331e1b89d8865786ac9021c154ac2632eea20`):
+  one contiguous read for 20 short records;
+  multiple complete-record windows for 90 large lines;
+  oversized individual source events; offset lookahead
+  vs end-of-journal sentinel; Unicode/CRLF and backward
+  journal reuse; explicit private-journal corruption of
+  stored JSON length and offset monotonicity; pre-cancel
+  behavior and subsequent successful cursor reuse.
+- Added English
+  `Docs/Contiguous-Journal-Reads/en.md`, linked it from
+  the existing native-table batching guide and updated
+  root, MdView and test READMEs. No CLI flags, native
+  Spectre geometry, compact fallback or 56-byte mixed
+  visual page record changed.
+- **Fresh .NET 10 focused/full test execution pending:**
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`. The assistant
+  environment has no .NET SDK, so no new green claim is
+  made. Preserve and investigate any compiler/test
+  warnings before proceeding.
+- **Next after green:** compare cold/warm-cache HDD
+  timings and profile per-event JSON deserialization;
+  do not claim a physical I/O or throughput improvement
+  solely from this deterministic read-call reduction.
