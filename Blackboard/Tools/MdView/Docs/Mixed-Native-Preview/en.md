@@ -200,12 +200,31 @@ left. The **same calculated reading-column gutter** now applies to
 those controls and feedback as well.
 
 Interactive `SelectionPrompt` lists (including disk-indexed heading
-and link pickers) use a forwarding `IAnsiConsole` adapter with
-horizontal-only padding. It preserves Spectre's input, cursor and
-selection-arrow behavior. Incremental `TextPrompt` input uses an
+and link pickers) now use a scoped `IRenderHook` with
+horizontal-only padding on Spectre's **live renderable**. The
+earlier forwarding console adapter failed to center this
+late-rendered menu and was removed. The corrected approach
+preserves native input, cursor movement and selection arrows. Incremental `TextPrompt` input uses an
 indented title on the original console instead, avoiding repeated
 spaces before typed characters.
 
 Default uncentered preview, native widget geometry, page indexes,
 source jumps and resize rebuilds remain unchanged.
 [Detailed layout contract](../Mixed-Content-Alignment/en.md).
+
+### Live selection menu placement (2026-11-15)
+
+A Konsole visual test exposed the remaining left-aligned bottom
+menu. Spectre creates the visible selection menu using a
+`ListPromptRenderHook` during live rendering, not in the original
+`IAnsiConsole.Write` call. The new
+`MdViewCenteredPromptRenderHook` is attached before the
+selection begins and pads the actual live widget once it exists.
+Cursor controls are excluded from padding. The same mechanism
+is used for the heading/link pickers.
+
+The result is the equivalent of a **borderless centered menu
+container** using Spectre's existing interactive grid, with
+no extra border or vertical rows. The previous forwarding console
+adapter has been removed. Fresh .NET test and visual verification
+is pending.
