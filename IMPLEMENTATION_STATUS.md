@@ -1084,3 +1084,19 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - No page index, native-table geometry or compact preview changes.
   **Post-fix tests pending**; run MdView.Tests and full solution
   before marking the centered viewer checkpoint green.
+
+## 2026-11-15 — Toolbox all-green confirmation following MdView UI fixes
+
+- Maintainer reports **7,000 green tests** at the latest checkpoint
+  after centered MdView title, footer, live navigation, source input
+  and empty-menu corrections. This is a user-reported result;
+  no detailed log was supplied with the confirmation.
+- The historical 334/336 MdView regression result above is now
+  superseded by the maintainer's green report. No exact new
+  MdView-specific count is asserted.
+- GitHub remains the source of truth. Next planned development:
+  source-aware continuation of long native Spectre tables across
+  visual pages with repeated headers, measured heights and
+  disk-backed page-index parity. Existing compact behavior remains
+  available and the current green checkpoint should be protected
+  by fresh focused and full-solution tests after each change.
