@@ -945,3 +945,45 @@ time is **not yet measured**. Fresh .NET verification
 is pending after the previous maintainer-confirmed
 all-green checkpoint.
 [Contiguous journal reads](Docs/Contiguous-Journal-Reads/en.md).
+
+### Isolated 2-GiB HDD benchmark (2026-11-15)
+
+A separate **manual-only** project now lives in
+`Blackboard/Tools/MdView.Benchmarks`. It is deliberately
+outside `Toolbox.sln` and leaves the normal MdView
+viewer, disk-index budget and all CLI defaults unchanged.
+
+The Linux launcher redirects `TMPDIR` to the chosen
+separately mounted test disk **before starting .NET**,
+so the generated Markdown, validated snapshots, event
+journals, offset/page indexes and logs all use the
+same physical volume. The expected test root is
+`/mnt/TEST`, with `tmp`, `data` and `logs`
+subdirectories; other mounts can be passed explicitly.
+
+A streaming generator creates exactly **2048 MiB
+(2,147,483,648 bytes)** of deterministic Markdown
+with headings, long wrapped prose, links, 24-data-row
+pipe tables, code fences and Unicode. Run an 8-MiB
+smoke test first; the 2-GiB experiment is intentionally
+manual, not an xUnit timing assertion or background task.
+
+```bash
+bash Blackboard/Tools/MdView.Benchmarks/run.sh /mnt/TEST all --size-mib 8 --seeks 10
+bash Blackboard/Tools/MdView.Benchmarks/run.sh /mnt/TEST all --size-mib 2048 --seeks 250
+```
+
+Logs are preserved under `/mnt/TEST/logs` as
+JSON Lines, human-readable text and system/disk
+metadata. They record stopwatch measurements, GC/RSS,
+per-process Linux I/O deltas and original/contiguous
+journal request counters. The optional `index`
+command measures the complete mixed visual page index,
+but is deliberately separate from `all`.
+Cold OS cache is **never claimed or cleared** by
+the launcher.
+
+**Status:** committed and ready for maintainer
+compilation/testing on the real HGST; no performance
+results exist yet. [Benchmark README](../MdView.Benchmarks/README.md)
+and [English experiment protocol](../MdView.Benchmarks/Docs/HDD-Benchmark/en.md).
