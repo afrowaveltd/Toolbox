@@ -722,3 +722,25 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - New exact-output parity regression compares the mixed and old
   text-only Spectre renderers over the same source and viewport,
   including style-bearing Markdown. Awaiting a fresh .NET test run.
+
+## 2026-11-15 — mixed whole-document index regression suite
+
+- Maintainer reports prior mixed single-page planner checkpoint
+  **all green**; exact counts unknown.
+- Added **11 `MdViewMixedVisualPageIndexTests`**
+  targeting a document-wide **56-byte disk page record**
+  and the `MdViewMixedVisualIndexedRenderer`.
+  Coverage: one native table inside mixed prose; 14-row
+  compact table continued across many pages; disk binary
+  search for physical source line/within-line wrap row;
+  header/delimiter boundary state; multiple native
+  tables; single empty or exactly-filled final page;
+  checked source cursor/terminal identity before writes;
+  configurable index budget exhaustion without source
+  mutation; argument bounds, released index and cancellation.
+- Existing mixed renderer and old compact page tests must
+  continue passing. This stage still does not replace
+  `mdview preview PATH`.
+- **The new 11 cases are not yet executed in this
+  assistant environment.** Re-run focused MdView.Tests
+  and `dotnet test Toolbox.sln` before calling this increment green.
