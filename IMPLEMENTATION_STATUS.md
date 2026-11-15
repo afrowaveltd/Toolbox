@@ -1048,3 +1048,21 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   cursor location from a flattened ANSI transcript
   containing earlier erased/redrawn prompt frames.
   The output text is still checked for visibility.
+
+## 2026-11-15 — MdView full-screen visual confirmation and CS0122 test access
+
+- User visually confirmed the whole `preview-native
+  README.md --max-width 100 --center` interface now
+  shares the same centered column, including the live
+  Spectre selection menu.
+- The latest .NET 10 output compiled production MdView,
+  but `MdView.Tests` reported three **CS0122**
+  diagnostics: the test assembly could not access
+  the deliberately internal live prompt hook and helper.
+- Added `Blackboard/Tools/MdView/Properties/AssemblyInfo.cs`
+  with `[assembly: InternalsVisibleTo("MdView.Tests")]`
+  (commit `75e232b3ab65a0de006bb7ae0810ba5139a94fea`).
+  No production viewer behavior or public API was changed.
+- **Next:** re-run focused MdView.Tests and full Toolbox.sln.
+  The newest tests have not yet passed; the previous
+  result of 325/333 predates this visual and compiler fix.
