@@ -1855,3 +1855,61 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
   and `dotnet test Toolbox.sln`. Resolve any new compiler
   or test errors before calling the long-table milestone green.
+
+## 2026-11-15 — HDD-oriented bounded native table journal batching
+
+- **Preceding checkpoint:** maintainer reported all green after
+  the `--long-tables` validation-parenthesis fix. Exact updated
+  focused/full test totals were not supplied in that message.
+  This new optimization has **not** yet been built with .NET
+  in the assistant environment.
+- Found a concrete repeated journal-request pattern in
+  `MdViewNativeTablePagePlanner.PlanAsync`: a fragment of
+  up to six source data rows was read via one
+  `MdViewContainerPageCursor.ReadAsync` call per row,
+  followed by another one-line call to check whether
+  a seventh source row continued the table.
+- Production change
+  `1467c64f33a143fc83da2e9fd73a85417f7fc036`:
+  request **one bounded source window** of
+  `maximumSourceRows + 1` (2–7) classified lines,
+  then use its entries for the same sequential row
+  eligibility/geometry checks and lookahead. The planner
+  still measures each candidate native Spectre table,
+  leaves rejected rows unconsumed, and preserves precise
+  `NextDataLine`, `HasMore` and fallback semantics.
+  This changes no CLI, page index or widget contracts.
+- Diagnostic-only change
+  `e6c447e9b3453774b43042ba0b3d8d3416226158`:
+  internal `MdViewContainerPageCursor.ReadRequestCount`
+  counts validated `ReadAsync` invocations. It is
+  **internal**, not new public API, and does not measure
+  actual OS I/O operations or elapsed HDD time.
+- Added five deterministic xUnit tests in
+  `MdViewNativeTableBatchReadTests.cs`
+  (commit `a62ac9f523f79468b1d8cc8afdff45379b854dba`).
+  Verify exactly one journal request per fragment,
+  three requests for a 14-row table's three-fragment
+  eligibility scan, height-limited row retry without loss,
+  EOF/other Markdown safety, unchanged source bytes,
+  and no journal request for narrow/pre-cancelled paths.
+- New English guide
+  `Docs/Native-Table-Journal-Batching/en.md`, and
+  root/project/test README plus native table planner
+  and long-table guides were updated.
+- **Limits:** this reduces per-fragment cursor API/offset
+  lookups, not the per-event JSON decoding/reads. A bounded
+  window can classify up to six more source lines than the
+  old stop-at-first-non-table path; these remain in the
+  disk-backed journal and are not counted as table rows.
+  There is no measured HDD speedup claim.
+- **Verification pending:** run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`. Manually inspect
+  `preview-native README.md --max-width 100 --center
+  --long-tables`. Resolve any errors/warnings before
+  calling the batching milestone green.
+- **Next:** after a green checkpoint, evaluate a bounded
+  contiguous journal-event disk read strategy and a
+  repeatable HDD cold/warm-cache benchmark rather than
+  changing source/index architecture speculatively.
