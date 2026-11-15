@@ -1819,3 +1819,22 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   test feedback. After a new green checkpoint, consider
   native long-table caching/index throughput and very
   large low-memory workloads. Do not alter compact defaults.
+
+## 2026-11-15 — long native preflight layout and resize final hardening
+
+- Fixed the order of native long-table promotion in
+  `MdViewMixedVisualPagePlanner` (commit
+  `cca3a455cfe7f438006ec78238435d2830b17960`):
+  first confirm **whole-table native eligibility**, then defer the
+  native header to a fresh page if needed. Tables that ultimately
+  require compact fallback now retain normal compact line flow
+  rather than prematurely ending the previous prose page.
+- Source-state validation now rejects native continuation headers
+  too close to `long.MaxValue` for safe `header + 2` arithmetic.
+- A terminal width, height or Unicode capability change **during
+  planning**, not only between pages, now fails explicitly before
+  recording inconsistent mixed visual geometry. Both guards are
+  active in default and opt-in modes.
+- These post-test hardening changes are committed but have
+  **not yet been executed under .NET**. Previous maintainer green
+  report still refers to the pre-long-table checkout.
