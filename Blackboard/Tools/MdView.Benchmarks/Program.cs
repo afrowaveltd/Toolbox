@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
-using Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown;
 using Afrowave.Toolbox.Blackboard.TextFiles;
 using Afrowave.Toolbox.Blackboard.Tools.MdView;
 using Spectre.Console.Testing;
@@ -563,9 +562,16 @@ internal static class MdViewDiskBenchmark
 
     private static long GetFreeBytes(string root)
     {
-        // DriveInfo on Linux also accepts mounted directory paths.
-        var volume = new DriveInfo(root);
-        return volume.AvailableFreeSpace;
+        // run.sh obtains free space with df -Pk on the *actual mount*.
+        // Do not accidentally query the root filesystem when the
+        // test drive is mounted as a subdirectory on Linux.
+        var value = Environment.GetEnvironmentVariable(
+            "MDVIEW_BENCH_AVAILABLE_BYTES");
+        if (!long.TryParse(value, out var free) || free < 0)
+            throw new InvalidOperationException(
+                "Missing mounted-volume free-space check; launch through run.sh. " +
+                "Selected benchmark root: " + root);
+        return free;
     }
 
     private sealed class BenchLog : IAsyncDisposable
