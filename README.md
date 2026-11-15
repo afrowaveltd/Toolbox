@@ -287,3 +287,11 @@ grid, measures the actual border/header/wrapped-cell height, and
 returns an exact source continuation or compact fallback without
 changing the current disk-backed `Page X of Y` renderer.
 [Native table page planner](Blackboard/Tools/MdView/Docs/Native-Table-Page-Planner/en.md).
+
+MdView now also has a **disk-backed native table fragment index**
+(28-byte records, binary-search source-line jumps, real Spectre
+visual-row heights) and a renderer that verifies source/geometry
+parity before displaying a fragment. It currently indexes a
+**single table**, not mixed prose and native tables; the default
+compact Markdown page navigation is unchanged.
+[Native fragment index](Blackboard/Tools/MdView/Docs/Native-Table-Fragment-Index/en.md).
