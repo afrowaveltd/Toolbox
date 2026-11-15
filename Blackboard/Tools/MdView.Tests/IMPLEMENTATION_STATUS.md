@@ -861,3 +861,9 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - **New tests not run by the assistant** (no .NET SDK).
   Run focused MdView.Tests and full `Toolbox.sln`,
   check warning count and manually verify Konsole output.
+
+## 2026-11-15 — correct fixture Path shadowing in full-screen tests
+
+- User-provided build: main MdView built successfully; new centered-screen test fixture caused two `CS0236` diagnostics at line 226 and `CS1061` at line 232.
+- `Fixture.Path` property shadowed `System.IO.Path` during field and constructor initialization. Commit `6463ac5e56fca90b1207916e7bd8cc5a6e9758b6` explicitly qualifies `System.IO.Path.Combine` and `System.IO.Path.GetTempPath` in `MdViewMixedScreenAlignmentTests.cs`.
+- Tests were blocked before running; their pass count is **not yet verified**. Rerun targeted MdView.Tests and Toolbox.sln.
