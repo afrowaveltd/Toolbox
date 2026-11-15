@@ -1691,3 +1691,34 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   and `dotnet test Toolbox.sln`. The earlier 325/333
   run and current CS0122-blocked build are historical,
   not outcomes for this new compiler fix.
+
+## 2026-11-15 — two remaining centered-screen failures after 334/336 passing
+
+- Maintainer's latest focused .NET 10 run: **336 total, 334 passed,
+  2 failed, 0 skipped**, with the production MdView and test assembly
+  building successfully. The previous three CS0122 accessibility
+  diagnostics are resolved. Real Konsole screenshot already confirms
+  the main centered interface and native selection menu are aligned.
+- `CenteredSourceLinePromptIndentsTitleButNotEachTypedCharacter`
+  failed at its title-gutter assertion (test line 80).
+  Verified against Spectre.Console's `TextPrompt.WritePrompt`:
+  it calls `builder.ToString().Trim()`, intentionally removing
+  leading spaces from the markup title. The pager now emits the
+  literal gutter as a separate `Text` write, **without newline**,
+  immediately before invoking the native incremental `TextPrompt`;
+  the title itself contains no leading spaces. This keeps the
+  typed digits on the same line and avoids per-character padding.
+  Production commit `c6465f4ffe63af30ddbcfee590733d899eb4b117`.
+- `CenteredEmptyDocumentAndExitAreInsideReadingColumn`
+  failed at test line 176, expecting the bare `Exit mixed preview`
+  label immediately after the gutter. The menu contains only this
+  one item, which Spectre selects automatically and prefixes with
+  its native `> ` arrow. Updated the test to assert the **entire**
+  selected item, `> Exit mixed preview` (commit
+  `b8e66c66a149acebc01da6cb33ac1aed369e8ca3`).
+- Existing two regression tests are retained, not skipped; other
+  334 passing tests were not modified. No changes to page indexes,
+  Markdown styling, compact mode or native table geometry.
+- **New focused and full-solution test reruns pending** after these
+  two targeted corrections. Next: if green, finish centered viewer
+  checkpoint, then proceed with long native-table continuation.
