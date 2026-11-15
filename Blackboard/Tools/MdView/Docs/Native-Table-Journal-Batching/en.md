@@ -123,3 +123,28 @@ green.** This new batching increment still requires a fresh
 Related: [native table page planner](../Native-Table-Page-Planner/en.md),
 [long native tables](../Long-Native-Tables/en.md), and
 [implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## Next increment: bounded contiguous event reads (2026-11-15)
+
+The initial optimization described above reduces the
+**number of cursor API calls** per native fragment.
+The latest increment also optimizes the cursor's
+**underlying event-stream read operations**.
+
+`MdViewContainerPageCursor.ReadAsync` now fetches its
+offsets, validates the exact stored record spans,
+and reads neighboring serialized JSON events in
+contiguous windows up to **256 KiB**. A single valid
+larger event is read individually, up to the existing
+8-MiB serialized record limit plus its four-byte header.
+
+`ReadRequestCount` continues to count cursor API
+calls. The new internal `EventReadRequestCount`
+counts the bulk event-stream read requests and is
+verified by separate corruption, Unicode, large-row
+and backward-navigation regression tests.
+
+No change to the source file, Markdown structure,
+native-page geometry or 56-byte mixed visual index.
+Actual HDD speedup remains to be measured.
+[Full contiguous journal read contract](../Contiguous-Journal-Reads/en.md).
