@@ -328,3 +328,13 @@ The same cap is used by Markdown wraps, native Spectre table
 measurement and disk-indexed `Page X of Y` reconstruction.
 Default full-width behavior and `mdview preview PATH`
 remain unchanged. [Content-width guide](Blackboard/Tools/MdView/Docs/Mixed-Content-Width/en.md).
+
+MdView's opt-in mixed Markdown reader now also supports
+a **centered, fixed-width reading column**:
+`mdview preview-native README.md --max-width 100 --center`.
+It uses the same width limit for prose and Spectre
+native tables, adds only horizontal margins,
+verifies unchanged native table row heights before output
+and preserves canonical disk-indexed page numbers.
+All other viewer modes remain left-aligned by default.
+[Centered reading guide](Blackboard/Tools/MdView/Docs/Mixed-Content-Alignment/en.md).
