@@ -861,3 +861,34 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Next stage: expose the mixed index behind an **explicit
   opt-in preview mode** with canonical page navigation,
   source-line jumps and geometry-change rebuilds.
+
+## 2026-11-15 — MdView opt-in native mixed Markdown preview
+
+- Maintainer's latest supplied MdView test run passed
+  **263/263 tests**, **0 failed / 0 skipped**, with
+  one `xUnit2020` warning. Corrected warning by
+  using `Assert.Fail` (commit
+  `7f1bc4bf1388026588d728c25877f4ce34eed94c`).
+- New `Blackboard/Tools/MdView/MdViewMixedPreviewPager.cs`
+  provides interactive **`mdview preview-native PATH`**,
+  using the validated snapshot, disk-backed 56-byte
+  whole-document mixed-page index, measured native table
+  renderer and existing disk-indexed heading/link
+  location picker. Includes canonical Page X of Y,
+  next/previous and physical source-line jumps,
+  terminal resize reindexing and compact fallback
+  for long tables.
+- `MdViewCommand` and Program dispatch/help expose the
+  **explicit** new mode without changing existing compact
+  `mdview preview PATH` or other readers.
+- Added one CLI parser regression plus 13 UI tests;
+  new English guide
+  `Docs/Mixed-Native-Preview/en.md`, root/project/test
+  READMEs and implementation statuses updated.
+- **Fresh .NET test verification pending** for the
+  warning cleanup and new mixed UI. Run focused
+  MdView.Tests and `dotnet test Toolbox.sln`.
+  Last green outcome remains 263/263 for the prior baseline.
+- **Next:** resolve any .NET compile/test feedback;
+  then smoke-test native/compact navigation, resize and
+  low-resource behavior, retaining compact default.
