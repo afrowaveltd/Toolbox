@@ -116,6 +116,15 @@ static async Task<MdViewDisplayResult> DisplayAsync(
             return new MdViewDisplayResult(0, false);
         }
 
+        if (command.Kind == MdViewSourceKind.MixedPreview)
+        {
+            // Explicit opt-in: disk-indexed mixed Markdown/native Spectre
+            // pages. The existing compact "preview" mode is unchanged.
+            await new MdViewMixedPreviewPager(console).RunAsync(
+                command.Value!, cancellationToken: cancellationToken);
+            return new MdViewDisplayResult(0, false);
+        }
+
         if (command.Kind == MdViewSourceKind.SourcePager)
         {
             // This source-line viewer already owns its own Next/Back/Exit prompts.
@@ -217,6 +226,7 @@ static void PrintHelp()
     Console.WriteLine("mdview browse-git OWNER REPOSITORY (opt-in GitHub Markdown navigation)");
     Console.WriteLine("mdview browse-git OWNER/REPOSITORY");
     Console.WriteLine("mdview preview PATH (experimental bounded Markdown page preview)");
+    Console.WriteLine("mdview preview-native PATH (opt-in mixed Markdown and inline native Spectre tables)");
     Console.WriteLine("mdview url HTTPS_URL");
     Console.WriteLine("mdview OWNER           (browse public GitHub repositories)");
     Console.WriteLine("mdview github:OWNER    (browse public GitHub repositories)");
