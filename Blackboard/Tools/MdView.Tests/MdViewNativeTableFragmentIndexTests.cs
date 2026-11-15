@@ -226,6 +226,45 @@ public sealed class MdViewNativeTableFragmentIndexTests
     }
 
     [Fact]
+    public async Task LateOverHeightDataRowRollsBackTheEntireNativeIndex()
+    {
+        var longCell = string.Join(" ",
+            Enumerable.Repeat("long descriptive text", 12));
+        using var fixture = new Fixture(
+            "| Name | Description |\n| --- | --- |\n" +
+            "| A | Short |\n| B | Short |\n| C | Short |\n" +
+            "| D | " + longCell + " |");
+        var before = await File.ReadAllBytesAsync(fixture.Path);
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(fixture.Path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        var header = await MdViewSpectreTableBlockReader.ReadHeaderAsync(cursor, 0);
+        Assert.NotNull(header);
+        var console = MakeConsole(width: 80);
+
+        var first = await MdViewNativeTablePagePlanner.PlanAsync(
+            cursor, header, 2, console, 100, maximumSourceRows: 1);
+        var last = await MdViewNativeTablePagePlanner.PlanAsync(
+            cursor, header, 5, console, 100, maximumSourceRows: 1);
+        Assert.True(first.IsNative);
+        Assert.True(last.IsNative);
+        Assert.True(last.VisualRows > first.VisualRows,
+            $"Short row: {first.VisualRows}, long row: {last.VisualRows}");
+
+        await using var index = await MdViewNativeTableFragmentIndex.CreateAsync(
+            cursor, header, console, first.VisualRows);
+
+        Assert.False(index.IsNative);
+        Assert.Equal(MdViewNativeTableFallbackReason.FirstRowTooTall,
+            index.FallbackReason);
+        Assert.Equal(0, index.FragmentCount);
+        Assert.Equal(0, index.SourceDataRows);
+        Assert.Equal(2, index.NextDataLine);
+        Assert.Null(await index.FindFragmentAsync(3));
+        Assert.Equal(before, await File.ReadAllBytesAsync(fixture.Path));
+        Assert.Equal(string.Empty, console.Output);
+    }
+
+    [Fact]
     public async Task DiskBudgetFailureDoesNotChangeValidatedMarkdown()
     {
         using var fixture = new Fixture(
