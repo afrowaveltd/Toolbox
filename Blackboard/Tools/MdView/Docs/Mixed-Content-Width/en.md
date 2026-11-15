@@ -78,10 +78,13 @@ Markdown source lines. The index stores source line and wrap-row
 positions, including active compact table continuation.
 
 The user-facing header displays `max N columns` when the cap is
-enabled. The header, status footer, search prompts and menu still use
-the physical terminal width; only the **document body** is capped.
-The text remains **left-aligned** in this increment. Optional
-centering is a separate possible future feature.
+enabled. Without `--center`, header, status and navigation stay at the
+physical terminal's left edge. With `--center`, the **entire viewer**
+shares the reading-column gutter: file information, page status,
+interactive prompts and the document body. Single-line chrome is
+clipped to the capped reading width; the physical terminal dimensions
+still determine resizing and safety limits. Text remains left-aligned
+**within** its reading column.
 
 ## Native tables and safety
 
