@@ -1007,3 +1007,9 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   test results. Next: verify selection prompt rendering
   and resolve any UI/compiler regressions before
   long native table continuation work.
+
+## 2026-11-15 — MdView centered UI regression compilation correction
+
+- User's .NET 10 build passed MdView but failed MdView.Tests with two `CS0236` and one `CS1061` error in `MdViewMixedScreenAlignmentTests.Fixture`.
+- Corrected ambiguous `Path` references to `System.IO.Path` (commit `6463ac5e56fca90b1207916e7bd8cc5a6e9758b6`). This is a test-only compile fix, not a production code change.
+- Fresh focused and full-solution tests remain pending.
