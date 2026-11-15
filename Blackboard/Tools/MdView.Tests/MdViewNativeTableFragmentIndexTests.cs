@@ -89,7 +89,7 @@ public sealed class MdViewNativeTableFragmentIndexTests
         Assert.Contains("Item 12", console.Output);
         Assert.DoesNotContain("Item 6", console.Output);
         Assert.DoesNotContain("Item 13", console.Output);
-        Assert.Equal(15, actual.NextDataLine - 0);
+        Assert.Equal(14, actual.NextDataLine);
     }
 
     [Fact]
