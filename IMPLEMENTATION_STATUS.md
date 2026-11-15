@@ -1240,3 +1240,42 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   counts, and does not alter user-facing MdView defaults.
   Passing regression tests is not itself an HDD speedup
   measurement.
+
+## 2026-11-15 — Toolbox manual HGST 5400 RPM HDD benchmark harness
+
+- New `Blackboard/Tools/MdView.Benchmarks` is a
+  **separate manual .NET 10 performance project**,
+  not part of `Toolbox.sln` or the normal xUnit
+  test suite. The user plans to attach an actual
+  HGST 80-GB/5400-RPM HDD (likely mounted at
+  `/mnt/TEST`) and perform the benchmark locally.
+- The safe Debian launcher verifies a **separate
+  mount**, disk-space reserve and matching physical
+  data/TEMP/log filesystems; it exports `TMPDIR`
+  before .NET starts and refuses the system root
+  volume. A streaming generator produces **exactly
+  2,147,483,648 bytes (2 GiB)** of realistic, stable
+  synthetic Markdown. Source remains for repeated runs;
+  no disk formatting or OS cache clearing is performed.
+- Snapshot, classified journal and fixed-seed random
+  seek measurements log phase duration, effective
+  logical throughput, process memory/CPU/GC,
+  request counts and Linux process I/O deltas to
+  timestamped JSONL/TXT files. A separate system log
+  records mount/disk/rotational details. Full mixed
+  page indexing is an **explicit separate mode**,
+  not part of the default run. Benchmark-only
+  elevated 8-GiB journal and 512-MiB offsets budgets
+  do not change production defaults or public APIs.
+- Added `MdView.Benchmarks/README.md`,
+  `Docs/HDD-Benchmark/en.md` and
+  `IMPLEMENTATION_STATUS.md`. Updated MdView/root
+  README and retained all existing test behavior.
+- **No new benchmark .NET build/run result yet**.
+  Start with
+  `bash Blackboard/Tools/MdView.Benchmarks/run.sh
+  /mnt/TEST all --size-mib 8 --seeks 10`,
+  then the 2048-MiB test after successful smoke
+  verification. Inspect the logs before making
+  HDD speedup claims. The previous full Toolbox
+  all-green tests predate these new files.
