@@ -249,8 +249,20 @@ public sealed class MdViewMixedScreenAlignmentTests
         Assert.Contains(new string(' ', 49) + "Scoped navigation",
             Visible(console));
 
-        console.Write(new Text("After navigation" + Environment.NewLine));
-        Assert.True(AtColumnZero(Visible(console), "After navigation"));
+        // The raw ANSI recording still contains overwritten prompt
+        // frames, so a line-start assertion there would not describe
+        // the actual terminal screen. Verify instead that the live
+        // render hook has fully detached from the pipeline.
+        var subsequent = new Text("After navigation" + Environment.NewLine);
+        var options = new RenderOptions(
+            console.Profile.Capabilities,
+            new Size(console.Profile.Width, console.Profile.Height));
+        var remaining = console.Pipeline.Process(
+            options, new IRenderable[] { subsequent }).Single();
+        Assert.Same(subsequent, remaining);
+
+        console.Write(subsequent);
+        Assert.Contains("After navigation", Visible(console));
     }
 
     [Fact]
