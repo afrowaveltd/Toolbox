@@ -23,6 +23,48 @@ fi
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT="$SCRIPT_DIR/MdView.Benchmarks.csproj"
 mkdir -p -- "$ROOT/tmp" "$ROOT/data" "$ROOT/logs"
+# Fail closed if an existing directory is a symlink, or hides a
+# nested mount on another volume. All data, logs and temporary
+# indexes must remain on the designated rotational disk.
+for FOLDER in "$ROOT/tmp" "$ROOT/data" "$ROOT/logs"; do
+    ACTUAL="$(realpath -e -- "$FOLDER")"
+    [[ "$ACTUAL" == "$ROOT/"* ]] || {
+        echo "Refusing directory outside test disk: $FOLDER -> $ACTUAL" >&2
+        exit 2
+    }
+    FOLDER_MOUNT="$(findmnt -n -T "$ACTUAL" -o TARGET)"
+    [[ "$FOLDER_MOUNT" == "$MOUNT_TARGET" ]] || {
+        echo "Refusing directory on a different filesystem: $ACTUAL" >&2
+        exit 2
+    }
+done
+
+SIZE_MIB=2048
+ARGUMENTS=( "$@" )
+for (( I=0; I<${#ARGUMENTS[@]}; I++ )); do
+    if [[ "${ARGUMENTS[I]}" == "--size-mib" ]]; then
+        [[ $((I+1)) -lt ${#ARGUMENTS[@]} ]] || {
+            echo "Expected a value after --size-mib" >&2; exit 2;
+        }
+        SIZE_MIB="${ARGUMENTS[I+1]}"
+    fi
+done
+[[ "$SIZE_MIB" =~ ^[0-9]+$ ]] || {
+    echo "Size must be a positive integer of MiB" >&2; exit 2;
+}
+(( SIZE_MIB >= 8 && SIZE_MIB <= 8192 )) || {
+    echo "Size must be 8–8192 MiB" >&2; exit 2;
+}
+# Conservative reserve: source, validated snapshot, journal,
+# assorted indexes and room for the operating system/filesystem.
+AVAILABLE_KIB="$(df -Pk -- "$ROOT" | awk 'NR==2 {print $4}')"
+REQUIRED_KIB=$(( (SIZE_MIB * 6 + 1024) * 1024 ))
+if (( AVAILABLE_KIB < REQUIRED_KIB )); then
+    echo "Insufficient disk free space: ${AVAILABLE_KIB} KiB available;" >&2
+    echo "need ${REQUIRED_KIB} KiB for source, snapshot, journal and safety reserve." >&2
+    exit 2
+fi
+
 export TMPDIR="$ROOT/tmp"
 export TMP="$TMPDIR"
 export TEMP="$TMPDIR"
