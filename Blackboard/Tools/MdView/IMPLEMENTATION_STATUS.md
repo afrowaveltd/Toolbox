@@ -1119,3 +1119,50 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   exact native visual height and compact fallback decisions.
   Only then expose optional embedded Spectre tables. The existing
   compact `Page X of Y` remains untouched and the default.
+
+## 2026-11-15 — single-table disk-backed native fragment index
+
+- Maintainer confirmed that the **previous measured native table page
+  planner checkpoint is fully green** (focused and full tests), without
+  exact test totals. This acceptance predates the new files below.
+- Added `MdViewNativeTableFragmentIndex.cs`, commit
+  `078a4163e1058c6a24256c02c821e1d2e6ea5af7`.
+  It builds one source-bound native table index with fixed **28-byte
+  disk records** (first/next physical data source line, data row count,
+  actual Spectre visual height, continuation flag). It performs
+  random 28-byte reads and a binary search for an original source
+  line, mapping the header/delimiter to fragment zero.
+- Uses bounded `MdViewNativeTablePagePlanner` on each chunk
+  (at most six data rows + one lookahead), with a 64 MiB default
+  index budget, DeleteOnClose temporary storage, validated header
+  preflight, and a whole-table compact fallback if any fragment
+  cannot safely fit. Source snapshot/cursor remain caller-owned.
+- Added `MdViewNativeTableFragmentRenderer.cs`, commit
+  `594f06305c71118732cd5a837f4354ce02e82b2b`.
+  It reconstructs only the selected native widget and verifies
+  indexed source resume, rendered height and continuation before
+  writing. Added source cursor identity and canonical header
+  checks (commits `3aa00095372888f15eb9d7136c1e733d2a028833`
+  and `3204d496ec8de486e7c1f3c32aec214516e6b702`);
+  viewport width/height/Unicode must match the index. The
+  content-row budget cannot exceed the physical terminal height.
+- Added **11 `MdViewNativeTableFragmentIndexTests`**,
+  beginning with commit `83a094933e203d3809482039c3a4fd1c9e5aa019`,
+  including a corrected 0-based second-fragment resume assertion
+  (`66ed6734c436dd667e9537b35e67db00de9cec44`)
+  and substituted-source regression
+  (`e5840e94c2b46dff0350db290f8250f8ba443de9`).
+- English documentation:
+  `Docs/Native-Table-Fragment-Index/en.md`;
+  project README, test README, root README and page planner guide
+  now link this single-table milestone.
+- **Fresh post-change .NET verification pending** (SDK unavailable
+  in this assistant environment). Run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`; keep last green checkpoint distinct.
+- **Next milestone:** mixed Markdown visual-block event stream/index
+  for ordinary prose, source-bound native table fragments and compact
+  fallbacks, using a *remaining page content-row* budget. Only
+  then offer optional inline native tables in `mdview preview`.
+  Existing default `MdViewTerminalPageIndex`, renderer, and modal
+  table viewer are unchanged.
