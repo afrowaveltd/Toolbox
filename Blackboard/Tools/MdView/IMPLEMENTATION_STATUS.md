@@ -1493,3 +1493,26 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   and only after green verification consider preserving
   centered column alignment in other optional reader
   modes or improving very-long native table behavior.
+
+## 2026-11-15 — centered-column test compilation correction
+
+- Maintainer's .NET 10 build of the new centered-column suite found
+  **two CS1503 errors** at lines 36–37 and **one CS0619 obsolete
+  xUnit assertion error** at line 40 of
+  `MdViewMixedContentAlignmentTests.cs`. Compilation stopped before
+  a new test result; the previous maintainer-confirmed green
+  checkpoint still applies to the earlier width-cap stage.
+- Fixed only the test fixture (commit
+  `59dc31b6c3199a368b46adb900d20d87c15a93fc`).
+  The argument-validation test now constructs a plain
+  `Spectre.Console.Table` without unnecessary chained string
+  column extensions. Two synchronous
+  `Assert.Throws<T>` calls now use explicit block-bodied
+  `Action` lambdas, avoiding the obsolete async overload
+  (`Assert.Throws<T>(Func<Task>)`).
+- No production code or CLI behavior changed.
+- **Fresh MdView.Tests and full Toolbox.sln builds still pending.**
+  The assistant environment has no .NET SDK. Run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`, then smoke-test the centered
+  native preview.
