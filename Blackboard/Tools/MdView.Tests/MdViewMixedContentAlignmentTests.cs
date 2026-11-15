@@ -121,7 +121,6 @@ public sealed class MdViewMixedContentAlignmentTests
         Assert.Equal(expected, first);
         Assert.Equal(expected, second);
         Assert.Equal(first.VisualRows, second.VisualRows);
-        Assert.Equal(index.PageCount, index.PageCount);
         Assert.Equal(180, center.Profile.Width);
         Assert.Equal(70, index.MaximumContentColumns);
         Assert.Equal(54, MdViewMixedContentAlignment.LeftGutter(
@@ -174,14 +173,15 @@ public sealed class MdViewMixedContentAlignmentTests
     }
 
     [Theory]
-    [InlineData("--center", "--center")]
-    [InlineData("--max-width", "100", "--max-width", "80")]
-    [InlineData("--unknown", "100")]
-    [InlineData("--center", "--unknown")]
-    public void UnknownAndDuplicateCenterOptionsAreRejected(params string[] extra)
+    [InlineData("--center --center")]
+    [InlineData("--max-width 100 --max-width 80")]
+    [InlineData("--unknown 100")]
+    [InlineData("--center --unknown")]
+    public void UnknownAndDuplicateCenterOptionsAreRejected(string options)
     {
         var args = new[] { "preview-native", "README.md" }
-            .Concat(extra).ToArray();
+            .Concat(options.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            .ToArray();
         Assert.Throws<ArgumentException>(() => MdViewCommand.Parse(args));
     }
 
