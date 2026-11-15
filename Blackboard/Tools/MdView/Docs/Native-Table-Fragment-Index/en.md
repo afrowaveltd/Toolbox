@@ -170,3 +170,21 @@ until their repeated-header native continuation is supported by a
 whole-document mixed page index.
 
 [Mixed visual page planning](../Mixed-Visual-Page-Planning/en.md).
+
+## Whole-document integration as an explicit option (2026-11-15)
+
+`MdViewMixedVisualPagePlanner` can now embed repeated-header
+native fragments **directly inside whole-document mixed
+paging** when `--long-tables` is selected. It reuses
+`MdViewNativeTablePagePlanner` and a lightweight
+bounded `MdViewLongNativeTableEligibility` preflight,
+which verifies all source fragments before allowing
+any partial promotion.
+
+The standalone disk fragment index remains available
+for its original use. The whole-document integration
+reuses the existing 56-byte mixed page records,
+encoding native continuation using a reserved state
+rather than storing a separate widget/index in RAM.
+The compact default is unchanged.
+[Long native tables](../Long-Native-Tables/en.md).
