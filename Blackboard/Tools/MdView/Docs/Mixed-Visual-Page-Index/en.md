@@ -158,3 +158,21 @@ line. The existing compact `mdview preview PATH` command remains
 unchanged. This new UI is awaiting fresh maintainer tests.
 
 [Usage, navigation and viewport safeguards](../Mixed-Native-Preview/en.md).
+
+## Optional width metadata for mixed page indexes (2026-11-15)
+
+`MdViewMixedVisualPageIndex.CreateAsync` now accepts
+`maximumContentColumns` (zero for automatic). Its
+`MaximumContentColumns` property retains this value as
+**in-memory index metadata**, not an extra disk record
+field: the existing 56-byte page format remains unchanged.
+The indexed renderer replans each requested page using
+the original cap, then checks its source and measured
+visual geometry against the disk record before output.
+
+Physical terminal width, height and Unicode capabilities
+remain mandatory resize checks. A width cap never
+overrides the physical terminal profile. The original
+compact page index remains unchanged.
+
+[Optional width guide](../Mixed-Content-Width/en.md).
