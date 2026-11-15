@@ -52,12 +52,14 @@ public sealed record MdViewMixedVisualTableBlock(
 /// <param name="TerminalHeight">Terminal rows used to plan the page.</param>
 /// <param name="Unicode">Unicode capability used for Spectre measurement.</param>
 /// <param name="Blocks">Ordered bounded blocks to render without reparsing source.</param>
+/// <param name="MaximumContentColumns">Optional shared content width cap, or zero for automatic.</param>
 public sealed record MdViewMixedVisualPage(
     MdViewMixedVisualPosition Start,
     MdViewMixedVisualPosition Next,
     int Rows, bool ContainsClippedCode, bool AtEnd,
     int TerminalWidth, int TerminalHeight, bool Unicode,
-    IReadOnlyList<MdViewMixedVisualBlock> Blocks);
+    IReadOnlyList<MdViewMixedVisualBlock> Blocks,
+    int MaximumContentColumns = 0);
 
 /// <summary>
 /// Experimental one-page planner mixing formatted Markdown rows and complete
@@ -81,12 +83,15 @@ public static class MdViewMixedVisualPagePlanner
     /// <param name="console">Spectre terminal whose actual geometry is used.</param>
     /// <param name="contentRows">Available visible content rows, 1–128.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="maximumContentColumns">Optional maximum content width; zero retains full terminal width.</param>
     /// <returns>One page with an exact next source position and renderable blocks.</returns>
     public static async Task<MdViewMixedVisualPage> PlanAsync(
         MdViewContainerPageCursor cursor, MdViewMixedVisualPosition start,
         IAnsiConsole console, int contentRows,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        int maximumContentColumns = 0)
     {
+        MdViewMixedContentWidth.Validate(maximumContentColumns);
         ArgumentNullException.ThrowIfNull(cursor);
         ArgumentNullException.ThrowIfNull(console);
         if (contentRows is < 1 or > 128 ||
@@ -103,7 +108,10 @@ public static class MdViewMixedVisualPagePlanner
 
         var width = Math.Max(1, console.Profile.Width);
         var height = Math.Max(1, console.Profile.Height);
-        var columns = Math.Clamp(width - 2, 8, 4096);
+        var effectiveWidth = MdViewMixedContentWidth.EffectiveTerminalWidth(
+            width, maximumContentColumns);
+        var columns = MdViewMixedContentWidth.ContentColumns(
+            width, maximumContentColumns);
         var blocks = new List<MdViewMixedVisualBlock>();
         var position = start;
         var used = 0;
@@ -156,12 +164,14 @@ public static class MdViewMixedVisualPagePlanner
                     MdViewNativeTablePageChunk? full = null;
                     if (!sourceChunk.HasMore &&
                         MdViewNativeTablePagePlanner.SupportsNativeGrid(
-                            width, header.Columns.Count))
+                            effectiveWidth, header.Columns.Count))
                     {
                         full = await MdViewNativeTablePagePlanner.PlanAsync(
                             cursor, header, position.Line + 2,
                             console, contentRows,
-                            cancellationToken: cancellationToken).ConfigureAwait(false);
+                            cancellationToken: cancellationToken,
+                            maximumContentColumns: maximumContentColumns)
+                            .ConfigureAwait(false);
                     }
 
                     var entireNative = full is { IsNative: true, HasMore: false } &&
@@ -230,7 +240,7 @@ public static class MdViewMixedVisualPagePlanner
         return new MdViewMixedVisualPage(
             start, position, used, clipped, atEnd,
             width, height, console.Profile.Capabilities.Unicode,
-            blocks);
+            blocks, maximumContentColumns);
     }
 
     private static bool MayStartPipeHeader(MarkdownContainerLine line)
