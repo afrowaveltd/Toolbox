@@ -390,3 +390,28 @@ Unicode, long lines, cancellation and corruption.
 CLI, native table pagination and the 56-byte disk
 page index remain unchanged.
 [Contiguous event-journal reads](Blackboard/Tools/MdView/Docs/Contiguous-Journal-Reads/en.md).
+
+### MdView manual HDD benchmark (2026-11-15)
+
+`Blackboard/Tools/MdView.Benchmarks` is a new
+standalone, non-packable .NET 10 benchmark utility
+**outside the regular Toolbox solution/test suite**.
+The maintainer can run its safe Linux launcher on a
+separately mounted HDD (e.g. `/mnt/TEST`) to
+redirect **all MdView temporary snapshots, journals
+and indexes** to that volume before .NET starts.
+It creates a deterministic **exactly 2-GiB**
+Markdown file using bounded streaming writes,
+then logs snapshot/journal throughput, repeatable
+random seeks, memory, Linux process I/O, and
+optional full mixed-page indexing in separate
+timestamped `JSONL`, `TXT` and system logs.
+
+The tool never formats, mounts, deletes original
+data or resets system disk caches. It refuses the
+OS root filesystem and requires a disk-space reserve.
+The previous all-green MdView tests do not constitute
+a new benchmark run. Real HGST test results are
+pending and will inform future measurable changes.
+
+[Manual HDD benchmark instructions](Blackboard/Tools/MdView.Benchmarks/README.md).
