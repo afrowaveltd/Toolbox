@@ -140,7 +140,8 @@ public static class MdViewMixedVisualPagePlanner
                 };
             }
 
-            if (position.WrapRow == 0 && position.CompactHeaderLine == -1)
+            if (position.WrapRow == 0 && position.CompactHeaderLine == -1 &&
+                MayStartPipeHeader(classified))
             {
                 var header = await MdViewSpectreTableBlockReader.ReadHeaderAsync(
                     cursor, position.Line, cancellationToken).ConfigureAwait(false);
@@ -230,5 +231,20 @@ public static class MdViewMixedVisualPagePlanner
             start, position, used, clipped, atEnd,
             width, height, console.Profile.Capabilities.Unicode,
             blocks);
+    }
+
+    private static bool MayStartPipeHeader(MarkdownContainerLine line)
+    {
+        if (line.Kind != MarkdownContainerLineKind.Plain ||
+            line.QuoteDepth != 0)
+            return false;
+
+        // Avoid a disk-journal two-line probe on every ordinary prose
+        // line. Use no temporary trimmed copy of a possibly long line.
+        var source = line.Source.Text;
+        var start = 0;
+        while (start < source.Length && char.IsWhiteSpace(source[start]))
+            start++;
+        return source.Length - start >= 5 && source[start] == '|';
     }
 }
