@@ -52,7 +52,8 @@ public static class MdViewMixedVisualIndexedRenderer
             .ConfigureAwait(false);
         var page = await MdViewMixedVisualPagePlanner.PlanAsync(
             cursor, expected.Start, console, index.ContentRows,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken, maximumContentColumns: index.MaximumContentColumns)
+            .ConfigureAwait(false);
 
         if (page.Start != expected.Start ||
             page.Next != expected.Next ||
