@@ -320,3 +320,11 @@ physical source-line jumps, indexed heading/link selection and
 resize reindexing. Long tables retain compact fallback; the
 existing `mdview preview PATH` default remains unchanged.
 [Mixed native preview guide](Blackboard/Tools/MdView/Docs/Mixed-Native-Preview/en.md).
+
+On wide monitors, MdView's opt-in native mixed preview can now
+limit **document-body width** without changing the physical terminal
+profile: `mdview preview-native README.md --max-width 100`.
+The same cap is used by Markdown wraps, native Spectre table
+measurement and disk-indexed `Page X of Y` reconstruction.
+Default full-width behavior and `mdview preview PATH`
+remain unchanged. [Content-width guide](Blackboard/Tools/MdView/Docs/Mixed-Content-Width/en.md).
