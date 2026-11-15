@@ -1169,3 +1169,52 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   then offer optional inline native tables in `mdview preview`.
   Existing default `MdViewTerminalPageIndex`, renderer, and modal
   table viewer are unchanged.
+
+## 2026-11-15 — first source-aware mixed Markdown/native visual pages
+
+- Maintainer confirmed the preceding **single-table native fragment disk
+  index and renderer tests all green**, including the full solution.
+  Exact totals were not supplied; this is the accepted baseline.
+- Added `MdViewMixedVisualPagePlanner.cs`, commit
+  `e655cbfae7365200f63cc4c180abfcfc3646e8d4`. The planner uses
+  the validated `MdViewContainerPageCursor` and the existing
+  `MdViewTerminalLineLayout` to combine ordinary styled Markdown
+  rows with **complete small native Spectre tables** on one bounded
+  visual page. The planned page includes exact source/wrap resume
+  coordinates and a compact-table header/column continuation state.
+- Deliberate safe rule: only confirmed wide tables with **0–6 data
+  rows**, all fitting a fresh page, can be native. A native table
+  that does not fit the *remaining* page space is deferred intact
+  to the next page. Tables with more than six rows, narrow
+  layouts or over-height native widgets stay compact for their
+  entire source block, including through page breaks. Ordinary
+  Markdown preserves existing styled row counts.
+- Added `MdViewMixedVisualPageRenderer.cs` (commit
+  `23e291d311f09a4bfe26f503f0f2218c9c13049b`).
+  It checks terminal width/height/Unicode, total block rows and
+  actual native Spectre rendered height **before any output**,
+  and prints text spans using the established Markdown style
+  resolver. That resolver is now `internal` and XML documented
+  (commit `2e1b1b2faf2e862b37ae377e1b76108fedb04589`).
+- Avoided two-line disk-journal header probing for ordinary prose
+  by checking the source-line's possible pipe prefix without
+  materializing a trimmed long string (commit
+  `8cbc254c70df633aa1081a17f855298f897862db`).
+- Added **10 `MdViewMixedVisualPageTests`** (commits
+  `e18455a986cf0993ee20813fde2632fdb4dbc906`,
+  `3904f213b32bbbae8a02ea2d25957bc683c86ab1`).
+  They cover compact/native source progression, height/page
+  boundaries, fenced pipes, old compact page-start parity,
+  narrow terminals, resize and source/cancellation guards.
+- English documentation:
+  `Docs/Mixed-Visual-Page-Planning/en.md`. Updated MdView README,
+  MdView.Tests README, root README, and previous table index guide.
+- **Fresh post-change .NET tests pending**. Run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`; no new green count is claimed
+  without the maintainer's run.
+- This stage **does not change the default `mdview preview PATH`**
+  or `MdViewTerminalPageIndex`. Next: create a disk-backed
+  **mixed-document page-start index** using this shared planner,
+  with source-line jumps, geometry rebuilds and rendering parity
+  before offering optional inline native tables in the UI.
