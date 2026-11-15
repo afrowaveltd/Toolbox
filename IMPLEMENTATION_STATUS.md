@@ -1040,3 +1040,11 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   status. **Fresh focused/full .NET tests and Konsole
   confirmation still pending.** The last test count above
   predates this fix and is not marked green.
+- Follow-up test hardening (commit
+  `09ae5e0d4b2c138780c18c309531434d8d1e4e20`):
+  the scoped-prompt test checks the **actual Spectre render
+  pipeline** contains no remaining gutter hook after the
+  prompt exits. It no longer infers the post-prompt
+  cursor location from a flattened ANSI transcript
+  containing earlier erased/redrawn prompt frames.
+  The output text is still checked for visibility.
