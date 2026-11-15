@@ -1014,3 +1014,25 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   their first successful build and execution.
 - Next verification: focused MdView.Tests and all Toolbox.sln
   tests, including warnings and native table visual smoke test.
+
+## 2026-11-15 — native table journal request batching regressions
+
+- Maintainer reported all green after the previous
+  `--long-tables` compiler fix. No new exact focused
+  count provided.
+- Added **five `MdViewNativeTableBatchReadTests`**
+  (commit `a62ac9f523f79468b1d8cc8afdff45379b854dba`).
+  They verify the native planner uses a single
+  `MdViewContainerPageCursor.ReadAsync` request for
+  up to six source rows plus a lookahead; 14 data
+  rows are planned in three requests; height-overflow
+  continuation retries the unconsumed row; after-table
+  prose is not consumed; source bytes stay unchanged;
+  narrow and pre-cancelled paths make no journal call.
+- A new `internal long ReadRequestCount` counter
+  on `MdViewContainerPageCursor` is test-only
+  instrumentation for validated API call count.
+  It is **not** a timer nor an OS disk I/O counter.
+- The native fragment planner, source-bound disk index,
+  mixed pages and all pre-existing test suites must remain
+  green. **Fresh focused and full .NET runs pending.**
