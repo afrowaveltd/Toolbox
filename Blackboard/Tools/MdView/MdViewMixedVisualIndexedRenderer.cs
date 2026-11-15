@@ -54,10 +54,13 @@ public static class MdViewMixedVisualIndexedRenderer
             .ConfigureAwait(false);
         var page = await MdViewMixedVisualPagePlanner.PlanAsync(
             cursor, expected.Start, console, index.ContentRows,
-            cancellationToken, maximumContentColumns: index.MaximumContentColumns)
+            cancellationToken,
+            maximumContentColumns: index.MaximumContentColumns,
+            longNativeTables: index.LongNativeTables)
             .ConfigureAwait(false);
 
-        if (page.Start != expected.Start ||
+        if (page.LongNativeTables != index.LongNativeTables ||
+            page.Start != expected.Start ||
             page.Next != expected.Next ||
             page.Rows != expected.VisualRows ||
             page.AtEnd != expected.AtEnd ||
