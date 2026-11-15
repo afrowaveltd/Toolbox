@@ -1013,3 +1013,30 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - User's .NET 10 build passed MdView but failed MdView.Tests with two `CS0236` and one `CS1061` error in `MdViewMixedScreenAlignmentTests.Fixture`.
 - Corrected ambiguous `Path` references to `System.IO.Path` (commit `6463ac5e56fca90b1207916e7bd8cc5a6e9758b6`). This is a test-only compile fix, not a production code change.
 - Fresh focused and full-solution tests remain pending.
+
+## 2026-11-15 — fix MdView live centered prompt after 8 failing tests
+
+- Latest user-supplied MdView run: **325 passing, 8 failing,
+  333 total, 0 skipped**. Visual Konsole testing confirmed
+  the upper centered Markdown screen was correct, but the
+  interactive navigation menu was still at column zero.
+- Replaced ineffective `MdViewIndentedPromptConsole`
+  forwarding proxy (deleted) with
+  `Blackboard/Tools/MdView/MdViewCenteredPrompt.cs`:
+  short-lived Spectre `IRenderHook` pads the actual
+  native `SelectionPrompt` live widget as a borderless
+  horizontal layout, after Spectre adds the live render
+  hook. Native input/cursor control is unchanged.
+- Updated `MdViewMixedPreviewPager` and
+  `MdViewDiskNavigationPicker` to align both main
+  and indexed heading/link menus. Empty-result message
+  and long picker labels respect the reading gutter.
+- `MdViewMixedScreenAlignmentTests` now use actual
+  ANSI-enabled `TestConsole` live rendering and strip
+  control sequences for visible-indent comparisons.
+  Added regression checks for padding and hook scope.
+  Previous failing cases remain in place.
+- Updated README, English Docs and implementation
+  status. **Fresh focused/full .NET tests and Konsole
+  confirmation still pending.** The last test count above
+  predates this fix and is not marked green.
