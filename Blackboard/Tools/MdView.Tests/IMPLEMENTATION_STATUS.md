@@ -770,3 +770,28 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - **Fresh new-case execution pending** on the maintainer's
   .NET 10 installation. Do not carry the prior green
   outcome forward to these new tests without a rerun.
+
+## 2026-11-15 — maximum content-width regression coverage
+
+- Previous `preview-native` screenshots visibly confirmed
+  functional mixed Markdown paging at several Konsole
+  widths; a new .NET test transcript was not provided.
+- Added `MdViewMixedContentWidthTests.cs`, covering
+  deterministic effective/content columns with a physically
+  unchanged console; permitted and rejected caps; a greater
+  measured page count under constrained prose; exact source
+  line jumps and disk/indexed-renderer parity; native table
+  geometry/fallback under a width limit; six terminal
+  widths 40–220 across a native-table page boundary;
+  bounded Markdown row widths; viewport resize rejection;
+  case-insensitive `preview-native PATH --max-width N`
+  syntax and invalid values; visible header status.
+- Existing `MdViewMixedVisualPageTests`,
+  `MdViewMixedVisualPageIndexTests` and
+  `MdViewMixedPreviewPagerTests` must remain green.
+  No changes to the established compact `preview PATH`
+  mode are intended.
+- **New tests have not been executed with .NET here.**
+  Re-run the focused MdView.Tests project and all of
+  `Toolbox.sln`; do not claim a new green checkpoint
+  before the maintainer verifies it.
