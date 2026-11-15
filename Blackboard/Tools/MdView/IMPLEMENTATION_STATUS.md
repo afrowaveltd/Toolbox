@@ -1349,3 +1349,68 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   first; if green, improve UI consistency and validate
   terminal resize and long-file/low-RAM behavior before
   considering a broader native table block model.
+
+## 2026-11-15 — optional reading-width cap for native mixed preview
+
+- User visually inspected `mdview preview-native` in three Konsole
+  window sizes. The mixed index and source-page ranges updated with
+  the viewport, from 13 to 8 pages on a wider display. No fresh
+  complete .NET test transcript accompanied these screenshots.
+- Based on the user's agreement to improve readability on large
+  monitors, added `MdViewMixedContentWidth.cs` (commit
+  `16d6c207acb55e3d8cbc62d47e03f422df699c31`).
+  This documents and enforces an explicit optional
+  **40–4096 content-column** maximum. Zero means automatic
+  physical-terminal width. The console's actual profile is
+  never modified.
+- Native table measurement now uses the **same effective
+  width** as Markdown text wrapping and compact table cells.
+  `MdViewNativeTablePagePlanner` accepts
+  `maximumContentColumns` as an optional trailing argument
+  (commit `1026c812c86fd32ff023447f2917c95add9447ec`).
+  Mixed-page planning passes the cap through to the native
+  table factory and appends it to the page metadata
+  (`fb51ec69b377251e9cfdfefc2eebb2d2bd56f2eb`).
+- `MdViewMixedVisualPageIndex` retains
+  `MaximumContentColumns` in **instance metadata**, preserving
+  its existing 56-byte page-record disk format
+  (`97b0f2a40ed6dd537a984bff240bd843c15a0017`).
+  Indexed rendering replans using the same limit before
+  verifying source position and visual geometry
+  (`dbf02568b60e0737f64f3a5d887226fe01da6047`).
+- The native mixed pager accepts
+  `RunAsync(..., maximumContentColumns: N)` and displays
+  `max N columns` in its header
+  (`cae2f9e450389236f34e22b23b385e0e33f4c6ba`).
+  CLI parsing now supports
+  **`mdview preview-native PATH --max-width N`**, case
+  insensitive with strict integer/range validation, while
+  leaving the record's original three constructor parameters
+  and existing `preview PATH` syntax intact
+  (`333b1c9825fadebfcd4b8c99a82d7a585aa6c25a`,
+  `9359fd7b2cc272ff6f3a3a45efe1ccfd93f0675c`).
+- Added `MdViewMixedContentWidthTests.cs` (commit
+  `67b7ede97ddcce31be8bcdb2cfc113ec0c9e715a`)
+  with parameterized physical/effective width policies,
+  invalid input/CLI cases, page-count/source-index parity,
+  bounded prose rows, native table measurement and fallback,
+  unchanged original source/terminal profile and resize
+  rejection. An additional parameterized case checks actual
+  widths 40, 63, 64, 80, 120 and 220 and native table
+  deferral at visual page boundaries
+  (`ae57a117c4ac2c19a3b303be2fb3a2ee14c2d9a8`).
+  Made the post-table prose expectation independent of
+  native border height (`fb943c124b666eb2901ae3ee8552aac24a8cb039`).
+- English document `Docs/Mixed-Content-Width/en.md`,
+  root/MdView/test READMEs and mixed preview/index guides
+  have been updated.
+- **Fresh focused/full .NET tests for the width-cap change
+  remain pending.** The assistant environment has no .NET SDK.
+  Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`, then manually compare
+  `preview-native README.md` with
+  `preview-native README.md --max-width 100`.
+- **Next:** resolve any test/analyzer findings, smoke-test
+  native tables and source jumps on narrow/wide terminals,
+  then consider optional text centering while keeping
+  exact disk-index layout parity and compact default.
