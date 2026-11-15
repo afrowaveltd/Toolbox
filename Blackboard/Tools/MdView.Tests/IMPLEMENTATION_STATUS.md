@@ -801,3 +801,24 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   visible wrapped prose instead (commit
   `a03ce6d78d83276453446e748ff991de45765556`).
   No production behavior was altered by this test cleanup.
+
+## 2026-11-15 — centered mixed-preview test coverage
+
+- Maintainer reports prior width-cap increment
+  **all green**; no updated precise test total given.
+- Added `MdViewMixedContentAlignmentTests`, eight
+  test methods with parameterized cases. These verify
+  left-gutter geometry at seven physical/capped widths,
+  native `Padder` zero-vertical-padding row parity,
+  uniform Markdown/native border positioning,
+  literal source/markup safety, unchanged 56-byte
+  disk-index page records and canonical source jumps,
+  identical output with no spare reading width,
+  CLI flag order/case and duplicate rejection, and
+  opt-in header status.
+- Both new and existing `preview-native` tests
+  must remain green. The default compact
+  `preview PATH` behavior was not changed.
+- **New test suite not yet run with .NET here**.
+  Maintainer should rerun focused MdView.Tests and
+  the full Toolbox solution, checking warnings too.
