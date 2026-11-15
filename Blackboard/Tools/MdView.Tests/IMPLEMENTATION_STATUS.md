@@ -795,3 +795,9 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   Re-run the focused MdView.Tests project and all of
   `Toolbox.sln`; do not claim a new green checkpoint
   before the maintainer verifies it.
+- Follow-up fixture hardening: a canonical page beginning inside a
+  long soft-wrapped source line is not required to repeat the
+  `Line N:` prefix. The constrained-page regression now checks
+  visible wrapped prose instead (commit
+  `a03ce6d78d83276453446e748ff991de45765556`).
+  No production behavior was altered by this test cleanup.
