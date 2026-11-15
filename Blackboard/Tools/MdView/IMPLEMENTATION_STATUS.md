@@ -1587,3 +1587,70 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
 - Maintainer's .NET 10 build confirms the production `MdView` project builds successfully. `MdView.Tests` failed with **CS0236** (twice, line 226) and **CS1061** (line 232) in the new `MdViewMixedScreenAlignmentTests.Fixture`.
 - Root cause: the fixture property `Path` shadowed the static `System.IO.Path` class used in field initialization and file-path construction. Changed both `Path.Combine` calls and `Path.GetTempPath` to explicit `System.IO.Path` references (commit `6463ac5e56fca90b1207916e7bd8cc5a6e9758b6`).
 - No production source or test intent changed. **Fresh MdView.Tests and full-solution results still pending** after this focused compiler repair.
+
+## 2026-11-15 — live Spectre prompt centering fix after 8 failed tests
+
+- Maintainer tested the earlier centered-screen implementation:
+  **333 MdView.Tests total, 325 passed, 8 failed, 0 skipped**.
+  All eight failures were in
+  `MdViewMixedScreenAlignmentTests`. Konsole also showed
+  the entire header and Markdown correctly centered but
+  the bottom live navigation menu still at column zero.
+  No green result exists yet for this replacement.
+- Investigation into Spectre.Console sources confirmed
+  `SelectionPrompt` delegates to `ListPrompt` and attaches
+  `ListPromptRenderHook`, which emits the live menu
+  *after* the initial `IAnsiConsole.Write`. The original
+  `MdViewIndentedPromptConsole` wrapped the initial write
+  and therefore failed to position the actual live widget.
+- Added `MdViewCenteredPrompt.cs` (commit
+  `f1f5d55af783ce65e848c9c838752aee67996d75`):
+  `MdViewCenteredPromptRenderHook : IRenderHook` plus
+  `MdViewCenteredPrompt.ShowAsync<T>`. The hook is attached
+  before the native prompt and adds zero-vertical horizontal
+  `Padder` positioning to live renderables **after**
+  Spectre's own prompt hook runs. `ControlCode` objects
+  are passed through unchanged to preserve cursor movement,
+  refresh, Enter, Escape and arrow keys. The hook scope
+  is disposed after the prompt returns.
+- Updated the mixed pager (commit
+  `da3d487e0f94f18a861006edd816e8bd78133377`)
+  to use the new helper for its main menu and pass the
+  same gutter to the disk navigation picker. Updated
+  `MdViewDiskNavigationPicker` (commit
+  `1d6b7eebe12ad2c082d002fd22719aa021f78fa2`)
+  to use it for both heading/link lists and indent
+  empty-result feedback. Disk-indexed labels are now
+  clipped to the centered reading width (commit
+  `3351e554d3bdc77506b584249a255b51055cc459`).
+  Source-line free-text `TextPrompt` still receives
+  a **single prefixed title** on the original console,
+  avoiding per-character indentation.
+- Removed unused/ineffective
+  `MdViewIndentedPromptConsole.cs` (commit
+  `49833321a72ddf030b2bd405700f5301740024cb`).
+  No source parser, native table planner, main indexed
+  renderer, 56-byte page record or compact default changed.
+- Corrected the test harness (commit
+  `bebf9629663de3e85666616003d12935c9d158f4`):
+  enable `TestConsole.EmitAnsiSequences` so the
+  actual Spectre render pipeline and live hooks run;
+  remove ANSI control sequences for visible-text checks.
+  Added direct pipeline positioning/validation tests
+  and a scoped-prompt lifetime test (commit
+  `ec924d940cce1597d9bd1c9aa1d8c8e7c9da66fe`).
+  The previously failing alignment cases remain in the
+  suite; none have been weakened solely to suppress failures.
+- Updated MdView/root/test README and English mixed
+  native preview/alignment guides, explicitly describing
+  why the prior proxy failed and how the live hook fixes it.
+- **Fresh focused/full .NET verification pending.**
+  The assistant environment has no .NET SDK. Run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`,
+  `dotnet test Toolbox.sln` and visually retry
+  `dotnet run --project Blackboard/Tools/MdView --
+  preview-native README.md --max-width 100 --center`.
+  Confirm native bottom menu title, arrow and options
+  share the document gutter, and heading/link pickers
+  still work with Enter/Escape. Next respond to any
+  remaining test or UI evidence before long-table work.
