@@ -379,3 +379,14 @@ source-line jumps, 56-byte page index records or
 compact fallback. Internal request-count tests verify
 the behavior; real HDD speedups are not yet measured.
 [Native table journal batching](Blackboard/Tools/MdView/Docs/Native-Table-Journal-Batching/en.md).
+
+MdView now performs **bounded contiguous reads of its
+disk-backed classified source journal**, grouping complete
+neighboring JSON events into windows up to 256 KiB.
+Large individual events remain supported with the existing
+per-record limit; malformed offsets and record lengths
+are rejected. Seven new tests check stream read count,
+Unicode, long lines, cancellation and corruption.
+CLI, native table pagination and the 56-byte disk
+page index remain unchanged.
+[Contiguous event-journal reads](Blackboard/Tools/MdView/Docs/Contiguous-Journal-Reads/en.md).
