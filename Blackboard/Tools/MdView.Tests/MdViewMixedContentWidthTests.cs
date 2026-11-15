@@ -77,6 +77,90 @@ public sealed class MdViewMixedContentWidthTests
         Assert.Equal(original, await File.ReadAllBytesAsync(fixture.Path));
     }
 
+    [Theory]
+    [InlineData(40, false)]
+    [InlineData(63, false)]
+    [InlineData(64, true)]
+    [InlineData(80, true)]
+    [InlineData(120, true)]
+    [InlineData(220, true)]
+    public async Task NativeGridThresholdAndPageBoundaryStayConsistent(
+        int physicalWidth, bool shouldUseNative)
+    {
+        const int introductoryLines = 7;
+        const int contentRows = 8;
+        var introduction = string.Join("\n",
+            Enumerable.Repeat("Introduction", introductoryLines));
+        using var fixture = new Fixture(introduction +
+            "\n| Name | Value |\n| --- | --- |\n| CPU | 16 |\nAfter");
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(fixture.Path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        var console = MakeConsole(physicalWidth);
+
+        var first = await MdViewMixedVisualPagePlanner.PlanAsync(
+            cursor, MdViewMixedVisualPosition.Beginning,
+            console, contentRows);
+        Assert.Equal(string.Empty, console.Output);
+        if (shouldUseNative)
+        {
+            // The native widget fits a fresh page, but not the final
+            // remaining row after seven introductory source lines.
+            Assert.Equal(introductoryLines, first.Next.Line);
+            Assert.Equal(0, first.Next.WrapRow);
+            Assert.Empty(first.Blocks.OfType<MdViewMixedVisualTableBlock>());
+
+            var next = await MdViewMixedVisualPagePlanner.PlanAsync(
+                cursor, first.Next, console, contentRows);
+            Assert.Single(next.Blocks.OfType<MdViewMixedVisualTableBlock>());
+            Assert.Equal(11, next.Next.Line);
+        }
+        else
+        {
+            // A narrow terminal cannot display a native grid and must
+            // retain the conservative compact table-line layout.
+            Assert.Empty(first.Blocks.OfType<MdViewMixedVisualTableBlock>());
+        }
+
+        await using var index = await MdViewMixedVisualPageIndex.CreateAsync(
+            cursor, console, contentRows);
+        Assert.True(index.PageCount >= 2);
+        for (var number = 0L; number < index.PageCount; number++)
+        {
+            await MdViewMixedVisualIndexedRenderer.RenderPageAsync(
+                index, cursor, console, number, new MarkdownSpectreTheme());
+        }
+        Assert.Contains("Introduction", console.Output);
+        Assert.Contains("CPU", console.Output);
+        Assert.Equal(shouldUseNative, console.Output.Contains("╭",
+            StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task CappedStyledRowsNeverExceedConfiguredContentColumns()
+    {
+        using var fixture = new Fixture("# Example heading\n" +
+            string.Join(" ", Enumerable.Repeat(
+                "bold **important** information and a visible [link](example.md).", 20)));
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(fixture.Path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        var console = MakeConsole(240);
+
+        var page = await MdViewMixedVisualPagePlanner.PlanAsync(
+            cursor, MdViewMixedVisualPosition.Beginning, console,
+            contentRows: 30, maximumContentColumns: 56);
+
+        Assert.Equal(56, page.MaximumContentColumns);
+        Assert.True(page.Blocks.Count > 0);
+        foreach (var text in page.Blocks.OfType<MdViewMixedVisualTextBlock>())
+        {
+            foreach (var row in text.Rows)
+                Assert.InRange(MdViewTerminalWordWrap.MeasureColumns(row.Text),
+                    0, 56);
+        }
+        Assert.Equal(string.Empty, console.Output);
+        Assert.Equal(240, console.Profile.Width);
+    }
+
     [Fact]
     public async Task NativeTableUsesSameWidthLimitAsProseAndDiskIndexedRenderer()
     {
