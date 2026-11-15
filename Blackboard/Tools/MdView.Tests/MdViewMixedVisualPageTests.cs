@@ -143,6 +143,54 @@ public sealed class MdViewMixedVisualPageTests
     }
 
     [Fact]
+    public async Task CompactHeaderAndDelimiterCanSpanDifferentVisualPages()
+    {
+        var source = "Before\n| A | B |\n| --- | --- |\n" +
+            string.Join("\n", Enumerable.Range(1, 8)
+                .Select(i => "| Item " + i + " | " + i + " |"));
+        using var fixture = new Fixture(source);
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(fixture.Path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        var console = MakeConsole();
+
+        var first = await MdViewMixedVisualPagePlanner.PlanAsync(
+            cursor, MdViewMixedVisualPosition.Beginning, console, 3);
+        Assert.Equal(2, first.Next.Line);
+        Assert.Equal(0, first.Next.WrapRow);
+        Assert.Equal(1, first.Next.CompactHeaderLine);
+        Assert.Equal(2, first.Next.CompactColumns);
+        Assert.Empty(first.Blocks.OfType<MdViewMixedVisualTableBlock>());
+
+        var second = await MdViewMixedVisualPagePlanner.PlanAsync(
+            cursor, first.Next, console, 3);
+        Assert.Equal(1, second.Start.CompactHeaderLine);
+        Assert.Empty(second.Blocks.OfType<MdViewMixedVisualTableBlock>());
+        Assert.True(second.Next.Line > first.Next.Line);
+        Assert.Equal(string.Empty, console.Output);
+    }
+
+    [Fact]
+    public async Task NarrowTerminalKeepsSmallPipeTableCompact()
+    {
+        using var fixture = new Fixture(
+            "| Name | Value |\n| --- | --- |\n| Apple | 10 |");
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(fixture.Path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        var console = MakeConsole(width: 36);
+
+        var page = await MdViewMixedVisualPagePlanner.PlanAsync(
+            cursor, MdViewMixedVisualPosition.Beginning, console, 20);
+
+        Assert.True(page.AtEnd);
+        Assert.Empty(page.Blocks.OfType<MdViewMixedVisualTableBlock>());
+        Assert.Equal(string.Empty, console.Output);
+        MdViewMixedVisualPageRenderer.Render(
+            console, page, new MarkdownSpectreTheme());
+        Assert.Contains("Apple", console.Output);
+        Assert.DoesNotContain("╭", console.Output);
+    }
+
+    [Fact]
     public async Task OverheightSingleRowTableUsesCompactFallbackOnEveryPage()
     {
         var source = "| Key | Description |\n| --- | --- |\n" +
@@ -172,7 +220,7 @@ public sealed class MdViewMixedVisualPageTests
             }
         }
 
-        Assert.Fail("Compact fallback did not reach the end of the document.");
+        Assert.True(false, "Compact fallback did not reach the end of the document.");
     }
 
     [Fact]
