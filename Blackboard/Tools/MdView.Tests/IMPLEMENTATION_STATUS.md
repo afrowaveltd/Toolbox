@@ -956,3 +956,28 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   repeated-header visual heights and source-line jumps; enforce
   row-budget, disk-index and renderer parity on wide/narrow
   terminals and long source files.
+
+## 2026-11-15 — 13 opt-in long native table continuation tests
+
+- Prior all-green maintainer checkpoint: approximately **7,000
+  Toolbox tests**. This predates the new long-table changes;
+  exact focused MdView count is unknown.
+- Added `MdViewLongNativeMixedPagingTests.cs` with **13
+  test methods**, including parameterized CLI-invalid cases,
+  covering: native fragments across multiple canonical
+  pages; repeated original heading; exactly-once source
+  data row rendering; unchanged Markdown bytes; disk
+  `FindPageAsync` into later native fragments; no phantom
+  EOF page; default compact mode unchanged; narrow
+  width-capped compact fallback; centered output and
+  physical resize rejection; invalid native continuation;
+  cancellation; bounded all-or-nothing preflight; first
+  fragment deferral before table header; option parsing
+  and interactive pager.
+- Tests use the existing `MdView.Tests` friend assembly
+  to exercise internal preflight, with no public API
+  expansion. The fixed **56-byte index record** is asserted.
+- **New test suite not yet run with .NET here.**
+  Re-run focused MdView.Tests and full Toolbox.sln;
+  review warnings as well as failures. Do not claim
+  this stage green until new maintainer verification.
