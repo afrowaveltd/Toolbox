@@ -867,3 +867,29 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - User-provided build: main MdView built successfully; new centered-screen test fixture caused two `CS0236` diagnostics at line 226 and `CS1061` at line 232.
 - `Fixture.Path` property shadowed `System.IO.Path` during field and constructor initialization. Commit `6463ac5e56fca90b1207916e7bd8cc5a6e9758b6` explicitly qualifies `System.IO.Path.Combine` and `System.IO.Path.GetTempPath` in `MdViewMixedScreenAlignmentTests.cs`.
 - Tests were blocked before running; their pass count is **not yet verified**. Rerun targeted MdView.Tests and Toolbox.sln.
+
+## 2026-11-15 — 8 centered-screen failures and real live prompt tests
+
+- Maintainer's MdView.Tests run: **333 total; 325 passed;
+  8 failed; zero skipped**. All failures occurred in the
+  nine `MdViewMixedScreenAlignmentTests`. Konsole
+  confirmed the bottom native Spectre navigation remained
+  left-aligned despite a centered upper screen.
+- Root cause: the former forwarding console padded only
+  `IAnsiConsole.Write`, not the late-injected live
+  `ListPromptRenderHook` output. It was replaced with a
+  scoped `MdViewCenteredPromptRenderHook` that pads the
+  actual live renderable while leaving `ControlCode`
+  cursor/erase output unchanged.
+- Alignment test console now explicitly enables
+  `EmitAnsiSequences = true` to exercise Spectre's
+  pipeline; assertions strip only ANSI control sequences
+  and preserve the meaningful leading gutter. Added
+  direct pipeline padding/negative-gutter coverage and
+  a scope-lifetime test ensuring output after the prompt
+  is not indented. Both main and disk picker prompts
+  exercise the same helper.
+- **No fresh test outcome yet.** Next run the focused
+  MdView.Tests project followed by Toolbox.sln;
+  recheck the eight original failures and any
+  compiler/analyzer diagnostics.
