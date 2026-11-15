@@ -229,3 +229,20 @@ The table-only index and renderer are independent of the existing
 measured table planner and native modal tests must remain green.
 **Fresh focused and full-solution .NET tests are pending for these
 new files.** [Design notes](../MdView/Docs/Native-Table-Fragment-Index/en.md).
+
+## Mixed visual Markdown/native table page regressions (2026-11-15)
+
+Added ten `MdViewMixedVisualPageTests` covering native tables between
+ordinary paragraphs; moving a whole table before a page break;
+14-row compact fallback across multiple pages; a compact header and
+delimiter split between pages; narrow-terminal compact fallback;
+over-height long-cell tables; ordinary Markdown page-start parity
+with the established disk index; fenced pipe text; pre-output resize
+rejection; and invalid source positions, budgets and cancellation.
+
+`MdViewMixedVisualPagePlanner` and its matching renderer are
+**standalone experimental components**. They do not yet change the
+default local Markdown preview or the independent native table
+inspector. The maintainer's preceding all-green report is the
+baseline; **these ten additional tests still require a fresh .NET
+run**. [Design contract](../MdView/Docs/Mixed-Visual-Page-Planning/en.md).
