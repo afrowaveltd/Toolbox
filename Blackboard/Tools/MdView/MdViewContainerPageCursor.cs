@@ -22,6 +22,15 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
     /// <summary>Default maximum offset table size (256 MiB).</summary>
     public const long DefaultMaximumOffsetBytes = 256L * 1024 * 1024;
 
+    /// <summary>
+    /// Maximum contiguous event-journal read for ordinary source rows.
+    /// An individual valid record larger than this is read on its own,
+    /// never rejected merely for exceeding the batching threshold.
+    /// </summary>
+    internal const int MaximumContiguousEventReadBytes = 256 * 1024;
+
+    private const int MaximumSerializedEventBytes = 8 * 1024 * 1024;
+
     private readonly Utf8ValidatedSnapshot _snapshot;
     private readonly FileStream _events;
     private readonly FileStream _offsets;
@@ -77,6 +86,13 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
     internal long ReadRequestCount { get; private set; }
 
     /// <summary>
+    /// Diagnostic number of event-journal bulk stream reads. Each
+    /// validated contiguous window uses one ReadExactlyAsync operation;
+    /// this is not the number of physical disk I/O operations.
+    /// </summary>
+    internal long EventReadRequestCount { get; private set; }
+
+    /// <summary>
     /// Returns at most 128 source-preserving classified physical lines,
     /// without replaying already cached scanner events.
     /// </summary>
@@ -106,44 +122,95 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
             return [];
 
         var count = (int)Math.Min(maxLines, _scannedLines - firstLine);
-        var offsetsBuffer = new byte[checked(count * sizeof(long))];
+
+        // One offset-table read also includes the following record's
+        // offset, when available. At the journal's current high-water
+        // mark, _eventBytes is the authoritative exclusive end offset.
+        // This makes each event's exact stored byte span known before
+        // touching the event stream, including the final requested row.
+        var offsetCount = count +
+            (firstLine + count < _scannedLines ? 1 : 0);
+        var offsetsBuffer = new byte[checked(offsetCount * sizeof(long))];
         _offsets.Position = checked(firstLine * sizeof(long));
         await _offsets.ReadExactlyAsync(offsetsBuffer, cancellationToken)
             .ConfigureAwait(false);
 
-        var lines = new List<MarkdownContainerLine>(count);
+        var offsets = new long[count + 1];
+        for (var i = 0; i < offsetCount; i++)
+            offsets[i] = BinaryPrimitives.ReadInt64LittleEndian(
+                offsetsBuffer.AsSpan(i * sizeof(long), sizeof(long)));
+        if (offsetCount == count)
+            offsets[count] = _eventBytes;
+
+        // Fail before allocating a large buffer if even one offset
+        // crosses the journal boundary, overlaps the next record, or
+        // describes an impossible serialized source event.
         for (var i = 0; i < count; i++)
         {
+            var size = offsets[i + 1] - offsets[i];
+            if (offsets[i] < 0 ||
+                offsets[i + 1] > _eventBytes ||
+                size < sizeof(int) + 1 ||
+                size > MaximumSerializedEventBytes + sizeof(int))
+                throw new InvalidDataException(
+                    "Container journal record offset or span is invalid.");
+        }
+
+        var lines = new List<MarkdownContainerLine>(count);
+        var first = 0;
+        while (first < count)
+        {
             cancellationToken.ThrowIfCancellationRequested();
-            var entryOffset = BinaryPrimitives.ReadInt64LittleEndian(
-                offsetsBuffer.AsSpan(i * sizeof(long), sizeof(long)));
-            if (entryOffset < 0 || entryOffset > _eventBytes - sizeof(int))
-                throw new InvalidDataException("Container journal offset is invalid.");
 
-            _events.Position = entryOffset;
-            var sizeBytes = new byte[sizeof(int)];
-            await _events.ReadExactlyAsync(sizeBytes, cancellationToken)
-                .ConfigureAwait(false);
-            var length = BinaryPrimitives.ReadInt32LittleEndian(sizeBytes);
-            if (length < 1 || length > 8 * 1024 * 1024 ||
-                length > _eventBytes - entryOffset - sizeof(int))
-                throw new InvalidDataException("Container journal record is invalid.");
+            // Coalesce neighboring complete records into at most 256 KiB
+            // of journal data. A single valid larger record remains one
+            // bounded (at most 8 MiB + header) read, rather than
+            // allocating an extra buffer or splitting JSON mid-record.
+            var lastExclusive = first + 1;
+            while (lastExclusive < count &&
+                offsets[lastExclusive + 1] - offsets[first] <=
+                    MaximumContiguousEventReadBytes)
+                lastExclusive++;
 
-            var serialized = new byte[length];
-            await _events.ReadExactlyAsync(serialized, cancellationToken)
-                .ConfigureAwait(false);
-            MarkdownContainerLine? value;
-            try
+            var readLength = checked((int)(
+                offsets[lastExclusive] - offsets[first]));
+            var serializedWindow = new byte[readLength];
+            _events.Position = offsets[first];
+            EventReadRequestCount++;
+            await _events.ReadExactlyAsync(
+                serializedWindow, cancellationToken).ConfigureAwait(false);
+
+            for (var i = first; i < lastExclusive; i++)
             {
-                value = JsonSerializer.Deserialize<MarkdownContainerLine>(serialized);
+                cancellationToken.ThrowIfCancellationRequested();
+                var entryOffset = checked((int)(offsets[i] - offsets[first]));
+                var storedBytes = checked((int)(offsets[i + 1] - offsets[i]));
+                var record = serializedWindow.AsSpan(entryOffset, storedBytes);
+                var length = BinaryPrimitives.ReadInt32LittleEndian(
+                    record[..sizeof(int)]);
+                if (length < 1 ||
+                    length > MaximumSerializedEventBytes ||
+                    length != storedBytes - sizeof(int))
+                    throw new InvalidDataException(
+                        "Container journal record length is invalid.");
+
+                MarkdownContainerLine? value;
+                try
+                {
+                    value = JsonSerializer.Deserialize<MarkdownContainerLine>(
+                        record[sizeof(int)..]);
+                }
+                catch (JsonException ex)
+                {
+                    throw new InvalidDataException(
+                        "Container journal JSON is invalid.", ex);
+                }
+                if (value is null || value.Source.LineNumber != firstLine + i)
+                    throw new InvalidDataException(
+                        "Container journal line numbering is invalid.");
+                lines.Add(value);
             }
-            catch (JsonException ex)
-            {
-                throw new InvalidDataException("Container journal JSON is invalid.", ex);
-            }
-            if (value is null || value.Source.LineNumber != firstLine + i)
-                throw new InvalidDataException("Container journal line numbering is invalid.");
-            lines.Add(value);
+            first = lastExclusive;
         }
         return lines;
     }
@@ -177,7 +244,7 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
                     throw new InvalidDataException("Scanner line numbering is inconsistent.");
 
                 var record = JsonSerializer.SerializeToUtf8Bytes(line);
-                if (record.Length > 8 * 1024 * 1024)
+                if (record.Length > MaximumSerializedEventBytes)
                     throw new InvalidDataException("Container event exceeds the record limit.");
                 if (record.Length + sizeof(int) > _maximumJournalBytes - _eventBytes ||
                     _scannedLines >= _maximumOffsetBytes / sizeof(long))
