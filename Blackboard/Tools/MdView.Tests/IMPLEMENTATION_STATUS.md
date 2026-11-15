@@ -1036,3 +1036,32 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - The native fragment planner, source-bound disk index,
   mixed pages and all pre-existing test suites must remain
   green. **Fresh focused and full .NET runs pending.**
+
+## 2026-11-15 — contiguous journal event-stream I/O regressions
+
+- Latest maintainer confirmation: previous native-table
+  batching increment was **all green**. This new source
+  cursor optimization has not yet been tested on .NET.
+- Seven new `MdViewContiguousJournalReadTests` cover:
+  one event-stream read for 20 classified lines;
+  90 large rows split into complete record windows
+  under a 256-KiB ordinary limit; an oversized valid
+  individual source line; extra following record
+  offset versus `_eventBytes` at high-water mark;
+  Unicode/CRLF and backward journal reuse without
+  rescanning; rejection of deliberately corrupted
+  four-byte record length and overlapping offset
+  entries; and no extra I/O on pre-cancelled reads.
+- Added internal `EventReadRequestCount` to the
+  journal cursor to measure `_events.ReadExactlyAsync`
+  calls, separately from internal `ReadRequestCount`
+  cursor API calls. These are deterministic regression
+  counters, **not** HDD timing or OS I/O telemetry.
+- Production changes are limited to the cursor's
+  reading implementation; no reader public API or
+  disk file format changed. The default 1-MiB source
+  physical-line limit and existing 8-MiB serialized
+  journal event cap remain unaffected.
+- **Focused and full .NET tests still pending**.
+  Review new corruption and long-source test cases,
+  and all existing native Spectre/indexing regressions.
