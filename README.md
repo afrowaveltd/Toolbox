@@ -311,3 +311,12 @@ renderer that checks source and Spectre terminal geometry
 before displaying any page. The default compact reader
 remains unchanged until optional UI navigation is verified.
 [Mixed visual page index](Blackboard/Tools/MdView/Docs/Mixed-Visual-Page-Index/en.md).
+
+MdView offers an **opt-in mixed native table preview** via
+`mdview preview-native README.md`. It reuses the 56-byte disk
+page index and existing source navigation to display small native
+Spectre tables inline, with `Page X of Y`, Next/Previous,
+physical source-line jumps, indexed heading/link selection and
+resize reindexing. Long tables retain compact fallback; the
+existing `mdview preview PATH` default remains unchanged.
+[Mixed native preview guide](Blackboard/Tools/MdView/Docs/Mixed-Native-Preview/en.md).
