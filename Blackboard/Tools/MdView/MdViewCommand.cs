@@ -17,6 +17,8 @@ public enum MdViewSourceKind
     SourcePager,
     /// <summary>Preview one bounded source page with the Markdown renderer.</summary>
     FormattedPreview,
+    /// <summary>Opt-in mixed Markdown page preview with inline native Spectre grids.</summary>
+    MixedPreview,
     /// <summary>Browse local Markdown links with explicit keyboard navigation.</summary>
     LocalLinkBrowser,
     /// <summary>Browse same-origin HTTPS Markdown links with verified caching.</summary>
@@ -85,6 +87,8 @@ public sealed record MdViewCommand(MdViewSourceKind Kind, string? Value = null, 
             }
             if (args[0].Equals("preview", StringComparison.OrdinalIgnoreCase))
                 return new(MdViewSourceKind.FormattedPreview, Require(args[1]));
+            if (args[0].Equals("preview-native", StringComparison.OrdinalIgnoreCase))
+                return new(MdViewSourceKind.MixedPreview, Require(args[1]));
             if (args[0].Equals("git", StringComparison.OrdinalIgnoreCase) ||
                 args[0].Equals("github", StringComparison.OrdinalIgnoreCase))
             {
