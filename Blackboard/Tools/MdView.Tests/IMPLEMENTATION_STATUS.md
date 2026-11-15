@@ -697,13 +697,14 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 
 - Maintainer reports all tests green for the preceding table-only
   disk fragment index checkpoint; exact counts unknown.
-- Added **10 `MdViewMixedVisualPageTests`** using verified local
+- Added **11 `MdViewMixedVisualPageTests`** using verified local
   Markdown sources and virtual `Spectre.Console.Testing.TestConsole`.
   They cover prose/native/prose rendering, moving native tables to
   the next page without header loss, persistent compact fallback
   across long source tables and a split header/delimiter, narrow
   and over-height layouts, ordinary-text page-start parity with
-  the prior compact index, fenced code, resize rejection before
+  the prior compact index, fenced and four-space-indented literal
+  code, resize rejection before
   output, and invalid positions/budgets/cancellation.
 - New production components are `MdViewMixedVisualPagePlanner`
   and `MdViewMixedVisualPageRenderer`. The existing compact
@@ -713,3 +714,7 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   SDK installed). Run focused MdView.Tests followed by the full
   Toolbox solution; do not mark this increment green until the
   maintainer confirms it.
+
+- Native table block reader additionally refuses four-space-indented
+  literal code as both header and data row. A seventh source-block
+  reader regression was added; this new case is not yet executed.
