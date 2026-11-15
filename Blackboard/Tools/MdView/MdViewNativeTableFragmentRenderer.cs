@@ -40,14 +40,25 @@ public static class MdViewNativeTableFragmentRenderer
         if (!index.IsNative)
             throw new InvalidOperationException(
                 "Native table index requested compact source fallback.");
-        if (index.HeaderLine != header.SourceLine)
+        if (index.HeaderLine != header.SourceLine ||
+            !index.UsesSourceCursor(cursor))
             throw new InvalidDataException(
-                "The requested table header differs from the indexed source.");
+                "The requested table source differs from the indexed source.");
         if (index.TerminalWidth != console.Profile.Width ||
             index.TerminalHeight != console.Profile.Height ||
             index.Unicode != console.Profile.Capabilities.Unicode)
             throw new InvalidOperationException(
                 "The terminal geometry changed; rebuild the native table index.");
+
+        // Reject a substituted header even if its text happens to yield
+        // the same measured table height as the original source.
+        var canonical = await MdViewSpectreTableBlockReader.ReadHeaderAsync(
+            cursor, header.SourceLine, cancellationToken).ConfigureAwait(false);
+        if (canonical is null ||
+            !canonical.Columns.SequenceEqual(header.Columns) ||
+            !canonical.Separators.SequenceEqual(header.Separators))
+            throw new InvalidDataException(
+                "Native table header differs from the validated source.");
 
         var expected = await index.GetFragmentAsync(
             fragmentNumber, cancellationToken).ConfigureAwait(false);
