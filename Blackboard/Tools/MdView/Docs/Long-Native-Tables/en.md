@@ -179,5 +179,5 @@ source without `--long-tables` to confirm safe compact fallback.
 Related:
 [Mixed native preview](../Mixed-Native-Preview/en.md),
 [mixed disk page index](../Mixed-Visual-Page-Index/en.md),
-[native table fragments](../Native-Table-Fragments/en.md),
+[native table fragment index](../Native-Table-Fragment-Index/en.md),
 [implementation status](../../IMPLEMENTATION_STATUS.md).
