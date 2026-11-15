@@ -248,3 +248,22 @@ default local Markdown preview or the independent native table
 inspector. The maintainer's preceding all-green report is the
 baseline; **these ten additional tests still require a fresh .NET
 run**. [Design contract](../MdView/Docs/Mixed-Visual-Page-Planning/en.md).
+
+## Whole-document mixed visual page index (2026-11-15)
+
+Eleven `MdViewMixedVisualPageIndexTests` verify a real small native
+Spectre table inside an indexed Markdown page; complete compact
+fallback across many pages; within-line wrap-row binary search;
+compact table header/delimiter state across page boundaries;
+separate native tables on different pages; empty source and
+exactly filled final pages; stale terminal/source rejection
+before writing; disk-budget failure with unchanged source;
+invalid positions, disposed index and cancellation.
+
+The new `MdViewMixedVisualPageIndex` stores fixed **56-byte**
+temporary disk records and `MdViewMixedVisualIndexedRenderer`
+rebuilds/validates a single canonical page against the same
+source-aware mixed planner. This stage does **not** change the
+default compact Markdown reader UI. **Focused and full-solution
+tests are pending** for these new files.
+[Contract](../MdView/Docs/Mixed-Visual-Page-Index/en.md).
