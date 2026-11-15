@@ -787,3 +787,27 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   increment has not been called green yet.
 - **Next:** disk-backed native block-event page boundaries and
   renderer parity, preserving compact fallback on small screens.
+
+## 2026-11-15 — MdView native table disk fragment indexing
+
+- Maintainer confirmed the preceding MdView page-planner tests and
+  the full local solution tests **green**; exact counts unknown.
+- New `Blackboard/Tools/MdView/MdViewNativeTableFragmentIndex.cs`
+  persists one validated table's native fragments as **28-byte
+  disk records** under a configurable index budget; exact
+  source-bound fragments support binary-search line jumps,
+  unchanged original source, whole-block compact fallback,
+  and automatic temporary-file cleanup.
+- New `MdViewNativeTableFragmentRenderer.cs` uses the same
+  bounded planner and checks validated source cursor/header,
+  terminal profile and actual Spectre geometry before output.
+- Added 11 xUnit regression cases and English
+  `Docs/Native-Table-Fragment-Index/en.md` with updated MdView,
+  tests and Toolbox READMEs and implementation statuses.
+- **Fresh tests pending** on the maintainer's .NET installation.
+  Nothing has been claimed green for this new code; run targeted
+  MdView.Tests and `dotnet test Toolbox.sln`.
+- This is a **table-only intermediate component**, not yet a
+  combined prose/native page index or switched `Page X of Y`
+  implementation. Next step: mixed visual-block page planning
+  with remaining page-height budget and matching renderer.
