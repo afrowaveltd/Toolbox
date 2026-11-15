@@ -145,3 +145,16 @@ and low-memory behavior must be measured rather than assumed.
 See [mixed visual page planning](../Mixed-Visual-Page-Planning/en.md),
 [native table fragment index](../Native-Table-Fragment-Index/en.md),
 and [implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## Opt-in terminal UI now available (2026-11-15)
+
+The standalone mixed index now has a separate interactive caller:
+`MdViewMixedPreviewPager`, available as `mdview preview-native PATH`.
+It uses this disk page index and `MdViewMixedVisualIndexedRenderer`
+for canonical Next/Previous pages, one-based source-line jumps
+and lazy heading/link source selection. A terminal resize disposes
+and rebuilds the mixed index, reanchored to the original source
+line. The existing compact `mdview preview PATH` command remains
+unchanged. This new UI is awaiting fresh maintainer tests.
+
+[Usage, navigation and viewport safeguards](../Mixed-Native-Preview/en.md).
