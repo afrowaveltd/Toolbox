@@ -97,7 +97,14 @@ public static class MdViewTerminalPageRenderer
         return new MdViewTerminalRenderedPage(start, position, emitted, clipped);
     }
 
-    private static Style ResolveStyle(
+    /// <summary>
+    /// Resolves the same Markdown styles for ordinary and mixed visual rows.
+    /// </summary>
+    /// <param name="role">Inline semantic role.</param>
+    /// <param name="source">Classified original Markdown source line.</param>
+    /// <param name="theme">Existing Markdown presentation theme.</param>
+    /// <returns>Literal-safe Spectre style for the displayed segment.</returns>
+    internal static Style ResolveStyle(
         MdViewTerminalSpanRole role, MarkdownContainerLine source,
         MarkdownSpectreTheme theme) => role switch
     {
