@@ -692,3 +692,24 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - **These 11 new cases and existing regression suites are not yet
   re-run in this environment.** Run focused MdView.Tests followed
   by `dotnet test Toolbox.sln`. No passing totals asserted.
+
+## 2026-11-15 — mixed Markdown/native page planner regressions
+
+- Maintainer reports all tests green for the preceding table-only
+  disk fragment index checkpoint; exact counts unknown.
+- Added **10 `MdViewMixedVisualPageTests`** using verified local
+  Markdown sources and virtual `Spectre.Console.Testing.TestConsole`.
+  They cover prose/native/prose rendering, moving native tables to
+  the next page without header loss, persistent compact fallback
+  across long source tables and a split header/delimiter, narrow
+  and over-height layouts, ordinary-text page-start parity with
+  the prior compact index, fenced code, resize rejection before
+  output, and invalid positions/budgets/cancellation.
+- New production components are `MdViewMixedVisualPagePlanner`
+  and `MdViewMixedVisualPageRenderer`. The existing compact
+  pager and native inspector remain unchanged; no input
+  Markdown is mutated.
+- **New tests unexecuted in the assistant environment** (no .NET
+  SDK installed). Run focused MdView.Tests followed by the full
+  Toolbox solution; do not mark this increment green until the
+  maintainer confirms it.
