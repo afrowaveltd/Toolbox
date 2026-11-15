@@ -312,3 +312,24 @@ renderer continue to be exercised separately. This increment
 has not yet been built or run against the maintainer's .NET 10
 environment; **new green claims are pending actual test output**.
 [Technical description](../MdView/Docs/Mixed-Content-Width/en.md).
+
+## Centered mixed reading-column tests (2026-11-15)
+
+Added `MdViewMixedContentAlignmentTests` for the opt-in
+`preview-native PATH --max-width N --center` UI. The tests
+verify deterministic physical/content/gutter dimensions,
+no change to native Spectre table visual row counts with
+zero-vertical `Padder` positioning, uniform text and native
+border indentation, literal source markup, unchanged
+source bytes, the same canonical disk page record for
+left and centered rendering, identical output when the
+reading area already fills the terminal, CLI options
+in either order with repeated/unknown flags rejected,
+and visible centered-preview status.
+
+The default compact `preview PATH` and automatic-width
+`preview-native PATH` remain unchanged. The new test
+cases and build have **not yet been executed using .NET**
+in the assistant environment. The previous width-cap
+increment was maintainer-confirmed all green.
+[English design and test contract](../MdView/Docs/Mixed-Content-Alignment/en.md).
