@@ -1838,3 +1838,20 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
 - These post-test hardening changes are committed but have
   **not yet been executed under .NET**. Previous maintainer green
   report still refers to the pre-long-table checkout.
+
+## 2026-11-15 — CS1026 compiler correction for long native tables
+
+- Maintainer's .NET 10 build reported **CS1026 (expected ')')**
+  in `MdViewMixedVisualPagePlanner.cs` at line 136 before the
+  new long native table tests could run.
+- Verified the exact current GitHub source and corrected the
+  native continuation validation's missing final closing
+  parenthesis (`!longNativeTables)))`) in commit
+  `66a826192fa6aa1988088a89162c08b9712239f6`.
+  No behavior, source indexing, CLI flags or fallback
+  policy was changed.
+- **Fresh MdView.Tests and full solution results pending.**
+  After `git pull`, run
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  and `dotnet test Toolbox.sln`. Resolve any new compiler
+  or test errors before calling the long-table milestone green.
