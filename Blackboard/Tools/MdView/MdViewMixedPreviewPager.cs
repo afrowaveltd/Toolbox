@@ -60,7 +60,6 @@ public sealed class MdViewMixedPreviewPager
         await using var cursor = new MdViewContainerPageCursor(snapshot);
         MdViewMixedVisualPageIndex? index = null;
         MdViewDiskNavigationIndex? navigation = null;
-        var picker = new MdViewDiskNavigationPicker(_console);
         var theme = MdViewHighlighting.CreateTheme();
         var gray = new Style(foreground: Color.Grey);
         long pageNumber = 0;
@@ -84,9 +83,20 @@ public sealed class MdViewMixedPreviewPager
                 if (!CanDisplay(width, height))
                 {
                     WriteGrayLine("Mixed preview needs at least 28×18. " +
-                        "Enlarge the terminal and reopen the preview.", gray, width);
+                        "Enlarge the terminal and reopen the preview.",
+                        gray, width);
                     return;
                 }
+
+                // The document already positions its own rendered rows.
+                // Apply the same gutter only to its surrounding interface.
+                // This adapter preserves Spectre's native list-prompt keys,
+                // selection arrow and cancellation handling.
+                var leftGutter = MdViewMixedContentAlignment.LeftGutter(
+                    width, maximumContentColumns, centerContent);
+                IAnsiConsole promptConsole = leftGutter == 0
+                    ? _console
+                    : new MdViewIndentedPromptConsole(_console, leftGutter);
 
                 if (index is null ||
                     index.TerminalWidth != width ||
@@ -107,7 +117,7 @@ public sealed class MdViewMixedPreviewPager
 
                     WriteGrayLine(
                         "Measuring mixed Markdown pages for terminal size...",
-                        gray, width);
+                        gray, width, maximumContentColumns, leftGutter);
                     index = await MdViewMixedVisualPageIndex.CreateAsync(
                         cursor, _console, ContentRows(height, linesPerPage),
                         cancellationToken: cancellationToken,
@@ -126,12 +136,13 @@ public sealed class MdViewMixedPreviewPager
                         " | max " + maximumContentColumns.ToString(
                             CultureInfo.InvariantCulture) + " columns") +
                     (centerContent ? " | centered" : ""),
-                    gray, width);
+                    gray, width, maximumContentColumns, leftGutter);
                 WriteGrayLine(Path.GetFileName(path) + " | " +
                     snapshot.ByteLength.ToString(CultureInfo.InvariantCulture) +
                     " bytes | " +
                     snapshot.Lines.LineCount.ToString(CultureInfo.InvariantCulture) +
-                    " physical lines", gray, width);
+                    " physical lines",
+                    gray, width, maximumContentColumns, leftGutter);
                 _console.WriteLine();
 
                 // The indexed renderer validates the source, layout and
@@ -154,7 +165,9 @@ public sealed class MdViewMixedPreviewPager
                 }
 
                 if (displayed.VisualRows == 0)
-                    _console.Write(new Text("(Empty page)" + Environment.NewLine));
+                    _console.Write(new Text(
+                        new string(' ', leftGutter) +
+                        "(Empty page)" + Environment.NewLine));
 
                 var lastSourceLine = displayed.Next.WrapRow > 0
                     ? displayed.Next.Line + 1 : displayed.Next.Line;
@@ -169,14 +182,15 @@ public sealed class MdViewMixedPreviewPager
                     "–" + lastSourceLine.ToString(CultureInfo.InvariantCulture) +
                     " of " +
                     snapshot.Lines.LineCount.ToString(CultureInfo.InvariantCulture),
-                    gray, width);
+                    gray, width, maximumContentColumns, leftGutter);
 
                 if (displayed.ContainsClippedCode)
                     WriteGrayLine("→ Code clipped horizontally (not wrapped).",
-                        gray, width);
+                        gray, width, maximumContentColumns, leftGutter);
                 if (feedback is not null)
                 {
-                    WriteGrayLine(feedback, gray, width);
+                    WriteGrayLine(feedback, gray, width,
+                        maximumContentColumns, leftGutter);
                     feedback = null;
                 }
 
@@ -198,7 +212,7 @@ public sealed class MdViewMixedPreviewPager
                     .PageSize(Math.Clamp(choices.Count, 3, 7))
                     .AddChoices(choices)
                     .AddCancelResult(exit)
-                    .ShowAsync(_console, cancellationToken).ConfigureAwait(false);
+                    .ShowAsync(promptConsole, cancellationToken).ConfigureAwait(false);
 
                 if (chosen == exit)
                     return;
@@ -217,7 +231,10 @@ public sealed class MdViewMixedPreviewPager
 
                 if (chosen == jump)
                 {
+                    // A free-text prompt renders typed input incrementally.
+                    // Indent its title once instead of padding each keypress.
                     var response = await new TextPrompt<string>(
+                        new string(' ', leftGutter) +
                         "Physical source line (1-based, empty = cancel): ")
                         .AllowEmpty()
                         .ShowAsync(_console, cancellationToken).ConfigureAwait(false);
@@ -247,7 +264,7 @@ public sealed class MdViewMixedPreviewPager
                         {
                             WriteGrayLine(
                                 "Indexing validated source navigation on disk...",
-                                gray, width);
+                                gray, width, maximumContentColumns, leftGutter);
                             navigation = await MdViewDiskNavigationIndex.CreateAsync(
                                 snapshot, cancellationToken: cancellationToken)
                                 .ConfigureAwait(false);
@@ -256,8 +273,9 @@ public sealed class MdViewMixedPreviewPager
                         var kind = chosen == headings
                             ? MdViewIndexedItemKind.Heading
                             : MdViewIndexedItemKind.Link;
-                        var selected = await picker.PickAsync(
-                            navigation, kind, cancellationToken).ConfigureAwait(false);
+                        var selected = await new MdViewDiskNavigationPicker(
+                            promptConsole).PickAsync(navigation, kind,
+                            cancellationToken).ConfigureAwait(false);
                         if (selected is not null)
                         {
                             pageNumber = await index.FindPageAsync(
@@ -293,10 +311,15 @@ public sealed class MdViewMixedPreviewPager
         Math.Min(128, Math.Min(Math.Max(1, terminalHeight - 16),
             requestedRows == 0 ? 128 : requestedRows));
 
-    private void WriteGrayLine(string content, Style style, int terminalWidth)
+    private void WriteGrayLine(
+        string content, Style style, int terminalWidth,
+        int maximumContentColumns = 0, int leftGutter = 0)
     {
-        var columns = Math.Clamp(terminalWidth - 2, 8, 4096);
-        var line = MdViewTerminalWordWrap.Wrap(content, columns, code: true)[0];
-        _console.Write(new Text(line + Environment.NewLine, style));
+        var columns = MdViewMixedContentWidth.ContentColumns(
+            Math.Max(1, terminalWidth), maximumContentColumns);
+        var line = MdViewTerminalWordWrap.Wrap(
+            content, columns, code: true)[0];
+        _console.Write(new Text(
+            new string(' ', leftGutter) + line + Environment.NewLine, style));
     }
 }
