@@ -72,7 +72,9 @@ public sealed class MdViewMixedContentWidthTests
         Assert.Equal(string.Empty, console.Output);
         await MdViewMixedVisualIndexedRenderer.RenderPageAsync(
             limited, cursor, console, jump, new MarkdownSpectreTheme());
-        Assert.Contains("Line ", console.Output);
+        // A canonical page may begin midway through a long wrapped
+        // physical line, so its first row need not repeat "Line N:".
+        Assert.Contains("Markdown prose", console.Output);
         Assert.Equal(220, console.Profile.Width);
         Assert.Equal(original, await File.ReadAllBytesAsync(fixture.Path));
     }
