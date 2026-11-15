@@ -96,7 +96,7 @@ currently green pager.
 
 ## Test coverage
 
-Ten `MdViewMixedVisualPageTests` cover:
+Eleven `MdViewMixedVisualPageTests` cover:
 
 - A real rounded native table between ordinary prose paragraphs,
   including literal bracketed markup and unchanged source bytes.
@@ -108,7 +108,8 @@ Ten `MdViewMixedVisualPageTests` cover:
 - An over-height, long-cell table remaining compact across pages.
 - The exact same page starts as the pre-existing compact visual
   index for ordinary headings, wrapped text, lists, quotes and code.
-- Fenced pipe text never promoted into a native table.
+- Fenced or four-space-indented literal code containing pipe text never
+  promoted into a native table.
 - Resize detection before any page output.
 - Invalid resume states, content budgets and cancellation.
 
