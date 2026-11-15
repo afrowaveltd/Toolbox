@@ -228,3 +228,11 @@ not fit. These are additive architecture changes: the modal UI and
 the default compact page index remain unchanged.
 
 [Native page-fragment contract](../Native-Table-Page-Planner/en.md).
+
+### Literal indented code is never a native table (2026-11-15)
+
+The shared table block reader also excludes four-space-indented
+code, consistent with the existing compact source layout. A new
+regression checks that indented pipe-like headers and data lines
+cannot activate native widget rendering. The test is pending a fresh
+maintainer .NET run.
