@@ -1,0 +1,652 @@
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Text.Json;
+using Afrowave.Toolbox.Blackboard.SpectreConsole.Markdown;
+using Afrowave.Toolbox.Blackboard.TextFiles;
+using Afrowave.Toolbox.Blackboard.Tools.MdView;
+using Spectre.Console.Testing;
+
+return await MdViewDiskBenchmark.RunAsync(args);
+
+/// <summary>
+/// Manually invoked, read-only-after-generation test harness for actual HDD
+/// throughput. Never changes a system cache, a production setting or the
+/// user's original source files.
+/// </summary>
+internal static class MdViewDiskBenchmark
+{
+    private const long MiB = 1024L * 1024;
+    private const long GiB = 1024L * MiB;
+    private const long BenchmarkJournalLimit = 8 * GiB;
+    private const long BenchmarkOffsetLimit = 512 * MiB;
+
+    private sealed record Settings(
+        string Mode, string Root, int SizeMiB = 2048, int Seeks = 250,
+        int Passes = 1, int Width = 120, int Rows = 48,
+        int MaxWidth = 100, int Seed = 20261115,
+        bool LongTables = false)
+    {
+        public long TargetBytes => checked(SizeMiB * MiB);
+        public string SourcePath => Path.Combine(
+            Root, "data", $"mdview-synthetic-{SizeMiB}MiB.md");
+    }
+
+    /// <summary>Executes a requested benchmark phase and writes diagnostics.</summary>
+    internal static async Task<int> RunAsync(string[] args)
+    {
+        BenchLog? log = null;
+        try
+        {
+            var options = Parse(args);
+            var tmp = Path.TrimEndingDirectorySeparator(
+                Path.GetFullPath(Path.GetTempPath()));
+            var desiredTmp = Path.TrimEndingDirectorySeparator(
+                Path.GetFullPath(Path.Combine(options.Root, "tmp")));
+            if (!string.Equals(tmp, desiredTmp, StringComparison.Ordinal))
+                throw new InvalidOperationException(
+                    $"TMPDIR does not point to the target disk. Actual: {tmp}; expected: {desiredTmp}. " +
+                    "Always run through run.sh; do not start the benchmark DLL directly.");
+
+            Directory.CreateDirectory(Path.Combine(options.Root, "logs"));
+            Directory.CreateDirectory(Path.Combine(options.Root, "data"));
+            log = new BenchLog(Path.Combine(options.Root, "logs"));
+            log.Write("session_start", new
+            {
+                options.Mode, options.Root, options.SourcePath,
+                options.SizeMiB, target_bytes = options.TargetBytes,
+                options.Seeks, options.Passes, options.Width, options.Rows,
+                options.MaxWidth, options.Seed, options.LongTables,
+                temp_path = tmp,
+                os = RuntimeInformation.OSDescription,
+                runtime = RuntimeInformation.FrameworkDescription,
+                architecture = RuntimeInformation.ProcessArchitecture.ToString(),
+                cpu_count = Environment.ProcessorCount,
+                total_gc_available_bytes = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes,
+                process_id = Environment.ProcessId,
+                first_pass_is_not_proven_cold_cache = true
+            });
+
+            if (options.Mode is "generate" or "all")
+                await GenerateAsync(options, log);
+            if (options.Mode is "measure" or "all")
+            {
+                RequireSource(options);
+                for (var pass = 1; pass <= options.Passes; pass++)
+                    await MeasureSourceAsync(options, log, pass);
+            }
+            if (options.Mode == "index")
+            {
+                RequireSource(options);
+                await MeasureMixedIndexAsync(options, log);
+            }
+
+            log.Write("session_completed", new
+            {
+                result = "success",
+                log_jsonl = log.JsonPath,
+                log_text = log.TextPath
+            });
+            Console.WriteLine();
+            Console.WriteLine("Please send both log files:");
+            Console.WriteLine(log.JsonPath);
+            Console.WriteLine(log.TextPath);
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            log?.Write("session_failed", new { error = ex.ToString() });
+            Console.Error.WriteLine("Benchmark failed: " + ex);
+            if (log is not null)
+                Console.Error.WriteLine("Partial diagnostic log: " + log.JsonPath);
+            return 1;
+        }
+        finally
+        {
+            if (log is not null)
+                await log.DisposeAsync();
+        }
+    }
+
+    private static Settings Parse(string[] args)
+    {
+        if (args.Length < 2)
+            throw new ArgumentException(
+                "Usage: run.sh ROOT all|generate|measure|index " +
+                "[--size-mib 2048] [--seeks 250] [--passes 1] " +
+                "[--width 120] [--rows 48] [--max-width 100] " +
+                "[--seed N] [--long-tables].");
+
+        var mode = args[0].ToLowerInvariant();
+        if (mode is not ("all" or "generate" or "measure" or "index"))
+            throw new ArgumentException("Unsupported mode: " + args[0]);
+
+        var root = Path.TrimEndingDirectorySeparator(
+            Path.GetFullPath(args[1]));
+        if (root == Path.GetPathRoot(root) || !Directory.Exists(root))
+            throw new ArgumentException("A separately mounted test directory is required.");
+
+        var opt = new Settings(mode, root);
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 2; i < args.Length; i++)
+        {
+            var flag = args[i];
+            if (!seen.Add(flag))
+                throw new ArgumentException("Duplicate benchmark option: " + flag);
+            if (flag.Equals("--long-tables", StringComparison.OrdinalIgnoreCase))
+            {
+                opt = opt with { LongTables = true };
+                continue;
+            }
+            if (++i >= args.Length ||
+                !int.TryParse(args[i], out var number))
+                throw new ArgumentException("Expected an integer after " + flag);
+            opt = flag.ToLowerInvariant() switch
+            {
+                "--size-mib" => opt with { SizeMiB = number },
+                "--seeks" => opt with { Seeks = number },
+                "--passes" => opt with { Passes = number },
+                "--width" => opt with { Width = number },
+                "--rows" => opt with { Rows = number },
+                "--max-width" => opt with { MaxWidth = number },
+                "--seed" => opt with { Seed = number },
+                _ => throw new ArgumentException("Unknown benchmark flag: " + flag)
+            };
+        }
+
+        if (opt.SizeMiB is < 8 or > 8192 ||
+            opt.Seeks is < 1 or > 2000 ||
+            opt.Passes is < 1 or > 4 ||
+            opt.Width is < 80 or > 4096 ||
+            opt.Rows is < 8 or > 128 ||
+            opt.MaxWidth < 40 || opt.MaxWidth > opt.Width)
+            throw new ArgumentOutOfRangeException(
+                nameof(args), "Size, geometry or iteration limits are invalid.");
+        return opt;
+    }
+
+    private static void RequireSource(Settings settings)
+    {
+        if (!File.Exists(settings.SourcePath))
+            throw new FileNotFoundException(
+                "The 2-GiB source file must first be generated using 'generate' or 'all'.",
+                settings.SourcePath);
+        if (new FileInfo(settings.SourcePath).Length != settings.TargetBytes)
+            throw new InvalidDataException(
+                "The synthetic source size does not match --size-mib.");
+    }
+
+    private static byte[] MakeRepeatedMarkdownBlock()
+    {
+        var text = new StringBuilder(120_000);
+        text.AppendLine("# MdView benchmark synthetic fixture v1");
+        text.AppendLine("## Repeated section — disk journal, paging and Unicode");
+        text.AppendLine(
+            "Source [documentation](https://example.org/manual) " +
+            "and [index](https://example.org/index): stable repeatable content.");
+        for (var i = 0; i < 16; i++)
+        {
+            text.Append("Paragraph ").Append(i).Append(": ");
+            text.Append('x', 4096);
+            text.AppendLine();
+        }
+        text.AppendLine("| Name | Count | Description |");
+        text.AppendLine("| :--- | ---: | :--- |");
+        for (var i = 0; i < 24; i++)
+            text.Append("| Item-").Append(i.ToString("00"))
+                .Append(" | ").Append(i * 17)
+                .Append(" | Literal text with escaped [brackets] and data |")
+                .AppendLine();
+
+        text.AppendLine("~~~csharp");
+        text.AppendLine("int value = 42; // literal fence, not a table");
+        text.AppendLine("Console.WriteLine(value);");
+        text.AppendLine("~~~");
+        text.AppendLine("Čeština: příliš žluťoučký kůň; Português; Français; 🌍");
+        text.AppendLine();
+        return Encoding.UTF8.GetBytes(text.ToString());
+    }
+
+    private static async Task GenerateAsync(Settings settings, BenchLog log)
+    {
+        if (File.Exists(settings.SourcePath))
+        {
+            RequireSource(settings);
+            // Avoid silently replacing anybody's file of the same name.
+            // A matching size alone is not sufficient proof of provenance.
+            var marker = Encoding.UTF8.GetBytes(
+                "# MdView benchmark synthetic fixture v1");
+            await using var reader = File.OpenRead(settings.SourcePath);
+            var prefix = new byte[marker.Length];
+            await reader.ReadExactlyAsync(prefix);
+            if (!prefix.AsSpan().SequenceEqual(marker))
+                throw new InvalidDataException(
+                    "Existing source is not our synthetic fixture; refusing overwrite.");
+            log.Write("generation_reused", new
+            {
+                source = settings.SourcePath,
+                bytes = settings.TargetBytes,
+                file_reused_without_full_hash = true
+            });
+            return;
+        }
+
+        var free = GetFreeBytes(settings.Root);
+        var minimum = checked(settings.TargetBytes * 6 + GiB);
+        log.Write("disk_preflight", new
+        {
+            free_bytes = free,
+            required_reserve_bytes = minimum,
+            source_bytes = settings.TargetBytes
+        });
+        if (free < minimum)
+            throw new IOException(
+                "Insufficient free space for the 2-GiB source plus snapshot, journals, " +
+                "indexes and safety reserve. No file was created.");
+
+        var block = MakeRepeatedMarkdownBlock();
+        var stopwatch = Stopwatch.StartNew();
+        // FileMode.CreateNew never truncates an existing user file.
+        await using var output = new FileStream(
+            settings.SourcePath, FileMode.CreateNew, FileAccess.Write,
+            FileShare.None, 1024 * 1024,
+            FileOptions.Asynchronous | FileOptions.SequentialScan);
+        try
+        {
+            var nextLog = 256 * MiB;
+            while (output.Position + block.Length <= settings.TargetBytes)
+            {
+                await output.WriteAsync(block);
+                if (output.Position >= nextLog)
+                {
+                    log.Write("generation_progress", new
+                    {
+                        bytes_written = output.Position,
+                        target_bytes = settings.TargetBytes
+                    });
+                    nextLog += 256 * MiB;
+                }
+            }
+
+            var tailBytes = checked((int)(settings.TargetBytes - output.Position));
+            if (tailBytes > 0)
+            {
+                // ASCII-only tail preserves strict UTF-8 even when the
+                // exact byte target cuts the next repeated block.
+                var tail = new byte[tailBytes];
+                Array.Fill(tail, (byte)'x');
+                await output.WriteAsync(tail);
+            }
+            await output.FlushAsync();
+            stopwatch.Stop();
+
+            if (output.Length != settings.TargetBytes)
+                throw new InvalidDataException("Generator produced the wrong byte count.");
+            log.Write("generation_completed", new
+            {
+                source = settings.SourcePath,
+                bytes = output.Length,
+                elapsed_ms = stopwatch.Elapsed.TotalMilliseconds,
+                throughput_mib_s = settings.SizeMiB /
+                    Math.Max(stopwatch.Elapsed.TotalSeconds, 0.001),
+                fixture_version = 1,
+                block_bytes = block.Length
+            });
+        }
+        catch
+        {
+            // Deliberately do not delete a partial source: preserve
+            // evidence and require the maintainer to inspect it.
+            log.Write("generation_interrupted", new
+            {
+                file = settings.SourcePath,
+                current_bytes = output.Length
+            });
+            throw;
+        }
+    }
+
+    private static async Task MeasureSourceAsync(
+        Settings settings, BenchLog log, int pass)
+    {
+        log.Write("pass_start", new { pass, mode = "journal" });
+        var snapshot = await TimedAsync(log, $"snapshot_pass_{pass}",
+            settings.TargetBytes, () => Utf8ValidatedSnapshot.CreateAsync(
+                settings.SourcePath,
+                maximumSnapshotBytes: settings.TargetBytes + MiB,
+                temporaryRoot: Path.Combine(settings.Root, "tmp")));
+        await using (snapshot)
+        {
+            log.Write("snapshot_info", new
+            {
+                pass, snapshot_bytes = snapshot.ByteLength,
+                source_lines = snapshot.Lines.LineCount,
+                offset_index_bytes = snapshot.Lines.IndexBytes
+            });
+            await using var cursor = new MdViewContainerPageCursor(
+                snapshot,
+                maximumJournalBytes: BenchmarkJournalLimit,
+                maximumOffsetBytes: BenchmarkOffsetLimit);
+
+            await TimedAsync(log, $"journal_sequential_pass_{pass}",
+                settings.TargetBytes, async () =>
+                {
+                    long first = 0;
+                    var nextProgress = 10L;
+                    while (first < snapshot.Lines.LineCount)
+                    {
+                        var lines = await cursor.ReadAsync(first, 128);
+                        if (lines.Count == 0 ||
+                            lines[0].Source.LineNumber != first)
+                            throw new InvalidDataException(
+                                "Journal scanning stopped or lost its source position.");
+                        first += lines.Count;
+                        var percent = 100L * first /
+                            Math.Max(1L, snapshot.Lines.LineCount);
+                        if (percent >= nextProgress)
+                        {
+                            log.Write("journal_progress", new
+                            {
+                                pass, percent, source_lines_scanned = first,
+                                journal_bytes = cursor.JournalBytes
+                            });
+                            nextProgress += 10L;
+                        }
+                    }
+                    if (first != snapshot.Lines.LineCount)
+                        throw new InvalidDataException(
+                            "Journal scan ended at an incorrect physical line.");
+                    return new
+                    {
+                        pass, source_lines = first,
+                        journal_bytes = cursor.JournalBytes,
+                        offset_bytes = checked(first * sizeof(long)),
+                        source_requests = cursor.ReadRequestCount,
+                        event_stream_reads = cursor.EventReadRequestCount
+                    };
+                });
+
+            var random = new Random(settings.Seed);
+            var targetLines = new long[settings.Seeks];
+            for (var i = 0; i < targetLines.Length; i++)
+                targetLines[i] = random.NextInt64(snapshot.Lines.LineCount);
+            await MeasureSeeksAsync(cursor, targetLines, log, pass, "first");
+            await MeasureSeeksAsync(cursor, targetLines, log, pass, "repeat");
+            log.Write("pass_completed", new
+            {
+                pass, snapshot_bytes = snapshot.ByteLength,
+                journal_bytes = cursor.JournalBytes,
+                source_requests = cursor.ReadRequestCount,
+                event_stream_reads = cursor.EventReadRequestCount
+            });
+        }
+    }
+
+    private static async Task MeasureSeeksAsync(
+        MdViewContainerPageCursor cursor, long[] targetLines,
+        BenchLog log, int pass, string stage)
+    {
+        var samples = new List<SeekSample>(targetLines.Length);
+        var stopwatch = Stopwatch.StartNew();
+        var sourceRequests = cursor.ReadRequestCount;
+        var eventReads = cursor.EventReadRequestCount;
+        var startIo = LinuxIo.Read();
+        foreach (var line in targetLines)
+        {
+            var step = Stopwatch.StartNew();
+            var lines = await cursor.ReadAsync(line, 7);
+            step.Stop();
+            if (lines.Count == 0 || lines[0].Source.LineNumber != line)
+                throw new InvalidDataException(
+                    "Random seek returned the wrong physical source position.");
+            samples.Add(new SeekSample(line, step.Elapsed.TotalMilliseconds,
+                lines.Count));
+        }
+        stopwatch.Stop();
+        var elapsed = samples.Select(x => x.ElapsedMs)
+            .OrderBy(x => x).ToArray();
+        log.Write("random_seek_summary", new
+        {
+            pass, stage, sample_count = elapsed.Length,
+            total_elapsed_ms = stopwatch.Elapsed.TotalMilliseconds,
+            min_ms = elapsed[0],
+            median_ms = Percentile(elapsed, 0.50),
+            p95_ms = Percentile(elapsed, 0.95),
+            p99_ms = Percentile(elapsed, 0.99),
+            max_ms = elapsed[^1],
+            cursor_requests = cursor.ReadRequestCount - sourceRequests,
+            event_stream_reads = cursor.EventReadRequestCount - eventReads,
+            proc_io_delta = LinuxIo.Delta(startIo, LinuxIo.Read()),
+            // Preserves every requested seek and its measured duration.
+            samples
+        });
+    }
+
+    private static double Percentile(double[] sorted, double rank)
+    {
+        var index = Math.Clamp(
+            (int)Math.Ceiling(rank * sorted.Length) - 1,
+            0, sorted.Length - 1);
+        return sorted[index];
+    }
+
+    private sealed record SeekSample(long SourceLine, double ElapsedMs, int ReturnedLines);
+
+    private static async Task MeasureMixedIndexAsync(Settings settings, BenchLog log)
+    {
+        log.Write("index_start", new
+        {
+            selected_rows = settings.Rows,
+            selected_width = settings.Width,
+            maximum_content_width = settings.MaxWidth,
+            long_native_tables = settings.LongTables,
+            warning = "This scans the complete file and may be slow on a 5400 RPM HDD."
+        });
+        var snapshot = await TimedAsync(log, "index_snapshot",
+            settings.TargetBytes, () => Utf8ValidatedSnapshot.CreateAsync(
+                settings.SourcePath,
+                maximumSnapshotBytes: settings.TargetBytes + MiB,
+                temporaryRoot: Path.Combine(settings.Root, "tmp")));
+        await using (snapshot)
+        {
+            await using var cursor = new MdViewContainerPageCursor(
+                snapshot,
+                maximumJournalBytes: BenchmarkJournalLimit,
+                maximumOffsetBytes: BenchmarkOffsetLimit);
+            var console = new TestConsole();
+            console.Profile.Width = settings.Width;
+            console.Profile.Height = Math.Max(settings.Rows + 12, 80);
+            console.Profile.Capabilities.Unicode = true;
+            console.Profile.Capabilities.Interactive = false;
+
+            var index = await TimedAsync(log, "mixed_page_index",
+                settings.TargetBytes,
+                () => MdViewMixedVisualPageIndex.CreateAsync(
+                    cursor, console, settings.Rows,
+                    maximumIndexBytes: 256 * MiB,
+                    maximumContentColumns: settings.MaxWidth,
+                    longNativeTables: settings.LongTables));
+            await using (index)
+            {
+                log.Write("index_info", new
+                {
+                    source_lines = index.SourceLineCount,
+                    pages = index.PageCount,
+                    bytes_on_disk = index.PageCount *
+                        MdViewMixedVisualPageIndex.RecordBytes,
+                    journal_bytes = cursor.JournalBytes,
+                    source_requests = cursor.ReadRequestCount,
+                    event_stream_reads = cursor.EventReadRequestCount
+                });
+
+                var pages = new[]
+                {
+                    0L, index.PageCount / 2, index.PageCount - 1
+                }.Distinct().ToArray();
+                foreach (var pageNo in pages)
+                {
+                    var record = await TimedAsync(log,
+                        $"index_get_page_{pageNo}", 0,
+                        () => index.GetPageAsync(pageNo));
+                    log.Write("index_page", new
+                    {
+                        page = pageNo,
+                        record.Start, record.Next,
+                        record.VisualRows, record.AtEnd
+                    });
+                }
+
+                var lines = new[]
+                {
+                    0L, snapshot.Lines.LineCount / 2,
+                    Math.Max(0, snapshot.Lines.LineCount - 1)
+                }.Distinct();
+                foreach (var line in lines)
+                {
+                    var pageNo = await TimedAsync(log,
+                        $"source_lookup_{line}", 0,
+                        () => index.FindPageAsync(line));
+                    log.Write("source_lookup",
+                        new { source_line = line, page = pageNo });
+                }
+            }
+        }
+    }
+
+    private static async Task<T> TimedAsync<T>(
+        BenchLog log, string phase, long logicalBytes, Func<Task<T>> work)
+    {
+        var before = LinuxIo.Read();
+        var allocStart = GC.GetTotalAllocatedBytes(false);
+        var cpuBefore = Process.GetCurrentProcess().TotalProcessorTime;
+        var stopwatch = Stopwatch.StartNew();
+        try
+        {
+            var result = await work();
+            stopwatch.Stop();
+            using var process = Process.GetCurrentProcess();
+            log.Write("timed_phase", new
+            {
+                phase, ok = true,
+                elapsed_ms = stopwatch.Elapsed.TotalMilliseconds,
+                logical_bytes = logicalBytes,
+                throughput_mib_s = logicalBytes > 0
+                    ? logicalBytes / (double)MiB /
+                      Math.Max(stopwatch.Elapsed.TotalSeconds, 0.001)
+                    : (double?)null,
+                cpu_ms = (process.TotalProcessorTime - cpuBefore).TotalMilliseconds,
+                gc_allocated_bytes = GC.GetTotalAllocatedBytes(false) - allocStart,
+                working_set_bytes = process.WorkingSet64,
+                peak_working_set_bytes = process.PeakWorkingSet64,
+                managed_heap_bytes = GC.GetGCMemoryInfo().HeapSizeBytes,
+                gc_gen0 = GC.CollectionCount(0),
+                gc_gen1 = GC.CollectionCount(1),
+                gc_gen2 = GC.CollectionCount(2),
+                proc_io_delta = LinuxIo.Delta(before, LinuxIo.Read()),
+                result
+            });
+            return result;
+        }
+        catch (Exception ex)
+        {
+            stopwatch.Stop();
+            log.Write("timed_phase", new
+            {
+                phase, ok = false,
+                elapsed_ms = stopwatch.Elapsed.TotalMilliseconds,
+                error = ex.ToString(),
+                proc_io_delta = LinuxIo.Delta(before, LinuxIo.Read())
+            });
+            throw;
+        }
+    }
+
+    private static long GetFreeBytes(string root)
+    {
+        // DriveInfo on Linux also accepts mounted directory paths.
+        var volume = new DriveInfo(root);
+        return volume.AvailableFreeSpace;
+    }
+
+    private sealed class BenchLog : IAsyncDisposable
+    {
+        private readonly StreamWriter _json;
+        private readonly StreamWriter _text;
+
+        public BenchLog(string directory)
+        {
+            var suffix = DateTime.UtcNow.ToString("yyyyMMddTHHmmssfffZ") +
+                "-" + Guid.NewGuid().ToString("N")[..8];
+            JsonPath = Path.Combine(directory,
+                $"mdview-hdd-{suffix}.jsonl");
+            TextPath = Path.Combine(directory,
+                $"mdview-hdd-{suffix}.txt");
+            _json = new StreamWriter(new FileStream(
+                JsonPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
+            { AutoFlush = true };
+            _text = new StreamWriter(new FileStream(
+                TextPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
+            { AutoFlush = true };
+        }
+
+        public string JsonPath { get; }
+        public string TextPath { get; }
+
+        public void Write(string eventName, object values)
+        {
+            var timestamp = DateTimeOffset.UtcNow;
+            var payload = JsonSerializer.Serialize(values);
+            _json.WriteLine(JsonSerializer.Serialize(new
+            {
+                timestamp_utc = timestamp,
+                @event = eventName,
+                values
+            }));
+            _text.WriteLine($"{timestamp:O} [{eventName}] {payload}");
+            Console.WriteLine($"[{eventName}] {payload}");
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await _json.DisposeAsync();
+            await _text.DisposeAsync();
+        }
+    }
+
+    /// <summary>
+    /// Linux per-process I/O counters. read_bytes/write_bytes reflect
+    /// storage-accounted I/O but not guaranteed rotational-device reads.
+    /// syscr/syscw count syscalls; rchar/wchar include cached I/O.
+    /// </summary>
+    private sealed record LinuxIo(
+        long ReadBytes, long WriteBytes, long Syscr, long Syscw,
+        long Rchar, long Wchar)
+    {
+        public static LinuxIo Read()
+        {
+            if (!File.Exists("/proc/self/io"))
+                return new LinuxIo(0, 0, 0, 0, 0, 0);
+            var values = new Dictionary<string, long>(StringComparer.Ordinal);
+            foreach (var line in File.ReadLines("/proc/self/io"))
+            {
+                var pair = line.Split(':', 2);
+                if (pair.Length == 2 &&
+                    long.TryParse(pair[1].Trim(), out var number))
+                    values[pair[0]] = number;
+            }
+            long Get(string name) =>
+                values.TryGetValue(name, out var value) ? value : 0;
+            return new LinuxIo(Get("read_bytes"), Get("write_bytes"),
+                Get("syscr"), Get("syscw"),
+                Get("rchar"), Get("wchar"));
+        }
+
+        public static LinuxIo Delta(LinuxIo start, LinuxIo end) =>
+            new(end.ReadBytes - start.ReadBytes,
+                end.WriteBytes - start.WriteBytes,
+                end.Syscr - start.Syscr,
+                end.Syscw - start.Syscw,
+                end.Rchar - start.Rchar,
+                end.Wchar - start.Wchar);
+    }
+}
