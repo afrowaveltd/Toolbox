@@ -839,3 +839,25 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   **Re-run focused MdView.Tests and Toolbox.sln**.
   Previous all-green run predates this centering suite;
   fresh verification has not yet been provided.
+
+## 2026-11-15 — full-screen centered viewer regressions
+
+- User's screenshot identified left-aligned title/file/status/menu
+  despite centered Markdown body under `--center`.
+- Added **9 `MdViewMixedScreenAlignmentTests`** for
+  consistent centered header/filename/page status/body,
+  selected Spectre menu marker, Next/Previous navigation,
+  incremental source-line input, disk-indexed heading
+  and link picker, missing-heading message, empty source,
+  narrow/no-spare-width behavior and unchanged default
+  uncentered output.
+- Production: `MdViewIndentedPromptConsole` proxies
+  existing `IAnsiConsole` capabilities and applies only
+  horizontal padding to whole-widget Spectre prompts.
+  `MdViewMixedPreviewPager` aligns all displayed
+  one-line chrome and keeps free-text input on the
+  original console with a single indented prompt title.
+  Document renderer and 56-byte disk page index are unchanged.
+- **New tests not run by the assistant** (no .NET SDK).
+  Run focused MdView.Tests and full `Toolbox.sln`,
+  check warning count and manually verify Konsole output.
