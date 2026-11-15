@@ -281,7 +281,7 @@ public sealed class MdViewMixedVisualPageTests
         var oldPage = await MdViewTerminalPageRenderer.RenderAsync(
             oldConsole, cursor, new MdViewVisualPosition(0, 0),
             columns: 30, contentRows: rowBudget,
-            new MarkdownSpectreTheme());
+            theme: new MarkdownSpectreTheme());
 
         Assert.Equal(oldPage.Rows, page.Rows);
         Assert.Equal(oldPage.Next.Line, page.Next.Line);
