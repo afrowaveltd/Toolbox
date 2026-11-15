@@ -901,3 +901,24 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   cursor location from a flattened ANSI transcript
   containing earlier erased/redrawn prompt frames.
   The output text is still checked for visibility.
+
+## 2026-11-15 — fix CS0122 on internal live prompt regression helpers
+
+- Latest maintainer build: production `MdView` succeeds;
+  `MdViewMixedScreenAlignmentTests.cs` has **three CS0122**
+  errors (lines 226, 246, 273), because tests directly
+  instantiate `internal MdViewCenteredPromptRenderHook`
+  and invoke `internal MdViewCenteredPrompt`.
+  No new test counts available: compilation stopped.
+- Corrected via `MdView/Properties/AssemblyInfo.cs`
+  with `InternalsVisibleTo("MdView.Tests")`
+  (commit `75e232b3ab65a0de006bb7ae0810ba5139a94fea`).
+  The test project's assembly name is `MdView.Tests`;
+  it already references the `MdView` project. This
+  matches the project's existing friend-assembly pattern.
+  Do not make the implementation helpers public.
+- User's screenshot confirms the **real Konsole live
+  menu is now centered** with header and document.
+- **Fresh test execution pending** after CS0122 fix.
+  Run focused MdView.Tests and the full solution,
+  inspecting test failures and analyzer warnings.
