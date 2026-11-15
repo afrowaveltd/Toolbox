@@ -73,9 +73,8 @@ public sealed class MdViewMixedPreviewPagerTests
         Assert.Contains("Apple", console.Output);
         Assert.Contains("╭", console.Output);
         Assert.Contains("Page 3 of ", console.Output);
-        Assert.Equal(string.Empty,
-            console.Output.Contains("Source line is outside this document.")
-                ? "Unexpected invalid source jump" : "");
+        Assert.DoesNotContain("Source line is outside this document.",
+            console.Output);
     }
 
     [Fact]
