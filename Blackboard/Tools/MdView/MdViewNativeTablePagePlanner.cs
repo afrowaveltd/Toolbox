@@ -79,6 +79,7 @@ public static class MdViewNativeTablePagePlanner
     /// <param name="availableContentRows">Remaining viewport content rows, from 1 to 128.</param>
     /// <param name="maximumSourceRows">Source row cap from 1 to 6.</param>
     /// <param name="cancellationToken">Cancels source reads and bounded measurement.</param>
+    /// <param name="maximumContentColumns">Optional maximum visual content width; zero uses the terminal.</param>
     /// <returns>Measured widget and exact resume line, or zero-consumption compact fallback.</returns>
     public static async Task<MdViewNativeTablePageChunk> PlanAsync(
         MdViewContainerPageCursor cursor,
@@ -87,8 +88,10 @@ public static class MdViewNativeTablePagePlanner
         IAnsiConsole console,
         int availableContentRows,
         int maximumSourceRows = MaximumSourceRows,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        int maximumContentColumns = 0)
     {
+        MdViewMixedContentWidth.Validate(maximumContentColumns);
         ArgumentNullException.ThrowIfNull(cursor);
         ArgumentNullException.ThrowIfNull(header);
         ArgumentNullException.ThrowIfNull(console);
@@ -109,7 +112,8 @@ public static class MdViewNativeTablePagePlanner
             new(header.SourceLine, firstDataLine, firstDataLine,
                 0, 0, false, null, reason);
 
-        var terminalWidth = Math.Max(1, console.Profile.Width);
+        var terminalWidth = MdViewMixedContentWidth.EffectiveTerminalWidth(
+            Math.Max(1, console.Profile.Width), maximumContentColumns);
         if (!SupportsNativeGrid(terminalWidth, header.Columns.Count))
             return Fallback(MdViewNativeTableFallbackReason.NarrowTerminal);
 
