@@ -1146,9 +1146,12 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   and `3204d496ec8de486e7c1f3c32aec214516e6b702`);
   viewport width/height/Unicode must match the index. The
   content-row budget cannot exceed the physical terminal height.
-- Added **11 `MdViewNativeTableFragmentIndexTests`**,
+- Added **12 `MdViewNativeTableFragmentIndexTests`**,
   beginning with commit `83a094933e203d3809482039c3a4fd1c9e5aa019`,
-  including a corrected 0-based second-fragment resume assertion
+  including a regression for a late oversized row that rolls back
+  all previously stored native records (commit
+  `d1baf7087756de98b38e62800d0b4f8a50e317fb`),
+  a corrected 0-based second-fragment resume assertion
   (`66ed6734c436dd667e9537b35e67db00de9cec44`)
   and substituted-source regression
   (`e5840e94c2b46dff0350db290f8250f8ba443de9`).
