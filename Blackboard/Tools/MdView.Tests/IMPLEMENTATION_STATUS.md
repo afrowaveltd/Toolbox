@@ -1081,3 +1081,27 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   suite. Next benchmark changes should be **opt-in**,
   separate from xUnit timing assertions and reproducible
   across HDD and SSD hardware.
+
+## 2026-11-15 — manual HDD benchmark project kept outside xUnit
+
+- The maintainer requested a 2-GiB, slow rotational HDD
+  MdView performance experiment. Added separate
+  `Blackboard/Tools/MdView.Benchmarks`, **not**
+  part of `Toolbox.sln` or `MdView.Tests`.
+- The utility launches only on a separately mounted
+  test filesystem and redirects all TMP/journals
+  to that disk. It has a streaming fixture generator,
+  exact-source-bounds scanning, deterministic seeks,
+  optional mixed visual page index and JSONL/TXT
+  logs with Linux process I/O statistics.
+- Existing unit tests remain unchanged and retain
+  the maintainer-confirmed all-green checkpoint.
+  Performance timings are deliberately **not**
+  asserted in xUnit because disk/cache behavior
+  varies dramatically across environments.
+- No new unit test count or green benchmark build
+  claim exists. Bench-specific validation begins
+  with an 8-MiB manual smoke run. The project
+  accesses internal journal counters via its own
+  `InternalsVisibleTo` friend assembly, without
+  changing consumer API.
