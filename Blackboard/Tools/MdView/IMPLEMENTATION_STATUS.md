@@ -1233,3 +1233,56 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   byte-for-byte, including headings, prose, links, lists and fenced code
   (`a2abec622156ae998c72ed1d330b42f30442b163`, explicit theme argument
   in `6a45794e5224ca08ea4e84f4a33198c248361537`). **Pending execution**.
+
+## 2026-11-15 — disk-backed complete mixed-document visual page index
+
+- Maintainer confirmed **all-green tests** for the preceding mixed
+  Markdown/native single-page planner checkpoint. Exact counts
+  were not supplied. This is the green baseline *before* this
+  whole-document indexing increment.
+- Added `MdViewMixedVisualPageIndex.cs` (commit
+  `c23bf21e9773ced7acc53d1b7fb35c7b3e21d578`).
+  It repeatedly consumes the existing mixed visual planner and
+  stores each canonical page as a fixed **56-byte little-endian
+  temporary disk record**: source line/wrap row, compact table
+  continuation state at both ends, visual row count and
+  end/clipped-code flags. Default index budget 64 MiB.
+- `GetPageAsync` performs a single fixed record read.
+  `FindPageAsync` uses a disk binary search for physical
+  source line or within-line visual row; ordinary text and
+  source lines inside native/compact tables map to their
+  canonical page. No whole-document page-start list is
+  held in RAM.
+- Added `MdViewMixedVisualIndexedRenderer.cs` (commit
+  `a4d992073672c9d2620b93277de87abd6611aca1`).
+  It enforces the **original validated cursor**, stable
+  terminal width/height/Unicode, and exact planner/index
+  `Start`, `Next`, visual row count, EOF/clipped-code
+  parity before printing. The existing mixed renderer
+  additionally preflights native Spectre widget heights.
+- Improved index invariants and resize guard (commit
+  `37a3250f1511ff8b6e3fb8be481174fda4f13585`):
+  stable Spectre profile during indexing, monotonic page
+  progression, a single empty page for empty files,
+  no phantom page after exact EOF, validated final disk
+  flags/positions and explicit budget rejection.
+- Added **11 `MdViewMixedVisualPageIndexTests`** in commit
+  `495f75f6eabd3d10912fe63c960e656e4638916e`.
+  Covers native tables among Markdown, long compact tables,
+  source/wrap-row search, header/delimiter page boundaries,
+  two native tables, empty/exact final pages, source/viewport
+  guard, budget failure, argument/disposal validation and
+  cancellation.
+- Updated root/project/test README, previous mixed page
+  design guide and the new English
+  `Docs/Mixed-Visual-Page-Index/en.md`.
+- **Fresh .NET focused/full test verification pending.**
+  Run `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`
+  then `dotnet test Toolbox.sln`. No new green counts
+  claimed; this assistant environment has no .NET SDK.
+- **Next:** opt-in terminal UI for indexed mixed pages
+  (Page X of Y, next/back and canonical source jumps),
+  with resize-triggered index rebuild and unchanged
+  compact default. Source line jumps into tables must
+  resolve via `FindPageAsync` rather than forming
+  unvalidated custom source starts.
