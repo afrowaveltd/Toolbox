@@ -811,3 +811,27 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   combined prose/native page index or switched `Page X of Y`
   implementation. Next step: mixed visual-block page planning
   with remaining page-height budget and matching renderer.
+
+## 2026-11-15 — MdView mixed visual page-planning foundation
+
+- Maintainer confirmed preceding disk-indexed native fragment
+  checkpoint fully green; this acceptance predates the new work.
+- New `Blackboard/Tools/MdView/MdViewMixedVisualPagePlanner.cs`
+  combines styled ordinary Markdown rows and **complete, bounded
+  native Spectre tables** within a single measured visual page.
+  It stores an exact source/resume position including compact
+  table state across page breaks.
+- New `MdViewMixedVisualPageRenderer.cs` reuses existing
+  Markdown style resolution and validates terminal dimensions
+  and Spectre native widget heights before writing output.
+  It does not replace the default reader.
+- Tables with **more than six data rows**, narrow grids or native
+  heights too large for an empty page remain compact for the
+  entire block. Small grids that do not fit *remaining* page space
+  begin on the next page with their header intact.
+- Ten new xUnit tests written; English
+  `Docs/Mixed-Visual-Page-Planning/en.md` and project/test/root
+  READMEs updated. **Focused/full .NET tests still pending** for
+  this increment; retain prior green status separately.
+- **Next:** on-disk mixed visual page-start index, then opt-in
+  UI integration after index/renderer parity tests.
