@@ -179,11 +179,33 @@ mdview preview-native README.md --max-width 100 --center
 
 It preserves left-alignment of individual Markdown rows
 and native table cells **within** the centered reading area.
-Only the document body is shifted: headers, status messages
-and navigation remain at the normal terminal edge.
+The **whole viewer** now shares the same left edge: document rows,
+file/title header, page status, feedback, selected navigation arrow,
+heading/link picker and source-line input prompt. Only the text inside
+the reading column remains left-aligned; the physical console profile
+is never changed.
 Native table padding adds no top/bottom rows and is
 measured before display, preserving exact indexed
 `Page X of Y` and physical source-line jumps.
 The default without `--center` is unchanged.
 
 [Full centered-alignment guide](../Mixed-Content-Alignment/en.md).
+
+## Unified full-screen centering (2026-11-15)
+
+The initial `--center` implementation positioned only Markdown rows
+and native Spectre tables. A real terminal screenshot showed the
+header, `Page X of Y`, status and keyboard navigation at the far
+left. The **same calculated reading-column gutter** now applies to
+those controls and feedback as well.
+
+Interactive `SelectionPrompt` lists (including disk-indexed heading
+and link pickers) use a forwarding `IAnsiConsole` adapter with
+horizontal-only padding. It preserves Spectre's input, cursor and
+selection-arrow behavior. Incremental `TextPrompt` input uses an
+indented title on the original console instead, avoiding repeated
+spaces before typed characters.
+
+Default uncentered preview, native widget geometry, page indexes,
+source jumps and resize rebuilds remain unchanged.
+[Detailed layout contract](../Mixed-Content-Alignment/en.md).
