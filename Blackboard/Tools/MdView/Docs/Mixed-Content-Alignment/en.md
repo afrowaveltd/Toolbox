@@ -167,3 +167,45 @@ rows agree; only the horizontal placement should differ.
 See [content width](../Mixed-Content-Width/en.md),
 [mixed native preview](../Mixed-Native-Preview/en.md), and
 [implementation status](../../IMPLEMENTATION_STATUS.md).
+
+## Entire mixed-preview screen shares one reading gutter (2026-11-15)
+
+The first centered-column iteration repositioned only the source
+document. Real terminal screenshots revealed that the file header,
+`Page X of Y`, navigation menu and selected arrow remained at the
+physical terminal's left edge. The **entire viewer now shares one
+horizontal starting column** when `--center` is selected: document,
+header, status, navigation, feedback, clipped-code notice and
+disk-indexed heading/link picker.
+
+`MdViewIndentedPromptConsole` is an internal zero-vertical-padding
+adapter implementing `IAnsiConsole`. It forwards the original
+profile, cursor, input, exclusivity mode, render pipeline, clear
+and ANSI operations. Only **whole-widget selection prompts** are
+written through it: a left-only Spectre `Padder` moves the title,
+selection marker and choices together, preserving native arrow-key,
+Enter and Escape behavior.
+
+Free-text `TextPrompt` input is deliberately **not** wrapped by
+this adapter. It writes incrementally, so padding every output call
+could insert spaces between typed characters. Its title instead
+receives one literal gutter prefix on the original console, keeping
+typed input natural. The header, file information, page status,
+feedback, empty-page message and missing-index messages share the
+same starting column. Text-only chrome is clipped within the
+selected content-column width.
+
+The source document is **not** padded again: its existing indexed
+renderer already positions every Markdown row and native table.
+Only the surrounding interface receives the additional alignment.
+The disk page index, its 56-byte records and source-line jumps are
+unchanged. When the terminal is no wider than the reading column,
+the gutter remains zero. Terminal resize continues using the
+existing re-indexing logic.
+
+Nine `MdViewMixedScreenAlignmentTests` check the matching
+header/body/footer/menu edges, selected menu indicator, Next/Previous
+navigation, source-line input, heading and link pickers, empty
+search results, empty pages and unchanged default alignment.
+Fresh focused and full .NET tests are required before this
+increment is called green.
