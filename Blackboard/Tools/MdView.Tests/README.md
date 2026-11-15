@@ -214,10 +214,11 @@ tests for this planner have not yet been run with a .NET SDK here.**
 
 ## Native table disk index and renderer regressions (2026-11-15)
 
-Eleven new `MdViewNativeTableFragmentIndexTests` cover fixed-size,
+Twelve new `MdViewNativeTableFragmentIndexTests` cover fixed-size,
 disk-backed fragment lookup for 14 data rows; 6/6/2 exact continuation;
 index-to-renderer parity for a selected middle fragment; header-only
-tables; entire-table narrow/over-height compact fallback; measured
+tables; entire-table narrow/over-height compact fallback including
+a late oversized row after earlier fragments; measured
 one-row fragments with repeated headings; disk-budget failure with
 unchanged validated source; invalid arguments; rejected stale/forged
 headers and a different source cursor; terminal resize; cancellation
