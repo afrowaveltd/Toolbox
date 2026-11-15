@@ -893,3 +893,11 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   MdView.Tests project followed by Toolbox.sln;
   recheck the eight original failures and any
   compiler/analyzer diagnostics.
+- Follow-up test hardening (commit
+  `09ae5e0d4b2c138780c18c309531434d8d1e4e20`):
+  the scoped-prompt test checks the **actual Spectre render
+  pipeline** contains no remaining gutter hook after the
+  prompt exits. It no longer infers the post-prompt
+  cursor location from a flattened ANSI transcript
+  containing earlier erased/redrawn prompt frames.
+  The output text is still checked for visibility.
