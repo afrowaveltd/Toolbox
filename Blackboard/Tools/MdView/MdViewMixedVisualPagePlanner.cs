@@ -9,13 +9,36 @@ namespace Afrowave.Toolbox.Blackboard.Tools.MdView;
 /// </summary>
 /// <param name="Line">Zero-based physical source line.</param>
 /// <param name="WrapRow">First remaining visual row within the source line.</param>
-/// <param name="CompactHeaderLine">Header of an active compact table, or -1.</param>
-/// <param name="CompactColumns">Column count of the active compact table, or 0.</param>
+/// <param name="CompactHeaderLine">Header line of the active table, or -1 when not in a table. Also stores the repeated native header line during opt-in continuation.</param>
+/// <param name="CompactColumns">Compact table column count, zero when inactive, or -1 for opt-in native continuation.</param>
 public readonly record struct MdViewMixedVisualPosition(
     long Line, int WrapRow, long CompactHeaderLine = -1, int CompactColumns = 0)
 {
     /// <summary>Beginning of a new Markdown document.</summary>
     public static MdViewMixedVisualPosition Beginning => new(0, 0);
+
+    /// <summary>
+    /// True when the existing fixed-size page record stores a long native
+    /// table's repeating header rather than a compact table column count.
+    /// </summary>
+    public bool IsNativeContinuation =>
+        CompactHeaderLine >= 0 && CompactColumns == -1;
+
+    /// <summary>
+    /// Constructs the exact next-source-line state for a continuing native
+    /// table without increasing the 56-byte disk-page record size.
+    /// </summary>
+    /// <param name="headerLine">Original, validated table header line.</param>
+    /// <param name="nextDataLine">First unconsumed physical table data line.</param>
+    /// <returns>Source-aware native table continuation point.</returns>
+    public static MdViewMixedVisualPosition NativeContinuation(
+        long headerLine, long nextDataLine)
+    {
+        if (headerLine < 0 || headerLine > long.MaxValue - 2 ||
+            nextDataLine < headerLine + 2)
+            throw new ArgumentOutOfRangeException(nameof(nextDataLine));
+        return new MdViewMixedVisualPosition(nextDataLine, 0, headerLine, -1);
+    }
 }
 
 /// <summary>One bounded visual block in a planned mixed Markdown page.</summary>
@@ -53,25 +76,26 @@ public sealed record MdViewMixedVisualTableBlock(
 /// <param name="Unicode">Unicode capability used for Spectre measurement.</param>
 /// <param name="Blocks">Ordered bounded blocks to render without reparsing source.</param>
 /// <param name="MaximumContentColumns">Optional shared content width cap, or zero for automatic.</param>
+/// <param name="LongNativeTables">Whether opt-in long native table continuation is enabled for this page.</param>
 public sealed record MdViewMixedVisualPage(
     MdViewMixedVisualPosition Start,
     MdViewMixedVisualPosition Next,
     int Rows, bool ContainsClippedCode, bool AtEnd,
     int TerminalWidth, int TerminalHeight, bool Unicode,
     IReadOnlyList<MdViewMixedVisualBlock> Blocks,
-    int MaximumContentColumns = 0);
+    int MaximumContentColumns = 0, bool LongNativeTables = false);
 
 /// <summary>
 /// Experimental one-page planner mixing formatted Markdown rows and complete
 /// small native Spectre tables under one visual row budget.
 /// </summary>
 /// <remarks>
-/// This deliberately does not replace MdViewTerminalPageIndex. The planner
-/// accepts only confirmed whole tables with at most six data lines that fit
-/// a *fresh* page. Longer or over-height tables are displayed in their
-/// entirety through the existing compact line layout, with explicit compact
-/// source state across page boundaries. All source access uses the validated
-/// disk-backed cursor. No output is written during planning.
+/// This does not replace MdViewTerminalPageIndex. By default only confirmed
+/// whole tables fitting a fresh page use native Spectre. When explicitly
+/// enabled, source-complete long tables that pass a bounded streaming
+/// preflight can use repeated-header, six-row native fragments across pages.
+/// Unsafe or excessively long tables remain compact in their entirety.
+/// Source access uses the validated disk-backed cursor; planning writes no output.
 /// </remarks>
 public static class MdViewMixedVisualPagePlanner
 {
@@ -84,12 +108,13 @@ public static class MdViewMixedVisualPagePlanner
     /// <param name="contentRows">Available visible content rows, 1–128.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <param name="maximumContentColumns">Optional maximum content width; zero retains full terminal width.</param>
+    /// <param name="longNativeTables">Opt in to source-complete, repeated-header long native fragments.</param>
     /// <returns>One page with an exact next source position and renderable blocks.</returns>
     public static async Task<MdViewMixedVisualPage> PlanAsync(
         MdViewContainerPageCursor cursor, MdViewMixedVisualPosition start,
         IAnsiConsole console, int contentRows,
         CancellationToken cancellationToken = default,
-        int maximumContentColumns = 0)
+        int maximumContentColumns = 0, bool longNativeTables = false)
     {
         MdViewMixedContentWidth.Validate(maximumContentColumns);
         ArgumentNullException.ThrowIfNull(cursor);
@@ -102,7 +127,12 @@ public static class MdViewMixedVisualPagePlanner
             (start.CompactHeaderLine == -1 && start.CompactColumns != 0) ||
             (start.CompactHeaderLine >= 0 &&
                 (start.CompactHeaderLine > start.Line ||
-                 start.CompactColumns is < 2 or > MdViewTerminalPipeTableLayout.MaximumColumns)))
+                 (start.CompactColumns != -1 &&
+                  start.CompactColumns is < 2 or > MdViewTerminalPipeTableLayout.MaximumColumns)) ||
+            (start.IsNativeContinuation &&
+             (start.WrapRow != 0 ||
+              start.Line < start.CompactHeaderLine + 2 ||
+              !longNativeTables)))
             throw new ArgumentOutOfRangeException(nameof(start));
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -133,6 +163,49 @@ public static class MdViewMixedVisualPagePlanner
             var classified = source[0];
             if (classified.Source.LineNumber != position.Line)
                 throw new InvalidDataException("Mixed preview source cursor lost line alignment.");
+
+            // Reconstruct exactly one continuing native fragment. The
+            // source-complete preflight at the original table header has
+            // already proved every fragment fits the fresh-page budget.
+            // Repeated headers are included in the measured page height.
+            if (position.IsNativeContinuation)
+            {
+                if (used != 0 || position.WrapRow != 0)
+                    throw new InvalidDataException(
+                        "Native table continuation must begin a visual page.");
+                var repeatingHeader = await MdViewSpectreTableBlockReader.ReadHeaderAsync(
+                    cursor, position.CompactHeaderLine, cancellationToken)
+                    .ConfigureAwait(false);
+                if (repeatingHeader is null ||
+                    !MdViewSpectreTableBlockReader.TryReadDataRow(
+                        classified, repeatingHeader.Columns.Count, out _))
+                    throw new InvalidDataException(
+                        "Native table continuation lost its validated source rows.");
+
+                var continuation = await MdViewNativeTablePagePlanner.PlanAsync(
+                    cursor, repeatingHeader, position.Line, console,
+                    contentRows, cancellationToken: cancellationToken,
+                    maximumContentColumns: maximumContentColumns)
+                    .ConfigureAwait(false);
+                if (!continuation.IsNative || continuation.DataRows == 0 ||
+                    continuation.NextDataLine <= position.Line ||
+                    continuation.Widget is null)
+                    throw new InvalidDataException(
+                        "Native table fragment no longer matches the indexed layout.");
+
+                blocks.Add(new MdViewMixedVisualTableBlock(
+                    repeatingHeader.SourceLine, continuation.NextDataLine,
+                    continuation.DataRows, continuation.VisualRows,
+                    continuation.Widget));
+                used += continuation.VisualRows;
+                position = continuation.HasMore
+                    ? MdViewMixedVisualPosition.NativeContinuation(
+                        repeatingHeader.SourceLine, continuation.NextDataLine)
+                    : new MdViewMixedVisualPosition(continuation.NextDataLine, 0);
+                if (continuation.HasMore)
+                    break;
+                continue;
+            }
 
             // Preserve compact fallback for the whole source table, even
             // when that table spans many visual pages or individual rows.
@@ -200,6 +273,47 @@ public static class MdViewMixedVisualPagePlanner
                         continue;
                     }
 
+                    // Long-table opt-in is all-or-nothing: a bounded scan
+                    // checks every fragment before any native source row is
+                    // consumed. Otherwise the entire table stays compact.
+                    if (longNativeTables &&
+                        MdViewNativeTablePagePlanner.SupportsNativeGrid(
+                            effectiveWidth, header.Columns.Count))
+                    {
+                        var fragment = await MdViewNativeTablePagePlanner.PlanAsync(
+                            cursor, header, position.Line + 2, console,
+                            contentRows, cancellationToken: cancellationToken,
+                            maximumContentColumns: maximumContentColumns)
+                            .ConfigureAwait(false);
+                        if (fragment.IsNative && fragment.DataRows > 0)
+                        {
+                            var remaining = contentRows - used;
+                            if (fragment.VisualRows > remaining && used > 0)
+                                break;
+
+                            if (await MdViewLongNativeTableEligibility
+                                .CanRenderEntireTableAsync(
+                                    cursor, header, console, contentRows,
+                                    maximumContentColumns, cancellationToken)
+                                .ConfigureAwait(false))
+                            {
+                                blocks.Add(new MdViewMixedVisualTableBlock(
+                                    header.SourceLine, fragment.NextDataLine,
+                                    fragment.DataRows, fragment.VisualRows,
+                                    fragment.Widget!));
+                                used += fragment.VisualRows;
+                                position = fragment.HasMore
+                                    ? MdViewMixedVisualPosition.NativeContinuation(
+                                        header.SourceLine, fragment.NextDataLine)
+                                    : new MdViewMixedVisualPosition(
+                                        fragment.NextDataLine, 0);
+                                if (fragment.HasMore)
+                                    break;
+                                continue;
+                            }
+                        }
+                    }
+
                     // Full-table compact fallback: retain state across
                     // pages, including a header/delimiter split and rows
                     // whose soft-wrap positions cross page boundaries.
@@ -240,7 +354,7 @@ public static class MdViewMixedVisualPagePlanner
         return new MdViewMixedVisualPage(
             start, position, used, clipped, atEnd,
             width, height, console.Profile.Capabilities.Unicode,
-            blocks, maximumContentColumns);
+            blocks, maximumContentColumns, longNativeTables);
     }
 
     private static bool MayStartPipeHeader(MarkdownContainerLine line)
