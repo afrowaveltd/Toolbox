@@ -412,3 +412,20 @@ only to `MdView.Tests` through `InternalsVisibleTo` (commit
 `75e232b3ab65a0de006bb7ae0810ba5139a94fea`).
 Production helper types remain internal. **New .NET test
 results pending.**
+
+### Final two centered-screen test corrections (2026-11-15)
+
+The newest maintainer run compiled both MdView and MdView.Tests:
+**334 passed, 2 failed, 0 skipped, 336 total**. Remaining cases were
+the centered line-input title and empty-source exit selection.
+
+Spectre's native `TextPrompt.WritePrompt` trims the provided title
+markup, stripping the original leading gutter. The pager now writes
+the indentation separately before opening `TextPrompt`, without a
+newline or per-character padding. The existing test keeps checking
+the true centered title, line jump and canonical page.
+
+For empty source, the sole `Exit mixed preview` item has Spectre's
+normal selection arrow, so the test now checks
+`gutter + "> Exit mixed preview"`. Neither test was disabled.
+**Fresh focused/full test verification remains pending.**
