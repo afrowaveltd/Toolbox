@@ -133,9 +133,12 @@ public sealed class MdViewMixedVisualPageIndex : IAsyncDisposable
                     .ConfigureAwait(false);
 
                 if (page.Start != position ||
+                    page.TerminalWidth != width ||
+                    page.TerminalHeight != height ||
+                    page.Unicode != unicode ||
                     page.Rows is < 0 or > 128 ||
                     page.Rows > contentRows ||
-                    (page.Rows == 0 && !page.AtEnd) ||
+                    (page.Rows == 0 && (!page.AtEnd || pageCount != 0)) ||
                     (!page.AtEnd && Compare(page.Next, position) <= 0) ||
                     (page.AtEnd && page.Next.WrapRow != 0))
                     throw new InvalidDataException(
@@ -310,7 +313,8 @@ public sealed class MdViewMixedVisualPageIndex : IAsyncDisposable
         var flags = BinaryPrimitives.ReadInt32LittleEndian(
             buffer.AsSpan(52, 4));
 
-        if (start.Line < 0 || start.WrapRow < 0 ||
+        if (start.Line < 0 || start.Line > SourceLineCount ||
+            start.WrapRow < 0 ||
             next.Line < 0 || next.Line > SourceLineCount ||
             next.WrapRow < 0 || Compare(next, start) < 0 ||
             (Compare(next, start) == 0 &&
@@ -318,6 +322,9 @@ public sealed class MdViewMixedVisualPageIndex : IAsyncDisposable
             visualRows < 0 || visualRows > ContentRows ||
             (visualRows == 0 && (flags & AtEndFlag) == 0) ||
             (flags & ~(AtEndFlag | ClippedCodeFlag)) != 0 ||
+            (((flags & AtEndFlag) != 0) != (pageNumber == PageCount - 1)) ||
+            ((flags & AtEndFlag) != 0 &&
+             (next.Line != SourceLineCount || next.WrapRow != 0)) ||
             !ValidCompactState(start) || !ValidCompactState(next))
             throw new InvalidDataException(
                 "Mixed visual page index contains invalid source positions or row counts.");
