@@ -965,3 +965,18 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - Next: respond to compile/analyzer/test results
   and smoke-test large/narrow terminals before
   further native-table enhancements.
+
+## 2026-11-15 — MdView centering test compilation fix
+
+- User reported CS1503 at lines 36–37 and CS0619
+  at line 40 of
+  `Blackboard/Tools/MdView.Tests/MdViewMixedContentAlignmentTests.cs`.
+- GitHub commit
+  `59dc31b6c3199a368b46adb900d20d87c15a93fc`
+  removes an unnecessary string-based Spectre table
+  fixture and uses explicit `Action` lambdas with
+  `Assert.Throws<T>`. The fix is isolated to tests;
+  production implementation is unchanged.
+- **Focused/full .NET test rerun pending.** The last green
+  checkpoint is the previously confirmed width-cap stage,
+  not yet the new centered-column tests.
