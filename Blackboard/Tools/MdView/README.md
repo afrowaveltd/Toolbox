@@ -733,3 +733,35 @@ A new case-insensitive CLI test and thirteen interactive mixed-pager
 tests have been committed; **their fresh .NET result is pending**.
 The maintainer's preceding baseline was **263 passed / 0 failed /
 0 skipped**. [Usage and safeguards](Docs/Mixed-Native-Preview/en.md).
+
+### Optional mixed-preview content width (2026-11-15)
+
+For a very wide terminal, the opt-in native mixed Markdown preview
+now supports a **maximum document-content width** without changing the
+physical Spectre console profile:
+
+```bash
+mdview preview-native README.md --max-width 100
+```
+
+`--max-width N` accepts **40–4096** visible content columns, follows
+the local source path and is case-insensitive. Without the flag, the
+existing full-terminal-width behavior is unchanged. The original
+`mdview preview PATH` command also remains unchanged.
+
+The same cap is used by styled Markdown line wrapping, compact
+pipe-cell layout, bounded native table geometry, the 56-byte
+document-wide disk page index and indexed reconstruction. A narrower
+cap can deliberately cause a wide Spectre grid to use compact
+fallback. `Page X of Y` and disk-indexed source-line jumps
+remain derived from the identical source-aware page planner.
+
+The physical terminal profile is never modified; actual terminal
+resizing still invalidates and rebuilds the index. The document
+body remains left-aligned, while headers, status and navigation
+retain the full physical width. XML-commented shared helper:
+`MdViewMixedContentWidth`. A new parameterized regression suite
+covers widths, page boundaries, native grids, source jumps,
+CLI input validation and cap-aware rendering.
+**Fresh .NET verification pending for this increment.**
+[Full English guide](Docs/Mixed-Content-Width/en.md).
