@@ -343,8 +343,18 @@ MdView's `preview-native README.md --max-width 100 --center`
 now centers the **whole viewer** in one reading column:
 Markdown content, file header, `Page X of Y`, selected
 navigation marker, source-line input, indexed heading/link
-lookup and feedback. An internal Spectre prompt adapter
-preserves the original keyboard interaction while text entry
-uses a separately indented title. Uncentered and compact
+lookup and feedback. A scoped Spectre live-render hook now positions the actual
+native prompt, after correcting a forwarding adapter that
+left the menu at column zero. Text entry still uses
+a separately indented title. Uncentered and compact
 reader modes remain unchanged.
 [Unified center alignment](Blackboard/Tools/MdView/Docs/Mixed-Content-Alignment/en.md).
+
+The latest MdView centered-menu correction replaces an ineffective
+forwarding console adapter with a scoped Spectre **live render-pipeline**
+hook. The hook shifts the actual navigation list (title, selection arrow
+and choices) like a borderless horizontal container, and leaves
+cursor controls untouched. The maintainer's preceding run showed
+**325/333 passing** with eight whole-screen alignment failures;
+the corrected build still awaits verification.
+[Native live selection alignment](Blackboard/Tools/MdView/Docs/Mixed-Content-Alignment/en.md).
