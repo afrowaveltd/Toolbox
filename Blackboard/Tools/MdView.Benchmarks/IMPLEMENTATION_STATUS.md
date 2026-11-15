@@ -93,3 +93,27 @@ separate benchmark project.
 
 No runtime numbers, throughput speedups or green
 benchmark compilation result are claimed yet.
+
+## 2026-11-15 — launch hardening and static validation
+
+- Follow-up launcher safeguards committed:
+  `f3284dcd4e9ec32fd1a9103091fc2daa41cd1fe0`
+  transmits the **actual df-mounted volume free space**
+  to the process instead of assuming `DriveInfo`
+  identifies a nested mount correctly; commit
+  `72e7ccc9aec6ebdd6c48d31eae2ccaee37b6ab76`
+  also refuses system-filesystem bind mounts
+  (matching MAJ:MIN) and tmpfs/ramfs/overlay targets.
+- Updated the .NET harness to require this
+  launcher-measured free-space environment variable
+  (`3ef82d0841bd35e8c0e3fe6a3e826ae77c3be546`).
+  Removed phase logging of live disposable snapshot/index
+  objects in favor of scalar performance metrics
+  (`72da4ff0f929461162638963b2cb47ee5d7e9320`).
+- Inspected the latest GitHub source, including a
+  lexical bracket-balance check of the C# program:
+  no unmatched braces, brackets or parentheses found.
+  **This is not a .NET compilation or runtime test.**
+- The initial 8-MiB smoke test on a separately
+  mounted disk is still required before the full
+  2-GiB HDD experiment.
