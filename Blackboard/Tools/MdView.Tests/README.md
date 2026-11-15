@@ -362,9 +362,11 @@ disk-indexed heading and link picker alignment; missing
 heading results; unchanged uncentered layout; and zero
 indentation when the terminal has no spare horizontal width.
 
-Production adds `MdViewIndentedPromptConsole`, a forwarding
-`IAnsiConsole` adapter for whole-widget Spectre selection prompts.
-Only the surrounding interface is newly padded; the existing
+The first forwarding `MdViewIndentedPromptConsole` adapter was
+ineffective for Spectre's live `SelectionPrompt` widget and was
+removed. A scoped `MdViewCenteredPromptRenderHook` now pads the
+actual pipeline-injected widget. Only the surrounding interface is
+newly padded; the existing
 centered Markdown renderer, disk page index and source
 continuation are unchanged. **A fresh .NET test run is pending.**
 [Layout design](../MdView/Docs/Mixed-Content-Alignment/en.md).
@@ -378,3 +380,23 @@ explicitly call `System.IO.Path` methods (commit
 `6463ac5e56fca90b1207916e7bd8cc5a6e9758b6`).
 The MdView production project built successfully; the new tests
 still need a fresh run.
+
+### Live Spectre selection rendering regression correction (2026-11-15)
+
+The maintainer's latest MdView test result was **325 passed,
+8 failed, 0 skipped, 333 total**. All eight failures were in
+`MdViewMixedScreenAlignmentTests`, and Konsole still displayed
+the bottom interactive menu at the terminal's left edge.
+
+Root cause: Spectre `SelectionPrompt` renders its menu through
+`ListPromptRenderHook` after the initial console write.
+A forwarding `IAnsiConsole.Write` cannot indent this live
+widget. A scoped `IRenderHook` now pads the actual live result
+and passes through the cursor controls unmodified.
+
+The screen tests now explicitly set
+`TestConsole.EmitAnsiSequences = true`, then strip ANSI
+control sequences when comparing visible text and leading
+spaces. Added hook-output and scope-lifetime coverage. The
+source-line navigation and picker tests use the real
+Spectre input and selection flow. **Fresh verification pending**.
