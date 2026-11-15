@@ -829,7 +829,8 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   heights too large for an empty page remain compact for the
   entire block. Small grids that do not fit *remaining* page space
   begin on the next page with their header intact.
-- Ten new xUnit tests written; English
+- Eleven new mixed-page xUnit tests plus one new shared block-reader
+  literal-code regression written; English
   `Docs/Mixed-Visual-Page-Planning/en.md` and project/test/root
   READMEs updated. **Focused/full .NET tests still pending** for
   this increment; retain prior green status separately.
