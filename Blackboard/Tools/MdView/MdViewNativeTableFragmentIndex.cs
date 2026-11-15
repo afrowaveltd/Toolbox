@@ -38,16 +38,19 @@ public sealed class MdViewNativeTableFragmentIndex : IAsyncDisposable
     public const int RecordBytes = 2 * sizeof(long) + 3 * sizeof(int);
 
     private readonly FileStream _stream;
+    private readonly MdViewContainerPageCursor _sourceCursor;
     private readonly SemaphoreSlim _gate = new(1, 1);
     private bool _disposed;
 
     private MdViewNativeTableFragmentIndex(
-        FileStream stream, long headerLine, long count, long sourceRows,
+        FileStream stream, MdViewContainerPageCursor cursor,
+        long headerLine, long count, long sourceRows,
         long nextDataLine, int terminalWidth, int terminalHeight,
         bool unicode, int contentRows,
         MdViewNativeTableFallbackReason fallbackReason)
     {
         _stream = stream;
+        _sourceCursor = cursor;
         HeaderLine = headerLine;
         FragmentCount = count;
         SourceDataRows = sourceRows;
@@ -121,6 +124,9 @@ public sealed class MdViewNativeTableFragmentIndex : IAsyncDisposable
             throw new ArgumentOutOfRangeException(nameof(contentRows));
         if (maximumIndexBytes < RecordBytes)
             throw new ArgumentOutOfRangeException(nameof(maximumIndexBytes));
+        if (contentRows > Math.Max(1, console.Profile.Height))
+            throw new ArgumentOutOfRangeException(nameof(contentRows),
+                "Visual content rows cannot exceed terminal height.");
         cancellationToken.ThrowIfCancellationRequested();
 
         // Do not rely on a caller-supplied header that has become stale or
@@ -192,7 +198,7 @@ public sealed class MdViewNativeTableFragmentIndex : IAsyncDisposable
             writer.Flush();
             await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             return new MdViewNativeTableFragmentIndex(
-                stream, header.SourceLine, fragmentCount, totalDataRows,
+                stream, cursor, header.SourceLine, fragmentCount, totalDataRows,
                 nextDataLine, console.Profile.Width, console.Profile.Height,
                 console.Profile.Capabilities.Unicode, contentRows, fallback);
         }
@@ -275,6 +281,15 @@ public sealed class MdViewNativeTableFragmentIndex : IAsyncDisposable
             _gate.Release();
         }
     }
+
+    /// <summary>
+    /// Confirms that rendering is using the exact validated source cursor
+    /// from which this temporary index was built.
+    /// </summary>
+    /// <param name="cursor">Cursor proposed for fragment reconstruction.</param>
+    /// <returns>True only for the original caller-owned source cursor.</returns>
+    internal bool UsesSourceCursor(MdViewContainerPageCursor cursor) =>
+        ReferenceEquals(_sourceCursor, cursor);
 
     /// <summary>Releases and deletes the temporary fragment index.</summary>
     public async ValueTask DisposeAsync()
