@@ -1222,3 +1222,21 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - **New MdView.Tests and full Toolbox.sln verification
   pending**. Next: fix real test feedback, then
   measure real cold/warm-cache slow-disk performance.
+
+## 2026-11-15 — verified MdView contiguous journal reads
+
+- Maintainer confirms the latest MdView contiguous
+  source-journal read changes are **all green**, including
+  the new bounded-record tests. No specific new count
+  was supplied in the confirmation; the previous ~7,000
+  figure is not assumed to be the exact current total.
+- The 256-KiB contiguous event-read implementation,
+  8-MiB individual-record safeguard, strict offset/JSON
+  validation and existing source-index compatibility
+  are now a maintainer-verified checkpoint.
+- Next: create a reproducible, opt-in benchmarking
+  workflow that distinguishes cold and warm OS caches,
+  reports time and memory alongside journal request
+  counts, and does not alter user-facing MdView defaults.
+  Passing regression tests is not itself an HDD speedup
+  measurement.
