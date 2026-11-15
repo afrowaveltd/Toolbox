@@ -147,10 +147,15 @@ public sealed class MdViewContainerPageCursor : IAsyncDisposable
         // describes an impossible serialized source event.
         for (var i = 0; i < count; i++)
         {
-            var size = offsets[i + 1] - offsets[i];
+            // Check monotonic bounds *before* subtraction, including
+            // corrupted long offsets that could overflow a difference.
             if (offsets[i] < 0 ||
-                offsets[i + 1] > _eventBytes ||
-                size < sizeof(int) + 1 ||
+                offsets[i + 1] <= offsets[i] ||
+                offsets[i + 1] > _eventBytes)
+                throw new InvalidDataException(
+                    "Container journal record offset or span is invalid.");
+            var size = offsets[i + 1] - offsets[i];
+            if (size < sizeof(int) + 1 ||
                 size > MaximumSerializedEventBytes + sizeof(int))
                 throw new InvalidDataException(
                     "Container journal record offset or span is invalid.");
