@@ -1151,3 +1151,16 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - These post-test hardening changes are committed but have
   **not yet been executed under .NET**. Previous maintainer green
   report still refers to the pre-long-table checkout.
+
+## 2026-11-15 — MdView long native tables CS1026 build fix
+
+- User's .NET 10 build of new opt-in native-table work failed
+  at `Blackboard/Tools/MdView/MdViewMixedVisualPagePlanner.cs:136`
+  with **CS1026 (expected ')')**. This prevented test execution.
+- Commit `66a826192fa6aa1988088a89162c08b9712239f6`
+  adds the missing closing parenthesis to a source-state
+  validation condition. This is a syntax-only correction.
+- The earlier user-confirmed ~7,000 green tests predate
+  `--long-tables`. Its new implementation/tests require
+  a fresh build and test run before the milestone can be
+  marked verified.
