@@ -836,3 +836,28 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   this increment; retain prior green status separately.
 - **Next:** on-disk mixed visual page-start index, then opt-in
   UI integration after index/renderer parity tests.
+
+## 2026-11-15 — MdView document-wide mixed-page index
+
+- Maintainer confirmed the previous bounded mixed Markdown/native
+  page-planning checkpoint green, including focused/full tests.
+  Counts were not provided.
+- New `Blackboard/Tools/MdView/MdViewMixedVisualPageIndex.cs`
+  uses a 56-byte temporary disk record per page for exact
+  source/wrap/compact-table start and continuation positions.
+  Disk binary search resolves canonical page numbers for
+  source-line jumps without an in-memory page list.
+- New `MdViewMixedVisualIndexedRenderer.cs` regenerates just
+  one requested indexed page and verifies current cursor,
+  terminal capabilities and exact source/row geometry
+  before writing output. It preserves the established
+  compact `mdview preview PATH` as the default.
+- Added 11 regression tests; root/project/test READMEs
+  and English `Docs/Mixed-Visual-Page-Index/en.md`
+  updated.
+- **Focused/full tests pending for this new milestone.**
+  Do not mark it green until the maintainer confirms
+  a new .NET test run.
+- Next stage: expose the mixed index behind an **explicit
+  opt-in preview mode** with canonical page navigation,
+  source-line jumps and geometry-change rebuilds.
