@@ -429,3 +429,27 @@ For empty source, the sole `Exit mixed preview` item has Spectre's
 normal selection arrow, so the test now checks
 `gutter + "> Exit mixed preview"`. Neither test was disabled.
 **Fresh focused/full test verification remains pending.**
+
+## Long native table continuation regressions (2026-11-15)
+
+Added `MdViewLongNativeMixedPagingTests` (13 test methods,
+including parameterized cases) for explicit
+`preview-native PATH --long-tables`: repeated Spectre
+headers across native fragments; original source rows
+displayed exactly once; disk-indexed physical source
+jumps into later fragments; EOF without a phantom page;
+unchanged compact behavior when the flag is absent;
+compact fallback for narrow width-capped layouts;
+centered native borders; resize rejection and invalid
+continuation state; cancellation; bounded all-or-nothing
+preflight; table header deferral after prose;
+case-insensitive CLI flag combinations and duplicate
+rejection; interactive pager with unmodified source
+bytes. A 56-byte indexed-page format is maintained.
+
+The earlier maintainer report of approximately **7,000
+green Toolbox tests** predates these new additions.
+**The new tests have not been run by the assistant**;
+run focused MdView.Tests and the complete Toolbox.sln
+before marking this milestone green.
+[English contract](../MdView/Docs/Long-Native-Tables/en.md).
