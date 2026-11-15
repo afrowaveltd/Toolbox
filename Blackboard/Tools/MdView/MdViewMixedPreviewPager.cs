@@ -88,15 +88,11 @@ public sealed class MdViewMixedPreviewPager
                     return;
                 }
 
-                // The document already positions its own rendered rows.
-                // Apply the same gutter only to its surrounding interface.
-                // This adapter preserves Spectre's native list-prompt keys,
-                // selection arrow and cancellation handling.
+                // Document layout already owns its centered gutter. Use
+                // the same value for UI chrome and the live selection menu,
+                // without padding source rows or changing terminal width.
                 var leftGutter = MdViewMixedContentAlignment.LeftGutter(
                     width, maximumContentColumns, centerContent);
-                IAnsiConsole promptConsole = leftGutter == 0
-                    ? _console
-                    : new MdViewIndentedPromptConsole(_console, leftGutter);
 
                 if (index is null ||
                     index.TerminalWidth != width ||
@@ -207,12 +203,14 @@ public sealed class MdViewMixedPreviewPager
                 }
                 choices.Add(exit);
 
-                var chosen = await new SelectionPrompt<string>()
+                var selection = new SelectionPrompt<string>()
                     .Title("Mixed preview navigation")
                     .PageSize(Math.Clamp(choices.Count, 3, 7))
                     .AddChoices(choices)
-                    .AddCancelResult(exit)
-                    .ShowAsync(promptConsole, cancellationToken).ConfigureAwait(false);
+                    .AddCancelResult(exit);
+                var chosen = await MdViewCenteredPrompt.ShowAsync(
+                    _console, selection, leftGutter, cancellationToken)
+                    .ConfigureAwait(false);
 
                 if (chosen == exit)
                     return;
@@ -274,8 +272,9 @@ public sealed class MdViewMixedPreviewPager
                             ? MdViewIndexedItemKind.Heading
                             : MdViewIndexedItemKind.Link;
                         var selected = await new MdViewDiskNavigationPicker(
-                            promptConsole).PickAsync(navigation, kind,
-                            cancellationToken).ConfigureAwait(false);
+                            _console, leftGutter).PickAsync(
+                                navigation, kind, cancellationToken)
+                            .ConfigureAwait(false);
                         if (selected is not null)
                         {
                             pageNumber = await index.FindPageAsync(
