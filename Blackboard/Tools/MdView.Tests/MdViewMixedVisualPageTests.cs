@@ -257,6 +257,39 @@ public sealed class MdViewMixedVisualPageTests
     }
 
     [Fact]
+    public async Task TextOnlyMixedRendererMatchesExistingCompactRendererExactly()
+    {
+        var source = "# Heading\n" +
+            string.Join(" ", Enumerable.Repeat("A longer piece of prose.", 15)) +
+            "\n> Quoted [link label](https://example.org)\n" +
+            "- A **strong** list item with \u0060code\u0060\n" +
+            "\u0060\u0060\u0060c\n    int value = 3;\n\u0060\u0060\u0060";
+        using var fixture = new Fixture(source);
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(fixture.Path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        var newConsole = MakeConsole(width: 32);
+        var oldConsole = MakeConsole(width: 32);
+        const int rowBudget = 40;
+
+        var page = await MdViewMixedVisualPagePlanner.PlanAsync(
+            cursor, MdViewMixedVisualPosition.Beginning, newConsole, rowBudget);
+        Assert.Empty(page.Blocks.OfType<MdViewMixedVisualTableBlock>());
+        Assert.True(page.AtEnd);
+
+        MdViewMixedVisualPageRenderer.Render(
+            newConsole, page, new MarkdownSpectreTheme());
+        var oldPage = await MdViewTerminalPageRenderer.RenderAsync(
+            oldConsole, cursor, new MdViewVisualPosition(0, 0),
+            columns: 30, contentRows: rowBudget,
+            new MarkdownSpectreTheme());
+
+        Assert.Equal(oldPage.Rows, page.Rows);
+        Assert.Equal(oldPage.Next.Line, page.Next.Line);
+        Assert.Equal(oldPage.Next.WrapRow, page.Next.WrapRow);
+        Assert.Equal(oldConsole.Output, newConsole.Output);
+    }
+
+    [Fact]
     public async Task FencedPipeTextDoesNotBecomeNativeTable()
     {
         const string source =
