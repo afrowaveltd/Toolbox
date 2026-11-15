@@ -670,3 +670,24 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
   environment.** Re-run MdView.Tests and `Toolbox.sln`;
   do not report another green checkpoint until actual results
   arrive from the maintainer.
+
+## 2026-11-15 — native table fragment disk-index regression suite
+
+- The maintainer reported the previous native table page-planner
+  checkpoint green; no precise full-solution count was provided.
+- Added **11 `MdViewNativeTableFragmentIndexTests`** for
+  28-byte disk records, 14 source data rows split into 6/6/2
+  fragments, disk binary-search source jumps, indexed rendering
+  of exactly the chosen middle fragment, header-only tables,
+  narrow/over-height whole-table fallback, real measured one-row
+  fragments, disk budget exhaustion, forged or different-source
+  rejection, invalid budgets/ranges, resize, cancellation
+  and disposal.
+- Production: `MdViewNativeTableFragmentIndex` and
+  `MdViewNativeTableFragmentRenderer`. The index stores no
+  native widgets in RAM. The renderer compares the same source
+  cursor, validated header, terminal geometry and fresh measured
+  fragment against a 28-byte disk record before console output.
+- **These 11 new cases and existing regression suites are not yet
+  re-run in this environment.** Run focused MdView.Tests followed
+  by `dotnet test Toolbox.sln`. No passing totals asserted.
