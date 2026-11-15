@@ -1286,3 +1286,66 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   compact default. Source line jumps into tables must
   resolve via `FindPageAsync` rather than forming
   unvalidated custom source starts.
+
+## 2026-11-15 — opt-in mixed native preview CLI and xUnit2020 warning cleanup
+
+- **Maintainer-confirmed green baseline:** the preceding
+  document-wide mixed visual page-index work passed **263/263**
+  MdView tests, **0 failed / 0 skipped** on .NET 10. One
+  analyzer warning remained: `xUnit2020` in
+  `MdViewMixedVisualPageTests`.
+- Corrected warning without changing its test semantics:
+  `Assert.True(false, message)` → `Assert.Fail(message)`.
+  Commit `7f1bc4bf1388026588d728c25877f4ce34eed94c`.
+- Added **`MdViewMixedPreviewPager.cs`** (commit
+  `84d5d73474c903cadfba5ffbbd6aa5f08a2d8925`).
+  It uses the validated UTF-8 snapshot, source cursor,
+  `MdViewMixedVisualPageIndex` and
+  `MdViewMixedVisualIndexedRenderer` for an interactive
+  explicitly selected mixed Markdown/native Spectre preview.
+- CLI: new `MdViewSourceKind.MixedPreview`,
+  case-insensitive `mdview preview-native PATH` parsing
+  (`49adadc08816cff0cefe542e0e681389dec7c215`),
+  Program dispatch and help
+  (`43ab78fa777ecad5ab8bbd2f96f23a87fc2505f1`).
+  The existing `mdview preview PATH` and source pager
+  **remain unchanged**. The session returns without
+  a duplicate completion prompt.
+- UI features: canonical `Page X of Y`,
+  Next/Previous by disk index, one-based physical-line jump
+  (including lines inside native tables), lazy disk-indexed
+  heading/link location selection, code-clipping indicator,
+  and explicit Escape/Exit. A resize rebuilds page
+  boundaries from the current physical source-line anchor.
+- Safety: minimum terminal size 28×18; 16 rows always
+  reserved for headers/status/prompts, including when the
+  caller supplies a large `linesPerPage` value
+  (`f99563b2a8e49cb1444bfe28db8ca6e18ac1bc64`).
+  A small/unsupported viewport returns without opening
+  the source; source files remain read-only. Native grids
+  are limited to complete small tables; long/over-height
+  source tables remain compact.
+- Tests: a new CLI parsing test
+  (`b515f5f4465ee99138ca8b2714c50bd8c2268d06`)
+  and **13 `MdViewMixedPreviewPagerTests`** (starting
+  `e29e8fb3c405db6bb576b64f213d000cc9da063f`,
+  additional navigation/viewport checks in
+  `c47a7b74c82f546756bc511d70c465fe8602c28e`).
+  Covers native table between prose, navigation/jumps,
+  heading/link location, compact fallback, empty source,
+  invalid input, tiny/noninteractive terminals, and
+  unsafe content. No tests claim to have run here.
+- English guide:
+  `Docs/Mixed-Native-Preview/en.md`; README and mixed
+  page index guide updated. Project/root/test statuses
+  updated for continuity.
+- **Fresh focused/full .NET tests pending.** Verify with:
+  `dotnet test Blackboard/Tools/MdView.Tests/MdView.Tests.csproj`,
+  `dotnet test Toolbox.sln`, then smoke-test
+  `dotnet run --project Blackboard/Tools/MdView --
+  preview-native README.md`. The previous 263/263 is
+  **not** a verification of this new UI.
+- **Next:** respond to compiler/analyzer/test feedback
+  first; if green, improve UI consistency and validate
+  terminal resize and long-file/low-RAM behavior before
+  considering a broader native table block model.
