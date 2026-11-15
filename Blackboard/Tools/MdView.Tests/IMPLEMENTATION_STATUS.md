@@ -822,3 +822,20 @@ Created the xUnit `net10.0` test project and command parser regression cases. Pr
 - **New test suite not yet run with .NET here**.
   Maintainer should rerun focused MdView.Tests and
   the full Toolbox solution, checking warnings too.
+
+## 2026-11-15 — fix CS1503 and CS0619 in centered-column tests
+
+- Reported .NET 10 compiler diagnostics in
+  `MdViewMixedContentAlignmentTests.cs`:
+  CS1503 at lines 36–37 (`string` passed where
+  `Spectre.Console.TableColumn` expected); CS0619
+  at line 40 (`Assert.Throws<T>(Func<Task>)` obsolete).
+- Commit `59dc31b6c3199a368b46adb900d20d87c15a93fc`
+  simplifies the argument guard fixture to
+  `new Spectre.Console.Table()` (no unused columns/rows)
+  and uses statement-bodied synchronous lambdas for
+  both exception assertions.
+- No behavior beyond the test fixture has changed.
+  **Re-run focused MdView.Tests and Toolbox.sln**.
+  Previous all-green run predates this centering suite;
+  fresh verification has not yet been provided.
