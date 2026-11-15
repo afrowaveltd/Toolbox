@@ -278,9 +278,8 @@ public sealed class MdViewMixedPreviewPager
         width >= 28 && height >= 18;
 
     private static int ContentRows(int terminalHeight, int requestedRows) =>
-        Math.Min(128, Math.Min(terminalHeight,
-            requestedRows == 0 ? Math.Max(1, terminalHeight - 16)
-                : requestedRows));
+        Math.Min(128, Math.Min(Math.Max(1, terminalHeight - 16),
+            requestedRows == 0 ? 128 : requestedRows));
 
     private void WriteGrayLine(string content, Style style, int terminalWidth)
     {
