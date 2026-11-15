@@ -121,7 +121,8 @@ static async Task<MdViewDisplayResult> DisplayAsync(
             // Explicit opt-in: disk-indexed mixed Markdown/native Spectre
             // pages. The existing compact "preview" mode is unchanged.
             await new MdViewMixedPreviewPager(console).RunAsync(
-                command.Value!, cancellationToken: cancellationToken);
+                command.Value!, cancellationToken: cancellationToken,
+                maximumContentColumns: command.MaximumContentColumns);
             return new MdViewDisplayResult(0, false);
         }
 
@@ -227,6 +228,7 @@ static void PrintHelp()
     Console.WriteLine("mdview browse-git OWNER/REPOSITORY");
     Console.WriteLine("mdview preview PATH (experimental bounded Markdown page preview)");
     Console.WriteLine("mdview preview-native PATH (opt-in mixed Markdown and inline native Spectre tables)");
+    Console.WriteLine("mdview preview-native PATH --max-width N (limit content to 40–4096 columns)");
     Console.WriteLine("mdview url HTTPS_URL");
     Console.WriteLine("mdview OWNER           (browse public GitHub repositories)");
     Console.WriteLine("mdview github:OWNER    (browse public GitHub repositories)");
