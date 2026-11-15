@@ -45,6 +45,17 @@ public sealed class MdViewCommandTests
             MdViewCommand.Parse("local", "./README.md").Kind);
     }
 
+    [Fact]
+    public void ExplicitNativePreviewIsOptInAndCaseInsensitive()
+    {
+        var command = MdViewCommand.Parse("PREVIEW-NATIVE", "./README.md");
+        Assert.Equal(MdViewSourceKind.MixedPreview, command.Kind);
+        Assert.Equal("./README.md", command.Value);
+        Assert.Null(command.Repository);
+        Assert.Equal(MdViewSourceKind.FormattedPreview,
+            MdViewCommand.Parse("preview", "./README.md").Kind);
+    }
+
     [Theory]
     [InlineData("git", "AfrowaveLtd")]
     [InlineData("GITHUB", "afrowaveltd")]
