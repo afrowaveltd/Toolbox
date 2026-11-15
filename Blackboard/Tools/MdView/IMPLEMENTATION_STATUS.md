@@ -1414,3 +1414,9 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   native tables and source jumps on narrow/wide terminals,
   then consider optional text centering while keeping
   exact disk-index layout parity and compact default.
+- Follow-up fixture hardening: a canonical page beginning inside a
+  long soft-wrapped source line is not required to repeat the
+  `Line N:` prefix. The constrained-page regression now checks
+  visible wrapped prose instead (commit
+  `a03ce6d78d83276453446e748ff991de45765556`).
+  No production behavior was altered by this test cleanup.
