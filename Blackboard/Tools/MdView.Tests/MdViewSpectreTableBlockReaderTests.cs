@@ -132,6 +132,32 @@ public sealed class MdViewSpectreTableBlockReaderTests
     }
 
     [Fact]
+    public async Task FourSpaceIndentedLiteralCodeNeverBecomesNativeHeaderOrData()
+    {
+        using var source = new SourceFixture(
+            "    | Name | Value |\n" +
+            "    | --- | --- |\n" +
+            "    | Data | Line |\n" +
+            "| Actual | Table |\n| --- | --- |\n" +
+            "| First | Good |\n" +
+            "    | Indented | Code |");
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(source.Path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+
+        Assert.Null(await MdViewSpectreTableBlockReader.ReadHeaderAsync(cursor, 0));
+        Assert.Equal(3, (await MdViewSpectreTableBlockReader.FindFirstHeaderAsync(
+            cursor, 0, 7))?.SourceLine);
+
+        var header = await MdViewSpectreTableBlockReader.ReadHeaderAsync(cursor, 3);
+        Assert.NotNull(header);
+        var chunk = await MdViewSpectreTableBlockReader.ReadChunkAsync(
+            cursor, header, 5);
+        Assert.Single(chunk.Rows);
+        Assert.Equal(6, chunk.NextDataLine);
+        Assert.False(chunk.HasMore);
+    }
+
+    [Fact]
     public async Task InvalidLineRangesChunkBudgetsAndResumePointsAreRejected()
     {
         using var source = new SourceFixture(
