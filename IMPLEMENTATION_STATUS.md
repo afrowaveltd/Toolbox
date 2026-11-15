@@ -892,3 +892,37 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
 - **Next:** resolve any .NET compile/test feedback;
   then smoke-test native/compact navigation, resize and
   low-resource behavior, retaining compact default.
+
+## 2026-11-15 — MdView optional mixed preview content width
+
+- User visually verified native mixed Markdown paging on
+  differently sized Konsole windows. Screenshots showed
+  correct-looking page counters and source ranges (13
+  pages in a narrow layout, 8 in a wider layout), though
+  no current full automated test transcript was supplied.
+- Added XML-commented `MdViewMixedContentWidth.cs`,
+  optional **`mdview preview-native PATH --max-width N`**
+  (40–4096 content columns) and matching changes through
+  the bounded native table planner, mixed page planner,
+  56-byte disk page index and indexed renderer.
+  The actual Spectre terminal width and height are
+  retained for resize detection. Both default
+  `preview-native PATH` full-width display and the
+  original compact `preview PATH` are unchanged.
+- New parameterized
+  `Blackboard/Tools/MdView.Tests/MdViewMixedContentWidthTests.cs`
+  checks width policy, source jumps, indexed render parity,
+  small native table deferral/compact fallback at widths
+  40, 63, 64, 80, 120 and 220, resize handling,
+  invalid CLI values and the visible width status.
+- English guide
+  `Blackboard/Tools/MdView/Docs/Mixed-Content-Width/en.md`
+  plus root/project/test READMEs and implementation
+  statuses updated; all changes committed directly to GitHub.
+- **Fresh MdView and full-solution .NET test verification pending.**
+  Recommended smoke test:
+  `dotnet run --project Blackboard/Tools/MdView --
+  preview-native README.md --max-width 100`.
+- Next: resolve any failing test or warning first,
+  then further improve native table behavior and large
+  terminal readability without sacrificing indexed parity.
