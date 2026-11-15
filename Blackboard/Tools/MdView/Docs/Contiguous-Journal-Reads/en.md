@@ -137,5 +137,5 @@ contiguous event-read implementation still requires a
 fresh .NET build and test run.
 
 See [native table journal request batching](../Native-Table-Journal-Batching/en.md),
-[container journal](../Container-Page-Journal/en.md), and
+[mixed source-aware preview](../Mixed-Native-Preview/en.md), and
 [implementation status](../../IMPLEMENTATION_STATUS.md).
