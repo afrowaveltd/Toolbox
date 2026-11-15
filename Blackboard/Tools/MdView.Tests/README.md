@@ -368,3 +368,13 @@ Only the surrounding interface is newly padded; the existing
 centered Markdown renderer, disk page index and source
 continuation are unchanged. **A fresh .NET test run is pending.**
 [Layout design](../MdView/Docs/Mixed-Content-Alignment/en.md).
+
+### Full-screen alignment fixture compiler fix (2026-11-15)
+
+The first `.NET 10` build of `MdViewMixedScreenAlignmentTests` found
+`CS0236` and `CS1061` from a local fixture's `Path` property
+shadowing `System.IO.Path`. Both directory and filename creation now
+explicitly call `System.IO.Path` methods (commit
+`6463ac5e56fca90b1207916e7bd8cc5a6e9758b6`).
+The MdView production project built successfully; the new tests
+still need a fresh run.
