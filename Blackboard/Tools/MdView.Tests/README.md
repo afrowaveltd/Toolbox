@@ -333,3 +333,16 @@ cases and build have **not yet been executed using .NET**
 in the assistant environment. The previous width-cap
 increment was maintainer-confirmed all green.
 [English design and test contract](../MdView/Docs/Mixed-Content-Alignment/en.md).
+
+### Centering suite compiler fix (2026-11-15)
+
+The first local .NET 10 compile after adding
+`MdViewMixedContentAlignmentTests` revealed two
+string/`TableColumn` CS1503 diagnostics and one
+obsolete `Assert.Throws<T>(Func<Task>)` CS0619 diagnostic.
+The guard test now uses an unconfigured native table,
+which is sufficient to verify null and negative-padding
+handling, plus explicit synchronous `Action` assertions.
+Only the test changed (commit
+`59dc31b6c3199a368b46adb900d20d87c15a93fc`).
+A fresh focused/full build remains pending.
