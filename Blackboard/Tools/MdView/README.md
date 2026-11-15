@@ -912,3 +912,36 @@ The request-count reduction is **not** a claimed HDD
 elapsed-time benchmark result. Maintainer .NET verification
 of this new increment remains pending.
 [Batching design](Docs/Native-Table-Journal-Batching/en.md).
+
+### Contiguous source journal event reads (2026-11-15)
+
+The source-aware `MdViewContainerPageCursor` now coalesces
+neighboring serialized Markdown line events into **bounded
+contiguous disk reads**, instead of reading each event's
+four-byte length and JSON payload separately.
+
+One cursor request reads its offsets together (plus
+at most one following offset), then validates strictly
+increasing record boundaries. Complete serialized events
+are grouped into windows up to **256 KiB**. An individual
+valid event larger than that threshold uses a single
+bounded read (existing maximum **8 MiB + 4 bytes**).
+Each record's stored length, JSON and physical source
+line number are verified independently.
+
+A new **internal** `EventReadRequestCount` diagnostic
+counts actual event-stream `ReadExactlyAsync` calls,
+rather than higher-level cursor requests. Seven xUnit
+regressions check single-window reads, multi-window
+splitting, oversized records, Unicode/CRLF preservation,
+backward navigation, deliberately corrupted journal
+boundaries and pre-cancellation.
+
+This increment does not change CLI commands, source
+snapshot validation, `Page X of Y`, native Spectre
+geometry or the 56-byte mixed visual index. Lower
+stream call counts are deterministic; real HDD elapsed
+time is **not yet measured**. Fresh .NET verification
+is pending after the previous maintainer-confirmed
+all-green checkpoint.
+[Contiguous journal reads](Docs/Contiguous-Journal-Reads/en.md).
