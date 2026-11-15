@@ -39,6 +39,12 @@ public sealed record MdViewCommand(MdViewSourceKind Kind, string? Value = null, 
     /// </summary>
     public int MaximumContentColumns { get; init; }
 
+    /// <summary>
+    /// Whether the opt-in mixed preview reading column is horizontally
+    /// centered within unused terminal columns. No effect on pagination.
+    /// </summary>
+    public bool CenterContent { get; init; }
+
     /// <summary>Converts command-line tokens to a strongly typed source command.</summary>
     /// <param name="args">CLI arguments, excluding the executable name.</param>
     /// <returns>A command describing the selected source or interactive/help action.</returns>
@@ -106,20 +112,47 @@ public sealed record MdViewCommand(MdViewSourceKind Kind, string? Value = null, 
                 return new(MdViewSourceKind.GitHub, pieces[0], pieces[1]);
             }
         }
-        if (args.Length == 4 &&
-            args[0].Equals("preview-native", StringComparison.OrdinalIgnoreCase) &&
-            args[2].Equals("--max-width", StringComparison.OrdinalIgnoreCase))
+        if (args.Length >= 3 &&
+            args[0].Equals("preview-native", StringComparison.OrdinalIgnoreCase))
         {
-            if (!int.TryParse(args[3], System.Globalization.NumberStyles.None,
-                System.Globalization.CultureInfo.InvariantCulture, out var columns))
-                throw new ArgumentException("Maximum width must be an integer number of content columns.");
-            if (columns < MdViewMixedContentWidth.MinimumColumns ||
-                columns > MdViewMixedContentWidth.MaximumColumns)
-                throw new ArgumentException("Maximum width must be between 40 and 4096 content columns.");
-            return new MdViewCommand(
-                MdViewSourceKind.MixedPreview, Require(args[1]))
+            var path = Require(args[1]);
+            var maximum = 0;
+            var center = false;
+            for (var index = 2; index < args.Length;)
             {
-                MaximumContentColumns = columns
+                var option = args[index];
+                if (option.Equals("--center", StringComparison.OrdinalIgnoreCase)
+                    && !center)
+                {
+                    center = true;
+                    index++;
+                    continue;
+                }
+                if (option.Equals("--max-width", StringComparison.OrdinalIgnoreCase)
+                    && maximum == 0)
+                {
+                    if (index + 1 >= args.Length ||
+                        !int.TryParse(args[index + 1],
+                            System.Globalization.NumberStyles.None,
+                            System.Globalization.CultureInfo.InvariantCulture,
+                            out var columns))
+                        throw new ArgumentException(
+                            "Maximum width must be an integer number of content columns.");
+                    if (columns < MdViewMixedContentWidth.MinimumColumns ||
+                        columns > MdViewMixedContentWidth.MaximumColumns)
+                        throw new ArgumentException(
+                            "Maximum width must be between 40 and 4096 content columns.");
+                    maximum = columns;
+                    index += 2;
+                    continue;
+                }
+                throw new ArgumentException(
+                    "Unknown or repeated preview-native option: " + option);
+            }
+            return new MdViewCommand(MdViewSourceKind.MixedPreview, path)
+            {
+                MaximumContentColumns = maximum,
+                CenterContent = center
             };
         }
 
