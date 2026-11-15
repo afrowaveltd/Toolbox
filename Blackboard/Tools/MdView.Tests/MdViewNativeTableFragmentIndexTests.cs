@@ -36,7 +36,7 @@ public sealed class MdViewNativeTableFragmentIndexTests
         Assert.Equal(17, index.NextDataLine);
         Assert.Equal(60, index.ContentRows);
         Assert.Equal(96, index.TerminalWidth);
-        Assert.Equal(50, index.TerminalHeight);
+        Assert.Equal(100, index.TerminalHeight);
 
         var first = await index.GetFragmentAsync(0);
         var second = await index.GetFragmentAsync(1);
@@ -266,6 +266,8 @@ public sealed class MdViewNativeTableFragmentIndexTests
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
             MdViewNativeTableFragmentIndex.CreateAsync(cursor, header, console, 30,
                 maximumIndexBytes: MdViewNativeTableFragmentIndex.RecordBytes - 1));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            MdViewNativeTableFragmentIndex.CreateAsync(cursor, header, console, 101));
 
         await using var index = await MdViewNativeTableFragmentIndex.CreateAsync(
             cursor, header, console, 30);
@@ -294,6 +296,31 @@ public sealed class MdViewNativeTableFragmentIndexTests
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
             MdViewNativeTableFragmentRenderer.RenderAsync(
                 index, cursor, header, console, 0));
+        Assert.Equal(string.Empty, console.Output);
+    }
+
+    [Fact]
+    public async Task NativeRendererRejectsSubstitutedHeaderAndCursorBeforeWriting()
+    {
+        using var fixture = new Fixture(
+            "| Name | Value |\n| --- | --- |\n| First | One |");
+        await using var snapshot = await Utf8ValidatedSnapshot.CreateAsync(fixture.Path);
+        await using var cursor = new MdViewContainerPageCursor(snapshot);
+        await using var otherCursor = new MdViewContainerPageCursor(snapshot);
+        var header = await MdViewSpectreTableBlockReader.ReadHeaderAsync(cursor, 0);
+        Assert.NotNull(header);
+        var console = MakeConsole();
+        await using var index = await MdViewNativeTableFragmentIndex.CreateAsync(
+            cursor, header, console, 30);
+
+        var swapped = new MdViewSpectreTableHeader(0,
+            ["Fake", "Value"], header.Separators);
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            MdViewNativeTableFragmentRenderer.RenderAsync(
+                index, cursor, swapped, console, 0));
+        await Assert.ThrowsAsync<InvalidDataException>(() =>
+            MdViewNativeTableFragmentRenderer.RenderAsync(
+                index, otherCursor, header, console, 0));
         Assert.Equal(string.Empty, console.Output);
     }
 
@@ -338,7 +365,7 @@ public sealed class MdViewNativeTableFragmentIndexTests
     {
         var console = new TestConsole();
         console.Profile.Width = width;
-        console.Profile.Height = 50;
+        console.Profile.Height = 100;
         console.Profile.Capabilities.Unicode = true;
         console.Profile.Capabilities.Interactive = true;
         return console;
