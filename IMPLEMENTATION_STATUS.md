@@ -1279,3 +1279,16 @@ Continue [ExchangeHouse Markdown](ExchangeHouse/Markdown/IMPLEMENTATION_STATUS.m
   verification. Inspect the logs before making
   HDD speedup claims. The previous full Toolbox
   all-green tests predate these new files.
+
+## 2026-11-15 — isolated HDD benchmark launch safeguards finalized
+
+- Separate MdView.Benchmarks launcher additionally
+  rejects system-disk bind mounts and memory/overlay
+  filesystems, verifies available space using the
+  actual `df` mount and redirects `TMPDIR`
+  before the .NET process begins. No privileged
+  write, forced cache flush or data deletion occurs.
+- C# program passed a static delimiter-balance
+  review, not compilation. The first 8-MiB
+  manual smoke run and 2-GiB HGST measurements
+  remain pending on the user's machine.
