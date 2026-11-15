@@ -220,7 +220,7 @@ public sealed class MdViewMixedVisualPageTests
             }
         }
 
-        Assert.True(false, "Compact fallback did not reach the end of the document.");
+        Assert.Fail("Compact fallback did not reach the end of the document.");
     }
 
     [Fact]
