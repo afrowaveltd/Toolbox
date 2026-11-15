@@ -112,7 +112,11 @@ public sealed class MdViewMixedContentWidthTests
             var next = await MdViewMixedVisualPagePlanner.PlanAsync(
                 cursor, first.Next, console, contentRows);
             Assert.Single(next.Blocks.OfType<MdViewMixedVisualTableBlock>());
-            Assert.Equal(11, next.Next.Line);
+            // Native borders may occupy a different number of visual
+            // rows at different supported terminal widths; the table
+            // itself must be complete, but the following prose may
+            // naturally move to another page.
+            Assert.InRange(next.Next.Line, 10L, 11L);
         }
         else
         {
