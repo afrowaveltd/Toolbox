@@ -303,3 +303,11 @@ preserve exact source continuation; long tables retain compact
 fallback across pages. The existing default `Page X of Y`
 index and UI are unchanged while whole-document indexing is built.
 [Mixed visual page contract](Blackboard/Tools/MdView/Docs/Mixed-Visual-Page-Planning/en.md).
+
+MdView's experimental **mixed Markdown/native visual paging**
+now has a document-wide disk index (56-byte fixed records,
+binary-search physical-line/wrap-row jumps) and an indexed
+renderer that checks source and Spectre terminal geometry
+before displaying any page. The default compact reader
+remains unchanged until optional UI navigation is verified.
+[Mixed visual page index](Blackboard/Tools/MdView/Docs/Mixed-Visual-Page-Index/en.md).
