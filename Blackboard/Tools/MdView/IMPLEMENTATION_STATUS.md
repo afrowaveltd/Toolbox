@@ -1200,7 +1200,7 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   by checking the source-line's possible pipe prefix without
   materializing a trimmed long string (commit
   `8cbc254c70df633aa1081a17f855298f897862db`).
-- Added **11 `MdViewMixedVisualPageTests`** (commits
+- Added **12 `MdViewMixedVisualPageTests`** (commits
   `e18455a986cf0993ee20813fde2632fdb4dbc906`,
   `3904f213b32bbbae8a02ea2d25957bc683c86ab1`).
   They cover compact/native source progression, height/page
@@ -1227,3 +1227,9 @@ automatically (up to 128 visual rows); an explicit 1–128 cap remains supported
   `4de37faae36c3f0d6f4ef3abf8aa2843b8b68dc7`). A seventh
   `MdViewSpectreTableBlockReaderTests` case and an eleventh mixed-page
   case verify this behavior. These are **unexecuted** here.
+
+- A further text-only parity regression compares the new mixed renderer's
+  actual terminal output with the established compact renderer
+  byte-for-byte, including headings, prose, links, lists and fenced code
+  (`a2abec622156ae998c72ed1d330b42f30442b163`, explicit theme argument
+  in `6a45794e5224ca08ea4e84f4a33198c248361537`). **Pending execution**.
