@@ -4,4 +4,4 @@ This folder currently holds [DESIGN_NOTES.md](DESIGN_NOTES.md), a substantial **
 
 **There is no integrated AJIS 2.0 runtime project in this folder in the current Toolbox solution.** The existing historical implementation is maintained separately at [Ajis.Dotnet](https://github.com/afrowaveltd/Ajis.Dotnet). Future Suitcase/Backpack/AJIS 2.0 work should be connected to a concrete project and tests before being listed as an implemented Toolbox package.
 
-[Architecture and scope](Docs/Scope/en.md) · [Implementation status](IMPLEMENTATION_STATUS.md).
+[Architecture and scope](Docs/Scope/en.md) · [AJIS ↔ JSON typed numeric prefixes](Docs/JSON-TYPED-NUMERIC-ROUNDTRIP.md) · [Implementation status](IMPLEMENTATION_STATUS.md).
