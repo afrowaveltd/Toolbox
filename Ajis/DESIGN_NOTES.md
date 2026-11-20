@@ -1041,6 +1041,23 @@ A known schema/count can therefore be emitted before the streamed JSON payload, 
 
 
 
+
+### 13.7 Compact JSON key markers for typed radix literals (2026-11-20 proposal)
+
+A lightweight alternative to per-value metadata objects has been proposed for AJIS radix **numeric** literals (`0x`, `0b`, `0o`) transported through otherwise ordinary JSON. Exporters prepend a reserved type marker to the JSON **key**, preserve the AJIS numeric spelling as a JSON **string**, and importers remove only the **first** type marker and restore the unquoted AJIS numeric literal. A leading `(str)` escape protects a genuine string-valued AJIS key that starts with a reserved marker.
+
+Examples:
+
+```text
+AJIS: "(0x)0x123": "0xABC"  -> JSON: "(str)(0x)0x123": "0xABC"
+AJIS: "(0x)0x123": 0xABC    -> JSON: "(0x)(0x)0x123": "0xABC"
+AJIS: "Bits": 0b1010       -> JSON: "(0b)Bits": "0b1010"
+AJIS: "Mode": 0o755        -> JSON: "(0o)Mode": "0o755"
+```
+
+See [the focused prefix-round-trip design note](Docs/JSON-TYPED-NUMERIC-ROUNDTRIP.md) for the complete conversion rules, proposed constraints and future conformance cases. This is **design only**, covering defined string/radix-numeric cases; it does **not** replace the general `#ajisData` lossless metadata proposal above, and must not be described as an implemented universal converter.
+
+
 ## 14. Universal data representation and metadata enrichment
 
 A2/AJIS should be designed with the goal that application data does not become "unsupported" merely because it is not one of a small fixed set of primitive types.
