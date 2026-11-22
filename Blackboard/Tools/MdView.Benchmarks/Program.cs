@@ -24,7 +24,7 @@ internal static class MdViewDiskBenchmark
         string Mode, string Root, int SizeMiB = 2048, int Seeks = 250,
         int Passes = 1, int Width = 120, int Rows = 48,
         int MaxWidth = 100, int Seed = 20261115,
-        bool LongTables = false)
+        bool LongTables = false, int ProgressStep = 10)
     {
         public long TargetBytes => checked(SizeMiB * MiB);
         public string SourcePath => Path.Combine(
@@ -59,6 +59,7 @@ internal static class MdViewDiskBenchmark
                 options.SizeMiB, target_bytes = options.TargetBytes,
                 options.Seeks, options.Passes, options.Width, options.Rows,
                 options.MaxWidth, options.Seed, options.LongTables,
+                options.ProgressStep,
                 temp_path = tmp,
                 os = RuntimeInformation.OSDescription,
                 runtime = RuntimeInformation.FrameworkDescription,
@@ -129,7 +130,7 @@ internal static class MdViewDiskBenchmark
                 "Usage: run.sh ROOT all|prepare|generate|measure|index, or run.ps1 -Mode MODE " +
                 "[--size-mib 2048] [--seeks 250] [--passes 1] " +
                 "[--width 120] [--rows 48] [--max-width 100] " +
-                "[--seed N] [--long-tables].");
+                "[--seed N] [--progress-step 1..10] [--long-tables].");
 
         var mode = args[0].ToLowerInvariant();
         if (mode is not ("all" or "prepare" or "generate" or "measure" or "index"))
@@ -164,6 +165,7 @@ internal static class MdViewDiskBenchmark
                 "--rows" => opt with { Rows = number },
                 "--max-width" => opt with { MaxWidth = number },
                 "--seed" => opt with { Seed = number },
+                "--progress-step" => opt with { ProgressStep = number },
                 _ => throw new ArgumentException("Unknown benchmark flag: " + flag)
             };
         }
@@ -173,6 +175,7 @@ internal static class MdViewDiskBenchmark
             opt.Passes is < 1 or > 4 ||
             opt.Width is < 80 or > 4096 ||
             opt.Rows is < 8 or > 128 ||
+            opt.ProgressStep is < 1 or > 10 ||
             opt.MaxWidth < 40 || opt.MaxWidth > opt.Width)
             throw new ArgumentOutOfRangeException(
                 nameof(args), "Size, geometry or iteration limits are invalid.");
@@ -349,9 +352,9 @@ internal static class MdViewDiskBenchmark
                 settings.TargetBytes, async () =>
                 {
                     long first = 0;
-                    var nextProgress = 10L;
+                    var nextProgress = (long)settings.ProgressStep;
 
-                    // Ten-percent windows help distinguish GC-heavy CPU
+                    // Progress windows help distinguish GC-heavy CPU
                     // intervals from external storage/scheduler stalls.
                     // No extra reads or writes to the benchmark source.
                     using var intervalProcess = Process.GetCurrentProcess();
@@ -360,6 +363,7 @@ internal static class MdViewDiskBenchmark
                     var intervalGc0 = GC.CollectionCount(0);
                     var intervalGc1 = GC.CollectionCount(1);
                     var intervalGc2 = GC.CollectionCount(2);
+                    var intervalGcPause = GC.GetTotalPauseDuration();
                     var intervalCpu = intervalProcess.TotalProcessorTime;
                     long intervalJournalBytes = 0;
                     while (first < snapshot.Lines.LineCount)
@@ -379,6 +383,7 @@ internal static class MdViewDiskBenchmark
                             var nowGc0 = GC.CollectionCount(0);
                             var nowGc1 = GC.CollectionCount(1);
                             var nowGc2 = GC.CollectionCount(2);
+                            var nowGcPause = GC.GetTotalPauseDuration();
                             var nowCpu = intervalProcess.TotalProcessorTime;
                             var nowJournalBytes = cursor.JournalBytes;
                             log.Write("journal_progress", new
@@ -391,6 +396,8 @@ internal static class MdViewDiskBenchmark
                                 interval_gc_gen0 = nowGc0 - intervalGc0,
                                 interval_gc_gen1 = nowGc1 - intervalGc1,
                                 interval_gc_gen2 = nowGc2 - intervalGc2,
+                                interval_gc_pause_ms =
+                                    (nowGcPause - intervalGcPause).TotalMilliseconds,
                                 interval_cpu_ms = (nowCpu - intervalCpu).TotalMilliseconds,
                                 interval_journal_bytes = nowJournalBytes - intervalJournalBytes,
                                 working_set_bytes = intervalProcess.WorkingSet64
@@ -400,9 +407,14 @@ internal static class MdViewDiskBenchmark
                             intervalGc0 = nowGc0;
                             intervalGc1 = nowGc1;
                             intervalGc2 = nowGc2;
+                            intervalGcPause = nowGcPause;
                             intervalCpu = nowCpu;
                             intervalJournalBytes = nowJournalBytes;
-                            nextProgress += 10L;
+                            // A single 128-line read may skip multiple
+                            // small percentage thresholds on small fixtures.
+                            nextProgress =
+                                (percent / settings.ProgressStep + 1) *
+                                settings.ProgressStep;
                         }
                     }
                     if (first != snapshot.Lines.LineCount)
@@ -575,6 +587,7 @@ internal static class MdViewDiskBenchmark
         var gc0Start = GC.CollectionCount(0);
         var gc1Start = GC.CollectionCount(1);
         var gc2Start = GC.CollectionCount(2);
+        var gcPauseStart = GC.GetTotalPauseDuration();
         var cpuBefore = Process.GetCurrentProcess().TotalProcessorTime;
         var stopwatch = Stopwatch.StartNew();
         try
@@ -602,6 +615,8 @@ internal static class MdViewDiskBenchmark
                 gc_gen0_delta = GC.CollectionCount(0) - gc0Start,
                 gc_gen1_delta = GC.CollectionCount(1) - gc1Start,
                 gc_gen2_delta = GC.CollectionCount(2) - gc2Start,
+                gc_pause_ms_delta =
+                    (GC.GetTotalPauseDuration() - gcPauseStart).TotalMilliseconds,
                 proc_io_delta = LinuxIo.Delta(before, LinuxIo.Read()),
                 result_type = typeof(T).Name
             });
@@ -618,6 +633,8 @@ internal static class MdViewDiskBenchmark
                 gc_gen0_delta = GC.CollectionCount(0) - gc0Start,
                 gc_gen1_delta = GC.CollectionCount(1) - gc1Start,
                 gc_gen2_delta = GC.CollectionCount(2) - gc2Start,
+                gc_pause_ms_delta =
+                    (GC.GetTotalPauseDuration() - gcPauseStart).TotalMilliseconds,
                 proc_io_delta = LinuxIo.Delta(before, LinuxIo.Read())
             });
             throw;

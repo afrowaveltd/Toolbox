@@ -31,6 +31,8 @@ param(
     [ValidateRange(40, 4096)]
     [int] $MaxWidth = 100,
     [int] $Seed = 20261115,
+    [ValidateRange(1, 10)]
+    [int] $ProgressStep = 10,
     [switch] $LongTables
 )
 
@@ -179,7 +181,8 @@ $benchmarkArguments = @(
     '--width', [string]$Width,
     '--rows', [string]$Rows,
     '--max-width', [string]$MaxWidth,
-    '--seed', [string]$Seed
+    '--seed', [string]$Seed,
+    '--progress-step', [string]$ProgressStep
 )
 if ($LongTables) { $benchmarkArguments += '--long-tables' }
 & dotnet $binary @benchmarkArguments
